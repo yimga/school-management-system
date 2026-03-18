@@ -5,15 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0006_sitesettings_school_code'),
+        ("siteconfig", "0006_sitesettings_school_code"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='referral_bonus_amount',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), help_text='Default credit amount awarded per successful referral.', max_digits=10),
+            model_name="sitesettings",
+            name="referral_bonus_amount",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=Decimal("0.00"),
+                help_text="Default credit amount awarded per successful referral.",
+                max_digits=10,
+            ),
         ),
     ]

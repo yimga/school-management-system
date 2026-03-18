@@ -23,7 +23,10 @@ def add_fields_if_missing(apps, schema_editor):
             cursor.execute(f"PRAGMA table_info('{table_name}')")
             return any(row[1] == column_name for row in cursor.fetchall())
         return column_name in {
-            col.name for col in connection.introspection.get_table_description(cursor, table_name)
+            col.name
+            for col in connection.introspection.get_table_description(
+                cursor, table_name
+            )
         }
 
     def _table_exists(cursor, table_name: str) -> bool:
@@ -144,34 +147,55 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registries', '0001_initial'),
-        ('schools', '0026_rls_policy_default_deny'),
+        ("registries", "0001_initial"),
+        ("schools", "0026_rls_policy_default_deny"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='school',
-                    name='country_code',
-                    field=models.CharField(blank=True, db_index=True, help_text='Canonical ISO 3166-1 alpha-2 country code for onboarding and analytics.', max_length=2),
+                    model_name="school",
+                    name="country_code",
+                    field=models.CharField(
+                        blank=True,
+                        db_index=True,
+                        help_text="Canonical ISO 3166-1 alpha-2 country code for onboarding and analytics.",
+                        max_length=2,
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='school',
-                    name='education_levels',
-                    field=models.ManyToManyField(blank=True, help_text='Canonical education levels served by this school.', related_name='schools', to='registries.educationlevelregistry'),
+                    model_name="school",
+                    name="education_levels",
+                    field=models.ManyToManyField(
+                        blank=True,
+                        help_text="Canonical education levels served by this school.",
+                        related_name="schools",
+                        to="registries.educationlevelregistry",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='school',
-                    name='education_system_types',
-                    field=models.ManyToManyField(blank=True, help_text='Canonical education system types served by this school.', related_name='schools', to='registries.educationsystemtyperegistry'),
+                    model_name="school",
+                    name="education_system_types",
+                    field=models.ManyToManyField(
+                        blank=True,
+                        help_text="Canonical education system types served by this school.",
+                        related_name="schools",
+                        to="registries.educationsystemtyperegistry",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='school',
-                    name='subdivision',
-                    field=models.ForeignKey(blank=True, help_text='Canonical subdivision selection for this school.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='schools', to='registries.subdivisionregistry'),
+                    model_name="school",
+                    name="subdivision",
+                    field=models.ForeignKey(
+                        blank=True,
+                        help_text="Canonical subdivision selection for this school.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="schools",
+                        to="registries.subdivisionregistry",
+                    ),
                 ),
             ],
             database_operations=[

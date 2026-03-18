@@ -42,23 +42,30 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0027_school_country_code_school_education_levels_and_more'),
+        ("schools", "0027_school_country_code_school_education_levels_and_more"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='school',
-                    name='default_dashboard_slug',
-                    field=models.CharField(blank=True, help_text='Default dashboard preset slug for this school (e.g. from dashboard registry).', max_length=80),
+                    model_name="school",
+                    name="default_dashboard_slug",
+                    field=models.CharField(
+                        blank=True,
+                        help_text="Default dashboard preset slug for this school (e.g. from dashboard registry).",
+                        max_length=80,
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='school',
-                    name='default_workflow_slug',
-                    field=models.CharField(blank=True, help_text='Default workflow preset slug for this school (e.g. from TenantWorkflow registry).', max_length=80),
+                    model_name="school",
+                    name="default_workflow_slug",
+                    field=models.CharField(
+                        blank=True,
+                        help_text="Default workflow preset slug for this school (e.g. from TenantWorkflow registry).",
+                        max_length=80,
+                    ),
                 ),
             ],
             database_operations=[

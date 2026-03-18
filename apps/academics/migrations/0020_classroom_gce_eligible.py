@@ -2,7 +2,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("academics", "0019_subjectassignment_grading_deadline_at"),
     ]

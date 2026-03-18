@@ -2,7 +2,11 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-from apps.api.ministry_connectors import ministry_runtime_status, submit_cartescolaire, submit_dgi
+from apps.api.ministry_connectors import (
+    ministry_runtime_status,
+    submit_cartescolaire,
+    submit_dgi,
+)
 
 
 class MinistryConnectorTests(SimpleTestCase):

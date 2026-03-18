@@ -27,7 +27,10 @@ from .document_lifecycle import DOCUMENT_LIFECYCLE_CHOICES
 from .models import PortalFeatureItem, FormSignature
 from .forms_documents import DocumentUploadForm, SignatureRequestForm
 from .document_conversion import convert_to_pdf
-from apps.platform_runtime.structured_logging import log_exception_with_context, request_context_for_log
+from apps.platform_runtime.structured_logging import (
+    log_exception_with_context,
+    request_context_for_log,
+)
 
 
 @permission_required("settings.manage")
@@ -47,7 +50,7 @@ def document_library_manage(request):
     if school is not None:
         qs = qs.filter(school=school)
     documents = qs.select_related("created_by").order_by("-created_at")
-    
+
     # Filter by document type if requested
     doc_type = request.GET.get("type")
     if doc_type:
@@ -60,16 +63,16 @@ def document_library_manage(request):
     pack_code = (request.GET.get("pack") or "").strip()
     if pack_code:
         documents = documents.filter(document_pack__code=pack_code)
-    
+
     # Search
     search_query = request.GET.get("q")
     if search_query:
         documents = documents.filter(
-            Q(search_index__icontains=search_query.lower()) |
-            Q(title__icontains=search_query) |
-            Q(description__icontains=search_query)
+            Q(search_index__icontains=search_query.lower())
+            | Q(title__icontains=search_query)
+            | Q(description__icontains=search_query)
         )
-    
+
     # Export CSV (26.5 list standards)
     if request.GET.get("format") == "csv":
         response = HttpResponse(content_type="text/csv; charset=utf-8")
@@ -77,22 +80,39 @@ def document_library_manage(request):
             f'attachment; filename="document_library_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
         )
         w = csv.writer(response)
-        w.writerow(["title", "document_type", "lifecycle_state", "document_pack", "has_file", "has_link", "requires_signature", "is_active", "retention_review_at", "created_at"])
+        w.writerow(
+            [
+                "title",
+                "document_type",
+                "lifecycle_state",
+                "document_pack",
+                "has_file",
+                "has_link",
+                "requires_signature",
+                "is_active",
+                "retention_review_at",
+                "created_at",
+            ]
+        )
         for doc in documents[:10000]:
-            w.writerow([
-                doc.title or "",
-                doc.get_document_type_display() if doc.document_type else "",
-                doc.lifecycle_state or "",
-                getattr(getattr(doc, "document_pack", None), "code", "") or "",
-                "yes" if doc.file else "no",
-                "yes" if doc.link else "no",
-                "yes" if doc.requires_signature else "no",
-                "yes" if doc.is_active else "no",
-                doc.retention_review_at.isoformat() if doc.retention_review_at else "",
-                doc.created_at.strftime("%Y-%m-%d %H:%M") if doc.created_at else "",
-            ])
+            w.writerow(
+                [
+                    doc.title or "",
+                    doc.get_document_type_display() if doc.document_type else "",
+                    doc.lifecycle_state or "",
+                    getattr(getattr(doc, "document_pack", None), "code", "") or "",
+                    "yes" if doc.file else "no",
+                    "yes" if doc.link else "no",
+                    "yes" if doc.requires_signature else "no",
+                    "yes" if doc.is_active else "no",
+                    doc.retention_review_at.isoformat()
+                    if doc.retention_review_at
+                    else "",
+                    doc.created_at.strftime("%Y-%m-%d %H:%M") if doc.created_at else "",
+                ]
+            )
         return response
-    
+
     # Stats
     stats = {
         "total": documents.count(),
@@ -103,16 +123,18 @@ def document_library_manage(request):
         "packaged": documents.filter(document_pack__isnull=False).count(),
         "archived": documents.filter(lifecycle_state="archived").count(),
     }
-    
+
     # Group by type
     by_type = {}
     for doc_type, label in PortalFeatureItem.DocumentType.choices:
         count = documents.filter(document_type=doc_type).count()
         if count > 0:
             by_type[doc_type] = {"label": label, "count": count}
-    
+
     embed = request.GET.get("embed") == "1"
-    document_upload_url = reverse("portal:document_upload") + ("?embed=1" if embed else "")
+    document_upload_url = reverse("portal:document_upload") + (
+        "?embed=1" if embed else ""
+    )
 
     context = {
         "documents": documents,
@@ -143,8 +165,7 @@ def document_upload(request, document_id=None):
     school = getattr(request, "school", None)
     if document_id:
         qs = PortalFeatureItem.objects.filter(
-            id=document_id,
-            feature=PortalFeatureItem.Feature.DOCUMENTS
+            id=document_id, feature=PortalFeatureItem.Feature.DOCUMENTS
         )
         if school is not None:
             qs = qs.filter(school=school)
@@ -153,9 +174,11 @@ def document_upload(request, document_id=None):
         if not (request.user.is_superuser or document.created_by == request.user):
             messages.error(request, "You don't have permission to edit this document.")
             return redirect("portal:document_library_manage")
-    
-    form = DocumentUploadForm(request.POST or None, request.FILES or None, instance=document)
-    
+
+    form = DocumentUploadForm(
+        request.POST or None, request.FILES or None, instance=document
+    )
+
     if request.method == "POST" and form.is_valid():
         doc = form.save(commit=False)
         if not document:  # New document
@@ -163,23 +186,23 @@ def document_upload(request, document_id=None):
             doc.created_by = request.user
         doc.school = school  # Section 25.3: tenant scope for upload path
         doc.save()
-        
+
         messages.success(
             request,
-            f"Document '{doc.title}' {'updated' if document else 'uploaded'} successfully."
+            f"Document '{doc.title}' {'updated' if document else 'uploaded'} successfully.",
         )
         # Preserve embed=1 so Studio users stay in Output Studio after save (§5.4)
         base_url = reverse("portal:document_library_manage")
         if request.GET.get("embed") == "1" or request.POST.get("embed") == "1":
             base_url = f"{base_url}?embed=1"
         return redirect(base_url)
-    
+
     context = {
         "form": form,
         "document": document,
         "is_edit": bool(document),
     }
-    
+
     return render(request, "portal/document_upload.html", context)
 
 
@@ -191,19 +214,21 @@ def document_delete(request, document_id):
     Delete a document.
     """
     school = getattr(request, "school", None)
-    qs = PortalFeatureItem.objects.filter(id=document_id, feature=PortalFeatureItem.Feature.DOCUMENTS)
+    qs = PortalFeatureItem.objects.filter(
+        id=document_id, feature=PortalFeatureItem.Feature.DOCUMENTS
+    )
     if school is not None:
         qs = qs.filter(school=school)
     document = get_object_or_404(qs)
-    
+
     # Check permissions
     if not (request.user.is_superuser or document.created_by == request.user):
         messages.error(request, "You don't have permission to delete this document.")
         return redirect("portal:document_library_manage")
-    
+
     title = document.title
     document.delete()
-    
+
     messages.success(request, f"Document '{title}' deleted successfully.")
     return redirect("portal:document_library_manage")
 
@@ -230,20 +255,22 @@ def document_download(request, document_id):
     if school is not None:
         qs = qs.filter(school=school)
     document = get_object_or_404(qs)
-    
+
     # Check access
     if not document.can_view(request.user):
         messages.error(request, "You don't have permission to access this document.")
         return redirect("portal:parent_dashboard")
-    
+
     if not document.file:
         messages.error(request, "This document doesn't have a file attached.")
         return redirect("portal:portal_feature", feature="documents")
-    
+
     # Serve file (correct content type would require mapping by extension; browser often handles)
     f = document.file.open("rb")
     response = FileResponse(f, content_type="application/octet-stream")
-    response["Content-Disposition"] = f'inline; filename="{os.path.basename(document.file.name)}"'
+    response["Content-Disposition"] = (
+        f'inline; filename="{os.path.basename(document.file.name)}"'
+    )
     return response
 
 
@@ -265,14 +292,19 @@ def document_download_pdf(request, document_id):
         messages.error(request, "This document doesn't have a file attached.")
         return redirect("portal:portal_feature", feature="documents")
     if not _is_convertible_to_pdf(document):
-        messages.info(request, "Convert to PDF is only available for Word (DOCX) or LibreOffice (ODT) files.")
+        messages.info(
+            request,
+            "Convert to PDF is only available for Word (DOCX) or LibreOffice (ODT) files.",
+        )
         return redirect("portal:document_download", document_id=document_id)
     path = None
     try:
         if hasattr(document.file, "path") and os.path.isfile(document.file.path):
             path = document.file.path
         else:
-            with tempfile.NamedTemporaryFile(suffix=_document_file_extension(document), delete=False) as tmp:
+            with tempfile.NamedTemporaryFile(
+                suffix=_document_file_extension(document), delete=False
+            ) as tmp:
                 tmp.write(document.file.read())
                 path = tmp.name
         pdf_bytes = convert_to_pdf(path)
@@ -281,7 +313,10 @@ def document_download_pdf(request, document_id):
         response["Content-Disposition"] = f'attachment; filename="{base}.pdf"'
         return response
     except RuntimeError:
-        messages.error(request, "PDF conversion is not available (LibreOffice may not be installed).")
+        messages.error(
+            request,
+            "PDF conversion is not available (LibreOffice may not be installed).",
+        )
         return redirect("portal:document_download", document_id=document_id)
     except (OSError, ValueError, TypeError) as e:
         ctx = request_context_for_log(request) if request else {}
@@ -313,27 +348,31 @@ def signature_requests_manage(request):
     requests = FormSignature.objects.select_related(
         "form_document", "student", "parent", "created_by"
     ).order_by("-created_at")
-    
+
     # Filter by status
     status_filter = request.GET.get("status")
     if status_filter:
         requests = requests.filter(status=status_filter)
-    
+
     # Stats
     stats = {
         "total": requests.count(),
-        "pending": requests.filter(status=FormSignature.SignatureStatus.PENDING).count(),
+        "pending": requests.filter(
+            status=FormSignature.SignatureStatus.PENDING
+        ).count(),
         "signed": requests.filter(status=FormSignature.SignatureStatus.SIGNED).count(),
-        "expired": requests.filter(status=FormSignature.SignatureStatus.EXPIRED).count(),
+        "expired": requests.filter(
+            status=FormSignature.SignatureStatus.EXPIRED
+        ).count(),
     }
-    
+
     context = {
         "requests": requests,
         "stats": stats,
         "status_choices": FormSignature.SignatureStatus.choices,
         "current_status": status_filter,
     }
-    
+
     return render(request, "portal/signature_requests_manage.html", context)
 
 
@@ -345,22 +384,22 @@ def signature_request_create(request):
     Create a new signature request for a form.
     """
     form = SignatureRequestForm(request.POST or None, user=request.user)
-    
+
     if request.method == "POST" and form.is_valid():
         signature_request = form.save(commit=False)
         signature_request.created_by = request.user
         signature_request.save()
-        
+
         messages.success(
             request,
-            f"Signature request created for {signature_request.parent.get_full_name()}."
+            f"Signature request created for {signature_request.parent.get_full_name()}.",
         )
         return redirect("portal:signature_requests_manage")
-    
+
     context = {
         "form": form,
     }
-    
+
     return render(request, "portal/signature_request_create.html", context)
 
 
@@ -372,31 +411,33 @@ def signature_pending_list(request):
     if request.user.role != User.Role.PARENT:
         messages.error(request, "Only parents can sign forms.")
         return redirect("portal:parent_dashboard")
-    
+
     # Get linked students
     guardian_links = StudentGuardian.objects.filter(guardian_user=request.user)
     student_ids = [link.student_id for link in guardian_links]
-    
+
     # Get pending signature requests for this parent's children
-    pending_requests = FormSignature.objects.filter(
-        parent=request.user,
-        status=FormSignature.SignatureStatus.PENDING,
-        student_id__in=student_ids if student_ids else []
-    ).select_related("form_document", "student").order_by("-created_at")
-    
+    pending_requests = (
+        FormSignature.objects.filter(
+            parent=request.user,
+            status=FormSignature.SignatureStatus.PENDING,
+            student_id__in=student_ids if student_ids else [],
+        )
+        .select_related("form_document", "student")
+        .order_by("-created_at")
+    )
+
     # Filter out expired
     from django.utils import timezone
+
     timezone.now()
-    pending_requests = [
-        req for req in pending_requests
-        if not req.is_expired
-    ]
-    
+    pending_requests = [req for req in pending_requests if not req.is_expired]
+
     context = {
         "pending_requests": pending_requests,
         "guardian_links": guardian_links,
     }
-    
+
     return render(request, "portal/signature_pending_list.html", context)
 
 
@@ -407,33 +448,34 @@ def signature_sign(request, signature_id):
     Sign a form electronically.
     """
     signature_request = get_object_or_404(FormSignature, id=signature_id)
-    
+
     # Check permissions
     if signature_request.parent != request.user:
         messages.error(request, "You don't have permission to sign this form.")
         return redirect("portal:parent_dashboard")
-    
+
     if not signature_request.can_sign:
         messages.error(request, "This signature request is no longer valid.")
         return redirect("portal:signature_pending_list")
-    
+
     if request.method == "POST":
         signature_data = request.POST.get("signature_data")
         if signature_data:
             import hashlib
+
             signature_hash = hashlib.sha256(signature_data.encode()).hexdigest()
-            
+
             signature_request.mark_as_signed(signature_data, signature_hash, request)
-            
+
             messages.success(request, "Form signed successfully!")
             return redirect("portal:signature_pending_list")
         else:
             messages.error(request, "Please provide a signature.")
-    
+
     context = {
         "signature_request": signature_request,
         "form_document": signature_request.form_document,
         "student": signature_request.student,
     }
-    
+
     return render(request, "portal/signature_sign.html", context)

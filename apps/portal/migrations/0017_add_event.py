@@ -4,29 +4,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0016_document_category_and_portal_item_category'),
+        ("portal", "0016_document_category_and_portal_item_category"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Event',
+            name="Event",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('start_at', models.DateTimeField()),
-                ('end_at', models.DateTimeField(blank=True, null=True)),
-                ('description', models.TextField(blank=True)),
-                ('location', models.CharField(blank=True, max_length=120)),
-                ('is_public', models.BooleanField(default=True, help_text='Visible to portal users.')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("start_at", models.DateTimeField()),
+                ("end_at", models.DateTimeField(blank=True, null=True)),
+                ("description", models.TextField(blank=True)),
+                ("location", models.CharField(blank=True, max_length=120)),
+                (
+                    "is_public",
+                    models.BooleanField(
+                        default=True, help_text="Visible to portal users."
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Event',
-                'verbose_name_plural': 'Events',
-                'ordering': ['start_at'],
+                "verbose_name": "Event",
+                "verbose_name_plural": "Events",
+                "ordering": ["start_at"],
             },
         ),
     ]

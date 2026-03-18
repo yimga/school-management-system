@@ -2,6 +2,7 @@
 Section 8.7–8.8: Health check and resource hogs (PG metadata).
 Delegates to repositories.health_repository for all raw SQL (§2.4 raw_sql_replacement_targets).
 """
+
 from apps.schools.repositories.health_repository import (
     get_global_health_stats as _get_global_health_stats,
     get_top_tables_by_size as _get_top_tables_by_size,

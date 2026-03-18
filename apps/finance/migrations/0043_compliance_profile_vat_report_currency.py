@@ -5,35 +5,82 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0042_parentwallet_wallettransaction'),
+        ("finance", "0042_parentwallet_wallettransaction"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='complianceprofile',
-            name='report_currency_code',
-            field=models.CharField(blank=True, default='', help_text='When set, reports show amounts in this currency (e.g. AED). Leave blank to use currency_code.', max_length=3),
+            model_name="complianceprofile",
+            name="report_currency_code",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="When set, reports show amounts in this currency (e.g. AED). Leave blank to use currency_code.",
+                max_length=3,
+            ),
         ),
         migrations.AddField(
-            model_name='complianceprofile',
-            name='vat_rate',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), help_text='VAT/GST rate as percentage (e.g. 19.25 for 19.25%%). Applied by location.', max_digits=6),
+            model_name="complianceprofile",
+            name="vat_rate",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=Decimal("0.00"),
+                help_text="VAT/GST rate as percentage (e.g. 19.25 for 19.25%%). Applied by location.",
+                max_digits=6,
+            ),
         ),
         migrations.AlterField(
-            model_name='invoice',
-            name='preferred_payment_method',
-            field=models.CharField(blank=True, choices=[('CASH', 'Cash'), ('BANK', 'Bank Transfer'), ('MTN_MOMO', 'MTN MoMo'), ('ORANGE_MOMO', 'Orange Money'), ('CHECK', 'Check'), ('WALLET', 'Digital Wallet'), ('OTHER', 'Other')], default='', max_length=20),
+            model_name="invoice",
+            name="preferred_payment_method",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("CASH", "Cash"),
+                    ("BANK", "Bank Transfer"),
+                    ("MTN_MOMO", "MTN MoMo"),
+                    ("ORANGE_MOMO", "Orange Money"),
+                    ("CHECK", "Check"),
+                    ("WALLET", "Digital Wallet"),
+                    ("OTHER", "Other"),
+                ],
+                default="",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='payment',
-            name='method',
-            field=models.CharField(blank=True, choices=[('CASH', 'Cash'), ('BANK', 'Bank Transfer'), ('MTN_MOMO', 'MTN MoMo'), ('ORANGE_MOMO', 'Orange Money'), ('CHECK', 'Check'), ('WALLET', 'Digital Wallet'), ('OTHER', 'Other')], default='', max_length=20),
+            model_name="payment",
+            name="method",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("CASH", "Cash"),
+                    ("BANK", "Bank Transfer"),
+                    ("MTN_MOMO", "MTN MoMo"),
+                    ("ORANGE_MOMO", "Orange Money"),
+                    ("CHECK", "Check"),
+                    ("WALLET", "Digital Wallet"),
+                    ("OTHER", "Other"),
+                ],
+                default="",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='paymentproofupload',
-            name='payment_method',
-            field=models.CharField(choices=[('CASH', 'Cash'), ('BANK', 'Bank Transfer'), ('MTN_MOMO', 'MTN MoMo'), ('ORANGE_MOMO', 'Orange Money'), ('CHECK', 'Check'), ('WALLET', 'Digital Wallet'), ('OTHER', 'Other')], help_text='Payment method used (CASH, BANK, etc.)', max_length=20),
+            model_name="paymentproofupload",
+            name="payment_method",
+            field=models.CharField(
+                choices=[
+                    ("CASH", "Cash"),
+                    ("BANK", "Bank Transfer"),
+                    ("MTN_MOMO", "MTN MoMo"),
+                    ("ORANGE_MOMO", "Orange Money"),
+                    ("CHECK", "Check"),
+                    ("WALLET", "Digital Wallet"),
+                    ("OTHER", "Other"),
+                ],
+                help_text="Payment method used (CASH, BANK, etc.)",
+                max_length=20,
+            ),
         ),
     ]

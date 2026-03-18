@@ -3,6 +3,15 @@
 # Exit 0 only if all pass. Run before deploy or in CI.
 set -euo pipefail
 
+# Use dedicated SQLite test DB for the gate so local dev default.sqlite3 locks/corruption
+# do not break pre_deploy_gate (see docs/TEST_DATABASE.md).
+_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
+export DJANGO_TEST_DB_FILE="${DJANGO_TEST_DB_FILE:-$_REPO_ROOT/.django_test_dbs/pre_deploy_gate.sqlite3}"
+if [[ "${PRE_GATE_FRESH_TEST_DB:-0}" = "1" ]]; then
+  rm -f "$DJANGO_TEST_DB_FILE" 2>/dev/null || true
+  echo "[pre_deploy_gate] PRE_GATE_FRESH_TEST_DB=1: fresh gate test database on next migrate"
+fi
+
 run_django_tests() {
   python manage.py test "$@" --keepdb --noinput -v 1
 }
@@ -28,6 +37,9 @@ python scripts/lint_gilead_residue.py
 
 echo "[pre_deploy_gate] No print() in application code"
 python scripts/lint_no_print_in_apps.py
+
+echo "[pre_deploy_gate] Ruff F401/F841 (unused imports / unused variables)"
+python -m ruff check apps --select F401,F841
 
 echo "[pre_deploy_gate] Django check"
 python manage.py check
@@ -63,6 +75,9 @@ else
   python scripts/lint_mega_files.py --exit-zero
 fi
 
+echo "[pre_deploy_gate] §0.3.1 SOT pillar evidence paths (codebase registry)"
+python scripts/verify_sot_pillar_evidence.py
+
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
 python manage.py makemigrations --check --dry-run
 
@@ -74,6 +89,14 @@ run_django_tests apps.accounts.tests.test_smoke_urls apps.accounts.tests.test_ph
 
 echo "[pre_deploy_gate] Phase H static audit (viewport, error templates, control-plane errors)"
 python scripts/phase_h_audit.py
+echo "[pre_deploy_gate] §8.0.6 responsive lint (fixed-px layout; advisory, no fail)"
+python scripts/lint_section8_responsive.py || true
+echo "[pre_deploy_gate] §8.0.11 template audit (inline px / placeholders; advisory)"
+python scripts/audit_section8_11_templates.py || true
+echo "[pre_deploy_gate] North star a11y (accessibility.css in bases)"
+python scripts/lint_north_star_a11y.py || true
+echo "[pre_deploy_gate] North star i18n (key templates)"
+python scripts/lint_north_star_i18n.py || true
 
 echo "[pre_deploy_gate] Targeted hardening regressions"
 TARGETED_HARDENING_TESTS=(
@@ -97,6 +120,16 @@ TARGETED_HARDENING_TESTS=(
   apps.schools.tests.test_provisioning_dispatch
   apps.setup_studio.tests
   apps.siteconfig.tests.test_world_engine_jit_broadcast_syllabus
+  apps.api.tests.test_api_v1_route_contract
+  apps.api.tests.test_api_v1_manifest
+  apps.api.tests.test_api_v1_contract_smoke
+  apps.schools.tests.test_school_data_residency_contract
+  apps.platform_runtime.tests.test_platform_event_log
+  apps.schools.tests.test_super_beyond_reach
+  apps.compliance.tests.test_attendance_region_br05
+  apps.analytics.tests.test_at_risk_intervention_br06
+  apps.communication.tests.test_thread_locale_retention_br08
+  apps.communication.tests.test_message_locale_wiring
 )
 run_django_tests "${TARGETED_HARDENING_TESTS[@]}"
 
@@ -107,7 +140,7 @@ echo "[pre_deploy_gate] Theme stress matrix"
 run_django_tests apps.siteconfig.tests.test_theme_visibility_matrix
 
 echo "[pre_deploy_gate] Phase checks (targeted tests)"
-run_django_tests apps.siteconfig.tests.test_admin_ui_smoke apps.api.tests.test_dashboard_api_rbac
+run_django_tests apps.siteconfig.tests.test_admin_ui_smoke apps.api.tests.test_dashboard_api_rbac apps.accounts.tests.test_federation_sso_health
 
 echo "[pre_deploy_gate] Phase 7 core workflow regression (qa.md, automation.md)"
 python manage.py test_core_workflows --keepdb --noinput
@@ -146,8 +179,9 @@ if [[ "${POWERHOUSE_WAVE0_STRICT:-0}" == "1" ]]; then
   bash scripts/release/powerhouse_wave0_gate.sh
 fi
 
+echo "[pre_deploy_gate] Performance budgets (North star N9/N10; strict when PERF_BUDGET_STRICT=1)"
+python scripts/check_performance_budgets.py 2>/dev/null || true
 if [[ "${PERF_BUDGET_STRICT:-0}" == "1" ]]; then
-  echo "[pre_deploy_gate] Performance budgets (strict)"
   python scripts/check_performance_budgets.py
 fi
 

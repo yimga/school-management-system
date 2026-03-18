@@ -2,6 +2,7 @@
 Install/uninstall pipeline and widget registry (RunMyCampus blueprint).
 On install: record install, apply schema patches if any, register widgets, audit log.
 """
+
 import logging
 from django.db import DatabaseError, IntegrityError, OperationalError
 from django.utils import timezone
@@ -13,7 +14,13 @@ from apps.platform_runtime.structured_logging import log_exception_with_context
 logger = logging.getLogger(__name__)
 
 # Typed exceptions for marketplace service paths (compat check, schema patch, billing record).
-_MARKETPLACE_COMPAT_ERRORS = (ImportError, AttributeError, TypeError, ValueError, KeyError)
+_MARKETPLACE_COMPAT_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+)
 _MARKETPLACE_SCHEMA_BILLING_ERRORS = (
     DatabaseError,
     IntegrityError,
@@ -33,7 +40,11 @@ def ensure_marketplace_listing(app, *, publisher=None):
     from apps.marketplace.models import MarketplaceApp, MarketplaceListing
 
     if not isinstance(app, MarketplaceApp):
-        app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+        app = (
+            MarketplaceApp.objects.get(slug=app)
+            if isinstance(app, str)
+            else MarketplaceApp.objects.get(pk=app)
+        )
     listing, _created = MarketplaceListing.objects.get_or_create(
         app=app,
         defaults={
@@ -76,7 +87,11 @@ def check_app_compatibility(school, app, *, warn_only=False):
     from apps.marketplace.models import MarketplaceApp
 
     if not isinstance(app, MarketplaceApp):
-        app = MarketplaceApp.objects.select_related("listing").get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.select_related("listing").get(pk=app)
+        app = (
+            MarketplaceApp.objects.select_related("listing").get(slug=app)
+            if isinstance(app, str)
+            else MarketplaceApp.objects.select_related("listing").get(pk=app)
+        )
     listing = getattr(app, "listing", None)
     if not listing:
         return True, [], []
@@ -88,8 +103,12 @@ def check_app_compatibility(school, app, *, warn_only=False):
     # Countries
     countries = compat.get("countries") or compat.get("country_codes")
     if countries and isinstance(countries, (list, tuple)):
-        school_country = getattr(school, "country", None) or getattr(school, "country_code", None)
-        if school_country and str(school_country).upper() not in [str(c).upper() for c in countries]:
+        school_country = getattr(school, "country", None) or getattr(
+            school, "country_code", None
+        )
+        if school_country and str(school_country).upper() not in [
+            str(c).upper() for c in countries
+        ]:
             msg = f"App not declared for country {school_country}"
             if warn_only:
                 warnings.append(msg)
@@ -100,8 +119,11 @@ def check_app_compatibility(school, app, *, warn_only=False):
     if blueprint_families and isinstance(blueprint_families, (list, tuple)):
         try:
             from apps.policies.policy_registry import get_effective_policy
+
             policy = get_effective_policy(school)
-            bp = (policy or {}).get("blueprint") or (policy or {}).get("blueprint_family")
+            bp = (policy or {}).get("blueprint") or (policy or {}).get(
+                "blueprint_family"
+            )
             if bp and str(bp) not in [str(b) for b in blueprint_families]:
                 msg = f"App not declared for blueprint family {bp}"
                 if warn_only:
@@ -118,7 +140,9 @@ def check_app_compatibility(school, app, *, warn_only=False):
     # Plan tiers
     plan_tiers = compat.get("plan_tiers")
     if plan_tiers and isinstance(plan_tiers, (list, tuple)):
-        school_plan = getattr(school, "plan", None) or getattr(school, "plan_tier", None)
+        school_plan = getattr(school, "plan", None) or getattr(
+            school, "plan_tier", None
+        )
         if school_plan and str(school_plan) not in [str(p) for p in plan_tiers]:
             msg = f"App not declared for plan tier {school_plan}"
             if warn_only:
@@ -140,12 +164,17 @@ def _assert_app_installable(app):
         listing = ensure_marketplace_listing(app)
 
     if app.kind == MarketplaceApp.AppKind.THIRD_PARTY and listing.publisher is None:
-        raise ValueError(f"Marketplace app {app.slug} has no verified publisher organization.")
+        raise ValueError(
+            f"Marketplace app {app.slug} has no verified publisher organization."
+        )
     if listing.kill_switch_active:
         raise ValueError(f"Marketplace app {app.slug} is under platform kill switch.")
     if listing.status != listing.Status.APPROVED:
         raise ValueError(f"Marketplace app {app.slug} is not approved for install.")
-    if app.kind == MarketplaceApp.AppKind.THIRD_PARTY and listing.security_review_status != listing.ReviewStatus.APPROVED:
+    if (
+        app.kind == MarketplaceApp.AppKind.THIRD_PARTY
+        and listing.security_review_status != listing.ReviewStatus.APPROVED
+    ):
         raise ValueError(f"Marketplace app {app.slug} has not passed security review.")
     return listing
 
@@ -161,7 +190,9 @@ def submit_marketplace_review(
     from apps.marketplace.models import MarketplaceListing, MarketplaceReview
 
     if not isinstance(listing, MarketplaceListing):
-        listing = MarketplaceListing.objects.select_related("app", "publisher").get(pk=listing)
+        listing = MarketplaceListing.objects.select_related("app", "publisher").get(
+            pk=listing
+        )
 
     review = MarketplaceReview.objects.create(
         listing=listing,
@@ -173,13 +204,23 @@ def submit_marketplace_review(
         findings_json=findings_json or {},
     )
     update_fields = []
-    if review_type == MarketplaceReview.ReviewType.LISTING and listing.status == MarketplaceListing.Status.DRAFT:
+    if (
+        review_type == MarketplaceReview.ReviewType.LISTING
+        and listing.status == MarketplaceListing.Status.DRAFT
+    ):
         listing.status = MarketplaceListing.Status.PENDING_REVIEW
         update_fields.append("status")
-    if review_type == MarketplaceReview.ReviewType.SECURITY and listing.security_review_status == MarketplaceListing.ReviewStatus.NOT_REQUIRED:
+    if (
+        review_type == MarketplaceReview.ReviewType.SECURITY
+        and listing.security_review_status
+        == MarketplaceListing.ReviewStatus.NOT_REQUIRED
+    ):
         listing.security_review_status = MarketplaceListing.ReviewStatus.PENDING
         update_fields.append("security_review_status")
-    if review_type == MarketplaceReview.ReviewType.CERTIFICATION and listing.certification_status == MarketplaceListing.ReviewStatus.NOT_REQUIRED:
+    if (
+        review_type == MarketplaceReview.ReviewType.CERTIFICATION
+        and listing.certification_status == MarketplaceListing.ReviewStatus.NOT_REQUIRED
+    ):
         listing.certification_status = MarketplaceListing.ReviewStatus.PENDING
         update_fields.append("certification_status")
     if update_fields:
@@ -198,7 +239,9 @@ def finalize_marketplace_review(
     from apps.marketplace.models import MarketplaceListing, MarketplaceReview
 
     if not isinstance(review, MarketplaceReview):
-        review = MarketplaceReview.objects.select_related("listing", "listing__app").get(pk=review)
+        review = MarketplaceReview.objects.select_related(
+            "listing", "listing__app"
+        ).get(pk=review)
     review.mark_reviewed(
         status=status,
         reviewed_by=reviewed_by,
@@ -231,7 +274,9 @@ def finalize_marketplace_review(
             listing.status = MarketplaceListing.Status.SUSPENDED
             update_fields.append("status")
         elif status in change_states:
-            listing.security_review_status = MarketplaceListing.ReviewStatus.CHANGES_REQUIRED
+            listing.security_review_status = (
+                MarketplaceListing.ReviewStatus.CHANGES_REQUIRED
+            )
         update_fields.append("security_review_status")
     elif review.review_type == MarketplaceReview.ReviewType.CERTIFICATION:
         if status in approved_states:
@@ -239,9 +284,14 @@ def finalize_marketplace_review(
         elif status in rejected_states:
             listing.certification_status = MarketplaceListing.ReviewStatus.REJECTED
         elif status in change_states:
-            listing.certification_status = MarketplaceListing.ReviewStatus.CHANGES_REQUIRED
+            listing.certification_status = (
+                MarketplaceListing.ReviewStatus.CHANGES_REQUIRED
+            )
         update_fields.append("certification_status")
-    elif review.review_type == MarketplaceReview.ReviewType.VERSION and status in approved_states:
+    elif (
+        review.review_type == MarketplaceReview.ReviewType.VERSION
+        and status in approved_states
+    ):
         listing.metadata = {
             **(listing.metadata or {}),
             "approved_version": review.app_version or listing.app.version,
@@ -267,7 +317,9 @@ def schedule_publisher_revenue_share_payout(
     from apps.marketplace.models import MarketplaceListing
 
     if not isinstance(listing, MarketplaceListing):
-        listing = MarketplaceListing.objects.select_related("app", "publisher").get(pk=listing)
+        listing = MarketplaceListing.objects.select_related("app", "publisher").get(
+            pk=listing
+        )
     publisher = listing.publisher or listing.app.publisher
     if publisher is None:
         raise ValueError("Marketplace listing has no payout-capable publisher.")
@@ -320,6 +372,7 @@ def run_schema_patches_for_installation(installation):
     # 24.12: Third-party apps have no direct schema freedom; only allowlisted app labels
     from django.conf import settings as django_settings
     from apps.marketplace.models import MarketplaceApp
+
     if getattr(app, "kind", None) == MarketplaceApp.AppKind.THIRD_PARTY:
         allowlist = getattr(django_settings, "THIRD_PARTY_SCHEMA_PATCH_ALLOWLIST", ())
         if app_label not in (allowlist or []):
@@ -336,11 +389,16 @@ def run_schema_patches_for_installation(installation):
     try:
         school = getattr(installation, "school", None)
         if school:
-            from apps.schools.domain_sync import use_django_tenants, ensure_tenant_client_for_school
+            from apps.schools.domain_sync import (
+                use_django_tenants,
+                ensure_tenant_client_for_school,
+            )
+
             if use_django_tenants():
                 client = ensure_tenant_client_for_school(school)
                 if client and getattr(client, "schema_name", None):
                     from django_tenants.utils import schema_context
+
                     with schema_context(client.schema_name):
                         _run_migrate()
                 else:
@@ -349,7 +407,11 @@ def run_schema_patches_for_installation(installation):
                 _run_migrate()
         else:
             _run_migrate()
-        logger.info("Schema patches applied for installation %s (app=%s)", installation.id, app_label)
+        logger.info(
+            "Schema patches applied for installation %s (app=%s)",
+            installation.id,
+            app_label,
+        )
         AppAuditLog.objects.create(
             installation=installation,
             school=installation.school,
@@ -366,7 +428,16 @@ def run_schema_patches_for_installation(installation):
         )
 
 
-def install_app(school, app, *, installed_by=None, config=None, run_schema_patches=True, install_phase="active", skip_compatibility=False):
+def install_app(
+    school,
+    app,
+    *,
+    installed_by=None,
+    config=None,
+    run_schema_patches=True,
+    install_phase="active",
+    skip_compatibility=False,
+):
     """
     Install an app for a school. Creates AppInstallation, optionally runs schema patches,
     logs audit, returns installation.
@@ -375,7 +446,11 @@ def install_app(school, app, *, installed_by=None, config=None, run_schema_patch
     from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
 
     if not isinstance(app, MarketplaceApp):
-        app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+        app = (
+            MarketplaceApp.objects.get(slug=app)
+            if isinstance(app, str)
+            else MarketplaceApp.objects.get(pk=app)
+        )
     if not skip_compatibility:
         ok, _warnings, errors = check_app_compatibility(school, app, warn_only=False)
         if not ok and errors:
@@ -398,7 +473,9 @@ def install_app(school, app, *, installed_by=None, config=None, run_schema_patch
         installation.install_phase = phase
         installation.config = config or installation.config
         installation.widget_config = app.manifest.get("widgets", {})
-        installation.save(update_fields=["status", "install_phase", "config", "widget_config"])
+        installation.save(
+            update_fields=["status", "install_phase", "config", "widget_config"]
+        )
     if run_schema_patches:
         run_schema_patches_for_installation(installation)
     AppAuditLog.objects.create(
@@ -413,16 +490,51 @@ def install_app(school, app, *, installed_by=None, config=None, run_schema_patch
         },
         actor=installed_by,
     )
+    try:
+        from apps.metadata.usage_registry import register_usage
+
+        for scope in app.scopes.all():
+            code = (scope.scope_code or "unknown").strip() or "unknown"
+            register_usage(
+                "marketplace_app", f"app:{app.slug}", "marketplace_api_scope", code
+            )
+    except (
+        AttributeError,
+        ImportError,
+        TypeError,
+        ValueError,
+    ):
+        pass
+    try:
+        from apps.platform_runtime.events import emit_platform_event
+
+        emit_platform_event(
+            "marketplace_app_installed",
+            {
+                "app_slug": app.slug,
+                "school_id": str(school.pk),
+                "install_phase": phase,
+            },
+            tenant_id=str(school.pk),
+            school_id=None,
+            idempotency_key=f"mkt-install:{school.pk}:{app.pk}:{installation.pk}",
+        )
+    except (AttributeError, ImportError, TypeError, ValueError):
+        pass
     # 6.3 / 29.10: Record app install for billing (ledger line; optional add-on pricing later)
     try:
         from apps.billing.services import record_app_install_for_billing
+
         record_app_install_for_billing(school, app, installation)
     except _MARKETPLACE_SCHEMA_BILLING_ERRORS as e:
         school_id = getattr(school, "pk", None)
         log_exception_with_context(
             "Billing record for app install skipped",
             school_id=school_id,
-            extra={"app_slug": getattr(app, "slug", None), "installation_id": getattr(installation, "id", None)},
+            extra={
+                "app_slug": getattr(app, "slug", None),
+                "installation_id": getattr(installation, "id", None),
+            },
         )
         logger.warning("Billing record for app install skipped: %s", e)
     return installation
@@ -436,7 +548,11 @@ def uninstall_app(school, app, *, uninstalled_by=None, run_cleanup=True):
     from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
 
     if not isinstance(app, MarketplaceApp):
-        app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+        app = (
+            MarketplaceApp.objects.get(slug=app)
+            if isinstance(app, str)
+            else MarketplaceApp.objects.get(pk=app)
+        )
     installation = AppInstallation.objects.get(school=school, app=app)
     installation.status = AppInstallation.Status.UNINSTALLED
     installation.uninstalled_at = timezone.now()
@@ -465,7 +581,11 @@ def suspend_app(school, app, *, suspended_by=None, reason: str = ""):
     from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
 
     if not isinstance(app, MarketplaceApp):
-        app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+        app = (
+            MarketplaceApp.objects.get(slug=app)
+            if isinstance(app, str)
+            else MarketplaceApp.objects.get(pk=app)
+        )
     installation = AppInstallation.objects.get(school=school, app=app)
     installation.status = AppInstallation.Status.SUSPENDED
     installation.save(update_fields=["status"])
@@ -485,7 +605,11 @@ def unsuspend_app(school, app, *, unsuspended_by=None):
     from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
 
     if not isinstance(app, MarketplaceApp):
-        app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+        app = (
+            MarketplaceApp.objects.get(slug=app)
+            if isinstance(app, str)
+            else MarketplaceApp.objects.get(pk=app)
+        )
     installation = AppInstallation.objects.get(school=school, app=app)
     installation.status = AppInstallation.Status.ACTIVE
     installation.save(update_fields=["status"])
@@ -512,7 +636,11 @@ def grant_scopes(installation, scope_codes_or_scope_objects, granted_by=None):
             scope = item
         else:
             scope = AppScope.objects.get(app=installation.app, scope_code=item)
-        status = ScopeGrant.GrantStatus.PENDING if getattr(scope, "sensitive", False) else ScopeGrant.GrantStatus.GRANTED
+        status = (
+            ScopeGrant.GrantStatus.PENDING
+            if getattr(scope, "sensitive", False)
+            else ScopeGrant.GrantStatus.GRANTED
+        )
         ScopeGrant.objects.get_or_create(
             installation=installation,
             scope=scope,
@@ -529,7 +657,9 @@ def approve_sensitive_scope(scope_grant, approved_by):
     scope_grant.status = ScopeGrant.GrantStatus.GRANTED
     scope_grant.elevated_approved_at = timezone.now()
     scope_grant.elevated_approved_by = approved_by
-    scope_grant.save(update_fields=["status", "elevated_approved_at", "elevated_approved_by"])
+    scope_grant.save(
+        update_fields=["status", "elevated_approved_at", "elevated_approved_by"]
+    )
     return scope_grant
 
 
@@ -579,22 +709,26 @@ def get_installed_widgets(school):
     from apps.marketplace.models import AppInstallation
 
     widgets = []
-    for inst in AppInstallation.objects.filter(school=school, status=AppInstallation.Status.ACTIVE).select_related(
-        "app"
-    ):
+    for inst in AppInstallation.objects.filter(
+        school=school, status=AppInstallation.Status.ACTIVE
+    ).select_related("app"):
         wconfig = inst.widget_config or inst.app.manifest.get("widgets") or {}
         if isinstance(wconfig, dict):
             for widget_id, cfg in wconfig.items():
-                widgets.append({
-                    "app_slug": inst.app.slug,
-                    "widget_id": widget_id,
-                    "config": cfg if isinstance(cfg, dict) else {},
-                })
+                widgets.append(
+                    {
+                        "app_slug": inst.app.slug,
+                        "widget_id": widget_id,
+                        "config": cfg if isinstance(cfg, dict) else {},
+                    }
+                )
         elif isinstance(wconfig, list):
             for w in wconfig:
-                widgets.append({
-                    "app_slug": inst.app.slug,
-                    "widget_id": w.get("id", ""),
-                    "config": w,
-                })
+                widgets.append(
+                    {
+                        "app_slug": inst.app.slug,
+                        "widget_id": w.get("id", ""),
+                        "config": w,
+                    }
+                )
     return widgets

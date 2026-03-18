@@ -5,6 +5,7 @@ The platform control plane must not rely on tenant RBAC. Keep access checks for
 manager-host and /super/ surfaces here so every control-plane entry point uses
 the same operator contract.
 """
+
 import logging
 from functools import wraps
 
@@ -53,10 +54,12 @@ def require_control_plane_access(view_func):
     Use for manager-host APIs and operator dashboards outside the /super/
     namespace. /super/ may use require_super_access as an alias.
     """
+
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         if not request.user.is_authenticated:
             from django.contrib.auth.views import redirect_to_login
+
             return redirect_to_login(request.get_full_path())
         if not user_has_control_plane_access(request.user):
             return HttpResponseForbidden("Control-plane access required.")
@@ -70,14 +73,17 @@ def require_super_access(view_func):
     Restrict view to authenticated users with is_superuser or role=SUPERADMIN.
     Use in addition to TenantSuperAdminRequiredMiddleware for defense-in-depth.
     """
+
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         if not request.user.is_authenticated:
             from django.contrib.auth.views import redirect_to_login
+
             return redirect_to_login(request.get_full_path())
         if not user_has_control_plane_access(request.user):
             return HttpResponseForbidden("Super Admin access required.")
         return view_func(request, *args, **kwargs)
+
     return _wrapped
 
 
@@ -95,16 +101,21 @@ def require_super_access_with_host(view_func):
     Use for all /super/ views so that even if URLconf is misconfigured, views reject non-manager access.
     Enforces: (1) host/surface is manager or path is /super/, (2) user has SUPERADMIN or is_superuser.
     """
+
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         if not _is_super_surface(request):
-            return HttpResponseForbidden("Control-plane surface required (manager host or /super/).")
+            return HttpResponseForbidden(
+                "Control-plane surface required (manager host or /super/)."
+            )
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             from django.contrib.auth.views import redirect_to_login
+
             return redirect_to_login(request.get_full_path())
         if not user_has_control_plane_access(request.user):
             return HttpResponseForbidden("Super Admin access required.")
         return view_func(request, *args, **kwargs)
+
     return _wrapped
 
 
@@ -113,6 +124,7 @@ def rate_limit_super(minute_limit=120):
     Rate limit /super/ view to minute_limit requests per user per minute (cache-based).
     Returns 429 Too Many Requests when exceeded.
     """
+
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped(request, *args, **kwargs):
@@ -120,6 +132,7 @@ def rate_limit_super(minute_limit=120):
                 return view_func(request, *args, **kwargs)
             from django.core.cache import cache
             from django.utils import timezone
+
             key = "super_rl:{}:{}".format(
                 request.user.pk,
                 timezone.now().strftime("%Y%m%d%H%M"),
@@ -128,14 +141,23 @@ def rate_limit_super(minute_limit=120):
                 count = cache.get(key, 0)
                 if count >= minute_limit:
                     from django.http import HttpResponse
+
                     r = HttpResponse("Too Many Requests", status=429)
                     r["Retry-After"] = "60"
                     return r
                 cache.set(key, count + 1, timeout=120)
-            except (ConnectionError, OSError, TypeError, ValueError, AttributeError) as e:
+            except (
+                ConnectionError,
+                OSError,
+                TypeError,
+                ValueError,
+                AttributeError,
+            ) as e:
                 logger.warning("Super rate limit check failed: %s", e)
             return view_func(request, *args, **kwargs)
+
         return _wrapped
+
     return decorator
 
 
@@ -158,6 +180,7 @@ def log_control_plane_action(
     """
     try:
         from apps.compliance.models_audit import AuditLog
+
         AuditLog.objects.create(
             user=request.user if request.user.is_authenticated else None,
             ip_address=_get_client_ip(request),
@@ -173,7 +196,14 @@ def log_control_plane_action(
             app_label="schools",
             reason=reason[:255] if reason else "",
         )
-    except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError, ImportError) as e:
+    except (
+        DatabaseError,
+        IntegrityError,
+        AttributeError,
+        TypeError,
+        ValueError,
+        ImportError,
+    ) as e:
         logger.warning("Control plane audit log failed: %s", e)
 
 

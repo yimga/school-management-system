@@ -2,6 +2,7 @@
 Event Outbox: transactional outbox for domain events (RunMyCampus blueprint).
 Emit from service layer only; consumer processes outbox for webhooks, notifications, automation.
 """
+
 import uuid
 from django.db import models
 
@@ -25,7 +26,9 @@ class DomainEvent(models.Model):
         default="1.0",
         help_text="Event payload schema version for consumers (26.2).",
     )
-    payload = models.JSONField(default=dict, help_text="Event payload (e.g. entity id, type, changes)")
+    payload = models.JSONField(
+        default=dict, help_text="Event payload (e.g. entity id, type, changes)"
+    )
     # Tenant context: for RLS use school_id; for schema-per-tenant use schema_name (or both for routing)
     school_id = models.UUIDField(null=True, blank=True, db_index=True)
     schema_name = models.CharField(max_length=63, null=True, blank=True, db_index=True)
@@ -35,7 +38,9 @@ class DomainEvent(models.Model):
         default=Status.PENDING,
         db_index=True,
     )
-    idempotency_key = models.CharField(max_length=255, null=True, blank=True, unique=True, db_index=True)
+    idempotency_key = models.CharField(
+        max_length=255, null=True, blank=True, unique=True, db_index=True
+    )
     retry_count = models.PositiveIntegerField(default=0)
     processed_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(blank=True)
@@ -45,7 +50,9 @@ class DomainEvent(models.Model):
         app_label = "events"
         ordering = ["created_at"]
         indexes = [
-            models.Index(fields=["status", "created_at"], name="events_status_created_idx"),
+            models.Index(
+                fields=["status", "created_at"], name="events_status_created_idx"
+            ),
         ]
         verbose_name = "Domain Event"
         verbose_name_plural = "Domain Events"
@@ -66,7 +73,9 @@ class WebhookSubscription(models.Model):
         default=list,
         help_text="List of event_type strings (e.g. ['student.enrolled', 'grade.published']). Empty = all.",
     )
-    secret = models.CharField(max_length=255, blank=True, help_text="Used for HMAC signature of payload")
+    secret = models.CharField(
+        max_length=255, blank=True, help_text="Used for HMAC signature of payload"
+    )
     is_active = models.BooleanField(default=True, db_index=True)
     description = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -131,8 +140,12 @@ class WebhookDelivery(models.Model):
         verbose_name_plural = "Webhook Deliveries"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["status", "created_at"], name="events_wh_status_created"),
-            models.Index(fields=["status", "scheduled_for"], name="events_wh_status_sched"),
+            models.Index(
+                fields=["status", "created_at"], name="events_wh_status_created"
+            ),
+            models.Index(
+                fields=["status", "scheduled_for"], name="events_wh_status_sched"
+            ),
         ]
 
     def __str__(self):

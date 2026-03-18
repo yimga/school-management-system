@@ -6,27 +6,30 @@ from django.db.migrations.operations.special import SeparateDatabaseAndState
 
 def remove_preview_fields_if_exist(apps, schema_editor):
     """Remove fields only if they exist (SQLite-compatible)."""
-    db_table = 'siteconfig_sitesettings'
+    db_table = "siteconfig_sitesettings"
     fields_to_remove = [
-        'preview_banner_text',
-        'preview_toggle_enabled',
-        'preview_toggle_label',
+        "preview_banner_text",
+        "preview_toggle_enabled",
+        "preview_toggle_label",
     ]
     vendor = connection.vendor
     with connection.cursor() as cursor:
         for field_name in fields_to_remove:
             col_exists = False
-            if vendor == 'sqlite':
+            if vendor == "sqlite":
                 cursor.execute("PRAGMA table_info(%s)" % db_table)
                 col_exists = any(row[1] == field_name for row in cursor.fetchall())
             else:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT column_name FROM information_schema.columns
                     WHERE table_name=%s AND column_name=%s
-                """, [db_table, field_name])
+                """,
+                    [db_table, field_name],
+                )
                 col_exists = cursor.fetchone() is not None
             if col_exists:
-                cursor.execute('ALTER TABLE %s DROP COLUMN %s' % (db_table, field_name))
+                cursor.execute("ALTER TABLE %s DROP COLUMN %s" % (db_table, field_name))
 
 
 def reverse_remove_preview_fields(apps, schema_editor):
@@ -34,28 +37,29 @@ def reverse_remove_preview_fields(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0047_merge_20260128_1552'),
+        ("siteconfig", "0047_merge_20260128_1552"),
     ]
 
     operations = [
         SeparateDatabaseAndState(
             database_operations=[
-                migrations.RunPython(remove_preview_fields_if_exist, reverse_remove_preview_fields),
+                migrations.RunPython(
+                    remove_preview_fields_if_exist, reverse_remove_preview_fields
+                ),
             ],
             state_operations=[
                 migrations.RemoveField(
-                    model_name='sitesettings',
-                    name='preview_banner_text',
+                    model_name="sitesettings",
+                    name="preview_banner_text",
                 ),
                 migrations.RemoveField(
-                    model_name='sitesettings',
-                    name='preview_toggle_enabled',
+                    model_name="sitesettings",
+                    name="preview_toggle_enabled",
                 ),
                 migrations.RemoveField(
-                    model_name='sitesettings',
-                    name='preview_toggle_label',
+                    model_name="sitesettings",
+                    name="preview_toggle_label",
                 ),
             ],
         ),

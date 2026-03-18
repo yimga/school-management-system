@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0080_merge_0077_0079_siteconfig"),
     ]
@@ -18,7 +17,7 @@ class Migration(migrations.Migration):
                 default=dict,
                 help_text=(
                     "Per-role visual style preferences for dashboards. "
-                    "Example: {\"PARENT\": \"soft-glass\", \"TEACHER\": \"crisp-professional\"}."
+                    'Example: {"PARENT": "soft-glass", "TEACHER": "crisp-professional"}.'
                 ),
             ),
         ),

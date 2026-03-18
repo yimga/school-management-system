@@ -1,22 +1,22 @@
 {% extends "control_plane_base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block cp_title %}Tenant Studio{% endblock %}
+{% block cp_title %}{% trans "Tenant Studio" %}{% endblock %}
 
 {% block breadcrumbs %}
-<nav aria-label="breadcrumb">
+<nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">Control Plane</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Tenant Studio</li>
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Tenant Studio" %}</li>
   </ol>
 </nav>
 {% endblock %}
 
 {% block breadcrumb_actions %}
-  <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-light js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">Back to Dashboard</a>
-  <a class="btn btn-sm btn-outline-light" href="{% url 'studio_os:workflow_center' %}" target="_blank" rel="noopener noreferrer" title="Help: Tenant Studio and provisioning">
+  <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-light js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">{% trans "Back to Dashboard" %}</a>
+  <a class="btn btn-sm btn-outline-light" href="{% url 'studio_os:workflow_center' %}" target="_blank" rel="noopener noreferrer" title="{% trans 'Help: Tenant Studio and provisioning' %}">
     <i class="bi bi-question-circle"></i>
-    <span class="ms-1">Help</span>
+    <span class="ms-1">{% trans "Help" %}</span>
   </a>
 {% endblock %}
 
@@ -25,16 +25,16 @@
     <section class="cp-hero cp-hero-compact mb-4">
       <div class="cp-hero-grid">
         <div>
-          <div class="cp-eyebrow">RunMyCampus Manager</div>
-          <h1 class="cp-hero-title">Tenant Studio</h1>
+          <div class="cp-eyebrow">{% trans "RunMyCampus Manager" %}</div>
+          <h1 class="cp-hero-title">{% trans "Tenant Studio" %}</h1>
           <p class="cp-hero-copy">
-            Create a school through one guided launch flow: identity, region, branding, domain, and plan posture in one surface instead of scattered settings.
+            {% trans "Create a school through one guided launch flow: identity, region, branding, domain, and plan posture in one surface instead of scattered settings." %}
           </p>
           <div class="cp-chip-row">
-            <span class="cp-chip">Identity and domain</span>
-            <span class="cp-chip">Registry-backed region defaults</span>
-            <span class="cp-chip">Brand and theme bootstrap</span>
-            <span class="cp-chip">Plan and provisioning setup</span>
+            <span class="cp-chip">{% trans "Identity and domain" %}</span>
+            <span class="cp-chip">{% trans "Registry-backed region defaults" %}</span>
+            <span class="cp-chip">{% trans "Brand and theme bootstrap" %}</span>
+            <span class="cp-chip">{% trans "Plan and provisioning setup" %}</span>
           </div>
         </div>
         <div class="cp-hero-actions">
@@ -61,16 +61,16 @@
             <div class="nav-tabs-wrap">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
               <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="step1-tab" data-bs-toggle="tab" data-bs-target="#step1" type="button" role="tab">1. Identity</button>
+                <button class="nav-link active" id="step1-tab" data-bs-toggle="tab" data-bs-target="#step1" type="button" role="tab">1. {% trans "Identity" %}</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="step2-tab" data-bs-toggle="tab" data-bs-target="#step2" type="button" role="tab">2. Region</button>
+                <button class="nav-link" id="step2-tab" data-bs-toggle="tab" data-bs-target="#step2" type="button" role="tab">2. {% trans "Region" %}</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="step3-tab" data-bs-toggle="tab" data-bs-target="#step3" type="button" role="tab">3. Branding</button>
+                <button class="nav-link" id="step3-tab" data-bs-toggle="tab" data-bs-target="#step3" type="button" role="tab">3. {% trans "Branding" %}</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="step4-tab" data-bs-toggle="tab" data-bs-target="#step4" type="button" role="tab">4. Domain</button>
+                <button class="nav-link" id="step4-tab" data-bs-toggle="tab" data-bs-target="#step4" type="button" role="tab">4. {% trans "Domain" %}</button>
               </li>
             </ul>
             <p class="mb-0 mt-2 small text-muted" id="wizard-progress-text">Step 1 of 4</p>
@@ -78,6 +78,13 @@
             <div class="text-muted small">Tenant Studio keeps the full provisioning flow visible from one page.</div>
           </div>
           <div class="card-body">
+            {% if initial_pack_name %}
+            <p class="alert alert-info small mb-3" role="status">{% blocktrans with name=initial_pack_name %}Pre-selected region pack: <strong>{{ name }}</strong>. Country and defaults are set for this pack.{% endblocktrans %}</p>
+            {% endif %}
+            {% if parent_school_name %}
+            <p class="alert alert-secondary small mb-3" role="status">{% blocktrans with name=parent_school_name %}Adding as campus under: <strong>{{ name }}</strong>. The new school will be linked as a child of this group.{% endblocktrans %}</p>
+            <input type="hidden" id="parent_school_id" name="parent_school_id" value="{{ parent_school_id }}">
+            {% endif %}
             <form
               id="wizard-form"
               data-edit-school-url-template="{{ school_admin_edit_template|default:'' }}"
@@ -169,13 +176,23 @@
                     <div class="form-text">Select all levels the school serves.</div>
                   </div>
                   <div class="mb-3">
+                    <label class="form-label" for="primary_sector">Primary sector (Wedges 14–22)</label>
+                    <select class="form-select" id="primary_sector" name="primary_sector">
+                      <option value="">— Select sector —</option>
+                      {% for item in sector_types_14_22 %}
+                        <option value="{{ item.code }}">{{ item.name }}{% if item.description %} — {{ item.description|truncatewords:8 }}{% endif %}</option>
+                      {% endfor %}
+                    </select>
+                    <div class="form-text">Every school has at least one system type (Public, Private, Charter, International, Faith-based, Home-school, Government/ministry, NGO, Multi-campus).</div>
+                  </div>
+                  <div class="mb-3">
                     <label class="form-label" for="education_system_type_codes">Education system types</label>
                     <select class="form-select" id="education_system_type_codes" name="education_system_type_codes" multiple size="6">
                       {% for system_type in education_system_types %}
                         <option value="{{ system_type.code }}">{{ system_type.name }}</option>
                       {% endfor %}
                     </select>
-                    <div class="form-text">Choose the canonical system types for onboarding and analytics.</div>
+                    <div class="form-text">Choose the canonical system types for onboarding and analytics. Include at least one sector from the list above.</div>
                   </div>
                   <div class="mb-3">
                     <label class="form-label" for="education_profile_code">Education template (primary)</label>
@@ -348,6 +365,15 @@
             if (systemTypeSel.options[k].selected) education_system_type_codes.push(systemTypeSel.options[k].value);
           }
         }
+        var primarySectorEl = document.getElementById('primary_sector');
+        if (primarySectorEl && primarySectorEl.value && education_system_type_codes.indexOf(primarySectorEl.value) === -1) {
+          education_system_type_codes.unshift(primarySectorEl.value);
+        }
+        if (education_system_type_codes.length === 0) {
+          errorEl.textContent = '{% trans "At least one sector (Primary sector or Education system types) is required." %}';
+          errorEl.classList.remove('d-none');
+          return;
+        }
         if (education_profile_code && education_system_ids.indexOf(education_profile_code) === -1) {
           education_system_ids.unshift(education_profile_code);
         }
@@ -374,6 +400,8 @@
         };
         if (plan_id) payload.plan_id = plan_id;
         if (addons.length) payload.addons = addons;
+        var parentSchoolIdEl = document.getElementById('parent_school_id');
+        if (parentSchoolIdEl && parentSchoolIdEl.value) payload.parent_school_id = parentSchoolIdEl.value.trim();
         var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
         fetch('{% url "super:api_create_school" %}', {
           method: 'POST',

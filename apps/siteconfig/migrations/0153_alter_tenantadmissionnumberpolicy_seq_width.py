@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0152_aigatewaymetric_review_fields'),
+        ("siteconfig", "0152_aigatewaymetric_review_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='tenantadmissionnumberpolicy',
-            name='seq_width',
-            field=models.PositiveSmallIntegerField(default=4, help_text='Padding width for sequence (e.g. 4 -> 0001).'),
+            model_name="tenantadmissionnumberpolicy",
+            name="seq_width",
+            field=models.PositiveSmallIntegerField(
+                default=4, help_text="Padding width for sequence (e.g. 4 -> 0001)."
+            ),
         ),
     ]

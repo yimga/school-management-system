@@ -1,0 +1,80 @@
+/**
+ * Phase I.5 — Header no spillage (SOT).
+ * Ensures header/top bar is properly configured on every surface:
+ * no spillage, no overflow outside the shell, contained within layout.
+ * Applies to: control plane, portal, backend, marketing, auth.
+ */
+/* Global: prevent horizontal spill from viewport */
+html {
+  overflow-x: clip;
+}
+body {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+/* Control plane: .cp-navbar (control_plane_base.html) */
+.cp-shell-content .cp-navbar.statement-header,
+nav.cp-navbar.statement-header {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  flex-shrink: 0;
+}
+.cp-shell-content .cp-navbar .container-fluid,
+nav.cp-navbar .container-fluid {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Portal / tenant: #portalHeader (portal_base.html) */
+#portalHeader.topbar.statement-header,
+nav#portalHeader.statement-header {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+#portalHeader .container-fluid,
+#portalHeader .navbar-collapse {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Marketing: .mkt-navbar (marketing_header.html) */
+.mkt-navbar.statement-header,
+nav.mkt-navbar.statement-header {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+.mkt-navbar .mkt-navbar-container,
+.mkt-navbar .container {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Auth / standalone: any .navbar that is a direct header */
+body .navbar.statement-header {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+body .navbar .container,
+body .navbar .container-fluid {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Admin wrapper (admin_nav_bridge): ensure header strip doesn't spill */
+body.admin-wrap .navbar,
+body .admin_nav_bridge {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}

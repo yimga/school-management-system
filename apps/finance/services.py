@@ -21,7 +21,10 @@ from apps.apicenter.gating import is_integration_allowed
 from apps.global_registries.models import RegionConfig
 from apps.integrations_marketplace.models import Integration
 from apps.people.models import StudentProfile, StudentGuardian
-from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
+from apps.platform_runtime.helpers import (
+    get_effective_site_settings,
+    get_platform_defaults,
+)
 
 from .models import (
     ComplianceProfile,
@@ -101,11 +104,15 @@ def get_payment_integration_by_method(method: str) -> Integration | None:
     slug = PAYMENT_METHOD_PROVIDER_SLUGS.get(method)
     if not slug:
         return None
-    integration = Integration.objects.filter(
-        provider="payments",
-        enabled=True,
-        config__provider_slug=slug,
-    ).order_by("-id").first()
+    integration = (
+        Integration.objects.filter(
+            provider="payments",
+            enabled=True,
+            config__provider_slug=slug,
+        )
+        .order_by("-id")
+        .first()
+    )
     if integration and not is_integration_allowed(integration):
         return None
     return integration
@@ -132,7 +139,9 @@ def get_payment_integration_by_slug(slug: str) -> Integration | None:
     return integration
 
 
-def _account(profile: ComplianceProfile, code: str, name: str, account_type: str) -> LedgerAccount:
+def _account(
+    profile: ComplianceProfile, code: str, name: str, account_type: str
+) -> LedgerAccount:
     account, _ = LedgerAccount.objects.get_or_create(
         profile=profile,
         code=code,
@@ -166,11 +175,13 @@ def generate_payment_link(invoice: Invoice, method: str | None = None) -> dict |
     callback_url = config.get("callback_url") or f"{site_url}{callback_path}"
 
     amount_to_pay = max(invoice.balance_amount or Decimal("0.00"), Decimal("0.00"))
-    payload_data = _signature_mapping({
-        "invoice_id": invoice.id,
-        "amount": str(amount_to_pay),
-        "method": chosen,
-    })
+    payload_data = _signature_mapping(
+        {
+            "invoice_id": invoice.id,
+            "amount": str(amount_to_pay),
+            "method": chosen,
+        }
+    )
     signature_fmt = config.get("signature_format", DEFAULT_SIGNATURE_FORMAT)
     payload = _format_signature_payload(signature_fmt, payload_data)
     signature = _build_signature(config.get("secret", settings.SECRET_KEY), payload)
@@ -184,7 +195,9 @@ def generate_payment_link(invoice: Invoice, method: str | None = None) -> dict |
     }
 
 
-def verify_payment_signature(integration: Integration, data: dict, signature: str | None) -> bool:
+def verify_payment_signature(
+    integration: Integration, data: dict, signature: str | None
+) -> bool:
     if not signature:
         return False
     config = integration.config or {}
@@ -241,7 +254,9 @@ def pay_invoice_with_wallet(
     """
     if getattr(invoice, "school_id", None) and invoice.school_id != school.pk:
         raise ValueError("Invoice does not belong to this school.")
-    amount_val = Decimal(str(amount)) if amount is not None else invoice.computed_balance
+    amount_val = (
+        Decimal(str(amount)) if amount is not None else invoice.computed_balance
+    )
     if amount_val <= 0:
         raise ValueError("Amount must be positive.")
     if amount_val > invoice.computed_balance:
@@ -249,10 +264,15 @@ def pay_invoice_with_wallet(
     wallet, _ = ParentWallet.objects.get_or_create(
         school=school,
         user=user,
-        defaults={"currency_code": getattr(school, "currency_code", None) or get_platform_defaults(use_db=False)["currency"]},
+        defaults={
+            "currency_code": getattr(school, "currency_code", None)
+            or get_platform_defaults(use_db=False)["currency"]
+        },
     )
     if wallet.balance < amount_val:
-        raise ValueError(f"Insufficient wallet balance: {wallet.balance} (need {amount_val}).")
+        raise ValueError(
+            f"Insufficient wallet balance: {wallet.balance} (need {amount_val})."
+        )
     ref = f"WALLET-{invoice.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
     payment = Payment.objects.create(
         invoice=invoice,
@@ -294,7 +314,10 @@ def top_up_wallet(
     wallet, _ = ParentWallet.objects.get_or_create(
         school=school,
         user=user,
-        defaults={"currency_code": getattr(school, "currency_code", None) or get_platform_defaults(use_db=False)["currency"]},
+        defaults={
+            "currency_code": getattr(school, "currency_code", None)
+            or get_platform_defaults(use_db=False)["currency"]
+        },
     )
     new_balance = wallet.balance + amount_val
     ref = reference or f"TOPUP-{timezone.now().strftime('%Y%m%d%H%M%S')}"
@@ -315,15 +338,25 @@ def post_invoice_to_ledger(invoice: Invoice) -> None:
         return
     if invoice.total_amount <= 0:
         return
-    entry = JournalEntry.objects.filter(source_type="invoice", source_id=invoice.id).first()
+    entry = JournalEntry.objects.filter(
+        source_type="invoice", source_id=invoice.id
+    ).first()
 
     profile = invoice.profile
     if invoice.invoice_type == Invoice.InvoiceType.AP:
-        debit_account = _account(profile, "611", "Purchases and Services", LedgerAccount.AccountType.EXPENSE)
-        credit_account = _account(profile, "401", "Trade Payables", LedgerAccount.AccountType.LIABILITY)
+        debit_account = _account(
+            profile, "611", "Purchases and Services", LedgerAccount.AccountType.EXPENSE
+        )
+        credit_account = _account(
+            profile, "401", "Trade Payables", LedgerAccount.AccountType.LIABILITY
+        )
     else:
-        debit_account = _account(profile, "411", "Student Receivables", LedgerAccount.AccountType.ASSET)
-        credit_account = _account(profile, "706", "Tuition Revenue", LedgerAccount.AccountType.INCOME)
+        debit_account = _account(
+            profile, "411", "Student Receivables", LedgerAccount.AccountType.ASSET
+        )
+        credit_account = _account(
+            profile, "706", "Tuition Revenue", LedgerAccount.AccountType.INCOME
+        )
 
     if entry:
         entry.entry_date = invoice.issued_date
@@ -361,29 +394,39 @@ def post_invoice_to_ledger(invoice: Invoice) -> None:
 def post_payment_to_ledger(payment: Payment) -> None:
     if payment.amount <= 0:
         return
-    entry = JournalEntry.objects.filter(source_type="payment", source_id=payment.id).first()
+    entry = JournalEntry.objects.filter(
+        source_type="payment", source_id=payment.id
+    ).first()
 
     invoice = payment.invoice
     profile = invoice.profile
 
     cash_account = _account(profile, "531", "Cash", LedgerAccount.AccountType.ASSET)
     bank_account = _account(profile, "512", "Bank", LedgerAccount.AccountType.ASSET)
-    mobile_account = _account(profile, "514", "Mobile Money", LedgerAccount.AccountType.ASSET)
+    mobile_account = _account(
+        profile, "514", "Mobile Money", LedgerAccount.AccountType.ASSET
+    )
 
     if payment.method in {PaymentMethodCode.CASH}:
         debit_account = cash_account
     elif payment.method in {PaymentMethodCode.MTN_MOMO, PaymentMethodCode.ORANGE_MOMO}:
         debit_account = mobile_account
     elif payment.method == PaymentMethodCode.WALLET:
-        debit_account = _account(profile, "515", "Parent Wallet", LedgerAccount.AccountType.ASSET)
+        debit_account = _account(
+            profile, "515", "Parent Wallet", LedgerAccount.AccountType.ASSET
+        )
     else:
         debit_account = bank_account
 
     if invoice.invoice_type == Invoice.InvoiceType.AP:
         credit_account = debit_account
-        debit_account = _account(profile, "401", "Trade Payables", LedgerAccount.AccountType.LIABILITY)
+        debit_account = _account(
+            profile, "401", "Trade Payables", LedgerAccount.AccountType.LIABILITY
+        )
     else:
-        credit_account = _account(profile, "411", "Student Receivables", LedgerAccount.AccountType.ASSET)
+        credit_account = _account(
+            profile, "411", "Student Receivables", LedgerAccount.AccountType.ASSET
+        )
 
     if entry:
         entry.entry_date = payment.paid_at.date()
@@ -442,9 +485,14 @@ def post_scholarship_disbursement_to_ledger(
     elif payment and payment.invoice_id:
         profile = payment.invoice.profile
     else:
-        school = getattr(getattr(application, "school", None), "school", None) or getattr(application, "school", None)
+        school = getattr(
+            getattr(application, "school", None), "school", None
+        ) or getattr(application, "school", None)
         site = _site_settings_for_school(school)
-        profile = getattr(site, "compliance_profile", None) or ComplianceProfile.objects.filter(is_active=True).first()
+        profile = (
+            getattr(site, "compliance_profile", None)
+            or ComplianceProfile.objects.filter(is_active=True).first()
+        )
     if not profile:
         return None
 
@@ -453,13 +501,19 @@ def post_scholarship_disbursement_to_ledger(
         source_id=application.id,
     ).first()
 
-    expense_account = _account(profile, "658", "Scholarship Aid Expense", LedgerAccount.AccountType.EXPENSE)
+    expense_account = _account(
+        profile, "658", "Scholarship Aid Expense", LedgerAccount.AccountType.EXPENSE
+    )
     if invoice:
-        credit_account = _account(profile, "411", "Student Receivables", LedgerAccount.AccountType.ASSET)
+        credit_account = _account(
+            profile, "411", "Student Receivables", LedgerAccount.AccountType.ASSET
+        )
     else:
         cash_account = _account(profile, "531", "Cash", LedgerAccount.AccountType.ASSET)
         bank_account = _account(profile, "512", "Bank", LedgerAccount.AccountType.ASSET)
-        mobile_account = _account(profile, "514", "Mobile Money", LedgerAccount.AccountType.ASSET)
+        mobile_account = _account(
+            profile, "514", "Mobile Money", LedgerAccount.AccountType.ASSET
+        )
         method = (getattr(payment, "method", "") or "").strip()
         if method in {PaymentMethodCode.MTN_MOMO, PaymentMethodCode.ORANGE_MOMO}:
             credit_account = mobile_account
@@ -534,7 +588,9 @@ def recalculate_invoice(invoice: Invoice) -> None:
     invoice.status = _invoice_status(total, balance)
     try:
         invoice._recalculating = True
-        invoice.save(update_fields=["total_amount", "balance_amount", "status", "updated_at"])
+        invoice.save(
+            update_fields=["total_amount", "balance_amount", "status", "updated_at"]
+        )
     finally:
         invoice._recalculating = False
     invoice.reconcile_balance()
@@ -604,7 +660,9 @@ def assign_invoice_payer_shares(
     expected_total = Decimal(str(invoice.total_amount or "0")).quantize(quant)
     split_total = sum(grouped.values(), Decimal("0.00")).quantize(quant)
     if split_total != expected_total:
-        raise ValueError(f"Payer split total ({split_total}) must match invoice total ({expected_total}).")
+        raise ValueError(
+            f"Payer split total ({split_total}) must match invoice total ({expected_total})."
+        )
 
     InvoicePayerShare.objects.filter(invoice=invoice).delete()
     rows = []
@@ -638,7 +696,9 @@ def assign_equal_invoice_payer_shares(invoice: Invoice) -> list[InvoicePayerShar
     )
     if not guardians:
         return []
-    parts = split_amount_equally(Decimal(str(invoice.total_amount or "0.00")), len(guardians))
+    parts = split_amount_equally(
+        Decimal(str(invoice.total_amount or "0.00")), len(guardians)
+    )
     allocations = list(zip(guardians, parts))
     return assign_invoice_payer_shares(invoice, allocations, due_date=invoice.due_date)
 
@@ -660,21 +720,25 @@ def allocate_payment_to_payer_shares(payment: Payment) -> None:
     if not shares:
         return
 
-    already_allocated = (
-        InvoicePayerSharePaymentAllocation.objects.filter(payment=payment).aggregate(total=Sum("amount")).get("total")
-        or Decimal("0.00")
-    )
+    already_allocated = InvoicePayerSharePaymentAllocation.objects.filter(
+        payment=payment
+    ).aggregate(total=Sum("amount")).get("total") or Decimal("0.00")
     remaining = Decimal(str(payment.amount or "0.00")) - Decimal(str(already_allocated))
     if remaining <= Decimal("0.00"):
         for share in shares:
             share.refresh_status()
         return
 
-    preferred_guardian_user_id = getattr(getattr(payment, "created_by", None), "id", None)
+    preferred_guardian_user_id = getattr(
+        getattr(payment, "created_by", None), "id", None
+    )
     ordered = sorted(
         shares,
         key=lambda share: (
-            0 if preferred_guardian_user_id and share.guardian.guardian_user_id == preferred_guardian_user_id else 1,
+            0
+            if preferred_guardian_user_id
+            and share.guardian.guardian_user_id == preferred_guardian_user_id
+            else 1,
             share.due_date or date.max,
             share.id,
         ),
@@ -718,11 +782,15 @@ def carry_forward_arrears(source_year, target_year) -> int:
     if not profile:
         return 0
 
-    invoices_source = Invoice.objects.filter(
-        academic_year=source_year,
-        student__isnull=False,
-        invoice_type=Invoice.InvoiceType.AR,
-    ).exclude(status=Invoice.Status.VOID).select_related("student")
+    invoices_source = (
+        Invoice.objects.filter(
+            academic_year=source_year,
+            student__isnull=False,
+            invoice_type=Invoice.InvoiceType.AR,
+        )
+        .exclude(status=Invoice.Status.VOID)
+        .select_related("student")
+    )
 
     # Group by student: sum computed_balance (property, so we iterate)
     arrears_by_student: dict[int, Decimal] = {}
@@ -776,9 +844,7 @@ def _get_region_for_refund(invoice: Invoice):
 
 @transaction.atomic
 def create_payment_from_receipt(
-    proof_upload: PaymentProofUpload,
-    verification_data: dict,
-    verified_by=None
+    proof_upload: PaymentProofUpload, verification_data: dict, verified_by=None
 ) -> Payment:
     """
     Create and apply payment from verified receipt upload.
@@ -791,8 +857,13 @@ def create_payment_from_receipt(
     if not amount:
         raise ValueError("Cannot create payment: amount not found in receipt")
 
-    site = _site_settings_for_school(getattr(invoice, "school", None) or getattr(getattr(invoice, "student", None), "school", None))
-    overpayment_handling = getattr(site, "finance_overpayment_handling", "allow_with_refund")
+    site = _site_settings_for_school(
+        getattr(invoice, "school", None)
+        or getattr(getattr(invoice, "student", None), "school", None)
+    )
+    overpayment_handling = getattr(
+        site, "finance_overpayment_handling", "allow_with_refund"
+    )
     tolerance = Decimal(str(getattr(site, "finance_overpayment_tolerance_xaf", "1000")))
     _currency = (
         getattr(getattr(invoice, "school", None), "currency_code", None)
@@ -814,8 +885,12 @@ def create_payment_from_receipt(
         amount=amount_to_apply,
         method=proof_upload.payment_method,
         receipt_file=proof_upload.receipt_file,
-        reference=verification_data.get("reference") or proof_upload.transaction_reference or "",
-        external_reference=verification_data.get("reference") or proof_upload.transaction_reference or "",
+        reference=verification_data.get("reference")
+        or proof_upload.transaction_reference
+        or "",
+        external_reference=verification_data.get("reference")
+        or proof_upload.transaction_reference
+        or "",
         status=Payment.STATUS_CHOICES[2][0],
         created_by=proof_upload.uploaded_by,
         processed_by=verified_by,
@@ -824,7 +899,10 @@ def create_payment_from_receipt(
 
     apply_payment(payment)
 
-    if overpayment > 0 and overpayment_handling in ("allow_with_refund", "allow_as_credit"):
+    if overpayment > 0 and overpayment_handling in (
+        "allow_with_refund",
+        "allow_as_credit",
+    ):
         region = _get_region_for_refund(invoice)
         if region:
             RefundRequest.objects.create(
@@ -838,7 +916,9 @@ def create_payment_from_receipt(
             )
         if not proof_upload.verification_notes:
             proof_upload.verification_notes = ""
-        proof_upload.verification_notes += f" Overpayment {overpayment} {_currency} → refund request created. "
+        proof_upload.verification_notes += (
+            f" Overpayment {overpayment} {_currency} → refund request created. "
+        )
 
     proof_upload.payment = payment
     proof_upload.status = PaymentProofUpload.Status.VERIFIED
@@ -848,7 +928,10 @@ def create_payment_from_receipt(
 
     try:
         from apps.events.services import emit_event
-        school_id = getattr(invoice, "school_id", None) or getattr(getattr(invoice, "student", None), "school_id", None)
+
+        school_id = getattr(invoice, "school_id", None) or getattr(
+            getattr(invoice, "student", None), "school_id", None
+        )
         emit_event(
             "payment.created",
             {
@@ -878,6 +961,7 @@ def _student_for_plan(plan: FeePlan) -> Iterable[StudentProfile]:
 def _bulk_create_invoice_notify_guardians_skip():
     """Context manager to skip per-invoice notifications during bulk create (Phase 4.1: use Notify guardians instead)."""
     from apps.finance.notifications import _skip_new_invoice_notify
+
     token = _skip_new_invoice_notify.set(True)
     try:
         yield
@@ -971,6 +1055,7 @@ def create_fee_invoices(
             if created:
                 try:
                     from apps.events.services import emit_event
+
                     school_id = getattr(student, "school_id", None)
                     emit_event(
                         "invoice.created",
@@ -982,8 +1067,16 @@ def create_fee_invoices(
                         },
                         school_id=school_id,
                     )
-                except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
-                    logging.getLogger(__name__).debug("invoice.created emit_event skip: %s", e)
+                except (
+                    ImportError,
+                    AttributeError,
+                    TypeError,
+                    ValueError,
+                    KeyError,
+                ) as e:
+                    logging.getLogger(__name__).debug(
+                        "invoice.created emit_event skip: %s", e
+                    )
             if created or not invoice.lines.exists():
                 InvoiceLine.objects.filter(invoice=invoice).delete()
                 for item in fee_items:
@@ -1025,20 +1118,20 @@ def copy_fee_plan_to_year(
 ) -> FeePlan:
     """
     Copy a fee plan to a new academic year.
-    
+
     Args:
         source_plan: The FeePlan to copy from
         target_year: AcademicYear to copy to
         increase_percentage: Percentage increase to apply (e.g., 5.00 for 5% increase)
-    
+
     Returns:
         The newly created FeePlan
     """
     from apps.academics.models import AcademicYear
-    
+
     if not isinstance(target_year, AcademicYear):
         target_year = AcademicYear.objects.get(id=target_year)
-    
+
     # Create new fee plan
     new_plan = FeePlan.objects.create(
         academic_year=target_year,
@@ -1048,13 +1141,13 @@ def copy_fee_plan_to_year(
         is_active=source_plan.is_active,
         notes=f"Copied from {source_plan.academic_year.name}: {source_plan.notes or ''}",
     )
-    
+
     # Copy fee items with optional increase
     multiplier = Decimal("1.00") + (increase_percentage / Decimal("100.00"))
-    
+
     for item in source_plan.items.all():
         new_amount = item.amount * multiplier
-        
+
         new_item = FeeItem.objects.create(
             plan=new_plan,
             name=item.name,
@@ -1063,7 +1156,7 @@ def copy_fee_plan_to_year(
             item_type=item.item_type,
             is_mandatory=item.is_mandatory,
         )
-        
+
         # Copy installments if any
         for installment in item.installments.all():
             new_installment_amount = installment.amount * multiplier
@@ -1073,7 +1166,7 @@ def copy_fee_plan_to_year(
                 amount=new_installment_amount,
                 due_date=installment.due_date,
             )
-    
+
     return new_plan
 
 
@@ -1081,14 +1174,16 @@ def finance_dashboard_data(profile):
     invoices = Invoice.objects.filter(profile=profile)
     payments = Payment.objects.filter(invoice__profile=profile)
 
-    receivables = invoices.filter(invoice_type=Invoice.InvoiceType.AR).aggregate(total=Sum("balance_amount"))["total"] or Decimal("0.00")
-    payables = invoices.filter(invoice_type=Invoice.InvoiceType.AP).aggregate(total=Sum("balance_amount"))["total"] or Decimal("0.00")
+    receivables = invoices.filter(invoice_type=Invoice.InvoiceType.AR).aggregate(
+        total=Sum("balance_amount")
+    )["total"] or Decimal("0.00")
+    payables = invoices.filter(invoice_type=Invoice.InvoiceType.AP).aggregate(
+        total=Sum("balance_amount")
+    )["total"] or Decimal("0.00")
     total_paid = payments.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
 
     status_counts = (
-        invoices.values("status")
-        .annotate(count=Count("id"))
-        .order_by("status")
+        invoices.values("status").annotate(count=Count("id")).order_by("status")
     )
 
     now = timezone.now()
@@ -1099,10 +1194,12 @@ def finance_dashboard_data(profile):
             issued_date__year=month_point.year,
             issued_date__month=month_point.month,
         ).aggregate(total=Sum("total_amount"))["total"] or Decimal("0.00")
-        month_series.append({
-            "label": get_month_name(month_point),
-            "total": month_total,
-        })
+        month_series.append(
+            {
+                "label": get_month_name(month_point),
+                "total": month_total,
+            }
+        )
 
     overdue = invoices.filter(status=Invoice.Status.OVERDUE).count()
 
@@ -1130,7 +1227,9 @@ def get_parent_fees_summary(user):
     try:
         from apps.accounts.permissions import _guardian_finance_qs
 
-        parent_students = list(_guardian_finance_qs(user).values_list("student_id", flat=True))
+        parent_students = list(
+            _guardian_finance_qs(user).values_list("student_id", flat=True)
+        )
         if not parent_students:
             return None
         school = (
@@ -1153,7 +1252,15 @@ def get_parent_fees_summary(user):
             "unpaid_count": unpaid,
             "invoices_url": reverse("finance:invoices"),
         }
-    except (NoReverseMatch, ImproperlyConfigured, ObjectDoesNotExist, DatabaseError, AttributeError, TypeError, ValueError) as e:
+    except (
+        NoReverseMatch,
+        ImproperlyConfigured,
+        ObjectDoesNotExist,
+        DatabaseError,
+        AttributeError,
+        TypeError,
+        ValueError,
+    ) as e:
         logging.getLogger(__name__).debug("parent_finance_summary skip: %s", e)
         return None
 
@@ -1162,4 +1269,5 @@ def get_parent_fees_summary(user):
 def get_finance_capabilities():
     """Return finance capabilities for the platform (payment plan scope, etc.). Used by runtime and APIs."""
     from .payment_plans import get_payment_plan_scope
+
     return {"payment_plan_scope": get_payment_plan_scope()}

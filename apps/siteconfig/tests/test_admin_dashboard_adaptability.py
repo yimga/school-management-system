@@ -130,7 +130,9 @@ class AdminDashboardResponsiveSnapshotTests(TestCase):
         response = self.client.get(reverse("admin:index"))
         self.assertEqual(response.status_code, 200)
 
-        template_names = {template.name for template in response.templates if template.name}
+        template_names = {
+            template.name for template in response.templates if template.name
+        }
         self.assertIn("admin/index.html", template_names)
         self.assertIn("admin/admin_dashboard.html", template_names)
 
@@ -139,7 +141,9 @@ class AdminDashboardResponsiveSnapshotTests(TestCase):
         self.assertIn('{% extends "admin/admin_dashboard.html" %}', content)
 
     def test_dashboard_auto_grid_css_breakpoint_contract(self):
-        css_path = Path(settings.BASE_DIR) / "static" / "css" / "dashboard-auto-grid.css"
+        css_path = (
+            Path(settings.BASE_DIR) / "static" / "css" / "dashboard-auto-grid.css"
+        )
         content = css_path.read_text(encoding="utf-8", errors="ignore")
 
         self.assertIn(".dashboard-card-grid", content)
@@ -162,7 +166,9 @@ class AdminDashboardResponsiveSnapshotTests(TestCase):
             self.assertNotIn('style="', content, msg=f"Inline style found in {path}")
 
     def test_admin_dashboard_template_uses_static_security_assets(self):
-        dashboard_template = Path(settings.BASE_DIR) / "templates" / "admin" / "admin_dashboard.html"
+        dashboard_template = (
+            Path(settings.BASE_DIR) / "templates" / "admin" / "admin_dashboard.html"
+        )
         content = dashboard_template.read_text(encoding="utf-8", errors="ignore")
 
         self.assertIn("css/dashboard-auto-grid.css", content)
@@ -172,7 +178,9 @@ class AdminDashboardResponsiveSnapshotTests(TestCase):
         self.assertIn('data-calendar-nav="prev"', content)
         self.assertIn('data-calendar-nav="next"', content)
         self.assertNotIn("onclick=", content)
-        inline_script_tags = re.findall(r"<script(?![^>]*\bsrc=)[^>]*>", content, re.IGNORECASE)
+        inline_script_tags = re.findall(
+            r"<script(?![^>]*\bsrc=)[^>]*>", content, re.IGNORECASE
+        )
         self.assertFalse(
             inline_script_tags,
             msg="Inline script tag detected in admin_dashboard.html; use static JS assets instead.",
@@ -181,23 +189,51 @@ class AdminDashboardResponsiveSnapshotTests(TestCase):
     def test_admin_weather_templates_use_internal_weather_api(self):
         admin_paths = [
             Path(settings.BASE_DIR) / "templates" / "admin" / "admin_dashboard.html",
-            Path(settings.BASE_DIR) / "templates" / "components" / "weather_marquee.html",
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "components"
+            / "weather_marquee.html",
         ]
         context_paths = [
-            Path(settings.BASE_DIR) / "templates" / "components" / "header_weather_widget.html",
-            Path(settings.BASE_DIR) / "templates" / "components" / "backend_datetime_weather.html",
-            Path(settings.BASE_DIR) / "templates" / "components" / "weather_widget.html",
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "components"
+            / "header_weather_widget.html",
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "components"
+            / "backend_datetime_weather.html",
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "components"
+            / "weather_widget.html",
         ]
 
         for path in admin_paths:
             content = path.read_text(encoding="utf-8", errors="ignore")
-            self.assertNotIn("api.open-meteo.com", content, msg=f"Direct weather provider call found in {path}")
-            self.assertIn("api_admin_weather", content, msg=f"Internal weather API not referenced in {path}")
+            self.assertNotIn(
+                "api.open-meteo.com",
+                content,
+                msg=f"Direct weather provider call found in {path}",
+            )
+            self.assertIn(
+                "api_admin_weather",
+                content,
+                msg=f"Internal weather API not referenced in {path}",
+            )
 
         for path in context_paths:
             content = path.read_text(encoding="utf-8", errors="ignore")
-            self.assertNotIn("api.open-meteo.com", content, msg=f"Direct weather provider call found in {path}")
-            self.assertIn("api_weather_context", content, msg=f"Context weather API not referenced in {path}")
+            self.assertNotIn(
+                "api.open-meteo.com",
+                content,
+                msg=f"Direct weather provider call found in {path}",
+            )
+            self.assertIn(
+                "api_weather_context",
+                content,
+                msg=f"Context weather API not referenced in {path}",
+            )
 
 
 class AdminDashboardWeatherApiTests(TestCase):
@@ -260,7 +296,9 @@ class AdminDashboardWeatherApiTests(TestCase):
             }
         }
 
-        with patch("apps.observability.views.requests.get", return_value=provider_response) as mocked_get:
+        with patch(
+            "apps.observability.views.requests.get", return_value=provider_response
+        ) as mocked_get:
             first = self.client.get(reverse("api_admin_weather"))
             second = self.client.get(reverse("api_admin_weather"))
 
@@ -274,7 +312,9 @@ class AdminDashboardWeatherApiTests(TestCase):
         self.assertEqual(first_payload.get("temperature_unit"), "celsius")
         self.assertEqual(first_payload.get("label"), "Buea, Cameroon")
         self.assertEqual(first_payload.get("weather", {}).get("weather_code"), 2)
-        self.assertAlmostEqual(first_payload.get("weather", {}).get("temperature"), 24.7)
+        self.assertAlmostEqual(
+            first_payload.get("weather", {}).get("temperature"), 24.7
+        )
 
         self.assertEqual(second_payload.get("status"), "success")
         self.assertTrue(second_payload.get("cached"))
@@ -299,7 +339,9 @@ class AdminDashboardWeatherApiTests(TestCase):
             }
         }
 
-        with patch("apps.observability.views.requests.get", return_value=provider_response) as mocked_get:
+        with patch(
+            "apps.observability.views.requests.get", return_value=provider_response
+        ) as mocked_get:
             first = self.client.get(reverse("api_weather_context"))
             second = self.client.get(reverse("api_weather_context"))
 
@@ -311,7 +353,9 @@ class AdminDashboardWeatherApiTests(TestCase):
         self.assertEqual(first_payload.get("status"), "success")
         self.assertFalse(first_payload.get("cached"))
         self.assertEqual(first_payload.get("weather", {}).get("weather_code"), 1)
-        self.assertAlmostEqual(first_payload.get("weather", {}).get("temperature"), 26.2)
+        self.assertAlmostEqual(
+            first_payload.get("weather", {}).get("temperature"), 26.2
+        )
         self.assertEqual(second_payload.get("status"), "success")
         self.assertTrue(second_payload.get("cached"))
         self.assertEqual(mocked_get.call_count, 1)
@@ -345,7 +389,9 @@ class AdminDashboardAccessibilityContractTests(TestCase):
         html = response.content.decode("utf-8", errors="ignore")
 
         heading_levels = [int(level) for level in re.findall(r"<h([1-6])\b", html)]
-        self.assertTrue(heading_levels, "Expected at least one heading on admin dashboard.")
+        self.assertTrue(
+            heading_levels, "Expected at least one heading on admin dashboard."
+        )
         self.assertIn(1, heading_levels)
         self.assertIn(2, heading_levels)
         self.assertIn('class="admin-dash__title"', html)
@@ -353,7 +399,7 @@ class AdminDashboardAccessibilityContractTests(TestCase):
 
         self.assertIn('aria-label="Previous month"', html)
         self.assertIn('aria-label="Next month"', html)
-        self.assertIn('admin-logo-img', html)
+        self.assertIn("admin-logo-img", html)
         self.assertIn('admin-kpi-card__icon" aria-hidden="true"', html)
         self.assertIn('weather-widget__icon" id="weatherIcon" aria-hidden="true"', html)
 

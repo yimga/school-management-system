@@ -5,15 +5,47 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0006_backfill_sanitized_content'),
+        ("portal", "0006_backfill_sanitized_content"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='kbarticleattachment',
-            name='file',
-            field=models.FileField(upload_to='kb/attachments/%Y/%m/', validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png', '.gif', '.webp'], allowed_types=['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'], message='Only PDF, Office, or image files are allowed for attachments.'), apps.accounts.validators.FileSizeValidator(max_size_mb=10)], verbose_name='File'),
+            model_name="kbarticleattachment",
+            name="file",
+            field=models.FileField(
+                upload_to="kb/attachments/%Y/%m/",
+                validators=[
+                    apps.accounts.validators.FileTypeValidator(
+                        allowed_extensions=[
+                            ".pdf",
+                            ".doc",
+                            ".docx",
+                            ".xls",
+                            ".xlsx",
+                            ".jpg",
+                            ".jpeg",
+                            ".png",
+                            ".gif",
+                            ".webp",
+                        ],
+                        allowed_types=[
+                            "application/pdf",
+                            "application/msword",
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "application/vnd.ms-excel",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "image/jpeg",
+                            "image/png",
+                            "image/jpg",
+                            "image/gif",
+                            "image/webp",
+                        ],
+                        message="Only PDF, Office, or image files are allowed for attachments.",
+                    ),
+                    apps.accounts.validators.FileSizeValidator(max_size_mb=10),
+                ],
+                verbose_name="File",
+            ),
         ),
     ]

@@ -4,6 +4,7 @@ Optional CI/pre-commit helper: find <img> tags in templates that lack width/heig
 Reduces CLS risk. Run from repo root: python scripts/check_image_dimensions.py
 Exit 0 = all good or no imgs; exit 1 = at least one img missing dimensions.
 """
+
 import re
 import sys
 from pathlib import Path
@@ -30,7 +31,7 @@ def main() -> int:
             has_height = "height=" in attrs or "height =" in attrs
             if not (has_width and has_height):
                 # Allow data: URIs (e.g. QR) or inline SVG to be lenient
-                if "data:image" in attrs or "src=\"\"" in attrs:
+                if "data:image" in attrs or 'src=""' in attrs:
                     continue
                 issues.append((str(rel), m.group(0).replace("\n", " ")[:80]))
     if not issues:

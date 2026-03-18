@@ -4,6 +4,7 @@ Wave 4 tests: tenant-scoping and single-tenant cleanup.
 Non-negotiable: lint/test for get_tenant_cache_prefix(None); tenant isolation;
 single-tenant/legacy path documented or isolated.
 """
+
 from pathlib import Path
 
 from django.test import TestCase
@@ -20,14 +21,19 @@ class Wave4TenantCachePrefixLintTests(TestCase):
         """Lint script must exist and be runnable."""
         root = Path(__file__).resolve().parent.parent.parent.parent
         script = root / "scripts" / "lint_tenant_cache_prefix.py"
-        self.assertTrue(script.is_file(), "scripts/lint_tenant_cache_prefix.py must exist.")
+        self.assertTrue(
+            script.is_file(), "scripts/lint_tenant_cache_prefix.py must exist."
+        )
 
     def test_tenant_app_requests_detail_filters_by_school(self):
         """requests.request_detail must filter by school (TENANT_ORM_AUDIT)."""
         from apps.requests import views as req_views
         import inspect
+
         source = inspect.getsource(req_views.request_detail)
-        self.assertIn("school", source.lower(), "request_detail must use school for filtering.")
+        self.assertIn(
+            "school", source.lower(), "request_detail must use school for filtering."
+        )
         self.assertTrue(
             "filter" in source and ("school" in source or "school_id" in source),
             "request_detail must filter queryset by school.",

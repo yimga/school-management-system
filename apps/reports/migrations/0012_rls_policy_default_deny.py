@@ -54,4 +54,6 @@ def reverse_default_deny_policy(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [("reports", "0011_reportdocumenthash_on_chain")]
-    operations = [migrations.RunPython(apply_default_deny_policy, reverse_default_deny_policy)]
+    operations = [
+        migrations.RunPython(apply_default_deny_policy, reverse_default_deny_policy)
+    ]

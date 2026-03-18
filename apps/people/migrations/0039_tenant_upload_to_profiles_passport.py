@@ -5,25 +5,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0038_rls_policy_default_deny'),
+        ("people", "0038_rls_policy_default_deny"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='passportdocument',
-            name='file',
-            field=models.FileField(blank=True, null=True, upload_to=apps.people.models._passport_doc_upload_to),
+            model_name="passportdocument",
+            name="file",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to=apps.people.models._passport_doc_upload_to,
+            ),
         ),
         migrations.AlterField(
-            model_name='studentprofile',
-            name='profile_photo',
-            field=models.ImageField(blank=True, null=True, upload_to=apps.people.models.tenant_upload_to_student_profile_photo),
+            model_name="studentprofile",
+            name="profile_photo",
+            field=models.ImageField(
+                blank=True,
+                null=True,
+                upload_to=apps.people.models.tenant_upload_to_student_profile_photo,
+            ),
         ),
         migrations.AlterField(
-            model_name='teacherprofile',
-            name='profile_photo',
-            field=models.ImageField(blank=True, null=True, upload_to=apps.people.models.tenant_upload_to_teacher_profile_photo),
+            model_name="teacherprofile",
+            name="profile_photo",
+            field=models.ImageField(
+                blank=True,
+                null=True,
+                upload_to=apps.people.models.tenant_upload_to_teacher_profile_photo,
+            ),
         ),
     ]

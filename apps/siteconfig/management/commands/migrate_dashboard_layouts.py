@@ -8,7 +8,9 @@ from apps.siteconfig.models_dashboard import (
 
 
 class Command(BaseCommand):
-    help = "Migrate legacy DashboardUserPreference layouts into the DashboardLayout table."
+    help = (
+        "Migrate legacy DashboardUserPreference layouts into the DashboardLayout table."
+    )
 
     def handle(self, *args, **options):
         created = 0
@@ -36,4 +38,6 @@ class Command(BaseCommand):
                     created += 1
             pref.dashboard_layout = {}
             pref.save(update_fields=["dashboard_layout", "updated_at"])
-        self.stdout.write(self.style.SUCCESS(f"Migrated {created} legacy dashboard layouts."))
+        self.stdout.write(
+            self.style.SUCCESS(f"Migrated {created} legacy dashboard layouts.")
+        )

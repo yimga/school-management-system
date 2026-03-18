@@ -3,6 +3,7 @@ Siteconfig ownership migration (1.1): registry of model -> target bounded contex
 Used by migration tooling and lint to enforce no new tenant behavior from SiteSettings.
 See docs/SITECONFIG_OWNED_MODELS.md for full assignment.
 """
+
 from __future__ import annotations
 
 # Map: (app_label, model_name) -> target_app for migration

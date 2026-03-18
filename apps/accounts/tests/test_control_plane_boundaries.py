@@ -34,14 +34,18 @@ class ControlPlaneBoundaryTests(TestCase):
     def test_global_school_registry_is_control_plane_only(self):
         query = "query { schoolCount schools { slug } }"
 
-        manager_request = self.factory.post("/graphql/", data={"query": query}, content_type="application/json")
+        manager_request = self.factory.post(
+            "/graphql/", data={"query": query}, content_type="application/json"
+        )
         manager_request.user = self.superadmin
         manager_request.public_host_kind = "manager"
         manager_result = schema.execute(query, context_value=manager_request)
         self.assertIn("schoolCount", manager_result.data)
         self.assertIn("schools", manager_result.data)
 
-        tenant_request = self.factory.post("/graphql/", data={"query": query}, content_type="application/json")
+        tenant_request = self.factory.post(
+            "/graphql/", data={"query": query}, content_type="application/json"
+        )
         tenant_request.user = self.tenant_admin
         tenant_request.public_host_kind = "tenant"
         tenant_result = schema.execute(query, context_value=tenant_request)

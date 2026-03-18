@@ -2,6 +2,7 @@
 Phase C: Tests for get_grading_schema_for_school, get_report_template_family_for_school,
 get_custom_field_definitions_for_school.
 """
+
 from django.db.utils import OperationalError
 from django.test import TestCase
 
@@ -14,9 +15,12 @@ from apps.siteconfig.tenant_config import (
 )
 
 
-def _skip_if_schema_missing(msg="Schema (TenantSystem/EducationSystemProfile) not available"):
+def _skip_if_schema_missing(
+    msg="Schema (TenantSystem/EducationSystemProfile) not available",
+):
     """Skip test when DB is missing tables/columns (e.g. partial migrations or old --keepdb)."""
     import unittest
+
     raise unittest.SkipTest(msg)
 
 
@@ -29,7 +33,10 @@ class GetGradingSchemaForSchoolTests(TestCase):
 
     def test_school_without_tenant_system_uses_locale_default(self):
         try:
-            region = RegionConfig.objects.filter(code="CMR").first() or RegionConfig.objects.first()
+            region = (
+                RegionConfig.objects.filter(code="CMR").first()
+                or RegionConfig.objects.first()
+            )
         except OperationalError:
             _skip_if_schema_missing("RegionConfig not available")
         school = School.objects.create(
@@ -66,7 +73,9 @@ class GetGradingSchemaForSchoolTests(TestCase):
             sub_system=School.SubSystem.EN,
         )
         try:
-            TenantSystem.objects.get_or_create(school=school, defaults={"system": profile})
+            TenantSystem.objects.get_or_create(
+                school=school, defaults={"system": profile}
+            )
         except OperationalError as e:
             if "no such table" in str(e).lower() or "no such column" in str(e).lower():
                 _skip_if_schema_missing(f"Test DB schema incomplete: {e}")
@@ -124,7 +133,9 @@ class GetReportTemplateFamilyForSchoolTests(TestCase):
             sub_system=School.SubSystem.EN,
         )
         try:
-            TenantSystem.objects.get_or_create(school=school, defaults={"system": profile})
+            TenantSystem.objects.get_or_create(
+                school=school, defaults={"system": profile}
+            )
         except OperationalError as e:
             if "no such table" in str(e).lower() or "no such column" in str(e).lower():
                 _skip_if_schema_missing(f"Test DB schema incomplete: {e}")
@@ -157,7 +168,9 @@ class GetCustomFieldDefinitionsForSchoolTests(TestCase):
             subdomain="s",
             sub_system=School.SubSystem.EN,
         )
-        self.assertEqual(get_custom_field_definitions_for_school(school, "students"), [])
+        self.assertEqual(
+            get_custom_field_definitions_for_school(school, "students"), []
+        )
 
     def test_settings_custom_field_definitions_returns_list(self):
         school = School.objects.create(
@@ -170,7 +183,13 @@ class GetCustomFieldDefinitionsForSchoolTests(TestCase):
                     "students": [
                         {"key": "blood_group", "label": "Blood Group", "type": "text"},
                     ],
-                    "staff": [{"key": "certifications", "label": "Certifications", "type": "text"}],
+                    "staff": [
+                        {
+                            "key": "certifications",
+                            "label": "Certifications",
+                            "type": "text",
+                        }
+                    ],
                 },
             },
         )

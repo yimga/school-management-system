@@ -14,6 +14,7 @@ Section order (by role):
 Visibility is permission- and role-based; teachers never see Admin/People/Finance/Analytics.
 No duplicate sections or links: each item appears in one section only (same for staff, teachers, parents).
 """
+
 from django.db import DatabaseError
 from django.urls import reverse
 from django.urls import NoReverseMatch
@@ -21,7 +22,14 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 
 User = get_user_model()
-OPTIONAL_SIDEBAR_ERRORS = (AttributeError, DatabaseError, ImportError, RuntimeError, TypeError, ValueError)
+OPTIONAL_SIDEBAR_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 OPTIONAL_REVERSE_ERRORS = (AttributeError, NoReverseMatch, TypeError, ValueError)
 
 
@@ -29,6 +37,7 @@ def _dashboard_layout_url(request, user):
     """Link to Backend dashboard + ?customize=1 (only backend supports layout customization)."""
     try:
         from apps.siteconfig.dashboard_views import _can_customize
+
         if not _can_customize(user):
             return None
         return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
@@ -69,16 +78,18 @@ def _sidebar_badge_counts(user, role, staff_like):
             from apps.evals.models import Evaluation
             from apps.academics.services import get_active_year_and_term
 
-            teacher_profile = TeacherProfile.objects.filter(user=user).only("id").first()
+            teacher_profile = (
+                TeacherProfile.objects.filter(user=user).only("id").first()
+            )
             if teacher_profile:
                 year, _term = get_active_year_and_term()
                 eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
                 if year:
                     eval_qs = eval_qs.filter(academic_year=year)
                 pending_marks = eval_qs.filter(
-                    Q(seq1_score__isnull=True) |
-                    Q(seq2_score__isnull=True) |
-                    Q(exam_score__isnull=True)
+                    Q(seq1_score__isnull=True)
+                    | Q(seq2_score__isnull=True)
+                    | Q(exam_score__isnull=True)
                 ).count()
                 pending_leaves = TeacherLeaveRequest.objects.filter(
                     teacher=teacher_profile,
@@ -92,12 +103,17 @@ def _sidebar_badge_counts(user, role, staff_like):
     if role == "PARENT":
         try:
             from apps.portal.models import FormSignature
-            from apps.portal.services import guardian_student_links, parent_dashboard_widget_data
+            from apps.portal.services import (
+                guardian_student_links,
+                parent_dashboard_widget_data,
+            )
 
             links = guardian_student_links(user, results_only=True)
             students = [link.student for link in links]
             widget_data = parent_dashboard_widget_data(students)
-            tasks = widget_data.get("tasks", {}) if isinstance(widget_data, dict) else {}
+            tasks = (
+                widget_data.get("tasks", {}) if isinstance(widget_data, dict) else {}
+            )
             workflow_pending = _badge_or_none(tasks.get("pending_evaluations"))
             finance_pending = _badge_or_none(tasks.get("pending_payments"))
             signatures_pending = _badge_or_none(
@@ -110,6 +126,7 @@ def _sidebar_badge_counts(user, role, staff_like):
     if staff_like:
         try:
             from apps.finance.models import Notification
+
             finance_pending = _badge_or_none(
                 Notification.objects.filter(
                     recipient=user,
@@ -122,6 +139,7 @@ def _sidebar_badge_counts(user, role, staff_like):
 
         try:
             from apps.portal.models import FormSignature
+
             signatures_pending = _badge_or_none(
                 FormSignature.objects.filter(status="PENDING").count()
             )
@@ -138,7 +156,9 @@ def _sidebar_badge_counts(user, role, staff_like):
                 missing_steps = 0
                 if not Classroom.objects.filter(academic_year=year).exists():
                     missing_steps += 1
-                if not StudentProfile.objects.filter(academic_year=year, is_active=True).exists():
+                if not StudentProfile.objects.filter(
+                    academic_year=year, is_active=True
+                ).exists():
                     missing_steps += 1
                 if not TeacherProfile.objects.filter(is_active=True).exists():
                     missing_steps += 1
@@ -159,10 +179,13 @@ def _cached_sidebar_badge_counts(user, role, staff_like, request=None):
         return _sidebar_badge_counts(user, role, staff_like)
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+
         prefix = get_tenant_cache_prefix(request)
     except OPTIONAL_SIDEBAR_ERRORS:
         prefix = "public"
-    cache_key = f"{prefix}:portal_sidebar_badges:{user_id}:{role}:{1 if staff_like else 0}"
+    cache_key = (
+        f"{prefix}:portal_sidebar_badges:{user_id}:{role}:{1 if staff_like else 0}"
+    )
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -178,6 +201,7 @@ def _backend_flags_for_sidebar(request, site):
             get_effective_feature_control_settings,
             get_effective_flags,
         )
+
         runtime_flags = get_effective_flags(request) or {}
         if runtime_flags:
             return runtime_flags
@@ -207,15 +231,30 @@ def build_portal_sidebar_items(request, site):
     user = request.user
     backend_flags = _backend_flags_for_sidebar(request, site)
     from apps.accounts.portal_roles import get_effective_portal_role
+
     primary_role = (getattr(user, "role", "") or "").upper()
     role = get_effective_portal_role(request) or primary_role
     is_staff = getattr(user, "is_staff", False)
     is_superuser = getattr(user, "is_superuser", False)
     messages_unread_count = getattr(request, "messages_unread_count", None)
     # Staff-like: full or partial backend nav (use primary role so dual-hat users don't get staff nav when viewing as Parent)
-    staff_like = is_staff or is_superuser or primary_role in (
-        "ADMIN", "LEADERSHIP", "IT_ADMIN",
-        "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "BURSAR", "ACCOUNTANT", "PROPRIETOR", "DISCIPLINE_MASTER", "SECRETARY",
+    staff_like = (
+        is_staff
+        or is_superuser
+        or primary_role
+        in (
+            "ADMIN",
+            "LEADERSHIP",
+            "IT_ADMIN",
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "DEAN",
+            "BURSAR",
+            "ACCOUNTANT",
+            "PROPRIETOR",
+            "DISCIPLINE_MASTER",
+            "SECRETARY",
+        )
     )
     workflow_badge, finance_badge, signatures_badge = _cached_sidebar_badge_counts(
         user, role, staff_like, request=request
@@ -226,202 +265,1060 @@ def build_portal_sidebar_items(request, site):
     items = []
 
     # --- Home ---
-    items.append({"id": "dashboard", "label": "Dashboard", "url": _safe_reverse("accounts:redirect"), "icon": "bi-speedometer2", "section": "Home", "badge": None})
+    items.append(
+        {
+            "id": "dashboard",
+            "label": "Dashboard",
+            "url": _safe_reverse("accounts:redirect"),
+            "icon": "bi-speedometer2",
+            "section": "Home",
+            "badge": None,
+        }
+    )
     # --- Account ---
-    items.append({"id": "profile", "label": "My Profile", "url": _safe_reverse("accounts:user_profile"), "icon": "bi-person", "section": "Account", "badge": None})
-    items.append({"id": "preferences", "label": "Preferences", "url": _safe_reverse("siteconfig:user_preferences"), "icon": "bi-sliders", "section": "Account", "badge": None})
-    items.append({"id": "notifications", "label": "Notifications", "url": _safe_reverse("accounts:user_notifications"), "icon": "bi-bell", "section": "Account", "badge": None})
-    items.append({"id": "kb", "label": "Knowledge Base", "url": _safe_reverse("kb:kb_home"), "icon": "bi-journal-text", "section": "Account", "badge": None})
+    items.append(
+        {
+            "id": "profile",
+            "label": "My Profile",
+            "url": _safe_reverse("accounts:user_profile"),
+            "icon": "bi-person",
+            "section": "Account",
+            "badge": None,
+        }
+    )
+    items.append(
+        {
+            "id": "preferences",
+            "label": "Preferences",
+            "url": _safe_reverse("siteconfig:user_preferences"),
+            "icon": "bi-sliders",
+            "section": "Account",
+            "badge": None,
+        }
+    )
+    items.append(
+        {
+            "id": "notifications",
+            "label": "Notifications",
+            "url": _safe_reverse("accounts:user_notifications"),
+            "icon": "bi-bell",
+            "section": "Account",
+            "badge": None,
+        }
+    )
+    items.append(
+        {
+            "id": "kb",
+            "label": "Knowledge Base",
+            "url": _safe_reverse("kb:kb_home"),
+            "icon": "bi-journal-text",
+            "section": "Account",
+            "badge": None,
+        }
+    )
 
     # --- Communication (role-dependent) ---
     if role == "TEACHER":
-        items.append({"id": "messages", "label": "Messages", "url": _safe_reverse("accounts:user_messages"), "icon": "bi-chat-dots", "section": "Communication", "badge": messages_unread_count})
-        items.append({"id": "message_groups", "label": "Message Groups", "url": _safe_reverse("communication:group_list"), "icon": "bi-people", "section": "Communication", "badge": None})
+        items.append(
+            {
+                "id": "messages",
+                "label": "Messages",
+                "url": _safe_reverse("accounts:user_messages"),
+                "icon": "bi-chat-dots",
+                "section": "Communication",
+                "badge": messages_unread_count,
+            }
+        )
+        items.append(
+            {
+                "id": "message_groups",
+                "label": "Message Groups",
+                "url": _safe_reverse("communication:group_list"),
+                "icon": "bi-people",
+                "section": "Communication",
+                "badge": None,
+            }
+        )
     elif role == "PARENT":
-        items.append({"id": "contact_school", "label": "Contact School", "url": _safe_reverse("portal:parent_contact_school"), "icon": "bi-envelope-paper", "section": "Communication", "badge": None})
+        items.append(
+            {
+                "id": "contact_school",
+                "label": "Contact School",
+                "url": _safe_reverse("portal:parent_contact_school"),
+                "icon": "bi-envelope-paper",
+                "section": "Communication",
+                "badge": None,
+            }
+        )
     elif role == "STUDENT":
-        items.append({"id": "messages", "label": "Messages", "url": _safe_reverse("accounts:user_messages"), "icon": "bi-chat-dots", "section": "Communication", "badge": messages_unread_count})
-    elif is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "PROPRIETOR", "SECRETARY"):
-        items.append({"id": "messages", "label": "Messages", "url": _safe_reverse("accounts:user_messages"), "icon": "bi-chat-dots", "section": "Communication", "badge": messages_unread_count})
+        items.append(
+            {
+                "id": "messages",
+                "label": "Messages",
+                "url": _safe_reverse("accounts:user_messages"),
+                "icon": "bi-chat-dots",
+                "section": "Communication",
+                "badge": messages_unread_count,
+            }
+        )
+    elif (
+        is_staff
+        or is_superuser
+        or role
+        in (
+            "ADMIN",
+            "LEADERSHIP",
+            "IT_ADMIN",
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "DEAN",
+            "PROPRIETOR",
+            "SECRETARY",
+        )
+    ):
+        items.append(
+            {
+                "id": "messages",
+                "label": "Messages",
+                "url": _safe_reverse("accounts:user_messages"),
+                "icon": "bi-chat-dots",
+                "section": "Communication",
+                "badge": messages_unread_count,
+            }
+        )
         _msg_url = studio_shell_url or _safe_reverse("communication:group_list")
         if _msg_url:
-            items.append({"id": "message_groups", "label": "Message Groups", "url": _msg_url, "icon": "bi-people", "section": "Communication", "badge": None})
+            items.append(
+                {
+                    "id": "message_groups",
+                    "label": "Message Groups",
+                    "url": _msg_url,
+                    "icon": "bi-people",
+                    "section": "Communication",
+                    "badge": None,
+                }
+            )
         try:
-            from apps.communication.views_announcements import _can_create_school_wide_announcement, _can_access_school_wide_announcement_create
+            from apps.communication.views_announcements import (
+                _can_create_school_wide_announcement,
+                _can_access_school_wide_announcement_create,
+            )
+
             if _can_access_school_wide_announcement_create(user):
-                _ann_url = studio_shell_url or _safe_reverse("communication:announcement_create")
+                _ann_url = studio_shell_url or _safe_reverse(
+                    "communication:announcement_create"
+                )
                 if _ann_url:
-                    items.append({"id": "announcements", "label": "School-wide Announcements", "url": _ann_url, "icon": "bi-megaphone", "section": "Communication", "badge": None})
+                    items.append(
+                        {
+                            "id": "announcements",
+                            "label": "School-wide Announcements",
+                            "url": _ann_url,
+                            "icon": "bi-megaphone",
+                            "section": "Communication",
+                            "badge": None,
+                        }
+                    )
             if _can_create_school_wide_announcement(user):
-                _pend_url = studio_shell_url or _safe_reverse("communication:announcement_list_pending")
+                _pend_url = studio_shell_url or _safe_reverse(
+                    "communication:announcement_list_pending"
+                )
                 if _pend_url:
-                    items.append({"id": "announcements_pending", "label": "Pending approval", "url": _pend_url, "icon": "bi-hourglass-split", "section": "Communication", "badge": None})
+                    items.append(
+                        {
+                            "id": "announcements_pending",
+                            "label": "Pending approval",
+                            "url": _pend_url,
+                            "icon": "bi-hourglass-split",
+                            "section": "Communication",
+                            "badge": None,
+                        }
+                    )
         except OPTIONAL_SIDEBAR_ERRORS:
             pass
 
     # --- Teacher ---
     if role == "TEACHER":
-        items.append({"id": "class_announcement", "label": "Class Announcement", "url": _safe_reverse("communication:class_announcement_create"), "icon": "bi-journal-text", "section": "Communication", "badge": None})
-        items.append({"id": "teacher_workflow", "label": "My Workflow", "url": _safe_reverse("portal:teacher_workflow"), "icon": "bi-diagram-3", "section": "My Workflow", "badge": workflow_badge})
-        items.append({"id": "marks_entry", "label": "Enter Marks", "url": _safe_reverse("evals:teacher_marks_entry"), "icon": "bi-pencil-square", "section": "Learning Management", "badge": None})
-        items.append({"id": "marks_list", "label": "Marks History", "url": _safe_reverse("evals:teacher_marks_list"), "icon": "bi-table", "section": "Learning Management", "badge": None})
-        items.append({"id": "attendance", "label": "Attendance", "url": _safe_reverse("portal:teacher_attendance"), "icon": "bi-clipboard-check", "section": "Learning Management", "badge": None})
-        if getattr(user, "has_feature_permission", lambda _: False)("attendance.manage"):
-            items.append({"id": "take_student_attendance", "label": "Take student attendance", "url": _safe_reverse("portal:take_student_attendance"), "icon": "bi-clipboard-check", "section": "Learning Management", "badge": None})
-            items.append({"id": "take_teacher_attendance", "label": "Take teacher attendance", "url": _safe_reverse("portal:record_teacher_attendance"), "icon": "bi-person-check", "section": "Learning Management", "badge": None})
-        items.append({"id": "timetable", "label": "My Timetable", "url": _safe_reverse("portal:teacher_timetable"), "icon": "bi-calendar-week", "section": "Learning Management", "badge": None})
+        items.append(
+            {
+                "id": "class_announcement",
+                "label": "Class Announcement",
+                "url": _safe_reverse("communication:class_announcement_create"),
+                "icon": "bi-journal-text",
+                "section": "Communication",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "teacher_workflow",
+                "label": "My Workflow",
+                "url": _safe_reverse("portal:teacher_workflow"),
+                "icon": "bi-diagram-3",
+                "section": "My Workflow",
+                "badge": workflow_badge,
+            }
+        )
+        items.append(
+            {
+                "id": "marks_entry",
+                "label": "Enter Marks",
+                "url": _safe_reverse("evals:teacher_marks_entry"),
+                "icon": "bi-pencil-square",
+                "section": "Learning Management",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "marks_list",
+                "label": "Marks History",
+                "url": _safe_reverse("evals:teacher_marks_list"),
+                "icon": "bi-table",
+                "section": "Learning Management",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "attendance",
+                "label": "Attendance",
+                "url": _safe_reverse("portal:teacher_attendance"),
+                "icon": "bi-clipboard-check",
+                "section": "Learning Management",
+                "badge": None,
+            }
+        )
+        if getattr(user, "has_feature_permission", lambda _: False)(
+            "attendance.manage"
+        ):
+            items.append(
+                {
+                    "id": "take_student_attendance",
+                    "label": "Take student attendance",
+                    "url": _safe_reverse("portal:take_student_attendance"),
+                    "icon": "bi-clipboard-check",
+                    "section": "Learning Management",
+                    "badge": None,
+                }
+            )
+            items.append(
+                {
+                    "id": "take_teacher_attendance",
+                    "label": "Take teacher attendance",
+                    "url": _safe_reverse("portal:record_teacher_attendance"),
+                    "icon": "bi-person-check",
+                    "section": "Learning Management",
+                    "badge": None,
+                }
+            )
+        items.append(
+            {
+                "id": "timetable",
+                "label": "My Timetable",
+                "url": _safe_reverse("portal:teacher_timetable"),
+                "icon": "bi-calendar-week",
+                "section": "Learning Management",
+                "badge": None,
+            }
+        )
         if backend_flags.get("enable_cahier_de_texte"):
-            items.append({"id": "cahier", "label": "Cahier de Texte", "url": _safe_reverse("portal:cahier_list"), "icon": "bi-journal-text", "section": "Learning Management", "badge": None, "feature": "cahier_de_texte"})
-        items.append({"id": "payslips", "label": "Payslips", "url": _safe_reverse("payroll:employee_payslips"), "icon": "bi-wallet2", "section": "Human Resources", "badge": None})
-        items.append({"id": "leave", "label": "Leave Requests", "url": _safe_reverse("payroll:employee_leave"), "icon": "bi-calendar-check", "section": "Human Resources", "badge": None})
-        items.append({"id": "pay_history", "label": "Pay History", "url": _safe_reverse("portal:teacher_pay_history"), "icon": "bi-receipt", "section": "Human Resources", "badge": None})
-        items.append({"id": "portal_stats", "label": "Portal Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Settings", "badge": None})
+            items.append(
+                {
+                    "id": "cahier",
+                    "label": "Cahier de Texte",
+                    "url": _safe_reverse("portal:cahier_list"),
+                    "icon": "bi-journal-text",
+                    "section": "Learning Management",
+                    "badge": None,
+                    "feature": "cahier_de_texte",
+                }
+            )
+        items.append(
+            {
+                "id": "payslips",
+                "label": "Payslips",
+                "url": _safe_reverse("payroll:employee_payslips"),
+                "icon": "bi-wallet2",
+                "section": "Human Resources",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "leave",
+                "label": "Leave Requests",
+                "url": _safe_reverse("payroll:employee_leave"),
+                "icon": "bi-calendar-check",
+                "section": "Human Resources",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "pay_history",
+                "label": "Pay History",
+                "url": _safe_reverse("portal:teacher_pay_history"),
+                "icon": "bi-receipt",
+                "section": "Human Resources",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "portal_stats",
+                "label": "Portal Stats",
+                "url": _safe_reverse("portal:portal_stats"),
+                "icon": "bi-graph-up",
+                "section": "Settings",
+                "badge": None,
+            }
+        )
 
     # --- Parent ---
     if role == "PARENT":
-        items.append({"id": "parent_workflow", "label": "My Workflow", "url": _safe_reverse("portal:parent_workflow"), "icon": "bi-diagram-3", "section": "My Workflow", "badge": workflow_badge})
-        items.append({"id": "my_children", "label": "My Children", "url": _safe_reverse("portal:parent_dashboard"), "icon": "bi-people", "section": "Children & Learning", "badge": None})
-        items.append({"id": "finance", "label": "Finance & Fees", "url": _safe_reverse("portal:parent_finance"), "icon": "bi-cash-coin", "section": "Children & Learning", "badge": finance_badge})
-        items.append({"id": "pending_signatures", "label": "Pending Signatures", "url": _safe_reverse("portal:signature_pending_list"), "icon": "bi-pen", "section": "Children & Learning", "badge": signatures_badge})
-        items.append({"id": "link_child", "label": "Link Child", "url": _safe_reverse("portal:link_child"), "icon": "bi-person-plus", "section": "Children & Learning", "badge": None})
-        items.append({"id": "claim_invite", "label": "Claim Invite", "url": _safe_reverse("portal:claim_invite"), "icon": "bi-ticket", "section": "Children & Learning", "badge": None})
-        items.append({"id": "academic_stats", "label": "Academic Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Performance Tracking", "badge": None})
+        items.append(
+            {
+                "id": "parent_workflow",
+                "label": "My Workflow",
+                "url": _safe_reverse("portal:parent_workflow"),
+                "icon": "bi-diagram-3",
+                "section": "My Workflow",
+                "badge": workflow_badge,
+            }
+        )
+        items.append(
+            {
+                "id": "my_children",
+                "label": "My Children",
+                "url": _safe_reverse("portal:parent_dashboard"),
+                "icon": "bi-people",
+                "section": "Children & Learning",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "finance",
+                "label": "Finance & Fees",
+                "url": _safe_reverse("portal:parent_finance"),
+                "icon": "bi-cash-coin",
+                "section": "Children & Learning",
+                "badge": finance_badge,
+            }
+        )
+        items.append(
+            {
+                "id": "pending_signatures",
+                "label": "Pending Signatures",
+                "url": _safe_reverse("portal:signature_pending_list"),
+                "icon": "bi-pen",
+                "section": "Children & Learning",
+                "badge": signatures_badge,
+            }
+        )
+        items.append(
+            {
+                "id": "link_child",
+                "label": "Link Child",
+                "url": _safe_reverse("portal:link_child"),
+                "icon": "bi-person-plus",
+                "section": "Children & Learning",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "claim_invite",
+                "label": "Claim Invite",
+                "url": _safe_reverse("portal:claim_invite"),
+                "icon": "bi-ticket",
+                "section": "Children & Learning",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "academic_stats",
+                "label": "Academic Stats",
+                "url": _safe_reverse("portal:portal_stats"),
+                "icon": "bi-graph-up",
+                "section": "Performance Tracking",
+                "badge": None,
+            }
+        )
 
     # --- Portal Tools (per-feature RBAC). Documents goes under Content & Documents; for staff it's added in staff block to avoid duplicate section. ---
     if callable(getattr(site, "get_feature_control_settings", None)):
         portal_cfg = site.get_feature_control_settings().get("portal_features") or {}
     else:
         try:
-            from apps.platform_runtime.helpers import get_effective_feature_control_settings
+            from apps.platform_runtime.helpers import (
+                get_effective_feature_control_settings,
+            )
 
             portal_cfg = (
-                get_effective_feature_control_settings(request=request).get("portal_features")
+                get_effective_feature_control_settings(request=request).get(
+                    "portal_features"
+                )
                 or {}
             )
         except OPTIONAL_SIDEBAR_ERRORS:
             portal_cfg = {}
-    if portal_cfg.get("forums") and getattr(user, "has_feature_permission", lambda _: False)("portal.forums"):
-        items.append({"id": "portal_forums", "label": "Community", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "forums"}), "icon": "bi-people", "section": "Portal Tools", "badge": None})
-    if portal_cfg.get("video") and getattr(user, "has_feature_permission", lambda _: False)("portal.video"):
-        items.append({"id": "portal_video", "label": "Video Hub", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "video"}), "icon": "bi-camera-video", "section": "Portal Tools", "badge": None})
+    if portal_cfg.get("forums") and getattr(
+        user, "has_feature_permission", lambda _: False
+    )("portal.forums"):
+        items.append(
+            {
+                "id": "portal_forums",
+                "label": "Community",
+                "url": _safe_reverse(
+                    "portal:portal_feature", kwargs={"feature": "forums"}
+                ),
+                "icon": "bi-people",
+                "section": "Portal Tools",
+                "badge": None,
+            }
+        )
+    if portal_cfg.get("video") and getattr(
+        user, "has_feature_permission", lambda _: False
+    )("portal.video"):
+        items.append(
+            {
+                "id": "portal_video",
+                "label": "Video Hub",
+                "url": _safe_reverse(
+                    "portal:portal_feature", kwargs={"feature": "video"}
+                ),
+                "icon": "bi-camera-video",
+                "section": "Portal Tools",
+                "badge": None,
+            }
+        )
     # Documents: for teachers/parents add here (one Content & Documents section); for staff add in staff block below
-    staff_gets_content_docs = (is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "BURSAR", "ACCOUNTANT", "PROPRIETOR", "DISCIPLINE_MASTER")) and role != "TEACHER"
-    if portal_cfg.get("documents") and getattr(user, "has_feature_permission", lambda _: False)("portal.documents") and not staff_gets_content_docs:
-        items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
+    staff_gets_content_docs = (
+        is_staff
+        or is_superuser
+        or role
+        in (
+            "ADMIN",
+            "LEADERSHIP",
+            "IT_ADMIN",
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "DEAN",
+            "BURSAR",
+            "ACCOUNTANT",
+            "PROPRIETOR",
+            "DISCIPLINE_MASTER",
+        )
+    ) and role != "TEACHER"
+    if (
+        portal_cfg.get("documents")
+        and getattr(user, "has_feature_permission", lambda _: False)("portal.documents")
+        and not staff_gets_content_docs
+    ):
+        items.append(
+            {
+                "id": "portal_documents",
+                "label": "Documents",
+                "url": _safe_reverse(
+                    "portal:portal_feature", kwargs={"feature": "documents"}
+                ),
+                "icon": "bi-file-earmark-text",
+                "section": "Content & Documents",
+                "badge": None,
+            }
+        )
 
     # --- Admin / Staff (exclude teachers: they get only Academic Management + HR, no Admin Panel/People/Finance/Analytics) ---
-    can_manage_site = staff_like and (getattr(user, "has_feature_permission", lambda _: False)("settings.manage") or is_superuser)
+    can_manage_site = staff_like and (
+        getattr(user, "has_feature_permission", lambda _: False)("settings.manage")
+        or is_superuser
+    )
     if staff_like and role != "TEACHER":
         # Support, Content & Documents, People & Access, Academic, Financial, Analytics first; Admin Panel last
         if staff_like:
-            items.append({"id": "contact_requests", "label": "Contact Requests", "url": _safe_reverse("portal:staff_contact_request_list"), "icon": "bi-inbox", "section": "Support", "badge": None})
+            items.append(
+                {
+                    "id": "contact_requests",
+                    "label": "Contact Requests",
+                    "url": _safe_reverse("portal:staff_contact_request_list"),
+                    "icon": "bi-inbox",
+                    "section": "Support",
+                    "badge": None,
+                }
+            )
         if role in ("DISCIPLINE_MASTER", "CENSOR"):
-            items.append({"id": "discipline_incidents", "label": "Disciplinary Incidents", "url": _safe_reverse("portal:discipline_incidents_list"), "icon": "bi-shield-exclamation", "section": "Support", "badge": None})
+            items.append(
+                {
+                    "id": "discipline_incidents",
+                    "label": "Disciplinary Incidents",
+                    "url": _safe_reverse("portal:discipline_incidents_list"),
+                    "icon": "bi-shield-exclamation",
+                    "section": "Support",
+                    "badge": None,
+                }
+            )
         # Content & Documents: Document Library Manager, Signature Requests, and portal Documents (single section)
         if can_manage_site:
-            items.append({"id": "document_library_manage", "label": "Document Library Manager", "url": _safe_reverse("portal:document_library_manage"), "icon": "bi-folder2-open", "section": "Content & Documents", "badge": None})
-            items.append({"id": "signature_requests", "label": "Signature Requests", "url": _safe_reverse("portal:signature_requests_manage"), "icon": "bi-pen", "section": "Content & Documents", "badge": signatures_badge})
-        if portal_cfg.get("documents") and getattr(user, "has_feature_permission", lambda _: False)("portal.documents"):
-            items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
+            items.append(
+                {
+                    "id": "document_library_manage",
+                    "label": "Document Library Manager",
+                    "url": _safe_reverse("portal:document_library_manage"),
+                    "icon": "bi-folder2-open",
+                    "section": "Content & Documents",
+                    "badge": None,
+                }
+            )
+            items.append(
+                {
+                    "id": "signature_requests",
+                    "label": "Signature Requests",
+                    "url": _safe_reverse("portal:signature_requests_manage"),
+                    "icon": "bi-pen",
+                    "section": "Content & Documents",
+                    "badge": signatures_badge,
+                }
+            )
+        if portal_cfg.get("documents") and getattr(
+            user, "has_feature_permission", lambda _: False
+        )("portal.documents"):
+            items.append(
+                {
+                    "id": "portal_documents",
+                    "label": "Documents",
+                    "url": _safe_reverse(
+                        "portal:portal_feature", kwargs={"feature": "documents"}
+                    ),
+                    "icon": "bi-file-earmark-text",
+                    "section": "Content & Documents",
+                    "badge": None,
+                }
+            )
         # Certification & Exams (GCE): admins get quick access; certification home handles disabled state.
-        items.append({"id": "certification", "label": "Certification & Exams", "url": _safe_reverse("accounts:certification_home"), "icon": "bi-award", "section": "Academic Management", "badge": None})
-        if backend_flags.get("enable_cahier_de_texte") and (getattr(user, "has_feature_permission", lambda _: False)("cahier.verify") or role == "CENSOR"):
-            items.append({"id": "cahier_verify", "label": "Cahier verification", "url": _safe_reverse("portal:cahier_verify_list"), "icon": "bi-journal-check", "section": "Academic Management", "badge": None})
-        if getattr(user, "has_feature_permission", lambda _: False)("attendance.manage"):
-            items.append({"id": "take_student_attendance", "label": "Take student attendance", "url": _safe_reverse("portal:take_student_attendance"), "icon": "bi-clipboard-check", "section": "Academic Management", "badge": None})
-            items.append({"id": "take_teacher_attendance", "label": "Take teacher attendance", "url": _safe_reverse("portal:record_teacher_attendance"), "icon": "bi-person-check", "section": "Academic Management", "badge": None})
-        in_backend = request.path.startswith("/backend") or "/authentication/backend" in request.path
+        items.append(
+            {
+                "id": "certification",
+                "label": "Certification & Exams",
+                "url": _safe_reverse("accounts:certification_home"),
+                "icon": "bi-award",
+                "section": "Academic Management",
+                "badge": None,
+            }
+        )
+        if backend_flags.get("enable_cahier_de_texte") and (
+            getattr(user, "has_feature_permission", lambda _: False)("cahier.verify")
+            or role == "CENSOR"
+        ):
+            items.append(
+                {
+                    "id": "cahier_verify",
+                    "label": "Cahier verification",
+                    "url": _safe_reverse("portal:cahier_verify_list"),
+                    "icon": "bi-journal-check",
+                    "section": "Academic Management",
+                    "badge": None,
+                }
+            )
+        if getattr(user, "has_feature_permission", lambda _: False)(
+            "attendance.manage"
+        ):
+            items.append(
+                {
+                    "id": "take_student_attendance",
+                    "label": "Take student attendance",
+                    "url": _safe_reverse("portal:take_student_attendance"),
+                    "icon": "bi-clipboard-check",
+                    "section": "Academic Management",
+                    "badge": None,
+                }
+            )
+            items.append(
+                {
+                    "id": "take_teacher_attendance",
+                    "label": "Take teacher attendance",
+                    "url": _safe_reverse("portal:record_teacher_attendance"),
+                    "icon": "bi-person-check",
+                    "section": "Academic Management",
+                    "badge": None,
+                }
+            )
+        in_backend = (
+            request.path.startswith("/backend")
+            or "/authentication/backend" in request.path
+        )
         student_list_url = _safe_reverse("accounts:backend_student_list")
         if not student_list_url and is_superuser and not in_backend:
             student_list_url = _safe_reverse("admin:people_studentprofile_changelist")
         if student_list_url:
-            items.append({"id": "students", "label": "Student Profiles", "url": student_list_url, "icon": "bi-person-lines-fill", "section": "People & Access", "badge": None})
+            items.append(
+                {
+                    "id": "students",
+                    "label": "Student Profiles",
+                    "url": student_list_url,
+                    "icon": "bi-person-lines-fill",
+                    "section": "People & Access",
+                    "badge": None,
+                }
+            )
         guardian_list_url = _safe_reverse("accounts:backend_guardian_list")
         if guardian_list_url:
-            items.append({"id": "guardians_backend", "label": "Guardians", "url": guardian_list_url, "icon": "bi-people-fill", "section": "People & Access", "badge": None})
+            items.append(
+                {
+                    "id": "guardians_backend",
+                    "label": "Guardians",
+                    "url": guardian_list_url,
+                    "icon": "bi-people-fill",
+                    "section": "People & Access",
+                    "badge": None,
+                }
+            )
         if is_superuser and not in_backend:
-            items.append({"id": "guardians", "label": "Student Guardians", "url": _safe_reverse("admin:people_studentguardian_changelist"), "icon": "bi-people-fill", "section": "People & Access", "badge": None})
-            items.append({"id": "groups", "label": "Authentication Groups", "url": _safe_reverse("admin:auth_group_changelist"), "icon": "bi-unlock", "section": "People & Access", "badge": None})
+            items.append(
+                {
+                    "id": "guardians",
+                    "label": "Student Guardians",
+                    "url": _safe_reverse("admin:people_studentguardian_changelist"),
+                    "icon": "bi-people-fill",
+                    "section": "People & Access",
+                    "badge": None,
+                }
+            )
+            items.append(
+                {
+                    "id": "groups",
+                    "label": "Authentication Groups",
+                    "url": _safe_reverse("admin:auth_group_changelist"),
+                    "icon": "bi-unlock",
+                    "section": "People & Access",
+                    "badge": None,
+                }
+            )
         _rbac_url = studio_shell_url or _safe_reverse("accounts:rbac")
         if _rbac_url:
-            items.append({"id": "rbac", "label": "RBAC & Access Control", "url": _rbac_url, "icon": "bi-diagram-3", "section": "People & Access", "badge": None})
-        items.append({"id": "eval_admin", "label": "Evaluation Admin", "url": _safe_reverse("evals:evaluation_admin"), "icon": "bi-clipboard-data", "section": "Academic Management", "badge": None})
-        items.append({"id": "class_ranking", "label": "Class Ranking", "url": _safe_reverse("evals:class_ranking"), "icon": "bi-trophy", "section": "Academic Management", "badge": None})
-        items.append({"id": "school_ranking", "label": "School Ranking", "url": _safe_reverse("evals:school_ranking"), "icon": "bi-bar-chart-line", "section": "Academic Management", "badge": None})
-        items.append({"id": "publish_results", "label": "Publish Results", "url": _safe_reverse("reports:publish_term_results"), "icon": "bi-megaphone", "section": "Academic Management", "badge": None})
+            items.append(
+                {
+                    "id": "rbac",
+                    "label": "RBAC & Access Control",
+                    "url": _rbac_url,
+                    "icon": "bi-diagram-3",
+                    "section": "People & Access",
+                    "badge": None,
+                }
+            )
+        items.append(
+            {
+                "id": "eval_admin",
+                "label": "Evaluation Admin",
+                "url": _safe_reverse("evals:evaluation_admin"),
+                "icon": "bi-clipboard-data",
+                "section": "Academic Management",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "class_ranking",
+                "label": "Class Ranking",
+                "url": _safe_reverse("evals:class_ranking"),
+                "icon": "bi-trophy",
+                "section": "Academic Management",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "school_ranking",
+                "label": "School Ranking",
+                "url": _safe_reverse("evals:school_ranking"),
+                "icon": "bi-bar-chart-line",
+                "section": "Academic Management",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "publish_results",
+                "label": "Publish Results",
+                "url": _safe_reverse("reports:publish_term_results"),
+                "icon": "bi-megaphone",
+                "section": "Academic Management",
+                "badge": None,
+            }
+        )
         # Executive dashboard: Principal, Vice Principal, and Secretary do not see Bursar/accounting
         if role not in ("PRINCIPAL", "VICE_PRINCIPAL", "SECRETARY"):
-            items.append({"id": "finance_dashboard", "label": "Finance Dashboard", "url": _safe_reverse("finance:dashboard"), "icon": "bi-currency-exchange", "section": "Financial Management", "badge": finance_badge})
-            items.append({"id": "payroll", "label": "Payroll", "url": _safe_reverse("payroll:dashboard"), "icon": "bi-cash-stack", "section": "Financial Management", "badge": None})
+            items.append(
+                {
+                    "id": "finance_dashboard",
+                    "label": "Finance Dashboard",
+                    "url": _safe_reverse("finance:dashboard"),
+                    "icon": "bi-currency-exchange",
+                    "section": "Financial Management",
+                    "badge": finance_badge,
+                }
+            )
+            items.append(
+                {
+                    "id": "payroll",
+                    "label": "Payroll",
+                    "url": _safe_reverse("payroll:dashboard"),
+                    "icon": "bi-cash-stack",
+                    "section": "Financial Management",
+                    "badge": None,
+                }
+            )
         if role == "ACCOUNTANT":
-            items.append({"id": "bursar_entries", "label": "Bursar Entries Report", "url": _safe_reverse("finance:bursar_entries_report"), "icon": "bi-journal-bookmark", "section": "Financial Management", "badge": None})
-            items.append({"id": "expense_vs_budget", "label": "Expense vs Budget", "url": _safe_reverse("finance:expense_vs_budget"), "icon": "bi-pie-chart", "section": "Financial Management", "badge": None})
-        items.append({"id": "analytics", "label": "Analytics", "url": _safe_reverse("analytics:dashboard"), "icon": "bi-graph-up-arrow", "section": "Analytics & Reports", "badge": None})
+            items.append(
+                {
+                    "id": "bursar_entries",
+                    "label": "Bursar Entries Report",
+                    "url": _safe_reverse("finance:bursar_entries_report"),
+                    "icon": "bi-journal-bookmark",
+                    "section": "Financial Management",
+                    "badge": None,
+                }
+            )
+            items.append(
+                {
+                    "id": "expense_vs_budget",
+                    "label": "Expense vs Budget",
+                    "url": _safe_reverse("finance:expense_vs_budget"),
+                    "icon": "bi-pie-chart",
+                    "section": "Financial Management",
+                    "badge": None,
+                }
+            )
+        items.append(
+            {
+                "id": "analytics",
+                "label": "Analytics",
+                "url": _safe_reverse("analytics:dashboard"),
+                "icon": "bi-graph-up-arrow",
+                "section": "Analytics & Reports",
+                "badge": None,
+            }
+        )
         if role in ("PROPRIETOR", "LEADERSHIP", "ADMIN"):
-            items.append({"id": "strategic_report", "label": "Strategic Report", "url": _safe_reverse("analytics:strategic_report"), "icon": "bi-flag", "section": "Analytics & Reports", "badge": None})
+            items.append(
+                {
+                    "id": "strategic_report",
+                    "label": "Strategic Report",
+                    "url": _safe_reverse("analytics:strategic_report"),
+                    "icon": "bi-flag",
+                    "section": "Analytics & Reports",
+                    "badge": None,
+                }
+            )
         _report_url = studio_shell_url or _safe_reverse("studio_os:output")
         if _report_url:
-            items.append({"id": "report_library", "label": "Report Library", "url": _report_url, "icon": "bi-journal-text", "section": "Analytics & Reports", "badge": None})
-        items.append({"id": "bulk_letters", "label": "Bulk Letters", "url": _safe_reverse("siteconfig:bulk_letters"), "icon": "bi-envelope-paper", "section": "Analytics & Reports", "badge": None})
-        items.append({"id": "reportcard_builder", "label": "Report Card Builder", "url": _safe_reverse("siteconfig:reportcard_builder"), "icon": "bi-file-earmark-richtext", "section": "Analytics & Reports", "badge": None})
-        items.append({"id": "portal_stats", "label": "Portal Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Analytics & Reports", "badge": None})
+            items.append(
+                {
+                    "id": "report_library",
+                    "label": "Report Library",
+                    "url": _report_url,
+                    "icon": "bi-journal-text",
+                    "section": "Analytics & Reports",
+                    "badge": None,
+                }
+            )
+        items.append(
+            {
+                "id": "bulk_letters",
+                "label": "Bulk Letters",
+                "url": _safe_reverse("siteconfig:bulk_letters"),
+                "icon": "bi-envelope-paper",
+                "section": "Analytics & Reports",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "reportcard_builder",
+                "label": "Report Card Builder",
+                "url": _safe_reverse("siteconfig:reportcard_builder"),
+                "icon": "bi-file-earmark-richtext",
+                "section": "Analytics & Reports",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "portal_stats",
+                "label": "Portal Stats",
+                "url": _safe_reverse("portal:portal_stats"),
+                "icon": "bi-graph-up",
+                "section": "Analytics & Reports",
+                "badge": None,
+            }
+        )
         # Admin Panel last: Dashboard Layout, Feature Control, Backend Console, Workflow Center, Customizer, Site Settings, Region Configuration, Django Admin
         dashboard_layout_url = _dashboard_layout_url(request, user)
         if dashboard_layout_url:
-            items.append({"id": "dashboard_layout", "label": "Dashboard Layout", "url": dashboard_layout_url, "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
-        if is_superuser or getattr(user, "has_feature_permission", lambda _: False)("settings.feature_control"):
-            _fc_url = studio_shell_url or _safe_reverse("siteconfig:feature_control_panel")
+            items.append(
+                {
+                    "id": "dashboard_layout",
+                    "label": "Dashboard Layout",
+                    "url": dashboard_layout_url,
+                    "icon": "bi-grid-3x3-gap",
+                    "section": "Admin Panel",
+                    "badge": None,
+                }
+            )
+        if is_superuser or getattr(user, "has_feature_permission", lambda _: False)(
+            "settings.feature_control"
+        ):
+            _fc_url = studio_shell_url or _safe_reverse(
+                "siteconfig:feature_control_panel"
+            )
             if _fc_url:
-                items.append({"id": "feature_control", "label": "Feature Control", "url": _fc_url, "icon": "bi-toggle-on", "section": "Admin Panel", "badge": None})
-            _fca_url = studio_shell_url or _safe_reverse("siteconfig:feature_control_audit")
+                items.append(
+                    {
+                        "id": "feature_control",
+                        "label": "Feature Control",
+                        "url": _fc_url,
+                        "icon": "bi-toggle-on",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
+            _fca_url = studio_shell_url or _safe_reverse(
+                "siteconfig:feature_control_audit"
+            )
             if _fca_url:
-                items.append({"id": "feature_control_audit", "label": "Feature Control Audit", "url": _fca_url, "icon": "bi-clock-history", "section": "Admin Panel", "badge": None})
-        if backend_flags.get("enable_api_center") and (getattr(user, "has_feature_permission", lambda _: False)("api_center.manage") or role in ("ADMIN", "IT_ADMIN")):
-            items.append({"id": "api_center", "label": "Integrations & API Center", "url": _safe_reverse("apicenter:dashboard"), "icon": "bi-plug", "section": "Admin Panel", "badge": None})
-        items.append({"id": "backend", "label": "Backend Console", "url": _safe_reverse("accounts:backend_dashboard"), "icon": "bi-gear-fill", "section": "Admin Panel", "badge": None})
+                items.append(
+                    {
+                        "id": "feature_control_audit",
+                        "label": "Feature Control Audit",
+                        "url": _fca_url,
+                        "icon": "bi-clock-history",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
+        if backend_flags.get("enable_api_center") and (
+            getattr(user, "has_feature_permission", lambda _: False)(
+                "api_center.manage"
+            )
+            or role in ("ADMIN", "IT_ADMIN")
+        ):
+            items.append(
+                {
+                    "id": "api_center",
+                    "label": "Integrations & API Center",
+                    "url": _safe_reverse("apicenter:dashboard"),
+                    "icon": "bi-plug",
+                    "section": "Admin Panel",
+                    "badge": None,
+                }
+            )
+        items.append(
+            {
+                "id": "backend",
+                "label": "Backend Console",
+                "url": _safe_reverse("accounts:backend_dashboard"),
+                "icon": "bi-gear-fill",
+                "section": "Admin Panel",
+                "badge": None,
+            }
+        )
+        if role in ("ADMIN", "IT_ADMIN", "PROPRIETOR", "LEADERSHIP") or is_superuser:
+            _dinterop = _safe_reverse("accounts:district_lms_interop")
+            if _dinterop:
+                items.append(
+                    {
+                        "id": "district_lms_interop",
+                        "label": "District & LMS interop",
+                        "url": _dinterop,
+                        "icon": "bi-link-45deg",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
+            _iw = _safe_reverse("accounts:institution_profile_wizard")
+            if _iw:
+                items.append(
+                    {
+                        "id": "institution_profile_wizard",
+                        "label": "Institution profile",
+                        "url": _iw,
+                        "icon": "bi-building",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
         # Studio OS as single entry: Workflow Center and Approval Hub open from Studio (legacy URLs redirect when not from_studio=1).
-        workflow_center_url = _safe_reverse("studio_os:automation") or _safe_reverse("studio_os:workflow_center")
+        workflow_center_url = _safe_reverse("studio_os:automation") or _safe_reverse(
+            "studio_os:workflow_center"
+        )
         if workflow_center_url:
-            items.append({"id": "workflow_center", "label": "Workflow Center", "url": workflow_center_url, "icon": "bi-diagram-3", "section": "Admin Panel", "badge": workflow_badge})
+            items.append(
+                {
+                    "id": "workflow_center",
+                    "label": "Workflow Center",
+                    "url": workflow_center_url,
+                    "icon": "bi-diagram-3",
+                    "section": "Admin Panel",
+                    "badge": workflow_badge,
+                }
+            )
         approval_hub_url = studio_shell_url or _safe_reverse("studio_os:approval_hub")
         if approval_hub_url:
-            items.append({"id": "approval_hub", "label": "Approval Hub", "url": approval_hub_url, "icon": "bi-clipboard-check", "section": "Admin Panel", "badge": None})
+            items.append(
+                {
+                    "id": "approval_hub",
+                    "label": "Approval Hub",
+                    "url": approval_hub_url,
+                    "icon": "bi-clipboard-check",
+                    "section": "Admin Panel",
+                    "badge": None,
+                }
+            )
         _school = getattr(request, "school", None)
         if _school:
             workflow_hub_url = _safe_reverse("studio_os:automation")
             if workflow_hub_url:
-                items.append({"id": "workflow_hub", "label": "Workflow Hub", "url": workflow_hub_url, "icon": "bi-diagram-3-fill", "section": "Admin Panel", "badge": None})
+                items.append(
+                    {
+                        "id": "workflow_hub",
+                        "label": "Workflow Hub",
+                        "url": workflow_hub_url,
+                        "icon": "bi-diagram-3-fill",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
             dashboard_hub_url = _safe_reverse("siteconfig:dashboard_hub")
             if dashboard_hub_url:
-                items.append({"id": "dashboard_hub", "label": "Dashboard Hub", "url": dashboard_hub_url, "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
+                items.append(
+                    {
+                        "id": "dashboard_hub",
+                        "label": "Dashboard Hub",
+                        "url": dashboard_hub_url,
+                        "icon": "bi-grid-3x3-gap",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
             get_blueprints_url = _safe_reverse("siteconfig:get_blueprints")
             if get_blueprints_url:
-                items.append({"id": "get_blueprints", "label": "Blueprints", "url": get_blueprints_url, "icon": "bi-journal-richtext", "section": "Admin Panel", "badge": None})
+                items.append(
+                    {
+                        "id": "get_blueprints",
+                        "label": "Blueprints",
+                        "url": get_blueprints_url,
+                        "icon": "bi-journal-richtext",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
         # Import & bulk: entry via Studio OS Overview when available; else legacy import hub.
         import_hub_url = studio_shell_url or _safe_reverse("studio_os:import_hub")
         if import_hub_url:
-            items.append({"id": "import_hub", "label": "Import & bulk", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})
+            items.append(
+                {
+                    "id": "import_hub",
+                    "label": "Import & bulk",
+                    "url": import_hub_url,
+                    "icon": "bi-upload",
+                    "section": "Admin Panel",
+                    "badge": None,
+                }
+            )
         if can_manage_site:
             # §6.14 Connect portal to Experience Studio: direct link for theme/branding (RUNMYCAMPUS SOT)
             experience_url = _safe_reverse("studio_os:experience")
             if experience_url:
-                items.append({"id": "experience_studio", "label": "Theme & Experience", "url": experience_url, "icon": "bi-palette", "section": "Admin Panel", "badge": None})
-            items.append({"id": "studio", "label": "Studio", "url": _safe_reverse("studio_os:shell"), "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
+                items.append(
+                    {
+                        "id": "experience_studio",
+                        "label": "Theme & Experience",
+                        "url": experience_url,
+                        "icon": "bi-palette",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
+            items.append(
+                {
+                    "id": "studio",
+                    "label": "Studio",
+                    "url": _safe_reverse("studio_os:shell"),
+                    "icon": "bi-grid-3x3-gap",
+                    "section": "Admin Panel",
+                    "badge": None,
+                }
+            )
         # Multi-tenant: Modules and Grading are per-school; show only when a school is in context.
         _school = getattr(request, "school", None)
-        if _school and (role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL") or is_staff or is_superuser):
+        if _school and (
+            role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL")
+            or is_staff
+            or is_superuser
+        ):
             _mm_url = _safe_reverse("siteconfig:module_market")
             if _mm_url:
-                items.append({"id": "module_market", "label": "Modules", "url": _mm_url, "icon": "bi-puzzle", "section": "Admin Panel", "badge": None})
+                items.append(
+                    {
+                        "id": "module_market",
+                        "label": "Modules",
+                        "url": _mm_url,
+                        "icon": "bi-puzzle",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
             _gs_url = _safe_reverse("siteconfig:grading_settings")
             if _gs_url:
-                items.append({"id": "grading_settings", "label": "Grading & language", "url": _gs_url, "icon": "bi-translate", "section": "Admin Panel", "badge": None})
+                items.append(
+                    {
+                        "id": "grading_settings",
+                        "label": "Grading & language",
+                        "url": _gs_url,
+                        "icon": "bi-translate",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
         if is_superuser and not in_backend:
             site_pk = getattr(site, "pk", 1)
-            items.append({"id": "site_settings", "label": "Site Settings", "url": _safe_reverse("admin:siteconfig_sitesettings_change", args=[site_pk]), "icon": "bi-gear-wide", "section": "Admin Panel", "badge": None})
-            items.append({"id": "region_config", "label": "Region Configuration", "url": _safe_reverse("admin:global_registries_regionconfig_changelist"), "icon": "bi-geo-alt", "section": "Admin Panel", "badge": None})
+            items.append(
+                {
+                    "id": "site_settings",
+                    "label": "Site Settings",
+                    "url": _safe_reverse(
+                        "admin:siteconfig_sitesettings_change", args=[site_pk]
+                    ),
+                    "icon": "bi-gear-wide",
+                    "section": "Admin Panel",
+                    "badge": None,
+                }
+            )
+            items.append(
+                {
+                    "id": "region_config",
+                    "label": "Region Configuration",
+                    "url": _safe_reverse(
+                        "admin:global_registries_regionconfig_changelist"
+                    ),
+                    "icon": "bi-geo-alt",
+                    "section": "Admin Panel",
+                    "badge": None,
+                }
+            )
         if is_superuser:
-            items.append({"id": "admin_panel", "label": "System config", "url": _safe_reverse("siteconfig:console_domains_hub"), "icon": "bi-gear-wide-connected", "section": "Admin Panel", "badge": None})
+            items.append(
+                {
+                    "id": "admin_panel",
+                    "label": "System config",
+                    "url": _safe_reverse("siteconfig:console_domains_hub"),
+                    "icon": "bi-gear-wide-connected",
+                    "section": "Admin Panel",
+                    "badge": None,
+                }
+            )
 
     # Drop items with no URL
     items = [x for x in items if x.get("url")]
@@ -459,21 +1356,37 @@ def build_portal_sidebar_items(request, site):
     # Prefer request.tenant_runtime (entitlements.modules, flags) when available; else Policy Registry / is_feature_enabled.
     school = getattr(request, "school", None)
     runtime = getattr(request, "tenant_runtime", None)
-    if runtime and getattr(runtime, "entitlements", None) and getattr(runtime.entitlements, "modules", None):
-        allowed_modules = set(m.lower() if isinstance(m, str) else str(m).lower() for m in runtime.entitlements.modules)
+    if (
+        runtime
+        and getattr(runtime, "entitlements", None)
+        and getattr(runtime.entitlements, "modules", None)
+    ):
+        allowed_modules = set(
+            m.lower() if isinstance(m, str) else str(m).lower()
+            for m in runtime.entitlements.modules
+        )
         # Feature-gated items: show only if feature key is in entitlements or flags
         flags = getattr(getattr(runtime, "flags", None), "flags", None) or {}
+
         def _item_visible(it):
             feat = it.get("feature")
             if feat is None:
                 return True
-            return flags.get(feat, False) or feat.replace("_", ".") in allowed_modules or any(feat in m for m in allowed_modules)
+            return (
+                flags.get(feat, False)
+                or feat.replace("_", ".") in allowed_modules
+                or any(feat in m for m in allowed_modules)
+            )
+
         items = [it for it in items if _item_visible(it)]
     elif school:
         from apps.schools.models import is_feature_enabled
+
         items = [
-            it for it in items
-            if it.get("feature") is None or is_feature_enabled(school, it.get("feature") or "")
+            it
+            for it in items
+            if it.get("feature") is None
+            or is_feature_enabled(school, it.get("feature") or "")
         ]
 
     # Group by section so each section title appears only once ({% ifchanged item.section %}).

@@ -7,6 +7,7 @@ from django.db import migrations, models
 
 def add_theme_pack_id_if_missing(apps, schema_editor):
     from django.db import connection
+
     with connection.cursor() as cursor:
         if connection.vendor == "postgresql":
             cursor.execute("""
@@ -16,11 +17,15 @@ def add_theme_pack_id_if_missing(apps, schema_editor):
                 EXCEPTION WHEN duplicate_column THEN NULL;
                 END $$;
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS schools_school_theme_pack_id_idx ON schools_school (theme_pack_id)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS schools_school_theme_pack_id_idx ON schools_school (theme_pack_id)"
+            )
         else:
             cursor.execute("PRAGMA table_info(schools_school)")
             if "theme_pack_id" not in [row[1] for row in cursor.fetchall()]:
-                cursor.execute("ALTER TABLE schools_school ADD COLUMN theme_pack_id integer NULL REFERENCES siteconfig_themepack(id) ON DELETE SET NULL")
+                cursor.execute(
+                    "ALTER TABLE schools_school ADD COLUMN theme_pack_id integer NULL REFERENCES siteconfig_themepack(id) ON DELETE SET NULL"
+                )
 
 
 def noop(apps, schema_editor):
@@ -28,45 +33,53 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0019_inventory_transport'),
-        ('siteconfig', '0108_tour_step_feature_usage_event'),
+        ("schools", "0019_inventory_transport"),
+        ("siteconfig", "0108_tour_step_feature_usage_event"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='bus',
-            name='schools_bus_school_id_uniq',
+            model_name="bus",
+            name="schools_bus_school_id_uniq",
         ),
         migrations.RemoveConstraint(
-            model_name='route',
-            name='schools_route_school_name_uniq',
+            model_name="route",
+            name="schools_route_school_name_uniq",
         ),
         migrations.RemoveConstraint(
-            model_name='stop',
-            name='schools_stop_route_seq_uniq',
+            model_name="stop",
+            name="schools_stop_route_seq_uniq",
         ),
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='school',
-                    name='theme_pack',
-                    field=models.ForeignKey(blank=True, help_text='Portal/login theme pack for this school. Leave blank to use global default.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='schools_using_theme', to='siteconfig.themepack'),
+                    model_name="school",
+                    name="theme_pack",
+                    field=models.ForeignKey(
+                        blank=True,
+                        help_text="Portal/login theme pack for this school. Leave blank to use global default.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="schools_using_theme",
+                        to="siteconfig.themepack",
+                    ),
                 ),
             ],
-            database_operations=[migrations.RunPython(add_theme_pack_id_if_missing, noop)],
+            database_operations=[
+                migrations.RunPython(add_theme_pack_id_if_missing, noop)
+            ],
         ),
         migrations.AlterUniqueTogether(
-            name='bus',
-            unique_together={('school', 'identifier')},
+            name="bus",
+            unique_together={("school", "identifier")},
         ),
         migrations.AlterUniqueTogether(
-            name='route',
-            unique_together={('school', 'name')},
+            name="route",
+            unique_together={("school", "name")},
         ),
         migrations.AlterUniqueTogether(
-            name='stop',
-            unique_together={('route', 'sequence')},
+            name="stop",
+            unique_together={("route", "sequence")},
         ),
     ]

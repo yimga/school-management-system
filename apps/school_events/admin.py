@@ -37,7 +37,15 @@ class EventSponsorCommitmentInline(admin.TabularInline):
 
 @admin.register(SchoolEvent, site=tenant_admin_site)
 class SchoolEventAdmin(admin.ModelAdmin):
-    list_display = ("title", "school", "status", "start_at", "venue", "ticketing_enabled", "sponsorship_enabled")
+    list_display = (
+        "title",
+        "school",
+        "status",
+        "start_at",
+        "venue",
+        "ticketing_enabled",
+        "sponsorship_enabled",
+    )
     list_filter = ("status", "ticketing_enabled", "sponsorship_enabled", "is_public")
     search_fields = ("title", "school__name", "summary", "description")
     inlines = [EventTicketTierInline, EventSponsorCommitmentInline]
@@ -46,7 +54,14 @@ class SchoolEventAdmin(admin.ModelAdmin):
 
 @admin.register(EventRegistration, site=tenant_admin_site)
 class EventRegistrationAdmin(admin.ModelAdmin):
-    list_display = ("event", "attendee_name", "quantity", "amount_due", "amount_paid", "status", "created_at")
+    list_display = (
+        "event",
+        "attendee_name",
+        "quantity",
+        "amount_due",
+        "amount_paid",
+        "status",
+        "created_at",
+    )
     list_filter = ("status",)
     search_fields = ("event__title", "attendee_name", "attendee_email")
-

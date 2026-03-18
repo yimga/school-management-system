@@ -8,6 +8,7 @@ Cost guardrails (optional per integration):
 - cooldown_seconds: min seconds between calls; throttle to avoid burst cost.
 - fallback_channel: service_key to use when over cap or throttled (e.g. "email" when "whatsapp" is capped).
 """
+
 from __future__ import annotations
 
 from typing import Any, Callable
@@ -25,10 +26,22 @@ INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
         "cooldown_seconds": 1,
         "fallback_channel": "email",
         "config_schema": {
-            "phone_number_id": {"type": "string", "label": "Phone Number ID", "required": True},
-            "access_token": {"type": "password", "label": "Access Token", "required": True},
+            "phone_number_id": {
+                "type": "string",
+                "label": "Phone Number ID",
+                "required": True,
+            },
+            "access_token": {
+                "type": "password",
+                "label": "Access Token",
+                "required": True,
+            },
             "webhook_verify_token": {"type": "string", "label": "Webhook Verify Token"},
-            "api_version": {"type": "string", "label": "API Version", "default": "v18.0"},
+            "api_version": {
+                "type": "string",
+                "label": "API Version",
+                "default": "v18.0",
+            },
         },
         "description": "Send templates and session messages to parents/guardians. Configure in Meta Developer Console.",
     },
@@ -38,7 +51,11 @@ INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
         "category": "MESSAGING",
         "service_type": "PUSH",
         "config_schema": {
-            "provider": {"type": "string", "label": "Provider", "choices": ["fcm", "apns", "web_push", "other"]},
+            "provider": {
+                "type": "string",
+                "label": "Provider",
+                "choices": ["fcm", "apns", "web_push", "other"],
+            },
             "server_key": {"type": "password", "label": "FCM Server Key (if FCM)"},
             "bundle_id": {"type": "string", "label": "APNS Bundle ID (if APNS)"},
             "endpoint_url": {"type": "url", "label": "Webhook URL (if other)"},
@@ -66,9 +83,16 @@ INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
         "category": "BILLING",
         "service_type": "STRIPE",
         "config_schema": {
-            "secret_key": {"type": "password", "label": "Platform Secret Key", "required": True},
+            "secret_key": {
+                "type": "password",
+                "label": "Platform Secret Key",
+                "required": True,
+            },
             "webhook_secret": {"type": "string", "label": "Webhook Secret"},
-            "price_id_per_school": {"type": "string", "label": "Price ID for per-school subscription"},
+            "price_id_per_school": {
+                "type": "string",
+                "label": "Price ID for per-school subscription",
+            },
         },
         "description": "Super-admin: bill each school (e.g. monthly). Use school=null for platform-level integration.",
     },
@@ -120,7 +144,11 @@ INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
         "cooldown_seconds": 2,
         "fallback_channel": "email",
         "config_schema": {
-            "provider": {"type": "string", "label": "Provider", "choices": ["twilio", "nexmo", "other"]},
+            "provider": {
+                "type": "string",
+                "label": "Provider",
+                "choices": ["twilio", "nexmo", "other"],
+            },
             "account_sid": {"type": "string", "label": "Account SID (Twilio)"},
             "auth_token": {"type": "password", "label": "Auth Token"},
             "from_number": {"type": "string", "label": "From Number"},
@@ -186,6 +214,7 @@ def check_integration_guardrail(
         }
 
     import time
+
     if cooldown and last_ts and (time.time() - last_ts) < cooldown:
         return {
             "allowed": False,

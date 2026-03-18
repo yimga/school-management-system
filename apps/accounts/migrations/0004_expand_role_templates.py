@@ -2,16 +2,52 @@ from django.db import migrations
 
 
 PERMISSION_DEFINITIONS = [
-    ("attendance.view", "Attendance dashboards", "View attendance dashboards and logs."),
-    ("attendance.manage", "Attendance management", "Create/dismiss attendance records and discipline logs."),
-    ("finance.view", "Finance access", "View finance dashboards, invoices, and payments."),
-    ("finance.manage", "Finance management", "Manage invoices, payments, and debtors lists."),
-    ("reports.manage", "Reports & exports", "Generate reports/exports (PDF/CSV) and promotion data."),
+    (
+        "attendance.view",
+        "Attendance dashboards",
+        "View attendance dashboards and logs.",
+    ),
+    (
+        "attendance.manage",
+        "Attendance management",
+        "Create/dismiss attendance records and discipline logs.",
+    ),
+    (
+        "finance.view",
+        "Finance access",
+        "View finance dashboards, invoices, and payments.",
+    ),
+    (
+        "finance.manage",
+        "Finance management",
+        "Manage invoices, payments, and debtors lists.",
+    ),
+    (
+        "reports.manage",
+        "Reports & exports",
+        "Generate reports/exports (PDF/CSV) and promotion data.",
+    ),
     ("data.access", "Data exports", "Export student/staff data across portals."),
-    ("settings.manage", "Backend configuration", "Manage site-wide settings, customizer, and RBAC."),
-    ("portal.manage", "Portal features", "Control portal modules, invites, and communication assets."),
-    ("student.manage", "Student control", "Manage student profiles, referrals, and dashboards."),
-    ("communication.manage", "Communication center", "Send broadcasts, owner notifications, and reminders."),
+    (
+        "settings.manage",
+        "Backend configuration",
+        "Manage site-wide settings, customizer, and RBAC.",
+    ),
+    (
+        "portal.manage",
+        "Portal features",
+        "Control portal modules, invites, and communication assets.",
+    ),
+    (
+        "student.manage",
+        "Student control",
+        "Manage student profiles, referrals, and dashboards.",
+    ),
+    (
+        "communication.manage",
+        "Communication center",
+        "Send broadcasts, owner notifications, and reminders.",
+    ),
 ]
 
 ROLE_DEFINITIONS = {
@@ -65,7 +101,12 @@ ROLE_DEFINITIONS = {
     "IT_ADMIN": {
         "name": "IT Administrator",
         "description": "Manages system configuration, backups, and privacy settings.",
-        "permissions": ["settings.manage", "portal.manage", "data.access", "communication.manage"],
+        "permissions": [
+            "settings.manage",
+            "portal.manage",
+            "data.access",
+            "communication.manage",
+        ],
     },
     "BOARDING_MANAGER": {
         "name": "Boarding Manager",
@@ -85,7 +126,12 @@ ROLE_DEFINITIONS = {
     "LEADERSHIP": {
         "name": "Leadership",
         "description": "Strategic dashboards for finance, attendance, and reports.",
-        "permissions": ["attendance.manage", "finance.manage", "reports.manage", "data.access"],
+        "permissions": [
+            "attendance.manage",
+            "finance.manage",
+            "reports.manage",
+            "data.access",
+        ],
     },
 }
 
@@ -107,12 +153,15 @@ def create_roles(apps, schema_editor):
             code=role_code,
             defaults={"name": data["name"], "description": data["description"]},
         )
-        perms = [perm_map[perm_code] for perm_code in data["permissions"] if perm_code in perm_map]
+        perms = [
+            perm_map[perm_code]
+            for perm_code in data["permissions"]
+            if perm_code in perm_map
+        ]
         role.permissions.set(perms)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0003_default_roles_permissions"),
     ]

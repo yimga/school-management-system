@@ -36,11 +36,12 @@ def create_report_card_styles(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0009_reportcardstyle_and_more"),
     ]
 
     operations = [
-        migrations.RunPython(create_report_card_styles, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(
+            create_report_card_styles, reverse_code=migrations.RunPython.noop
+        ),
     ]

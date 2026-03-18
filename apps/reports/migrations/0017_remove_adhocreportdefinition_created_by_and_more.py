@@ -4,82 +4,81 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('reports', '0016_reportpack_alter_dashboardwidgetplacement_widget_and_more'),
+        ("reports", "0016_reportpack_alter_dashboardwidgetplacement_widget_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='adhocreportdefinition',
-            name='created_by',
+            model_name="adhocreportdefinition",
+            name="created_by",
         ),
         migrations.RemoveField(
-            model_name='adhocreportdefinition',
-            name='school',
+            model_name="adhocreportdefinition",
+            name="school",
         ),
         migrations.AlterUniqueTogether(
-            name='dashboardwidgetplacement',
+            name="dashboardwidgetplacement",
             unique_together=None,
         ),
         migrations.RemoveField(
-            model_name='dashboardwidgetplacement',
-            name='dashboard',
+            model_name="dashboardwidgetplacement",
+            name="dashboard",
         ),
         migrations.RemoveField(
-            model_name='dashboardwidgetplacement',
-            name='widget',
+            model_name="dashboardwidgetplacement",
+            name="widget",
         ),
         migrations.RemoveField(
-            model_name='userdashboard',
-            name='widgets',
+            model_name="userdashboard",
+            name="widgets",
         ),
         migrations.DeleteModel(
-            name='MaterializedReportCache',
+            name="MaterializedReportCache",
         ),
         migrations.RemoveField(
-            model_name='reportdefinition',
-            name='created_by',
+            model_name="reportdefinition",
+            name="created_by",
         ),
         migrations.RemoveField(
-            model_name='reportexecution',
-            name='report_definition',
+            model_name="reportexecution",
+            name="report_definition",
         ),
         migrations.RemoveField(
-            model_name='scheduledreport',
-            name='report_definition',
+            model_name="scheduledreport",
+            name="report_definition",
         ),
         migrations.RemoveField(
-            model_name='reportexecution',
-            name='executed_by',
+            model_name="reportexecution",
+            name="executed_by",
         ),
         migrations.RemoveField(
-            model_name='scheduledreport',
-            name='created_by',
+            model_name="scheduledreport",
+            name="created_by",
         ),
         migrations.RemoveField(
-            model_name='userdashboard',
-            name='user',
+            model_name="userdashboard",
+            name="user",
         ),
         migrations.DeleteModel(
-            name='AdHocReportDefinition',
+            name="AdHocReportDefinition",
         ),
         migrations.DeleteModel(
-            name='AdHocReportExecution',
+            name="AdHocReportExecution",
         ),
         migrations.DeleteModel(
-            name='DashboardWidgetPlacement',
+            name="DashboardWidgetPlacement",
         ),
         migrations.DeleteModel(
-            name='ReportDefinition',
+            name="ReportDefinition",
         ),
         migrations.DeleteModel(
-            name='ReportExecution',
+            name="ReportExecution",
         ),
         migrations.DeleteModel(
-            name='ScheduledReport',
+            name="ScheduledReport",
         ),
         migrations.DeleteModel(
-            name='UserDashboard',
+            name="UserDashboard",
         ),
     ]

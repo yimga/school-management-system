@@ -4,6 +4,7 @@ Wave 1 control-plane boundary tests (RUNMYCAMPUS_AUDIT_PLAN_COMPLETE_NO_BACKLOG)
 Non-negotiable: manager host denies non–platform users; /super/ has no tenant exceptions;
 manager URLConf contains only control-plane namespaces (or redirects to them).
 """
+
 from django.test import TestCase, override_settings
 from django.urls import resolve, reverse
 
@@ -76,6 +77,7 @@ class SuperNamespacePurityTests(TestCase):
         """TenantSuperAdminRequiredMiddleware must not allow any /super/ path for non–control-plane users."""
         from apps.schools.middleware import TenantSuperAdminRequiredMiddleware
         import inspect
+
         source = inspect.getsource(TenantSuperAdminRequiredMiddleware.process_request)
         # There must be no exception that allows /super/... for non-super (e.g. /super/parent-tenant/).
         self.assertNotIn(
@@ -100,7 +102,9 @@ class SuperNamespacePurityTests(TestCase):
             if hasattr(p, "pattern") and p.pattern:
                 route = str(getattr(p.pattern, "_route", ""))
                 if "parent" in route:
-                    self.fail("super_urls must not contain a path with 'parent' (tenant hierarchy).")
+                    self.fail(
+                        "super_urls must not contain a path with 'parent' (tenant hierarchy)."
+                    )
 
 
 class ManagerUrlconfOnlyControlPlaneTests(TestCase):

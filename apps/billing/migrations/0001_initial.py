@@ -6,107 +6,295 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('schools', '0027_school_country_code_school_education_levels_and_more'),
-        ('siteconfig', '0131_brandprofile'),
+        ("schools", "0027_school_country_code_school_education_levels_and_more"),
+        ("siteconfig", "0131_brandprofile"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BillingAccount',
+            name="BillingAccount",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('ACTIVE', 'Active'), ('TRIAL', 'Trial'), ('PAST_DUE', 'Past due'), ('SUSPENDED', 'Suspended'), ('CANCELED', 'Canceled')], db_index=True, default='ACTIVE', max_length=20)),
-                ('billing_email', models.EmailField(blank=True, max_length=254)),
-                ('external_customer_ref', models.CharField(blank=True, db_index=True, max_length=120)),
-                ('currency_code', models.CharField(default='USD', max_length=3)),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='billing_account', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("ACTIVE", "Active"),
+                            ("TRIAL", "Trial"),
+                            ("PAST_DUE", "Past due"),
+                            ("SUSPENDED", "Suspended"),
+                            ("CANCELED", "Canceled"),
+                        ],
+                        db_index=True,
+                        default="ACTIVE",
+                        max_length=20,
+                    ),
+                ),
+                ("billing_email", models.EmailField(blank=True, max_length=254)),
+                (
+                    "external_customer_ref",
+                    models.CharField(blank=True, db_index=True, max_length=120),
+                ),
+                ("currency_code", models.CharField(default="USD", max_length=3)),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="billing_account",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Billing account',
-                'verbose_name_plural': 'Billing accounts',
-                'ordering': ['school__name'],
+                "verbose_name": "Billing account",
+                "verbose_name_plural": "Billing accounts",
+                "ordering": ["school__name"],
             },
         ),
         migrations.CreateModel(
-            name='PlatformLedgerEntry',
+            name="PlatformLedgerEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('entry_type', models.CharField(choices=[('CHARGE', 'Charge'), ('CREDIT', 'Credit'), ('ADJUSTMENT', 'Adjustment'), ('WRITE_OFF', 'Write off')], db_index=True, max_length=20)),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('POSTED', 'Posted'), ('VOIDED', 'Voided')], db_index=True, default='POSTED', max_length=12)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('currency_code', models.CharField(default='USD', max_length=3)),
-                ('description', models.CharField(blank=True, max_length=255)),
-                ('reference', models.CharField(blank=True, db_index=True, max_length=120)),
-                ('source', models.CharField(blank=True, max_length=64)),
-                ('source_ref', models.CharField(blank=True, max_length=120)),
-                ('happened_at', models.DateTimeField(db_index=True)),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('billing_account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='ledger_entries', to='billing.billingaccount')),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='platform_ledger_entries', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "entry_type",
+                    models.CharField(
+                        choices=[
+                            ("CHARGE", "Charge"),
+                            ("CREDIT", "Credit"),
+                            ("ADJUSTMENT", "Adjustment"),
+                            ("WRITE_OFF", "Write off"),
+                        ],
+                        db_index=True,
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("POSTED", "Posted"),
+                            ("VOIDED", "Voided"),
+                        ],
+                        db_index=True,
+                        default="POSTED",
+                        max_length=12,
+                    ),
+                ),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("currency_code", models.CharField(default="USD", max_length=3)),
+                ("description", models.CharField(blank=True, max_length=255)),
+                (
+                    "reference",
+                    models.CharField(blank=True, db_index=True, max_length=120),
+                ),
+                ("source", models.CharField(blank=True, max_length=64)),
+                ("source_ref", models.CharField(blank=True, max_length=120)),
+                ("happened_at", models.DateTimeField(db_index=True)),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "billing_account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ledger_entries",
+                        to="billing.billingaccount",
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="platform_ledger_entries",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Platform ledger entry',
-                'verbose_name_plural': 'Platform ledger entries',
-                'ordering': ['-happened_at', '-created_at'],
+                "verbose_name": "Platform ledger entry",
+                "verbose_name_plural": "Platform ledger entries",
+                "ordering": ["-happened_at", "-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='TenantSubscription',
+            name="TenantSubscription",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('TRIALING', 'Trialing'), ('ACTIVE', 'Active'), ('PAST_DUE', 'Past due'), ('SUSPENDED', 'Suspended'), ('CANCELED', 'Canceled')], db_index=True, default='ACTIVE', max_length=20)),
-                ('billing_cycle', models.CharField(choices=[('MONTHLY', 'Monthly'), ('ANNUAL', 'Annual'), ('MANUAL', 'Manual')], default='MONTHLY', max_length=12)),
-                ('starts_at', models.DateTimeField(blank=True, null=True)),
-                ('current_period_start', models.DateTimeField(blank=True, null=True)),
-                ('current_period_end', models.DateTimeField(blank=True, null=True)),
-                ('trial_end_date', models.DateField(blank=True, null=True)),
-                ('canceled_at', models.DateTimeField(blank=True, null=True)),
-                ('base_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('addons_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('billed_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('country_multiplier', models.DecimalField(decimal_places=3, default=Decimal('1.000'), max_digits=8)),
-                ('addon_codes', models.JSONField(blank=True, default=list)),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('billing_account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subscriptions', to='billing.billingaccount')),
-                ('plan', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='tenant_subscriptions', to='siteconfig.plan')),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='platform_subscriptions', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("TRIALING", "Trialing"),
+                            ("ACTIVE", "Active"),
+                            ("PAST_DUE", "Past due"),
+                            ("SUSPENDED", "Suspended"),
+                            ("CANCELED", "Canceled"),
+                        ],
+                        db_index=True,
+                        default="ACTIVE",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "billing_cycle",
+                    models.CharField(
+                        choices=[
+                            ("MONTHLY", "Monthly"),
+                            ("ANNUAL", "Annual"),
+                            ("MANUAL", "Manual"),
+                        ],
+                        default="MONTHLY",
+                        max_length=12,
+                    ),
+                ),
+                ("starts_at", models.DateTimeField(blank=True, null=True)),
+                ("current_period_start", models.DateTimeField(blank=True, null=True)),
+                ("current_period_end", models.DateTimeField(blank=True, null=True)),
+                ("trial_end_date", models.DateField(blank=True, null=True)),
+                ("canceled_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "base_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "addons_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "billed_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "country_multiplier",
+                    models.DecimalField(
+                        decimal_places=3, default=Decimal("1.000"), max_digits=8
+                    ),
+                ),
+                ("addon_codes", models.JSONField(blank=True, default=list)),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "billing_account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="subscriptions",
+                        to="billing.billingaccount",
+                    ),
+                ),
+                (
+                    "plan",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="tenant_subscriptions",
+                        to="siteconfig.plan",
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="platform_subscriptions",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Tenant subscription',
-                'verbose_name_plural': 'Tenant subscriptions',
-                'ordering': ['-updated_at', '-created_at'],
+                "verbose_name": "Tenant subscription",
+                "verbose_name_plural": "Tenant subscriptions",
+                "ordering": ["-updated_at", "-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='UsageMeter',
+            name="UsageMeter",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('metric_code', models.CharField(db_index=True, max_length=64)),
-                ('period_start', models.DateField(db_index=True)),
-                ('period_end', models.DateField(db_index=True)),
-                ('quantity', models.PositiveBigIntegerField(default=0)),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('billing_account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='usage_meters', to='billing.billingaccount')),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='platform_usage_meters', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("metric_code", models.CharField(db_index=True, max_length=64)),
+                ("period_start", models.DateField(db_index=True)),
+                ("period_end", models.DateField(db_index=True)),
+                ("quantity", models.PositiveBigIntegerField(default=0)),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "billing_account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="usage_meters",
+                        to="billing.billingaccount",
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="platform_usage_meters",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Usage meter',
-                'verbose_name_plural': 'Usage meters',
-                'ordering': ['-period_start', 'metric_code'],
-                'constraints': [models.UniqueConstraint(fields=('billing_account', 'metric_code', 'period_start', 'period_end'), name='billing_unique_usage_meter_period')],
+                "verbose_name": "Usage meter",
+                "verbose_name_plural": "Usage meters",
+                "ordering": ["-period_start", "metric_code"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=(
+                            "billing_account",
+                            "metric_code",
+                            "period_start",
+                            "period_end",
+                        ),
+                        name="billing_unique_usage_meter_period",
+                    )
+                ],
             },
         ),
     ]

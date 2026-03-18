@@ -1,6 +1,7 @@
 """
 Photo upload by token: capture on another device (e.g. phone) and attach to registration or profile.
 """
+
 import logging
 import base64
 import json
@@ -19,10 +20,13 @@ from .models import PhotoUploadToken
 try:
     from django_ratelimit.decorators import ratelimit
 except ImportError:
+
     def ratelimit(*args, **kwargs):
         def dec(f):
             return f
+
         return dec
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,17 +52,22 @@ def photo_upload_generate(request):
     if not _photo_upload_remote_enabled(request):
         raise Http404("Photo upload from another device is disabled.")
     purpose = request.GET.get("purpose", PhotoUploadToken.Purpose.REGISTRATION)
-    if purpose not in (PhotoUploadToken.Purpose.REGISTRATION, PhotoUploadToken.Purpose.PROFILE_UPDATE):
+    if purpose not in (
+        PhotoUploadToken.Purpose.REGISTRATION,
+        PhotoUploadToken.Purpose.PROFILE_UPDATE,
+    ):
         purpose = PhotoUploadToken.Purpose.REGISTRATION
     token_obj = PhotoUploadToken.objects.create(purpose=purpose)
     base_url = request.build_absolute_uri("/").rstrip("/")
     upload_path = f"/portal/photo-upload/{token_obj.token}/"
     full_url = base_url + upload_path
-    return JsonResponse({
-        "token": str(token_obj.token),
-        "upload_url": upload_path,
-        "full_url": full_url,
-    })
+    return JsonResponse(
+        {
+            "token": str(token_obj.token),
+            "upload_url": upload_path,
+            "full_url": full_url,
+        }
+    )
 
 
 @login_required
@@ -78,9 +87,11 @@ def photo_upload_generate_for_profile(request):
     teacher = None
     if student_id:
         from apps.people.models import StudentProfile
+
         student = get_object_or_404(StudentProfile, id=student_id)
     if teacher_id:
         from apps.people.models import TeacherProfile
+
         teacher = get_object_or_404(TeacherProfile, id=teacher_id)
     token_obj = PhotoUploadToken.objects.create(
         purpose=PhotoUploadToken.Purpose.PROFILE_UPDATE,
@@ -88,11 +99,13 @@ def photo_upload_generate_for_profile(request):
         teacher=teacher,
     )
     full_url = request.build_absolute_uri(f"/portal/photo-upload/{token_obj.token}/")
-    return JsonResponse({
-        "token": str(token_obj.token),
-        "full_url": full_url,
-        "upload_url": f"/portal/photo-upload/{token_obj.token}/",
-    })
+    return JsonResponse(
+        {
+            "token": str(token_obj.token),
+            "full_url": full_url,
+            "upload_url": f"/portal/photo-upload/{token_obj.token}/",
+        }
+    )
 
 
 @login_required
@@ -108,9 +121,11 @@ def photo_upload_send_link_page(request, student_id=None, teacher_id=None):
     teacher = None
     if student_id:
         from apps.people.models import StudentProfile
+
         student = get_object_or_404(StudentProfile, id=student_id)
     if teacher_id:
         from apps.people.models import TeacherProfile
+
         teacher = get_object_or_404(TeacherProfile, id=teacher_id)
     if not student and not teacher:
         raise Http404("Student or teacher required")
@@ -129,13 +144,17 @@ def photo_upload_send_link_page(request, student_id=None, teacher_id=None):
         name = "Teacher"
     else:
         name = "Profile"
-    return render(request, "portal/photo_upload_send_link.html", {
-        "token": token_obj.token,
-        "full_url": full_url,
-        "qr_url": qr_url,
-        "profile_name": name,
-        "is_student": bool(student),
-    })
+    return render(
+        request,
+        "portal/photo_upload_send_link.html",
+        {
+            "token": token_obj.token,
+            "full_url": full_url,
+            "qr_url": qr_url,
+            "profile_name": name,
+            "is_student": bool(student),
+        },
+    )
 
 
 @require_GET
@@ -147,11 +166,17 @@ def photo_upload_phone_page(request, token):
     if _token_expired(token_obj):
         return render(request, "portal/photo_upload_expired.html", {"token": token})
     full_url = request.build_absolute_uri(request.path)
-    return render(request, "portal/photo_upload_phone.html", {
-        "token": token,
-        "full_url": full_url,
-        "upload_endpoint": request.build_absolute_uri(f"/portal/photo-upload/{token}/upload/"),
-    })
+    return render(
+        request,
+        "portal/photo_upload_phone.html",
+        {
+            "token": token,
+            "full_url": full_url,
+            "upload_endpoint": request.build_absolute_uri(
+                f"/portal/photo-upload/{token}/upload/"
+            ),
+        },
+    )
 
 
 @ratelimit(key="ip", rate="30/h", method="POST", block=True)
@@ -180,13 +205,19 @@ def photo_upload_upload(request, token):
                     b64 = b64.split(",", 1)[1]
                 raw = base64.b64decode(b64)
                 from django.core.files.base import ContentFile
+
                 file_obj = ContentFile(raw, name="photo.jpg")
             except (TypeError, ValueError) as e:
                 logger.warning("Photo upload base64 decode failed: %s", e)
                 return JsonResponse({"error": "Invalid image data"}, status=400)
 
     if not file_obj:
-        return JsonResponse({"error": "No photo provided (use 'photo' or 'profile_photo' file, or photo_base64 in JSON)"}, status=400)
+        return JsonResponse(
+            {
+                "error": "No photo provided (use 'photo' or 'profile_photo' file, or photo_base64 in JSON)"
+            },
+            status=400,
+        )
 
     if hasattr(file_obj, "content_type") and file_obj.content_type:
         if not file_obj.content_type.startswith("image/"):
@@ -199,6 +230,7 @@ def photo_upload_upload(request, token):
 
     if token_obj.purpose == PhotoUploadToken.Purpose.PROFILE_UPDATE:
         from django.core.files.base import ContentFile
+
         name = getattr(token_obj.photo, "name", None) or "photo.jpg"
         if "/" in name:
             name = name.split("/")[-1]
@@ -223,11 +255,13 @@ def photo_upload_status(request, token):
     thumbnail_url = None
     if has_photo and token_obj.photo:
         thumbnail_url = request.build_absolute_uri(token_obj.photo.url)
-    return JsonResponse({
-        "has_photo": has_photo,
-        "thumbnail_url": thumbnail_url,
-        "expired": False,
-    })
+    return JsonResponse(
+        {
+            "has_photo": has_photo,
+            "thumbnail_url": thumbnail_url,
+            "expired": False,
+        }
+    )
 
 
 @require_GET
@@ -239,6 +273,7 @@ def photo_upload_qr(request, token):
     try:
         import qrcode
         import qrcode.image.pil
+
         img = qrcode.make(full_url, image_factory=qrcode.image.pil.PilImage)
         response = HttpResponse(content_type="image/png")
         img.save(response, "PNG")

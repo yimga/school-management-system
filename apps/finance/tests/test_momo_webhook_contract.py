@@ -8,7 +8,14 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
-from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Payment, PaymentMethodCode, WebhookLog
+from apps.finance.models import (
+    ComplianceProfile,
+    Invoice,
+    InvoiceLine,
+    Payment,
+    PaymentMethodCode,
+    WebhookLog,
+)
 from apps.people.models import StudentProfile
 from apps.siteconfig.models import Integration
 
@@ -36,7 +43,9 @@ class MobileMoneyWebhookContractTests(TestCase):
             is_active=True,
         )
         self.department = Department.objects.create(name="Science", code="SCI")
-        self.specialty = Specialty.objects.create(department=self.department, name="General", code="GEN")
+        self.specialty = Specialty.objects.create(
+            department=self.department, name="General", code="GEN"
+        )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
             department=self.department,
@@ -88,7 +97,9 @@ class MobileMoneyWebhookContractTests(TestCase):
         content_type: str = "application/json",
         raw_body: bytes | None = None,
     ):
-        encoded_body = raw_body if raw_body is not None else json.dumps(payload).encode("utf-8")
+        encoded_body = (
+            raw_body if raw_body is not None else json.dumps(payload).encode("utf-8")
+        )
         signature = self._signature(secret, encoded_body)
         if signature_prefix:
             signature = f"{signature_prefix}={signature}"
@@ -136,7 +147,9 @@ class MobileMoneyWebhookContractTests(TestCase):
         payment = Payment.objects.get(external_reference="mtn-tx-001")
         self.assertEqual(payment.method, PaymentMethodCode.MTN_MOMO)
         self.assertEqual(payment.amount, Decimal("50.00"))
-        webhook_log = WebhookLog.objects.get(provider="mtn_momo", reference_id="mtn-tx-001")
+        webhook_log = WebhookLog.objects.get(
+            provider="mtn_momo", reference_id="mtn-tx-001"
+        )
         self.assertEqual(webhook_log.status, WebhookLog.Status.PROCESSED)
         self.assertTrue(webhook_log.signature_valid)
         self.assertEqual(webhook_log.response_status, 200)
@@ -193,13 +206,19 @@ class MobileMoneyWebhookContractTests(TestCase):
             "payment_reference": "orange-dup-1",
             "status": "completed",
         }
-        first = self._post_webhook(provider_slug="orange_money", payload=payload, secret=secret)
-        second = self._post_webhook(provider_slug="orange_momo", payload=payload, secret=secret)
+        first = self._post_webhook(
+            provider_slug="orange_money", payload=payload, secret=secret
+        )
+        second = self._post_webhook(
+            provider_slug="orange_momo", payload=payload, secret=secret
+        )
 
         self.assertEqual(first.status_code, 200)
         self.assertEqual(second.status_code, 200)
         self.assertEqual(second.json().get("status"), "ignored")
-        self.assertEqual(Payment.objects.filter(external_reference="orange-dup-1").count(), 1)
+        self.assertEqual(
+            Payment.objects.filter(external_reference="orange-dup-1").count(), 1
+        )
         duplicate_log = WebhookLog.objects.filter(
             provider="orange_momo",
             reference_id="orange-dup-1",
@@ -239,8 +258,12 @@ class MobileMoneyWebhookContractTests(TestCase):
         )
         self.assertEqual(response.status_code, 403)
         self.assertIn("Invalid timestamp", response.content.decode("utf-8"))
-        self.assertFalse(Payment.objects.filter(external_reference="mtn-stale-001").exists())
-        webhook_log = WebhookLog.objects.get(provider="mtn_momo", reference_id="mtn-stale-001")
+        self.assertFalse(
+            Payment.objects.filter(external_reference="mtn-stale-001").exists()
+        )
+        webhook_log = WebhookLog.objects.get(
+            provider="mtn_momo", reference_id="mtn-stale-001"
+        )
         self.assertEqual(webhook_log.status, WebhookLog.Status.INVALID)
         self.assertTrue(webhook_log.signature_valid)
         self.assertEqual(webhook_log.response_status, 403)
@@ -272,12 +295,18 @@ class MobileMoneyWebhookContractTests(TestCase):
         )
         self.assertEqual(response.status_code, 403)
         self.assertIn("Invalid signature", response.content.decode("utf-8"))
-        self.assertFalse(Payment.objects.filter(external_reference="orange-tamper-1").exists())
-        webhook_log = WebhookLog.objects.get(provider="orange_momo", reference_id="orange-tamper-1")
+        self.assertFalse(
+            Payment.objects.filter(external_reference="orange-tamper-1").exists()
+        )
+        webhook_log = WebhookLog.objects.get(
+            provider="orange_momo", reference_id="orange-tamper-1"
+        )
         self.assertEqual(webhook_log.status, WebhookLog.Status.INVALID)
         self.assertFalse(webhook_log.signature_valid)
         self.assertEqual(webhook_log.response_status, 403)
-        self.assertIn('"payment_reference": "orange-tamper-1"', webhook_log.request_body)
+        self.assertIn(
+            '"payment_reference": "orange-tamper-1"', webhook_log.request_body
+        )
 
     def test_webhook_rejects_non_json_content_type(self):
         secret = "mtn-type-secret"
@@ -306,8 +335,12 @@ class MobileMoneyWebhookContractTests(TestCase):
 
         self.assertEqual(response.status_code, 415)
         self.assertIn("application/json", response.content.decode("utf-8"))
-        self.assertFalse(Payment.objects.filter(external_reference="mtn-type-001").exists())
-        webhook_log = WebhookLog.objects.get(provider="mtn_momo", reference_id="unknown")
+        self.assertFalse(
+            Payment.objects.filter(external_reference="mtn-type-001").exists()
+        )
+        webhook_log = WebhookLog.objects.get(
+            provider="mtn_momo", reference_id="unknown"
+        )
         self.assertEqual(webhook_log.status, WebhookLog.Status.INVALID)
         self.assertEqual(webhook_log.response_status, 415)
         self.assertIn("Unsupported content type", webhook_log.error_message)
@@ -334,7 +367,11 @@ class MobileMoneyWebhookContractTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("JSON object", response.content.decode("utf-8"))
         self.assertFalse(Payment.objects.exists())
-        webhook_log = WebhookLog.objects.get(provider="mtn_momo", reference_id="unknown")
+        webhook_log = WebhookLog.objects.get(
+            provider="mtn_momo", reference_id="unknown"
+        )
         self.assertEqual(webhook_log.status, WebhookLog.Status.INVALID)
         self.assertEqual(webhook_log.response_status, 400)
-        self.assertEqual(webhook_log.error_message, "Webhook payload must be a JSON object")
+        self.assertEqual(
+            webhook_log.error_message, "Webhook payload must be a JSON object"
+        )

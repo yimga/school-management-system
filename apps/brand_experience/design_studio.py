@@ -13,10 +13,15 @@ def get_layout_metadata(layout_key: str, variant: str | None = None) -> dict:
     out = {"key": layout_key, "variant": variant, "sections": []}
     try:
         from apps.packages.models import ExperiencePack
+
         ep = ExperiencePack.objects.filter(code=layout_key, is_active=True).first()
         if ep and getattr(ep, "layout_schema", None):
             schema = ep.layout_schema if isinstance(ep.layout_schema, dict) else {}
-            out["sections"] = schema.get("sections", []) if isinstance(schema.get("sections"), list) else []
+            out["sections"] = (
+                schema.get("sections", [])
+                if isinstance(schema.get("sections"), list)
+                else []
+            )
     except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         pass
     return out

@@ -2,11 +2,14 @@
 Tests for siteconfig.repositories.database_recovery_repository (§2.4 raw SQL wrap).
 Non-existent path returns None; valid SQLite file returns 'ok' or error string.
 """
+
 import tempfile
 import unittest
 from pathlib import Path
 
-from apps.siteconfig.repositories.database_recovery_repository import run_sqlite_integrity_check
+from apps.siteconfig.repositories.database_recovery_repository import (
+    run_sqlite_integrity_check,
+)
 
 
 class TestDatabaseRecoveryRepository(unittest.TestCase):
@@ -21,6 +24,7 @@ class TestDatabaseRecoveryRepository(unittest.TestCase):
             path = Path(f.name)
         try:
             import sqlite3
+
             conn = sqlite3.connect(str(path))
             conn.execute("CREATE TABLE t (id INTEGER);")
             conn.close()

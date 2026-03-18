@@ -1,6 +1,7 @@
 """
 Dedicated error views for multi-tenant flows (e.g. School Not Found 404).
 """
+
 import os
 
 from django.db.models import Q
@@ -46,7 +47,11 @@ def school_not_found_public(request):
     if len(query) >= 2:
         schools = (
             School.objects.filter(is_active=True)
-            .filter(Q(name__icontains=query) | Q(slug__icontains=query) | Q(subdomain__icontains=query))
+            .filter(
+                Q(name__icontains=query)
+                | Q(slug__icontains=query)
+                | Q(subdomain__icontains=query)
+            )
             .order_by("name")[:8]
         )
         for school in schools:

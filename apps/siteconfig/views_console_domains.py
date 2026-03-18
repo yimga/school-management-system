@@ -3,10 +3,11 @@ Console UX per domain (B3). One entry point listing seven bounded domains with g
 Outcomes not jargon: Standardize grading, Configure branding, Assign dashboards, etc.
 Each console supports search, preview, diff, audit, rollback where relevant (9.5/10 excellence).
 """
+
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse
@@ -162,20 +163,38 @@ def _build_console_domains_context(request: HttpRequest) -> list[dict[str, Any]]
                 url = reverse(name)
                 resolved_links.append({"label": label, "url": url})
             except NoReverseMatch as e:
-                logger.debug("Console domain %s link %r (%r) failed to resolve: %s", d["code"], label, name, e)
+                logger.debug(
+                    "Console domain %s link %r (%r) failed to resolve: %s",
+                    d["code"],
+                    label,
+                    name,
+                    e,
+                )
                 resolved_links.append({"label": label, "url": "#"})
         actions = CONSOLE_ACTIONS.get(d["code"], {})
-        domains.append({
-            "code": d["code"],
-            "name": d["name"],
-            "outcome": d["outcome"],
-            "resolved_links": resolved_links,
-            "search_url": _safe_reverse(actions.get("search")) if actions.get("search") else None,
-            "preview_url": _safe_reverse(actions.get("preview")) if actions.get("preview") else None,
-            "diff_url": _safe_reverse(actions.get("diff")) if actions.get("diff") else None,
-            "audit_url": _safe_reverse(actions.get("audit")) if actions.get("audit") else None,
-            "rollback_url": _safe_reverse(actions.get("rollback")) if actions.get("rollback") else None,
-        })
+        domains.append(
+            {
+                "code": d["code"],
+                "name": d["name"],
+                "outcome": d["outcome"],
+                "resolved_links": resolved_links,
+                "search_url": _safe_reverse(actions.get("search"))
+                if actions.get("search")
+                else None,
+                "preview_url": _safe_reverse(actions.get("preview"))
+                if actions.get("preview")
+                else None,
+                "diff_url": _safe_reverse(actions.get("diff"))
+                if actions.get("diff")
+                else None,
+                "audit_url": _safe_reverse(actions.get("audit"))
+                if actions.get("audit")
+                else None,
+                "rollback_url": _safe_reverse(actions.get("rollback"))
+                if actions.get("rollback")
+                else None,
+            }
+        )
     return domains
 
 
@@ -183,14 +202,49 @@ def _build_platform_config_context(request: HttpRequest) -> list[dict[str, Any]]
     """Platform config cards for manager: site settings, regions, plans, feature toggles, AI. Only used on manager."""
     cards = []
     entries = [
-        ("site_settings", "Site settings", "Platform-level site name, theme, and defaults.", "super:site_settings_list", "bi-gear", None),
-        ("regions", "Regions & grading", "Region config and grading scale catalog.", None, "bi-globe", [
-            ("Regions", "super:regions_list"),
-            ("Grading", "super:grading_list"),
-        ]),
-        ("plans", "Plans & add-ons", "Billing plans and add-on catalog.", "super:plans_list", "bi-currency-dollar", None),
-        ("feature_toggles", "Feature toggles", "Platform feature flag definitions and state.", "super:feature_toggles_list", "bi-toggle-on", None),
-        ("ai_models", "AI / model registry", "AI model registry and regional config.", "super:ai_model_hub", "bi-cpu", None),
+        (
+            "site_settings",
+            "Site settings",
+            "Platform-level site name, theme, and defaults.",
+            "super:site_settings_list",
+            "bi-gear",
+            None,
+        ),
+        (
+            "regions",
+            "Regions & grading",
+            "Region config and grading scale catalog.",
+            None,
+            "bi-globe",
+            [
+                ("Regions", "super:regions_list"),
+                ("Grading", "super:grading_list"),
+            ],
+        ),
+        (
+            "plans",
+            "Plans & add-ons",
+            "Billing plans and add-on catalog.",
+            "super:plans_list",
+            "bi-currency-dollar",
+            None,
+        ),
+        (
+            "feature_toggles",
+            "Feature toggles",
+            "Platform feature flag definitions and state.",
+            "super:feature_toggles_list",
+            "bi-toggle-on",
+            None,
+        ),
+        (
+            "ai_models",
+            "AI / model registry",
+            "AI model registry and regional config.",
+            "super:ai_model_hub",
+            "bi-cpu",
+            None,
+        ),
     ]
     for code, name, outcome, single_url, icon, links in entries:
         resolved = []
@@ -206,7 +260,15 @@ def _build_platform_config_context(request: HttpRequest) -> list[dict[str, Any]]
                 except NoReverseMatch:
                     pass
         if resolved:
-            cards.append({"code": code, "name": name, "outcome": outcome, "icon": icon, "links": resolved})
+            cards.append(
+                {
+                    "code": code,
+                    "name": name,
+                    "outcome": outcome,
+                    "icon": icon,
+                    "links": resolved,
+                }
+            )
     return cards
 
 
@@ -265,6 +327,9 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
         "domains": domains,
         "operational_hubs": operational_hubs,
         "studio_shell_url": studio_shell_url,
+        "studio_experience_url": _safe_reverse("studio_os:experience"),
+        "guided_onboarding_url": _safe_reverse("siteconfig:guided_onboarding"),
+        "theme_colors_hub_url": _safe_reverse("siteconfig:theme_colors"),
     }
     if template == "siteconfig/console_domains_hub_control_plane.html":
         try:

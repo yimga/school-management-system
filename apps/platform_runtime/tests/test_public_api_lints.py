@@ -33,4 +33,3 @@ class PublicApiLintTests(unittest.TestCase):
             0,
             f"lint_allow_any_usage failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
         )
-

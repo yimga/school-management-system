@@ -39,7 +39,7 @@ def apply_payment_code_idempotent(apps, schema_editor):
             CREATE INDEX IF NOT EXISTS finance_invoice_payment_code_btree_idx
             ON finance_invoice (payment_code);
         """)
-        
+
         # 3. Create varchar_pattern_ops index (PostgreSQL only)
         if is_pg:
             cursor.execute("""
@@ -141,7 +141,6 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("finance", "0026_remove_payment_finance_pay_status_05a375_idx_and_more"),
     ]

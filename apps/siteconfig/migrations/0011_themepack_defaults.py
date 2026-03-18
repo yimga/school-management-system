@@ -67,7 +67,13 @@ def create_theme_packs(apps, schema_editor):
         site_settings.brand_font = default_pack.font_family
         site_settings.custom_css = default_pack.custom_css or ""
         site_settings.save(
-            update_fields=["theme_pack", "primary_color", "accent_color", "brand_font", "custom_css"]
+            update_fields=[
+                "theme_pack",
+                "primary_color",
+                "accent_color",
+                "brand_font",
+                "custom_css",
+            ]
         )
 
 
@@ -79,7 +85,6 @@ def remove_theme_packs(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0010_reportcardstyle_defaults"),
     ]

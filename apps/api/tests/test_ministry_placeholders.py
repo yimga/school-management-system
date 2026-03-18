@@ -6,7 +6,13 @@ from django.test import TestCase
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
-from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Payment, PaymentMethodCode
+from apps.finance.models import (
+    ComplianceProfile,
+    Invoice,
+    InvoiceLine,
+    Payment,
+    PaymentMethodCode,
+)
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.models import default_backend_feature_flags
@@ -29,7 +35,9 @@ class MinistryPlaceholderApiTests(TestCase):
             is_active=True,
         )
         department = Department.objects.create(name="Technical", code="TECH-API")
-        specialty = Specialty.objects.create(department=department, name="ICT", code="ICT-API")
+        specialty = Specialty.objects.create(
+            department=department, name="ICT", code="ICT-API"
+        )
         classroom = Classroom.objects.create(
             academic_year=self.year,
             department=department,
@@ -83,7 +91,10 @@ class MinistryPlaceholderApiTests(TestCase):
         )
 
         site = get_platform_site_settings_record(create=True)
-        flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        flags = {
+            **default_backend_feature_flags(),
+            **(site.backend_feature_flags or {}),
+        }
         flags["enable_ministry_api_cartescolaire"] = True
         flags["enable_ministry_api_dgi"] = True
         flags["enable_ministry_live_sync"] = True
@@ -117,7 +128,9 @@ class MinistryPlaceholderApiTests(TestCase):
         self.assertFalse(payload["sync"]["attempted"])
 
     def test_sync_query_uses_connector_in_mock_mode(self):
-        response = self.client.get("/api/ministry/dgi/?start=2026-01-01&end=2026-01-31&sync=1")
+        response = self.client.get(
+            "/api/ministry/dgi/?start=2026-01-01&end=2026-01-31&sync=1"
+        )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertTrue(payload["sync"]["attempted"])
@@ -135,7 +148,10 @@ class MinistryPlaceholderApiTests(TestCase):
         self.assertEqual(response.status_code, 503)
 
     def test_cartescolaire_rate_limit_returns_429(self):
-        with patch("apps.api.ministry_placeholders.throttle_ip_request", return_value=(False, 900)):
+        with patch(
+            "apps.api.ministry_placeholders.throttle_ip_request",
+            return_value=(False, 900),
+        ):
             response = self.client.get("/api/ministry/cartescolaire/")
         self.assertEqual(response.status_code, 429)
         payload = response.json()
@@ -143,7 +159,10 @@ class MinistryPlaceholderApiTests(TestCase):
         self.assertEqual(payload.get("service"), "cartescolaire")
 
     def test_dgi_rate_limit_returns_429(self):
-        with patch("apps.api.ministry_placeholders.throttle_ip_request", return_value=(False, 900)):
+        with patch(
+            "apps.api.ministry_placeholders.throttle_ip_request",
+            return_value=(False, 900),
+        ):
             response = self.client.get("/api/ministry/dgi/")
         self.assertEqual(response.status_code, 429)
         payload = response.json()

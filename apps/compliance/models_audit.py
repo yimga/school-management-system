@@ -46,30 +46,38 @@ class AuditLog(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name="audit_logs",
-        help_text="User who performed the action (null if system-initiated)"
+        help_text="User who performed the action (null if system-initiated)",
     )
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.CharField(max_length=500, blank=True)
 
     # Action details
     action = models.CharField(max_length=20, choices=Action.choices)
-    model_name = models.CharField(max_length=100, help_text="e.g., 'Invoice', 'Evaluation'")
-    object_id = models.CharField(max_length=200, help_text="Primary key of affected object")
-    object_repr = models.CharField(max_length=500, blank=True, help_text="String representation of object")
+    model_name = models.CharField(
+        max_length=100, help_text="e.g., 'Invoice', 'Evaluation'"
+    )
+    object_id = models.CharField(
+        max_length=200, help_text="Primary key of affected object"
+    )
+    object_repr = models.CharField(
+        max_length=500, blank=True, help_text="String representation of object"
+    )
 
     # Data & sensitivity
     sensitivity = models.CharField(
         max_length=20,
         choices=Sensitivity.choices,
         default=Sensitivity.MEDIUM,
-        help_text="Data sensitivity classification"
+        help_text="Data sensitivity classification",
     )
-    old_values = models.JSONField(null=True, blank=True, help_text="Pre-change state (for UPDATE/DELETE)")
-    new_values = models.JSONField(null=True, blank=True, help_text="Post-change state (for CREATE/UPDATE)")
+    old_values = models.JSONField(
+        null=True, blank=True, help_text="Pre-change state (for UPDATE/DELETE)"
+    )
+    new_values = models.JSONField(
+        null=True, blank=True, help_text="Post-change state (for CREATE/UPDATE)"
+    )
     changed_fields = models.JSONField(
-        null=True,
-        blank=True,
-        help_text="List of field names that changed"
+        null=True, blank=True, help_text="List of field names that changed"
     )
 
     # Context & metadata
@@ -78,14 +86,14 @@ class AuditLog(models.Model):
     reason = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Reason/comment for the action (e.g., 'Bulk import', 'Correction')"
+        help_text="Reason/comment for the action (e.g., 'Bulk import', 'Correction')",
     )
     related_audit_logs = models.ManyToManyField(
         "self",
         symmetrical=False,
         blank=True,
         related_name="related_to",
-        help_text="Reference to related audit entries"
+        help_text="Reference to related audit entries",
     )
 
     class Meta:
@@ -105,7 +113,11 @@ class AuditLog(models.Model):
     @property
     def summary(self) -> str:
         """Human-readable one-liner."""
-        user_str = f"{self.user.get_full_name() or self.user.username}" if self.user else "System"
+        user_str = (
+            f"{self.user.get_full_name() or self.user.username}"
+            if self.user
+            else "System"
+        )
         return f"{self.get_action_display()} {self.model_name} '{self.object_repr}' by {user_str}"
 
     def get_changes(self) -> dict:
@@ -129,7 +141,7 @@ class UserActivitySession(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="activity_sessions"
+        related_name="activity_sessions",
     )
     session_key = models.CharField(max_length=100, unique=True)
     login_timestamp = models.DateTimeField(auto_now_add=True)
@@ -143,7 +155,9 @@ class UserActivitySession(models.Model):
     last_activity = models.DateTimeField(null=True, blank=True)
 
     # Security
-    is_suspicious = models.BooleanField(default=False, help_text="Flag if unusual activity detected")
+    is_suspicious = models.BooleanField(
+        default=False, help_text="Flag if unusual activity detected"
+    )
     notes = models.TextField(blank=True)
 
     class Meta:
@@ -190,7 +204,7 @@ class AccessLog(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name="access_logs"
+        related_name="access_logs",
     )
     access_type = models.CharField(max_length=20, choices=AccessType.choices)
     resource = models.CharField(max_length=500, help_text="URL path or API endpoint")
@@ -231,7 +245,7 @@ class ComplianceReport(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name="compliance_reports_generated"
+        related_name="compliance_reports_generated",
     )
     start_date = models.DateField(help_text="Report period start")
     end_date = models.DateField(help_text="Report period end")
@@ -240,12 +254,10 @@ class ComplianceReport(models.Model):
     summary = models.JSONField(help_text="High-level metrics and findings")
     details = models.JSONField(help_text="Detailed findings, grouped by category")
     issues = models.JSONField(
-        default=list,
-        help_text="List of detected issues/anomalies"
+        default=list, help_text="List of detected issues/anomalies"
     )
     export_formats = models.JSONField(
-        default=list,
-        help_text="Available export formats: ['pdf', 'csv', 'json']"
+        default=list, help_text="Available export formats: ['pdf', 'csv', 'json']"
     )
 
     class Meta:
@@ -266,29 +278,39 @@ class ThreatDetectionConfig(models.Model):
     """
 
     # Singleton pattern - only one active config
-    is_active = models.BooleanField(default=True, unique=True, help_text="Only one config can be active")
+    is_active = models.BooleanField(
+        default=True, unique=True, help_text="Only one config can be active"
+    )
 
     # Thresholds
-    window_minutes = models.PositiveIntegerField(default=60, help_text="Lookback window in minutes")
-    failed_per_user = models.PositiveIntegerField(default=10, help_text="Failed logins per user before alert")
-    failed_per_ip = models.PositiveIntegerField(default=20, help_text="Failed attempts per IP before alert")
+    window_minutes = models.PositiveIntegerField(
+        default=60, help_text="Lookback window in minutes"
+    )
+    failed_per_user = models.PositiveIntegerField(
+        default=10, help_text="Failed logins per user before alert"
+    )
+    failed_per_ip = models.PositiveIntegerField(
+        default=20, help_text="Failed attempts per IP before alert"
+    )
     after_hours_start = models.PositiveIntegerField(
         default=22,
         validators=[MinValueValidator(0), MaxValueValidator(23)],
-        help_text="After-hours start (hour, 24h format)"
+        help_text="After-hours start (hour, 24h format)",
     )
     after_hours_end = models.PositiveIntegerField(
         default=6,
         validators=[MinValueValidator(0), MaxValueValidator(23)],
-        help_text="After-hours end (hour, 24h format)"
+        help_text="After-hours end (hour, 24h format)",
     )
-    after_hours_threshold = models.PositiveIntegerField(default=5, help_text="Accesses during after-hours before alert")
+    after_hours_threshold = models.PositiveIntegerField(
+        default=5, help_text="Accesses during after-hours before alert"
+    )
 
     # Mute window (persisted, survives restarts)
     mute_until = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="Suppress alerts until this time (leave empty to disable mute)"
+        help_text="Suppress alerts until this time (leave empty to disable mute)",
     )
 
     # Metadata
@@ -297,7 +319,7 @@ class ThreatDetectionConfig(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name="threat_config_updates"
+        related_name="threat_config_updates",
     )
 
     class Meta:
@@ -305,7 +327,9 @@ class ThreatDetectionConfig(models.Model):
         verbose_name_plural = "Threat Detection Configuration"
 
     def __str__(self):
-        mute_status = f"(muted until {self.mute_until.isoformat()})" if self.mute_until else ""
+        mute_status = (
+            f"(muted until {self.mute_until.isoformat()})" if self.mute_until else ""
+        )
         return f"Threat Detection Config {mute_status}"
 
     def is_muted(self) -> bool:
@@ -333,10 +357,11 @@ class IPAccessRule(models.Model):
 
     rule_type = models.CharField(max_length=10, choices=RuleType.choices)
     ip_address = models.CharField(
-        max_length=100,
-        help_text="IP address or CIDR range (e.g., 192.168.1.0/24)"
+        max_length=100, help_text="IP address or CIDR range (e.g., 192.168.1.0/24)"
     )
-    description = models.CharField(max_length=255, blank=True, help_text="Reason for this rule")
+    description = models.CharField(
+        max_length=255, blank=True, help_text="Reason for this rule"
+    )
     is_active = models.BooleanField(default=True)
 
     # Metadata
@@ -345,12 +370,10 @@ class IPAccessRule(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name="ip_rules_created"
+        related_name="ip_rules_created",
     )
     expires_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Auto-disable rule after this time (optional)"
+        null=True, blank=True, help_text="Auto-disable rule after this time (optional)"
     )
 
     class Meta:
@@ -374,6 +397,7 @@ class IPAccessRule(models.Model):
     def matches(self, ip_address: str) -> bool:
         """Check if given IP matches this rule (supports CIDR)."""
         import ipaddress
+
         try:
             if "/" in self.ip_address:
                 # CIDR notation
@@ -398,10 +422,11 @@ class CountryAccessRule(models.Model):
 
     rule_type = models.CharField(max_length=10, choices=RuleType.choices)
     country_code = models.CharField(
-        max_length=2,
-        help_text="ISO 3166-1 alpha-2 code (e.g., CM, NG, US)"
+        max_length=2, help_text="ISO 3166-1 alpha-2 code (e.g., CM, NG, US)"
     )
-    country_name = models.CharField(max_length=100, blank=True, help_text="Human-readable name")
+    country_name = models.CharField(
+        max_length=100, blank=True, help_text="Human-readable name"
+    )
     description = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=True)
 
@@ -411,7 +436,7 @@ class CountryAccessRule(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name="country_rules_created"
+        related_name="country_rules_created",
     )
 
     class Meta:
@@ -458,7 +483,9 @@ class AlertDigest(models.Model):
     sent_at = models.DateTimeField(null=True, blank=True)
 
     # Metadata
-    source = models.CharField(max_length=100, blank=True, help_text="Source module or function")
+    source = models.CharField(
+        max_length=100, blank=True, help_text="Source module or function"
+    )
     related_model = models.CharField(max_length=100, blank=True)
     related_id = models.PositiveIntegerField(null=True, blank=True)
 

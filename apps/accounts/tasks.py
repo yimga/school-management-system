@@ -2,6 +2,7 @@
 Celery tasks for accounts (e.g. delegation auto-revoke).
 Runs in tenant context where applicable.
 """
+
 from __future__ import annotations
 
 import logging
@@ -46,20 +47,31 @@ def _expire_past_delegations_body() -> dict:
     if to_expire:
         for pk, site in to_expire:
             try:
-                from apps.people.badge_services import revoke_acting_badges_for_delegation
+                from apps.people.badge_services import (
+                    revoke_acting_badges_for_delegation,
+                )
+
                 d = Delegation.objects.get(pk=pk)
                 revoke_acting_badges_for_delegation(d)
                 if getattr(site, "delegation_summary_report_on_return", True):
                     try:
                         from apps.accounts.models import DelegationActionLog
+
                         count = DelegationActionLog.objects.filter(delegation=d).count()
                         if count > 0 and d.delegator.email:
                             from django.core.mail import send_mail
                             from django.conf import settings as django_settings
+
                             send_mail(
-                                subject="While you were away: %d action(s) on your behalf" % count,
-                                message="Your delegation has ended. %d action(s) were taken on your behalf. Review them in the portal: Delegation catch-up." % count,
-                                from_email=getattr(django_settings, "DEFAULT_FROM_EMAIL", "noreply@school.local"),
+                                subject="While you were away: %d action(s) on your behalf"
+                                % count,
+                                message="Your delegation has ended. %d action(s) were taken on your behalf. Review them in the portal: Delegation catch-up."
+                                % count,
+                                from_email=getattr(
+                                    django_settings,
+                                    "DEFAULT_FROM_EMAIL",
+                                    "noreply@school.local",
+                                ),
                                 recipient_list=[d.delegator.email],
                                 fail_silently=True,
                             )
@@ -68,19 +80,35 @@ def _expire_past_delegations_body() -> dict:
                         log_exception_with_context(
                             "expire_past_delegations: summary email failed",
                             school_id=str(_school.id) if _school else None,
-                            extra={"task": "expire_past_delegations", "delegation_id": pk, "error": str(e)},
+                            extra={
+                                "task": "expire_past_delegations",
+                                "delegation_id": pk,
+                                "error": str(e),
+                            },
                         )
-                        logger.warning("expire_past_delegations: summary email for %s: %s", pk, e)
+                        logger.warning(
+                            "expire_past_delegations: summary email for %s: %s", pk, e
+                        )
             except (ImportError, AttributeError, TypeError, ValueError) as e:
                 _school = _school_for_user(d.delegator)
                 log_exception_with_context(
                     "expire_past_delegations: revoke badge failed",
                     school_id=str(_school.id) if _school else None,
-                    extra={"task": "expire_past_delegations", "delegation_id": pk, "error": str(e)},
+                    extra={
+                        "task": "expire_past_delegations",
+                        "delegation_id": pk,
+                        "error": str(e),
+                    },
                 )
-                logger.warning("expire_past_delegations: revoke badge for delegation %s: %s", pk, e)
-        Delegation.objects.filter(pk__in=[pk for pk, _site in to_expire]).update(is_active=False)
-        logger.info("expire_past_delegations: deactivated %d delegation(s)", len(to_expire))
+                logger.warning(
+                    "expire_past_delegations: revoke badge for delegation %s: %s", pk, e
+                )
+        Delegation.objects.filter(pk__in=[pk for pk, _site in to_expire]).update(
+            is_active=False
+        )
+        logger.info(
+            "expire_past_delegations: deactivated %d delegation(s)", len(to_expire)
+        )
 
     return {"expired": len(to_expire)}
 
@@ -89,15 +117,21 @@ def _expire_past_delegations_body() -> dict:
 def expire_past_delegations(school_id: str | None = None):
     """Set is_active=False on past delegations. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
-        return _run_with_tenant_context(school_id=school_id, runnable=_expire_past_delegations_body)
+        return _run_with_tenant_context(
+            school_id=school_id, runnable=_expire_past_delegations_body
+        )
     totals = {"expired": 0}
     for sid in get_active_school_ids():
-        result = _run_with_tenant_context(school_id=sid, runnable=_expire_past_delegations_body)
+        result = _run_with_tenant_context(
+            school_id=sid, runnable=_expire_past_delegations_body
+        )
         totals["expired"] += result.get("expired", 0)
     return totals
 
 
-def _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, created_by_id=None):
+def _prepare_rollover_proposal_impl(
+    school_id, source_year_id, target_year_id, created_by_id=None
+):
     """Inner implementation: run inside tenant context."""
     import logging
     from apps.accounts.models import RolloverProposal, RolloverProposalItem
@@ -118,10 +152,13 @@ def _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, c
     if getattr(source_year, "is_locked", False):
         return {"ok": False, "error": "Source year is locked"}
 
-    target_classrooms = list(Classroom.objects.filter(academic_year=target_year).order_by("name"))
+    target_classrooms = list(
+        Classroom.objects.filter(academic_year=target_year).order_by("name")
+    )
     promotion_map = {}
     try:
         from apps.academics.models import ClassroomPromotionMapping
+
         for m in ClassroomPromotionMapping.objects.filter(
             source_year=source_year, target_year=target_year
         ).select_related("source_classroom", "target_classroom"):
@@ -132,17 +169,27 @@ def _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, c
 
     from django.db.models import Count
     from apps.people.models import StudentResourceReturn
+
     outstanding = dict(
-        StudentResourceReturn.objects.filter(academic_year=source_year, returned_at__isnull=True)
+        StudentResourceReturn.objects.filter(
+            academic_year=source_year, returned_at__isnull=True
+        )
         .values("student_id")
         .annotate(count=Count("id"))
         .values_list("student_id", "count")
     )
 
     from apps.academics.models import Term
-    terms = list(Term.objects.filter(academic_year=source_year).order_by("position", "start_date"))
+
+    terms = list(
+        Term.objects.filter(academic_year=source_year).order_by(
+            "position", "start_date"
+        )
+    )
     students = list(
-        StudentProfile.objects.filter(academic_year=source_year, is_active=True).select_related("classroom")
+        StudentProfile.objects.filter(
+            academic_year=source_year, is_active=True
+        ).select_related("classroom")
     )
 
     proposal = RolloverProposal.objects.create(
@@ -155,12 +202,18 @@ def _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, c
     created = 0
     for s in students:
         annual_avg = _annual_average_for_student(s, terms) if terms else None
-        promo = get_promotion_status(s, source_year, annual_avg) if annual_avg is not None else "NO_DATA"
+        promo = (
+            get_promotion_status(s, source_year, annual_avg)
+            if annual_avg is not None
+            else "NO_DATA"
+        )
         suggested = None
         if s.classroom_id and promotion_map:
             suggested = promotion_map.get(s.classroom_id)
         if not suggested and s.classroom:
-            suggested = Classroom.objects.filter(academic_year=target_year, name=s.classroom.name).first()
+            suggested = Classroom.objects.filter(
+                academic_year=target_year, name=s.classroom.name
+            ).first()
         if not suggested and target_classrooms:
             suggested = target_classrooms[0]
         RolloverProposalItem.objects.create(
@@ -173,20 +226,34 @@ def _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, c
             outstanding_returns=outstanding.get(s.id, 0),
         )
         created += 1
-    logger.info("prepare_rollover_proposal: created proposal %s with %d items", proposal.pk, created)
+    logger.info(
+        "prepare_rollover_proposal: created proposal %s with %d items",
+        proposal.pk,
+        created,
+    )
     return {"ok": True, "proposal_id": proposal.pk, "items": created}
 
 
 @shared_task(name="accounts.prepare_rollover_proposal")
-def prepare_rollover_proposal(school_id, source_year_id, target_year_id, created_by_id=None):
+def prepare_rollover_proposal(
+    school_id, source_year_id, target_year_id, created_by_id=None
+):
     """Build rollover proposal. Runs in tenant context for school_id."""
     return _run_with_tenant_context(
         school_id=str(school_id),
-        runnable=lambda: _prepare_rollover_proposal_impl(school_id, source_year_id, target_year_id, created_by_id),
+        runnable=lambda: _prepare_rollover_proposal_impl(
+            school_id, source_year_id, target_year_id, created_by_id
+        ),
     )
 
 
-def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents=False, allow_outstanding_returns=False, carry_forward_arrears=False):
+def _apply_rollover_proposal_impl(
+    proposal_id,
+    lock_source=False,
+    notify_parents=False,
+    allow_outstanding_returns=False,
+    carry_forward_arrears=False,
+):
     """Inner implementation: run inside tenant context."""
     import logging
     from django.utils import timezone
@@ -199,7 +266,10 @@ def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents
     except RolloverProposal.DoesNotExist:
         return {"ok": False, "error": "Proposal not found"}
     if proposal.status != RolloverProposal.Status.APPROVED:
-        return {"ok": False, "error": f"Proposal status is {proposal.status}, must be APPROVED"}
+        return {
+            "ok": False,
+            "error": f"Proposal status is {proposal.status}, must be APPROVED",
+        }
 
     source_year = proposal.source_year
     target_year = proposal.target_year
@@ -213,9 +283,15 @@ def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents
     updated = 0
     graduated = 0
     skipped = 0
-    for item in proposal.items.select_related("student", "suggested_next_classroom", "approved_next_classroom").all():
+    for item in proposal.items.select_related(
+        "student", "suggested_next_classroom", "approved_next_classroom"
+    ).all():
         student = item.student
-        if block_outstanding and not allow_outstanding_returns and (item.outstanding_returns or 0) > 0:
+        if (
+            block_outstanding
+            and not allow_outstanding_returns
+            and (item.outstanding_returns or 0) > 0
+        ):
             skipped += 1
             continue
         if getattr(item, "is_graduate", False):
@@ -223,7 +299,9 @@ def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents
             student.classroom = None
             student.status = StudentProfile.Status.ALUMNI
             student.is_active = False
-            student.save(update_fields=["academic_year", "classroom", "status", "is_active"])
+            student.save(
+                update_fields=["academic_year", "classroom", "status", "is_active"]
+            )
             graduated += 1
             continue
         next_class = item.approved_next_classroom or item.suggested_next_classroom
@@ -246,25 +324,61 @@ def _apply_rollover_proposal_impl(proposal_id, lock_source=False, notify_parents
     if carry_forward_arrears and flags.get("carry_forward_arrears_on_rollover", True):
         try:
             from apps.finance.services import carry_forward_arrears
+
             carry_forward_arrears(source_year, target_year)
         except (ValueError, TypeError, ImportError, AttributeError) as e:
-            _school_id = str(proposal.school_id) if getattr(proposal, "school_id", None) else None
+            _school_id = (
+                str(proposal.school_id)
+                if getattr(proposal, "school_id", None)
+                else None
+            )
             log_exception_with_context(
                 "apply_rollover_proposal: carry_forward_arrears failed",
                 school_id=_school_id,
-                extra={"task": "apply_rollover_proposal", "proposal_id": proposal_id, "error": str(e)},
+                extra={
+                    "task": "apply_rollover_proposal",
+                    "proposal_id": proposal_id,
+                    "error": str(e),
+                },
             )
             logger.warning("apply_rollover_proposal: carry_forward_arrears: %s", e)
 
-    logger.info("apply_rollover_proposal: proposal %s applied; updated=%d graduated=%d skipped=%d", proposal_id, updated, graduated, skipped)
+    logger.info(
+        "apply_rollover_proposal: proposal %s applied; updated=%d graduated=%d skipped=%d",
+        proposal_id,
+        updated,
+        graduated,
+        skipped,
+    )
     return {"ok": True, "updated": updated, "graduated": graduated, "skipped": skipped}
 
 
 @shared_task(name="accounts.apply_rollover_proposal")
-def apply_rollover_proposal(proposal_id, lock_source=False, notify_parents=False, allow_outstanding_returns=False, carry_forward_arrears=False, school_id: str | None = None):
+def apply_rollover_proposal(
+    proposal_id,
+    lock_source=False,
+    notify_parents=False,
+    allow_outstanding_returns=False,
+    carry_forward_arrears=False,
+    school_id: str | None = None,
+):
     """Apply APPROVED rollover proposal. Runs in tenant context when school_id is provided."""
+
     def _run():
-        return _apply_rollover_proposal_impl(proposal_id, lock_source, notify_parents, allow_outstanding_returns, carry_forward_arrears)
+        return _apply_rollover_proposal_impl(
+            proposal_id,
+            lock_source,
+            notify_parents,
+            allow_outstanding_returns,
+            carry_forward_arrears,
+        )
+
     if school_id:
         return _run_with_tenant_context(school_id=str(school_id), runnable=_run)
-    return _apply_rollover_proposal_impl(proposal_id, lock_source, notify_parents, allow_outstanding_returns, carry_forward_arrears)
+    return _apply_rollover_proposal_impl(
+        proposal_id,
+        lock_source,
+        notify_parents,
+        allow_outstanding_returns,
+        carry_forward_arrears,
+    )

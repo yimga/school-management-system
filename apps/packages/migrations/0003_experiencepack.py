@@ -4,30 +4,44 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('packages', '0002_installedpackage_apply_stage_and_more'),
+        ("packages", "0002_installedpackage_apply_stage_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ExperiencePack',
+            name="ExperiencePack",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.SlugField(max_length=80, unique=True)),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('theme_pack_id', models.IntegerField(blank=True, help_text='FK to ThemePack when migrated.', null=True)),
-                ('layout_schema', models.JSONField(blank=True, default=dict)),
-                ('communication_style', models.JSONField(blank=True, default=dict)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("code", models.SlugField(max_length=80, unique=True)),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "theme_pack_id",
+                    models.IntegerField(
+                        blank=True,
+                        help_text="FK to ThemePack when migrated.",
+                        null=True,
+                    ),
+                ),
+                ("layout_schema", models.JSONField(blank=True, default=dict)),
+                ("communication_style", models.JSONField(blank=True, default=dict)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Experience Pack',
-                'verbose_name_plural': 'Experience Packs',
-                'ordering': ['code'],
+                "verbose_name": "Experience Pack",
+                "verbose_name_plural": "Experience Packs",
+                "ordering": ["code"],
             },
         ),
     ]

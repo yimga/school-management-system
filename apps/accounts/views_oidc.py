@@ -5,7 +5,7 @@ from __future__ import annotations
 import base64
 import json
 import secrets
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 from urllib.request import Request, urlopen
 
 from django.contrib.auth import login
@@ -89,7 +89,14 @@ def _choose_user_role(claims: dict, integration: ServiceIntegration) -> str:
     return default_role
 
 
-def _exchange_code_for_tokens(*, token_endpoint: str, code: str, client_id: str, client_secret: str, redirect_uri: str):
+def _exchange_code_for_tokens(
+    *,
+    token_endpoint: str,
+    code: str,
+    client_id: str,
+    client_secret: str,
+    redirect_uri: str,
+):
     form = urlencode(
         {
             "grant_type": "authorization_code",
@@ -126,15 +133,19 @@ def oidc_start(request, integration_ref: str):
     client_id = str(integration.client_id or cfg.get("client_id") or "").strip()
     if not authorization_endpoint or not client_id:
         return JsonResponse(
-            {"error": "OIDC integration misconfigured", "required": ["authorization_endpoint", "client_id"]},
+            {
+                "error": "OIDC integration misconfigured",
+                "required": ["authorization_endpoint", "client_id"],
+            },
             status=400,
         )
 
     state = secrets.token_urlsafe(24)
     nonce = secrets.token_urlsafe(24)
-    redirect_uri = (
-        str(cfg.get("redirect_uri") or "").strip()
-        or request.build_absolute_uri(reverse("accounts:oidc_callback", args=[integration.pk]))
+    redirect_uri = str(
+        cfg.get("redirect_uri") or ""
+    ).strip() or request.build_absolute_uri(
+        reverse("accounts:oidc_callback", args=[integration.pk])
     )
     request.session[f"oidc:{integration.pk}:{state}"] = {
         "nonce": nonce,
@@ -160,27 +171,41 @@ def oidc_start(request, integration_ref: str):
 
 @require_GET
 def oidc_callback(request, integration_id: int):
+    from apps.accounts.federation_sso_health import (
+        record_sso_failure,
+        record_sso_success,
+    )
+
     state = (request.GET.get("state") or "").strip()
     if not state:
+        record_sso_failure(integration_id, "Missing state")
         return JsonResponse({"error": "Missing state"}, status=400)
 
     pending_key = f"oidc:{integration_id}:{state}"
     pending = request.session.get(pending_key) or {}
     if not pending:
+        record_sso_failure(integration_id, "Invalid or expired state")
         return JsonResponse({"error": "Invalid or expired state"}, status=403)
 
-    integration = ServiceIntegration.objects.filter(
-        pk=integration_id,
-        service_type=ServiceIntegration.ServiceType.OAUTH,
-        is_active=True,
-    ).select_related("school").first()
+    integration = (
+        ServiceIntegration.objects.filter(
+            pk=integration_id,
+            service_type=ServiceIntegration.ServiceType.OAUTH,
+            is_active=True,
+        )
+        .select_related("school")
+        .first()
+    )
     if not integration:
+        record_sso_failure(integration_id, "OIDC integration not found")
         return JsonResponse({"error": "OIDC integration not found"}, status=404)
     school = integration.school
     if str(pending.get("school_id")) != str(school.pk):
+        record_sso_failure(integration_id, "Tenant mismatch")
         return JsonResponse({"error": "Tenant mismatch"}, status=403)
 
     if request.GET.get("error"):
+        record_sso_failure(integration_id, request.GET.get("error") or "IdP error")
         return JsonResponse({"error": request.GET.get("error")}, status=400)
 
     cfg = integration.config or {}
@@ -188,28 +213,43 @@ def oidc_callback(request, integration_id: int):
     id_token = (request.GET.get("id_token") or "").strip()
     if not id_token and code and str(cfg.get("token_endpoint") or "").strip():
         try:
-            redirect_uri = (
-                str(cfg.get("redirect_uri") or "").strip()
-                or request.build_absolute_uri(reverse("accounts:oidc_callback", args=[integration.pk]))
+            redirect_uri = str(
+                cfg.get("redirect_uri") or ""
+            ).strip() or request.build_absolute_uri(
+                reverse("accounts:oidc_callback", args=[integration.pk])
             )
             tokens = _exchange_code_for_tokens(
                 token_endpoint=str(cfg.get("token_endpoint")),
                 code=code,
                 client_id=str(integration.client_id or cfg.get("client_id") or ""),
-                client_secret=str(integration.client_secret or cfg.get("client_secret") or ""),
+                client_secret=str(
+                    integration.client_secret or cfg.get("client_secret") or ""
+                ),
                 redirect_uri=redirect_uri,
             )
             id_token = str(tokens.get("id_token") or "").strip()
-        except (OSError, ConnectionError, TimeoutError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        except (
+            OSError,
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            TypeError,
+            KeyError,
+            json.JSONDecodeError,
+        ):
+            record_sso_failure(integration_id, "Token exchange failed")
             return JsonResponse({"error": "Token exchange failed"}, status=502)
 
     if not id_token:
+        record_sso_failure(integration_id, "Missing id_token")
         return JsonResponse({"error": "Missing id_token"}, status=400)
 
     claims = _decode_unverified_jwt(id_token)
     if not claims:
+        record_sso_failure(integration_id, "Invalid id_token")
         return JsonResponse({"error": "Invalid id_token"}, status=400)
     if str(claims.get("nonce") or "") != str(pending.get("nonce") or ""):
+        record_sso_failure(integration_id, "Invalid nonce")
         return JsonResponse({"error": "Invalid nonce"}, status=403)
 
     email = (
@@ -218,6 +258,7 @@ def oidc_callback(request, integration_id: int):
     )
     sub = str(claims.get("sub") or "").strip()
     if not email and not sub:
+        record_sso_failure(integration_id, "No account identifier in token")
         return JsonResponse({"error": "No account identifier in token"}, status=400)
 
     username_seed = (email.split("@")[0] if email else sub).strip() or f"user_{sub[:8]}"
@@ -270,5 +311,57 @@ def oidc_callback(request, integration_id: int):
         pass
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-    next_url = str(pending.get("next") or "").strip() or str(cfg.get("post_login_redirect") or "").strip()
+    record_sso_success(integration_id)
+    # RP-initiated logout: IdPs often require id_token_hint
+    if len(id_token) <= 4096:
+        request.session[f"oidc_id_token_hint:{integration.pk}"] = id_token
+        request.session.modified = True
+    next_url = (
+        str(pending.get("next") or "").strip()
+        or str(cfg.get("post_login_redirect") or "").strip()
+    )
     return redirect(next_url or reverse("accounts:redirect"))
+
+
+@require_GET
+def oidc_logout(request, integration_id: int):
+    """
+    OIDC RP-initiated logout: end local session and redirect to IdP end_session_endpoint when configured.
+    Query: next= post-logout landing URL (must match IdP allowlist when required).
+    """
+    from django.contrib.auth import logout
+
+    integration = ServiceIntegration.objects.filter(
+        pk=integration_id,
+        service_type=ServiceIntegration.ServiceType.OAUTH,
+        is_active=True,
+    ).first()
+    cfg = (integration.config or {}) if integration else {}
+    end_session = str(cfg.get("end_session_endpoint") or "").strip()
+    post_logout = (request.GET.get("next") or "").strip()[:2048]
+    if not post_logout:
+        post_logout = str(cfg.get("post_logout_redirect_uri") or "").strip()
+    if not post_logout:
+        post_logout = request.build_absolute_uri("/")
+
+    hint = ""
+    if integration:
+        hint = str(
+            request.session.pop(f"oidc_id_token_hint:{integration.pk}", "") or ""
+        )
+
+    logout(request)
+
+    if not end_session:
+        return redirect(post_logout)
+
+    params = {"post_logout_redirect_uri": post_logout}
+    if hint:
+        params["id_token_hint"] = hint
+    joiner = "&" if "?" in end_session else "?"
+    target = f"{end_session}{joiner}{urlencode(params)}"
+    # Basic open-redirect hardening: only allow http(s) to same host as configured issuer or post_logout
+    parsed = urlparse(target)
+    if parsed.scheme not in ("http", "https"):
+        return redirect(post_logout)
+    return redirect(target)

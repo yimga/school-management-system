@@ -1,4 +1,5 @@
 from datetime import date
+
 """
 Phase 0 Security & Validation Tests
 
@@ -52,6 +53,7 @@ User = get_user_model()
 # WEBHOOK SECURITY TESTS
 # ============================================================================
 
+
 class WebhookSecurityValidatorTest(TestCase):
     """Test WebhookSecurityValidator functionality."""
 
@@ -60,32 +62,34 @@ class WebhookSecurityValidatorTest(TestCase):
             name="Cameroon",
             country_code="CM",
         )
-        
+
         self.config = {
             "webhook_secret": "test-secret-key-12345",
             "webhook_ips": ["192.168.1.1", "127.0.0.1"],
             "rate_limit": 100,
             "signature_header": "X-Signature",
         }
-        
+
         self.validator = WebhookSecurityValidator(self.config)
 
     def test_get_client_ip_from_remote_addr(self):
         """Test IP extraction from REMOTE_ADDR."""
+
         class FakeRequest:
             META = {"REMOTE_ADDR": "10.0.0.1"}
-        
+
         ip = self.validator.get_client_ip(FakeRequest())
         self.assertEqual(ip, "10.0.0.1")
 
     def test_get_client_ip_from_x_forwarded_for(self):
         """Test IP extraction from X-Forwarded-For header (proxy)."""
+
         class FakeRequest:
             META = {
                 "HTTP_X_FORWARDED_FOR": "203.0.113.1, 198.51.100.1",
                 "REMOTE_ADDR": "10.0.0.1",
             }
-        
+
         ip = self.validator.get_client_ip(FakeRequest())
         self.assertEqual(ip, "203.0.113.1")
 
@@ -107,39 +111,41 @@ class WebhookSecurityValidatorTest(TestCase):
         """Test signature verification with valid signature."""
         request_body = b'{"invoice_id": 123, "amount": 100}'
         expected_sig = hmac.new(
-            b"test-secret-key-12345",
-            request_body,
-            hashlib.sha256
+            b"test-secret-key-12345", request_body, hashlib.sha256
         ).hexdigest()
-        
+
         self.assertTrue(self.validator.validate_signature(request_body, expected_sig))
 
     def test_validate_signature_invalid(self):
         """Test signature verification with invalid signature."""
         request_body = b'{"invoice_id": 123, "amount": 100}'
         invalid_sig = "invalid_signature_12345"
-        
+
         self.assertFalse(self.validator.validate_signature(request_body, invalid_sig))
 
     def test_validate_signature_missing(self):
         """Test signature verification with missing signature."""
         request_body = b'{"invoice_id": 123, "amount": 100}'
-        
+
         self.assertFalse(self.validator.validate_signature(request_body, ""))
 
     def test_validate_timestamp_within_tolerance(self):
-        validator = WebhookSecurityValidator({
-            "require_timestamp": True,
-            "timestamp_tolerance_seconds": 60,
-        })
+        validator = WebhookSecurityValidator(
+            {
+                "require_timestamp": True,
+                "timestamp_tolerance_seconds": 60,
+            }
+        )
         now_ts = int(timezone.now().timestamp())
         self.assertTrue(validator.validate_timestamp(str(now_ts)))
 
     def test_validate_timestamp_rejects_stale(self):
-        validator = WebhookSecurityValidator({
-            "require_timestamp": True,
-            "timestamp_tolerance_seconds": 30,
-        })
+        validator = WebhookSecurityValidator(
+            {
+                "require_timestamp": True,
+                "timestamp_tolerance_seconds": 30,
+            }
+        )
         stale_ts = int(timezone.now().timestamp()) - 120
         self.assertFalse(validator.validate_timestamp(str(stale_ts)))
 
@@ -170,7 +176,7 @@ class WebhookSecurityValidatorTest(TestCase):
             signature_valid=True,
             status=WebhookLog.Status.PROCESSED,
         )
-        
+
         result = self.validator.validate_idempotency("mtn_momo", "ref-12345")
         self.assertFalse(result)
 
@@ -236,6 +242,7 @@ class PaymentValidatorTest(TestCase):
 # INPUT VALIDATION TESTS
 # ============================================================================
 
+
 class EvaluationValidationTest(TestCase):
     """Test Evaluation score validation."""
 
@@ -256,15 +263,19 @@ class EvaluationValidationTest(TestCase):
             is_active=True,
         )
         self.department = Department.objects.create(name="General", code="GEN")
-        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
+        self.specialty = Specialty.objects.create(
+            name="General", code="GEN", department=self.department
+        )
         self.classroom = Classroom.objects.create(
             name="Form 1A",
             code="F1A",
             academic_year=self.year,
             department=self.department,
         )
-        self.subject = Subject.objects.create(name="Mathematics", category=Subject.Category.GENERAL)
-        
+        self.subject = Subject.objects.create(
+            name="Mathematics", category=Subject.Category.GENERAL
+        )
+
         self.student = StudentProfile.objects.create(
             first_name="Test",
             last_name="Student",
@@ -273,13 +284,12 @@ class EvaluationValidationTest(TestCase):
             classroom=self.classroom,
             specialty=self.specialty,
         )
-        
+
         from apps.people.models import TeacherProfile
-        teacher_user = User.objects.create_user(
-            username="teacher", role="TEACHER"
-        )
+
+        teacher_user = User.objects.create_user(username="teacher", role="TEACHER")
         self.teacher = TeacherProfile.objects.create(user=teacher_user)
-        
+
         self.subject_assign = SubjectAssignment.objects.create(
             academic_year=self.year,
             term=self.term,
@@ -402,7 +412,9 @@ class PaymentValidationTest(TestCase):
             total_amount=Decimal("1000.00"),
         )
         # Avoid recalculation signals interfering with balance tests
-        self._apply_payment_patch = patch("apps.finance.signals.apply_payment", lambda payment: None)
+        self._apply_payment_patch = patch(
+            "apps.finance.signals.apply_payment", lambda payment: None
+        )
         self._apply_payment_patch.start()
         self.addCleanup(self._apply_payment_patch.stop)
 
@@ -423,7 +435,7 @@ class PaymentValidationTest(TestCase):
             amount=Decimal("900.00"),
             method="CASH",
         )
-        
+
         # Second payment exceeding remaining balance
         payment2 = Payment(
             invoice=self.invoice,
@@ -447,6 +459,7 @@ class PaymentValidationTest(TestCase):
 # ============================================================================
 # PERMISSION TESTS
 # ============================================================================
+
 
 class PermissionHierarchyTest(TestCase):
     """Test role hierarchy and permission functions."""
@@ -484,7 +497,9 @@ class PermissionHierarchyTest(TestCase):
     def test_superuser_always_allowed(self):
         """Test superuser bypasses hierarchy checks."""
         superuser = User.objects.create_superuser(
-            username="finance_ph_super_%s" % id(self), password="pass", email="super_%s@test.com" % id(self)
+            username="finance_ph_super_%s" % id(self),
+            password="pass",
+            email="super_%s@test.com" % id(self),
         )
         self.assertTrue(has_role_hierarchy(superuser, "ADMIN"))
         self.assertTrue(has_role_hierarchy(superuser, "BURSAR"))
@@ -503,7 +518,7 @@ class InvoicePermissionTest(TestCase):
             end_date=date(2026, 6, 30),
         )
         self.department = Department.objects.create(name="General", code="GEN")
-        
+
         # Users (unique usernames to avoid cross-test UNIQUE constraint)
         uid = id(self)
         self.admin = User.objects.create_user(
@@ -518,9 +533,11 @@ class InvoicePermissionTest(TestCase):
         self.other_parent = User.objects.create_user(
             username="finance_inv_other_parent_%s" % uid, role="PARENT"
         )
-        
+
         # Student with guardian link
-        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
+        self.specialty = Specialty.objects.create(
+            name="General", code="GEN", department=self.department
+        )
         self.classroom = Classroom.objects.create(
             name="Form 1",
             academic_year=self.year,
@@ -540,7 +557,7 @@ class InvoicePermissionTest(TestCase):
             student=self.student,
             can_view_finance=True,
         )
-        
+
         # Invoice
         self.invoice = Invoice.objects.create(
             profile=self.profile,

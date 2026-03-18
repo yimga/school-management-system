@@ -12,7 +12,9 @@ from apps.siteconfig.models import ThemePack
 
 
 class Command(BaseCommand):
-    help = "Import a UI parity fixture (ThemePack + SiteSettings) and normalize defaults."
+    help = (
+        "Import a UI parity fixture (ThemePack + SiteSettings) and normalize defaults."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -41,7 +43,9 @@ class Command(BaseCommand):
             raise CommandError(f"Invalid JSON in {input_path}: {exc}") from exc
 
         if not isinstance(data, list) or not data:
-            raise CommandError(f"Fixture must contain a non-empty JSON list: {input_path}")
+            raise CommandError(
+                f"Fixture must contain a non-empty JSON list: {input_path}"
+            )
 
         models_present = {row.get("model") for row in data if isinstance(row, dict)}
         required_models = {"siteconfig.themepack", "siteconfig.sitesettings"}
@@ -54,7 +58,9 @@ class Command(BaseCommand):
         self._import_into_current_schema(data, input_path, options)
         self.stdout.write(self.style.SUCCESS(f"Imported UI config from {input_path}"))
 
-    def _import_into_current_schema(self, data: list, input_path: Path, options: dict) -> None:
+    def _import_into_current_schema(
+        self, data: list, input_path: Path, options: dict
+    ) -> None:
         """
         Import UI config into the active schema.
 
@@ -66,7 +72,9 @@ class Command(BaseCommand):
         normalized_data = self._normalize_fixture_fields(data)
         self._ensure_dependencies(normalized_data)
         self._clear_themepack_default_before_load()
-        with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(
+            "w", encoding="utf-8", suffix=".json", delete=False
+        ) as tmp:
             tmp.write(json.dumps(normalized_data, indent=2, ensure_ascii=False))
             tmp.write("\n")
             temp_path = tmp.name
@@ -81,7 +89,9 @@ class Command(BaseCommand):
         """Clear is_default on all ThemePacks so loaddata can set the fixture's default without violating the single-default constraint."""
         updated = ThemePack.objects.filter(is_default=True).update(is_default=False)
         if updated:
-            self.stdout.write(f"Cleared is_default on {updated} ThemePack(s) before load.")
+            self.stdout.write(
+                f"Cleared is_default on {updated} ThemePack(s) before load."
+            )
 
     def _ensure_dependencies(self, data: list[dict]) -> None:
         """Create required FK rows that may be missing in fresh/local databases."""
@@ -92,7 +102,9 @@ class Command(BaseCommand):
             if row.get("model") != "siteconfig.sitesettings":
                 continue
             fields = row.get("fields") or {}
-            profile_id = fields.get("compliance_profile_id", fields.get("compliance_profile"))
+            profile_id = fields.get(
+                "compliance_profile_id", fields.get("compliance_profile")
+            )
             if isinstance(profile_id, int):
                 compliance_ids.add(profile_id)
 
@@ -125,7 +137,10 @@ class Command(BaseCommand):
     def _normalize_fixture_fields(self, data: list[dict]) -> list[dict]:
         normalized = json.loads(json.dumps(data))
         for row in normalized:
-            if not isinstance(row, dict) or row.get("model") != "siteconfig.sitesettings":
+            if (
+                not isinstance(row, dict)
+                or row.get("model") != "siteconfig.sitesettings"
+            ):
                 continue
             fields = row.get("fields") or {}
             if "compliance_profile" in fields and "compliance_profile_id" not in fields:

@@ -6,6 +6,7 @@ from django.db import migrations, models
 
 def add_compliance_region_if_missing(apps, schema_editor):
     from django.db import connection
+
     with connection.cursor() as cursor:
         if connection.vendor == "postgresql":
             cursor.execute("""
@@ -18,7 +19,9 @@ def add_compliance_region_if_missing(apps, schema_editor):
         else:
             cursor.execute("PRAGMA table_info(schools_school)")
             if "compliance_region" not in [row[1] for row in cursor.fetchall()]:
-                cursor.execute("ALTER TABLE schools_school ADD COLUMN compliance_region varchar(10) NOT NULL DEFAULT ''")
+                cursor.execute(
+                    "ALTER TABLE schools_school ADD COLUMN compliance_region varchar(10) NOT NULL DEFAULT ''"
+                )
 
 
 def noop(apps, schema_editor):
@@ -26,20 +29,32 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0015_add_school_wallpaper_url'),
+        ("schools", "0015_add_school_wallpaper_url"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='school',
-                    name='compliance_region',
-                    field=models.CharField(blank=True, choices=[('', 'None (default)'), ('EU', 'EU (GDPR)'), ('US', 'US (FERPA)'), ('NDPR', 'Nigeria (NDPR)')], default='', help_text='Compliance region for data privacy: EU (GDPR), US (FERPA), Nigeria (NDPR). Affects masking, retention, consent.', max_length=10),
+                    model_name="school",
+                    name="compliance_region",
+                    field=models.CharField(
+                        blank=True,
+                        choices=[
+                            ("", "None (default)"),
+                            ("EU", "EU (GDPR)"),
+                            ("US", "US (FERPA)"),
+                            ("NDPR", "Nigeria (NDPR)"),
+                        ],
+                        default="",
+                        help_text="Compliance region for data privacy: EU (GDPR), US (FERPA), Nigeria (NDPR). Affects masking, retention, consent.",
+                        max_length=10,
+                    ),
                 ),
             ],
-            database_operations=[migrations.RunPython(add_compliance_region_if_missing, noop)],
+            database_operations=[
+                migrations.RunPython(add_compliance_region_if_missing, noop)
+            ],
         ),
     ]

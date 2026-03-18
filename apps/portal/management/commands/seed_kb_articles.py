@@ -2,6 +2,7 @@
 Management command to seed initial Knowledge Base articles
 Populates database with comprehensive how-to guides and tutorials
 """
+
 from django.core.management.base import BaseCommand
 from django.db import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
@@ -15,66 +16,72 @@ _KB_SEED_RESOLVE_ERRORS = (DatabaseError, ObjectDoesNotExist, AttributeError, Ty
 
 
 class Command(BaseCommand):
-    help = 'Seed initial Knowledge Base articles with comprehensive guides'
+    help = "Seed initial Knowledge Base articles with comprehensive guides"
 
     def add_arguments(self, parser):
-        parser.add_argument("--dry-run", action="store_true", help="Show what would be created without writing.")
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Show what would be created without writing.",
+        )
 
     def handle(self, *args, **options):
         if options.get("dry_run"):
-            self.stdout.write(self.style.SUCCESS("Dry run: would ensure KB categories and articles."))
+            self.stdout.write(
+                self.style.SUCCESS("Dry run: would ensure KB categories and articles.")
+            )
             return
-        self.stdout.write(self.style.SUCCESS('Starting KB article seeding...'))
+        self.stdout.write(self.style.SUCCESS("Starting KB article seeding..."))
 
         # Get or create categories
         categories_data = {
-            'getting-started': {
-                'name': 'Getting Started',
-                'description': 'Begin your journey with our system',
-                'icon': 'fa-rocket',
-                'ordering': 1,
+            "getting-started": {
+                "name": "Getting Started",
+                "description": "Begin your journey with our system",
+                "icon": "fa-rocket",
+                "ordering": 1,
             },
-            'student-management': {
-                'name': 'Student Management',
-                'description': 'Manage student records, admissions, and profiles',
-                'icon': 'fa-users',
-                'ordering': 2,
+            "student-management": {
+                "name": "Student Management",
+                "description": "Manage student records, admissions, and profiles",
+                "icon": "fa-users",
+                "ordering": 2,
             },
-            'grading-assessment': {
-                'name': 'Grading & Assessment',
-                'description': 'Manage grades, evaluations, and academic assessments',
-                'icon': 'fa-chart-bar',
-                'ordering': 3,
+            "grading-assessment": {
+                "name": "Grading & Assessment",
+                "description": "Manage grades, evaluations, and academic assessments",
+                "icon": "fa-chart-bar",
+                "ordering": 3,
             },
-            'reports': {
-                'name': 'Reports & Analytics',
-                'description': 'Generate reports and analyze school data',
-                'icon': 'fa-file-excel',
-                'ordering': 4,
+            "reports": {
+                "name": "Reports & Analytics",
+                "description": "Generate reports and analyze school data",
+                "icon": "fa-file-excel",
+                "ordering": 4,
             },
-            'communication': {
-                'name': 'Communication',
-                'description': 'Connect with parents, students, and staff',
-                'icon': 'fa-comments',
-                'ordering': 5,
+            "communication": {
+                "name": "Communication",
+                "description": "Connect with parents, students, and staff",
+                "icon": "fa-comments",
+                "ordering": 5,
             },
-            'finance': {
-                'name': 'Finance & Fees',
-                'description': 'Manage fees, payments, and financial records',
-                'icon': 'fa-coins',
-                'ordering': 6,
+            "finance": {
+                "name": "Finance & Fees",
+                "description": "Manage fees, payments, and financial records",
+                "icon": "fa-coins",
+                "ordering": 6,
             },
-            'staff-management': {
-                'name': 'Staff Management',
-                'description': 'Manage staff records, schedules, and payroll',
-                'icon': 'fa-id-badge',
-                'ordering': 7,
+            "staff-management": {
+                "name": "Staff Management",
+                "description": "Manage staff records, schedules, and payroll",
+                "icon": "fa-id-badge",
+                "ordering": 7,
             },
-            'system-admin': {
-                'name': 'System Administration',
-                'description': 'System configuration and administration',
-                'icon': 'fa-cogs',
-                'ordering': 8,
+            "system-admin": {
+                "name": "System Administration",
+                "description": "System configuration and administration",
+                "icon": "fa-cogs",
+                "ordering": 8,
             },
         }
 
@@ -83,13 +90,13 @@ class Command(BaseCommand):
             cat, _ = KBCategory.objects.get_or_create(
                 slug=slug,
                 defaults={
-                    'name': data['name'],
-                    'description': data['description'],
-                    'icon': data['icon'],
-                    'display_order': data['ordering'],
-                    'parent': None,
-                    'target_roles': [],
-                }
+                    "name": data["name"],
+                    "description": data["description"],
+                    "icon": data["icon"],
+                    "display_order": data["ordering"],
+                    "parent": None,
+                    "target_roles": [],
+                },
             )
             categories[slug] = cat
             self.stdout.write(f"  [ok] Category: {data['name']}")
@@ -110,10 +117,10 @@ class Command(BaseCommand):
         articles = [
             # Getting Started Articles
             {
-                'title': 'Complete System Overview & Tour',
-                'slug': 'system-overview-tour',
-                'summary': 'A comprehensive introduction to the school management system, featuring all major modules and how they work together.',
-                'content': '''
+                "title": "Complete System Overview & Tour",
+                "slug": "system-overview-tour",
+                "summary": "A comprehensive introduction to the school management system, featuring all major modules and how they work together.",
+                "content": """
 <h2>Welcome to Your School Management System</h2>
 <p>This comprehensive platform is designed to streamline all aspects of school administration and management. Below is a complete overview of what you can accomplish.</p>
 
@@ -181,18 +188,18 @@ class Command(BaseCommand):
 <li><strong>Mobile Compatible:</strong> Access from any device</li>
 <li><strong>Comprehensive Reports:</strong> Data-driven decision making</li>
 </ul>
-                ''',
-                'category': 'getting-started',
-                'difficulty': 'BEGINNER',
-                'read_time': 15,
-                'tags': ['overview', 'introduction', 'features', 'modules'],
-                'is_featured': True,
+                """,
+                "category": "getting-started",
+                "difficulty": "BEGINNER",
+                "read_time": 15,
+                "tags": ["overview", "introduction", "features", "modules"],
+                "is_featured": True,
             },
             {
-                'title': 'Setting Up Your School Information',
-                'slug': 'setting-up-school-info',
-                'summary': 'Step-by-step guide to configure your school details, academic year, and system settings.',
-                'content': '''
+                "title": "Setting Up Your School Information",
+                "slug": "setting-up-school-info",
+                "summary": "Step-by-step guide to configure your school details, academic year, and system settings.",
+                "content": """
 <h2>Configuring Your School Profile</h2>
 <p>Before using the system, set up your school information to ensure all records and communications are accurate.</p>
 
@@ -252,18 +259,18 @@ class Command(BaseCommand):
 <li>Test settings with sample data before going live</li>
 <li>Contact support if you need to modify locked settings</li>
 </ul>
-                ''',
-                'category': 'getting-started',
-                'difficulty': 'INTERMEDIATE',
-                'read_time': 10,
-                'tags': ['setup', 'configuration', 'school-info', 'settings'],
-                'is_featured': True,
+                """,
+                "category": "getting-started",
+                "difficulty": "INTERMEDIATE",
+                "read_time": 10,
+                "tags": ["setup", "configuration", "school-info", "settings"],
+                "is_featured": True,
             },
             {
-                'title': 'Understanding User Roles and Permissions',
-                'slug': 'user-roles-permissions',
-                'summary': 'Learn about different user roles in the system and what each role can access and do.',
-                'content': '''
+                "title": "Understanding User Roles and Permissions",
+                "slug": "user-roles-permissions",
+                "summary": "Learn about different user roles in the system and what each role can access and do.",
+                "content": """
 <h2>User Roles Overview</h2>
 <p>The system uses role-based access control to ensure data security and appropriate access levels.</p>
 
@@ -339,20 +346,19 @@ class Command(BaseCommand):
 <li>Use strong passwords for all accounts</li>
 <li>Enable two-factor authentication where available</li>
 </ul>
-                ''',
-                'category': 'getting-started',
-                'difficulty': 'BEGINNER',
-                'read_time': 8,
-                'tags': ['roles', 'permissions', 'access', 'security'],
-                'is_featured': False,
+                """,
+                "category": "getting-started",
+                "difficulty": "BEGINNER",
+                "read_time": 8,
+                "tags": ["roles", "permissions", "access", "security"],
+                "is_featured": False,
             },
-
             # Student Management Articles
             {
-                'title': 'Adding and Managing Student Records',
-                'slug': 'adding-managing-students',
-                'summary': 'Complete guide on how to add new students, update their information, and manage student records effectively.',
-                'content': '''
+                "title": "Adding and Managing Student Records",
+                "slug": "adding-managing-students",
+                "summary": "Complete guide on how to add new students, update their information, and manage student records effectively.",
+                "content": """
 <h2>Adding New Students</h2>
 <h3>Method 1: Individual Entry</h3>
 <ol>
@@ -425,18 +431,18 @@ Example: 2024/10/001</pre>
 <li>Remove duplicate records promptly</li>
 <li>Verify critical information in person</li>
 </ul>
-                ''',
-                'category': 'student-management',
-                'difficulty': 'BEGINNER',
-                'read_time': 12,
-                'tags': ['students', 'records', 'admission', 'registration'],
-                'is_featured': True,
+                """,
+                "category": "student-management",
+                "difficulty": "BEGINNER",
+                "read_time": 12,
+                "tags": ["students", "records", "admission", "registration"],
+                "is_featured": True,
             },
             {
-                'title': 'Class Assignment and Section Management',
-                'slug': 'class-assignment-sections',
-                'summary': 'Learn how to organize students into classes and sections, manage class rosters, and handle transfers.',
-                'content': '''
+                "title": "Class Assignment and Section Management",
+                "slug": "class-assignment-sections",
+                "summary": "Learn how to organize students into classes and sections, manage class rosters, and handle transfers.",
+                "content": """
 <h2>Class Structure Overview</h2>
 <p>Classes are organized by grade level with multiple sections for better management.</p>
 
@@ -503,20 +509,19 @@ Example: 2024/10/001</pre>
 <li>Generate roster reports for parents</li>
 <li>Update section assignments after transfers</li>
 </ul>
-                ''',
-                'category': 'student-management',
-                'difficulty': 'INTERMEDIATE',
-                'read_time': 10,
-                'tags': ['classes', 'sections', 'roster', 'assignments'],
-                'is_featured': False,
+                """,
+                "category": "student-management",
+                "difficulty": "INTERMEDIATE",
+                "read_time": 10,
+                "tags": ["classes", "sections", "roster", "assignments"],
+                "is_featured": False,
             },
-
             # Grading Articles
             {
-                'title': 'Recording and Managing Student Grades',
-                'slug': 'recording-managing-grades',
-                'summary': 'Complete tutorial on how teachers can enter grades, manage assessments, and track student performance.',
-                'content': '''
+                "title": "Recording and Managing Student Grades",
+                "slug": "recording-managing-grades",
+                "summary": "Complete tutorial on how teachers can enter grades, manage assessments, and track student performance.",
+                "content": """
 <h2>Getting Started with Grade Entry</h2>
 <h3>Accessing the Gradebook</h3>
 <ol>
@@ -585,20 +590,19 @@ Example: 2024/10/001</pre>
 <li>Enter new grade</li>
 <li>System tracks all changes automatically</li>
 </ol>
-                ''',
-                'category': 'grading-assessment',
-                'difficulty': 'INTERMEDIATE',
-                'read_time': 14,
-                'tags': ['grades', 'assessment', 'gradebook', 'marks'],
-                'is_featured': True,
+                """,
+                "category": "grading-assessment",
+                "difficulty": "INTERMEDIATE",
+                "read_time": 14,
+                "tags": ["grades", "assessment", "gradebook", "marks"],
+                "is_featured": True,
             },
-
             # Reports Articles
             {
-                'title': 'Generating and Customizing Report Cards',
-                'slug': 'generating-report-cards',
-                'summary': 'Learn how to generate report cards, customize templates, and distribute to parents.',
-                'content': '''
+                "title": "Generating and Customizing Report Cards",
+                "slug": "generating-report-cards",
+                "summary": "Learn how to generate report cards, customize templates, and distribute to parents.",
+                "content": """
 <h2>Report Card Generation Process</h2>
 <h3>Step 1: Prepare Academic Data</h3>
 <ul>
@@ -670,20 +674,19 @@ Example: 2024/10/001</pre>
 <li>Allow time for parent-teacher meetings</li>
 <li>Archive copies for records</li>
 </ul>
-                ''',
-                'category': 'reports',
-                'difficulty': 'INTERMEDIATE',
-                'read_time': 12,
-                'tags': ['reports', 'report-cards', 'grades', 'parents'],
-                'is_featured': True,
+                """,
+                "category": "reports",
+                "difficulty": "INTERMEDIATE",
+                "read_time": 12,
+                "tags": ["reports", "report-cards", "grades", "parents"],
+                "is_featured": True,
             },
-
             # Communication Articles
             {
-                'title': 'Using the Internal Communication System',
-                'slug': 'internal-communication-system',
-                'summary': 'Learn how to send messages, create announcements, and use the communication features effectively.',
-                'content': '''
+                "title": "Using the Internal Communication System",
+                "slug": "internal-communication-system",
+                "summary": "Learn how to send messages, create announcements, and use the communication features effectively.",
+                "content": """
 <h2>Communication Overview</h2>
 <p>The internal communication system enables secure messaging between:</p>
 <ul>
@@ -758,20 +761,19 @@ Example: 2024/10/001</pre>
 <li>Use direct messages for sensitive matters</li>
 <li>Do not send during non-school hours unless urgent</li>
 </ul>
-                ''',
-                'category': 'communication',
-                'difficulty': 'BEGINNER',
-                'read_time': 10,
-                'tags': ['communication', 'messaging', 'announcements', 'parents'],
-                'is_featured': False,
+                """,
+                "category": "communication",
+                "difficulty": "BEGINNER",
+                "read_time": 10,
+                "tags": ["communication", "messaging", "announcements", "parents"],
+                "is_featured": False,
             },
-
             # Finance Articles
             {
-                'title': 'Setting Up Fee Structure and Payment Plans',
-                'slug': 'fee-structure-payment-plans',
-                'summary': 'Complete guide to configuring fees, creating payment plans, and managing financial structures.',
-                'content': '''
+                "title": "Setting Up Fee Structure and Payment Plans",
+                "slug": "fee-structure-payment-plans",
+                "summary": "Complete guide to configuring fees, creating payment plans, and managing financial structures.",
+                "content": """
 <h2>Fee Structure Setup</h2>
 <h3>Creating Fee Categories</h3>
 <ol>
@@ -852,20 +854,19 @@ Example: 2024/10/001</pre>
 <li>Track payment status</li>
 <li>Send reminders for overdue payments</li>
 </ul>
-                ''',
-                'category': 'finance',
-                'difficulty': 'INTERMEDIATE',
-                'read_time': 13,
-                'tags': ['fees', 'payments', 'invoices', 'finance'],
-                'is_featured': True,
+                """,
+                "category": "finance",
+                "difficulty": "INTERMEDIATE",
+                "read_time": 13,
+                "tags": ["fees", "payments", "invoices", "finance"],
+                "is_featured": True,
             },
-
             # Staff Management Articles
             {
-                'title': 'Staff Record Management and Payroll Setup',
-                'slug': 'staff-records-payroll',
-                'summary': 'Learn how to add staff records, manage employment information, and set up payroll systems.',
-                'content': '''
+                "title": "Staff Record Management and Payroll Setup",
+                "slug": "staff-records-payroll",
+                "summary": "Learn how to add staff records, manage employment information, and set up payroll systems.",
+                "content": """
 <h2>Adding Staff Members</h2>
 <h3>Creating Staff Profiles</h3>
 <ol>
@@ -951,20 +952,19 @@ Example: 2024/10/001</pre>
 <li>Generate attendance reports</li>
 <li>Monitor unauthorized absences</li>
 </ul>
-                ''',
-                'category': 'staff-management',
-                'difficulty': 'ADVANCED',
-                'read_time': 14,
-                'tags': ['staff', 'payroll', 'salary', 'employees'],
-                'is_featured': True,
+                """,
+                "category": "staff-management",
+                "difficulty": "ADVANCED",
+                "read_time": 14,
+                "tags": ["staff", "payroll", "salary", "employees"],
+                "is_featured": True,
             },
-
             # System Admin Articles
             {
-                'title': 'System Backup and Data Security',
-                'slug': 'system-backup-security',
-                'summary': 'Essential information about backing up your data, maintaining security, and protecting sensitive information.',
-                'content': '''
+                "title": "System Backup and Data Security",
+                "slug": "system-backup-security",
+                "summary": "Essential information about backing up your data, maintaining security, and protecting sensitive information.",
+                "content": """
 <h2>Data Backup Overview</h2>
 <p>Regular backups are crucial for business continuity and disaster recovery.</p>
 
@@ -1046,48 +1046,56 @@ First of month: Full system backup</pre>
 <li>System maintenance requires brief downtime</li>
 <li>Maintenance windows: Sundays 2-4 AM UTC</li>
 </ul>
-                ''',
-                'category': 'system-admin',
-                'difficulty': 'ADVANCED',
-                'read_time': 12,
-                'tags': ['backup', 'security', 'data-protection', 'administration'],
-                'is_featured': False,
+                """,
+                "category": "system-admin",
+                "difficulty": "ADVANCED",
+                "read_time": 12,
+                "tags": ["backup", "security", "data-protection", "administration"],
+                "is_featured": False,
             },
         ]
 
         # Create articles
         created_count = 0
         for article_data in articles:
-            category = categories.get(article_data['category'])
+            category = categories.get(article_data["category"])
             if not category:
-                self.stdout.write(self.style.WARNING(f"  ! Category not found: {article_data['category']}"))
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"  ! Category not found: {article_data['category']}"
+                    )
+                )
                 continue
 
-            tags_str = ', '.join(article_data.get('tags', []))
+            tags_str = ", ".join(article_data.get("tags", []))
             article, created = KBArticle.objects.get_or_create(
-                slug=article_data['slug'],
+                slug=article_data["slug"],
                 defaults={
-                    'title': article_data['title'],
-                    'summary': article_data['summary'],
-                    'content': article_data['content'],
-                    'category': category,
-                    'difficulty': article_data['difficulty'],
-                    'estimated_read_time': article_data.get('read_time', 5),
-                    'tags': tags_str,
-                    'author': admin_user,
-                    'status': 'PUBLISHED',
-                    'is_featured': article_data.get('is_featured', False),
-                    'target_roles': [],
-                }
+                    "title": article_data["title"],
+                    "summary": article_data["summary"],
+                    "content": article_data["content"],
+                    "category": category,
+                    "difficulty": article_data["difficulty"],
+                    "estimated_read_time": article_data.get("read_time", 5),
+                    "tags": tags_str,
+                    "author": admin_user,
+                    "status": "PUBLISHED",
+                    "is_featured": article_data.get("is_featured", False),
+                    "target_roles": [],
+                },
             )
 
             if created:
                 created_count += 1
                 self.stdout.write(f"  [ok] Article: {article_data['title']}")
             else:
-                self.stdout.write(f"  - Article already exists: {article_data['title']}")
+                self.stdout.write(
+                    f"  - Article already exists: {article_data['title']}"
+                )
 
         self.stdout.write(
-            self.style.SUCCESS(f"\n[ok] Successfully created {created_count} KB articles!")
+            self.style.SUCCESS(
+                f"\n[ok] Successfully created {created_count} KB articles!"
+            )
         )
         self.stdout.write(self.style.SUCCESS("[ok] KB seeding complete!"))

@@ -143,16 +143,28 @@ class ExportComplianceEvidencePackTests(TestCase):
                 self.assertEqual(manifest["counts"]["schools"], 1)
                 self.assertEqual(manifest["counts"]["dsar_events"], 1)
 
-                dsar_events = json.loads(archive.read("dsar_events.json").decode("utf-8"))
+                dsar_events = json.loads(
+                    archive.read("dsar_events.json").decode("utf-8")
+                )
                 self.assertEqual(len(dsar_events), 1)
-                self.assertEqual(dsar_events[0]["gdpr_action"], "art20_portability_export")
+                self.assertEqual(
+                    dsar_events[0]["gdpr_action"], "art20_portability_export"
+                )
 
-                policy_locks = json.loads(archive.read("policy_locks.json").decode("utf-8"))
+                policy_locks = json.loads(
+                    archive.read("policy_locks.json").decode("utf-8")
+                )
                 self.assertEqual(len(policy_locks), 1)
-                self.assertIn("privacy_framework", policy_locks[0]["compliance_locked_keys"])
-                self.assertIn("privacy_framework", policy_locks[0]["requires_approval_keys"])
+                self.assertIn(
+                    "privacy_framework", policy_locks[0]["compliance_locked_keys"]
+                )
+                self.assertIn(
+                    "privacy_framework", policy_locks[0]["requires_approval_keys"]
+                )
 
-                retention = json.loads(archive.read("retention_snapshot.json").decode("utf-8"))
+                retention = json.loads(
+                    archive.read("retention_snapshot.json").decode("utf-8")
+                )
                 self.assertGreaterEqual(
                     retention["datasets"]["audit_logs"]["records_past_retention"],
                     1,

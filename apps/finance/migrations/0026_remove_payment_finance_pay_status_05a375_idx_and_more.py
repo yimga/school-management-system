@@ -7,32 +7,35 @@ from django.db.migrations.operations.special import SeparateDatabaseAndState
 def remove_indexes_if_exist(apps, schema_editor):
     """Remove indexes only if they exist."""
     indexes_to_remove = [
-        'finance_pay_status_05a375_idx',
-        'finance_pay_student_237141_idx',
-        'finance_pay_region__83483d_idx',
+        "finance_pay_status_05a375_idx",
+        "finance_pay_student_237141_idx",
+        "finance_pay_region__83483d_idx",
     ]
-    
+
     db_backend = schema_editor.connection.vendor
-    
+
     # Use schema_editor's connection for database-agnostic operations
     with schema_editor.connection.cursor() as cursor:
         for index_name in indexes_to_remove:
             # For SQLite and other databases, just try to drop (IF EXISTS handles it)
             # This avoids parameter formatting issues with SQLite's debug SQL formatter
-            if db_backend == 'postgresql':
+            if db_backend == "postgresql":
                 # Check if index exists first (PostgreSQL-specific)
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT indexname 
                     FROM pg_indexes 
                     WHERE tablename=%s AND indexname=%s
-                """, ['finance_payment', index_name])
+                """,
+                    ["finance_payment", index_name],
+                )
                 if cursor.fetchone():
-                    cursor.execute(f'DROP INDEX IF EXISTS {index_name}')
+                    cursor.execute(f"DROP INDEX IF EXISTS {index_name}")
             else:
                 # For SQLite and other databases, just drop (IF EXISTS handles it)
                 # This avoids the parameter formatting issue with SQLite
                 try:
-                    cursor.execute(f'DROP INDEX IF EXISTS {index_name}')
+                    cursor.execute(f"DROP INDEX IF EXISTS {index_name}")
                 except Exception:
                     # Index doesn't exist or already dropped - ignore
                     pass
@@ -43,9 +46,8 @@ def reverse_remove_indexes(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0025_remove_payment_finance_pay_status_05a375_idx_and_more'),
+        ("finance", "0025_remove_payment_finance_pay_status_05a375_idx_and_more"),
     ]
 
     operations = [
@@ -55,16 +57,16 @@ class Migration(migrations.Migration):
             ],
             state_operations=[
                 migrations.RemoveIndex(
-                    model_name='payment',
-                    name='finance_pay_status_05a375_idx',
+                    model_name="payment",
+                    name="finance_pay_status_05a375_idx",
                 ),
                 migrations.RemoveIndex(
-                    model_name='payment',
-                    name='finance_pay_student_237141_idx',
+                    model_name="payment",
+                    name="finance_pay_student_237141_idx",
                 ),
                 migrations.RemoveIndex(
-                    model_name='payment',
-                    name='finance_pay_region__83483d_idx',
+                    model_name="payment",
+                    name="finance_pay_region__83483d_idx",
                 ),
             ],
         ),

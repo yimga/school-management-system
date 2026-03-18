@@ -17,6 +17,7 @@ Compilation order (enforced in runtime_resolver.build_tenant_runtime):
   12. module configs
   13. freeze runtime for request
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -32,7 +33,8 @@ from apps.tenancy.context import TenantContext
 
 @dataclass(frozen=True)
 class TenantIdentity:
-    """Identity and tenancy basics."""
+    """Identity and tenancy basics. primary_sector (wedge 14–22) for RBAC/config by system type."""
+
     id: Any
     slug: Optional[str] = None
     schema_name: Optional[str] = None
@@ -40,11 +42,15 @@ class TenantIdentity:
     plan: Optional[str] = None
     status: Optional[str] = None
     campus_mode: Optional[str] = None
+    primary_sector: Optional[str] = (
+        None  # SOT §0.2.1 wedge 14–22: PUBLIC, PRIVATE, CHARTER, etc.
+    )
 
 
 @dataclass(frozen=True)
 class RouteContext:
     """Resolved routing context."""
+
     surface: str = "tenant_plane"  # marketing | control_plane | tenant_plane
     domain_type: Optional[str] = None
     subdomain: Optional[str] = None
@@ -56,6 +62,7 @@ class RouteContext:
 @dataclass(frozen=True)
 class RegistryContext:
     """Global registry facts resolved for the tenant."""
+
     country: Optional[Dict[str, Any]] = None
     subdivision: Optional[Dict[str, Any]] = None
     currency: Optional[Dict[str, Any]] = None
@@ -74,6 +81,7 @@ class RegistryContext:
 @dataclass(frozen=True)
 class BlueprintContext:
     """Structural operating model."""
+
     id: Any = None
     code: Optional[str] = None
     family: Optional[str] = None
@@ -87,6 +95,7 @@ class BlueprintContext:
 @dataclass(frozen=True)
 class PolicyContext:
     """Behavioral rules (module-specific sections)."""
+
     admissions: Dict[str, Any] = field(default_factory=dict)
     gradebook: Dict[str, Any] = field(default_factory=dict)
     evals: Dict[str, Any] = field(default_factory=dict)
@@ -102,6 +111,7 @@ class PolicyContext:
 @dataclass(frozen=True)
 class BrandingContext:
     """Resolved tenant branding tokens."""
+
     logo_url: Optional[str] = None
     crest_url: Optional[str] = None
     favicon_url: Optional[str] = None
@@ -116,6 +126,7 @@ class BrandingContext:
 @dataclass(frozen=True)
 class FlagsContext:
     """Feature toggles and rollout state."""
+
     flags: Dict[str, bool] = field(default_factory=dict)
 
     def is_enabled(self, key: str) -> bool:
@@ -125,6 +136,7 @@ class FlagsContext:
 @dataclass(frozen=True)
 class EntitlementsContext:
     """Commercial and plan-based access rights."""
+
     modules: List[str] = field(default_factory=list)
     max_students: Optional[int] = None
     max_api_calls: Optional[int] = None
@@ -137,12 +149,16 @@ class EntitlementsContext:
 @dataclass(frozen=True)
 class WorkflowsContext:
     """Resolved workflow pack assignments by module/key."""
-    by_module: Dict[str, Any] = field(default_factory=dict)  # e.g. admissions, fee_approval, grade_publish
+
+    by_module: Dict[str, Any] = field(
+        default_factory=dict
+    )  # e.g. admissions, fee_approval, grade_publish
 
 
 @dataclass(frozen=True)
 class DashboardsContext:
     """Resolved dashboard templates and widget packs by role/section."""
+
     by_role: Dict[str, Any] = field(default_factory=dict)  # e.g. admin, teacher, parent
     by_section: Dict[str, Any] = field(default_factory=dict)  # e.g. finance, admissions
 
@@ -150,6 +166,7 @@ class DashboardsContext:
 @dataclass(frozen=True)
 class IntegrationsContext:
     """Resolved provider choices."""
+
     payment_provider: Optional[str] = None
     messaging_provider: Optional[str] = None
     messaging_channels: List[str] = field(default_factory=list)
@@ -162,6 +179,7 @@ class IntegrationsContext:
 @dataclass(frozen=True)
 class MarketplaceContext:
     """Installed app and scope information."""
+
     installed_apps: List[Dict[str, Any]] = field(default_factory=list)
     granted_scopes: List[str] = field(default_factory=list)
     widget_registry: List[Dict[str, Any]] = field(default_factory=list)
@@ -173,6 +191,7 @@ class MarketplaceContext:
 @dataclass(frozen=True)
 class ComplianceContext:
     """Enforcement context."""
+
     family: Optional[str] = None
     consent_required: bool = False
     export_restrictions: Dict[str, Any] = field(default_factory=dict)
@@ -184,6 +203,7 @@ class ComplianceContext:
 @dataclass(frozen=True)
 class LocaleContext:
     """Resolved presentation context."""
+
     language_code: str = "en"
     direction: str = "ltr"
     date_format: Optional[str] = None
@@ -195,6 +215,7 @@ class LocaleContext:
 @dataclass(frozen=True)
 class SecurityContext:
     """Security posture and request actor context."""
+
     actor_id: Any = None
     actor_role: Optional[str] = None
     impersonation: bool = False
@@ -205,6 +226,7 @@ class SecurityContext:
 @dataclass(frozen=True)
 class ModuleConfigContext:
     """Module-specific compiled config (admissions, gradebook, finance, etc.)."""
+
     admissions: Dict[str, Any] = field(default_factory=dict)
     gradebook: Dict[str, Any] = field(default_factory=dict)
     finance: Dict[str, Any] = field(default_factory=dict)
@@ -216,6 +238,7 @@ class ModuleConfigContext:
 @dataclass(frozen=True)
 class RuntimeDebug:
     """Safe support/debug metadata for control-plane inspection."""
+
     runtime_version: str = "v1"
     source_blueprint_id: Any = None
     source_policy_bundle_id: Any = None
@@ -286,6 +309,7 @@ class TenantRuntime:
             return {}
         try:
             from apps.siteconfig.workflow_resolver import for_action
+
             return for_action(self._school, action_slug)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             return {}
@@ -293,19 +317,35 @@ class TenantRuntime:
     def get_approval_workflow(self, workflow_key: str) -> Dict[str, Any]:
         """Resolve approval workflow (e.g. grade_approval, syllabus_approval)."""
         if not self._school:
-            return {"type": "approval", "workflow_key": workflow_key, "approval_roles": [], "approver_ids": [], "approver_count": 0}
+            return {
+                "type": "approval",
+                "workflow_key": workflow_key,
+                "approval_roles": [],
+                "approver_ids": [],
+                "approver_count": 0,
+            }
         try:
             from apps.siteconfig.workflow_resolver import get_approval_workflow
+
             return get_approval_workflow(self._school, workflow_key)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
-            return {"type": "approval", "workflow_key": workflow_key, "approval_roles": [], "approver_ids": [], "approver_count": 0}
+            return {
+                "type": "approval",
+                "workflow_key": workflow_key,
+                "approval_roles": [],
+                "approver_ids": [],
+                "approver_count": 0,
+            }
 
-    def dashboard_for(self, role: Optional[str] = None, user: Any = None, **kwargs: Any) -> Dict[str, Any]:
+    def dashboard_for(
+        self, role: Optional[str] = None, user: Any = None, **kwargs: Any
+    ) -> Dict[str, Any]:
         """Resolve dashboard for role (and optional user preference)."""
         if not self._school:
             return {"role": role or "", "widget_keys": [], "page": kwargs.get("page")}
         try:
             from apps.siteconfig.dashboard_resolver import for_role
+
             return for_role(self._school, role or "", user=user, **kwargs)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             return {"role": role or "", "widget_keys": [], "page": kwargs.get("page")}

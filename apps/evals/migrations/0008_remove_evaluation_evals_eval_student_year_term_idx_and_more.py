@@ -4,18 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0007_add_performance_indexes'),
+        ("evals", "0007_add_performance_indexes"),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='evaluation',
-            name='evals_eval_student_year_term_idx',
+            model_name="evaluation",
+            name="evals_eval_student_year_term_idx",
         ),
         migrations.RemoveIndex(
-            model_name='evaluation',
-            name='evals_eval_subject_student_year_idx',
+            model_name="evaluation",
+            name="evals_eval_subject_student_year_idx",
         ),
     ]

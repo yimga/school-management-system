@@ -3,20 +3,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0015_assessmentweights_grade_a_min_and_more'),
+        ("evals", "0015_assessmentweights_grade_a_min_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='gradeapprovalrequest',
-            name='deadline_at',
+            model_name="gradeapprovalrequest",
+            name="deadline_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='gradeapprovalrequest',
-            name='validation_flags',
+            model_name="gradeapprovalrequest",
+            name="validation_flags",
             field=models.JSONField(blank=True, default=list),
         ),
     ]

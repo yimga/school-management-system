@@ -1,0 +1,79 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Curriculum & region packs" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Curriculum & region packs" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Curriculum & region packs" %}</h1>
+    <p class="text-white-50 small mb-0">{% trans "Starter and region packs: installable via Create School or Setup Studio. One record per entity (Veracross-style)." %}</p>
+  </header>
+  <div class="alert alert-secondary mb-4" role="region" aria-label="{% trans 'One record' %}">
+    <h6 class="alert-heading mb-1">{% trans "One record per entity (Veracross-style)" %}</h6>
+    <p class="small mb-0">{% trans "One system of record for each student, staff, and guardian; reporting and queries use the same record. No duplicate or split records across modules." %}</p>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card h-100 border-secondary">
+        <div class="card-header text-white">{% trans "Curriculum templates" %}</div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            {% for item in curriculum_list %}
+            <li class="mb-2"><span class="badge bg-secondary me-2">{{ item.code }}</span>{{ item.name }}</li>
+            {% endfor %}
+          </ul>
+          {% if create_school_url %}
+          <a href="{{ create_school_url }}" class="btn btn-primary btn-sm mt-3">{% trans "Create school" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100 border-secondary">
+        <div class="card-header text-white">{% trans "Region packs" %}</div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            {% for item in region_list %}
+            <li class="mb-2"><span class="badge bg-secondary me-2">{{ item.code }}</span>{{ item.name }}</li>
+            {% endfor %}
+          </ul>
+          {% if setup_studio_url %}
+          <a href="{{ setup_studio_url }}" class="btn btn-outline-primary btn-sm mt-3">{% trans "Setup Studio" %}</a>
+          {% endif %}
+          {% if geography_url %}
+          <a href="{{ geography_url }}" class="btn btn-outline-secondary btn-sm mt-3 ms-2">{% trans "Geography (by continent)" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if launch_studio_url %}
+  <div class="card border-secondary mt-3">
+    <div class="card-body">
+      <h6 class="card-title">{% trans "Go-live in under 2 weeks" %}</h6>
+      <p class="small text-white-50 mb-2">{% trans "Create school → Setup Studio → Launch checklist. Proven path; verify in staging per launch_studio_checklist." %}</p>
+      <a href="{{ launch_studio_url }}" class="btn btn-outline-light btn-sm">{% trans "Launch Studio" %}</a>
+    </div>
+  </div>
+  {% endif %}
+  {% if uk_statutory_name %}
+  <div class="card border-secondary mt-3">
+    <div class="card-body">
+      <h6 class="card-title">{% trans "UK statutory pack" %}</h6>
+      <p class="small text-white-50 mb-0">{% trans "Ofsted-style reports + GBR region pack. Full UK statutory/MIS report pack available via Reports and region selection." %}</p>
+      {% if uk_statutory_reports_url %}<a href="{{ uk_statutory_reports_url }}" class="btn btn-outline-light btn-sm mt-2">{% trans "Reports" %}</a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

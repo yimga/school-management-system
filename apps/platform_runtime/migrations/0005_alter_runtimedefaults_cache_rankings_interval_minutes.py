@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('platform_runtime', '0004_runtimedefaults_cache_rankings_interval'),
+        ("platform_runtime", "0004_runtimedefaults_cache_rankings_interval"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='runtimedefaults',
-            name='cache_rankings_interval_minutes',
-            field=models.PositiveIntegerField(blank=True, help_text='Owned by platform_runtime. When set, resolver uses this instead of SiteSettings.', null=True),
+            model_name="runtimedefaults",
+            name="cache_rankings_interval_minutes",
+            field=models.PositiveIntegerField(
+                blank=True,
+                help_text="Owned by platform_runtime. When set, resolver uses this instead of SiteSettings.",
+                null=True,
+            ),
         ),
     ]

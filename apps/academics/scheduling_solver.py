@@ -3,6 +3,7 @@ Phase 9: OR-tools timetabling solver.
 Uses Google OR-Tools CP-SAT when available for constraint-based timetable generation;
 otherwise falls back to TimetableGenerator.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -43,8 +44,11 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
     from apps.academics.models import SubjectAssignment
     from apps.evals.models import TeacherAssignment
     from .scheduling import Schedule, ScheduleEntry, Room, TimeSlot
-    time_slots = list(TimeSlot.objects.filter(is_active=True).order_by('day_of_week', 'start_time'))
-    rooms = list(Room.objects.filter(is_available=True).order_by('capacity'))
+
+    time_slots = list(
+        TimeSlot.objects.filter(is_active=True).order_by("day_of_week", "start_time")
+    )
+    rooms = list(Room.objects.filter(is_available=True).order_by("capacity"))
 
     if not time_slots or not rooms:
         return None
@@ -54,20 +58,26 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
     subject_assignments = SubjectAssignment.objects.filter(
         academic_year=academic_year,
         term=term,
-    ).select_related('classroom', 'subject')
+    ).select_related("classroom", "subject")
     for sa in subject_assignments:
-        ta = TeacherAssignment.objects.filter(
-            subject_assignment=sa,
-            academic_year=academic_year,
-            is_active=True,
-        ).select_related('teacher__user').first()
-        if ta and ta.teacher and getattr(ta.teacher, 'user', None):
+        ta = (
+            TeacherAssignment.objects.filter(
+                subject_assignment=sa,
+                academic_year=academic_year,
+                is_active=True,
+            )
+            .select_related("teacher__user")
+            .first()
+        )
+        if ta and ta.teacher and getattr(ta.teacher, "user", None):
             demands.append((sa.classroom, sa.subject, ta.teacher.user))
 
     if not demands:
         return None
 
-    model = __import__('ortools.sat.python.cp_model', fromlist=['cp_model']).cp_model.CpModel()
+    model = __import__(
+        "ortools.sat.python.cp_model", fromlist=["cp_model"]
+    ).cp_model.CpModel()
     num_demands = len(demands)
     num_slots = len(time_slots)
     num_rooms = len(rooms)
@@ -77,11 +87,13 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
     for d in range(num_demands):
         for s in range(num_slots):
             for r in range(num_rooms):
-                x[(d, s, r)] = model.NewBoolVar(f'x_{d}_{s}_{r}')
+                x[(d, s, r)] = model.NewBoolVar(f"x_{d}_{s}_{r}")
 
     # Each demand assigned exactly once
     for d in range(num_demands):
-        model.Add(sum(x[(d, s, r)] for s in range(num_slots) for r in range(num_rooms)) == 1)
+        model.Add(
+            sum(x[(d, s, r)] for s in range(num_slots) for r in range(num_rooms)) == 1
+        )
 
     # Each (slot, room) at most one demand
     for s in range(num_slots):
@@ -94,11 +106,14 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
             for d2 in range(d1 + 1, num_demands):
                 if demands[d1][2].id == demands[d2][2].id:
                     model.Add(
-                        sum(x[(d1, s, r)] for r in range(num_rooms)) +
-                        sum(x[(d2, s, r)] for r in range(num_rooms)) <= 1
+                        sum(x[(d1, s, r)] for r in range(num_rooms))
+                        + sum(x[(d2, s, r)] for r in range(num_rooms))
+                        <= 1
                     )
 
-    solver = __import__('ortools.sat.python.cp_model', fromlist=['cp_model']).cp_model.CpSolver()
+    solver = __import__(
+        "ortools.sat.python.cp_model", fromlist=["cp_model"]
+    ).cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 30.0
     status = solver.Solve(model)
 
@@ -109,7 +124,7 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
         name=f"{term.name} Schedule (OR-tools)",
         academic_year=academic_year,
         term=term,
-        status='DRAFT',
+        status="DRAFT",
         created_by=created_by,
     )
     for d in range(num_demands):

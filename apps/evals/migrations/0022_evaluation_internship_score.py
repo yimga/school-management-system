@@ -5,23 +5,25 @@ import django.core.validators
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0021_remove_gradeapprovalrequest_deadline_at_and_more'),
+        ("evals", "0021_remove_gradeapprovalrequest_deadline_at_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='evaluation',
-            name='internship_score',
+            model_name="evaluation",
+            name="internship_score",
             field=models.DecimalField(
                 blank=True,
                 decimal_places=2,
-                help_text='Industrial attachment (Paper 3) or internship mark; may sync to sequence.',
+                help_text="Industrial attachment (Paper 3) or internship mark; may sync to sequence.",
                 max_digits=5,
                 null=True,
-                validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(20)],
-                verbose_name='Industrial attachment / Internship',
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(20),
+                ],
+                verbose_name="Industrial attachment / Internship",
             ),
         ),
     ]

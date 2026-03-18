@@ -2,6 +2,7 @@
 Tenant-aware Celery task base: run task body in tenant_context (schema mode) or rls_school (RLS mode).
 Use for tasks that must run with a specific tenant scope. Pass schema_name/client_id or school_id.
 """
+
 import logging
 
 from django.conf import settings
@@ -17,8 +18,15 @@ def get_active_school_ids():
     """Return list of active school IDs for iterating tenant-scoped tasks. Uses public/schools table."""
     try:
         from apps.schools.models import School
+
         return list(School.objects.filter(is_active=True).values_list("id", flat=True))
-    except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError) as e:
+    except (
+        ImportError,
+        DatabaseError,
+        OperationalError,
+        AttributeError,
+        TypeError,
+    ) as e:
         log_exception_with_context(
             "celery_tasks: get_active_school_ids failed",
             school_id=None,
@@ -46,7 +54,14 @@ def _resolve_client(schema_name=None, client_id=None, school_id=None):
             school = School.objects.filter(pk=school_id).first()
             if school:
                 return ensure_tenant_client_for_school(school)
-    except (ImportError, ObjectDoesNotExist, DatabaseError, OperationalError, AttributeError, TypeError) as e:
+    except (
+        ImportError,
+        ObjectDoesNotExist,
+        DatabaseError,
+        OperationalError,
+        AttributeError,
+        TypeError,
+    ) as e:
         log_exception_with_context(
             "celery_tasks: _resolve_client failed",
             school_id=str(school_id) if school_id is not None else None,
@@ -56,42 +71,65 @@ def _resolve_client(schema_name=None, client_id=None, school_id=None):
     return None
 
 
-def _run_with_tenant_context(schema_name=None, client_id=None, school_id=None, runnable=None, *args, **kwargs):
+def _run_with_tenant_context(
+    schema_name=None, client_id=None, school_id=None, runnable=None, *args, **kwargs
+):
     """
     Run callable with tenant context: tenant_context(client) when USE_DJANGO_TENANTS else rls_school(school_id).
     runnable(*args, **kwargs) is invoked inside the context.
     """
     use_tenants = getattr(settings, "USE_DJANGO_TENANTS", False)
     if use_tenants:
-        client = _resolve_client(schema_name=schema_name, client_id=client_id, school_id=school_id)
+        client = _resolve_client(
+            schema_name=schema_name, client_id=client_id, school_id=school_id
+        )
         if client is None:
             raise ValueError(
                 "Tenant client could not be resolved (schema_name=%s, client_id=%s, school_id=%s)"
                 % (schema_name, client_id, school_id)
             )
         from django_tenants.utils import tenant_context
+
         with tenant_context(client):
             return runnable(*args, **kwargs)
     # RLS mode: need school_id
     sid = school_id
     if sid is None and (schema_name or client_id is not None):
         from apps.schools.models import School
+
         if client_id is not None:
             try:
                 from django_tenants.models import Client
+
                 c = Client.objects.get(pk=client_id)
-                school = School.objects.filter(id=c.id).first() or School.objects.filter(slug=c.schema_name).first()
+                school = (
+                    School.objects.filter(id=c.id).first()
+                    or School.objects.filter(slug=c.schema_name).first()
+                )
                 if school:
                     sid = str(school.id)
-            except (ImportError, ObjectDoesNotExist, DatabaseError, OperationalError, AttributeError, TypeError):
+            except (
+                ImportError,
+                ObjectDoesNotExist,
+                DatabaseError,
+                OperationalError,
+                AttributeError,
+                TypeError,
+            ):
                 pass
         if sid is None and schema_name:
-            school = School.objects.filter(slug=schema_name).first() or School.objects.filter(subdomain=schema_name).first()
+            school = (
+                School.objects.filter(slug=schema_name).first()
+                or School.objects.filter(subdomain=schema_name).first()
+            )
             if school:
                 sid = str(school.id)
     if sid is None:
-        raise ValueError("school_id (or schema_name/client_id to resolve school) required for RLS mode")
+        raise ValueError(
+            "school_id (or schema_name/client_id to resolve school) required for RLS mode"
+        )
     from apps.schools.rls_context import rls_school
+
     with rls_school(sid):
         return runnable(*args, **kwargs)
 
@@ -119,10 +157,15 @@ class TenantAwareTask(Task):
         schema_name = kwargs.get("schema_name")
         client_id = kwargs.get("client_id")
         school_id = kwargs.get("school_id")
-        if not any((schema_name, client_id is not None, school_id is not None)) and args:
+        if (
+            not any((schema_name, client_id is not None, school_id is not None))
+            and args
+        ):
             school_id = str(args[0])
+
         def _run():
             return super().__call__(*args, **kwargs)
+
         return _run_with_tenant_context(
             schema_name=schema_name,
             client_id=client_id,

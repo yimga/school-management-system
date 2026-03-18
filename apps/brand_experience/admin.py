@@ -6,7 +6,13 @@ from django.utils.html import format_html
 from config.admin import register_both, register_platform_admin
 from unfold.admin import ModelAdmin
 
-from .models import BrandProfile, BrandSettings, DesignTemplate, GlobalBrandRegistry, ThemePack
+from .models import (
+    BrandProfile,
+    BrandSettings,
+    DesignTemplate,
+    GlobalBrandRegistry,
+    ThemePack,
+)
 
 
 class ProxyOwnerAdmin(ModelAdmin):
@@ -35,9 +41,44 @@ class ThemePackAdmin(ModelAdmin):
                 "fields": ("primary_color", "accent_color", "background_color"),
             },
         ),
-        (None, {"fields": ("name", "slug", "description", "font_family", "layout", "palette")}),
-        ("Assets", {"fields": ("logo", "background_image", "video_background", "svg_background", "logo_opacity", "logo_background_mode")}),
-        ("Options", {"fields": ("applies_to_admin", "backend_console_theme", "is_active", "is_default", "custom_css")}),
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "slug",
+                    "description",
+                    "font_family",
+                    "layout",
+                    "palette",
+                )
+            },
+        ),
+        (
+            "Assets",
+            {
+                "fields": (
+                    "logo",
+                    "background_image",
+                    "video_background",
+                    "svg_background",
+                    "logo_opacity",
+                    "logo_background_mode",
+                )
+            },
+        ),
+        (
+            "Options",
+            {
+                "fields": (
+                    "applies_to_admin",
+                    "backend_console_theme",
+                    "is_active",
+                    "is_default",
+                    "custom_css",
+                )
+            },
+        ),
     )
 
     # Theme packs are managed from Theme & Experience studio; hide standalone model page.

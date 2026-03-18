@@ -2,6 +2,7 @@
 TenantStrategy: SCHEMA (django-tenants) vs RLS (shared schema + app.current_school_id).
 Aligns with TENANCY_MODE in settings when set; otherwise derived from USE_DJANGO_TENANTS.
 """
+
 from enum import Enum
 from django.conf import settings
 
@@ -20,4 +21,8 @@ def get_tenant_strategy() -> TenantStrategy:
         return TenantStrategy.SHARED_SCHEMA
     # Backward compatibility: derive from USE_DJANGO_TENANTS
     use_tenants = getattr(settings, "USE_DJANGO_TENANTS", False)
-    return TenantStrategy.SCHEMA_PER_TENANT if use_tenants else TenantStrategy.SHARED_SCHEMA
+    return (
+        TenantStrategy.SCHEMA_PER_TENANT
+        if use_tenants
+        else TenantStrategy.SHARED_SCHEMA
+    )

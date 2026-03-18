@@ -57,6 +57,7 @@ class CommunicationCenterTests(TestCase):
         Integration.objects.all().delete()
         # Clear site-settings cache so _communication_center sees updated empty values
         from django.core.cache import cache
+
         cache.delete("platform_runtime:effective_site_settings:platform")
 
         data = _communication_center()

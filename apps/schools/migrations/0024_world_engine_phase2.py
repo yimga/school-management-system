@@ -31,7 +31,9 @@ def add_jit_fields_if_missing(apps, schema_editor):
                 cursor.execute(
                     "ALTER TABLE schools_school ADD COLUMN impersonation_consent_granted_at timestamp with time zone NULL"
                 )
-            if not _column_exists_pg(cursor, table, "impersonation_consent_granted_by_id"):
+            if not _column_exists_pg(
+                cursor, table, "impersonation_consent_granted_by_id"
+            ):
                 cursor.execute(
                     "ALTER TABLE schools_school ADD COLUMN impersonation_consent_granted_by_id integer NULL"
                 )
@@ -48,11 +50,15 @@ def add_jit_fields_if_missing(apps, schema_editor):
                     """
                 )
         else:
-            if not _column_exists_sqlite(cursor, table, "impersonation_consent_granted_at"):
+            if not _column_exists_sqlite(
+                cursor, table, "impersonation_consent_granted_at"
+            ):
                 cursor.execute(
                     "ALTER TABLE schools_school ADD COLUMN impersonation_consent_granted_at datetime NULL"
                 )
-            if not _column_exists_sqlite(cursor, table, "impersonation_consent_granted_by_id"):
+            if not _column_exists_sqlite(
+                cursor, table, "impersonation_consent_granted_by_id"
+            ):
                 cursor.execute(
                     "ALTER TABLE schools_school ADD COLUMN impersonation_consent_granted_by_id integer NULL REFERENCES %s(id) ON DELETE SET NULL"
                     % user_table
@@ -64,7 +70,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0023_world_engine"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

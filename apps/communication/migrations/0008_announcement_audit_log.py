@@ -6,28 +6,72 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('communication', '0007_announcement_status_and_approval'),
+        ("communication", "0007_announcement_status_and_approval"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AnnouncementAuditLog',
+            name="AnnouncementAuditLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('action', models.CharField(choices=[('created', 'Created'), ('updated', 'Updated'), ('submitted_for_approval', 'Submitted for approval'), ('approved', 'Approved'), ('published', 'Published'), ('deactivated', 'Deactivated')], max_length=32)),
-                ('notes', models.CharField(blank=True, max_length=500)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('announcement', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='audit_logs', to='communication.announcement')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='announcement_audit_entries', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[
+                            ("created", "Created"),
+                            ("updated", "Updated"),
+                            ("submitted_for_approval", "Submitted for approval"),
+                            ("approved", "Approved"),
+                            ("published", "Published"),
+                            ("deactivated", "Deactivated"),
+                        ],
+                        max_length=32,
+                    ),
+                ),
+                ("notes", models.CharField(blank=True, max_length=500)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "announcement",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="audit_logs",
+                        to="communication.announcement",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="announcement_audit_entries",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Announcement audit log',
-                'verbose_name_plural': 'Announcement audit logs',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['announcement', '-created_at'], name='communicati_announc_7fc5c3_idx'), models.Index(fields=['action'], name='communicati_action_fa80de_idx')],
+                "verbose_name": "Announcement audit log",
+                "verbose_name_plural": "Announcement audit logs",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["announcement", "-created_at"],
+                        name="communicati_announc_7fc5c3_idx",
+                    ),
+                    models.Index(
+                        fields=["action"], name="communicati_action_fa80de_idx"
+                    ),
+                ],
             },
         ),
     ]

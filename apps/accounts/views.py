@@ -18,10 +18,22 @@ from django.utils import translation
 import json
 from django_ratelimit.decorators import ratelimit
 from config.admin import admin_site
-from apps.finance.models import Invoice, ReferralReward, PaymentReminder, Notification as FinanceNotification
+from apps.finance.models import (
+    Invoice,
+    ReferralReward,
+    PaymentReminder,
+    Notification as FinanceNotification,
+)
 from apps.finance.services import finance_dashboard_data
 from apps.integrations_marketplace.models import ServiceIntegration
-from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance, TeacherProfile, Badge, BadgeType
+from apps.people.models import (
+    StudentGuardian,
+    StudentProfile,
+    TeacherAttendance,
+    TeacherProfile,
+    Badge,
+    BadgeType,
+)
 from apps.reports.models import TermPublishStatus
 from apps.academics.services import get_active_year_and_term
 from apps.accounts.decorators import permission_required
@@ -31,7 +43,10 @@ from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 from apps.siteconfig.dashboard_views import effective_chart_types
 from apps.accounts.utils import get_dashboard_context
-from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
+from apps.platform_runtime.helpers import (
+    get_effective_flags,
+    get_effective_site_settings,
+)
 
 from .forms import (
     ClaimInviteAccountForm,
@@ -118,7 +133,11 @@ def _teacher_org_tree(user):
         from apps.academics.services import get_active_year_and_term
     except ImportError:
         return None
-    teacher = TeacherProfile.objects.filter(user=user).select_related("department", "reports_to").first()
+    teacher = (
+        TeacherProfile.objects.filter(user=user)
+        .select_related("department", "reports_to")
+        .first()
+    )
     if not teacher:
         return None
     year, _ = get_active_year_and_term()
@@ -142,14 +161,21 @@ def _teacher_org_tree(user):
             if cname not in by_class:
                 by_class[cname] = []
             by_class[cname].append(sa.subject.name if sa.subject else "-")
-        assignments = [{"classroom": c, "subjects": list(set(subs))} for c, subs in sorted(by_class.items())]
+        assignments = [
+            {"classroom": c, "subjects": list(set(subs))}
+            for c, subs in sorted(by_class.items())
+        ]
 
     def _node_payload(profile, relation):
         if not profile:
             return None
         target_user = getattr(profile, "user", None)
         display_name = (
-            (target_user.get_full_name() if target_user and hasattr(target_user, "get_full_name") else "")
+            (
+                target_user.get_full_name()
+                if target_user and hasattr(target_user, "get_full_name")
+                else ""
+            )
             or (target_user.username if target_user else "")
             or "Staff"
         )
@@ -157,7 +183,9 @@ def _teacher_org_tree(user):
         initials = "".join(part[:1].upper() for part in initials_parts[:2]) or "S"
         photo_url = ""
         profile_photo = getattr(profile, "profile_photo", None)
-        user_photo = getattr(target_user, "profile_photo", None) if target_user else None
+        user_photo = (
+            getattr(target_user, "profile_photo", None) if target_user else None
+        )
         try:
             if profile_photo and getattr(profile_photo, "url", ""):
                 photo_url = profile_photo.url
@@ -169,10 +197,13 @@ def _teacher_org_tree(user):
             "id": profile.pk,
             "name": display_name,
             "title": getattr(profile, "position_title", "") or "Staff member",
-            "department": getattr(getattr(profile, "department", None), "name", "") or "",
+            "department": getattr(getattr(profile, "department", None), "name", "")
+            or "",
             "photo_url": photo_url,
             "initials": initials,
-            "is_self": bool(target_user and target_user.pk == getattr(user, "pk", None)),
+            "is_self": bool(
+                target_user and target_user.pk == getattr(user, "pk", None)
+            ),
             "relation": relation,
         }
 
@@ -188,7 +219,9 @@ def _teacher_org_tree(user):
         .select_related("user", "department")
         .order_by("position_title", "user__first_name", "user__last_name")[:8]
     )
-    direct_report_nodes = [_node_payload(profile, "direct_report") for profile in direct_reports]
+    direct_report_nodes = [
+        _node_payload(profile, "direct_report") for profile in direct_reports
+    ]
     direct_report_nodes = [node for node in direct_report_nodes if node]
 
     diagram_levels = [[node] for node in chain_nodes]
@@ -219,13 +252,17 @@ def _parent_children_tree(user):
         s = link.student
         classroom = getattr(s, "classroom", None)
         class_name = classroom.name if classroom else "-"
-        year_name = getattr(getattr(classroom, "academic_year", None), "name", "") or "-"
-        children.append({
-            "student": s,
-            "relationship": link.get_relationship_display(),
-            "classroom": class_name,
-            "academic_year": year_name,
-        })
+        year_name = (
+            getattr(getattr(classroom, "academic_year", None), "name", "") or "-"
+        )
+        children.append(
+            {
+                "student": s,
+                "relationship": link.get_relationship_display(),
+                "classroom": class_name,
+                "academic_year": year_name,
+            }
+        )
     return {"children": children} if children else None
 
 
@@ -239,7 +276,9 @@ def _admin_context(user):
     if getattr(user, "has_feature_permission", lambda _: False)("settings.manage"):
         try:
             site = get_effective_site_settings()
-            site_settings_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
+            site_settings_url = reverse(
+                "admin:siteconfig_sitesettings_change", args=[site.pk]
+            )
         except (AttributeError, NoReverseMatch, TypeError, ValueError):
             try:
                 site_settings_url = reverse("admin:siteconfig_sitesettings_changelist")
@@ -280,12 +319,18 @@ def user_profile(request):
     """Profile landing: account overview, org tree (teacher), children tree (parent), change password & edit profile."""
     context = {}
     role = getattr(request.user, "role", None)
-    teacher_profile = TeacherProfile.objects.filter(user=request.user).select_related("department", "reports_to").first()
+    teacher_profile = (
+        TeacherProfile.objects.filter(user=request.user)
+        .select_related("department", "reports_to")
+        .first()
+    )
     if teacher_profile:
         context["org_chain"] = get_org_chain_to_staff(teacher_profile)
     if role == "TEACHER" and teacher_profile:
         context["teacher_org_tree"] = _teacher_org_tree(request.user)
-        context["staff_id"] = getattr(teacher_profile, "staff_id", None) or (f"Staff #{request.user.pk}" if teacher_profile else None)
+        context["staff_id"] = getattr(teacher_profile, "staff_id", None) or (
+            f"Staff #{request.user.pk}" if teacher_profile else None
+        )
         context["approved_syllabi"] = _get_teacher_approved_syllabi(teacher_profile)
         try:
             context["digital_id_url"] = reverse("portal:my_digital_id")
@@ -293,13 +338,15 @@ def user_profile(request):
             context["digital_id_url"] = None
         # Phase 1: Staff badges (non-expired, STAFF audience only)
         from django.utils import timezone as tz
+
         context["staff_badges"] = list(
             Badge.objects.filter(
                 user=request.user,
                 badge_type__audience=BadgeType.Audience.STAFF,
-            ).filter(
-                Q(expiry_at__isnull=True) | Q(expiry_at__gt=tz.now())
-            ).select_related("badge_type").order_by("-issued_at")[:20]
+            )
+            .filter(Q(expiry_at__isnull=True) | Q(expiry_at__gt=tz.now()))
+            .select_related("badge_type")
+            .order_by("-issued_at")[:20]
         )
     if role == "PARENT":
         context["parent_children_tree"] = _parent_children_tree(request.user)
@@ -309,6 +356,7 @@ def user_profile(request):
     # MFA status (only when django_otp is available)
     try:
         from django_otp import user_has_device
+
         context["mfa_enabled"] = user_has_device(request.user)
     except (AttributeError, ImportError):
         pass
@@ -316,6 +364,7 @@ def user_profile(request):
     # Parent upcoming fees summary when finance exposes it
     try:
         from apps.finance.services import get_parent_fees_summary
+
         parent_fees = get_parent_fees_summary(request.user)
         if parent_fees:
             context["parent_fees_summary"] = parent_fees
@@ -341,7 +390,11 @@ def user_profile(request):
     else:
         missing.append("last name")
     percent = (len(filled) * 100) // 4
-    context["profile_completion"] = {"percent": percent, "filled": filled, "missing": missing}
+    context["profile_completion"] = {
+        "percent": percent,
+        "filled": filled,
+        "missing": missing,
+    }
     # Active sessions count (for Security line)
     try:
         from django.contrib.sessions.models import Session
@@ -354,12 +407,20 @@ def user_profile(request):
             if str(request.user.pk) == data.get("_auth_user_id"):
                 count += 1
         context["active_sessions_count"] = count
-    except (AttributeError, DatabaseError, ImportError, RuntimeError, TypeError, ValueError):
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         context["active_sessions_count"] = None
 
     # PII masking (plan 3.21): full address/DOB masked until re-auth.
     try:
         from apps.accounts.pii_masking import can_show_pii, mask_date
+
         context["can_show_pii"] = can_show_pii(request)
         dob = None
         if teacher_profile and getattr(teacher_profile, "date_of_birth", None):
@@ -432,15 +493,19 @@ def _direct_conversations(user, limit=50):
     from apps.communication.models import Message
 
     # All messages where user is sender or recipient (exclude archived for listing)
-    qs = Message.objects.filter(
-        Q(sender=user) | Q(recipient=user)
-    ).filter(is_archived=False).select_related("sender", "recipient").order_by("-created_at")
+    qs = (
+        Message.objects.filter(Q(sender=user) | Q(recipient=user))
+        .filter(is_archived=False)
+        .select_related("sender", "recipient")
+        .order_by("-created_at")
+    )
 
     # One query: unread counts per sender (senders who messaged me and I haven't read)
     unread_by_sender = dict(
-        Message.objects.filter(
-            recipient=user, is_read=False, is_archived=False
-        ).values("sender").annotate(cnt=Count("id")).values_list("sender", "cnt")
+        Message.objects.filter(recipient=user, is_read=False, is_archived=False)
+        .values("sender")
+        .annotate(cnt=Count("id"))
+        .values_list("sender", "cnt")
     )
 
     from apps.communication.models import DirectConversation
@@ -466,13 +531,15 @@ def _direct_conversations(user, limit=50):
                 continue
         seen_other_ids.add(other.id)
         unread_count = unread_by_sender.get(other.id, 0)
-        conversations.append({
-            "other_user": other,
-            "last_message": msg,
-            "last_message_at": msg.created_at,
-            "unread_count": unread_count,
-            "snippet": (msg.body or msg.subject or "")[:120],
-        })
+        conversations.append(
+            {
+                "other_user": other,
+                "last_message": msg,
+                "last_message_at": msg.created_at,
+                "unread_count": unread_count,
+                "snippet": (msg.body or msg.subject or "")[:120],
+            }
+        )
         if len(conversations) >= limit:
             break
     return conversations
@@ -519,24 +586,29 @@ def _is_staff_or_teacher(user):
     role = getattr(user, "role", None)
     if role in (User.Role.PARENT, User.Role.STUDENT):
         return False
-    return user.is_staff or user.is_superuser or role in (
-        User.Role.ADMIN,
-        User.Role.TEACHER,
-        User.Role.LEADERSHIP,
-        User.Role.PRINCIPAL,
-        User.Role.VICE_PRINCIPAL,
-        User.Role.DEPT_LEAD,
-        User.Role.HOD,
-        User.Role.SECRETARY,
-        User.Role.BURSAR,
-        User.Role.IT_ADMIN,
-        User.Role.PROPRIETOR,
-        User.Role.COMMS_STAFF,
-        User.Role.EXECUTIVE_ASSISTANT,
-        User.Role.VIRTUAL_ASSISTANT,
-        User.Role.ACADEMICS_STAFF,
-        User.Role.FINANCE_STAFF,
-        User.Role.ACCOUNTANT,
+    return (
+        user.is_staff
+        or user.is_superuser
+        or role
+        in (
+            User.Role.ADMIN,
+            User.Role.TEACHER,
+            User.Role.LEADERSHIP,
+            User.Role.PRINCIPAL,
+            User.Role.VICE_PRINCIPAL,
+            User.Role.DEPT_LEAD,
+            User.Role.HOD,
+            User.Role.SECRETARY,
+            User.Role.BURSAR,
+            User.Role.IT_ADMIN,
+            User.Role.PROPRIETOR,
+            User.Role.COMMS_STAFF,
+            User.Role.EXECUTIVE_ASSISTANT,
+            User.Role.VIRTUAL_ASSISTANT,
+            User.Role.ACADEMICS_STAFF,
+            User.Role.FINANCE_STAFF,
+            User.Role.ACCOUNTANT,
+        )
     )
 
 
@@ -571,20 +643,35 @@ def direct_thread(request, user_id):
         return redirect(reverse("portal:parent_contact_school"))
     if i_am_student and not other_is_staff:
         return HttpResponseForbidden("You can only message staff or teachers.")
-    if not i_am_parent and not i_am_student and not _can_access_direct_messages(request.user):
-        return HttpResponseForbidden("You don't have permission to send direct messages.")
+    if (
+        not i_am_parent
+        and not i_am_student
+        and not _can_access_direct_messages(request.user)
+    ):
+        return HttpResponseForbidden(
+            "You don't have permission to send direct messages."
+        )
 
     # Staff–parent conversation record (only when one is parent, one is staff/teacher)
     conv = None
-    if (i_am_parent and _is_staff_or_teacher(other)) or (other_is_parent and _is_staff_or_teacher(request.user)):
+    if (i_am_parent and _is_staff_or_teacher(other)) or (
+        other_is_parent and _is_staff_or_teacher(request.user)
+    ):
         conv = DirectConversation.get_or_create_for(request.user, other)
 
     if request.method == "POST":
         action = request.POST.get("action")
-        if action == "close" and _is_staff_or_teacher(request.user) and other_is_parent and conv:
+        if (
+            action == "close"
+            and _is_staff_or_teacher(request.user)
+            and other_is_parent
+            and conv
+        ):
             conv.closed_at = timezone.now()
             conv.save(update_fields=["closed_at"])
-            messages.success(request, "Conversation closed. Parent can no longer reply.")
+            messages.success(
+                request, "Conversation closed. Parent can no longer reply."
+            )
             return redirect("accounts:user_messages")
         body = (request.POST.get("body") or "").strip()
         subject = (request.POST.get("subject") or "").strip() or "Direct message"
@@ -592,24 +679,42 @@ def direct_thread(request, user_id):
             if conv and conv.closed_at:
                 messages.error(request, "This conversation is closed.")
             else:
+                from apps.communication.comms_locale import locale_target_for_user
+
                 msg = Message.objects.create(
                     sender=request.user,
                     recipient=other,
                     subject=subject,
                     body=body,
+                    locale_target=locale_target_for_user(other),
                 )
                 _notify_new_direct_message(request.user, other, msg)
-                Message.objects.filter(sender=other, recipient=request.user, is_read=False).update(is_read=True)
+                Message.objects.filter(
+                    sender=other, recipient=request.user, is_read=False
+                ).update(is_read=True)
             return redirect("accounts:direct_thread", user_id=other.pk)
 
-    messages_qs = Message.objects.filter(
-        Q(sender=request.user, recipient=other) | Q(sender=other, recipient=request.user)
-    ).filter(is_archived=False).select_related("sender", "recipient").order_by("created_at")
+    messages_qs = (
+        Message.objects.filter(
+            Q(sender=request.user, recipient=other)
+            | Q(sender=other, recipient=request.user)
+        )
+        .filter(is_archived=False)
+        .select_related("sender", "recipient")
+        .order_by("created_at")
+    )
 
-    Message.objects.filter(sender=other, recipient=request.user, is_read=False).update(is_read=True)
+    Message.objects.filter(sender=other, recipient=request.user, is_read=False).update(
+        is_read=True
+    )
 
     conversation_closed = conv.closed_at if conv else False
-    can_close = _is_staff_or_teacher(request.user) and other_is_parent and conv and not conv.closed_at
+    can_close = (
+        _is_staff_or_teacher(request.user)
+        and other_is_parent
+        and conv
+        and not conv.closed_at
+    )
     can_reply = not conversation_closed
 
     context = {
@@ -628,7 +733,9 @@ def direct_compose(request):
     if getattr(request.user, "role", None) == User.Role.PARENT:
         return redirect(reverse("portal:parent_contact_school"))
     if not _can_access_direct_messages(request.user):
-        return HttpResponseForbidden("You don't have permission to compose direct messages.")
+        return HttpResponseForbidden(
+            "You don't have permission to compose direct messages."
+        )
     from apps.communication.models import Message
 
     if request.method == "POST":
@@ -638,14 +745,29 @@ def direct_compose(request):
         if not body or not recipient_id:
             messages.error(request, "Select a recipient and enter a message.")
             return redirect("accounts:direct_compose")
-        recipient = User.objects.filter(pk=recipient_id, is_active=True).exclude(pk=request.user.pk).first()
+        recipient = (
+            User.objects.filter(pk=recipient_id, is_active=True)
+            .exclude(pk=request.user.pk)
+            .first()
+        )
         if not recipient:
             messages.error(request, "Selected recipient is not available.")
             return redirect("accounts:direct_compose")
         from apps.communication.models import DirectConversation
-        if getattr(recipient, "role", None) == User.Role.PARENT and _is_staff_or_teacher(request.user):
+
+        if getattr(
+            recipient, "role", None
+        ) == User.Role.PARENT and _is_staff_or_teacher(request.user):
             DirectConversation.get_or_create_for(request.user, recipient)
-        msg = Message.objects.create(sender=request.user, recipient=recipient, subject=subject, body=body)
+        from apps.communication.comms_locale import locale_target_for_user
+
+        msg = Message.objects.create(
+            sender=request.user,
+            recipient=recipient,
+            subject=subject,
+            body=body,
+            locale_target=locale_target_for_user(recipient),
+        )
         _notify_new_direct_message(request.user, recipient, msg)
         return redirect("accounts:direct_thread", user_id=recipient.pk)
 
@@ -667,7 +789,14 @@ def user_documentation(request):
 
 
 @permission_required("settings.manage")
-@user_passes_test(lambda u: u.is_authenticated and (u.is_staff or u.is_superuser or getattr(u, "role", None) == User.Role.ADMIN))
+@user_passes_test(
+    lambda u: (
+        u.is_authenticated
+        and (
+            u.is_staff or u.is_superuser or getattr(u, "role", None) == User.Role.ADMIN
+        )
+    )
+)
 def backend_entity_import(request):
     """Admin-only page to stage CSV imports (students/guardians) against new APIs."""
     _site = get_effective_site_settings(request=request)
@@ -677,19 +806,32 @@ def backend_entity_import(request):
         return HttpResponseForbidden("Entity import is disabled by admin.")
     if allowed_roles:
         role = (getattr(request.user, "role", "") or "").upper()
-        if role not in allowed_roles and not (request.user.is_staff or request.user.is_superuser):
+        if role not in allowed_roles and not (
+            request.user.is_staff or request.user.is_superuser
+        ):
             return HttpResponseForbidden("You are not allowed to access Entity Import.")
-    return render(request, "accounts/entity_import.html", {
-        "BREADCRUMBS": [
-            {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
-            {"label": "Import & bulk", "url": reverse("studio_os:import_hub")},
-            {"label": "Entity import", "url": "", "active": True},
-        ],
-    })
+    return render(
+        request,
+        "accounts/entity_import.html",
+        {
+            "BREADCRUMBS": [
+                {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
+                {"label": "Import & bulk", "url": reverse("studio_os:import_hub")},
+                {"label": "Entity import", "url": "", "active": True},
+            ],
+        },
+    )
 
 
 @permission_required("settings.manage")
-@user_passes_test(lambda u: u.is_authenticated and (u.is_staff or u.is_superuser or getattr(u, "role", None) == User.Role.ADMIN))
+@user_passes_test(
+    lambda u: (
+        u.is_authenticated
+        and (
+            u.is_staff or u.is_superuser or getattr(u, "role", None) == User.Role.ADMIN
+        )
+    )
+)
 def backend_entity_console(request):
     """Admin-only page for EntityForm/Table beta UI."""
     _site = get_effective_site_settings(request=request)
@@ -699,8 +841,12 @@ def backend_entity_console(request):
         return HttpResponseForbidden("Entity console is disabled by admin.")
     if allowed_roles:
         role = (getattr(request.user, "role", "") or "").upper()
-        if role not in allowed_roles and not (request.user.is_staff or request.user.is_superuser):
-            return HttpResponseForbidden("You are not allowed to access Entity Console.")
+        if role not in allowed_roles and not (
+            request.user.is_staff or request.user.is_superuser
+        ):
+            return HttpResponseForbidden(
+                "You are not allowed to access Entity Console."
+            )
     return render(request, "accounts/entity_console.html", {})
 
 
@@ -748,6 +894,7 @@ def redirect_view(request):
             has_teacher_hat,
             has_parent_hat,
         )
+
         if intent == "student":
             if (getattr(user, "role", "") or "").upper() == "STUDENT":
                 return _redirect_with_params("portal:student_portal_grades")
@@ -767,8 +914,14 @@ def redirect_view(request):
         try:
             from apps.schools.models import SchoolMembership
             from apps.schools.tenant_url import is_base_domain, build_tenant_backend_url
+
             if is_base_domain(request):
-                m = SchoolMembership.objects.filter(user=user).select_related("school").order_by("-is_primary").first()
+                m = (
+                    SchoolMembership.objects.filter(user=user)
+                    .select_related("school")
+                    .order_by("-is_primary")
+                    .first()
+                )
                 if m and m.school:
                     target = build_tenant_backend_url(request, m.school)
                     return redirect(target)
@@ -780,12 +933,17 @@ def redirect_view(request):
     try:
         from apps.siteconfig.models import UserPreference as PortalUserPreference
 
-        pref = PortalUserPreference.objects.filter(user=user).only("dashboard_view").first()
+        pref = (
+            PortalUserPreference.objects.filter(user=user)
+            .only("dashboard_view")
+            .first()
+        )
         dash_view = getattr(pref, "dashboard_view", None)
     except (DatabaseError, ImportError, AttributeError):
         dash_view = None
 
     from apps.accounts.portal_roles import get_effective_portal_role
+
     role = get_effective_portal_role(request) or getattr(user, "role", None)
 
     # Staff/backend: Dashboard or Workflow Center as default view
@@ -825,6 +983,7 @@ def switch_portal_role(request):
         has_teacher_hat,
         has_parent_hat,
     )
+
     role = (request.GET.get("role") or request.POST.get("role") or "").strip().upper()
     if role not in ALLOWED_PORTAL_ROLES:
         return redirect(reverse("accounts:redirect"))
@@ -837,6 +996,7 @@ def switch_portal_role(request):
         from django.db import IntegrityError
         from django.core.exceptions import ValidationError
         from apps.siteconfig.models import UserPreference
+
         pref, _ = UserPreference.objects.get_or_create(user=request.user, defaults={})
         pref.last_portal_role = role
         pref.save(update_fields=["last_portal_role", "updated_at"])
@@ -875,7 +1035,9 @@ def _resolve_admin_portal_stats(section_stats, config):
             continue
         preferred_items = items.get(section)
         if isinstance(preferred_items, list) and preferred_items:
-            filtered = {label: stats[label] for label in preferred_items if label in stats}
+            filtered = {
+                label: stats[label] for label in preferred_items if label in stats
+            }
         else:
             filtered = dict(stats)
             if max_items and max_items > 0:
@@ -905,6 +1067,7 @@ def _resolve_admin_portal_stats(section_stats, config):
 def _rbac_roles_by_category(roles_qs):
     """Group roles by category for RBAC UI (additive; uses ROLE_CATEGORIES)."""
     from apps.accounts.permissions import ROLE_CATEGORIES
+
     role_by_code = {r.code: r for r in roles_qs}
     result = []
     for category_label, codes in ROLE_CATEGORIES.items():
@@ -917,6 +1080,7 @@ def _rbac_roles_by_category(roles_qs):
 def _rbac_permissions_by_group(permissions_qs):
     """Group permissions by module for RBAC UI (additive; uses PERMISSION_GROUPS)."""
     from apps.accounts.permissions import PERMISSION_GROUPS
+
     perm_by_code = {p.code: p for p in permissions_qs}
     result = []
     for group_label, codes in PERMISSION_GROUPS.items():
@@ -949,7 +1113,9 @@ def rbac_dashboard(request):
     edit_role_form = None
     if request.method == "GET" and request.GET.get("edit_role"):
         try:
-            edit_role = AccessRole.objects.prefetch_related("permissions").get(pk=request.GET.get("edit_role"))
+            edit_role = AccessRole.objects.prefetch_related("permissions").get(
+                pk=request.GET.get("edit_role")
+            )
             edit_role_form = EditRoleForm(role=edit_role)
             edit_role_id = edit_role.pk
         except (AccessRole.DoesNotExist, ValueError):
@@ -957,7 +1123,9 @@ def rbac_dashboard(request):
 
     role_form = RoleForm(prefix="role")
     permission_form = PermissionForm(prefix="permission")
-    user_role_form = UserRoleForm(prefix="user_role", initial=initial_user_roles or None)
+    user_role_form = UserRoleForm(
+        prefix="user_role", initial=initial_user_roles or None
+    )
     user_permission_form = UserPermissionForm(prefix="user_permission")
     temporary_grant_form = TemporaryRoleGrantForm(prefix="temp_grant")
 
@@ -985,11 +1153,18 @@ def rbac_dashboard(request):
                 return redirect("accounts:rbac")
             else:
                 try:
-                    initial_user_roles = {"roles": [AccessRole.objects.get(pk=int(pk)) for pk in request.POST.getlist("user_role-roles")]}
+                    initial_user_roles = {
+                        "roles": [
+                            AccessRole.objects.get(pk=int(pk))
+                            for pk in request.POST.getlist("user_role-roles")
+                        ]
+                    }
                 except (ValueError, AccessRole.DoesNotExist):
                     initial_user_roles = {}
         elif form_type == "user_permissions":
-            user_permission_form = UserPermissionForm(request.POST, prefix="user_permission")
+            user_permission_form = UserPermissionForm(
+                request.POST, prefix="user_permission"
+            )
             if user_permission_form.is_valid():
                 user = user_permission_form.cleaned_data["user"]
                 permissions = user_permission_form.cleaned_data["permissions"]
@@ -999,22 +1174,31 @@ def rbac_dashboard(request):
         elif form_type == "edit_role":
             edit_role_form = EditRoleForm(request.POST)
             if edit_role_form.is_valid():
-                role = get_object_or_404(AccessRole, pk=edit_role_form.cleaned_data["role_id"])
+                role = get_object_or_404(
+                    AccessRole, pk=edit_role_form.cleaned_data["role_id"]
+                )
                 role.description = edit_role_form.cleaned_data["description"] or ""
                 role.permissions.set(edit_role_form.cleaned_data["permissions"])
                 role.save()
                 messages.success(request, f"Role '{role.name}' updated.")
                 return redirect("accounts:rbac")
-            edit_role_id = edit_role_form.cleaned_data.get("role_id") or request.POST.get("role_id")
+            edit_role_id = edit_role_form.cleaned_data.get(
+                "role_id"
+            ) or request.POST.get("role_id")
         elif form_type == "temporary_grant":
-            temporary_grant_form = TemporaryRoleGrantForm(request.POST, prefix="temp_grant")
+            temporary_grant_form = TemporaryRoleGrantForm(
+                request.POST, prefix="temp_grant"
+            )
             if temporary_grant_form.is_valid():
                 from datetime import datetime, time
+
                 user = temporary_grant_form.cleaned_data["user"]
                 role = temporary_grant_form.cleaned_data["role"]
                 expires_date = temporary_grant_form.cleaned_data["expires_at"]
                 valid_from_date = temporary_grant_form.cleaned_data.get("valid_from")
-                notes = (temporary_grant_form.cleaned_data.get("notes") or "").strip()[:255]
+                notes = (temporary_grant_form.cleaned_data.get("notes") or "").strip()[
+                    :255
+                ]
                 expires_at = timezone.make_aware(
                     datetime.combine(expires_date, time(23, 59, 59)),
                     timezone.get_current_timezone(),
@@ -1049,7 +1233,10 @@ def rbac_dashboard(request):
         .annotate(count=Count("id"))
     }
     attendance_trend = [
-        {"date": week_start + timedelta(days=offset), "present": present_map.get(week_start + timedelta(days=offset), 0)}
+        {
+            "date": week_start + timedelta(days=offset),
+            "present": present_map.get(week_start + timedelta(days=offset), 0),
+        }
         for offset in range(7)
     ]
     attendance_trend_total = sum(item["present"] for item in attendance_trend)
@@ -1066,11 +1253,16 @@ def rbac_dashboard(request):
                 pass
 
     now = timezone.now()
-    active_temporary_grants = TemporaryRoleGrant.objects.filter(
-        expires_at__gt=now,
-    ).filter(
-        Q(valid_from__isnull=True) | Q(valid_from__lte=now),
-    ).select_related("user", "role", "created_by").order_by("expires_at")[:50]
+    active_temporary_grants = (
+        TemporaryRoleGrant.objects.filter(
+            expires_at__gt=now,
+        )
+        .filter(
+            Q(valid_from__isnull=True) | Q(valid_from__lte=now),
+        )
+        .select_related("user", "role", "created_by")
+        .order_by("expires_at")[:50]
+    )
 
     context = {
         "roles": roles_qs,
@@ -1100,8 +1292,14 @@ def backend_dashboard(request):
         try:
             from apps.schools.models import SchoolMembership
             from apps.schools.tenant_url import is_base_domain, build_tenant_backend_url
+
             if is_base_domain(request):
-                m = SchoolMembership.objects.filter(user=request.user).select_related("school").order_by("-is_primary").first()
+                m = (
+                    SchoolMembership.objects.filter(user=request.user)
+                    .select_related("school")
+                    .order_by("-is_primary")
+                    .first()
+                )
                 if m and m.school:
                     return redirect(build_tenant_backend_url(request, m.school))
         except ACCOUNTS_SOFT_FAILURES:
@@ -1131,48 +1329,92 @@ def backend_dashboard(request):
         "overview": bool(backend_flags.get("backend_module_overview", True)),
         "admin_portal": bool(backend_flags.get("backend_module_admin_portal", True)),
         "welcome": bool(backend_flags.get("backend_module_welcome", True)),
-        "enrollment_trends": bool(backend_flags.get("backend_module_enrollment_trends", True)),
-        "at_risk_students": bool(backend_flags.get("backend_module_at_risk_students", True)),
-        "outstanding_fees": bool(backend_flags.get("backend_module_outstanding_fees", True)),
-        "recent_admissions": bool(backend_flags.get("backend_module_recent_admissions", True)),
-        "recent_activity": bool(backend_flags.get("backend_module_recent_activity", True)),
-        "top_performing": bool(backend_flags.get("backend_module_top_performing", True)),
-        "attendance_today": bool(backend_flags.get("backend_module_attendance_today", True)),
+        "enrollment_trends": bool(
+            backend_flags.get("backend_module_enrollment_trends", True)
+        ),
+        "at_risk_students": bool(
+            backend_flags.get("backend_module_at_risk_students", True)
+        ),
+        "outstanding_fees": bool(
+            backend_flags.get("backend_module_outstanding_fees", True)
+        ),
+        "recent_admissions": bool(
+            backend_flags.get("backend_module_recent_admissions", True)
+        ),
+        "recent_activity": bool(
+            backend_flags.get("backend_module_recent_activity", True)
+        ),
+        "top_performing": bool(
+            backend_flags.get("backend_module_top_performing", True)
+        ),
+        "attendance_today": bool(
+            backend_flags.get("backend_module_attendance_today", True)
+        ),
         "ops_watch": bool(backend_flags.get("backend_module_ops_watch", True)),
         "quick_links": bool(backend_flags.get("backend_module_quick_links", True)),
         "planner": bool(backend_flags.get("backend_module_planner", True)),
     }
     backend_visual_settings = {
-        "show_trend_ribbons": bool(backend_flags.get("backend_viz_show_trend_ribbons", True)),
-        "show_progress_rings": bool(backend_flags.get("backend_viz_show_progress_rings", True)),
-        "show_rank_sparklines": bool(backend_flags.get("backend_viz_show_rank_sparklines", True)),
+        "show_trend_ribbons": bool(
+            backend_flags.get("backend_viz_show_trend_ribbons", True)
+        ),
+        "show_progress_rings": bool(
+            backend_flags.get("backend_viz_show_progress_rings", True)
+        ),
+        "show_rank_sparklines": bool(
+            backend_flags.get("backend_viz_show_rank_sparklines", True)
+        ),
     }
     backend_theme_settings = {
         "warm_palette": bool(backend_flags.get("backend_warm_palette", True)),
-        "reduce_card_flatness": bool(backend_flags.get("backend_reduce_card_flatness", True)),
-        "high_depth_surfaces": bool(backend_flags.get("backend_high_depth_surfaces", True)),
+        "reduce_card_flatness": bool(
+            backend_flags.get("backend_reduce_card_flatness", True)
+        ),
+        "high_depth_surfaces": bool(
+            backend_flags.get("backend_high_depth_surfaces", True)
+        ),
         "balanced_motion": bool(backend_flags.get("backend_balanced_motion", True)),
-        "layout_equal_heights": bool(backend_flags.get("backend_layout_equal_heights", True)),
+        "layout_equal_heights": bool(
+            backend_flags.get("backend_layout_equal_heights", True)
+        ),
     }
     from apps.portal.models import PendingGuardianInvite
 
     stats = {
         "students": StudentProfile.objects.filter(is_active=True).count(),
         "guardians": StudentGuardian.objects.count(),
-        "pending_invites": PendingGuardianInvite.objects.filter(guardian_user__isnull=True).count(),
-        "pending_referrals": ReferralReward.objects.filter(status=ReferralReward.Status.PENDING).count(),
-        "overdue_invoices": Invoice.objects.filter(status=Invoice.Status.OVERDUE).count(),
+        "pending_invites": PendingGuardianInvite.objects.filter(
+            guardian_user__isnull=True
+        ).count(),
+        "pending_referrals": ReferralReward.objects.filter(
+            status=ReferralReward.Status.PENDING
+        ).count(),
+        "overdue_invoices": Invoice.objects.filter(
+            status=Invoice.Status.OVERDUE
+        ).count(),
         "published_terms": TermPublishStatus.objects.filter(is_published=True).count(),
     }
-    
+
     # Certification/GCE stats (if enabled for active year)
     certification_stats = {}
     if year and getattr(year, "enable_gce_registration", False):
-        from apps.academics.models import CertificationExamSession, CertificationCandidate
-        active_sessions = CertificationExamSession.objects.filter(academic_year=year, is_active=True)
-        total_candidates = CertificationCandidate.objects.filter(session__academic_year=year).count()
-        draft_candidates = CertificationCandidate.objects.filter(session__academic_year=year, status="DRAFT").count()
-        verified_candidates = CertificationCandidate.objects.filter(session__academic_year=year, status="VERIFIED").count()
+        from apps.academics.models import (
+            CertificationExamSession,
+            CertificationCandidate,
+        )
+
+        active_sessions = CertificationExamSession.objects.filter(
+            academic_year=year, is_active=True
+        )
+        total_candidates = CertificationCandidate.objects.filter(
+            session__academic_year=year
+        ).count()
+        draft_candidates = CertificationCandidate.objects.filter(
+            session__academic_year=year, status="DRAFT"
+        ).count()
+        verified_candidates = CertificationCandidate.objects.filter(
+            session__academic_year=year, status="VERIFIED"
+        ).count()
         certification_stats = {
             "active_sessions": active_sessions.count(),
             "total_candidates": total_candidates,
@@ -1180,10 +1422,12 @@ def backend_dashboard(request):
             "verified_candidates": verified_candidates,
             "sessions": active_sessions[:3],  # Recent sessions for quick access
         }
-    
+
     # Get recent activity
-    recent_activities = get_recent_activity(limit=max(backend_layout_max_items_per_list, 5))
-    
+    recent_activities = get_recent_activity(
+        limit=max(backend_layout_max_items_per_list, 5)
+    )
+
     finance_overview = {}
     finance_summary = {}
     finance_trend = []
@@ -1212,7 +1456,10 @@ def backend_dashboard(request):
         .annotate(count=Count("id"))
     }
     attendance_trend = [
-        {"date": week_start + timedelta(days=offset), "present": present_map.get(week_start + timedelta(days=offset), 0)}
+        {
+            "date": week_start + timedelta(days=offset),
+            "present": present_map.get(week_start + timedelta(days=offset), 0),
+        }
         for offset in range(7)
     ]
     attendance_trend_total = sum(item["present"] for item in attendance_trend)
@@ -1244,30 +1491,58 @@ def backend_dashboard(request):
         getattr(site, "admin_portal_stats_config", {}) or {},
     )
     role_upper = (getattr(request.user, "role", "") or "").upper()
-    admin_like = bool(request.user.is_superuser or role_upper in {User.Role.ADMIN, User.Role.SUPERADMIN})
-    can_manage_settings = admin_like and request.user.has_feature_permission("settings.manage")
+    admin_like = bool(
+        request.user.is_superuser
+        or role_upper in {User.Role.ADMIN, User.Role.SUPERADMIN}
+    )
+    can_manage_settings = admin_like and request.user.has_feature_permission(
+        "settings.manage"
+    )
 
     # Simple role-based action flags for UI gating (defensive guard in template too)
     action_perms = {
-        "people": bool(role_upper in {User.Role.ADMIN, User.Role.LEADERSHIP, User.Role.IT_ADMIN, User.Role.SUPERADMIN} or request.user.is_superuser),
-        "finance": bool(role_upper in {
-            User.Role.ADMIN,
-            User.Role.LEADERSHIP,
-            User.Role.IT_ADMIN,
-            User.Role.BURSAR,
-            User.Role.SUPERADMIN,
-        } or request.user.is_superuser),
+        "people": bool(
+            role_upper
+            in {
+                User.Role.ADMIN,
+                User.Role.LEADERSHIP,
+                User.Role.IT_ADMIN,
+                User.Role.SUPERADMIN,
+            }
+            or request.user.is_superuser
+        ),
+        "finance": bool(
+            role_upper
+            in {
+                User.Role.ADMIN,
+                User.Role.LEADERSHIP,
+                User.Role.IT_ADMIN,
+                User.Role.BURSAR,
+                User.Role.SUPERADMIN,
+            }
+            or request.user.is_superuser
+        ),
         "site_settings": bool(can_manage_settings),
-        "admin_panel": bool(request.user.is_staff or request.user.is_superuser or role_upper in {User.Role.ADMIN, User.Role.IT_ADMIN}),
+        "admin_panel": bool(
+            request.user.is_staff
+            or request.user.is_superuser
+            or role_upper in {User.Role.ADMIN, User.Role.IT_ADMIN}
+        ),
     }
 
     app_context = admin_site.each_context(request)
-    modules = sum(len(app.get("models") or []) for app in app_context.get("available_apps", []))
+    modules = sum(
+        len(app.get("models") or []) for app in app_context.get("available_apps", [])
+    )
     kpi_data = admin_kpis()
     hero_stats = [
         {"label": "Students", "value": kpi_data["students"], "meta": "Active profiles"},
         {"label": "Subjects", "value": kpi_data["subjects"], "meta": "Catalog size"},
-        {"label": "Report cards", "value": kpi_data["report_cards"], "meta": "Generated"},
+        {
+            "label": "Report cards",
+            "value": kpi_data["report_cards"],
+            "meta": "Generated",
+        },
         {"label": "Modules", "value": modules, "meta": "Registered apps"},
     ]
     hero_actions = [
@@ -1276,7 +1551,12 @@ def backend_dashboard(request):
         {"label": "Frontend admin", "url": reverse("admin:index")},
     ]
     if can_manage_settings:
-        hero_actions.append({"label": "Open Full Site Settings", "url": reverse("siteconfig:user_preferences")})
+        hero_actions.append(
+            {
+                "label": "Open Full Site Settings",
+                "url": reverse("siteconfig:user_preferences"),
+            }
+        )
 
     hero = {
         "tagline": "Admin hub",
@@ -1287,8 +1567,16 @@ def backend_dashboard(request):
         "actions": hero_actions,
         "insight": ai_insight,
         "status_pills": [
-            {"label": "Today’s reminders", "value": len(reminders), "meta": "queued alerts"},
-            {"label": "Published terms", "value": stats["published_terms"], "meta": "published"},
+            {
+                "label": "Today’s reminders",
+                "value": len(reminders),
+                "meta": "queued alerts",
+            },
+            {
+                "label": "Published terms",
+                "value": stats["published_terms"],
+                "meta": "published",
+            },
         ],
     }
     dashboard_context = get_dashboard_context(request.user, "backend")
@@ -1298,9 +1586,14 @@ def backend_dashboard(request):
     widget_meta_json = dashboard_context.get("widget_meta_json", "")
     try:
         from apps.runtime_blueprints.models import DashboardUserPreference
+
         pref, created = DashboardUserPreference.objects.get_or_create(
             user=request.user,
-            defaults={"sidebar_collapsed": bool(getattr(site, "default_sidebar_collapsed", False))},
+            defaults={
+                "sidebar_collapsed": bool(
+                    getattr(site, "default_sidebar_collapsed", False)
+                )
+            },
         )
         if created or not pref.pinned_sidebar_items:
             pref.pinned_sidebar_items = [
@@ -1312,6 +1605,7 @@ def backend_dashboard(request):
             pref.save(update_fields=["pinned_sidebar_items", "updated_at"])
     except DatabaseError:
         pass
+
     def _safe_reverse(name, default="#", kwargs=None):
         try:
             return reverse(name, kwargs=kwargs)
@@ -1326,7 +1620,16 @@ def backend_dashboard(request):
     portal_cfg = feature_control_settings.get("portal_features") or {}
     has_docs = bool(portal_cfg.get("documents"))
 
-    def _item(item_id, label, url_name=None, *, url=None, icon="bi-circle", allow=True, kwargs=None):
+    def _item(
+        item_id,
+        label,
+        url_name=None,
+        *,
+        url=None,
+        icon="bi-circle",
+        allow=True,
+        kwargs=None,
+    ):
         """Build a sidebar/shortcut item, dropping unresolved links."""
         if not allow:
             return None
@@ -1336,8 +1639,19 @@ def backend_dashboard(request):
         return {"id": item_id, "label": label, "url": final_url, "icon": icon}
 
     available_sidebar_items = [
-        _item("backend", "Backend Console", "accounts:backend_dashboard", icon="bi-speedometer2"),
-        _item("workflow", "Workflow Center", "studio_os:workflow_center", icon="bi-diagram-3", allow=bool(action_perms.get("site_settings"))),
+        _item(
+            "backend",
+            "Backend Console",
+            "accounts:backend_dashboard",
+            icon="bi-speedometer2",
+        ),
+        _item(
+            "workflow",
+            "Workflow Center",
+            "studio_os:workflow_center",
+            icon="bi-diagram-3",
+            allow=bool(action_perms.get("site_settings")),
+        ),
         _item("messages", "Messages", "accounts:user_messages", icon="bi-chat-dots"),
         _item(
             "notifications",
@@ -1350,38 +1664,134 @@ def backend_dashboard(request):
             "Message Groups",
             "communication:group_list",
             icon="bi-people",
-            allow=bool(role_upper in {User.Role.TEACHER, User.Role.ADMIN, User.Role.LEADERSHIP, User.Role.IT_ADMIN, User.Role.SUPERADMIN} or request.user.is_staff or request.user.is_superuser),
+            allow=bool(
+                role_upper
+                in {
+                    User.Role.TEACHER,
+                    User.Role.ADMIN,
+                    User.Role.LEADERSHIP,
+                    User.Role.IT_ADMIN,
+                    User.Role.SUPERADMIN,
+                }
+                or request.user.is_staff
+                or request.user.is_superuser
+            ),
         ),
         _item(
             "announcements",
             "Announcements",
             "communication:announcement_create",
             icon="bi-megaphone",
-            allow=bool(role_upper in {User.Role.ADMIN, User.Role.LEADERSHIP, User.Role.IT_ADMIN, User.Role.SUPERADMIN} or request.user.is_staff or request.user.is_superuser),
+            allow=bool(
+                role_upper
+                in {
+                    User.Role.ADMIN,
+                    User.Role.LEADERSHIP,
+                    User.Role.IT_ADMIN,
+                    User.Role.SUPERADMIN,
+                }
+                or request.user.is_staff
+                or request.user.is_superuser
+            ),
         ),
-        _item("reports", "Publish Results", "reports:publish_term_results", icon="bi-award", allow=bool(action_perms.get("people"))),
-        _item("report_builder", "Report Card Builder", "siteconfig:reportcard_builder", icon="bi-file-earmark-richtext", allow=bool(action_perms.get("people"))),
-        _item("report_library", "Outputs", "studio_os:output", icon="bi-journal-text", allow=bool(action_perms.get("people"))),
-        _item("bulk_letters", "Bulk Letters", "siteconfig:bulk_letters", icon="bi-envelope-paper", allow=bool(action_perms.get("people"))),
-        _item("certification", "Certification & Exams", "accounts:certification_home", icon="bi-award", allow=bool(year and getattr(year, "enable_gce_registration", False) if year else False)),
-        _item("finance", "Finance Dashboard", "finance:dashboard", icon="bi-cash-stack", allow=bool(action_perms.get("finance"))),
-        _item("documents", "Document Library", "portal:document_library_manage", icon="bi-file-earmark-text", allow=bool(action_perms.get("site_settings") or admin_like)),
-        _item("signatures", "Signature Requests", "portal:signature_requests_manage", icon="bi-pen", allow=bool(action_perms.get("site_settings") or admin_like)),
-        _item("documents_portal", "Public Documents", "portal:portal_feature", kwargs={"feature": "documents"}, icon="bi-folder-open", allow=has_docs),
-        _item("studio", "Studio", "studio_os:shell", icon="bi-grid-3x3-gap", allow=bool(action_perms.get("site_settings") or admin_like)),
+        _item(
+            "reports",
+            "Publish Results",
+            "reports:publish_term_results",
+            icon="bi-award",
+            allow=bool(action_perms.get("people")),
+        ),
+        _item(
+            "report_builder",
+            "Report Card Builder",
+            "siteconfig:reportcard_builder",
+            icon="bi-file-earmark-richtext",
+            allow=bool(action_perms.get("people")),
+        ),
+        _item(
+            "report_library",
+            "Outputs",
+            "studio_os:output",
+            icon="bi-journal-text",
+            allow=bool(action_perms.get("people")),
+        ),
+        _item(
+            "bulk_letters",
+            "Bulk Letters",
+            "siteconfig:bulk_letters",
+            icon="bi-envelope-paper",
+            allow=bool(action_perms.get("people")),
+        ),
+        _item(
+            "certification",
+            "Certification & Exams",
+            "accounts:certification_home",
+            icon="bi-award",
+            allow=bool(
+                year and getattr(year, "enable_gce_registration", False)
+                if year
+                else False
+            ),
+        ),
+        _item(
+            "finance",
+            "Finance Dashboard",
+            "finance:dashboard",
+            icon="bi-cash-stack",
+            allow=bool(action_perms.get("finance")),
+        ),
+        _item(
+            "documents",
+            "Document Library",
+            "portal:document_library_manage",
+            icon="bi-file-earmark-text",
+            allow=bool(action_perms.get("site_settings") or admin_like),
+        ),
+        _item(
+            "signatures",
+            "Signature Requests",
+            "portal:signature_requests_manage",
+            icon="bi-pen",
+            allow=bool(action_perms.get("site_settings") or admin_like),
+        ),
+        _item(
+            "documents_portal",
+            "Public Documents",
+            "portal:portal_feature",
+            kwargs={"feature": "documents"},
+            icon="bi-folder-open",
+            allow=has_docs,
+        ),
+        _item(
+            "studio",
+            "Studio",
+            "studio_os:shell",
+            icon="bi-grid-3x3-gap",
+            allow=bool(action_perms.get("site_settings") or admin_like),
+        ),
         _item("portal", "Parent Portal", "portal:parent_dashboard", icon="bi-people"),
-        _item("preferences", "Preferences", "siteconfig:user_preferences", icon="bi-sliders"),
+        _item(
+            "preferences",
+            "Preferences",
+            "siteconfig:user_preferences",
+            icon="bi-sliders",
+        ),
         _item("kb", "Help Center", "kb:kb_home", icon="bi-life-preserver"),
         _item(
             "admin",
-            "System config" if getattr(request, "public_host_kind", None) == "manager" else "Admin Panel",
-            "siteconfig:console_domains_hub" if getattr(request, "public_host_kind", None) == "manager" else "admin:index",
+            "System config"
+            if getattr(request, "public_host_kind", None) == "manager"
+            else "Admin Panel",
+            "siteconfig:console_domains_hub"
+            if getattr(request, "public_host_kind", None) == "manager"
+            else "admin:index",
             icon="bi-grid",
             allow=bool(action_perms.get("admin_panel")),
         ),
     ]
     available_sidebar_items = [item for item in available_sidebar_items if item]
     from .sidebar_organizer import organize_sidebar_items, get_sidebar_category_labels
+
     organized_sidebar = organize_sidebar_items(available_sidebar_items, request.user)
     sidebar_categories = get_sidebar_category_labels()
     finance_requests_qs = FinanceNotification.objects.filter(
@@ -1392,10 +1802,13 @@ def backend_dashboard(request):
     try:
         finance_request_link = reverse("requests:dashboard")
     except NoReverseMatch:
-        finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+        finance_request_link = (
+            f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+        )
 
     try:
         from apps.people.views_backend import backend_student_create  # noqa: F401
+
         use_backend_people_ui = True
     except ImportError:
         use_backend_people_ui = False
@@ -1411,70 +1824,109 @@ def backend_dashboard(request):
     at_risk_students = []
     if compliance_profile and finance_status_counts:
         status_labels = dict(Invoice.Status.choices)
-        chart_finance_status_json = json.dumps({
-            "type": "doughnut",
-            "data": {
-                "labels": [status_labels.get(sc["status"], sc["status"]) for sc in finance_status_counts],
-                "datasets": [{
-                    "data": [sc["count"] for sc in finance_status_counts],
-                    "backgroundColor": ["#6c757d", "#0d6efd", "#ffc107", "#198754", "#dc3545", "#adb5bd"][: len(finance_status_counts)],
-                }],
-            },
-        })
+        chart_finance_status_json = json.dumps(
+            {
+                "type": "doughnut",
+                "data": {
+                    "labels": [
+                        status_labels.get(sc["status"], sc["status"])
+                        for sc in finance_status_counts
+                    ],
+                    "datasets": [
+                        {
+                            "data": [sc["count"] for sc in finance_status_counts],
+                            "backgroundColor": [
+                                "#6c757d",
+                                "#0d6efd",
+                                "#ffc107",
+                                "#198754",
+                                "#dc3545",
+                                "#adb5bd",
+                            ][: len(finance_status_counts)],
+                        }
+                    ],
+                },
+            }
+        )
     if finance_trend:
-        chart_finance_trend_json = json.dumps({
-            "type": "line",
-            "data": {
-                "labels": [t["label"] for t in finance_trend],
-                "datasets": [{
-                    "label": "Invoice total",
-                    "data": [float(t.get("total", 0)) for t in finance_trend],
-                    "fill": True,
-                    "borderColor": "#0d6efd",
-                    "backgroundColor": "rgba(13, 110, 253, 0.15)",
-                    "tension": 0.3,
-                }],
-            },
-        })
+        chart_finance_trend_json = json.dumps(
+            {
+                "type": "line",
+                "data": {
+                    "labels": [t["label"] for t in finance_trend],
+                    "datasets": [
+                        {
+                            "label": "Invoice total",
+                            "data": [float(t.get("total", 0)) for t in finance_trend],
+                            "fill": True,
+                            "borderColor": "#0d6efd",
+                            "backgroundColor": "rgba(13, 110, 253, 0.15)",
+                            "tension": 0.3,
+                        }
+                    ],
+                },
+            }
+        )
     if attendance_counts:
         labels = list(attendance_counts.keys())
         counts = list(attendance_counts.values())
-        chart_attendance_donut_json = json.dumps({
-            "type": "doughnut",
-            "data": {
-                "labels": labels,
-                "datasets": [{
-                    "data": counts,
-                    "backgroundColor": ["#198754", "#ffc107", "#dc3545", "#6c757d", "#0d6efd"][: len(labels)],
-                }],
-            },
-        })
+        chart_attendance_donut_json = json.dumps(
+            {
+                "type": "doughnut",
+                "data": {
+                    "labels": labels,
+                    "datasets": [
+                        {
+                            "data": counts,
+                            "backgroundColor": [
+                                "#198754",
+                                "#ffc107",
+                                "#dc3545",
+                                "#6c757d",
+                                "#0d6efd",
+                            ][: len(labels)],
+                        }
+                    ],
+                },
+            }
+        )
     # Dashboard data capping: top N roles by user count (see docs/DASHBOARD_DATA_CAPPING_POLICY.md)
     from apps.dashboard.context import DASHBOARD_CHART_TOP_N
-    roles_qs = AccessRole.objects.prefetch_related("permissions", "users").order_by("code")
+
+    roles_qs = AccessRole.objects.prefetch_related("permissions", "users").order_by(
+        "code"
+    )
     role_user_counts = {r.code: r.users.count() for r in roles_qs}
     if role_user_counts:
-        sorted_roles = sorted(role_user_counts.items(), key=lambda x: -x[1])[:DASHBOARD_CHART_TOP_N]
-        chart_rbac_roles_json = json.dumps({
-            "type": "bar",
-            "data": {
-                "labels": [r[0] for r in sorted_roles],
-                "datasets": [{
-                    "label": "Users",
-                    "data": [r[1] for r in sorted_roles],
-                    "backgroundColor": "rgba(13, 110, 253, 0.8)",
-                    "borderColor": "#0d6efd",
-                    "borderWidth": 1,
-                }],
-            },
-            "options": {"indexAxis": "y"},
-        })
+        sorted_roles = sorted(role_user_counts.items(), key=lambda x: -x[1])[
+            :DASHBOARD_CHART_TOP_N
+        ]
+        chart_rbac_roles_json = json.dumps(
+            {
+                "type": "bar",
+                "data": {
+                    "labels": [r[0] for r in sorted_roles],
+                    "datasets": [
+                        {
+                            "label": "Users",
+                            "data": [r[1] for r in sorted_roles],
+                            "backgroundColor": "rgba(13, 110, 253, 0.8)",
+                            "borderColor": "#0d6efd",
+                            "borderWidth": 1,
+                        }
+                    ],
+                },
+                "options": {"indexAxis": "y"},
+            }
+        )
 
     # Enrollment trend + people lists for streamlined backend layout
     try:
         from django.db.models.functions import TruncMonth
 
-        enrollment_qs = StudentProfile.objects.filter(is_active=True, joined_date__isnull=False)
+        enrollment_qs = StudentProfile.objects.filter(
+            is_active=True, joined_date__isnull=False
+        )
         if year:
             enrollment_qs = enrollment_qs.filter(academic_year=year)
         monthly = list(
@@ -1487,7 +1939,9 @@ def backend_dashboard(request):
         enroll_labels = [row["month"].strftime("%b") for row in monthly]
         enroll_values = [row["total"] for row in monthly]
         if not enroll_labels:
-            enroll_labels = [item["date"].strftime("%a") for item in attendance_trend[-6:]]
+            enroll_labels = [
+                item["date"].strftime("%a") for item in attendance_trend[-6:]
+            ]
             enroll_values = [item["present"] for item in attendance_trend[-6:]]
         if enroll_labels:
             chart_enrollment_trend_json = json.dumps(
@@ -1512,15 +1966,24 @@ def backend_dashboard(request):
         chart_enrollment_trend_json = ""
 
     try:
-        admissions_qs = StudentProfile.objects.select_related("classroom").filter(is_active=True)
+        admissions_qs = StudentProfile.objects.select_related("classroom").filter(
+            is_active=True
+        )
         if year:
             admissions_qs = admissions_qs.filter(academic_year=year)
-        for student in admissions_qs.order_by("-updated_at", "-id")[: backend_layout_max_items_per_list]:
+        for student in admissions_qs.order_by("-updated_at", "-id")[
+            :backend_layout_max_items_per_list
+        ]:
             recent_admissions.append(
                 {
                     "name": student.get_full_name(),
-                    "classroom": getattr(getattr(student, "classroom", None), "name", "") or "Unassigned",
-                    "admission_number": student.admission_number or student.student_code or "--",
+                    "classroom": getattr(
+                        getattr(student, "classroom", None), "name", ""
+                    )
+                    or "Unassigned",
+                    "admission_number": student.admission_number
+                    or student.student_code
+                    or "--",
                 }
             )
     except DatabaseError:
@@ -1555,9 +2018,17 @@ def backend_dashboard(request):
             if not values:
                 continue
             score = round(sum(values) / len(values), 1)
-            full_name = " ".join(
-                part for part in [row.get("student__first_name"), row.get("student__last_name")] if part
-            ).strip() or "Student"
+            full_name = (
+                " ".join(
+                    part
+                    for part in [
+                        row.get("student__first_name"),
+                        row.get("student__last_name"),
+                    ]
+                    if part
+                ).strip()
+                or "Student"
+            )
             score_rows.append(
                 {
                     "student_id": row.get("student_id"),
@@ -1570,14 +2041,18 @@ def backend_dashboard(request):
         score_rows = []
 
     score_rows.sort(key=lambda item: item.get("score", 0), reverse=True)
-    top_performing_students = score_rows[: backend_layout_max_items_per_list]
-    top_score = max((item.get("score", 0) for item in top_performing_students), default=0)
+    top_performing_students = score_rows[:backend_layout_max_items_per_list]
+    top_score = max(
+        (item.get("score", 0) for item in top_performing_students), default=0
+    )
     for item in top_performing_students:
         score_value = float(item.get("score", 0) or 0)
         if top_score <= 0:
             item["ribbon_pct"] = 0
         else:
-            item["ribbon_pct"] = max(8, min(100, int(round((score_value / top_score) * 100))))
+            item["ribbon_pct"] = max(
+                8, min(100, int(round((score_value / top_score) * 100)))
+            )
 
     at_risk_map = {}
     for row in score_rows:
@@ -1609,7 +2084,9 @@ def backend_dashboard(request):
                 continue
             full_name = student.get_full_name() if student else "Student"
             classroom_name = (
-                getattr(getattr(student, "classroom", None), "name", "") if student else ""
+                getattr(getattr(student, "classroom", None), "name", "")
+                if student
+                else ""
             ) or "Unassigned"
             risk_value = "Action required"
             if invoice.due_date:
@@ -1628,7 +2105,7 @@ def backend_dashboard(request):
     except (DatabaseError, OperationalError, TypeError, ValueError):
         pass
 
-    at_risk_students = list(at_risk_map.values())[: backend_layout_max_items_per_list]
+    at_risk_students = list(at_risk_map.values())[:backend_layout_max_items_per_list]
     total_students = max(stats.get("students", 0), 1)
     at_risk_ratio_pct = int(round((len(at_risk_students) / total_students) * 100))
 
@@ -1658,6 +2135,7 @@ def backend_dashboard(request):
     )
 
     from apps.dashboard.action_registry import VALID_DASHBOARD_INTENTS
+
     role_intent_defaults = {
         User.Role.PRINCIPAL: "executive",
         User.Role.VICE_PRINCIPAL: "executive",
@@ -1683,7 +2161,13 @@ def backend_dashboard(request):
         pending_approvals_count = AccessRequest.objects.filter(
             status=AccessRequest.Status.PENDING
         ).count()
-    except (ImportError, AttributeError, DatabaseError, OperationalError, ProgrammingError):
+    except (
+        ImportError,
+        AttributeError,
+        DatabaseError,
+        OperationalError,
+        ProgrammingError,
+    ):
         pending_approvals_count = 0
     recommended_next_steps = get_recommended_next_steps(
         workflow_progress,
@@ -1693,7 +2177,9 @@ def backend_dashboard(request):
             "overdue_invoices": stats.get("overdue_invoices", 0),
             "pending_invites": stats.get("pending_invites", 0),
             "pending_approvals_count": pending_approvals_count,
-            "draft_invoices": finance_summary.get("draft_invoices", 0) if isinstance(finance_summary, dict) else 0,
+            "draft_invoices": finance_summary.get("draft_invoices", 0)
+            if isinstance(finance_summary, dict)
+            else 0,
             "at_risk_students": len(at_risk_students),
         },
         max_steps=4,
@@ -1760,7 +2246,9 @@ def backend_dashboard(request):
         "finance_request_link": finance_request_link,
         "finance_access_banner": finance_access_banner,
         "certification_stats": certification_stats,
-        "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
+        "gce_enabled": year and getattr(year, "enable_gce_registration", False)
+        if year
+        else False,
         "chart_finance_status_json": chart_finance_status_json,
         "chart_finance_trend_json": chart_finance_trend_json,
         "chart_attendance_donut_json": chart_attendance_donut_json,
@@ -1769,9 +2257,19 @@ def backend_dashboard(request):
         "recent_admissions": recent_admissions,
         "top_performing_students": top_performing_students,
         "at_risk_students": at_risk_students,
-        "quick_student_create_url": _safe_reverse("accounts:backend_student_create") if _safe_reverse("accounts:backend_student_create") != "#" else _safe_reverse("admin:people_studentprofile_add"),
-        "quick_teacher_create_url": _safe_reverse("accounts:backend_teacher_create") if _safe_reverse("accounts:backend_teacher_create") != "#" else _safe_reverse("admin:people_teacherprofile_add"),
-        "breadcrumbs": [{"title": "Backend", "url": reverse("accounts:backend_dashboard"), "icon": "bi-speedometer2"}],
+        "quick_student_create_url": _safe_reverse("accounts:backend_student_create")
+        if _safe_reverse("accounts:backend_student_create") != "#"
+        else _safe_reverse("admin:people_studentprofile_add"),
+        "quick_teacher_create_url": _safe_reverse("accounts:backend_teacher_create")
+        if _safe_reverse("accounts:backend_teacher_create") != "#"
+        else _safe_reverse("admin:people_teacherprofile_add"),
+        "breadcrumbs": [
+            {
+                "title": "Backend",
+                "url": reverse("accounts:backend_dashboard"),
+                "icon": "bi-speedometer2",
+            }
+        ],
         "BREADCRUMBS": [
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
             {"label": "Dashboard", "url": "", "active": True},
@@ -1782,13 +2280,24 @@ def backend_dashboard(request):
     try:
         from apps.runtime_blueprints.models import DashboardUserPreference
         from apps.customersuccess.services import get_guided_onboarding_steps
-        pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
+
+        pref, _ = DashboardUserPreference.objects.get_or_create(
+            user=request.user, defaults={"dashboard_layout": {}}
+        )
         layout = pref.dashboard_layout or {}
-        context["first_login_checklist_show"] = not layout.get("first_login_checklist_dismissed")
-        context["first_login_checklist_dismiss_url"] = reverse("accounts:dismiss_first_login_checklist")
-        context["first_login_tour_show"] = not layout.get("tour_backend_dashboard_completed")
+        context["first_login_checklist_show"] = not layout.get(
+            "first_login_checklist_dismissed"
+        )
+        context["first_login_checklist_dismiss_url"] = reverse(
+            "accounts:dismiss_first_login_checklist"
+        )
+        context["first_login_tour_show"] = not layout.get(
+            "tour_backend_dashboard_completed"
+        )
         try:
-            context["tour_steps_api_url"] = reverse("siteconfig:tour_steps_api") + "?context=backend_dashboard"
+            context["tour_steps_api_url"] = (
+                reverse("siteconfig:tour_steps_api") + "?context=backend_dashboard"
+            )
             context["tour_complete_url"] = reverse("accounts:mark_tour_complete")
         except NoReverseMatch:
             context["tour_steps_api_url"] = ""
@@ -1805,16 +2314,25 @@ def backend_dashboard(request):
                         link = _safe("accounts:backend_student_list") or link
                     elif "/backend/" in link:
                         link = _safe("accounts:backend_dashboard") or link
-                    checklist_items.append({"label": _(s.get("label", "")), "url": link})
+                    checklist_items.append(
+                        {"label": _(s.get("label", "")), "url": link}
+                    )
             setup_studio_url = _safe("siteconfig:guided_onboarding") or "#"
             if setup_studio_url != "#":
-                checklist_items.append({"label": _("Setup Studio (all steps)"), "url": setup_studio_url})
+                checklist_items.append(
+                    {"label": _("Setup Studio (all steps)"), "url": setup_studio_url}
+                )
             context["first_login_checklist_items"] = checklist_items
         else:
             context["first_login_checklist_items"] = [
-                {"label": _("Setup Studio"), "url": _safe("siteconfig:guided_onboarding") or "#"},
+                {
+                    "label": _("Setup Studio"),
+                    "url": _safe("siteconfig:guided_onboarding") or "#",
+                },
             ]
-        context["first_login_settings_url"] = _safe("studio_os:shell") or _safe("admin:index") or "#"
+        context["first_login_settings_url"] = (
+            _safe("studio_os:shell") or _safe("admin:index") or "#"
+        )
         context["first_login_sensible_defaults_copy"] = _(
             "We've set up: academic year, terms, default classrooms, and subjects. You can change these in Settings."
         )
@@ -1831,6 +2349,7 @@ def backend_dashboard(request):
         context.update(build_dashboard_extras(request, base=context))
     except ACCOUNTS_SOFT_FAILURES as e:
         import logging
+
         logging.getLogger(__name__).exception("build_dashboard_extras failed: %s", e)
         # Safe defaults so template does not 500; UX plan overview/CTAs/contextual_actions still work when extras succeed
         context.setdefault("primary_ctas", [])
@@ -1838,6 +2357,18 @@ def backend_dashboard(request):
         context.setdefault("contextual_actions", [])
         context.setdefault("kpi_strip_cards", [])
     context["open_webui_url"] = getattr(settings, "OPEN_WEBUI_URL", None) or ""
+    try:
+        from apps.dashboard.services.insight_anomalies import (
+            build_insight_anomaly_cards,
+        )
+
+        context["insight_anomaly_cards"] = build_insight_anomaly_cards(request)
+    except ACCOUNTS_SOFT_FAILURES:
+        context["insight_anomaly_cards"] = []
+    try:
+        context["insight_anomalies_api_url"] = reverse("api:api-insight-anomalies")
+    except NoReverseMatch:
+        context["insight_anomalies_api_url"] = ""
     return render(request, "accounts/backend_dashboard.html", context)
 
 
@@ -1863,8 +2394,18 @@ def backend_dashboard_status_fragment(request):
     pending_requests = 0
     try:
         from apps.requests.models import AccessRequest
-        pending_requests = AccessRequest.objects.filter(status=AccessRequest.Status.PENDING).count()
-    except (AttributeError, DatabaseError, ImportError, OperationalError, TypeError, ValueError):
+
+        pending_requests = AccessRequest.objects.filter(
+            status=AccessRequest.Status.PENDING
+        ).count()
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        OperationalError,
+        TypeError,
+        ValueError,
+    ):
         pass
 
     enable_offline_mode = False
@@ -1875,25 +2416,28 @@ def backend_dashboard_status_fragment(request):
             site.get_offline_runtime_settings()
             if callable(getattr(site, "get_offline_runtime_settings", None))
             else {
-                "enable_offline_mode": bool(
-                    getattr(site, "enable_offline_mode", False)
-                )
+                "enable_offline_mode": bool(getattr(site, "enable_offline_mode", False))
             }
         )
         enable_offline_mode = bool(offline_settings.get("enable_offline_mode", False))
         if enable_offline_mode:
             from apps.siteconfig.cache_utils import tenant_cache_key
-            offline_queue_metrics = cache.get(tenant_cache_key("sms_offline_queue_metrics", request))
+
+            offline_queue_metrics = cache.get(
+                tenant_cache_key("sms_offline_queue_metrics", request)
+            )
     except (AttributeError, DatabaseError, TypeError, ValueError):
         pass
 
     template = loader.get_template("accounts/backend_dashboard_status_fragment.html")
-    html = template.render({
-        "request": request,
-        "pending_requests": pending_requests,
-        "enable_offline_mode": enable_offline_mode,
-        "offline_queue_metrics": offline_queue_metrics,
-    })
+    html = template.render(
+        {
+            "request": request,
+            "pending_requests": pending_requests,
+            "enable_offline_mode": enable_offline_mode,
+            "offline_queue_metrics": offline_queue_metrics,
+        }
+    )
     cache.set(cache_key, html, BACKEND_STATUS_FRAGMENT_CACHE_TTL)
     return HttpResponse(html)
 
@@ -1906,7 +2450,14 @@ def backend_ops_watch_data(request):
     backend_flags = get_effective_flags(request)
 
     if not bool(backend_flags.get("backend_module_ops_watch", True)):
-        return JsonResponse({"success": True, "operations_watch": [], "finance_requests": 0, "updated_at": timezone.localtime().isoformat()})
+        return JsonResponse(
+            {
+                "success": True,
+                "operations_watch": [],
+                "finance_requests": 0,
+                "updated_at": timezone.localtime().isoformat(),
+            }
+        )
 
     try:
         max_items = int(backend_flags.get("backend_layout_max_items_per_list", 5))
@@ -1917,6 +2468,7 @@ def backend_ops_watch_data(request):
     pending_approvals_count = 0
     try:
         from apps.requests.models import AccessRequest
+
         pending_approvals_count = AccessRequest.objects.filter(
             status=AccessRequest.Status.PENDING
         ).count()
@@ -1927,7 +2479,9 @@ def backend_ops_watch_data(request):
         "pending_referrals": ReferralReward.objects.filter(
             status=ReferralReward.Status.PENDING
         ).count(),
-        "overdue_invoices": Invoice.objects.filter(status=Invoice.Status.OVERDUE).count(),
+        "overdue_invoices": Invoice.objects.filter(
+            status=Invoice.Status.OVERDUE
+        ).count(),
     }
     finance_requests_count = FinanceNotification.objects.filter(
         recipient=request.user,
@@ -1958,10 +2512,12 @@ def backend_ops_watch_data(request):
 
 class PasswordChangeView(DjangoPasswordChangeView):
     """Clear requires_password_change after successful change (Security Powerhouse)."""
+
     success_url = reverse_lazy("accounts:password_change_done")
 
     def form_valid(self, form):
         from apps.accounts.models import User
+
         User.objects.filter(pk=form.user.pk).update(requires_password_change=False)
         return super().form_valid(form)
 
@@ -1969,7 +2525,10 @@ class PasswordChangeView(DjangoPasswordChangeView):
         next_url = self.request.session.pop("password_change_next", None)
         if next_url:
             from django.utils.http import url_has_allowed_host_and_scheme
-            if url_has_allowed_host_and_scheme(next_url, allowed_hosts={self.request.get_host()}):
+
+            if url_has_allowed_host_and_scheme(
+                next_url, allowed_hosts={self.request.get_host()}
+            ):
                 return next_url
         return str(self.success_url)
 
@@ -1986,13 +2545,17 @@ def _get_login_page_language(request):
     if school:
         try:
             from apps.siteconfig.tenant_config import get_tenant_locale
+
             locale = get_tenant_locale(request=request, school=school)
-            lang = (locale.get("default_language") or locale.get("locale") or "").strip() or None
+            lang = (
+                locale.get("default_language") or locale.get("locale") or ""
+            ).strip() or None
         except ACCOUNTS_SOFT_FAILURES:
             lang = None
         if not lang and school:
             try:
                 from apps.policies.policy_registry import get_effective_policy
+
                 policy = get_effective_policy(school)
                 lang = (policy.get("default_language") or "").strip() or None
             except ACCOUNTS_SOFT_FAILURES:
@@ -2003,7 +2566,10 @@ def _get_login_page_language(request):
         return None
     lang = lang.split("-")[0].lower()
     from django.conf import settings as django_settings
-    supported = [c for c, _ in getattr(django_settings, "LANGUAGES", [("en", "English")])]
+
+    supported = [
+        c for c, _ in getattr(django_settings, "LANGUAGES", [("en", "English")])
+    ]
     if not supported:
         supported = ["en", "fr"]
     return lang if lang in supported else (supported[0] if supported else "en")
@@ -2039,9 +2605,12 @@ def _get_login_sso_integrations(request):
                 url = reverse("accounts:saml_start", args=[ref])
             else:
                 url = reverse("accounts:oidc_start", args=[ref])
-            label = config.get("display_name") or SSO_LABEL_MAP.get(
-                (integration.service_name or "").lower()
-            ) or integration.service_name or "Single Sign-On"
+            label = (
+                config.get("display_name")
+                or SSO_LABEL_MAP.get((integration.service_name or "").lower())
+                or integration.service_name
+                or "Single Sign-On"
+            )
             out.append({"url": url, "label": label})
         return out
     except ACCOUNTS_SOFT_FAILURES:
@@ -2057,7 +2626,7 @@ def auth_root_redirect(request):
     return redirect(target)
 
 
-@ratelimit(key='ip', rate='5/m', method='POST', block=True)
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 def login_view(request):
     # Optional: set login page language from tenant or Accept-Language (this request only).
     login_lang = _get_login_page_language(request)
@@ -2066,14 +2635,19 @@ def login_view(request):
 
     if request.method == "POST":
         # Store role intent for post-login redirect (Student / Staff / Parent).
-        role_param = (request.POST.get("role") or request.GET.get("role") or "").strip().lower()
+        role_param = (
+            (request.POST.get("role") or request.GET.get("role") or "").strip().lower()
+        )
         if role_param in ("student", "staff", "parent"):
             request.session[LOGIN_INTENT_ROLE_KEY] = role_param
 
         next_url = request.POST.get("next") or request.GET.get("next", "").strip()
         if next_url:
             from django.utils.http import url_has_allowed_host_and_scheme
-            if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+
+            if not url_has_allowed_host_and_scheme(
+                next_url, allowed_hosts={request.get_host()}
+            ):
                 next_url = ""
 
         user = authenticate(
@@ -2088,15 +2662,32 @@ def login_view(request):
             school = getattr(request, "school", None)
             if school:
                 from apps.schools.models import SchoolMembership
-                if not SchoolMembership.objects.filter(user=user, school=school).exists():
+
+                if not SchoolMembership.objects.filter(
+                    user=user, school=school
+                ).exists():
                     request.session.pop("school_id", None)
-                    if not getattr(user, "is_superuser", False) and (getattr(user, "role", "") or "").upper() != "SUPERADMIN":
-                        messages.warning(request, "You do not have access to this school.")
+                    if (
+                        not getattr(user, "is_superuser", False)
+                        and (getattr(user, "role", "") or "").upper() != "SUPERADMIN"
+                    ):
+                        messages.warning(
+                            request, "You do not have access to this school."
+                        )
                         return redirect(reverse("accounts:school_picker"))
             else:
                 from apps.schools.models import SchoolMembership
-                primary = SchoolMembership.objects.filter(user=user, is_primary=True).select_related("school").first()
-                first_m = SchoolMembership.objects.filter(user=user).select_related("school").first()
+
+                primary = (
+                    SchoolMembership.objects.filter(user=user, is_primary=True)
+                    .select_related("school")
+                    .first()
+                )
+                first_m = (
+                    SchoolMembership.objects.filter(user=user)
+                    .select_related("school")
+                    .first()
+                )
                 if primary:
                     request.session["school_id"] = str(primary.school_id)
                 elif first_m:
@@ -2106,6 +2697,7 @@ def login_view(request):
             try:
                 from apps.accounts.security_audit import log_security_event
                 from apps.accounts.models import SecurityAuditLog
+
                 log_security_event(
                     user,
                     SecurityAuditLog.EventType.LOGIN,
@@ -2122,7 +2714,10 @@ def login_view(request):
                 password_change_url = reverse("accounts:password_change")
                 if next_url:
                     from django.utils.http import url_has_allowed_host_and_scheme
-                    if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+
+                    if url_has_allowed_host_and_scheme(
+                        next_url, allowed_hosts={request.get_host()}
+                    ):
                         request.session["password_change_next"] = next_url
                 messages.warning(request, "You must set a new password to continue.")
                 return redirect(password_change_url)
@@ -2153,7 +2748,9 @@ def login_view(request):
                 except TypeError:
                     has_device = user_has_device(user)
                 if not has_device:
-                    has_device = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
+                    has_device = TOTPDevice.objects.filter(
+                        user=user, confirmed=True
+                    ).exists()
 
                 def _mfa_remembered():
                     until_raw = request.session.get("mfa_verified_until")
@@ -2162,7 +2759,9 @@ def login_view(request):
                     try:
                         until_dt = timezone.datetime.fromisoformat(until_raw)
                         if timezone.is_naive(until_dt):
-                            until_dt = timezone.make_aware(until_dt, timezone.get_current_timezone())
+                            until_dt = timezone.make_aware(
+                                until_dt, timezone.get_current_timezone()
+                            )
                         if timezone.now() <= until_dt:
                             return True
                     except (TypeError, ValueError):
@@ -2187,14 +2786,30 @@ def login_view(request):
             if not getattr(request, "school", None):
                 try:
                     from apps.schools.models import SchoolMembership
-                    from apps.schools.tenant_url import is_base_domain, build_tenant_backend_url
+                    from apps.schools.tenant_url import (
+                        is_base_domain,
+                        build_tenant_backend_url,
+                    )
+
                     if is_base_domain(request):
-                        m = SchoolMembership.objects.filter(user=user).select_related("school").order_by("-is_primary").first()
+                        m = (
+                            SchoolMembership.objects.filter(user=user)
+                            .select_related("school")
+                            .order_by("-is_primary")
+                            .first()
+                        )
                         if m and m.school:
                             if next_url:
-                                from django.utils.http import url_has_allowed_host_and_scheme
-                                if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
-                                    target = build_tenant_backend_url(request, m.school, path=next_url)
+                                from django.utils.http import (
+                                    url_has_allowed_host_and_scheme,
+                                )
+
+                                if url_has_allowed_host_and_scheme(
+                                    next_url, allowed_hosts={request.get_host()}
+                                ):
+                                    target = build_tenant_backend_url(
+                                        request, m.school, path=next_url
+                                    )
                                 else:
                                     target = build_tenant_backend_url(request, m.school)
                             else:
@@ -2215,19 +2830,26 @@ def login_view(request):
     if getattr(request, "public_host_kind", None) == "manager":
         try:
             from apps.schools.tenant_url import build_public_absolute_url
+
             context["public_site_url"] = build_public_absolute_url(request, "/")
         except ACCOUNTS_SOFT_FAILURES:
             context["public_site_url"] = "https://runmycampus.com"
     else:
         context["public_site_url"] = None
-    template = "auth/manager_login.html" if getattr(request, "public_host_kind", None) == "manager" else "auth/login.html"
+    template = (
+        "auth/manager_login.html"
+        if getattr(request, "public_host_kind", None) == "manager"
+        else "auth/login.html"
+    )
     return render(request, template, context)
+
 
 def logout_view(request):
     if request.user.is_authenticated:
         try:
             from apps.accounts.security_audit import log_security_event
             from apps.accounts.models import SecurityAuditLog
+
             log_security_event(
                 request.user,
                 SecurityAuditLog.EventType.LOGOUT,
@@ -2243,15 +2865,27 @@ def logout_view(request):
 def school_picker(request):
     """Let user pick which school to use when they have multiple or no access on current host."""
     from apps.schools.models import SchoolMembership
-    memberships = SchoolMembership.objects.filter(user=request.user).select_related("school").order_by("-is_primary", "school__name")
+
+    memberships = (
+        SchoolMembership.objects.filter(user=request.user)
+        .select_related("school")
+        .order_by("-is_primary", "school__name")
+    )
     if request.method == "POST":
         school_id = (request.POST.get("school_id") or "").strip()
         for m in memberships:
             if str(m.school_id) == school_id:
                 request.session["school_id"] = school_id
-                next_url = request.POST.get("next") or request.GET.get("next") or reverse("accounts:redirect")
+                next_url = (
+                    request.POST.get("next")
+                    or request.GET.get("next")
+                    or reverse("accounts:redirect")
+                )
                 from django.utils.http import url_has_allowed_host_and_scheme
-                if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+
+                if url_has_allowed_host_and_scheme(
+                    next_url, allowed_hosts={request.get_host()}
+                ):
                     return redirect(next_url)
                 return redirect("accounts:redirect")
         messages.warning(request, "Invalid school.")
@@ -2266,7 +2900,9 @@ def claim_invite(request):
     from apps.portal.services import link_guardian_via_invite
 
     if not getattr(request, "school", None):
-        messages.info(request, "Claim invite is available only inside a school workspace.")
+        messages.info(
+            request, "Claim invite is available only inside a school workspace."
+        )
         return redirect("global_login_discovery")
 
     if request.user.is_authenticated:
@@ -2280,7 +2916,7 @@ def claim_invite(request):
         login(request, user)
         messages.success(
             request,
-            f"Welcome! You are now linked to {invite.student} and can view reports/finance."
+            f"Welcome! You are now linked to {invite.student} and can view reports/finance.",
         )
         return redirect("portal:parent_dashboard")
 
@@ -2290,10 +2926,16 @@ def claim_invite(request):
 # Phase E (optional): School-facing Request Waiver — form and view
 class RequestWaiverForm(forms.Form):
     """Reason and optional proof file for a subscription waiver request."""
+
     reason = forms.CharField(
         required=True,
         max_length=2000,
-        widget=forms.Textarea(attrs={"rows": 4, "placeholder": "e.g. NGO / non-profit partnership, pilot program"}),
+        widget=forms.Textarea(
+            attrs={
+                "rows": 4,
+                "placeholder": "e.g. NGO / non-profit partnership, pilot program",
+            }
+        ),
         label="Reason for waiver",
     )
     proof_file = forms.FileField(required=False, label="Proof document (optional)")
@@ -2309,6 +2951,7 @@ def request_waiver(request):
     Super Admin approves/denies in Django admin (WaiverRequest).
     """
     from apps.siteconfig.models import WaiverRequest as WaiverRequestModel
+
     school = getattr(request, "school", None)
     if not school:
         messages.warning(request, "Select a school first.")

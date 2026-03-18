@@ -15,12 +15,28 @@ class Command(BaseCommand):
     help = "Import bank statements (CSV/MT940), create entries, and queue unmatched deposits in suspense."
 
     def add_arguments(self, parser):
-        parser.add_argument("--upload-id", type=int, help="Process an existing BankStatementUpload by id.")
-        parser.add_argument("--account-id", type=int, help="BankAccount id (required when creating upload).")
-        parser.add_argument("--file", type=str, help="Statement file path (.csv or .mt940).")
-        parser.add_argument("--start", type=str, help="Statement period start date (YYYY-MM-DD).")
-        parser.add_argument("--end", type=str, help="Statement period end date (YYYY-MM-DD).")
-        parser.add_argument("--username", type=str, help="User who uploaded/imported the statement.")
+        parser.add_argument(
+            "--upload-id",
+            type=int,
+            help="Process an existing BankStatementUpload by id.",
+        )
+        parser.add_argument(
+            "--account-id",
+            type=int,
+            help="BankAccount id (required when creating upload).",
+        )
+        parser.add_argument(
+            "--file", type=str, help="Statement file path (.csv or .mt940)."
+        )
+        parser.add_argument(
+            "--start", type=str, help="Statement period start date (YYYY-MM-DD)."
+        )
+        parser.add_argument(
+            "--end", type=str, help="Statement period end date (YYYY-MM-DD)."
+        )
+        parser.add_argument(
+            "--username", type=str, help="User who uploaded/imported the statement."
+        )
 
     def handle(self, *args, **options):
         service = BankStatementImportService()
@@ -41,7 +57,9 @@ class Command(BaseCommand):
         username = options.get("username")
 
         if not account_id or not file_path or not start or not end:
-            raise CommandError("For new imports use --account-id, --file, --start, and --end.")
+            raise CommandError(
+                "For new imports use --account-id, --file, --start, and --end."
+            )
 
         account = BankAccount.objects.filter(pk=account_id).first()
         if not account:
@@ -50,7 +68,9 @@ class Command(BaseCommand):
         start_date = parse_date(start)
         end_date = parse_date(end)
         if not start_date or not end_date:
-            raise CommandError("Invalid period dates. Use YYYY-MM-DD for --start and --end.")
+            raise CommandError(
+                "Invalid period dates. Use YYYY-MM-DD for --start and --end."
+            )
         if end_date < start_date:
             raise CommandError("--end must be greater than or equal to --start.")
 
@@ -78,7 +98,11 @@ class Command(BaseCommand):
         self._print_summary(upload, summary)
 
     def _print_summary(self, upload: BankStatementUpload, summary: dict) -> None:
-        self.stdout.write(self.style.SUCCESS(f"Upload {upload.id} processed with status {summary['status']}."))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Upload {upload.id} processed with status {summary['status']}."
+            )
+        )
         self.stdout.write(f"Entries created: {summary['entries_created']}")
         self.stdout.write(f"Suspense created: {summary['suspense_created']}")
         if summary["errors"]:

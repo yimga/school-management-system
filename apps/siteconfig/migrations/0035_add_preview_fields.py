@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0034_add_status_colors'),
+        ("siteconfig", "0034_add_status_colors"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='preview_mode_enabled',
+            model_name="sitesettings",
+            name="preview_mode_enabled",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='preview_note',
-            field=models.CharField(blank=True, default='', max_length=255),
+            model_name="sitesettings",
+            name="preview_note",
+            field=models.CharField(blank=True, default="", max_length=255),
         ),
     ]

@@ -54,7 +54,9 @@ class Command(BaseCommand):
                 violations.append(f"{file_path}:{line} hardcoded color {value}")
             for match in FORBIDDEN_LABEL_RE.finditer(text):
                 line = text.count("\n", 0, match.start()) + 1
-                violations.append(f"{file_path}:{line} hardcoded label {match.group(1)}")
+                violations.append(
+                    f"{file_path}:{line} hardcoded label {match.group(1)}"
+                )
 
         if violations:
             self.stdout.write(self.style.ERROR("Branding Law violations found:"))

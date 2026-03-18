@@ -25,7 +25,13 @@ def _offline_runtime_settings(request) -> dict:
 
 
 # Paths allowed for batch replay (prefixes). Restrict to avoid abuse.
-ALLOWED_PATH_PREFIXES = ("/api/attendance/", "/api/entities/", "/api/entity/", "/api/finance/", "/api/requests/")
+ALLOWED_PATH_PREFIXES = (
+    "/api/attendance/",
+    "/api/entities/",
+    "/api/entity/",
+    "/api/finance/",
+    "/api/requests/",
+)
 
 
 def _allowed_path(path: str) -> bool:
@@ -40,6 +46,7 @@ class OfflineReplayBatchAPI(APIView):
     POST body: { "items": [ { "id": 1, "method": "PATCH", "path": "/api/finance/invoices/1/", "body": {...} } ] }
     Returns: { "results": [...], "removed_ids": [...], "failed_count": N, "failed_items": [ { "url": path, "status": 409, "message": "..." } ] }
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -52,9 +59,14 @@ class OfflineReplayBatchAPI(APIView):
 
         items = request.data.get("items") or []
         if not isinstance(items, list):
-            return Response({"error": "items must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "items must be a list"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if len(items) > 100:
-            return Response({"error": "Maximum 100 items per batch"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Maximum 100 items per batch"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         results = []
         removed_ids = []
@@ -71,15 +83,27 @@ class OfflineReplayBatchAPI(APIView):
             if not path.startswith("/"):
                 path = "/" + path
             if not _allowed_path(path):
-                results.append({"index": idx, "status": 403, "data": {"error": "path not allowed for batch replay"}})
+                results.append(
+                    {
+                        "index": idx,
+                        "status": 403,
+                        "data": {"error": "path not allowed for batch replay"},
+                    }
+                )
                 if item_id is not None:
-                    failed_items.append({"url": path, "status": 403, "message": "path not allowed"})
+                    failed_items.append(
+                        {"url": path, "status": 403, "message": "path not allowed"}
+                    )
                 continue
 
             if method not in ("GET", "POST", "PUT", "PATCH", "DELETE"):
-                results.append({"index": idx, "status": 400, "data": {"error": "invalid method"}})
+                results.append(
+                    {"index": idx, "status": 400, "data": {"error": "invalid method"}}
+                )
                 if item_id is not None:
-                    failed_items.append({"url": path, "status": 400, "message": "invalid method"})
+                    failed_items.append(
+                        {"url": path, "status": 400, "message": "invalid method"}
+                    )
                 continue
 
             content = None
@@ -100,26 +124,41 @@ class OfflineReplayBatchAPI(APIView):
                 continue
 
             try:
-                resp_data = resp.json() if resp.get("Content-Type", "").startswith("application/json") else {"_raw": resp.content.decode("utf-8", errors="replace")[:500]}
+                resp_data = (
+                    resp.json()
+                    if resp.get("Content-Type", "").startswith("application/json")
+                    else {"_raw": resp.content.decode("utf-8", errors="replace")[:500]}
+                )
             except (AttributeError, TypeError, ValueError, JSONDecodeError):
                 resp_data = {"_status": resp.status_code}
 
-            results.append({"index": idx, "status": resp.status_code, "data": resp_data})
+            results.append(
+                {"index": idx, "status": resp.status_code, "data": resp_data}
+            )
 
             if 200 <= resp.status_code < 300 and item_id is not None:
                 removed_ids.append(item_id)
             elif resp.status_code >= 400 and item_id is not None:
-                msg = (resp_data.get("error") or resp_data.get("message") or resp_data.get("detail") or f"HTTP {resp.status_code}")
+                msg = (
+                    resp_data.get("error")
+                    or resp_data.get("message")
+                    or resp_data.get("detail")
+                    or f"HTTP {resp.status_code}"
+                )
                 if isinstance(msg, list):
                     msg = " ".join(str(m) for m in msg)
-                failed_items.append({"url": path, "status": resp.status_code, "message": str(msg)})
+                failed_items.append(
+                    {"url": path, "status": resp.status_code, "message": str(msg)}
+                )
 
-        return Response({
-            "results": results,
-            "removed_ids": removed_ids,
-            "failed_count": len(failed_items),
-            "failed_items": failed_items,
-        })
+        return Response(
+            {
+                "results": results,
+                "removed_ids": removed_ids,
+                "failed_count": len(failed_items),
+                "failed_items": failed_items,
+            }
+        )
 
 
 class PrefetchUrlsAPI(APIView):
@@ -127,6 +166,7 @@ class PrefetchUrlsAPI(APIView):
     GET: Returns a list of URLs the client should prefetch for offline (Auto-Pilot).
     Role-based: teacher gets dashboard/teacher, entities/students, attendance; etc.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -146,7 +186,16 @@ class PrefetchUrlsAPI(APIView):
                 base + "/portal/teacher/timetable/",
                 base + "/portal/teacher/lesson-notes/",
             ]
-        elif role in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN", "CENSOR", "BURSAR"):
+        elif role in (
+            "ADMIN",
+            "LEADERSHIP",
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "DEAN",
+            "IT_ADMIN",
+            "CENSOR",
+            "BURSAR",
+        ):
             urls = [
                 base + "/api/dashboard/admin/",
                 base + "/api/entities/students/",
@@ -168,6 +217,7 @@ class QueueMetricsAPI(APIView):
     GET: Returns last reported queue metrics (total, by_type) from clients.
     POST: Accepts { "total": N, "by_type": { "attendance": n, "grade": n, "api": n } } and stores for admin/analytics.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -192,7 +242,11 @@ class QueueMetricsAPI(APIView):
             by_type = {}
         payload = {
             "total": int(total) if total is not None else 0,
-            "by_type": {k: int(v) for k, v in (by_type or {}).items() if isinstance(v, (int, float))},
+            "by_type": {
+                k: int(v)
+                for k, v in (by_type or {}).items()
+                if isinstance(v, (int, float))
+            },
         }
         key = tenant_cache_key(QUEUE_METRICS_CACHE_KEY, request)
         cache.set(key, payload, QUEUE_METRICS_CACHE_TIMEOUT)

@@ -12,7 +12,9 @@ class ComplianceGuardMiddlewareTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.middleware = ComplianceGuardMiddleware(lambda request: None)
-        self.region = RegionConfig.objects.create(code="CGR", name="Compliance Guard Region")
+        self.region = RegionConfig.objects.create(
+            code="CGR", name="Compliance Guard Region"
+        )
         self.school = School.objects.create(
             name="Compliance Guard School",
             slug="compliance-guard-school",

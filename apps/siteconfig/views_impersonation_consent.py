@@ -2,6 +2,7 @@
 JIT (Just-In-Time): Principal/school admin consent for RunMyCampus support impersonation.
 Plan: principal consent before impersonation (195-country governance).
 """
+
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
@@ -23,8 +24,18 @@ def grant_impersonation_consent(request):
         return JsonResponse({"ok": False, "error": _("No school context")}, status=400)
     school.impersonation_consent_granted_at = timezone.now()
     school.impersonation_consent_granted_by_id = request.user.id
-    school.save(update_fields=["impersonation_consent_granted_at", "impersonation_consent_granted_by_id"])
-    return JsonResponse({"ok": True, "message": _("Consent granted. Support may impersonate until expiry.")})
+    school.save(
+        update_fields=[
+            "impersonation_consent_granted_at",
+            "impersonation_consent_granted_by_id",
+        ]
+    )
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": _("Consent granted. Support may impersonate until expiry."),
+        }
+    )
 
 
 @login_required
@@ -38,5 +49,10 @@ def revoke_impersonation_consent(request):
         return JsonResponse({"ok": False, "error": _("No school context")}, status=400)
     school.impersonation_consent_granted_at = None
     school.impersonation_consent_granted_by_id = None
-    school.save(update_fields=["impersonation_consent_granted_at", "impersonation_consent_granted_by_id"])
+    school.save(
+        update_fields=[
+            "impersonation_consent_granted_at",
+            "impersonation_consent_granted_by_id",
+        ]
+    )
     return JsonResponse({"ok": True, "message": _("Consent revoked.")})

@@ -10,7 +10,10 @@ class TenantContextMiddlewareTests(SimpleTestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-    @patch("apps.siteconfig.tenant_config.get_tenant_locale", return_value={"timezone": "Africa/Lagos"})
+    @patch(
+        "apps.siteconfig.tenant_config.get_tenant_locale",
+        return_value={"timezone": "Africa/Lagos"},
+    )
     def test_rls_school_uses_live_school_json_fields(self, _mock_locale):
         school = SimpleNamespace(
             id="school-1",
@@ -28,7 +31,10 @@ class TenantContextMiddlewareTests(SimpleTestCase):
         self.assertEqual(context.policy_overrides, {"grading_logic": "competency"})
         self.assertEqual(context.timezone, "Africa/Lagos")
 
-    @patch("apps.siteconfig.tenant_config.get_tenant_locale", return_value={"default_timezone": "Africa/Douala"})
+    @patch(
+        "apps.siteconfig.tenant_config.get_tenant_locale",
+        return_value={"default_timezone": "Africa/Douala"},
+    )
     def test_schema_tenant_falls_back_to_legacy_json_aliases(self, _mock_locale):
         school = SimpleNamespace(
             id="school-2",

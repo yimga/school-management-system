@@ -2,13 +2,20 @@
 Phase F: Design Studio — hydrate DesignTemplate layout with context and render to PDF.
 One document type (e.g. certificate) first; extend to report_card and others.
 """
+
 import logging
 
 from django.template import Context, Template
 from django.http import HttpResponse
 
 logger = logging.getLogger(__name__)
-OPTIONAL_DESIGN_STUDIO_ERRORS = (AttributeError, OSError, RuntimeError, TypeError, ValueError)
+OPTIONAL_DESIGN_STUDIO_ERRORS = (
+    AttributeError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def render_template_to_html(template, context: dict) -> str:
@@ -27,7 +34,9 @@ def render_template_to_html(template, context: dict) -> str:
     return t.render(ctx)
 
 
-def render_template_to_pdf(template, context: dict, base_url: str | None = None) -> bytes | None:
+def render_template_to_pdf(
+    template, context: dict, base_url: str | None = None
+) -> bytes | None:
     """
     Render DesignTemplate to PDF using WeasyPrint when available.
     Returns PDF bytes or None if WeasyPrint is not installed or render fails.
@@ -35,13 +44,23 @@ def render_template_to_pdf(template, context: dict, base_url: str | None = None)
     html = render_template_to_html(template, context)
     try:
         from weasyprint import HTML
+
         return HTML(string=html, base_url=base_url or "/").write_pdf()
-    except (ImportError, AttributeError, OSError, RuntimeError, TypeError, ValueError) as e:
+    except (
+        ImportError,
+        AttributeError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         logger.warning("Design Studio PDF render failed: %s", e)
         return None
 
 
-def design_template_http_response_pdf(template, context: dict, filename: str = "document.pdf") -> HttpResponse:
+def design_template_http_response_pdf(
+    template, context: dict, filename: str = "document.pdf"
+) -> HttpResponse:
     """Return an HttpResponse with PDF content for download/preview."""
     pdf_bytes = render_template_to_pdf(template, context)
     if pdf_bytes is None:

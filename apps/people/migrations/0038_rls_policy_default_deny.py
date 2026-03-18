@@ -57,4 +57,6 @@ def reverse_default_deny_policy(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [("people", "0037_audit_triggers_tenant_schema")]
-    operations = [migrations.RunPython(apply_default_deny_policy, reverse_default_deny_policy)]
+    operations = [
+        migrations.RunPython(apply_default_deny_policy, reverse_default_deny_policy)
+    ]

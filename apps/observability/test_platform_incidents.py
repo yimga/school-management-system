@@ -48,7 +48,9 @@ class PlatformIncidentConsoleTests(TestCase):
     @override_settings(ROOT_URLCONF="config.manager_urls")
     def test_manager_console_renders_platform_incident(self):
         self.client.force_login(self.admin_user)
-        response = self.client.get("/ops/incidents/", HTTP_HOST="manager.runmycampus.com")
+        response = self.client.get(
+            "/ops/incidents/", HTTP_HOST="manager.runmycampus.com"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Platform incident console")
         self.assertContains(response, self.incident.title)
@@ -56,12 +58,16 @@ class PlatformIncidentConsoleTests(TestCase):
     def test_api_returns_incidents_and_allows_status_transition(self):
         self.client.force_login(self.admin_user)
 
-        response = self.client.get("/api/observability/incidents/", HTTP_HOST="manager.runmycampus.com")
+        response = self.client.get(
+            "/api/observability/incidents/", HTTP_HOST="manager.runmycampus.com"
+        )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["status"], "success")
         self.assertEqual(len(payload["incidents"]), 1)
-        self.assertEqual(payload["incidents"][0]["status"], PlatformIncident.Status.OPEN)
+        self.assertEqual(
+            payload["incidents"][0]["status"], PlatformIncident.Status.OPEN
+        )
 
         response = self.client.post(
             f"/api/observability/incidents/{self.incident.id}/status/",
@@ -75,5 +81,7 @@ class PlatformIncidentConsoleTests(TestCase):
         self.assertEqual(self.incident.acknowledged_by, self.admin_user)
 
     def test_api_requires_observability_auth(self):
-        response = self.client.get("/api/observability/incidents/", HTTP_HOST="manager.runmycampus.com")
+        response = self.client.get(
+            "/api/observability/incidents/", HTTP_HOST="manager.runmycampus.com"
+        )
         self.assertEqual(response.status_code, 403)

@@ -2,6 +2,7 @@
 Section 10: Platform-wide configurability by module — policy consumers.
 Use these helpers so Finance, Attendance, Communication, HR, Compliance are driven by policy only.
 """
+
 from __future__ import annotations
 
 from typing import Any

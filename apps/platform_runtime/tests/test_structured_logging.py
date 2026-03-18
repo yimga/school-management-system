@@ -4,6 +4,7 @@ Tests for platform_runtime.structured_logging (§2.4 exception discipline).
 Verifies log_exception_with_context, request_context_for_log, and log_view_exception
 attach tenant/actor/route context correctly for audit. No DB required.
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch

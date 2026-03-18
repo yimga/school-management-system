@@ -6,25 +6,75 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0019_photo_upload_token'),
+        ("portal", "0019_photo_upload_token"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='LessonPlanAttachment',
+            name="LessonPlanAttachment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('file', models.FileField(upload_to='portal/lesson_notes/resources/%Y/%m/', validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.odt', '.ods'], allowed_types=['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet'], message='Only document files (PDF, Word, Excel, or LibreOffice ODT/ODS) are allowed.'), apps.accounts.validators.FileSizeValidator(max_size_mb=10)])),
-                ('label', models.CharField(blank=True, help_text='Optional short label (e.g. Worksheet, Slides)', max_length=120)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('lesson_plan', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attachments', to='portal.lessonplan')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "file",
+                    models.FileField(
+                        upload_to="portal/lesson_notes/resources/%Y/%m/",
+                        validators=[
+                            apps.accounts.validators.FileTypeValidator(
+                                allowed_extensions=[
+                                    ".pdf",
+                                    ".doc",
+                                    ".docx",
+                                    ".xls",
+                                    ".xlsx",
+                                    ".odt",
+                                    ".ods",
+                                ],
+                                allowed_types=[
+                                    "application/pdf",
+                                    "application/msword",
+                                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                    "application/vnd.ms-excel",
+                                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                    "application/vnd.oasis.opendocument.text",
+                                    "application/vnd.oasis.opendocument.spreadsheet",
+                                ],
+                                message="Only document files (PDF, Word, Excel, or LibreOffice ODT/ODS) are allowed.",
+                            ),
+                            apps.accounts.validators.FileSizeValidator(max_size_mb=10),
+                        ],
+                    ),
+                ),
+                (
+                    "label",
+                    models.CharField(
+                        blank=True,
+                        help_text="Optional short label (e.g. Worksheet, Slides)",
+                        max_length=120,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "lesson_plan",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="attachments",
+                        to="portal.lessonplan",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Lesson plan attachment',
-                'verbose_name_plural': 'Lesson plan attachments',
-                'ordering': ['created_at'],
+                "verbose_name": "Lesson plan attachment",
+                "verbose_name_plural": "Lesson plan attachments",
+                "ordering": ["created_at"],
             },
         ),
     ]

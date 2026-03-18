@@ -3,6 +3,7 @@ CI gate: no SiteSettings.get_solo() in tenant-facing code.
 Runs scripts/lint_tenant_settings.py --check-get-solo-only and fails if any hits.
 Uses unittest so it can run without Django (e.g. pytest from repo root).
 """
+
 import subprocess
 import sys
 import unittest
@@ -38,7 +39,13 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_tenant_settings.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--check-school-settings-features", "--base", str(root)],
+            [
+                sys.executable,
+                str(script),
+                "--check-school-settings-features",
+                "--base",
+                str(root),
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,

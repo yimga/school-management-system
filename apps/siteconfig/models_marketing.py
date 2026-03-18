@@ -20,9 +20,21 @@ class ProductFeedback(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    region = models.CharField(max_length=32, blank=True, db_index=True, help_text="e.g. country code or regional cluster.")
-    module = models.CharField(max_length=64, blank=True, db_index=True, help_text="e.g. admissions, finance, portal.")
-    status = models.CharField(max_length=24, choices=Status.choices, default=Status.SUBMITTED, db_index=True)
+    region = models.CharField(
+        max_length=32,
+        blank=True,
+        db_index=True,
+        help_text="e.g. country code or regional cluster.",
+    )
+    module = models.CharField(
+        max_length=64,
+        blank=True,
+        db_index=True,
+        help_text="e.g. admissions, finance, portal.",
+    )
+    status = models.CharField(
+        max_length=24, choices=Status.choices, default=Status.SUBMITTED, db_index=True
+    )
     upvotes = models.PositiveIntegerField(default=0)
     submitted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -50,7 +62,9 @@ class MarketingContent(models.Model):
     without deploy. Use for hero copy, footer, or any marketing snippet; locale optional.
     """
 
-    key = models.CharField(max_length=120, db_index=True, help_text="e.g. hero_subheadline, blog_intro")
+    key = models.CharField(
+        max_length=120, db_index=True, help_text="e.g. hero_subheadline, blog_intro"
+    )
     content_html = models.TextField(blank=True)
     locale = models.CharField(max_length=10, blank=True, default="", db_index=True)
     content_type = models.CharField(max_length=32, blank=True, default="html")

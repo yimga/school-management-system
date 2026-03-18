@@ -1,0 +1,67 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Group & campuses" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    {% if education_systems_url %}<li class="breadcrumb-item"><a href="{{ education_systems_url }}">{% trans "Education systems (14–22)" %}</a></li>{% endif %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Group & campuses" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960" role="main" aria-label="{% trans 'Group and campuses hierarchy' %}">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Group & campuses (Wedge 22)" %}</h1>
+    <p class="text-white-50 small mb-0">{% trans "Schools can be organized in a hierarchy: a group (parent) and its campuses (children). Use parent_school_id and hierarchy_path for roll-up reporting." %}</p>
+  </header>
+  <div class="mb-3">
+    {% if schools_list_url %}<a href="{{ schools_list_url }}" class="btn btn-outline-secondary btn-sm me-2">{% trans "Schools list" %}</a>{% endif %}
+    {% if create_school_url %}<a href="{{ create_school_url }}" class="btn btn-primary btn-sm">{% trans "Create school" %}</a>{% endif %}
+  </div>
+  {% if groups_with_children %}
+  <h2 class="h6 text-white mb-2">{% trans "Groups and their campuses" %}</h2>
+  {% for item in groups_with_children %}
+  <div class="card border-secondary mb-3">
+    <div class="card-header text-white d-flex justify-content-between align-items-center flex-wrap gap-1">
+      <span>{{ item.group.name }} <code class="small">{{ item.group.slug }}</code></span>
+      <span>
+        <a href="{% url 'super:tenant_360' item.group.id %}" class="btn btn-sm btn-outline-primary">360</a>
+        {% if item.add_campus_url %}<a href="{{ item.add_campus_url }}" class="btn btn-sm btn-outline-success">{% trans "Add campus" %}</a>{% endif %}
+      </span>
+    </div>
+    <div class="card-body py-2">
+      {% if item.children %}
+      <ul class="list-unstyled mb-0">
+        {% for child in item.children %}
+        <li class="d-flex justify-content-between align-items-center py-1">
+          <span class="text-white-50">{{ child.name }} <code class="small">{{ child.slug }}</code></span>
+          <a href="{% url 'super:tenant_360' child.id %}" class="btn btn-sm btn-outline-secondary">360</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-white-50 small mb-0">{% trans "No campuses yet." %} {% if item.add_campus_url %}<a href="{{ item.add_campus_url }}">{% trans "Add campus" %}</a>{% endif %}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p class="text-white-50">{% trans "No groups with campuses yet." %} {% trans "Create a school, then create another school and set it as a child of the first (parent_school_id) to form a group." %}</p>
+  {% endif %}
+  {% if standalone %}
+  <h2 class="h6 text-white mt-4 mb-2">{% trans "Standalone schools (sample)" %}</h2>
+  <p class="small text-white-50 mb-1">{% trans "Schools with no parent and no children (first 50):" %}</p>
+  <ul class="list-unstyled">
+    {% for school in standalone %}
+    <li><a href="{% url 'super:tenant_360' school.id %}" class="text-info">{{ school.name }}</a> <code class="small">{{ school.slug }}</code></li>
+    {% endfor %}
+  </ul>
+  {% if schools_list_url %}<a href="{{ schools_list_url }}" class="btn btn-outline-secondary btn-sm mt-2">{% trans "View all schools" %}</a>{% endif %}
+  {% endif %}
+</div>
+{% endblock %}

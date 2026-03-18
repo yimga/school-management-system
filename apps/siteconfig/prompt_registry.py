@@ -3,6 +3,7 @@ Prompt registry: resolve prompt templates by key from AIPromptRegistry (DB) with
 built-in fallbacks. Used by gateway views for setup, workflow, policy, migration,
 document, support, admin, and design/experience features.
 """
+
 from __future__ import annotations
 
 import logging
@@ -27,11 +28,11 @@ BUILTIN_PROMPTS: dict[str, str] = {
     "policy_explain": (
         "You are a policy explainer. Explain or compare policies in plain language.\n\n"
         "{context_block}\n\nUser request: {query}\n\n"
-        "Respond with JSON only: {{ \"summary\": \"...\", \"differences\": [], \"warnings\": [] }}. No other text."
+        'Respond with JSON only: {{ "summary": "...", "differences": [], "warnings": [] }}. No other text.'
     ),
     "document_classify": (
         "Classify this document. Respond with JSON only: "
-        "{{ \"category\": \"...\", \"tags\": [\"...\"], \"confidence\": 0.0-1.0 }}.\n\n"
+        '{{ "category": "...", "tags": ["..."], "confidence": 0.0-1.0 }}.\n\n'
         "Document excerpt: {query}\n\nNo other text."
     ),
     "live_preview": (
@@ -47,7 +48,7 @@ BUILTIN_PROMPTS: dict[str, str] = {
         "Suggest field mappings as JSON array only.\n\n"
         "Source schema or sample: {source_fields}\n\n"
         "Target schema: {target_fields}\n\n"
-        "Each array item must be {{ \"source_field\", \"target_field\", \"confidence\", \"notes\" }}."
+        'Each array item must be {{ "source_field", "target_field", "confidence", "notes" }}.'
     ),
     "admin_copilot": (
         "You are an admin and configuration assistant. Use the following context to answer.\n\n"
@@ -59,7 +60,7 @@ BUILTIN_PROMPTS: dict[str, str] = {
     ),
     "theme_experience": (
         "Suggest theme or experience improvements. User request: {query}\n\n"
-        "Respond with JSON: {{ \"suggestions\": [], \"rationale\": \"...\" }}. No other text."
+        'Respond with JSON: {{ "suggestions": [], "rationale": "..." }}. No other text.'
     ),
     "feature_control": (
         "Explain feature flags and control. User question: {query}\n\n"
@@ -67,19 +68,19 @@ BUILTIN_PROMPTS: dict[str, str] = {
     ),
     "report_library": (
         "Recommend reports from the library. User need: {query}\n\n"
-        "Respond with JSON: {{ \"recommendations\": [{{ \"name\", \"description\", \"fit\" }}] }}. No other text."
+        'Respond with JSON: {{ "recommendations": [{{ "name", "description", "fit" }}] }}. No other text.'
     ),
     "design_studio": (
         "Suggest design or layout changes. User request: {query}\n\n"
-        "Respond with JSON: {{ \"suggestions\": [], \"components\": [] }}. No other text."
+        'Respond with JSON: {{ "suggestions": [], "components": [] }}. No other text.'
     ),
     "dashboard_pack_recommend": (
         "Recommend dashboards or experience packs for: {query}\n\n"
-        "Respond with JSON: {{ \"dashboards\": [], \"packs\": [], \"rationale\": \"...\" }}. No other text."
+        'Respond with JSON: {{ "dashboards": [], "packs": [], "rationale": "..." }}. No other text.'
     ),
     "marketplace_recommend": (
         "Recommend marketplace apps or experience packs for: {query}\n\n"
-        "Respond with JSON only: {{ \"recommendations\": [{{ \"name\", \"category\", \"fit\", \"rationale\" }}], \"rationale\": \"...\" }}. No other text."
+        'Respond with JSON only: {{ "recommendations": [{{ "name", "category", "fit", "rationale" }}], "rationale": "..." }}. No other text.'
     ),
     "system_config": (
         "Explain system configuration options. User question: {query}\n\n"
@@ -97,7 +98,13 @@ BUILTIN_PROMPTS: dict[str, str] = {
     ),
 }
 
-OPTIONAL_PROMPT_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
+OPTIONAL_PROMPT_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    TypeError,
+    ValueError,
+)
 
 
 def get_prompt_template(
@@ -114,6 +121,7 @@ def get_prompt_template(
     context_block = context.get("context_block", context.get("context", ""))
     try:
         from apps.siteconfig.models import AIPromptRegistry
+
         rec = AIPromptRegistry.objects.filter(
             prompt_key=prompt_key,
             is_active=True,
@@ -134,7 +142,11 @@ def get_prompt_template(
     template = BUILTIN_PROMPTS.get(prompt_key)
     if not template:
         return ""  # callers may pass empty; they should provide fallback
-    format_kw = {"query": query, "context_block": context_block, "context": context_block}
+    format_kw = {
+        "query": query,
+        "context_block": context_block,
+        "context": context_block,
+    }
     for k, v in context.items():
         format_kw.setdefault(k, v)
     try:

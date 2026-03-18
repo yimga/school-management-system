@@ -12,6 +12,7 @@ policy_bundles, and installed_* counts so UI and CLI stay in sync.
 
 Minimums must match docs/MARKETPLACE_SEED_TARGETS.md §1.
 """
+
 from __future__ import annotations
 
 import logging
@@ -24,7 +25,14 @@ try:
 except ImportError:
     DatabaseError = OperationalError = ProgrammingError = Exception  # type: ignore[misc, assignment]
 
-_EXC = (ImportError, AttributeError, TypeError, DatabaseError, OperationalError, ProgrammingError)
+_EXC = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    DatabaseError,
+    OperationalError,
+    ProgrammingError,
+)
 
 # §7 MARKETPLACE_SEED_TARGETS minimums (single source; must match MARKETPLACE_SEED_TARGETS.md §1)
 MARKETPLACE_MINIMUMS: dict[str, int] = {
@@ -72,8 +80,11 @@ def get_platform_catalog_counts() -> dict[str, Any]:
     # First-party apps: distinct package_id in PackageVersion
     try:
         from apps.packages.models import PackageVersion
+
         counts["first_party_apps"] = (
-            PackageVersion.objects.values_list("package_id", flat=True).distinct().count()
+            PackageVersion.objects.values_list("package_id", flat=True)
+            .distinct()
+            .count()
         )
     except _EXC as e:
         logger.debug("catalog_counts first_party_apps: %s", e)
@@ -82,6 +93,7 @@ def get_platform_catalog_counts() -> dict[str, Any]:
     try:
         from apps.packages.models import InstalledPackage
         from django.db.models import Count
+
         by_type = dict(
             InstalledPackage.objects.filter(is_active=True)
             .values("package_type")
@@ -98,7 +110,12 @@ def get_platform_catalog_counts() -> dict[str, Any]:
 
     # Blueprint / workflow / dashboard packs from runtime_blueprints (catalog)
     try:
-        from apps.runtime_blueprints.models import BlueprintPack, WorkflowPack, DashboardPack
+        from apps.runtime_blueprints.models import (
+            BlueprintPack,
+            WorkflowPack,
+            DashboardPack,
+        )
+
         counts["blueprint_packs"] = BlueprintPack.objects.count()
         counts["workflow_packs"] = WorkflowPack.objects.count()
         counts["dashboard_packs"] = DashboardPack.objects.count()
@@ -108,6 +125,7 @@ def get_platform_catalog_counts() -> dict[str, Any]:
     # Policy bundles (policies app)
     try:
         from apps.policies.models import PolicyBundle
+
         counts["policy_bundles"] = PolicyBundle.objects.count()
     except _EXC as e:
         logger.debug("catalog_counts policy_bundles: %s", e)

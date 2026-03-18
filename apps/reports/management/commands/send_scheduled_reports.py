@@ -3,6 +3,7 @@ Phase 9: BI scheduled report emails.
 Processes ScheduledReport (bi_models) where next_run <= now: run report, email recipients, set last_run/next_run.
 Usage: python manage.py send_scheduled_reports [--dry-run]
 """
+
 from datetime import timedelta
 from smtplib import SMTPException
 
@@ -35,7 +36,9 @@ def _compute_next_run(last_run, frequency, schedule_time):
         base = last_run
     # Normalize to date and apply schedule_time
     base_date = base.date()
-    next_naive = timezone.datetime.combine(base_date, schedule_time, tzinfo=timezone.get_current_timezone())
+    next_naive = timezone.datetime.combine(
+        base_date, schedule_time, tzinfo=timezone.get_current_timezone()
+    )
     if next_naive <= base:
         next_naive = next_naive + timedelta(days=1)
     if frequency == "DAILY":
@@ -79,7 +82,9 @@ class Command(BaseCommand):
         self.stdout.write(f"Found {len(due)} due schedule(s).")
         for sr in due:
             if dry_run:
-                self.stdout.write(f"  Would run: {sr.report_definition.name} -> {sr.recipients}")
+                self.stdout.write(
+                    f"  Would run: {sr.report_definition.name} -> {sr.recipients}"
+                )
                 continue
             try:
                 self._run_one(sr, now)
@@ -89,7 +94,9 @@ class Command(BaseCommand):
                     extra={
                         "command": "send_scheduled_reports",
                         "scheduled_report_id": getattr(sr, "id", None),
-                        "report_definition_id": getattr(getattr(sr, "report_definition", None), "id", None),
+                        "report_definition_id": getattr(
+                            getattr(sr, "report_definition", None), "id", None
+                        ),
                     },
                     exc_info=True,
                 )
@@ -136,6 +143,8 @@ class Command(BaseCommand):
         finally:
             execution.save()
         sr.last_run = now
-        sr.next_run = _compute_next_run(sr.last_run, sr.schedule_frequency, sr.schedule_time)
+        sr.next_run = _compute_next_run(
+            sr.last_run, sr.schedule_frequency, sr.schedule_time
+        )
         sr.save(update_fields=["last_run", "next_run"])
         self.stdout.write(self.style.SUCCESS(f"Sent {rd.name} to {sr.recipients}"))

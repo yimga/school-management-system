@@ -8,7 +8,13 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
 from apps.platform_runtime.helpers import get_effective_site_settings
-from .models import LessonPlan, LessonPlanAttachment, TeacherTrainingEntry, AttendanceJustification, CahierDeTexteEntry
+from .models import (
+    LessonPlan,
+    LessonPlanAttachment,
+    TeacherTrainingEntry,
+    AttendanceJustification,
+    CahierDeTexteEntry,
+)
 from apps.academics.models import Term, AcademicYear
 
 logger = logging.getLogger(__name__)
@@ -16,7 +22,11 @@ _FORM_POLICY_ERRORS = (ImportError, AttributeError, TypeError, ValueError, KeyEr
 
 
 def _default_school_code(school=None) -> str:
-    raw = (getattr(school, "slug", None) or getattr(school, "name", None) or "").strip().upper()
+    raw = (
+        (getattr(school, "slug", None) or getattr(school, "name", None) or "")
+        .strip()
+        .upper()
+    )
     if not raw:
         return "SCH"
     parts = [part for part in re.split(r"[^A-Z0-9]+", raw) if part]
@@ -140,13 +150,21 @@ class LinkChildForm(forms.Form):
             school_code = (policy.get("admissions") or {}).get("school_code")
         if not school_code:
             site = get_effective_site_settings(school=school)
-            school_code = _default_school_code(school) or getattr(site, "school_code", None) or "SCH"
+            school_code = (
+                _default_school_code(school)
+                or getattr(site, "school_code", None)
+                or "SCH"
+            )
         super().__init__(*args, **kwargs)
         # Populate dynamic term choices from active academic year
         active_year = AcademicYear.objects.filter(is_active=True).first()
         if active_year:
-            terms = Term.objects.filter(academic_year=active_year).order_by("start_date")
-            self.fields["student_joined_term"].choices = [(t.name, t.label) for t in terms]
+            terms = Term.objects.filter(academic_year=active_year).order_by(
+                "start_date"
+            )
+            self.fields["student_joined_term"].choices = [
+                (t.name, t.label) for t in terms
+            ]
         else:
             self.fields["student_joined_term"].choices = []
         if school_code:
@@ -160,80 +178,115 @@ class LinkChildForm(forms.Form):
         # Section 23.4: policy-driven field visibility, required, picker options
         try:
             from apps.policies.form_policy import apply_form_policy
+
             apply_form_policy(self, "link_child", policy or {}, school=None)
         except _FORM_POLICY_ERRORS:
             logger.debug("apply_form_policy (link_child) skipped", exc_info=True)
         self.fields["referral_code"].help_text = _(
             "Include a referral code if someone shared one with you; this unlocks bonus credits."
         )
-        
+
         # Add Bootstrap classes for wizard styling
-        self.fields["admission_number"].widget.attrs.update({
-            "class": "form-control form-control-lg",
-            "placeholder": "Enter admission number",
-            "autofocus": True,
-        })
-        self.fields["relationship"].widget.attrs.update({
-            "class": "form-select form-select-lg",
-        })
-        self.fields["phone"].widget.attrs.update({
-            "class": "form-control",
-            "placeholder": "e.g., +237 6XX XXX XXX",
-        })
-        self.fields["preferred_contact"].widget.attrs.update({
-            "class": "form-select",
-        })
-        self.fields["student_date_of_birth"].widget.attrs.update({
-            "class": "form-control",
-        })
-        self.fields["student_place_of_birth"].widget.attrs.update({
-            "class": "form-control",
-            "placeholder": "City or town",
-        })
-        self.fields["student_gender"].widget.attrs.update({
-            "class": "form-select",
-        })
-        self.fields["student_status"].widget.attrs.update({
-            "class": "form-select",
-        })
-        self.fields["student_joined_term"].widget.attrs.update({
-            "class": "form-select",
-        })
-        self.fields["student_joined_date"].widget.attrs.update({
-            "class": "form-control",
-        })
-        self.fields["parent_first_name"].widget.attrs.update({
-            "class": "form-control",
-        })
-        self.fields["parent_last_name"].widget.attrs.update({
-            "class": "form-control",
-        })
-        self.fields["parent_email"].widget.attrs.update({
-            "class": "form-control",
-            "type": "email",
-            "placeholder": "your.email@example.com",
-        })
-        self.fields["parent_whatsapp"].widget.attrs.update({
-            "class": "form-control",
-            "placeholder": "e.g., +237 6XX XXX XXX",
-        })
-        self.fields["parent_address"].widget.attrs.update({
-            "class": "form-control",
-            "rows": 2,
-        })
-        self.fields["referral_code"].widget.attrs.update({
-            "class": "form-control",
-            "placeholder": "Optional referral code",
-        })
+        self.fields["admission_number"].widget.attrs.update(
+            {
+                "class": "form-control form-control-lg",
+                "placeholder": "Enter admission number",
+                "autofocus": True,
+            }
+        )
+        self.fields["relationship"].widget.attrs.update(
+            {
+                "class": "form-select form-select-lg",
+            }
+        )
+        self.fields["phone"].widget.attrs.update(
+            {
+                "class": "form-control",
+                "placeholder": "e.g., +237 6XX XXX XXX",
+            }
+        )
+        self.fields["preferred_contact"].widget.attrs.update(
+            {
+                "class": "form-select",
+            }
+        )
+        self.fields["student_date_of_birth"].widget.attrs.update(
+            {
+                "class": "form-control",
+            }
+        )
+        self.fields["student_place_of_birth"].widget.attrs.update(
+            {
+                "class": "form-control",
+                "placeholder": "City or town",
+            }
+        )
+        self.fields["student_gender"].widget.attrs.update(
+            {
+                "class": "form-select",
+            }
+        )
+        self.fields["student_status"].widget.attrs.update(
+            {
+                "class": "form-select",
+            }
+        )
+        self.fields["student_joined_term"].widget.attrs.update(
+            {
+                "class": "form-select",
+            }
+        )
+        self.fields["student_joined_date"].widget.attrs.update(
+            {
+                "class": "form-control",
+            }
+        )
+        self.fields["parent_first_name"].widget.attrs.update(
+            {
+                "class": "form-control",
+            }
+        )
+        self.fields["parent_last_name"].widget.attrs.update(
+            {
+                "class": "form-control",
+            }
+        )
+        self.fields["parent_email"].widget.attrs.update(
+            {
+                "class": "form-control",
+                "type": "email",
+                "placeholder": "your.email@example.com",
+            }
+        )
+        self.fields["parent_whatsapp"].widget.attrs.update(
+            {
+                "class": "form-control",
+                "placeholder": "e.g., +237 6XX XXX XXX",
+            }
+        )
+        self.fields["parent_address"].widget.attrs.update(
+            {
+                "class": "form-control",
+                "rows": 2,
+            }
+        )
+        self.fields["referral_code"].widget.attrs.update(
+            {
+                "class": "form-control",
+                "placeholder": "Optional referral code",
+            }
+        )
 
     def clean_admission_number(self):
         admission = self.cleaned_data["admission_number"].strip()
         try:
-            student = StudentProfile.objects.select_related("academic_year", "classroom", "specialty").get(
-                admission_number__iexact=admission
-            )
+            student = StudentProfile.objects.select_related(
+                "academic_year", "classroom", "specialty"
+            ).get(admission_number__iexact=admission)
         except StudentProfile.DoesNotExist:
-            raise forms.ValidationError(_("No student found with that admission number."))
+            raise forms.ValidationError(
+                _("No student found with that admission number.")
+            )
         if not student.is_active:
             raise forms.ValidationError(_("This student profile is inactive."))
         self.student = student
@@ -247,7 +300,9 @@ class LinkChildForm(forms.Form):
                 student=self.student,
             ).exists()
             if exists:
-                raise forms.ValidationError(_("You are already linked to this student."))
+                raise forms.ValidationError(
+                    _("You are already linked to this student.")
+                )
         return cleaned
 
     def save(self) -> StudentGuardian:
@@ -260,7 +315,8 @@ class LinkChildForm(forms.Form):
             student=student,
             relationship=data["relationship"],
             phone=data.get("phone", ""),
-            preferred_contact=data.get("preferred_contact") or StudentGuardian.PreferredContact.EMAIL,
+            preferred_contact=data.get("preferred_contact")
+            or StudentGuardian.PreferredContact.EMAIL,
             receives_email=True,
             receives_sms=False,
             receives_whatsapp=False,
@@ -328,7 +384,9 @@ class ClaimInviteForm(forms.Form):
     token = forms.CharField(
         label=_("Invite code"),
         help_text=_("Enter the 6-digit code from the school email or SMS."),
-        widget=forms.TextInput(attrs={"placeholder": "e.g. ABC123", "autocomplete": "one-time-code"}),
+        widget=forms.TextInput(
+            attrs={"placeholder": "e.g. ABC123", "autocomplete": "one-time-code"}
+        ),
     )
 
     def __init__(self, *args, **kwargs):
@@ -344,10 +402,14 @@ class ClaimInviteForm(forms.Form):
         from .models import PendingGuardianInvite  # local import to avoid circulars
 
         try:
-            invite = PendingGuardianInvite.objects.select_related("student").get(token=token)
+            invite = PendingGuardianInvite.objects.select_related("student").get(
+                token=token
+            )
         except PendingGuardianInvite.DoesNotExist:
             raise forms.ValidationError(
-                _("That code wasn't found or has already been used. Please check the code from the school email or SMS, or contact the school for a new invite.")
+                _(
+                    "That code wasn't found or has already been used. Please check the code from the school email or SMS, or contact the school for a new invite."
+                )
             )
         if invite.is_claimed:
             raise forms.ValidationError(_("This invite has already been claimed."))
@@ -362,12 +424,15 @@ class TeacherLeaveForm(forms.ModelForm):
         widgets = {
             "start_date": forms.DateInput(attrs={"type": "date"}),
             "end_date": forms.DateInput(attrs={"type": "date"}),
-            "reason": forms.Textarea(attrs={"rows": 3, "placeholder": "Reason for leave"}),
+            "reason": forms.Textarea(
+                attrs={"rows": 3, "placeholder": "Reason for leave"}
+            ),
         }
 
 
 class TeacherOnboardingForm(forms.Form):
     """Multi-step form for teacher onboarding"""
+
     # Step 1: Basic Information
     email = forms.EmailField(
         label=_("Email address"),
@@ -387,7 +452,7 @@ class TeacherOnboardingForm(forms.Form):
         help_text=_("e.g., +237 6XX XXX XXX"),
         required=False,
     )
-    
+
     # Step 2: Professional Details
     staff_id = forms.CharField(
         label=_("Staff ID"),
@@ -407,7 +472,7 @@ class TeacherOnboardingForm(forms.Form):
         label=_("Department"),
         help_text=_("Select your department"),
     )
-    
+
     # Step 3: Preferences
     payment_method = forms.ChoiceField(
         choices=[],
@@ -430,18 +495,25 @@ class TeacherOnboardingForm(forms.Form):
     def __init__(self, *args, **kwargs):
         from apps.academics.models import Department
         from apps.people.models import TeacherProfile
+
         school = kwargs.pop("school", None)
         super().__init__(*args, **kwargs)
-        
+
         # Populate department choices
-        self.fields["department"].queryset = Department.objects.filter(school=school).order_by("name") if school else Department.objects.none()
-        
+        self.fields["department"].queryset = (
+            Department.objects.filter(school=school).order_by("name")
+            if school
+            else Department.objects.none()
+        )
+
         # Populate payment method choices
         self.fields["payment_method"].choices = TeacherProfile.PaymentMethod.choices
-        
+
         # Populate dashboard view choices
-        self.fields["default_dashboard_view"].choices = TeacherProfile.DashboardView.choices
-        
+        self.fields[
+            "default_dashboard_view"
+        ].choices = TeacherProfile.DashboardView.choices
+
         # Add Bootstrap classes
         for field_name, field in self.fields.items():
             if isinstance(field.widget, forms.TextInput):
@@ -452,13 +524,14 @@ class TeacherOnboardingForm(forms.Form):
                 field.widget.attrs.update({"class": "form-select"})
             elif isinstance(field.widget, forms.Textarea):
                 field.widget.attrs.update({"class": "form-control"})
-        
+
         # Auto-focus on email
         self.fields["email"].widget.attrs.update({"autofocus": True})
-    
+
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         from apps.accounts.models import User
+
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError(_("A user with this email already exists."))
         return email
@@ -466,6 +539,7 @@ class TeacherOnboardingForm(forms.Form):
 
 class StudentOnboardingForm(forms.Form):
     """Multi-step form for student pre-registration"""
+
     # Step 1: Basic Information
     first_name = forms.CharField(
         label=_("First name"),
@@ -490,7 +564,7 @@ class StudentOnboardingForm(forms.Form):
         max_length=100,
         required=False,
     )
-    
+
     # Step 2: Academic Information
     academic_year = forms.ModelChoiceField(
         queryset=None,
@@ -513,7 +587,7 @@ class StudentOnboardingForm(forms.Form):
         required=False,
         help_text=_("Leave blank for auto-generation, or enter manually"),
     )
-    
+
     # Step 3: Parent/Guardian Information
     parent_first_name = forms.CharField(
         label=_("Parent/Guardian first name"),
@@ -540,7 +614,7 @@ class StudentOnboardingForm(forms.Form):
         max_length=50,
         required=False,
     )
-    
+
     # Step 4: Payment (Optional)
     payment_method = forms.ChoiceField(
         choices=[],
@@ -563,6 +637,7 @@ class StudentOnboardingForm(forms.Form):
     def __init__(self, *args, **kwargs):
         from apps.academics.models import AcademicYear, Specialty, Classroom
         from apps.people.models import StudentProfile
+
         try:
             from apps.finance.payment_models import PaymentMethod
         except ImportError:
@@ -570,50 +645,65 @@ class StudentOnboardingForm(forms.Form):
 
         policy = kwargs.pop("policy", None) or {}
         school = kwargs.pop("school", None)
-        self._admissions_policy = (policy.get("admissions") or {}) if isinstance(policy, dict) else {}
+        self._admissions_policy = (
+            (policy.get("admissions") or {}) if isinstance(policy, dict) else {}
+        )
 
         super().__init__(*args, **kwargs)
         # Section 23.4: policy-driven field visibility, required, picker options
         try:
             from apps.policies.form_policy import apply_form_policy
+
             apply_form_policy(self, "student_onboarding", policy, school=school)
         except _FORM_POLICY_ERRORS:
-            logger.debug("apply_form_policy (student_onboarding) skipped", exc_info=True)
+            logger.debug(
+                "apply_form_policy (student_onboarding) skipped", exc_info=True
+            )
         # Populate academic year choices
         academic_years = AcademicYear.objects.filter(is_active=True)
         if school is not None:
             academic_years = academic_years.filter(school=school)
         self.fields["academic_year"].queryset = academic_years.order_by("-start_date")
-        
+
         # Populate specialty choices
         specialties = Specialty.objects.all()
         if school is not None and hasattr(Specialty, "school_id"):
             specialties = specialties.filter(school=school)
         self.fields["specialty"].queryset = specialties.order_by("name")
-        
+
         # Populate classroom choices
         classrooms = Classroom.objects.all()
         if school is not None:
             classrooms = classrooms.filter(school=school)
         self.fields["classroom"].queryset = classrooms.order_by("name")
-        
+
         # Populate gender choices
         self.fields["gender"].choices = StudentProfile.Gender.choices
-        
+
         # Populate payment method choices
         if PaymentMethod:
             try:
-                payment_methods = PaymentMethod.objects.filter(is_active=True).order_by("name")
-                self.fields["payment_method"].choices = [("", "---------")] + [(str(pm.id), pm.name) for pm in payment_methods]
+                payment_methods = PaymentMethod.objects.filter(is_active=True).order_by(
+                    "name"
+                )
+                self.fields["payment_method"].choices = [("", "---------")] + [
+                    (str(pm.id), pm.name) for pm in payment_methods
+                ]
             except (DatabaseError, ObjectDoesNotExist, AttributeError, TypeError):
                 # Fallback to text choices if model not available
                 from apps.finance.models import PaymentMethod as PaymentMethodChoices
-                self.fields["payment_method"].choices = [("", "---------")] + list(PaymentMethodChoices.choices)
+
+                self.fields["payment_method"].choices = [("", "---------")] + list(
+                    PaymentMethodChoices.choices
+                )
         else:
             # Use text choices as fallback
             from apps.finance.models import PaymentMethod as PaymentMethodChoices
-            self.fields["payment_method"].choices = [("", "---------")] + list(PaymentMethodChoices.choices)
-        
+
+            self.fields["payment_method"].choices = [("", "---------")] + list(
+                PaymentMethodChoices.choices
+            )
+
         # Add Bootstrap classes
         for field_name, field in self.fields.items():
             if isinstance(field.widget, forms.TextInput):
@@ -624,10 +714,10 @@ class StudentOnboardingForm(forms.Form):
                 field.widget.attrs.update({"class": "form-select"})
             elif isinstance(field.widget, forms.DateInput):
                 field.widget.attrs.update({"class": "form-control"})
-        
+
         # Auto-focus on first name
         self.fields["first_name"].widget.attrs.update({"autofocus": True})
-    
+
     def clean_admission_number(self):
         admission = self.cleaned_data.get("admission_number", "").strip()
         if admission:
@@ -638,9 +728,15 @@ class StudentOnboardingForm(forms.Form):
             if not admissions:
                 site = get_effective_site_settings(school=getattr(self, "school", None))
                 admissions = {
-                    "admission_number_mode": getattr(site, "admission_number_mode", "AUTO_OR_MANUAL"),
-                    "admission_number_pattern": (getattr(site, "admission_number_pattern", None) or "") or "",
-                    "school_code": getattr(site, "school_code", None) or _default_school_code(None),
+                    "admission_number_mode": getattr(
+                        site, "admission_number_mode", "AUTO_OR_MANUAL"
+                    ),
+                    "admission_number_pattern": (
+                        getattr(site, "admission_number_pattern", None) or ""
+                    )
+                    or "",
+                    "school_code": getattr(site, "school_code", None)
+                    or _default_school_code(None),
                 }
             mode = admissions.get("admission_number_mode", "AUTO_OR_MANUAL")
             if mode == "AUTO":
@@ -648,10 +744,16 @@ class StudentOnboardingForm(forms.Form):
 
             pattern = (admissions.get("admission_number_pattern") or "").strip()
             if pattern and not re.match(pattern, admission):
-                raise forms.ValidationError(_("Admission number does not match the required format."))
+                raise forms.ValidationError(
+                    _("Admission number does not match the required format.")
+                )
 
-            if StudentProfile.objects.filter(admission_number__iexact=admission).exists():
-                raise forms.ValidationError(_("This admission number is already in use."))
+            if StudentProfile.objects.filter(
+                admission_number__iexact=admission
+            ).exists():
+                raise forms.ValidationError(
+                    _("This admission number is already in use.")
+                )
         return admission
 
 
@@ -670,11 +772,14 @@ class LessonPlanUploadForm(forms.ModelForm):
 
 class LessonPlanAttachmentForm(forms.ModelForm):
     """Add a resource file to an existing lesson plan (Wave 6)."""
+
     class Meta:
         model = LessonPlanAttachment
         fields = ("file", "label")
         widgets = {
-            "label": forms.TextInput(attrs={"placeholder": _("e.g. Worksheet, Slides")}),
+            "label": forms.TextInput(
+                attrs={"placeholder": _("e.g. Worksheet, Slides")}
+            ),
         }
 
 
@@ -692,9 +797,15 @@ class CahierDeTexteEntryForm(forms.ModelForm):
     class Meta:
         model = CahierDeTexteEntry
         fields = (
-            "subject_assignment", "entry_date", "lesson_topic_code", "title",
-            "objectives", "duration_minutes", "content_summary",
-            "practical_application", "integration_activity",
+            "subject_assignment",
+            "entry_date",
+            "lesson_topic_code",
+            "title",
+            "objectives",
+            "duration_minutes",
+            "content_summary",
+            "practical_application",
+            "integration_activity",
         )
         widgets = {
             "entry_date": forms.DateInput(attrs={"type": "date"}),
@@ -715,5 +826,7 @@ class AttendanceJustificationForm(forms.ModelForm):
         fields = ("student", "attendance_date", "reason", "document")
         widgets = {
             "attendance_date": forms.DateInput(attrs={"type": "date"}),
-            "document": forms.FileInput(attrs={"accept": ".pdf,.doc,.docx,.jpg,.jpeg,.png"}),
+            "document": forms.FileInput(
+                attrs={"accept": ".pdf,.doc,.docx,.jpg,.jpeg,.png"}
+            ),
         }

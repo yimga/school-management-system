@@ -85,7 +85,10 @@ def _build_admin_weather_config(request=None) -> dict:
     flags = getattr(site, "backend_feature_flags", None) or {}
     weather_defaults = default_header_weather_config()
     raw_unit = str(
-        flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"])
+        flags.get(
+            "header_weather_temperature_unit",
+            weather_defaults["header_weather_temperature_unit"],
+        )
     ).lower()
     temp_unit = "fahrenheit" if raw_unit in {"f", "fahrenheit"} else "celsius"
     timezone_name = str(
@@ -97,13 +100,19 @@ def _build_admin_weather_config(request=None) -> dict:
 
     return {
         "enabled": bool(flags.get("show_header_context_weather", False)),
-        "label": str(flags.get("header_weather_label", weather_defaults["header_weather_label"])),
+        "label": str(
+            flags.get("header_weather_label", weather_defaults["header_weather_label"])
+        ),
         "latitude": _safe_float(
-            flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),
+            flags.get(
+                "header_weather_latitude", weather_defaults["header_weather_latitude"]
+            ),
             weather_defaults["header_weather_latitude"],
         ),
         "longitude": _safe_float(
-            flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),
+            flags.get(
+                "header_weather_longitude", weather_defaults["header_weather_longitude"]
+            ),
             weather_defaults["header_weather_longitude"],
         ),
         "temperature_unit": temp_unit,
@@ -150,7 +159,9 @@ def _fetch_weather_snapshot(config: dict) -> dict:
     }
 
 
-def _build_admin_weather_response(config: dict, weather: dict, *, status: str, cached: bool, stale: bool = False) -> dict:
+def _build_admin_weather_response(
+    config: dict, weather: dict, *, status: str, cached: bool, stale: bool = False
+) -> dict:
     return {
         "status": status,
         "enabled": True,
@@ -201,6 +212,7 @@ def _resolve_weather_payload(config: dict, *, scope: str, request=None) -> dict:
 
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+
         prefix = get_tenant_cache_prefix(request)
     except (ImportError, AttributeError, TypeError):
         logger.debug("get_tenant_cache_prefix unavailable, using public prefix")
@@ -251,18 +263,23 @@ def _is_observability_authorized(request) -> bool:
     """Allow staff users or holders of the observability API key."""
     api_key = getattr(settings, "OBSERVABILITY_API_KEY", "")
     if api_key:
-        header_key = request.headers.get("X-OBSERVABILITY-KEY") or request.META.get("HTTP_X_OBSERVABILITY_KEY")
+        header_key = request.headers.get("X-OBSERVABILITY-KEY") or request.META.get(
+            "HTTP_X_OBSERVABILITY_KEY"
+        )
         if header_key == api_key:
             return True
 
     user = getattr(request, "user", None)
     if user and user.is_authenticated:
-        return user.is_staff or user.is_superuser or getattr(user, "role", None) == "ADMIN"
+        return (
+            user.is_staff or user.is_superuser or getattr(user, "role", None) == "ADMIN"
+        )
     return False
 
 
 def observability_auth_required(view_func):
     """Require staff session auth; allow API key for safe GET/HEAD requests."""
+
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         if request.method in ("GET", "HEAD"):
@@ -270,10 +287,19 @@ def observability_auth_required(view_func):
                 return view_func(request, *args, **kwargs)
         else:
             user = getattr(request, "user", None)
-            if user and user.is_authenticated and (user.is_staff or user.is_superuser or getattr(user, "role", None) == "ADMIN"):
+            if (
+                user
+                and user.is_authenticated
+                and (
+                    user.is_staff
+                    or user.is_superuser
+                    or getattr(user, "role", None) == "ADMIN"
+                )
+            ):
                 return view_func(request, *args, **kwargs)
 
         return HttpResponseForbidden("Forbidden")
+
     return _wrapped
 
 
@@ -320,46 +346,56 @@ def metrics(request):
     lines = []
     try:
         from apps.siteconfig.cache_utils import tenant_cache_key
+
         def _ck(b):
             return tenant_cache_key(b, request)
-        total = cache.get(_ck('ai_copilot_usage_total')) or 0
-        denied = cache.get(_ck('ai_copilot_usage_denied_total')) or 0
-        errors = cache.get(_ck('ai_copilot_usage_errors_total')) or 0
-        last_success_ts = cache.get(_ck('ai_copilot_last_success_ts')) or 0
-        last_error_ts = cache.get(_ck('ai_copilot_last_error_ts')) or 0
-        roles = cache.get(_ck('ai_copilot_usage_roles')) or []
 
-        lines.append('# HELP ai_copilot_usage_total Total AI Copilot queries processed')
-        lines.append('# TYPE ai_copilot_usage_total counter')
-        lines.append(f'ai_copilot_usage_total {int(total)}')
+        total = cache.get(_ck("ai_copilot_usage_total")) or 0
+        denied = cache.get(_ck("ai_copilot_usage_denied_total")) or 0
+        errors = cache.get(_ck("ai_copilot_usage_errors_total")) or 0
+        last_success_ts = cache.get(_ck("ai_copilot_last_success_ts")) or 0
+        last_error_ts = cache.get(_ck("ai_copilot_last_error_ts")) or 0
+        roles = cache.get(_ck("ai_copilot_usage_roles")) or []
 
-        lines.append('# HELP ai_copilot_usage_denied_total Total AI Copilot queries denied (RBAC/Rate limit)')
-        lines.append('# TYPE ai_copilot_usage_denied_total counter')
-        lines.append(f'ai_copilot_usage_denied_total {int(denied)}')
+        lines.append("# HELP ai_copilot_usage_total Total AI Copilot queries processed")
+        lines.append("# TYPE ai_copilot_usage_total counter")
+        lines.append(f"ai_copilot_usage_total {int(total)}")
 
-        lines.append('# HELP ai_copilot_usage_errors_total Total AI Copilot errors')
-        lines.append('# TYPE ai_copilot_usage_errors_total counter')
-        lines.append(f'ai_copilot_usage_errors_total {int(errors)}')
+        lines.append(
+            "# HELP ai_copilot_usage_denied_total Total AI Copilot queries denied (RBAC/Rate limit)"
+        )
+        lines.append("# TYPE ai_copilot_usage_denied_total counter")
+        lines.append(f"ai_copilot_usage_denied_total {int(denied)}")
 
-        lines.append('# HELP ai_copilot_last_success_timestamp_seconds Last successful AI Copilot response time')
-        lines.append('# TYPE ai_copilot_last_success_timestamp_seconds gauge')
-        lines.append(f'ai_copilot_last_success_timestamp_seconds {float(last_success_ts)}')
+        lines.append("# HELP ai_copilot_usage_errors_total Total AI Copilot errors")
+        lines.append("# TYPE ai_copilot_usage_errors_total counter")
+        lines.append(f"ai_copilot_usage_errors_total {int(errors)}")
 
-        lines.append('# HELP ai_copilot_last_error_timestamp_seconds Last AI Copilot error time')
-        lines.append('# TYPE ai_copilot_last_error_timestamp_seconds gauge')
-        lines.append(f'ai_copilot_last_error_timestamp_seconds {float(last_error_ts)}')
+        lines.append(
+            "# HELP ai_copilot_last_success_timestamp_seconds Last successful AI Copilot response time"
+        )
+        lines.append("# TYPE ai_copilot_last_success_timestamp_seconds gauge")
+        lines.append(
+            f"ai_copilot_last_success_timestamp_seconds {float(last_success_ts)}"
+        )
 
-        lines.append('# HELP ai_copilot_usage_role AI Copilot queries by role')
-        lines.append('# TYPE ai_copilot_usage_role counter')
+        lines.append(
+            "# HELP ai_copilot_last_error_timestamp_seconds Last AI Copilot error time"
+        )
+        lines.append("# TYPE ai_copilot_last_error_timestamp_seconds gauge")
+        lines.append(f"ai_copilot_last_error_timestamp_seconds {float(last_error_ts)}")
+
+        lines.append("# HELP ai_copilot_usage_role AI Copilot queries by role")
+        lines.append("# TYPE ai_copilot_usage_role counter")
         for role in roles:
-            val = cache.get(_ck(f'ai_copilot_usage_role:{role}')) or 0
+            val = cache.get(_ck(f"ai_copilot_usage_role:{role}")) or 0
             # Sanitize role label value
-            role_label = str(role).replace('"', '')
+            role_label = str(role).replace('"', "")
             lines.append(f'ai_copilot_usage_role{{role="{role_label}"}} {int(val)}')
     except (ImportError, AttributeError, TypeError) as _exc:
         logger.debug("metrics: cache/copilot counters skipped: %s", _exc)
 
-    extra = ('\n'.join(lines) + '\n').encode('utf-8') if lines else b''
+    extra = ("\n".join(lines) + "\n").encode("utf-8") if lines else b""
     return HttpResponse(base_output + extra, content_type=CONTENT_TYPE_LATEST)
 
 
@@ -372,90 +408,105 @@ def copilot_metrics_json(request):
     """
     try:
         from apps.siteconfig.cache_utils import tenant_cache_key
+
         def _ck(b):
             return tenant_cache_key(b, request)
-        total = cache.get(_ck('ai_copilot_usage_total')) or 0
-        denied = cache.get(_ck('ai_copilot_usage_denied_total')) or 0
-        errors = cache.get(_ck('ai_copilot_usage_errors_total')) or 0
-        last_success_ts = cache.get(_ck('ai_copilot_last_success_ts')) or 0
-        last_error_ts = cache.get(_ck('ai_copilot_last_error_ts')) or 0
-        roles = cache.get(_ck('ai_copilot_usage_roles')) or []
+
+        total = cache.get(_ck("ai_copilot_usage_total")) or 0
+        denied = cache.get(_ck("ai_copilot_usage_denied_total")) or 0
+        errors = cache.get(_ck("ai_copilot_usage_errors_total")) or 0
+        last_success_ts = cache.get(_ck("ai_copilot_last_success_ts")) or 0
+        last_error_ts = cache.get(_ck("ai_copilot_last_error_ts")) or 0
+        roles = cache.get(_ck("ai_copilot_usage_roles")) or []
 
         role_counts = []
         for role in roles:
-            val = cache.get(_ck(f'ai_copilot_usage_role:{role}')) or 0
-            role_counts.append({
-                'role': str(role),
-                'count': int(val),
-            })
+            val = cache.get(_ck(f"ai_copilot_usage_role:{role}")) or 0
+            role_counts.append(
+                {
+                    "role": str(role),
+                    "count": int(val),
+                }
+            )
 
-        return JsonResponse({
-            'success': True,
-            'total': int(total),
-            'denied': int(denied),
-            'errors': int(errors),
-            'last_success_ts': float(last_success_ts) if last_success_ts else None,
-            'last_error_ts': float(last_error_ts) if last_error_ts else None,
-            'roles': role_counts,
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "total": int(total),
+                "denied": int(denied),
+                "errors": int(errors),
+                "last_success_ts": float(last_success_ts) if last_success_ts else None,
+                "last_error_ts": float(last_error_ts) if last_error_ts else None,
+                "roles": role_counts,
+            }
+        )
     except (ImportError, AttributeError, TypeError, ValueError, KeyError) as exc:
-        logger.warning("copilot_metrics_json: cache read failed: %s", exc, exc_info=True)
-        return JsonResponse({
-            'success': True,
-            'total': 0,
-            'denied': 0,
-            'errors': 0,
-            'last_success_ts': None,
-            'last_error_ts': None,
-            'roles': [],
-            'warning': str(exc),
-        })
+        logger.warning(
+            "copilot_metrics_json: cache read failed: %s", exc, exc_info=True
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "total": 0,
+                "denied": 0,
+                "errors": 0,
+                "last_success_ts": None,
+                "last_error_ts": None,
+                "roles": [],
+                "warning": str(exc),
+            }
+        )
 
 
 # ============================================
 # ADMIN DASHBOARD API ENDPOINTS
 # ============================================
 
+
 @require_http_methods(["GET", "HEAD"])
 @observability_auth_required
 def api_health(request):
     """API endpoint for dashboard health checks.
-    
+
     Returns system health status, active users, database status.
     Used by dashboard to display system state.
     """
     try:
         result = check_db_liveness()
         if result.get("status") != "healthy":
-            return JsonResponse({
-                "status": "unhealthy",
-                "database": "disconnected",
-                "error": result.get("error", "db check failed"),
-            }, status=503)
-        return JsonResponse({
-            "status": "healthy",
-            "database": "connected",
-            "timestamp": __import__('datetime').datetime.now().isoformat(),
-            "uptime": "running",
-            "cache": "available"
-        })
+            return JsonResponse(
+                {
+                    "status": "unhealthy",
+                    "database": "disconnected",
+                    "error": result.get("error", "db check failed"),
+                },
+                status=503,
+            )
+        return JsonResponse(
+            {
+                "status": "healthy",
+                "database": "connected",
+                "timestamp": __import__("datetime").datetime.now().isoformat(),
+                "uptime": "running",
+                "cache": "available",
+            }
+        )
     except (ValueError, TypeError, KeyError) as exc:
         log_view_exception(
             request,
             "observability.views.api_health: unexpected error after check_db_liveness",
             extra={"error": str(exc)},
         )
-        return JsonResponse({
-            "status": "error",
-            "error": str(exc)
-        }, status=500)
+        return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
 
 @require_GET
 @observability_auth_required
 def api_admin_weather(request):
     """Server-side weather snapshot for admin dashboard widgets (tenant-scoped cache)."""
-    payload = _resolve_weather_payload(_build_admin_weather_config(), scope="admin", request=request)
+    payload = _resolve_weather_payload(
+        _build_admin_weather_config(), scope="admin", request=request
+    )
     return JsonResponse(payload)
 
 
@@ -466,20 +517,30 @@ def api_weather_context(request):
         config = _build_admin_weather_config()
         payload = _resolve_weather_payload(config, scope="context", request=request)
         return JsonResponse(payload)
-    except (OSError, requests.RequestException, ValueError, KeyError, ImportError, AttributeError) as exc:
+    except (
+        OSError,
+        requests.RequestException,
+        ValueError,
+        KeyError,
+        ImportError,
+        AttributeError,
+    ) as exc:
         logger.warning("api_weather_context failed: %s", exc, exc_info=True)
-        return JsonResponse({
-            "status": "disabled",
-            "enabled": False,
-            "label": "Weather",
-            "latitude": 0.0,
-            "longitude": 0.0,
-            "temperature_unit": "celsius",
-            "timezone": "UTC",
-            "cached": False,
-            "stale": False,
-            "weather": None,
-        }, status=200)
+        return JsonResponse(
+            {
+                "status": "disabled",
+                "enabled": False,
+                "label": "Weather",
+                "latitude": 0.0,
+                "longitude": 0.0,
+                "temperature_unit": "celsius",
+                "timezone": "UTC",
+                "cached": False,
+                "stale": False,
+                "weather": None,
+            },
+            status=200,
+        )
 
 
 @require_POST
@@ -490,32 +551,31 @@ def api_notifications_mark_all_read(request):
         from apps.finance.models import Notification
 
         user = request.user
-        qs = Notification.objects.filter(
-            Q(recipient=user) | Q(created_by=user)
-        ).filter(is_read=False)
+        qs = Notification.objects.filter(Q(recipient=user) | Q(created_by=user)).filter(
+            is_read=False
+        )
         updated = qs.update(is_read=True)
-        return JsonResponse({
-            "status": "success",
-            "message": "All notifications marked as read",
-            "count": updated
-        })
+        return JsonResponse(
+            {
+                "status": "success",
+                "message": "All notifications marked as read",
+                "count": updated,
+            }
+        )
     except (IntegrityError, ValidationError, DatabaseError) as exc:
         log_view_exception(
             request,
             "observability.views.api_notifications_mark_all_read: update failed",
             extra={"error": str(exc)},
         )
-        return JsonResponse({
-            "status": "error",
-            "error": str(exc)
-        }, status=500)
+        return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
 
 @require_GET
 @login_required
 def api_notifications(request):
     """API endpoint to fetch recent notifications.
-    
+
     Returns a list of recent system notifications and alerts.
     """
     try:
@@ -524,7 +584,7 @@ def api_notifications(request):
         user = request.user
         notifications_qs = Notification.objects.filter(
             Q(recipient=user) | Q(created_by=user)
-        ).order_by('-created_at')[:50]
+        ).order_by("-created_at")[:50]
         mapped = []
         for notif in notifications_qs:
             notif_type = "info"
@@ -533,52 +593,51 @@ def api_notifications(request):
             elif notif.severity == Notification.Severity.WARNING:
                 notif_type = "warning"
 
-            mapped.append({
-                "id": notif.id,
-                "title": notif.title,
-                "message": notif.message,
-                "type": notif_type,
-                "category": notif.severity,
-                "is_read": notif.is_read,
-                "created_at": notif.created_at.isoformat(),
-                "timestamp": notif.created_at.isoformat(),
-                "link": notif.link,
-            })
+            mapped.append(
+                {
+                    "id": notif.id,
+                    "title": notif.title,
+                    "message": notif.message,
+                    "type": notif_type,
+                    "category": notif.severity,
+                    "is_read": notif.is_read,
+                    "created_at": notif.created_at.isoformat(),
+                    "timestamp": notif.created_at.isoformat(),
+                    "link": notif.link,
+                }
+            )
 
-        return JsonResponse({
-            "status": "success",
-            "notifications": mapped,
-            "count": len(mapped)
-        })
+        return JsonResponse(
+            {"status": "success", "notifications": mapped, "count": len(mapped)}
+        )
     except (IntegrityError, ValidationError, DatabaseError) as exc:
         log_view_exception(
             request,
             "observability.views.api_notifications: query failed",
             extra={"error": str(exc)},
         )
-        return JsonResponse({
-            "status": "error",
-            "error": str(exc)
-        }, status=500)
+        return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
 
 @require_GET
 @observability_auth_required
 def api_activities(request):
     """API endpoint to fetch recent activities/audit logs.
-    
+
     Returns a list of recent system activities, admin actions, and student changes.
     Supports filtering by type and pagination.
     """
     try:
         from django.contrib.admin.models import LogEntry
 
-        page = int(request.GET.get('page', 1))
+        page = int(request.GET.get("page", 1))
         per_page = 10
 
-        logs = LogEntry.objects.select_related("user", "content_type").order_by("-action_time")
+        logs = LogEntry.objects.select_related("user", "content_type").order_by(
+            "-action_time"
+        )
         total = logs.count()
-        logs = logs[(page - 1) * per_page: page * per_page]
+        logs = logs[(page - 1) * per_page : page * per_page]
 
         activities = []
         for entry in logs:
@@ -591,39 +650,40 @@ def api_activities(request):
             else:
                 action_type = "activity"
 
-            activities.append({
-                "id": entry.id,
-                "type": action_type,
-                "title": entry.object_repr,
-                "description": entry.get_change_message() or action_type.title(),
-                "timestamp": entry.action_time.isoformat(),
-                "user": getattr(entry.user, "username", None),
-            })
+            activities.append(
+                {
+                    "id": entry.id,
+                    "type": action_type,
+                    "title": entry.object_repr,
+                    "description": entry.get_change_message() or action_type.title(),
+                    "timestamp": entry.action_time.isoformat(),
+                    "user": getattr(entry.user, "username", None),
+                }
+            )
 
-        return JsonResponse({
-            "status": "success",
-            "activities": activities,
-            "count": len(activities),
-            "total": total,
-            "page": page
-        })
+        return JsonResponse(
+            {
+                "status": "success",
+                "activities": activities,
+                "count": len(activities),
+                "total": total,
+                "page": page,
+            }
+        )
     except (DatabaseError, ValueError, TypeError) as exc:
         log_view_exception(
             request,
             "observability.views.api_activities: LogEntry query failed",
             extra={"error": str(exc)},
         )
-        return JsonResponse({
-            "status": "error",
-            "error": str(exc)
-        }, status=500)
+        return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
 
 @require_GET
 @observability_auth_required
 def api_dashboard_charts(request):
     """API endpoint for dashboard chart data.
-    
+
     Returns data for enrollment trends, fee collection, performance analytics, etc.
     """
     try:
@@ -640,32 +700,51 @@ def api_dashboard_charts(request):
         enrollment_data = [c.total for c in classrooms]
         enrollment = {
             "labels": enrollment_labels,
-            "datasets": [{
-                "label": "Active students",
-                "data": enrollment_data,
-                "borderColor": "#ff6a88",
-                "backgroundColor": "rgba(255, 106, 136, 0.1)",
-                "tension": 0.4,
-                "fill": True,
-                "pointRadius": 4,
-                "pointHoverRadius": 6,
-            }],
+            "datasets": [
+                {
+                    "label": "Active students",
+                    "data": enrollment_data,
+                    "borderColor": "#ff6a88",
+                    "backgroundColor": "rgba(255, 106, 136, 0.1)",
+                    "tension": 0.4,
+                    "fill": True,
+                    "pointRadius": 4,
+                    "pointHoverRadius": 6,
+                }
+            ],
         }
 
         # Fee collection
-        invoiced = Invoice.objects.exclude(status=Invoice.Status.VOID).aggregate(total=Sum("total_amount")).get("total") or 0
-        paid = Payment.objects.filter(status="completed").aggregate(total=Sum("amount")).get("total") or 0
-        overdue_amount = Invoice.objects.filter(status=Invoice.Status.OVERDUE).aggregate(total=Sum("balance_amount")).get("total") or 0
+        invoiced = (
+            Invoice.objects.exclude(status=Invoice.Status.VOID)
+            .aggregate(total=Sum("total_amount"))
+            .get("total")
+            or 0
+        )
+        paid = (
+            Payment.objects.filter(status="completed")
+            .aggregate(total=Sum("amount"))
+            .get("total")
+            or 0
+        )
+        overdue_amount = (
+            Invoice.objects.filter(status=Invoice.Status.OVERDUE)
+            .aggregate(total=Sum("balance_amount"))
+            .get("total")
+            or 0
+        )
         fee_collection = {
             "labels": ["Paid", "Pending", "Overdue"],
-            "datasets": [{
-                "data": [
-                    float(paid),
-                    float(max(invoiced - paid, 0)),
-                    float(overdue_amount or 0),
-                ],
-                "backgroundColor": ['#2dd4bf', '#9b6bff', '#ff6a88'],
-            }],
+            "datasets": [
+                {
+                    "data": [
+                        float(paid),
+                        float(max(invoiced - paid, 0)),
+                        float(overdue_amount or 0),
+                    ],
+                    "backgroundColor": ["#2dd4bf", "#9b6bff", "#ff6a88"],
+                }
+            ],
         }
 
         # Performance by subject (exam score average)
@@ -675,22 +754,29 @@ def api_dashboard_charts(request):
             .annotate(avg=Avg("exam_score"))
             .order_by("-avg")[:6]
         )
-        perf_labels = [row["subject_assignment__subject__name"] or "Subject" for row in subject_scores]
+        perf_labels = [
+            row["subject_assignment__subject__name"] or "Subject"
+            for row in subject_scores
+        ]
         perf_data = [round(float(row["avg"]), 1) for row in subject_scores]
         performance = {
             "labels": perf_labels,
-            "datasets": [{
-                "label": "Average Grade",
-                "data": perf_data,
-                "borderColor": "#9b6bff",
-                "backgroundColor": "rgba(155, 107, 255, 0.1)",
-                "fill": True,
-            }],
+            "datasets": [
+                {
+                    "label": "Average Grade",
+                    "data": perf_data,
+                    "borderColor": "#9b6bff",
+                    "backgroundColor": "rgba(155, 107, 255, 0.1)",
+                    "fill": True,
+                }
+            ],
         }
 
         # Attendance snapshot for the past 7 days
         today = timezone.localdate()
-        window = TeacherAttendance.objects.filter(date__range=(today - __import__('datetime').timedelta(days=6), today))
+        window = TeacherAttendance.objects.filter(
+            date__range=(today - __import__("datetime").timedelta(days=6), today)
+        )
         attendance_counts = {
             "Present": window.filter(status=TeacherAttendance.Status.PRESENT).count(),
             "Absent": window.filter(status=TeacherAttendance.Status.ABSENT).count(),
@@ -699,42 +785,49 @@ def api_dashboard_charts(request):
         }
         attendance = {
             "labels": list(attendance_counts.keys()),
-            "datasets": [{
-                "data": list(attendance_counts.values()),
-                "backgroundColor": ['#2dd4bf', '#ff6a88', '#9b6bff', '#f59e0b'],
-            }],
+            "datasets": [
+                {
+                    "data": list(attendance_counts.values()),
+                    "backgroundColor": ["#2dd4bf", "#ff6a88", "#9b6bff", "#f59e0b"],
+                }
+            ],
         }
 
-        return JsonResponse({
-            "status": "success",
-            "enrollment": enrollment,
-            "feeCollection": fee_collection,
-            "performance": performance,
-            "attendance": attendance,
-        })
+        return JsonResponse(
+            {
+                "status": "success",
+                "enrollment": enrollment,
+                "feeCollection": fee_collection,
+                "performance": performance,
+                "attendance": attendance,
+            }
+        )
     except (DatabaseError, ValueError, TypeError, KeyError) as exc:
         log_view_exception(
             request,
             "observability.views.api_dashboard_charts: chart aggregation failed",
             extra={"error": str(exc)},
         )
-        return JsonResponse({
-            "status": "error",
-            "error": str(exc)
-        }, status=500)
+        return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
 
 def _region_for_school(school) -> tuple[str, str]:
     region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
     region_name = (
-        str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
+        str(
+            getattr(getattr(school, "default_region", None), "name", "") or "Unassigned"
+        )
         if region_code == "UNASSIGNED"
-        else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
+        else str(
+            getattr(getattr(school, "default_region", None), "name", "") or region_code
+        )
     )
     return region_code, region_name
 
 
-def _get_region_bucket(region_metrics: dict[str, dict], region_code: str, region_name: str) -> dict:
+def _get_region_bucket(
+    region_metrics: dict[str, dict], region_code: str, region_name: str
+) -> dict:
     bucket = region_metrics.get(region_code)
     if bucket is None:
         bucket = {
@@ -776,7 +869,12 @@ def _record_webhook_delivery(
     elif normalized_status in inflight_states:
         bucket["webhook_inflight"] += 1
 
-    if normalized_status in delivered_states and start_at and end_at and end_at >= start_at:
+    if (
+        normalized_status in delivered_states
+        and start_at
+        and end_at
+        and end_at >= start_at
+    ):
         latency_ms = (end_at - start_at).total_seconds() * 1000.0
         bucket["delivery_latencies_ms"].append(latency_ms)
         if latency_ms > webhook_latency_target_ms:
@@ -798,14 +896,26 @@ def _platform_incident_payload(incident) -> dict:
         "status": incident.status,
         "summary": incident.summary,
         "source_system": incident.source_system,
-        "affected_school": getattr(getattr(incident, "affected_school", None), "name", None),
+        "affected_school": getattr(
+            getattr(incident, "affected_school", None), "name", None
+        ),
         "affected_schema_name": incident.affected_schema_name,
-        "detected_at": incident.detected_at.isoformat() if incident.detected_at else None,
-        "acknowledged_at": incident.acknowledged_at.isoformat() if incident.acknowledged_at else None,
-        "resolved_at": incident.resolved_at.isoformat() if incident.resolved_at else None,
+        "detected_at": incident.detected_at.isoformat()
+        if incident.detected_at
+        else None,
+        "acknowledged_at": incident.acknowledged_at.isoformat()
+        if incident.acknowledged_at
+        else None,
+        "resolved_at": incident.resolved_at.isoformat()
+        if incident.resolved_at
+        else None,
         "created_by": getattr(getattr(incident, "created_by", None), "username", None),
-        "acknowledged_by": getattr(getattr(incident, "acknowledged_by", None), "username", None),
-        "resolved_by": getattr(getattr(incident, "resolved_by", None), "username", None),
+        "acknowledged_by": getattr(
+            getattr(incident, "acknowledged_by", None), "username", None
+        ),
+        "resolved_by": getattr(
+            getattr(incident, "resolved_by", None), "username", None
+        ),
         "details": incident.details or {},
     }
 
@@ -867,7 +977,9 @@ def api_platform_incidents(request):
         {
             "status": "success",
             "counts": counts,
-            "incidents": [_platform_incident_payload(incident) for incident in incidents[:limit]],
+            "incidents": [
+                _platform_incident_payload(incident) for incident in incidents[:limit]
+            ],
             "webhook_stack": _webhook_stack_summary(),
         }
     )
@@ -886,7 +998,9 @@ def api_platform_incident_status(request, incident_id):
             "resolved_by",
         ).get(pk=incident_id)
     except PlatformIncident.DoesNotExist:
-        return JsonResponse({"status": "error", "error": "Incident not found."}, status=404)
+        return JsonResponse(
+            {"status": "error", "error": "Incident not found."}, status=404
+        )
 
     payload = {}
     if request.body:
@@ -895,7 +1009,9 @@ def api_platform_incident_status(request, incident_id):
         except (TypeError, ValueError, json.JSONDecodeError):
             payload = {}
 
-    action = str(payload.get("action") or request.POST.get("action") or "").strip().lower()
+    action = (
+        str(payload.get("action") or request.POST.get("action") or "").strip().lower()
+    )
     now = timezone.now()
     user = request.user if getattr(request.user, "is_authenticated", False) else None
     update_fields: list[str] = []
@@ -934,12 +1050,16 @@ def api_platform_incident_status(request, incident_id):
         incident.resolved_by = user
         update_fields.extend(["resolved_at", "resolved_by"])
     else:
-        return JsonResponse({"status": "error", "error": "Unsupported incident action."}, status=400)
+        return JsonResponse(
+            {"status": "error", "error": "Unsupported incident action."}, status=400
+        )
 
     if update_fields:
         incident.save(update_fields=list(dict.fromkeys(update_fields + ["updated_at"])))
 
-    return JsonResponse({"status": "success", "incident": _platform_incident_payload(incident)})
+    return JsonResponse(
+        {"status": "success", "incident": _platform_incident_payload(incident)}
+    )
 
 
 @require_GET
@@ -948,7 +1068,10 @@ def api_operational_slo_dashboard(request):
     """Regional go-live SLO dashboard (SEC-608)."""
     from apps.events.models import WebhookDelivery as CanonicalWebhookDelivery
     from apps.schools.models import School
-    from apps.siteconfig.models import SyncConflict, WebhookDelivery as LegacyWebhookDelivery
+    from apps.siteconfig.models import (
+        SyncConflict,
+        WebhookDelivery as LegacyWebhookDelivery,
+    )
 
     try:
         raw_hours = int(request.GET.get("hours", 24))
@@ -958,9 +1081,15 @@ def api_operational_slo_dashboard(request):
 
     now = timezone.now()
     window_start = now - timedelta(hours=window_hours)
-    webhook_success_target = float(getattr(settings, "WEBHOOK_SUCCESS_SLO_PERCENT", 99.0))
-    webhook_latency_target_ms = float(getattr(settings, "WEBHOOK_P95_LATENCY_SLO_MS", 15000.0))
-    pending_conflict_target = int(getattr(settings, "SYNC_CONFLICT_PENDING_SLO_MAX", 10))
+    webhook_success_target = float(
+        getattr(settings, "WEBHOOK_SUCCESS_SLO_PERCENT", 99.0)
+    )
+    webhook_latency_target_ms = float(
+        getattr(settings, "WEBHOOK_P95_LATENCY_SLO_MS", 15000.0)
+    )
+    pending_conflict_target = int(
+        getattr(settings, "SYNC_CONFLICT_PENDING_SLO_MAX", 10)
+    )
 
     region_metrics: dict[str, dict] = {}
     schools = list(
@@ -972,10 +1101,14 @@ def api_operational_slo_dashboard(request):
     for school in schools:
         region_code, region_name = _region_for_school(school)
         school_region_lookup[str(school.id)] = (region_code, region_name)
-        _get_region_bucket(region_metrics, region_code, region_name)["active_schools"] += 1
+        _get_region_bucket(region_metrics, region_code, region_name)[
+            "active_schools"
+        ] += 1
 
     legacy_deliveries = (
-        LegacyWebhookDelivery.objects.filter(created_at__gte=window_start, subscription__is_active=True)
+        LegacyWebhookDelivery.objects.filter(
+            created_at__gte=window_start, subscription__is_active=True
+        )
         .select_related("subscription__school__default_region")
         .only(
             "status",
@@ -994,7 +1127,8 @@ def api_operational_slo_dashboard(request):
             bucket,
             status=getattr(delivery, "status", ""),
             start_at=getattr(delivery, "created_at", None),
-            end_at=getattr(delivery, "delivered_at", None) or getattr(delivery, "last_attempt_at", None),
+            end_at=getattr(delivery, "delivered_at", None)
+            or getattr(delivery, "last_attempt_at", None),
             webhook_latency_target_ms=webhook_latency_target_ms,
             delivered_states={"DELIVERED"},
             dead_states={"DEAD_LETTER"},
@@ -1016,18 +1150,26 @@ def api_operational_slo_dashboard(request):
     for delivery in canonical_deliveries:
         subscription = getattr(delivery, "subscription", None)
         domain_event = getattr(delivery, "domain_event", None)
-        school_id = getattr(subscription, "school_id", None) or getattr(domain_event, "school_id", None)
-        region_code, region_name = school_region_lookup.get(str(school_id), ("UNASSIGNED", "Unassigned"))
+        school_id = getattr(subscription, "school_id", None) or getattr(
+            domain_event, "school_id", None
+        )
+        region_code, region_name = school_region_lookup.get(
+            str(school_id), ("UNASSIGNED", "Unassigned")
+        )
         bucket = _get_region_bucket(region_metrics, region_code, region_name)
         _record_webhook_delivery(
             bucket,
             status=getattr(delivery, "status", ""),
             start_at=getattr(delivery, "created_at", None),
-            end_at=getattr(delivery, "delivered_at", None) or getattr(delivery, "attempted_at", None),
+            end_at=getattr(delivery, "delivered_at", None)
+            or getattr(delivery, "attempted_at", None),
             webhook_latency_target_ms=webhook_latency_target_ms,
             delivered_states={CanonicalWebhookDelivery.Status.DELIVERED},
             dead_states={CanonicalWebhookDelivery.Status.FAILED},
-            inflight_states={CanonicalWebhookDelivery.Status.PENDING, CanonicalWebhookDelivery.Status.SENT},
+            inflight_states={
+                CanonicalWebhookDelivery.Status.PENDING,
+                CanonicalWebhookDelivery.Status.SENT,
+            },
         )
 
     conflict_window = (
@@ -1067,10 +1209,14 @@ def api_operational_slo_dashboard(request):
         bucket = region_metrics[region_code]
         webhook_total = int(bucket["webhook_total"])
         webhook_delivered = int(bucket["webhook_delivered"])
-        webhook_success_rate = _percent(webhook_delivered, webhook_total, fallback=100.0)
+        webhook_success_rate = _percent(
+            webhook_delivered, webhook_total, fallback=100.0
+        )
         webhook_error_rate = round(max(0.0, 100.0 - webhook_success_rate), 2)
         allowed_error_rate = round(max(0.0, 100.0 - webhook_success_target), 2)
-        error_budget_remaining = round(max(0.0, allowed_error_rate - webhook_error_rate), 2)
+        error_budget_remaining = round(
+            max(0.0, allowed_error_rate - webhook_error_rate), 2
+        )
         error_budget_burn = round(max(0.0, webhook_error_rate - allowed_error_rate), 2)
 
         latencies = [float(value) for value in bucket["delivery_latencies_ms"]]
@@ -1083,14 +1229,15 @@ def api_operational_slo_dashboard(request):
 
         sync_total_window = int(bucket["sync_conflicts_total_window"])
         sync_resolved_window = int(bucket["sync_conflicts_resolved_window"])
-        sync_resolution_rate = _percent(sync_resolved_window, sync_total_window, fallback=100.0)
+        sync_resolution_rate = _percent(
+            sync_resolved_window, sync_total_window, fallback=100.0
+        )
         sync_pending = int(bucket["sync_conflicts_pending"])
 
         status = "healthy"
-        if (
-            webhook_success_rate < max(0.0, webhook_success_target - 2.0)
-            or sync_pending > (pending_conflict_target * 2)
-        ):
+        if webhook_success_rate < max(
+            0.0, webhook_success_target - 2.0
+        ) or sync_pending > (pending_conflict_target * 2):
             status = "critical"
         elif (
             webhook_success_rate < webhook_success_target
@@ -1153,7 +1300,9 @@ def api_operational_slo_dashboard(request):
         "regions": region_rows,
         "webhook_stack": _webhook_stack_summary(),
     }
-    if request.GET.get("format") == "html" or (request.META.get("HTTP_ACCEPT") or "").strip().split(",")[0].strip().startswith("text/html"):
+    if request.GET.get("format") == "html" or (
+        request.META.get("HTTP_ACCEPT") or ""
+    ).strip().split(",")[0].strip().startswith("text/html"):
         try:
             data["dashboard_url"] = reverse("super:dashboard")
         except NoReverseMatch:
@@ -1166,8 +1315,11 @@ def api_operational_slo_dashboard(request):
 # ADMIN DASHBOARD - Backend/System Management
 # ============================================
 
+
 @login_required
-@user_passes_test(lambda u: u.is_staff or u.is_superuser or getattr(u, "role", None) == "ADMIN")
+@user_passes_test(
+    lambda u: u.is_staff or u.is_superuser or getattr(u, "role", None) == "ADMIN"
+)
 def admin_dashboard(request):
     """Legacy alias for the admin dashboard."""
     return redirect("admin:index")
@@ -1180,6 +1332,7 @@ def admin_dashboard(request):
 def runtime_inspect(request):
     """Admin tool: What's driving this? — effective runtime summary, resolver registry, and debug sources (plan C3 / metadata-driven observability)."""
     from apps.platform_runtime.resolver_registry import RESOLVER_ENTRY_POINTS
+
     rt = getattr(request, "tenant_runtime", None)
     route = getattr(rt, "route", None) if rt else None
     tenant_identity = getattr(rt, "tenant", None) if rt else None
@@ -1188,7 +1341,9 @@ def runtime_inspect(request):
         "resolvers": [{"name": n, "location": loc} for n, loc in RESOLVER_ENTRY_POINTS],
         "tenant_runtime_present": rt is not None,
         "surface": getattr(route, "surface", None) if route else None,
-        "identity_slug": getattr(tenant_identity, "slug", None) if tenant_identity else None,
+        "identity_slug": getattr(tenant_identity, "slug", None)
+        if tenant_identity
+        else None,
     }
     if debug is not None:
         payload["resolved_sources"] = {

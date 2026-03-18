@@ -5,32 +5,65 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0033_apprentice_placement'),
-        ('schools', '0014_signup_verification'),
+        ("people", "0033_apprentice_placement"),
+        ("schools", "0014_signup_verification"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='VocationalCertification',
+            name="VocationalCertification",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(help_text='e.g. FAA Medical, Nursing License', max_length=255)),
-                ('issue_date', models.DateField(blank=True, null=True)),
-                ('expiry_date', models.DateField(blank=True, help_text='When set, used for expiry alerts', null=True)),
-                ('issuing_body', models.CharField(blank=True, max_length=255)),
-                ('credential_id', models.CharField(blank=True, max_length=120)),
-                ('notes', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='vocational_certifications', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='vocational_certifications', to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        help_text="e.g. FAA Medical, Nursing License", max_length=255
+                    ),
+                ),
+                ("issue_date", models.DateField(blank=True, null=True)),
+                (
+                    "expiry_date",
+                    models.DateField(
+                        blank=True,
+                        help_text="When set, used for expiry alerts",
+                        null=True,
+                    ),
+                ),
+                ("issuing_body", models.CharField(blank=True, max_length=255)),
+                ("credential_id", models.CharField(blank=True, max_length=120)),
+                ("notes", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="vocational_certifications",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="vocational_certifications",
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Vocational certification',
-                'verbose_name_plural': 'Vocational certifications',
-                'ordering': ['-expiry_date', 'name'],
+                "verbose_name": "Vocational certification",
+                "verbose_name_plural": "Vocational certifications",
+                "ordering": ["-expiry_date", "name"],
             },
         ),
     ]

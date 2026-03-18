@@ -4,15 +4,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0025_delete_geoiplocation_and_more'),
+        ("siteconfig", "0025_delete_geoiplocation_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='theme_brightness',
-            field=models.CharField(choices=[('system', 'System'), ('light', 'Light'), ('dark', 'Dark'), ('classic', 'Classic'), ('high_contrast', 'High Contrast')], default='system', help_text='Choose default theme brightness (System/Light/Dark/Classic/High Contrast).', max_length=16),
+            model_name="sitesettings",
+            name="theme_brightness",
+            field=models.CharField(
+                choices=[
+                    ("system", "System"),
+                    ("light", "Light"),
+                    ("dark", "Dark"),
+                    ("classic", "Classic"),
+                    ("high_contrast", "High Contrast"),
+                ],
+                default="system",
+                help_text="Choose default theme brightness (System/Light/Dark/Classic/High Contrast).",
+                max_length=16,
+            ),
         ),
     ]

@@ -35,13 +35,18 @@ class Command(BaseCommand):
         # 1. Django system check (optional for this command: URL/smoke only need test DB + migrations)
         self.stdout.write("Running Django system checks...")
         from django.core.management import call_command
+
         try:
             call_command("check", verbosity=0)
             self.stdout.write(self.style.SUCCESS("  Django check passed."))
         except (CommandError, SystemExit) as e:
             check_failed = True
             self.stdout.write(self.style.ERROR(f"  Django check failed: {e}"))
-            self.stdout.write(self.style.WARNING("  (URL resolution and smoke tests do not depend on check; continuing.)"))
+            self.stdout.write(
+                self.style.WARNING(
+                    "  (URL resolution and smoke tests do not depend on check; continuing.)"
+                )
+            )
 
         # 2. Resolve key marketing URL names
         url_names = [
@@ -74,9 +79,17 @@ class Command(BaseCommand):
             self.stdout.write("Smoke-testing key URLs (test client)...")
             from django.test import Client
             from apps.schools.host_routing import get_canonical_base_domain
+
             client = Client()
             host = get_canonical_base_domain() or "runmycampus.com"
-            smoke_names = ["marketing_landing", "marketing_book_demo", "marketing_10_reasons", "marketing_integrations", "marketing_app_marketplace", "marketing_developers"]
+            smoke_names = [
+                "marketing_landing",
+                "marketing_book_demo",
+                "marketing_10_reasons",
+                "marketing_integrations",
+                "marketing_app_marketplace",
+                "marketing_developers",
+            ]
             paths = []
             for name in smoke_names:
                 try:
@@ -90,15 +103,31 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.SUCCESS(f"  GET {path} -> 200"))
                     else:
                         errors.append(f"GET {path} -> {resp.status_code}")
-                        self.stdout.write(self.style.WARNING(f"  GET {path} -> {resp.status_code}"))
-                except (OSError, ConnectionError, ValueError, TypeError, KeyError, AttributeError, RuntimeError) as e:
+                        self.stdout.write(
+                            self.style.WARNING(f"  GET {path} -> {resp.status_code}")
+                        )
+                except (
+                    OSError,
+                    ConnectionError,
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    AttributeError,
+                    RuntimeError,
+                ) as e:
                     errors.append(f"GET {path}: {e}")
                     self.stdout.write(self.style.ERROR(f"  GET {path}: {e}"))
 
         if check_failed:
-            self.stdout.write(self.style.WARNING("\nDjango check failed; fix with 'manage.py check' before full deploy."))
+            self.stdout.write(
+                self.style.WARNING(
+                    "\nDjango check failed; fix with 'manage.py check' before full deploy."
+                )
+            )
         if errors:
-            self.stdout.write(self.style.ERROR("\nValidation had issues. Fix before release."))
+            self.stdout.write(
+                self.style.ERROR("\nValidation had issues. Fix before release.")
+            )
             for e in errors:
                 self.stdout.write(self.style.ERROR(f"  - {e}"))
             raise SystemExit(1)

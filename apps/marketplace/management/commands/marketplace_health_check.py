@@ -4,6 +4,7 @@ Can be run from cron or via Celery beat. Use status=ok unless an optional check 
 Run: python manage.py marketplace_health_check
 §2.4: Typed exception tuple for record_installation_health loop (no broad except).
 """
+
 import logging
 from django.core.management.base import BaseCommand
 
@@ -40,7 +41,11 @@ class Command(BaseCommand):
         ).select_related("app", "school")
         count = qs.count()
         if dry_run:
-            self.stdout.write(self.style.WARNING(f"Dry run: would update {count} installations with status={status}."))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Dry run: would update {count} installations with status={status}."
+                )
+            )
             return
         updated = 0
         for inst in qs:
@@ -53,4 +58,8 @@ class Command(BaseCommand):
                     school_id=getattr(inst, "school_id", None),
                     extra={"installation_id": inst.pk, "error": str(e)},
                 )
-        self.stdout.write(self.style.SUCCESS(f"Updated health for {updated} installations (status={status})."))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Updated health for {updated} installations (status={status})."
+            )
+        )

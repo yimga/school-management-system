@@ -12,11 +12,12 @@
         <table class="table table-sm table-bordered">
           <thead class="table-light">
             <tr>
-              <th>Student</th>
-              <th>Score</th>
-              <th>Band</th>
-              <th>Why</th>
-              <th>Computed</th>
+              <th>{% trans "Student" %}</th>
+              <th>{% trans "Score" %}</th>
+              <th>{% trans "Band" %}</th>
+              <th>{% trans "Why" %}</th>
+              <th>{% trans "Computed" %}</th>
+              <th>{% trans "Intervention" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -25,16 +26,27 @@
               <td>{{ r.student.get_full_name|default:r.student_id }}</td>
               <td>{{ r.score }}</td>
               <td>
-                {% if r.band == 'red' %}<span class="badge bg-danger">Red</span>
-                {% elif r.band == 'amber' %}<span class="badge bg-warning text-dark">Amber</span>
-                {% else %}<span class="badge bg-success">Green</span>{% endif %}
+                {% if r.band == 'red' %}<span class="badge bg-danger">{% trans "Red" %}</span>
+                {% elif r.band == 'amber' %}<span class="badge bg-warning text-dark">{% trans "Amber" %}</span>
+                {% else %}<span class="badge bg-success">{% trans "Green" %}</span>{% endif %}
               </td>
               <td>{{ r.reason_summary|default:"—" }}</td>
               <td>{{ r.computed_at|date:"M d, Y H:i" }}</td>
+              <td>
+                {% if r.band == 'red' or r.band == 'amber' %}
+                <form method="post" action="{% url 'analytics:at_risk_intervention_action' %}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="start">
+                  <input type="hidden" name="student_id" value="{{ r.student_id }}">
+                  <input type="text" name="action_taken" class="form-control form-control-sm mb-1" placeholder="{% trans 'e.g. Counselor contact' %}" maxlength="100">
+                  <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Log intervention" %}</button>
+                </form>
+                {% else %}—{% endif %}
+              </td>
             </tr>
             {% empty %}
             <tr>
-              <td colspan="5" class="p-0">
+              <td colspan="6" class="p-0">
                 <div class="py-3 px-2">
                   {% load i18n %}
                   {% url 'analytics:master_sheet' as master_url %}
@@ -51,12 +63,31 @@
   {% if interventions %}
   <div class="card shadow-sm">
     <div class="card-body">
-      <h6 class="mb-2">Ongoing interventions</h6>
-      <ul class="list-unstyled mb-0">
-        {% for i in interventions %}
-        <li>{{ i.student.get_full_name }} — {{ i.action_taken }}: {{ i.trigger_reason }} ({{ i.get_status_display }})</li>
-        {% endfor %}
-      </ul>
+      <h6 class="mb-3">{% trans "Ongoing interventions" %}</h6>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead><tr><th>{% trans "Student" %}</th><th>{% trans "Action" %}</th><th>{% trans "Trigger" %}</th><th></th></tr></thead>
+          <tbody>
+            {% for i in interventions %}
+            <tr>
+              <td>{{ i.student.get_full_name }}</td>
+              <td>{{ i.action_taken }}</td>
+              <td class="small text-muted">{{ i.trigger_reason|truncatechars:80 }}</td>
+              <td class="text-nowrap">
+                <form method="post" action="{% url 'analytics:at_risk_intervention_action' %}" class="d-inline">{% csrf_token %}
+                  <input type="hidden" name="action" value="resolve"><input type="hidden" name="intervention_id" value="{{ i.id }}">
+                  <button type="submit" class="btn btn-sm btn-success">{% trans "Resolve" %}</button>
+                </form>
+                <form method="post" action="{% url 'analytics:at_risk_intervention_action' %}" class="d-inline">{% csrf_token %}
+                  <input type="hidden" name="action" value="dismiss"><input type="hidden" name="intervention_id" value="{{ i.id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Dismiss" %}</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   {% endif %}

@@ -2,12 +2,15 @@
 Part F 16.5: Offline-first sync engine — pending changes and apply remote.
 Teachers can do attendance, grade entry, notes offline; sync engine resolves conflicts.
 """
+
 from __future__ import annotations
 
 from typing import Any
 
 
-def get_pending_changes(school_id: int, user_id: int, device_id: str | None = None) -> list[dict[str, Any]]:
+def get_pending_changes(
+    school_id: int, user_id: int, device_id: str | None = None
+) -> list[dict[str, Any]]:
     """
     Return list of pending offline changes (e.g. attendance, grade entry, notes) not yet synced.
     Each item: { "entity": str, "id": str, "action": "create"|"update"|"delete", "payload": dict }.

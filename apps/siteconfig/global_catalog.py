@@ -86,16 +86,106 @@ _ALPHA2_TO_ALPHA3_FALLBACK = {
 _ALPHA3_TO_ALPHA2_FALLBACK = {v: k for k, v in _ALPHA2_TO_ALPHA3_FALLBACK.items()}
 
 _FALLBACK_CITIES: list[dict[str, Any]] = [
-    {"id": "CMR_DOUALA", "country_code": "CMR", "country_code_alpha2": "CM", "city": "Douala", "timezone": "Africa/Douala", "latitude": 4.0483, "longitude": 9.7043, "population": 3768000},
-    {"id": "CMR_YAOUNDE", "country_code": "CMR", "country_code_alpha2": "CM", "city": "Yaounde", "timezone": "Africa/Douala", "latitude": 3.848, "longitude": 11.5021, "population": 4300000},
-    {"id": "UGA_KAMPALA", "country_code": "UGA", "country_code_alpha2": "UG", "city": "Kampala", "timezone": "Africa/Kampala", "latitude": 0.3476, "longitude": 32.5825, "population": 1681000},
-    {"id": "NGA_LAGOS", "country_code": "NGA", "country_code_alpha2": "NG", "city": "Lagos", "timezone": "Africa/Lagos", "latitude": 6.5244, "longitude": 3.3792, "population": 15000000},
-    {"id": "KEN_NAIROBI", "country_code": "KEN", "country_code_alpha2": "KE", "city": "Nairobi", "timezone": "Africa/Nairobi", "latitude": -1.2921, "longitude": 36.8219, "population": 4397000},
-    {"id": "GBR_LONDON", "country_code": "GBR", "country_code_alpha2": "GB", "city": "London", "timezone": "Europe/London", "latitude": 51.5072, "longitude": -0.1276, "population": 9648000},
-    {"id": "FRA_PARIS", "country_code": "FRA", "country_code_alpha2": "FR", "city": "Paris", "timezone": "Europe/Paris", "latitude": 48.8566, "longitude": 2.3522, "population": 11020000},
-    {"id": "USA_NEW_YORK", "country_code": "USA", "country_code_alpha2": "US", "city": "New York", "timezone": "America/New_York", "latitude": 40.7128, "longitude": -74.006, "population": 18800000},
-    {"id": "USA_LOS_ANGELES", "country_code": "USA", "country_code_alpha2": "US", "city": "Los Angeles", "timezone": "America/Los_Angeles", "latitude": 34.0522, "longitude": -118.2437, "population": 12400000},
-    {"id": "JPN_TOKYO", "country_code": "JPN", "country_code_alpha2": "JP", "city": "Tokyo", "timezone": "Asia/Tokyo", "latitude": 35.6762, "longitude": 139.6503, "population": 37115000},
+    {
+        "id": "CMR_DOUALA",
+        "country_code": "CMR",
+        "country_code_alpha2": "CM",
+        "city": "Douala",
+        "timezone": "Africa/Douala",
+        "latitude": 4.0483,
+        "longitude": 9.7043,
+        "population": 3768000,
+    },
+    {
+        "id": "CMR_YAOUNDE",
+        "country_code": "CMR",
+        "country_code_alpha2": "CM",
+        "city": "Yaounde",
+        "timezone": "Africa/Douala",
+        "latitude": 3.848,
+        "longitude": 11.5021,
+        "population": 4300000,
+    },
+    {
+        "id": "UGA_KAMPALA",
+        "country_code": "UGA",
+        "country_code_alpha2": "UG",
+        "city": "Kampala",
+        "timezone": "Africa/Kampala",
+        "latitude": 0.3476,
+        "longitude": 32.5825,
+        "population": 1681000,
+    },
+    {
+        "id": "NGA_LAGOS",
+        "country_code": "NGA",
+        "country_code_alpha2": "NG",
+        "city": "Lagos",
+        "timezone": "Africa/Lagos",
+        "latitude": 6.5244,
+        "longitude": 3.3792,
+        "population": 15000000,
+    },
+    {
+        "id": "KEN_NAIROBI",
+        "country_code": "KEN",
+        "country_code_alpha2": "KE",
+        "city": "Nairobi",
+        "timezone": "Africa/Nairobi",
+        "latitude": -1.2921,
+        "longitude": 36.8219,
+        "population": 4397000,
+    },
+    {
+        "id": "GBR_LONDON",
+        "country_code": "GBR",
+        "country_code_alpha2": "GB",
+        "city": "London",
+        "timezone": "Europe/London",
+        "latitude": 51.5072,
+        "longitude": -0.1276,
+        "population": 9648000,
+    },
+    {
+        "id": "FRA_PARIS",
+        "country_code": "FRA",
+        "country_code_alpha2": "FR",
+        "city": "Paris",
+        "timezone": "Europe/Paris",
+        "latitude": 48.8566,
+        "longitude": 2.3522,
+        "population": 11020000,
+    },
+    {
+        "id": "USA_NEW_YORK",
+        "country_code": "USA",
+        "country_code_alpha2": "US",
+        "city": "New York",
+        "timezone": "America/New_York",
+        "latitude": 40.7128,
+        "longitude": -74.006,
+        "population": 18800000,
+    },
+    {
+        "id": "USA_LOS_ANGELES",
+        "country_code": "USA",
+        "country_code_alpha2": "US",
+        "city": "Los Angeles",
+        "timezone": "America/Los_Angeles",
+        "latitude": 34.0522,
+        "longitude": -118.2437,
+        "population": 12400000,
+    },
+    {
+        "id": "JPN_TOKYO",
+        "country_code": "JPN",
+        "country_code_alpha2": "JP",
+        "city": "Tokyo",
+        "timezone": "Asia/Tokyo",
+        "latitude": 35.6762,
+        "longitude": 139.6503,
+        "population": 37115000,
+    },
 ]
 
 
@@ -152,14 +242,20 @@ class GlobalGeoCatalog:
 
     @classmethod
     @lru_cache(maxsize=1)
-    def _build_city_indexes(cls) -> tuple[dict[str, list[dict[str, Any]]], dict[str, dict[str, Any]], dict[str, str]]:
+    def _build_city_indexes(
+        cls,
+    ) -> tuple[
+        dict[str, list[dict[str, Any]]], dict[str, dict[str, Any]], dict[str, str]
+    ]:
         country_index: dict[str, list[dict[str, Any]]] = {}
         by_id: dict[str, dict[str, Any]] = {}
         dominant_timezone: dict[str, tuple[str, int]] = {}
 
         def _add_city(row: dict[str, Any]) -> None:
             alpha3 = cls.normalize_country_code(row.get("country_code"))
-            alpha2 = str(row.get("country_code_alpha2") or cls.alpha2_for_country(alpha3)).upper()
+            alpha2 = str(
+                row.get("country_code_alpha2") or cls.alpha2_for_country(alpha3)
+            ).upper()
             if not alpha3:
                 return
             city_id = str(row.get("id") or "")
@@ -222,7 +318,12 @@ class GlobalGeoCatalog:
             )
 
         for code, rows in country_index.items():
-            rows.sort(key=lambda item: (-int(item.get("population") or 0), str(item.get("city") or "").lower()))
+            rows.sort(
+                key=lambda item: (
+                    -int(item.get("population") or 0),
+                    str(item.get("city") or "").lower(),
+                )
+            )
             country_index[code] = rows
 
         timezone_map = {code: value[0] for code, value in dominant_timezone.items()}
@@ -290,7 +391,10 @@ class GlobalGeoCatalog:
                 "currency": "USD",
                 "default_language": "en",
             }
-        country_row = next((row for row in cls.list_countries() if row["code"] == code), None) or {}
+        country_row = (
+            next((row for row in cls.list_countries() if row["code"] == code), None)
+            or {}
+        )
         return {
             "country_code": code,
             "country_name": str(country_row.get("name") or code),
@@ -300,7 +404,9 @@ class GlobalGeoCatalog:
         }
 
     @classmethod
-    def get_city(cls, city_id: str | None, country_code: str | None = None) -> dict[str, Any] | None:
+    def get_city(
+        cls, city_id: str | None, country_code: str | None = None
+    ) -> dict[str, Any] | None:
         value = (city_id or "").strip()
         if not value:
             return None
@@ -354,7 +460,12 @@ class GlobalGeoCatalog:
                 contains.append(row)
 
         ranked = starts_with + contains
-        ranked.sort(key=lambda item: (-int(item.get("population") or 0), str(item.get("city") or "").lower()))
+        ranked.sort(
+            key=lambda item: (
+                -int(item.get("population") or 0),
+                str(item.get("city") or "").lower(),
+            )
+        )
         return [dict(row) for row in ranked[:cap]]
 
     @classmethod
@@ -371,7 +482,9 @@ class GlobalGeoCatalog:
         country_index, _, _ = cls._build_city_indexes()
 
         if country and country in country_index:
-            values = sorted({str(row.get("timezone") or "UTC") for row in country_index[country]})
+            values = sorted(
+                {str(row.get("timezone") or "UTC") for row in country_index[country]}
+            )
         else:
             values = sorted(set(pytz.all_timezones))
 

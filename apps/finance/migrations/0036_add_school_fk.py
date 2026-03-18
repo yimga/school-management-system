@@ -5,26 +5,43 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0035_payment_physical_receipt_book_serial_and_more'),
-        ('schools', '0001_initial'),
+        ("finance", "0035_payment_physical_receipt_book_serial_and_more"),
+        ("schools", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='feeplan',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='fee_plans', to='schools.school'),
+            model_name="feeplan",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="fee_plans",
+                to="schools.school",
+            ),
         ),
         migrations.AddField(
-            model_name='invoice',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='invoices', to='schools.school'),
+            model_name="invoice",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="invoices",
+                to="schools.school",
+            ),
         ),
         migrations.AddField(
-            model_name='payment',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='schools.school'),
+            model_name="payment",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="payments",
+                to="schools.school",
+            ),
         ),
     ]

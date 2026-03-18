@@ -3,6 +3,7 @@ Section 23.4 & 24.8: Policy-driven form field visibility, required/optional, pic
 document requirements, validation rules, default values.
 All form behavior is driven by policy["forms"][form_name] so config is metadata-driven (24.8).
 """
+
 import logging
 from typing import Any, Dict, List
 
@@ -62,38 +63,53 @@ def _resolve_choices_for_key(choices_key: str, school=None) -> list:
     if choices_key == "gender":
         try:
             from apps.people.models import StudentProfile
+
             return list(StudentProfile.Gender.choices)
         except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
-            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
+            logger.debug(
+                "form_policy: resolve choices_key=%s failed: %s", choices_key, e
+            )
             return []
     if choices_key == "relationship":
         try:
             from apps.people.models import StudentGuardian
+
             return list(StudentGuardian.Relationship.choices)
         except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
-            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
+            logger.debug(
+                "form_policy: resolve choices_key=%s failed: %s", choices_key, e
+            )
             return []
     if choices_key == "preferred_contact":
         try:
             from apps.people.models import StudentGuardian
+
             return list(StudentGuardian.PreferredContact.choices)
         except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
-            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
+            logger.debug(
+                "form_policy: resolve choices_key=%s failed: %s", choices_key, e
+            )
             return []
     if choices_key == "student_status":
         try:
             from apps.people.models import StudentProfile
+
             return list(StudentProfile.Status.choices)
         except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
-            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
+            logger.debug(
+                "form_policy: resolve choices_key=%s failed: %s", choices_key, e
+            )
             return []
     if choices_key == "payment_method":
         try:
             from apps.finance.models import PaymentMethod
+
             qs = PaymentMethod.objects.filter(is_active=True)
             return [(str(m.id), m.name) for m in qs[:50]]
         except _FORM_POLICY_CHOICES_RESOLVE_ERRORS as e:
-            logger.debug("form_policy: resolve choices_key=%s failed: %s", choices_key, e)
+            logger.debug(
+                "form_policy: resolve choices_key=%s failed: %s", choices_key, e
+            )
             return []
     # Future: choices_key "region", "education_level" from registries
     return []
@@ -149,15 +165,40 @@ def default_forms_platform() -> Dict[str, Any]:
     return {
         "link_child": {
             "fields": [
-                {"name": "admission_number", "visible": True, "required": True, "label": "Admission number"},
-                {"name": "relationship", "visible": True, "required": True, "choices_key": "relationship"},
+                {
+                    "name": "admission_number",
+                    "visible": True,
+                    "required": True,
+                    "label": "Admission number",
+                },
+                {
+                    "name": "relationship",
+                    "visible": True,
+                    "required": True,
+                    "choices_key": "relationship",
+                },
                 {"name": "phone", "visible": True, "required": False},
-                {"name": "preferred_contact", "visible": True, "required": False, "choices_key": "preferred_contact"},
+                {
+                    "name": "preferred_contact",
+                    "visible": True,
+                    "required": False,
+                    "choices_key": "preferred_contact",
+                },
                 {"name": "referral_code", "visible": True, "required": False},
                 {"name": "student_date_of_birth", "visible": True, "required": False},
                 {"name": "student_place_of_birth", "visible": True, "required": False},
-                {"name": "student_gender", "visible": True, "required": False, "choices_key": "gender"},
-                {"name": "student_status", "visible": True, "required": False, "choices_key": "student_status"},
+                {
+                    "name": "student_gender",
+                    "visible": True,
+                    "required": False,
+                    "choices_key": "gender",
+                },
+                {
+                    "name": "student_status",
+                    "visible": True,
+                    "required": False,
+                    "choices_key": "student_status",
+                },
                 {"name": "student_joined_term", "visible": True, "required": False},
                 {"name": "student_joined_date", "visible": True, "required": False},
                 {"name": "parent_first_name", "visible": True, "required": False},
@@ -174,7 +215,12 @@ def default_forms_platform() -> Dict[str, Any]:
                 {"name": "first_name", "visible": True, "required": True},
                 {"name": "last_name", "visible": True, "required": True},
                 {"name": "date_of_birth", "visible": True, "required": False},
-                {"name": "gender", "visible": True, "required": False, "choices_key": "gender"},
+                {
+                    "name": "gender",
+                    "visible": True,
+                    "required": False,
+                    "choices_key": "gender",
+                },
                 {"name": "place_of_birth", "visible": True, "required": False},
                 {"name": "academic_year", "visible": True, "required": False},
                 {"name": "specialty", "visible": True, "required": False},
@@ -185,7 +231,12 @@ def default_forms_platform() -> Dict[str, Any]:
                 {"name": "parent_email", "visible": True, "required": False},
                 {"name": "parent_phone", "visible": True, "required": False},
                 {"name": "parent_whatsapp", "visible": True, "required": False},
-                {"name": "payment_method", "visible": True, "required": False, "choices_key": "payment_method"},
+                {
+                    "name": "payment_method",
+                    "visible": True,
+                    "required": False,
+                    "choices_key": "payment_method",
+                },
                 {"name": "referral_code", "visible": True, "required": False},
                 {"name": "profile_photo", "visible": True, "required": False},
             ],

@@ -34,11 +34,12 @@ def add_heritage_report_style(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0078_seed_reportcard_style_catalog"),
     ]
 
     operations = [
-        migrations.RunPython(add_heritage_report_style, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(
+            add_heritage_report_style, reverse_code=migrations.RunPython.noop
+        ),
     ]

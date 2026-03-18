@@ -78,12 +78,16 @@ class StudentProfileAdminForm(forms.ModelForm):
             spec = cleaned.get("specialty")
             classroom = cleaned.get("classroom")
             if acad and spec and classroom:
-                cleaned["admission_number"] = StudentProfile.generate_admission_number(acad, spec, classroom)
+                cleaned["admission_number"] = StudentProfile.generate_admission_number(
+                    acad, spec, classroom
+                )
                 self.cleaned_data["admission_number"] = cleaned["admission_number"]
 
         # If parent phone missing, reuse guardian phone (if any)
         instance = self.instance
-        parent_phone = cleaned.get("parent_phone") or getattr(instance, "parent_phone", "")
+        parent_phone = cleaned.get("parent_phone") or getattr(
+            instance, "parent_phone", ""
+        )
         if not parent_phone and instance.pk:
             guardian = instance.guardian_links.first()
             if guardian and guardian.phone:
@@ -111,63 +115,98 @@ class TeacherProfileAdmin(ModelAdmin):
         "salary_amount",
         "next_pay_date",
     )
-    search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "staff_id")
-    list_filter = ("department", "pay_scale", "default_dashboard_view", "allow_leave_approvals", "allow_finance_panel")
+    search_fields = (
+        "user__username",
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+        "staff_id",
+    )
+    list_filter = (
+        "department",
+        "pay_scale",
+        "default_dashboard_view",
+        "allow_leave_approvals",
+        "allow_finance_panel",
+    )
     list_per_page = 50  # PERFORMANCE: Add pagination
     show_full_result_count = False
     fieldsets = (
-        ("Basic Information", {
-            "fields": ("user", "staff_id", "phone", "profile_photo", "is_active")
-        }),
-        ("Position & Department", {
-            "fields": ("position_title", "department", "reports_to")
-        }),
-        ("Compensation", {
-            "fields": ("pay_scale", "pay_grade", "salary_amount", "salary_cap", "next_pay_date", "paystub_notes"),
-            "description": "Assign a pay scale for structured salary management, or use pay_grade (legacy text field) and salary_amount directly."
-        }),
-        ("Payment Method", {
-            "fields": ("payment_method",)
-        }),
-        ("Dashboard & Permissions", {
-            "fields": (
-                "default_dashboard_view",
-                "allow_finance_panel",
-                "allow_paystub_access",
-                "allow_leave_approvals",
-                "mark_reminder_opt_in",
-            )
-        }),
+        (
+            "Basic Information",
+            {"fields": ("user", "staff_id", "phone", "profile_photo", "is_active")},
+        ),
+        (
+            "Position & Department",
+            {"fields": ("position_title", "department", "reports_to")},
+        ),
+        (
+            "Compensation",
+            {
+                "fields": (
+                    "pay_scale",
+                    "pay_grade",
+                    "salary_amount",
+                    "salary_cap",
+                    "next_pay_date",
+                    "paystub_notes",
+                ),
+                "description": "Assign a pay scale for structured salary management, or use pay_grade (legacy text field) and salary_amount directly.",
+            },
+        ),
+        ("Payment Method", {"fields": ("payment_method",)}),
+        (
+            "Dashboard & Permissions",
+            {
+                "fields": (
+                    "default_dashboard_view",
+                    "allow_finance_panel",
+                    "allow_paystub_access",
+                    "allow_leave_approvals",
+                    "mark_reminder_opt_in",
+                )
+            },
+        ),
         (
             "Custom attributes (Phase C)",
             {
                 "fields": ("custom_attributes",),
-                "description": _("Key/value pairs for school-defined custom fields. Define keys in School → Settings → custom_field_definitions.staff (e.g. [{\"key\": \"certifications\", \"label\": \"Certifications\", \"type\": \"text\"}])."),
+                "description": _(
+                    'Key/value pairs for school-defined custom fields. Define keys in School → Settings → custom_field_definitions.staff (e.g. [{"key": "certifications", "label": "Certifications", "type": "text"}]).'
+                ),
             },
         ),
     )
     actions = ["apply_pay_scale_to_teachers"]
-    
+
     def apply_pay_scale_to_teachers(self, request, queryset):
         """Apply pay scale default salary to selected teachers"""
         updated = 0
         for teacher in queryset:
             if teacher.pay_scale and teacher.pay_scale.default_salary:
-                if not teacher.salary_amount or request.POST.get('force_update') == 'yes':
+                if (
+                    not teacher.salary_amount
+                    or request.POST.get("force_update") == "yes"
+                ):
                     teacher.salary_amount = teacher.pay_scale.default_salary
-                    teacher.pay_grade = teacher.pay_scale.code  # Sync pay_grade with scale code
-                    teacher.save(update_fields=['salary_amount', 'pay_grade'])
+                    teacher.pay_grade = (
+                        teacher.pay_scale.code
+                    )  # Sync pay_grade with scale code
+                    teacher.save(update_fields=["salary_amount", "pay_grade"])
                     updated += 1
-        self.message_user(request, f"Updated {updated} teacher(s) with pay scale default salaries.")
+        self.message_user(
+            request, f"Updated {updated} teacher(s) with pay scale default salaries."
+        )
+
     apply_pay_scale_to_teachers.short_description = "Apply pay scale default salary"
 
     def teacher_display_in_list(self, obj):
         """Display teacher with photo thumbnail in list view"""
         from django.utils.html import format_html
-        
+
         photo_url = obj.profile_photo.url if obj.profile_photo else None
         user = obj.user
-        
+
         # Build HTML with optional photo
         if photo_url:
             return format_html(
@@ -176,26 +215,31 @@ class TeacherProfileAdmin(ModelAdmin):
                 '<div class="admin-user-info">'
                 '<div class="admin-user-name">{}</div>'
                 '<div class="admin-user-meta">{}</div>'
-                '</div>'
-                '</div>',
+                "</div>"
+                "</div>",
                 photo_url,
                 user.get_full_name() or user.username,
-                user.username
+                user.username,
             )
         else:
-            initials = f"{user.first_name[0]}{user.last_name[0]}".upper() if user.first_name and user.last_name else user.username[:2].upper()
+            initials = (
+                f"{user.first_name[0]}{user.last_name[0]}".upper()
+                if user.first_name and user.last_name
+                else user.username[:2].upper()
+            )
             return format_html(
                 '<div class="admin-display-user admin-display-user-large">'
                 '<div class="admin-user-avatar-fallback admin-user-avatar-fallback-large">{}</div>'
                 '<div class="admin-user-info">'
                 '<div class="admin-user-name">{}</div>'
                 '<div class="admin-user-meta">{}</div>'
-                '</div>'
-                '</div>',
+                "</div>"
+                "</div>",
                 initials,
                 user.get_full_name() or user.username,
-                user.username
+                user.username,
             )
+
     teacher_display_in_list.short_description = "Teacher"
 
 
@@ -211,7 +255,13 @@ class StudentProfileAdmin(ModelAdmin):
         "uses_transport",
         "parent_completeness",
     )
-    list_filter = ("academic_year", "classroom", "specialty", "is_active", "uses_transport")
+    list_filter = (
+        "academic_year",
+        "classroom",
+        "specialty",
+        "is_active",
+        "uses_transport",
+    )
     list_per_page = 50  # PERFORMANCE: Add pagination
     show_full_result_count = False
     search_fields = ("student_code", "admission_number", "first_name", "last_name")
@@ -252,14 +302,18 @@ class StudentProfileAdmin(ModelAdmin):
             "Custom attributes (Phase C)",
             {
                 "fields": ("custom_attributes",),
-                "description": _("Key/value pairs for school-defined custom fields. Define keys in School → Settings → custom_field_definitions.students (e.g. [{\"key\": \"blood_group\", \"label\": \"Blood Group\", \"type\": \"text\"}])."),
+                "description": _(
+                    'Key/value pairs for school-defined custom fields. Define keys in School → Settings → custom_field_definitions.students (e.g. [{"key": "blood_group", "label": "Blood Group", "type": "text"}]).'
+                ),
             },
         ),
         (
             "Information tags",
             {
                 "fields": ("tags",),
-                "description": _("School-defined tags (e.g. Scholarship, Early Bird, Allergy). Used by the AI Nuance Engine for discounts and workflows. Manage tags in Site Settings → Tag Manager."),
+                "description": _(
+                    "School-defined tags (e.g. Scholarship, Early Bird, Allergy). Used by the AI Nuance Engine for discounts and workflows. Manage tags in Site Settings → Tag Manager."
+                ),
             },
         ),
         ("Flags", {"fields": ("is_active", "uses_transport")}),
@@ -271,20 +325,27 @@ class StudentProfileAdmin(ModelAdmin):
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "tags":
             from .models import InformationTag
+
             obj = kwargs.get("obj")
-            school_id = (obj.school_id if obj else None) or request.session.get("school_id")
+            school_id = (obj.school_id if obj else None) or request.session.get(
+                "school_id"
+            )
             if school_id:
-                kwargs["queryset"] = InformationTag.objects.filter(school_id=school_id, is_active=True).order_by("sort_order", "name")
+                kwargs["queryset"] = InformationTag.objects.filter(
+                    school_id=school_id, is_active=True
+                ).order_by("sort_order", "name")
             else:
-                kwargs["queryset"] = InformationTag.objects.filter(is_active=True).order_by("school", "sort_order", "name")
+                kwargs["queryset"] = InformationTag.objects.filter(
+                    is_active=True
+                ).order_by("school", "sort_order", "name")
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def student_display_in_list(self, obj):
         """Display student with photo thumbnail in list view"""
         from django.utils.html import format_html
-        
+
         photo_url = obj.profile_photo.url if obj.profile_photo else None
-        
+
         # Build HTML with optional photo
         if photo_url:
             return format_html(
@@ -293,11 +354,11 @@ class StudentProfileAdmin(ModelAdmin):
                 '<div class="admin-user-info">'
                 '<div class="admin-user-name">{}</div>'
                 '<div class="admin-user-meta">{}</div>'
-                '</div>'
-                '</div>',
+                "</div>"
+                "</div>",
                 photo_url,
                 obj.get_full_name(),
-                obj.student_code
+                obj.student_code,
             )
         else:
             return format_html(
@@ -306,12 +367,13 @@ class StudentProfileAdmin(ModelAdmin):
                 '<div class="admin-user-info">'
                 '<div class="admin-user-name">{}</div>'
                 '<div class="admin-user-meta">{}</div>'
-                '</div>'
-                '</div>',
+                "</div>"
+                "</div>",
                 obj.first_name[0].upper() if obj.first_name else "S",
                 obj.get_full_name(),
-                obj.student_code
+                obj.student_code,
             )
+
     student_display_in_list.short_description = "Student"
 
     def save_related(self, request, form, formsets, change):
@@ -342,7 +404,9 @@ class StudentProfileAdmin(ModelAdmin):
             created += 1
         self.message_user(
             request,
-            _(f"Created {created} guardian invite(s). Parents can claim via the portal."),
+            _(
+                f"Created {created} guardian invite(s). Parents can claim via the portal."
+            ),
             level=messages.SUCCESS,
         )
 
@@ -350,8 +414,13 @@ class StudentProfileAdmin(ModelAdmin):
 
     def issue_referral_rewards(self, request, queryset):
         from apps.platform_runtime.helpers import get_effective_site_settings
+
         site = get_effective_site_settings(request=request)
-        amount = (getattr(site, "referral_bonus_amount", None) or Decimal("0.00")) if site else Decimal("0.00")
+        amount = (
+            (getattr(site, "referral_bonus_amount", None) or Decimal("0.00"))
+            if site
+            else Decimal("0.00")
+        )
         created = 0
         for student in queryset:
             guardian = student.guardian_links.first()
@@ -409,115 +478,159 @@ class StudentGuardianAdmin(ModelAdmin):
     )
     list_per_page = 50  # PERFORMANCE: Add pagination
     show_full_result_count = False
-    search_fields = ("guardian_user__username", "guardian_user__email", "student__student_code", "student__last_name")
+    search_fields = (
+        "guardian_user__username",
+        "guardian_user__email",
+        "student__student_code",
+        "student__last_name",
+    )
     actions = ("grant_finance_access", "revoke_finance_access")
 
     def guardian_display_with_photo(self, obj):
         """Display guardian user with optional photo thumbnail"""
         from django.utils.html import format_html
-        
+
         guardian = obj.guardian_user
         if not guardian:
             return "—"
-        
+
         # Try to get photo from user profile if it exists
         photo_url = None
-        if hasattr(guardian, 'profile') and guardian.profile.profile_photo:
+        if hasattr(guardian, "profile") and guardian.profile.profile_photo:
             photo_url = guardian.profile.profile_photo.url
-        
+
         # Build HTML with CSS classes matching sidebar theme
         if photo_url:
             return format_html(
                 '<div class="admin-display-user">'
                 '<img src="{}" class="admin-user-avatar" />'
                 '<span class="admin-user-name">{}</span>'
-                '</div>',
+                "</div>",
                 photo_url,
-                guardian.get_full_name() or guardian.username
-        )
+                guardian.get_full_name() or guardian.username,
+            )
         else:
             return format_html(
                 '<div class="admin-display-user">'
                 '<div class="admin-user-avatar-fallback">{}</div>'
                 '<span class="admin-user-name">{}</span>'
-                '</div>',
-                guardian.first_name[0].upper() if guardian.first_name else guardian.username[0].upper(),
-                guardian.get_full_name() or guardian.username
+                "</div>",
+                guardian.first_name[0].upper()
+                if guardian.first_name
+                else guardian.username[0].upper(),
+                guardian.get_full_name() or guardian.username,
             )
+
     guardian_display_with_photo.short_description = "Guardian"
 
     def finance_access_state(self, obj):
         from apps.platform_runtime.helpers import get_effective_flags_for_school
+
         school = getattr(getattr(obj, "student", None), "school", None)
         flags = get_effective_flags_for_school(school) or {}
         require = bool(flags.get("require_guardian_finance_opt_in"))
         if require:
             return "Granted" if obj.can_view_finance else "Blocked (opt-in required)"
-        return "Granted (opt-in off)" if obj.can_view_finance else "Allowed (opt-in off)"
+        return (
+            "Granted (opt-in off)" if obj.can_view_finance else "Allowed (opt-in off)"
+        )
 
     finance_access_state.short_description = "Finance access"
 
     def student_display_with_photo(self, obj):
         """Display student with optional photo thumbnail"""
         from django.utils.html import format_html
-        
+
         student = obj.student
         if not student:
             return "—"
-        
+
         photo_url = student.profile_photo.url if student.profile_photo else None
-        
+
         # Build HTML with optional photo
         if photo_url:
             return format_html(
                 '<div class="admin-display-user">'
                 '<img src="{}" class="admin-student-avatar" />'
                 '<span class="admin-user-name">{} <span class="admin-user-code">({})</span></span>'
-                '</div>',
+                "</div>",
                 photo_url,
                 student.get_full_name(),
-                student.student_code
+                student.student_code,
             )
         else:
             return format_html(
                 '<div class="admin-display-user">'
                 '<div class="admin-user-avatar-fallback admin-student-avatar-fallback">{}</div>'
                 '<span class="admin-user-name">{} <span class="admin-user-code">({})</span></span>'
-                '</div>',
+                "</div>",
                 student.first_name[0].upper() if student.first_name else "S",
                 student.get_full_name(),
-                student.student_code
+                student.student_code,
             )
+
     student_display_with_photo.short_description = "Student"
 
     def grant_finance_access(self, request, queryset):
         updated = queryset.update(can_view_finance=True)
-        self.message_user(request, f"Granted finance access to {updated} guardian link(s).")
+        self.message_user(
+            request, f"Granted finance access to {updated} guardian link(s)."
+        )
 
-    grant_finance_access.short_description = "Grant finance access to selected guardians"
+    grant_finance_access.short_description = (
+        "Grant finance access to selected guardians"
+    )
 
     def revoke_finance_access(self, request, queryset):
         updated = queryset.update(can_view_finance=False)
-        self.message_user(request, f"Revoked finance access for {updated} guardian link(s).")
+        self.message_user(
+            request, f"Revoked finance access for {updated} guardian link(s)."
+        )
 
-    revoke_finance_access.short_description = "Revoke finance access for selected guardians"
+    revoke_finance_access.short_description = (
+        "Revoke finance access for selected guardians"
+    )
 
 
 class TeacherPayRecordAdmin(ModelAdmin):
-    list_display = ("teacher", "record_type", "amount", "effective_date", "created_by", "created_at")
+    list_display = (
+        "teacher",
+        "record_type",
+        "amount",
+        "effective_date",
+        "created_by",
+        "created_at",
+    )
     list_filter = ("record_type", "effective_date")
     list_per_page = 50  # PERFORMANCE: Add pagination
     show_full_result_count = False
-    search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
+    search_fields = (
+        "teacher__user__username",
+        "teacher__user__email",
+        "teacher__user__first_name",
+        "teacher__user__last_name",
+    )
     autocomplete_fields = ("teacher", "created_by")
 
 
 class TeacherLeaveRequestAdmin(ModelAdmin):
-    list_display = ("teacher", "start_date", "end_date", "status", "approver", "decided_at")
+    list_display = (
+        "teacher",
+        "start_date",
+        "end_date",
+        "status",
+        "approver",
+        "decided_at",
+    )
     list_filter = ("status", "start_date", "end_date")
     list_per_page = 50  # PERFORMANCE: Add pagination
     show_full_result_count = False
-    search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
+    search_fields = (
+        "teacher__user__username",
+        "teacher__user__email",
+        "teacher__user__first_name",
+        "teacher__user__last_name",
+    )
     autocomplete_fields = ("teacher", "approver")
 
 
@@ -526,12 +639,25 @@ class TeacherAttendanceAdmin(ModelAdmin):
     list_filter = ("status", "date")
     list_per_page = 50  # PERFORMANCE: Add pagination
     show_full_result_count = False
-    search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
+    search_fields = (
+        "teacher__user__username",
+        "teacher__user__email",
+        "teacher__user__first_name",
+        "teacher__user__last_name",
+    )
     autocomplete_fields = ("teacher",)
 
 
 class InformationTagAdmin(ModelAdmin):
-    list_display = ("name", "school", "category", "is_private", "is_critical", "is_active", "sort_order")
+    list_display = (
+        "name",
+        "school",
+        "category",
+        "is_private",
+        "is_critical",
+        "is_active",
+        "sort_order",
+    )
     list_filter = ("category", "is_private", "is_critical", "is_active")
     search_fields = ("name", "description")
     raw_id_fields = ("school",)
@@ -549,7 +675,13 @@ register_tenant_admin(TeacherAttendance, TeacherAttendanceAdmin)
 
 
 class StudentResourceReturnAdmin(ModelAdmin):
-    list_display = ("student", "academic_year", "item_label", "returned_at", "updated_at")
+    list_display = (
+        "student",
+        "academic_year",
+        "item_label",
+        "returned_at",
+        "updated_at",
+    )
     list_filter = ("academic_year", "item_label")
     search_fields = ("student__first_name", "student__last_name", "item_label")
     raw_id_fields = ("student",)
@@ -560,7 +692,14 @@ register_tenant_admin(StudentResourceReturn, StudentResourceReturnAdmin)
 
 
 class BadgeTypeAdmin(ModelAdmin):
-    list_display = ("code", "label", "audience", "sort_order", "is_active", "created_at")
+    list_display = (
+        "code",
+        "label",
+        "audience",
+        "sort_order",
+        "is_active",
+        "created_at",
+    )
     list_editable = ("sort_order", "is_active")
     list_filter = ("audience", "is_active")
     search_fields = ("code", "label")
@@ -579,6 +718,7 @@ class BadgeExpiryFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         from django.utils import timezone
+
         now = timezone.now()
         if self.value() == "expired":
             return queryset.filter(expiry_at__isnull=False, expiry_at__lte=now)
@@ -588,7 +728,14 @@ class BadgeExpiryFilter(admin.SimpleListFilter):
 
 
 class BadgeAdmin(ModelAdmin):
-    list_display = ("badge_type", "user", "student", "issued_at", "expiry_at", "is_physical_printed")
+    list_display = (
+        "badge_type",
+        "user",
+        "student",
+        "issued_at",
+        "expiry_at",
+        "is_physical_printed",
+    )
     list_filter = ("badge_type", BadgeExpiryFilter)
     search_fields = ("badge_type__label", "user__username", "student__admission_number")
     raw_id_fields = ("user", "student")
@@ -596,13 +743,22 @@ class BadgeAdmin(ModelAdmin):
 
     def revoke_selected_badges(self, request, queryset):
         from django.utils import timezone
+
         updated = queryset.update(expiry_at=timezone.now())
         self.message_user(request, _(f"Revoked {updated} badge(s)."))
+
     revoke_selected_badges.short_description = _("Revoke selected badges")
 
 
 class BadgeScanEventAdmin(ModelAdmin):
-    list_display = ("verified_at", "token_kind", "user", "student", "verified", "ip_address")
+    list_display = (
+        "verified_at",
+        "token_kind",
+        "user",
+        "student",
+        "verified",
+        "ip_address",
+    )
     list_filter = ("token_kind", "verified")
     search_fields = ("user__username", "student__admission_number", "ip_address")
     raw_id_fields = ("badge", "user", "student")
@@ -630,8 +786,15 @@ class TenantAuditLogAdmin(ModelAdmin):
     list_filter = ("action", "table_name")
     search_fields = ("table_name", "record_id", "correlation_id")
     readonly_fields = (
-        "table_name", "record_id", "action", "old_values", "new_values",
-        "changed_by", "changed_at", "correlation_id", "request_meta",
+        "table_name",
+        "record_id",
+        "action",
+        "old_values",
+        "new_values",
+        "changed_by",
+        "changed_at",
+        "correlation_id",
+        "request_meta",
     )
     ordering = ["-changed_at"]
 
@@ -649,7 +812,15 @@ register_tenant_admin(TenantAuditLog, TenantAuditLogAdmin)
 
 
 class ApplicantAdmin(ModelAdmin):
-    list_display = ("last_name", "first_name", "email", "stage", "lead_source", "school", "created_at")
+    list_display = (
+        "last_name",
+        "first_name",
+        "email",
+        "stage",
+        "lead_source",
+        "school",
+        "created_at",
+    )
     list_filter = ("stage", "school")
     search_fields = ("first_name", "last_name", "email", "lead_source")
     raw_id_fields = ("school", "assigned_recruiter")
@@ -657,4 +828,3 @@ class ApplicantAdmin(ModelAdmin):
 
 
 register_tenant_admin(Applicant, ApplicantAdmin)
-

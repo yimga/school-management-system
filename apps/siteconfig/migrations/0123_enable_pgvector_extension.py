@@ -17,9 +17,8 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0122_regionalaiconfig_preferred_model_id'),
+        ("siteconfig", "0122_regionalaiconfig_preferred_model_id"),
     ]
 
     operations = [

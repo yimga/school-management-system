@@ -2,13 +2,16 @@
 """
 URL & Functionality Testing. Run from project root: python scripts/dev/test_url_functionality.py
 """
+
 import os
 import sys
 
+
 def main():
     import django
+
     _script_dir = os.path.dirname(os.path.abspath(__file__))
-    _project_root = os.path.abspath(os.path.join(_script_dir, '..', '..'))
+    _project_root = os.path.abspath(os.path.join(_script_dir, "..", ".."))
     sys.path.insert(0, _project_root)
     os.chdir(_project_root)
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
@@ -22,13 +25,48 @@ def main():
     print("=" * 100)
 
     dashboard_urls = [
-        {"name": "Backend Dashboard", "url_name": "accounts:backend_dashboard", "path": "/authentication/backend/", "aliases": ["/backend/"]},
-        {"name": "Parent Dashboard", "url_name": "portal:parent_dashboard", "path": "/portal/parent/", "aliases": []},
-        {"name": "Teacher Dashboard", "url_name": "portal:teacher_dashboard_alias", "path": "/portal/teacher/", "aliases": []},
-        {"name": "Finance Dashboard", "url_name": "finance:dashboard", "path": "/finance/dashboard/", "aliases": []},
-        {"name": "Payroll Dashboard", "url_name": "payroll:dashboard", "path": "/payroll/dashboard/", "aliases": []},
-        {"name": "Analytics Dashboard", "url_name": "analytics:dashboard", "path": "/analytics/dashboard/", "aliases": []},
-        {"name": "Compliance Dashboard", "url_name": "compliance:dashboard", "path": "/compliance/dashboard/", "aliases": []},
+        {
+            "name": "Backend Dashboard",
+            "url_name": "accounts:backend_dashboard",
+            "path": "/authentication/backend/",
+            "aliases": ["/backend/"],
+        },
+        {
+            "name": "Parent Dashboard",
+            "url_name": "portal:parent_dashboard",
+            "path": "/portal/parent/",
+            "aliases": [],
+        },
+        {
+            "name": "Teacher Dashboard",
+            "url_name": "portal:teacher_dashboard_alias",
+            "path": "/portal/teacher/",
+            "aliases": [],
+        },
+        {
+            "name": "Finance Dashboard",
+            "url_name": "finance:dashboard",
+            "path": "/finance/dashboard/",
+            "aliases": [],
+        },
+        {
+            "name": "Payroll Dashboard",
+            "url_name": "payroll:dashboard",
+            "path": "/payroll/dashboard/",
+            "aliases": [],
+        },
+        {
+            "name": "Analytics Dashboard",
+            "url_name": "analytics:dashboard",
+            "path": "/analytics/dashboard/",
+            "aliases": [],
+        },
+        {
+            "name": "Compliance Dashboard",
+            "url_name": "compliance:dashboard",
+            "path": "/compliance/dashboard/",
+            "aliases": [],
+        },
     ]
 
     client = Client()
@@ -57,15 +95,22 @@ def main():
             try:
                 response = client.get(alias, follow=False)
                 if response.status_code in [301, 302, 307, 308]:
-                    print(f"  OK {dashboard['name']}: Alias {alias} redirects correctly")
+                    print(
+                        f"  OK {dashboard['name']}: Alias {alias} redirects correctly"
+                    )
                 else:
-                    print(f"  WARN {dashboard['name']}: Alias {alias} status {response.status_code}")
+                    print(
+                        f"  WARN {dashboard['name']}: Alias {alias} status {response.status_code}"
+                    )
             except Exception as exc:
-                print(f"  WARN {dashboard['name']}: Alias {alias} error - {str(exc)[:40]}")
+                print(
+                    f"  WARN {dashboard['name']}: Alias {alias} error - {str(exc)[:40]}"
+                )
 
     print("\n" + "=" * 100)
     print("SUMMARY: URL & FUNCTIONALITY TEST")
     print("=" * 100)
+
 
 if __name__ == "__main__":
     main()

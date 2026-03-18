@@ -7,6 +7,7 @@ B2 (Master Blueprint): Tenant-prefixed keys, signed URLs, per-tenant buckets.
 - get_storage_url() returns backend URL (S3 backends can use signed URLs via custom storage).
 - Per-tenant buckets: set AWS_STORAGE_BUCKET_NAME per tenant or use path prefix (tenants/{id}/).
 """
+
 from __future__ import annotations
 
 from typing import Union
@@ -47,7 +48,9 @@ def get_signed_url(path: str, expires_in: int = 3600) -> str:
     return default_storage.url(path)
 
 
-def save_to_storage(path: str, content: Union[bytes, str], content_type: str | None = None) -> str:
+def save_to_storage(
+    path: str, content: Union[bytes, str], content_type: str | None = None
+) -> str:
     """
     Save content to the configured storage backend (local or S3-compatible).
     path: relative path under storage root (e.g. tenants/{school_id}/uploads/file.pdf).

@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 from .models_constants import (
     BACKEND_CONSOLE_THEME_CHOICES,
     LOGO_BG_MODE_CHOICES,
-    REPORT_CARD_TYPE_ANNUAL,
     REPORT_CARD_TYPE_TERM,
 )
 
@@ -46,6 +45,7 @@ def _tenant_upload_to(subpath):
     Phase F: Return an upload_to callable that prefixes path with tenants/{school_id}/.
     Use for any FileField/ImageField on a model with a school FK to avoid cross-tenant access.
     """
+
     def upload_to(instance, filename):
         school_id = getattr(instance, "school_id", None)
         if school_id is None and getattr(instance, "school", None):
@@ -53,6 +53,7 @@ def _tenant_upload_to(subpath):
         if school_id is None:
             return f"tenant_uploads/{subpath}/{filename}"
         return f"tenants/{school_id}/{subpath}/{filename}"
+
     return upload_to
 
 
@@ -124,17 +125,19 @@ class SiteSettings(models.Model):
         upload_to="branding/video/",
         blank=True,
         null=True,
-        help_text="Optional: Short looping video (mp4/webm) for animated background."
+        help_text="Optional: Short looping video (mp4/webm) for animated background.",
     )
     svg_background = models.FileField(
         upload_to="branding/svg/",
         blank=True,
         null=True,
-        help_text="Optional: SVG file for animated or vector background."
+        help_text="Optional: SVG file for animated or vector background.",
     )
     # Branding
     site_name = models.CharField(max_length=120, default="School System")
-    tagline = models.CharField(max_length=200, blank=True, default="Knowledge ƒ?› Technology ƒ?› Excellence")
+    tagline = models.CharField(
+        max_length=200, blank=True, default="Knowledge ƒ?› Technology ƒ?› Excellence"
+    )
     meta_description = models.CharField(
         max_length=320,
         blank=True,
@@ -147,15 +150,17 @@ class SiteSettings(models.Model):
         blank=True,
         null=True,
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
-        help_text="Opacity for logo background (0.0 = fully transparent, 1.0 = fully opaque)"
+        help_text="Opacity for logo background (0.0 = fully transparent, 1.0 = fully opaque)",
     )
     logo_background_mode = models.CharField(
         max_length=16,
         choices=LOGO_BG_MODE_CHOICES,
         default="contain",
-        help_text="How the logo background image is displayed: contain, cover, tile, or center."
+        help_text="How the logo background image is displayed: contain, cover, tile, or center.",
     )
-    LOGO_BG_MODE_CHOICES = LOGO_BG_MODE_CHOICES  # from models_constants; backward compat
+    LOGO_BG_MODE_CHOICES = (
+        LOGO_BG_MODE_CHOICES  # from models_constants; backward compat
+    )
     BRIGHTNESS_CHOICES = [
         ("system", "System"),
         ("light", "Light"),
@@ -167,16 +172,21 @@ class SiteSettings(models.Model):
         max_length=16,
         choices=BRIGHTNESS_CHOICES,
         default="system",
-        help_text="Choose default theme brightness (System/Light/Dark/Classic/High Contrast)."
+        help_text="Choose default theme brightness (System/Light/Dark/Classic/High Contrast).",
     )
-    background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
+    background_image = models.ImageField(
+        upload_to="branding/bg/", blank=True, null=True
+    )
 
-    brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
+    brand_font = models.CharField(
+        max_length=120, default="Inter, system-ui, sans-serif"
+    )
     school_code = models.CharField(
         max_length=20,
         default="SCH",
         help_text="Short code used in admission numbers (e.g., SCH).",
     )
+
     class AdmissionNumberMode(models.TextChoices):
         AUTO = "AUTO", "Auto-generate (recommended)"
         MANUAL = "MANUAL", "Manual entry only"
@@ -205,6 +215,7 @@ class SiteSettings(models.Model):
             "or the legacy dashed format."
         ),
     )
+
     class AdmissionNumberStrategy(models.TextChoices):
         FULL = "FULL", "Full (YY+School+Seq+Spec+Class)"
         YEAR_SEQ = "YEAR_SEQ", "Year + sequence only"
@@ -276,7 +287,9 @@ class SiteSettings(models.Model):
         default="dark",
         help_text="Theme for the Backend Console (Workflow Center, Entity Console).",
     )
-    BACKEND_CONSOLE_THEME_CHOICES = BACKEND_CONSOLE_THEME_CHOICES  # from models_constants; backward compat
+    BACKEND_CONSOLE_THEME_CHOICES = (
+        BACKEND_CONSOLE_THEME_CHOICES  # from models_constants; backward compat
+    )
     # Color harmony for theme palette (DETAILED_IMPLEMENTATION_PLAN / NON_NEGOTIABLE_BACKLOG item 7)
     THEME_HARMONY_CHOICES = [
         ("square", "Square (four evenly spaced hues)"),
@@ -416,7 +429,7 @@ class SiteSettings(models.Model):
     default_widgets_per_role = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Optional: role code -> list of widget IDs for default dashboard (e.g. {\"TEACHER\": [\"widget-a\", \"widget-b\"]}).",
+        help_text='Optional: role code -> list of widget IDs for default dashboard (e.g. {"TEACHER": ["widget-a", "widget-b"]}).',
     )
     admin_use_site_primary = models.BooleanField(
         default=False,
@@ -440,7 +453,7 @@ class SiteSettings(models.Model):
         blank=True,
         help_text=(
             "Admin portal stats JSON. Keys: sections, max_sections, max_items, items. "
-            "Example: {\"sections\":[\"academics\"],\"max_items\":2,\"items\":{\"academics\":[\"Students\"]}}"
+            'Example: {"sections":["academics"],"max_items":2,"items":{"academics":["Students"]}}'
         ),
     )
     portal_quick_actions = models.JSONField(
@@ -638,7 +651,7 @@ class SiteSettings(models.Model):
     delegation_role_mapping = models.JSONField(
         default=default_delegation_role_mapping,
         blank=True,
-        help_text="Who can delegate to whom: {\"PRINCIPAL\": [\"VICE_PRINCIPAL\", \"HOD\"], ...}. Empty or missing role = no restriction.",
+        help_text='Who can delegate to whom: {"PRINCIPAL": ["VICE_PRINCIPAL", "HOD"], ...}. Empty or missing role = no restriction.',
     )
     delegation_summary_report_on_return = models.BooleanField(
         default=True,
@@ -698,67 +711,66 @@ class SiteSettings(models.Model):
         default=Decimal("0.00"),
         help_text="Default credit amount awarded per successful referral.",
     )
-    
+
     # ===== NEW: GRADING CONFIGURATION =====
     default_grading_scale = models.CharField(
         max_length=50,
         choices=[
-            ('numeric_0_20', 'Numeric 0–20 (Cameroon Francophone)'),
-            ('letter_a_e', 'Letters A–E (Cameroon Anglophone)'),
-            ('gpa_4_0', 'GPA 4.0 Scale'),
-            ('percentage', 'Percentage 0–100'),
+            ("numeric_0_20", "Numeric 0–20 (Cameroon Francophone)"),
+            ("letter_a_e", "Letters A–E (Cameroon Anglophone)"),
+            ("gpa_4_0", "GPA 4.0 Scale"),
+            ("percentage", "Percentage 0–100"),
         ],
-        default='numeric_0_20'
+        default="numeric_0_20",
     )
     default_region = models.CharField(
         max_length=50,
         choices=[
-            ('cameroon_anglophone', 'Cameroon Anglophone'),
-            ('cameroon_francophone', 'Cameroon Francophone'),
-            ('global', 'Global/Other'),
+            ("cameroon_anglophone", "Cameroon Anglophone"),
+            ("cameroon_francophone", "Cameroon Francophone"),
+            ("global", "Global/Other"),
         ],
-        default='cameroon_anglophone'
+        default="cameroon_anglophone",
     )
-    
+
     # ===== NEW: NOTIFICATIONS =====
     sms_provider = models.CharField(
         max_length=30,
         choices=[
-            ('twilio', 'Twilio'),
-            ('africastalking', 'AfricasTalking'),
-            ('console', 'Console (Dev Only)'),
+            ("twilio", "Twilio"),
+            ("africastalking", "AfricasTalking"),
+            ("console", "Console (Dev Only)"),
         ],
-        default='console'
+        default="console",
     )
     sms_api_key = models.CharField(max_length=255, blank=True)
     sms_sender_id = models.CharField(max_length=50, default="RUNMYCAMPUS")
-    email_from_address = models.EmailField(default='noreply@school.example.com')
-    
+    email_from_address = models.EmailField(default="noreply@school.example.com")
+
     # ===== NEW: DEADLINE REMINDERS =====
     teacher_deadline_reminder_days = models.JSONField(
-        default=list,
-        help_text="Days before deadline: [7, 3, 1, 0.5]"
+        default=list, help_text="Days before deadline: [7, 3, 1, 0.5]"
     )
-    teacher_reminder_time_of_day = models.TimeField(default='08:00')
-    
+    teacher_reminder_time_of_day = models.TimeField(default="08:00")
+
     # ===== NEW: PERFORMANCE =====
     cache_rankings_interval_minutes = models.PositiveIntegerField(default=10)
     enable_concurrent_mark_uploads = models.BooleanField(default=True)
-    
+
     # ===== NEW: PRACTICAL ASSESSMENT =====
     enable_practical_assessment = models.BooleanField(default=True)
     auto_tag_photos_from_exif = models.BooleanField(default=True)
-    
+
     # ===== NEW: OFFLINE MODE =====
     enable_offline_mode = models.BooleanField(default=True)
     offline_sync_conflict_resolution = models.CharField(
         max_length=20,
         choices=[
-            ('show_both', 'Show Both Versions'),
-            ('reject', 'Reject Offline Entry'),
-            ('auto_merge', 'Auto-Merge Latest'),
+            ("show_both", "Show Both Versions"),
+            ("reject", "Reject Offline Entry"),
+            ("auto_merge", "Auto-Merge Latest"),
         ],
-        default='show_both'
+        default="show_both",
     )
 
     # Compliance profile (finance/payroll). Store the tenant model PK only so the
@@ -769,31 +781,30 @@ class SiteSettings(models.Model):
         db_column="compliance_profile_id",
         editable=False,
     )
-    
+
     # ===== NEW: FINANCE AUTOMATION =====
     # Fee Invoice Generation
     finance_auto_generate_invoices_enabled = models.BooleanField(
         default=False,
-        help_text="Enable automatic fee invoice generation based on schedule."
+        help_text="Enable automatic fee invoice generation based on schedule.",
     )
     finance_auto_generate_schedule = models.JSONField(
         default=dict,
         blank=True,
-        help_text='Schedule configuration: {"mode": "academic_year_start", "days_before": 7, "academic_year_start_offset_days": 0, "term_start_offset_days": 0, "custom_date": null}'
+        help_text='Schedule configuration: {"mode": "academic_year_start", "days_before": 7, "academic_year_start_offset_days": 0, "term_start_offset_days": 0, "custom_date": null}',
     )
     finance_auto_generate_due_date_offset_days = models.PositiveIntegerField(
-        default=30,
-        help_text="Days after issue date to set invoice due date."
+        default=30, help_text="Days after issue date to set invoice due date."
     )
     finance_auto_generate_require_approval = models.BooleanField(
         default=False,
-        help_text="Require admin approval before generating invoices automatically."
+        help_text="Require admin approval before generating invoices automatically.",
     )
-    
+
     # Fee Plan Copying
     finance_fee_plan_auto_copy_enabled = models.BooleanField(
         default=False,
-        help_text="Enable automatic fee plan copying on academic year transition."
+        help_text="Enable automatic fee plan copying on academic year transition.",
     )
     finance_fee_plan_auto_copy_mode = models.CharField(
         max_length=20,
@@ -803,49 +814,47 @@ class SiteSettings(models.Model):
             ("year_end", "Auto-copy on previous year end"),
         ],
         default="manual",
-        help_text="When to automatically copy fee plans."
+        help_text="When to automatically copy fee plans.",
     )
     finance_fee_plan_copy_increase_percentage = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         default=Decimal("0.00"),
-        help_text="Percentage increase to apply when copying fee plans (e.g., 5.00 for 5% increase)."
+        help_text="Percentage increase to apply when copying fee plans (e.g., 5.00 for 5% increase).",
     )
-    
+
     # Payment Reminders
     finance_payment_reminder_default_channels = models.JSONField(
         default=list,
         blank=True,
-        help_text="Default notification channels for payment reminders: ['email'], ['whatsapp'], ['email', 'sms'], etc."
+        help_text="Default notification channels for payment reminders: ['email'], ['whatsapp'], ['email', 'sms'], etc.",
     )
     finance_payment_reminder_default_days = models.JSONField(
         default=list,
         blank=True,
-        help_text="Default reminder days before due date: [7, 3, 1]"
+        help_text="Default reminder days before due date: [7, 3, 1]",
     )
     finance_payment_reminder_enable_whatsapp = models.BooleanField(
-        default=False,
-        help_text="Enable WhatsApp as a payment reminder channel."
+        default=False, help_text="Enable WhatsApp as a payment reminder channel."
     )
-    
+
     # Invoice Status Updates
     finance_invoice_auto_status_updates_enabled = models.BooleanField(
         default=True,
-        help_text="Enable automatic invoice status updates (overdue, paid detection)."
+        help_text="Enable automatic invoice status updates (overdue, paid detection).",
     )
     finance_invoice_overdue_grace_period_days = models.PositiveIntegerField(
-        default=0,
-        help_text="Grace period in days before marking invoice as overdue."
+        default=0, help_text="Grace period in days before marking invoice as overdue."
     )
-    
+
     # Receipt Verification & Automation
     finance_receipt_upload_enabled = models.BooleanField(
         default=True,
-        help_text="Enable receipt upload in parent portal for cash/bank payments."
+        help_text="Enable receipt upload in parent portal for cash/bank payments.",
     )
     finance_receipt_auto_verify_enabled = models.BooleanField(
         default=True,
-        help_text="Automatically verify uploaded receipts using pattern matching or OCR."
+        help_text="Automatically verify uploaded receipts using pattern matching or OCR.",
     )
     finance_receipt_verification_method = models.CharField(
         max_length=30,
@@ -856,48 +865,48 @@ class SiteSettings(models.Model):
             ("ocr_cloud_aws", "AWS Textract (Paid)"),
         ],
         default="pattern",
-        help_text="Method used to extract data from receipts."
+        help_text="Method used to extract data from receipts.",
     )
     finance_receipt_auto_apply_threshold = models.FloatField(
         default=0.9,
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
-        help_text="Confidence threshold (0.0-1.0) for auto-applying payments. Lower = more automatic, Higher = more manual review."
+        help_text="Confidence threshold (0.0-1.0) for auto-applying payments. Lower = more automatic, Higher = more manual review.",
     )
     finance_receipt_auto_apply_enabled = models.BooleanField(
         default=True,
-        help_text="Automatically apply payments when verification confidence exceeds threshold."
+        help_text="Automatically apply payments when verification confidence exceeds threshold.",
     )
     finance_receipt_require_admin_approval = models.BooleanField(
         default=False,
-        help_text="Require admin approval even if verification passes (for extra security)."
+        help_text="Require admin approval even if verification passes (for extra security).",
     )
     finance_receipt_amount_tolerance = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("1.00"),
-        help_text="Tolerance for amount matching in tenant's currency (e.g., 1.00 units difference allowed)."
+        help_text="Tolerance for amount matching in tenant's currency (e.g., 1.00 units difference allowed).",
     )
-    
+
     # Bank Deposit Verification
     finance_bank_verification_enabled = models.BooleanField(
         default=True,
-        help_text="Enable bank deposit verification against bank statements."
+        help_text="Enable bank deposit verification against bank statements.",
     )
     finance_bank_verification_auto_approve = models.BooleanField(
         default=False,
-        help_text="Automatically approve receipts that are verified in bank statements."
+        help_text="Automatically approve receipts that are verified in bank statements.",
     )
     finance_bank_verification_tolerance_days = models.PositiveIntegerField(
         default=7,
-        help_text="Days to search before/after receipt date when matching bank statements."
+        help_text="Days to search before/after receipt date when matching bank statements.",
     )
     finance_bank_verification_amount_tolerance = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("1.00"),
-        help_text="Amount tolerance when matching by amount + date, in tenant's currency (default: 1.00)."
+        help_text="Amount tolerance when matching by amount + date, in tenant's currency (default: 1.00).",
     )
-    
+
     # Payment Instructions for Reminders
     finance_payment_instructions_bank = models.TextField(
         blank=True,
@@ -908,7 +917,7 @@ class SiteSettings(models.Model):
             "Branch: {branch}\n"
             "Reference: {payment_code}"
         ),
-        help_text="Bank transfer payment instructions template. Variables: {bank_account}, {bank_name}, {branch}, {payment_code}"
+        help_text="Bank transfer payment instructions template. Variables: {bank_account}, {bank_name}, {branch}, {payment_code}",
     )
     finance_payment_instructions_mtn_momo = models.TextField(
         blank=True,
@@ -918,7 +927,7 @@ class SiteSettings(models.Model):
             "Payment Code: {payment_code}\n"
             "Amount: {amount} XAF"
         ),
-        help_text="MTN MoMo payment instructions template. Variables: {mtn_momo_number}, {payment_code}, {amount}"
+        help_text="MTN MoMo payment instructions template. Variables: {mtn_momo_number}, {payment_code}, {amount}",
     )
     finance_payment_instructions_orange_money = models.TextField(
         blank=True,
@@ -928,17 +937,17 @@ class SiteSettings(models.Model):
             "Payment Code: {payment_code}\n"
             "Amount: {amount} XAF"
         ),
-        help_text="Orange Money payment instructions template. Variables: {orange_money_number}, {payment_code}, {amount}"
+        help_text="Orange Money payment instructions template. Variables: {orange_money_number}, {payment_code}, {amount}",
     )
     finance_payment_instructions_cash = models.TextField(
         blank=True,
         default="💵 CASH: Pay at school office during business hours.",
-        help_text="Cash payment instructions template"
+        help_text="Cash payment instructions template",
     )
     finance_receipt_upload_instructions = models.TextField(
         blank=True,
         default="After payment, upload your receipt here: {receipt_upload_link}",
-        help_text="Receipt upload instructions. Variables: {receipt_upload_link}"
+        help_text="Receipt upload instructions. Variables: {receipt_upload_link}",
     )
 
     # Real-world scenarios: reminders & receipt upload
@@ -950,16 +959,15 @@ class SiteSettings(models.Model):
             ("create_task", "Create task for staff to contact guardian"),
         ],
         default="warn_only",
-        help_text="When guardian has no email/phone for reminder."
+        help_text="When guardian has no email/phone for reminder.",
     )
     finance_receipt_max_size_mb = models.PositiveSmallIntegerField(
-        default=5,
-        help_text="Max receipt file size in MB (e.g. 5)."
+        default=5, help_text="Max receipt file size in MB (e.g. 5)."
     )
     finance_receipt_allowed_extensions = models.CharField(
         max_length=80,
         default="pdf,jpg,jpeg,png",
-        help_text="Comma-separated: pdf,jpg,jpeg,png"
+        help_text="Comma-separated: pdf,jpg,jpeg,png",
     )
     finance_overpayment_handling = models.CharField(
         max_length=30,
@@ -969,13 +977,13 @@ class SiteSettings(models.Model):
             ("allow_as_credit", "Allow excess as credit for next invoice"),
         ],
         default="allow_with_refund",
-        help_text="When receipt amount exceeds invoice balance."
+        help_text="When receipt amount exceeds invoice balance.",
     )
     finance_overpayment_tolerance_xaf = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=Decimal("1000.00"),
-        help_text="Max overpayment to allow, in site default currency (Region config). Above this always flag for review."
+        help_text="Max overpayment to allow, in site default currency (Region config). Above this always flag for review.",
     )
     finance_void_invoice_with_payments = models.CharField(
         max_length=30,
@@ -985,7 +993,7 @@ class SiteSettings(models.Model):
             ("block_void", "Block void if invoice has payments"),
         ],
         default="allow",
-        help_text="When voiding an invoice that has payments."
+        help_text="When voiding an invoice that has payments.",
     )
     finance_on_student_withdrawal = models.CharField(
         max_length=30,
@@ -995,51 +1003,50 @@ class SiteSettings(models.Model):
             ("no_auto_change", "No automatic change"),
         ],
         default="stop_reminders_only",
-        help_text="When student is marked withdrawn/inactive."
+        help_text="When student is marked withdrawn/inactive.",
     )
     finance_receipt_idempotency_window_minutes = models.PositiveSmallIntegerField(
         default=10,
-        help_text="Minutes within which duplicate receipt upload (same invoice+user+file) is ignored."
+        help_text="Minutes within which duplicate receipt upload (same invoice+user+file) is ignored.",
     )
     finance_reminder_retry_failed_hours = models.PositiveSmallIntegerField(
         default=24,
-        help_text="Retry failed reminders after this many hours (0 = no retry)."
+        help_text="Retry failed reminders after this many hours (0 = no retry).",
     )
     finance_reminder_max_retries = models.PositiveSmallIntegerField(
-        default=2,
-        help_text="Max retries for failed reminder sends."
+        default=2, help_text="Max retries for failed reminder sends."
     )
     finance_receipt_require_verification_reason = models.BooleanField(
         default=True,
-        help_text="Require a reason when staff manually approve or reject a receipt."
+        help_text="Require a reason when staff manually approve or reject a receipt.",
     )
     finance_receipt_second_approval_threshold_xaf = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=Decimal("0"),
-        help_text="Receipts above this amount (site default currency, Region config) require second approver (0 = disabled)."
+        help_text="Receipts above this amount (site default currency, Region config) require second approver (0 = disabled).",
     )
     # Phase 2: Notifications to guardians (in-app + optional email)
     finance_notify_guardians_new_invoice = models.BooleanField(
         default=True,
-        help_text="When a new invoice is issued, send in-app notification to guardians with finance access."
+        help_text="When a new invoice is issued, send in-app notification to guardians with finance access.",
     )
     finance_notify_guardians_payment_received = models.BooleanField(
         default=True,
-        help_text="When a payment is recorded, send in-app notification to guardians with finance access."
+        help_text="When a payment is recorded, send in-app notification to guardians with finance access.",
     )
     finance_notify_new_invoice_email = models.BooleanField(
         default=False,
-        help_text="Also send email when a new invoice is issued (in addition to in-app notification)."
+        help_text="Also send email when a new invoice is issued (in addition to in-app notification).",
     )
     finance_notify_payment_received_email = models.BooleanField(
         default=False,
-        help_text="Also send email when a payment is recorded (in addition to in-app notification)."
+        help_text="Also send email when a payment is recorded (in addition to in-app notification).",
     )
     # Phase 2.1: Optional parent welcome email when parent account is created (backend or onboarding)
     notify_parent_welcome_email = models.BooleanField(
         default=False,
-        help_text="When a parent account is created (e.g. from backend student create), send a short welcome email. Parent must contact school for login credentials unless you use a separate invite flow."
+        help_text="When a parent account is created (e.g. from backend student create), send a short welcome email. Parent must contact school for login credentials unless you use a separate invite flow.",
     )
 
     class DeadlineMode(models.TextChoices):
@@ -1105,7 +1112,12 @@ class SiteSettings(models.Model):
     def _ensure_preview_columns(cls) -> None:
         with connection.cursor() as cursor:
             try:
-                columns = [col.name for col in connection.introspection.get_table_description(cursor, cls._meta.db_table)]
+                columns = [
+                    col.name
+                    for col in connection.introspection.get_table_description(
+                        cursor, cls._meta.db_table
+                    )
+                ]
             except OperationalError:
                 try:
                     connection.rollback()
@@ -1118,7 +1130,14 @@ class SiteSettings(models.Model):
                 field = cls._meta.get_field("video_background")
                 with connection.schema_editor() as schema_editor:
                     schema_editor.add_field(cls, field)
-            except (FieldDoesNotExist, OperationalError, DatabaseError, RuntimeError, TypeError, ValueError):
+            except (
+                FieldDoesNotExist,
+                OperationalError,
+                DatabaseError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
                 try:
                     connection.rollback()
                 except DatabaseError:
@@ -1131,6 +1150,7 @@ class SiteSettings(models.Model):
         if schema_name and schema_name != "public":
             try:
                 from django_tenants.utils import schema_context
+
                 with schema_context("public"):
                     return fn()
             except ImportError:
@@ -1162,7 +1182,11 @@ class SiteSettings(models.Model):
         return _SITE_SETTINGS_CACHE
 
     def _sanitize_foreign_keys(self, *, persist: bool = False) -> list[str]:
-        report_style_app = "runtime_blueprints" if django_apps.is_installed("apps.runtime_blueprints") else "siteconfig"
+        report_style_app = (
+            "runtime_blueprints"
+            if django_apps.is_installed("apps.runtime_blueprints")
+            else "siteconfig"
+        )
         fk_guards = (
             ("theme_pack", "brand_experience", "ThemePack"),
             ("admin_theme_pack", "brand_experience", "ThemePack"),
@@ -1182,7 +1206,9 @@ class SiteSettings(models.Model):
             cache_key = (app_label, model_name)
             if cache_key not in model_cache:
                 try:
-                    model_cache[cache_key] = django_apps.get_model(app_label, model_name)
+                    model_cache[cache_key] = django_apps.get_model(
+                        app_label, model_name
+                    )
                 except (LookupError, OperationalError):
                     model_cache[cache_key] = None
             related_model = model_cache[cache_key]
@@ -1243,7 +1269,10 @@ class SiteSettings(models.Model):
             except (FileNotFoundError, OSError, ValueError):
                 logger.warning(
                     "Skipping branding asset optimization for missing file",
-                    extra={"field_name": field_name, "field_path": getattr(field, "name", "")},
+                    extra={
+                        "field_name": field_name,
+                        "field_path": getattr(field, "name", ""),
+                    },
                 )
                 continue
             if getattr(file_handle, "_optimized", False):
@@ -1288,7 +1317,9 @@ class SiteSettings(models.Model):
         """
         skip_domains = {"safe_platform_default", "delete"}
         if update_fields is None:
-            return tuple(owner for owner in OWNERSHIP_DOMAINS if owner not in skip_domains)
+            return tuple(
+                owner for owner in OWNERSHIP_DOMAINS if owner not in skip_domains
+            )
 
         owners = {
             classify_site_settings_field(field_name)
@@ -1305,7 +1336,9 @@ class SiteSettings(models.Model):
     ):
         """Publish the relevant SiteSettings owner domains into RuntimeDefaults."""
         effective_owners = tuple(
-            owner for owner in (owners or ()) if owner not in {"safe_platform_default", "delete"}
+            owner
+            for owner in (owners or ())
+            if owner not in {"safe_platform_default", "delete"}
         )
         if owners is not None and not effective_owners:
             return None
@@ -1317,15 +1350,23 @@ class SiteSettings(models.Model):
                 owners=effective_owners or None,
                 exclude_owners=exclude_owners,
             )
-        except (AttributeError, ImportError, LookupError, OperationalError, DatabaseError, RuntimeError, TypeError, ValueError):
+        except (
+            AttributeError,
+            ImportError,
+            LookupError,
+            OperationalError,
+            DatabaseError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             return None
 
     def save(self, *args, **kwargs):
         before = getattr(self, "_orig_backend_feature_flags", {}) or {}
         after = self.backend_feature_flags or {}
-        changed_opt_in = (
-            before.get("require_guardian_finance_opt_in")
-            != after.get("require_guardian_finance_opt_in")
+        changed_opt_in = before.get("require_guardian_finance_opt_in") != after.get(
+            "require_guardian_finance_opt_in"
         )
         requested_update_fields = kwargs.get("update_fields")
         cleared_fields = self._sanitize_foreign_keys()
@@ -1341,7 +1382,9 @@ class SiteSettings(models.Model):
         try:
             super().save(*args, **kwargs)
         except DatabaseError as exc:
-            if kwargs.get("update_fields") and "update_fields did not affect any rows" in str(exc):
+            if kwargs.get(
+                "update_fields"
+            ) and "update_fields did not affect any rows" in str(exc):
                 retry_kwargs = dict(kwargs)
                 retry_kwargs.pop("update_fields", None)
                 super().save(*args, **retry_kwargs)
@@ -1357,7 +1400,9 @@ class SiteSettings(models.Model):
                 },
             )
 
-        owners_to_sync = self.runtime_sync_owners(update_fields=normalized_update_fields)
+        owners_to_sync = self.runtime_sync_owners(
+            update_fields=normalized_update_fields
+        )
         if owners_to_sync:
             self.sync_runtime_defaults(owners=owners_to_sync)
 
@@ -1405,7 +1450,9 @@ class SiteSettings(models.Model):
                 value = getattr(self, attr_name, None)
             payload[name] = _site_settings_json_safe(value)
             if attr_name != name:
-                payload[attr_name] = _site_settings_json_safe(getattr(self, attr_name, None))
+                payload[attr_name] = _site_settings_json_safe(
+                    getattr(self, attr_name, None)
+                )
         return payload
 
     def get_backend_feature_flags(self) -> dict[str, object]:
@@ -1427,7 +1474,9 @@ class SiteSettings(models.Model):
         payload = self.owned_payload(owner="preview_platform")
         return {
             "preview_mode_enabled": bool(
-                payload.get("preview_mode_enabled", getattr(self, "preview_mode_enabled", False))
+                payload.get(
+                    "preview_mode_enabled", getattr(self, "preview_mode_enabled", False)
+                )
             ),
             "preview_note": str(
                 payload.get("preview_note", getattr(self, "preview_note", "")) or ""
@@ -1544,7 +1593,9 @@ class SiteSettings(models.Model):
                 "maintenance_mode",
                 False,
             ),
-            "preview_mode_enabled": bool(preview_settings.get("preview_mode_enabled", False)),
+            "preview_mode_enabled": bool(
+                preview_settings.get("preview_mode_enabled", False)
+            ),
             "preview_note": str(preview_settings.get("preview_note", "") or ""),
             "enable_offline_mode": _payload_bool(
                 policies_payload,
@@ -1693,16 +1744,13 @@ class SiteSettings(models.Model):
                 runtime_payload.get("school_code", getattr(self, "school_code", ""))
             ),
             "country": str(
-                registry_payload.get("country", getattr(self, "country", ""))
-                or ""
+                registry_payload.get("country", getattr(self, "country", "")) or ""
             ),
             "region": str(
-                registry_payload.get("region", getattr(self, "region", ""))
-                or ""
+                registry_payload.get("region", getattr(self, "region", "")) or ""
             ),
             "ministry": str(
-                registry_payload.get("ministry", getattr(self, "ministry", ""))
-                or ""
+                registry_payload.get("ministry", getattr(self, "ministry", "")) or ""
             ),
             "tagline": _normalized_tagline(
                 brand_payload.get("tagline", getattr(self, "tagline", ""))
@@ -1761,16 +1809,34 @@ class SiteSettings(models.Model):
         runtime_payload = self.owned_payload(owner="runtime_blueprints")
         reports_payload = self.owned_payload(owner="reports")
         return {
-            "primary_color": _payload_string(brand_payload, self, "primary_color", "#0d6efd"),
-            "accent_color": _payload_string(brand_payload, self, "accent_color", "#198754"),
-            "header_bg_color": _payload_string(brand_payload, self, "header_bg_color", "#0f172a"),
-            "footer_bg_color": _payload_string(brand_payload, self, "footer_bg_color", "#0f172a"),
-            "success_color": _payload_string(brand_payload, self, "success_color", "#22c55e"),
-            "warning_color": _payload_string(brand_payload, self, "warning_color", "#f59e0b"),
-            "danger_color": _payload_string(brand_payload, self, "danger_color", "#ef4444"),
-            "theme_brightness": _payload_string(brand_payload, self, "theme_brightness", "light"),
+            "primary_color": _payload_string(
+                brand_payload, self, "primary_color", "#0d6efd"
+            ),
+            "accent_color": _payload_string(
+                brand_payload, self, "accent_color", "#198754"
+            ),
+            "header_bg_color": _payload_string(
+                brand_payload, self, "header_bg_color", "#0f172a"
+            ),
+            "footer_bg_color": _payload_string(
+                brand_payload, self, "footer_bg_color", "#0f172a"
+            ),
+            "success_color": _payload_string(
+                brand_payload, self, "success_color", "#22c55e"
+            ),
+            "warning_color": _payload_string(
+                brand_payload, self, "warning_color", "#f59e0b"
+            ),
+            "danger_color": _payload_string(
+                brand_payload, self, "danger_color", "#ef4444"
+            ),
+            "theme_brightness": _payload_string(
+                brand_payload, self, "theme_brightness", "light"
+            ),
             "use_dark_mode": _payload_bool(brand_payload, self, "use_dark_mode", False),
-            "theme_pack_id": brand_payload.get("theme_pack_id", getattr(self, "theme_pack_id", None)),
+            "theme_pack_id": brand_payload.get(
+                "theme_pack_id", getattr(self, "theme_pack_id", None)
+            ),
             "admin_theme_pack_id": brand_payload.get(
                 "admin_theme_pack_id",
                 getattr(self, "admin_theme_pack_id", None),
@@ -1801,14 +1867,18 @@ class SiteSettings(models.Model):
                 "backend_console_theme",
                 "",
             ),
-            "secondary_font": _payload_string(brand_payload, self, "secondary_font", ""),
+            "secondary_font": _payload_string(
+                brand_payload, self, "secondary_font", ""
+            ),
             "use_secondary_font_for_headings": _payload_bool(
                 brand_payload,
                 self,
                 "use_secondary_font_for_headings",
                 False,
             ),
-            "theme_harmony": _payload_string(brand_payload, self, "theme_harmony", "polychromatic"),
+            "theme_harmony": _payload_string(
+                brand_payload, self, "theme_harmony", "polychromatic"
+            ),
             "base_font_size": _payload_int(brand_payload, self, "base_font_size", 16),
             "default_dashboard_view": _payload_string(
                 runtime_payload,
@@ -1842,8 +1912,12 @@ class SiteSettings(models.Model):
         """Return report style ids through the reports owner surface first."""
         settings = self.get_theme_experience_settings()
         return {
-            "default_term_report_style_id": settings.get("default_term_report_style_id"),
-            "default_annual_report_style_id": settings.get("default_annual_report_style_id"),
+            "default_term_report_style_id": settings.get(
+                "default_term_report_style_id"
+            ),
+            "default_annual_report_style_id": settings.get(
+                "default_annual_report_style_id"
+            ),
         }
 
     def get_finance_runtime_config(self) -> dict[str, object]:
@@ -1897,7 +1971,9 @@ class SiteSettings(models.Model):
             ),
             "receipt_allowed_extensions": _payload_string(
                 payload, self, "finance_receipt_allowed_extensions", "pdf,jpg,jpeg,png"
-            ).strip().lower(),
+            )
+            .strip()
+            .lower(),
             "receipt_idempotency_window_minutes": _payload_int(
                 payload, self, "finance_receipt_idempotency_window_minutes", 10
             ),
@@ -1960,7 +2036,9 @@ class SiteSettings(models.Model):
             ),
             "sms_provider": _payload_string(payload, self, "sms_provider", "console"),
             "sms_api_key": _payload_string(payload, self, "sms_api_key", ""),
-            "sms_sender_id": _payload_string(payload, self, "sms_sender_id", "RUNMYCAMPUS"),
+            "sms_sender_id": _payload_string(
+                payload, self, "sms_sender_id", "RUNMYCAMPUS"
+            ),
             "email_from_address": _payload_string(
                 payload, self, "email_from_address", "noreply@school.example.com"
             ),
@@ -2041,11 +2119,19 @@ class SiteSettings(models.Model):
             return
         profile_id = getattr(value, "pk", value)
         self.compliance_profile_id = profile_id or None
-        self._state.fields_cache["compliance_profile"] = value if getattr(value, "pk", None) else None
+        self._state.fields_cache["compliance_profile"] = (
+            value if getattr(value, "pk", None) else None
+        )
 
-    def resolve_default_report_style(self, report_type: str) -> "ReportCardStyle | None":
+    def resolve_default_report_style(
+        self, report_type: str
+    ) -> "ReportCardStyle | None":
         """Resolve the default report style through the owner surface first, then fallback to active defaults."""
-        field_name = "default_term_report_style" if report_type == REPORT_CARD_TYPE_TERM else "default_annual_report_style"
+        field_name = (
+            "default_term_report_style"
+            if report_type == REPORT_CARD_TYPE_TERM
+            else "default_annual_report_style"
+        )
         selection_ids = self.get_report_style_selection_ids()
         style_id = (
             selection_ids.get("default_term_report_style_id")
@@ -2083,10 +2169,14 @@ class SiteSettings(models.Model):
                 return selected
             self._sanitize_foreign_keys(persist=True)
         try:
-            fallback = theme_pack_model.objects.filter(is_default=True, is_active=True).first()
+            fallback = theme_pack_model.objects.filter(
+                is_default=True, is_active=True
+            ).first()
             if fallback:
                 return fallback
-            return theme_pack_model.objects.filter(is_active=True).order_by("name").first()
+            return (
+                theme_pack_model.objects.filter(is_active=True).order_by("name").first()
+            )
         except (OperationalError, DatabaseError):
             return None
 
@@ -2096,7 +2186,13 @@ class SiteSettings(models.Model):
         self.accent_color = pack.accent_color
         self.custom_css = pack.custom_css or ""
         self.brand_font = pack.font_family or self.brand_font
-        update_fields = ["theme_pack", "primary_color", "accent_color", "custom_css", "brand_font"]
+        update_fields = [
+            "theme_pack",
+            "primary_color",
+            "accent_color",
+            "custom_css",
+            "brand_font",
+        ]
         if save:
             self.save(update_fields=update_fields)
 
@@ -2168,7 +2264,9 @@ class SiteSettings(models.Model):
         admin_theme_pack_id = selection_ids.get("admin_theme_pack_id")
         if admin_theme_pack_id:
             try:
-                admin_pack = theme_pack_model.objects.filter(pk=admin_theme_pack_id).first()
+                admin_pack = theme_pack_model.objects.filter(
+                    pk=admin_theme_pack_id
+                ).first()
             except (OperationalError, DatabaseError):
                 admin_pack = None
             if admin_pack and admin_pack.is_active and admin_pack.applies_to_admin:
@@ -2181,52 +2279,67 @@ class SiteSettings(models.Model):
         site_theme_pack_id = selection_ids.get("theme_pack_id")
         if site_theme_pack_id:
             try:
-                site_pack = theme_pack_model.objects.filter(pk=site_theme_pack_id).first()
+                site_pack = theme_pack_model.objects.filter(
+                    pk=site_theme_pack_id
+                ).first()
             except (OperationalError, DatabaseError):
                 site_pack = None
-            if site_pack and site_pack.is_active and getattr(site_pack, "applies_to_admin", False):
+            if (
+                site_pack
+                and site_pack.is_active
+                and getattr(site_pack, "applies_to_admin", False)
+            ):
                 self._state.fields_cache["theme_pack"] = site_pack
                 return site_pack
             if site_pack is None:
                 self._sanitize_foreign_keys(persist=True)
         try:
-            fallback = theme_pack_model.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name").first()
+            fallback = (
+                theme_pack_model.objects.filter(applies_to_admin=True, is_active=True)
+                .order_by("-is_default", "name")
+                .first()
+            )
             return fallback or site_pack
         except (OperationalError, DatabaseError):
             return site_pack
 
-    def get_portal_theme(self, user=None, effective_role: str | None = None) -> "ThemePack | None":
+    def get_portal_theme(
+        self, user=None, effective_role: str | None = None
+    ) -> "ThemePack | None":
         """
         Return the theme pack for the portal (role-based when per-role packs are set).
         effective_role should be TEACHER or PARENT from get_effective_portal_role(request).
         If effective_role is TEACHER and teacher_theme_pack is set, use it; if PARENT and
         parent_theme_pack is set, use it; otherwise use active_theme (portal theme pack).
         """
-        role = (effective_role or "").strip().upper() or (
-            getattr(user, "role", "") or ""
-        ).strip().upper() if user and getattr(user, "is_authenticated", False) else ""
+        role = (
+            (effective_role or "").strip().upper()
+            or (getattr(user, "role", "") or "").strip().upper()
+            if user and getattr(user, "is_authenticated", False)
+            else ""
+        )
         theme_pack_model = get_theme_pack_owner_model()
         selection_ids = self.get_theme_selection_ids()
         teacher_theme_pack_id = selection_ids.get("teacher_theme_pack_id")
         parent_theme_pack_id = selection_ids.get("parent_theme_pack_id")
         if role == "TEACHER" and teacher_theme_pack_id:
-                try:
-                    pack = theme_pack_model.objects.filter(
-                        pk=teacher_theme_pack_id, is_active=True
-                    ).first()
-                    if pack:
-                        return pack
-                except (OperationalError, DatabaseError):
-                    pass
+            try:
+                pack = theme_pack_model.objects.filter(
+                    pk=teacher_theme_pack_id, is_active=True
+                ).first()
+                if pack:
+                    return pack
+            except (OperationalError, DatabaseError):
+                pass
         if role == "PARENT" and parent_theme_pack_id:
-                try:
-                    pack = theme_pack_model.objects.filter(
-                        pk=parent_theme_pack_id, is_active=True
-                    ).first()
-                    if pack:
-                        return pack
-                except (OperationalError, DatabaseError):
-                    pass
+            try:
+                pack = theme_pack_model.objects.filter(
+                    pk=parent_theme_pack_id, is_active=True
+                ).first()
+                if pack:
+                    return pack
+            except (OperationalError, DatabaseError):
+                pass
         return self.active_theme
 
 
@@ -2246,7 +2359,6 @@ from .models_tooling import (  # noqa: F401
 # ============================================================================
 # Phase 1.2.4: Internationalization & Multi-Region Support
 # ============================================================================
-
 
 
 # AI models moved to .models_ai for Phase 10 — 2.1 giant-file decomposition. Re-export for backward compatibility.
@@ -2291,6 +2403,7 @@ from .models_feature_controls import (  # noqa: F401
     GlobalSupportTicket,
     TourStep,
 )  # noqa: F401
+
 # Re-export for admin/forms: models live in academics (moved in 0146 / tenant_runtime).
 from apps.academics.models import ReportCardStyleAssignment  # noqa: F401
 from apps.academics.models_tenant_runtime import HolidayCalendar  # noqa: F401
@@ -2306,7 +2419,11 @@ from .models_ai import (  # noqa: F401
 from .models_feature_controls import FeatureUsageEvent  # noqa: F401
 from .models_runtime_ops import BreakGlassOverride, BroadcastCampaign  # noqa: F401
 from .models_marketing import ProductFeedback, MarketingContent, BlogPost  # noqa: F401
-from .models_global_experience import GlobalSyllabus, LearningPassport  # noqa: F401
+from .models_global_experience import (  # noqa: F401
+    GlobalSyllabus,
+    ImpersonationLog,
+    LearningPassport,
+)
 
 
 def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> None:
@@ -2322,19 +2439,24 @@ def _emit_global_change_alert(sender, instance: SiteSettings, **kwargs) -> None:
     """
     import os
     import threading
+
     url = os.environ.get("GLOBAL_CHANGE_ALERT_WEBHOOK_URL", "").strip()
     if not url:
         return
     payload = {
         "event": "site_settings_changed",
         "id": instance.pk,
-        "changed_at": instance.updated_at.isoformat() if getattr(instance, "updated_at", None) else None,
+        "changed_at": instance.updated_at.isoformat()
+        if getattr(instance, "updated_at", None)
+        else None,
     }
+
     def _post():
         try:
             import urllib.request
             import urllib.error
             import json
+
             req = urllib.request.Request(
                 url,
                 data=json.dumps(payload).encode("utf-8"),
@@ -2345,6 +2467,7 @@ def _emit_global_change_alert(sender, instance: SiteSettings, **kwargs) -> None:
         except (OSError, TimeoutError, TypeError, ValueError, urllib.error.URLError):
             logger = logging.getLogger(__name__)
             logger.warning("Global change alert webhook failed", exc_info=True)
+
     t = threading.Thread(target=_post, daemon=True)
     t.start()
 
@@ -2357,4 +2480,3 @@ def _clear_site_settings_cache(sender, **kwargs) -> None:
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)
 post_save.connect(_emit_global_change_alert, sender=SiteSettings)
 post_delete.connect(_clear_site_settings_cache, sender=SiteSettings)
-

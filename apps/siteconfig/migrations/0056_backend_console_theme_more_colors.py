@@ -5,25 +5,54 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0055_remove_admin_sidebar_fields'),
+        ("siteconfig", "0055_remove_admin_sidebar_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sitesettings',
-            name='admin_theme_pack',
-            field=models.ForeignKey(blank=True, help_text='Theme for staff dashboards: /admin and /backend. Shared between both.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='admin_site_settings', to='siteconfig.themepack'),
+            model_name="sitesettings",
+            name="admin_theme_pack",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Theme for staff dashboards: /admin and /backend. Shared between both.",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="admin_site_settings",
+                to="siteconfig.themepack",
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='backend_console_theme',
-            field=models.CharField(choices=[('dark', 'Dark (slate grey)'), ('light', 'Light (lavender tint)'), ('system', 'System (follows OS)'), ('midnight', 'Midnight (deep blue-black)'), ('ocean', 'Ocean (dark blue)'), ('slate', 'Slate (medium grey)'), ('sand', 'Sand (warm light)'), ('snow', 'Snow (cool light)'), ('forest', 'Forest (dark green)'), ('indigo', 'Indigo (dark purple)')], default='dark', help_text='Theme for the Backend Console (Workflow Center, Entity Console).', max_length=20),
+            model_name="sitesettings",
+            name="backend_console_theme",
+            field=models.CharField(
+                choices=[
+                    ("dark", "Dark (slate grey)"),
+                    ("light", "Light (lavender tint)"),
+                    ("system", "System (follows OS)"),
+                    ("midnight", "Midnight (deep blue-black)"),
+                    ("ocean", "Ocean (dark blue)"),
+                    ("slate", "Slate (medium grey)"),
+                    ("sand", "Sand (warm light)"),
+                    ("snow", "Snow (cool light)"),
+                    ("forest", "Forest (dark green)"),
+                    ("indigo", "Indigo (dark purple)"),
+                ],
+                default="dark",
+                help_text="Theme for the Backend Console (Workflow Center, Entity Console).",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='theme_pack',
-            field=models.ForeignKey(blank=True, help_text='Theme for portal (parent, teacher, student dashboards). Does not affect /admin or /backend.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='site_settings', to='siteconfig.themepack'),
+            model_name="sitesettings",
+            name="theme_pack",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Theme for portal (parent, teacher, student dashboards). Does not affect /admin or /backend.",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="site_settings",
+                to="siteconfig.themepack",
+            ),
         ),
     ]

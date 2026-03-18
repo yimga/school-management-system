@@ -2,6 +2,7 @@
 Apply split-billing late fees for overdue payer shares.
 Queues Celery task when broker is configured; runs inline otherwise.
 """
+
 from __future__ import annotations
 
 from django.conf import settings
@@ -26,12 +27,18 @@ class Command(BaseCommand):
 
         if broker_url and not dry_run:
             apply_split_late_fees_task.delay(dry_run=False)
-            self.stdout.write(self.style.SUCCESS("Split late-fee task queued. Worker will process it."))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Split late-fee task queued. Worker will process it."
+                )
+            )
             return
 
         result = run_split_late_fees(dry_run=dry_run)
         if result.get("status") == "disabled":
-            self.stdout.write("Split late fee policy is disabled in backend feature flags.")
+            self.stdout.write(
+                "Split late fee policy is disabled in backend feature flags."
+            )
             return
 
         applied = int(result.get("applied", 0) or 0)

@@ -2,6 +2,7 @@
 §5.6 Live Previews: tests for get_studio_preview_context (impact_summary, dependency_warnings).
 Uses SimpleTestCase so no DB is created — avoids migration conflicts in test env.
 """
+
 from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase
@@ -39,11 +40,23 @@ class StudioPreviewContextTests(SimpleTestCase):
         self.assertEqual(out, {})
 
     @patch("apps.setup_studio.services.get_setup_studio_payload")
-    def test_preview_context_launch_returns_impact_and_warnings_when_school_set(self, mock_payload):
+    def test_preview_context_launch_returns_impact_and_warnings_when_school_set(
+        self, mock_payload
+    ):
         mock_payload.return_value = {
-            "health_summary": {"tone": "ready", "label": "Launch ready", "detail": "Core blockers cleared."},
-            "recommended_next": {"key": "launch", "label": "Launch", "link": "/studio/launch/"},
-            "launch_blockers": [{"key": "plan_choice", "label": "Plan", "detail": "No plan attached."}],
+            "health_summary": {
+                "tone": "ready",
+                "label": "Launch ready",
+                "detail": "Core blockers cleared.",
+            },
+            "recommended_next": {
+                "key": "launch",
+                "label": "Launch",
+                "link": "/studio/launch/",
+            },
+            "launch_blockers": [
+                {"key": "plan_choice", "label": "Plan", "detail": "No plan attached."}
+            ],
             "launch_ready": False,
         }
         request = Mock()

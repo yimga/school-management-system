@@ -5,26 +5,43 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0022_evaluation_internship_score'),
-        ('schools', '0001_initial'),
+        ("evals", "0022_evaluation_internship_score"),
+        ("schools", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='assessmentweights',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='assessment_weights', to='schools.school'),
+            model_name="assessmentweights",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="assessment_weights",
+                to="schools.school",
+            ),
         ),
         migrations.AddField(
-            model_name='evaluation',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='evaluations', to='schools.school'),
+            model_name="evaluation",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="evaluations",
+                to="schools.school",
+            ),
         ),
         migrations.AddField(
-            model_name='teacherassignment',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='teacher_assignments', to='schools.school'),
+            model_name="teacherassignment",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="teacher_assignments",
+                to="schools.school",
+            ),
         ),
     ]

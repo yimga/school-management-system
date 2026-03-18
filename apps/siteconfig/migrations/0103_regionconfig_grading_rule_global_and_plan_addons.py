@@ -52,7 +52,6 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0102_section8_service_integration_webhook_subscription"),
     ]
@@ -64,7 +63,7 @@ class Migration(migrations.Migration):
             field=models.JSONField(
                 blank=True,
                 default=dict,
-                help_text="Report card average: {\"type\": \"simple\"} or {\"type\": \"coefficient\", \"scale_max\": 20}. Subject coefficients from GradingScaleConfig or school settings.",
+                help_text='Report card average: {"type": "simple"} or {"type": "coefficient", "scale_max": 20}. Subject coefficients from GradingScaleConfig or school settings.',
             ),
         ),
         migrations.RunPython(seed_plan_addons_and_cameroon_grading, noop_reverse),

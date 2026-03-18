@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0004_classroom_academic_year_repair'),
+        ("academics", "0004_classroom_academic_year_repair"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='term',
-            name='custom_label',
+            model_name="term",
+            name="custom_label",
             field=models.CharField(blank=True, max_length=30),
         ),
     ]

@@ -4,6 +4,7 @@ Wave 4.2: Flag get_tenant_cache_prefix(None) in tenant apps.
 Tenant-specific caches must not use None (public prefix); pass request or school_id.
 Usage: python scripts/lint_tenant_cache_prefix.py [--base REPO_ROOT] [--exit-zero]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,9 +34,13 @@ PATTERN = re.compile(r"get_tenant_cache_prefix\s*\(\s*None\s*\)")
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Lint: no get_tenant_cache_prefix(None) in tenant apps.")
+    ap = argparse.ArgumentParser(
+        description="Lint: no get_tenant_cache_prefix(None) in tenant apps."
+    )
     ap.add_argument("--base", type=str, default=".", help="Repo root.")
-    ap.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
+    ap.add_argument(
+        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
+    )
     args = ap.parse_args()
     root = Path(args.base).resolve()
     apps_dir = root / "apps"
@@ -65,9 +70,14 @@ def main() -> int:
                 hits.append((rel, line))
 
     if not hits:
-        print("lint_tenant_cache_prefix: No get_tenant_cache_prefix(None) in tenant apps.")
+        print(
+            "lint_tenant_cache_prefix: No get_tenant_cache_prefix(None) in tenant apps."
+        )
         return 0
-    print("lint_tenant_cache_prefix: get_tenant_cache_prefix(None) in tenant apps (use request or school_id):", file=sys.stderr)
+    print(
+        "lint_tenant_cache_prefix: get_tenant_cache_prefix(None) in tenant apps (use request or school_id):",
+        file=sys.stderr,
+    )
     for rel, line in hits:
         print(f"  {rel}:{line}", file=sys.stderr)
     return 0 if args.exit_zero else 1

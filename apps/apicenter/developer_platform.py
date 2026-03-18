@@ -1,6 +1,7 @@
 """
 F6: Developer platform — API gateway, webhooks, SDKs, docs.
 """
+
 from __future__ import annotations
 
 # API schema at /api/schema/; webhooks in events/siteconfig; docs link to schema UI.

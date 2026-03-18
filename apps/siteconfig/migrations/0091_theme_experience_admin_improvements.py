@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0090_alter_regionconfig_term_count_per_year_and_more"),
     ]

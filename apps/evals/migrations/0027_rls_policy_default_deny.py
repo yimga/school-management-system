@@ -5,7 +5,11 @@ from django.db import connection, migrations
 
 from apps.schools.rls import should_apply_rls
 
-EVALS_TABLES = ["evals_assessmentweights", "evals_teacherassignment", "evals_evaluation"]
+EVALS_TABLES = [
+    "evals_assessmentweights",
+    "evals_teacherassignment",
+    "evals_evaluation",
+]
 POLICY_PREFIX = "evals_tenant"
 USING_CLAUSE = """(
     current_setting('app.rls_bypass', true) = 'on'

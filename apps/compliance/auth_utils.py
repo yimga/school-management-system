@@ -2,6 +2,7 @@
 Centralized RBAC helpers for the compliance app.
 Use these for dashboard, reporting, and API views that require staff/admin access.
 """
+
 from apps.accounts.utils import get_user_role
 
 

@@ -9,10 +9,12 @@ Run from project root (same folder as manage.py):
 Then create a superuser:
   python manage.py createsuperuser
 """
+
 import os
 import subprocess
 import sys
 from pathlib import Path
+
 
 def main():
     base = Path(__file__).resolve().parent.parent
@@ -40,6 +42,7 @@ def main():
         print("Migration failed.", file=sys.stderr)
         sys.exit(result.returncode)
     print("Done. Run: python manage.py createsuperuser")
+
 
 if __name__ == "__main__":
     main()

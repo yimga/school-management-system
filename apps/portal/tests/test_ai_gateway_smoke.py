@@ -90,7 +90,12 @@ class AIGatewaySmokeTests(SimpleTestCase):
         ]
         mock_gateway_response.return_value = (
             "Start with branding and import data.",
-            {"provider": "ollama", "tier": "ollama", "task_type": "setup_recommend", "request_id": "req-1"},
+            {
+                "provider": "ollama",
+                "tier": "ollama",
+                "task_type": "setup_recommend",
+                "request_id": "req-1",
+            },
         )
 
         request = self.factory.post(
@@ -109,7 +114,10 @@ class AIGatewaySmokeTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         payload = json.loads(response.content)
         self.assertTrue(payload["success"])
-        self.assertEqual([call.args[1] for call in mock_search.call_args_list], ["help", "config", "default"])
+        self.assertEqual(
+            [call.args[1] for call in mock_search.call_args_list],
+            ["help", "config", "default"],
+        )
 
     @patch("apps.portal.views_ai_gateway._gateway_response")
     @patch("apps.portal.views_ai_gateway.get_prompt_template")
@@ -126,8 +134,17 @@ class AIGatewaySmokeTests(SimpleTestCase):
         mock_rate_limit.return_value = (True, 0)
         mock_prompt_template.return_value = "Recommend dashboards"
         mock_gateway_response.return_value = (
-            {"dashboards": [{"title": "Executive Home"}], "packs": [{"title": "Starter"}], "rationale": "Best fit"},
-            {"provider": "vllm", "tier": "vllm", "task_type": "setup_recommend", "request_id": "req-2"},
+            {
+                "dashboards": [{"title": "Executive Home"}],
+                "packs": [{"title": "Starter"}],
+                "rationale": "Best fit",
+            },
+            {
+                "provider": "vllm",
+                "tier": "vllm",
+                "task_type": "setup_recommend",
+                "request_id": "req-2",
+            },
         )
 
         request = self.factory.post(
@@ -161,8 +178,16 @@ class AIGatewaySmokeTests(SimpleTestCase):
         mock_rate_limit.return_value = (True, 0)
         mock_prompt_template.return_value = "Recommend marketplace packs"
         mock_gateway_response.return_value = (
-            {"recommendations": [{"title": "Admissions Booster"}], "rationale": "High fit"},
-            {"provider": "vllm", "tier": "vllm", "task_type": "setup_recommend", "request_id": "req-3"},
+            {
+                "recommendations": [{"title": "Admissions Booster"}],
+                "rationale": "High fit",
+            },
+            {
+                "provider": "vllm",
+                "tier": "vllm",
+                "task_type": "setup_recommend",
+                "request_id": "req-3",
+            },
         )
 
         request = self.factory.post(

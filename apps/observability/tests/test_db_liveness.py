@@ -1,6 +1,7 @@
 """
 §2.4 Tests for db_liveness (raw SQL wrap). Isolated from test_monitoring to avoid merge conflicts.
 """
+
 from django.test import TestCase
 
 from apps.observability.db_liveness import check_db_liveness
@@ -24,6 +25,7 @@ class DbLivenessTests(TestCase):
 
     def test_monitoring_uses_it(self):
         from apps.observability.monitoring import SystemHealthMonitor
+
         db_health = SystemHealthMonitor.check_database_health()
         self.assertIn("status", db_health)
         self.assertIn(db_health["status"], ("healthy", "unhealthy"))

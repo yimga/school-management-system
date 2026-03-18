@@ -2,6 +2,7 @@
 Phase 10 — 2.1: Migration hub views (wizard, run list, rollback, legacy view, data cleaner).
 Extracted from accounts/views.py for giant-file decomposition.
 """
+
 import csv
 import io
 import json
@@ -19,7 +20,9 @@ from apps.accounts.models import User
 
 def _is_admin_user(user):
     return user.is_authenticated and (
-        user.is_superuser or user.is_staff or getattr(user, "role", None) == User.Role.ADMIN
+        user.is_superuser
+        or user.is_staff
+        or getattr(user, "role", None) == User.Role.ADMIN
     )
 
 
@@ -27,14 +30,32 @@ def _is_admin_user(user):
 MIGRATION_TYPES = {
     "students": {
         "label": "Students",
-        "target_fields": ["first_name", "last_name", "admission_number", "academic_year", "classroom", "specialty", "status"],
+        "target_fields": [
+            "first_name",
+            "last_name",
+            "admission_number",
+            "academic_year",
+            "classroom",
+            "specialty",
+            "status",
+        ],
         "required": ["first_name", "last_name"],
     },
     "grades": {
         "label": "Grades",
         "target_fields": [
-            "student_code", "subject_assignment_id", "term_id", "teacher_username",
-            "seq1", "seq2", "exam", "mock", "practical", "test1", "test2", "remarks",
+            "student_code",
+            "subject_assignment_id",
+            "term_id",
+            "teacher_username",
+            "seq1",
+            "seq2",
+            "exam",
+            "mock",
+            "practical",
+            "test1",
+            "test2",
+            "remarks",
         ],
         "required": ["student_code", "subject_assignment_id", "term_id"],
     },
@@ -60,17 +81,29 @@ def migration_wizard(request):
         action = request.POST.get("action")
         if action == "select_system":
             source_system = (request.POST.get("source_system") or "").strip()
-            allowed = ("powerschool", "blackbaud", "veracross", "infinite_campus", "other")
+            allowed = (
+                "powerschool",
+                "blackbaud",
+                "veracross",
+                "infinite_campus",
+                "other",
+            )
             if source_system not in allowed:
                 source_system = "other"
-            request.session[session_key] = {**wizard_data, "source_system": source_system}
+            request.session[session_key] = {
+                **wizard_data,
+                "source_system": source_system,
+            }
             return redirect("accounts:migration_wizard")
 
         if action == "upload":
             from apps.automation.models import MigrationProfile
+
             profile_slug = request.POST.get("profile_slug")
             if profile_slug:
-                profile = MigrationProfile.objects.filter(slug=profile_slug, is_active=True).first()
+                profile = MigrationProfile.objects.filter(
+                    slug=profile_slug, is_active=True
+                ).first()
                 if profile:
                     migration_type = profile.domain
                 else:
@@ -91,8 +124,18 @@ def migration_wizard(request):
                 reader = csv.DictReader(io.StringIO(content))
                 headers = list(reader.fieldnames or [])
                 rows = list(reader)[:500]
-            except (UnicodeDecodeError, csv.Error, TypeError, ValueError, KeyError, OSError) as e:
-                messages.error(request, f"Could not read the CSV file. Use UTF-8 encoding and check the file is not corrupted. Details: {e}")
+            except (
+                UnicodeDecodeError,
+                csv.Error,
+                TypeError,
+                ValueError,
+                KeyError,
+                OSError,
+            ) as e:
+                messages.error(
+                    request,
+                    f"Could not read the CSV file. Use UTF-8 encoding and check the file is not corrupted. Details: {e}",
+                )
                 return redirect("accounts:migration_wizard")
             request.session[session_key] = {
                 "source_system": wizard_data.get("source_system", "other"),
@@ -120,10 +163,14 @@ def migration_wizard(request):
                         t[target_field] = row.get(csv_col, "")
                 transformed.append(t)
             from apps.accounts.migration_services import run_dry_run
+
             school = getattr(request, "school", None)
             scorecard = run_dry_run(
-                school, migration_type, transformed,
-                user=request.user, create_audit=True,
+                school,
+                migration_type,
+                transformed,
+                user=request.user,
+                create_audit=True,
                 legacy_snapshot=transformed,
             )
             request.session["migration_wizard_scorecard"] = scorecard
@@ -145,73 +192,125 @@ def migration_wizard(request):
                     if target_field and target_field != "__skip__":
                         t[target_field] = row.get(csv_col, "")
                 transformed.append(t)
-            from apps.accounts.migration_services import run_migration_start, run_migration_finish
+            from apps.accounts.migration_services import (
+                run_migration_start,
+                run_migration_finish,
+            )
+
             school = getattr(request, "school", None)
             run = run_migration_start(
-                school, migration_type, len(transformed),
-                user=request.user, legacy_snapshot=transformed,
+                school,
+                migration_type,
+                len(transformed),
+                user=request.user,
+                legacy_snapshot=transformed,
             )
             result = {"created": 0, "updated": 0, "error_count": 0, "errors": []}
             if migration_type == "students":
                 try:
                     from django.test import Client
                     from django.urls import reverse as rev
+
                     client = Client()
                     client.force_login(request.user)
                     for k, v in request.session.items():
                         client.session[k] = v
                     client.session.save()
                     url = rev("api:entity-student-bulk-commit")
-                    resp = client.post(url, data=json.dumps({"rows": transformed}), content_type="application/json")
+                    resp = client.post(
+                        url,
+                        data=json.dumps({"rows": transformed}),
+                        content_type="application/json",
+                    )
                     try:
                         data = json.loads(resp.content.decode("utf-8"))
-                    except (json.JSONDecodeError, UnicodeDecodeError, TypeError, ValueError):
+                    except (
+                        json.JSONDecodeError,
+                        UnicodeDecodeError,
+                        TypeError,
+                        ValueError,
+                    ):
                         data = {}
                     if resp.status_code in (200, 201):
                         result["created"] = len(data.get("created", []))
                         result["errors"] = data.get("errors", [])
                         result["error_count"] = len(result["errors"])
-                        result["rollback_snapshot"] = {"created_ids": data.get("created", [])}
+                        result["rollback_snapshot"] = {
+                            "created_ids": data.get("created", [])
+                        }
                         run_migration_finish(run, result)
                         p = result.get("parity", {})
-                        messages.success(request, f"Students: created {result['created']}, errors {result['error_count']}. Parity: {p.get('total_processed', 0)} rows processed.")
+                        messages.success(
+                            request,
+                            f"Students: created {result['created']}, errors {result['error_count']}. Parity: {p.get('total_processed', 0)} rows processed.",
+                        )
                     else:
                         result["error_count"] = len(transformed)
-                        result["error_message"] = data.get("error") or "Student import failed."
+                        result["error_message"] = (
+                            data.get("error") or "Student import failed."
+                        )
                         result["errors"] = [result["error_message"]]
                         run_migration_finish(run, result)
                         messages.error(request, result["error_message"])
-                except (ValueError, TypeError, KeyError, ImportError, AttributeError, RuntimeError) as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ImportError,
+                    AttributeError,
+                    RuntimeError,
+                ) as e:
                     result["error_count"] = len(transformed)
                     result["error_message"] = str(e)
                     result["errors"] = [str(e)]
                     run_migration_finish(run, result)
-                    messages.error(request, f"Import failed: {e}. Check your CSV format and mapping.")
+                    messages.error(
+                        request,
+                        f"Import failed: {e}. Check your CSV format and mapping.",
+                    )
             elif migration_type == "grades":
                 from apps.academics.services import get_active_year_and_term
+
                 active_year, _ = get_active_year_and_term()
                 if not active_year:
                     result["error_count"] = len(transformed)
                     result["errors"] = ["No active academic year set."]
                     run_migration_finish(run, result)
-                    messages.error(request, "No active academic year. Set one in Academics.")
+                    messages.error(
+                        request, "No active academic year. Set one in Academics."
+                    )
                 else:
                     try:
                         from apps.evals.importers import apply_import, preview_import
+
                         preview = preview_import(transformed)
                         apply_result = apply_import(preview, active_year)
                         result["created"] = apply_result.get("created", 0)
                         result["updated"] = apply_result.get("updated", 0)
-                        result["duration_seconds"] = apply_result.get("duration_seconds", 0)
-                        result["error_count"] = len(transformed) - result["created"] - result["updated"]
+                        result["duration_seconds"] = apply_result.get(
+                            "duration_seconds", 0
+                        )
+                        result["error_count"] = (
+                            len(transformed) - result["created"] - result["updated"]
+                        )
                         result["rollback_snapshot"] = {
                             "created_ids": apply_result.get("created_ids", []),
                             "updated_ids": apply_result.get("updated_ids", []),
                         }
                         run_migration_finish(run, result)
                         p = result.get("parity", {})
-                        messages.success(request, f"Grades: created {result['created']}, updated {result['updated']}, errors {result['error_count']}. Parity: {p.get('total_processed', 0)} rows processed.")
-                    except (ValueError, TypeError, KeyError, ImportError, AttributeError, RuntimeError) as e:
+                        messages.success(
+                            request,
+                            f"Grades: created {result['created']}, updated {result['updated']}, errors {result['error_count']}. Parity: {p.get('total_processed', 0)} rows processed.",
+                        )
+                    except (
+                        ValueError,
+                        TypeError,
+                        KeyError,
+                        ImportError,
+                        AttributeError,
+                        RuntimeError,
+                    ) as e:
                         result["error_count"] = len(transformed)
                         result["error_message"] = str(e)
                         result["errors"] = [str(e)]
@@ -227,6 +326,7 @@ def migration_wizard(request):
             return redirect("accounts:migration_wizard")
 
     from apps.automation.models import MigrationProfile
+
     source_system = wizard_data.get("source_system") or "other"
     if source_system == "other":
         profiles = list(
@@ -238,11 +338,15 @@ def migration_wizard(request):
         )
     else:
         profiles = list(
-            MigrationProfile.objects.filter(is_active=True, source_system=source_system).order_by("sort_order", "slug")
+            MigrationProfile.objects.filter(
+                is_active=True, source_system=source_system
+            ).order_by("sort_order", "slug")
         )
     if not profiles:
         profiles = list(
-            MigrationProfile.objects.filter(is_active=True, slug__in=("students", "grades")).order_by("sort_order")[:2]
+            MigrationProfile.objects.filter(
+                is_active=True, slug__in=("students", "grades")
+            ).order_by("sort_order")[:2]
         )
     profile_choices = [(p.slug, p.name) for p in profiles]
     has_data = bool(wizard_data.get("rows"))
@@ -257,7 +361,10 @@ def migration_wizard(request):
                 schema_hints = prof.config.get("schema_hints") or {}
         if not schema_hints and headers and config.get("target_fields"):
             from apps.accounts.migration_services import infer_schema_mapping
-            schema_hints = infer_schema_mapping(headers, config.get("target_fields", []))
+
+            schema_hints = infer_schema_mapping(
+                headers, config.get("target_fields", [])
+            )
     rows = wizard_data.get("rows", [])[:15]
     preview_matrix = []
     for row in rows:
@@ -265,37 +372,47 @@ def migration_wizard(request):
     scorecard = request.session.pop("migration_wizard_scorecard", None)
     if scorecard and scorecard.get("validation_issues"):
         vi = scorecard["validation_issues"]
-        labels = {"duplicates": "Duplicates", "missing_required": "Missing required fields", "invalid_refs": "Invalid references"}
+        labels = {
+            "duplicates": "Duplicates",
+            "missing_required": "Missing required fields",
+            "invalid_refs": "Invalid references",
+        }
         scorecard["validation_issues_list"] = [
             {"category": cat, "label": labels.get(cat, cat), "issues": vi.get(cat, [])}
             for cat in ("duplicates", "missing_required", "invalid_refs")
             if vi.get(cat)
         ]
     schema_hints_json = json.dumps(schema_hints)
-    return render(request, "accounts/migration_wizard.html", {
-        "migration_types": MIGRATION_TYPES,
-        "migration_type_choices": profile_choices,
-        "wizard_data": wizard_data,
-        "has_data": has_data,
-        "source_system": source_system,
-        "source_system_choices": [
-            ("powerschool", "PowerSchool"),
-            ("blackbaud", "Blackbaud"),
-            ("veracross", "Veracross"),
-            ("infinite_campus", "Infinite Campus"),
-            ("other", "Other"),
-        ],
-        "target_fields": config.get("target_fields", []),
-        "required_fields": config.get("required", []),
-        "preview_matrix": preview_matrix,
-        "scorecard": scorecard,
-        "schema_hints": schema_hints,
-        "schema_hints_json": schema_hints_json,
-        "page_title": _("Data migration wizard"),
-        "page_subtitle": _("Choose your current system, upload a CSV, map columns to target fields, preview, then run."),
-        "action_url": reverse("studio_os:import_hub"),
-        "action_text": _("Back to Import Hub"),
-    })
+    return render(
+        request,
+        "accounts/migration_wizard.html",
+        {
+            "migration_types": MIGRATION_TYPES,
+            "migration_type_choices": profile_choices,
+            "wizard_data": wizard_data,
+            "has_data": has_data,
+            "source_system": source_system,
+            "source_system_choices": [
+                ("powerschool", "PowerSchool"),
+                ("blackbaud", "Blackbaud"),
+                ("veracross", "Veracross"),
+                ("infinite_campus", "Infinite Campus"),
+                ("other", "Other"),
+            ],
+            "target_fields": config.get("target_fields", []),
+            "required_fields": config.get("required", []),
+            "preview_matrix": preview_matrix,
+            "scorecard": scorecard,
+            "schema_hints": schema_hints,
+            "schema_hints_json": schema_hints_json,
+            "page_title": _("Data migration wizard"),
+            "page_subtitle": _(
+                "Choose your current system, upload a CSV, map columns to target fields, preview, then run."
+            ),
+            "action_url": reverse("studio_os:import_hub"),
+            "action_text": _("Back to Import Hub"),
+        },
+    )
 
 
 @permission_required("settings.manage")
@@ -308,15 +425,26 @@ def migration_run_list(request):
         messages.warning(request, "No school context.")
         return redirect("accounts:backend_dashboard")
     from apps.automation.models import MigrationRun
-    runs = MigrationRun.objects.filter(school=school).select_related("triggered_by").order_by("-started_at")[:50]
-    return render(request, "accounts/migration_run_list.html", {
-        "runs": runs,
-        "school": school,
-        "page_title": _("Migration runs"),
-        "page_subtitle": _("Audit of migration runs. Open a run to view read-only legacy data."),
-        "action_url": reverse("studio_os:workflow_center"),
-        "action_text": _("Back to Workflow Center"),
-    })
+
+    runs = (
+        MigrationRun.objects.filter(school=school)
+        .select_related("triggered_by")
+        .order_by("-started_at")[:50]
+    )
+    return render(
+        request,
+        "accounts/migration_run_list.html",
+        {
+            "runs": runs,
+            "school": school,
+            "page_title": _("Migration runs"),
+            "page_subtitle": _(
+                "Audit of migration runs. Open a run to view read-only legacy data."
+            ),
+            "action_url": reverse("studio_os:workflow_center"),
+            "action_text": _("Back to Workflow Center"),
+        },
+    )
 
 
 @permission_required("settings.manage")
@@ -331,13 +459,20 @@ def migration_rollback(request, run_id):
         messages.warning(request, "No school context.")
         return redirect("accounts:backend_dashboard")
     from apps.automation.models import MigrationRun
+
     run = get_object_or_404(MigrationRun, pk=run_id, school=school)
     if not run.can_rollback:
-        messages.error(request, "This run cannot be rolled back (dry run, already rolled back, or no snapshot).")
+        messages.error(
+            request,
+            "This run cannot be rolled back (dry run, already rolled back, or no snapshot).",
+        )
         return redirect("accounts:migration_run_list")
     rollback_run, result = run.trigger_rollback(user=request.user)
     if result.get("success"):
-        messages.success(request, f"Rollback created (run #{rollback_run.pk}). {result.get('message', '')} Reverted: {result.get('reverted_count', 0)}.")
+        messages.success(
+            request,
+            f"Rollback created (run #{rollback_run.pk}). {result.get('message', '')} Reverted: {result.get('reverted_count', 0)}.",
+        )
     else:
         messages.error(request, result.get("message", "Rollback failed."))
     return redirect("accounts:migration_run_list")
@@ -353,19 +488,27 @@ def migration_legacy_view(request, run_id):
         messages.warning(request, "No school context.")
         return redirect("accounts:backend_dashboard")
     from apps.automation.models import MigrationRun
+
     run = get_object_or_404(MigrationRun, pk=run_id, school=school)
     raw_rows = (run.legacy_snapshot or {}).get("rows") or []
     headers = list(raw_rows[0].keys()) if raw_rows else []
     rows_matrix = [[r.get(h, "") for h in headers] for r in raw_rows]
-    return render(request, "accounts/migration_legacy_view.html", {
-        "run": run,
-        "rows_matrix": rows_matrix,
-        "headers": headers,
-        "page_title": _("Legacy data (read-only)"),
-        "page_subtitle": _("Run #%(run_id)s — %(migration_type)s. This view is read-only.") % {"run_id": run.id, "migration_type": run.migration_type},
-        "action_url": reverse("accounts:migration_run_list"),
-        "action_text": _("Back to runs"),
-    })
+    return render(
+        request,
+        "accounts/migration_legacy_view.html",
+        {
+            "run": run,
+            "rows_matrix": rows_matrix,
+            "headers": headers,
+            "page_title": _("Legacy data (read-only)"),
+            "page_subtitle": _(
+                "Run #%(run_id)s — %(migration_type)s. This view is read-only."
+            )
+            % {"run_id": run.id, "migration_type": run.migration_type},
+            "action_url": reverse("accounts:migration_run_list"),
+            "action_text": _("Back to runs"),
+        },
+    )
 
 
 @permission_required("settings.manage")
@@ -377,27 +520,46 @@ def legacy_data_cleaner_view(request):
     if not school:
         messages.warning(request, "No school context.")
         return redirect("accounts:backend_dashboard")
-    from apps.accounts.legacy_data_cleaner import detect_legacy_issues, clean_legacy_data
+    from apps.accounts.legacy_data_cleaner import (
+        detect_legacy_issues,
+        clean_legacy_data,
+    )
+
     if request.method == "POST" and request.POST.get("action") == "clean":
         dry_run = request.POST.get("dry_run") == "1"
         result = clean_legacy_data(school, dry_run=dry_run)
-        messages.success(request, f"Cleaner run (dry_run={dry_run}). Actions: {len(result.get('actions', []))}.")
-        return render(request, "accounts/legacy_data_cleaner.html", {
+        messages.success(
+            request,
+            f"Cleaner run (dry_run={dry_run}). Actions: {len(result.get('actions', []))}.",
+        )
+        return render(
+            request,
+            "accounts/legacy_data_cleaner.html",
+            {
+                "school": school,
+                "issues": detect_legacy_issues(school),
+                "clean_result": result,
+                "page_title": _("Legacy data cleaner"),
+                "page_subtitle": _(
+                    "Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups."
+                ),
+                "action_url": reverse("studio_os:workflow_center"),
+                "action_text": _("Back to Workflow Center"),
+            },
+        )
+    issues = detect_legacy_issues(school)
+    return render(
+        request,
+        "accounts/legacy_data_cleaner.html",
+        {
             "school": school,
-            "issues": detect_legacy_issues(school),
-            "clean_result": result,
+            "issues": issues,
+            "clean_result": None,
             "page_title": _("Legacy data cleaner"),
-            "page_subtitle": _("Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups."),
+            "page_subtitle": _(
+                "Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups."
+            ),
             "action_url": reverse("studio_os:workflow_center"),
             "action_text": _("Back to Workflow Center"),
-        })
-    issues = detect_legacy_issues(school)
-    return render(request, "accounts/legacy_data_cleaner.html", {
-        "school": school,
-        "issues": issues,
-        "clean_result": None,
-        "page_title": _("Legacy data cleaner"),
-        "page_subtitle": _("Detect duplicate admission numbers, missing required fields, and optionally run safe cleanups."),
-        "action_url": reverse("studio_os:workflow_center"),
-        "action_text": _("Back to Workflow Center"),
-    })
+        },
+    )

@@ -1,6 +1,7 @@
 """
 Tests for tenant isolation, provisioning job, single-tenant fallback, and feature-flag enforcement (Option B+C).
 """
+
 import json
 from unittest.mock import patch
 
@@ -21,7 +22,12 @@ from apps.schools.tasks import provision_school_sync
 from apps.people.models import StudentProfile
 from apps.academics.models import AcademicYear, Term, Subject
 from apps.platform_runtime.helpers import get_platform_site_settings_record
-from apps.siteconfig.models import EducationSystemProfile, RegionConfig, TenantSystem, SystemFeature
+from apps.siteconfig.models import (
+    EducationSystemProfile,
+    RegionConfig,
+    TenantSystem,
+    SystemFeature,
+)
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 
@@ -48,14 +54,24 @@ class TenantIsolationTests(TestCase):
             password="testpass123",
             role=User.Role.ADMIN,
         )
-        SchoolMembership.objects.create(user=self.user_a, school=self.school_a, role=User.Role.ADMIN, is_primary=True)
+        SchoolMembership.objects.create(
+            user=self.user_a,
+            school=self.school_a,
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
         self.user_b = User.objects.create_user(
             username="userb",
             email="userb@test.com",
             password="testpass123",
             role=User.Role.ADMIN,
         )
-        SchoolMembership.objects.create(user=self.user_b, school=self.school_b, role=User.Role.ADMIN, is_primary=True)
+        SchoolMembership.objects.create(
+            user=self.user_b,
+            school=self.school_b,
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
         self.student_b = StudentProfile.objects.create(
             school=self.school_b,
             first_name="Bob",
@@ -72,14 +88,30 @@ class TenantIsolationTests(TestCase):
         resp = self.client.get(reverse("api:entity-student-list"))
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        results = data.get("results") if isinstance(data, dict) else (data if isinstance(data, list) else [])
-        ids = [s.get("id") for s in results if isinstance(s, dict) and s.get("id") is not None]
-        self.assertNotIn(self.student_b.id, ids, "School A user must not see School B student")
+        results = (
+            data.get("results")
+            if isinstance(data, dict)
+            else (data if isinstance(data, list) else [])
+        )
+        ids = [
+            s.get("id")
+            for s in results
+            if isinstance(s, dict) and s.get("id") is not None
+        ]
+        self.assertNotIn(
+            self.student_b.id, ids, "School A user must not see School B student"
+        )
 
     def test_has_feature_respects_tenant_systems(self):
         """Phase G optional: has_feature() returns only features from that school's TenantSystems (no cross-tenant leak)."""
-        region = RegionConfig.objects.filter(code="CMR").first() or RegionConfig.objects.create(
-            code="CMR", name="Cameroon", default_language="en", timezone="Africa/Douala", grading_scale="0-20"
+        region = RegionConfig.objects.filter(
+            code="CMR"
+        ).first() or RegionConfig.objects.create(
+            code="CMR",
+            name="Cameroon",
+            default_language="en",
+            timezone="Africa/Douala",
+            grading_scale="0-20",
         )
         profile_workshop, _ = EducationSystemProfile.objects.get_or_create(
             code="test-workshop-profile",
@@ -91,7 +123,9 @@ class TenantIsolationTests(TestCase):
                 "approval_status": EducationSystemProfile.ApprovalStatus.APPROVED,
             },
         )
-        SystemFeature.objects.get_or_create(system=profile_workshop, feature_key="workshop_management")
+        SystemFeature.objects.get_or_create(
+            system=profile_workshop, feature_key="workshop_management"
+        )
         profile_basic, _ = EducationSystemProfile.objects.get_or_create(
             code="test-basic-profile",
             defaults={
@@ -103,7 +137,9 @@ class TenantIsolationTests(TestCase):
             },
         )
         # School A has workshop profile, School B has basic only
-        TenantSystem.objects.get_or_create(school=self.school_a, system=profile_workshop)
+        TenantSystem.objects.get_or_create(
+            school=self.school_a, system=profile_workshop
+        )
         TenantSystem.objects.get_or_create(school=self.school_b, system=profile_basic)
         self.assertTrue(
             self.school_a.has_feature("workshop_management"),
@@ -145,11 +181,20 @@ class ProvisioningJobTests(TestCase):
         pub = EducationSystemTypeRegistry.objects.filter(code="PUBLIC").first()
         if pub:
             school.education_system_types.add(pub)
-        provision_school_sync(str(school.id), contact_email="ops_w1422@publicdistrict.test")
+        provision_school_sync(
+            str(school.id), contact_email="ops_w1422@publicdistrict.test"
+        )
         user = User.objects.get(email="ops_w1422@publicdistrict.test")
         role_codes = set(user.roles.values_list("code", flat=True))
         self.assertIn("ADMIN", role_codes)
-        public_suggested = {"PRINCIPAL", "VICE_PRINCIPAL", "BURSAR", "CENSOR", "DEAN", "ACADEMICS_STAFF"}
+        public_suggested = {
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "BURSAR",
+            "CENSOR",
+            "DEAN",
+            "ACADEMICS_STAFF",
+        }
         self.assertTrue(
             role_codes & public_suggested,
             f"Expected at least one PUBLIC sector AccessRole; got {role_codes}",
@@ -181,7 +226,9 @@ class ProvisioningJobTests(TestCase):
             default_region=uganda,
             sub_system=School.SubSystem.EN,
         )
-        provision_school_sync(str(school.id), contact_email="principal@kampalaacademy.ug")
+        provision_school_sync(
+            str(school.id), contact_email="principal@kampalaacademy.ug"
+        )
         school.refresh_from_db()
         term_names = list(
             Term.objects.filter(school=school)
@@ -189,12 +236,16 @@ class ProvisioningJobTests(TestCase):
             .values_list("name", flat=True)
         )
         self.assertEqual(term_names[:3], ["Term I", "Term II", "Term III"])
-        subjects = set(Subject.objects.filter(school=school).values_list("name", flat=True))
+        subjects = set(
+            Subject.objects.filter(school=school).values_list("name", flat=True)
+        )
         self.assertIn("Biology", subjects)
         self.assertIn("Mathematics", subjects)
         # Profile code: uga-national-default when seeded (migration 0090), else uga-en-auto (education_profile_engine)
         profile_code = (school.settings or {}).get("education_profile_code")
-        self.assertIn(profile_code, ("uga-national-default", "uga-en-auto"), profile_code)
+        self.assertIn(
+            profile_code, ("uga-national-default", "uga-en-auto"), profile_code
+        )
 
     def test_provision_school_auto_generates_country_profile_when_missing(self):
         japan, _ = RegionConfig.objects.get_or_create(
@@ -233,7 +284,11 @@ class ProvisioningJobTests(TestCase):
         self.assertEqual(profile.region_id, "JPN")
         self.assertTrue((profile.config or {}).get("generated"))
 
-        term_names = list(Term.objects.filter(school=school).order_by("position").values_list("name", flat=True))
+        term_names = list(
+            Term.objects.filter(school=school)
+            .order_by("position")
+            .values_list("name", flat=True)
+        )
         self.assertEqual(term_names[:3], ["Term 1", "Term 2", "Term 3"])
 
     def test_provision_school_persists_compiled_tenant_config_snapshot(self):
@@ -267,8 +322,12 @@ class ProvisioningJobTests(TestCase):
         self.assertIn("tenant_config_layers", settings)
         self.assertIn("tenant_policy_pack", settings)
         self.assertIn("tenant_config_compiled_at", settings)
-        self.assertEqual((settings.get("tenant_policy_pack") or {}).get("code"), "LCA")
-        self.assertEqual((settings.get("tenant_compiled_config") or {}).get("default_language"), "fr")
+        self.assertEqual(
+            (settings.get("tenant_policy_pack") or {}).get("code"), "AFR_FR"
+        )
+        self.assertEqual(
+            (settings.get("tenant_compiled_config") or {}).get("default_language"), "fr"
+        )
 
 
 @override_settings(SINGLE_TENANT="true")
@@ -287,9 +346,12 @@ class SingleTenantFallbackTests(TestCase):
         """Middleware would resolve this school when host has no subdomain; tested via model."""
         from apps.schools.middleware import _get_single_tenant_school
         from apps.schools.models import School
+
         # Only assert single-tenant when this test is the only one with an active school
         if School.objects.filter(is_active=True).count() != 1:
-            self.skipTest("Single-tenant resolution requires exactly one active school in DB (test isolation).")
+            self.skipTest(
+                "Single-tenant resolution requires exactly one active school in DB (test isolation)."
+            )
         single = _get_single_tenant_school()
         self.assertIsNotNone(single)
         self.assertEqual(single.id, self.school.id)
@@ -312,7 +374,9 @@ class FeatureFlagTests(TestCase):
             password="testpass123",
             role=User.Role.TEACHER,
         )
-        SchoolMembership.objects.create(user=self.user, school=self.school, role=User.Role.TEACHER, is_primary=True)
+        SchoolMembership.objects.create(
+            user=self.user, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
 
     def test_has_feature_false_when_not_in_features(self):
         self.assertFalse(self.school.has_feature("cahier_de_texte"))
@@ -342,7 +406,9 @@ class OfflineSyncPerSchoolTests(TestCase):
             password="testpass123",
             is_staff=True,
         )
-        SchoolMembership.objects.create(user=user, school=school, role=User.Role.ADMIN, is_primary=True)
+        SchoolMembership.objects.create(
+            user=user, school=school, role=User.Role.ADMIN, is_primary=True
+        )
         device = MobileDevice.objects.create(
             user=user,
             device_id=uuid.uuid4(),
@@ -402,7 +468,9 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         payload = response.json()
         self.assertEqual(payload.get("country_code"), "UGA")
-        city_names = [str(item.get("city", "")).lower() for item in payload.get("cities", [])]
+        city_names = [
+            str(item.get("city", "")).lower() for item in payload.get("cities", [])
+        ]
         self.assertIn("kampala", city_names)
 
     def test_api_education_profiles_returns_country_pack(self):
@@ -415,12 +483,16 @@ class SuperProvisioningWizardTests(TestCase):
         payload = response.json()
         self.assertEqual(payload.get("country_code"), "JPN")
         self.assertIn("auto_option", payload)
-        profile_codes = [str(item.get("code") or "") for item in payload.get("profiles", [])]
+        profile_codes = [
+            str(item.get("code") or "") for item in payload.get("profiles", [])
+        ]
         self.assertIn("jpn-en-auto", profile_codes)
 
     def test_api_create_school_uses_city_timezone(self):
         self.client.force_login(self.superuser)
-        cities = GlobalGeoCatalog.search_cities(country_code="USA", query="New York", limit=10)
+        cities = GlobalGeoCatalog.search_cities(
+            country_code="USA", query="New York", limit=10
+        )
         self.assertTrue(cities, "Global city catalog should include New York")
         city = cities[0]
 
@@ -474,7 +546,9 @@ class SuperProvisioningWizardTests(TestCase):
             },
         )
         self.assertTrue(profile.is_active)
-        cities = GlobalGeoCatalog.search_cities(country_code="UGA", query="Kampala", limit=10)
+        cities = GlobalGeoCatalog.search_cities(
+            country_code="UGA", query="Kampala", limit=10
+        )
         self.assertTrue(cities, "Global city catalog should include Kampala")
         city = cities[0]
 
@@ -498,9 +572,14 @@ class SuperProvisioningWizardTests(TestCase):
         )
         self.assertEqual(response.status_code, 202, response.content)
         school = School.objects.get(slug="explicit-profile-school")
-        self.assertEqual((school.settings or {}).get("education_profile_code"), "uga-national-default")
         self.assertEqual(
-            ((school.settings or {}).get("provisioning") or {}).get("education_profile_mode"),
+            (school.settings or {}).get("education_profile_code"),
+            "uga-national-default",
+        )
+        self.assertEqual(
+            ((school.settings or {}).get("provisioning") or {}).get(
+                "education_profile_mode"
+            ),
             "explicit",
         )
 
@@ -520,12 +599,22 @@ class SuperProvisioningWizardTests(TestCase):
             name="Virginia",
             subdivision_type="state",
         )
-        EducationLevelRegistry.objects.create(code="PRIMARY", global_name="Primary", sort_order=10)
-        EducationLevelRegistry.objects.create(code="SECONDARY", global_name="Secondary", sort_order=20)
-        EducationSystemTypeRegistry.objects.create(code="GENERAL", name="General", sort_order=10)
-        EducationSystemTypeRegistry.objects.create(code="STEM", name="STEM", sort_order=20)
+        EducationLevelRegistry.objects.create(
+            code="PRIMARY", global_name="Primary", sort_order=10
+        )
+        EducationLevelRegistry.objects.create(
+            code="SECONDARY", global_name="Secondary", sort_order=20
+        )
+        EducationSystemTypeRegistry.objects.create(
+            code="GENERAL", name="General", sort_order=10
+        )
+        EducationSystemTypeRegistry.objects.create(
+            code="STEM", name="STEM", sort_order=20
+        )
 
-        cities = GlobalGeoCatalog.search_cities(country_code="USA", query="New York", limit=10)
+        cities = GlobalGeoCatalog.search_cities(
+            country_code="USA", query="New York", limit=10
+        )
         self.assertTrue(cities, "Global city catalog should include New York")
         city = cities[0]
         payload = {
@@ -551,14 +640,23 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertEqual(school.country_code, "US")
         self.assertEqual(school.subdivision_id, subdivision.id)
         self.assertEqual(
-            list(school.education_levels.order_by("code").values_list("code", flat=True)),
+            list(
+                school.education_levels.order_by("code").values_list("code", flat=True)
+            ),
             ["PRIMARY", "SECONDARY"],
         )
         self.assertEqual(
-            list(school.education_system_types.order_by("code").values_list("code", flat=True)),
+            list(
+                school.education_system_types.order_by("code").values_list(
+                    "code", flat=True
+                )
+            ),
             ["GENERAL", "STEM"],
         )
-        self.assertEqual(((school.settings or {}).get("location") or {}).get("country_code_alpha2"), "US")
+        self.assertEqual(
+            ((school.settings or {}).get("location") or {}).get("country_code_alpha2"),
+            "US",
+        )
 
     def test_api_create_school_persists_primary_sector(self):
         """Wedges 14–22: primary_sector set from first sector code in education_system_type_codes."""
@@ -576,10 +674,24 @@ class SuperProvisioningWizardTests(TestCase):
                 default_currency="USD",
                 default_timezone="America/New_York",
             )
-        EducationLevelRegistry.objects.update_or_create(code="PRIMARY", defaults={"global_name": "Primary", "sort_order": 10})
-        EducationSystemTypeRegistry.objects.update_or_create(code="PUBLIC", defaults={"name": "Public / state", "category": "sector", "sort_order": 140})
-        EducationSystemTypeRegistry.objects.update_or_create(code="GENERAL", defaults={"name": "General", "category": "mainstream", "sort_order": 10})
-        cities = GlobalGeoCatalog.search_cities(country_code="USA", query="New York", limit=10)
+        EducationLevelRegistry.objects.update_or_create(
+            code="PRIMARY", defaults={"global_name": "Primary", "sort_order": 10}
+        )
+        EducationSystemTypeRegistry.objects.update_or_create(
+            code="PUBLIC",
+            defaults={
+                "name": "Public / state",
+                "category": "sector",
+                "sort_order": 140,
+            },
+        )
+        EducationSystemTypeRegistry.objects.update_or_create(
+            code="GENERAL",
+            defaults={"name": "General", "category": "mainstream", "sort_order": 10},
+        )
+        cities = GlobalGeoCatalog.search_cities(
+            country_code="USA", query="New York", limit=10
+        )
         self.assertTrue(cities, "Global city catalog should include New York")
         city = cities[0]
         payload = {
@@ -603,7 +715,11 @@ class SuperProvisioningWizardTests(TestCase):
         school = School.objects.get(slug="public-sector-school")
         self.assertEqual(school.primary_sector, "PUBLIC")
         self.assertEqual(
-            list(school.education_system_types.order_by("code").values_list("code", flat=True)),
+            list(
+                school.education_system_types.order_by("code").values_list(
+                    "code", flat=True
+                )
+            ),
             ["GENERAL", "PUBLIC"],
         )
 
@@ -629,7 +745,9 @@ class SuperProvisioningWizardTests(TestCase):
             approval_status=EducationSystemProfile.ApprovalStatus.DRAFT,
             is_active=True,
         )
-        cities = GlobalGeoCatalog.search_cities(country_code="UGA", query="Kampala", limit=10)
+        cities = GlobalGeoCatalog.search_cities(
+            country_code="UGA", query="Kampala", limit=10
+        )
         self.assertTrue(cities, "Global city catalog should include Kampala")
         city = cities[0]
 
@@ -654,17 +772,23 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertEqual(response.status_code, 400, response.content)
         data = response.json()
         self.assertIn("errors", data)
-        self.assertTrue(any("education_profile_code" in str(err) for err in data.get("errors", [])))
+        self.assertTrue(
+            any("education_profile_code" in str(err) for err in data.get("errors", []))
+        )
 
     def test_api_create_school_records_provisioning_events_and_timeline_url(self):
         self.client.force_login(self.superuser)
         city = None
         for query in ("Boston", "New York", "Los Angeles", "Chicago"):
-            cities = GlobalGeoCatalog.search_cities(country_code="USA", query=query, limit=10)
+            cities = GlobalGeoCatalog.search_cities(
+                country_code="USA", query=query, limit=10
+            )
             if cities:
                 city = cities[0]
                 break
-        self.assertIsNotNone(city, "Global city catalog should include at least one major US city")
+        self.assertIsNotNone(
+            city, "Global city catalog should include at least one major US city"
+        )
 
         payload = {
             "name": "Timeline School",
@@ -688,7 +812,9 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertIn("timeline_url", body)
         school = School.objects.get(slug="timeline-school")
         event_types = set(
-            SchoolProvisioningEvent.objects.filter(school=school).values_list("event_type", flat=True)
+            SchoolProvisioningEvent.objects.filter(school=school).values_list(
+                "event_type", flat=True
+            )
         )
         self.assertIn("REQUEST_RECEIVED", event_types)
         self.assertIn("QUEUED", event_types)
@@ -714,14 +840,21 @@ class SuperProvisioningWizardTests(TestCase):
             status=SchoolProvisioningEvent.Status.INFO,
             message="Queued",
         )
-        response = self.client.get(reverse("super:api_school_timeline", args=[school.id]))
+        response = self.client.get(
+            reverse("super:api_school_timeline", args=[school.id])
+        )
         self.assertEqual(response.status_code, 200, response.content)
         payload = response.json()
         self.assertEqual(payload.get("school_id"), str(school.id))
         events = payload.get("events") or []
         self.assertGreaterEqual(len(events), 2)
-        self.assertEqual(events[0].get("event_type"), SchoolProvisioningEvent.EventType.QUEUED)
-        self.assertEqual(events[1].get("event_type"), SchoolProvisioningEvent.EventType.REQUEST_RECEIVED)
+        self.assertEqual(
+            events[0].get("event_type"), SchoolProvisioningEvent.EventType.QUEUED
+        )
+        self.assertEqual(
+            events[1].get("event_type"),
+            SchoolProvisioningEvent.EventType.REQUEST_RECEIVED,
+        )
 
 
 class CustomDomainVerificationCommandTests(TestCase):
@@ -735,7 +868,10 @@ class CustomDomainVerificationCommandTests(TestCase):
             is_active=True,
         )
 
-        with patch("apps.schools.management.commands.verify_custom_domains.socket.getaddrinfo", return_value=[("ok",)]):
+        with patch(
+            "apps.schools.management.commands.verify_custom_domains.socket.getaddrinfo",
+            return_value=[("ok",)],
+        ):
             call_command("verify_custom_domains")
 
         school.refresh_from_db()

@@ -4,6 +4,7 @@ from django.db.transaction import TransactionManagementError
 
 register = template.Library()
 
+
 def _reset_db_state() -> None:
     try:
         if connection.in_atomic_block:
@@ -33,6 +34,7 @@ def has_role(user, code):
     if not getattr(user, "is_authenticated", False):
         return False
     from apps.accounts.permissions import has_role as _has_role
+
     try:
         return _has_role(user, (code or "").strip())
     except (DatabaseError, TransactionManagementError, AttributeError, TypeError):
@@ -50,6 +52,7 @@ def has_any_role(user, codes):
     if not code_list:
         return False
     from apps.accounts.permissions import has_role as _has_role
+
     try:
         return any(_has_role(user, c) for c in code_list)
     except (DatabaseError, TransactionManagementError, AttributeError, TypeError):

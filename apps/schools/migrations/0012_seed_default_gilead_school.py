@@ -31,7 +31,6 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0011_school_is_frozen_frozen_reason"),
     ]

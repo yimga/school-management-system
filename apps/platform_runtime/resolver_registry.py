@@ -11,6 +11,7 @@ When adding a new runtime facet (NEXT_50 step 21):
   4. Document any cross-context contract in docs/bounded_context_ownership.md if the
      resolver crosses bounded contexts.
 """
+
 from __future__ import annotations
 
 # Resolver names and their implementation location (for docs and admin inspection).
@@ -23,7 +24,16 @@ RESOLVER_ENTRY_POINTS = [
     ("PolicyResolver", "apps.policies.resolver.get_effective_policy"),
     ("WorkflowResolver", "apps.siteconfig.workflow_resolver.for_action"),
     ("DashboardResolver", "apps.siteconfig.dashboard_resolver.for_role"),
-    ("EntitlementResolver", "apps.platform_runtime.runtime_resolver._step6_flags_entitlements"),
-    ("IntegrationResolver", "apps.platform_runtime.runtime_resolver._step10_integrations_marketplace"),
-    ("LocalizationResolver", "apps.platform_runtime.runtime_resolver._step3_registry_context"),
+    (
+        "EntitlementResolver",
+        "apps.platform_runtime.runtime_resolver._step6_flags_entitlements",
+    ),
+    (
+        "IntegrationResolver",
+        "apps.platform_runtime.runtime_resolver._step10_integrations_marketplace",
+    ),
+    (
+        "LocalizationResolver",
+        "apps.platform_runtime.runtime_resolver._step3_registry_context",
+    ),
 ]

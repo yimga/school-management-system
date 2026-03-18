@@ -5,7 +5,11 @@ from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from apps.accounts.models import User
-from apps.communication.api_views import BroadcastAPI, CommunicationAnalyticsAPI, MessageViewSet
+from apps.communication.api_views import (
+    BroadcastAPI,
+    CommunicationAnalyticsAPI,
+    MessageViewSet,
+)
 from apps.communication.models import Announcement, Message
 from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.models import RegionConfig
@@ -51,10 +55,24 @@ class CommunicationApiTenantIsolationTests(TestCase):
             role=User.Role.PARENT,
         )
 
-        SchoolMembership.objects.create(user=self.admin, school=self.school, role=User.Role.ADMIN, is_primary=True)
-        SchoolMembership.objects.create(user=self.parent, school=self.school, role=User.Role.PARENT, is_primary=True)
-        SchoolMembership.objects.create(user=self.other_admin, school=self.other_school, role=User.Role.ADMIN, is_primary=True)
-        SchoolMembership.objects.create(user=self.other_parent, school=self.other_school, role=User.Role.PARENT, is_primary=True)
+        SchoolMembership.objects.create(
+            user=self.admin, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
+        SchoolMembership.objects.create(
+            user=self.parent, school=self.school, role=User.Role.PARENT, is_primary=True
+        )
+        SchoolMembership.objects.create(
+            user=self.other_admin,
+            school=self.other_school,
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
+        SchoolMembership.objects.create(
+            user=self.other_parent,
+            school=self.other_school,
+            role=User.Role.PARENT,
+            is_primary=True,
+        )
 
     def test_message_create_rejects_cross_tenant_recipient(self):
         view = MessageViewSet.as_view({"post": "create"})
@@ -98,7 +116,9 @@ class CommunicationApiTenantIsolationTests(TestCase):
         response = view(request)
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(Message.objects.filter(school=self.school, recipient=self.parent).count(), 1)
+        self.assertEqual(
+            Message.objects.filter(school=self.school, recipient=self.parent).count(), 1
+        )
         self.assertEqual(Message.objects.filter(recipient=self.other_parent).count(), 0)
 
     def test_analytics_only_counts_current_school_records(self):

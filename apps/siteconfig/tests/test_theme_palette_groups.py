@@ -7,7 +7,10 @@ from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
 
 from apps.brand_experience.models import ThemePack
-from apps.siteconfig.theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
+from apps.siteconfig.theme_palette_groups import (
+    THEME_PALETTE_GROUPS,
+    build_theme_pack_groups,
+)
 
 
 @dataclass(frozen=True)
@@ -37,10 +40,14 @@ class ThemePaletteGroupingTests(SimpleTestCase):
         self.assertEqual([p.slug for p in groups[-1][1]], ["custom-school-pack"])
 
     def test_empty_input_returns_no_groups(self):
-        self.assertEqual(build_theme_pack_groups([], groups=(("Blues", ("admin-campus-blue",)),)), [])
+        self.assertEqual(
+            build_theme_pack_groups([], groups=(("Blues", ("admin-campus-blue",)),)), []
+        )
 
     def test_canonical_groups_cover_curated_admin_catalog(self):
-        slugs = [slug for _label, group_slugs in THEME_PALETTE_GROUPS for slug in group_slugs]
+        slugs = [
+            slug for _label, group_slugs in THEME_PALETTE_GROUPS for slug in group_slugs
+        ]
         self.assertEqual(len(slugs), 21)  # 18 original + 3 Ultra High-End
         self.assertEqual(len(slugs), len(set(slugs)))
         self.assertIn("admin-academic-slate", slugs)
@@ -51,7 +58,9 @@ class ThemePaletteGroupingTests(SimpleTestCase):
         self.assertIn("admin-ultra-platinum", slugs)
 
     def test_curated_preset_list_is_locked_to_twelve_distinct_entries(self):
-        source = (Path(settings.BASE_DIR) / "static" / "js" / "color-harmony-engine.js").read_text(encoding="utf-8")
+        source = (
+            Path(settings.BASE_DIR) / "static" / "js" / "color-harmony-engine.js"
+        ).read_text(encoding="utf-8")
         match = re.search(r"var CURATED_PRESET_KEYS = \[(.*?)\];", source, flags=re.S)
         self.assertIsNotNone(match)
         keys = re.findall(r"'([^']+)'", match.group(1))

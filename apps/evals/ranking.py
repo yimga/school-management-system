@@ -22,6 +22,7 @@ from .mock_exams import calculate_blended_score
 @dataclass(frozen=True)
 class RankingEntry:
     """Entry in a ranking with position, ties, and metadata."""
+
     rank: int
     student: StudentProfile
     student_id: int
@@ -39,9 +40,15 @@ class RankingCache:
     """Cache strategy for rankings with proper invalidation."""
 
     @staticmethod
-    def get_cache_key(term: Term, classroom: Optional[Classroom] = None, use_mock_blending: bool = False) -> str:
+    def get_cache_key(
+        term: Term,
+        classroom: Optional[Classroom] = None,
+        use_mock_blending: bool = False,
+    ) -> str:
         """Generate cache key for rankings (tenant-scoped to avoid cross-tenant leakage)."""
-        school_id = getattr(classroom, "school_id", None) or getattr(term, "school_id", None)
+        school_id = getattr(classroom, "school_id", None) or getattr(
+            term, "school_id", None
+        )
         prefix = f"school:{school_id}" if school_id else get_tenant_cache_prefix()
         mock_suffix = ":mock" if use_mock_blending else ""
         if classroom:
@@ -166,9 +173,7 @@ def _compute_rankings(
             aggregates.append((student, avg))
 
     # Sort by average (descending), then by name, then by ID for stability
-    aggregates.sort(
-        key=lambda x: (-x[1], x[0].last_name, x[0].first_name, x[0].id)
-    )
+    aggregates.sort(key=lambda x: (-x[1], x[0].last_name, x[0].first_name, x[0].id))
 
     rankings = []
     idx = 0
@@ -179,7 +184,10 @@ def _compute_rankings(
     while idx < total_students:
         student, average = aggregates[idx]
         group_end = idx + 1
-        while group_end < total_students and abs(aggregates[group_end][1] - average) < group_eps:
+        while (
+            group_end < total_students
+            and abs(aggregates[group_end][1] - average) < group_eps
+        ):
             group_end += 1
 
         group_size = group_end - idx
@@ -203,12 +211,16 @@ def _compute_rankings(
     return rankings
 
 
-def _compute_student_average(evaluations, use_mock_blending: bool = False, mock_setting: Optional[MockExamSetting] = None) -> float:
+def _compute_student_average(
+    evaluations,
+    use_mock_blending: bool = False,
+    mock_setting: Optional[MockExamSetting] = None,
+) -> float:
     """
     Compute weighted average for a student from evaluations queryset.
 
     With mock blending: replaces exam_score with blended (final × 0.7 + mock × 0.3).
-    
+
     Args:
         evaluations: Queryset of Evaluation objects
         use_mock_blending: Whether to blend mock exam scores
@@ -225,14 +237,14 @@ def _compute_student_average(evaluations, use_mock_blending: bool = False, mock_
             continue
 
         coef = float(eval_obj.subject_assignment.coefficient or 1.0)
-        
+
         # Calculate score: use blended if mock exam enabled
         if use_mock_blending and mock_setting and eval_obj.exam_score is not None:
-            score = float(calculate_blended_score(
-                eval_obj.exam_score,
-                eval_obj.mock_score,
-                mock_setting
-            ))
+            score = float(
+                calculate_blended_score(
+                    eval_obj.exam_score, eval_obj.mock_score, mock_setting
+                )
+            )
         else:
             score = float(eval_obj.total_score)
 
@@ -253,12 +265,12 @@ def get_class_ranking(
 ) -> List[RankingEntry]:
     """
     Get class ranking with caching and tie handling.
-    
+
     Args:
         classroom: Classroom to rank
         term: Academic term
         use_mock_blending: Whether to blend mock exam scores
-    
+
     Returns:
         List of ranking entries with positions and percentiles
     """
@@ -270,14 +282,18 @@ def get_class_ranking(
     )
 
 
-def get_school_ranking(term: Term, use_mock_blending: bool = False, use_cache: bool = True,) -> List[RankingEntry]:
+def get_school_ranking(
+    term: Term,
+    use_mock_blending: bool = False,
+    use_cache: bool = True,
+) -> List[RankingEntry]:
     """
     Get school-wide ranking with caching and tie handling.
-    
+
     Args:
         term: Academic term
         use_mock_blending: Whether to blend mock exam scores
-    
+
     Returns:
         List of ranking entries with positions and percentiles
     """
@@ -297,20 +313,18 @@ def get_student_rank(
 ) -> Optional[int]:
     """
     Get a specific student's rank in the rankings.
-    
+
     Args:
         student: Student to find rank for
         term: Academic term
         classroom: Specific classroom (defaults to student's classroom)
         use_mock_blending: Whether to blend mock exam scores
-    
+
     Returns:
         Rank number or None if student not found
     """
     rankings = RankingCache.get_rankings(
-        term, 
-        classroom or student.classroom,
-        use_mock_blending=use_mock_blending
+        term, classroom or student.classroom, use_mock_blending=use_mock_blending
     )
     for entry in rankings:
         if entry.student_id == student.id:
@@ -338,7 +352,9 @@ def get_rank_position_with_context(
         }
     """
     # Get class ranking
-    class_rankings = get_class_ranking(student.classroom, term) if student.classroom else []
+    class_rankings = (
+        get_class_ranking(student.classroom, term) if student.classroom else []
+    )
     class_rank = None
     class_percentile = 0.0
     is_tied_class = False
@@ -366,12 +382,12 @@ def get_rank_position_with_context(
             break
 
     return {
-        'class_rank': class_rank,
-        'class_size': len(class_rankings),
-        'school_rank': school_rank,
-        'school_size': len(school_rankings),
-        'class_percentile': class_percentile,
-        'school_percentile': school_percentile,
-        'is_tied': is_tied_class or is_tied_school,
-        'average': student_average,
+        "class_rank": class_rank,
+        "class_size": len(class_rankings),
+        "school_rank": school_rank,
+        "school_size": len(school_rankings),
+        "class_percentile": class_percentile,
+        "school_percentile": school_percentile,
+        "is_tied": is_tied_class or is_tied_school,
+        "average": student_average,
     }

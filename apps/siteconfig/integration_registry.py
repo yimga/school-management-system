@@ -75,12 +75,16 @@ def _service_to_record(service: ServiceIntegration) -> IntegrationRecord:
         endpoint_url=service.endpoint_url or "",
         is_active=bool(service.is_active),
         config=dict(service.config or {}),
-        enabled_scopes=[str(x).strip() for x in (service.enabled_scopes or []) if str(x).strip()],
+        enabled_scopes=[
+            str(x).strip() for x in (service.enabled_scopes or []) if str(x).strip()
+        ],
         integration_id=service.pk,
     )
 
 
-def _service_qs(*, school, service_type: str | None = None, name_hints: list[str] | None = None):
+def _service_qs(
+    *, school, service_type: str | None = None, name_hints: list[str] | None = None
+):
     qs = ServiceIntegration.objects.filter(school=school, is_active=True)
     if service_type:
         qs = qs.filter(service_type=service_type)
@@ -118,7 +122,9 @@ def _legacy_qs(*, school, name_hints: list[str] | None = None):
     return qs.order_by("-updated_at", "-id")
 
 
-def _upsert_service_from_legacy(record: IntegrationRecord, *, school, legacy: Integration) -> ServiceIntegration | None:
+def _upsert_service_from_legacy(
+    record: IntegrationRecord, *, school, legacy: Integration
+) -> ServiceIntegration | None:
     if not record.service_name:
         return None
     service, _created = ServiceIntegration.objects.update_or_create(
@@ -200,14 +206,18 @@ def resolve_service_integration(
         qs = ServiceIntegration.objects.filter(school=school, is_active=True)
         if service_type:
             qs = qs.filter(service_type=service_type)
-        item = qs.filter(service_name__iexact=exact).order_by("-updated_at", "-id").first()
+        item = (
+            qs.filter(service_name__iexact=exact).order_by("-updated_at", "-id").first()
+        )
         if item:
             return item
 
     hints = list(name_hints or [])
     if exact:
         hints = [exact, *hints]
-    item = _service_qs(school=school, service_type=service_type, name_hints=hints).first()
+    item = _service_qs(
+        school=school, service_type=service_type, name_hints=hints
+    ).first()
     if item:
         return item
     if not allow_legacy_backfill:
@@ -222,11 +232,17 @@ def resolve_service_integration(
     return _upsert_service_from_legacy(record, school=school, legacy=legacy)
 
 
-def backfill_service_integrations_from_legacy(*, school=None, dry_run: bool = False) -> list[dict[str, Any]]:
+def backfill_service_integrations_from_legacy(
+    *, school=None, dry_run: bool = False
+) -> list[dict[str, Any]]:
     """
     Create/update ServiceIntegration records from legacy Integration rows.
     """
-    qs = Integration.objects.filter(enabled=True).exclude(school__isnull=True).select_related("school")
+    qs = (
+        Integration.objects.filter(enabled=True)
+        .exclude(school__isnull=True)
+        .select_related("school")
+    )
     if school is not None:
         qs = qs.filter(school=school)
 

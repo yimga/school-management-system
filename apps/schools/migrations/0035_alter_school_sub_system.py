@@ -4,15 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0034_remove_biometricdevice_school_and_more'),
+        ("schools", "0034_remove_biometricdevice_school_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='school',
-            name='sub_system',
-            field=models.CharField(choices=[('FR', 'French sub-system'), ('EN', 'English sub-system'), ('INT', 'International')], default='EN', help_text='Sub-system: FR/EN or International (region-configurable)', max_length=10),
+            model_name="school",
+            name="sub_system",
+            field=models.CharField(
+                choices=[
+                    ("FR", "French sub-system"),
+                    ("EN", "English sub-system"),
+                    ("INT", "International"),
+                ],
+                default="EN",
+                help_text="Sub-system: FR/EN or International (region-configurable)",
+                max_length=10,
+            ),
         ),
     ]

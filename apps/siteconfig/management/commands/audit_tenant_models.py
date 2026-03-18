@@ -26,13 +26,17 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         model_opt = (options.get("models") or "").strip()
         if model_opt:
-            model_labels = [item.strip() for item in model_opt.split(",") if item.strip()]
+            model_labels = [
+                item.strip() for item in model_opt.split(",") if item.strip()
+            ]
         else:
             model_labels = list(COMMUNICATION_TENANT_MODELS)
 
         missing = find_missing_explicit_school_fields(model_labels)
         if missing:
-            self.stdout.write(self.style.WARNING("Models missing explicit school field:"))
+            self.stdout.write(
+                self.style.WARNING("Models missing explicit school field:")
+            )
             for label in missing:
                 self.stdout.write(f" - {label}")
             if options.get("strict"):

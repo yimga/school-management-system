@@ -6,27 +6,46 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0013_link_default_admin_to_gilead'),
+        ("schools", "0013_link_default_admin_to_gilead"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SignupVerification',
+            name="SignupVerification",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('email', models.EmailField(max_length=254)),
-                ('token', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
-                ('expires_at', models.DateTimeField()),
-                ('verified_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('school', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='signup_verification', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("email", models.EmailField(max_length=254)),
+                (
+                    "token",
+                    models.UUIDField(
+                        db_index=True, default=uuid.uuid4, editable=False, unique=True
+                    ),
+                ),
+                ("expires_at", models.DateTimeField()),
+                ("verified_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "school",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="signup_verification",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Signup verification',
-                'verbose_name_plural': 'Signup verifications',
-                'ordering': ['-created_at'],
+                "verbose_name": "Signup verification",
+                "verbose_name_plural": "Signup verifications",
+                "ordering": ["-created_at"],
             },
         ),
     ]

@@ -74,4 +74,6 @@ def reverse_default_deny_policy(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [("academics", "0037_world_engine")]
-    operations = [migrations.RunPython(apply_default_deny_policy, reverse_default_deny_policy)]
+    operations = [
+        migrations.RunPython(apply_default_deny_policy, reverse_default_deny_policy)
+    ]

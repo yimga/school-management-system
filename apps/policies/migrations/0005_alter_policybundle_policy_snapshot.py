@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('policies', '0004_phase3_blueprint_policy_completion'),
+        ("policies", "0004_phase3_blueprint_policy_completion"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='policybundle',
-            name='policy_snapshot',
-            field=models.JSONField(default=dict, help_text='Merged policy dict with typed module sections.'),
+            model_name="policybundle",
+            name="policy_snapshot",
+            field=models.JSONField(
+                default=dict, help_text="Merged policy dict with typed module sections."
+            ),
         ),
     ]

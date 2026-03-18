@@ -4,7 +4,11 @@ from django.db import migrations, connection
 
 from apps.schools.rls import should_apply_rls
 
-EVALS_TABLES = ["evals_assessmentweights", "evals_teacherassignment", "evals_evaluation"]
+EVALS_TABLES = [
+    "evals_assessmentweights",
+    "evals_teacherassignment",
+    "evals_evaluation",
+]
 POLICY_PREFIX = "evals_tenant"
 
 

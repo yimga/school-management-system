@@ -4,25 +4,57 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0056_backend_console_theme_more_colors'),
+        ("siteconfig", "0056_backend_console_theme_more_colors"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='footer_bg_color',
-            field=models.CharField(blank=True, default='', help_text='Optional: Footer background color (hex). Leave blank for default.', max_length=20),
+            model_name="sitesettings",
+            name="footer_bg_color",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Optional: Footer background color (hex). Leave blank for default.",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='header_bg_color',
-            field=models.CharField(blank=True, default='', help_text='Optional: Header background color (hex). Leave blank to use primary→accent gradient.', max_length=20),
+            model_name="sitesettings",
+            name="header_bg_color",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Optional: Header background color (hex). Leave blank to use primary→accent gradient.",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='backend_console_theme',
-            field=models.CharField(choices=[('dark', 'Dark (slate grey)'), ('light', 'Light (lavender tint)'), ('system', 'System (follows OS)'), ('black', 'Black (true black)'), ('charcoal', 'Charcoal (soft black)'), ('graphite', 'Graphite (zinc grey)'), ('midnight', 'Midnight (deep blue-black)'), ('ocean', 'Ocean (dark blue)'), ('steel', 'Steel (blue-grey)'), ('slate', 'Slate (medium grey)'), ('forest', 'Forest (dark green)'), ('indigo', 'Indigo (dark purple)'), ('amber', 'Amber (warm dark)'), ('sand', 'Sand (warm light)'), ('snow', 'Snow (cool light)'), ('cream', 'Cream (ivory light)'), ('lavender', 'Lavender (soft purple light)')], default='dark', help_text='Theme for the Backend Console (Workflow Center, Entity Console).', max_length=20),
+            model_name="sitesettings",
+            name="backend_console_theme",
+            field=models.CharField(
+                choices=[
+                    ("dark", "Dark (slate grey)"),
+                    ("light", "Light (lavender tint)"),
+                    ("system", "System (follows OS)"),
+                    ("black", "Black (true black)"),
+                    ("charcoal", "Charcoal (soft black)"),
+                    ("graphite", "Graphite (zinc grey)"),
+                    ("midnight", "Midnight (deep blue-black)"),
+                    ("ocean", "Ocean (dark blue)"),
+                    ("steel", "Steel (blue-grey)"),
+                    ("slate", "Slate (medium grey)"),
+                    ("forest", "Forest (dark green)"),
+                    ("indigo", "Indigo (dark purple)"),
+                    ("amber", "Amber (warm dark)"),
+                    ("sand", "Sand (warm light)"),
+                    ("snow", "Snow (cool light)"),
+                    ("cream", "Cream (ivory light)"),
+                    ("lavender", "Lavender (soft purple light)"),
+                ],
+                default="dark",
+                help_text="Theme for the Backend Console (Workflow Center, Entity Console).",
+                max_length=20,
+            ),
         ),
     ]

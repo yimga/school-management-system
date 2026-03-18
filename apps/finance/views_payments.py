@@ -4,6 +4,7 @@ Finance payment and webhook views (§6.15 app-by-app split — subdomain: paymen
 Payment list, cash office closure, split allocation, scan/teller placeholder,
 and payment provider webhook. Single place for payment-related UI and webhook flows.
 """
+
 from __future__ import annotations
 
 import csv
@@ -11,11 +12,12 @@ import io
 import json
 import logging
 import uuid
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import (
@@ -25,7 +27,7 @@ from django.http import (
     HttpResponseForbidden,
     JsonResponse,
 )
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils.dateparse import parse_date
@@ -34,12 +36,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.academics.models import AcademicYear
-from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
+from apps.platform_runtime.helpers import (
+    get_effective_flags,
+    get_effective_site_settings,
+)
 
 from .forms import CashOfficeClosureForm, SplitAllocationForm, TellerScanForm
 from .models import (
     CashOfficeClosure,
-    ComplianceProfile,
     Invoice,
     InvoiceLine,
     Payment,
@@ -70,9 +74,8 @@ def payment_list(request: HttpRequest):
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
-    qs = (
-        Payment.objects.filter(invoice__profile=profile)
-        .select_related("invoice", "invoice__student", "invoice__academic_year")
+    qs = Payment.objects.filter(invoice__profile=profile).select_related(
+        "invoice", "invoice__student", "invoice__academic_year"
     )
 
     method = (request.GET.get("method") or "").strip()
@@ -101,14 +104,16 @@ def payment_list(request: HttpRequest):
         w.writerow(["Invoice", "Method", "Amount", "Paid at", "Student", "Receipt"])
         for pay in ordered_qs[:5000]:
             inv = pay.invoice
-            w.writerow([
-                inv.reference or str(inv.id),
-                pay.get_method_display(),
-                str(pay.amount),
-                pay.paid_at.isoformat() if pay.paid_at else "",
-                str(inv.student) if inv.student_id else "",
-                pay.receipt_number or "",
-            ])
+            w.writerow(
+                [
+                    inv.reference or str(inv.id),
+                    pay.get_method_display(),
+                    str(pay.amount),
+                    pay.paid_at.isoformat() if pay.paid_at else "",
+                    str(inv.student) if inv.student_id else "",
+                    pay.receipt_number or "",
+                ]
+            )
         resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
         resp["Content-Disposition"] = 'attachment; filename="payments_export.csv"'
         return resp
@@ -206,14 +211,13 @@ def cash_office_closure(request: HttpRequest):
     if request.method == "POST" and form.is_valid():
         closure_date = form.cleaned_data["closure_date"]
 
-    cash_collected = (
-        Payment.objects.filter(
-            invoice__profile=profile,
-            method=PaymentMethodCode.CASH,
-            status="completed",
-            paid_at__date=closure_date,
-        ).aggregate(total=Coalesce(Sum("amount"), Decimal("0.00")))["total"]
-        or Decimal("0.00")
+    cash_collected = Payment.objects.filter(
+        invoice__profile=profile,
+        method=PaymentMethodCode.CASH,
+        status="completed",
+        paid_at__date=closure_date,
+    ).aggregate(total=Coalesce(Sum("amount"), Decimal("0.00")))["total"] or Decimal(
+        "0.00"
     )
 
     if request.method == "POST":
@@ -252,10 +256,9 @@ def cash_office_closure(request: HttpRequest):
     expected_cash = opening_cash + cash_collected - deposited_to_bank
     discrepancy_preview = cash_on_hand - expected_cash
 
-    recent_closures = (
-        CashOfficeClosure.objects.filter(profile=profile)
-        .order_by("-closure_date", "-updated_at")[:10]
-    )
+    recent_closures = CashOfficeClosure.objects.filter(profile=profile).order_by(
+        "-closure_date", "-updated_at"
+    )[:10]
 
     return render(
         request,
@@ -639,18 +642,14 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         data_block = _as_dict(payload.get("data"))
         txn_block = _as_dict(payload.get("transaction"))
         return (
-            _first_present(
-                payload, ["amount", "paid_amount", "transaction_amount"]
-            )
+            _first_present(payload, ["amount", "paid_amount", "transaction_amount"])
             or _first_present(
                 data_block, ["amount", "paid_amount", "transaction_amount"]
             )
             or _first_present(
                 txn_block, ["amount", "paid_amount", "transaction_amount"]
             )
-            or _first_present(
-                metadata, ["amount", "paid_amount", "transaction_amount"]
-            )
+            or _first_present(metadata, ["amount", "paid_amount", "transaction_amount"])
         )
 
     def _extract_method(payload: dict, prov_code: str) -> str:
@@ -710,9 +709,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             response_status=415,
             error_message=f"Unsupported content type: {_request_content_type() or 'unknown'}",
         )
-        return HttpResponse(
-            "Content-Type must be application/json.", status=415
-        )
+        return HttpResponse("Content-Type must be application/json.", status=415)
 
     try:
         data = json.loads((request_body or b"{}").decode("utf-8"))
@@ -735,6 +732,12 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         return HttpResponseBadRequest("Webhook payload must be a JSON object.")
 
     reference_id = _extract_reference(data) or "unknown"
+    idem_header = (
+        request.headers.get("Idempotency-Key")
+        or request.META.get("HTTP_IDEMPOTENCY_KEY")
+        or ""
+    ).strip()[:160]
+    dedup_reference = f"idempotency:{idem_header}" if idem_header else reference_id
 
     if not validator.validate_ip_whitelist(client_ip):
         _create_webhook_log(
@@ -763,11 +766,8 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         if integration.config
         else "X-Signature"
     )
-    signature = (
-        request.headers.get(signature_header)
-        or request.META.get(
-            f"HTTP_{signature_header.upper().replace('-', '_')}"
-        )
+    signature = request.headers.get(signature_header) or request.META.get(
+        f"HTTP_{signature_header.upper().replace('-', '_')}"
     )
     signature_valid = validator.validate_signature(request_body, signature or "")
     if not signature_valid:
@@ -786,11 +786,8 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         if integration.config
         else "X-Timestamp"
     )
-    request_timestamp = (
-        request.headers.get(timestamp_header)
-        or request.META.get(
-            f"HTTP_{timestamp_header.upper().replace('-', '_')}"
-        )
+    request_timestamp = request.headers.get(timestamp_header) or request.META.get(
+        f"HTTP_{timestamp_header.upper().replace('-', '_')}"
     )
     if not validator.validate_timestamp(request_timestamp):
         _create_webhook_log(
@@ -803,15 +800,50 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         logger.warning("Invalid timestamp from %s (%s)", provider_slug, client_ip)
         return HttpResponseForbidden("Invalid timestamp.")
 
-    if not validator.validate_idempotency(provider_code, reference_id):
+    if not validator.validate_idempotency(provider_code, dedup_reference):
         _create_webhook_log(
             reference_id=reference_id,
             signature_valid=True,
             status=WebhookLog.Status.DUPLICATE,
             response_status=200,
         )
-        logger.info("Duplicate webhook from %s: %s", provider_slug, reference_id)
+        logger.info("Duplicate webhook from %s: %s", provider_slug, dedup_reference)
         return JsonResponse({"status": "ignored", "reason": "duplicate"})
+
+    # Dead-letter queue: stop hammering after repeated failures (idempotency-Key still dedupes success path)
+    from django.conf import settings as dj_settings
+
+    _dl_window_h = int(getattr(dj_settings, "WEBHOOK_DEAD_LETTER_WINDOW_HOURS", 24))
+    _dl_thresh = int(getattr(dj_settings, "WEBHOOK_DEAD_LETTER_FAILURE_THRESHOLD", 5))
+    _since = timezone.now() - timedelta(hours=_dl_window_h)
+    _fail_ct = WebhookLog.objects.filter(
+        provider=provider_code,
+        reference_id=reference_id,
+        status=WebhookLog.Status.FAILED,
+        created_at__gte=_since,
+    ).count()
+    if _fail_ct >= _dl_thresh and reference_id != "unknown":
+        _create_webhook_log(
+            reference_id=reference_id,
+            signature_valid=True,
+            status=WebhookLog.Status.DEAD_LETTER,
+            response_status=200,
+            error_message=f"Exceeded {_dl_thresh} FAILED in {_dl_window_h}h; ack 200 to stop retries",
+        )
+        logger.warning(
+            "Webhook dead-letter for %s ref=%s (failures=%s)",
+            provider_slug,
+            reference_id,
+            _fail_ct,
+        )
+        return JsonResponse(
+            {
+                "status": "dead_letter",
+                "reason": "max_processing_failures",
+                "reference_id": reference_id,
+            },
+            status=200,
+        )
 
     invoice_id = _extract_invoice_id(data)
     amount = _extract_amount(data)
@@ -854,8 +886,8 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         )
         return HttpResponseBadRequest(f"Invoice {invoice_id} not found.")
 
-    invoice_paid = (
-        sum(invoice.payments.values_list("amount", flat=True)) or Decimal("0")
+    invoice_paid = sum(invoice.payments.values_list("amount", flat=True)) or Decimal(
+        "0"
     )
     is_valid, error_msg = PaymentValidator.validate_against_invoice(
         Decimal(str(amount)),
@@ -900,18 +932,14 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
                 webhook_log.save(
                     update_fields=["status", "error_message", "response_status"]
                 )
-                logger.error(
-                    "Failed to record payment for webhook %s", reference_id
-                )
+                logger.error("Failed to record payment for webhook %s", reference_id)
                 return JsonResponse(
                     {"status": "error", "reason": "payment_creation_failed"}
                 )
             webhook_log.payment = payment
             webhook_log.status = WebhookLog.Status.PROCESSED
             webhook_log.response_status = 200
-            webhook_log.save(
-                update_fields=["payment", "status", "response_status"]
-            )
+            webhook_log.save(update_fields=["payment", "status", "response_status"])
             logger.info(
                 "Successfully processed webhook from %s: Invoice %s, Payment %s, Amount %s",
                 provider_slug,
@@ -919,15 +947,15 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
                 payment.id,
                 amount,
             )
-            return JsonResponse({
-                "status": "ok",
-                "payment_id": payment.id,
-                "reference": reference_id,
-            })
+            return JsonResponse(
+                {
+                    "status": "ok",
+                    "payment_id": payment.id,
+                    "reference": reference_id,
+                }
+            )
     except FINANCE_SOFT_FAILURES as e:
-        logger.exception(
-            "Transaction error processing webhook %s: %s", reference_id, e
-        )
+        logger.exception("Transaction error processing webhook %s: %s", reference_id, e)
         try:
             webhook_log = WebhookLog.objects.get(
                 reference_id=reference_id, provider=provider_code

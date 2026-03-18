@@ -1,6 +1,7 @@
 """
 G5: Analytics/risk engine — risk factors, thresholds, intervention.
 """
+
 from __future__ import annotations
 
 from typing import Any

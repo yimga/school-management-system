@@ -2,7 +2,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0142_sitesettings_sms_sender_id_runmycampus"),
     ]

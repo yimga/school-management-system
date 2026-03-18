@@ -7,7 +7,11 @@ from decimal import Decimal
 from django.test import TestCase
 from django.utils import timezone
 
-from apps.billing.models import BillingProcessorSyncEvent, PlatformBillingProcessorConfig, TenantSubscription
+from apps.billing.models import (
+    BillingProcessorSyncEvent,
+    PlatformBillingProcessorConfig,
+    TenantSubscription,
+)
 from apps.billing.services import ensure_subscription_for_school
 from apps.observability.models import PlatformIncident
 from apps.schools.models import School
@@ -41,7 +45,9 @@ class PlatformBillingWebhookTests(TestCase):
         )
 
     def _signature(self, raw_body: bytes) -> str:
-        return hmac.new(self.config.webhook_secret.encode(), raw_body, hashlib.sha256).hexdigest()
+        return hmac.new(
+            self.config.webhook_secret.encode(), raw_body, hashlib.sha256
+        ).hexdigest()
 
     def _post(self, payload: dict, *, signature: str | None = None):
         raw_body = json.dumps(payload).encode("utf-8")
@@ -65,7 +71,9 @@ class PlatformBillingWebhookTests(TestCase):
                 "external_subscription_ref": "sub-relay-001",
                 "billed_amount": "299.00",
                 "currency_code": "USD",
-                "current_period_start": (timezone.now() - timedelta(days=10)).isoformat(),
+                "current_period_start": (
+                    timezone.now() - timedelta(days=10)
+                ).isoformat(),
                 "current_period_end": (timezone.now() + timedelta(days=20)).isoformat(),
                 "message": "Card declined",
             }
@@ -94,12 +102,18 @@ class PlatformBillingWebhookTests(TestCase):
             signature="deadbeef",
         )
 
-        self.assertEqual(response.status_code, 403)
-        failed_event = BillingProcessorSyncEvent.objects.get(status=BillingProcessorSyncEvent.Status.FAILED)
+        self.assertEqual(response.status_code, 401)
+        failed_event = BillingProcessorSyncEvent.objects.get(
+            status=BillingProcessorSyncEvent.Status.FAILED
+        )
         self.assertEqual(failed_event.processor_code, "relay")
         self.assertIsNone(failed_event.school)
-        incident = PlatformIncident.objects.get(source_system="billing.processor_webhook")
-        self.assertEqual(incident.incident_type, PlatformIncident.IncidentType.INTEGRATION)
+        incident = PlatformIncident.objects.get(
+            source_system="billing.processor_webhook"
+        )
+        self.assertEqual(
+            incident.incident_type, PlatformIncident.IncidentType.INTEGRATION
+        )
         self.assertEqual(incident.severity, PlatformIncident.Severity.CRITICAL)
 
     def test_relay_webhook_rejects_unsupported_content_type(self):
@@ -119,11 +133,15 @@ class PlatformBillingWebhookTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 415)
-        failed_event = BillingProcessorSyncEvent.objects.get(status=BillingProcessorSyncEvent.Status.FAILED)
+        failed_event = BillingProcessorSyncEvent.objects.get(
+            status=BillingProcessorSyncEvent.Status.FAILED
+        )
         self.assertEqual(failed_event.processor_code, "relay")
         self.assertIn("Unsupported Content-Type", failed_event.message)
 
-    def test_relay_webhook_resolves_existing_billing_incident_when_account_recovers(self):
+    def test_relay_webhook_resolves_existing_billing_incident_when_account_recovers(
+        self,
+    ):
         self._post(
             {
                 "school_slug": self.school.slug,
@@ -165,7 +183,11 @@ class PlatformBillingWebhookTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 422)
-        incident = PlatformIncident.objects.filter(source_system="billing.processor_webhook").order_by("-created_at").first()
+        incident = (
+            PlatformIncident.objects.filter(source_system="billing.processor_webhook")
+            .order_by("-created_at")
+            .first()
+        )
         self.assertIsNotNone(incident)
         self.assertIn("school resolution failed", incident.title.lower())
 
@@ -188,16 +210,25 @@ class PlatformBillingWebhookTests(TestCase):
                     "status": "past_due",
                     "currency": "usd",
                     "amount_due": 29900,
-                    "current_period_start": int((timezone.now() - timedelta(days=3)).timestamp()),
-                    "current_period_end": int((timezone.now() + timedelta(days=27)).timestamp()),
-                    "metadata": {"school_slug": self.school.slug, "school_id": str(self.school.pk)},
+                    "current_period_start": int(
+                        (timezone.now() - timedelta(days=3)).timestamp()
+                    ),
+                    "current_period_end": int(
+                        (timezone.now() + timedelta(days=27)).timestamp()
+                    ),
+                    "metadata": {
+                        "school_slug": self.school.slug,
+                        "school_id": str(self.school.pk),
+                    },
                 }
             },
         }
         raw_body = json.dumps(payload).encode("utf-8")
         timestamp = int(timezone.now().timestamp())
         signed_payload = f"{timestamp}.{raw_body.decode('utf-8')}".encode("utf-8")
-        signature = hmac.new(stripe_config.webhook_secret.encode(), signed_payload, hashlib.sha256).hexdigest()
+        signature = hmac.new(
+            stripe_config.webhook_secret.encode(), signed_payload, hashlib.sha256
+        ).hexdigest()
 
         response = self.client.post(
             "/api/billing/processors/stripe/webhook/",

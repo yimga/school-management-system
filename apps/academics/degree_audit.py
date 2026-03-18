@@ -2,6 +2,7 @@
 Degree audit: compute progress and eligibility from credits, requirements_json, and optional milestones.
 Phase 3-4 (global platform). Uses Subject.credits and evals/grades; TransferCredit; GraduateMilestone when present.
 """
+
 from __future__ import annotations
 
 import logging
@@ -86,7 +87,9 @@ def _to_int(value: Any, default: int = 0) -> int:
 def _month_delta(start_date, end_date) -> int:
     if not start_date or not end_date:
         return 0
-    months = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
+    months = (end_date.year - start_date.year) * 12 + (
+        end_date.month - start_date.month
+    )
     if end_date.day < start_date.day:
         months -= 1
     return months
@@ -112,7 +115,9 @@ def run_degree_audit(enrollment: StudentDegreeEnrollment) -> dict[str, Any]:
 
     pass_threshold = _to_decimal(req.get("pass_threshold"), Decimal("0"))
     earned_credits = Decimal("0.00")
-    completed_course_codes = set(_normalize_code_list(req.get("completed_course_codes")))
+    completed_course_codes = set(
+        _normalize_code_list(req.get("completed_course_codes"))
+    )
     credited_subject_ids: set[Any] = set()
 
     # Credits + completed courses from passed evaluations (deduped by subject).
@@ -141,32 +146,53 @@ def run_degree_audit(enrollment: StudentDegreeEnrollment) -> dict[str, Any]:
             if subject_id in credited_subject_ids:
                 continue
             credited_subject_ids.add(subject_id)
-            earned_credits += _to_decimal(getattr(subject, "credits", None), Decimal("0.00"))
-    except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+            earned_credits += _to_decimal(
+                getattr(subject, "credits", None), Decimal("0.00")
+            )
+    except (
+        ImportError,
+        AttributeError,
+        TypeError,
+        ValueError,
+        ObjectDoesNotExist,
+        DatabaseError,
+    ) as e:
         # Keep degree audit resilient if eval subsystem is unavailable.
         logging.getLogger(__name__).debug("Degree audit eval credits skipped: %s", e)
 
-    transfer_qs = TransferCredit.objects.filter(student=student, approved_at__isnull=False)
+    transfer_qs = TransferCredit.objects.filter(
+        student=student, approved_at__isnull=False
+    )
     for transfer_credit in transfer_qs.only("course_code"):
         code = _normalize_course_code(transfer_credit.course_code)
         if code:
             completed_course_codes.add(code)
 
-    transfer_credits = _to_decimal(transfer_qs.aggregate(s=Sum("credits")).get("s"), Decimal("0.00"))
+    transfer_credits = _to_decimal(
+        transfer_qs.aggregate(s=Sum("credits")).get("s"), Decimal("0.00")
+    )
     total_earned = earned_credits + transfer_credits
 
-    min_credits = _to_decimal(req.get("min_credits"), _default_min_credits(program.level))
+    min_credits = _to_decimal(
+        req.get("min_credits"), _default_min_credits(program.level)
+    )
     required_codes = _normalize_code_list(req.get("required_course_codes"))
     waived_codes = set(_normalize_code_list(req.get("waived_course_codes")))
     equivalencies = _normalize_code_map(req.get("course_equivalencies"))
-    approved_equivalencies = get_approved_transfer_equivalency_map(student=student, program=program)
+    approved_equivalencies = get_approved_transfer_equivalency_map(
+        student=student, program=program
+    )
     for internal_code, external_codes in approved_equivalencies.items():
         existing = equivalencies.setdefault(internal_code, [])
         for external_code in external_codes:
             if external_code not in existing:
                 existing.append(external_code)
-    prerequisite_graph = _normalize_code_map(req.get("prerequisite_graph") or req.get("prerequisites"))
-    corequisite_graph = _normalize_code_map(req.get("corequisite_graph") or req.get("corequisites"))
+    prerequisite_graph = _normalize_code_map(
+        req.get("prerequisite_graph") or req.get("prerequisites")
+    )
+    corequisite_graph = _normalize_code_map(
+        req.get("corequisite_graph") or req.get("corequisites")
+    )
 
     def is_course_satisfied(code: str) -> bool:
         normalized = _normalize_course_code(code)
@@ -231,15 +257,14 @@ def run_degree_audit(enrollment: StudentDegreeEnrollment) -> dict[str, Any]:
 
         min_members = _to_int(rules.get("committee_min_members"), 0)
         if min_members > 0 and int(milestone.committee_member_count or 0) < min_members:
-            violations.append(
-                f"committee_member_count<{min_members}"
-            )
+            violations.append(f"committee_member_count<{min_members}")
 
         external_min = _to_int(rules.get("external_member_min"), 0)
-        if external_min > 0 and int(milestone.external_member_count or 0) < external_min:
-            violations.append(
-                f"external_member_count<{external_min}"
-            )
+        if (
+            external_min > 0
+            and int(milestone.external_member_count or 0) < external_min
+        ):
+            violations.append(f"external_member_count<{external_min}")
 
         require_chair = bool(rules.get("require_committee_chair", mtype == "DEFENSE"))
         if require_chair and not milestone.committee_chair_id:
@@ -250,7 +275,11 @@ def run_degree_audit(enrollment: StudentDegreeEnrollment) -> dict[str, Any]:
             violations.append("embargo_missing")
 
         max_embargo_months = _to_int(rules.get("max_embargo_months"), 0)
-        if max_embargo_months > 0 and milestone.embargo_until and milestone.completion_date:
+        if (
+            max_embargo_months > 0
+            and milestone.embargo_until
+            and milestone.completion_date
+        ):
             months = _month_delta(milestone.completion_date, milestone.embargo_until)
             if months < 0 or months > max_embargo_months:
                 violations.append(f"embargo_exceeds_{max_embargo_months}_months")
@@ -262,7 +291,12 @@ def run_degree_audit(enrollment: StudentDegreeEnrollment) -> dict[str, Any]:
     gpa_ok = True
     if min_gpa is not None:
         try:
-            gpa = float(get_dynamic_field_value(student, "gpa", default=getattr(student, "gpa", None)) or 0)
+            gpa = float(
+                get_dynamic_field_value(
+                    student, "gpa", default=getattr(student, "gpa", None)
+                )
+                or 0
+            )
             gpa_ok = gpa >= float(min_gpa)
         except (TypeError, ValueError):
             gpa_ok = False

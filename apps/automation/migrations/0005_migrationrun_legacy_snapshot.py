@@ -5,6 +5,7 @@ from django.db import migrations, models
 
 def add_legacy_snapshot_if_missing(apps, schema_editor):
     from django.db import connection
+
     with connection.cursor() as cursor:
         if connection.vendor == "postgresql":
             cursor.execute("""
@@ -17,7 +18,9 @@ def add_legacy_snapshot_if_missing(apps, schema_editor):
         else:
             cursor.execute("PRAGMA table_info(automation_migrationrun)")
             if "legacy_snapshot" not in [row[1] for row in cursor.fetchall()]:
-                cursor.execute("ALTER TABLE automation_migrationrun ADD COLUMN legacy_snapshot text NOT NULL DEFAULT '{}'")
+                cursor.execute(
+                    "ALTER TABLE automation_migrationrun ADD COLUMN legacy_snapshot text NOT NULL DEFAULT '{}'"
+                )
 
 
 def noop(apps, schema_editor):
@@ -25,7 +28,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("automation", "0004_migrationrun_rollback_snapshot_rolled_back"),
     ]
@@ -43,6 +45,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            database_operations=[migrations.RunPython(add_legacy_snapshot_if_missing, noop)],
+            database_operations=[
+                migrations.RunPython(add_legacy_snapshot_if_missing, noop)
+            ],
         ),
     ]

@@ -1,0 +1,64 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Learning delivery & institution types" %} — Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Learning delivery & institution types" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Learning delivery & institution types" %}</h1>
+    <p class="text-white-50 small mb-2">{% trans "Wedges 23–30 (delivery) and 31–43 (institution types): catalog of modes and suggested pack slugs. Enable via marketplace / plan addons." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% if curriculum_packs_url %}<a href="{{ curriculum_packs_url }}" class="btn btn-outline-light btn-sm">{% trans "Curriculum packs" %}</a>{% endif %}
+      {% if education_systems_url %}<a href="{{ education_systems_url }}" class="btn btn-outline-light btn-sm">{% trans "Education systems" %}</a>{% endif %}
+      {% if one_sis_url %}<a href="{{ one_sis_url }}" class="btn btn-outline-light btn-sm">{% trans "One SIS, any LMS" %}</a>{% endif %}
+      <a href="{% url 'super:ministry_report_stubs' %}" class="btn btn-outline-light btn-sm">{% trans "Ministry report stubs" %}</a>
+      {% if catalog_json_url %}<a href="{{ catalog_json_url }}" class="btn btn-outline-light btn-sm" download>{% trans "Download catalog JSON" %}</a>{% endif %}
+    </div>
+  </header>
+
+  <h2 class="h6 text-white mb-2">{% trans "Learning delivery modes" %}</h2>
+  <div class="table-responsive mb-4">
+    <table class="table table-dark table-sm table-striped">
+      <thead><tr><th>#</th><th>{% trans "Code" %}</th><th>{% trans "Label" %}</th><th>{% trans "Pack slugs" %}</th><th>{% trans "Notes" %}</th></tr></thead>
+      <tbody>
+        {% for row in delivery_modes %}
+        <tr>
+          <td class="text-white-50">{{ row.wedge }}</td>
+          <td><code>{{ row.code }}</code></td>
+          <td>{{ row.label }}</td>
+          <td class="small text-white-50">{{ row.pack_slugs }}</td>
+          <td class="small text-white-50">{{ row.notes }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="h6 text-white mb-2">{% trans "Institution types → packs" %}</h2>
+  <div class="table-responsive">
+    <table class="table table-dark table-sm table-striped">
+      <thead><tr><th>#</th><th>{% trans "Code" %}</th><th>{% trans "Label" %}</th><th>{% trans "Pack slugs" %}</th></tr></thead>
+      <tbody>
+        {% for row in institution_types %}
+        <tr>
+          <td class="text-white-50">{{ row.wedge }}</td>
+          <td><code>{{ row.code }}</code></td>
+          <td>{{ row.label }}</td>
+          <td class="small text-white-50">{{ row.pack_slugs }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -2,6 +2,7 @@
 Marketplace MVP: installable apps, scopes, widget registry, audit (RunMyCampus blueprint).
 Control-plane models (shared schema); install pipeline records install + registers widgets/scopes.
 """
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -70,7 +71,9 @@ class MarketplaceApp(models.Model):
     slug = models.SlugField(max_length=80, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    kind = models.CharField(max_length=20, choices=AppKind.choices, default=AppKind.FIRST_PARTY)
+    kind = models.CharField(
+        max_length=20, choices=AppKind.choices, default=AppKind.FIRST_PARTY
+    )
     version = models.CharField(max_length=32)
     # Manifest: required scopes, widget definitions, optional migration_ref / webhook subscriptions
     manifest = models.JSONField(
@@ -140,7 +143,9 @@ class MarketplaceListing(models.Model):
         default=ReviewStatus.NOT_REQUIRED,
         db_index=True,
     )
-    revenue_share_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    revenue_share_percent = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0
+    )
     kill_switch_active = models.BooleanField(default=False, db_index=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(
@@ -154,10 +159,12 @@ class MarketplaceListing(models.Model):
     compatibility = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Optional: countries (list), blueprint_families (list), plan_tiers (list), workflow_families (list).",
+        help_text="Optional: countries (list), blueprint_families (list), plan_tiers (list), workflow_families (list), recommended_sectors (list of wedge 14–22 sector codes e.g. PUBLIC, NGO).",
     )
     # GAP.11 / III.23: preview and screenshots for catalog UI
-    preview_image_url = models.URLField(max_length=500, blank=True, help_text="Main preview/hero image URL for catalog.")
+    preview_image_url = models.URLField(
+        max_length=500, blank=True, help_text="Main preview/hero image URL for catalog."
+    )
     screenshot_urls = models.JSONField(
         default=list,
         blank=True,
@@ -212,8 +219,12 @@ class MarketplaceReview(models.Model):
         on_delete=models.CASCADE,
         related_name="reviews",
     )
-    review_type = models.CharField(max_length=24, choices=ReviewType.choices, db_index=True)
-    status = models.CharField(max_length=24, choices=Status.choices, default=Status.PENDING, db_index=True)
+    review_type = models.CharField(
+        max_length=24, choices=ReviewType.choices, db_index=True
+    )
+    status = models.CharField(
+        max_length=24, choices=Status.choices, default=Status.PENDING, db_index=True
+    )
     requested_by = models.ForeignKey(
         AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -244,7 +255,9 @@ class MarketplaceReview(models.Model):
     def __str__(self):
         return f"{self.listing.app.slug} {self.review_type} {self.status}"
 
-    def mark_reviewed(self, *, status: str, reviewed_by=None, notes: str = "", findings_json=None):
+    def mark_reviewed(
+        self, *, status: str, reviewed_by=None, notes: str = "", findings_json=None
+    ):
         self.status = status
         self.reviewed_by = reviewed_by
         self.reviewed_at = timezone.now()
@@ -252,13 +265,24 @@ class MarketplaceReview(models.Model):
             self.notes = notes
         if findings_json is not None:
             self.findings_json = findings_json
-        self.save(update_fields=["status", "reviewed_by", "reviewed_at", "notes", "findings_json", "updated_at"])
+        self.save(
+            update_fields=[
+                "status",
+                "reviewed_by",
+                "reviewed_at",
+                "notes",
+                "findings_json",
+                "updated_at",
+            ]
+        )
 
 
 class AppScope(models.Model):
     """Permission scope declared by an app (OAuth-style least privilege)."""
 
-    app = models.ForeignKey(MarketplaceApp, on_delete=models.CASCADE, related_name="scopes")
+    app = models.ForeignKey(
+        MarketplaceApp, on_delete=models.CASCADE, related_name="scopes"
+    )
     scope_code = models.CharField(max_length=80)
     description = models.CharField(max_length=255, blank=True)
     sensitive = models.BooleanField(

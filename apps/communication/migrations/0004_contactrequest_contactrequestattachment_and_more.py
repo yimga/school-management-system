@@ -8,65 +8,225 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('communication', '0003_chat_audit_enhancements'),
-        ('people', '0017_studentprofile_user'),
+        ("communication", "0003_chat_audit_enhancements"),
+        ("people", "0017_studentprofile_user"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ContactRequest',
+            name="ContactRequest",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('contact_name', models.CharField(max_length=160)),
-                ('contact_phone', models.CharField(blank=True, max_length=60)),
-                ('contact_whatsapp', models.CharField(blank=True, max_length=60)),
-                ('contact_email', models.EmailField(blank=True, max_length=254)),
-                ('audience', models.CharField(choices=[('TEACHER', 'Teacher'), ('LEADERSHIP', 'Leadership'), ('FINANCE', 'Finance/Bursar'), ('REGISTRAR', 'Registrar/Admissions'), ('IT', 'IT Support'), ('OTHER', 'Other')], default='TEACHER', max_length=30)),
-                ('preferred_channel', models.CharField(choices=[('PHONE', 'Phone call'), ('WHATSAPP', 'WhatsApp'), ('EMAIL', 'Email'), ('IN_PERSON', 'In-person')], default='WHATSAPP', max_length=20)),
-                ('subject', models.CharField(max_length=200)),
-                ('message', models.TextField()),
-                ('status', models.CharField(choices=[('OPEN', 'Open'), ('TRIAGED', 'Triaged'), ('ASSIGNED', 'Assigned'), ('IN_PROGRESS', 'In progress'), ('RESOLVED', 'Resolved'), ('CLOSED', 'Closed')], default='OPEN', max_length=20)),
-                ('triage_notes', models.TextField(blank=True)),
-                ('resolution_notes', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('closed_at', models.DateTimeField(blank=True, null=True)),
-                ('assigned_to', models.ForeignKey(blank=True, help_text='Staff member responsible for contacting the parent.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='contact_requests_assigned', to=settings.AUTH_USER_MODEL)),
-                ('desired_staff', models.ForeignKey(blank=True, help_text='Optional: specific user the parent wants to speak to.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='contact_requests_desired', to=settings.AUTH_USER_MODEL)),
-                ('parent', models.ForeignKey(help_text='Parent/guardian who submitted the request.', on_delete=django.db.models.deletion.CASCADE, related_name='contact_requests_created', to=settings.AUTH_USER_MODEL)),
-                ('student', models.ForeignKey(blank=True, help_text='Optional: the student this request is about.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='contact_requests', to='people.studentprofile')),
-                ('triage_owner', models.ForeignKey(blank=True, help_text='Secretary/executive assistant/virtual assistant handling triage.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='contact_requests_triaged', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("contact_name", models.CharField(max_length=160)),
+                ("contact_phone", models.CharField(blank=True, max_length=60)),
+                ("contact_whatsapp", models.CharField(blank=True, max_length=60)),
+                ("contact_email", models.EmailField(blank=True, max_length=254)),
+                (
+                    "audience",
+                    models.CharField(
+                        choices=[
+                            ("TEACHER", "Teacher"),
+                            ("LEADERSHIP", "Leadership"),
+                            ("FINANCE", "Finance/Bursar"),
+                            ("REGISTRAR", "Registrar/Admissions"),
+                            ("IT", "IT Support"),
+                            ("OTHER", "Other"),
+                        ],
+                        default="TEACHER",
+                        max_length=30,
+                    ),
+                ),
+                (
+                    "preferred_channel",
+                    models.CharField(
+                        choices=[
+                            ("PHONE", "Phone call"),
+                            ("WHATSAPP", "WhatsApp"),
+                            ("EMAIL", "Email"),
+                            ("IN_PERSON", "In-person"),
+                        ],
+                        default="WHATSAPP",
+                        max_length=20,
+                    ),
+                ),
+                ("subject", models.CharField(max_length=200)),
+                ("message", models.TextField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("OPEN", "Open"),
+                            ("TRIAGED", "Triaged"),
+                            ("ASSIGNED", "Assigned"),
+                            ("IN_PROGRESS", "In progress"),
+                            ("RESOLVED", "Resolved"),
+                            ("CLOSED", "Closed"),
+                        ],
+                        default="OPEN",
+                        max_length=20,
+                    ),
+                ),
+                ("triage_notes", models.TextField(blank=True)),
+                ("resolution_notes", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("closed_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "assigned_to",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Staff member responsible for contacting the parent.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="contact_requests_assigned",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "desired_staff",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Optional: specific user the parent wants to speak to.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="contact_requests_desired",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "parent",
+                    models.ForeignKey(
+                        help_text="Parent/guardian who submitted the request.",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="contact_requests_created",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Optional: the student this request is about.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="contact_requests",
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "triage_owner",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Secretary/executive assistant/virtual assistant handling triage.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="contact_requests_triaged",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ContactRequestAttachment',
+            name="ContactRequestAttachment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('file', models.FileField(upload_to='communication/contact-requests/%Y/%m/', validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png', '.gif', '.webp'], allowed_types=['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'], message='Only PDF, Office, or image files are allowed for attachments.'), apps.accounts.validators.FileSizeValidator(max_size_mb=10)])),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True)),
-                ('request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attachments', to='communication.contactrequest')),
-                ('uploaded_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='contact_request_attachments_uploaded', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "file",
+                    models.FileField(
+                        upload_to="communication/contact-requests/%Y/%m/",
+                        validators=[
+                            apps.accounts.validators.FileTypeValidator(
+                                allowed_extensions=[
+                                    ".pdf",
+                                    ".doc",
+                                    ".docx",
+                                    ".xls",
+                                    ".xlsx",
+                                    ".jpg",
+                                    ".jpeg",
+                                    ".png",
+                                    ".gif",
+                                    ".webp",
+                                ],
+                                allowed_types=[
+                                    "application/pdf",
+                                    "application/msword",
+                                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                    "application/vnd.ms-excel",
+                                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                    "image/jpeg",
+                                    "image/png",
+                                    "image/jpg",
+                                    "image/gif",
+                                    "image/webp",
+                                ],
+                                message="Only PDF, Office, or image files are allowed for attachments.",
+                            ),
+                            apps.accounts.validators.FileSizeValidator(max_size_mb=10),
+                        ],
+                    ),
+                ),
+                ("uploaded_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "request",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="attachments",
+                        to="communication.contactrequest",
+                    ),
+                ),
+                (
+                    "uploaded_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="contact_request_attachments_uploaded",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-uploaded_at'],
+                "ordering": ["-uploaded_at"],
             },
         ),
         migrations.AddIndex(
-            model_name='contactrequest',
-            index=models.Index(fields=['status', '-created_at'], name='communicati_status_2a414c_idx'),
+            model_name="contactrequest",
+            index=models.Index(
+                fields=["status", "-created_at"], name="communicati_status_2a414c_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='contactrequest',
-            index=models.Index(fields=['parent', '-created_at'], name='communicati_parent__65ef5a_idx'),
+            model_name="contactrequest",
+            index=models.Index(
+                fields=["parent", "-created_at"], name="communicati_parent__65ef5a_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='contactrequest',
-            index=models.Index(fields=['assigned_to', 'status'], name='communicati_assigne_44d5db_idx'),
+            model_name="contactrequest",
+            index=models.Index(
+                fields=["assigned_to", "status"], name="communicati_assigne_44d5db_idx"
+            ),
         ),
     ]

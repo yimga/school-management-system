@@ -4,34 +4,83 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0147_sitesettings_compliance_profile_pointer'),
+        ("siteconfig", "0147_sitesettings_compliance_profile_pointer"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AIPromptRegistry',
+            name="AIPromptRegistry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('prompt_key', models.CharField(db_index=True, max_length=64, unique=True)),
-                ('prompt_class', models.CharField(db_index=True, help_text='Family: setup, workflow, policy, migration, document, support, marketplace, design_experience, analytics, admin', max_length=32)),
-                ('owner', models.CharField(blank=True, max_length=128)),
-                ('purpose', models.CharField(blank=True, max_length=256)),
-                ('template_body', models.TextField(help_text='Prompt template; use {context}, {query}, {user_query} etc. as placeholders')),
-                ('allowed_data_sources', models.JSONField(blank=True, default=list, help_text='List of allowed RAG scopes or data source identifiers')),
-                ('expected_output_shape', models.CharField(blank=True, max_length=64)),
-                ('model_backend_policy', models.JSONField(blank=True, default=dict, help_text='E.g. allowed_backends, preferred_tier, max_tokens')),
-                ('is_active', models.BooleanField(db_index=True, default=True)),
-                ('review_status', models.CharField(choices=[('draft', 'Draft'), ('pending_review', 'Pending review'), ('approved', 'Approved'), ('archived', 'Archived')], db_index=True, default='draft', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "prompt_key",
+                    models.CharField(db_index=True, max_length=64, unique=True),
+                ),
+                (
+                    "prompt_class",
+                    models.CharField(
+                        db_index=True,
+                        help_text="Family: setup, workflow, policy, migration, document, support, marketplace, design_experience, analytics, admin",
+                        max_length=32,
+                    ),
+                ),
+                ("owner", models.CharField(blank=True, max_length=128)),
+                ("purpose", models.CharField(blank=True, max_length=256)),
+                (
+                    "template_body",
+                    models.TextField(
+                        help_text="Prompt template; use {context}, {query}, {user_query} etc. as placeholders"
+                    ),
+                ),
+                (
+                    "allowed_data_sources",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="List of allowed RAG scopes or data source identifiers",
+                    ),
+                ),
+                ("expected_output_shape", models.CharField(blank=True, max_length=64)),
+                (
+                    "model_backend_policy",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="E.g. allowed_backends, preferred_tier, max_tokens",
+                    ),
+                ),
+                ("is_active", models.BooleanField(db_index=True, default=True)),
+                (
+                    "review_status",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Draft"),
+                            ("pending_review", "Pending review"),
+                            ("approved", "Approved"),
+                            ("archived", "Archived"),
+                        ],
+                        db_index=True,
+                        default="draft",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'AI prompt registry',
-                'verbose_name_plural': 'AI prompt registries',
-                'db_table': 'siteconfig_aipromptregistry',
-                'ordering': ['prompt_class', 'prompt_key'],
+                "verbose_name": "AI prompt registry",
+                "verbose_name_plural": "AI prompt registries",
+                "db_table": "siteconfig_aipromptregistry",
+                "ordering": ["prompt_class", "prompt_key"],
             },
         ),
     ]

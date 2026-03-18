@@ -12,7 +12,9 @@ class Campus(models.Model):
         related_name="campuses",
     )
     name = models.CharField(max_length=255)
-    code = models.CharField(max_length=32, blank=True, help_text="Short code e.g. MAIN, NORTH")
+    code = models.CharField(
+        max_length=32, blank=True, help_text="Short code e.g. MAIN, NORTH"
+    )
     address = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -53,7 +55,9 @@ class InventoryItem(models.Model):
 
 
 class Route(models.Model):
-    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="transport_routes")
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="transport_routes"
+    )
     name = models.CharField(max_length=120)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -69,7 +73,9 @@ class Route(models.Model):
 
 
 class Stop(models.Model):
-    route = models.ForeignKey("schoolops.Route", on_delete=models.CASCADE, related_name="stops")
+    route = models.ForeignKey(
+        "schoolops.Route", on_delete=models.CASCADE, related_name="stops"
+    )
     name = models.CharField(max_length=120)
     sequence = models.PositiveSmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -85,7 +91,9 @@ class Stop(models.Model):
 
 
 class Bus(models.Model):
-    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="buses")
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="buses"
+    )
     identifier = models.CharField(max_length=60, help_text="e.g. Bus 01, Plate number")
     route = models.ForeignKey(
         "schoolops.Route",
@@ -130,7 +138,9 @@ class Hostel(models.Model):
 
 
 class HostelRoom(models.Model):
-    hostel = models.ForeignKey("schoolops.Hostel", on_delete=models.CASCADE, related_name="rooms")
+    hostel = models.ForeignKey(
+        "schoolops.Hostel", on_delete=models.CASCADE, related_name="rooms"
+    )
     name = models.CharField(max_length=60)
     capacity = models.PositiveSmallIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)

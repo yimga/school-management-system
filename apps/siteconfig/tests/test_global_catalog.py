@@ -14,7 +14,9 @@ class GlobalGeoCatalogTests(TestCase):
         self.assertIn("UGA", codes)
 
     def test_city_search_returns_timezone_coordinates(self):
-        rows = GlobalGeoCatalog.search_cities(country_code="UGA", query="kampala", limit=5)
+        rows = GlobalGeoCatalog.search_cities(
+            country_code="UGA", query="kampala", limit=5
+        )
         self.assertTrue(rows)
         first = rows[0]
         self.assertEqual(first.get("country_code"), "UGA")

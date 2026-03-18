@@ -5,27 +5,32 @@ from django.db.migrations.operations.special import SeparateDatabaseAndState
 
 
 def _column_exists(cursor, db_table, column_name):
-    if connection.vendor == 'sqlite':
-        cursor.execute('PRAGMA table_info(%s)' % db_table)
+    if connection.vendor == "sqlite":
+        cursor.execute("PRAGMA table_info(%s)" % db_table)
         return any(row[1] == column_name for row in cursor.fetchall())
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT column_name FROM information_schema.columns
         WHERE table_name=%s AND column_name=%s
-    """, [db_table, column_name])
+    """,
+        [db_table, column_name],
+    )
     return cursor.fetchone() is not None
 
 
 def remove_fields_if_exist(apps, schema_editor):
     """Remove fields only if they exist."""
-    db_table = 'evals_gradeapprovalrequest'
+    db_table = "evals_gradeapprovalrequest"
     with connection.cursor() as cursor:
-        for field_name in ['deadline_at', 'validation_flags']:
+        for field_name in ["deadline_at", "validation_flags"]:
             if not _column_exists(cursor, db_table, field_name):
                 continue
-            if connection.vendor == 'sqlite':
-                cursor.execute('ALTER TABLE %s DROP COLUMN %s' % (db_table, field_name))
+            if connection.vendor == "sqlite":
+                cursor.execute("ALTER TABLE %s DROP COLUMN %s" % (db_table, field_name))
             else:
-                cursor.execute('ALTER TABLE %s DROP COLUMN IF EXISTS %s' % (db_table, field_name))
+                cursor.execute(
+                    "ALTER TABLE %s DROP COLUMN IF EXISTS %s" % (db_table, field_name)
+                )
 
 
 def reverse_remove_fields(apps, schema_editor):
@@ -33,9 +38,8 @@ def reverse_remove_fields(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0020_remove_gradeapprovalrequest_deadline_at_and_more'),
+        ("evals", "0020_remove_gradeapprovalrequest_deadline_at_and_more"),
     ]
 
     operations = [
@@ -45,12 +49,12 @@ class Migration(migrations.Migration):
             ],
             state_operations=[
                 migrations.RemoveField(
-                    model_name='gradeapprovalrequest',
-                    name='deadline_at',
+                    model_name="gradeapprovalrequest",
+                    name="deadline_at",
                 ),
                 migrations.RemoveField(
-                    model_name='gradeapprovalrequest',
-                    name='validation_flags',
+                    model_name="gradeapprovalrequest",
+                    name="validation_flags",
                 ),
             ],
         ),

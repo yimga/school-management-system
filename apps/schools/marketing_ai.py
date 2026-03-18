@@ -5,6 +5,7 @@ Asset governance: proof_hero_image_key, style tokens, versioning/approval.
 When AI-generated assets are shipped, plug them in here; templates already consume
 proof_hero_image_key and hero/asset URLs from marketing_views context.
 """
+
 from __future__ import annotations
 
 from django.conf import settings
@@ -32,8 +33,12 @@ def get_marketing_ai_asset_url(key: str) -> str | None:
     setting_map = {
         "hero_dashboard": getattr(settings, "MARKETING_HERO_IMAGE_URL", None),
         "hero_video": getattr(settings, "MARKETING_HERO_VIDEO_URL", None),
-        "hero_migration_flow": getattr(settings, "MARKETING_MIGRATION_FLOW_IMAGE_URL", None),
-        "hero_setup_studio": getattr(settings, "MARKETING_SETUP_STUDIO_IMAGE_URL", None),
+        "hero_migration_flow": getattr(
+            settings, "MARKETING_MIGRATION_FLOW_IMAGE_URL", None
+        ),
+        "hero_setup_studio": getattr(
+            settings, "MARKETING_SETUP_STUDIO_IMAGE_URL", None
+        ),
         "hero_ecosystem": getattr(settings, "MARKETING_ECOSYSTEM_IMAGE_URL", None),
         "hero_marketplace": getattr(settings, "MARKETING_MARKETPLACE_IMAGE_URL", None),
     }

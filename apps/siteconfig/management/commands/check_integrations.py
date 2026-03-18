@@ -24,12 +24,26 @@ class Command(BaseCommand):
         warn = 0
         for integ in integrations:
             required = REQUIRED_KEYS.get(integ.provider, [])
-            missing = [key for key in required if key not in integ.config or integ.config.get(key) in (None, "")]
+            missing = [
+                key
+                for key in required
+                if key not in integ.config or integ.config.get(key) in (None, "")
+            ]
             if missing:
                 warn += 1
-                self.stdout.write(self.style.WARNING(f"{integ.name} ({integ.provider}) missing keys: {', '.join(missing)}"))
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"{integ.name} ({integ.provider}) missing keys: {', '.join(missing)}"
+                    )
+                )
             else:
                 ok += 1
-                self.stdout.write(self.style.SUCCESS(f"{integ.name} ({integ.provider}) OK"))
+                self.stdout.write(
+                    self.style.SUCCESS(f"{integ.name} ({integ.provider}) OK")
+                )
 
-        self.stdout.write(self.style.NOTICE(f"Checked {integrations.count()} integrations: {ok} OK, {warn} warnings."))
+        self.stdout.write(
+            self.style.NOTICE(
+                f"Checked {integrations.count()} integrations: {ok} OK, {warn} warnings."
+            )
+        )

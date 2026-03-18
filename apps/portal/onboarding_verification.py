@@ -2,6 +2,7 @@
 §2.4 Raw SQL wrap: onboarding verification delegates to siteconfig.repositories.migrations_repository.
 Used by management command verify_onboarding_setup; no raw SQL in portal (repo holds single SELECT).
 """
+
 from __future__ import annotations
 
 from typing import Optional

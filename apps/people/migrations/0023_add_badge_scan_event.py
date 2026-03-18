@@ -6,31 +6,89 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0022_add_badgetype_description_icon_sort_order'),
+        ("people", "0022_add_badgetype_description_icon_sort_order"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BadgeScanEvent',
+            name="BadgeScanEvent",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('token_kind', models.CharField(choices=[('badge', 'Badge'), ('staff', 'Staff ID'), ('student', 'Student ID')], default='badge', max_length=20)),
-                ('verified_at', models.DateTimeField(auto_now_add=True)),
-                ('verified', models.BooleanField(default=True, help_text='Whether verification succeeded.')),
-                ('ip_address', models.GenericIPAddressField(blank=True, null=True, unpack_ipv4=True)),
-                ('user_agent', models.CharField(blank=True, max_length=255)),
-                ('notes', models.CharField(blank=True, max_length=255)),
-                ('badge', models.ForeignKey(blank=True, help_text='Set when token was badge:<pk>.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='scan_events', to='people.badge')),
-                ('student', models.ForeignKey(blank=True, help_text='Student verified (for student ID).', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='badge_scan_events', to='people.studentprofile')),
-                ('user', models.ForeignKey(blank=True, help_text='Staff member verified (for staff ID).', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='badge_scan_events_as_subject', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "token_kind",
+                    models.CharField(
+                        choices=[
+                            ("badge", "Badge"),
+                            ("staff", "Staff ID"),
+                            ("student", "Student ID"),
+                        ],
+                        default="badge",
+                        max_length=20,
+                    ),
+                ),
+                ("verified_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "verified",
+                    models.BooleanField(
+                        default=True, help_text="Whether verification succeeded."
+                    ),
+                ),
+                (
+                    "ip_address",
+                    models.GenericIPAddressField(
+                        blank=True, null=True, unpack_ipv4=True
+                    ),
+                ),
+                ("user_agent", models.CharField(blank=True, max_length=255)),
+                ("notes", models.CharField(blank=True, max_length=255)),
+                (
+                    "badge",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Set when token was badge:<pk>.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="scan_events",
+                        to="people.badge",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Student verified (for student ID).",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="badge_scan_events",
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Staff member verified (for staff ID).",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="badge_scan_events_as_subject",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Badge scan event',
-                'verbose_name_plural': 'Badge scan events',
-                'ordering': ['-verified_at'],
+                "verbose_name": "Badge scan event",
+                "verbose_name_plural": "Badge scan events",
+                "ordering": ["-verified_at"],
             },
         ),
     ]

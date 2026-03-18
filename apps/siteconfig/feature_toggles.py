@@ -42,7 +42,9 @@ def ensure_toggle_definition(
         "default_enabled": bool(default_enabled),
         "metadata": metadata or {},
     }
-    definition, _ = FeatureToggleDefinition.objects.get_or_create(key=normalized, defaults=defaults)
+    definition, _ = FeatureToggleDefinition.objects.get_or_create(
+        key=normalized, defaults=defaults
+    )
     return definition
 
 
@@ -68,7 +70,8 @@ def resolve_toggle(
         q_expiry = Q(expires_at__isnull=True) | Q(expires_at__gt=now)
         if school is not None:
             school_state = (
-                FeatureToggleState.objects.filter(definition=definition, school=school).filter(q_expiry)
+                FeatureToggleState.objects.filter(definition=definition, school=school)
+                .filter(q_expiry)
                 .values_list("is_enabled", flat=True)
                 .first()
             )
@@ -76,7 +79,10 @@ def resolve_toggle(
                 return bool(school_state)
 
         global_state = (
-            FeatureToggleState.objects.filter(definition=definition, school__isnull=True).filter(q_expiry)
+            FeatureToggleState.objects.filter(
+                definition=definition, school__isnull=True
+            )
+            .filter(q_expiry)
             .values_list("is_enabled", flat=True)
             .first()
         )
@@ -115,14 +121,18 @@ def set_toggle_state(
         school=school,
         defaults={"is_enabled": bool(enabled), "updated_by": user},
     )
-    if state.is_enabled != bool(enabled) or state.updated_by_id != getattr(user, "id", None):
+    if state.is_enabled != bool(enabled) or state.updated_by_id != getattr(
+        user, "id", None
+    ):
         state.is_enabled = bool(enabled)
         state.updated_by = user
         state.save(update_fields=["is_enabled", "updated_by", "updated_at"])
     return state
 
 
-def resolve_module_enabled(code: str, *, school=None, fallback: Optional[bool] = None) -> bool:
+def resolve_module_enabled(
+    code: str, *, school=None, fallback: Optional[bool] = None
+) -> bool:
     module_code = (code or "").strip().lower()
     if not module_code:
         return bool(fallback)

@@ -5,6 +5,7 @@ from django.db import migrations, models
 
 def add_trial_end_date_if_missing(apps, schema_editor):
     from django.db import connection
+
     with connection.cursor() as cursor:
         if connection.vendor == "postgresql":
             cursor.execute("""
@@ -17,7 +18,9 @@ def add_trial_end_date_if_missing(apps, schema_editor):
         else:
             cursor.execute("PRAGMA table_info(schools_school)")
             if "trial_end_date" not in [row[1] for row in cursor.fetchall()]:
-                cursor.execute("ALTER TABLE schools_school ADD COLUMN trial_end_date date NULL")
+                cursor.execute(
+                    "ALTER TABLE schools_school ADD COLUMN trial_end_date date NULL"
+                )
 
 
 def noop(apps, schema_editor):
@@ -25,7 +28,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0017_add_hierarchy_campus_quota_usage"),
     ]
@@ -43,6 +45,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            database_operations=[migrations.RunPython(add_trial_end_date_if_missing, noop)],
+            database_operations=[
+                migrations.RunPython(add_trial_end_date_if_missing, noop)
+            ],
         ),
     ]

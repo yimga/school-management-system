@@ -6,7 +6,14 @@ from django.db import DatabaseError
 from .preview_state import is_preview_mode
 
 
-OPTIONAL_DB_ROUTER_ERRORS = (AttributeError, DatabaseError, ImportError, RuntimeError, TypeError, ValueError)
+OPTIONAL_DB_ROUTER_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def _get_tenant_db_alias() -> Optional[str]:
@@ -16,6 +23,7 @@ def _get_tenant_db_alias() -> Optional[str]:
     """
     try:
         from django.db import connection
+
         tenant = getattr(connection, "tenant", None)
         if not tenant:
             return None
@@ -49,6 +57,7 @@ class TenantDatabaseRouter:
     World Engine: route tenant reads/writes by Tenant.db_alias or School.dedicated_db_alias/regional_cluster.
     Read/write split: when DATABASE_READ_REPLICA_ALIAS is set, reads use replica; writes use primary.
     """
+
     def db_for_read(self, model, **hints) -> Optional[str]:
         replica = _get_read_replica_alias()
         if replica:

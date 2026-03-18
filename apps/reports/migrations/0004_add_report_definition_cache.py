@@ -3,10 +3,8 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('reports', '0003_reportcard_language_reportcard_region_code'),
+        ("reports", "0003_reportcard_language_reportcard_region_code"),
     ]
 
     operations = []
-

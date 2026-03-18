@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -17,11 +16,32 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="APIKey",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("name", models.CharField(help_text="Label for this key (e.g. Production, CI)", max_length=120)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        help_text="Label for this key (e.g. Production, CI)",
+                        max_length=120,
+                    ),
+                ),
                 ("key_prefix", models.CharField(editable=False, max_length=24)),
                 ("secret_hash", models.CharField(editable=False, max_length=64)),
-                ("scopes", models.JSONField(blank=True, default=list, help_text="Optional list of scope strings")),
+                (
+                    "scopes",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="Optional list of scope strings",
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("last_used_at", models.DateTimeField(blank=True, null=True)),
                 ("revoked_at", models.DateTimeField(blank=True, null=True)),

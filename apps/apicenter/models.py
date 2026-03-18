@@ -1,6 +1,7 @@
 """
 API Center: audit log for Integration toggles (unified with siteconfig.Integration); API keys for external developers.
 """
+
 import hashlib
 import secrets
 
@@ -28,10 +29,14 @@ class APIKey(models.Model):
         blank=True,
         related_name="api_keys",
     )
-    name = models.CharField(max_length=120, help_text="Label for this key (e.g. Production, CI)")
+    name = models.CharField(
+        max_length=120, help_text="Label for this key (e.g. Production, CI)"
+    )
     key_prefix = models.CharField(max_length=24, editable=False)
     secret_hash = models.CharField(max_length=64, editable=False)
-    scopes = models.JSONField(default=list, blank=True, help_text="Optional list of scope strings")
+    scopes = models.JSONField(
+        default=list, blank=True, help_text="Optional list of scope strings"
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -76,6 +81,7 @@ class APIKey(models.Model):
 
 class APIQuota(models.Model):
     """Per-tenant or global API quota (8.1): display and enforcement (e.g. requests per minute)."""
+
     QUOTA_TYPES = [
         ("requests_per_minute", "Requests per minute"),
         ("requests_per_day", "Requests per day"),
@@ -89,8 +95,14 @@ class APIQuota(models.Model):
         related_name="api_quotas",
     )
     quota_type = models.CharField(max_length=32, choices=QUOTA_TYPES)
-    limit_value = models.PositiveIntegerField(help_text="Max allowed (e.g. 100 for requests_per_minute)")
-    period_minutes = models.PositiveIntegerField(null=True, blank=True, help_text="Optional: period in minutes for rolling window")
+    limit_value = models.PositiveIntegerField(
+        help_text="Max allowed (e.g. 100 for requests_per_minute)"
+    )
+    period_minutes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Optional: period in minutes for rolling window",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -138,4 +150,6 @@ class APIAuditLog(models.Model):
         verbose_name_plural = "API Audit Logs"
 
     def __str__(self):
-        return f"{self.get_action_display()} – {self.integration.slug} @ {self.created_at}"
+        return (
+            f"{self.get_action_display()} – {self.integration.slug} @ {self.created_at}"
+        )

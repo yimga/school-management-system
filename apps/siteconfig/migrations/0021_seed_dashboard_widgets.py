@@ -117,7 +117,6 @@ def seed_dashboard_widgets(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0020_sitesettings_footer_accreditation_subtext_and_more"),
     ]

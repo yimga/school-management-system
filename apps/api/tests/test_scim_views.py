@@ -82,7 +82,9 @@ class ScimViewsTests(TestCase):
         data = response.json()
         self.assertEqual(data["userName"], "teacher.scim")
         user = User.objects.get(username="teacher.scim")
-        self.assertTrue(SchoolMembership.objects.filter(school=self.school, user=user).exists())
+        self.assertTrue(
+            SchoolMembership.objects.filter(school=self.school, user=user).exists()
+        )
 
     def test_create_user_rejects_invalid_json(self):
         response = self.client.post(
@@ -132,7 +134,9 @@ class ScimViewsTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["schemas"][0], "urn:ietf:params:scim:api:messages:2.0:ListResponse")
+        self.assertEqual(
+            data["schemas"][0], "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+        )
         self.assertEqual(data["totalResults"], 1)
         self.assertEqual(data["Resources"][0]["userName"], "base.user")
 
@@ -205,7 +209,13 @@ class ScimViewsTests(TestCase):
     def test_patch_group_rejects_non_scim_content_type(self):
         payload = {
             "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
-            "Operations": [{"op": "add", "path": "members", "value": [{"value": str(self.base_user.pk)}]}],
+            "Operations": [
+                {
+                    "op": "add",
+                    "path": "members",
+                    "value": [{"value": str(self.base_user.pk)}],
+                }
+            ],
         }
         response = self.client.patch(
             self._url("api:scim-group-detail", self.role.pk),
@@ -228,7 +238,13 @@ class ScimViewsTests(TestCase):
     def test_group_patch_adds_role_to_user(self):
         payload = {
             "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
-            "Operations": [{"op": "add", "path": "members", "value": [{"value": str(self.base_user.pk)}]}],
+            "Operations": [
+                {
+                    "op": "add",
+                    "path": "members",
+                    "value": [{"value": str(self.base_user.pk)}],
+                }
+            ],
         }
         response = self.client.patch(
             self._url("api:scim-group-detail", self.role.pk),
@@ -238,6 +254,22 @@ class ScimViewsTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertTrue(self.base_user.roles.filter(pk=self.role.pk).exists())
+
+    def test_scim_groups_post_creates_access_role(self):
+        payload = {
+            "schemas": ["urn:ietf:params:scim:schemas:core:2.0:Group"],
+            "displayName": "IdP Group Alpha",
+        }
+        response = self.client.post(
+            self._url("api:scim-groups"),
+            data=json.dumps(payload),
+            content_type="application/json",
+            **self._headers(),
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+        data = response.json()
+        self.assertEqual(data.get("displayName"), "IdP Group Alpha")
+        self.assertTrue(AccessRole.objects.filter(name="IdP Group Alpha").exists())
 
     def test_scim_endpoints_rate_limit_429_when_exceeded(self):
         from unittest.mock import patch

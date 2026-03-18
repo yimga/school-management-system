@@ -12,7 +12,8 @@ class AttendanceLog(models.Model):
     # Add more fields as needed for real implementation
 
     class Meta:
-        app_label = 'analytics'
+        app_label = "analytics"
+
 
 # ========== GRADE IMPORT JOB TRACKING ==========
 
@@ -28,32 +29,28 @@ def grade_import_job_upload_to(instance, filename):
 
 class GradeImportJob(models.Model):
     """Tracks a single bulk grade import session."""
-    
+
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('validating', 'Validating'),
-        ('preview', 'Preview Ready'),
-        ('processing', 'Processing'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('partial', 'Partially Completed'),
+        ("pending", "Pending"),
+        ("validating", "Validating"),
+        ("preview", "Preview Ready"),
+        ("processing", "Processing"),
+        ("completed", "Completed"),
+        ("failed", "Failed"),
+        ("partial", "Partially Completed"),
     ]
-    
+
     academic_year = models.ForeignKey(
-        AcademicYear,
-        on_delete=models.CASCADE,
-        related_name='grade_import_jobs'
+        AcademicYear, on_delete=models.CASCADE, related_name="grade_import_jobs"
     )
     term = models.ForeignKey(
-        Term,
-        on_delete=models.CASCADE,
-        related_name='grade_import_jobs'
+        Term, on_delete=models.CASCADE, related_name="grade_import_jobs"
     )
     uploaded_by = models.ForeignKey(
-        'accounts.User',
+        "accounts.User",
         on_delete=models.SET_NULL,
         null=True,
-        related_name='grade_imports_uploaded'
+        related_name="grade_imports_uploaded",
     )
     uploaded_file = models.FileField(
         upload_to=grade_import_job_upload_to,
@@ -62,25 +59,25 @@ class GradeImportJob(models.Model):
         validators=[validate_grade_import_file, validate_file_size_5mb],
     )
     file_hash = models.CharField(max_length=64, unique=True, null=True, blank=True)
-    
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
     started_processing_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-    
+
     # Results
     total_rows = models.PositiveIntegerField(default=0)
     created_count = models.PositiveIntegerField(default=0)
     updated_count = models.PositiveIntegerField(default=0)
     failed_count = models.PositiveIntegerField(default=0)
     error_log = models.JSONField(default=list, blank=True)
-    
+
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['academic_year', 'term', '-created_at']),
+            models.Index(fields=["academic_year", "term", "-created_at"]),
         ]
-    
+
     def __str__(self):
         return f"Import {self.academic_year}/{self.term} - {self.status}"
 
@@ -93,6 +90,7 @@ class BenchmarkAggregate(models.Model):
     Anonymized aggregate metrics per region/sub_system/subject/term.
     ETL job populates from Evaluation/ReportCard; no school or student identifiers.
     """
+
     region_code = models.CharField(max_length=20, db_index=True)
     sub_system = models.CharField(max_length=10, db_index=True)
     subject_id = models.IntegerField(null=True, blank=True, db_index=True)
@@ -121,6 +119,7 @@ class RiskFactor(models.Model):
     Nightly-computed at-risk score per student (0–100). Red 80–100, Amber 50–79, Green 0–49.
     Explainable: reason_summary gives "why" (e.g. "High absenteeism (4 days) + dropping grades in Science").
     """
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -175,6 +174,7 @@ class RiskThresholds(models.Model):
     Plan XVII: Per-tenant risk band thresholds (0–100).
     When score >= red_min → Red; when score >= amber_min → Amber; else Green.
     """
+
     school = models.OneToOneField(
         "schools.School",
         on_delete=models.CASCADE,
@@ -223,6 +223,7 @@ def get_risk_band_for_school(score, school):
 
 class InterventionLog(models.Model):
     """Audit trail for automated or manual interventions (Amber/Red levels). Plan XIX: Action Center."""
+
     class Status(models.TextChoices):
         ONGOING = "ONGOING", "Ongoing"
         RESOLVED = "RESOLVED", "Resolved"
@@ -243,7 +244,9 @@ class InterventionLog(models.Model):
         max_length=100,
         help_text="e.g. Email, Meeting, Resource",
     )
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ONGOING)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.ONGOING
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
     dismissed_at = models.DateTimeField(null=True, blank=True)
@@ -275,11 +278,15 @@ class StudentSignals(models.Model):
     grade deltas, login gaps, submission latency. Pipeline (tasks/signals) writes here;
     nightly RiskFactor task can optionally consume this for explainability.
     """
+
     class SignalType(models.TextChoices):
         ATTENDANCE_RATIO_30D = "attendance_ratio_30d", "Attendance ratio (30 days)"
         GRADE_DELTA = "grade_delta", "Grade delta vs prior term"
         LOGIN_GAP_DAYS = "login_gap_days", "Days since last login"
-        SUBMISSION_LATENCY_DAYS = "submission_latency_days", "Assignment submission latency"
+        SUBMISSION_LATENCY_DAYS = (
+            "submission_latency_days",
+            "Assignment submission latency",
+        )
 
     school = models.ForeignKey(
         "schools.School",
@@ -291,7 +298,9 @@ class StudentSignals(models.Model):
         on_delete=models.CASCADE,
         related_name="signals",
     )
-    signal_type = models.CharField(max_length=40, choices=SignalType.choices, db_index=True)
+    signal_type = models.CharField(
+        max_length=40, choices=SignalType.choices, db_index=True
+    )
     value = models.DecimalField(
         max_digits=12,
         decimal_places=4,
@@ -327,6 +336,7 @@ class MLModel(models.Model):
     Registry of deployed ML models: name, version, artifact path or config, input/output schema.
     Inference layer loads active model and runs prediction (e.g. risk score).
     """
+
     MODEL_TYPES = [
         ("risk", "Risk scoring"),
         ("forecast", "Enrollment/forecast"),
@@ -373,3 +383,57 @@ class MLModel(models.Model):
 
     def __str__(self):
         return f"{self.name}@{self.version} ({self.model_type})"
+
+
+class StudentAtRiskSignal(models.Model):
+    """BR-06 EWS v1: at-risk score + factors for intervention workflow."""
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        IN_INTERVENTION = "in_intervention", "In intervention"
+        RESOLVED = "resolved", "Resolved"
+        DISMISSED = "dismissed", "Dismissed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="at_risk_signals",
+    )
+    student_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="at_risk_signals",
+    )
+    score = models.FloatField(
+        default=0.0,
+        help_text="Higher = more at-risk (0–100 scale).",
+    )
+    factors = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="e.g. attendance_pct, grade_trend, flags.",
+    )
+    status = models.CharField(
+        max_length=24, choices=Status.choices, default=Status.OPEN, db_index=True
+    )
+    notes = models.TextField(blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="at_risk_signals_created",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-score", "-updated_at"]
+        indexes = [
+            models.Index(fields=["school", "status", "-score"]),
+        ]
+        verbose_name = "Student at-risk signal (EWS)"
+        verbose_name_plural = "Student at-risk signals (EWS)"
+
+    def __str__(self):
+        return f"{self.school_id}:{self.student_user_id}:{self.score:.1f}"

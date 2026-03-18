@@ -4,96 +4,95 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0010_schedulingconstraint_room_schedule_timeslot_and_more'),
+        ("academics", "0010_schedulingconstraint_room_schedule_timeslot_and_more"),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='scheduleentry',
-            name='academics_s_room_id_73cb9b_idx',
+            model_name="scheduleentry",
+            name="academics_s_room_id_73cb9b_idx",
         ),
         migrations.RemoveIndex(
-            model_name='scheduleentry',
-            name='academics_s_teacher_8df5c8_idx',
+            model_name="scheduleentry",
+            name="academics_s_teacher_8df5c8_idx",
         ),
         migrations.RemoveIndex(
-            model_name='scheduleentry',
-            name='academics_s_schedul_9cffc7_idx',
+            model_name="scheduleentry",
+            name="academics_s_schedul_9cffc7_idx",
         ),
         migrations.RemoveField(
-            model_name='scheduleentry',
-            name='room',
+            model_name="scheduleentry",
+            name="room",
         ),
         migrations.RemoveField(
-            model_name='schedule',
-            name='academic_year',
+            model_name="schedule",
+            name="academic_year",
         ),
         migrations.RemoveField(
-            model_name='schedule',
-            name='created_by',
+            model_name="schedule",
+            name="created_by",
         ),
         migrations.RemoveField(
-            model_name='schedule',
-            name='term',
+            model_name="schedule",
+            name="term",
         ),
         migrations.RemoveField(
-            model_name='scheduleentry',
-            name='schedule',
+            model_name="scheduleentry",
+            name="schedule",
         ),
         migrations.RemoveField(
-            model_name='scheduleentry',
-            name='classroom',
+            model_name="scheduleentry",
+            name="classroom",
         ),
         migrations.RemoveField(
-            model_name='scheduleentry',
-            name='replacement_teacher',
+            model_name="scheduleentry",
+            name="replacement_teacher",
         ),
         migrations.RemoveField(
-            model_name='scheduleentry',
-            name='subject',
+            model_name="scheduleentry",
+            name="subject",
         ),
         migrations.RemoveField(
-            model_name='scheduleentry',
-            name='teacher',
+            model_name="scheduleentry",
+            name="teacher",
         ),
         migrations.RemoveField(
-            model_name='scheduleentry',
-            name='time_slot',
+            model_name="scheduleentry",
+            name="time_slot",
         ),
         migrations.DeleteModel(
-            name='SchedulingConstraint',
+            name="SchedulingConstraint",
         ),
         migrations.AlterUniqueTogether(
-            name='teacheravailability',
+            name="teacheravailability",
             unique_together=None,
         ),
         migrations.RemoveField(
-            model_name='teacheravailability',
-            name='teacher',
+            model_name="teacheravailability",
+            name="teacher",
         ),
         migrations.RemoveField(
-            model_name='teacheravailability',
-            name='time_slot',
+            model_name="teacheravailability",
+            name="time_slot",
         ),
         migrations.AlterUniqueTogether(
-            name='timeslot',
+            name="timeslot",
             unique_together=None,
         ),
         migrations.DeleteModel(
-            name='Room',
+            name="Room",
         ),
         migrations.DeleteModel(
-            name='Schedule',
+            name="Schedule",
         ),
         migrations.DeleteModel(
-            name='ScheduleEntry',
+            name="ScheduleEntry",
         ),
         migrations.DeleteModel(
-            name='TeacherAvailability',
+            name="TeacherAvailability",
         ),
         migrations.DeleteModel(
-            name='TimeSlot',
+            name="TimeSlot",
         ),
     ]

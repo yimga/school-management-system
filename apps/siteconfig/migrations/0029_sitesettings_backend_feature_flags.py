@@ -5,15 +5,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0028_dashboardwidget_allowed_roles_and_more'),
+        ("siteconfig", "0028_dashboardwidget_allowed_roles_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='backend_feature_flags',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models.default_backend_feature_flags, help_text='Backend/front-office admin feature flags (entity console/import, schema UI, bulk limits).'),
+            model_name="sitesettings",
+            name="backend_feature_flags",
+            field=models.JSONField(
+                blank=True,
+                default=apps.siteconfig.models.default_backend_feature_flags,
+                help_text="Backend/front-office admin feature flags (entity console/import, schema UI, bulk limits).",
+            ),
         ),
     ]

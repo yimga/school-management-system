@@ -2,7 +2,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0146_remove_reportcardstyleassignment_classroom_and_more"),
     ]

@@ -7,6 +7,7 @@ Audit: Tenant-facing code must not read tenant behavior directly from the legacy
 singleton; use get_effective_* helpers or request.tenant_runtime. See
 docs/PLATFORM_TRANSITION_AUDIT_REPORT.md and docs/PLATFORM_AUDIT_REMEDIATION_BACKLOG.md.
 """
+
 from __future__ import annotations
 
 from copy import copy
@@ -62,7 +63,9 @@ def get_effective_branding(request: Any) -> Any:
     return _platform_branding_fallback()
 
 
-def get_effective_dashboard(request: Any, role: Optional[str] = None, user: Any = None, **kwargs: Any) -> dict:
+def get_effective_dashboard(
+    request: Any, role: Optional[str] = None, user: Any = None, **kwargs: Any
+) -> dict:
     """Resolve dashboard for role from runtime.dashboards or legacy dashboard_for()."""
     rt = get_tenant_runtime(request)
     if rt is None:
@@ -116,6 +119,7 @@ def get_effective_flags(request: Any) -> dict:
     rt = get_tenant_runtime(request)
     try:
         from apps.siteconfig.models import default_backend_feature_flags
+
         defaults = default_backend_feature_flags() or {}
     except (AttributeError, ImportError, TypeError, ValueError):
         defaults = {}
@@ -160,7 +164,14 @@ def get_effective_feature_control_settings(
             from apps.siteconfig.models import build_platform_default_site_settings
 
             site = build_platform_default_site_settings()
-        except (AttributeError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+        except (
+            AttributeError,
+            ImportError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             return {}
     if callable(getattr(site, "get_feature_control_settings", None)):
         settings = site.get_feature_control_settings()
@@ -213,7 +224,9 @@ def get_effective_offline_runtime_settings(
         maybe_settings = site.get_offline_runtime_settings()
         if isinstance(maybe_settings, dict):
             settings = dict(maybe_settings)
-    feature_settings = get_effective_feature_control_settings(request=request, school=school)
+    feature_settings = get_effective_feature_control_settings(
+        request=request, school=school
+    )
     resolved = {
         "enable_offline_mode": bool(feature_settings.get("enable_offline_mode", False)),
         "offline_sync_conflict_resolution": str(
@@ -224,7 +237,10 @@ def get_effective_offline_runtime_settings(
         ),
     }
     school_settings = getattr(school, "settings", None) or {}
-    if isinstance(school_settings, dict) and "offline_sync_conflict_resolution" in school_settings:
+    if (
+        isinstance(school_settings, dict)
+        and "offline_sync_conflict_resolution" in school_settings
+    ):
         resolved["offline_sync_conflict_resolution"] = str(
             school_settings.get("offline_sync_conflict_resolution") or "show_both"
         ).lower()
@@ -295,7 +311,15 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
 
     try:
         base = _build_platform_site_settings_base()
-    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         ctx = request_context_for_log(request) if request else {}
         log_exception_with_context(
             "Failed to build platform site settings base from runtime defaults / SiteSettings",
@@ -334,11 +358,22 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
 
 def get_platform_site_settings_record(*, create: bool = False) -> Any:
     """Return the persisted SiteSettings row when present; optionally create the baseline row."""
-    from apps.siteconfig.models import SiteSettings, build_platform_default_site_settings
+    from apps.siteconfig.models import (
+        SiteSettings,
+        build_platform_default_site_settings,
+    )
 
     try:
         site = SiteSettings.objects.order_by("pk").first()
-    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         log_exception_with_context(
             "Failed to get SiteSettings row in get_platform_site_settings_record",
             extra={"caller": "get_platform_site_settings_record", "create": create},
@@ -363,7 +398,15 @@ def get_platform_site_settings_record(*, create: bool = False) -> Any:
             pk=getattr(default_site, "pk", None) or 1,
             defaults=creation_defaults,
         )
-    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         return None
     return site
 
@@ -371,15 +414,28 @@ def get_platform_site_settings_record(*, create: bool = False) -> Any:
 def _build_platform_site_settings_base() -> Any:
     """Build the platform baseline from RuntimeDefaults first, then legacy SiteSettings for compatibility fields."""
     from apps.platform_runtime.models import RuntimeDefaults
-    from apps.siteconfig.models import SiteSettings, build_platform_default_site_settings
+    from apps.siteconfig.models import (
+        SiteSettings,
+        build_platform_default_site_settings,
+    )
 
     payload = {}
     rt_defaults = None
     try:
         rt_defaults = RuntimeDefaults.get_singleton()
-        if rt_defaults is not None and isinstance(getattr(rt_defaults, "payload", None), dict):
+        if rt_defaults is not None and isinstance(
+            getattr(rt_defaults, "payload", None), dict
+        ):
             payload = dict(rt_defaults.payload)
-    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         payload = {}
 
     legacy_site = None
@@ -397,16 +453,27 @@ def _build_platform_site_settings_base() -> Any:
             if payload_key is None:
                 continue
             target_attr = payload_key
-            if getattr(field, "remote_field", None) is not None and payload_key == field.name:
+            if (
+                getattr(field, "remote_field", None) is not None
+                and payload_key == field.name
+            ):
                 target_attr = getattr(field, "attname", field.name)
             if not hasattr(base, target_attr):
                 continue
             setattr(base, target_attr, payload[payload_key])
     # Step 4: first-class owned columns override payload when set
     try:
-        if rt_defaults is not None and getattr(rt_defaults, "cache_rankings_interval_minutes", None) is not None:
+        if (
+            rt_defaults is not None
+            and getattr(rt_defaults, "cache_rankings_interval_minutes", None)
+            is not None
+        ):
             if hasattr(base, "cache_rankings_interval_minutes"):
-                setattr(base, "cache_rankings_interval_minutes", rt_defaults.cache_rankings_interval_minutes)
+                setattr(
+                    base,
+                    "cache_rankings_interval_minutes",
+                    rt_defaults.cache_rankings_interval_minutes,
+                )
     except (AttributeError, TypeError, ValueError):
         pass
     try:
@@ -427,7 +494,12 @@ def get_site_display_name(request: Any) -> str:
     if rt and rt.tenant_ctx and getattr(rt.tenant_ctx, "school_id", None):
         try:
             from apps.schools.models import School
-            school = School.objects.filter(pk=rt.tenant_ctx.school_id).values_list("name", flat=True).first()
+
+            school = (
+                School.objects.filter(pk=rt.tenant_ctx.school_id)
+                .values_list("name", flat=True)
+                .first()
+            )
             if school:
                 return str(school)
         except (AttributeError, DatabaseError, TypeError, ValueError):
@@ -446,6 +518,7 @@ def get_site_display_name(request: Any) -> str:
 def _platform_branding_fallback() -> Any:
     """Minimal branding when no tenant (e.g. public page)."""
     from dataclasses import dataclass
+
     @dataclass
     class FallbackBranding:
         logo_url: Optional[str] = None
@@ -453,9 +526,11 @@ def _platform_branding_fallback() -> Any:
         favicon_url: Optional[str] = None
         tagline: Optional[str] = None
         colors: dict = None
+
         def __post_init__(self):
             if self.colors is None:
                 self.colors = {}
+
     return FallbackBranding()
 
 
@@ -466,9 +541,11 @@ def get_platform_defaults(use_db: bool = True) -> dict:
     When use_db=False or DB unavailable, uses Django settings so code never hardcodes CMR/XAF/0-20.
     """
     from django.conf import settings
+
     if use_db:
         try:
             from apps.global_registries.models import RegionConfig
+
             r = RegionConfig.get_default()
             return {
                 "region_code": getattr(r, "code", "GLOBAL"),
@@ -501,6 +578,7 @@ def log_ai_action(
     try:
         import uuid
         from apps.platform_runtime.models import AIActionAuditLog
+
         tid = None
         if tenant_id is not None:
             if hasattr(tenant_id, "hex"):
@@ -517,5 +595,13 @@ def log_ai_action(
             request_id=(request_id or "")[:64],
             payload=payload or {},
         )
-    except (AttributeError, DatabaseError, ImportError, OSError, RuntimeError, TypeError, ValueError):
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         pass

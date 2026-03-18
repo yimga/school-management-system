@@ -93,7 +93,13 @@ def _fetch_unesco_isced(country_alpha2: str) -> dict | None:
     ]
     for url in candidates:
         try:
-            req = request.Request(url, headers={"Accept": "application/json", "User-Agent": "runmycampus-seeder/1.0"})
+            req = request.Request(
+                url,
+                headers={
+                    "Accept": "application/json",
+                    "User-Agent": "runmycampus-seeder/1.0",
+                },
+            )
             with request.urlopen(req, timeout=UNESCO_TIMEOUT_SECONDS) as resp:
                 body = resp.read().decode("utf-8", errors="ignore")
             payload = json.loads(body)
@@ -103,7 +109,13 @@ def _fetch_unesco_isced(country_alpha2: str) -> dict | None:
                     "isced_levels": levels,
                     "source_name": "unesco_uis",
                 }
-        except (error.URLError, error.HTTPError, TimeoutError, ValueError, json.JSONDecodeError):
+        except (
+            error.URLError,
+            error.HTTPError,
+            TimeoutError,
+            ValueError,
+            json.JSONDecodeError,
+        ):
             continue
     return None
 
@@ -112,7 +124,11 @@ class Command(BaseCommand):
     help = "Seed GlobalBrandRegistry for all countries (with best-effort UNESCO ISCED enrichment)."
 
     def add_arguments(self, parser):
-        parser.add_argument("--country", default="", help="Optional ISO alpha-2 or alpha-3 to seed only one country.")
+        parser.add_argument(
+            "--country",
+            default="",
+            help="Optional ISO alpha-2 or alpha-3 to seed only one country.",
+        )
         parser.add_argument(
             "--skip-unesco",
             action="store_true",
@@ -127,14 +143,24 @@ class Command(BaseCommand):
         if country_arg:
             alpha3 = GlobalGeoCatalog.normalize_country_code(country_arg)
             alpha2 = GlobalGeoCatalog.alpha2_for_country(alpha3)
-            countries = [
-                {"code": alpha3, "code_alpha2": alpha2, "name": GlobalGeoCatalog.country_name(alpha3)}
-            ] if alpha3 and alpha2 else []
+            countries = (
+                [
+                    {
+                        "code": alpha3,
+                        "code_alpha2": alpha2,
+                        "name": GlobalGeoCatalog.country_name(alpha3),
+                    }
+                ]
+                if alpha3 and alpha2
+                else []
+            )
         else:
             countries = GlobalGeoCatalog.list_countries()
 
         if not countries:
-            self.stdout.write(self.style.ERROR("No countries resolved from GlobalGeoCatalog."))
+            self.stdout.write(
+                self.style.ERROR("No countries resolved from GlobalGeoCatalog.")
+            )
             return
 
         created = 0
@@ -144,7 +170,10 @@ class Command(BaseCommand):
 
         for country in countries:
             alpha3 = str(country.get("code") or "").upper()
-            alpha2 = str(country.get("code_alpha2") or GlobalGeoCatalog.alpha2_for_country(alpha3)).upper()
+            alpha2 = str(
+                country.get("code_alpha2")
+                or GlobalGeoCatalog.alpha2_for_country(alpha3)
+            ).upper()
             if not alpha2:
                 continue
 

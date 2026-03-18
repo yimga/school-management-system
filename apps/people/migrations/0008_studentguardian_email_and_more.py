@@ -4,35 +4,51 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0007_teacherleaverequest_teacherpayrecord_and_more'),
+        ("people", "0007_teacherleaverequest_teacherpayrecord_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='studentguardian',
-            name='email',
+            model_name="studentguardian",
+            name="email",
             field=models.EmailField(blank=True, max_length=254),
         ),
         migrations.AddField(
-            model_name='studentguardian',
-            name='whatsapp_number',
+            model_name="studentguardian",
+            name="whatsapp_number",
             field=models.CharField(blank=True, max_length=50),
         ),
         migrations.AlterField(
-            model_name='studentprofile',
-            name='gender',
-            field=models.CharField(blank=True, choices=[('MALE', 'Male'), ('FEMALE', 'Female'), ('OTHER', 'Other')], max_length=10),
+            model_name="studentprofile",
+            name="gender",
+            field=models.CharField(
+                blank=True,
+                choices=[("MALE", "Male"), ("FEMALE", "Female"), ("OTHER", "Other")],
+                max_length=10,
+            ),
         ),
         migrations.AlterField(
-            model_name='studentprofile',
-            name='joined_term',
-            field=models.CharField(blank=True, choices=[('FIRST', 'First'), ('SECOND', 'Second'), ('THIRD', 'Third')], max_length=20),
+            model_name="studentprofile",
+            name="joined_term",
+            field=models.CharField(
+                blank=True,
+                choices=[("FIRST", "First"), ("SECOND", "Second"), ("THIRD", "Third")],
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='studentprofile',
-            name='status',
-            field=models.CharField(blank=True, choices=[('NEW', 'New'), ('RETURNING', 'Returning'), ('PROBATION', 'Probation'), ('ALUMNI', 'Alumni')], max_length=20),
+            model_name="studentprofile",
+            name="status",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("NEW", "New"),
+                    ("RETURNING", "Returning"),
+                    ("PROBATION", "Probation"),
+                    ("ALUMNI", "Alumni"),
+                ],
+                max_length=20,
+            ),
         ),
     ]

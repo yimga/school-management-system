@@ -180,10 +180,14 @@ def _approved_profiles():
     )
 
 
-def _default_term_labels(*, term_count: int, sub_system: str, language: str) -> list[str]:
+def _default_term_labels(
+    *, term_count: int, sub_system: str, language: str
+) -> list[str]:
     if term_count <= 0:
         return []
-    if sub_system == EducationSystemProfile.SubSystem.FR or language.lower().startswith("fr"):
+    if sub_system == EducationSystemProfile.SubSystem.FR or language.lower().startswith(
+        "fr"
+    ):
         return [f"Trimestre {idx + 1}" for idx in range(term_count)]
     if term_count == 2:
         return ["Semester 1", "Semester 2"]
@@ -216,7 +220,9 @@ def _default_grading_scale(region: RegionConfig, sub_system: str) -> str:
     return "0-100"
 
 
-def ensure_region_for_country(country_code: str, timezone_hint: str = "UTC") -> RegionConfig | None:
+def ensure_region_for_country(
+    country_code: str, timezone_hint: str = "UTC"
+) -> RegionConfig | None:
     normalized = GlobalGeoCatalog.normalize_country_code(country_code)
     if not normalized:
         return None
@@ -241,12 +247,20 @@ def ensure_region_for_country(country_code: str, timezone_hint: str = "UTC") -> 
 def build_profile_defaults(region: RegionConfig, sub_system: str) -> dict[str, Any]:
     sub = normalize_sub_system(sub_system)
     defaults = GlobalGeoCatalog.country_defaults(region.code)
-    language = str(getattr(region, "default_language", "") or defaults["default_language"] or "en")
-    currency = str(getattr(region, "default_currency", "") or defaults["currency"] or "USD")
-    timezone_name = str(getattr(region, "timezone", "") or defaults["timezone"] or "UTC")
+    language = str(
+        getattr(region, "default_language", "") or defaults["default_language"] or "en"
+    )
+    currency = str(
+        getattr(region, "default_currency", "") or defaults["currency"] or "USD"
+    )
+    timezone_name = str(
+        getattr(region, "timezone", "") or defaults["timezone"] or "UTC"
+    )
     term_count = int(getattr(region, "term_count_per_year", 3) or 3)
     start_month = int(getattr(region, "academic_year_start_month", 9) or 9)
-    country_name = str(getattr(region, "name", "") or defaults["country_name"] or region.code)
+    country_name = str(
+        getattr(region, "name", "") or defaults["country_name"] or region.code
+    )
     override = (COUNTRY_PACK_OVERRIDES.get(region.code, {}) or {}).get(sub, {})
 
     name = str(override.get("name") or f"{country_name} Education Pack ({sub})")
@@ -254,7 +268,9 @@ def build_profile_defaults(region: RegionConfig, sub_system: str) -> dict[str, A
         "term_labels",
         _default_term_labels(term_count=term_count, sub_system=sub, language=language),
     )
-    grading_scale = str(override.get("grading_scale") or _default_grading_scale(region, sub))
+    grading_scale = str(
+        override.get("grading_scale") or _default_grading_scale(region, sub)
+    )
     subject_seed = override.get("subject_seed") or _default_subject_seed(language)
     config = {
         "pack_source": "auto-country-pack",
@@ -276,7 +292,9 @@ def build_profile_defaults(region: RegionConfig, sub_system: str) -> dict[str, A
         "grading_scale": grading_scale,
         "default_language": str(override.get("default_language") or language or "en"),
         "default_currency": str(override.get("default_currency") or currency or "USD"),
-        "default_timezone": str(override.get("default_timezone") or timezone_name or "UTC"),
+        "default_timezone": str(
+            override.get("default_timezone") or timezone_name or "UTC"
+        ),
         "subject_seed": subject_seed,
         "config": config,
     }
@@ -398,7 +416,9 @@ def list_profile_options(
     normalized_country = GlobalGeoCatalog.normalize_country_code(country_code)
     normalized_sub = normalize_sub_system(sub_system)
     if normalized_country and normalized_sub != EducationSystemProfile.SubSystem.ANY:
-        ensure_country_profile(region_code=normalized_country, sub_system=normalized_sub)
+        ensure_country_profile(
+            region_code=normalized_country, sub_system=normalized_sub
+        )
 
     queryset = _approved_profiles()
     if normalized_country:
@@ -416,9 +436,8 @@ def list_profile_options(
             sub_system__in=[normalized_sub, EducationSystemProfile.SubSystem.ANY]
         )
 
-    rows = (
-        queryset.select_related("region")
-        .order_by("-is_default", "sub_system", "name")
+    rows = queryset.select_related("region").order_by(
+        "-is_default", "sub_system", "name"
     )
     options = [
         ProfileSelectionOption(
@@ -460,7 +479,11 @@ def list_profile_options(
 
 
 def _profile_catalog_description(profile: EducationSystemProfile) -> str:
-    labels = [str(label).strip() for label in (profile.term_labels or []) if str(label).strip()]
+    labels = [
+        str(label).strip()
+        for label in (profile.term_labels or [])
+        if str(label).strip()
+    ]
     term_preview = ", ".join(labels[:3]) if labels else "Default terms"
     grading_scale = str(getattr(profile, "grading_scale", "") or "default")
     return f"{term_preview}; grading {grading_scale}."

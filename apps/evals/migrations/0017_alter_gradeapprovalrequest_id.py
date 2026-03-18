@@ -5,15 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0016_gradeapprovalrequest_deadline_at_and_more'),
+        ("evals", "0016_gradeapprovalrequest_deadline_at_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='gradeapprovalrequest',
-            name='id',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+            model_name="gradeapprovalrequest",
+            name="id",
+            field=models.UUIDField(
+                default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+            ),
         ),
     ]

@@ -4,6 +4,7 @@ registries, workflow/dashboard packs, portal FAQs/KB, etc.) are not empty.
 Idempotent. Run at deploy or manually: python manage.py bootstrap_platform_catalog [--all]
 §2.4: Typed exception tuple and log_exception_with_context for call_command failures.
 """
+
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ImproperlyConfigured
@@ -30,19 +31,39 @@ _BOOTSTRAP_PLATFORM_CATALOG_ERRORS = (
 
 # Order matters: global/regions first, then registries, then catalogs, then portal/compliance.
 BOOTSTRAP_STEPS = [
-    ("seed_global_data", ["--skip-unesco"], "Global regions, country profiles, brand registry"),
-    ("seed_platform_registries", [], "Countries, subdivisions, education levels, system types"),
+    (
+        "seed_global_data",
+        ["--skip-unesco"],
+        "Global regions, country profiles, brand registry",
+    ),
+    (
+        "seed_platform_registries",
+        [],
+        "Countries, subdivisions, education levels, system types",
+    ),
     ("seed_admin_dashboard_palettes", [], "Admin dashboard color palettes"),
     ("seed_blueprint_policy_packs", [], "Blueprint packs and policy bundles"),
     ("seed_workflow_dashboard_packs", [], "Workflow packs and dashboard packs"),
     ("seed_capability_registry", [], "Marketplace capability codes"),
     ("seed_marketplace_apps", [], "First-party marketplace apps and listings"),
-    ("seed_provider_registry", [], "Platform provider registry (payment, email, SMS, document AI, identity, storage)"),
-    ("seed_migration_profiles", [], "Migration connector profiles (CSV/XLSX, student/finance/attendance/grades, generic SIS)"),
+    (
+        "seed_provider_registry",
+        [],
+        "Platform provider registry (payment, email, SMS, document AI, identity, storage)",
+    ),
+    (
+        "seed_migration_profiles",
+        [],
+        "Migration connector profiles (CSV/XLSX, student/finance/attendance/grades, generic SIS)",
+    ),
     ("seed_finance_defaults", [], "Finance compliance profiles and chart of accounts"),
     ("seed_faqs", [], "Portal FAQ categories and questions"),
     ("seed_kb_articles", [], "Portal Knowledge Base articles"),
-    ("seed_compliance_baseline", [], "Region feature rules and tenant compliance snapshots"),
+    (
+        "seed_compliance_baseline",
+        [],
+        "Region feature rules and tenant compliance snapshots",
+    ),
 ]
 
 
@@ -75,14 +96,46 @@ class Command(BaseCommand):
             help="Pass --dry-run to seed commands that support it (e.g. marketplace, capability_registry).",
         )
         # Skip flags when using --all
-        parser.add_argument("--skip-global-data", action="store_true", help="With --all: skip seed_global_data.")
-        parser.add_argument("--skip-registries", action="store_true", help="With --all: skip seed_platform_registries.")
-        parser.add_argument("--skip-palettes", action="store_true", help="With --all: skip seed_admin_dashboard_palettes.")
-        parser.add_argument("--skip-workflow-dashboard", action="store_true", help="With --all: skip seed_workflow_dashboard_packs.")
-        parser.add_argument("--skip-capability-registry", action="store_true", help="With --all: skip seed_capability_registry.")
-        parser.add_argument("--skip-finance-defaults", action="store_true", help="With --all: skip seed_finance_defaults.")
-        parser.add_argument("--skip-portal", action="store_true", help="With --all: skip seed_faqs and seed_kb_articles.")
-        parser.add_argument("--skip-compliance-baseline", action="store_true", help="With --all: skip seed_compliance_baseline.")
+        parser.add_argument(
+            "--skip-global-data",
+            action="store_true",
+            help="With --all: skip seed_global_data.",
+        )
+        parser.add_argument(
+            "--skip-registries",
+            action="store_true",
+            help="With --all: skip seed_platform_registries.",
+        )
+        parser.add_argument(
+            "--skip-palettes",
+            action="store_true",
+            help="With --all: skip seed_admin_dashboard_palettes.",
+        )
+        parser.add_argument(
+            "--skip-workflow-dashboard",
+            action="store_true",
+            help="With --all: skip seed_workflow_dashboard_packs.",
+        )
+        parser.add_argument(
+            "--skip-capability-registry",
+            action="store_true",
+            help="With --all: skip seed_capability_registry.",
+        )
+        parser.add_argument(
+            "--skip-finance-defaults",
+            action="store_true",
+            help="With --all: skip seed_finance_defaults.",
+        )
+        parser.add_argument(
+            "--skip-portal",
+            action="store_true",
+            help="With --all: skip seed_faqs and seed_kb_articles.",
+        )
+        parser.add_argument(
+            "--skip-compliance-baseline",
+            action="store_true",
+            help="With --all: skip seed_compliance_baseline.",
+        )
 
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
@@ -101,7 +154,9 @@ class Command(BaseCommand):
         if not blueprint_only:
             self.stdout.write("Seeding marketplace apps…")
             extra = ["--dry-run"] if dry_run else []
-            call_command("seed_marketplace_apps", *extra, verbosity=options["verbosity"])
+            call_command(
+                "seed_marketplace_apps", *extra, verbosity=options["verbosity"]
+            )
 
         self.stdout.write(self.style.SUCCESS("Platform catalog bootstrap complete."))
 

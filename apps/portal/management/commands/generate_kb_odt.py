@@ -4,6 +4,7 @@ Generate KB documents (ODT and/or DOCX) from article Markdown content.
 - ODT is saved on KBArticle.odt_file (optional if format selected).
 - ODT/DOCX artifacts can be exported to a filesystem folder for distribution.
 """
+
 from pathlib import Path
 
 from django.conf import settings
@@ -94,21 +95,31 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         formats = self._parse_formats(options.get("formats", "odt,docx"))
         if not formats:
-            self.stdout.write(self.style.ERROR("No valid formats selected. Use --formats odt,docx"))
+            self.stdout.write(
+                self.style.ERROR("No valid formats selected. Use --formats odt,docx")
+            )
             return
 
         reference_odt = options.get("reference_doc") or self._find_reference_doc("odt")
-        reference_docx = options.get("reference_docx") or self._find_reference_doc("docx")
+        reference_docx = options.get("reference_docx") or self._find_reference_doc(
+            "docx"
+        )
         export_dir = self._resolve_export_dir(options.get("export_dir"))
 
         slug = (options.get("article_slug") or "").strip()
         if slug:
             articles = KBArticle.objects.filter(slug=slug)
             if not articles.exists():
-                self.stdout.write(self.style.ERROR(f"No article found with slug: {slug}"))
+                self.stdout.write(
+                    self.style.ERROR(f"No article found with slug: {slug}")
+                )
                 return
         else:
-            articles = KBArticle.objects.filter(status="PUBLISHED").exclude(content="").exclude(content__isnull=True)
+            articles = (
+                KBArticle.objects.filter(status="PUBLISHED")
+                .exclude(content="")
+                .exclude(content__isnull=True)
+            )
 
         if not articles.exists():
             self.stdout.write(self.style.WARNING("No KB articles to process."))
@@ -203,9 +214,14 @@ class Command(BaseCommand):
                     except _KB_ODT_DELETE_ERRORS:
                         log_exception_with_context(
                             "generate_kb_odt: odt_file delete failed (non-fatal)",
-                            extra={"command": "generate_kb_odt", "article_slug": article.slug},
+                            extra={
+                                "command": "generate_kb_odt",
+                                "article_slug": article.slug,
+                            },
                         )
-                article.odt_file.save(f"{article.slug}.odt", ContentFile(odt_bytes), save=True)
+                article.odt_file.save(
+                    f"{article.slug}.odt", ContentFile(odt_bytes), save=True
+                )
                 stats["odt_generated"] += 1
                 if export_dir:
                     (export_dir / f"{article.slug}.odt").write_bytes(odt_bytes)
@@ -238,7 +254,9 @@ class Command(BaseCommand):
     def _resolve_export_dir(self, raw_export_dir: str | None) -> Path | None:
         if raw_export_dir:
             return Path(raw_export_dir).expanduser().resolve()
-        media_root = Path(getattr(settings, "MEDIA_ROOT", "") or settings.BASE_DIR / "media")
+        media_root = Path(
+            getattr(settings, "MEDIA_ROOT", "") or settings.BASE_DIR / "media"
+        )
         return media_root / "kb" / "generated"
 
     def _find_reference_doc(self, extension: str) -> str | None:

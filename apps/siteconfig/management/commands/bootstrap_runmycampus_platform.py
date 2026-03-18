@@ -4,6 +4,7 @@ environment to a living state (registries, blueprint packs, policy bundles,
 workflow/dashboard packs, marketplace apps, portal content, compliance baseline).
 Idempotent. Delegates to bootstrap_platform_catalog --all.
 """
+
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
@@ -27,8 +28,12 @@ class Command(BaseCommand):
         if options["dry_run"]:
             extra.append("--dry-run")
 
-        self.stdout.write("Bootstrapping RunMyCampus platform (full catalog + registries + portal + compliance)…")
-        call_command("bootstrap_platform_catalog", *extra, verbosity=options["verbosity"])
+        self.stdout.write(
+            "Bootstrapping RunMyCampus platform (full catalog + registries + portal + compliance)…"
+        )
+        call_command(
+            "bootstrap_platform_catalog", *extra, verbosity=options["verbosity"]
+        )
         self.stdout.write(
             self.style.SUCCESS(
                 "RunMyCampus platform bootstrap complete. Blueprint marketplace, app catalog, "

@@ -5,33 +5,77 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='DomainEvent',
+            name="DomainEvent",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('event_type', models.CharField(db_index=True, max_length=128)),
-                ('payload', models.JSONField(default=dict, help_text='Event payload (e.g. entity id, type, changes)')),
-                ('school_id', models.UUIDField(blank=True, db_index=True, null=True)),
-                ('schema_name', models.CharField(blank=True, db_index=True, max_length=63, null=True)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), ('processed', 'Processed'), ('failed', 'Failed')], db_index=True, default='pending', max_length=20)),
-                ('idempotency_key', models.CharField(blank=True, db_index=True, max_length=255, null=True, unique=True)),
-                ('retry_count', models.PositiveIntegerField(default=0)),
-                ('processed_at', models.DateTimeField(blank=True, null=True)),
-                ('error_message', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("event_type", models.CharField(db_index=True, max_length=128)),
+                (
+                    "payload",
+                    models.JSONField(
+                        default=dict,
+                        help_text="Event payload (e.g. entity id, type, changes)",
+                    ),
+                ),
+                ("school_id", models.UUIDField(blank=True, db_index=True, null=True)),
+                (
+                    "schema_name",
+                    models.CharField(
+                        blank=True, db_index=True, max_length=63, null=True
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("processing", "Processing"),
+                            ("processed", "Processed"),
+                            ("failed", "Failed"),
+                        ],
+                        db_index=True,
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "idempotency_key",
+                    models.CharField(
+                        blank=True,
+                        db_index=True,
+                        max_length=255,
+                        null=True,
+                        unique=True,
+                    ),
+                ),
+                ("retry_count", models.PositiveIntegerField(default=0)),
+                ("processed_at", models.DateTimeField(blank=True, null=True)),
+                ("error_message", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
             ],
             options={
-                'verbose_name': 'Domain Event',
-                'verbose_name_plural': 'Domain Events',
-                'ordering': ['created_at'],
-                'indexes': [models.Index(fields=['status', 'created_at'], name='events_status_created_idx')],
+                "verbose_name": "Domain Event",
+                "verbose_name_plural": "Domain Events",
+                "ordering": ["created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["status", "created_at"],
+                        name="events_status_created_idx",
+                    )
+                ],
             },
         ),
     ]

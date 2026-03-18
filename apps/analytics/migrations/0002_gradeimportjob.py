@@ -6,36 +6,93 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0004_classroom_academic_year_repair'),
-        ('analytics', '0001_initial'),
+        ("academics", "0004_classroom_academic_year_repair"),
+        ("analytics", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GradeImportJob',
+            name="GradeImportJob",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uploaded_file', models.FileField(blank=True, null=True, upload_to='grade_imports/%Y/%m/%d/')),
-                ('file_hash', models.CharField(blank=True, max_length=64, null=True, unique=True)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('validating', 'Validating'), ('preview', 'Preview Ready'), ('processing', 'Processing'), ('completed', 'Completed'), ('failed', 'Failed'), ('partial', 'Partially Completed')], default='pending', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('started_processing_at', models.DateTimeField(blank=True, null=True)),
-                ('completed_at', models.DateTimeField(blank=True, null=True)),
-                ('total_rows', models.PositiveIntegerField(default=0)),
-                ('created_count', models.PositiveIntegerField(default=0)),
-                ('updated_count', models.PositiveIntegerField(default=0)),
-                ('failed_count', models.PositiveIntegerField(default=0)),
-                ('error_log', models.JSONField(blank=True, default=list)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grade_import_jobs', to='academics.academicyear')),
-                ('term', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grade_import_jobs', to='academics.term')),
-                ('uploaded_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='grade_imports_uploaded', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "uploaded_file",
+                    models.FileField(
+                        blank=True, null=True, upload_to="grade_imports/%Y/%m/%d/"
+                    ),
+                ),
+                (
+                    "file_hash",
+                    models.CharField(blank=True, max_length=64, null=True, unique=True),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("validating", "Validating"),
+                            ("preview", "Preview Ready"),
+                            ("processing", "Processing"),
+                            ("completed", "Completed"),
+                            ("failed", "Failed"),
+                            ("partial", "Partially Completed"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("started_processing_at", models.DateTimeField(blank=True, null=True)),
+                ("completed_at", models.DateTimeField(blank=True, null=True)),
+                ("total_rows", models.PositiveIntegerField(default=0)),
+                ("created_count", models.PositiveIntegerField(default=0)),
+                ("updated_count", models.PositiveIntegerField(default=0)),
+                ("failed_count", models.PositiveIntegerField(default=0)),
+                ("error_log", models.JSONField(blank=True, default=list)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="grade_import_jobs",
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "term",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="grade_import_jobs",
+                        to="academics.term",
+                    ),
+                ),
+                (
+                    "uploaded_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="grade_imports_uploaded",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['academic_year', 'term', '-created_at'], name='analytics_g_academi_682656_idx')],
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["academic_year", "term", "-created_at"],
+                        name="analytics_g_academi_682656_idx",
+                    )
+                ],
             },
         ),
     ]

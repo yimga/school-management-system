@@ -23,14 +23,25 @@ class RuntimeDefaultsBrandForm(forms.ModelForm):
 
     class Meta:
         model = RuntimeDefaults
-        fields = ["public_brand_primary_color", "public_brand_accent_color", "cache_rankings_interval_minutes", "payload"]
+        fields = [
+            "public_brand_primary_color",
+            "public_brand_accent_color",
+            "cache_rankings_interval_minutes",
+            "payload",
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        payload = (getattr(self.instance, "payload", None) or {}) if self.instance else {}
+        payload = (
+            (getattr(self.instance, "payload", None) or {}) if self.instance else {}
+        )
         if isinstance(payload, dict):
-            self.initial["public_brand_primary_color"] = payload.get("public_brand_primary_color", "")
-            self.initial["public_brand_accent_color"] = payload.get("public_brand_accent_color", "")
+            self.initial["public_brand_primary_color"] = payload.get(
+                "public_brand_primary_color", ""
+            )
+            self.initial["public_brand_accent_color"] = payload.get(
+                "public_brand_accent_color", ""
+            )
 
     def clean(self):
         cleaned = super().clean()
@@ -54,7 +65,10 @@ class RuntimeDefaultsAdmin(ModelAdmin):
     list_display = ["id", "updated_at"]
     readonly_fields = ["updated_at"]
     fieldsets = (
-        ("Public brand (marketing/control plane)", {"fields": ("public_brand_primary_color", "public_brand_accent_color")}),
+        (
+            "Public brand (marketing/control plane)",
+            {"fields": ("public_brand_primary_color", "public_brand_accent_color")},
+        ),
         ("Owned runtime fields", {"fields": ("cache_rankings_interval_minutes",)}),
         ("Payload (advanced)", {"fields": ("payload",)}),
     )

@@ -74,7 +74,9 @@ class InteropReadinessTests(TestCase):
         self.assertIn("jwks", endpoints)
 
     def test_oneroster_discovery_returns_429_when_rate_limited(self):
-        with patch("apps.api.interop_stubs.throttle_ip_request", return_value=(False, 900)):
+        with patch(
+            "apps.api.interop_stubs.throttle_ip_request", return_value=(False, 900)
+        ):
             response = self.client.get(self._url("api:interop-oneroster"))
         self.assertEqual(response.status_code, 429)
         payload = response.json()
@@ -82,7 +84,9 @@ class InteropReadinessTests(TestCase):
         self.assertEqual(payload.get("service"), "oneroster")
 
     def test_lti13_discovery_returns_429_when_rate_limited(self):
-        with patch("apps.api.interop_stubs.throttle_ip_request", return_value=(False, 900)):
+        with patch(
+            "apps.api.interop_stubs.throttle_ip_request", return_value=(False, 900)
+        ):
             response = self.client.get(self._url("api:interop-lti13"))
         self.assertEqual(response.status_code, 429)
         payload = response.json()

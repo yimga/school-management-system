@@ -43,7 +43,9 @@ def _resolve_school(request):
     return School.objects.filter(slug=school_slug, is_active=True).first()
 
 
-def _integration_payload(*, service: str, school, service_type: str, service_name_hint: str = "") -> tuple[dict, int]:
+def _integration_payload(
+    *, service: str, school, service_type: str, service_name_hint: str = ""
+) -> tuple[dict, int]:
     payload = {
         "service": service,
         "service_type": service_type,
@@ -70,7 +72,9 @@ def _integration_payload(*, service: str, school, service_type: str, service_nam
         is_active=True,
     )
     if service_name_hint:
-        integration_qs = integration_qs.filter(service_name__icontains=service_name_hint)
+        integration_qs = integration_qs.filter(
+            service_name__icontains=service_name_hint
+        )
     integration = integration_qs.order_by("-updated_at").first()
     integration_record = None
     if integration:
@@ -150,21 +154,40 @@ def oneroster_readiness(request):
         service_name_hint="oneroster",
     )
     payload["standard"] = "OneRoster 1.1"
-    payload["resources"] = ["academicSessions", "classes", "students", "teachers", "enrollments"]
+    payload["resources"] = [
+        "academicSessions",
+        "classes",
+        "students",
+        "teachers",
+        "enrollments",
+        "orgs",
+        "courses",
+        "users",
+    ]
     if school:
         payload["endpoints"] = {
             "manifest": request.build_absolute_uri(reverse("api:oneroster-manifest")),
+            "academicSessions": request.build_absolute_uri(
+                reverse("api:oneroster-academic-sessions")
+            ),
             "classes": request.build_absolute_uri(reverse("api:oneroster-classes")),
             "students": request.build_absolute_uri(reverse("api:oneroster-students")),
             "teachers": request.build_absolute_uri(reverse("api:oneroster-teachers")),
-            "enrollments": request.build_absolute_uri(reverse("api:oneroster-enrollments")),
+            "enrollments": request.build_absolute_uri(
+                reverse("api:oneroster-enrollments")
+            ),
+            "orgs": request.build_absolute_uri(reverse("api:oneroster-orgs")),
+            "courses": request.build_absolute_uri(reverse("api:oneroster-courses")),
+            "users": request.build_absolute_uri(reverse("api:oneroster-users")),
         }
     if status == 200:
         auth_ready = bool(payload.get("has_auth_credentials"))
         payload["status"] = "ready" if auth_ready else "needs_configuration"
         if not auth_ready:
             status = 503
-            payload["detail"] = "Integration exists but no OneRoster auth credential is configured."
+            payload["detail"] = (
+                "Integration exists but no OneRoster auth credential is configured."
+            )
     return JsonResponse(payload, status=status)
 
 
@@ -184,25 +207,51 @@ def lti13_readiness(request):
     payload["capabilities"] = ["oidc_login", "resource_link_launch", "ags", "nrps"]
     if status == 200:
         integration_id = payload.get("integration_id")
-        integration = ServiceIntegration.objects.filter(pk=integration_id).first() if integration_id else None
+        integration = (
+            ServiceIntegration.objects.filter(pk=integration_id).first()
+            if integration_id
+            else None
+        )
         cfg = (integration.config if integration else {}) or {}
-        auth_endpoint = (cfg.get("authorization_endpoint") or integration.endpoint_url or "").strip() if integration else ""
-        client_id = (integration.client_id or cfg.get("client_id") or "").strip() if integration else ""
+        auth_endpoint = (
+            (
+                cfg.get("authorization_endpoint") or integration.endpoint_url or ""
+            ).strip()
+            if integration
+            else ""
+        )
+        client_id = (
+            (integration.client_id or cfg.get("client_id") or "").strip()
+            if integration
+            else ""
+        )
         deployment_id = (cfg.get("deployment_id") or "").strip() if integration else ""
         if not (auth_endpoint and client_id and deployment_id):
             payload["status"] = "needs_configuration"
-            payload["detail"] = "LTI integration missing one or more required fields: authorization_endpoint, client_id, deployment_id."
+            payload["detail"] = (
+                "LTI integration missing one or more required fields: authorization_endpoint, client_id, deployment_id."
+            )
             status = 503
         else:
             payload["status"] = "ready"
         if integration:
             payload["endpoints"] = {
-                "oidc_login": request.build_absolute_uri(reverse("lti_launch", args=[integration.pk])),
-                "oidc_callback": request.build_absolute_uri(reverse("lti_launch_callback", args=[integration.pk])),
+                "oidc_login": request.build_absolute_uri(
+                    reverse("lti_launch", args=[integration.pk])
+                ),
+                "oidc_callback": request.build_absolute_uri(
+                    reverse("lti_launch_callback", args=[integration.pk])
+                ),
                 "jwks": request.build_absolute_uri(reverse("lti_jwks")),
-                "ags_lineitems": request.build_absolute_uri(reverse("lti_ags_lineitems", args=[integration.pk])),
-                "nrps_memberships": request.build_absolute_uri(reverse("lti_nrps_memberships", args=[integration.pk])),
-                "deep_linking": request.build_absolute_uri(reverse("lti_deep_linking", args=[integration.pk])),
+                "ags_lineitems": request.build_absolute_uri(
+                    reverse("lti_ags_lineitems", args=[integration.pk])
+                ),
+                "nrps_memberships": request.build_absolute_uri(
+                    reverse("lti_nrps_memberships", args=[integration.pk])
+                ),
+                "deep_linking": request.build_absolute_uri(
+                    reverse("lti_deep_linking", args=[integration.pk])
+                ),
             }
     return JsonResponse(payload, status=status)
 
@@ -230,8 +279,12 @@ def edfi_readiness(request):
         "implemented": True,
         "detail": "Ed-Fi mapping and data API: students, studentSchoolAssociations, grades.",
         "endpoints": {
-            "students": request.build_absolute_uri(reverse("api:interop-edfi-students")),
-            "studentSchoolAssociations": request.build_absolute_uri(reverse("api:interop-edfi-associations")),
+            "students": request.build_absolute_uri(
+                reverse("api:interop-edfi-students")
+            ),
+            "studentSchoolAssociations": request.build_absolute_uri(
+                reverse("api:interop-edfi-associations")
+            ),
             "grades": request.build_absolute_uri(reverse("api:interop-edfi-grades")),
         },
     }
@@ -254,8 +307,12 @@ def ceds_readiness(request):
         "implemented": True,
         "detail": "CEDS mapping and data API: K12 students, enrollments, grades.",
         "endpoints": {
-            "students": request.build_absolute_uri(reverse("api:interop-ceds-students")),
-            "enrollments": request.build_absolute_uri(reverse("api:interop-ceds-enrollments")),
+            "students": request.build_absolute_uri(
+                reverse("api:interop-ceds-students")
+            ),
+            "enrollments": request.build_absolute_uri(
+                reverse("api:interop-ceds-enrollments")
+            ),
             "grades": request.build_absolute_uri(reverse("api:interop-ceds-grades")),
         },
     }
@@ -275,11 +332,36 @@ def interop_hub(request):
         "surface": "interoperability",
         "description": "RunMyCampus interoperability hub; all standards are first-class.",
         "standards": [
-            {"id": "edfi", "name": "Ed-Fi API", "readiness_url": f"{base}/interop/edfi/", "implemented": True},
-            {"id": "ceds", "name": "CEDS (US)", "readiness_url": f"{base}/interop/ceds/", "implemented": True},
-            {"id": "oneroster", "name": "OneRoster 1.1", "readiness_url": f"{base}/interop/oneroster/", "implemented": True},
-            {"id": "lti13", "name": "LTI 1.3", "readiness_url": f"{base}/interop/lti13/", "implemented": True},
-            {"id": "scim", "name": "SCIM 2.0", "readiness_url": f"{base}/scim/v2/ServiceProviderConfig", "implemented": True},
+            {
+                "id": "edfi",
+                "name": "Ed-Fi API",
+                "readiness_url": f"{base}/interop/edfi/",
+                "implemented": True,
+            },
+            {
+                "id": "ceds",
+                "name": "CEDS (US)",
+                "readiness_url": f"{base}/interop/ceds/",
+                "implemented": True,
+            },
+            {
+                "id": "oneroster",
+                "name": "OneRoster 1.1",
+                "readiness_url": f"{base}/interop/oneroster/",
+                "implemented": True,
+            },
+            {
+                "id": "lti13",
+                "name": "LTI 1.3",
+                "readiness_url": f"{base}/interop/lti13/",
+                "implemented": True,
+            },
+            {
+                "id": "scim",
+                "name": "SCIM 2.0",
+                "readiness_url": f"{base}/scim/v2/ServiceProviderConfig",
+                "implemented": True,
+            },
         ],
     }
     return JsonResponse(payload, status=200)

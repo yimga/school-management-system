@@ -2,12 +2,34 @@ from django.contrib import admin
 
 from config.admin import register_platform_admin
 
-from .models import DocumentPack, ExperiencePack, InstalledPackage, PackageChangeLog, PackageVersion
+from .models import (
+    DocumentPack,
+    ExperiencePack,
+    InstalledPackage,
+    PackageChangeLog,
+    PackageVersion,
+)
 
 
 class InstalledPackageAdmin(admin.ModelAdmin):
-    list_display = ("package_id", "package_type", "version", "scope", "school", "apply_stage", "reconciliation_status", "is_active", "applied_at")
-    list_filter = ("package_type", "scope", "apply_stage", "reconciliation_status", "is_active")
+    list_display = (
+        "package_id",
+        "package_type",
+        "version",
+        "scope",
+        "school",
+        "apply_stage",
+        "reconciliation_status",
+        "is_active",
+        "applied_at",
+    )
+    list_filter = (
+        "package_type",
+        "scope",
+        "apply_stage",
+        "reconciliation_status",
+        "is_active",
+    )
     search_fields = ("package_id", "version", "rollback_token", "school__name")
     ordering = ("-applied_at",)
 
@@ -19,7 +41,14 @@ class PackageVersionAdmin(admin.ModelAdmin):
 
 
 class PackageChangeLogAdmin(admin.ModelAdmin):
-    list_display = ("package_id", "version", "action", "mode", "reconciliation_status", "created_at")
+    list_display = (
+        "package_id",
+        "version",
+        "action",
+        "mode",
+        "reconciliation_status",
+        "created_at",
+    )
     list_filter = ("action", "mode", "reconciliation_status")
     search_fields = ("package_id", "version", "rollback_token")
     ordering = ("-created_at",)

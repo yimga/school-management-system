@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0092_educationsystemprofile_approval_status_and_more"),
     ]
@@ -13,9 +12,30 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Plan",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("name", models.CharField(help_text="Plan name (e.g. Basic, Pro, Enterprise)", max_length=120)),
-                ("slug", models.SlugField(help_text="Unique slug (e.g. basic, pro)", max_length=80, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        help_text="Plan name (e.g. Basic, Pro, Enterprise)",
+                        max_length=120,
+                    ),
+                ),
+                (
+                    "slug",
+                    models.SlugField(
+                        help_text="Unique slug (e.g. basic, pro)",
+                        max_length=80,
+                        unique=True,
+                    ),
+                ),
                 (
                     "max_students",
                     models.PositiveIntegerField(

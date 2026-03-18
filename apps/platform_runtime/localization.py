@@ -2,6 +2,7 @@
 B3 (Master Blueprint): Pluralization, date/time, school week, calendars (Gregorian/Hijri).
 Single module for tenant-aware locale and calendar behavior.
 """
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -36,7 +37,9 @@ def format_school_date(
     if isinstance(value, datetime):
         value = value.date()
     if date_format:
-        return value.strftime(date_format.replace("%Y", "%Y").replace("%m", "%m").replace("%d", "%d"))
+        return value.strftime(
+            date_format.replace("%Y", "%Y").replace("%m", "%m").replace("%d", "%d")
+        )
     return value.strftime("%Y-%m-%d")
 
 
@@ -65,7 +68,9 @@ def calendar_type_for_school(school: Any) -> str:
     if school is None:
         return CALENDAR_GREGORIAN
     try:
-        region = getattr(school, "default_region_id", None) and getattr(school, "default_region", None)
+        region = getattr(school, "default_region_id", None) and getattr(
+            school, "default_region", None
+        )
         if region and getattr(region, "calendar_system_code", None):
             return (region.calendar_system_code or CALENDAR_GREGORIAN).lower()
     except (AttributeError, TypeError, ValueError):

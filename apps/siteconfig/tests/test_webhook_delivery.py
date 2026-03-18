@@ -64,7 +64,9 @@ class WebhookDeliveryServiceTests(TestCase):
         def _ok(url, body, headers, timeout):
             self.assertEqual(timeout, 30)
             self.assertEqual(url, self.sub.url)
-            self.assertEqual(headers["X-Webhook-Event-Id"], str(delivery.domain_event.id))
+            self.assertEqual(
+                headers["X-Webhook-Event-Id"], str(delivery.domain_event.id)
+            )
             expected_sig = sign_payload(self.sub.secret, body)
             self.assertEqual(headers["X-Webhook-Signature"], expected_sig)
             self.assertEqual(body, build_webhook_body(delivery.domain_event))
@@ -100,7 +102,9 @@ class WebhookDeliveryServiceTests(TestCase):
         self.assertEqual(delivery.retry_count, 1)
         self.assertIsNotNone(delivery.scheduled_for)
 
-        dispatch_due_webhooks(http_post=_fail, now=delivery.scheduled_for + timedelta(seconds=1))
+        dispatch_due_webhooks(
+            http_post=_fail, now=delivery.scheduled_for + timedelta(seconds=1)
+        )
         delivery.refresh_from_db()
         self.assertEqual(delivery.status, WebhookDelivery.Status.FAILED)
         self.assertEqual(delivery.retry_count, 2)

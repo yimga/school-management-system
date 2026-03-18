@@ -72,7 +72,9 @@ class MetadataServicesTests(TestCase):
                 field_key="transportation_zone",
             ).exists()
         )
-        self.assertEqual(self.student.custom_attributes["transportation_zone"], "north-campus")
+        self.assertEqual(
+            self.student.custom_attributes["transportation_zone"], "north-campus"
+        )
 
 
 class LineageAndCatalogExportTests(TestCase):
@@ -139,7 +141,8 @@ class LineageAndCatalogExportTests(TestCase):
         self.assertIn("dependencies", ent)
         self.assertTrue(
             any(
-                d["consumer_code"] == "principal_home" and d["field_name"] == "admission_number"
+                d["consumer_code"] == "principal_home"
+                and d["field_name"] == "admission_number"
                 for d in ent["dependencies"]
             )
         )
@@ -184,7 +187,9 @@ class LineageAndCatalogExportTests(TestCase):
         rows = summarize_dependency_consumers()
 
         self.assertTrue(any(row["consumer_code"] == "principal_home" for row in rows))
-        api_row = next(row for row in rows if row["consumer_code"] == "api:student-record")
+        api_row = next(
+            row for row in rows if row["consumer_code"] == "api:student-record"
+        )
         self.assertEqual(api_row["entity_codes"], ["student"])
         self.assertEqual(api_row["field_names"], ["admission_number"])
 

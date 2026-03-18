@@ -26,10 +26,14 @@ class CustomerSuccessServiceHelperTests(SimpleTestCase):
                 return self.exists_value
 
         academics_module = ModuleType("apps.academics.models")
-        academics_module.AcademicYear = type("AcademicYear", (), {"objects": ExistsManager(False)})
+        academics_module.AcademicYear = type(
+            "AcademicYear", (), {"objects": ExistsManager(False)}
+        )
 
         people_module = ModuleType("apps.people.models")
-        people_module.StudentProfile = type("StudentProfile", (), {"objects": ExistsManager(True)})
+        people_module.StudentProfile = type(
+            "StudentProfile", (), {"objects": ExistsManager(True)}
+        )
 
         runtime_module = ModuleType("apps.platform_runtime.helpers")
 

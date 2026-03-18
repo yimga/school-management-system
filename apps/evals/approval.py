@@ -13,7 +13,10 @@ from apps.accounts.models import User
 from apps.accounts.utils import get_user_role
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
 from apps.platform_runtime.helpers import get_effective_site_settings
-from apps.siteconfig.models import default_grade_approval_roles, default_grade_post_roles
+from apps.siteconfig.models import (
+    default_grade_approval_roles,
+    default_grade_post_roles,
+)
 from apps.people.models import StudentProfile, TeacherProfile
 
 from .models import GradeApprovalRequest, AssessmentWeights
@@ -32,7 +35,10 @@ _EVALS_APPROVAL_POLICY_ERRORS = (
 )
 
 SCORE_FIELDS = ["seq1", "seq2", "exam", "mock", "practical"]
-FINAL_STATUSES = {GradeApprovalRequest.Status.APPROVED, GradeApprovalRequest.Status.REJECTED}
+FINAL_STATUSES = {
+    GradeApprovalRequest.Status.APPROVED,
+    GradeApprovalRequest.Status.REJECTED,
+}
 
 
 def _normalize_roles(raw_roles: Iterable[str]) -> list[str]:
@@ -49,24 +55,38 @@ def get_grade_approval_policy(school=None, policy=None):
     if school is not None:
         try:
             from apps.policies.policy_registry import get_effective_policy
+
             out = get_effective_policy(school)
             ga = out.get("grade_approval")
             if isinstance(ga, dict) and ga:
                 return ga
         except _EVALS_APPROVAL_POLICY_ERRORS:
-            logger.debug("get_grade_approval_policy: policy registry fallback for school %s", school)
+            logger.debug(
+                "get_grade_approval_policy: policy registry fallback for school %s",
+                school,
+            )
     try:
         site = get_effective_site_settings(school=school)
         return {
-            "grade_post_roles": getattr(site, "grade_post_roles", None) or default_grade_post_roles(),
-            "grade_approval_roles": getattr(site, "grade_approval_roles", None) or default_grade_approval_roles(),
-            "grade_approval_deadline_days": max(1, getattr(site, "grade_approval_deadline_days", 3) or 3),
-            "grade_approval_deadline_note": (getattr(site, "grade_approval_deadline_note", None) or "").strip(),
-            "grade_approval_auto_validate": getattr(site, "grade_approval_auto_validate", True),
+            "grade_post_roles": getattr(site, "grade_post_roles", None)
+            or default_grade_post_roles(),
+            "grade_approval_roles": getattr(site, "grade_approval_roles", None)
+            or default_grade_approval_roles(),
+            "grade_approval_deadline_days": max(
+                1, getattr(site, "grade_approval_deadline_days", 3) or 3
+            ),
+            "grade_approval_deadline_note": (
+                getattr(site, "grade_approval_deadline_note", None) or ""
+            ).strip(),
+            "grade_approval_auto_validate": getattr(
+                site, "grade_approval_auto_validate", True
+            ),
             "grade_approval_enabled": getattr(site, "grade_approval_enabled", False),
         }
     except _EVALS_APPROVAL_POLICY_ERRORS:
-        logger.debug("get_grade_approval_policy: site settings fallback for school %s", school)
+        logger.debug(
+            "get_grade_approval_policy: site settings fallback for school %s", school
+        )
         return {
             "grade_post_roles": default_grade_post_roles(),
             "grade_approval_roles": default_grade_approval_roles(),
@@ -175,7 +195,9 @@ def _parse_score(value):
     return parsed
 
 
-def grade_entries_from_submission(students: Iterable[StudentProfile], post_data) -> List[dict]:
+def grade_entries_from_submission(
+    students: Iterable[StudentProfile], post_data
+) -> List[dict]:
     entries = []
     for student in students:
         scores = {}
@@ -188,14 +210,16 @@ def grade_entries_from_submission(students: Iterable[StudentProfile], post_data)
         remarks = (post_data.get(f"remarks_{student.id}") or "").strip()
         if remarks:
             has_score = True
-        entries.append({
-            "student_id": student.id,
-            "student_code": student.student_code,
-            "student_name": f"{student.last_name} {student.first_name}",
-            "scores": scores,
-            "remarks": remarks,
-            "has_scores": has_score,
-        })
+        entries.append(
+            {
+                "student_id": student.id,
+                "student_code": student.student_code,
+                "student_name": f"{student.last_name} {student.first_name}",
+                "scores": scores,
+                "remarks": remarks,
+                "has_scores": has_score,
+            }
+        )
     return entries
 
 
@@ -205,7 +229,9 @@ def _serialize_entry(entry: dict) -> dict:
         "student_code": entry["student_code"],
         "student_name": entry["student_name"],
         "scores": {
-            field: str(entry["scores"].get(field)) if entry["scores"].get(field) is not None else None
+            field: str(entry["scores"].get(field))
+            if entry["scores"].get(field) is not None
+            else None
             for field in SCORE_FIELDS
         },
         "remarks": entry.get("remarks", ""),
@@ -250,7 +276,10 @@ def create_grade_approval_request(
         raise ValueError("Cannot request approval for empty submission.")
     serialized = [_serialize_entry(entry) for entry in trimmed]
     summary = _build_summary(total_students=len(entries), submitted_rows=len(trimmed))
-    school = getattr(teacher, "school", None) or (getattr(subject_assignment, "classroom", None) and getattr(subject_assignment.classroom, "school", None))
+    school = getattr(teacher, "school", None) or (
+        getattr(subject_assignment, "classroom", None)
+        and getattr(subject_assignment.classroom, "school", None)
+    )
     policy = get_grade_approval_policy(school)
     deadline_days = max(1, policy.get("grade_approval_deadline_days", 3))
     timezone.now() + timedelta(days=deadline_days)
@@ -278,7 +307,9 @@ def create_grade_approval_request(
 def _notify_grade_approvers(request_obj: GradeApprovalRequest) -> None:
     school = getattr(getattr(request_obj, "teacher", None), "school", None) or (
         getattr(getattr(request_obj, "subject_assignment", None), "classroom", None)
-        and getattr(getattr(request_obj.subject_assignment, "classroom", None), "school", None)
+        and getattr(
+            getattr(request_obj.subject_assignment, "classroom", None), "school", None
+        )
     )
     approvers = list(grade_approver_users(school=school))
     if not approvers:

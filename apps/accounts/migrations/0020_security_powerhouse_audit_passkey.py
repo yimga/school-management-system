@@ -6,60 +6,158 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0019_api_center_manage_permission'),
-        ('schools', '0010_security_powerhouse_audit_passkey'),
+        ("accounts", "0019_api_center_manage_permission"),
+        ("schools", "0010_security_powerhouse_audit_passkey"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='last_lockdown_at',
-            field=models.DateTimeField(blank=True, help_text='Last time user triggered Emergency Lockdown (for 24h cooldown).', null=True),
+            model_name="user",
+            name="last_lockdown_at",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="Last time user triggered Emergency Lockdown (for 24h cooldown).",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='requires_password_change',
-            field=models.BooleanField(default=False, help_text='Set by Emergency Lockdown; user must set new password on next login.'),
+            model_name="user",
+            name="requires_password_change",
+            field=models.BooleanField(
+                default=False,
+                help_text="Set by Emergency Lockdown; user must set new password on next login.",
+            ),
         ),
         migrations.CreateModel(
-            name='UserPasskey',
+            name="UserPasskey",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(blank=True, help_text='e.g. iPhone Face ID', max_length=120)),
-                ('credential_id', models.CharField(max_length=255, unique=True)),
-                ('public_key', models.TextField()),
-                ('sign_count', models.PositiveIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='passkeys', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        blank=True, help_text="e.g. iPhone Face ID", max_length=120
+                    ),
+                ),
+                ("credential_id", models.CharField(max_length=255, unique=True)),
+                ("public_key", models.TextField()),
+                ("sign_count", models.PositiveIntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="passkeys",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'User passkey',
-                'verbose_name_plural': 'User passkeys',
-                'ordering': ['-created_at'],
+                "verbose_name": "User passkey",
+                "verbose_name_plural": "User passkeys",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='SecurityAuditLog',
+            name="SecurityAuditLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('event_type', models.CharField(choices=[('LOGIN', 'Login'), ('LOGIN_FAILED', 'Login failed'), ('MFA_CHANGE', 'MFA changed'), ('PWD_RESET', 'Password reset'), ('DATA_EXPORT', 'Data export'), ('LOCKDOWN_TRIGGERED', 'Emergency lockdown'), ('SESSION_REVOKED', 'Sessions revoked')], max_length=40)),
-                ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
-                ('user_agent', models.CharField(blank=True, max_length=500)),
-                ('location_data', models.JSONField(blank=True, default=dict, help_text='e.g. {city, country, country_code}')),
-                ('is_suspicious', models.BooleanField(default=False)),
-                ('last_seen', models.DateTimeField(auto_now=True, help_text='Updated on dedupe (same IP/device within 1h).')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('initiator', models.CharField(blank=True, help_text='self = user triggered; admin = admin triggered lockdown.', max_length=20)),
-                ('school', models.ForeignKey(blank=True, help_text='Tenant (school); null for platform-level events.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='security_audit_logs', to='schools.school')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='security_audit_logs', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "event_type",
+                    models.CharField(
+                        choices=[
+                            ("LOGIN", "Login"),
+                            ("LOGIN_FAILED", "Login failed"),
+                            ("MFA_CHANGE", "MFA changed"),
+                            ("PWD_RESET", "Password reset"),
+                            ("DATA_EXPORT", "Data export"),
+                            ("LOCKDOWN_TRIGGERED", "Emergency lockdown"),
+                            ("SESSION_REVOKED", "Sessions revoked"),
+                        ],
+                        max_length=40,
+                    ),
+                ),
+                ("ip_address", models.GenericIPAddressField(blank=True, null=True)),
+                ("user_agent", models.CharField(blank=True, max_length=500)),
+                (
+                    "location_data",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="e.g. {city, country, country_code}",
+                    ),
+                ),
+                ("is_suspicious", models.BooleanField(default=False)),
+                (
+                    "last_seen",
+                    models.DateTimeField(
+                        auto_now=True,
+                        help_text="Updated on dedupe (same IP/device within 1h).",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "initiator",
+                    models.CharField(
+                        blank=True,
+                        help_text="self = user triggered; admin = admin triggered lockdown.",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Tenant (school); null for platform-level events.",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="security_audit_logs",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="security_audit_logs",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Security audit log',
-                'verbose_name_plural': 'Security audit logs',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['user', 'created_at'], name='accounts_se_user_id_fef9cd_idx'), models.Index(fields=['school', 'created_at'], name='accounts_se_school__76d0fe_idx'), models.Index(fields=['event_type', 'created_at'], name='accounts_se_event_t_1fd14e_idx')],
+                "verbose_name": "Security audit log",
+                "verbose_name_plural": "Security audit logs",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["user", "created_at"],
+                        name="accounts_se_user_id_fef9cd_idx",
+                    ),
+                    models.Index(
+                        fields=["school", "created_at"],
+                        name="accounts_se_school__76d0fe_idx",
+                    ),
+                    models.Index(
+                        fields=["event_type", "created_at"],
+                        name="accounts_se_event_t_1fd14e_idx",
+                    ),
+                ],
             },
         ),
     ]

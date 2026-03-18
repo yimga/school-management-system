@@ -14,7 +14,10 @@ class PolicyContextProcessorHelperTests(SimpleTestCase):
             user=object(),
         )
 
-        with patch("apps.policies.policy_registry.get_effective_policy", side_effect=AttributeError):
+        with patch(
+            "apps.policies.policy_registry.get_effective_policy",
+            side_effect=AttributeError,
+        ):
             ctx = tenant_policy_context(request)
 
         self.assertEqual(ctx["tenant_ctx"], {"tenant_id": "abc"})

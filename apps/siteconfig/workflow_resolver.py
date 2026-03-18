@@ -5,6 +5,7 @@ Apps should call workflow_resolver.for_action(school, action_slug) or
 workflow_resolver.get_approval_workflow(school, workflow_key) instead of
 duplicating approval/signature logic or reading SiteSettings directly.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -32,15 +33,23 @@ def for_action(school, action_slug: str) -> dict[str, Any]:
     if action_slug in ("syllabus_approval", "syllabus_approval_flow"):
         return get_approval_workflow(school, "syllabus_approval")
     if action_slug in ("form_signature", "signature"):
-        return {"type": "form_signature", "steps": ["pending", "signed", "rejected", "expired"]}
+        return {
+            "type": "form_signature",
+            "steps": ["pending", "signed", "rejected", "expired"],
+        }
     # Automation workflows: active TenantWorkflow for template code
     try:
         from .models_workflow import TenantWorkflow
-        tw = TenantWorkflow.objects.filter(
-            school=school,
-            template__code=action_slug,
-            is_active=True,
-        ).select_related("template").first()
+
+        tw = (
+            TenantWorkflow.objects.filter(
+                school=school,
+                template__code=action_slug,
+                is_active=True,
+            )
+            .select_related("template")
+            .first()
+        )
         if tw:
             return {
                 "type": "automation",
@@ -67,8 +76,13 @@ def get_approval_workflow(school, workflow_key: str) -> dict[str, Any]:
             get_approval_roles_for_workflow,
             get_effective_approvers,
         )
+
         role_codes = get_approval_roles_for_workflow(workflow_key, school=school)
-        approvers = list(get_effective_approvers(workflow_key, school=school)) if role_codes else []
+        approvers = (
+            list(get_effective_approvers(workflow_key, school=school))
+            if role_codes
+            else []
+        )
         return {
             "type": "approval",
             "workflow_key": workflow_key,

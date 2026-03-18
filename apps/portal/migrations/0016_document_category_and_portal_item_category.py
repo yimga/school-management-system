@@ -5,31 +5,59 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0015_add_lesson_plan_training_justification'),
+        ("portal", "0015_add_lesson_plan_training_justification"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DocumentCategory',
+            name="DocumentCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('slug', models.SlugField(max_length=80, unique=True)),
-                ('order', models.PositiveSmallIntegerField(default=0, help_text='Display order within same level.')),
-                ('is_active', models.BooleanField(default=True)),
-                ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='portal.documentcategory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("slug", models.SlugField(max_length=80, unique=True)),
+                (
+                    "order",
+                    models.PositiveSmallIntegerField(
+                        default=0, help_text="Display order within same level."
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "parent",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="children",
+                        to="portal.documentcategory",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Document category',
-                'verbose_name_plural': 'Document categories',
-                'ordering': ['order', 'name'],
+                "verbose_name": "Document category",
+                "verbose_name_plural": "Document categories",
+                "ordering": ["order", "name"],
             },
         ),
         migrations.AddField(
-            model_name='portalfeatureitem',
-            name='category',
-            field=models.ForeignKey(blank=True, help_text='Optional folder/category (Document Library structure).', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='documents', to='portal.documentcategory'),
+            model_name="portalfeatureitem",
+            name="category",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Optional folder/category (Document Library structure).",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="documents",
+                to="portal.documentcategory",
+            ),
         ),
     ]

@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0143_siteconfig_school_code_defaults_sch'),
+        ("siteconfig", "0143_siteconfig_school_code_defaults_sch"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sitesettings',
-            name='footer_accreditation_text',
-            field=models.CharField(blank=True, default='Education platform ready for regional accreditation and global compliance', help_text='Footer accreditation text.', max_length=255),
+            model_name="sitesettings",
+            name="footer_accreditation_text",
+            field=models.CharField(
+                blank=True,
+                default="Education platform ready for regional accreditation and global compliance",
+                help_text="Footer accreditation text.",
+                max_length=255,
+            ),
         ),
     ]

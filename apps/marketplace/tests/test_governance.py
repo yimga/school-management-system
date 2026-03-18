@@ -5,7 +5,13 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.marketplace.models import AppInstallation, MarketplaceApp, MarketplaceListing, MarketplaceReview, PublisherOrganization
+from apps.marketplace.models import (
+    AppInstallation,
+    MarketplaceApp,
+    MarketplaceListing,
+    MarketplaceReview,
+    PublisherOrganization,
+)
 from apps.marketplace.services import install_app, submit_marketplace_review
 from apps.schools.models import School
 
@@ -81,7 +87,9 @@ class MarketplaceGovernanceTests(TestCase):
         )
         self.client.force_login(self.manager)
 
-        response = self.client.get(reverse("super:marketplace_governance"), HTTP_HOST="manager.runmycampus.com")
+        response = self.client.get(
+            reverse("super:marketplace_governance"), HTTP_HOST="manager.runmycampus.com"
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Marketplace governance")
@@ -134,5 +142,9 @@ class MarketplaceGovernanceTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        installation = AppInstallation.objects.get(app=self.third_party_app, school=self.school)
-        self.assertEqual(installation.install_phase, AppInstallation.InstallPhase.SANDBOX)
+        installation = AppInstallation.objects.get(
+            app=self.third_party_app, school=self.school
+        )
+        self.assertEqual(
+            installation.install_phase, AppInstallation.InstallPhase.SANDBOX
+        )

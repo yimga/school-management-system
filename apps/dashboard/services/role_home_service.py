@@ -8,6 +8,7 @@ role-home payload without duplicating logic.
 
 RUNMYCAMPUS §6.13: Move role-home logic into services.
 """
+
 from __future__ import annotations
 
 from typing import Any, Callable, Dict, List, Optional
@@ -22,6 +23,7 @@ from apps.dashboard.role_home_engine import (
     resolve_role_home,
     select_role_home_actions,
 )
+from apps.dashboard.north_star_guidance import build_north_star_recommended_steps
 
 # Typed exceptions for pinned-order / preference reads (§2.4)
 _DASHBOARD_PREFERENCE_ERRORS = (AttributeError, TypeError, ValueError, ImportError)
@@ -65,21 +67,35 @@ def build_role_home_context(
     welcome_action_grid = actions["welcome_action_grid"]
     quick_links = actions["quick_links"]
     command_palette = actions["command_palette"]
+    wp = (
+        base.get("workflow_progress")
+        if isinstance(base.get("workflow_progress"), dict)
+        else None
+    )
+    merged_steps: list[dict] = []
+    for s in build_north_star_recommended_steps(role_code, perms, workflow_progress=wp):
+        merged_steps.append(s)
+    raw_rec = base.get("recommended_next_steps")
+    if isinstance(raw_rec, list):
+        for s in raw_rec:
+            if isinstance(s, dict) and s.get("action_id"):
+                if not any(
+                    x.get("action_id") == s.get("action_id") for x in merged_steps
+                ):
+                    merged_steps.append(
+                        {
+                            "action_id": s["action_id"],
+                            "reason": s.get("reason", ""),
+                            "category": s.get("category", s.get("group", "Suggested")),
+                        }
+                    )
     contextual_actions = get_contextual_actions(
         "backend_dashboard",
         perms,
         safe_reverse,
         intent=intent or None,
-        workflow_progress=(
-            base.get("workflow_progress")
-            if isinstance(base.get("workflow_progress"), dict)
-            else None
-        ),
-        recommended_steps=(
-            base.get("recommended_next_steps")
-            if isinstance(base.get("recommended_next_steps"), list)
-            else None
-        ),
+        workflow_progress=wp,
+        recommended_steps=merged_steps or None,
         max_items=5,
     )
 
@@ -104,9 +120,7 @@ def build_role_home_context(
         prefs = getattr(user, "dashboard_preferences", None)
         if prefs and isinstance(getattr(prefs, "pinned_sidebar_items", None), list):
             pinned_order = [
-                str(x).strip()
-                for x in prefs.pinned_sidebar_items
-                if str(x).strip()
+                str(x).strip() for x in prefs.pinned_sidebar_items if str(x).strip()
             ]
     except _DASHBOARD_PREFERENCE_ERRORS:
         pinned_order = []

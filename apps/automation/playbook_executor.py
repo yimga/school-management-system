@@ -3,6 +3,7 @@ Migration playbook executor: run multiple migration profiles in sequence.
 Each step creates a MigrationRun (migration_type = profile.slug); when steps_payload
 is provided, each step is executed via the existing migration services.
 """
+
 from __future__ import annotations
 
 from typing import Any, Optional
@@ -24,7 +25,11 @@ def execute_playbook(
     """
     profiles = playbook.get_profiles()
     if not profiles:
-        return {"runs": [], "status": "FAILED", "message": "Playbook has no valid profiles."}
+        return {
+            "runs": [],
+            "status": "FAILED",
+            "message": "Playbook has no valid profiles.",
+        }
 
     runs = []
     status = "SUCCESS"
@@ -68,14 +73,23 @@ def _run_one_step(
             )
             # MigrationRun already created inside run_dry_run with migration_type=profile.domain
             # We want migration_type=profile.slug for playbook steps
-            run = MigrationRun.objects.filter(
-                school=school,
-                migration_type=profile.domain,
-                dry_run=True,
-                triggered_by=user,
-            ).order_by("-started_at").first()
+            run = (
+                MigrationRun.objects.filter(
+                    school=school,
+                    migration_type=profile.domain,
+                    dry_run=True,
+                    triggered_by=user,
+                )
+                .order_by("-started_at")
+                .first()
+            )
             if run:
-                run.execution_summary = {**(run.execution_summary or {}), "playbook_slug": playbook.slug, "step_index": step_index, "profile_slug": profile.slug}
+                run.execution_summary = {
+                    **(run.execution_summary or {}),
+                    "playbook_slug": playbook.slug,
+                    "step_index": step_index,
+                    "profile_slug": profile.slug,
+                }
                 run.save(update_fields=["execution_summary"])
                 return run
         # No payload: create a placeholder dry run
@@ -86,20 +100,38 @@ def _run_one_step(
             row_count=0,
             status=MigrationRun.Status.SUCCESS,
             triggered_by=user,
-            execution_summary={"playbook_slug": playbook.slug, "step_index": step_index, "profile_slug": profile.slug},
+            execution_summary={
+                "playbook_slug": playbook.slug,
+                "step_index": step_index,
+                "profile_slug": profile.slug,
+            },
         )
         return run
 
     # Real run
-    run = run_migration_start(school, profile.domain, len(rows), user=user, legacy_snapshot=payload.get("legacy_snapshot"))
-    run.execution_summary = {**(run.execution_summary or {}), "playbook_slug": playbook.slug, "step_index": step_index, "profile_slug": profile.slug}
+    run = run_migration_start(
+        school,
+        profile.domain,
+        len(rows),
+        user=user,
+        legacy_snapshot=payload.get("legacy_snapshot"),
+    )
+    run.execution_summary = {
+        **(run.execution_summary or {}),
+        "playbook_slug": playbook.slug,
+        "step_index": step_index,
+        "profile_slug": profile.slug,
+    }
     run.save(update_fields=["execution_summary"])
 
     if profile.domain == "students" and rows and school:
         from apps.accounts.migration_services import run_student_import
+
         result = run_student_import(school, rows, user=user)
         run.mark_completed(
-            status=MigrationRun.Status.SUCCESS if not result.get("errors") else MigrationRun.Status.PARTIAL,
+            status=MigrationRun.Status.SUCCESS
+            if not result.get("errors")
+            else MigrationRun.Status.PARTIAL,
             created_count=result.get("created", 0),
             updated_count=result.get("updated", 0),
             error_count=len(result.get("errors", [])),
@@ -107,15 +139,20 @@ def _run_one_step(
         )
     elif profile.domain == "grades" and rows and school:
         from apps.accounts.migration_services import run_grade_import
+
         result = run_grade_import(school, rows, user=user)
         run.mark_completed(
-            status=MigrationRun.Status.SUCCESS if not result.get("errors") else MigrationRun.Status.PARTIAL,
+            status=MigrationRun.Status.SUCCESS
+            if not result.get("errors")
+            else MigrationRun.Status.PARTIAL,
             created_count=result.get("created", 0),
             updated_count=result.get("updated", 0),
             error_count=len(result.get("errors", [])),
             summary={**run.execution_summary, "result": result},
         )
     else:
-        run.mark_completed(status=MigrationRun.Status.SUCCESS, summary=run.execution_summary)
+        run.mark_completed(
+            status=MigrationRun.Status.SUCCESS, summary=run.execution_summary
+        )
 
     return run

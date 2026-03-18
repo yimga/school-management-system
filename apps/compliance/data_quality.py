@@ -1,6 +1,7 @@
 """
 F7: Data quality and audit suite.
 """
+
 from __future__ import annotations
 
 from typing import Any

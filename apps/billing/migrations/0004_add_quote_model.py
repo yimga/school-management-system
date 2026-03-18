@@ -6,32 +6,76 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('billing', '0003_platformbillingprocessorconfig_and_more'),
-        ('schools', '0028_add_default_workflow_dashboard_slugs'),
-        ('siteconfig', '0133_workflow_template_level'),
+        ("billing", "0003_platformbillingprocessorconfig_and_more"),
+        ("schools", "0028_add_default_workflow_dashboard_slugs"),
+        ("siteconfig", "0133_workflow_template_level"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Quote',
+            name="Quote",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('SENT', 'Sent'), ('ACCEPTED', 'Accepted'), ('EXPIRED', 'Expired'), ('DECLINED', 'Declined')], db_index=True, default='DRAFT', max_length=16)),
-                ('amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('currency_code', models.CharField(default='USD', max_length=3)),
-                ('valid_until', models.DateField(blank=True, null=True)),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('plan', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='quotes', to='siteconfig.plan')),
-                ('school', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='quotes', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("SENT", "Sent"),
+                            ("ACCEPTED", "Accepted"),
+                            ("EXPIRED", "Expired"),
+                            ("DECLINED", "Declined"),
+                        ],
+                        db_index=True,
+                        default="DRAFT",
+                        max_length=16,
+                    ),
+                ),
+                (
+                    "amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                ("currency_code", models.CharField(default="USD", max_length=3)),
+                ("valid_until", models.DateField(blank=True, null=True)),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "plan",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="quotes",
+                        to="siteconfig.plan",
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="quotes",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Quote',
-                'verbose_name_plural': 'Quotes',
-                'ordering': ['-created_at'],
+                "verbose_name": "Quote",
+                "verbose_name_plural": "Quotes",
+                "ordering": ["-created_at"],
             },
         ),
     ]

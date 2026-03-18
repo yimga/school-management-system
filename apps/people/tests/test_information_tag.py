@@ -1,6 +1,7 @@
 """
 Information Tagging: tests for InformationTag model, StudentProfile.tags, student_tags in nuance, critical-tag signal.
 """
+
 from django.test import TestCase
 from django.db import IntegrityError
 
@@ -88,6 +89,7 @@ class StudentTagsAndNuanceContextTests(TestCase):
 
     def test_nuance_in_operator_with_student_tags(self):
         from apps.siteconfig.nuance_engine import _safe_eval
+
         self.student.tags.add(self.tag1)
         student_tags = list(
             self.student.tags.filter(is_active=True).values_list("name", flat=True)
@@ -106,6 +108,7 @@ class CriticalTagSignalTests(TestCase):
 
     def setUp(self):
         from apps.accounts.models import User
+
         self.school = School.objects.create(
             name="Signal School",
             slug="signal-school",
@@ -119,6 +122,7 @@ class CriticalTagSignalTests(TestCase):
             role=User.Role.ADMIN,
         )
         from apps.schools.models import SchoolMembership
+
         SchoolMembership.objects.create(
             user=self.user,
             school=self.school,

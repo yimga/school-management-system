@@ -11,7 +11,12 @@ from django.urls import reverse
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.api.serializers import InvoiceSerializer
-from apps.finance.models import ComplianceProfile, Invoice, PaymentMethodCode, PaymentProofUpload
+from apps.finance.models import (
+    ComplianceProfile,
+    Invoice,
+    PaymentMethodCode,
+    PaymentProofUpload,
+)
 from apps.people.models import StudentProfile
 
 
@@ -69,15 +74,19 @@ class ReceiptUploadFlowTests(TestCase):
         self.client.login(username="superadmin", password="Pass_1234")
 
     def test_invoice_detail_receipt_form_has_idempotency_fields_and_momo_options(self):
-        response = self.client.get(reverse("finance:invoice_detail", args=[self.invoice.id]))
+        response = self.client.get(
+            reverse("finance:invoice_detail", args=[self.invoice.id])
+        )
         self.assertContains(response, 'id="receipt-upload-form"')
         self.assertContains(response, 'id="idempotency_key"')
         self.assertContains(response, 'value="MTN_MOMO"')
         self.assertContains(response, 'value="ORANGE_MOMO"')
 
     @patch("apps.finance.tasks.process_payment_receipt_upload_task.delay")
-    @patch("apps.finance.views.ReceiptFraudDetector.detect_fraud")
-    def test_upload_receipt_captures_idempotency_and_request_metadata(self, mock_detect, mock_delay):
+    @patch("apps.finance.views_invoicing.ReceiptFraudDetector.detect_fraud")
+    def test_upload_receipt_captures_idempotency_and_request_metadata(
+        self, mock_detect, mock_delay
+    ):
         mock_detect.return_value = {
             "fraud_risk_score": 8,
             "fraud_flags": [],
@@ -109,8 +118,8 @@ class ReceiptUploadFlowTests(TestCase):
         mock_delay.assert_called_once()
 
     @patch("apps.finance.tasks.process_payment_receipt_upload_task.delay")
-    @patch("apps.finance.views.ReceiptFraudDetector.detect_fraud")
-    @patch("apps.finance.views.get_effective_site_settings")
+    @patch("apps.finance.views_invoicing.ReceiptFraudDetector.detect_fraud")
+    @patch("apps.finance.views_invoicing.get_effective_site_settings")
     def test_upload_receipt_uses_owner_scoped_finance_policy(
         self,
         mock_get_effective_site_settings,
@@ -150,7 +159,9 @@ class ReceiptUploadFlowTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        upload = PaymentProofUpload.objects.get(invoice=self.invoice, file_hash="owner-policy-hash")
+        upload = PaymentProofUpload.objects.get(
+            invoice=self.invoice, file_hash="owner-policy-hash"
+        )
         self.assertEqual(upload.idempotency_key, "owner-finance-policy-1")
         mock_delay.assert_not_called()
 

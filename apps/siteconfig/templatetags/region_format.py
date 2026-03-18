@@ -27,6 +27,7 @@ def _resolve_currency_context(context):
         if symbol is not None and dec_sep is not None and thousands_sep is not None:
             return symbol or "", dec_sep or ".", thousands_sep or ","
     from apps.siteconfig.currency import get_currency_symbol
+
     currency = getattr(settings, "DEFAULT_CURRENCY", "XAF")
     symbol = get_currency_symbol(currency)
     return symbol, ".", ","
@@ -80,9 +81,11 @@ def format_date_tenant(context, value):
     school = getattr(request, "school", None) if request else None
     try:
         from apps.siteconfig.tenant_config import format_date_tenant as _fmt
+
         return _fmt(value, request=request, school=school)
     except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         from django.utils import dateformat
+
         return dateformat.format(value, "d/m/Y") if value else ""
 
 
@@ -95,6 +98,7 @@ def format_currency_tenant(context, value):
     school = getattr(request, "school", None) if request else None
     try:
         from apps.siteconfig.tenant_config import format_currency_tenant as _fmt
+
         return _fmt(value, request=request, school=school)
     except (ImportError, AttributeError, TypeError, ValueError):
         return str(value)

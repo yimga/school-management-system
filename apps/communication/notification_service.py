@@ -4,6 +4,7 @@ All callers use this; no app imports Twilio/send_mail/EmailMessage directly for 
 SMS fallback: if SMS fails or is not configured, optional fallback to email.
 §2.4: broad except replaced with typed exception tuples.
 """
+
 from __future__ import annotations
 
 import logging
@@ -46,6 +47,7 @@ def _resolve_site_settings(school: Any = None, site_settings: Any = None):
     if school is not None:
         try:
             from apps.platform_runtime.helpers import get_effective_site_settings
+
             return get_effective_site_settings(school=school)
         except _NOTIFICATION_SETTINGS_RESOLVE_ERRORS:
             logger.debug(
@@ -74,7 +76,11 @@ def send_email(
     if not to_addresses:
         return False
     site = _resolve_site_settings(school=school, site_settings=site_settings)
-    from_addr = from_email or (getattr(site, "email_from_address", None) if site else None) or getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@runmycampus.com")
+    from_addr = (
+        from_email
+        or (getattr(site, "email_from_address", None) if site else None)
+        or getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@runmycampus.com")
+    )
     try:
         django_send_mail(
             subject=subject,
@@ -113,9 +119,16 @@ def send_sms(
     site = _resolve_site_settings(school=school, site_settings=site_settings)
     school_id = getattr(school, "id", None) if school else None
     if circuit_is_open(school_id, "sms"):
-        logger.warning("Circuit open for SMS (school_id=%s); skipping provider", school_id)
+        logger.warning(
+            "Circuit open for SMS (school_id=%s); skipping provider", school_id
+        )
         if fallback_email and body:
-            send_email([fallback_email], subject="Message from school", body=body, site_settings=site)
+            send_email(
+                [fallback_email],
+                subject="Message from school",
+                body=body,
+                site_settings=site,
+            )
         return bool(fallback_email)
     provider = get_sms_provider(site)
     if provider:
@@ -156,6 +169,7 @@ def send_push(
 ) -> bool:
     """Delegate to channels.send_push (tenant-configured FCM/APNS)."""
     from .channels import send_push as _send_push
+
     return _send_push(school, token_or_user, title, body, data=data)
 
 
@@ -169,7 +183,14 @@ def send_whatsapp(
 ) -> bool:
     """Delegate to channels.send_whatsapp (tenant-configured WhatsApp Business API)."""
     from .channels import send_whatsapp as _send_whatsapp
-    return _send_whatsapp(school, to_phone, template_name=template_name, template_params=template_params, body=body)
+
+    return _send_whatsapp(
+        school,
+        to_phone,
+        template_name=template_name,
+        template_params=template_params,
+        body=body,
+    )
 
 
 def get_notification_service():
@@ -182,11 +203,14 @@ class UnifiedNotificationService:
     Facade for backward compatibility: evals/notifications and others can use
     service.send_email(...), service.send_sms(...) with same semantics.
     """
+
     def __init__(self, school: Any = None, site_settings: Any = None):
         self._school = school
         self._site = site_settings or _resolve_site_settings(school=school)
 
-    def send_email(self, to_addresses, subject, body, *, html_message=None, from_email=None):
+    def send_email(
+        self, to_addresses, subject, body, *, html_message=None, from_email=None
+    ):
         if isinstance(to_addresses, str):
             to_addresses = [to_addresses]
         return send_email(
@@ -199,7 +223,9 @@ class UnifiedNotificationService:
             site_settings=self._site,
         )
 
-    def send_sms(self, phone_number: str, message: str, *, fallback_email: Optional[str] = None) -> bool:
+    def send_sms(
+        self, phone_number: str, message: str, *, fallback_email: Optional[str] = None
+    ) -> bool:
         return send_sms(
             phone_number,
             message,
@@ -214,8 +240,16 @@ class UnifiedNotificationService:
             return False
         return send_push(self._school, token_or_user, title, body, data=data)
 
-    def send_whatsapp(self, to_phone: str, *, template_name=None, template_params=None, body=None) -> bool:
+    def send_whatsapp(
+        self, to_phone: str, *, template_name=None, template_params=None, body=None
+    ) -> bool:
         if self._school is None:
             logger.warning("send_whatsapp requires school")
             return False
-        return send_whatsapp(self._school, to_phone, template_name=template_name, template_params=template_params, body=body)
+        return send_whatsapp(
+            self._school,
+            to_phone,
+            template_name=template_name,
+            template_params=template_params,
+            body=body,
+        )

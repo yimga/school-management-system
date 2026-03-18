@@ -19,6 +19,7 @@ class CountryProfile(models.Model):
     Region/country-level defaults (currency, timezone, grading_scale, etc.).
     Optional source for get_effective_policy when school.default_region is not used.
     """
+
     country_code = models.CharField(max_length=10, db_index=True, unique=True)
     name = models.CharField(max_length=255, blank=True)
     currency_code = models.CharField(max_length=6, blank=True)
@@ -46,6 +47,7 @@ class PolicyBundle(models.Model):
     policy_snapshot should contain typed module sections: admissions_policy, gradebook_policy,
     finance_policy, attendance_policy, communication_policy, compliance_policy, portal_policy, payroll_policy.
     """
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -57,16 +59,29 @@ class PolicyBundle(models.Model):
     code = models.CharField(max_length=80, blank=True, db_index=True)
     name = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
-    policy_snapshot = models.JSONField(default=dict, help_text="Merged policy dict with typed module sections.")
+    policy_snapshot = models.JSONField(
+        default=dict, help_text="Merged policy dict with typed module sections."
+    )
     version = models.PositiveIntegerField(default=1)
     applied_pack_version = models.CharField(
         max_length=32,
         blank=True,
         help_text="When created from a BlueprintPack, store pack.version for update detection.",
     )
-    country_scope = models.CharField(max_length=64, blank=True, db_index=True, help_text="Country code or '*' for global.")
-    blueprint_compatibility = models.JSONField(default=list, blank=True, help_text="List of blueprint pack slugs this bundle is compatible with.")
-    precedence_weight = models.PositiveIntegerField(default=0, help_text="Higher = overrides lower when multiple apply.")
+    country_scope = models.CharField(
+        max_length=64,
+        blank=True,
+        db_index=True,
+        help_text="Country code or '*' for global.",
+    )
+    blueprint_compatibility = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of blueprint pack slugs this bundle is compatible with.",
+    )
+    precedence_weight = models.PositiveIntegerField(
+        default=0, help_text="Higher = overrides lower when multiple apply."
+    )
     migration_notes = models.TextField(blank=True)
     deprecated_replacement_reference = models.CharField(max_length=80, blank=True)
     is_active = models.BooleanField(default=True)
@@ -97,6 +112,7 @@ class TenantBlueprint(models.Model):
     When set, get_effective_policy can merge from active_bundle.policy_snapshot.
     applied_pack tracks which BlueprintPack was last applied for "Update bundle" when pack version increases.
     """
+
     school = models.OneToOneField(
         "schools.School",
         on_delete=models.CASCADE,
@@ -133,8 +149,11 @@ class BlueprintPack(models.Model):
     Catalog entry for a blueprint pack. Defines institution archetype and policy_snapshot template.
     Applying creates a PolicyBundle and sets TenantBlueprint.active_bundle.
     """
+
     slug = models.SlugField(max_length=80, unique=True)
-    code = models.CharField(max_length=80, blank=True, db_index=True, help_text="Alias for slug/code.")
+    code = models.CharField(
+        max_length=80, blank=True, db_index=True, help_text="Alias for slug/code."
+    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     family = models.CharField(max_length=64, blank=True, db_index=True)
@@ -151,9 +170,15 @@ class BlueprintPack(models.Model):
         blank=True,
         related_name="+",
     )
-    supported_country_scope = models.JSONField(default=list, blank=True, help_text="List of country codes or [] for all.")
-    supported_education_system_types = models.JSONField(default=list, blank=True, help_text="List of education system type codes.")
-    recommended_education_levels = models.JSONField(default=list, blank=True, help_text="List of education level codes.")
+    supported_country_scope = models.JSONField(
+        default=list, blank=True, help_text="List of country codes or [] for all."
+    )
+    supported_education_system_types = models.JSONField(
+        default=list, blank=True, help_text="List of education system type codes."
+    )
+    recommended_education_levels = models.JSONField(
+        default=list, blank=True, help_text="List of education level codes."
+    )
     default_terminology_pack = models.CharField(max_length=48, blank=True)
     default_calendar_family = models.CharField(max_length=48, blank=True)
     default_grade_scale_family_hints = models.JSONField(default=list, blank=True)
@@ -184,20 +209,27 @@ class BlueprintPack(models.Model):
     def get_schools_using_this_pack(self):
         """Schools that have this pack applied (for "Update bundle" when version increases)."""
         from apps.schools.models import School
+
         return School.objects.filter(tenant_blueprint__applied_pack=self).distinct()
 
     def get_schools_needing_update(self):
         """Schools using this pack whose active bundle version is older than this pack's version."""
         from apps.schools.models import School
-        return School.objects.filter(
-            tenant_blueprint__applied_pack=self,
-        ).exclude(
-            tenant_blueprint__active_bundle__applied_pack_version=self.version,
-        ).distinct()
+
+        return (
+            School.objects.filter(
+                tenant_blueprint__applied_pack=self,
+            )
+            .exclude(
+                tenant_blueprint__active_bundle__applied_pack_version=self.version,
+            )
+            .distinct()
+        )
 
 
 class BlueprintCompatibilityRule(models.Model):
     """Rule linking blueprint packs to compatible policy bundles or constraints."""
+
     blueprint_pack = models.ForeignKey(
         BlueprintPack,
         on_delete=models.CASCADE,
@@ -216,6 +248,7 @@ class BlueprintCompatibilityRule(models.Model):
 
 class PolicyCompatibilityRule(models.Model):
     """Rule for which blueprints/countries a policy bundle applies to."""
+
     policy_bundle = models.ForeignKey(
         PolicyBundle,
         on_delete=models.CASCADE,
@@ -235,12 +268,15 @@ class PolicyCompatibilityRule(models.Model):
 
 class TenantPolicyOverride(models.Model):
     """Tenant-level override for a specific policy key (stored per school)."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
         related_name="policy_overrides",
     )
-    policy_key = models.CharField(max_length=120, db_index=True, help_text="e.g. admissions.numbering_strategy")
+    policy_key = models.CharField(
+        max_length=120, db_index=True, help_text="e.g. admissions.numbering_strategy"
+    )
     value = models.JSONField(default=dict)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -254,6 +290,7 @@ class TenantPolicyOverride(models.Model):
 
 class ScheduledPolicyOverride(models.Model):
     """Temporary policy override active between start_at and end_at."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,

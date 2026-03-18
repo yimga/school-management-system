@@ -4,20 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('reports', '0002_promotionrule'),
+        ("reports", "0002_promotionrule"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='reportcard',
-            name='language',
-            field=models.CharField(default='en', help_text='Language for certificate generation', max_length=10),
+            model_name="reportcard",
+            name="language",
+            field=models.CharField(
+                default="en",
+                help_text="Language for certificate generation",
+                max_length=10,
+            ),
         ),
         migrations.AddField(
-            model_name='reportcard',
-            name='region_code',
-            field=models.CharField(blank=True, help_text='Region code for score conversion', max_length=10, null=True),
+            model_name="reportcard",
+            name="region_code",
+            field=models.CharField(
+                blank=True,
+                help_text="Region code for score conversion",
+                max_length=10,
+                null=True,
+            ),
         ),
     ]

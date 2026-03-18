@@ -1,0 +1,59 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block backend_title %}{% trans "Institution profile" %}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <nav class="mb-3"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></nav>
+  <h1 class="h4">{% trans "What kind of institution are you?" %}</h1>
+  <p class="small text-muted">{% trans "Applies delivery modes (wedges 23–30) and institution type (31–43) to runtime: features, workflow/report hints, ministry stub slugs." %}</p>
+  {% if runtime_summary.institution_wedge or runtime_summary.delivery_wedges %}
+  <div class="alert alert-secondary small mb-3">
+    <strong>{% trans "Current runtime" %}:</strong>
+    {% trans "Delivery wedges" %} {{ runtime_summary.delivery_wedges|default:"—" }};
+    {% trans "Institution wedge" %} {{ runtime_summary.institution_wedge|default:"—" }};
+    {% trans "Ministry stubs" %}: {{ runtime_summary.ministry_stubs|length }};
+    {% trans "Workflow/report hints" %}: {{ runtime_summary.workflow_hints_count }} / {{ runtime_summary.report_hints_count }}
+  </div>
+  {% endif %}
+  <form method="post">{% csrf_token %}
+    <h2 class="h6">{% trans "Learning delivery" %} (23–30)</h2>
+    {% for m in delivery_modes %}
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="delivery_modes" value="{{ m.code }}" id="d{{ m.code }}" {% if m.code in selected_delivery_codes %}checked{% endif %}><label class="form-check-label" for="d{{ m.code }}"><span class="badge bg-secondary me-1">{{ m.wedge }}</span>{{ m.label }} — <code class="small">{{ m.code }}</code></label></div>
+    {% endfor %}
+    <h2 class="h6 mt-3">{% trans "Institution type" %} (31–43)</h2>
+    <select name="institution_type" class="form-select form-select-sm" style="max-width:28rem">
+      <option value="">—</option>
+      {% for p in institution_packs %}<option value="{{ p.code }}" {% if p.code == current_institution_code %}selected{% endif %}>{{ p.wedge }} — {{ p.label }}</option>{% endfor %}
+    </select>
+    <div class="mt-3"><button type="submit" class="btn btn-primary">{% trans "Apply to tenant" %}</button></div>
+  </form>
+  <div class="mt-4 border-top pt-3">
+    <h2 class="h6">{% trans "AI / heuristic suggest" %}</h2>
+    <p class="small text-muted">{% trans "Suggests delivery modes and institution type from school name (optional AI when ?ai=1)." %}</p>
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnInstSuggest">{% trans "Load suggestion" %}</button>
+    <pre id="instSuggestOut" class="small bg-light p-2 mt-2 d-none" style="max-height:12rem;overflow:auto"></pre>
+  </div>
+  {% if ministry_stub_rows %}
+  <div class="mt-4">
+    <h2 class="h6">{% trans "Ministry report shells (PDF)" %}</h2>
+    <ul class="small">{% for row in ministry_stub_rows %}<li><a href="{{ row.pdf_url }}">{{ row.label }}</a> (<code>{{ row.slug }}</code>)</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  <div class="mt-3 small text-muted">
+    {% trans "One-click pack" %}: POST <code>{{ pack_install_url }}</code> JSON <code>{"pack_slug":"evals_rubrics","record_marketplace":true}</code>
+  </div>
+  <p class="small mt-3"><a href="{% url 'accounts:district_lms_interop' %}">{% trans "District & LMS interop" %}</a></p>
+  <script>
+  (function(){
+    var u = "{{ suggest_url|escapejs }}";
+    document.getElementById("btnInstSuggest").addEventListener("click", function(){
+      fetch(u, {credentials:"same-origin"}).then(function(r){return r.json()}).then(function(d){
+        var o = document.getElementById("instSuggestOut");
+        o.textContent = JSON.stringify(d, null, 2);
+        o.classList.remove("d-none");
+      }).catch(function(e){ alert(e); });
+    });
+  })();
+  </script>
+</div>
+{% endblock %}

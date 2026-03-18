@@ -21,7 +21,7 @@
       "notes": "Public lead capture; rate limiting + audit logging (lead_capture_created/lead_capture_duplicate)."
     },
     "apps/api/scim_views.py": {
-      "expected_count": 3,
+      "expected_count": 4,
       "owner": "identity_provisioning",
       "verdict": "keep",
       "auth_model": "bearer_token_scim",
@@ -69,6 +69,36 @@
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
       "notes": "GraphQL endpoint still supports non-browser API clients."
+    },
+    "apps/api/br_northstar_views.py": {
+      "expected_count": 9,
+      "owner": "beyond_reach_api",
+      "verdict": "keep_with_hardening",
+      "auth_model": "session_staff_or_service_bearer",
+      "replay_protection": "session_csrf_bypass_internal_json",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "Internal JSON APIs for BR north-star; called from control plane with session or Bearer."
+    },
+    "apps/api/learning_institution_api.py": {
+      "expected_count": 1,
+      "owner": "learning_institution",
+      "verdict": "keep_with_hardening",
+      "auth_model": "session_staff",
+      "replay_protection": "internal_api",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "Studio/catalog JSON for institution types and delivery modes."
+    },
+    "apps/api/north_star_api_views.py": {
+      "expected_count": 3,
+      "owner": "north_star_api",
+      "verdict": "keep_with_hardening",
+      "auth_model": "session_staff",
+      "replay_protection": "internal_api",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "Event catalog, wedge playbook, package-impact internal JSON."
     }
   }
 }

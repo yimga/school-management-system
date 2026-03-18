@@ -2,6 +2,7 @@
 Create teacher and parent demo accounts with a fixed password.
 Use for local/testing: create teacher and parent users and set password to Test1234.
 """
+
 from django.core.management import BaseCommand
 from django.contrib.auth import get_user_model
 
@@ -77,7 +78,9 @@ class Command(BaseCommand):
             )
             if tp_created:
                 self.stdout.write(
-                    self.style.SUCCESS("  TeacherProfile created for '%s'." % teacher_username)
+                    self.style.SUCCESS(
+                        "  TeacherProfile created for '%s'." % teacher_username
+                    )
                 )
 
         # Parent

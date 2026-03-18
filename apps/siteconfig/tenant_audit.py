@@ -39,7 +39,9 @@ def has_explicit_school_field(model_label: str) -> bool:
     )
 
 
-def find_missing_explicit_school_fields(model_labels: list[str] | tuple[str, ...] | None = None) -> list[str]:
+def find_missing_explicit_school_fields(
+    model_labels: list[str] | tuple[str, ...] | None = None,
+) -> list[str]:
     labels = model_labels or COMMUNICATION_TENANT_MODELS
     missing = []
     for label in labels:

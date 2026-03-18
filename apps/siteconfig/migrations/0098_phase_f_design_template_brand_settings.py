@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0097_sync_conflict_phase_g"),
         ("schools", "0006_school_billing_type_waiver_note"),
@@ -15,7 +14,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="DesignTemplate",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("name", models.CharField(help_text="Template name", max_length=120)),
                 (
                     "document_type",
@@ -38,7 +45,12 @@ class Migration(migrations.Migration):
                         help_text="Layout blueprint: widgets, positions, placeholders e.g. {{student_name}}",
                     ),
                 ),
-                ("is_default", models.BooleanField(default=False, help_text="Use as default for this document type")),
+                (
+                    "is_default",
+                    models.BooleanField(
+                        default=False, help_text="Use as default for this document type"
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 (
@@ -60,11 +72,27 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="BrandSettings",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("logo_url", models.URLField(blank=True, help_text="URL to tenant logo")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "logo_url",
+                    models.URLField(blank=True, help_text="URL to tenant logo"),
+                ),
                 ("primary_color", models.CharField(default="#0d6efd", max_length=20)),
                 ("accent_color", models.CharField(default="#198754", max_length=20)),
-                ("custom_css", models.TextField(blank=True, help_text="Optional custom CSS for tenant")),
+                (
+                    "custom_css",
+                    models.TextField(
+                        blank=True, help_text="Optional custom CSS for tenant"
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 (

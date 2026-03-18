@@ -4,6 +4,7 @@ Audit DDL: trigger function, attach/drop triggers, revoke mutations on audit_log
 revoke_audit_log_permissions lives here; management commands delegate.
 PostgreSQL only; staff/operational use.
 """
+
 from __future__ import annotations
 
 from django.db import connection

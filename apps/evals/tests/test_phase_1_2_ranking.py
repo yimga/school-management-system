@@ -7,7 +7,15 @@ Test tie handling, caching, and query optimization.
 from django.test import TestCase
 from django.core.cache import cache
 
-from apps.academics.models import AcademicYear, Term, Classroom, Subject, SubjectAssignment, Department, Specialty
+from apps.academics.models import (
+    AcademicYear,
+    Term,
+    Classroom,
+    Subject,
+    SubjectAssignment,
+    Department,
+    Specialty,
+)
 from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.evals.models import Evaluation
@@ -57,7 +65,13 @@ class RankingTieHandlingTest(TestCase):
 
         # Create teacher for evaluations
         from apps.accounts.models import User
-        user_teacher = User.objects.create_user(username="testteacher", password="pass123", first_name="Teacher", last_name="Test")
+
+        user_teacher = User.objects.create_user(
+            username="testteacher",
+            password="pass123",
+            first_name="Teacher",
+            last_name="Test",
+        )
         cls.teacher = TeacherProfile.objects.create(
             user=user_teacher,
         )
@@ -466,10 +480,10 @@ class RankingPositionTest(TestCase):
         """Test getting full rank context."""
         context = get_rank_position_with_context(self.student_top, self.term)
 
-        self.assertEqual(context['class_rank'], 1)
-        self.assertEqual(context['school_rank'], 1)
-        self.assertEqual(context['class_size'], 3)
-        self.assertEqual(context['school_size'], 3)
-        self.assertFalse(context['is_tied'])
+        self.assertEqual(context["class_rank"], 1)
+        self.assertEqual(context["school_rank"], 1)
+        self.assertEqual(context["class_size"], 3)
+        self.assertEqual(context["school_size"], 3)
+        self.assertFalse(context["is_tied"])
         # average from ranking (weighted by coefficient; implementation returns ~14.4 for this data)
-        self.assertAlmostEqual(context['average'], 14.4, places=1)
+        self.assertAlmostEqual(context["average"], 14.4, places=1)

@@ -39,8 +39,15 @@ class ComplianceReportingTenantScopeTests(TestCase):
             password="pass12345",
             role=User.Role.ADMIN,
         )
-        SchoolMembership.objects.create(user=self.admin, school=self.school, role=User.Role.ADMIN, is_primary=True)
-        SchoolMembership.objects.create(user=self.other_admin, school=self.other_school, role=User.Role.ADMIN, is_primary=True)
+        SchoolMembership.objects.create(
+            user=self.admin, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
+        SchoolMembership.objects.create(
+            user=self.other_admin,
+            school=self.other_school,
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
 
         now = timezone.now()
         AuditLog.objects.create(
@@ -81,7 +88,10 @@ class ComplianceReportingTenantScopeTests(TestCase):
         )
 
     def test_export_json_is_scoped_to_request_school(self):
-        request = self.factory.get("/compliance/export/", {"type": "audit_trail", "format": "json", "days": "30"})
+        request = self.factory.get(
+            "/compliance/export/",
+            {"type": "audit_trail", "format": "json", "days": "30"},
+        )
         request.user = self.admin
         request.school = self.school
 

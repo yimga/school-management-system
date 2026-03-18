@@ -3,6 +3,7 @@ Celery tasks for marketplace (health checks, etc.).
 Schedule in CELERY_BEAT_SCHEDULE or run: marketplace_health_check.delay()
 §2.4: Typed exception tuple for record_installation_health loop (no broad except).
 """
+
 import logging
 from celery import shared_task
 from django.core.exceptions import ObjectDoesNotExist

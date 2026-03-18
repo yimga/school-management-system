@@ -10,7 +10,9 @@ from .services import sync_request_for_target
 
 
 @receiver(post_save, sender=GradeApprovalRequest)
-def sync_grade_approval_request(sender, instance: GradeApprovalRequest, created, **kwargs):
+def sync_grade_approval_request(
+    sender, instance: GradeApprovalRequest, created, **kwargs
+):
     status_map = {
         GradeApprovalRequest.Status.APPROVED: AccessRequest.Status.APPROVED,
         GradeApprovalRequest.Status.REJECTED: AccessRequest.Status.DENIED,
@@ -21,7 +23,9 @@ def sync_grade_approval_request(sender, instance: GradeApprovalRequest, created,
     status = status_map.get(instance.status, AccessRequest.Status.PENDING)
     requester = instance.requested_by or getattr(instance.teacher, "user", None)
     title = f"Grade approval: {instance.teacher}"
-    summary = f"{instance.subject_assignment} ({instance.academic_year} - {instance.term})"
+    summary = (
+        f"{instance.subject_assignment} ({instance.academic_year} - {instance.term})"
+    )
     details = {
         "teacher": str(instance.teacher),
         "subject_assignment": str(instance.subject_assignment),

@@ -61,13 +61,22 @@ class SplitAllocationForm(forms.Form):
         super().__init__(*args, **kwargs)
         if student_queryset is not None:
             self.fields["student"].queryset = student_queryset
-        self._guardian_queryset = guardian_queryset if guardian_queryset is not None else StudentGuardian.objects.none()
+        self._guardian_queryset = (
+            guardian_queryset
+            if guardian_queryset is not None
+            else StudentGuardian.objects.none()
+        )
         for i in range(1, self.NUM_ROWS + 1):
             self.fields[f"desc_{i}"] = forms.CharField(
                 required=False,
                 max_length=200,
                 label=f"Line {i} description",
-                widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Tuition, Sports"}),
+                widget=forms.TextInput(
+                    attrs={
+                        "class": "form-control",
+                        "placeholder": "e.g. Tuition, Sports",
+                    }
+                ),
             )
             self.fields[f"amount_{i}"] = forms.DecimalField(
                 required=False,
@@ -75,7 +84,13 @@ class SplitAllocationForm(forms.Form):
                 max_digits=12,
                 decimal_places=2,
                 label=f"Line {i} amount",
-                widget=forms.NumberInput(attrs={"class": "form-control allocation-amount", "step": "0.01", "placeholder": "0"}),
+                widget=forms.NumberInput(
+                    attrs={
+                        "class": "form-control allocation-amount",
+                        "step": "0.01",
+                        "placeholder": "0",
+                    }
+                ),
             )
         for i in range(1, self.NUM_PAYER_ROWS + 1):
             self.fields[f"payer_guardian_{i}"] = forms.ModelChoiceField(
@@ -90,7 +105,9 @@ class SplitAllocationForm(forms.Form):
                 max_digits=12,
                 decimal_places=2,
                 label=f"Payer {i} amount",
-                widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "placeholder": "0"}),
+                widget=forms.NumberInput(
+                    attrs={"class": "form-control", "step": "0.01", "placeholder": "0"}
+                ),
             )
 
     def get_allocations(self):
@@ -139,7 +156,10 @@ class SplitAllocationForm(forms.Form):
         split_mode = (data.get("split_mode") or "none").strip().lower()
         if split_mode == "equal":
             if not self._guardian_queryset.exists():
-                self.add_error("split_mode", "Selected student has no finance-enabled guardians for equal split.")
+                self.add_error(
+                    "split_mode",
+                    "Selected student has no finance-enabled guardians for equal split.",
+                )
             return data
         if split_mode == "custom":
             payer_total = Decimal("0.00")
@@ -151,21 +171,30 @@ class SplitAllocationForm(forms.Form):
                 has_guardian = guardian is not None
                 has_amount = amount is not None and amount > 0
                 if has_guardian != has_amount:
-                    self.add_error(None, f"Payer row {i} requires both guardian and amount.")
+                    self.add_error(
+                        None, f"Payer row {i} requires both guardian and amount."
+                    )
                     continue
                 if not has_guardian:
                     continue
                 if guardian.id in guardian_ids:
-                    self.add_error(None, "A guardian can only appear once in custom split.")
+                    self.add_error(
+                        None, "A guardian can only appear once in custom split."
+                    )
                     continue
                 guardian_ids.add(guardian.id)
                 payer_total += amount
                 payer_count += 1
             if payer_count == 0:
-                self.add_error("split_mode", "Add at least one payer allocation for custom split.")
+                self.add_error(
+                    "split_mode", "Add at least one payer allocation for custom split."
+                )
                 return data
             if payer_total != total:
-                self.add_error(None, f"Payer split total ({payer_total}) must equal total amount ({total}).")
+                self.add_error(
+                    None,
+                    f"Payer split total ({payer_total}) must equal total amount ({total}).",
+                )
         return data
 
 
@@ -207,21 +236,27 @@ class CashOfficeClosureForm(forms.Form):
     deposit_reference = forms.CharField(
         required=False,
         max_length=100,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. BNK-2026-02-12-001"}),
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "e.g. BNK-2026-02-12-001"}
+        ),
     )
     notes = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "Closure notes / anomalies"}),
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 2,
+                "placeholder": "Closure notes / anomalies",
+            }
+        ),
     )
 
     def __init__(self, *args, profile=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["bank_account"].queryset = (
-            BankAccount.objects.filter(
-                is_active=True,
-                account_type=BankAccount.AccountType.BANK,
-            ).order_by("name")
-        )
+        self.fields["bank_account"].queryset = BankAccount.objects.filter(
+            is_active=True,
+            account_type=BankAccount.AccountType.BANK,
+        ).order_by("name")
 
 
 class TellerScanForm(forms.Form):

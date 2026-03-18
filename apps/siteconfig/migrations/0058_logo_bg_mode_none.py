@@ -4,20 +4,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0057_header_footer_color'),
+        ("siteconfig", "0057_header_footer_color"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sitesettings',
-            name='logo_background_mode',
-            field=models.CharField(choices=[('none', 'None (disabled)'), ('contain', 'Contain (default)'), ('cover', 'Cover'), ('tile', 'Tile/Repeat'), ('center', 'Center (no scale)')], default='contain', help_text='How the logo background image is displayed: contain, cover, tile, or center.', max_length=16),
+            model_name="sitesettings",
+            name="logo_background_mode",
+            field=models.CharField(
+                choices=[
+                    ("none", "None (disabled)"),
+                    ("contain", "Contain (default)"),
+                    ("cover", "Cover"),
+                    ("tile", "Tile/Repeat"),
+                    ("center", "Center (no scale)"),
+                ],
+                default="contain",
+                help_text="How the logo background image is displayed: contain, cover, tile, or center.",
+                max_length=16,
+            ),
         ),
         migrations.AlterField(
-            model_name='themepack',
-            name='logo_background_mode',
-            field=models.CharField(choices=[('none', 'None (disabled)'), ('contain', 'Contain (default)'), ('cover', 'Cover'), ('tile', 'Tile/Repeat'), ('center', 'Center (no scale)')], default='contain', help_text='How the theme logo background image is displayed.', max_length=16),
+            model_name="themepack",
+            name="logo_background_mode",
+            field=models.CharField(
+                choices=[
+                    ("none", "None (disabled)"),
+                    ("contain", "Contain (default)"),
+                    ("cover", "Cover"),
+                    ("tile", "Tile/Repeat"),
+                    ("center", "Center (no scale)"),
+                ],
+                default="contain",
+                help_text="How the theme logo background image is displayed.",
+                max_length=16,
+            ),
         ),
     ]

@@ -79,7 +79,11 @@ def convert_grade(
     try:
         result["letter_grade"] = get_grade_letter(float(converted), to_scale)
     except _EVALS_ROSETTA_LETTER_GRADE_ERRORS as e:
-        logger.debug("evals.rosetta_stone: get_grade_letter failed for to_scale=%s: %s", to_scale, e)
+        logger.debug(
+            "evals.rosetta_stone: get_grade_letter failed for to_scale=%s: %s",
+            to_scale,
+            e,
+        )
         result["letter_grade"] = None
     return result
 

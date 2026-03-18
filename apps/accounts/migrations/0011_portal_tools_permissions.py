@@ -4,9 +4,17 @@ from django.db import migrations
 
 
 PORTAL_TOOL_PERMISSIONS = [
-    ("portal.forums", "Portal: Community / Forums", "Access to community and forums in the portal."),
+    (
+        "portal.forums",
+        "Portal: Community / Forums",
+        "Access to community and forums in the portal.",
+    ),
     ("portal.video", "Portal: Video Hub", "Access to the video hub in the portal."),
-    ("portal.documents", "Portal: Documents", "Access to the document library in the portal."),
+    (
+        "portal.documents",
+        "Portal: Documents",
+        "Access to the document library in the portal.",
+    ),
 ]
 
 # Roles that get all three portal tool permissions by default (admin can remove later).
@@ -41,7 +49,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0010_alter_user_role"),
     ]

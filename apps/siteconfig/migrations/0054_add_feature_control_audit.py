@@ -6,26 +6,47 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0053_alter_sitesettings_default_dashboard_view_and_more'),
+        ("siteconfig", "0053_alter_sitesettings_default_dashboard_view_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FeatureControlAudit',
+            name="FeatureControlAudit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('action', models.CharField(max_length=32)),
-                ('changes', models.JSONField(default=dict, help_text='Keys that changed with before/after.')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='feature_control_audits', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("action", models.CharField(max_length=32)),
+                (
+                    "changes",
+                    models.JSONField(
+                        default=dict, help_text="Keys that changed with before/after."
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="feature_control_audits",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Feature Control Audit',
-                'verbose_name_plural': 'Feature Control Audits',
-                'ordering': ['-created_at'],
+                "verbose_name": "Feature Control Audit",
+                "verbose_name_plural": "Feature Control Audits",
+                "ordering": ["-created_at"],
             },
         ),
     ]

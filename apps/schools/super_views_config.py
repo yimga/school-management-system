@@ -3,10 +3,12 @@
 Super config views: Configuration hub and platform config list/edit (Site settings, Regions, Plans, etc.).
 RUNBOOK_ADMIN_TO_SUPER_MIGRATION Phases 1–8. All views must be wrapped with require_super_access_with_host in super_urls.
 """
+
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
-from django.views.decorators.http import require_http_methods, require_GET, require_POST
+from django.views.decorators.http import require_http_methods, require_GET
+
 
 def _config_context(request):
     """Common context for config list/edit views. Back link is System config (single config surface)."""
@@ -39,6 +41,7 @@ def super_site_settings_edit(request, pk):
     from apps.siteconfig.models import SiteSettings
 
     site = get_object_or_404(SiteSettings, pk=pk)
+
     # Minimal form for super: key platform-facing fields; extend as needed.
     class SiteSettingsSuperForm(forms.ModelForm):
         class Meta:
@@ -53,8 +56,20 @@ def super_site_settings_edit(request, pk):
             widgets = {
                 "site_name": forms.TextInput(attrs={"class": "form-control"}),
                 "tagline": forms.TextInput(attrs={"class": "form-control"}),
-                "primary_color": forms.TextInput(attrs={"class": "form-control", "type": "text", "placeholder": "#0d6efd"}),
-                "accent_color": forms.TextInput(attrs={"class": "form-control", "type": "text", "placeholder": "#198754"}),
+                "primary_color": forms.TextInput(
+                    attrs={
+                        "class": "form-control",
+                        "type": "text",
+                        "placeholder": "#0d6efd",
+                    }
+                ),
+                "accent_color": forms.TextInput(
+                    attrs={
+                        "class": "form-control",
+                        "type": "text",
+                        "placeholder": "#198754",
+                    }
+                ),
                 "backend_console_theme": forms.Select(attrs={"class": "form-select"}),
             }
 
@@ -103,7 +118,9 @@ def super_grading_list(request):
     from apps.global_registries.models import GradingScaleConfig
 
     grading_scales = list(
-        GradingScaleConfig.objects.select_related("region").all().order_by("region__code", "scale_type")
+        GradingScaleConfig.objects.select_related("region")
+        .all()
+        .order_by("region__code", "scale_type")
     )
     return render(
         request,
@@ -145,7 +162,9 @@ def super_feature_toggles_list(request):
     """List platform FeatureToggleDefinition. Config surface is System config (no admin residue)."""
     from apps.policies_rules.models import FeatureToggleDefinition
 
-    definitions = list(FeatureToggleDefinition.objects.all().order_by("category", "key"))
+    definitions = list(
+        FeatureToggleDefinition.objects.all().order_by("category", "key")
+    )
     return render(
         request,
         "schools/super_feature_toggles_list.html",
@@ -165,7 +184,9 @@ def super_incidents_list(request):
     from apps.observability.models import PlatformIncident
 
     incidents = list(
-        PlatformIncident.objects.select_related("affected_school").all().order_by("-detected_at")[:200]
+        PlatformIncident.objects.select_related("affected_school")
+        .all()
+        .order_by("-detected_at")[:200]
     )
     try:
         pulse_url = reverse("super:pulse")
@@ -188,7 +209,9 @@ def super_billing_accounts_list(request):
     from apps.billing.models import BillingAccount
 
     accounts = list(
-        BillingAccount.objects.select_related("school").all().order_by("school__name")[:200]
+        BillingAccount.objects.select_related("school")
+        .all()
+        .order_by("school__name")[:200]
     )
     try:
         billing_dashboard_url = reverse("super:billing_dashboard")
@@ -211,7 +234,9 @@ def super_migration_runs_list(request):
     from apps.automation.models import MigrationRun
 
     runs = list(
-        MigrationRun.objects.select_related("school", "triggered_by").all().order_by("-started_at")[:200]
+        MigrationRun.objects.select_related("school", "triggered_by")
+        .all()
+        .order_by("-started_at")[:200]
     )
     try:
         migration_cloud_url = reverse("super:migration_cloud")

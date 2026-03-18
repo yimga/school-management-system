@@ -20,7 +20,9 @@ class EntityFeatureFlagTests(TestCase):
     def test_bulk_commit_respects_flag(self):
         self.site.backend_feature_flags = {"allow_bulk_commit": False}
         self.site.save()
-        resp = self.client.post("/api/entities/students/bulk-commit/", {"rows": []}, format="json")
+        resp = self.client.post(
+            "/api/entities/students/bulk-commit/", {"rows": []}, format="json"
+        )
         self.assertEqual(resp.status_code, 403)
         self.assertIn("disabled", resp.json().get("error", "").lower())
 
@@ -28,7 +30,11 @@ class EntityFeatureFlagTests(TestCase):
         self.site.backend_feature_flags = {"max_bulk_import_rows": 1}
         self.site.save()
         csv_body = "first_name,last_name\nA,B\nC,D"
-        resp = self.client.post("/api/entities/students/bulk-preview/", {"csv": csv_body}, format="json")
+        resp = self.client.post(
+            "/api/entities/students/bulk-preview/", {"csv": csv_body}, format="json"
+        )
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        self.assertTrue(any("Row limit" in err.get("error", "") for err in data.get("errors", [])))
+        self.assertTrue(
+            any("Row limit" in err.get("error", "") for err in data.get("errors", []))
+        )

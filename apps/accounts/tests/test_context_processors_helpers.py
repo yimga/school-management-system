@@ -21,15 +21,19 @@ class AccountsContextProcessorsTests(TestCase):
         request = self.factory.get("/")
         request.user = self.user
 
-        with patch(
-            "apps.schools.tenant_url.get_tenant_prefix",
-            side_effect=RuntimeError("tenant prefix unavailable"),
-        ), patch(
-            "apps.finance.models.Notification.objects.filter",
-            side_effect=DatabaseError("finance notifications unavailable"),
-        ), patch(
-            "apps.communication.models.Message.objects.filter",
-            side_effect=DatabaseError("messages unavailable"),
+        with (
+            patch(
+                "apps.schools.tenant_url.get_tenant_prefix",
+                side_effect=RuntimeError("tenant prefix unavailable"),
+            ),
+            patch(
+                "apps.finance.models.Notification.objects.filter",
+                side_effect=DatabaseError("finance notifications unavailable"),
+            ),
+            patch(
+                "apps.communication.models.Message.objects.filter",
+                side_effect=DatabaseError("messages unavailable"),
+            ),
         ):
             context = dashboard_context(request)
 

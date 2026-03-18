@@ -3,6 +3,7 @@ Blueprint registry: single entry point for tenant blueprint (RunMyCampus Executi
 Use this module for all blueprint reads and apply/preview operations.
 Existing code may still use resolver.get_tenant_blueprint or blueprint_services; this is the canonical import.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict
@@ -22,18 +23,21 @@ def get_tenant_blueprint(school) -> Dict[str, Any]:
 def apply_blueprint_pack(school, pack, *, applied_by=None):
     """Apply a BlueprintPack to a school; creates PolicyBundle and sets TenantBlueprint.active_bundle."""
     from apps.policies.blueprint_services import apply_blueprint_pack as _apply
+
     return _apply(school, pack, applied_by=applied_by)
 
 
 def preview_blueprint_pack(school, pack) -> dict[str, Any]:
     """Preview what would be applied (policy keys, pack summary). No DB write."""
     from apps.policies.blueprint_services import preview_blueprint_pack as _preview
+
     return _preview(school, pack)
 
 
 def update_bundle_for_schools(pack, *, school_ids=None, applied_by=None):
     """Re-apply a BlueprintPack to schools that use it (e.g. when pack version increased)."""
     from apps.policies.blueprint_services import update_bundle_for_schools as _update
+
     return _update(pack, school_ids=school_ids, applied_by=applied_by)
 
 

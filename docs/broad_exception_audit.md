@@ -28,7 +28,7 @@
 | digital_id_api.py | DONE | Staff + children APIs: (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) + logger.exception. Allowlist 0. |
 | ministry_connectors.py | DONE | HTTP response parse: (ValueError, TypeError, UnicodeDecodeError, json.JSONDecodeError); outer: (OSError, ConnectionError, TimeoutError, ValueError, TypeError). Allowlist 0. |
 | rate_limit.py | DONE | _throttle cache: (TypeError, ValueError, AttributeError); _check_tenant_quota_limit, _get_apicenter_quota_for_school, record_tenant_api_usage: (ImportError, AttributeError, TypeError, ValueError, DatabaseError); get_tenant_api_request_count: (TypeError, ValueError, AttributeError). Allowlist 0. |
-| search_api.py | DONE | Read layer skip: (ImportError, AttributeError, TypeError, ValueError); per-type search: (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) + logger.error. Allowlist 0. |
+| search_api.py | DONE | Read layer skip: (ImportError, AttributeError, TypeError, ValueError); per-type search: (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) + logger.error; student story enrich: _STUDENT_STORY_ENRICH_ERRORS (DatabaseError, TypeError, ValueError, KeyError, AttributeError, IndexError) + logger.debug. Allowlist 0. |
 | entity_api.py | DONE | Bulk create (StudentProfile, Classroom): (DRFValidationError, IntegrityError, DatabaseError, TypeError, ValueError, KeyError); noqa removed. Allowlist 0. |
 | views_v1.py | — | No broad except; allowlist 0. |
 
@@ -60,7 +60,7 @@
 ### apps/accounts (§2.4 — Step 9, full app pass)
 | File | Status | Notes |
 |------|--------|--------|
-| views.py | DONE | Already typed; allowlist 0. |
+| views.py | DONE | backend_dashboard insight_anomalies_api_url: NoReverseMatch; build_dashboard_extras: ACCOUNTS_SOFT_FAILURES. Allowlist 0. |
 | views_migration.py | DONE | CSV/JSON: (UnicodeDecodeError, csv.Error, json.JSONDecodeError, …); run/apply: (ValueError, TypeError, KeyError, ImportError, AttributeError, RuntimeError). Allowlist 0. |
 | views_oidc.py | DONE | JWT decode: (ValueError, TypeError, KeyError, json.JSONDecodeError, UnicodeDecodeError); token exchange: (OSError, ConnectionError, TimeoutError, …); session: (KeyError, TypeError, RuntimeError). Allowlist 0. |
 | views_passkey.py | DONE | All four endpoints: (ValueError, TypeError, KeyError, json.JSONDecodeError, AttributeError). Allowlist 0. |
@@ -143,7 +143,7 @@
 | **management/commands/attach_audit_triggers.py** | **DONE** | Single-schema and per-tenant attach: _AUDIT_TRIGGER_ERRORS (DatabaseError, OperationalError, ProgrammingError) + log_exception_with_context(school_id, extra: schema/tables/error); allowlist 0. §2e row 7. |
 | **management/commands/check_badge_expiry_alerts.py** | **DONE** | handle() loop: school resolve _BADGE_EXPIRY_SCHOOL_RESOLVE_ERRORS (ImportError, AttributeError, TypeError, ValueError, DatabaseError, ObjectDoesNotExist); Notification create _BADGE_EXPIRY_NOTIFY_ERRORS (IntegrityError, DatabaseError, ValidationError, ValueError, TypeError, AttributeError); both + log_exception_with_context(school_id, extra: badge_id, error). Allowlist 0. §2e row 7. |
 | **management/commands/revoke_audit_log_permissions.py** | **DONE** | handle() per-schema loop: _REVOKE_AUDIT_LOG_PERMISSIONS_ERRORS (DatabaseError, OperationalError, ProgrammingError) + log_exception_with_context(school_id=None, extra: schema_name, label, error); allowlist 0. |
-| **views_backend.py** | **DONE** | backend_student_create (send_mail): _PEOPLE_BACKEND_EMAIL_ERRORS; student/teacher/classroom/applicant create: _PEOPLE_BACKEND_SAVE_ERRORS (IntegrityError, DatabaseError, ValidationError, ValueError, TypeError, AttributeError) + log_view_exception. Allowlist 0. |
+| **views_backend.py** | **DONE** | backend_student_create (send_mail): _PEOPLE_BACKEND_EMAIL_ERRORS; create flows: _PEOPLE_BACKEND_SAVE_ERRORS + log_view_exception. _student_360_link_urls: NoReverseMatch; primary_invoice (NoReverseMatch, TypeError, ValueError, KeyError). Allowlist 0. |
 | **employer_views.py** | **DONE** | employer_student_transcript: annual_report_context → except _EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) + log_exception_with_context(school_id, extra: placement_id, student_id); return generic error. Allowlist 0. |
 | **employer_views.py** | **DONE** | employer_confirm_hours: hours parse _EMPLOYER_HOURS_PARSE_ERRORS (InvalidOperation, ValueError, TypeError) + log_exception_with_context(school_id, extra placement_id); employer_student_transcript: annual_report_context _EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) + log_view_exception. Allowlist 0. |
 | **people_management.py** | **DONE** | import_students_csv / import_teachers_csv: row loop → _PEOPLE_IMPORT_ROW_ERRORS (IntegrityError, ValidationError, ValueError, TypeError, AttributeError, KeyError, UnicodeDecodeError); file-level → _PEOPLE_IMPORT_FILE_ERRORS (UnicodeDecodeError, OSError, TypeError, csv.Error); bulk_send_email → _PEOPLE_BULK_EMAIL_ERRORS (SMTPException, OSError, ValueError, TypeError); all + log_exception_with_context. Allowlist 0. |

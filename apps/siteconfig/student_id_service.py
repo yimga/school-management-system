@@ -3,6 +3,7 @@ Global Digital ID Engine (plan 3.17, 3.24).
 StudentIDService: DesignTemplate (id_card) → 54×86mm PDF; QR = signed JWT; verify portal.
 JWT short expiry (e.g. 5 min); rate-limit verify by IP.
 """
+
 from __future__ import annotations
 
 import json
@@ -29,13 +30,16 @@ def _sign_jwt(payload: dict) -> str:
     import base64
     import hmac
     import hashlib
+
     header = {"alg": "HS256", "typ": "JWT"}
     payload["exp"] = int(time.time()) + JWT_EXPIRY_SECONDS
     payload["iat"] = int(time.time())
     b64 = lambda x: base64.urlsafe_b64encode(x).rstrip(b"=").decode("ascii")
     msg = b64(json.dumps(header).encode()) + "." + b64(json.dumps(payload).encode())
     sig = hmac.new(
-        settings.SECRET_KEY.encode() if isinstance(settings.SECRET_KEY, str) else settings.SECRET_KEY,
+        settings.SECRET_KEY.encode()
+        if isinstance(settings.SECRET_KEY, str)
+        else settings.SECRET_KEY,
         msg=msg.encode(),
         digestmod=hashlib.sha256,
     ).digest()
@@ -47,6 +51,7 @@ def _verify_jwt(token: str) -> Optional[dict]:
     import base64
     import hmac
     import hashlib
+
     try:
         parts = token.split(".")
         if len(parts) != 3:
@@ -54,7 +59,9 @@ def _verify_jwt(token: str) -> Optional[dict]:
         msg = (parts[0] + "." + parts[1]).encode()
         sig_got = base64.urlsafe_b64decode(parts[2] + "==")
         sig_expected = hmac.new(
-            settings.SECRET_KEY.encode() if isinstance(settings.SECRET_KEY, str) else settings.SECRET_KEY,
+            settings.SECRET_KEY.encode()
+            if isinstance(settings.SECRET_KEY, str)
+            else settings.SECRET_KEY,
             msg=msg,
             digestmod=hashlib.sha256,
         ).digest()
@@ -80,7 +87,9 @@ def rate_limit_verify(ip: str) -> bool:
     return False
 
 
-def create_student_verify_token(school_id, student_id, student_name: str, photo_url: str = "", grade: str = "") -> str:
+def create_student_verify_token(
+    school_id, student_id, student_name: str, photo_url: str = "", grade: str = ""
+) -> str:
     """Create JWT for public verify page (name, photo, Active only; no PII)."""
     payload = {
         "school_id": str(school_id),
@@ -101,14 +110,18 @@ def verify_student_token(token: str) -> Optional[dict]:
 def get_id_card_template(school):
     """Get default id_card DesignTemplate for school."""
     from apps.siteconfig.models import DesignTemplate
-    return DesignTemplate.objects.filter(
-        school=school,
-        document_type=DesignTemplate.DocumentType.ID_CARD,
-        is_default=True,
-    ).first() or DesignTemplate.objects.filter(
-        school=school,
-        document_type=DesignTemplate.DocumentType.ID_CARD,
-    ).first()
+
+    return (
+        DesignTemplate.objects.filter(
+            school=school,
+            document_type=DesignTemplate.DocumentType.ID_CARD,
+            is_default=True,
+        ).first()
+        or DesignTemplate.objects.filter(
+            school=school,
+            document_type=DesignTemplate.DocumentType.ID_CARD,
+        ).first()
+    )
 
 
 def render_student_id_pdf(student_profile, school, template=None) -> Optional[bytes]:
@@ -121,13 +134,25 @@ def render_student_id_pdf(student_profile, school, template=None) -> Optional[by
         logger.warning("No id_card DesignTemplate for school %s", school.pk)
         return None
     from apps.siteconfig.design_studio import render_template_to_pdf
+
     name = f"{getattr(student_profile, 'first_name', '')} {getattr(student_profile, 'last_name', '')}".strip()
     photo_url = ""
-    if getattr(student_profile, "profile_photo", None) and student_profile.profile_photo:
-        photo_url = student_profile.profile_photo.url if hasattr(student_profile.profile_photo, "url") else ""
+    if (
+        getattr(student_profile, "profile_photo", None)
+        and student_profile.profile_photo
+    ):
+        photo_url = (
+            student_profile.profile_photo.url
+            if hasattr(student_profile.profile_photo, "url")
+            else ""
+        )
     grade = getattr(student_profile, "classroom", None)
     grade = grade.name if grade else getattr(student_profile, "section", "") or ""
-    matricule = getattr(student_profile, "admission_number", None) or getattr(student_profile, "student_code", "") or ""
+    matricule = (
+        getattr(student_profile, "admission_number", None)
+        or getattr(student_profile, "student_code", "")
+        or ""
+    )
     context = {
         "student_name": name,
         "student_photo": photo_url,

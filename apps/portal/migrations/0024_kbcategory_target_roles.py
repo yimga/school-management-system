@@ -33,7 +33,6 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("portal", "0023_portal_feature_item_school_tenant_upload"),
     ]

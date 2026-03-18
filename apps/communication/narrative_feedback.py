@@ -2,12 +2,15 @@
 AI narrative feedback: create achievement events and optional LLM-generated
 parent message (draft); teacher approves before sending.
 """
+
 from django.utils import timezone
 
 from apps.communication.models import AchievementEvent, NarrativeFeedback
 
 
-def create_achievement_event(school, student, event_type: str, payload: dict | None = None) -> AchievementEvent:
+def create_achievement_event(
+    school, student, event_type: str, payload: dict | None = None
+) -> AchievementEvent:
     """Record an achievement event (e.g. perfect_attendance_3d, grade_improved_math)."""
     return AchievementEvent.objects.create(
         school=school,
@@ -33,7 +36,9 @@ def generate_narrative_for_achievement(
 
     event_type = achievement_event.event_type
     payload = achievement_event.payload or {}
-    student_name = getattr(achievement_event.student, "get_full_name", lambda: "Your child")()
+    student_name = getattr(
+        achievement_event.student, "get_full_name", lambda: "Your child"
+    )()
     prompt = (
         f"Generate a single short, warm message (under {max_length} characters) for a parent, "
         f"about this school achievement. Write in second person (e.g. 'Your child...'). "

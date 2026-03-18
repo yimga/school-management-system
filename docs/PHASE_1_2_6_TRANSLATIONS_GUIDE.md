@@ -1,5 +1,7 @@
 # Phase 1.2.6: Multi-Language Translations Guide
 
+> **Non-authoritative phase doc.** Current execution and BR/i18n work are tracked in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (e.g. BR-08). This guide remains as historical reference.
+
 **Status**: ✅ COMPLETE  
 **Version**: 1.0  
 **Last Updated**: January 2025

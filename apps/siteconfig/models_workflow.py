@@ -5,6 +5,7 @@ Pre-built business workflows (e.g. "If absent 3 days → notify counselor") with
 trigger–condition–action (Section 5: Trigger → Conditions → Actions → Approvals → Audit).
 Level 1 = locked global default, Level 2 = configurable template, Level 3 = constrained custom.
 """
+
 from django.db import models
 
 
@@ -13,12 +14,18 @@ class WorkflowPack(models.Model):
     Phase 4: Reusable workflow pack (e.g. Admissions Standard, Finance Dual Approval).
     Groups WorkflowTemplates; assignable by module to a school.
     """
+
     code = models.CharField(max_length=80, unique=True)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     family = models.CharField(max_length=64, blank=True, db_index=True)
     version = models.CharField(max_length=32, default="1.0")
     is_active = models.BooleanField(default=True, db_index=True)
+    recommended_sectors = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Wedge 14–22 sector codes (e.g. PUBLIC, NGO) this pack is recommended for.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -33,6 +40,7 @@ class WorkflowPack(models.Model):
 
 class WorkflowPackAssignment(models.Model):
     """Assign a WorkflowPack to a school for a given module (e.g. admissions, fee_approval)."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -43,7 +51,11 @@ class WorkflowPackAssignment(models.Model):
         on_delete=models.PROTECT,
         related_name="assignments",
     )
-    module_slug = models.CharField(max_length=80, db_index=True, help_text="e.g. admissions, fee_approval, grade_publish")
+    module_slug = models.CharField(
+        max_length=80,
+        db_index=True,
+        help_text="e.g. admissions, fee_approval, grade_publish",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -63,10 +75,18 @@ class WorkflowTemplate(models.Model):
 
     class Level(models.IntegerChoices):
         LOCKED = 1, "Level 1: Locked global default (safety/legal)"
-        CONFIGURABLE_TEMPLATE = 2, "Level 2: Configurable template (tenant chooses approved variants)"
-        CONSTRAINED_CUSTOM = 3, "Level 3: Constrained custom (tenant customizes within safe boundaries)"
+        CONFIGURABLE_TEMPLATE = (
+            2,
+            "Level 2: Configurable template (tenant chooses approved variants)",
+        )
+        CONSTRAINED_CUSTOM = (
+            3,
+            "Level 3: Constrained custom (tenant customizes within safe boundaries)",
+        )
 
-    code = models.CharField(max_length=80, unique=True, help_text="Unique code (e.g. safety_net_absent_3d)")
+    code = models.CharField(
+        max_length=80, unique=True, help_text="Unique code (e.g. safety_net_absent_3d)"
+    )
     workflow_pack = models.ForeignKey(
         WorkflowPack,
         on_delete=models.SET_NULL,
@@ -94,12 +114,12 @@ class WorkflowTemplate(models.Model):
     conditions = models.JSONField(
         default=list,
         blank=True,
-        help_text="List of conditions: [{\"field\": \"...\", \"op\": \"eq\", \"value\": \"...\"}].",
+        help_text='List of conditions: [{"field": "...", "op": "eq", "value": "..."}].',
     )
     actions = models.JSONField(
         default=list,
         blank=True,
-        help_text="List of actions: [{\"type\": \"notify\", \"params\": {...}}].",
+        help_text='List of actions: [{"type": "notify", "params": {...}}].',
     )
     is_active = models.BooleanField(default=True)
     certified = models.BooleanField(
@@ -171,8 +191,12 @@ class WorkflowRunLog(models.Model):
         related_name="run_logs",
     )
     conditions_passed = models.BooleanField(default=False)
-    actions_run = models.JSONField(default=list, help_text="List of {type, params, run_at} per action.")
-    context_keys = models.JSONField(default=list, help_text="Keys present in context (no values for privacy).")
+    actions_run = models.JSONField(
+        default=list, help_text="List of {type, params, run_at} per action."
+    )
+    context_keys = models.JSONField(
+        default=list, help_text="Keys present in context (no values for privacy)."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

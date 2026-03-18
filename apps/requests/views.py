@@ -94,9 +94,7 @@ def requests_dashboard(request: HttpRequest):
         .annotate(count=Count("id"))
     )
     status_counts = (
-        scoped_base.values("status")
-        .order_by("status")
-        .annotate(count=Count("id"))
+        scoped_base.values("status").order_by("status").annotate(count=Count("id"))
     )
 
     type_counts_dict = {row["request_type"]: row["count"] for row in type_counts}
@@ -117,14 +115,20 @@ def requests_dashboard(request: HttpRequest):
         "type": "doughnut",
         "data": {
             "labels": [o["label"] for o in status_with_data],
-            "datasets": [{
-                "data": [o["count"] for o in status_with_data],
-                "backgroundColor": [colors[i % len(colors)] for i in range(len(status_with_data))],
-            }],
+            "datasets": [
+                {
+                    "data": [o["count"] for o in status_with_data],
+                    "backgroundColor": [
+                        colors[i % len(colors)] for i in range(len(status_with_data))
+                    ],
+                }
+            ],
         },
     }
 
-    per_page = _safe_int(request.GET.get("page_size", 25), default=25, minimum=10, maximum=100)
+    per_page = _safe_int(
+        request.GET.get("page_size", 25), default=25, minimum=10, maximum=100
+    )
     paginator = Paginator(qs, per_page)
     page_number = request.GET.get("page", 1)
     try:
@@ -138,17 +142,21 @@ def requests_dashboard(request: HttpRequest):
     q.pop("page", None)
     pagination_extra_query = q.urlencode()
 
-    return render(request, "requests/dashboard.html", {
-        "requests": page_obj.object_list,
-        "page_obj": page_obj,
-        "type_filter": request_type,
-        "status_filter": status,
-        "search": search,
-        "type_options": type_options,
-        "status_options": status_options,
-        "chart_status_donut_json": json.dumps(chart_status_donut),
-        "pagination_extra_query": pagination_extra_query,
-    })
+    return render(
+        request,
+        "requests/dashboard.html",
+        {
+            "requests": page_obj.object_list,
+            "page_obj": page_obj,
+            "type_filter": request_type,
+            "status_filter": status,
+            "search": search,
+            "type_options": type_options,
+            "status_options": status_options,
+            "chart_status_donut_json": json.dumps(chart_status_donut),
+            "pagination_extra_query": pagination_extra_query,
+        },
+    )
 
 
 @login_required
@@ -160,7 +168,9 @@ def request_detail(request: HttpRequest, request_id):
         qs = qs.filter(school=school)
     access_request = get_object_or_404(qs, id=request_id)
     if school is not None and access_request.school_id != school.id:
-        return HttpResponseForbidden("This request does not belong to the active school.")
+        return HttpResponseForbidden(
+            "This request does not belong to the active school."
+        )
     if request.method == "POST":
         action = request.POST.get("action", "").upper()
         reason = (request.POST.get("reason") or "").strip()
@@ -180,11 +190,15 @@ def request_detail(request: HttpRequest, request_id):
         messages.success(request, f"Request {access_request.reference} updated.")
         return redirect("requests:detail", request_id=access_request.id)
 
-    return render(request, "requests/detail.html", {
-        "req": access_request,
-        "audits": access_request.audits.select_related("actor")[:50],
-        "decisions": access_request.decisions.select_related("decided_by")[:20],
-    })
+    return render(
+        request,
+        "requests/detail.html",
+        {
+            "req": access_request,
+            "audits": access_request.audits.select_related("actor")[:50],
+            "decisions": access_request.decisions.select_related("decided_by")[:20],
+        },
+    )
 
 
 @login_required
@@ -194,13 +208,19 @@ def request_module_access(request: HttpRequest):
 
     module = (request.POST.get("module") or "").strip().lower()
     action = (request.POST.get("action") or "read").strip().lower()
-    next_url = _safe_next_url(request, request.POST.get("next"), reverse("requests:dashboard"))
+    next_url = _safe_next_url(
+        request, request.POST.get("next"), reverse("requests:dashboard")
+    )
 
     if action not in {"read", "write"}:
         action = "read"
 
     title = f"Module access request: {module}" if module else "Module access request"
-    summary = f"Requested {action} access for {module}." if module else "Requested module access."
+    summary = (
+        f"Requested {action} access for {module}."
+        if module
+        else "Requested module access."
+    )
     details = {"module": module, "action": action}
 
     create_access_request(
@@ -212,5 +232,7 @@ def request_module_access(request: HttpRequest):
         school=_request_school(request),
     )
 
-    messages.success(request, "Access request submitted. You will be notified when it is reviewed.")
+    messages.success(
+        request, "Access request submitted. You will be notified when it is reviewed."
+    )
     return redirect(next_url)

@@ -3,6 +3,7 @@ Phase 10 — 1.2: Runtime defaults (state-safe migration from SiteSettings).
 Singleton row holds JSON snapshot of tenant-affecting settings; get_effective_site_settings
 reads from here when present, falling back to SiteSettings for file fields and legacy.
 """
+
 from __future__ import annotations
 
 from django.db import models
@@ -11,7 +12,10 @@ from django.db import models
 def _invalidate_effective_site_settings_cache():
     """Called when RuntimeDefaults is saved so get_effective_site_settings sees new values."""
     try:
-        from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
+        from apps.platform_runtime.helpers import (
+            invalidate_effective_site_settings_cache,
+        )
+
         invalidate_effective_site_settings_cache()
     except (AttributeError, ImportError, OSError, RuntimeError, TypeError, ValueError):
         pass
@@ -24,11 +28,13 @@ class RuntimeDefaults(models.Model):
     Step 4 ownership: first-class columns (e.g. cache_rankings_interval_minutes) override payload
     and SiteSettings when set; backfill via sync_from_site_settings / backfill_runtime_defaults.
     """
+
     payload = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     # Step 4: first-class ownership; when non-null, get_effective_site_settings uses this.
     cache_rankings_interval_minutes = models.PositiveIntegerField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         help_text="Owned by platform_runtime. When set, resolver uses this instead of SiteSettings.",
     )
 
@@ -55,7 +61,9 @@ class RuntimeDefaults(models.Model):
         if owner_set:
             payload: dict = {}
             for owner in owner_set:
-                payload.update(site_settings.owned_payload(owner=owner, exclude_owners=excluded))
+                payload.update(
+                    site_settings.owned_payload(owner=owner, exclude_owners=excluded)
+                )
             return payload
         return site_settings.owned_payload(exclude_owners=excluded)
 
@@ -94,7 +102,13 @@ class RuntimeDefaults(models.Model):
             else:
                 obj.payload = payload
             obj.cache_rankings_interval_minutes = cache_mins
-            obj.save(update_fields=["payload", "cache_rankings_interval_minutes", "updated_at"])
+            obj.save(
+                update_fields=[
+                    "payload",
+                    "cache_rankings_interval_minutes",
+                    "updated_at",
+                ]
+            )
         return obj, created
 
     def save(self, *args, **kwargs):
@@ -108,6 +122,7 @@ class AIActionAuditLog(models.Model):
     Phase 10 — 10.8: AI action audit trail.
     One row per AI-invoked action (e.g. suggestion accepted, content generated); for compliance and debugging.
     """
+
     action_type = models.CharField(max_length=80, db_index=True)
     tenant_id = models.UUIDField(null=True, blank=True, db_index=True)
     user_id = models.IntegerField(null=True, blank=True, db_index=True)
@@ -119,4 +134,26 @@ class AIActionAuditLog(models.Model):
         app_label = "platform_runtime"
         verbose_name = "AI action audit log"
         verbose_name_plural = "AI action audit logs"
+        ordering = ["-created_at"]
+
+
+class PlatformEventLog(models.Model):
+    """
+    Append-only outbox for emit_platform_event (§0.3 Pillar 5 — event-driven baseline).
+    Enables replay, analytics, and future webhook fan-out without losing events at log-only phase.
+    """
+
+    event_type = models.CharField(max_length=64, db_index=True)
+    payload = models.JSONField(default=dict, blank=True)
+    tenant_id = models.CharField(max_length=64, blank=True, default="", db_index=True)
+    school_id = models.CharField(max_length=40, blank=True, default="", db_index=True)
+    idempotency_key = models.CharField(
+        max_length=128, blank=True, default="", db_index=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        verbose_name = "Platform event log"
+        verbose_name_plural = "Platform event logs"
         ordering = ["-created_at"]

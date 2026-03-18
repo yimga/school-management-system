@@ -3,6 +3,7 @@ WebAuthn/Passkey support alongside TOTP for MFA (25.5, 29.1).
 Registration: add a passkey to the user account.
 Authentication: verify with passkey and set mfa_verified (alternative to TOTP).
 """
+
 import base64
 import json
 import secrets
@@ -20,6 +21,7 @@ from .models import UserPasskey
 def _webauthn_available():
     try:
         import webauthn  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -61,7 +63,10 @@ def passkey_registration_options(request):
             rp_name=getattr(settings, "WEBAUTHN_RP_NAME", "RunMyCampus"),
             user_id=str(user.pk).encode("utf-8"),
             user_name=user.get_username(),
-            user_display_name=(getattr(user, "get_full_name", lambda: "")().strip() or user.get_username()),
+            user_display_name=(
+                getattr(user, "get_full_name", lambda: "")().strip()
+                or user.get_username()
+            ),
             challenge=_challenge_bytes(challenge),
         )
         return JsonResponse(json.loads(options_to_json(options)))
@@ -89,8 +94,16 @@ def passkey_registration_verify(request):
             expected_rp_id=_rp_id(request),
             expected_origin=_origin(request),
         )
-        credential_id_b64 = base64.urlsafe_b64encode(verification.credential_id).decode("utf-8").rstrip("=")
-        public_key_b64 = base64.urlsafe_b64encode(verification.credential_public_key).decode("utf-8").rstrip("=")
+        credential_id_b64 = (
+            base64.urlsafe_b64encode(verification.credential_id)
+            .decode("utf-8")
+            .rstrip("=")
+        )
+        public_key_b64 = (
+            base64.urlsafe_b64encode(verification.credential_public_key)
+            .decode("utf-8")
+            .rstrip("=")
+        )
         UserPasskey.objects.create(
             user=request.user,
             name=data.get("deviceName", "Passkey"),
@@ -119,7 +132,9 @@ def passkey_authentication_options(request):
         allow_credentials = []
         for pk in UserPasskey.objects.filter(user=request.user):
             raw_id = base64.urlsafe_b64decode((pk.credential_id + "==").encode("utf-8"))
-            allow_credentials.append(PublicKeyCredentialDescriptor(id=raw_id, type="public-key"))
+            allow_credentials.append(
+                PublicKeyCredentialDescriptor(id=raw_id, type="public-key")
+            )
         options = generate_authentication_options(
             rp_id=_rp_id(request),
             challenge=_challenge_bytes(challenge),
@@ -145,11 +160,15 @@ def passkey_authentication_verify(request):
             return JsonResponse({"error": "No authentication challenge"}, status=400)
 
         # Client sends id (credential id, base64url). We store credential_id in UserPasskey.
-        passkey = UserPasskey.objects.filter(user=request.user, credential_id=data["id"]).first()
+        passkey = UserPasskey.objects.filter(
+            user=request.user, credential_id=data["id"]
+        ).first()
         if not passkey:
             return JsonResponse({"error": "Unknown credential"}, status=400)
 
-        public_key = base64.urlsafe_b64decode((passkey.public_key + "==").encode("utf-8"))
+        public_key = base64.urlsafe_b64decode(
+            (passkey.public_key + "==").encode("utf-8")
+        )
         verification = verify_authentication_response(
             credential=data,
             expected_challenge=_challenge_bytes(challenge),
@@ -164,6 +183,7 @@ def passkey_authentication_verify(request):
         request.session["mfa_verified"] = True
         from datetime import timedelta
         from django.utils import timezone
+
         remember = data.get("remember_device") is True
         if remember:
             until = timezone.now() + timedelta(days=14)
@@ -183,7 +203,11 @@ def passkey_verify_page(request):
     has_passkey = UserPasskey.objects.filter(user=request.user).exists()
     if not has_totp and not has_passkey:
         return redirect("accounts:mfa_setup")
-    return render(request, "accounts/mfa_verify.html", {
-        "next_url": request.GET.get("next", ""),
-        "use_passkey": _webauthn_available() and has_passkey,
-    })
+    return render(
+        request,
+        "accounts/mfa_verify.html",
+        {
+            "next_url": request.GET.get("next", ""),
+            "use_passkey": _webauthn_available() and has_passkey,
+        },
+    )

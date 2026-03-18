@@ -169,7 +169,9 @@ class RolloverProposalItem(models.Model):
         related_name="rollover_items_approved",
     )
     promotion_status = models.CharField(max_length=20, blank=True)
-    annual_average = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    annual_average = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     outstanding_returns = models.PositiveIntegerField(default=0)
     is_graduate = models.BooleanField(
         default=False,

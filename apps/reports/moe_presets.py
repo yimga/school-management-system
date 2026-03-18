@@ -37,15 +37,42 @@ MOE_PRESETS = {
         "region_hint": "CM",
         "template_family": "cameroon",
     },
+    "asia_generic": {
+        "name": "Asia (ministry-style export)",
+        "description": "Generic ministry-compliant summary for Asia; extend with country-specific presets (e.g. India CBSE, Singapore) as we go to market.",
+        "region_hint": "IN, SG, CN, JP, MY, TH, ID, PH, VN",
+        "template_family": None,
+    },
+    "canada_provincial": {
+        "name": "Canada (provincial)",
+        "description": "Provincial or territorial aligned summary; extend with province-specific templates (e.g. Ontario, BC) as needed.",
+        "region_hint": "CA",
+        "template_family": None,
+    },
+    "latam_es": {
+        "name": "Spanish South America (ministry)",
+        "description": "Ministry-style export for Spanish-speaking South America (Argentina, Colombia, Chile, Peru, etc.).",
+        "region_hint": "AR, CO, CL, PE, EC, BO, PY, UY, VE",
+        "template_family": None,
+    },
+    "mena_generic": {
+        "name": "MENA (ministry / regulatory)",
+        "description": "Ministry or regulatory summary for Middle East & North Africa; extend with country-specific presets (e.g. UAE, Saudi, Egypt) as we go to market.",
+        "region_hint": "AE, SA, EG, JO, LB, KW, BH, QA, OM",
+        "template_family": None,
+    },
+    "india_cbse": {
+        "name": "India (CBSE / state boards)",
+        "description": "CBSE or state board aligned summary; extend with specific board templates as we go to market.",
+        "region_hint": "IN",
+        "template_family": None,
+    },
 }
 
 
 def get_moe_presets():
     """Return list of preset ids and metadata for UI/API."""
-    return [
-        {"id": k, **v}
-        for k, v in MOE_PRESETS.items()
-    ]
+    return [{"id": k, **v} for k, v in MOE_PRESETS.items()]
 
 
 def get_moe_preset(preset_id: str):

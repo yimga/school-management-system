@@ -2,6 +2,7 @@
 Website / competitor brand import — fetch URL and extract logo, colors, site name.
 Non-negotiable: Strategy Report Phase 2; HOW_WE_SCOPE_WEBSITE_IMPORT.
 """
+
 import logging
 import re
 from html.parser import HTMLParser
@@ -15,7 +16,13 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 10
 USER_AGENT = "RunMyCampus-BrandImport/1.0"
-OPTIONAL_BRAND_IMPORT_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
+OPTIONAL_BRAND_IMPORT_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    TypeError,
+    ValueError,
+)
 OPTIONAL_BRAND_PARSE_ERRORS = (AttributeError, TypeError, ValueError, re.error)
 
 
@@ -105,7 +112,7 @@ def fetch_and_parse_brand_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
         if parser.og_image:
             result["logo_url"] = urljoin(base, parser.og_image)
         if parser.og_title:
-            result["site_name"] = parser.og_title[: 200] or None
+            result["site_name"] = parser.og_title[:200] or None
         if not result["site_name"]:
             m = re.search(r"<title[^>]*>([^<]+)</title>", html, re.I | re.DOTALL)
             if m:
@@ -116,7 +123,11 @@ def fetch_and_parse_brand_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
 
     # Suggest a theme pack (metadata plan todo 7: brand import assistant).
     try:
-        default = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name").first()
+        default = (
+            ThemePack.objects.filter(is_active=True)
+            .order_by("-is_default", "name")
+            .first()
+        )
         if default:
             result["suggested_theme_pack_slug"] = getattr(default, "slug", None) or ""
             result["suggested_theme_pack_name"] = getattr(default, "name", None) or ""

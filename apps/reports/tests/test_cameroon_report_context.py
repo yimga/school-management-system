@@ -3,7 +3,15 @@ from datetime import date
 from django.test import TestCase
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Classroom, Department, Specialty, Subject, SubjectAssignment, Term
+from apps.academics.models import (
+    AcademicYear,
+    Classroom,
+    Department,
+    Specialty,
+    Subject,
+    SubjectAssignment,
+    Term,
+)
 from apps.evals.models import Evaluation
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.reports.services import annual_report_context, term_report_context
@@ -27,7 +35,9 @@ class CameroonReportContextTests(TestCase):
             is_active=True,
         )
         department = Department.objects.create(name="Science", code="SCI")
-        specialty = Specialty.objects.create(department=department, name="General", code="GEN")
+        specialty = Specialty.objects.create(
+            department=department, name="General", code="GEN"
+        )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
             department=department,
@@ -43,7 +53,9 @@ class CameroonReportContextTests(TestCase):
             subject=self.subject,
             coefficient=2,
         )
-        teacher_user = User.objects.create_user(username="teacher_ctx", password="pass123", role=User.Role.TEACHER)
+        teacher_user = User.objects.create_user(
+            username="teacher_ctx", password="pass123", role=User.Role.TEACHER
+        )
         self.teacher = TeacherProfile.objects.create(user=teacher_user)
         self.student_a = StudentProfile.objects.create(
             first_name="Ada",

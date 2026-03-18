@@ -2,6 +2,7 @@
 Tests for API v1: ComplianceExportSchoolView, EnrollmentForecastView, RiskThresholdsConfigView,
 and (indirectly) intervention action center risk_band using get_risk_band_for_school.
 """
+
 import json
 from decimal import Decimal
 
@@ -47,13 +48,17 @@ class ComplianceExportSchoolViewTests(TestCase):
 
     def test_export_school_requires_auth(self):
         url = _tenant_v1_url(self.school.slug, "compliance-export-school")
-        response = self.client.post(url, content_type="application/json", **_tenant_host(self.school.slug))
+        response = self.client.post(
+            url, content_type="application/json", **_tenant_host(self.school.slug)
+        )
         self.assertEqual(response.status_code, 401)
 
     def test_export_school_returns_summary(self):
         self.client.force_login(self.user)
         url = _tenant_v1_url(self.school.slug, "compliance-export-school")
-        response = self.client.post(url, content_type="application/json", **_tenant_host(self.school.slug))
+        response = self.client.post(
+            url, content_type="application/json", **_tenant_host(self.school.slug)
+        )
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue(data.get("ok"))
@@ -189,7 +194,9 @@ class RiskThresholdsConfigViewTests(TestCase):
             **_tenant_host(self.school.slug),
         )
         self.assertEqual(response.status_code, 415)
-        self.assertEqual(response.json()["error"], "Content-Type must be application/json")
+        self.assertEqual(
+            response.json()["error"], "Content-Type must be application/json"
+        )
 
     def test_patch_rejects_non_object_json_body(self):
         self.client.force_login(self.user)

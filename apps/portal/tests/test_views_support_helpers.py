@@ -13,7 +13,11 @@ class SupportRequestHelperTests(SimpleTestCase):
     def test_support_request_continues_when_global_ticket_side_effect_fails(self):
         request = self.factory.post(
             "/portal/support/",
-            data={"category": "support", "subject": "Need help", "message": "Please assist"},
+            data={
+                "category": "support",
+                "subject": "Need help",
+                "message": "Please assist",
+            },
         )
         request.user = SimpleNamespace(
             is_authenticated=True,
@@ -30,7 +34,9 @@ class SupportRequestHelperTests(SimpleTestCase):
             with patch("apps.portal.views_support.render") as render_mock:
                 with patch("apps.portal.views_support.redirect") as redirect_mock:
                     with patch("apps.portal.views_support.messages.success"):
-                        with patch("apps.portal.views_support.SupportRequestForm") as form_cls:
+                        with patch(
+                            "apps.portal.views_support.SupportRequestForm"
+                        ) as form_cls:
                             form = form_cls.return_value
                             form.is_valid.return_value = True
                             form.cleaned_data = {

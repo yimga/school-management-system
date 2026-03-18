@@ -21,7 +21,9 @@ def _column_exists_pg(cursor, table, column):
 
 def _is_duplicate_column_error(e):
     msg = str(e).lower()
-    return "already exists" in msg or "duplicatecolumn" in msg or "duplicate column" in msg
+    return (
+        "already exists" in msg or "duplicatecolumn" in msg or "duplicate column" in msg
+    )
 
 
 def add_assigned_to_if_missing(apps, schema_editor):
@@ -30,7 +32,9 @@ def add_assigned_to_if_missing(apps, schema_editor):
     vendor = conn.vendor
     if vendor == "postgresql":
         with conn.cursor() as cursor:
-            if _column_exists_pg(cursor, "siteconfig_globalsupportticket", "assigned_to_id"):
+            if _column_exists_pg(
+                cursor, "siteconfig_globalsupportticket", "assigned_to_id"
+            ):
                 return
         sid = connection.savepoint()
         try:
@@ -72,7 +76,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0140_add_control_plane_pinned_items"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

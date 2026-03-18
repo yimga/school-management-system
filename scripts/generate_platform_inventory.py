@@ -9,6 +9,7 @@ Outputs:
 Use `--write` to refresh committed artifacts and `--check` to fail CI when the
 artifacts are stale.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -41,7 +42,15 @@ COUNT_PATTERNS = {
     "print_calls": re.compile(r"\bprint\s*\("),
     "gilead": re.compile(r"gilead", re.IGNORECASE),
 }
-SKIP_PARTS = {".git", ".venv", "venv", "node_modules", "__pycache__", ".pytest_cache", "test-results"}
+SKIP_PARTS = {
+    ".git",
+    ".venv",
+    "venv",
+    "node_modules",
+    "__pycache__",
+    ".pytest_cache",
+    "test-results",
+}
 
 
 def _iter_files(*suffixes: str):
@@ -99,14 +108,21 @@ def _management_commands_list() -> list[dict[str, str]]:
             rel = path.relative_to(ROOT)
             # apps/<app>/management/commands/<name>.py
             parts = rel.parts
-            if len(parts) >= 4 and parts[0] == "apps" and parts[2] == "management" and parts[3] == "commands":
+            if (
+                len(parts) >= 4
+                and parts[0] == "apps"
+                and parts[2] == "management"
+                and parts[3] == "commands"
+            ):
                 app_label = parts[1]
                 command_name = path.stem
-                result.append({
-                    "app": app_label,
-                    "command": command_name,
-                    "path": rel.as_posix(),
-                })
+                result.append(
+                    {
+                        "app": app_label,
+                        "command": command_name,
+                        "path": rel.as_posix(),
+                    }
+                )
         except ValueError:
             continue
     return result
@@ -118,11 +134,15 @@ def _baseline_counts() -> dict[str, int]:
     counters["python_files"] = len(py_files)
     counters["html_files"] = sum(1 for _ in _iter_files(".html"))
     counters["markdown_files"] = sum(1 for _ in _iter_files(".md"))
-    counters["migration_files"] = sum(1 for path in py_files if "migrations" in path.parts)
+    counters["migration_files"] = sum(
+        1 for path in py_files if "migrations" in path.parts
+    )
     commands_list = _management_commands_list()
     counters["management_commands"] = len(commands_list)
     gilead_files = set()
-    file_pool = py_files + list(_iter_files(".html", ".md", ".json", ".yaml", ".yml", ".sh", ".ps1"))
+    file_pool = py_files + list(
+        _iter_files(".html", ".md", ".json", ".yaml", ".yml", ".sh", ".ps1")
+    )
     for path in file_pool:
         text = _safe_text(path)
         for key, pattern in COUNT_PATTERNS.items():
@@ -136,7 +156,9 @@ def _baseline_counts() -> dict[str, int]:
 
 
 def _largest_python_files(limit: int = 12) -> list[dict[str, int | str]]:
-    files = sorted(_iter_files(".py"), key=lambda path: path.stat().st_size, reverse=True)[:limit]
+    files = sorted(
+        _iter_files(".py"), key=lambda path: path.stat().st_size, reverse=True
+    )[:limit]
     return [
         {
             "path": path.relative_to(ROOT).as_posix(),
@@ -176,7 +198,9 @@ def _doc_drift() -> dict[str, object]:
     legacy_doc = ROOT / "docs" / "ALL_MODULES_COMPLETE_LIST.md"
     text = _safe_text(legacy_doc)
     doc_count = None
-    match = re.search(r"\*\*Total Apps\*\*:\s*(\d+)\s+(?:Django Apps|Installed App Modules)", text)
+    match = re.search(
+        r"\*\*Total Apps\*\*:\s*(\d+)\s+(?:Django Apps|Installed App Modules)", text
+    )
     if match:
         doc_count = int(match.group(1))
     actual_count = _installed_app_count()
@@ -196,13 +220,29 @@ def _public_endpoint_audits() -> dict[str, object]:
     return {
         "csrf_exempt": {
             "reviewed_files": len(csrf),
-            "reviewed_endpoints": sum(int(entry.get("expected_count", 0)) for entry in csrf.values()),
-            "owners": sorted({str(entry.get("owner", "")).strip() for entry in csrf.values() if str(entry.get("owner", "")).strip()}),
+            "reviewed_endpoints": sum(
+                int(entry.get("expected_count", 0)) for entry in csrf.values()
+            ),
+            "owners": sorted(
+                {
+                    str(entry.get("owner", "")).strip()
+                    for entry in csrf.values()
+                    if str(entry.get("owner", "")).strip()
+                }
+            ),
         },
         "allow_any": {
             "reviewed_files": len(allow_any),
-            "reviewed_occurrences": sum(int(entry.get("expected_count", 0)) for entry in allow_any.values()),
-            "owners": sorted({str(entry.get("owner", "")).strip() for entry in allow_any.values() if str(entry.get("owner", "")).strip()}),
+            "reviewed_occurrences": sum(
+                int(entry.get("expected_count", 0)) for entry in allow_any.values()
+            ),
+            "owners": sorted(
+                {
+                    str(entry.get("owner", "")).strip()
+                    for entry in allow_any.values()
+                    if str(entry.get("owner", "")).strip()
+                }
+            ),
         },
     }
 
@@ -239,7 +279,9 @@ def _to_markdown(inventory: dict[str, object]) -> str:
         lines.append(f"- `{entry['app']}` / `{entry['command']}` — `{entry['path']}`")
     rest = len(inventory["management_commands_list"]) - 25
     if rest > 0:
-        lines.append(f"- … and {rest} more (see `platform_inventory.json` key `management_commands_list`).")
+        lines.append(
+            f"- … and {rest} more (see `platform_inventory.json` key `management_commands_list`)."
+        )
     lines.extend(
         [
             "",
@@ -304,9 +346,19 @@ def _build_inventory() -> dict[str, object]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate or verify the north-star platform inventory.")
-    parser.add_argument("--write", action="store_true", help="Write inventory outputs to docs/generated.")
-    parser.add_argument("--check", action="store_true", help="Fail if committed outputs do not match generated content.")
+    parser = argparse.ArgumentParser(
+        description="Generate or verify the north-star platform inventory."
+    )
+    parser.add_argument(
+        "--write",
+        action="store_true",
+        help="Write inventory outputs to docs/generated.",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Fail if committed outputs do not match generated content.",
+    )
     args = parser.parse_args()
 
     inventory = _build_inventory()
@@ -315,10 +367,19 @@ def main() -> int:
 
     if args.check:
         if not JSON_PATH.exists() or not MD_PATH.exists():
-            print("platform inventory artifacts are missing; run with --write", file=sys.stderr)
+            print(
+                "platform inventory artifacts are missing; run with --write",
+                file=sys.stderr,
+            )
             return 1
-        if JSON_PATH.read_text(encoding="utf-8") != json_text or MD_PATH.read_text(encoding="utf-8") != md_text:
-            print("platform inventory artifacts are stale; run scripts/generate_platform_inventory.py --write", file=sys.stderr)
+        if (
+            JSON_PATH.read_text(encoding="utf-8") != json_text
+            or MD_PATH.read_text(encoding="utf-8") != md_text
+        ):
+            print(
+                "platform inventory artifacts are stale; run scripts/generate_platform_inventory.py --write",
+                file=sys.stderr,
+            )
             return 1
         print("generate_platform_inventory: committed inventory is up to date.")
         return 0
@@ -327,7 +388,9 @@ def main() -> int:
         DOCS_DIR.mkdir(parents=True, exist_ok=True)
         JSON_PATH.write_text(json_text, encoding="utf-8")
         MD_PATH.write_text(md_text, encoding="utf-8")
-        print(f"generate_platform_inventory: wrote {JSON_PATH.relative_to(ROOT)} and {MD_PATH.relative_to(ROOT)}")
+        print(
+            f"generate_platform_inventory: wrote {JSON_PATH.relative_to(ROOT)} and {MD_PATH.relative_to(ROOT)}"
+        )
         return 0
 
     print(json_text)

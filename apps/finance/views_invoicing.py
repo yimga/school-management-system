@@ -4,6 +4,7 @@ Finance invoicing views (§6.15 app-by-app split — subdomain: invoicing).
 Invoice list/detail, receipt, fee generation, guardian notifications,
 receipt upload, and resend reminder. Single place for invoice-related UI flows.
 """
+
 from __future__ import annotations
 
 import csv
@@ -30,7 +31,6 @@ from apps.academics.models import AcademicYear
 from apps.platform_runtime.helpers import get_effective_site_settings
 
 from .models import (
-    ComplianceProfile,
     FeePlan,
     Invoice,
     InvoicePayerShare,
@@ -45,7 +45,6 @@ from .views_common import (
     FINANCE_SOFT_FAILURES,
     _active_profile,
     _finance_access_state,
-    _notification_delivery_settings,
     _notify_finance_staff_suspicious_receipt,
 )
 
@@ -71,23 +70,28 @@ def invoice_list(request: HttpRequest):
     status = request.GET.get("status")
     year_id = request.GET.get("year")
     search = (request.GET.get("q") or "").strip()
-    qs = Invoice.objects.filter(profile=profile).select_related(
-        "student", "academic_year", "profile"
-    ).prefetch_related(
-        "payments",
-        "student__guardian_links",
-        Prefetch(
-            "payer_shares",
-            queryset=(
-                InvoicePayerShare.objects.filter(is_active=True)
-                .select_related("guardian", "guardian__guardian_user")
+    qs = (
+        Invoice.objects.filter(profile=profile)
+        .select_related("student", "academic_year", "profile")
+        .prefetch_related(
+            "payments",
+            "student__guardian_links",
+            Prefetch(
+                "payer_shares",
+                queryset=(
+                    InvoicePayerShare.objects.filter(is_active=True).select_related(
+                        "guardian", "guardian__guardian_user"
+                    )
+                ),
+                to_attr="active_payer_shares",
             ),
-            to_attr="active_payer_shares",
-        ),
+        )
     )
 
     if request.user.role == User.Role.PARENT:
-        parent_students = _guardian_finance_qs(request.user).values_list("student_id", flat=True)
+        parent_students = _guardian_finance_qs(request.user).values_list(
+            "student_id", flat=True
+        )
         qs = qs.filter(student_id__in=parent_students)
         if access_state["require_opt_in"] and not access_state["finance_count"]:
             qs = qs.none()
@@ -125,18 +129,31 @@ def invoice_list(request: HttpRequest):
     if request.GET.get("export") == "csv":
         buf = io.StringIO()
         w = csv.writer(buf)
-        w.writerow(["Reference", "Type", "Status", "Due", "Student", "Total", "Balance", "Issued"])
+        w.writerow(
+            [
+                "Reference",
+                "Type",
+                "Status",
+                "Due",
+                "Student",
+                "Total",
+                "Balance",
+                "Issued",
+            ]
+        )
         for inv in ordered_qs[:5000]:
-            w.writerow([
-                inv.reference or str(inv.id),
-                inv.get_invoice_type_display(),
-                inv.get_status_display(),
-                inv.due_date.isoformat() if inv.due_date else "",
-                str(inv.student) if inv.student_id else "",
-                str(inv.total_amount),
-                str(inv.balance_amount),
-                inv.issued_date.isoformat() if inv.issued_date else "",
-            ])
+            w.writerow(
+                [
+                    inv.reference or str(inv.id),
+                    inv.get_invoice_type_display(),
+                    inv.get_status_display(),
+                    inv.due_date.isoformat() if inv.due_date else "",
+                    str(inv.student) if inv.student_id else "",
+                    str(inv.total_amount),
+                    str(inv.balance_amount),
+                    inv.issued_date.isoformat() if inv.issued_date else "",
+                ]
+            )
         resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
         resp["Content-Disposition"] = 'attachment; filename="invoices_export.csv"'
         return resp
@@ -268,10 +285,15 @@ def generate_fees(request: HttpRequest):
 
         plan = get_object_or_404(FeePlan, id=plan_id)
         issued_date = timezone.now().date()
-        invoices = create_fee_invoices(plan=plan, profile=profile, issued_date=issued_date)
-        request.session[SESSION_KEY_LAST_GENERATED_INVOICE_IDS] = [inv.id for inv in invoices]
+        invoices = create_fee_invoices(
+            plan=plan, profile=profile, issued_date=issued_date
+        )
+        request.session[SESSION_KEY_LAST_GENERATED_INVOICE_IDS] = [
+            inv.id for inv in invoices
+        ]
         messages.success(
-            request, f"Generated {len(invoices)} invoices. You can notify guardians below."
+            request,
+            f"Generated {len(invoices)} invoices. You can notify guardians below.",
         )
         return redirect("finance:generate_fees")
 
@@ -291,7 +313,9 @@ def generate_fees(request: HttpRequest):
 @require_POST
 def notify_guardians_new_invoices(request: HttpRequest):
     """Send new-invoice notifications to guardians for the last bulk-generated invoices."""
-    invoice_ids = request.session.pop(SESSION_KEY_LAST_GENERATED_INVOICE_IDS, None) or []
+    invoice_ids = (
+        request.session.pop(SESSION_KEY_LAST_GENERATED_INVOICE_IDS, None) or []
+    )
     if not invoice_ids:
         messages.info(request, "No recent invoices to notify. Generate invoices first.")
         return redirect("finance:generate_fees")
@@ -363,7 +387,8 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
                     "finance_access_granted": access_state["finance_count"] > 0,
                     "finance_access_summary": summary,
                     "can_request_finance_access": (
-                        access_state["allow_requests"] and access_state["require_opt_in"]
+                        access_state["allow_requests"]
+                        and access_state["require_opt_in"]
                     ),
                     "finance_request_url": reverse(
                         "finance:invoice_request_access", args=[invoice.id]
@@ -379,7 +404,15 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         up = request.FILES["attachment"]
         try:
             FileTypeValidator(
-                allowed_extensions=[".pdf", ".doc", ".docx", ".xls", ".xlsx", ".odt", ".ods"],
+                allowed_extensions=[
+                    ".pdf",
+                    ".doc",
+                    ".docx",
+                    ".xls",
+                    ".xlsx",
+                    ".odt",
+                    ".ods",
+                ],
                 allowed_types=[
                     "application/pdf",
                     "application/msword",
@@ -428,7 +461,8 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
                 (
                     share
                     for share in payer_shares
-                    if share.guardian.guardian_user_id == getattr(request.user, "id", None)
+                    if share.guardian.guardian_user_id
+                    == getattr(request.user, "id", None)
                 ),
                 None,
             )
@@ -548,14 +582,20 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         )
         return redirect("finance:invoice_detail", invoice_id=invoice.id)
     allowed_ext = (
-        finance_runtime.get(
-            "receipt_allowed_extensions",
-            getattr(
-                site_settings, "finance_receipt_allowed_extensions", "pdf,jpg,jpeg,png"
-            ),
+        (
+            finance_runtime.get(
+                "receipt_allowed_extensions",
+                getattr(
+                    site_settings,
+                    "finance_receipt_allowed_extensions",
+                    "pdf,jpg,jpeg,png",
+                ),
+            )
+            or "pdf,jpg,jpeg,png"
         )
-        or "pdf,jpg,jpeg,png"
-    ).strip().lower()
+        .strip()
+        .lower()
+    )
     allowed_list = [e.strip().lstrip(".") for e in allowed_ext.split(",") if e.strip()]
     ext = (
         (receipt_file.name or "").split(".")[-1].lower()
@@ -579,7 +619,9 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
     idempotency_key = (request.POST.get("idempotency_key", "") or "").strip()[:64]
     forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
     ip_address = (
-        forwarded_for.split(",")[0].strip() if forwarded_for else request.META.get("REMOTE_ADDR", "")
+        forwarded_for.split(",")[0].strip()
+        if forwarded_for
+        else request.META.get("REMOTE_ADDR", "")
     ) or None
     user_agent = (request.META.get("HTTP_USER_AGENT", "") or "")[:500]
     uploaded_amount_str = request.POST.get("uploaded_amount", "").strip()

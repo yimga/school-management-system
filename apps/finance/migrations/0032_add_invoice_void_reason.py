@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0031_paymentproofupload_idempotency_key_and_more'),
+        ("finance", "0031_paymentproofupload_idempotency_key_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='invoice',
-            name='void_reason',
-            field=models.CharField(blank=True, help_text='Required when voiding: reason for voiding this invoice (audited).', max_length=255),
+            model_name="invoice",
+            name="void_reason",
+            field=models.CharField(
+                blank=True,
+                help_text="Required when voiding: reason for voiding this invoice (audited).",
+                max_length=255,
+            ),
         ),
     ]

@@ -1,6 +1,7 @@
 """
 Portal shared constants and helpers used by parent, teacher, and student views (§6.14 role separation).
 """
+
 from __future__ import annotations
 
 import base64

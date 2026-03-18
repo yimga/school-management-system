@@ -2,6 +2,7 @@
 TenantContext: immutable context attached to every request (request.tenant_ctx).
 Built from request.school (RLS mode) or request.tenant (schema mode).
 """
+
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
@@ -9,6 +10,7 @@ from typing import Any, Dict, Optional
 @dataclass(frozen=True)
 class TenantContext:
     """Single entry point for tenant identity and policy-related data."""
+
     tenant_id: str
     schema_name: Optional[str]
     school_id: Optional[Any]  # School.id is UUID in this codebase

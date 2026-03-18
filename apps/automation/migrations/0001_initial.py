@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -15,56 +14,159 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='AutomationExecutionLog',
+            name="AutomationExecutionLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('task_name', models.CharField(db_index=True, max_length=200)),
-                ('execution_type', models.CharField(choices=[('SCHEDULED', 'Scheduled'), ('MANUAL', 'Manual'), ('DRY_RUN', 'Dry Run')], default='SCHEDULED', max_length=20)),
-                ('started_at', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('completed_at', models.DateTimeField(blank=True, null=True)),
-                ('status', models.CharField(choices=[('SUCCESS', 'Success'), ('FAILED', 'Failed'), ('PARTIAL', 'Partial'), ('PENDING', 'Pending')], default='PENDING', max_length=20)),
-                ('records_processed', models.PositiveIntegerField(default=0)),
-                ('records_failed', models.PositiveIntegerField(default=0)),
-                ('error_message', models.TextField(blank=True)),
-                ('execution_summary', models.JSONField(blank=True, default=dict)),
-                ('triggered_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='automation_executions', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("task_name", models.CharField(db_index=True, max_length=200)),
+                (
+                    "execution_type",
+                    models.CharField(
+                        choices=[
+                            ("SCHEDULED", "Scheduled"),
+                            ("MANUAL", "Manual"),
+                            ("DRY_RUN", "Dry Run"),
+                        ],
+                        default="SCHEDULED",
+                        max_length=20,
+                    ),
+                ),
+                ("started_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("completed_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("SUCCESS", "Success"),
+                            ("FAILED", "Failed"),
+                            ("PARTIAL", "Partial"),
+                            ("PENDING", "Pending"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("records_processed", models.PositiveIntegerField(default=0)),
+                ("records_failed", models.PositiveIntegerField(default=0)),
+                ("error_message", models.TextField(blank=True)),
+                ("execution_summary", models.JSONField(blank=True, default=dict)),
+                (
+                    "triggered_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="automation_executions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-started_at'],
+                "ordering": ["-started_at"],
             },
         ),
         migrations.CreateModel(
-            name='AutomationApprovalQueue',
+            name="AutomationApprovalQueue",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('automation_type', models.CharField(db_index=True, max_length=100)),
-                ('execution_summary', models.JSONField(default=dict, help_text='Summary of what will be executed')),
-                ('status', models.CharField(choices=[('PENDING', 'Pending Approval'), ('APPROVED', 'Approved'), ('REJECTED', 'Rejected'), ('EXECUTED', 'Executed')], db_index=True, default='PENDING', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('approved_at', models.DateTimeField(blank=True, null=True)),
-                ('rejection_reason', models.TextField(blank=True)),
-                ('approved_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='approved_automations', to=settings.AUTH_USER_MODEL)),
-                ('requested_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='requested_automations', to=settings.AUTH_USER_MODEL)),
-                ('execution_log', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='approval_queue_entries', to='automation.automationexecutionlog')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("automation_type", models.CharField(db_index=True, max_length=100)),
+                (
+                    "execution_summary",
+                    models.JSONField(
+                        default=dict, help_text="Summary of what will be executed"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending Approval"),
+                            ("APPROVED", "Approved"),
+                            ("REJECTED", "Rejected"),
+                            ("EXECUTED", "Executed"),
+                        ],
+                        db_index=True,
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("approved_at", models.DateTimeField(blank=True, null=True)),
+                ("rejection_reason", models.TextField(blank=True)),
+                (
+                    "approved_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="approved_automations",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "requested_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="requested_automations",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "execution_log",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="approval_queue_entries",
+                        to="automation.automationexecutionlog",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.AddIndex(
-            model_name='automationexecutionlog',
-            index=models.Index(fields=['task_name', '-started_at'], name='automation__task_na_6d70a4_idx'),
+            model_name="automationexecutionlog",
+            index=models.Index(
+                fields=["task_name", "-started_at"],
+                name="automation__task_na_6d70a4_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='automationexecutionlog',
-            index=models.Index(fields=['status', '-started_at'], name='automation__status_789e01_idx'),
+            model_name="automationexecutionlog",
+            index=models.Index(
+                fields=["status", "-started_at"], name="automation__status_789e01_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='automationapprovalqueue',
-            index=models.Index(fields=['status', '-created_at'], name='automation__status_cdb079_idx'),
+            model_name="automationapprovalqueue",
+            index=models.Index(
+                fields=["status", "-created_at"], name="automation__status_cdb079_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='automationapprovalqueue',
-            index=models.Index(fields=['automation_type', 'status'], name='automation__automat_58180e_idx'),
+            model_name="automationapprovalqueue",
+            index=models.Index(
+                fields=["automation_type", "status"],
+                name="automation__automat_58180e_idx",
+            ),
         ),
     ]

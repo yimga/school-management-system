@@ -4,6 +4,7 @@ Section 7: Multi-Tenant Extensibility & Nuance Engine.
 JSON-Logic only, no raw code. apply_nuance(school, hook_point, context) returns result;
 context is scrubbed to allowed keys per hook. Timeout 50ms. verify_nuance_safety before save.
 """
+
 from __future__ import annotations
 
 import logging
@@ -28,12 +29,38 @@ _NUANCE_EVAL_ERRORS = (
 # Hook points and allowed context keys (whitelist). Add keys as needed.
 # student_tags: list of tag names for the student (InformationTag); use in JSON-Logic with "in" op.
 HOOK_REGISTRY = {
-    "tuition_calc": ["fee", "student_id", "gpa", "sibling_count", "years_enrolled", "is_staff_child", "student_tags"],
+    "tuition_calc": [
+        "fee",
+        "student_id",
+        "gpa",
+        "sibling_count",
+        "years_enrolled",
+        "is_staff_child",
+        "student_tags",
+    ],
     "grade_weight": ["score", "weight", "category", "student_id"],
     "attendance_alert": ["attendance_rate", "student_id", "term_id"],
-    "fee_discount": ["fee", "gpa", "sibling_count", "attendance_rate", "is_staff_child", "student_tags"],
-    "scholarship_eligibility": ["gpa", "sibling_count", "student_tags", "custom_attributes", "attendance_rate", "fee_status"],
-    "report_card_avg": ["scores_by_subject", "coefficients", "scale_max"],  # regional grading (e.g. Cameroon coefficient)
+    "fee_discount": [
+        "fee",
+        "gpa",
+        "sibling_count",
+        "attendance_rate",
+        "is_staff_child",
+        "student_tags",
+    ],
+    "scholarship_eligibility": [
+        "gpa",
+        "sibling_count",
+        "student_tags",
+        "custom_attributes",
+        "attendance_rate",
+        "fee_status",
+    ],
+    "report_card_avg": [
+        "scores_by_subject",
+        "coefficients",
+        "scale_max",
+    ],  # regional grading (e.g. Cameroon coefficient)
     "generic": ["value"],  # minimal for custom hooks
 }
 
@@ -148,7 +175,9 @@ def _safe_eval(logic: Any, data: dict[str, Any]) -> Any:
     return None
 
 
-def _run_with_timeout(logic: dict, data: dict, timeout_sec: float = EXECUTION_TIMEOUT_SECONDS) -> Any:
+def _run_with_timeout(
+    logic: dict, data: dict, timeout_sec: float = EXECUTION_TIMEOUT_SECONDS
+) -> Any:
     """Run evaluator with timeout (Unix: SIGALRM; Windows: no timeout)."""
     result = [None]
 
@@ -156,8 +185,10 @@ def _run_with_timeout(logic: dict, data: dict, timeout_sec: float = EXECUTION_TI
         result[0] = _safe_eval(logic, data)
 
     if hasattr(signal, "SIGALRM"):
+
         def handler(signum, frame):
             raise TimeoutError("Nuance execution exceeded %s s" % timeout_sec)
+
         old = signal.signal(signal.SIGALRM, handler)
         try:
             signal.setitimer(signal.ITIMER_REAL, timeout_sec)  # type: ignore[attr-defined]
@@ -191,14 +222,11 @@ def apply_nuance(school, hook_point: str, context: dict[str, Any]) -> Any:
 
     allowed = set(HOOK_REGISTRY.get(hook_point, DEFAULT_ALLOWED_KEYS))
     scrubbed = _scrub_context(context, allowed)
-    nuance = (
-        CustomNuance.objects.filter(
-            school=school,
-            hook_point=hook_point,
-            is_active=True,
-        )
-        .first()
-    )
+    nuance = CustomNuance.objects.filter(
+        school=school,
+        hook_point=hook_point,
+        is_active=True,
+    ).first()
     if not nuance or not nuance.logic_data:
         return None
     return _run_with_timeout(nuance.logic_data, scrubbed)
@@ -231,7 +259,9 @@ def verify_nuance_safety(
                     return False, f"Test {i + 1} resulted in negative value: {result}"
             except (TypeError, ValueError):
                 pass
-        if result is not None and not isinstance(result, (int, float, bool, str, type(None))):
+        if result is not None and not isinstance(
+            result, (int, float, bool, str, type(None))
+        ):
             return False, f"Test {i + 1} returned invalid type"
     return True, ""
 
@@ -241,7 +271,7 @@ def nuance_engine_enabled(school) -> bool:
     if not school:
         return False
     from apps.schools.models import is_feature_enabled
-    return (
-        is_feature_enabled(school, "nuance_engine")
-        or is_feature_enabled(school, "custom_logic")
+
+    return is_feature_enabled(school, "nuance_engine") or is_feature_enabled(
+        school, "custom_logic"
     )

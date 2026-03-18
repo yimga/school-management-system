@@ -1,6 +1,7 @@
 """
 Badge creation/revocation triggered by events (syllabus approval, delegation start/end).
 """
+
 from django.utils import timezone
 from django.core.signing import Signer
 
@@ -50,7 +51,10 @@ def create_teacher_badge_for_syllabus_approval(syllabus):
         badge_type=badge_type,
         user=ta.teacher.user,
         defaults={
-            "criteria_met": {"syllabus_id": syllabus.pk, "subject_assignment_id": syllabus.subject_assignment_id},
+            "criteria_met": {
+                "syllabus_id": syllabus.pk,
+                "subject_assignment_id": syllabus.subject_assignment_id,
+            },
         },
     )[0]
 
@@ -76,7 +80,10 @@ def create_acting_badge_for_delegation(delegation):
     badge = Badge.objects.create(
         badge_type=badge_type,
         user=delegation.delegate,
-        criteria_met={"delegation_id": delegation.pk, "acting_for": delegation.delegator_id},
+        criteria_met={
+            "delegation_id": delegation.pk,
+            "acting_for": delegation.delegator_id,
+        },
         expiry_at=expiry,
     )
     _set_badge_qr_data(badge)
@@ -130,7 +137,9 @@ def create_honor_roll_badge_for_student(student, academic_year, term, overall_av
     if not student or overall_average is None or not academic_year or not term:
         return None
     try:
-        _threshold = float(overall_average)  # validation only; criteria use badge_type rule
+        _threshold = float(
+            overall_average
+        )  # validation only; criteria use badge_type rule
     except (TypeError, ValueError):
         return None
     badge_type = BadgeType.objects.filter(

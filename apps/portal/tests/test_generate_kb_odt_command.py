@@ -17,7 +17,9 @@ User = get_user_model()
 class GenerateKbOdtCommandTests(TestCase):
     def setUp(self):
         self.tmp_media = Path(tempfile.mkdtemp(prefix="kb_media_"))
-        self.category = KBCategory.objects.create(name="Operator Manual", slug="operator-manual")
+        self.category = KBCategory.objects.create(
+            name="Operator Manual", slug="operator-manual"
+        )
         self.author = User.objects.create_user(username="kb_admin", password="pass123")
         self.article = KBArticle.objects.create(
             title="Teacher Onboarding",

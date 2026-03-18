@@ -1,0 +1,59 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Geography — Region packs by continent" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ curriculum_packs_url }}">{% trans "Curriculum & region packs" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Geography" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960" role="main" aria-label="{% trans 'Region packs by continent' %}">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Geography — Region packs by continent (Wedges 7–13)" %}</h1>
+    <p class="text-white-50 small mb-0">{% trans "Region packs per continent: Africa, Asia, Europe, North America, South America, Oceania, MENA. Create School and Setup Studio use these packs." %}</p>
+  </header>
+  <div class="row g-3">
+    {% for item in geography_list %}
+    <div class="col-12">
+      <div class="card border-secondary">
+        <div class="card-header text-white d-flex justify-content-between align-items-center">
+          <span>{% trans "Wedge" %} {{ item.wedge }}: {{ item.continent }}</span>
+          <span class="badge bg-secondary">{% trans "Wedge" %} {{ item.wedge }}</span>
+        </div>
+        <div class="card-body">
+          <p class="small text-white-50 mb-2">{{ item.description }}</p>
+          {% for pack in item.packs %}
+          <div class="mb-3">
+            <div class="d-flex align-items-center mb-1 flex-wrap gap-1">
+              <span class="badge bg-dark me-2">{{ pack.code }}</span>
+              <strong>{{ pack.name }}</strong>
+              {% if pack.is_rtl %}<span class="badge bg-info ms-2" title="{% trans 'Right-to-left layout' %}">RTL</span>{% endif %}
+              {% if pack.create_school_with_pack_url %}
+              <a href="{{ pack.create_school_with_pack_url }}" class="btn btn-outline-primary btn-sm ms-2">{% trans "Create school (this pack)" %}</a>
+              {% endif %}
+            </div>
+            <p class="small mb-0 text-white-50" aria-label="{% trans 'Pack details' %}">
+              {% trans "Currency" %}: {{ pack.currency }} · {% trans "Language" %}: {{ pack.language }} · {% trans "Grading" %}: {{ pack.grading_scale }} · {% trans "Data residency" %}: {{ pack.data_residency }} · {% trans "Privacy" %}: {{ pack.privacy_framework }}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="mt-3">
+    {% if trust_center_url %}<a href="{{ trust_center_url }}" class="btn btn-outline-secondary btn-sm me-2">{% trans "Where does my data live?" %}</a>{% endif %}
+    {% if curriculum_packs_url %}<a href="{{ curriculum_packs_url }}" class="btn btn-outline-primary btn-sm me-2">{% trans "Curriculum & region packs" %}</a>{% endif %}
+    {% if create_school_url %}<a href="{{ create_school_url }}" class="btn btn-primary btn-sm">{% trans "Create school" %}</a>{% endif %}
+    {% if setup_studio_url %}<a href="{{ setup_studio_url }}" class="btn btn-outline-light btn-sm ms-2">{% trans "Setup Studio" %}</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

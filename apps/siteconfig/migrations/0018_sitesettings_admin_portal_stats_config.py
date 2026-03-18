@@ -3,7 +3,6 @@ import apps.siteconfig.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0016_alter_userpreference_timezone"),
     ]
@@ -17,7 +16,7 @@ class Migration(migrations.Migration):
                 default=apps.siteconfig.models.default_admin_portal_stats_config,
                 help_text=(
                     "Admin portal stats JSON. Keys: sections, max_sections, max_items, items. "
-                    "Example: {\"sections\":[\"academics\"],\"max_items\":2,\"items\":{\"academics\":[\"Students\"]}}"
+                    'Example: {"sections":["academics"],"max_items":2,"items":{"academics":["Students"]}}'
                 ),
             ),
         ),

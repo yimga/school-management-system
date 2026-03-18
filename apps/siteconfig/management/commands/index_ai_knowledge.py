@@ -3,6 +3,7 @@ Ingest policy bundles, blueprint packs, workflow packs, report templates, and he
 docs into the AI embedding store for RAG (setup assistant, policy explain, admin copilot).
 Run after catalog changes or on schedule. Scoped by tenant where applicable.
 """
+
 from __future__ import annotations
 
 import logging
@@ -54,10 +55,16 @@ class Command(BaseCommand):
         from services.ai_memory import get_embedding_for_text
 
         if not get_embedding_for_text("test", max_tokens=10):
-            self.stdout.write(self.style.ERROR("Embedding provider unavailable. Set AI_EMBEDDING_*."))
+            self.stdout.write(
+                self.style.ERROR("Embedding provider unavailable. Set AI_EMBEDDING_*.")
+            )
             return
 
-        scopes = [options["scope"]] if options["scope"] else ["policy", "blueprint", "workflow", "report", "help", "config"]
+        scopes = (
+            [options["scope"]]
+            if options["scope"]
+            else ["policy", "blueprint", "workflow", "report", "help", "config"]
+        )
         school_id = options.get("school_id")
         dry_run = options.get("dry_run", False)
         indexed = 0
@@ -73,11 +80,14 @@ class Command(BaseCommand):
         if "help" in scopes or "config" in scopes:
             indexed += self._index_static_docs(scopes, dry_run)
 
-        self.stdout.write(self.style.SUCCESS(f"Indexed {indexed} chunks (dry_run={dry_run})."))
+        self.stdout.write(
+            self.style.SUCCESS(f"Indexed {indexed} chunks (dry_run={dry_run}).")
+        )
 
     def _index_policy_bundles(self, school_id, dry_run):
         try:
             from apps.policies.models import PolicyBundle
+
             qs = PolicyBundle.objects.filter(is_active=True)
             if school_id:
                 qs = qs.filter(school_id=school_id)
@@ -95,12 +105,27 @@ class Command(BaseCommand):
                     "visibility": "tenant",
                 }
                 if not dry_run:
-                    if AIMemoryService.store(str(b.school_id) if b.school_id else None, cid, "policy", text, meta):
+                    if AIMemoryService.store(
+                        str(b.school_id) if b.school_id else None,
+                        cid,
+                        "policy",
+                        text,
+                        meta,
+                    ):
                         count += 1
                 else:
                     count += 1
             return count
-        except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) as e:
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            KeyError,
+            DatabaseError,
+            OperationalError,
+            OSError,
+        ) as e:
             log_exception_with_context(
                 "index_ai_knowledge: index policy_bundles failed",
                 school_id=str(school_id) if school_id else None,
@@ -112,6 +137,7 @@ class Command(BaseCommand):
     def _index_blueprint_packs(self, school_id, dry_run):
         try:
             from apps.policies.models import BlueprintPack
+
             qs = BlueprintPack.objects.filter(is_active=True)
             count = 0
             for b in qs:
@@ -145,6 +171,7 @@ class Command(BaseCommand):
     def _index_workflow_packs(self, school_id, dry_run):
         try:
             from apps.siteconfig.models_workflow import WorkflowPack
+
             qs = WorkflowPack.objects.filter(is_active=True)
             count = 0
             for w in qs:
@@ -166,7 +193,16 @@ class Command(BaseCommand):
                 else:
                     count += 1
             return count
-        except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) as e:
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            KeyError,
+            DatabaseError,
+            OperationalError,
+            OSError,
+        ) as e:
             log_exception_with_context(
                 "index_ai_knowledge: index workflow_packs failed",
                 school_id=str(school_id) if school_id else None,
@@ -178,6 +214,7 @@ class Command(BaseCommand):
     def _index_report_templates(self, school_id, dry_run):
         try:
             from apps.siteconfig.models import ReportTemplate
+
             qs = ReportTemplate.objects.all()
             if school_id:
                 if hasattr(ReportTemplate, "school_id"):
@@ -190,7 +227,11 @@ class Command(BaseCommand):
                 if not text:
                     continue
                 cid = f"report_template:{getattr(r, 'id', id(r))}"
-                sid = str(getattr(r, "school_id", None)) if getattr(r, "school_id", None) else None
+                sid = (
+                    str(getattr(r, "school_id", None))
+                    if getattr(r, "school_id", None)
+                    else None
+                )
                 meta = {
                     "source": "ReportTemplate",
                     "name": name,
@@ -202,7 +243,16 @@ class Command(BaseCommand):
                 else:
                     count += 1
             return count
-        except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError, OperationalError, OSError) as e:
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            KeyError,
+            DatabaseError,
+            OperationalError,
+            OSError,
+        ) as e:
             log_exception_with_context(
                 "index_ai_knowledge: index report_templates failed",
                 school_id=str(school_id) if school_id else None,
@@ -214,10 +264,50 @@ class Command(BaseCommand):
     def _index_static_docs(self, scopes, dry_run):
         count = 0
         help_texts = [
-            ("help:setup", "help", "Setup Studio: configure school settings, features, and workflows. Use the checklist to complete onboarding.", {"source": "static", "id": "help:setup", "visibility": "authenticated"}),
-            ("help:config", "config", "Control Plane: manage tenants, billing, and platform configuration. Admin only.", {"source": "static", "id": "help:config", "visibility": "staff", "staff_only": True, "allowed_roles": ["admin", "staff", "super_admin", "superuser", "operator"]}),
-            ("help:workflows", "help", "Workflows: automate actions based on triggers (e.g. attendance, fees). Create and assign workflow packs.", {"source": "static", "id": "help:workflows", "visibility": "authenticated"}),
-            ("help:policies", "help", "Policies: grading, attendance, finance, and compliance. Apply blueprint packs for your region.", {"source": "static", "id": "help:policies", "visibility": "authenticated"}),
+            (
+                "help:setup",
+                "help",
+                "Setup Studio: configure school settings, features, and workflows. Use the checklist to complete onboarding.",
+                {"source": "static", "id": "help:setup", "visibility": "authenticated"},
+            ),
+            (
+                "help:config",
+                "config",
+                "Control Plane: manage tenants, billing, and platform configuration. Admin only.",
+                {
+                    "source": "static",
+                    "id": "help:config",
+                    "visibility": "staff",
+                    "staff_only": True,
+                    "allowed_roles": [
+                        "admin",
+                        "staff",
+                        "super_admin",
+                        "superuser",
+                        "operator",
+                    ],
+                },
+            ),
+            (
+                "help:workflows",
+                "help",
+                "Workflows: automate actions based on triggers (e.g. attendance, fees). Create and assign workflow packs.",
+                {
+                    "source": "static",
+                    "id": "help:workflows",
+                    "visibility": "authenticated",
+                },
+            ),
+            (
+                "help:policies",
+                "help",
+                "Policies: grading, attendance, finance, and compliance. Apply blueprint packs for your region.",
+                {
+                    "source": "static",
+                    "id": "help:policies",
+                    "visibility": "authenticated",
+                },
+            ),
         ]
         for cid, scope, text, metadata in help_texts:
             if scope not in scopes:

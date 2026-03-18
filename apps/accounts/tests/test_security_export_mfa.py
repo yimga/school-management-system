@@ -43,4 +43,7 @@ class SecurityExportMfaTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "text/csv")
-        self.assertIn("timestamp,event_type,ip_address,location,is_suspicious", response.content.decode("utf-8"))
+        self.assertIn(
+            "timestamp,event_type,ip_address,location,is_suspicious",
+            response.content.decode("utf-8"),
+        )

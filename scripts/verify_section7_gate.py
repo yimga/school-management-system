@@ -10,6 +10,7 @@ Steps:
   2. test_marketplace_catalog_minimums (catalog counts meet MARKETPLACE_MINIMUMS)
   3. MARKETPLACE_MINIMUMS keys present in catalog_counts (sanity)
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -31,7 +32,12 @@ def run(cmd: list[str], label: str) -> tuple[bool, str]:
         )
         if result.returncode == 0:
             return True, "PASS"
-        return False, result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
+        return (
+            False,
+            result.stderr.strip()
+            or result.stdout.strip()
+            or f"exit {result.returncode}",
+        )
     except subprocess.TimeoutExpired:
         return False, "timeout"
     except FileNotFoundError:
@@ -46,7 +52,13 @@ def check_minimums_keys() -> tuple[bool, str]:
         sys.path.insert(0, str(ROOT))
         from apps.platform_runtime.catalog_counts import MARKETPLACE_MINIMUMS
 
-        required = {"first_party_apps", "blueprint_packs", "workflow_packs", "dashboard_packs", "policy_bundles"}
+        required = {
+            "first_party_apps",
+            "blueprint_packs",
+            "workflow_packs",
+            "dashboard_packs",
+            "policy_bundles",
+        }
         missing = required - set(MARKETPLACE_MINIMUMS.keys())
         if missing:
             return False, f"MARKETPLACE_MINIMUMS missing keys: {missing}"
@@ -68,7 +80,10 @@ def main() -> int:
     if ok:
         print(f"  [{n}] generate_platform_inventory --check: PASS")
     else:
-        print(f"  [{n}] generate_platform_inventory --check: FAIL — {msg}", file=sys.stderr)
+        print(
+            f"  [{n}] generate_platform_inventory --check: FAIL — {msg}",
+            file=sys.stderr,
+        )
         failures.append(f"Step 1: {msg}")
 
     # Step 2: catalog minimums test (requires Django + DB)
@@ -88,7 +103,10 @@ def main() -> int:
     if ok:
         print(f"  [{n}] test_marketplace_catalog_minimums: PASS")
     else:
-        print(f"  [{n}] test_marketplace_catalog_minimums: FAIL — {msg[:200]}", file=sys.stderr)
+        print(
+            f"  [{n}] test_marketplace_catalog_minimums: FAIL — {msg[:200]}",
+            file=sys.stderr,
+        )
         failures.append(f"Step 2: {msg[:200]}")
 
     # Step 3: MARKETPLACE_MINIMUMS keys

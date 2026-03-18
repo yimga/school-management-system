@@ -18,7 +18,9 @@ class BillingAccount(models.Model):
         on_delete=models.CASCADE,
         related_name="billing_account",
     )
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE, db_index=True)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.ACTIVE, db_index=True
+    )
     billing_email = models.EmailField(blank=True)
     processor_code = models.CharField(max_length=32, blank=True, db_index=True)
     external_customer_ref = models.CharField(max_length=120, blank=True, db_index=True)
@@ -68,19 +70,33 @@ class TenantSubscription(models.Model):
         blank=True,
         related_name="tenant_subscriptions",
     )
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE, db_index=True)
-    billing_cycle = models.CharField(max_length=12, choices=BillingCycle.choices, default=BillingCycle.MONTHLY)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.ACTIVE, db_index=True
+    )
+    billing_cycle = models.CharField(
+        max_length=12, choices=BillingCycle.choices, default=BillingCycle.MONTHLY
+    )
     starts_at = models.DateTimeField(null=True, blank=True)
     current_period_start = models.DateTimeField(null=True, blank=True)
     current_period_end = models.DateTimeField(null=True, blank=True)
     trial_end_date = models.DateField(null=True, blank=True)
     canceled_at = models.DateTimeField(null=True, blank=True)
-    external_subscription_ref = models.CharField(max_length=120, blank=True, db_index=True)
+    external_subscription_ref = models.CharField(
+        max_length=120, blank=True, db_index=True
+    )
     last_invoiced_at = models.DateTimeField(null=True, blank=True)
-    base_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    addons_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    billed_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    country_multiplier = models.DecimalField(max_digits=8, decimal_places=3, default=Decimal("1.000"))
+    base_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    addons_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    billed_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    country_multiplier = models.DecimalField(
+        max_digits=8, decimal_places=3, default=Decimal("1.000")
+    )
     addon_codes = models.JSONField(default=list, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -151,8 +167,12 @@ class PlatformLedgerEntry(models.Model):
         on_delete=models.CASCADE,
         related_name="platform_ledger_entries",
     )
-    entry_type = models.CharField(max_length=20, choices=EntryType.choices, db_index=True)
-    status = models.CharField(max_length=12, choices=Status.choices, default=Status.POSTED, db_index=True)
+    entry_type = models.CharField(
+        max_length=20, choices=EntryType.choices, db_index=True
+    )
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.POSTED, db_index=True
+    )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     currency_code = models.CharField(max_length=3, default="USD")
     description = models.CharField(max_length=255, blank=True)
@@ -202,9 +222,13 @@ class BillingProcessorSyncEvent(models.Model):
     )
     processor_code = models.CharField(max_length=32, db_index=True)
     event_type = models.CharField(max_length=64, db_index=True)
-    status = models.CharField(max_length=12, choices=Status.choices, default=Status.APPLIED, db_index=True)
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.APPLIED, db_index=True
+    )
     external_customer_ref = models.CharField(max_length=120, blank=True, db_index=True)
-    external_subscription_ref = models.CharField(max_length=120, blank=True, db_index=True)
+    external_subscription_ref = models.CharField(
+        max_length=120, blank=True, db_index=True
+    )
     payload = models.JSONField(default=dict, blank=True)
     message = models.CharField(max_length=255, blank=True)
     happened_at = models.DateTimeField(db_index=True)
@@ -275,17 +299,27 @@ class RevenueSharePayout(models.Model):
         blank=True,
         related_name="revenue_share_payouts",
     )
-    payout_scope = models.CharField(max_length=32, choices=Scope.choices, default=Scope.APP_PUBLISHER, db_index=True)
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT, db_index=True)
+    payout_scope = models.CharField(
+        max_length=32, choices=Scope.choices, default=Scope.APP_PUBLISHER, db_index=True
+    )
+    status = models.CharField(
+        max_length=16, choices=Status.choices, default=Status.DRAFT, db_index=True
+    )
     payee_name = models.CharField(max_length=160)
     payee_ref = models.CharField(max_length=120, blank=True, db_index=True)
     processor_code = models.CharField(max_length=32, blank=True, db_index=True)
     external_payout_ref = models.CharField(max_length=120, blank=True, db_index=True)
     period_start = models.DateField(null=True, blank=True)
     period_end = models.DateField(null=True, blank=True)
-    gross_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    fee_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    net_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    gross_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    fee_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    net_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
     currency_code = models.CharField(max_length=3, default="USD")
     scheduled_for = models.DateTimeField(null=True, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
@@ -307,6 +341,7 @@ class Quote(models.Model):
     Commercial platform (29.10): quote for plan/contract before subscription.
     Self-serve trials use School.trial_end_date; this model supports quote-to-contract flow.
     """
+
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"
         SENT = "SENT", "Sent"
@@ -328,8 +363,12 @@ class Quote(models.Model):
         blank=True,
         related_name="quotes",
     )
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT, db_index=True)
-    amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    status = models.CharField(
+        max_length=16, choices=Status.choices, default=Status.DRAFT, db_index=True
+    )
+    amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
     currency_code = models.CharField(max_length=3, default="USD")
     valid_until = models.DateField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)

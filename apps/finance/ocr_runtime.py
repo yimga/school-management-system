@@ -27,7 +27,9 @@ def _credentials_file_exists(path_value: str) -> bool:
         return False
 
 
-def get_ocr_runtime_status(verification_method: str, marksheet_ocr_command: str | None = None) -> dict:
+def get_ocr_runtime_status(
+    verification_method: str, marksheet_ocr_command: str | None = None
+) -> dict:
     method = (verification_method or "pattern").strip()
 
     if method == "pattern":
@@ -43,6 +45,7 @@ def get_ocr_runtime_status(verification_method: str, marksheet_ocr_command: str 
         has_python_binding = False
         try:
             import pytesseract  # noqa: F401
+
             has_python_binding = True
         except ImportError:
             has_python_binding = False
@@ -140,5 +143,7 @@ def get_ocr_runtime_status(verification_method: str, marksheet_ocr_command: str 
         "provider": "unknown",
         "ready": False,
         "message": f"Unsupported OCR method: {method}",
-        "missing": [f"Use one of: pattern, ocr_tesseract, ocr_cloud_google, ocr_cloud_aws."],
+        "missing": [
+            f"Use one of: pattern, ocr_tesseract, ocr_cloud_google, ocr_cloud_aws."
+        ],
     }

@@ -2,6 +2,7 @@
 Super Admin views: migration cloud, profile registry, rollback, and sync repair.
 Extracted from super_views for giant-file decomposition; re-exported by super_views for URL wiring.
 """
+
 from datetime import timedelta
 
 from django.contrib import messages
@@ -41,12 +42,19 @@ def super_migration_cloud(request):
             selected_school = School.objects.filter(id=school_id).first()
         except (TypeError, ValueError):
             selected_school = None
-    selected_profile = MigrationProfile.objects.filter(slug=profile_slug, is_active=True).first() if profile_slug else None
+    selected_profile = (
+        MigrationProfile.objects.filter(slug=profile_slug, is_active=True).first()
+        if profile_slug
+        else None
+    )
 
-    profiles = list(MigrationProfile.objects.filter(is_active=True).order_by("sort_order", "slug"))
+    profiles = list(
+        MigrationProfile.objects.filter(is_active=True).order_by("sort_order", "slug")
+    )
     recent_runs = list(
-        MigrationRun.objects.select_related("school", "triggered_by")
-        .order_by("-started_at")[:40]
+        MigrationRun.objects.select_related("school", "triggered_by").order_by(
+            "-started_at"
+        )[:40]
     )
     for run in recent_runs:
         run.parity = compute_parity(run)
@@ -54,12 +62,16 @@ def super_migration_cloud(request):
     rollback_candidates = [run for run in recent_runs if run.can_rollback]
     preview = None
     if selected_profile is not None:
-        preview = dry_run_import(selected_profile, {"rows": [], "mapping": {}}, school=selected_school)
+        preview = dry_run_import(
+            selected_profile, {"rows": [], "mapping": {}}, school=selected_school
+        )
 
     summary = {
         "profiles_total": len(profiles),
         "runs_total": MigrationRun.objects.count(),
-        "runs_last_30d": MigrationRun.objects.filter(started_at__gte=timezone.now() - timedelta(days=30)).count(),
+        "runs_last_30d": MigrationRun.objects.filter(
+            started_at__gte=timezone.now() - timedelta(days=30)
+        ).count(),
         "failed_last_30d": MigrationRun.objects.filter(
             started_at__gte=timezone.now() - timedelta(days=30),
             status=MigrationRun.Status.FAILED,
@@ -68,7 +80,9 @@ def super_migration_cloud(request):
             dry_run=False,
             rolled_back_by_run__isnull=True,
             rollback_snapshot__isnull=False,
-        ).exclude(rollback_snapshot={}).count(),
+        )
+        .exclude(rollback_snapshot={})
+        .count(),
     }
 
     return render(
@@ -94,10 +108,18 @@ def super_migration_profile_registry(request):
     from itertools import groupby
 
     profiles = list(
-        MigrationProfile.objects.filter(is_active=True).order_by("source_system", "profile_category", "sort_order", "slug")
+        MigrationProfile.objects.filter(is_active=True).order_by(
+            "source_system", "profile_category", "sort_order", "slug"
+        )
     )
     groups = []
-    for key, grp in groupby(profiles, key=lambda p: (p.source_system or "generic", p.profile_category or "uncategorized")):
+    for key, grp in groupby(
+        profiles,
+        key=lambda p: (
+            p.source_system or "generic",
+            p.profile_category or "uncategorized",
+        ),
+    ):
         source_system, profile_category = key
         groups.append((source_system, profile_category, list(grp)))
     migration_cloud_url = reverse("super:migration_cloud")
@@ -148,7 +170,9 @@ def _sync_repair_force_overwrite_conflict(conflict, resolved_by):
     config = _get_entity_config()
     if conflict.entity_type in config:
         model, allowed = config[conflict.entity_type]
-        updates = {k: v for k, v in (conflict.client_data or {}).items() if k in allowed}
+        updates = {
+            k: v for k, v in (conflict.client_data or {}).items() if k in allowed
+        }
         if updates:
             try:
                 instance = model.objects.get(pk=conflict.entity_id)
@@ -175,13 +199,18 @@ def sync_repair(request, school_id):
     school = get_object_or_404(School, pk=school_id)
     if not (getattr(request.user, "is_superuser", False)):
         from django.http import HttpResponseForbidden
+
         return HttpResponseForbidden("Superuser required for Sync Repair.")
 
     if request.method == "POST":
         conflict_id = request.POST.get("conflict_id")
         if conflict_id:
             try:
-                conflict = SyncConflict.objects.get(pk=int(conflict_id), school_id=school_id, status=SyncConflict.Status.PENDING)
+                conflict = SyncConflict.objects.get(
+                    pk=int(conflict_id),
+                    school_id=school_id,
+                    status=SyncConflict.Status.PENDING,
+                )
             except (ValueError, SyncConflict.DoesNotExist):
                 messages.error(request, "Conflict not found or already resolved.")
             else:
@@ -190,6 +219,7 @@ def sync_repair(request, school_id):
                 try:
                     from apps.schools.control_plane import log_control_plane_action
                     from apps.compliance.models_audit import AuditLog
+
                     log_control_plane_action(
                         request,
                         AuditLog.Action.UPDATE,
@@ -198,11 +228,17 @@ def sync_repair(request, school_id):
                         object_repr=f"SyncConflict #{conflict.pk} ({conflict.entity_type})",
                         reason="Sync repair force overwrite (client applied)",
                         sensitivity=AuditLog.Sensitivity.HIGH,
-                        new_values={"status": "RESOLVED_CLIENT", "school_id": str(school_id)},
+                        new_values={
+                            "status": "RESOLVED_CLIENT",
+                            "school_id": str(school_id),
+                        },
                     )
                 except CONTROL_PLANE_AUDIT_FAILURES:
                     pass
-                messages.success(request, f"Conflict #{conflict_id} resolved (client version applied).")
+                messages.success(
+                    request,
+                    f"Conflict #{conflict_id} resolved (client version applied).",
+                )
             return redirect("super:sync_repair", school_id=school_id)
 
     conflicts = list(
@@ -213,5 +249,9 @@ def sync_repair(request, school_id):
     return render(
         request,
         "schools/super_sync_repair.html",
-        {"school": school, "conflicts": conflicts, "dashboard_url": reverse("super:dashboard")},
+        {
+            "school": school,
+            "conflicts": conflicts,
+            "dashboard_url": reverse("super:dashboard"),
+        },
     )

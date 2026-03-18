@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0067_add_require_mfa_roles'),
+        ("siteconfig", "0067_add_require_mfa_roles"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='requests_reminder_interval_hours',
-            field=models.PositiveIntegerField(blank=True, default=0, help_text='When > 0, a scheduled task notifies assignees of pending access requests (e.g. 24 = daily). 0 = disabled.'),
+            model_name="sitesettings",
+            name="requests_reminder_interval_hours",
+            field=models.PositiveIntegerField(
+                blank=True,
+                default=0,
+                help_text="When > 0, a scheduled task notifies assignees of pending access requests (e.g. 24 = daily). 0 = disabled.",
+            ),
         ),
     ]

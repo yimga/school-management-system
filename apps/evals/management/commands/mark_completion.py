@@ -15,7 +15,9 @@ class Command(BaseCommand):
     help = "Show mark completion stats for a subject assignment/term."
 
     def add_arguments(self, parser):
-        parser.add_argument("--assignment", type=int, required=True, help="SubjectAssignment ID")
+        parser.add_argument(
+            "--assignment", type=int, required=True, help="SubjectAssignment ID"
+        )
         parser.add_argument("--term", type=int, required=True, help="Term ID")
 
     def handle(self, *args, **options):

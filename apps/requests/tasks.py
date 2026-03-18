@@ -3,6 +3,7 @@ Optional Celery task: remind assignees of pending AccessRequests.
 Configure interval in Site Settings (requests_reminder_interval_hours); 0 = disabled.
 Runs in tenant context (per school_id or all active schools).
 """
+
 from __future__ import annotations
 
 import logging
@@ -72,15 +73,27 @@ def _remind_pending_assignees_body() -> dict:
                 )
                 notified += 1
             except (IntegrityError, ValidationError, DatabaseError) as e:
-                school_id = str(reqs[0].school_id) if reqs and getattr(reqs[0], "school_id", None) else None
+                school_id = (
+                    str(reqs[0].school_id)
+                    if reqs and getattr(reqs[0], "school_id", None)
+                    else None
+                )
                 log_exception_with_context(
                     "remind_pending_assignees: notify assignee failed",
                     school_id=school_id,
-                    extra={"command": "remind_pending_assignees", "assignee_id": assignee_id, "error": str(e)},
+                    extra={
+                        "command": "remind_pending_assignees",
+                        "assignee_id": assignee_id,
+                        "error": str(e),
+                    },
                 )
                 logger.warning("Failed to notify assignee %s: %s", assignee_id, e)
 
-        result = {"notified": notified, "assignees": len(by_assignee), "pending_total": len(pending_enabled)}
+        result = {
+            "notified": notified,
+            "assignees": len(by_assignee),
+            "pending_total": len(pending_enabled),
+        }
         execution_log.mark_completed(
             AutomationExecutionLog.Status.SUCCESS,
             records_processed=notified,
@@ -90,7 +103,11 @@ def _remind_pending_assignees_body() -> dict:
     except (DatabaseError, IntegrityError, ValidationError, ValueError, TypeError) as e:
         log_exception_with_context(
             "remind_pending_assignees_task failed",
-            extra={"task": "remind_pending_assignees", "execution_log_id": getattr(execution_log, "id", None), "error": str(e)},
+            extra={
+                "task": "remind_pending_assignees",
+                "execution_log_id": getattr(execution_log, "id", None),
+                "error": str(e),
+            },
         )
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
@@ -103,10 +120,14 @@ def _remind_pending_assignees_body() -> dict:
 def remind_pending_assignees_task(self, school_id: str | None = None) -> dict:
     """Notify staff assigned to pending AccessRequests. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
-        return _run_with_tenant_context(school_id=school_id, runnable=_remind_pending_assignees_body)
+        return _run_with_tenant_context(
+            school_id=school_id, runnable=_remind_pending_assignees_body
+        )
     totals = {"notified": 0, "assignees": 0, "pending_total": 0}
     for sid in get_active_school_ids():
-        result = _run_with_tenant_context(school_id=sid, runnable=_remind_pending_assignees_body)
+        result = _run_with_tenant_context(
+            school_id=sid, runnable=_remind_pending_assignees_body
+        )
         totals["notified"] += result.get("notified", 0)
         totals["assignees"] += result.get("assignees", 0)
         totals["pending_total"] += result.get("pending_total", 0)

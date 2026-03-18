@@ -2,6 +2,7 @@
 Circuit breaker for notification providers (required, non-optional).
 After N failures within a window, the circuit opens and we skip the provider (fallback or fail fast).
 """
+
 from __future__ import annotations
 
 import logging
@@ -33,7 +34,12 @@ def record_failure(school_id: Any, channel: str) -> None:
         else:
             _breakers[k] = (count + 1, first)
         if _breakers[k][0] >= FAILURE_THRESHOLD:
-            logger.warning("Circuit breaker open for %s channel=%s (failures=%s)", school_id, channel, _breakers[k][0])
+            logger.warning(
+                "Circuit breaker open for %s channel=%s (failures=%s)",
+                school_id,
+                channel,
+                _breakers[k][0],
+            )
 
 
 def record_success(school_id: Any, channel: str) -> None:

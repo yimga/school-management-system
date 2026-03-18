@@ -105,8 +105,16 @@ THEME_PUBLISH_GUARDED_FIELDS = frozenset(
 THEME_COLOR_CONTRAST_TARGETS = {
     "primary_color": {"label": "Primary color", "target": "#ffffff", "min_ratio": 4.5},
     "accent_color": {"label": "Accent color", "target": "#ffffff", "min_ratio": 3.0},
-    "header_bg_color": {"label": "Header background", "target": "#ffffff", "min_ratio": 4.5},
-    "footer_bg_color": {"label": "Footer background", "target": "#ffffff", "min_ratio": 4.5},
+    "header_bg_color": {
+        "label": "Header background",
+        "target": "#ffffff",
+        "min_ratio": 4.5,
+    },
+    "footer_bg_color": {
+        "label": "Footer background",
+        "target": "#ffffff",
+        "min_ratio": 4.5,
+    },
     "success_color": {"label": "Success color", "target": "#ffffff", "min_ratio": 3.0},
     "warning_color": {"label": "Warning color", "target": "#0f172a", "min_ratio": 3.0},
     "danger_color": {"label": "Danger color", "target": "#ffffff", "min_ratio": 3.0},
@@ -308,7 +316,11 @@ SITESETTINGS_FIELD_ORDER = [
 
 
 def _valid_sitesettings_fields() -> list[str]:
-    model_fields = {field.name for field in SiteSettings._meta.get_fields() if not field.auto_created}
+    model_fields = {
+        field.name
+        for field in SiteSettings._meta.get_fields()
+        if not field.auto_created
+    }
     return [
         field
         for field in SITESETTINGS_FIELD_ORDER
@@ -343,94 +355,217 @@ class SiteSettingsForm(forms.ModelForm):
         fields = _valid_sitesettings_fields()
 
         widgets = {
-        "site_name": forms.TextInput(attrs={"class": "form-control"}),
-        "tagline": forms.TextInput(attrs={"class": "form-control"}),
-        "school_code": forms.TextInput(attrs={"class": "form-control", "maxlength": 20}),
-        "primary_color": ColorInputWithPreview(),
-        "accent_color": ColorInputWithPreview(),
-        "header_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0d6efd"}),
-        "footer_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0f172a"}),
-        "login_hero_heading": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Welcome to Our School"}),
-        "login_hero_subtext": forms.TextInput(attrs={"class": "form-control"}),
-        "branded_domain": forms.TextInput(attrs={"class": "form-control", "placeholder": "portal.school.edu"}),
-        "secondary_font": forms.TextInput(attrs={"class": "form-control", "placeholder": "Georgia, serif"}),
-        "portal_sidebar_order": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": '["parent-home", "parent-workflow"]'}),
-        "default_widgets_per_role": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": '{"TEACHER": ["widget-a"], "PARENT": ["widget-b"]}'}),
-        "layout_style": forms.Select(attrs={"class": "form-select"}),
-        "favicon": forms.ClearableFileInput(attrs={"class": "form-control"}),
-        "sidebar_icon": forms.ClearableFileInput(attrs={"class": "form-control"}),
-            "background_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "site_name": forms.TextInput(attrs={"class": "form-control"}),
+            "tagline": forms.TextInput(attrs={"class": "form-control"}),
+            "school_code": forms.TextInput(
+                attrs={"class": "form-control", "maxlength": 20}
+            ),
+            "primary_color": ColorInputWithPreview(),
+            "accent_color": ColorInputWithPreview(),
+            "header_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0d6efd"}),
+            "footer_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0f172a"}),
+            "login_hero_heading": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "e.g. Welcome to Our School",
+                }
+            ),
+            "login_hero_subtext": forms.TextInput(attrs={"class": "form-control"}),
+            "branded_domain": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "portal.school.edu"}
+            ),
+            "secondary_font": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Georgia, serif"}
+            ),
+            "portal_sidebar_order": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": '["parent-home", "parent-workflow"]',
+                }
+            ),
+            "default_widgets_per_role": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": '{"TEACHER": ["widget-a"], "PARENT": ["widget-b"]}',
+                }
+            ),
+            "layout_style": forms.Select(attrs={"class": "form-select"}),
+            "favicon": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "sidebar_icon": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "background_image": forms.ClearableFileInput(
+                attrs={"class": "form-control"}
+            ),
             "brand_font": forms.TextInput(attrs={"class": "form-control"}),
             "company_name": forms.TextInput(attrs={"class": "form-control"}),
-            "company_address": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "company_address": forms.Textarea(
+                attrs={"class": "form-control", "rows": 2}
+            ),
             "company_phone": forms.TextInput(attrs={"class": "form-control"}),
-        "company_email": forms.EmailInput(attrs={"class": "form-control"}),
-        "country": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Country or region"}),
-        "region": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. South West"}),
-        "ministry": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Ministry of Secondary Education"}),
-        "default_region": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. CMR"}),
-        "ministry_registration_code": forms.TextInput(attrs={"class": "form-control"}),
-        "social_links": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
-        "company_slug": forms.TextInput(attrs={"class": "form-control"}),
-        "custom_css": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-        "theme_pack": forms.Select(attrs={"class": "form-select"}),
-        "admission_number_mode": forms.Select(attrs={"class": "form-select"}),
-        "admission_number_strategy": forms.Select(attrs={"class": "form-select"}),
-        "admission_number_template": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. {year_2digit}{school_code}{seq_4digit}{spec_code}{class_segment}"}),
-        "admission_number_pattern": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. {year}-{seq}"}),
-        "default_grading_scale": forms.Select(attrs={"class": "form-select"}),
-        "report_preview_contact_email": forms.EmailInput(attrs={"class": "form-control"}),
-        "report_preview_contact_phone": forms.TextInput(attrs={"class": "form-control"}),
-        "report_preview_footer_note": forms.TextInput(attrs={"class": "form-control"}),
-        "default_report_preview_type": forms.Select(attrs={"class": "form-select"}),
+            "company_email": forms.EmailInput(attrs={"class": "form-control"}),
+            "country": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. Country or region"}
+            ),
+            "region": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. South West"}
+            ),
+            "ministry": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "e.g. Ministry of Secondary Education",
+                }
+            ),
+            "default_region": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. CMR"}
+            ),
+            "ministry_registration_code": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "social_links": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "company_slug": forms.TextInput(attrs={"class": "form-control"}),
+            "custom_css": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "theme_pack": forms.Select(attrs={"class": "form-select"}),
+            "admission_number_mode": forms.Select(attrs={"class": "form-select"}),
+            "admission_number_strategy": forms.Select(attrs={"class": "form-select"}),
+            "admission_number_template": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "e.g. {year_2digit}{school_code}{seq_4digit}{spec_code}{class_segment}",
+                }
+            ),
+            "admission_number_pattern": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. {year}-{seq}"}
+            ),
+            "default_grading_scale": forms.Select(attrs={"class": "form-select"}),
+            "report_preview_contact_email": forms.EmailInput(
+                attrs={"class": "form-control"}
+            ),
+            "report_preview_contact_phone": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "report_preview_footer_note": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "default_report_preview_type": forms.Select(attrs={"class": "form-select"}),
             "default_dashboard_view": forms.Select(attrs={"class": "form-select"}),
-            "default_refresh_rate": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
+            "default_refresh_rate": forms.NumberInput(
+                attrs={"class": "form-control", "min": 10}
+            ),
             "portal_features": forms.CheckboxSelectMultiple(),
-        "marksheet_ocr_command": forms.TextInput(attrs={"class": "form-control", "placeholder": "tesseract"}),
-        "enable_concurrent_mark_uploads": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        "enable_practical_assessment": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        "auto_tag_photos_from_exif": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        "enable_offline_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        "offline_sync_conflict_resolution": forms.Select(attrs={"class": "form-select"}),
-        "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
-        "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
-        "grade_approval_enabled": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        "grade_approval_roles": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "[\"ADMIN\", \"HOD\"]"}),
-        "grade_approval_auto_validate": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        "grade_approval_deadline_days": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
-        "grade_approval_deadline_note": forms.TextInput(attrs={"class": "form-control"}),
-        "grade_post_roles": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "[\"TEACHER\", \"HOD\"]"}),
-        "syllabus_approval_roles": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "[\"DEAN\", \"HOD\"]"}),
-        "delegation_max_days": forms.NumberInput(attrs={"class": "form-control", "min": 1, "max": 365}),
-        "delegation_auto_revoke": forms.CheckboxInput(),
-        "delegation_notify_delegate_on_start": forms.Select(attrs={"class": "form-select"}),
-        "delegation_block_delegator_while_ooo": forms.CheckboxInput(),
-        "delegation_role_mapping": forms.Textarea(attrs={"class": "form-control", "rows": 6}),
-        "delegation_summary_report_on_return": forms.CheckboxInput(),
-        "notification_channels": forms.CheckboxSelectMultiple(),
-        "sms_provider": forms.Select(attrs={"class": "form-select"}),
-        "sms_api_key": forms.TextInput(attrs={"class": "form-control"}),
-        "sms_sender_id": forms.TextInput(attrs={"class": "form-control"}),
-        "email_from_address": forms.EmailInput(attrs={"class": "form-control"}),
-        "teacher_deadline_reminder_days": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "[7, 3, 1]"}),
-        "teacher_reminder_time_of_day": forms.TimeInput(attrs={"class": "form-control", "type": "time"}),
-        "referral_bonus_amount": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
-        "footer_accreditation_text": forms.TextInput(attrs={"class": "form-control"}),
-        "footer_accreditation_subtext": forms.TextInput(attrs={"class": "form-control"}),
-        "footer_support_hours": forms.TextInput(attrs={"class": "form-control"}),
-        "footer_whatsapp_url": forms.URLInput(attrs={"class": "form-control"}),
-        "whatsapp_support_number": forms.TextInput(attrs={"class": "form-control", "placeholder": "+2376XXXXXXX"}),
-        "whatsapp_admissions_number": forms.TextInput(attrs={"class": "form-control", "placeholder": "+2376XXXXXXX"}),
-        "footer_status_text": forms.TextInput(attrs={"class": "form-control"}),
-        "footer_badges": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-        "footer_links": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-            "top_students_default_limit": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
-            "pass_mark": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
-            "weak_subject_threshold": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
-            "improvement_delta_threshold": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
-        "deadline_mode": forms.Select(attrs={"class": "form-select"}),
-        "cache_rankings_interval_minutes": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
-        "compliance_profile": forms.Select(attrs={"class": "form-select"}),
+            "marksheet_ocr_command": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "tesseract"}
+            ),
+            "enable_concurrent_mark_uploads": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "enable_practical_assessment": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "auto_tag_photos_from_exif": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "enable_offline_mode": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "offline_sync_conflict_resolution": forms.Select(
+                attrs={"class": "form-select"}
+            ),
+            "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
+            "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
+            "grade_approval_enabled": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "grade_approval_roles": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": '["ADMIN", "HOD"]',
+                }
+            ),
+            "grade_approval_auto_validate": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "grade_approval_deadline_days": forms.NumberInput(
+                attrs={"class": "form-control", "min": 0}
+            ),
+            "grade_approval_deadline_note": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "grade_post_roles": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": '["TEACHER", "HOD"]',
+                }
+            ),
+            "syllabus_approval_roles": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": '["DEAN", "HOD"]',
+                }
+            ),
+            "delegation_max_days": forms.NumberInput(
+                attrs={"class": "form-control", "min": 1, "max": 365}
+            ),
+            "delegation_auto_revoke": forms.CheckboxInput(),
+            "delegation_notify_delegate_on_start": forms.Select(
+                attrs={"class": "form-select"}
+            ),
+            "delegation_block_delegator_while_ooo": forms.CheckboxInput(),
+            "delegation_role_mapping": forms.Textarea(
+                attrs={"class": "form-control", "rows": 6}
+            ),
+            "delegation_summary_report_on_return": forms.CheckboxInput(),
+            "notification_channels": forms.CheckboxSelectMultiple(),
+            "sms_provider": forms.Select(attrs={"class": "form-select"}),
+            "sms_api_key": forms.TextInput(attrs={"class": "form-control"}),
+            "sms_sender_id": forms.TextInput(attrs={"class": "form-control"}),
+            "email_from_address": forms.EmailInput(attrs={"class": "form-control"}),
+            "teacher_deadline_reminder_days": forms.Textarea(
+                attrs={"class": "form-control", "rows": 2, "placeholder": "[7, 3, 1]"}
+            ),
+            "teacher_reminder_time_of_day": forms.TimeInput(
+                attrs={"class": "form-control", "type": "time"}
+            ),
+            "referral_bonus_amount": forms.NumberInput(
+                attrs={"class": "form-control", "min": 0, "step": "0.01"}
+            ),
+            "footer_accreditation_text": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "footer_accreditation_subtext": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "footer_support_hours": forms.TextInput(attrs={"class": "form-control"}),
+            "footer_whatsapp_url": forms.URLInput(attrs={"class": "form-control"}),
+            "whatsapp_support_number": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "+2376XXXXXXX"}
+            ),
+            "whatsapp_admissions_number": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "+2376XXXXXXX"}
+            ),
+            "footer_status_text": forms.TextInput(attrs={"class": "form-control"}),
+            "footer_badges": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "footer_links": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "top_students_default_limit": forms.NumberInput(
+                attrs={"class": "form-control", "min": 1}
+            ),
+            "pass_mark": forms.NumberInput(
+                attrs={"class": "form-control", "min": 0, "step": "0.01"}
+            ),
+            "weak_subject_threshold": forms.NumberInput(
+                attrs={"class": "form-control", "min": 0, "step": "0.01"}
+            ),
+            "improvement_delta_threshold": forms.NumberInput(
+                attrs={"class": "form-control", "min": 0, "step": "0.01"}
+            ),
+            "deadline_mode": forms.Select(attrs={"class": "form-select"}),
+            "cache_rankings_interval_minutes": forms.NumberInput(
+                attrs={"class": "form-control", "min": 1}
+            ),
+            "compliance_profile": forms.Select(attrs={"class": "form-select"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -441,7 +576,9 @@ class SiteSettingsForm(forms.ModelForm):
             from apps.finance.models import ComplianceProfile
 
             profiles = list(
-                ComplianceProfile.objects.order_by("-is_active", "name").values_list("pk", "name")
+                ComplianceProfile.objects.order_by("-is_active", "name").values_list(
+                    "pk", "name"
+                )
             )
             self.fields["compliance_profile"].choices += [
                 (profile_id, name) for profile_id, name in profiles
@@ -454,7 +591,8 @@ class SiteSettingsForm(forms.ModelForm):
         self.initial["compliance_profile"] = current_profile_id
         feature_settings = (
             self.instance.get_feature_control_settings()
-            if self.instance and callable(getattr(self.instance, "get_feature_control_settings", None))
+            if self.instance
+            and callable(getattr(self.instance, "get_feature_control_settings", None))
             else {}
         )
         portal_features = feature_settings.get("portal_features") or {}
@@ -465,11 +603,21 @@ class SiteSettingsForm(forms.ModelForm):
                 if portal_features.get(key, False)
             ]
         else:
-            enabled = [key for key, _ in PORTAL_FEATURE_OPTIONS if PORTAL_FEATURE_DEFAULTS.get(key)]
+            enabled = [
+                key
+                for key, _ in PORTAL_FEATURE_OPTIONS
+                if PORTAL_FEATURE_DEFAULTS.get(key)
+            ]
         self.fields["portal_features"].initial = enabled
-        self.fields["notification_channels"].initial = feature_settings.get("notification_channels") or []
-        self.initial["referral_bonus_amount"] = self.instance.referral_bonus_amount or Decimal("0.00")
-        self.initial["social_links"] = json.dumps(self.instance.social_links or [], indent=2)
+        self.fields["notification_channels"].initial = (
+            feature_settings.get("notification_channels") or []
+        )
+        self.initial["referral_bonus_amount"] = (
+            self.instance.referral_bonus_amount or Decimal("0.00")
+        )
+        self.initial["social_links"] = json.dumps(
+            self.instance.social_links or [], indent=2
+        )
 
         # Mark all boolean toggles so they show On/Off badges (Feature Control pattern site-wide).
         for name, field in self.fields.items():
@@ -496,7 +644,9 @@ class SiteSettingsForm(forms.ModelForm):
         try:
             data = json.loads(raw)
         except json.JSONDecodeError as exc:
-            raise forms.ValidationError("Enter valid JSON for social/contact links.") from exc
+            raise forms.ValidationError(
+                "Enter valid JSON for social/contact links."
+            ) from exc
         if not isinstance(data, list):
             raise forms.ValidationError("Social links must be a JSON list.")
         return data
@@ -585,7 +735,9 @@ class UserPreferenceForm(forms.ModelForm):
         ]
         widgets = {
             "dashboard_view": forms.Select(attrs={"class": "form-select"}),
-            "refresh_rate_minutes": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
+            "refresh_rate_minutes": forms.NumberInput(
+                attrs={"class": "form-control", "min": 10}
+            ),
             "simple_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "theme_preference": forms.Select(attrs={"class": "form-select"}),
             "high_contrast": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -596,24 +748,36 @@ class UserPreferenceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        
-        self.fields["timezone"].widget.attrs["data-default-timezone"] = settings.TIME_ZONE
-        self.fields["preferred_language"].choices = [("", "Default (from region)")] + list(SUPPORTED_LANGUAGES.items())
+
+        self.fields["timezone"].widget.attrs["data-default-timezone"] = (
+            settings.TIME_ZONE
+        )
+        self.fields["preferred_language"].choices = [
+            ("", "Default (from region)")
+        ] + list(SUPPORTED_LANGUAGES.items())
         self.fields["preferred_language"].required = False
         try:
-            region_choices = [("", "Default")] + list(RegionConfig.objects.values_list("code", "name").order_by("name"))
+            region_choices = [("", "Default")] + list(
+                RegionConfig.objects.values_list("code", "name").order_by("name")
+            )
             self.fields["preferred_region"].choices = region_choices
         except (AttributeError, DatabaseError, TypeError, ValueError):
-            self.fields["preferred_region"].widget = forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. CMR"})
+            self.fields["preferred_region"].widget = forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. CMR"}
+            )
         self.fields["preferred_region"].required = False
-        
+
         if self.instance and self.instance.notification_channels:
             self.initial["notification_channels"] = self.instance.notification_channels
         role = getattr(self.user, "role", None)
         widget_choices = get_dashboard_widget_choices(role)
         self.fields["dashboard_widgets"].choices = widget_choices
         if self.instance and self.instance.dashboard_widgets:
-            selected = [key for key in self.instance.dashboard_widgets if key in {key for key, _ in widget_choices}]
+            selected = [
+                key
+                for key in self.instance.dashboard_widgets
+                if key in {key for key, _ in widget_choices}
+            ]
         else:
             selected = default_dashboard_widgets(role)
         self.initial["dashboard_widgets"] = selected
@@ -626,10 +790,14 @@ class UserPreferenceForm(forms.ModelForm):
             )
             self.fields["theme_preference"].initial = dashboard_pref.theme_preference
             self.fields["high_contrast"].initial = dashboard_pref.high_contrast
-            self.fields["dashboard_visual_preset"].initial = dashboard_pref.get_visual_preset(role)
+            self.fields[
+                "dashboard_visual_preset"
+            ].initial = dashboard_pref.get_visual_preset(role)
         if "simple_mode" in self.fields:
             self.fields["simple_mode"].label = "Simple mode (consumer-grade UI)"
-            self.fields["simple_mode"].help_text = "Show a simplified, less technical interface when enabled."
+            self.fields[
+                "simple_mode"
+            ].help_text = "Show a simplified, less technical interface when enabled."
 
     def clean_timezone(self):
         """Allow empty timezone - model default will be used."""
@@ -653,7 +821,9 @@ class UserPreferenceForm(forms.ModelForm):
         if timezone_value:
             preference.timezone = timezone_value
         # If no timezone provided, model default will be used
-        preference.notification_channels = self.cleaned_data.get("notification_channels", [])
+        preference.notification_channels = self.cleaned_data.get(
+            "notification_channels", []
+        )
         preference.dashboard_widgets = self.cleaned_data.get("dashboard_widgets", [])
         theme = self.cleaned_data.get("theme_preference")
         high_contrast = self.cleaned_data.get("high_contrast")
@@ -661,7 +831,9 @@ class UserPreferenceForm(forms.ModelForm):
         if commit:
             preference.save()
             try:
-                site = get_effective_site_settings(school=_school_for_user(preference.user))
+                site = get_effective_site_settings(
+                    school=_school_for_user(preference.user)
+                )
                 default_collapsed = getattr(site, "default_sidebar_collapsed", False)
                 dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
                     user=preference.user,
@@ -673,7 +845,9 @@ class UserPreferenceForm(forms.ModelForm):
                 if high_contrast is not None:
                     dashboard_pref.high_contrast = high_contrast
                 if visual_preset:
-                    dashboard_pref.set_visual_preset(getattr(preference.user, "role", None), visual_preset)
+                    dashboard_pref.set_visual_preset(
+                        getattr(preference.user, "role", None), visual_preset
+                    )
                 dashboard_pref.save()
             except (AttributeError, DatabaseError, TypeError, ValueError):
                 # Avoid blocking preference updates if dashboard prefs aren't migrated yet.
@@ -710,18 +884,38 @@ class ReportCardStyleForm(forms.ModelForm):
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
             "term_template": forms.Select(attrs={"class": "form-select"}),
             "annual_template": forms.Select(attrs={"class": "form-select"}),
-            "primary_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-            "accent_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
+            "primary_color": forms.TextInput(
+                attrs={"class": "form-control", "type": "color"}
+            ),
+            "accent_color": forms.TextInput(
+                attrs={"class": "form-control", "type": "color"}
+            ),
             "watermark_text": forms.TextInput(attrs={"class": "form-control"}),
             "watermark_mode": forms.Select(attrs={"class": "form-select"}),
             "watermark_logo": forms.ClearableFileInput(attrs={"class": "form-control"}),
-            "watermark_opacity": forms.NumberInput(attrs={"class": "form-control", "min": 0, "max": 1, "step": "0.01"}),
-            "watermark_scale": forms.NumberInput(attrs={"class": "form-control", "min": 20, "max": 180, "step": 1}),
+            "watermark_opacity": forms.NumberInput(
+                attrs={"class": "form-control", "min": 0, "max": 1, "step": "0.01"}
+            ),
+            "watermark_scale": forms.NumberInput(
+                attrs={"class": "form-control", "min": 20, "max": 180, "step": 1}
+            ),
             "watermark_position": forms.Select(attrs={"class": "form-select"}),
             "header_tagline": forms.TextInput(attrs={"class": "form-control"}),
             "css_snippet": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-            "labels": forms.Textarea(attrs={"class": "form-control", "rows": 6, "placeholder": "{\"rank\": \"Rank\"}"}),
-            "layout_config": forms.Textarea(attrs={"class": "form-control", "rows": 6, "placeholder": "{\"show_specialty_rank\": true}"}),
+            "labels": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 6,
+                    "placeholder": '{"rank": "Rank"}',
+                }
+            ),
+            "layout_config": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 6,
+                    "placeholder": '{"show_specialty_rank": true}',
+                }
+            ),
         }
 
 
@@ -789,14 +983,25 @@ THEME_EXPERIENCE_FIELD_NAMES = [
 ]
 
 # Legacy alias for JS that references color field names.
-THEME_COLOR_FIELD_NAMES = [f for f in THEME_EXPERIENCE_FIELD_NAMES if f in (
-    "primary_color", "accent_color", "header_bg_color", "footer_bg_color",
-    "success_color", "warning_color", "danger_color",
-)]
+THEME_COLOR_FIELD_NAMES = [
+    f
+    for f in THEME_EXPERIENCE_FIELD_NAMES
+    if f
+    in (
+        "primary_color",
+        "accent_color",
+        "header_bg_color",
+        "footer_bg_color",
+        "success_color",
+        "warning_color",
+        "danger_color",
+    )
+]
 
 
 class ThemeColorsForm(forms.ModelForm):
     """Form for the combined Theme & Experience page (/siteconfig/theme-colors/)."""
+
     class Meta:
         model = SiteSettings
         fields = THEME_EXPERIENCE_FIELD_NAMES
@@ -810,21 +1015,55 @@ class ThemeColorsForm(forms.ModelForm):
             "danger_color": ColorInputWithPreview(attrs={"placeholder": "#ef4444"}),
             "theme_brightness": forms.Select(attrs={"class": "form-select"}),
             "use_dark_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "theme_pack": forms.Select(attrs={"class": "form-select", "aria-describedby": "help-theme-pack"}),
-            "admin_theme_pack": forms.Select(attrs={"class": "form-select", "aria-describedby": "help-admin-theme-pack"}),
+            "theme_pack": forms.Select(
+                attrs={"class": "form-select", "aria-describedby": "help-theme-pack"}
+            ),
+            "admin_theme_pack": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "aria-describedby": "help-admin-theme-pack",
+                }
+            ),
             "teacher_theme_pack": forms.Select(attrs={"class": "form-select"}),
             "parent_theme_pack": forms.Select(attrs={"class": "form-select"}),
-            "theme_harmony": forms.Select(attrs={"class": "form-select", "aria-describedby": "help-theme-harmony"}),
-            "skip_theme_publish_guard": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "admin_use_site_primary": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "theme_harmony": forms.Select(
+                attrs={"class": "form-select", "aria-describedby": "help-theme-harmony"}
+            ),
+            "skip_theme_publish_guard": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "admin_use_site_primary": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
             "backend_console_theme": forms.Select(attrs={"class": "form-select"}),
-            "secondary_font": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Georgia, serif"}),
-            "use_secondary_font_for_headings": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "base_font_size": forms.NumberInput(attrs={"class": "form-control", "min": 12, "max": 24, "placeholder": "16"}),
-            "default_widgets_per_role": forms.Textarea(attrs={"class": "form-control font-monospace small", "rows": 3, "placeholder": "{}"}),
-            "report_downloads_enabled": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "secondary_font": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. Georgia, serif"}
+            ),
+            "use_secondary_font_for_headings": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "base_font_size": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": 12,
+                    "max": 24,
+                    "placeholder": "16",
+                }
+            ),
+            "default_widgets_per_role": forms.Textarea(
+                attrs={
+                    "class": "form-control font-monospace small",
+                    "rows": 3,
+                    "placeholder": "{}",
+                }
+            ),
+            "report_downloads_enabled": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
             "default_dashboard_view": forms.Select(attrs={"class": "form-select"}),
-            "default_refresh_rate": forms.NumberInput(attrs={"class": "form-control", "min": 30, "max": 600}),
+            "default_refresh_rate": forms.NumberInput(
+                attrs={"class": "form-control", "min": 30, "max": 600}
+            ),
             "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
             "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
         }
@@ -836,6 +1075,7 @@ class ThemeColorsForm(forms.ModelForm):
         if instance is None and request is not None:
             try:
                 from apps.platform_runtime.helpers import get_effective_site_settings
+
                 instance = get_effective_site_settings(request=request)
                 if instance is not None:
                     self.instance = instance
@@ -848,7 +1088,8 @@ class ThemeColorsForm(forms.ModelForm):
         instance = getattr(self, "instance", None)
         theme_experience_settings = (
             instance.get_theme_experience_settings()
-            if instance and callable(getattr(instance, "get_theme_experience_settings", None))
+            if instance
+            and callable(getattr(instance, "get_theme_experience_settings", None))
             else {}
         )
         theme_selection_ids = (
@@ -874,27 +1115,31 @@ class ThemeColorsForm(forms.ModelForm):
                 if field_name in self.fields:
                     self.initial[field_name] = theme_experience_settings.get(field_name)
             if "default_term_report_style" in self.fields:
-                self.initial["default_term_report_style"] = theme_experience_settings.get(
-                    "default_term_report_style_id"
+                self.initial["default_term_report_style"] = (
+                    theme_experience_settings.get("default_term_report_style_id")
                 )
             if "default_annual_report_style" in self.fields:
-                self.initial["default_annual_report_style"] = theme_experience_settings.get(
-                    "default_annual_report_style_id"
+                self.initial["default_annual_report_style"] = (
+                    theme_experience_settings.get("default_annual_report_style_id")
                 )
 
-        theme_qs = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
+        theme_qs = ThemePack.objects.filter(is_active=True).order_by(
+            "-is_default", "name"
+        )
         selected_theme_pack_id = theme_selection_ids.get("theme_pack_id")
         if selected_theme_pack_id:
             theme_qs = (
-                ThemePack.objects.filter(Q(is_active=True) | Q(pk=selected_theme_pack_id))
+                ThemePack.objects.filter(
+                    Q(is_active=True) | Q(pk=selected_theme_pack_id)
+                )
                 .order_by("-is_default", "name")
                 .distinct()
             )
         self.fields["theme_pack"].queryset = theme_qs
 
-        admin_qs = ThemePack.objects.filter(is_active=True, applies_to_admin=True).order_by(
-            "-is_default", "name"
-        )
+        admin_qs = ThemePack.objects.filter(
+            is_active=True, applies_to_admin=True
+        ).order_by("-is_default", "name")
         selected_admin_theme_pack_id = theme_selection_ids.get("admin_theme_pack_id")
         if selected_admin_theme_pack_id:
             selected_admin = ThemePack.objects.filter(
@@ -903,7 +1148,8 @@ class ThemeColorsForm(forms.ModelForm):
             if selected_admin:
                 admin_qs = (
                     ThemePack.objects.filter(
-                        Q(is_active=True, applies_to_admin=True) | Q(pk=selected_admin.pk)
+                        Q(is_active=True, applies_to_admin=True)
+                        | Q(pk=selected_admin.pk)
                     )
                     .order_by("-is_default", "name")
                     .distinct()
@@ -911,7 +1157,9 @@ class ThemeColorsForm(forms.ModelForm):
         self.fields["admin_theme_pack"].queryset = admin_qs
 
         # Per-role portal packs: include current selection if set
-        portal_qs = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
+        portal_qs = ThemePack.objects.filter(is_active=True).order_by(
+            "-is_default", "name"
+        )
         for attr in ("teacher_theme_pack_id", "parent_theme_pack_id"):
             pid = theme_selection_ids.get(attr)
             if pid:
@@ -926,9 +1174,15 @@ class ThemeColorsForm(forms.ModelForm):
 
         # Clearer labels for who sees what
         self.fields["theme_pack"].label = "Portal theme (everyone)"
-        self.fields["theme_pack"].help_text = "Used for portal and login for all users (parents, teachers, students)."
+        self.fields[
+            "theme_pack"
+        ].help_text = (
+            "Used for portal and login for all users (parents, teachers, students)."
+        )
         self.fields["admin_theme_pack"].label = "Admin & backend theme (staff)"
-        self.fields["admin_theme_pack"].help_text = "Used for Django Admin and Backend (Workflow Center) only."
+        self.fields[
+            "admin_theme_pack"
+        ].help_text = "Used for Django Admin and Backend (Workflow Center) only."
 
     def clean(self):
         cleaned = super().clean()
@@ -945,7 +1199,8 @@ class ThemeColorsForm(forms.ModelForm):
             if (
                 incoming_value not in (None, "")
                 and current_value is not None
-                and str(incoming_value).strip().lower() == str(current_value).strip().lower()
+                and str(incoming_value).strip().lower()
+                == str(current_value).strip().lower()
             ):
                 continue
             self.add_error(
@@ -971,7 +1226,10 @@ class ThemeColorsForm(forms.ModelForm):
             self.add_error("admin_theme_pack", "Selected pack is not admin-capable.")
         if admin_pack and not admin_pack.is_active:
             self.add_error("admin_theme_pack", "Selected admin pack is inactive.")
-        for field_name, label in (("teacher_theme_pack", "Teacher"), ("parent_theme_pack", "Parent")):
+        for field_name, label in (
+            ("teacher_theme_pack", "Teacher"),
+            ("parent_theme_pack", "Parent"),
+        ):
             pack = cleaned.get(field_name)
             if pack and not pack.is_active:
                 self.add_error(field_name, f"Selected {label} pack is inactive.")
@@ -984,6 +1242,7 @@ class ThemeColorsForm(forms.ModelForm):
         if instance is None:
             try:
                 from apps.platform_runtime.helpers import get_effective_site_settings
+
                 instance = get_effective_site_settings(request=None)
             except _SITECONFIG_FORMS_RESOLVE_ERRORS:
                 log_exception_with_context(
@@ -994,7 +1253,9 @@ class ThemeColorsForm(forms.ModelForm):
             if instance is not None:
                 self.instance = instance
         if instance is None:
-            raise ValueError("ThemeColorsForm requires instance or request; cannot resolve site settings.")
+            raise ValueError(
+                "ThemeColorsForm requires instance or request; cannot resolve site settings."
+            )
         instance = self.instance
         field_updates = {
             field_name: self.cleaned_data.get(field_name)

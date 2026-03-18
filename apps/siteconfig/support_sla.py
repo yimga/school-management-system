@@ -3,6 +3,7 @@ Support queue SLA — non-negotiable platform requirement.
 Defines SLA targets (response / resolution hours by priority) and helpers to check breach.
 Integrates with GlobalSupportTicket; used by control-plane support queue and runbooks.
 """
+
 from django.conf import settings
 from django.utils import timezone
 
@@ -22,12 +23,16 @@ SUPPORT_SLA_RESOLUTION_HOURS = getattr(
 
 def get_sla_response_hours(priority: str) -> int:
     """Return required first-response time in hours for the given priority."""
-    return SUPPORT_SLA_RESPONSE_HOURS.get(priority, SUPPORT_SLA_RESPONSE_HOURS.get("NORMAL", 24))
+    return SUPPORT_SLA_RESPONSE_HOURS.get(
+        priority, SUPPORT_SLA_RESPONSE_HOURS.get("NORMAL", 24)
+    )
 
 
 def get_sla_resolution_hours(priority: str) -> int:
     """Return required resolution time in hours for the given priority."""
-    return SUPPORT_SLA_RESOLUTION_HOURS.get(priority, SUPPORT_SLA_RESOLUTION_HOURS.get("NORMAL", 72))
+    return SUPPORT_SLA_RESOLUTION_HOURS.get(
+        priority, SUPPORT_SLA_RESOLUTION_HOURS.get("NORMAL", 72)
+    )
 
 
 def ticket_response_breach(ticket) -> bool:

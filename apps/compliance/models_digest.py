@@ -1,6 +1,7 @@
 """
 Alert digest model for batching non-critical notifications.
 """
+
 from django.db import models
 from django.utils import timezone
 
@@ -34,7 +35,9 @@ class AlertDigest(models.Model):
     sent_at = models.DateTimeField(null=True, blank=True)
 
     # Metadata
-    source = models.CharField(max_length=100, blank=True, help_text="Source module or function")
+    source = models.CharField(
+        max_length=100, blank=True, help_text="Source module or function"
+    )
     related_model = models.CharField(max_length=100, blank=True)
     related_id = models.PositiveIntegerField(null=True, blank=True)
 

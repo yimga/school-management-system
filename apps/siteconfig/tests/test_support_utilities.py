@@ -27,15 +27,22 @@ class SupportUtilitiesTests(SimpleTestCase):
         self.assertIsNone(result["primary_color"])
 
     def test_render_template_to_html_uses_layout_html(self):
-        template = SimpleNamespace(layout={"html": "<section><h1>{{ student_name }}</h1>{{ body }}</section>"})
+        template = SimpleNamespace(
+            layout={"html": "<section><h1>{{ student_name }}</h1>{{ body }}</section>"}
+        )
         html = render_template_to_html(template, {"student_name": "Ada", "grade": "A"})
         self.assertIn("<h1>Ada</h1>", html)
         self.assertIn("&lt;strong&gt;grade:&lt;/strong&gt; A", html)
 
     def test_document_extraction_provider_factory_returns_expected_provider_types(self):
-        self.assertIsInstance(get_document_extraction_provider("pattern"), PatternDocumentExtractionProvider)
         self.assertIsInstance(
-            get_document_extraction_provider("ocr_tesseract", tesseract_cmd="/tmp/tesseract"),
+            get_document_extraction_provider("pattern"),
+            PatternDocumentExtractionProvider,
+        )
+        self.assertIsInstance(
+            get_document_extraction_provider(
+                "ocr_tesseract", tesseract_cmd="/tmp/tesseract"
+            ),
             TesseractDocumentExtractionProvider,
         )
 
@@ -62,7 +69,12 @@ class SupportUtilitiesTests(SimpleTestCase):
             side_effect=WorkflowActionExecutionError("mail backend unavailable"),
         ):
             results = run_actions(
-                [{"type": "notify", "params": {"channel": "email", "to": "ops@example.com"}}],
+                [
+                    {
+                        "type": "notify",
+                        "params": {"channel": "email", "to": "ops@example.com"},
+                    }
+                ],
                 {},
             )
 
@@ -73,7 +85,10 @@ class SupportUtilitiesTests(SimpleTestCase):
     def test_for_action_returns_signature_workflow_without_database_access(self):
         self.assertEqual(
             for_action(None, "form_signature"),
-            {"type": "form_signature", "steps": ["pending", "signed", "rejected", "expired"]},
+            {
+                "type": "form_signature",
+                "steps": ["pending", "signed", "rejected", "expired"],
+            },
         )
 
     def test_get_approval_workflow_degrades_safely_when_delegation_module_fails(self):

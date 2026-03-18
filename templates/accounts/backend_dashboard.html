@@ -367,30 +367,155 @@ backend-shell dashboard-page-backend
               {% endif %}
             </div>
           </div>
-          <div class="backend-v2-metrics">
-            {% for metric in overview_cards %}
-            <article class="backend-v2-metric backend-v2-metric--tone-{{ forloop.counter }} {% if metric.status == 'danger' %}is-danger{% endif %}">
-              <div class="backend-v2-metric-title">
-                <span>{{ metric.title }}</span>
-                <i class="bi {{ metric.icon }}"></i>
+          {% if insight_anomalies_api_url %}
+          <div class="mb-3" data-widget-id="insight-anomalies" aria-label="{% trans 'Actionable insights' %}">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+              <span class="small text-muted text-uppercase fw-semibold" style="letter-spacing:0.04em;">{% trans "Actionable insights" %}</span>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="insight-anomaly-refresh-btn" data-url="{{ insight_anomalies_api_url }}" data-empty-msg="{% trans 'No ranked anomalies right now.' %}" data-error-msg="{% trans 'Could not refresh insights.' %}">{% trans "Refresh" %}</button>
+            </div>
+            <div id="insight-anomaly-strip-root" class="insight-anomaly-strip row g-2">
+              {% for a in insight_anomaly_cards %}
+              <div class="col-md-6 col-xl-4 insight-anomaly-card">
+                <div class="card h-100 shadow-sm {% if a.severity == 'danger' %}border-danger{% else %}border-warning{% endif %} border-start border-3">
+                  <div class="card-body py-3">
+                  <h3 class="h6 mb-1">{{ a.title }}</h3>
+                  {% if a.insight_line %}<p class="small fst-italic text-muted mb-1">{{ a.insight_line }}</p>{% endif %}
+                  <p class="small text-muted mb-2">{{ a.detail }}</p>
+                  <a href="{{ a.action_url }}" class="btn btn-sm btn-primary">{{ a.action_label }}</a>
+                </div>
               </div>
-              <div class="backend-v2-metric-value">{{ metric.value }}</div>
-              {% if metric.sparkline_points %}
+            </div>
+            {% empty %}
+              <div class="col-12" id="insight-anomaly-empty">
+                <p class="small text-muted mb-0">{% trans "No ranked anomalies right now. Refresh after new attendance or grade data." %}</p>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <script src="{% static 'js/backend-insight-anomalies-refresh.js' %}" defer></script>
+          {% elif insight_anomaly_cards %}
+          <div class="insight-anomaly-strip row g-2 mb-3" data-widget-id="insight-anomalies" aria-label="{% trans 'Actionable insights' %}">
+            {% for a in insight_anomaly_cards %}
+            <div class="col-md-6 col-xl-4">
+              <div class="card h-100 shadow-sm {% if a.severity == 'danger' %}border-danger{% else %}border-warning{% endif %} border-start border-3">
+                <div class="card-body py-3">
+                  <h3 class="h6 mb-1">{{ a.title }}</h3>
+                  {% if a.insight_line %}<p class="small fst-italic text-muted mb-1">{{ a.insight_line }}</p>{% endif %}
+                  <p class="small text-muted mb-2">{{ a.detail }}</p>
+                  <a href="{{ a.action_url }}" class="btn btn-sm btn-primary">{{ a.action_label }}</a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <link rel="stylesheet" href="{% static 'css/backend-bento-asymmetric.css' %}">
+          {% if overview_cards %}
+          <div class="backend-bento-asymmetric">
+            {% with m=overview_cards.0 %}
+            <article class="backend-bento-hero rmc-glass-surface backend-v2-metric backend-v2-metric--tone-1 {% if m.status == 'danger' %}is-danger{% endif %}">
+              <div class="backend-v2-metric-title"><span>{{ m.title }}</span><i class="bi {{ m.icon }}"></i></div>
+              <div class="backend-v2-metric-value">{{ m.value }}</div>
+              {% if m.sparkline_points %}
               <div class="backend-v2-sparkline-wrap" aria-hidden="true">
                 <svg class="backend-v2-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" width="100%" height="24">
-                  <polyline class="backend-v2-sparkline-line" fill="none" stroke="currentColor" stroke-width="1.2" points="{{ metric.sparkline_points }}"/>
+                  <polyline class="backend-v2-sparkline-line" fill="none" stroke="currentColor" stroke-width="1.2" points="{{ m.sparkline_points }}"/>
                 </svg>
               </div>
               {% endif %}
-              <div class="backend-v2-metric-meta">
-                <span>{{ metric.meta }}</span>
-                {% if metric.delta %}<span>{{ metric.delta }}</span>{% endif %}
-              </div>
+              <div class="backend-v2-metric-meta"><span>{{ m.meta }}</span>{% if m.delta %}<span>{{ m.delta }}</span>{% endif %}</div>
             </article>
-            {% endfor %}
+            {% endwith %}
+            <div class="backend-bento-stack">
+              {% for metric in overview_cards %}
+              {% if not forloop.first %}
+              <article class="backend-v2-metric backend-v2-metric--tone-{{ forloop.counter }} {% if metric.status == 'danger' %}is-danger{% endif %}">
+                <div class="backend-v2-metric-title"><span>{{ metric.title }}</span><i class="bi {{ metric.icon }}"></i></div>
+                <div class="backend-v2-metric-value">{{ metric.value }}</div>
+                {% if metric.sparkline_points %}
+                <div class="backend-v2-sparkline-wrap" aria-hidden="true">
+                  <svg class="backend-v2-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" width="100%" height="20">
+                    <polyline class="backend-v2-sparkline-line" fill="none" stroke="currentColor" stroke-width="1.2" points="{{ metric.sparkline_points }}"/>
+                  </svg>
+                </div>
+                {% endif %}
+                <div class="backend-v2-metric-meta"><span>{{ metric.meta }}</span>{% if metric.delta %}<span>{{ metric.delta }}</span>{% endif %}</div>
+              </article>
+              {% endif %}
+              {% endfor %}
+            </div>
+            <div class="backend-bento-chart-wide rmc-glass-surface">
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                  <h3 class="h6 mb-0">{% trans "KPI snapshot" %}</h3>
+                  <p class="small text-muted mb-0">{% trans "Click or press Enter to expand details" %}</p>
+                </div>
+                <span class="badge text-bg-secondary">{% trans "Drill-down" %}</span>
+              </div>
+              <div class="backend-bento-spark-combo">
+                {% for metric in overview_cards %}
+                {% if metric.sparkline_points %}
+                <div class="text-center">
+                  <div class="small text-muted text-truncate" style="max-width:6rem;">{{ metric.title }}</div>
+                  <svg class="backend-v2-sparkline mt-1" viewBox="0 0 100 24" preserveAspectRatio="none" width="80" height="28" aria-hidden="true">
+                    <polyline class="backend-v2-sparkline-line" fill="none" stroke="currentColor" stroke-width="1.2" points="{{ metric.sparkline_points }}"/>
+                  </svg>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+              <div id="backendBentoDrillPanel" class="backend-bento-drill-panel d-none">
+                <table class="table table-sm table-hover mb-0">
+                  <thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
+                  <tbody>
+                    {% for item in kpi_strip_cards %}
+                    <tr><td>{{ item.label }}</td><td>{{ item.value }}</td><td class="small text-muted">{{ item.meta }}</td></tr>
+                    {% empty %}
+                    {% for metric in overview_cards %}
+                    <tr><td>{{ metric.title }}</td><td>{{ metric.value }}</td><td class="small text-muted">{{ metric.meta }}</td></tr>
+                    {% endfor %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-          {% if kpi_strip_cards %}
-          <div class="backend-v2-kpi-strip" data-widget-id="backend-overview-kpis">
+          <script src="{% static 'js/backend-bento-drill.js' %}" defer></script>
+          {% elif kpi_strip_cards %}
+          <div class="backend-bento-asymmetric">
+            {% with item=kpi_strip_cards.0 %}
+            <article class="backend-bento-hero rmc-glass-surface backend-v2-kpi backend-v2-kpi--tone-1">
+              <div class="backend-v2-kpi-head"><span>{{ item.label }}</span><i class="bi {{ item.icon }}"></i></div>
+              <div class="backend-v2-kpi-value">{{ item.value }}</div>
+              <div class="backend-v2-kpi-meta">{{ item.meta }}</div>
+            </article>
+            {% endwith %}
+            <div class="backend-bento-stack">
+              {% for item in kpi_strip_cards %}
+              {% if not forloop.first %}
+              <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
+                <div class="backend-v2-kpi-head"><span>{{ item.label }}</span><i class="bi {{ item.icon }}"></i></div>
+                <div class="backend-v2-kpi-value">{{ item.value }}</div>
+                <div class="backend-v2-kpi-meta">{{ item.meta }}</div>
+              </article>
+              {% endif %}
+              {% endfor %}
+            </div>
+            <div class="backend-bento-chart-wide rmc-glass-surface">
+              <h3 class="h6">{% trans "KPI detail" %}</h3>
+              <p class="small text-muted">{% trans "Expand for full table" %}</p>
+              <div id="backendBentoDrillPanel" class="backend-bento-drill-panel d-none">
+                <table class="table table-sm mb-0"><thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
+                <tbody>{% for item in kpi_strip_cards %}<tr><td>{{ item.label }}</td><td>{{ item.value }}</td><td>{{ item.meta }}</td></tr>{% endfor %}</tbody></table>
+              </div>
+            </div>
+          </div>
+          <script src="{% static 'js/backend-bento-drill.js' %}" defer></script>
+          {% else %}
+          <p class="text-muted small mb-3">{% trans "Overview metrics will appear here when configured." %}</p>
+          {% endif %}
+          {% if kpi_strip_cards and overview_cards %}
+          <div class="backend-v2-kpi-strip mt-3" data-widget-id="backend-overview-kpis" data-bento-tier="trend">
             {% for item in kpi_strip_cards %}
             <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
               <div class="backend-v2-kpi-head">
@@ -403,12 +528,25 @@ backend-shell dashboard-page-backend
             {% endfor %}
           </div>
           {% endif %}
+          {% if role_home_destinations %}
+          <div class="backend-bento-drilldown card border-0 shadow-sm p-3 mt-3 mb-2" data-bento-tier="drill-down" aria-label="{% trans 'Quick drill-down' %}">
+            <h3 class="h6 text-uppercase text-muted mb-2">{% trans "Jump deeper" %}</h3>
+            <div class="d-flex flex-wrap gap-2">
+              {% for dest in role_home_destinations|slice:":10" %}
+              <a href="{{ dest.url }}" class="btn btn-sm btn-outline-secondary">{{ dest.label }}</a>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
         </div>
         {% endif %}
 
         {% if backend_module_visibility.welcome %}
         <div class="backend-v2-welcome" data-widget-id="backend-v2-welcome">
           <div class="backend-role-home">
+            {% if first_login_tour_show %}
+            {% include "partials/onboarding_what_next.html" %}
+            {% endif %}
             <div class="backend-role-home-top">
               <div class="backend-role-home-copy">
                 <div class="backend-role-home-eyebrow">

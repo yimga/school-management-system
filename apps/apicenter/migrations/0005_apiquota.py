@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0001_initial"),
         ("apicenter", "0004_apikey"),
@@ -15,10 +14,40 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="APIQuota",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("quota_type", models.CharField(choices=[("requests_per_minute", "Requests per minute"), ("requests_per_day", "Requests per day"), ("webhooks_count", "Webhook subscriptions count")], max_length=32)),
-                ("limit_value", models.PositiveIntegerField(help_text="Max allowed (e.g. 100 for requests_per_minute)")),
-                ("period_minutes", models.PositiveIntegerField(blank=True, help_text="Optional: period in minutes for rolling window", null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "quota_type",
+                    models.CharField(
+                        choices=[
+                            ("requests_per_minute", "Requests per minute"),
+                            ("requests_per_day", "Requests per day"),
+                            ("webhooks_count", "Webhook subscriptions count"),
+                        ],
+                        max_length=32,
+                    ),
+                ),
+                (
+                    "limit_value",
+                    models.PositiveIntegerField(
+                        help_text="Max allowed (e.g. 100 for requests_per_minute)"
+                    ),
+                ),
+                (
+                    "period_minutes",
+                    models.PositiveIntegerField(
+                        blank=True,
+                        help_text="Optional: period in minutes for rolling window",
+                        null=True,
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 (
@@ -40,6 +69,9 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name="apiquota",
-            constraint=models.UniqueConstraint(fields=("school", "quota_type"), name="apicenter_apiquota_school_quota_type_uniq"),
+            constraint=models.UniqueConstraint(
+                fields=("school", "quota_type"),
+                name="apicenter_apiquota_school_quota_type_uniq",
+            ),
         ),
     ]

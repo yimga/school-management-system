@@ -12,5 +12,7 @@ class TenantUrlHelperTests(SimpleTestCase):
 
     @override_settings(SINGLE_TENANT="true")
     def test_get_single_tenant_slug_returns_none_on_query_failure(self):
-        with patch("apps.schools.models.School.objects.filter", side_effect=DatabaseError):
+        with patch(
+            "apps.schools.models.School.objects.filter", side_effect=DatabaseError
+        ):
             self.assertIsNone(get_single_tenant_slug())

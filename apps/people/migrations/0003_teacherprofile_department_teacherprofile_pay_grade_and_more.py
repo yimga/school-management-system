@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("academics", "0001_initial"),
         ("people", "0002_studentprofile_profile_photo_and_more"),

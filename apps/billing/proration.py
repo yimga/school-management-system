@@ -1,6 +1,7 @@
 """
 Part F Section 25.1: Proration for subscription billing — compute prorated amount for partial period.
 """
+
 from __future__ import annotations
 
 from datetime import date

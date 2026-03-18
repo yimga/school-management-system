@@ -18,7 +18,14 @@ from apps.payroll.models import PayrollEmployee, PayrollRun
 
 
 register = template.Library()
-OPTIONAL_ADMIN_HEALTH_ERRORS = (AttributeError, DatabaseError, OSError, RuntimeError, TypeError, ValueError)
+OPTIONAL_ADMIN_HEALTH_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 @register.simple_tag(takes_context=True)
@@ -44,7 +51,8 @@ def admin_health(context):
         graph = loader.graph
         applied = set(loader.applied_migrations)
         unapplied = [
-            node for node in graph.nodes
+            node
+            for node in graph.nodes
             if node not in applied and not graph.node_map[node].replaces
         ]
         metrics["pending_migrations"] = len(unapplied)
@@ -53,11 +61,17 @@ def admin_health(context):
         pass
 
     # Term publish status
-    metrics["unpublished_terms"] = TermPublishStatus.objects.filter(is_published=False).count()
+    metrics["unpublished_terms"] = TermPublishStatus.objects.filter(
+        is_published=False
+    ).count()
 
     # Finance overdue invoices
-    metrics["overdue_invoices"] = Invoice.objects.filter(status=Invoice.Status.OVERDUE).count()
-    metrics["draft_invoices"] = Invoice.objects.filter(status=Invoice.Status.DRAFT).count()
+    metrics["overdue_invoices"] = Invoice.objects.filter(
+        status=Invoice.Status.OVERDUE
+    ).count()
+    metrics["draft_invoices"] = Invoice.objects.filter(
+        status=Invoice.Status.DRAFT
+    ).count()
 
     # Payment reminders
     now = timezone.now()
@@ -110,7 +124,9 @@ def admin_section_stats(context):
     eval_total = Evaluation.objects.count()
     eval_complete = Evaluation.objects.filter().count()
     try:
-        eval_complete = sum(1 for e in Evaluation.objects.all().iterator() if e.is_complete_for_ranking)
+        eval_complete = sum(
+            1 for e in Evaluation.objects.all().iterator() if e.is_complete_for_ranking
+        )
     except OPTIONAL_ADMIN_HEALTH_ERRORS:
         eval_complete = 0
     completion_pct = round((eval_complete / eval_total) * 100, 2) if eval_total else 0

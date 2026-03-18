@@ -59,7 +59,6 @@ def ensure_weights_table(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("academics", "0002_classroom_allows_third_term"),
         ("evals", "0002_evaluationevidence"),

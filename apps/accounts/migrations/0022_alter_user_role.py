@@ -4,15 +4,44 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0021_ensure_default_admin_user'),
+        ("accounts", "0021_ensure_default_admin_user"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='role',
-            field=models.CharField(choices=[('SUPERADMIN', 'Super Administrator'), ('ADMIN', 'Administrator'), ('LEADERSHIP', 'Leadership'), ('PRINCIPAL', 'Principal'), ('VICE_PRINCIPAL', 'Vice Principal'), ('DEAN', 'Dean'), ('CENSOR', 'Censor'), ('BURSAR', 'Bursar'), ('HOD', 'Head of Department'), ('DEPT_LEAD', 'Department Lead'), ('FINANCE_STAFF', 'Finance Staff'), ('ACADEMICS_STAFF', 'Academics Staff'), ('COMMS_STAFF', 'Communications Staff'), ('SECRETARY', 'Secretary'), ('EXECUTIVE_ASSISTANT', 'Executive Assistant'), ('VIRTUAL_ASSISTANT', 'Virtual Assistant'), ('TEACHER', 'Teacher'), ('IT_ADMIN', 'IT Administrator'), ('BOARDING_MANAGER', 'Boarding Manager'), ('ACCOUNTANT', 'Accountant'), ('PROPRIETOR', 'Proprietor'), ('DISCIPLINE_MASTER', 'Discipline Master'), ('PARENT', 'Parent'), ('STUDENT', 'Student'), ('EMPLOYER', 'Employer (apprentice portal)')], default='PARENT', max_length=20),
+            model_name="user",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("SUPERADMIN", "Super Administrator"),
+                    ("ADMIN", "Administrator"),
+                    ("LEADERSHIP", "Leadership"),
+                    ("PRINCIPAL", "Principal"),
+                    ("VICE_PRINCIPAL", "Vice Principal"),
+                    ("DEAN", "Dean"),
+                    ("CENSOR", "Censor"),
+                    ("BURSAR", "Bursar"),
+                    ("HOD", "Head of Department"),
+                    ("DEPT_LEAD", "Department Lead"),
+                    ("FINANCE_STAFF", "Finance Staff"),
+                    ("ACADEMICS_STAFF", "Academics Staff"),
+                    ("COMMS_STAFF", "Communications Staff"),
+                    ("SECRETARY", "Secretary"),
+                    ("EXECUTIVE_ASSISTANT", "Executive Assistant"),
+                    ("VIRTUAL_ASSISTANT", "Virtual Assistant"),
+                    ("TEACHER", "Teacher"),
+                    ("IT_ADMIN", "IT Administrator"),
+                    ("BOARDING_MANAGER", "Boarding Manager"),
+                    ("ACCOUNTANT", "Accountant"),
+                    ("PROPRIETOR", "Proprietor"),
+                    ("DISCIPLINE_MASTER", "Discipline Master"),
+                    ("PARENT", "Parent"),
+                    ("STUDENT", "Student"),
+                    ("EMPLOYER", "Employer (apprentice portal)"),
+                ],
+                default="PARENT",
+                max_length=20,
+            ),
         ),
     ]

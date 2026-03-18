@@ -4,15 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('marketplace', '0004_phase11_app_types_capability_compat_lifecycle'),
+        ("marketplace", "0004_phase11_app_types_capability_compat_lifecycle"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='marketplaceapp',
-            name='kind',
-            field=models.CharField(choices=[('first_party', 'First-party'), ('third_party', 'Third-party'), ('premium', 'Premium'), ('tenant_private', 'Tenant-private'), ('connector', 'Connector')], default='first_party', max_length=20),
+            model_name="marketplaceapp",
+            name="kind",
+            field=models.CharField(
+                choices=[
+                    ("first_party", "First-party"),
+                    ("third_party", "Third-party"),
+                    ("premium", "Premium"),
+                    ("tenant_private", "Tenant-private"),
+                    ("connector", "Connector"),
+                ],
+                default="first_party",
+                max_length=20,
+            ),
         ),
     ]

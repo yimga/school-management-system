@@ -2,6 +2,7 @@
 Year setup utilities: clone previous academic year (terms, classrooms, subject assignments).
 Used by Workflow Center and backend year-setup flows.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -51,7 +52,9 @@ def clone_academic_year(
 
     with transaction.atomic():
         if copy_terms:
-            for t in Term.objects.filter(academic_year=from_year).order_by("position", "start_date"):
+            for t in Term.objects.filter(academic_year=from_year).order_by(
+                "position", "start_date"
+            ):
                 new_term, created = Term.objects.get_or_create(
                     academic_year=to_year,
                     name=t.name,
@@ -68,7 +71,9 @@ def clone_academic_year(
                     stats["terms_created"] += 1
 
         if copy_classrooms:
-            for c in Classroom.objects.filter(academic_year=from_year).select_related("department"):
+            for c in Classroom.objects.filter(academic_year=from_year).select_related(
+                "department"
+            ):
                 new_code = f"{c.code}-{suffix}"
                 # Ensure globally unique code
                 if Classroom.objects.filter(code=new_code).exists():
@@ -87,9 +92,9 @@ def clone_academic_year(
                     stats["classrooms_created"] += 1
 
         if copy_subject_assignments and old_to_new_term and old_to_new_classroom:
-            for sa in SubjectAssignment.objects.filter(academic_year=from_year).select_related(
-                "term", "classroom", "specialty", "subject"
-            ):
+            for sa in SubjectAssignment.objects.filter(
+                academic_year=from_year
+            ).select_related("term", "classroom", "specialty", "subject"):
                 new_term = old_to_new_term.get(sa.term_id)
                 new_class = old_to_new_classroom.get(sa.classroom_id)
                 if not new_term or not new_class:
@@ -106,8 +111,14 @@ def clone_academic_year(
                     stats["subject_assignments_created"] += 1
 
         if copy_promotion_rules:
-            for pr in PromotionRule.objects.filter(academic_year=from_year).select_related("classroom"):
-                new_class = old_to_new_classroom.get(pr.classroom_id) if pr.classroom_id else None
+            for pr in PromotionRule.objects.filter(
+                academic_year=from_year
+            ).select_related("classroom"):
+                new_class = (
+                    old_to_new_classroom.get(pr.classroom_id)
+                    if pr.classroom_id
+                    else None
+                )
                 _, created = PromotionRule.objects.get_or_create(
                     academic_year=to_year,
                     classroom=new_class,

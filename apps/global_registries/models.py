@@ -20,6 +20,7 @@ from apps.registries.models import (
     SubdivisionRegistry,
     TimeZoneRegistry,
 )
+
 # Import from concrete modules to avoid circular import when compliance (or others)
 # loads global_registries before siteconfig.models has finished loading.
 from apps.academics.models import HolidayCalendar as LegacyHolidayCalendar

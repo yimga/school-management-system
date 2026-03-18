@@ -1,10 +1,16 @@
 """
 CI enforcement: PackageEngine validate, preview, apply, promote, rollback.
 """
+
 from django.test import TestCase
 
 from apps.metadata.models import MetadataDependency
-from apps.packages.engine import apply_package, promote_package, rollback, validate_package
+from apps.packages.engine import (
+    apply_package,
+    promote_package,
+    rollback,
+    validate_package,
+)
 from apps.packages.models import InstalledPackage, PackageChangeLog, PackageVersion
 
 
@@ -13,10 +19,15 @@ class PackageEngineValidateTests(TestCase):
         result = validate_package({})
         self.assertFalse(result["ok"])
         msg = " ".join(result["errors"]).lower()
-        self.assertTrue("id" in msg or "version" in msg, f"Expected id/version errors, got: {result}")
+        self.assertTrue(
+            "id" in msg or "version" in msg,
+            f"Expected id/version errors, got: {result}",
+        )
 
     def test_validate_accepts_valid_payload(self):
-        result = validate_package({"id": "test-pack", "version": "1.0", "payload_sections": {"policy": {}}})
+        result = validate_package(
+            {"id": "test-pack", "version": "1.0", "payload_sections": {"policy": {}}}
+        )
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["package_type"], "policy")
         self.assertIn("impact_summary", result)
@@ -49,9 +60,15 @@ class PackageEngineValidateTests(TestCase):
         )
         self.assertTrue(result["ok"], result)
         preview = result["metadata_usage_preview"]
-        self.assertTrue(any(item["consumer_code"] == "dashboard:principal-home" for item in preview))
-        self.assertTrue(any(item["consumer_code"] == "api:student-api" for item in preview))
-        self.assertTrue(any(item["consumer_code"] == "package:lineage-pack" for item in preview))
+        self.assertTrue(
+            any(item["consumer_code"] == "dashboard:principal-home" for item in preview)
+        )
+        self.assertTrue(
+            any(item["consumer_code"] == "api:student-api" for item in preview)
+        )
+        self.assertTrue(
+            any(item["consumer_code"] == "package:lineage-pack" for item in preview)
+        )
 
 
 class PackageEngineApplyRollbackTests(TestCase):
@@ -74,9 +91,16 @@ class PackageEngineApplyRollbackTests(TestCase):
         self.assertEqual(inst.apply_stage, "production")
         self.assertEqual(inst.reconciliation_status, "reconciled")
         self.assertTrue(inst.is_active)
-        pkg_version = PackageVersion.objects.get(package_id="ci-test-pack", version="1.0")
+        pkg_version = PackageVersion.objects.get(
+            package_id="ci-test-pack", version="1.0"
+        )
         self.assertIn("policy", pkg_version.payload_sections)
-        self.assertEqual(PackageChangeLog.objects.filter(package_id="ci-test-pack", action="apply").count(), 1)
+        self.assertEqual(
+            PackageChangeLog.objects.filter(
+                package_id="ci-test-pack", action="apply"
+            ).count(),
+            1,
+        )
 
     def test_apply_package_rejects_incompatible_scope(self):
         from apps.schools.models import School
@@ -166,7 +190,12 @@ class PackageEngineApplyRollbackTests(TestCase):
         self.assertIn("rollback_blast_radius", rollback_result)
         self.assertFalse(inst.is_active)
         self.assertEqual(inst.reconciliation_status, "rolled_back")
-        self.assertEqual(PackageChangeLog.objects.filter(package_id="ci-rollback-pack", action="rollback").count(), 1)
+        self.assertEqual(
+            PackageChangeLog.objects.filter(
+                package_id="ci-rollback-pack", action="rollback"
+            ).count(),
+            1,
+        )
 
     def test_promote_package_records_transition(self):
         result = apply_package(
@@ -183,7 +212,12 @@ class PackageEngineApplyRollbackTests(TestCase):
         self.assertTrue(promote_result["ok"])
         self.assertEqual(inst.reconciliation_status, "reconciled")
         self.assertEqual(inst.promoted_from_mode, "sandbox")
-        self.assertEqual(PackageChangeLog.objects.filter(package_id="ci-promote-pack", action="promote").count(), 1)
+        self.assertEqual(
+            PackageChangeLog.objects.filter(
+                package_id="ci-promote-pack", action="promote"
+            ).count(),
+            1,
+        )
 
 
 class PackageEngineTenantIsolationTests(TestCase):
@@ -211,5 +245,15 @@ class PackageEngineTenantIsolationTests(TestCase):
             payload_sections={"dashboard": {"entity_codes": ["student"]}},
             actor_id=None,
         )
-        self.assertEqual(InstalledPackage.objects.filter(school=school_a, package_id="isolation-pack").count(), 1)
-        self.assertEqual(InstalledPackage.objects.filter(school=school_b, package_id="isolation-pack").count(), 0)
+        self.assertEqual(
+            InstalledPackage.objects.filter(
+                school=school_a, package_id="isolation-pack"
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            InstalledPackage.objects.filter(
+                school=school_b, package_id="isolation-pack"
+            ).count(),
+            0,
+        )

@@ -5,27 +5,57 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('academics', '0004_classroom_academic_year_repair'),
+        ("academics", "0004_classroom_academic_year_repair"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GradingDeadline',
+            name="GradingDeadline",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('deadline_at', models.DateTimeField()),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grading_deadlines', to='academics.academicyear')),
-                ('classroom', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='grading_deadlines', to='academics.classroom')),
-                ('term', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grading_deadlines', to='academics.term')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("deadline_at", models.DateTimeField()),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="grading_deadlines",
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "classroom",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="grading_deadlines",
+                        to="academics.classroom",
+                    ),
+                ),
+                (
+                    "term",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="grading_deadlines",
+                        to="academics.term",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-deadline_at'],
-                'unique_together': {('academic_year', 'term', 'classroom')},
+                "ordering": ["-deadline_at"],
+                "unique_together": {("academic_year", "term", "classroom")},
             },
         ),
     ]

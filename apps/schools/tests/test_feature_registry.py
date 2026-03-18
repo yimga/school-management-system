@@ -12,7 +12,9 @@ class FeatureRegistryTests(TestCase):
         codes = {item["code"] for item in modules}
 
         self.assertIn("library", codes)
-        self.assertTrue(FeatureToggleDefinition.objects.filter(key="module.library").exists())
+        self.assertTrue(
+            FeatureToggleDefinition.objects.filter(key="module.library").exists()
+        )
         self.assertTrue(
             FeatureToggleDefinition.objects.filter(
                 key="module.library",

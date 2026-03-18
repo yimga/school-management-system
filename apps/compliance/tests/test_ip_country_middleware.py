@@ -38,7 +38,9 @@ class IPCountryAccessMiddlewareTestCase(TestCase):
     @patch("apps.compliance.middleware.log_access_denial")
     @patch("apps.compliance.middleware.AccessLog.objects.create")
     @patch("apps.compliance.middleware.check_request_access")
-    def test_non_bypass_route_is_enforced(self, check_request_access, accesslog_create, _log_access_denial):
+    def test_non_bypass_route_is_enforced(
+        self, check_request_access, accesslog_create, _log_access_denial
+    ):
         check_request_access.return_value = (False, "Denied for test")
         request = self.factory.get("/reports/")
         request.META["REMOTE_ADDR"] = "203.0.113.10"

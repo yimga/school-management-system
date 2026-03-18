@@ -1,6 +1,7 @@
 """
 Custom form widgets for siteconfig (e.g. color input with visual preview).
 """
+
 from django import forms
 from django.utils.html import format_html
 

@@ -7,37 +7,40 @@ from django.db.migrations.operations.special import SeparateDatabaseAndState
 
 def remove_indexes_if_exist(apps, schema_editor):
     """Remove indexes only if they exist in the database."""
-    db_table = 'finance_payment'
+    db_table = "finance_payment"
     indexes_to_remove = [
-        'finance_pay_status_05a375_idx',
-        'finance_pay_student_237141_idx',
-        'finance_pay_region__83483d_idx',
+        "finance_pay_status_05a375_idx",
+        "finance_pay_student_237141_idx",
+        "finance_pay_region__83483d_idx",
     ]
-    
+
     db_backend = schema_editor.connection.vendor
-    
+
     with schema_editor.connection.cursor() as cursor:
         for index_name in indexes_to_remove:
             index_exists = False
-            
+
             # Check if index exists (database-specific)
-            if db_backend == 'postgresql':
-                cursor.execute("""
+            if db_backend == "postgresql":
+                cursor.execute(
+                    """
                     SELECT indexname 
                     FROM pg_indexes 
                     WHERE tablename=%s AND indexname=%s
-                """, [db_table, index_name])
+                """,
+                    [db_table, index_name],
+                )
                 index_exists = cursor.fetchone() is not None
             else:
                 # For SQLite and other databases, just try to drop (IF EXISTS handles it)
                 # This avoids parameter formatting issues with SQLite's debug SQL formatter
                 index_exists = True
-            
+
             if index_exists:
                 # Just drop the index - IF EXISTS handles non-existence gracefully
                 # This avoids SQLite parameter formatting issues
                 try:
-                    cursor.execute(f'DROP INDEX IF EXISTS {index_name}')
+                    cursor.execute(f"DROP INDEX IF EXISTS {index_name}")
                 except Exception:
                     # Index doesn't exist or already dropped - ignore
                     pass
@@ -55,8 +58,8 @@ def skip_id_alteration_if_needed(apps, schema_editor):
             WHERE table_name='finance_payment' AND column_name='id'
         """)
         result = cursor.fetchone()
-        
-        if result and result[0] == 'YES':
+
+        if result and result[0] == "YES":
             # Already an identity column - we'll skip the AlterField
             # Store this in a way that the migration can check
             # For now, we'll handle this by not running AlterField
@@ -75,10 +78,10 @@ def reverse_remove_indexes(apps, schema_editor):
 
 def handle_id_field_alteration(apps, schema_editor):
     """Handle id field alteration - PostgreSQL only."""
-    if schema_editor.connection.vendor != 'postgresql':
+    if schema_editor.connection.vendor != "postgresql":
         # SQLite doesn't support identity columns, skip database operation
         return
-    
+
     # PostgreSQL-specific SQL
     with schema_editor.connection.cursor() as cursor:
         cursor.execute("""
@@ -113,16 +116,15 @@ def reverse_handle_id_field_alteration(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0023_merge_20260128_1423'),
+        ("finance", "0023_merge_20260128_1423"),
     ]
 
     operations = [
         migrations.RunPython(remove_indexes_if_exist, reverse_remove_indexes),
         migrations.AlterModelOptions(
-            name='payment',
-            options={'ordering': ['-paid_at']},
+            name="payment",
+            options={"ordering": ["-paid_at"]},
         ),
         # Conditionally alter id field - PostgreSQL only (SQLite doesn't support identity columns)
         # For SQLite, we'll just update the state without database changes
@@ -135,15 +137,38 @@ class Migration(migrations.Migration):
             ],
             state_operations=[
                 migrations.AlterField(
-                    model_name='payment',
-                    name='id',
-                    field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+                    model_name="payment",
+                    name="id",
+                    field=models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
                 ),
             ],
         ),
         migrations.AlterField(
-            model_name='payment',
-            name='receipt_file',
-            field=models.FileField(blank=True, help_text='Optional uploaded receipt or slip (PDF/image, max 2MB).', null=True, upload_to='finance/receipts/', validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.jpg', '.jpeg', '.png'], allowed_types=['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'], message='Only PDF or image files are allowed for receipts.'), apps.accounts.validators.FileSizeValidator(max_size_mb=2)]),
+            model_name="payment",
+            name="receipt_file",
+            field=models.FileField(
+                blank=True,
+                help_text="Optional uploaded receipt or slip (PDF/image, max 2MB).",
+                null=True,
+                upload_to="finance/receipts/",
+                validators=[
+                    apps.accounts.validators.FileTypeValidator(
+                        allowed_extensions=[".pdf", ".jpg", ".jpeg", ".png"],
+                        allowed_types=[
+                            "application/pdf",
+                            "image/jpeg",
+                            "image/png",
+                            "image/jpg",
+                        ],
+                        message="Only PDF or image files are allowed for receipts.",
+                    ),
+                    apps.accounts.validators.FileSizeValidator(max_size_mb=2),
+                ],
+            ),
         ),
     ]

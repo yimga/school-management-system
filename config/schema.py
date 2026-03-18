@@ -2,6 +2,7 @@
 Full GraphQL schema (optional/future-work pool).
 Query: health, me { username, email, isStaff }, schoolCount (staff only), schools { id, name, slug } (staff only).
 """
+
 import graphene
 from django.contrib.auth import get_user_model
 from django.db import DatabaseError, OperationalError, ProgrammingError
@@ -87,6 +88,7 @@ class Query(graphene.ObjectType):
             return None
         try:
             from apps.schools.models import School
+
             return School.objects.filter(is_active=True).count()
         except _GRAPHQL_SCHOOL_RESOLVE_ERRORS:
             return None
@@ -97,7 +99,12 @@ class Query(graphene.ObjectType):
             return []
         try:
             from apps.schools.models import School
-            return list(School.objects.filter(is_active=True).order_by("name")[: max(1, min(limit, 100))])
+
+            return list(
+                School.objects.filter(is_active=True).order_by("name")[
+                    : max(1, min(limit, 100))
+                ]
+            )
         except _GRAPHQL_SCHOOL_RESOLVE_ERRORS:
             return []
 

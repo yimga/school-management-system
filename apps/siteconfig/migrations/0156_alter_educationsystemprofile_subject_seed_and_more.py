@@ -17,24 +17,23 @@ def _default_subject_seed():
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0155_normalize_gilead_residue_runmycampus'),
+        ("siteconfig", "0155_normalize_gilead_residue_runmycampus"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='educationsystemprofile',
-            name='subject_seed',
+            model_name="educationsystemprofile",
+            name="subject_seed",
             field=models.JSONField(
                 blank=True,
                 default=_default_subject_seed,
-                help_text='Default subjects to seed when onboarding a school.',
+                help_text="Default subjects to seed when onboarding a school.",
             ),
         ),
         migrations.AlterField(
-            model_name='educationsystemprofile',
-            name='term_labels',
+            model_name="educationsystemprofile",
+            name="term_labels",
             field=models.JSONField(
                 blank=True,
                 default=_default_term_labels,

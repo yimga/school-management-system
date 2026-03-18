@@ -8,303 +8,826 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('academics', '0004_classroom_academic_year_repair'),
-        ('people', '0004_studentguardian_address_studentguardian_phone_and_more'),
+        ("academics", "0004_classroom_academic_year_repair"),
+        ("people", "0004_studentguardian_address_studentguardian_phone_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AssetCategory',
+            name="AssetCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('description', models.TextField(blank=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("description", models.TextField(blank=True)),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='ComplianceProfile',
+            name="ComplianceProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('country_code', models.CharField(max_length=2)),
-                ('currency_code', models.CharField(default='XAF', max_length=3)),
-                ('currency_symbol', models.CharField(default='XAF', max_length=8)),
-                ('timezone', models.CharField(default='Africa/Douala', max_length=64)),
-                ('chart_template', models.CharField(choices=[('OHADA', 'OHADA'), ('GENERIC', 'Generic')], default='GENERIC', max_length=20)),
-                ('min_wage', models.DecimalField(decimal_places=2, default=60000, max_digits=12)),
-                ('default_hours_per_week', models.DecimalField(decimal_places=2, default=40, max_digits=6)),
-                ('overtime_multiplier', models.DecimalField(decimal_places=2, default=1.5, max_digits=6)),
-                ('annual_leave_days', models.PositiveSmallIntegerField(default=21)),
-                ('maternity_leave_days', models.PositiveSmallIntegerField(default=84)),
-                ('is_active', models.BooleanField(default=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("country_code", models.CharField(max_length=2)),
+                ("currency_code", models.CharField(default="XAF", max_length=3)),
+                ("currency_symbol", models.CharField(default="XAF", max_length=8)),
+                ("timezone", models.CharField(default="Africa/Douala", max_length=64)),
+                (
+                    "chart_template",
+                    models.CharField(
+                        choices=[("OHADA", "OHADA"), ("GENERIC", "Generic")],
+                        default="GENERIC",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "min_wage",
+                    models.DecimalField(decimal_places=2, default=60000, max_digits=12),
+                ),
+                (
+                    "default_hours_per_week",
+                    models.DecimalField(decimal_places=2, default=40, max_digits=6),
+                ),
+                (
+                    "overtime_multiplier",
+                    models.DecimalField(decimal_places=2, default=1.5, max_digits=6),
+                ),
+                ("annual_leave_days", models.PositiveSmallIntegerField(default=21)),
+                ("maternity_leave_days", models.PositiveSmallIntegerField(default=84)),
+                ("is_active", models.BooleanField(default=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['country_code', 'name'],
+                "ordering": ["country_code", "name"],
             },
         ),
         migrations.CreateModel(
-            name='Grant',
+            name="Grant",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('funder', models.CharField(blank=True, max_length=200)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=14)),
-                ('start_date', models.DateField(blank=True, null=True)),
-                ('end_date', models.DateField(blank=True, null=True)),
-                ('notes', models.TextField(blank=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200)),
+                ("funder", models.CharField(blank=True, max_length=200)),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=14)),
+                ("start_date", models.DateField(blank=True, null=True)),
+                ("end_date", models.DateField(blank=True, null=True)),
+                ("notes", models.TextField(blank=True)),
             ],
             options={
-                'ordering': ['-start_date', 'name'],
+                "ordering": ["-start_date", "name"],
             },
         ),
         migrations.CreateModel(
-            name='Asset',
+            name="Asset",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('asset_tag', models.CharField(blank=True, max_length=80)),
-                ('location', models.CharField(blank=True, max_length=120)),
-                ('purchase_date', models.DateField(blank=True, null=True)),
-                ('purchase_cost', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=14)),
-                ('salvage_value', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=14)),
-                ('useful_life_years', models.PositiveSmallIntegerField(default=3)),
-                ('status', models.CharField(choices=[('ACTIVE', 'Active'), ('DISPOSED', 'Disposed'), ('MAINTENANCE', 'Maintenance')], default='ACTIVE', max_length=20)),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='finance.assetcategory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200)),
+                ("asset_tag", models.CharField(blank=True, max_length=80)),
+                ("location", models.CharField(blank=True, max_length=120)),
+                ("purchase_date", models.DateField(blank=True, null=True)),
+                (
+                    "purchase_cost",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=14
+                    ),
+                ),
+                (
+                    "salvage_value",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=14
+                    ),
+                ),
+                ("useful_life_years", models.PositiveSmallIntegerField(default=3)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("ACTIVE", "Active"),
+                            ("DISPOSED", "Disposed"),
+                            ("MAINTENANCE", "Maintenance"),
+                        ],
+                        default="ACTIVE",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "category",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="finance.assetcategory",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='Budget',
+            name="Budget",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('total_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=14)),
-                ('notes', models.TextField(blank=True)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='budgets', to='academics.academicyear')),
-                ('department', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academics.department')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                (
+                    "total_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=14
+                    ),
+                ),
+                ("notes", models.TextField(blank=True)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="budgets",
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "department",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academics.department",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['academic_year__start_date', 'name'],
+                "ordering": ["academic_year__start_date", "name"],
             },
         ),
         migrations.CreateModel(
-            name='Counterparty',
+            name="Counterparty",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('counterparty_type', models.CharField(choices=[('STUDENT', 'Student'), ('GUARDIAN', 'Guardian'), ('VENDOR', 'Vendor'), ('OTHER', 'Other')], default='OTHER', max_length=20)),
-                ('email', models.EmailField(blank=True, max_length=254)),
-                ('phone', models.CharField(blank=True, max_length=40)),
-                ('address', models.CharField(blank=True, max_length=255)),
-                ('student', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='people.studentprofile')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200)),
+                (
+                    "counterparty_type",
+                    models.CharField(
+                        choices=[
+                            ("STUDENT", "Student"),
+                            ("GUARDIAN", "Guardian"),
+                            ("VENDOR", "Vendor"),
+                            ("OTHER", "Other"),
+                        ],
+                        default="OTHER",
+                        max_length=20,
+                    ),
+                ),
+                ("email", models.EmailField(blank=True, max_length=254)),
+                ("phone", models.CharField(blank=True, max_length=40)),
+                ("address", models.CharField(blank=True, max_length=255)),
+                (
+                    "student",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='FeePlan',
+            name="FeePlan",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('is_active', models.BooleanField(default=True)),
-                ('notes', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='fee_plans', to='academics.academicyear')),
-                ('classroom', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='fee_plans', to='academics.classroom')),
-                ('specialty', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='fee_plans', to='academics.specialty')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("is_active", models.BooleanField(default=True)),
+                ("notes", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="fee_plans",
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "classroom",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="fee_plans",
+                        to="academics.classroom",
+                    ),
+                ),
+                (
+                    "specialty",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="fee_plans",
+                        to="academics.specialty",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['academic_year__start_date', 'name'],
-                'unique_together': {('academic_year', 'classroom', 'specialty', 'name')},
+                "ordering": ["academic_year__start_date", "name"],
+                "unique_together": {
+                    ("academic_year", "classroom", "specialty", "name")
+                },
             },
         ),
         migrations.CreateModel(
-            name='FeeItem',
+            name="FeeItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=160)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('due_date', models.DateField(blank=True, null=True)),
-                ('item_type', models.CharField(choices=[('TUITION', 'Tuition'), ('ACTIVITY', 'Activity'), ('CUSTOM', 'Custom')], default='TUITION', max_length=20)),
-                ('is_mandatory', models.BooleanField(default=True)),
-                ('plan', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='finance.feeplan')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=160)),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("due_date", models.DateField(blank=True, null=True)),
+                (
+                    "item_type",
+                    models.CharField(
+                        choices=[
+                            ("TUITION", "Tuition"),
+                            ("ACTIVITY", "Activity"),
+                            ("CUSTOM", "Custom"),
+                        ],
+                        default="TUITION",
+                        max_length=20,
+                    ),
+                ),
+                ("is_mandatory", models.BooleanField(default=True)),
+                (
+                    "plan",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="finance.feeplan",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='Invoice',
+            name="Invoice",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('invoice_type', models.CharField(choices=[('AR', 'Accounts Receivable'), ('AP', 'Accounts Payable')], default='AR', max_length=5)),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('ISSUED', 'Issued'), ('PARTIAL', 'Partially Paid'), ('PAID', 'Paid'), ('OVERDUE', 'Overdue'), ('VOID', 'Void')], default='DRAFT', max_length=10)),
-                ('issued_date', models.DateField(default=django.utils.timezone.now)),
-                ('due_date', models.DateField(blank=True, null=True)),
-                ('reference', models.CharField(blank=True, max_length=64)),
-                ('notes', models.TextField(blank=True)),
-                ('total_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('balance_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('academic_year', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academics.academicyear')),
-                ('counterparty', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='finance.counterparty')),
-                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='invoices', to='finance.complianceprofile')),
-                ('student', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "invoice_type",
+                    models.CharField(
+                        choices=[
+                            ("AR", "Accounts Receivable"),
+                            ("AP", "Accounts Payable"),
+                        ],
+                        default="AR",
+                        max_length=5,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("ISSUED", "Issued"),
+                            ("PARTIAL", "Partially Paid"),
+                            ("PAID", "Paid"),
+                            ("OVERDUE", "Overdue"),
+                            ("VOID", "Void"),
+                        ],
+                        default="DRAFT",
+                        max_length=10,
+                    ),
+                ),
+                ("issued_date", models.DateField(default=django.utils.timezone.now)),
+                ("due_date", models.DateField(blank=True, null=True)),
+                ("reference", models.CharField(blank=True, max_length=64)),
+                ("notes", models.TextField(blank=True)),
+                (
+                    "total_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "balance_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "counterparty",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="finance.counterparty",
+                    ),
+                ),
+                (
+                    "profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="invoices",
+                        to="finance.complianceprofile",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-issued_date', '-id'],
+                "ordering": ["-issued_date", "-id"],
             },
         ),
         migrations.CreateModel(
-            name='InvoiceLine',
+            name="InvoiceLine",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.CharField(max_length=200)),
-                ('quantity', models.DecimalField(decimal_places=2, default=Decimal('1.00'), max_digits=10)),
-                ('unit_price', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('fee_item', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='finance.feeitem')),
-                ('invoice', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lines', to='finance.invoice')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("description", models.CharField(max_length=200)),
+                (
+                    "quantity",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("1.00"), max_digits=10
+                    ),
+                ),
+                ("unit_price", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                (
+                    "fee_item",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="finance.feeitem",
+                    ),
+                ),
+                (
+                    "invoice",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="lines",
+                        to="finance.invoice",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['id'],
+                "ordering": ["id"],
             },
         ),
         migrations.CreateModel(
-            name='JournalEntry',
+            name="JournalEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('entry_date', models.DateField(default=django.utils.timezone.now)),
-                ('reference', models.CharField(blank=True, max_length=64)),
-                ('memo', models.CharField(blank=True, max_length=255)),
-                ('source_type', models.CharField(blank=True, max_length=40)),
-                ('source_id', models.PositiveIntegerField(blank=True, null=True)),
-                ('posted_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='journal_entries', to='finance.complianceprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("entry_date", models.DateField(default=django.utils.timezone.now)),
+                ("reference", models.CharField(blank=True, max_length=64)),
+                ("memo", models.CharField(blank=True, max_length=255)),
+                ("source_type", models.CharField(blank=True, max_length=40)),
+                ("source_id", models.PositiveIntegerField(blank=True, null=True)),
+                ("posted_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="journal_entries",
+                        to="finance.complianceprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-entry_date', '-id'],
+                "ordering": ["-entry_date", "-id"],
             },
         ),
         migrations.CreateModel(
-            name='LedgerAccount',
+            name="LedgerAccount",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=20)),
-                ('name', models.CharField(max_length=200)),
-                ('account_type', models.CharField(choices=[('ASSET', 'Asset'), ('LIABILITY', 'Liability'), ('EQUITY', 'Equity'), ('INCOME', 'Income'), ('EXPENSE', 'Expense')], max_length=20)),
-                ('is_active', models.BooleanField(default=True)),
-                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='ledger_accounts', to='finance.complianceprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("code", models.CharField(max_length=20)),
+                ("name", models.CharField(max_length=200)),
+                (
+                    "account_type",
+                    models.CharField(
+                        choices=[
+                            ("ASSET", "Asset"),
+                            ("LIABILITY", "Liability"),
+                            ("EQUITY", "Equity"),
+                            ("INCOME", "Income"),
+                            ("EXPENSE", "Expense"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ledger_accounts",
+                        to="finance.complianceprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['code'],
-                'unique_together': {('profile', 'code')},
+                "ordering": ["code"],
+                "unique_together": {("profile", "code")},
             },
         ),
         migrations.CreateModel(
-            name='JournalLine',
+            name="JournalLine",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.CharField(blank=True, max_length=255)),
-                ('debit', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=14)),
-                ('credit', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=14)),
-                ('department', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academics.department')),
-                ('entry', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lines', to='finance.journalentry')),
-                ('account', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='lines', to='finance.ledgeraccount')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("description", models.CharField(blank=True, max_length=255)),
+                (
+                    "debit",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=14
+                    ),
+                ),
+                (
+                    "credit",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=14
+                    ),
+                ),
+                (
+                    "department",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academics.department",
+                    ),
+                ),
+                (
+                    "entry",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="lines",
+                        to="finance.journalentry",
+                    ),
+                ),
+                (
+                    "account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="lines",
+                        to="finance.ledgeraccount",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='GrantAllocation',
+            name="GrantAllocation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.CharField(blank=True, max_length=200)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=14)),
-                ('grant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='allocations', to='finance.grant')),
-                ('account', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='finance.ledgeraccount')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("description", models.CharField(blank=True, max_length=200)),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=14)),
+                (
+                    "grant",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="allocations",
+                        to="finance.grant",
+                    ),
+                ),
+                (
+                    "account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="finance.ledgeraccount",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='BudgetLine',
+            name="BudgetLine",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.CharField(blank=True, max_length=200)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=14)),
-                ('budget', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lines', to='finance.budget')),
-                ('account', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='finance.ledgeraccount')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("description", models.CharField(blank=True, max_length=200)),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=14)),
+                (
+                    "budget",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="lines",
+                        to="finance.budget",
+                    ),
+                ),
+                (
+                    "account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="finance.ledgeraccount",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Payment',
+            name="Payment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('method', models.CharField(choices=[('CASH', 'Cash'), ('BANK', 'Bank'), ('MTN_MOMO', 'MTN MoMo'), ('ORANGE_MOMO', 'Orange Money'), ('CHECK', 'Check'), ('OTHER', 'Other')], max_length=20)),
-                ('reference', models.CharField(blank=True, max_length=80)),
-                ('paid_at', models.DateTimeField(default=django.utils.timezone.now)),
-                ('receipt_number', models.CharField(blank=True, max_length=64)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('invoice', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='finance.invoice')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                (
+                    "method",
+                    models.CharField(
+                        choices=[
+                            ("CASH", "Cash"),
+                            ("BANK", "Bank"),
+                            ("MTN_MOMO", "MTN MoMo"),
+                            ("ORANGE_MOMO", "Orange Money"),
+                            ("CHECK", "Check"),
+                            ("OTHER", "Other"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("reference", models.CharField(blank=True, max_length=80)),
+                ("paid_at", models.DateTimeField(default=django.utils.timezone.now)),
+                ("receipt_number", models.CharField(blank=True, max_length=64)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "invoice",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payments",
+                        to="finance.invoice",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-paid_at'],
+                "ordering": ["-paid_at"],
             },
         ),
         migrations.CreateModel(
-            name='TaxBracket',
+            name="TaxBracket",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('lower_bound', models.DecimalField(decimal_places=2, default=0, max_digits=12)),
-                ('upper_bound', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
-                ('rate', models.DecimalField(decimal_places=4, default=Decimal('0.0'), max_digits=6)),
-                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tax_brackets', to='finance.complianceprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "lower_bound",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=12),
+                ),
+                (
+                    "upper_bound",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "rate",
+                    models.DecimalField(
+                        decimal_places=4, default=Decimal("0.0"), max_digits=6
+                    ),
+                ),
+                (
+                    "profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tax_brackets",
+                        to="finance.complianceprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['lower_bound'],
+                "ordering": ["lower_bound"],
             },
         ),
         migrations.CreateModel(
-            name='ContributionRule',
+            name="ContributionRule",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=30)),
-                ('name', models.CharField(max_length=120)),
-                ('employee_rate', models.DecimalField(decimal_places=4, default=Decimal('0.0'), max_digits=6)),
-                ('employer_rate', models.DecimalField(decimal_places=4, default=Decimal('0.0'), max_digits=6)),
-                ('cap_amount', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
-                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contribution_rules', to='finance.complianceprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("code", models.CharField(max_length=30)),
+                ("name", models.CharField(max_length=120)),
+                (
+                    "employee_rate",
+                    models.DecimalField(
+                        decimal_places=4, default=Decimal("0.0"), max_digits=6
+                    ),
+                ),
+                (
+                    "employer_rate",
+                    models.DecimalField(
+                        decimal_places=4, default=Decimal("0.0"), max_digits=6
+                    ),
+                ),
+                (
+                    "cap_amount",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="contribution_rules",
+                        to="finance.complianceprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['code'],
-                'unique_together': {('profile', 'code')},
+                "ordering": ["code"],
+                "unique_together": {("profile", "code")},
             },
         ),
         migrations.CreateModel(
-            name='FeeInstallment',
+            name="FeeInstallment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('installment_number', models.PositiveSmallIntegerField()),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('due_date', models.DateField()),
-                ('fee_item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='installments', to='finance.feeitem')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("installment_number", models.PositiveSmallIntegerField()),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("due_date", models.DateField()),
+                (
+                    "fee_item",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="installments",
+                        to="finance.feeitem",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['installment_number'],
-                'unique_together': {('fee_item', 'installment_number')},
+                "ordering": ["installment_number"],
+                "unique_together": {("fee_item", "installment_number")},
             },
         ),
     ]

@@ -1,0 +1,24 @@
+# Core Web Vitals / Lighthouse on PR (optional — set LHCI_URL to staging or use with act).
+name: Lighthouse CI
+on:
+  pull_request:
+    paths:
+      - "templates/marketing/**"
+      - "templates/schools/marketing_*.html"
+      - "static/marketing/**"
+      - "static/css/marketing-home.css"
+  workflow_dispatch:
+jobs:
+  lhci:
+    if: vars.LHCI_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install -g @lhci/cli@0.14.x
+      - name: Run Lighthouse CI
+        env:
+          LHCI_URL: ${{ vars.LHCI_URL }}
+        run: LHCI_URL="$LHCI_URL" npx lhci autorun --config=./lighthouserc.cjs

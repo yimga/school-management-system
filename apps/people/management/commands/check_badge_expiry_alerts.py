@@ -3,6 +3,7 @@ Send or create notifications for badges/certifications expiring within N days.
 Run via cron or Celery Beat (e.g. daily). Creates in-app notifications when
 finance.Notification exists; otherwise logs to stdout.
 """
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -40,8 +41,15 @@ class Command(BaseCommand):
     help = "Create notifications for badges expiring within the next 60 days (certification expiry/renewal alerts)."
 
     def add_arguments(self, parser):
-        parser.add_argument("--days", type=int, default=60, help="Alert when expiry is within this many days (default 60).")
-        parser.add_argument("--dry-run", action="store_true", help="Only print what would be notified.")
+        parser.add_argument(
+            "--days",
+            type=int,
+            default=60,
+            help="Alert when expiry is within this many days (default 60).",
+        )
+        parser.add_argument(
+            "--dry-run", action="store_true", help="Only print what would be notified."
+        )
 
     def handle(self, *args, **options):
         days = max(1, options["days"])
@@ -55,21 +63,34 @@ class Command(BaseCommand):
         ).select_related("badge_type", "user", "student", "student__school")
         count = 0
         for badge in qs:
-            recipient = badge.user or (badge.student.user if getattr(badge.student, "user", None) else None)
+            recipient = badge.user or (
+                badge.student.user if getattr(badge.student, "user", None) else None
+            )
             _school_id = None
             if badge.student_id and getattr(badge.student, "school_id", None):
                 _school_id = badge.student.school_id
             elif badge.user_id:
                 try:
                     from apps.schools.models import SchoolMembership
-                    m = SchoolMembership.objects.filter(user_id=badge.user_id).order_by("-is_primary").first()
+
+                    m = (
+                        SchoolMembership.objects.filter(user_id=badge.user_id)
+                        .order_by("-is_primary")
+                        .first()
+                    )
                     if m:
-                        _school_id = str(m.school_id)  # reserved for future scope filter
+                        _school_id = str(
+                            m.school_id
+                        )  # reserved for future scope filter
                 except _BADGE_EXPIRY_SCHOOL_RESOLVE_ERRORS as e:
                     log_exception_with_context(
                         "check_badge_expiry_alerts: resolve school for user",
                         school_id=None,
-                        extra={"badge_id": badge.pk, "user_id": badge.user_id, "error": str(e)},
+                        extra={
+                            "badge_id": badge.pk,
+                            "user_id": badge.user_id,
+                            "error": str(e),
+                        },
                     )
             msg = f"Badge « {badge.badge_type.label} » expires on {badge.expiry_at.date()}."
             if dry_run:
@@ -79,6 +100,7 @@ class Command(BaseCommand):
                     continue
                 try:
                     from apps.finance.models import Notification
+
                     Notification.objects.create(
                         recipient=recipient,
                         title="Badge / certification expiring soon",
@@ -90,10 +112,18 @@ class Command(BaseCommand):
                     log_exception_with_context(
                         "check_badge_expiry_alerts: create notification failed",
                         school_id=_school_id,
-                        extra={"badge_id": badge.pk, "recipient_id": getattr(recipient, "pk", None), "error": str(e)},
+                        extra={
+                            "badge_id": badge.pk,
+                            "recipient_id": getattr(recipient, "pk", None),
+                            "error": str(e),
+                        },
                     )
-                    self.stdout.write(self.style.WARNING(f"Skip notify {badge.pk}: {e}"))
+                    self.stdout.write(
+                        self.style.WARNING(f"Skip notify {badge.pk}: {e}")
+                    )
         if not dry_run:
-            self.stdout.write(self.style.SUCCESS(f"Created {count} badge expiry notification(s)."))
+            self.stdout.write(
+                self.style.SUCCESS(f"Created {count} badge expiry notification(s).")
+            )
         else:
             self.stdout.write(f"Would create {qs.count()} notification(s).")

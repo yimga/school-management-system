@@ -37,7 +37,13 @@ class ComplianceAuditorCommandTests(TestCase):
         )
 
     def _core_feature_codes(self):
-        return sorted({str(code).strip() for code in COMPLIANCE_GUARD_PATH_MAP.values() if str(code).strip()})
+        return sorted(
+            {
+                str(code).strip()
+                for code in COMPLIANCE_GUARD_PATH_MAP.values()
+                if str(code).strip()
+            }
+        )
 
     def test_command_json_outputs_region_and_school_scorecards(self):
         School.objects.create(
@@ -49,7 +55,9 @@ class ComplianceAuditorCommandTests(TestCase):
             settings={
                 "tenant_policy_pack": {"code": "US", "version": "2026.1"},
                 "tenant_compiled_config": {"default_language": "en"},
-                "tenant_config_metadata": {"default_language": {"source": "tenant_override"}},
+                "tenant_config_metadata": {
+                    "default_language": {"source": "tenant_override"}
+                },
             },
         )
         School.objects.create(
@@ -84,7 +92,10 @@ class ComplianceAuditorCommandTests(TestCase):
         by_slug = {item["school_slug"]: item for item in payload["schools"]}
         self.assertIn("us-ready-school", by_slug)
         self.assertIn("cmr-incomplete-school", by_slug)
-        self.assertGreater(by_slug["us-ready-school"]["score"], by_slug["cmr-incomplete-school"]["score"])
+        self.assertGreater(
+            by_slug["us-ready-school"]["score"],
+            by_slug["cmr-incomplete-school"]["score"],
+        )
 
     def test_command_strict_raises_when_score_below_threshold(self):
         School.objects.create(

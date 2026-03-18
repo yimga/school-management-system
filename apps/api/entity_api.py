@@ -1,4 +1,5 @@
 """Entity CRUD and session-claims APIs for frontend orchestration."""
+
 from django.db import transaction
 from django.db.utils import DatabaseError, IntegrityError
 from django.utils.dateparse import parse_datetime
@@ -45,6 +46,7 @@ def _is_admin_like(user: User) -> bool:
 
 def _backend_flags(request=None, school=None) -> dict:
     if request is None and school is not None:
+
         class _RequestShim:
             def __init__(self, school_obj):
                 self.school = school_obj
@@ -66,7 +68,9 @@ def _request_school(request):
 
 def _check_student_offline_conflict(instance, request):
     """If X-Client-Updated-At is present, compare with instance.updated_at; return 409 Response if client is older."""
-    raw = request.headers.get("X-Client-Updated-At") or request.META.get("HTTP_X_CLIENT_UPDATED_AT")
+    raw = request.headers.get("X-Client-Updated-At") or request.META.get(
+        "HTTP_X_CLIENT_UPDATED_AT"
+    )
     if not raw or not str(raw).strip():
         return None
     client_dt = parse_datetime(str(raw).strip())
@@ -97,7 +101,9 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         role = (getattr(user, "role", "") or "").upper()
-        base = StudentProfile.objects.select_related("academic_year", "classroom", "specialty")
+        base = StudentProfile.objects.select_related(
+            "academic_year", "classroom", "specialty"
+        )
         school = _request_school(self.request)
         if school is None:
             return base.none()
@@ -129,7 +135,9 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
     # --- Writes restricted to admin-like users ---
     def _require_admin(self, request):
         if not _is_admin_like(request.user):
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
         return None
 
     def perform_create(self, serializer):
@@ -166,7 +174,10 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         academic_year_id = request.data.get("academic_year")
 
         if not student_ids or not isinstance(student_ids, (list, tuple)):
-            return Response({"error": "student_ids must be a non-empty list"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "student_ids must be a non-empty list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         updates = {}
         for field_name, model, value in (
@@ -176,16 +187,28 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         ):
             if value:
                 if not model.objects.filter(id=value).exists():
-                    return Response({"error": f"{model.__name__} not found"}, status=status.HTTP_404_NOT_FOUND)
+                    return Response(
+                        {"error": f"{model.__name__} not found"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
                 updates[field_name] = value
 
         if not updates:
-            return Response({"error": "At least one of classroom, specialty, academic_year is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "error": "At least one of classroom, specialty, academic_year is required"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         with transaction.atomic():
-            updated = StudentProfile.objects.filter(id__in=student_ids).update(**updates, updated_by=request.user)
+            updated = StudentProfile.objects.filter(id__in=student_ids).update(
+                **updates, updated_by=request.user
+            )
 
-        return Response({"updated": updated, "applied": updates}, status=status.HTTP_200_OK)
+        return Response(
+            {"updated": updated, "applied": updates}, status=status.HTTP_200_OK
+        )
 
     @action(detail=False, methods=["post"], url_path="bulk-preview")
     def bulk_preview(self, request):
@@ -198,7 +221,9 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
 
         csv_text = request.data.get("csv")
         if not csv_text:
-            return Response({"error": "csv body is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "csv body is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         reader = csv.DictReader(io.StringIO(csv_text))
         preview = []
@@ -218,10 +243,17 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
             }
             missing = [k for k in ("first_name", "last_name") if not record[k]]
             if missing:
-                errors.append({"row": idx, "error": f"Missing required fields: {', '.join(missing)}"})
+                errors.append(
+                    {
+                        "row": idx,
+                        "error": f"Missing required fields: {', '.join(missing)}",
+                    }
+                )
             preview.append(record)
 
-        return Response({"preview": preview, "errors": errors}, status=status.HTTP_200_OK)
+        return Response(
+            {"preview": preview, "errors": errors}, status=status.HTTP_200_OK
+        )
 
     @action(detail=False, methods=["post"], url_path="bulk-commit")
     def bulk_commit(self, request):
@@ -231,15 +263,24 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
             return denied
         flags = _backend_flags(request)
         if not flags.get("allow_bulk_commit", True):
-            return Response({"error": "Bulk commit disabled by admin."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Bulk commit disabled by admin."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         max_rows = int(flags.get("max_bulk_import_rows", 500))
 
         rows = request.data.get("rows") or []
         if not isinstance(rows, list) or not rows:
-            return Response({"error": "rows must be a non-empty list"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "rows must be a non-empty list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if max_rows and len(rows) > max_rows:
-            return Response({"error": f"rows exceeds max_bulk_import_rows ({max_rows})"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"rows exceeds max_bulk_import_rows ({max_rows})"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         created = []
         errors = []
@@ -249,10 +290,19 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 obj = serializer.save(created_by=request.user, updated_by=request.user)
                 created.append(obj.id)
-            except (DRFValidationError, IntegrityError, DatabaseError, TypeError, ValueError, KeyError) as exc:
+            except (
+                DRFValidationError,
+                IntegrityError,
+                DatabaseError,
+                TypeError,
+                ValueError,
+                KeyError,
+            ) as exc:
                 errors.append({"row": idx, "error": str(exc)})
 
-        return Response({"created": created, "errors": errors}, status=status.HTTP_201_CREATED)
+        return Response(
+            {"created": created, "errors": errors}, status=status.HTTP_201_CREATED
+        )
 
 
 class TeacherProfileViewSet(viewsets.ModelViewSet):
@@ -282,7 +332,9 @@ class TeacherProfileViewSet(viewsets.ModelViewSet):
 
     def _require_admin(self, request):
         if not _is_admin_like(request.user):
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
         return None
 
 
@@ -311,35 +363,48 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
         if not _is_admin_like(request.user):
             guardian_id = request.data.get("guardian_user")
             if guardian_id and str(guardian_id) != str(request.user.id):
-                return Response({"error": "You can only link yourself as guardian."}, status=status.HTTP_403_FORBIDDEN)
+                return Response(
+                    {"error": "You can only link yourself as guardian."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
         return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         if not _is_admin_like(request.user):
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
         if not _is_admin_like(request.user):
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         if not _is_admin_like(request.user):
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=["post"], url_path="bulk-preview")
     def bulk_preview(self, request):
         """Dry-run parse of guardian CSV data."""
         if not _is_admin_like(request.user):
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
         flags = _backend_flags(request)
         max_rows = int(flags.get("max_bulk_import_rows", 500))
 
         csv_text = request.data.get("csv")
         if not csv_text:
-            return Response({"error": "csv body is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "csv body is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         reader = csv.DictReader(io.StringIO(csv_text))
         preview = []
@@ -356,27 +421,42 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
                 "can_view_finance": row.get("can_view_finance", "false"),
             }
             if not record["guardian_user"] or not record["student"]:
-                errors.append({"row": idx, "error": "guardian_user and student are required"})
+                errors.append(
+                    {"row": idx, "error": "guardian_user and student are required"}
+                )
             preview.append(record)
 
-        return Response({"preview": preview, "errors": errors}, status=status.HTTP_200_OK)
+        return Response(
+            {"preview": preview, "errors": errors}, status=status.HTTP_200_OK
+        )
 
     @action(detail=False, methods=["post"], url_path="bulk-commit")
     def bulk_commit(self, request):
         """Create guardian links from parsed payload (admin-only)."""
         if not _is_admin_like(request.user):
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
 
         flags = _backend_flags(request)
         if not flags.get("allow_bulk_commit", True):
-            return Response({"error": "Bulk commit disabled by admin."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Bulk commit disabled by admin."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         max_rows = int(flags.get("max_bulk_import_rows", 500))
 
         rows = request.data.get("rows") or []
         if not isinstance(rows, list) or not rows:
-            return Response({"error": "rows must be a non-empty list"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "rows must be a non-empty list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if max_rows and len(rows) > max_rows:
-            return Response({"error": f"rows exceeds max_bulk_import_rows ({max_rows})"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"rows exceeds max_bulk_import_rows ({max_rows})"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         created = []
         errors = []
@@ -386,10 +466,19 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 obj = serializer.save()
                 created.append(obj.id)
-            except (DRFValidationError, IntegrityError, DatabaseError, TypeError, ValueError, KeyError) as exc:
+            except (
+                DRFValidationError,
+                IntegrityError,
+                DatabaseError,
+                TypeError,
+                ValueError,
+                KeyError,
+            ) as exc:
                 errors.append({"row": idx, "error": str(exc)})
 
-        return Response({"created": created, "errors": errors}, status=status.HTTP_201_CREATED)
+        return Response(
+            {"created": created, "errors": errors}, status=status.HTTP_201_CREATED
+        )
 
 
 class ClassroomViewSet(viewsets.ModelViewSet):
@@ -409,7 +498,9 @@ class ClassroomViewSet(viewsets.ModelViewSet):
 
     def _require_admin(self, request):
         if not _is_admin_like(request.user):
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
         return None
 
 
@@ -422,7 +513,9 @@ class SessionClaimsView(APIView):
         user = request.user
         role = (getattr(user, "role", "") or "").upper()
         roles = list(user.roles.values_list("code", flat=True))
-        feature_permissions = list(user.feature_permissions.values_list("code", flat=True))
+        feature_permissions = list(
+            user.feature_permissions.values_list("code", flat=True)
+        )
 
         payload = {
             "user": UserSerializer(user, context={"request": request}).data,
@@ -462,9 +555,13 @@ class TeacherRosterView(APIView):
         teacher_profile = getattr(user, "teacher_profile", None)
 
         if not admin_like and role != "TEACHER":
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
 
-        teacher_ids = [teacher_profile.id] if teacher_profile and not admin_like else None
+        teacher_ids = (
+            [teacher_profile.id] if teacher_profile and not admin_like else None
+        )
 
         assignments = TeacherAssignment.objects.filter(is_active=True)
         school = getattr(request, "school", None)
@@ -488,17 +585,27 @@ class TeacherRosterView(APIView):
             )
             if school is not None:
                 students_qs = students_qs.filter(school=school)
-            students = students_qs.values("id", "first_name", "last_name", "student_code")
-            rosters.append({
-                "classroom": classroom.name if classroom else None,
-                "classroom_id": getattr(classroom, "id", None),
-                "specialty": specialty.name if specialty else None,
-                "specialty_id": getattr(specialty, "id", None),
-                "teacher": getattr(assignment.teacher, "id", None),
-                "teacher_name": getattr(getattr(assignment.teacher, "user", None), "get_full_name", lambda: None)(),
-                "students": list(students),
-            })
+            students = students_qs.values(
+                "id", "first_name", "last_name", "student_code"
+            )
+            rosters.append(
+                {
+                    "classroom": classroom.name if classroom else None,
+                    "classroom_id": getattr(classroom, "id", None),
+                    "specialty": specialty.name if specialty else None,
+                    "specialty_id": getattr(specialty, "id", None),
+                    "teacher": getattr(assignment.teacher, "id", None),
+                    "teacher_name": getattr(
+                        getattr(assignment.teacher, "user", None),
+                        "get_full_name",
+                        lambda: None,
+                    )(),
+                    "students": list(students),
+                }
+            )
 
         return Response({"rosters": rosters})
+
+
 import csv
 import io

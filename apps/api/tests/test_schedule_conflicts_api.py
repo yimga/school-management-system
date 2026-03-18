@@ -1,6 +1,7 @@
 """
 Tests for GET /api/schedules/<schedule_id>/conflicts/ (ScheduleConflictsAPI).
 """
+
 from datetime import timedelta
 
 from django.test import TestCase
@@ -59,7 +60,9 @@ class ScheduleConflictsAPITests(TestCase):
         session = self.client.session
         session["school_id"] = str(self.school.id)
         session.save()
-        url = reverse("api:schedule-conflicts", kwargs={"schedule_id": self.schedule.pk})
+        url = reverse(
+            "api:schedule-conflicts", kwargs={"schedule_id": self.schedule.pk}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200, response.content)
         data = response.json()
@@ -75,7 +78,9 @@ class ScheduleConflictsAPITests(TestCase):
         """GET conflicts without school context returns 400."""
         self.client.force_login(self.user)
         # Do not set session["school_id"]
-        url = reverse("api:schedule-conflicts", kwargs={"schedule_id": self.schedule.pk})
+        url = reverse(
+            "api:schedule-conflicts", kwargs={"schedule_id": self.schedule.pk}
+        )
         response = self.client.get(url)
         self.assertIn(response.status_code, (400, 404))
 

@@ -2,6 +2,7 @@
 E1–E4: Packs as products — preview, compare, sandbox, rollback, versioning.
 E7: Declarative over imperative; operators solve by configuration.
 """
+
 from __future__ import annotations
 
 from typing import Any

@@ -1,6 +1,7 @@
 """
 G6: Customer success intelligence. G7: Continuous improvement engine.
 """
+
 from __future__ import annotations
 
 from typing import Any

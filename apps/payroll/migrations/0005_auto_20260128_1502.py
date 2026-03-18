@@ -4,42 +4,44 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('payroll', '0004_rename_payrollrunapproval_created_at_to_approved_at'),
+        ("payroll", "0004_rename_payrollrunapproval_created_at_to_approved_at"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='payslipline',
-            name='code',
+            model_name="payslipline",
+            name="code",
         ),
         migrations.RemoveField(
-            model_name='payslipline',
-            name='label',
+            model_name="payslipline",
+            name="label",
         ),
         migrations.RemoveField(
-            model_name='payslipline',
-            name='employer_amount',
+            model_name="payslipline",
+            name="employer_amount",
         ),
         migrations.AddField(
-            model_name='payslipline',
-            name='description',
-            field=models.CharField(default='', max_length=200),
+            model_name="payslipline",
+            name="description",
+            field=models.CharField(default="", max_length=200),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='payslipline',
-            name='display_order',
+            model_name="payslipline",
+            name="display_order",
             field=models.PositiveSmallIntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='payslipline',
-            name='line_type',
-            field=models.CharField(choices=[('EARNING', 'Earning'), ('DEDUCTION', 'Deduction')], max_length=20),
+            model_name="payslipline",
+            name="line_type",
+            field=models.CharField(
+                choices=[("EARNING", "Earning"), ("DEDUCTION", "Deduction")],
+                max_length=20,
+            ),
         ),
         migrations.AlterModelOptions(
-            name='payslipline',
-            options={'ordering': ['payslip', 'display_order', 'line_type']},
+            name="payslipline",
+            options={"ordering": ["payslip", "display_order", "line_type"]},
         ),
     ]

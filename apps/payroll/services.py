@@ -62,14 +62,19 @@ def _resolve_compensation(
         or (teacher_profile.salary_cap if teacher_profile else None)
     )
     hours_per_week = (
-        (contract.hours_per_week if contract else None)
-        or profile.default_hours_per_week
-    )
+        contract.hours_per_week if contract else None
+    ) or profile.default_hours_per_week
     overtime_multiplier = (
-        (contract.overtime_multiplier if contract else None)
-        or profile.overtime_multiplier
+        contract.overtime_multiplier if contract else None
+    ) or profile.overtime_multiplier
+    return (
+        pay_type,
+        base_salary,
+        hourly_rate,
+        salary_cap,
+        hours_per_week,
+        overtime_multiplier,
     )
-    return pay_type, base_salary, hourly_rate, salary_cap, hours_per_week, overtime_multiplier
 
 
 def get_active_payroll_profile(*, school=None) -> ComplianceProfile | None:
@@ -80,7 +85,9 @@ def get_active_payroll_profile(*, school=None) -> ComplianceProfile | None:
 
 
 def _sum_hours(employee: PayrollEmployee, period_start, period_end) -> Decimal:
-    qs = employee.time_entries.filter(entry_date__gte=period_start, entry_date__lte=period_end)
+    qs = employee.time_entries.filter(
+        entry_date__gte=period_start, entry_date__lte=period_end
+    )
     if qs.filter(is_approved=True).exists():
         qs = qs.filter(is_approved=True)
     total = qs.aggregate(total=models.Sum("hours_worked")).get("total")
@@ -109,12 +116,14 @@ def calculate_contributions(profile: ComplianceProfile, gross: Decimal):
             base = min(base, rule.cap_amount)
         employee_amount = base * rule.employee_rate
         employer_amount = base * rule.employer_rate
-        contributions.append({
-            "code": rule.code,
-            "name": rule.name,
-            "employee_amount": employee_amount,
-            "employer_amount": employer_amount,
-        })
+        contributions.append(
+            {
+                "code": rule.code,
+                "name": rule.name,
+                "employee_amount": employee_amount,
+                "employer_amount": employer_amount,
+            }
+        )
         employee_total += employee_amount
         employer_total += employer_amount
     return contributions, employee_total, employer_total
@@ -136,7 +145,9 @@ def calculate_payroll(
     ) = _resolve_compensation(employee, profile, period_end)
 
     period_days = max((period_end - period_start).days + 1, 1)
-    standard_hours = Decimal(str(hours_per_week)) * (Decimal(period_days) / Decimal("7"))
+    standard_hours = Decimal(str(hours_per_week)) * (
+        Decimal(period_days) / Decimal("7")
+    )
     total_hours = _sum_hours(employee, period_start, period_end)
 
     if pay_type == PayrollEmployee.PayType.HOURLY:
@@ -151,7 +162,9 @@ def calculate_payroll(
         effective_date__lte=period_end,
     )
     recurring = list(adjustments.filter(is_recurring=True))
-    one_off = list(adjustments.filter(is_recurring=False, effective_date__gte=period_start))
+    one_off = list(
+        adjustments.filter(is_recurring=False, effective_date__gte=period_start)
+    )
 
     adjustment_total = sum((adj.amount for adj in recurring), Decimal("0.00"))
     adjustment_total += sum((adj.amount for adj in one_off), Decimal("0.00"))
@@ -172,13 +185,19 @@ def calculate_payroll(
         gross_pay = profile.min_wage
 
     tax_amount = calculate_tax(profile, gross_pay)
-    contributions, employee_contrib, employer_contrib = calculate_contributions(profile, gross_pay)
+    contributions, employee_contrib, employer_contrib = calculate_contributions(
+        profile, gross_pay
+    )
 
     net_pay = gross_pay - tax_amount - employee_contrib
     details = {
         "base_pay": base_pay,
         "adjustments": [
-            {"amount": adj.amount, "description": adj.description, "effective_date": adj.effective_date}
+            {
+                "amount": adj.amount,
+                "description": adj.description,
+                "effective_date": adj.effective_date,
+            }
             for adj in (recurring + one_off)
         ],
         "overtime_pay": overtime_pay,
@@ -198,13 +217,19 @@ def calculate_payroll(
 
 
 @transaction.atomic
-def generate_payslips(run: PayrollRun, employees: Iterable[PayrollEmployee] | None = None) -> list[Payslip]:
+def generate_payslips(
+    run: PayrollRun, employees: Iterable[PayrollEmployee] | None = None
+) -> list[Payslip]:
     if employees is None:
-        employees = PayrollEmployee.objects.filter(is_active=True).select_related("user")
+        employees = PayrollEmployee.objects.filter(is_active=True).select_related(
+            "user"
+        )
 
     payslips: list[Payslip] = []
     for employee in employees:
-        calc = calculate_payroll(employee, run.profile, run.period_start, run.period_end)
+        calc = calculate_payroll(
+            employee, run.profile, run.period_start, run.period_end
+        )
         payslip, _ = Payslip.objects.update_or_create(
             payroll_run=run,
             employee=employee,

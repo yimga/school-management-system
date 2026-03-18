@@ -21,8 +21,12 @@ class ReportRuntimeSettingsAccessorTests(TestCase):
         )()
         student = type("Student", (), {"school": object()})()
 
-        with patch("apps.reports.services._site_settings_for_school", return_value=site):
-            self.assertTrue(student_has_financial_clearance(student, academic_year=object()))
+        with patch(
+            "apps.reports.services._site_settings_for_school", return_value=site
+        ):
+            self.assertTrue(
+                student_has_financial_clearance(student, academic_year=object())
+            )
 
     def test_outstanding_returns_uses_owner_scoped_backend_flags(self):
         site = type(
@@ -36,5 +40,9 @@ class ReportRuntimeSettingsAccessorTests(TestCase):
         )()
         student = type("Student", (), {"school": object()})()
 
-        with patch("apps.reports.services._site_settings_for_school", return_value=site):
-            self.assertFalse(student_has_outstanding_returns(student, academic_year=object()))
+        with patch(
+            "apps.reports.services._site_settings_for_school", return_value=site
+        ):
+            self.assertFalse(
+                student_has_outstanding_returns(student, academic_year=object())
+            )

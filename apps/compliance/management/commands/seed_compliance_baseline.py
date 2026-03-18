@@ -24,7 +24,9 @@ _SEED_COMPLIANCE_BASELINE_POLICY_CACHE_ERRORS = (
 
 
 class Command(BaseCommand):
-    help = "Seed region feature rules and tenant compliance snapshots for active schools."
+    help = (
+        "Seed region feature rules and tenant compliance snapshots for active schools."
+    )
 
     def _core_feature_codes(self) -> list[str]:
         from apps.compliance.middleware import COMPLIANCE_GUARD_PATH_MAP
@@ -45,7 +47,9 @@ class Command(BaseCommand):
 
         default_region = RegionConfig.get_default()
         core_features = self._core_feature_codes()
-        active_schools = list(School.objects.filter(is_active=True).select_related("default_region"))
+        active_schools = list(
+            School.objects.filter(is_active=True).select_related("default_region")
+        )
 
         updated_schools = 0
         region_ids: set[str] = set()

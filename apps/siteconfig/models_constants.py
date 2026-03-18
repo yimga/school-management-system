@@ -5,6 +5,7 @@ This module has no dependency on .models or .models_tooling so that
 models_tooling can import from here without creating a circular import
 with models.py.
 """
+
 from __future__ import annotations
 
 REPORT_CARD_TYPE_TERM = "TERM"

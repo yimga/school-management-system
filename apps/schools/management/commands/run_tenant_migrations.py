@@ -7,6 +7,7 @@ Single entry point to run migrations for all tenant schemas.
 Use for deployment or after adding migrations: one command to bring all tenant
 schemas up to date. See docs/MASTER_TABLE_LIST.md for the canonical table list.
 """
+
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
@@ -38,7 +39,9 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("PostgreSQL only. Skipping."))
             return
         if not getattr(settings, "USE_DJANGO_TENANTS", False):
-            self.stdout.write(self.style.WARNING("USE_DJANGO_TENANTS is not enabled. Skipping."))
+            self.stdout.write(
+                self.style.WARNING("USE_DJANGO_TENANTS is not enabled. Skipping.")
+            )
             return
 
         no_input = options.get("no_input", False)

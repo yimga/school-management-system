@@ -22,7 +22,9 @@ class ManagerCookieIsolationMiddlewareTests(TestCase):
             return HttpResponse("ok")
 
         middleware = ManagerCookieIsolationMiddleware(_response)
-        with patch.dict("os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+        with patch.dict(
+            "os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
             request = self.factory.get(
                 "/authentication/login/",
                 HTTP_HOST="manager.runmycampus.com",
@@ -42,7 +44,9 @@ class ManagerCookieIsolationMiddlewareTests(TestCase):
             return HttpResponse("ok")
 
         middleware = ManagerCookieIsolationMiddleware(_response)
-        with patch.dict("os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+        with patch.dict(
+            "os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
             request = self.factory.get(
                 "/authentication/login/",
                 HTTP_HOST="manager.runmycampus.com",
@@ -56,13 +60,19 @@ class ManagerCookieIsolationMiddlewareTests(TestCase):
     def test_manager_cookie_rewrites_response_cookie_names(self):
         def _response(_request):
             response = HttpResponse("ok")
-            response.set_cookie("sessionid", "session-123", httponly=True, samesite="Lax")
+            response.set_cookie(
+                "sessionid", "session-123", httponly=True, samesite="Lax"
+            )
             response.set_cookie("csrftoken", "csrf-456", samesite="Lax")
             return response
 
         middleware = ManagerCookieIsolationMiddleware(_response)
-        with patch.dict("os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
-            request = self.factory.get("/authentication/login/", HTTP_HOST="manager.runmycampus.com")
+        with patch.dict(
+            "os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
+            request = self.factory.get(
+                "/authentication/login/", HTTP_HOST="manager.runmycampus.com"
+            )
             response = middleware(request)
 
         self.assertIn("rmc_manager_sessionid", response.cookies)
@@ -92,10 +102,15 @@ class EndImpersonationRedirectTests(TestCase):
     def test_end_impersonation_redirects_back_to_manager_host(self):
         self.client.force_login(self.user)
         session = self.client.session
-        session["impersonation"] = {"school_id": str(self.school.id), "actor_id": self.user.id}
+        session["impersonation"] = {
+            "school_id": str(self.school.id),
+            "actor_id": self.user.id,
+        }
         session.save()
 
-        with patch.dict("os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+        with patch.dict(
+            "os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
             response = self.client.get(
                 "/authentication/end-impersonation/",
                 HTTP_HOST="tenant-alpha.runmycampus.com",

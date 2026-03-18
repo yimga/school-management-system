@@ -8,7 +8,10 @@ from time import perf_counter
 from prometheus_client import Counter, Histogram
 from django.utils.deprecation import MiddlewareMixin
 
-from apps.observability.logging_context import set_request_logging_context, clear_request_logging_context
+from apps.observability.logging_context import (
+    set_request_logging_context,
+    clear_request_logging_context,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,13 +37,23 @@ class RequestIdLoggingMiddleware(MiddlewareMixin):
         request.request_id = request_id
         tenant_id = ""
         if hasattr(request, "tenant_ctx") and request.tenant_ctx:
-            tenant_id = str(getattr(request.tenant_ctx, "tenant_id", "") or getattr(request.tenant_ctx, "school_id", "") or "")
+            tenant_id = str(
+                getattr(request.tenant_ctx, "tenant_id", "")
+                or getattr(request.tenant_ctx, "school_id", "")
+                or ""
+            )
         request.tenant_id = tenant_id
         user_id = ""
-        if getattr(request, "user", None) and getattr(request.user, "pk", None) and request.user.is_authenticated:
+        if (
+            getattr(request, "user", None)
+            and getattr(request.user, "pk", None)
+            and request.user.is_authenticated
+        ):
             user_id = str(request.user.pk)
         request.user_id = user_id
-        set_request_logging_context(request_id=request_id, tenant_id=tenant_id, user_id=user_id)
+        set_request_logging_context(
+            request_id=request_id, tenant_id=tenant_id, user_id=user_id
+        )
 
     def process_response(self, request, response):
         clear_request_logging_context()
@@ -61,12 +74,16 @@ class ObservabilityMiddleware(MiddlewareMixin):
             endpoint = self._resolve_endpoint(request)
             status = getattr(response, "status_code", 500)
 
-            REQUEST_COUNTER.labels(method=method, endpoint=endpoint, status=status).inc()
+            REQUEST_COUNTER.labels(
+                method=method, endpoint=endpoint, status=status
+            ).inc()
 
             started = getattr(request, "_obs_started_at", None)
             if started is not None:
                 elapsed = perf_counter() - started
-                REQUEST_LATENCY.labels(method=method, endpoint=endpoint, status=status).observe(elapsed)
+                REQUEST_LATENCY.labels(
+                    method=method, endpoint=endpoint, status=status
+                ).observe(elapsed)
         except (AttributeError, TypeError, ValueError) as exc:
             logger.debug("Observability metrics record skipped: %s", exc)
         return response

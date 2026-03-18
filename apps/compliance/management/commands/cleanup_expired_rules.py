@@ -7,6 +7,7 @@ Usage:
 Options:
     --dry-run: Show what would be cleaned without making changes
 """
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from apps.compliance.models_audit import IPAccessRule
@@ -42,7 +43,9 @@ class Command(BaseCommand):
             if ip_count > 0:
                 self.stdout.write("Expired IP Rules:")
                 for rule in expired_ip_rules[:10]:  # Show first 10
-                    self.stdout.write(f"  - {rule.ip_address} (expired {rule.expires_at})")
+                    self.stdout.write(
+                        f"  - {rule.ip_address} (expired {rule.expires_at})"
+                    )
             else:
                 self.stdout.write("No expired IP rules found")
         else:
@@ -50,9 +53,7 @@ class Command(BaseCommand):
             ip_updated = expired_ip_rules.update(is_active=False)
 
             self.stdout.write(
-                self.style.SUCCESS(
-                    f"✅ Deactivated {ip_updated} expired IP rules"
-                )
+                self.style.SUCCESS(f"✅ Deactivated {ip_updated} expired IP rules")
             )
 
             if ip_updated == 0:

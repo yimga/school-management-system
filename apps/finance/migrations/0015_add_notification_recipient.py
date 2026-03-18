@@ -13,7 +13,6 @@ def backfill_notification_recipient(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("finance", "0014_alter_complianceprofile_timezone"),
     ]
@@ -30,5 +29,7 @@ class Migration(migrations.Migration):
                 to=settings.AUTH_USER_MODEL,
             ),
         ),
-        migrations.RunPython(backfill_notification_recipient, migrations.RunPython.noop),
+        migrations.RunPython(
+            backfill_notification_recipient, migrations.RunPython.noop
+        ),
     ]

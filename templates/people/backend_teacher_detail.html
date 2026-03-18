@@ -1,0 +1,29 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+{% block backend_title %}{% trans "Teacher" %} — {{ teacher_display_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4" data-page-archetype="record-detail">
+  <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_teacher_list' %}">{% trans "Teachers" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ teacher_display_name }}</li>
+    </ol>
+  </nav>
+  {% include "studio_os/components/page_header.html" with title=teacher_display_name subtitle=_("Teacher record — quick links in the sidebar") %}
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm rmc-glass-surface h-100">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Profile" %}</p>
+          <p class="mb-1 small"><strong>{% trans "Staff ID" %}:</strong> {{ teacher.staff_id|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Email" %}:</strong> {{ teacher.user.email|default:"—" }}</p>
+          <p class="mb-0 small"><strong>{% trans "Department" %}:</strong> {{ teacher.department.name|default:"—" }}</p>
+        </div>
+        <div class="card-footer bg-transparent border-0">
+          <a href="{% url 'admin:people_teacherprofile_change' teacher.pk %}" class="btn btn-sm btn-outline-primary">{% trans "Open in Admin" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

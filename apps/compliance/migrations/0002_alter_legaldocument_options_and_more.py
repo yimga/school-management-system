@@ -4,103 +4,102 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compliance', '0001_initial'),
+        ("compliance", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='legaldocument',
-            options={'ordering': ['region', 'document_type', 'language', '-version']},
+            name="legaldocument",
+            options={"ordering": ["region", "document_type", "language", "-version"]},
         ),
         migrations.AlterModelOptions(
-            name='regionalcompliancerequirement',
-            options={'ordering': ['region', 'rule__rule_type']},
+            name="regionalcompliancerequirement",
+            options={"ordering": ["region", "rule__rule_type"]},
         ),
         migrations.AlterField(
-            model_name='certificatetemplate',
-            name='css_styling',
+            model_name="certificatetemplate",
+            name="css_styling",
             field=models.TextField(blank=True),
         ),
         migrations.AlterField(
-            model_name='certificatetemplate',
-            name='template_html',
+            model_name="certificatetemplate",
+            name="template_html",
             field=models.TextField(),
         ),
         migrations.AlterField(
-            model_name='complianceauditlog',
-            name='description',
+            model_name="complianceauditlog",
+            name="description",
             field=models.TextField(),
         ),
         migrations.AlterField(
-            model_name='complianceauditlog',
-            name='details',
+            model_name="complianceauditlog",
+            name="details",
             field=models.JSONField(blank=True, default=dict),
         ),
         migrations.AlterField(
-            model_name='compliancecheck',
-            name='findings',
+            model_name="compliancecheck",
+            name="findings",
             field=models.TextField(),
         ),
         migrations.AlterField(
-            model_name='compliancecheck',
-            name='issues_found',
+            model_name="compliancecheck",
+            name="issues_found",
             field=models.IntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='compliancecheck',
-            name='issues_resolved',
+            model_name="compliancecheck",
+            name="issues_resolved",
             field=models.IntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='compliancerule',
-            name='applies_globally',
+            model_name="compliancerule",
+            name="applies_globally",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='compliancerule',
-            name='is_mandatory',
+            model_name="compliancerule",
+            name="is_mandatory",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='legaldocument',
-            name='content',
+            model_name="legaldocument",
+            name="content",
             field=models.TextField(),
         ),
         migrations.AlterField(
-            model_name='legaldocument',
-            name='version',
+            model_name="legaldocument",
+            name="version",
             field=models.IntegerField(default=1),
         ),
         migrations.AlterField(
-            model_name='regionalcompliancerequirement',
-            name='custom_parameters',
+            model_name="regionalcompliancerequirement",
+            name="custom_parameters",
             field=models.JSONField(blank=True, default=dict),
         ),
         migrations.AlterField(
-            model_name='regionalcompliancerequirement',
-            name='deadline',
+            model_name="regionalcompliancerequirement",
+            name="deadline",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='regionalcompliancerequirement',
-            name='description_override',
+            model_name="regionalcompliancerequirement",
+            name="description_override",
             field=models.TextField(blank=True),
         ),
         migrations.AlterField(
-            model_name='studentidformat',
-            name='example_id',
+            model_name="studentidformat",
+            name="example_id",
             field=models.CharField(max_length=100),
         ),
         migrations.AlterField(
-            model_name='studentidformat',
-            name='format_pattern',
+            model_name="studentidformat",
+            name="format_pattern",
             field=models.CharField(max_length=100),
         ),
         migrations.AlterField(
-            model_name='studentidformat',
-            name='prefix',
+            model_name="studentidformat",
+            name="prefix",
             field=models.CharField(max_length=5),
         ),
     ]

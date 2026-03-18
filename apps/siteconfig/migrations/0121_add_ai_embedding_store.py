@@ -4,29 +4,48 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0120_add_ai_model_registry'),
+        ("siteconfig", "0120_add_ai_model_registry"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AIEmbeddingStore',
+            name="AIEmbeddingStore",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('school_id', models.UUIDField(blank=True, db_index=True, null=True)),
-                ('conversation_id', models.CharField(blank=True, db_index=True, max_length=64)),
-                ('scope', models.CharField(db_index=True, default='chat', max_length=32)),
-                ('text_hash', models.CharField(db_index=True, max_length=64)),
-                ('embedding', models.JSONField(default=list, help_text='List of floats from Ollama embeddings API')),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("school_id", models.UUIDField(blank=True, db_index=True, null=True)),
+                (
+                    "conversation_id",
+                    models.CharField(blank=True, db_index=True, max_length=64),
+                ),
+                (
+                    "scope",
+                    models.CharField(db_index=True, default="chat", max_length=32),
+                ),
+                ("text_hash", models.CharField(db_index=True, max_length=64)),
+                (
+                    "embedding",
+                    models.JSONField(
+                        default=list,
+                        help_text="List of floats from Ollama embeddings API",
+                    ),
+                ),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'verbose_name': 'AI embedding store',
-                'verbose_name_plural': 'AI embedding stores',
-                'db_table': 'siteconfig_aiembeddingstore',
-                'ordering': ['-created_at'],
+                "verbose_name": "AI embedding store",
+                "verbose_name_plural": "AI embedding stores",
+                "db_table": "siteconfig_aiembeddingstore",
+                "ordering": ["-created_at"],
             },
         ),
     ]

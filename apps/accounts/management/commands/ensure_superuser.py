@@ -6,6 +6,7 @@ Same credentials work for:
 - Portal/Backend login: /authentication/login/
 - Django Admin: /admin/
 """
+
 import os
 from django.conf import settings
 from django.core.management import BaseCommand
@@ -90,13 +91,16 @@ class Command(BaseCommand):
                 existing_admin.is_superuser = True
                 existing_admin.is_active = True
                 existing_admin.email = email or existing_admin.email
-                if SUPERADMIN_ROLE_VALUE is not None and hasattr(existing_admin, "role"):
+                if SUPERADMIN_ROLE_VALUE is not None and hasattr(
+                    existing_admin, "role"
+                ):
                     existing_admin.role = SUPERADMIN_ROLE_VALUE
                 existing_admin.save()
                 _sync_superuser_flags(User, username)
                 self.stdout.write(
                     self.style.SUCCESS(
-                        "Superuser '%s' password updated. Log in at /authentication/login/ or /admin/" % username
+                        "Superuser '%s' password updated. Log in at /authentication/login/ or /admin/"
+                        % username
                     )
                 )
                 return
@@ -173,7 +177,6 @@ class Command(BaseCommand):
             self.style.SUCCESS(
                 "Superuser '%s' created. You can log in at:\n"
                 "  Portal/Backend: /authentication/login/\n"
-                "  Django Admin:   /admin/"
-                % username
+                "  Django Admin:   /admin/" % username
             )
         )

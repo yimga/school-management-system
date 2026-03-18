@@ -2,6 +2,7 @@
 Catalog/admission config audit: test that admission number generation and validation
 use centralized config (SiteSettings or TenantAdmissionNumberPolicy) and assert format.
 """
+
 from django.test import TestCase
 
 from apps.siteconfig.identifier_policy_service import (
@@ -20,7 +21,9 @@ class AdmissionConfigTestCase(TestCase):
         site.school_code = "GIL"
         site.admission_number_strategy = "FULL"
         site.admission_number_template = ""
-        site.admission_number_pattern = r"^\d{2}[A-Z0-9]{2,10}\d{4}[A-Z0-9]{2,6}[A-Z0-9]{0,4}$"
+        site.admission_number_pattern = (
+            r"^\d{2}[A-Z0-9]{2,10}\d{4}[A-Z0-9]{2,6}[A-Z0-9]{0,4}$"
+        )
         site.save()
 
     def test_preview_uses_policy(self):
@@ -40,7 +43,9 @@ class AdmissionConfigTestCase(TestCase):
         site = get_platform_site_settings_record(create=True)
         site.admission_number_strategy = "YEAR_SEQ"
         site.save()
-        out = preview_admission_number(None, year_2digit="26", school_code="GIL", seq_4digit="0001")
+        out = preview_admission_number(
+            None, year_2digit="26", school_code="GIL", seq_4digit="0001"
+        )
         self.assertEqual(out, "26GIL0001")
 
     def test_validate_matches_pattern(self):

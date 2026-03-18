@@ -3,6 +3,7 @@ Aggregate AI Gateway cache metrics into AIGatewayMetric for observability dashbo
 Run daily (e.g. via cron or Celery Beat). Reads cache keys ai:metrics:YYYY-MM-DD:* and
 upserts into siteconfig_aigatewaymetric; optionally deletes consumed keys.
 """
+
 from __future__ import annotations
 
 from datetime import date, timedelta
@@ -57,7 +58,9 @@ class Command(BaseCommand):
             try:
                 agg_date = date.fromisoformat(date_str)
             except ValueError:
-                self.stdout.write(self.style.ERROR(f"Invalid --date: {date_str} (use YYYY-MM-DD)"))
+                self.stdout.write(
+                    self.style.ERROR(f"Invalid --date: {date_str} (use YYYY-MM-DD)")
+                )
                 return
         else:
             agg_date = date.today() - timedelta(days=1)
@@ -73,12 +76,20 @@ class Command(BaseCommand):
             log_exception_with_context(
                 "aggregate_ai_metrics: cache key iteration failed",
                 school_id=None,
-                extra={"command": "aggregate_ai_metrics", "prefix": prefix, "error": str(e)},
+                extra={
+                    "command": "aggregate_ai_metrics",
+                    "prefix": prefix,
+                    "error": str(e),
+                },
             )
             self.stdout.write(self.style.WARNING(f"Cache key iteration: {e}"))
 
         if not keys:
-            self.stdout.write(self.style.WARNING("No cache keys found for this date. Ensure AI_GATEWAY_METRICS_ENABLED and cache backend support key iteration."))
+            self.stdout.write(
+                self.style.WARNING(
+                    "No cache keys found for this date. Ensure AI_GATEWAY_METRICS_ENABLED and cache backend support key iteration."
+                )
+            )
             return
 
         created = 0
@@ -86,7 +97,7 @@ class Command(BaseCommand):
         for key in keys:
             if not key.startswith(prefix):
                 continue
-            suffix = key[len(prefix):]
+            suffix = key[len(prefix) :]
             parts = suffix.split(":")
             if len(parts) < 3:
                 continue
@@ -97,6 +108,7 @@ class Command(BaseCommand):
                 if not bucket or not isinstance(bucket, dict):
                     continue
                 from uuid import UUID
+
                 try:
                     tid = UUID(tenant_id) if tenant_id != "global" else None
                 except (ValueError, TypeError):
@@ -104,7 +116,9 @@ class Command(BaseCommand):
                 count = bucket.get("count", 0) or 0
                 review_count = int(bucket.get("review_count", 0) or 0)
                 accepted_count = int(bucket.get("accepted_count", 0) or 0)
-                manual_correction_count = int(bucket.get("manual_correction_count", 0) or 0)
+                manual_correction_count = int(
+                    bucket.get("manual_correction_count", 0) or 0
+                )
                 if count <= 0 and review_count <= 0:
                     continue
                 latency_sum = float(bucket.get("latency_sum", 0) or 0)
@@ -136,8 +150,16 @@ class Command(BaseCommand):
                 log_exception_with_context(
                     "aggregate_ai_metrics: skip key",
                     school_id=None,
-                    extra={"command": "aggregate_ai_metrics", "key": key, "error": str(e)},
+                    extra={
+                        "command": "aggregate_ai_metrics",
+                        "key": key,
+                        "error": str(e),
+                    },
                 )
                 self.stdout.write(self.style.WARNING(f"Skip key {key}: {e}"))
 
-        self.stdout.write(self.style.SUCCESS(f"Aggregated {agg_date}: created={created}, updated={updated}"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Aggregated {agg_date}: created={created}, updated={updated}"
+            )
+        )

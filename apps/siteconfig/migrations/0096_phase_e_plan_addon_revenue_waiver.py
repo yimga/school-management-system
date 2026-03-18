@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0095_backfill_tenant_systems"),
         ("schools", "0006_school_billing_type_waiver_note"),
@@ -17,8 +16,23 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PlanAddon",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("code", models.SlugField(help_text="Feature code e.g. design_studio", max_length=80, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "code",
+                    models.SlugField(
+                        help_text="Feature code e.g. design_studio",
+                        max_length=80,
+                        unique=True,
+                    ),
+                ),
                 ("name", models.CharField(help_text="Display name", max_length=120)),
                 (
                     "price",
@@ -42,8 +56,21 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="CountryMultiplier",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("country_code", models.CharField(help_text="ISO 3166-1 alpha-2/3", max_length=3, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "country_code",
+                    models.CharField(
+                        help_text="ISO 3166-1 alpha-2/3", max_length=3, unique=True
+                    ),
+                ),
                 (
                     "multiplier",
                     models.DecimalField(
@@ -67,8 +94,21 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="RevenueSnapshot",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("snapshot_date", models.DateField(help_text="First day of the month for this snapshot")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "snapshot_date",
+                    models.DateField(
+                        help_text="First day of the month for this snapshot"
+                    ),
+                ),
                 (
                     "actual_revenue",
                     models.DecimalField(
@@ -110,7 +150,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="BillingWaiverAuditLog",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("old_billing_type", models.CharField(blank=True, max_length=20)),
                 ("new_billing_type", models.CharField(max_length=20)),
                 ("old_waiver_note", models.CharField(blank=True, max_length=500)),
@@ -144,7 +192,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="WaiverRequest",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 (
                     "proof_file",
                     models.FileField(
@@ -153,7 +209,10 @@ class Migration(migrations.Migration):
                         upload_to="waiver_requests/%Y/%m/",
                     ),
                 ),
-                ("reason", models.TextField(blank=True, help_text="Reason for waiver request")),
+                (
+                    "reason",
+                    models.TextField(blank=True, help_text="Reason for waiver request"),
+                ),
                 (
                     "status",
                     models.CharField(

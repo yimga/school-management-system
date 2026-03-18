@@ -5,45 +5,74 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0076_normalize_themepack_defaults_and_constraint'),
+        ("siteconfig", "0076_normalize_themepack_defaults_and_constraint"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='delegation_auto_revoke',
-            field=models.BooleanField(default=True, help_text='When True, proxy access is automatically revoked at end of return date.'),
+            model_name="sitesettings",
+            name="delegation_auto_revoke",
+            field=models.BooleanField(
+                default=True,
+                help_text="When True, proxy access is automatically revoked at end of return date.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='delegation_block_delegator_while_ooo',
-            field=models.BooleanField(default=True, help_text='When True, block the delegator from taking delegated actions while OOO (avoid double-approvals).'),
+            model_name="sitesettings",
+            name="delegation_block_delegator_while_ooo",
+            field=models.BooleanField(
+                default=True,
+                help_text="When True, block the delegator from taking delegated actions while OOO (avoid double-approvals).",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='delegation_max_days',
-            field=models.PositiveSmallIntegerField(default=14, help_text='Maximum duration in days for a single delegation period.'),
+            model_name="sitesettings",
+            name="delegation_max_days",
+            field=models.PositiveSmallIntegerField(
+                default=14,
+                help_text="Maximum duration in days for a single delegation period.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='delegation_notify_delegate_on_start',
-            field=models.CharField(choices=[('off', 'Off'), ('email', 'Email'), ('sms', 'SMS'), ('both', 'Email and SMS')], default='email', help_text='Notify the delegate when a delegation starts.', max_length=20),
+            model_name="sitesettings",
+            name="delegation_notify_delegate_on_start",
+            field=models.CharField(
+                choices=[
+                    ("off", "Off"),
+                    ("email", "Email"),
+                    ("sms", "SMS"),
+                    ("both", "Email and SMS"),
+                ],
+                default="email",
+                help_text="Notify the delegate when a delegation starts.",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='delegation_role_mapping',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models.default_delegation_role_mapping, help_text='Who can delegate to whom: {"PRINCIPAL": ["VICE_PRINCIPAL", "HOD"], ...}. Empty or missing role = no restriction.'),
+            model_name="sitesettings",
+            name="delegation_role_mapping",
+            field=models.JSONField(
+                blank=True,
+                default=apps.siteconfig.models.default_delegation_role_mapping,
+                help_text='Who can delegate to whom: {"PRINCIPAL": ["VICE_PRINCIPAL", "HOD"], ...}. Empty or missing role = no restriction.',
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='delegation_summary_report_on_return',
-            field=models.BooleanField(default=True, help_text="When True, generate 'While You Were Away' summary for the returning user when delegation ends."),
+            model_name="sitesettings",
+            name="delegation_summary_report_on_return",
+            field=models.BooleanField(
+                default=True,
+                help_text="When True, generate 'While You Were Away' summary for the returning user when delegation ends.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='syllabus_approval_roles',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models.default_syllabus_approval_roles, help_text='List of role codes allowed to approve syllabi (e.g. DEAN, HOD). Used with delegation: when approver is OOO, their delegate receives requests.'),
+            model_name="sitesettings",
+            name="syllabus_approval_roles",
+            field=models.JSONField(
+                blank=True,
+                default=apps.siteconfig.models.default_syllabus_approval_roles,
+                help_text="List of role codes allowed to approve syllabi (e.g. DEAN, HOD). Used with delegation: when approver is OOO, their delegate receives requests.",
+            ),
         ),
     ]

@@ -4,6 +4,7 @@ Verifies runtime.modules.admissions and runtime.modules.gradebook shape
 across different tenant contexts (no real school required; empty ctx gives default shape).
 Test matrix with real fixtures: one test builds runtime from a real School in DB.
 """
+
 from django.test import TestCase
 
 from apps.tenancy.context import TenantContext
@@ -68,7 +69,9 @@ class RuntimeModulesByBlueprintFamilyTests(TestCase):
         adm = runtime.modules.admissions
         self.assertIsInstance(adm, dict)
         self.assertEqual(adm.get("numbering_strategy"), "campus_year_sequence")
-        self.assertEqual(adm.get("required_documents"), ["birth_certificate", "transfer_letter"])
+        self.assertEqual(
+            adm.get("required_documents"), ["birth_certificate", "transfer_letter"]
+        )
 
     def test_runtime_from_real_school_fixture(self):
         """Test matrix with real fixtures: build runtime from a School in DB and assert module shape."""

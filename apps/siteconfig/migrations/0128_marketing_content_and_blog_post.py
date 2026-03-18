@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0127_add_product_feedback"),
     ]
@@ -13,11 +12,34 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="MarketingContent",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("key", models.CharField(db_index=True, help_text="e.g. hero_subheadline, blog_intro", max_length=120)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "key",
+                    models.CharField(
+                        db_index=True,
+                        help_text="e.g. hero_subheadline, blog_intro",
+                        max_length=120,
+                    ),
+                ),
                 ("content_html", models.TextField(blank=True)),
-                ("locale", models.CharField(blank=True, db_index=True, default="", max_length=10)),
-                ("content_type", models.CharField(blank=True, default="html", max_length=32)),
+                (
+                    "locale",
+                    models.CharField(
+                        blank=True, db_index=True, default="", max_length=10
+                    ),
+                ),
+                (
+                    "content_type",
+                    models.CharField(blank=True, default="html", max_length=32),
+                ),
                 ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
@@ -31,12 +53,23 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="BlogPost",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("title", models.CharField(max_length=255)),
                 ("slug", models.SlugField(max_length=255, unique=True)),
                 ("excerpt", models.TextField(blank=True)),
                 ("body_html", models.TextField(blank=True)),
-                ("published_at", models.DateTimeField(blank=True, db_index=True, null=True)),
+                (
+                    "published_at",
+                    models.DateTimeField(blank=True, db_index=True, null=True),
+                ),
                 ("is_published", models.BooleanField(db_index=True, default=False)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),

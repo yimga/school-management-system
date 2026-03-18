@@ -3,6 +3,7 @@ Central metadata catalog API (Phase 8).
 Exposes schema, experience, runtime, registry, integration, and governance metadata.
 All tenant-facing behavior should resolve via runtime; this catalog is for operators and tooling.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
@@ -17,11 +18,22 @@ from apps.metadata.services import (
     summarize_dependency_consumers,
 )
 from apps.policies_rules.models import PolicyBundle
-from apps.runtime_blueprints.models import Blueprint, DashboardPack, DashboardWidget, WorkflowPack
+from apps.runtime_blueprints.models import (
+    Blueprint,
+    DashboardPack,
+    DashboardWidget,
+    WorkflowPack,
+)
 from apps.siteconfig.workflow_registry import get_workflow_catalog
 
 
-OPTIONAL_METADATA_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
+OPTIONAL_METADATA_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    TypeError,
+    ValueError,
+)
 
 # Canonical entity list aligned with docs/architecture/canonical_education_graph.md
 _SCHEMA_ENTITIES = [
@@ -54,14 +66,17 @@ def get_experience_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
     """
     try:
         theme_packs = list(
-            ThemePack.objects.filter(is_active=True).values("id", "name", "slug").order_by("name")[:100]
+            ThemePack.objects.filter(is_active=True)
+            .values("id", "name", "slug")
+            .order_by("name")[:100]
         )
     except OPTIONAL_METADATA_ERRORS:
         theme_packs = []
     try:
         widgets = list(
-            DashboardWidget.objects.values("id", "name", "chart_type")
-            .order_by("id")[:100]
+            DashboardWidget.objects.values("id", "name", "chart_type").order_by("id")[
+                :100
+            ]
         )
     except OPTIONAL_METADATA_ERRORS:
         widgets = []
@@ -80,25 +95,33 @@ def get_runtime_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
     """
     try:
         blueprints = list(
-            Blueprint.objects.filter(is_active=True).values("id", "code", "family", "name").order_by("code")[:200]
+            Blueprint.objects.filter(is_active=True)
+            .values("id", "code", "family", "name")
+            .order_by("code")[:200]
         )
     except OPTIONAL_METADATA_ERRORS:
         blueprints = []
     try:
         workflow_packs = list(
-            WorkflowPack.objects.filter(is_active=True).values("id", "code", "family", "name", "version").order_by("code")[:200]
+            WorkflowPack.objects.filter(is_active=True)
+            .values("id", "code", "family", "name", "version")
+            .order_by("code")[:200]
         )
     except OPTIONAL_METADATA_ERRORS:
         workflow_packs = []
     try:
         dashboard_packs = list(
-            DashboardPack.objects.filter(is_active=True).values("id", "code", "family", "name", "version").order_by("code")[:200]
+            DashboardPack.objects.filter(is_active=True)
+            .values("id", "code", "family", "name", "version")
+            .order_by("code")[:200]
         )
     except OPTIONAL_METADATA_ERRORS:
         dashboard_packs = []
     try:
         policy_bundles = list(
-            PolicyBundle.objects.filter(is_active=True).values("id", "code", "name", "version", "country_scope").order_by("code", "name")[:200]
+            PolicyBundle.objects.filter(is_active=True)
+            .values("id", "code", "name", "version", "country_scope")
+            .order_by("code", "name")[:200]
         )
     except OPTIONAL_METADATA_ERRORS:
         policy_bundles = []
@@ -146,7 +169,9 @@ def get_registry_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
     """
     try:
         countries = list(
-            CountryRegistry.objects.filter(is_active=True).values("code", "name").order_by("name")[:300]
+            CountryRegistry.objects.filter(is_active=True)
+            .values("code", "name")
+            .order_by("name")[:300]
         )
     except OPTIONAL_METADATA_ERRORS:
         countries = []
@@ -199,6 +224,7 @@ def get_glossary_metadata(school_id: Optional[Any] = None) -> Dict[str, Any]:
     """
     try:
         from apps.metadata.models import BusinessGlossaryEntry
+
         entries = list(
             BusinessGlossaryEntry.objects.filter(is_active=True)
             .values("term", "definition", "entity_code", "field_name", "locale")

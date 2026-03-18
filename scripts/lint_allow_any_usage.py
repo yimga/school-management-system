@@ -3,6 +3,7 @@
 Fail on unclassified AllowAny usage.
 Usage: python scripts/lint_allow_any_usage.py [--exit-zero] [--base DIR] [--allowlist FILE]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -32,7 +33,10 @@ def _count_allow_any(text: str, rel: str) -> int:
     tree = ast.parse(text, filename=rel)
     count = 0
     for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module == "rest_framework.permissions":
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module == "rest_framework.permissions"
+        ):
             count += sum(1 for alias in node.names if alias.name == "AllowAny")
         elif isinstance(node, ast.Name) and node.id == "AllowAny":
             count += 1
@@ -40,14 +44,18 @@ def _count_allow_any(text: str, rel: str) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Lint AllowAny usage against an allowlist.")
+    parser = argparse.ArgumentParser(
+        description="Lint AllowAny usage against an allowlist."
+    )
     parser.add_argument("--base", default=".", help="Repo root (default: .)")
     parser.add_argument(
         "--allowlist",
         default="scripts/allowlists/allow_any_allowlist.json",
         help="Allowlist JSON path",
     )
-    parser.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
+    parser.add_argument(
+        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
+    )
     args = parser.parse_args()
 
     base = Path(args.base).resolve()

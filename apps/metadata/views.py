@@ -2,6 +2,7 @@
 §3.3 Metadata search and governance UI — stub API for catalog search.
 Staff-only; returns entity catalog entries matching query.
 """
+
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -23,9 +24,8 @@ def _catalog_search(q: str, limit: int = 20, active_only: bool = True):
         return []
     from django.db.models import Q
     from apps.metadata.models import EntityCatalogEntry, ENTITY_CATALOG_LIFECYCLE_ACTIVE
-    qs = EntityCatalogEntry.objects.filter(
-        Q(code__icontains=q) | Q(name__icontains=q)
-    )
+
+    qs = EntityCatalogEntry.objects.filter(Q(code__icontains=q) | Q(name__icontains=q))
     if active_only:
         qs = qs.filter(lifecycle_state=ENTITY_CATALOG_LIFECYCLE_ACTIVE)
     qs = qs.order_by("code")[:limit]
@@ -56,15 +56,21 @@ def metadata_governance_ui(request):
     except (TypeError, ValueError):
         limit = 20
     results = _catalog_search(q, limit=limit) if q else []
-    return render(request, "metadata/governance.html", {
-        "query": q,
-        "results": results,
-        "search_api_path": "/api/internal/metadata/search/",
-        "page_title": _("Metadata governance"),
-        "page_subtitle": _("Search entity catalog by code or name. Use the API for programmatic access and lineage."),
-        "action_url": reverse("studio_os:control"),
-        "action_text": _("Back to Control"),
-    })
+    return render(
+        request,
+        "metadata/governance.html",
+        {
+            "query": q,
+            "results": results,
+            "search_api_path": "/api/internal/metadata/search/",
+            "page_title": _("Metadata governance"),
+            "page_subtitle": _(
+                "Search entity catalog by code or name. Use the API for programmatic access and lineage."
+            ),
+            "action_url": reverse("studio_os:control"),
+            "action_text": _("Back to Control"),
+        },
+    )
 
 
 @login_required
@@ -142,7 +148,12 @@ def metadata_lineage_graph_ui(request):
     consumer_type = (request.GET.get("consumer_type") or "").strip()
     consumer_code = (request.GET.get("consumer_code") or "").strip()
     has_query = bool(
-        code or entity_code or field_name or package_id or consumer_type or consumer_code
+        code
+        or entity_code
+        or field_name
+        or package_id
+        or consumer_type
+        or consumer_code
     )
     payload = {}
     graph_consumers = []  # list of {"label", "x", "y"} for SVG layout (max 12)
@@ -168,14 +179,17 @@ def metadata_lineage_graph_ui(request):
             or "?"
         )[:12]
         import math
+
         n = min(12, len(consumers))
         for i in range(n):
             angle = 2 * math.pi * i / n - math.pi / 2  # start from top
-            graph_consumers.append({
-                "label": (consumers[i].get("consumer_code") or "?")[:14],
-                "x": round(200 + 130 * math.cos(angle)),
-                "y": round(200 + 130 * math.sin(angle)),
-            })
+            graph_consumers.append(
+                {
+                    "label": (consumers[i].get("consumer_code") or "?")[:14],
+                    "x": round(200 + 130 * math.cos(angle)),
+                    "y": round(200 + 130 * math.sin(angle)),
+                }
+            )
 
     return render(
         request,
@@ -193,7 +207,9 @@ def metadata_lineage_graph_ui(request):
             "graph_consumers": graph_consumers,
             "center_label": center_label,
             "page_title": _("Lineage graph"),
-            "page_subtitle": _("What uses this? Query by entity, field, package, or consumer. Downstream consumers and blast radius."),
+            "page_subtitle": _(
+                "What uses this? Query by entity, field, package, or consumer. Downstream consumers and blast radius."
+            ),
             "action_url": reverse("studio_os:control"),
             "action_text": _("Back to Control"),
         },

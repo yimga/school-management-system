@@ -18,4 +18,6 @@ class SiteSettingsComplianceProfilePointerTests(TestCase):
 
         form = SiteSettingsForm(instance=site)
         self.assertEqual(form.initial["compliance_profile"], profile.pk)
-        self.assertIn((profile.pk, profile.name), form.fields["compliance_profile"].choices)
+        self.assertIn(
+            (profile.pk, profile.name), form.fields["compliance_profile"].choices
+        )

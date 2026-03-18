@@ -4,19 +4,18 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('apicenter', '0005_apiquota'),
-        ('schools', '0034_remove_biometricdevice_school_and_more'),
+        ("apicenter", "0005_apiquota"),
+        ("schools", "0034_remove_biometricdevice_school_and_more"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='apiquota',
-            name='apicenter_apiquota_school_quota_type_uniq',
+            model_name="apiquota",
+            name="apicenter_apiquota_school_quota_type_uniq",
         ),
         migrations.AlterUniqueTogether(
-            name='apiquota',
-            unique_together={('school', 'quota_type')},
+            name="apiquota",
+            unique_together={("school", "quota_type")},
         ),
     ]

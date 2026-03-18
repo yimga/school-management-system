@@ -9,7 +9,10 @@ from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
 from apps.global_registries.models import EducationSystemProfile, RegionConfig
-from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
+from apps.platform_runtime.helpers import (
+    get_effective_site_settings,
+    get_platform_defaults,
+)
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.policies.policy_registry import get_effective_policy
 
@@ -30,6 +33,7 @@ def _approved_or_unrequested_subject_assignment_filter(
     Include Evaluation if subject_assignment_id in approved_sa_ids OR subject_assignment_id not in any_request_sa_ids.
     """
     from apps.evals.models import GradeApprovalRequest
+
     latest_status_by_sa = _latest_grade_approval_status_by_subject_assignment(
         academic_year_id=academic_year_id,
         term_id=term_id,
@@ -79,12 +83,12 @@ def _latest_grade_approval_status_by_subject_assignment(
         term_id=term_id,
     )
     if classroom_scope is not None:
-        approvals = approvals.filter(subject_assignment__classroom_id__in=classroom_scope)
-    rows = (
-        approvals
-        .order_by("subject_assignment_id", "-requested_at", "-id")
-        .values_list("subject_assignment_id", "status")
-    )
+        approvals = approvals.filter(
+            subject_assignment__classroom_id__in=classroom_scope
+        )
+    rows = approvals.order_by(
+        "subject_assignment_id", "-requested_at", "-id"
+    ).values_list("subject_assignment_id", "status")
     for sa_id, status in rows:
         if sa_id not in latest_status_by_sa:
             latest_status_by_sa[sa_id] = status
@@ -108,7 +112,9 @@ def grade_approval_publish_readiness(
         term_id=term_id,
     )
     if classroom_scope is not None:
-        evaluations = evaluations.filter(subject_assignment__classroom_id__in=classroom_scope)
+        evaluations = evaluations.filter(
+            subject_assignment__classroom_id__in=classroom_scope
+        )
     evaluated_subject_assignment_ids = set(
         evaluations.values_list("subject_assignment_id", flat=True).distinct()
     )
@@ -149,6 +155,7 @@ def grade_approval_publish_readiness(
         "ready_for_publish": not pending_ids and not rejected_ids and not missing_ids,
     }
 
+
 def is_term_published(academic_year_id: int, term_id: int, classroom_id: int) -> bool:
     """
     Published if either:
@@ -172,14 +179,18 @@ def is_term_published(academic_year_id: int, term_id: int, classroom_id: int) ->
     return school_pub or class_pub
 
 
-def _promotion_rule_for_student(student: StudentProfile, academic_year) -> Optional[PromotionRule]:
+def _promotion_rule_for_student(
+    student: StudentProfile, academic_year
+) -> Optional[PromotionRule]:
     rule = PromotionRule.objects.filter(
         academic_year=academic_year,
         classroom=student.classroom,
     ).first()
     if rule:
         return rule
-    return PromotionRule.objects.filter(academic_year=academic_year, classroom__isnull=True).first()
+    return PromotionRule.objects.filter(
+        academic_year=academic_year, classroom__isnull=True
+    ).first()
 
 
 def _annual_subject_averages(student: StudentProfile, academic_year) -> list[tuple]:
@@ -189,6 +200,7 @@ def _annual_subject_averages(student: StudentProfile, academic_year) -> list[tup
     """
     from django.db.models import Q
     from apps.academics.models import Subject
+
     terms = terms_for_student(academic_year, student.classroom)
     if not terms:
         return []
@@ -202,11 +214,14 @@ def _annual_subject_averages(student: StudentProfile, academic_year) -> list[tup
             academic_year=academic_year,
         ).select_related("subject_assignment", "subject_assignment__subject")
         if use_approved_only:
-            approved_ids, any_request_ids = _approved_or_unrequested_subject_assignment_filter(
-                academic_year.id, term.id
+            approved_ids, any_request_ids = (
+                _approved_or_unrequested_subject_assignment_filter(
+                    academic_year.id, term.id
+                )
             )
             evals_qs = evals_qs.filter(
-                Q(subject_assignment_id__in=approved_ids) | ~Q(subject_assignment_id__in=any_request_ids)
+                Q(subject_assignment_id__in=approved_ids)
+                | ~Q(subject_assignment_id__in=any_request_ids)
             )
         for e in evals_qs:
             if not e.subject_assignment or not e.subject_assignment.subject_id:
@@ -242,6 +257,7 @@ def get_promotion_status(student, academic_year, overall_average):
         professional_passed = 0
         related_passed = 0
         from apps.academics.models import Subject
+
         for subj, category, subj_avg in subject_avgs:
             if subj_avg >= threshold:
                 pass_count += 1
@@ -249,7 +265,12 @@ def get_promotion_status(student, academic_year, overall_average):
                     professional_passed += 1
                 elif category in (Subject.Category.RELATED, Subject.Category.GENERAL):
                     related_passed += 1
-        if avg >= threshold and pass_count >= 5 and professional_passed >= 2 and related_passed >= 1:
+        if (
+            avg >= threshold
+            and pass_count >= 5
+            and professional_passed >= 2
+            and related_passed >= 1
+        ):
             return "PROMOTED"
         if avg < float(rule.demotion_average):
             return "DEMOTED"
@@ -273,7 +294,9 @@ def get_promotion_thresholds(student: StudentProfile, academic_year) -> Optional
 
 
 def terms_for_student(academic_year, classroom) -> list[Term]:
-    terms = list(Term.objects.filter(academic_year=academic_year).order_by("start_date", "name"))
+    terms = list(
+        Term.objects.filter(academic_year=academic_year).order_by("start_date", "name")
+    )
     if not classroom.allows_third_term:
         terms = [t for t in terms if getattr(t, "position", None) != 3]
     return terms
@@ -294,6 +317,7 @@ def student_has_financial_clearance(student: StudentProfile, academic_year) -> b
         return True
     from apps.finance.models import Invoice
     from decimal import Decimal
+
     invoices = Invoice.objects.filter(
         student=student,
         academic_year=academic_year,
@@ -317,6 +341,7 @@ def student_has_outstanding_returns(student: StudentProfile, academic_year) -> b
     if not flags.get("block_report_download_if_outstanding_returns", False):
         return False
     from apps.people.models import StudentResourceReturn
+
     return StudentResourceReturn.objects.filter(
         student=student,
         academic_year=academic_year,
@@ -324,7 +349,9 @@ def student_has_outstanding_returns(student: StudentProfile, academic_year) -> b
     ).exists()
 
 
-def notify_parent_report_blocked_by_debt(student: StudentProfile, academic_year, *, dedupe_hours: int = 24) -> bool:
+def notify_parent_report_blocked_by_debt(
+    student: StudentProfile, academic_year, *, dedupe_hours: int = 24
+) -> bool:
     """
     Send SMS to a guardian when report download is blocked due to outstanding fees.
     Deduplication: at most one SMS per (student, year) per dedupe_hours (default 24).
@@ -339,18 +366,27 @@ def notify_parent_report_blocked_by_debt(student: StudentProfile, academic_year,
     cache_key = f"{prefix}:report_block_sms:{student.id}:{getattr(academic_year, 'id', academic_year)}"
     if cache.get(cache_key):
         return False
-    guardians = StudentGuardian.objects.filter(student=student).select_related("guardian_user")
+    guardians = StudentGuardian.objects.filter(student=student).select_related(
+        "guardian_user"
+    )
     phone = None
     for g in guardians:
-        phone = getattr(g, "phone", None) or (g.guardian_user and getattr(g.guardian_user, "phone", None))
+        phone = getattr(g, "phone", None) or (
+            g.guardian_user and getattr(g.guardian_user, "phone", None)
+        )
         if phone and str(phone).strip():
             break
     if not phone:
         return False
     try:
         from apps.evals.notifications import NotificationService
+
         notifier = NotificationService()
-        student_name = getattr(student, "get_full_name", lambda: f"{student.last_name} {student.first_name}")()
+        student_name = getattr(
+            student,
+            "get_full_name",
+            lambda: f"{student.last_name} {student.first_name}",
+        )()
         year_name = getattr(academic_year, "name", str(academic_year))
         message = (
             f"Report card for {student_name} is not available until fees are cleared for {year_name}. "
@@ -372,7 +408,9 @@ def notify_parent_report_blocked_by_debt(student: StudentProfile, academic_year,
         return False
 
 
-def are_terms_published(academic_year_id: int, term_ids: Iterable[int], classroom_id: int) -> bool:
+def are_terms_published(
+    academic_year_id: int, term_ids: Iterable[int], classroom_id: int
+) -> bool:
     for term_id in term_ids:
         if not is_term_published(academic_year_id, term_id, classroom_id):
             return False
@@ -442,7 +480,11 @@ def _profile_report_labels_for_school(school) -> dict:
     profile_labels = profile_config.get("report_labels")
     if not isinstance(profile_labels, dict):
         return {}
-    return {str(key): str(value) for key, value in profile_labels.items() if value is not None}
+    return {
+        str(key): str(value)
+        for key, value in profile_labels.items()
+        if value is not None
+    }
 
 
 def resolve_report_labels(
@@ -470,7 +512,13 @@ def resolve_report_labels(
         policy = {}
     custom_labels = policy.get("report_labels")
     if isinstance(custom_labels, dict):
-        labels.update({str(key): str(value) for key, value in custom_labels.items() if value is not None})
+        labels.update(
+            {
+                str(key): str(value)
+                for key, value in custom_labels.items()
+                if value is not None
+            }
+        )
 
     return labels
 
@@ -485,7 +533,12 @@ def _rank_display(position: Optional[int], size: int) -> str:
     return f"{pos} / {total}"
 
 
-def _subject_rankings_for_student(student: StudentProfile, academic_year, term: Term, subject_assignment_ids: list[int]) -> dict[int, str]:
+def _subject_rankings_for_student(
+    student: StudentProfile,
+    academic_year,
+    term: Term,
+    subject_assignment_ids: list[int],
+) -> dict[int, str]:
     if not subject_assignment_ids:
         return {}
 
@@ -523,11 +576,31 @@ def _subject_rankings_for_student(student: StudentProfile, academic_year, term: 
 
 def _sequence_weight_cues(weights, labels: dict) -> list[dict]:
     fields = [
-        ("seq1", labels.get("sequence_1", GLOBAL_REPORT_LABELS["sequence_1"]), getattr(weights, "seq1_weight", 0)),
-        ("seq2", labels.get("sequence_2", GLOBAL_REPORT_LABELS["sequence_2"]), getattr(weights, "seq2_weight", 0)),
-        ("exam", labels.get("exam", GLOBAL_REPORT_LABELS["exam"]), getattr(weights, "exam_weight", 0)),
-        ("mock", labels.get("mock", GLOBAL_REPORT_LABELS["mock"]), getattr(weights, "mock_weight", 0)),
-        ("practical", labels.get("practical", GLOBAL_REPORT_LABELS["practical"]), getattr(weights, "practical_weight", 0)),
+        (
+            "seq1",
+            labels.get("sequence_1", GLOBAL_REPORT_LABELS["sequence_1"]),
+            getattr(weights, "seq1_weight", 0),
+        ),
+        (
+            "seq2",
+            labels.get("sequence_2", GLOBAL_REPORT_LABELS["sequence_2"]),
+            getattr(weights, "seq2_weight", 0),
+        ),
+        (
+            "exam",
+            labels.get("exam", GLOBAL_REPORT_LABELS["exam"]),
+            getattr(weights, "exam_weight", 0),
+        ),
+        (
+            "mock",
+            labels.get("mock", GLOBAL_REPORT_LABELS["mock"]),
+            getattr(weights, "mock_weight", 0),
+        ),
+        (
+            "practical",
+            labels.get("practical", GLOBAL_REPORT_LABELS["practical"]),
+            getattr(weights, "practical_weight", 0),
+        ),
     ]
     cues = []
     for key, label, weight in fields:
@@ -576,14 +649,25 @@ def _region_display_context(
     When policy is provided (e.g. request.tenant_runtime.policy), use it instead of resolving from school.
     """
     from apps.siteconfig.currency import get_currency_symbol
+
     if policy is None and school is not None:
         policy = get_effective_policy(school)
     if policy is None:
         policy = {}
     try:
-        region_code = getattr(settings, "REGION_CODE", "") or get_platform_defaults(use_db=False)["region_code"]
+        region_code = (
+            getattr(settings, "REGION_CODE", "")
+            or get_platform_defaults(use_db=False)["region_code"]
+        )
         region = RegionConfig.objects.get(code=region_code)
-    except (ObjectDoesNotExist, DatabaseError, KeyError, TypeError, AttributeError, ValueError):
+    except (
+        ObjectDoesNotExist,
+        DatabaseError,
+        KeyError,
+        TypeError,
+        AttributeError,
+        ValueError,
+    ):
         log_exception_with_context(
             "reports.services: _region_display_context region lookup failed, using default",
             school_id=getattr(school, "id", None) if school else None,
@@ -593,13 +677,21 @@ def _region_display_context(
     _pd = get_platform_defaults(use_db=False)
     cur_code = getattr(region, "default_currency", None) or _pd["currency"]
     date_fmt = getattr(region, "date_format", "DD/MM/YYYY")
-    grading_scale = (policy.get("grading") or {}).get("grading_scale") or getattr(region, "grading_scale", None) or _pd["grading_scale"]
+    grading_scale = (
+        (policy.get("grading") or {}).get("grading_scale")
+        or getattr(region, "grading_scale", None)
+        or _pd["grading_scale"]
+    )
     decimal_sep = getattr(region, "decimal_separator", ".")
     thousands_sep = getattr(region, "thousands_separator", ",")
     report_template_family = None
     if school:
         try:
-            from apps.siteconfig.tenant_config import get_tenant_locale, get_report_template_family_for_school
+            from apps.siteconfig.tenant_config import (
+                get_tenant_locale,
+                get_report_template_family_for_school,
+            )
+
             locale = get_tenant_locale(school=school)
             if locale.get("date_format"):
                 date_fmt = locale["date_format"]
@@ -608,7 +700,14 @@ def _region_display_context(
             if locale.get("grading_scale"):
                 grading_scale = locale["grading_scale"]
             report_template_family = get_report_template_family_for_school(school)
-        except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError):
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            KeyError,
+            DatabaseError,
+        ):
             log_exception_with_context(
                 "reports.services: _region_display_context tenant locale/template_family failed",
                 school_id=getattr(school, "id", None),
@@ -627,23 +726,31 @@ def _region_display_context(
 
 def term_report_context(student: StudentProfile, academic_year, term: Term) -> dict:
     from django.db.models import Q
-    qs = Evaluation.objects.filter(student=student, term=term, academic_year=academic_year)
+
+    qs = Evaluation.objects.filter(
+        student=student, term=term, academic_year=academic_year
+    )
     school = getattr(student, "school", None)
     site = _site_settings_for_school(school)
     if getattr(site, "reports_use_approved_grades_only", False):
-        approved_ids, any_request_ids = _approved_or_unrequested_subject_assignment_filter(
-            academic_year.id, term.id
+        approved_ids, any_request_ids = (
+            _approved_or_unrequested_subject_assignment_filter(
+                academic_year.id, term.id
+            )
         )
         # Include evaluations whose subject has been approved or has no approval request
         qs = qs.filter(
-            Q(subject_assignment_id__in=approved_ids) | ~Q(subject_assignment_id__in=any_request_ids)
+            Q(subject_assignment_id__in=approved_ids)
+            | ~Q(subject_assignment_id__in=any_request_ids)
         )
-    evaluations = list(qs.select_related(
-        "subject_assignment__subject",
-        "subject_assignment__classroom",
-        "subject_assignment__specialty",
-        "teacher__user",
-    ).order_by("subject_assignment__subject__name"))
+    evaluations = list(
+        qs.select_related(
+            "subject_assignment__subject",
+            "subject_assignment__classroom",
+            "subject_assignment__specialty",
+            "teacher__user",
+        ).order_by("subject_assignment__subject__name")
+    )
 
     weights = AssessmentWeights.get_for(
         academic_year=academic_year,
@@ -659,7 +766,9 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         student=student,
         academic_year=academic_year,
         term=term,
-        subject_assignment_ids=[evaluation.subject_assignment_id for evaluation in evaluations],
+        subject_assignment_ids=[
+            evaluation.subject_assignment_id for evaluation in evaluations
+        ],
     )
 
     for e in evaluations:
@@ -669,21 +778,25 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         teacher_name = ""
         if getattr(e, "teacher", None):
             teacher_name = e.teacher.user.get_full_name() or e.teacher.user.username
-        rows.append({
-            "subject": e.subject_assignment.subject.name,
-            "coef": coef,
-            "seq1": e.seq1_score if e.seq1_score is not None else e.test1,
-            "seq2": e.seq2_score if e.seq2_score is not None else e.test2,
-            "exam": e.exam_score,
-            "mock": e.mock_score,
-            "practical": e.practical_score,
-            "average": average_score,
-            "total": total_score,
-            "subject_rank_display": subject_rankings.get(e.subject_assignment_id, "- / -"),
-            "teacher_name": teacher_name,
-            "remark": e.remarks,
-            "complete": e.is_complete_for_ranking,
-        })
+        rows.append(
+            {
+                "subject": e.subject_assignment.subject.name,
+                "coef": coef,
+                "seq1": e.seq1_score if e.seq1_score is not None else e.test1,
+                "seq2": e.seq2_score if e.seq2_score is not None else e.test2,
+                "exam": e.exam_score,
+                "mock": e.mock_score,
+                "practical": e.practical_score,
+                "average": average_score,
+                "total": total_score,
+                "subject_rank_display": subject_rankings.get(
+                    e.subject_assignment_id, "- / -"
+                ),
+                "teacher_name": teacher_name,
+                "remark": e.remarks,
+                "complete": e.is_complete_for_ranking,
+            }
+        )
         total_weighted += average_score * coef
         total_coef += coef
 
@@ -694,7 +807,8 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
     specialty_rankings = [
         agg
         for agg in class_rankings
-        if getattr(getattr(agg, "student", None), "specialty_id", None) == student.specialty_id
+        if getattr(getattr(agg, "student", None), "specialty_id", None)
+        == student.specialty_id
     ]
 
     class_position = _rank_position(class_rankings, student.id)
@@ -711,7 +825,9 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "class_rank_display": _rank_display(class_position, len(class_rankings)),
         "specialty_position": specialty_position,
         "specialty_size": len(specialty_rankings),
-        "specialty_rank_display": _rank_display(specialty_position, len(specialty_rankings)),
+        "specialty_rank_display": _rank_display(
+            specialty_position, len(specialty_rankings)
+        ),
         "school_position": school_position,
         "school_size": len(school_rankings),
         "school_rank_display": _rank_display(school_position, len(school_rankings)),
@@ -719,7 +835,9 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "teacher_remark": _auto_teacher_remark(overall_average),
         "best_average": max(class_averages) if class_averages else None,
         "worst_average": min(class_averages) if class_averages else None,
-        "class_average": (sum(class_averages) / len(class_averages)) if class_averages else None,
+        "class_average": (sum(class_averages) / len(class_averages))
+        if class_averages
+        else None,
     }
 
     ctx = {
@@ -732,12 +850,17 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
     }
     ctx.update(_region_display_context(school))
     ctx["transcript_track"] = getattr(student, "transcript_track", "") or "ACADEMIC"
-    ctx["dual_transcript"] = (getattr(student, "transcript_track", "") or "").upper() == "DUAL"
+    ctx["dual_transcript"] = (
+        getattr(student, "transcript_track", "") or ""
+    ).upper() == "DUAL"
     return ctx
 
 
-def _annual_average_for_student(student: StudentProfile, terms: Iterable[Term]) -> Optional[float]:
+def _annual_average_for_student(
+    student: StudentProfile, terms: Iterable[Term]
+) -> Optional[float]:
     from django.db.models import Q
+
     site = _site_settings_for_school(getattr(student, "school", None))
     use_approved_only = getattr(site, "reports_use_approved_grades_only", False)
     term_avgs = []
@@ -749,11 +872,14 @@ def _annual_average_for_student(student: StudentProfile, terms: Iterable[Term]) 
             academic_year=term.academic_year,
         )
         if use_approved_only:
-            approved_ids, any_request_ids = _approved_or_unrequested_subject_assignment_filter(
-                term.academic_year_id, term.id
+            approved_ids, any_request_ids = (
+                _approved_or_unrequested_subject_assignment_filter(
+                    term.academic_year_id, term.id
+                )
             )
             evals = evals.filter(
-                Q(subject_assignment_id__in=approved_ids) | ~Q(subject_assignment_id__in=any_request_ids)
+                Q(subject_assignment_id__in=approved_ids)
+                | ~Q(subject_assignment_id__in=any_request_ids)
             )
         if evals.exists():
             total_weighted = 0.0
@@ -780,13 +906,15 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         term_avg = _annual_average_for_student(student, [term])
         class_rankings = classroom_term_rankings(student.classroom, term)
         class_position = _rank_position(class_rankings, student.id)
-        term_rows.append({
-            "term": term.label,
-            "avg": term_avg,
-            "pos": class_position,
-            "class_size": len(class_rankings),
-            "rank_display": _rank_display(class_position, len(class_rankings)),
-        })
+        term_rows.append(
+            {
+                "term": term.label,
+                "avg": term_avg,
+                "pos": class_position,
+                "class_size": len(class_rankings),
+                "rank_display": _rank_display(class_position, len(class_rankings)),
+            }
+        )
 
     annual_average = _annual_average_for_student(student, terms)
 
@@ -850,7 +978,9 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "class_rank_display": _rank_display(class_position, len(class_rankings)),
         "specialty_position": specialty_position,
         "specialty_size": len(specialty_rankings),
-        "specialty_rank_display": _rank_display(specialty_position, len(specialty_rankings)),
+        "specialty_rank_display": _rank_display(
+            specialty_position, len(specialty_rankings)
+        ),
         "school_position": school_position,
         "school_size": len(school_rankings),
         "school_rank_display": _rank_display(school_position, len(school_rankings)),
@@ -863,14 +993,18 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
     }
     ctx.update(_region_display_context(getattr(student, "school", None)))
     ctx["transcript_track"] = getattr(student, "transcript_track", "") or "ACADEMIC"
-    ctx["dual_transcript"] = (getattr(student, "transcript_track", "") or "").upper() == "DUAL"
+    ctx["dual_transcript"] = (
+        getattr(student, "transcript_track", "") or ""
+    ).upper() == "DUAL"
     return ctx
 
 
 REPORT_SHARE_DAYS = getattr(settings, "REPORT_SHARE_DAYS", 7)
 
 
-def build_share_token(report_type: str, student_id: int, academic_year_id: int, term_id: Optional[int]) -> str:
+def build_share_token(
+    report_type: str, student_id: int, academic_year_id: int, term_id: Optional[int]
+) -> str:
     signer = TimestampSigner(salt="reports.share")
     token_value = f"{report_type}:{student_id}:{academic_year_id}:{term_id or 0}"
     return signer.sign(token_value)
@@ -933,7 +1067,9 @@ def generate_report_qr_code(share_url: str) -> str:
     return f"data:image/png;base64,{b64}"
 
 
-def build_regulatory_export(school, preset_id: str, academic_year_id=None, term_id=None):
+def build_regulatory_export(
+    school, preset_id: str, academic_year_id=None, term_id=None
+):
     """
     Build regulatory/MoE export for the given preset (WAEC, Bulletin, Ofsted, etc.).
     Returns dict with preset_id, template_family, and optionally pdf_url or job_id if generation is implemented.

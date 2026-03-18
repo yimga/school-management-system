@@ -1,6 +1,7 @@
 """
 API Center: one page for all Integrations (config + governance). Toggle enabled with reason; audit log.
 """
+
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -28,7 +29,9 @@ def _api_center_allowed(request):
         return user_has_control_plane_access(getattr(request, "user", None))
     if getattr(request.user, "is_superuser", False):
         return True
-    if getattr(request.user, "has_feature_permission", lambda _: False)("api_center.manage"):
+    if getattr(request.user, "has_feature_permission", lambda _: False)(
+        "api_center.manage"
+    ):
         return True
     role = (getattr(request.user, "role", "") or "").upper()
     return role in ("ADMIN", "IT_ADMIN")
@@ -40,18 +43,30 @@ def _api_center_allowed(request):
 def api_center_dashboard(request):
     """List all Integrations (one module); toggle enabled with reason; audit log."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     school = getattr(request, "school", None)
     if school is None and getattr(request, "public_host_kind", None) != "manager":
         return HttpResponseForbidden("School context required.")
-    integrations = Integration.objects.filter(Q(school__isnull=True) | Q(school=school)) if school else Integration.objects.all()
+    integrations = (
+        Integration.objects.filter(Q(school__isnull=True) | Q(school=school))
+        if school
+        else Integration.objects.all()
+    )
     integrations = integrations.order_by("provider", "name")
     audit_logs = APIAuditLog.objects.select_related("integration", "changed_by")
     if school is not None:
-        audit_logs = audit_logs.filter(Q(integration__school__isnull=True) | Q(integration__school=school))
+        audit_logs = audit_logs.filter(
+            Q(integration__school__isnull=True) | Q(integration__school=school)
+        )
     audit_logs = audit_logs.order_by("-created_at")[:50]
     # Governance: scope/permission/rate visibility per integration (Step 37).
-    quotas = list(APIQuota.objects.filter(Q(school__isnull=True) | Q(school=school)).order_by("quota_type"))
+    quotas = list(
+        APIQuota.objects.filter(Q(school__isnull=True) | Q(school=school)).order_by(
+            "quota_type"
+        )
+    )
     quotas_by_school = {}
     for q in quotas:
         key = q.school_id or "platform"
@@ -76,7 +91,9 @@ def api_center_dashboard(request):
             "api_quotas": quotas,
             "quotas_by_school": quotas_by_school,
             "page_title": _("Integrations & API Center"),
-            "page_subtitle": _("One place for all external integrations. Toggle on or off (kill switch); a reason is required and recorded in the audit log."),
+            "page_subtitle": _(
+                "One place for all external integrations. Toggle on or off (kill switch); a reason is required and recorded in the audit log."
+            ),
             "action_url": action_url,
             "action_text": action_text,
         },
@@ -89,7 +106,9 @@ def api_center_dashboard(request):
 def api_center_toggle(request, slug):
     """Toggle Integration.enabled; require reason. Write to APIAuditLog."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("You do not have permission to manage the API Center.")
+        return HttpResponseForbidden(
+            "You do not have permission to manage the API Center."
+        )
     school = getattr(request, "school", None)
     if school is None and getattr(request, "public_host_kind", None) != "manager":
         return HttpResponseForbidden("School context required.")
@@ -99,20 +118,29 @@ def api_center_toggle(request, slug):
     integration = get_object_or_404(integrations, slug=slug)
     reason = (request.POST.get("reason") or "").strip()
     if not reason:
-        messages.error(request, "A reason is required when enabling or disabling an integration.")
+        messages.error(
+            request, "A reason is required when enabling or disabling an integration."
+        )
         return redirect("apicenter:dashboard")
     new_enabled = not integration.enabled
     integration.enabled = new_enabled
     integration.save(update_fields=["enabled", "updated_at"])
-    ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or request.META.get("REMOTE_ADDR")
+    ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[
+        0
+    ].strip() or request.META.get("REMOTE_ADDR")
     APIAuditLog.objects.create(
         integration=integration,
         changed_by=request.user,
-        action=APIAuditLog.Action.ENABLED if new_enabled else APIAuditLog.Action.DISABLED,
+        action=APIAuditLog.Action.ENABLED
+        if new_enabled
+        else APIAuditLog.Action.DISABLED,
         reason=reason,
         ip_address=ip or None,
     )
-    messages.success(request, f'"{integration.name}" is now {"enabled" if new_enabled else "disabled"}.')
+    messages.success(
+        request,
+        f'"{integration.name}" is now {"enabled" if new_enabled else "disabled"}.',
+    )
     return redirect("apicenter:dashboard")
 
 
@@ -121,7 +149,9 @@ def api_center_toggle(request, slug):
 def api_portal_docs(request):
     """Developer platform (8.1): public API portal — docs stub. Keys, quotas, SDK links later."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     return render(request, "apicenter/api_portal_docs.html", {})
 
 
@@ -130,7 +160,9 @@ def api_portal_docs(request):
 def webhook_docs(request):
     """Developer platform (8.1): webhook docs and subscription list UI."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     from apps.events.models import WebhookSubscription
 
     school = getattr(request, "school", None)
@@ -149,13 +181,23 @@ def webhook_docs(request):
 def api_keys(request):
     """Developer platform (8.1): List API keys. Create via api_key_create (POST); revoke via api_key_revoke (POST)."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     school = getattr(request, "school", None)
     qs = APIKey.objects.select_related("created_by", "school").order_by("-created_at")
     if school is not None:
         qs = qs.filter(Q(school__isnull=True) | Q(school=school))
     keys = list(qs[:100])
-    quotas = list(APIQuota.objects.filter(Q(school__isnull=True) | Q(school=school)).order_by("quota_type")) if school else list(APIQuota.objects.filter(school__isnull=True))
+    quotas = (
+        list(
+            APIQuota.objects.filter(Q(school__isnull=True) | Q(school=school)).order_by(
+                "quota_type"
+            )
+        )
+        if school
+        else list(APIQuota.objects.filter(school__isnull=True))
+    )
     new_key_display = request.session.pop("apicenter_new_key_display", None)
     return render(
         request,
@@ -170,7 +212,9 @@ def api_keys(request):
 def api_key_create(request):
     """Create an API key; show raw secret once in session, then redirect to keys list."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     school = getattr(request, "school", None)
     if school is None and getattr(request, "public_host_kind", None) != "manager":
         return HttpResponseForbidden("School context required.")
@@ -186,8 +230,14 @@ def api_key_create(request):
         secret_hash=_hash_secret(raw_secret),
         created_by=request.user,
     )
-    request.session["apicenter_new_key_display"] = {"name": key.name, "raw_secret": raw_secret, "key_prefix": key.key_prefix}
-    messages.success(request, "API key created. Copy the key below; it will not be shown again.")
+    request.session["apicenter_new_key_display"] = {
+        "name": key.name,
+        "raw_secret": raw_secret,
+        "key_prefix": key.key_prefix,
+    }
+    messages.success(
+        request, "API key created. Copy the key below; it will not be shown again."
+    )
     return redirect("apicenter:api_keys")
 
 
@@ -197,7 +247,9 @@ def api_key_create(request):
 def api_key_revoke(request, key_id):
     """Revoke an API key (set revoked_at)."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     school = getattr(request, "school", None)
     qs = APIKey.objects.all()
     if school is not None:
@@ -224,8 +276,11 @@ def webhook_subscription_list(request):
 def webhook_subscription_create(request):
     """Create webhook subscription (8.1). GET: form; POST: create."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     from apps.events.models import WebhookSubscription
+
     school = getattr(request, "school", None)
     school_id = getattr(school, "id", None) if school else None
     if request.method == "POST":
@@ -234,7 +289,11 @@ def webhook_subscription_create(request):
             messages.error(request, "URL is required.")
             return redirect("apicenter:webhook_subscription_create")
         event_types_raw = (request.POST.get("event_types") or "").strip()
-        event_types = [x.strip() for x in event_types_raw.split(",") if x.strip()] if event_types_raw else []
+        event_types = (
+            [x.strip() for x in event_types_raw.split(",") if x.strip()]
+            if event_types_raw
+            else []
+        )
         desc = (request.POST.get("description") or "").strip()
         secret = (request.POST.get("secret") or "").strip()
         WebhookSubscription.objects.create(
@@ -247,7 +306,11 @@ def webhook_subscription_create(request):
         )
         messages.success(request, "Webhook subscription created.")
         return redirect("apicenter:webhook_docs")
-    return render(request, "apicenter/webhook_subscription_form.html", {"subscription": None, "is_edit": False})
+    return render(
+        request,
+        "apicenter/webhook_subscription_form.html",
+        {"subscription": None, "is_edit": False},
+    )
 
 
 @login_required
@@ -256,8 +319,11 @@ def webhook_subscription_create(request):
 def webhook_subscription_edit(request, pk: int):
     """Edit webhook subscription (8.1). GET: form; POST: save."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     from apps.events.models import WebhookSubscription
+
     school = getattr(request, "school", None)
     qs = WebhookSubscription.objects.all()
     if school is not None:
@@ -266,15 +332,26 @@ def webhook_subscription_edit(request, pk: int):
     if request.method == "POST":
         subscription.url = (request.POST.get("url") or "").strip() or subscription.url
         event_types_raw = (request.POST.get("event_types") or "").strip()
-        subscription.event_types = [x.strip() for x in event_types_raw.split(",") if x.strip()] if event_types_raw else []
+        subscription.event_types = (
+            [x.strip() for x in event_types_raw.split(",") if x.strip()]
+            if event_types_raw
+            else []
+        )
         subscription.description = (request.POST.get("description") or "").strip()[:255]
         if request.POST.get("secret"):
             subscription.secret = (request.POST.get("secret") or "").strip()[:255]
-        subscription.is_active = request.POST.get("is_active") == "on" or request.POST.get("is_active") == "1"
+        subscription.is_active = (
+            request.POST.get("is_active") == "on"
+            or request.POST.get("is_active") == "1"
+        )
         subscription.save()
         messages.success(request, "Webhook subscription updated.")
         return redirect("apicenter:webhook_docs")
-    return render(request, "apicenter/webhook_subscription_form.html", {"subscription": subscription, "is_edit": True})
+    return render(
+        request,
+        "apicenter/webhook_subscription_form.html",
+        {"subscription": subscription, "is_edit": True},
+    )
 
 
 @login_required
@@ -283,8 +360,11 @@ def webhook_subscription_edit(request, pk: int):
 def webhook_subscription_delete(request, pk: int):
     """Delete webhook subscription (8.1)."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     from apps.events.models import WebhookSubscription
+
     school = getattr(request, "school", None)
     qs = WebhookSubscription.objects.all()
     if school is not None:
@@ -300,7 +380,9 @@ def webhook_subscription_delete(request, pk: int):
 def sdk_docs(request):
     """Developer platform (8.1): SDK / client libraries stub."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     return render(request, "apicenter/sdk_docs.html", {})
 
 
@@ -309,7 +391,9 @@ def sdk_docs(request):
 def app_certification(request):
     """Developer platform (8.1): App certification stub."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     return render(request, "apicenter/app_certification.html", {})
 
 
@@ -318,5 +402,7 @@ def app_certification(request):
 def partner_sandbox(request):
     """Developer platform (8.1): Partner sandbox stub."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden("API Center is disabled or you do not have permission.")
+        return HttpResponseForbidden(
+            "API Center is disabled or you do not have permission."
+        )
     return render(request, "apicenter/partner_sandbox.html", {})

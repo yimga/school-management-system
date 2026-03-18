@@ -2,6 +2,7 @@
 World Engine: single source for active module set by school type.
 Loads apps/siteconfig/data/module_manifest.json; get_school_type_config merges inherits.
 """
+
 from __future__ import annotations
 
 import json

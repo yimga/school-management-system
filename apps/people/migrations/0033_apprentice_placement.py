@@ -6,32 +6,69 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0032_student_passport_and_invites'),
-        ('schools', '0014_signup_verification'),
+        ("people", "0032_student_passport_and_invites"),
+        ("schools", "0014_signup_verification"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ApprenticePlacement',
+            name="ApprenticePlacement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('confirmed_hours', models.DecimalField(decimal_places=2, default=0, help_text='Total on-site hours confirmed by this employer.', max_digits=8)),
-                ('last_confirmed_at', models.DateTimeField(blank=True, null=True)),
-                ('notes', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('employer', models.ForeignKey(help_text='User with EMPLOYER role who can confirm hours.', on_delete=django.db.models.deletion.CASCADE, related_name='apprentice_placements', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apprentice_placements', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='apprentice_placements', to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "confirmed_hours",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Total on-site hours confirmed by this employer.",
+                        max_digits=8,
+                    ),
+                ),
+                ("last_confirmed_at", models.DateTimeField(blank=True, null=True)),
+                ("notes", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "employer",
+                    models.ForeignKey(
+                        help_text="User with EMPLOYER role who can confirm hours.",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="apprentice_placements",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="apprentice_placements",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="apprentice_placements",
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Apprentice placement',
-                'verbose_name_plural': 'Apprentice placements',
-                'ordering': ['-updated_at'],
-                'unique_together': {('school', 'student', 'employer')},
+                "verbose_name": "Apprentice placement",
+                "verbose_name_plural": "Apprentice placements",
+                "ordering": ["-updated_at"],
+                "unique_together": {("school", "student", "employer")},
             },
         ),
     ]

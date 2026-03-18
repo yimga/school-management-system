@@ -22,7 +22,9 @@ class SuperViewsSafeHelperTests(SimpleTestCase):
             def brand_profile(self):
                 raise ObjectDoesNotExist("missing")
 
-        self.assertIsNone(super_views._brand_profile_for_school(MissingBrandProfileSchool()))
+        self.assertIsNone(
+            super_views._brand_profile_for_school(MissingBrandProfileSchool())
+        )
 
     def test_brand_profile_for_school_returns_none_when_attribute_missing(self):
         self.assertIsNone(super_views._brand_profile_for_school(object()))

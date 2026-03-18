@@ -6,6 +6,7 @@ import django.db.models.deletion
 
 def add_columns_if_missing(apps, schema_editor):
     from django.db import connection
+
     with connection.cursor() as cursor:
         if connection.vendor == "postgresql":
             cursor.execute("""
@@ -22,14 +23,20 @@ def add_columns_if_missing(apps, schema_editor):
                 EXCEPTION WHEN duplicate_column THEN NULL;
                 END $$;
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS automation_migrationrun_rolled_back_by_run_id_idx ON automation_migrationrun (rolled_back_by_run_id)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS automation_migrationrun_rolled_back_by_run_id_idx ON automation_migrationrun (rolled_back_by_run_id)"
+            )
         else:
             cursor.execute("PRAGMA table_info(automation_migrationrun)")
             cols = [row[1] for row in cursor.fetchall()]
             if "rollback_snapshot" not in cols:
-                cursor.execute("ALTER TABLE automation_migrationrun ADD COLUMN rollback_snapshot text NOT NULL DEFAULT '{}'")
+                cursor.execute(
+                    "ALTER TABLE automation_migrationrun ADD COLUMN rollback_snapshot text NOT NULL DEFAULT '{}'"
+                )
             if "rolled_back_by_run_id" not in cols:
-                cursor.execute("ALTER TABLE automation_migrationrun ADD COLUMN rolled_back_by_run_id integer NULL REFERENCES automation_migrationrun(id) ON DELETE SET NULL")
+                cursor.execute(
+                    "ALTER TABLE automation_migrationrun ADD COLUMN rolled_back_by_run_id integer NULL REFERENCES automation_migrationrun(id) ON DELETE SET NULL"
+                )
 
 
 def noop(apps, schema_editor):
@@ -37,7 +44,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("automation", "0003_migration_run"),
     ]

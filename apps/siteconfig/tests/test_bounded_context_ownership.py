@@ -47,18 +47,26 @@ class BoundedContextOwnershipTests(SimpleTestCase):
     def test_successor_owner_models_drive_catalog_and_branding_surfaces(self):
         self.assertEqual(branding.BrandProfile._meta.app_label, "brand_experience")
         self.assertEqual(branding.BrandSettings._meta.app_label, "brand_experience")
-        self.assertEqual(brand_registry.GlobalBrandRegistry._meta.app_label, "brand_experience")
+        self.assertEqual(
+            brand_registry.GlobalBrandRegistry._meta.app_label, "brand_experience"
+        )
         self.assertEqual(metadata_catalog.ThemePack._meta.app_label, "brand_experience")
         self.assertEqual(metadata_catalog.CountryRegistry._meta.app_label, "registries")
-        self.assertEqual(metadata_catalog.Integration._meta.app_label, "integrations_marketplace")
+        self.assertEqual(
+            metadata_catalog.Integration._meta.app_label, "integrations_marketplace"
+        )
 
     def test_siteconfig_operator_surfaces_use_successor_theme_owner_model(self):
         # ThemePack and ReportCardStyle used by siteconfig forms/admin/views are successor proxies.
         self.assertEqual(siteconfig_forms.ThemePack._meta.app_label, "brand_experience")
         self.assertEqual(siteconfig_admin.ThemePack._meta.app_label, "brand_experience")
         # BrandProfile/BrandSettings are registered in brand_experience.admin only (see branding.BrandProfile).
-        self.assertEqual(siteconfig_forms.ReportCardStyle._meta.app_label, "runtime_blueprints")
-        self.assertEqual(siteconfig_views.ReportCardStyle._meta.app_label, "runtime_blueprints")
+        self.assertEqual(
+            siteconfig_forms.ReportCardStyle._meta.app_label, "runtime_blueprints"
+        )
+        self.assertEqual(
+            siteconfig_views.ReportCardStyle._meta.app_label, "runtime_blueprints"
+        )
 
     def test_successor_owner_models_are_registered_in_platform_admin(self):
         for model in (

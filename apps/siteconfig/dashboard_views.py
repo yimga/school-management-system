@@ -3,6 +3,7 @@ Utilities supporting dashboard customization workflows.
 §2.4 Broad except: update_theme_preference and update_accessibility_preferences use
 _DASHBOARD_PREF_ERRORS (ValueError, TypeError, KeyError, DatabaseError, IntegrityError, json.JSONDecodeError).
 """
+
 import json
 import logging
 
@@ -26,7 +27,14 @@ from apps.siteconfig.models_dashboard import (
 logger = logging.getLogger(__name__)
 
 # §2.4 Typed exceptions for preference update (JSON + ORM); allowlist 0.
-_DASHBOARD_PREF_ERRORS = (ValueError, TypeError, KeyError, DatabaseError, IntegrityError, json.JSONDecodeError)
+_DASHBOARD_PREF_ERRORS = (
+    ValueError,
+    TypeError,
+    KeyError,
+    DatabaseError,
+    IntegrityError,
+    json.JSONDecodeError,
+)
 
 # Roles that can use full drag-and-drop layout customization.
 ALLOWED_CUSTOM_ROLES = {
@@ -57,7 +65,11 @@ def _school_for_user(user):
 
 
 def _default_sidebar_collapsed(*, request=None, user=None) -> bool:
-    school = getattr(request, "school", None) if request is not None else _school_for_user(user)
+    school = (
+        getattr(request, "school", None)
+        if request is not None
+        else _school_for_user(user)
+    )
     site = get_effective_site_settings(request=request, school=school)
     return bool(getattr(site, "default_sidebar_collapsed", False))
 
@@ -132,7 +144,9 @@ def _normalize_dashboard_settings(settings: dict) -> dict:
         if isinstance(p, dict) and p.get("widget_id"):
             pages = p.get("pages") or []
             if isinstance(pages, list):
-                pinned_widgets.append({"widget_id": str(p["widget_id"]), "pages": [str(x) for x in pages]})
+                pinned_widgets.append(
+                    {"widget_id": str(p["widget_id"]), "pages": [str(x) for x in pages]}
+                )
 
     return {
         "show_sidebar": bool(settings.get("show_sidebar")),
@@ -194,7 +208,9 @@ def get_layout_for_page(user, page: str):
     layout_obj = DashboardLayout.objects.filter(user=user, page=page).first()
     if not layout_obj:
         role = get_user_role(user)
-        layout_obj = DashboardLayout.objects.filter(page=page, role=role, is_default=True).first()
+        layout_obj = DashboardLayout.objects.filter(
+            page=page, role=role, is_default=True
+        ).first()
     if not layout_obj:
         layout_obj = _create_layout_from_legacy(user, page)
     return layout_obj
@@ -217,6 +233,7 @@ def effective_chart_types(user, page: str) -> dict:
     RBAC: respects _can_customize; uses layout for allowed users.
     """
     from apps.siteconfig.models_dashboard import DashboardWidget
+
     page = (page or "").strip().lower()
     chart_widgets = DashboardWidget.objects.filter(
         page=page, widget_type="chart", is_active=True
@@ -243,23 +260,29 @@ def update_theme(request):
     """Update user theme preference."""
     if not _can_customize(request.user):
         return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
-    
+
     try:
         data = json.loads(request.body)
         theme = (data.get("theme") or "system").lower()
-        
+
         allowed = {"system", "light", "dark", "classic", "high_contrast"}
         if theme not in allowed:
-            return JsonResponse({"success": False, "error": "Invalid theme"}, status=400)
-        
+            return JsonResponse(
+                {"success": False, "error": "Invalid theme"}, status=400
+            )
+
         preferences, _ = DashboardUserPreference.objects.get_or_create(
             user=request.user,
-            defaults={"sidebar_collapsed": _default_sidebar_collapsed(request=request, user=request.user)},
+            defaults={
+                "sidebar_collapsed": _default_sidebar_collapsed(
+                    request=request, user=request.user
+                )
+            },
         )
         preferences.theme_preference = theme
         preferences.save()
         logger.info("User %s set theme preference to %s", request.user.username, theme)
-        
+
         return JsonResponse({"success": True, "theme": theme})
 
     except _DASHBOARD_PREF_ERRORS as e:
@@ -270,7 +293,10 @@ def update_theme(request):
             tenant_id=ctx.get("tenant_id"),
             actor_id=ctx.get("actor_id"),
             route=ctx.get("route"),
-            extra={"username": getattr(request.user, "username", None), "error": str(e)},
+            extra={
+                "username": getattr(request.user, "username", None),
+                "error": str(e),
+            },
         )
         return JsonResponse({"success": False, "error": str(e)}, status=400)
 
@@ -281,27 +307,35 @@ def update_accessibility_preferences(request):
     """Update accessibility settings."""
     if not _can_customize(request.user):
         return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
-    
+
     try:
         data = json.loads(request.body)
-        
+
         preferences, _ = DashboardUserPreference.objects.get_or_create(
             user=request.user,
-            defaults={"sidebar_collapsed": _default_sidebar_collapsed(request=request, user=request.user)},
+            defaults={
+                "sidebar_collapsed": _default_sidebar_collapsed(
+                    request=request, user=request.user
+                )
+            },
         )
-        preferences.high_contrast = data.get('high_contrast', preferences.high_contrast)
-        preferences.reduced_motion = data.get('reduced_motion', preferences.reduced_motion)
-        preferences.font_size = data.get('font_size', preferences.font_size)
+        preferences.high_contrast = data.get("high_contrast", preferences.high_contrast)
+        preferences.reduced_motion = data.get(
+            "reduced_motion", preferences.reduced_motion
+        )
+        preferences.font_size = data.get("font_size", preferences.font_size)
         preferences.save()
-        
-        return JsonResponse({
-            'success': True,
-            'settings': {
-                'high_contrast': preferences.high_contrast,
-                'reduced_motion': preferences.reduced_motion,
-                'font_size': preferences.font_size,
+
+        return JsonResponse(
+            {
+                "success": True,
+                "settings": {
+                    "high_contrast": preferences.high_contrast,
+                    "reduced_motion": preferences.reduced_motion,
+                    "font_size": preferences.font_size,
+                },
             }
-        })
+        )
 
     except _DASHBOARD_PREF_ERRORS as e:
         ctx = request_context_for_log(request) if request else {}
@@ -311,6 +345,9 @@ def update_accessibility_preferences(request):
             tenant_id=ctx.get("tenant_id"),
             actor_id=ctx.get("actor_id"),
             route=ctx.get("route"),
-            extra={"username": getattr(request.user, "username", None), "error": str(e)},
+            extra={
+                "username": getattr(request.user, "username", None),
+                "error": str(e),
+            },
         )
         return JsonResponse({"success": False, "error": str(e)}, status=400)

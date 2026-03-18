@@ -3,6 +3,7 @@ Recommendation service: single source for recommended next steps on dashboards.
 Used by backend dashboard, control plane, and other role homes.
 Returns short, outcome-first lists based on workflow state and dashboard intent.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List
@@ -81,7 +82,10 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Open Setup Studio",
-            url=_safe_reverse("siteconfig:guided_onboarding", _safe_reverse("studio_os:workflow_center")),
+            url=_safe_reverse(
+                "siteconfig:guided_onboarding",
+                _safe_reverse("studio_os:workflow_center"),
+            ),
             icon="bi-magic",
             reason="Academic year, blueprint, and launch readiness still need one guided setup surface.",
             category="Setup",
@@ -93,7 +97,9 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Add student roster",
-            url=_safe_reverse("accounts:backend_student_create", _safe_reverse("admin:index")),
+            url=_safe_reverse(
+                "accounts:backend_student_create", _safe_reverse("admin:index")
+            ),
             icon="bi-person-plus",
             reason="Admissions, attendance, finance, and family workflows need active student records.",
             category="People",
@@ -105,7 +111,9 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Add teacher coverage",
-            url=_safe_reverse("accounts:backend_teacher_create", _safe_reverse("admin:index")),
+            url=_safe_reverse(
+                "accounts:backend_teacher_create", _safe_reverse("admin:index")
+            ),
             icon="bi-person-badge",
             reason="Academic delivery and parent communication are incomplete without staff coverage.",
             category="People",
@@ -137,7 +145,11 @@ def get_recommended_next_steps(
             score=98 if overdue_invoices > 0 else 90,
         )
 
-    if pending_approvals > 0 or pending_invites > 0 or resolved_intent in {"operational", "executive"}:
+    if (
+        pending_approvals > 0
+        or pending_invites > 0
+        or resolved_intent in {"operational", "executive"}
+    ):
         _append_step(
             steps,
             label="Resolve active queues",
@@ -153,7 +165,10 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Review grading and interventions",
-            url=_safe_reverse("reports:publish_term_results", _safe_reverse("studio_os:workflow_center")),
+            url=_safe_reverse(
+                "reports:publish_term_results",
+                _safe_reverse("studio_os:workflow_center"),
+            ),
             icon="bi-journal-check",
             reason="Academic risk, report readiness, and intervention timing should stay in one academic workbench.",
             category="Academic",
@@ -165,7 +180,10 @@ def get_recommended_next_steps(
         _append_step(
             steps,
             label="Open Setup Studio",
-            url=_safe_reverse("siteconfig:guided_onboarding", _safe_reverse("accounts:backend_dashboard")),
+            url=_safe_reverse(
+                "siteconfig:guided_onboarding",
+                _safe_reverse("accounts:backend_dashboard"),
+            ),
             icon="bi-magic",
             reason="Keep setup, launch blockers, previews, and blueprint decisions in one guided operator flow.",
             category="Setup",

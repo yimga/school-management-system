@@ -6,6 +6,7 @@ Phase F: Parent/student portal helpers — active child switcher and privacy.
   returns (student, None) if allowed, or (None, HttpResponse) if forbidden.
 - RTL: set in template context from school.default_region (e.g. is_rtl) for parent portal.
 """
+
 from django.http import HttpResponseForbidden
 
 SESSION_KEY_ACTIVE_CHILD = "portal_active_child_id"
@@ -28,6 +29,7 @@ def set_active_child(request, child_id):
 def get_guardian_child_ids(request):
     """Return set of student IDs the current user is linked to as guardian."""
     from .services import guardian_student_links
+
     links = guardian_student_links(request.user, results_only=True)
     return {link.student_id for link in links}
 
@@ -41,6 +43,7 @@ def require_parent_child_access(request, child_id):
         (student, None) if allowed; (None, HttpResponse) if forbidden (403).
     """
     from apps.people.models import StudentProfile
+
     allowed_ids = get_guardian_child_ids(request)
     if child_id is None or int(child_id) not in allowed_ids:
         return None, HttpResponseForbidden("You do not have access to this student.")

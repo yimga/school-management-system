@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static %}
+{% load i18n static %}
 
 {% block cp_title %}App catalog{% endblock %}
 
@@ -74,7 +74,7 @@
 
     <div class="proof-catalog-grid" id="app-catalog-list">
       {% for listing in listings %}
-      <article class="proof-app-card" data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.category|default:''|lower }}">
+      <article class="proof-app-card" data-rmc-school-select data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.category|default:''|lower }}">
         {% if listing.preview_image_url %}
         <div class="proof-app-preview-img mb-2">
           <img src="{{ listing.preview_image_url }}" alt="" class="img-fluid rounded" style="max-height: 140px; object-fit: cover; width: 100%;" loading="lazy">
@@ -140,16 +140,17 @@
           {% endif %}
         </div>
 
-        <form method="post" class="proof-app-actions">
+        <form method="post" class="proof-app-actions d-flex flex-wrap align-items-end gap-2">
           {% csrf_token %}
           <input type="hidden" name="app_id" value="{{ listing.app.pk }}">
-          <select name="school_id" class="form-select" style="min-width: 220px;" required>
-            <option value="">Select school...</option>
+          <select name="school_id" class="form-select" style="min-width: 220px;" required aria-label="{% trans 'Select school' %}">
+            <option value="">{% trans "Select school…" %}</option>
             {% for s in schools %}
             <option value="{{ s.pk }}">{{ s.name }}</option>
             {% endfor %}
           </select>
-          <button type="submit" class="btn btn-primary">Install to sandbox</button>
+          <button type="button" class="btn btn-outline-primary" data-rmc-open-install-impact data-app-id="{{ listing.app.pk }}">{% trans "Preview impact" %}</button>
+          <button type="submit" class="btn btn-primary">{% trans "Install to sandbox" %}</button>
         </form>
       </article>
       {% empty %}
@@ -192,6 +193,10 @@
       </ul>
     </div>
   </section>
+  {% if install_impact_preview_url %}
+  {% url 'super:app_catalog' as super_app_catalog_post_url %}
+  {% include "marketplace/partials/install_impact_modal.html" with install_post_url=super_app_catalog_post_url super_requires_school=True %}
+  {% endif %}
 </div>
 
 <script>

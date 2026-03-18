@@ -2,10 +2,11 @@
 WebSocket URL Routing for Django Channels
 Requires: pip install channels channels-redis
 """
+
 try:
     from django.urls import re_path
     from apps.api import consumers
-    
+
     if consumers.CHANNELS_AVAILABLE:
         websocket_urlpatterns = [
             re_path(r"ws/students/$", consumers.StudentSyncConsumer.as_asgi()),

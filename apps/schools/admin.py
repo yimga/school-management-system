@@ -17,7 +17,13 @@ def _school_has_billing():
 
 
 def _theme_branding_fields():
-    base = ["logo_url", "primary_color", "accent_color", "custom_domain", "custom_domain_verified"]
+    base = [
+        "logo_url",
+        "primary_color",
+        "accent_color",
+        "custom_domain",
+        "custom_domain_verified",
+    ]
     if hasattr(School, "theme_choice"):
         return ("theme_choice",) + tuple(base)
     return tuple(base)
@@ -29,17 +35,33 @@ class SchoolAdmin(admin.ModelAdmin):
         "name",
         "slug",
         "subdomain",
-        *(["plan", "billing_type", "waiver_note_short"] if _school_has_billing() else []),
+        *(
+            ["plan", "billing_type", "waiver_note_short"]
+            if _school_has_billing()
+            else []
+        ),
         "sub_system",
         "is_active",
         "last_activity",
         "created_at",
     )
-    list_filter = ("sub_system", "is_active", "is_approved") + (("plan", "billing_type") if _school_has_billing() else ())
+    list_filter = ("sub_system", "is_active", "is_approved") + (
+        ("plan", "billing_type") if _school_has_billing() else ()
+    )
     search_fields = ("name", "slug", "subdomain")
-    readonly_fields = ("id", "created_at", "updated_at", "last_activity", "hierarchy_path")
+    readonly_fields = (
+        "id",
+        "created_at",
+        "updated_at",
+        "last_activity",
+        "hierarchy_path",
+    )
     prepopulated_fields = {"subdomain": ["slug"]}
-    raw_id_fields = (("plan",) if hasattr(School, "plan") else ()) + ("default_region", "subdivision", "parent_school")
+    raw_id_fields = (("plan",) if hasattr(School, "plan") else ()) + (
+        "default_region",
+        "subdivision",
+        "parent_school",
+    )
     filter_horizontal = ("education_levels", "education_system_types")
 
     def _school_fieldsets():
@@ -58,20 +80,54 @@ class SchoolAdmin(admin.ModelAdmin):
         )
         if _school_has_billing():
             return (
-                (None, {"fields": ("name", "slug", "subdomain", "sub_system", "is_active")}),
-                ("School location", {"fields": location_fields, "description": location_desc}),
-                ("Plan & billing", {"fields": ("plan", "addons", "billing_type", "trial_end_date", "waiver_note")}),
+                (
+                    None,
+                    {
+                        "fields": (
+                            "name",
+                            "slug",
+                            "subdomain",
+                            "sub_system",
+                            "is_active",
+                        )
+                    },
+                ),
+                (
+                    "School location",
+                    {"fields": location_fields, "description": location_desc},
+                ),
+                (
+                    "Plan & billing",
+                    {
+                        "fields": (
+                            "plan",
+                            "addons",
+                            "billing_type",
+                            "trial_end_date",
+                            "waiver_note",
+                        )
+                    },
+                ),
                 ("Theme & branding", {"fields": _theme_branding_fields()}),
-                ("Settings (JSON)", {
-                    "fields": ("settings", "features"),
-                    "description": "settings: grading_logic, term_count, custom_field_definitions (Phase C). Example: {\"custom_field_definitions\": {\"students\": [{\"key\": \"blood_group\", \"label\": \"Blood Group\", \"type\": \"text\"}], \"staff\": []}}",
-                }),
+                (
+                    "Settings (JSON)",
+                    {
+                        "fields": ("settings", "features"),
+                        "description": 'settings: grading_logic, term_count, custom_field_definitions (Phase C). Example: {"custom_field_definitions": {"students": [{"key": "blood_group", "label": "Blood Group", "type": "text"}], "staff": []}}',
+                    },
+                ),
                 ("Parent school", {"fields": ("parent_school", "hierarchy_path")}),
                 ("Metadata", {"fields": ("id", "created_at", "updated_at")}),
             )
         return (
-            (None, {"fields": ("name", "slug", "subdomain", "sub_system", "is_active")}),
-            ("School location", {"fields": location_fields, "description": location_desc}),
+            (
+                None,
+                {"fields": ("name", "slug", "subdomain", "sub_system", "is_active")},
+            ),
+            (
+                "School location",
+                {"fields": location_fields, "description": location_desc},
+            ),
             ("Theme & branding", {"fields": _theme_branding_fields()}),
             ("Settings (JSON)", {"fields": ("settings", "features")}),
             ("Parent school", {"fields": ("parent_school", "hierarchy_path")}),
@@ -93,15 +149,21 @@ class SchoolAdmin(admin.ModelAdmin):
         ids = ",".join(str(q.pk) for q in queryset)
         from django.urls import reverse
         from django.http import HttpResponseRedirect
+
         url = reverse("admin:schools_school_waive_form") + "?ids=" + ids
         return HttpResponseRedirect(url)
 
     def get_urls(self):
         from django.urls import path
+
         urls = super().get_urls()
         if _school_has_billing():
             custom = [
-                path("waive-subscription/", self.admin_site.admin_view(self.waive_subscription_form_view), name="schools_school_waive_form"),
+                path(
+                    "waive-subscription/",
+                    self.admin_site.admin_view(self.waive_subscription_form_view),
+                    name="schools_school_waive_form",
+                ),
             ]
             return custom + urls
         return urls
@@ -110,6 +172,7 @@ class SchoolAdmin(admin.ModelAdmin):
         """Phase E: Form to enter waiver_note, then apply COMPLIMENTARY to selected schools."""
         if not _school_has_billing():
             from django.http import HttpResponseNotFound
+
             return HttpResponseNotFound()
         from django.template.response import TemplateResponse
         from django.shortcuts import redirect
@@ -141,7 +204,10 @@ class SchoolAdmin(admin.ModelAdmin):
                         old_waiver_note=old_wn,
                         new_waiver_note=note,
                     )
-                messages.success(request, f"Set billing to COMPLIMENTARY for {len(schools)} school(s).")
+                messages.success(
+                    request,
+                    f"Set billing to COMPLIMENTARY for {len(schools)} school(s).",
+                )
                 return redirect(reverse("admin:schools_school_changelist"))
 
         context = {
@@ -151,12 +217,18 @@ class SchoolAdmin(admin.ModelAdmin):
             "ids": ids_str,
             "opts": self.model._meta,
         }
-        return TemplateResponse(request, "admin/schools/school/waive_subscription_form.html", context)
+        return TemplateResponse(
+            request, "admin/schools/school/waive_subscription_form.html", context
+        )
 
     def get_actions(self, request):
         actions = super().get_actions(request)
         if _school_has_billing():
-            actions["waive_subscription"] = (self.waive_subscription, "waive_subscription", "Waive subscription (set COMPLIMENTARY)")
+            actions["waive_subscription"] = (
+                self.waive_subscription,
+                "waive_subscription",
+                "Waive subscription (set COMPLIMENTARY)",
+            )
         return actions
 
 
@@ -169,7 +241,14 @@ class SchoolMembershipAdmin(admin.ModelAdmin):
 
 @admin.register(TenantQuotaLimit, site=platform_admin_site)
 class TenantQuotaLimitAdmin(admin.ModelAdmin):
-    list_display = ("school", "limit_type", "limit_value", "period_days", "is_active", "updated_at")
+    list_display = (
+        "school",
+        "limit_type",
+        "limit_value",
+        "period_days",
+        "is_active",
+        "updated_at",
+    )
     list_filter = ("limit_type", "is_active", "school")
     search_fields = ("school__name", "limit_type")
     raw_id_fields = ("school",)
@@ -189,4 +268,12 @@ class SchoolProvisioningEventAdmin(admin.ModelAdmin):
     list_display = ("school", "event_type", "status", "created_at", "created_by")
     list_filter = ("event_type", "status", "school")
     search_fields = ("school__name", "event_type", "message")
-    readonly_fields = ("school", "event_type", "status", "message", "payload", "created_by", "created_at")
+    readonly_fields = (
+        "school",
+        "event_type",
+        "status",
+        "message",
+        "payload",
+        "created_by",
+        "created_at",
+    )

@@ -31,7 +31,6 @@ def remove_compliance_profile_if_tenant(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("finance", "0001_initial"),
         ("siteconfig", "0002_sitesettings_deadline_mode_and_more"),
@@ -54,7 +53,10 @@ class Migration(migrations.Migration):
                 ),
             ],
             database_operations=[
-                migrations.RunPython(add_compliance_profile_if_tenant, remove_compliance_profile_if_tenant),
+                migrations.RunPython(
+                    add_compliance_profile_if_tenant,
+                    remove_compliance_profile_if_tenant,
+                ),
             ],
         ),
     ]

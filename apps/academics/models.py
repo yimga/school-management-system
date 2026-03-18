@@ -35,10 +35,10 @@ class AcademicYear(models.Model):
 
     def __init__(self, *args, **kwargs):
         # Backwards-compatibility: accept `starts_on`/`ends_on` kwargs used by older code/tests
-        if 'starts_on' in kwargs:
-            kwargs['start_date'] = kwargs.pop('starts_on')
-        if 'ends_on' in kwargs:
-            kwargs['end_date'] = kwargs.pop('ends_on')
+        if "starts_on" in kwargs:
+            kwargs["start_date"] = kwargs.pop("starts_on")
+        if "ends_on" in kwargs:
+            kwargs["end_date"] = kwargs.pop("ends_on")
         super().__init__(*args, **kwargs)
 
     @property
@@ -73,7 +73,9 @@ class Term(models.Model):
         blank=True,
         related_name="terms",
     )
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="terms")
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="terms"
+    )
     # Code identifier (free text, e.g., "FIRST", "SEM1", "Q1"). No choices to enable flexibility.
     name = models.CharField(max_length=20)
     # Optional custom label for flexible naming (e.g., "Semester 1").
@@ -86,8 +88,8 @@ class Term(models.Model):
 
     def __init__(self, *args, **kwargs):
         # Backwards-compatibility: accept keyword 'order' used by older code/tests
-        if 'order' in kwargs:
-            kwargs['position'] = kwargs.pop('order')
+        if "order" in kwargs:
+            kwargs["position"] = kwargs.pop("order")
         super().__init__(*args, **kwargs)
 
     @property
@@ -109,7 +111,9 @@ class Term(models.Model):
                 condition=~Q(custom_label=""),
             ),
             models.CheckConstraint(
-                check=(Q(position__isnull=True) | (Q(position__gte=1) & Q(position__lte=4))),
+                check=(
+                    Q(position__isnull=True) | (Q(position__gte=1) & Q(position__lte=4))
+                ),
                 name="term_position_range_1_4_or_null",
             ),
         ]
@@ -158,7 +162,9 @@ class Specialty(models.Model):
         blank=True,
         related_name="specialties",
     )
-    department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="specialties")
+    department = models.ForeignKey(
+        Department, on_delete=models.PROTECT, related_name="specialties"
+    )
     name = models.CharField(max_length=120)
     code = models.CharField(max_length=30, unique=True)
 
@@ -177,8 +183,12 @@ class Classroom(models.Model):
         blank=True,
         related_name="classrooms",
     )
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="classrooms")
-    department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="classrooms")
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.PROTECT, related_name="classrooms"
+    )
+    department = models.ForeignKey(
+        Department, on_delete=models.PROTECT, related_name="classrooms"
+    )
     name = models.CharField(max_length=120)
     code = models.CharField(max_length=30, unique=True)
     allows_third_term = models.BooleanField(
@@ -189,6 +199,7 @@ class Classroom(models.Model):
         default=False,
         help_text="When True, students in this class can be registered as GCE/certification candidates (e.g. Form 5, Upper Sixth). Form 4 and other non-exam classes should leave this unchecked.",
     )
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["name"]
@@ -203,6 +214,7 @@ class ClassroomPromotionMapping(models.Model):
     for rollover (e.g. Form 5A in 2024/25 → Lower Sixth A in 2025/26).
     Used by the year-end rollover wizard to suggest "next class".
     """
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -246,7 +258,9 @@ class Subject(models.Model):
         related_name="subjects",
     )
     name = models.CharField(max_length=120)
-    category = models.CharField(max_length=20, choices=Category.choices, default=Category.OTHER)
+    category = models.CharField(
+        max_length=20, choices=Category.choices, default=Category.OTHER
+    )
     credits = models.DecimalField(
         max_digits=6,
         decimal_places=2,
@@ -274,6 +288,7 @@ class SubjectAssignment(models.Model):
     AcademicYear + Term + Classroom + Specialty + Subject + Coefficient
     This is what teachers get assigned to, and what evaluations (marks) point to later.
     """
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -281,11 +296,21 @@ class SubjectAssignment(models.Model):
         blank=True,
         related_name="subject_assignments",
     )
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="subject_assignments")
-    term = models.ForeignKey(Term, on_delete=models.PROTECT, related_name="subject_assignments")
-    classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="subject_assignments")
-    specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="subject_assignments")
-    subject = models.ForeignKey(Subject, on_delete=models.PROTECT, related_name="subject_assignments")
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="subject_assignments"
+    )
+    term = models.ForeignKey(
+        Term, on_delete=models.PROTECT, related_name="subject_assignments"
+    )
+    classroom = models.ForeignKey(
+        Classroom, on_delete=models.PROTECT, related_name="subject_assignments"
+    )
+    specialty = models.ForeignKey(
+        Specialty, on_delete=models.PROTECT, related_name="subject_assignments"
+    )
+    subject = models.ForeignKey(
+        Subject, on_delete=models.PROTECT, related_name="subject_assignments"
+    )
     coefficient = models.DecimalField(max_digits=5, decimal_places=2, default=1)
     grading_deadline_at = models.DateTimeField(
         null=True,
@@ -308,6 +333,7 @@ class SubjectAssignment(models.Model):
 
 class CertificationExamSession(models.Model):
     """Certification registration window/session (GCE, OBC, etc)."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -327,7 +353,9 @@ class CertificationExamSession(models.Model):
         TECHNICAL = "TECHNICAL", "Technical (CAP/Probatoire/Bac)"
         OTHER = "OTHER", "Other"
 
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="certification_sessions")
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="certification_sessions"
+    )
     # Optional: tie a session to a preset (rules, fees, document checklist).
     preset = models.ForeignKey(
         "academics.CertificationExamPreset",
@@ -353,11 +381,19 @@ class CertificationExamSession(models.Model):
         related_name="sessions",
         help_text="Optional document checklist for this session (overrides preset default if set).",
     )
-    board = models.CharField(max_length=20, choices=Board.choices, default=Board.GCE_BOARD)
+    board = models.CharField(
+        max_length=20, choices=Board.choices, default=Board.GCE_BOARD
+    )
     level = models.CharField(max_length=20, choices=Level.choices, default=Level.OTHER)
-    name = models.CharField(max_length=120, help_text="e.g., 'GCE Registration 2026 - O Level'")
+    name = models.CharField(
+        max_length=120, help_text="e.g., 'GCE Registration 2026 - O Level'"
+    )
     exam_centre_name = models.CharField(max_length=200, blank=True)
-    exam_centre_number = models.CharField(max_length=40, blank=True, help_text="Official centre number used by the board portal.")
+    exam_centre_number = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text="Official centre number used by the board portal.",
+    )
     contact_phone = models.CharField(max_length=60, blank=True)
     contact_email = models.EmailField(blank=True)
 
@@ -388,6 +424,7 @@ class CertificationExamSession(models.Model):
         """Check if registration window is currently open."""
         if now is None:
             from django.utils import timezone
+
             now = timezone.now()
         if self.registration_opens_at and now < self.registration_opens_at:
             return False
@@ -403,6 +440,7 @@ class CertificationExamSession(models.Model):
         """Check if CA submission deadline has passed."""
         if now is None:
             from django.utils import timezone
+
             now = timezone.now()
         if self.ca_submission_deadline_at:
             return now > self.ca_submission_deadline_at
@@ -415,6 +453,7 @@ class CertificationExamSession(models.Model):
     def set_admin_override(self, override_type: str, user, reason: str = ""):
         """Record an admin override (audit trail)."""
         from django.utils import timezone
+
         if not self.admin_overrides:
             self.admin_overrides = {}
         self.admin_overrides[f"{override_type}_override"] = {
@@ -434,7 +473,11 @@ class CertificationExamSession(models.Model):
     def can_add_candidates(self, user=None, check_override=True):
         """Check if candidates can be added (respects deadlines + admin override)."""
         if not self.is_registration_open():
-            if check_override and user and self.has_admin_override("registration_locked"):
+            if (
+                check_override
+                and user
+                and self.has_admin_override("registration_locked")
+            ):
                 return True
             return False
         return True
@@ -442,7 +485,11 @@ class CertificationExamSession(models.Model):
     def can_edit_candidates(self, user=None, check_override=True):
         """Check if candidates can be edited (respects deadlines + admin override)."""
         if self.is_registration_locked():
-            if check_override and user and self.has_admin_override("registration_locked"):
+            if (
+                check_override
+                and user
+                and self.has_admin_override("registration_locked")
+            ):
                 return True
             return False
         return True
@@ -458,16 +505,40 @@ class CertificationCandidate(models.Model):
         EXPORTED = "EXPORTED", "Exported"
         ARCHIVED = "ARCHIVED", "Archived"
 
-    session = models.ForeignKey(CertificationExamSession, on_delete=models.CASCADE, related_name="candidates")
-    student = models.ForeignKey("people.StudentProfile", on_delete=models.PROTECT, related_name="certification_candidates")
+    session = models.ForeignKey(
+        CertificationExamSession, on_delete=models.CASCADE, related_name="candidates"
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.PROTECT,
+        related_name="certification_candidates",
+    )
 
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
     # Cameroon 2026: internal candidates must include Unique Identifier (matricule).
-    unique_identifier = models.CharField(max_length=80, blank=True, help_text="MINESEC/MINEDUB Unique Identifier (matricule) for internal candidates.")
-    official_cin = models.CharField(max_length=20, blank=True, help_text="Official CIN generated by the board e-registration software.")
-    candidate_number = models.CharField(max_length=60, blank=True, help_text="Board candidate number (if assigned).")
-    payment_transaction_id = models.CharField(max_length=120, blank=True, help_text="MTN Mobile Money transaction/payment ID used for validation.")
-    payment_amount_fcfa = models.PositiveIntegerField(default=0, help_text="Amount paid (FCFA).")
+    unique_identifier = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="MINESEC/MINEDUB Unique Identifier (matricule) for internal candidates.",
+    )
+    official_cin = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Official CIN generated by the board e-registration software.",
+    )
+    candidate_number = models.CharField(
+        max_length=60, blank=True, help_text="Board candidate number (if assigned)."
+    )
+    payment_transaction_id = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="MTN Mobile Money transaction/payment ID used for validation.",
+    )
+    payment_amount_fcfa = models.PositiveIntegerField(
+        default=0, help_text="Amount paid (FCFA)."
+    )
     validated_at = models.DateTimeField(null=True, blank=True)
     ca_uploaded_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
@@ -486,9 +557,19 @@ class CertificationCandidate(models.Model):
 class CertificationAuditLog(models.Model):
     """Minimal audit trail for certification workflow actions."""
 
-    session = models.ForeignKey(CertificationExamSession, on_delete=models.CASCADE, related_name="audit_logs")
-    candidate = models.ForeignKey(CertificationCandidate, on_delete=models.SET_NULL, null=True, blank=True, related_name="audit_logs")
-    actor = models.ForeignKey("accounts.User", on_delete=models.SET_NULL, null=True, blank=True)
+    session = models.ForeignKey(
+        CertificationExamSession, on_delete=models.CASCADE, related_name="audit_logs"
+    )
+    candidate = models.ForeignKey(
+        CertificationCandidate,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="audit_logs",
+    )
+    actor = models.ForeignKey(
+        "accounts.User", on_delete=models.SET_NULL, null=True, blank=True
+    )
     action = models.CharField(max_length=120)
     detail = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -502,6 +583,7 @@ class CertificationExamPreset(models.Model):
     Reusable rules/config for a certification exam type.
     Examples: GCE General O-Level, GCE General A-Level, Technical (CAP/Probatoire/Bac) / OBC style.
     """
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -526,7 +608,9 @@ class CertificationExamPreset(models.Model):
         help_text="Short code, e.g. GCE_OLEVEL_2026, GCE_ALEVEL, OBC_BAC.",
     )
     name = models.CharField(max_length=160)
-    board = models.CharField(max_length=20, choices=Board.choices, default=Board.GCE_BOARD)
+    board = models.CharField(
+        max_length=20, choices=Board.choices, default=Board.GCE_BOARD
+    )
     level = models.CharField(max_length=20, choices=Level.choices, default=Level.OTHER)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
@@ -549,7 +633,9 @@ class CertificationExamPreset(models.Model):
     class Meta:
         ordering = ["board", "level", "name"]
         constraints = [
-            models.UniqueConstraint(fields=["code"], name="unique_cert_exam_preset_code"),
+            models.UniqueConstraint(
+                fields=["code"], name="unique_cert_exam_preset_code"
+            ),
         ]
 
     def __str__(self):
@@ -602,9 +688,13 @@ class CertificationFeeLine(models.Model):
         PRACTICAL = "PRACTICAL", "Practical fee"
         OTHER = "OTHER", "Other"
 
-    template = models.ForeignKey(CertificationFeeTemplate, on_delete=models.CASCADE, related_name="lines")
+    template = models.ForeignKey(
+        CertificationFeeTemplate, on_delete=models.CASCADE, related_name="lines"
+    )
     label = models.CharField(max_length=160)
-    fee_type = models.CharField(max_length=20, choices=FeeType.choices, default=FeeType.OTHER)
+    fee_type = models.CharField(
+        max_length=20, choices=FeeType.choices, default=FeeType.OTHER
+    )
     amount_fcfa = models.PositiveIntegerField(default=0)
 
     # If true, this line is multiplied by the candidate's subject count (later: subject selection model).
@@ -624,6 +714,7 @@ class CertificationFeeLine(models.Model):
 
 class CertificationDocumentChecklist(models.Model):
     """Reusable document checklist template for a preset/session."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -655,8 +746,12 @@ class CertificationDocumentChecklist(models.Model):
 
 
 class CertificationDocumentItem(models.Model):
-    checklist = models.ForeignKey(CertificationDocumentChecklist, on_delete=models.CASCADE, related_name="items")
-    code = models.CharField(max_length=40, help_text="Short code, e.g. BIRTH_CERT, ID_CARD, PHOTO_4X4.")
+    checklist = models.ForeignKey(
+        CertificationDocumentChecklist, on_delete=models.CASCADE, related_name="items"
+    )
+    code = models.CharField(
+        max_length=40, help_text="Short code, e.g. BIRTH_CERT, ID_CARD, PHOTO_4X4."
+    )
     label = models.CharField(max_length=160)
     required = models.BooleanField(default=True)
     help_text = models.CharField(max_length=240, blank=True)
@@ -665,7 +760,10 @@ class CertificationDocumentItem(models.Model):
     class Meta:
         ordering = ["display_order", "id"]
         constraints = [
-            models.UniqueConstraint(fields=["checklist", "code"], name="unique_cert_doc_item_code_per_checklist"),
+            models.UniqueConstraint(
+                fields=["checklist", "code"],
+                name="unique_cert_doc_item_code_per_checklist",
+            ),
         ]
 
     def __str__(self):
@@ -681,16 +779,28 @@ class CertificationCandidateDocumentStatus(models.Model):
         VERIFIED = "VERIFIED", "Verified"
         WAIVED = "WAIVED", "Waived"
 
-    candidate = models.ForeignKey(CertificationCandidate, on_delete=models.CASCADE, related_name="document_statuses")
-    item = models.ForeignKey(CertificationDocumentItem, on_delete=models.CASCADE, related_name="candidate_statuses")
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.MISSING)
+    candidate = models.ForeignKey(
+        CertificationCandidate,
+        on_delete=models.CASCADE,
+        related_name="document_statuses",
+    )
+    item = models.ForeignKey(
+        CertificationDocumentItem,
+        on_delete=models.CASCADE,
+        related_name="candidate_statuses",
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.MISSING
+    )
     received_at = models.DateTimeField(null=True, blank=True)
     verified_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["candidate", "item"], name="unique_cert_candidate_doc_status"),
+            models.UniqueConstraint(
+                fields=["candidate", "item"], name="unique_cert_candidate_doc_status"
+            ),
         ]
 
     def __str__(self):
@@ -699,6 +809,7 @@ class CertificationCandidateDocumentStatus(models.Model):
 
 class Attendance(models.Model):
     """Per-day student attendance (present, absent, late, excused). Used for roll call and absence alerts to parents."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -706,6 +817,7 @@ class Attendance(models.Model):
         blank=True,
         related_name="attendances",
     )
+
     class Status(models.TextChoices):
         PRESENT = "present", "Present"
         ABSENT = "absent", "Absent"
@@ -744,9 +856,22 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.student} – {self.date} – {self.get_status_display()}"
 
+    def clean(self):
+        super().clean()
+        from apps.compliance.attendance_region_packs import (
+            attendance_compliance_errors,
+            should_enforce_strict_block,
+        )
+
+        if should_enforce_strict_block(self):
+            errs = attendance_compliance_errors(self)
+            if errs:
+                raise ValidationError(errs)
+
 
 class Incident(models.Model):
     """Disciplinary incident (tardiness, behavior, etc.) for students or teachers. Alerts parents when notify_parent is True."""
+
     class Type(models.TextChoices):
         TARDINESS = "TARDINESS", "Tardiness"
         BEHAVIOR = "BEHAVIOR", "Behavior"
@@ -784,11 +909,17 @@ class Incident(models.Model):
         null=True,
         blank=True,
     )
-    incident_type = models.CharField(max_length=20, choices=Type.choices, default=Type.OTHER)
+    incident_type = models.CharField(
+        max_length=20, choices=Type.choices, default=Type.OTHER
+    )
     date = models.DateField()
     description = models.TextField(blank=True)
-    severity = models.CharField(max_length=20, choices=Severity.choices, default=Severity.MEDIUM)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
+    severity = models.CharField(
+        max_length=20, choices=Severity.choices, default=Severity.MEDIUM
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.OPEN
+    )
     notify_parent = models.BooleanField(
         default=True,
         help_text="When True, linked guardians are notified (student incidents only).",
@@ -812,9 +943,13 @@ class Incident(models.Model):
         """
         resolved_school_id = self.school_id
         if self.student_id:
-            resolved_school_id = getattr(self.student, "school_id", None) or resolved_school_id
+            resolved_school_id = (
+                getattr(self.student, "school_id", None) or resolved_school_id
+            )
         elif self.teacher_id:
-            resolved_school_id = getattr(self.teacher, "school_id", None) or resolved_school_id
+            resolved_school_id = (
+                getattr(self.teacher, "school_id", None) or resolved_school_id
+            )
         self.school_id = resolved_school_id
         super().save(*args, **kwargs)
 
@@ -838,6 +973,7 @@ class CourseSyllabus(models.Model):
     One syllabus per SubjectAssignment (class + subject + term/year).
     Teacher is determined via TeacherAssignment; approvers use get_effective_approvers(syllabus_approval).
     """
+
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"
         PENDING = "PENDING", "Pending approval"
@@ -911,6 +1047,7 @@ class CourseSyllabus(models.Model):
 
 class ClassBooklist(models.Model):
     """Booklist per class (academic year; optional term). Configurable list of required books."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -918,8 +1055,12 @@ class ClassBooklist(models.Model):
         blank=True,
         related_name="class_booklists",
     )
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="class_booklists")
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name="booklists")
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="class_booklists"
+    )
+    classroom = models.ForeignKey(
+        Classroom, on_delete=models.CASCADE, related_name="booklists"
+    )
     term = models.ForeignKey(
         Term,
         on_delete=models.CASCADE,
@@ -948,6 +1089,7 @@ class ClassBooklist(models.Model):
 
 class CurriculumStandard(models.Model):
     """Curriculum/progression standard (e.g. MINESEC Physics Form 5, Common Core). Country-agnostic."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -956,7 +1098,9 @@ class CurriculumStandard(models.Model):
         related_name="curriculum_standards",
     )
     name = models.CharField(max_length=200)
-    country_code = models.CharField(max_length=10, blank=True, help_text="e.g. CM, US, GB")
+    country_code = models.CharField(
+        max_length=10, blank=True, help_text="e.g. CM, US, GB"
+    )
     description = models.TextField(blank=True)
 
     class Meta:
@@ -968,6 +1112,7 @@ class CurriculumStandard(models.Model):
 
 class CurriculumNode(models.Model):
     """Hierarchical node (Subject > Unit > Topic) for a standard. Imported via CSV/Excel."""
+
     class LevelType(models.TextChoices):
         SUBJECT = "subject", "Subject"
         UNIT = "unit", "Unit"
@@ -1010,6 +1155,7 @@ class CurriculumNode(models.Model):
 
 class DegreeProgram(models.Model):
     """Degree program (e.g. BSc Computer Science). requirements_json defines required courses/credits/milestones."""
+
     class TranscriptTrack(models.TextChoices):
         ACADEMIC = "ACADEMIC", "Academic (degree)"
         VOCATIONAL = "VOCATIONAL", "Vocational (certificate)"
@@ -1056,6 +1202,7 @@ class DegreeProgram(models.Model):
 
 class StudentDegreeEnrollment(models.Model):
     """Student enrolled in a degree program; used for run_degree_audit."""
+
     student = models.ForeignKey(
         "people.StudentProfile",
         on_delete=models.CASCADE,
@@ -1082,6 +1229,7 @@ class StudentDegreeEnrollment(models.Model):
 
 class TransferCredit(models.Model):
     """External credits transferred in (for degree audit)."""
+
     student = models.ForeignKey(
         "people.StudentProfile",
         on_delete=models.CASCADE,
@@ -1137,7 +1285,9 @@ class TransferCourseEquivalency(models.Model):
     )
     external_course_code = models.CharField(max_length=80)
     internal_course_code = models.CharField(max_length=80)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING
+    )
     request_notes = models.TextField(blank=True)
     reviewer_notes = models.TextField(blank=True)
     requested_by = models.ForeignKey(
@@ -1162,7 +1312,12 @@ class TransferCourseEquivalency(models.Model):
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
-                fields=["student", "program", "external_course_code", "internal_course_code"],
+                fields=[
+                    "student",
+                    "program",
+                    "external_course_code",
+                    "internal_course_code",
+                ],
                 name="academics_transfer_equiv_unique_per_student_program_course_pair",
             ),
         ]
@@ -1175,6 +1330,7 @@ class TransferCourseEquivalency(models.Model):
 
 class GraduateMilestone(models.Model):
     """Thesis/dissertation milestone (proposal, candidacy, defense, submission). Gate: graduate_research addon."""
+
     class Type(models.TextChoices):
         PROPOSAL = "PROPOSAL", "Proposal"
         CANDIDACY = "CANDIDACY", "Candidacy"
@@ -1199,7 +1355,9 @@ class GraduateMilestone(models.Model):
         blank=True,
         related_name="graduate_milestones_chaired",
     )
-    status = models.CharField(max_length=40, default="PENDING")  # PENDING, COMPLETED, etc.
+    status = models.CharField(
+        max_length=40, default="PENDING"
+    )  # PENDING, COMPLETED, etc.
     target_date = models.DateField(null=True, blank=True)
     completion_date = models.DateField(null=True, blank=True)
     is_signed_off = models.BooleanField(default=False)
@@ -1234,17 +1392,32 @@ class GraduateMilestone(models.Model):
         ordering = ["student", "type"]
         verbose_name = "Graduate milestone"
         verbose_name_plural = "Graduate milestones"
+
     def clean(self):
         if self.external_member_count > self.committee_member_count:
             raise ValidationError(
-                {"external_member_count": "External member count cannot exceed total committee members."}
+                {
+                    "external_member_count": "External member count cannot exceed total committee members."
+                }
             )
         if self.embargo_until and self.type != self.Type.SUBMISSION:
-            raise ValidationError({"embargo_until": "Embargo can only be set for submission milestones."})
-        if self.embargo_until and self.completion_date and self.embargo_until < self.completion_date:
-            raise ValidationError({"embargo_until": "Embargo end date cannot be before completion date."})
+            raise ValidationError(
+                {"embargo_until": "Embargo can only be set for submission milestones."}
+            )
+        if (
+            self.embargo_until
+            and self.completion_date
+            and self.embargo_until < self.completion_date
+        ):
+            raise ValidationError(
+                {"embargo_until": "Embargo end date cannot be before completion date."}
+            )
         if self.embargo_until and not (self.embargo_reason or "").strip():
-            raise ValidationError({"embargo_reason": "Provide an embargo reason when embargo_until is set."})
+            raise ValidationError(
+                {
+                    "embargo_reason": "Provide an embargo reason when embargo_until is set."
+                }
+            )
 
     def __str__(self):
         return f"{self.student} — {self.get_type_display()} ({self.status})"
@@ -1256,6 +1429,7 @@ class WorkflowConfig(models.Model):
     generic wizard view loads config and renders steps dynamically. Tenant can reorder steps in admin.
     One row per workflow per tenant (schema = tenant).
     """
+
     workflow_key = models.CharField(
         max_length=120,
         unique=True,
@@ -1263,7 +1437,7 @@ class WorkflowConfig(models.Model):
     )
     steps = models.JSONField(
         default=list,
-        help_text="Ordered list of steps: [{\"id\": \"step1\", \"title\": \"...\", \"template\": \"...\", \"form\": \"...\"}].",
+        help_text='Ordered list of steps: [{"id": "step1", "title": "...", "template": "...", "form": "..."}].',
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

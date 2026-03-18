@@ -2,7 +2,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0033_alter_school_timezone"),
     ]

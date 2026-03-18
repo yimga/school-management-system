@@ -3,6 +3,7 @@ Update PolicyBundles for schools when their applied BlueprintPack version has in
 Run from cron: python manage.py update_blueprint_bundles
 Optional: --pack=slug to update only one pack; --dry-run to list schools without applying.
 """
+
 from django.core.management.base import BaseCommand
 
 from apps.policies.models import BlueprintPack
@@ -32,7 +33,9 @@ class Command(BaseCommand):
         if pack_slug:
             packs = BlueprintPack.objects.filter(slug=pack_slug, is_active=True)
         else:
-            packs = BlueprintPack.objects.filter(is_active=True).order_by("category", "name")
+            packs = BlueprintPack.objects.filter(is_active=True).order_by(
+                "category", "name"
+            )
 
         if not packs.exists():
             self.stdout.write(self.style.WARNING("No matching BlueprintPack(s) found."))
@@ -56,10 +59,18 @@ class Command(BaseCommand):
             result = update_bundle_for_schools(pack, applied_by=None)
             total_updated += len(result)
             self.stdout.write(
-                self.style.SUCCESS(f"Pack {pack.slug} (v{pack.version}): updated {len(result)} school(s).")
+                self.style.SUCCESS(
+                    f"Pack {pack.slug} (v{pack.version}): updated {len(result)} school(s)."
+                )
             )
 
         if dry_run:
-            self.stdout.write(self.style.NOTICE(f"Dry run: {total_updated} school(s) would be updated."))
+            self.stdout.write(
+                self.style.NOTICE(
+                    f"Dry run: {total_updated} school(s) would be updated."
+                )
+            )
         else:
-            self.stdout.write(self.style.SUCCESS(f"Done. Total schools updated: {total_updated}."))
+            self.stdout.write(
+                self.style.SUCCESS(f"Done. Total schools updated: {total_updated}.")
+            )

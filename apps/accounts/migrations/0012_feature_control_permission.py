@@ -27,7 +27,10 @@ def add_feature_control_permission(apps, schema_editor):
 
     for role_code in ROLES_WITH_FEATURE_CONTROL:
         role = AccessRole.objects.filter(code=role_code).first()
-        if role and not role.permissions.filter(code=FEATURE_CONTROL_PERMISSION[0]).exists():
+        if (
+            role
+            and not role.permissions.filter(code=FEATURE_CONTROL_PERMISSION[0]).exists()
+        ):
             role.permissions.add(perm)
 
 
@@ -36,7 +39,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0011_portal_tools_permissions"),
     ]

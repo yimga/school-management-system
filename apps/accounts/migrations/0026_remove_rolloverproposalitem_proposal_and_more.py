@@ -2,7 +2,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0025_alter_securityauditlog_event_type"),
     ]

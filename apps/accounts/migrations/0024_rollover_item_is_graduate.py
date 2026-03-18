@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0023_add_rollover_proposal'),
+        ("accounts", "0023_add_rollover_proposal"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='rolloverproposalitem',
-            name='is_graduate',
-            field=models.BooleanField(default=False, help_text='If True, student will be marked Alumni and removed from active roll.'),
+            model_name="rolloverproposalitem",
+            name="is_graduate",
+            field=models.BooleanField(
+                default=False,
+                help_text="If True, student will be marked Alumni and removed from active roll.",
+            ),
         ),
     ]

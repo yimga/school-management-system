@@ -8,6 +8,7 @@ Checks:
 - provider secret identifiers must not appear broadly in server code (confine to provider/gateway modules)
 - tracked env files must not contain non-empty provider secret assignments
 """
+
 from __future__ import annotations
 
 import re
@@ -25,11 +26,21 @@ SECRET_NAMES = (
     "GOOGLE_API_KEY",
     "MISTRAL_API_KEY",
 )
-SECRET_NAME_PATTERN = re.compile(r"\b(" + "|".join(re.escape(name) for name in SECRET_NAMES) + r")\b")
+SECRET_NAME_PATTERN = re.compile(
+    r"\b(" + "|".join(re.escape(name) for name in SECRET_NAMES) + r")\b"
+)
 ENV_ASSIGNMENT_PATTERN = re.compile(
     r"^\s*(" + "|".join(re.escape(name) for name in SECRET_NAMES) + r")\s*=\s*(.+?)\s*$"
 )
-PLACEHOLDER_TOKENS = ("", "changeme", "replace_me", "your_", "<", "example", "placeholder")
+PLACEHOLDER_TOKENS = (
+    "",
+    "changeme",
+    "replace_me",
+    "your_",
+    "<",
+    "example",
+    "placeholder",
+)
 SKIP_DIRS = {"migrations", "tests", "__pycache__", ".venv", "venv", "node_modules"}
 ALLOWED_SERVER_SECRET_REF_PREFIXES = (
     # Provider config and calls live here; do not leak to templates/JS/context.
@@ -104,14 +115,18 @@ def main() -> int:
         for line_no, line in enumerate(text.splitlines(), start=1):
             if SECRET_NAME_PATTERN.search(line):
                 rel = path.relative_to(ROOT).as_posix()
-                violations.append(f"{rel}:{line_no} references a provider secret name in client-rendered code")
+                violations.append(
+                    f"{rel}:{line_no} references a provider secret name in client-rendered code"
+                )
 
     for path in _context_processor_files():
         text = path.read_text(encoding="utf-8", errors="replace")
         for line_no, line in enumerate(text.splitlines(), start=1):
             if SECRET_NAME_PATTERN.search(line):
                 rel = path.relative_to(ROOT).as_posix()
-                violations.append(f"{rel}:{line_no} references a provider secret name in a context processor")
+                violations.append(
+                    f"{rel}:{line_no} references a provider secret name in a context processor"
+                )
 
     for path in _server_code_files():
         rel = path.relative_to(ROOT).as_posix()
@@ -120,7 +135,9 @@ def main() -> int:
         text = path.read_text(encoding="utf-8", errors="replace")
         for line_no, line in enumerate(text.splitlines(), start=1):
             if SECRET_NAME_PATTERN.search(line):
-                violations.append(f"{rel}:{line_no} references a provider secret name outside allowed server modules")
+                violations.append(
+                    f"{rel}:{line_no} references a provider secret name outside allowed server modules"
+                )
 
     for path in _tracked_root_env_files():
         text = path.read_text(encoding="utf-8", errors="replace")
@@ -135,7 +152,9 @@ def main() -> int:
                 continue
             if lowered in PLACEHOLDER_TOKENS[:3] or not value:
                 continue
-            violations.append(f"{rel}:{line_no} contains a non-placeholder provider secret assignment")
+            violations.append(
+                f"{rel}:{line_no} contains a non-placeholder provider secret assignment"
+            )
 
     if violations:
         print("lint_secret_exposure: violations detected:\n", file=sys.stderr)
@@ -143,7 +162,9 @@ def main() -> int:
             print(f"  {violation}", file=sys.stderr)
         return 1
 
-    print("lint_secret_exposure: no client-side or tracked-config provider secret exposure found.")
+    print(
+        "lint_secret_exposure: no client-side or tracked-config provider secret exposure found."
+    )
     return 0
 
 

@@ -4,71 +4,70 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0054_add_feature_control_audit'),
+        ("siteconfig", "0054_add_feature_control_audit"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_bg_color',
+            model_name="sitesettings",
+            name="admin_sidebar_bg_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_surface_color',
+            model_name="sitesettings",
+            name="admin_sidebar_surface_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_border_color',
+            model_name="sitesettings",
+            name="admin_sidebar_border_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_text_color',
+            model_name="sitesettings",
+            name="admin_sidebar_text_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_text_muted_color',
+            model_name="sitesettings",
+            name="admin_sidebar_text_muted_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_hover_color',
+            model_name="sitesettings",
+            name="admin_sidebar_hover_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_active_color',
+            model_name="sitesettings",
+            name="admin_sidebar_active_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_active_border_color',
+            model_name="sitesettings",
+            name="admin_sidebar_active_border_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_badge_bg_color',
+            model_name="sitesettings",
+            name="admin_sidebar_badge_bg_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_badge_text_color',
+            model_name="sitesettings",
+            name="admin_sidebar_badge_text_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_child_bg_start',
+            model_name="sitesettings",
+            name="admin_sidebar_child_bg_start",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_child_bg_end',
+            model_name="sitesettings",
+            name="admin_sidebar_child_bg_end",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_child_border_color',
+            model_name="sitesettings",
+            name="admin_sidebar_child_border_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_child_hover_color',
+            model_name="sitesettings",
+            name="admin_sidebar_child_hover_color",
         ),
         migrations.RemoveField(
-            model_name='sitesettings',
-            name='admin_sidebar_child_active_color',
+            model_name="sitesettings",
+            name="admin_sidebar_child_active_color",
         ),
         # admin_sidebar_child_text_color and admin_sidebar_child_text_muted_color
         # were never added in any migration (0022 did not add them), so do not

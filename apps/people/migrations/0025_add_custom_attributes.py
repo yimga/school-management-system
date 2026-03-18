@@ -4,20 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0024_add_school_fk'),
+        ("people", "0024_add_school_fk"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='studentprofile',
-            name='custom_attributes',
-            field=models.JSONField(blank=True, default=dict, help_text='School-defined custom fields (key/value). Use in reports and exports.'),
+            model_name="studentprofile",
+            name="custom_attributes",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="School-defined custom fields (key/value). Use in reports and exports.",
+            ),
         ),
         migrations.AddField(
-            model_name='teacherprofile',
-            name='custom_attributes',
-            field=models.JSONField(blank=True, default=dict, help_text='School-defined custom fields (key/value). Use in reports and exports.'),
+            model_name="teacherprofile",
+            name="custom_attributes",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="School-defined custom fields (key/value). Use in reports and exports.",
+            ),
         ),
     ]

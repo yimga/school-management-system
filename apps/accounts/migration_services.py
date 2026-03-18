@@ -4,6 +4,7 @@ Used by accounts.migration_wizard; creates MigrationRun records in automation ap
 Phase B: schema inference for "Other" / generic profiles.
 Phase C: pre-migration validation with categorized issues (duplicates, missing_required, invalid_refs).
 """
+
 from __future__ import annotations
 
 import re
@@ -26,7 +27,9 @@ def _normalize_for_match(s: str) -> str:
     return t.strip("_")
 
 
-def infer_schema_mapping(headers: list[str], target_fields: list[str]) -> dict[str, str]:
+def infer_schema_mapping(
+    headers: list[str], target_fields: list[str]
+) -> dict[str, str]:
     """
     Phase B: Infer suggested mapping from source column names to target fields.
     Uses normalized name similarity (e.g. FirstName -> first_name, student_id -> admission_number for students).
@@ -86,8 +89,12 @@ def run_pre_migration_validation(
 
     if migration_type == "students":
         required = {"first_name", "last_name"}
-        first_keys = set((transformed_rows[0] or {}).keys()) if transformed_rows else set()
-        key_field = "admission_number" if "admission_number" in first_keys else "student_code"
+        first_keys = (
+            set((transformed_rows[0] or {}).keys()) if transformed_rows else set()
+        )
+        key_field = (
+            "admission_number" if "admission_number" in first_keys else "student_code"
+        )
         key_to_rows: dict[str, list[int]] = defaultdict(list)
         for idx, row in enumerate(transformed_rows, start=1):
             r = row or {}
@@ -96,19 +103,23 @@ def run_pre_migration_validation(
                 key_to_rows[key_val].append(idx)
             missing = [f for f in required if not (r.get(f) or "").strip()]
             if missing:
-                issues["missing_required"].append({
-                    "row": idx,
-                    "fields": missing,
-                    "message": f"Row {idx}: missing required {missing}",
-                })
+                issues["missing_required"].append(
+                    {
+                        "row": idx,
+                        "fields": missing,
+                        "message": f"Row {idx}: missing required {missing}",
+                    }
+                )
         for key_val, indices in key_to_rows.items():
             if len(indices) > 1:
-                issues["duplicates"].append({
-                    "row_indices": indices,
-                    "key": key_field,
-                    "value": key_val,
-                    "message": f"Duplicate {key_field} '{key_val}' in rows {indices}",
-                })
+                issues["duplicates"].append(
+                    {
+                        "row_indices": indices,
+                        "key": key_field,
+                        "value": key_val,
+                        "message": f"Duplicate {key_field} '{key_val}' in rows {indices}",
+                    }
+                )
 
     elif migration_type == "grades" and school:
         from apps.academics.models import SubjectAssignment
@@ -118,20 +129,26 @@ def run_pre_migration_validation(
         active_year, _ = get_active_year_and_term()
         if not active_year:
             for idx in range(1, len(transformed_rows) + 1):
-                issues["invalid_refs"].append({
-                    "row": idx,
-                    "ref_field": "academic_year",
-                    "value": "",
-                    "message": "No active academic year set.",
-                })
+                issues["invalid_refs"].append(
+                    {
+                        "row": idx,
+                        "ref_field": "academic_year",
+                        "value": "",
+                        "message": "No active academic year set.",
+                    }
+                )
             return issues
         # Resolve valid student_codes and subject_assignment ids for this school/year
         student_codes = set(
-            StudentProfile.objects.filter(school=school).values_list("student_code", flat=True)
+            StudentProfile.objects.filter(school=school).values_list(
+                "student_code", flat=True
+            )
         )
         student_codes = {str(s).strip().upper() for s in student_codes if s}
         sa_ids = set(
-            SubjectAssignment.objects.filter(academic_year=active_year).values_list("id", flat=True)
+            SubjectAssignment.objects.filter(academic_year=active_year).values_list(
+                "id", flat=True
+            )
         )
         key_to_rows: dict[tuple, list[int]] = defaultdict(list)
         for idx, row in enumerate(transformed_rows, start=1):
@@ -146,35 +163,47 @@ def run_pre_migration_validation(
             tup = (sc, sa_id, term_id)
             key_to_rows[tup].append(idx)
             if sc and sc not in student_codes:
-                issues["invalid_refs"].append({
-                    "row": idx,
-                    "ref_field": "student_code",
-                    "value": sc,
-                    "message": f"Row {idx}: student_code '{sc}' not found in school",
-                })
+                issues["invalid_refs"].append(
+                    {
+                        "row": idx,
+                        "ref_field": "student_code",
+                        "value": sc,
+                        "message": f"Row {idx}: student_code '{sc}' not found in school",
+                    }
+                )
             if sa_id and sa_id not in sa_ids:
-                issues["invalid_refs"].append({
-                    "row": idx,
-                    "ref_field": "subject_assignment_id",
-                    "value": sa_id,
-                    "message": f"Row {idx}: subject_assignment_id {sa_id} not found for active year",
-                })
+                issues["invalid_refs"].append(
+                    {
+                        "row": idx,
+                        "ref_field": "subject_assignment_id",
+                        "value": sa_id,
+                        "message": f"Row {idx}: subject_assignment_id {sa_id} not found for active year",
+                    }
+                )
             required_grade = ["student_code", "subject_assignment_id", "term_id"]
-            missing = [f for f in required_grade if not (r.get(f) is not None and str(r.get(f)).strip() != "")]
+            missing = [
+                f
+                for f in required_grade
+                if not (r.get(f) is not None and str(r.get(f)).strip() != "")
+            ]
             if missing:
-                issues["missing_required"].append({
-                    "row": idx,
-                    "fields": missing,
-                    "message": f"Row {idx}: missing required {missing}",
-                })
+                issues["missing_required"].append(
+                    {
+                        "row": idx,
+                        "fields": missing,
+                        "message": f"Row {idx}: missing required {missing}",
+                    }
+                )
         for tup, indices in key_to_rows.items():
             if len(indices) > 1:
-                issues["duplicates"].append({
-                    "row_indices": indices,
-                    "key": "student_code, subject_assignment_id, term_id",
-                    "value": str(tup),
-                    "message": f"Duplicate grade key in rows {indices}",
-                })
+                issues["duplicates"].append(
+                    {
+                        "row_indices": indices,
+                        "key": "student_code, subject_assignment_id, term_id",
+                        "value": str(tup),
+                        "message": f"Duplicate grade key in rows {indices}",
+                    }
+                )
     elif migration_type == "grades":
         # no school: only duplicates and missing_required
         key_to_rows = defaultdict(list)
@@ -188,26 +217,41 @@ def run_pre_migration_validation(
             term_id = r.get("term_id")
             key_to_rows[(sc, sa_id, term_id)].append(idx)
             required_grade = ["student_code", "subject_assignment_id", "term_id"]
-            missing = [f for f in required_grade if not (r.get(f) is not None and str(r.get(f)).strip() != "")]
+            missing = [
+                f
+                for f in required_grade
+                if not (r.get(f) is not None and str(r.get(f)).strip() != "")
+            ]
             if missing:
-                issues["missing_required"].append({
-                    "row": idx,
-                    "fields": missing,
-                    "message": f"Row {idx}: missing required {missing}",
-                })
+                issues["missing_required"].append(
+                    {
+                        "row": idx,
+                        "fields": missing,
+                        "message": f"Row {idx}: missing required {missing}",
+                    }
+                )
         for tup, indices in key_to_rows.items():
             if len(indices) > 1:
-                issues["duplicates"].append({
-                    "row_indices": indices,
-                    "key": "student_code, subject_assignment_id, term_id",
-                    "value": str(tup),
-                    "message": f"Duplicate grade key in rows {indices}",
-                })
+                issues["duplicates"].append(
+                    {
+                        "row_indices": indices,
+                        "key": "student_code, subject_assignment_id, term_id",
+                        "value": str(tup),
+                        "message": f"Duplicate grade key in rows {indices}",
+                    }
+                )
 
     return issues
 
 
-def run_dry_run(school, migration_type: str, transformed_rows: list[dict], user=None, legacy_snapshot=None, **context) -> dict[str, Any]:
+def run_dry_run(
+    school,
+    migration_type: str,
+    transformed_rows: list[dict],
+    user=None,
+    legacy_snapshot=None,
+    **context,
+) -> dict[str, Any]:
     """
     Validate and simulate a migration without writing. Returns scorecard dict:
     created, updated, error_count, errors (sample), duration_seconds, status, parity.
@@ -216,10 +260,16 @@ def run_dry_run(school, migration_type: str, transformed_rows: list[dict], user=
     """
     create_audit = context.pop("create_audit", True)
     row_count = len(transformed_rows)
-    snapshot = legacy_snapshot if isinstance(legacy_snapshot, list) else (transformed_rows[:500] if create_audit else [])
+    snapshot = (
+        legacy_snapshot
+        if isinstance(legacy_snapshot, list)
+        else (transformed_rows[:500] if create_audit else [])
+    )
 
     # Phase C: run pre-migration validation and attach categorized issues
-    validation_issues = run_pre_migration_validation(migration_type, transformed_rows, school=school)
+    validation_issues = run_pre_migration_validation(
+        migration_type, transformed_rows, school=school
+    )
 
     if migration_type == "students":
         # Students: validate required fields and count valid rows; no DB lookup for "would create"
@@ -257,8 +307,10 @@ def run_dry_run(school, migration_type: str, transformed_rows: list[dict], user=
         else:
             scorecard = dry_run_grade_import(transformed_rows, active_year)
             scorecard["status"] = (
-                "SUCCESS" if scorecard["error_count"] == 0
-                else "PARTIAL" if scorecard["created"] or scorecard["updated"]
+                "SUCCESS"
+                if scorecard["error_count"] == 0
+                else "PARTIAL"
+                if scorecard["created"] or scorecard["updated"]
                 else "FAILED"
             )
     else:
@@ -277,6 +329,7 @@ def run_dry_run(school, migration_type: str, transformed_rows: list[dict], user=
 
     if create_audit and school:
         from apps.automation.models import MigrationRun
+
         run = MigrationRun.objects.create(
             school=school,
             migration_type=migration_type,
@@ -307,10 +360,13 @@ def run_dry_run(school, migration_type: str, transformed_rows: list[dict], user=
     return scorecard
 
 
-def run_migration_start(school, migration_type: str, row_count: int, user=None, legacy_snapshot=None):
+def run_migration_start(
+    school, migration_type: str, row_count: int, user=None, legacy_snapshot=None
+):
     """Create a MigrationRun record for an actual import; caller performs the import then calls run_migration_finish.
     legacy_snapshot: optional dict e.g. {"rows": [...]} for read-only legacy view."""
     from apps.automation.models import MigrationRun
+
     snap = legacy_snapshot if isinstance(legacy_snapshot, dict) else {}
     if isinstance(legacy_snapshot, list):
         snap = {"rows": legacy_snapshot[:200]}
@@ -333,8 +389,11 @@ def run_migration_finish(run, result: dict[str, Any]) -> dict[str, Any]:
     from apps.automation.models import MigrationRun
 
     status = (
-        MigrationRun.Status.SUCCESS if result.get("error_count", 0) == 0
-        else MigrationRun.Status.PARTIAL if (result.get("created") or result.get("updated")) else MigrationRun.Status.FAILED
+        MigrationRun.Status.SUCCESS
+        if result.get("error_count", 0) == 0
+        else MigrationRun.Status.PARTIAL
+        if (result.get("created") or result.get("updated"))
+        else MigrationRun.Status.FAILED
     )
     summary = {
         "errors_sample": (result.get("errors") or [])[:20],
@@ -377,7 +436,11 @@ def compute_parity_from_scorecard(row_count: int, scorecard: dict) -> dict[str, 
 def compute_parity(migration_run) -> dict[str, Any]:
     """Given a MigrationRun, return parity info (source vs processed)."""
     row_count = migration_run.row_count
-    total = migration_run.created_count + migration_run.updated_count + migration_run.error_count
+    total = (
+        migration_run.created_count
+        + migration_run.updated_count
+        + migration_run.error_count
+    )
     return {
         "source_rows": row_count,
         "total_processed": total,

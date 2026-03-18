@@ -1,106 +1,45 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from datetime import timedelta
-from django.http import JsonResponse, HttpResponseForbidden, HttpRequest, Http404, HttpResponse
+from django.shortcuts import render, redirect
+from django.http import JsonResponse, HttpResponseForbidden, HttpRequest, Http404
 from django.contrib.auth.decorators import login_required
-from collections import Counter
 from django.contrib import messages
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
-from django import forms
-from decimal import Decimal
 from urllib.parse import quote_plus
-import csv
 import base64
 from io import BytesIO
 import logging
 
 from apps.accounts.decorators import (
     role_required,
-    parent_portal_required,
     teacher_portal_required,
 )
 from apps.accounts.utils import get_user_role
 from apps.accounts.models import User
-from django.db.models import Q
 from apps.people.models import (
-    StudentGuardian,
     StudentProfile,
-    TeacherProfile,
-    TeacherPayRecord,
-    TeacherLeaveRequest,
-    TeacherAttendance,
     Badge,
 )
-from apps.academics.models import Attendance, Classroom, SubjectAssignment, Term
 from apps.academics.services import get_active_year_and_term
-from apps.evals.models import Evaluation
-from apps.finance.models import Payment, PaymentReminder, Notification
-from apps.evals.services import classroom_term_rankings
-from apps.reports.services import (
-    are_terms_published,
-    is_term_published,
-    terms_for_student,
-    term_report_context,
-)
-import json
 
-from apps.siteconfig.models_support import filter_portal_items
-from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.platform_runtime.helpers import (
-    get_effective_flags,
     get_effective_site_settings,
-    get_effective_support_contact_settings,
     get_site_display_name,
-)
-from apps.platform_runtime.structured_logging import log_view_exception
-from .runtime_helpers import get_policy_for_request
-from apps.analytics.services import (
-    student_improvements,
-    specialty_pass_rates,
-    subject_weaknesses,
 )
 from .models import (
     PortalFeatureItem,
-    LessonPlan,
-    TeacherTrainingEntry,
-    AttendanceJustification,
-    CahierDeTexteEntry,
 )
 from .services import (
-    parent_dashboard_widget_data,
-    award_referral_reward,
-    link_guardian_via_invite,
-    guardian_student_links,
-    guardian_students,
-    class_announcements_for_parent,
-    class_threads_for_parent,
-    parent_onboarding_score,
     _merged_upcoming_events,
 )
-from .parent_portal_helpers import (
-    get_active_child_id,
-    set_active_child,
-    require_parent_child_access,
-)
-from .forms import (
-    LinkChildForm,
-    ClaimInviteForm,
-    TeacherLeaveForm,
-    LessonPlanUploadForm,
-    LessonPlanAttachmentForm,
-    TeacherTrainingEntryForm,
-    AttendanceJustificationForm,
-    CahierDeTexteEntryForm,
-)
-from django.views.decorators.http import require_POST
 
 from .views_common import (
     PORTAL_SOFT_FAILURES,
     PORTAL_FEATURE_PERMISSIONS,
     _portal_features_status,
 )
+
 # Re-export for urlconf (apps.portal.urls)
 from .views_student import (
     student_portal_grades,  # noqa: F401
@@ -109,6 +48,7 @@ from .views_student import (
     preview_student_syllabus,  # noqa: F401
     preview_communication_test,  # noqa: F401
 )
+
 # Re-export §6.14 Phase 2 parent views
 from .views_parent import (
     parent_set_active_child,  # noqa: F401
@@ -168,6 +108,7 @@ def portal_feature_page(request: HttpRequest, feature: str):
     if not entry["enabled"]:
         if request.method == "POST":
             from apps.requests.services import create_access_request
+
             create_access_request(
                 request_type="PORTAL_FEATURE_ACCESS",
                 requester=request.user,
@@ -178,15 +119,25 @@ def portal_feature_page(request: HttpRequest, feature: str):
             )
             messages.success(request, "Access request submitted to the admin team.")
             return redirect("portal:parent_dashboard")
-        return render(request, "portal/feature_disabled.html", {
-            "feature": entry,
-        })
+        return render(
+            request,
+            "portal/feature_disabled.html",
+            {
+                "feature": entry,
+            },
+        )
 
-    items = PortalFeatureItem.objects.filter(feature=feature, is_active=True).select_related("created_by")
-    return render(request, "portal/feature_page.html", {
-        "feature": entry,
-        "items": items,
-    })
+    items = PortalFeatureItem.objects.filter(
+        feature=feature, is_active=True
+    ).select_related("created_by")
+    return render(
+        request,
+        "portal/feature_page.html",
+        {
+            "feature": entry,
+            "items": items,
+        },
+    )
 
 
 @never_cache
@@ -208,6 +159,7 @@ def badge_verify(request: HttpRequest):
     if token:
         # Rate limit: 30 requests per IP per minute (tenant-scoped key)
         from apps.siteconfig.cache_utils import tenant_cache_key
+
         ip = request.META.get("REMOTE_ADDR", "")[:64]
         minute = timezone.now().strftime("%Y%m%d%H%M")
         cache_key = tenant_cache_key(f"badge_verify:{ip}:{minute}", request)
@@ -221,7 +173,11 @@ def badge_verify(request: HttpRequest):
                 payload = signer.unsign(token)
                 if payload.startswith("badge:"):
                     pk = int(payload.split(":")[1])
-                    badge = Badge.objects.filter(pk=pk).select_related("badge_type", "user", "student").first()
+                    badge = (
+                        Badge.objects.filter(pk=pk)
+                        .select_related("badge_type", "user", "student")
+                        .first()
+                    )
                     if badge:
                         if badge.expiry_at and badge.expiry_at <= timezone.now():
                             message = "Badge has expired."
@@ -230,12 +186,21 @@ def badge_verify(request: HttpRequest):
                             message = f"Valid — {badge.badge_type.label}"
                 elif payload.startswith("staff:"):
                     from apps.accounts.models import User
+
                     uid = int(payload.split(":")[1])
                     user = User.objects.filter(pk=uid).first()
                     if user and getattr(user, "teacher_profile", None):
                         valid = True
                         message = _("Valid — Staff ID")
-                        badge = type("IDHolder", (), {"user": user, "student": None, "badge_type": type("BT", (), {"label": "Staff ID"})()})()
+                        badge = type(
+                            "IDHolder",
+                            (),
+                            {
+                                "user": user,
+                                "student": None,
+                                "badge_type": type("BT", (), {"label": "Staff ID"})(),
+                            },
+                        )()
                     else:
                         message = _("Staff member not found or inactive.")
                 elif payload.startswith("student:"):
@@ -244,25 +209,43 @@ def badge_verify(request: HttpRequest):
                     if student and student.is_active:
                         valid = True
                         message = _("Valid — Student ID")
-                        badge = type("IDHolder", (), {"user": None, "student": student, "badge_type": type("BT", (), {"label": "Student ID"})()})()
+                        badge = type(
+                            "IDHolder",
+                            (),
+                            {
+                                "user": None,
+                                "student": student,
+                                "badge_type": type("BT", (), {"label": "Student ID"})(),
+                            },
+                        )()
                     else:
                         message = _("Student not found or inactive.")
                 # Phase 5: log scan event for valid verifications (attendance / third-party)
                 if valid and badge:
                     from apps.people.models import BadgeScanEvent
-                    kind = BadgeScanEvent.KIND_STAFF if getattr(badge, "user", None) else BadgeScanEvent.KIND_STUDENT
+
+                    kind = (
+                        BadgeScanEvent.KIND_STAFF
+                        if getattr(badge, "user", None)
+                        else BadgeScanEvent.KIND_STUDENT
+                    )
                     if payload.startswith("badge:"):
                         kind = BadgeScanEvent.KIND_BADGE
                     ip = request.META.get("REMOTE_ADDR", "")[:45] or None
                     try:
                         BadgeScanEvent.objects.create(
-                            badge=badge if kind == BadgeScanEvent.KIND_BADGE and getattr(badge, "pk", None) else None,
+                            badge=badge
+                            if kind == BadgeScanEvent.KIND_BADGE
+                            and getattr(badge, "pk", None)
+                            else None,
                             token_kind=kind,
                             user=getattr(badge, "user", None),
                             student=getattr(badge, "student", None),
                             verified=True,
                             ip_address=ip,
-                            user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:255],
+                            user_agent=(request.META.get("HTTP_USER_AGENT") or "")[
+                                :255
+                            ],
                         )
                     except PORTAL_SOFT_FAILURES:
                         pass
@@ -275,26 +258,37 @@ def badge_verify(request: HttpRequest):
     if valid and badge:
         if getattr(badge, "user", None):
             role = "staff"
-            name = getattr(badge.user, "get_full_name", lambda: str(badge.user))() or getattr(badge.user, "username", "")
+            name = getattr(
+                badge.user, "get_full_name", lambda: str(badge.user)
+            )() or getattr(badge.user, "username", "")
         elif getattr(badge, "student", None):
             role = "student"
-            name = getattr(badge.student, "get_full_name", lambda: str(badge.student))() or getattr(badge.student, "admission_number", "")
+            name = getattr(
+                badge.student, "get_full_name", lambda: str(badge.student)
+            )() or getattr(badge.student, "admission_number", "")
 
     if want_json:
-        return JsonResponse({
+        return JsonResponse(
+            {
+                "valid": valid,
+                "message": message,
+                "badge_type": getattr(badge, "badge_type", None)
+                and getattr(badge.badge_type, "label", None),
+                "holder": str(badge.user or badge.student) if badge else None,
+                "role": role,
+                "name": name,
+            }
+        )
+
+    return render(
+        request,
+        "portal/badge_verify.html",
+        {
             "valid": valid,
             "message": message,
-            "badge_type": getattr(badge, "badge_type", None) and getattr(badge.badge_type, "label", None),
-            "holder": str(badge.user or badge.student) if badge else None,
-            "role": role,
-            "name": name,
-        })
-
-    return render(request, "portal/badge_verify.html", {
-        "valid": valid,
-        "message": message,
-        "badge": badge,
-    })
+            "badge": badge,
+        },
+    )
 
 
 @login_required
@@ -303,12 +297,16 @@ def unified_calendar(request: HttpRequest):
     year, _term = get_active_year_and_term()
     events = _merged_upcoming_events(year, school=getattr(request, "school", None))
     role = get_user_role(request.user)
-    return render(request, "portal/unified_calendar.html", {
-        "events": events,
-        "site": get_effective_site_settings(request=request),
-        "is_teacher": role == User.Role.TEACHER,
-        "is_parent": role == User.Role.PARENT,
-    })
+    return render(
+        request,
+        "portal/unified_calendar.html",
+        {
+            "events": events,
+            "site": get_effective_site_settings(request=request),
+            "is_teacher": role == User.Role.TEACHER,
+            "is_parent": role == User.Role.PARENT,
+        },
+    )
 
 
 def _qr_png_data_uri(value: str) -> str:
@@ -331,24 +329,35 @@ def _qr_png_data_uri(value: str) -> str:
 def my_digital_id(request: HttpRequest):
     """Phase 4: Staff digital ID card (My ID) – school branding, photo, name, role, STAFF ID bar, QR."""
     from apps.people.badge_services import get_signed_id_token
+
     profile = getattr(request.user, "teacher_profile", None)
     name = request.user.get_full_name() or request.user.username
     role_label = "Teacher"
     if profile and profile.department:
         role_label = str(profile.department.name)
-    photo = profile.profile_photo if profile and hasattr(profile, "profile_photo") and profile.profile_photo else None
+    photo = (
+        profile.profile_photo
+        if profile and hasattr(profile, "profile_photo") and profile.profile_photo
+        else None
+    )
     qr_token = get_signed_id_token("staff", request.user.pk)
-    verify_url = request.build_absolute_uri(reverse("portal:badge_verify") + "?token=" + quote_plus(qr_token))
+    verify_url = request.build_absolute_uri(
+        reverse("portal:badge_verify") + "?token=" + quote_plus(qr_token)
+    )
     qr_image_url = _qr_png_data_uri(verify_url)
-    return render(request, "portal/digital_id_staff.html", {
-        "site_name": get_site_display_name(request),
-        "name": name,
-        "role_label": role_label,
-        "photo": photo,
-        "qr_token": qr_token,
-        "verify_url": verify_url,
-        "qr_image_url": qr_image_url,
-    })
+    return render(
+        request,
+        "portal/digital_id_staff.html",
+        {
+            "site_name": get_site_display_name(request),
+            "name": name,
+            "role_label": role_label,
+            "photo": photo,
+            "qr_token": qr_token,
+            "verify_url": verify_url,
+            "qr_image_url": qr_image_url,
+        },
+    )
 
 
 # _whatsapp_invite_link, link_child, link_child_wizard: see views_parent (re-exported above). §6.14

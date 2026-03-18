@@ -27,8 +27,12 @@ def dashboard_callback(request, context):
     school = getattr(request, "school", None)
     if school:
         context["unfold_school_logo_url"] = getattr(school, "logo_url", None) or ""
-        context["unfold_school_primary_color"] = getattr(school, "primary_color", None) or "#0d6efd"
-        context["unfold_school_accent_color"] = getattr(school, "accent_color", None) or "#198754"
+        context["unfold_school_primary_color"] = (
+            getattr(school, "primary_color", None) or "#0d6efd"
+        )
+        context["unfold_school_accent_color"] = (
+            getattr(school, "accent_color", None) or "#198754"
+        )
     else:
         context["unfold_school_logo_url"] = ""
         context["unfold_school_primary_color"] = "#0d6efd"

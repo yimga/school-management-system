@@ -6,48 +6,124 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0027_sitesettings_footer_links'),
+        ("siteconfig", "0027_sitesettings_footer_links"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dashboardwidget',
-            name='allowed_roles',
-            field=models.JSONField(blank=True, default=list, help_text='Optional: additional roles permitted to view this widget'),
+            model_name="dashboardwidget",
+            name="allowed_roles",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Optional: additional roles permitted to view this widget",
+            ),
         ),
         migrations.AddField(
-            model_name='dashboardwidget',
-            name='default_column',
-            field=models.PositiveSmallIntegerField(default=1, help_text='Column hint for drag/drop layout'),
+            model_name="dashboardwidget",
+            name="default_column",
+            field=models.PositiveSmallIntegerField(
+                default=1, help_text="Column hint for drag/drop layout"
+            ),
         ),
         migrations.AddField(
-            model_name='dashboardwidget',
-            name='default_order',
-            field=models.PositiveSmallIntegerField(default=1, help_text='Order hint within a column'),
+            model_name="dashboardwidget",
+            name="default_order",
+            field=models.PositiveSmallIntegerField(
+                default=1, help_text="Order hint within a column"
+            ),
         ),
         migrations.AddField(
-            model_name='dashboardwidget',
-            name='page',
-            field=models.CharField(choices=[('parent', 'Parent Portal'), ('teacher', 'Teacher Portal'), ('backend', 'Backend Dashboard'), ('admin', 'Admin Portal'), ('student', 'Student Portal')], default='backend', help_text='Where this widget can be placed (parent/teacher/backend/etc.)', max_length=20),
+            model_name="dashboardwidget",
+            name="page",
+            field=models.CharField(
+                choices=[
+                    ("parent", "Parent Portal"),
+                    ("teacher", "Teacher Portal"),
+                    ("backend", "Backend Dashboard"),
+                    ("admin", "Admin Portal"),
+                    ("student", "Student Portal"),
+                ],
+                default="backend",
+                help_text="Where this widget can be placed (parent/teacher/backend/etc.)",
+                max_length=20,
+            ),
         ),
         migrations.CreateModel(
-            name='DashboardLayout',
+            name="DashboardLayout",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('page', models.CharField(choices=[('parent', 'Parent Portal'), ('teacher', 'Teacher Portal'), ('backend', 'Backend Dashboard'), ('admin', 'Admin Portal'), ('student', 'Student Portal')], max_length=20)),
-                ('role', models.CharField(blank=True, help_text='Optional role-scoped default when user layout is not present', max_length=20)),
-                ('layout', models.JSONField(blank=True, default=dict, help_text='Serialized positions/sizes of widgets')),
-                ('is_default', models.BooleanField(default=False, help_text='Use as default layout for the role/page')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='dashboard_layouts', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "page",
+                    models.CharField(
+                        choices=[
+                            ("parent", "Parent Portal"),
+                            ("teacher", "Teacher Portal"),
+                            ("backend", "Backend Dashboard"),
+                            ("admin", "Admin Portal"),
+                            ("student", "Student Portal"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "role",
+                    models.CharField(
+                        blank=True,
+                        help_text="Optional role-scoped default when user layout is not present",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "layout",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Serialized positions/sizes of widgets",
+                    ),
+                ),
+                (
+                    "is_default",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Use as default layout for the role/page",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="dashboard_layouts",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['page', 'user_id', 'role'],
-                'constraints': [models.UniqueConstraint(fields=('user', 'page'), name='uniq_user_page_layout'), models.UniqueConstraint(condition=models.Q(('is_default', True)), fields=('role', 'page'), name='uniq_default_role_page_layout')],
+                "ordering": ["page", "user_id", "role"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("user", "page"), name="uniq_user_page_layout"
+                    ),
+                    models.UniqueConstraint(
+                        condition=models.Q(("is_default", True)),
+                        fields=("role", "page"),
+                        name="uniq_default_role_page_layout",
+                    ),
+                ],
             },
         ),
     ]

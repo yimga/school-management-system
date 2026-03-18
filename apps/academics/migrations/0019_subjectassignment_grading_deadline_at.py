@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0018_classroompromotionmapping'),
+        ("academics", "0018_classroompromotionmapping"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='subjectassignment',
-            name='grading_deadline_at',
-            field=models.DateTimeField(blank=True, help_text='Optional deadline for completing grades for this assignment (term/class/subject).', null=True),
+            model_name="subjectassignment",
+            name="grading_deadline_at",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="Optional deadline for completing grades for this assignment (term/class/subject).",
+                null=True,
+            ),
         ),
     ]

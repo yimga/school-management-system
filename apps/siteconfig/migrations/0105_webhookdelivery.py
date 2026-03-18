@@ -5,36 +5,79 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0104_province_systemfeature_tenantsystem'),
+        ("siteconfig", "0104_province_systemfeature_tenantsystem"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='WebhookDelivery',
+            name="WebhookDelivery",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('event_id', models.CharField(max_length=64)),
-                ('event_type', models.CharField(max_length=80)),
-                ('payload', models.JSONField(blank=True, default=dict)),
-                ('signature', models.CharField(blank=True, max_length=255)),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('RETRYING', 'Retrying'), ('DELIVERED', 'Delivered'), ('DEAD_LETTER', 'Dead letter')], default='PENDING', max_length=20)),
-                ('attempts', models.PositiveSmallIntegerField(default=0)),
-                ('max_attempts', models.PositiveSmallIntegerField(default=4)),
-                ('next_attempt_at', models.DateTimeField(blank=True, null=True)),
-                ('delivered_at', models.DateTimeField(blank=True, null=True)),
-                ('last_attempt_at', models.DateTimeField(blank=True, null=True)),
-                ('last_status_code', models.PositiveSmallIntegerField(blank=True, null=True)),
-                ('last_error', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('subscription', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='deliveries', to='siteconfig.webhooksubscription')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("event_id", models.CharField(max_length=64)),
+                ("event_type", models.CharField(max_length=80)),
+                ("payload", models.JSONField(blank=True, default=dict)),
+                ("signature", models.CharField(blank=True, max_length=255)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("RETRYING", "Retrying"),
+                            ("DELIVERED", "Delivered"),
+                            ("DEAD_LETTER", "Dead letter"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("attempts", models.PositiveSmallIntegerField(default=0)),
+                ("max_attempts", models.PositiveSmallIntegerField(default=4)),
+                ("next_attempt_at", models.DateTimeField(blank=True, null=True)),
+                ("delivered_at", models.DateTimeField(blank=True, null=True)),
+                ("last_attempt_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "last_status_code",
+                    models.PositiveSmallIntegerField(blank=True, null=True),
+                ),
+                ("last_error", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "subscription",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="deliveries",
+                        to="siteconfig.webhooksubscription",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['next_attempt_at', 'created_at'],
-                'indexes': [models.Index(fields=['status', 'next_attempt_at'], name='siteconfig_webhook_queue_idx'), models.Index(fields=['event_type', 'created_at'], name='siteconfig_webhook_event_idx')],
-                'constraints': [models.UniqueConstraint(fields=('subscription', 'event_id'), name='siteconfig_unique_subscription_event_delivery')],
+                "ordering": ["next_attempt_at", "created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["status", "next_attempt_at"],
+                        name="siteconfig_webhook_queue_idx",
+                    ),
+                    models.Index(
+                        fields=["event_type", "created_at"],
+                        name="siteconfig_webhook_event_idx",
+                    ),
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("subscription", "event_id"),
+                        name="siteconfig_unique_subscription_event_delivery",
+                    )
+                ],
             },
         ),
     ]

@@ -2,6 +2,7 @@
 Part F Section 16.1: 195 currencies — seed CurrencyRegistry to meet global coverage.
 ISO 4217 current + historic; seed via ensure_currency_registry_seed().
 """
+
 from __future__ import annotations
 
 from apps.registries.models import CurrencyRegistry
@@ -279,7 +280,9 @@ def ensure_currency_registry_seed() -> int:
     """Seed CurrencyRegistry with at least 195 currencies (Part F 16.1)."""
     target = 195
     created = 0
-    for sort_order, (code, name, symbol, decimal_places) in enumerate(CURRENCIES_ISO4217, start=1):
+    for sort_order, (code, name, symbol, decimal_places) in enumerate(
+        CURRENCIES_ISO4217, start=1
+    ):
         _, was_created = CurrencyRegistry.objects.update_or_create(
             code=code,
             defaults={

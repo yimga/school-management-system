@@ -68,10 +68,13 @@ class DeltaSyncConflictTestCase(TestCase):
         self.student.refresh_from_db()
         server_updated_at = self.student.updated_at
         if timezone.is_naive(server_updated_at):
-            server_updated_at = timezone.make_aware(server_updated_at, timezone.get_current_timezone())
+            server_updated_at = timezone.make_aware(
+                server_updated_at, timezone.get_current_timezone()
+            )
         old_client_time = server_updated_at - timezone.timedelta(minutes=5)
 
         from apps.api.sync_services import apply_changes
+
         out = apply_changes(
             str(self.school.id),
             self.user,
@@ -89,7 +92,11 @@ class DeltaSyncConflictTestCase(TestCase):
         # Server must not be overwritten when client sent older updated_at (conflict path)
         self.assertEqual(self.student.first_name, "ServerName")
         self.assertEqual(out["success_count"], 0, "Should not apply when conflict")
-        self.assertEqual(len(out["conflicts"]), 1, f"Expected 1 conflict, got results={out['results']}")
+        self.assertEqual(
+            len(out["conflicts"]),
+            1,
+            f"Expected 1 conflict, got results={out['results']}",
+        )
         self.assertEqual(SyncConflict.objects.filter(school=self.school).count(), 1)
         sc = SyncConflict.objects.get(school=self.school)
         self.assertEqual(sc.entity_type, "student")
@@ -149,7 +156,9 @@ class DeltaSyncSuccessClearQueueTestCase(TestCase):
                         "entity_type": "student",
                         "id": self.student.pk,
                         "changes": {"first_name": "Updated"},
-                        "updated_at": (timezone.now() + timezone.timedelta(minutes=10)).isoformat(),
+                        "updated_at": (
+                            timezone.now() + timezone.timedelta(minutes=10)
+                        ).isoformat(),
                         "client_item_id": "queue-item-1",
                     },
                 ],
@@ -172,9 +181,15 @@ class DeltaSyncTenantIsolationTestCase(TestCase):
     """Conflicts are scoped by school; cache key must include tenant_id (documented)."""
 
     def setUp(self):
-        self.school_a = School.objects.create(name="School A", slug="school-a", subdomain="school-a")
-        self.school_b = School.objects.create(name="School B", slug="school-b", subdomain="school-b")
-        self.user = User.objects.create_superuser(username="iso_user", password="testpass123", email="i@test.com")
+        self.school_a = School.objects.create(
+            name="School A", slug="school-a", subdomain="school-a"
+        )
+        self.school_b = School.objects.create(
+            name="School B", slug="school-b", subdomain="school-b"
+        )
+        self.user = User.objects.create_superuser(
+            username="iso_user", password="testpass123", email="i@test.com"
+        )
         for i, school in enumerate((self.school_a, self.school_b)):
             year = AcademicYear.objects.create(
                 name="2024-2025",
@@ -209,6 +224,7 @@ class DeltaSyncTenantIsolationTestCase(TestCase):
     def test_conflict_scoped_to_school(self):
         """SyncConflict records are created with school_id; no cross-tenant data."""
         from apps.api.sync_services import apply_changes
+
         # Create conflict for school_a
         self.student_a.save(update_fields=["updated_at"])
         server_dt = self.student_a.updated_at

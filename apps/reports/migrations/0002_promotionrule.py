@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("academics", "0002_classroom_allows_third_term"),
         ("reports", "0001_initial"),

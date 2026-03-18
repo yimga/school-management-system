@@ -4,117 +4,108 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('academics', '0042_materialize_extracted_runtime_models'),
-        ('siteconfig', '0147_sitesettings_compliance_profile_pointer'),
+        ("academics", "0042_materialize_extracted_runtime_models"),
+        ("siteconfig", "0147_sitesettings_compliance_profile_pointer"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='EducationSystemProfile',
-            fields=[
-            ],
+            name="EducationSystemProfile",
+            fields=[],
             options={
-                'verbose_name': 'education system profile',
-                'verbose_name_plural': 'education system profiles',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "education system profile",
+                "verbose_name_plural": "education system profiles",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.educationsystemprofile',),
+            bases=("siteconfig.educationsystemprofile",),
         ),
         migrations.CreateModel(
-            name='GradingScaleConfig',
-            fields=[
-            ],
+            name="GradingScaleConfig",
+            fields=[],
             options={
-                'verbose_name': 'grading scale config',
-                'verbose_name_plural': 'grading scale configs',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "grading scale config",
+                "verbose_name_plural": "grading scale configs",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.gradingscaleconfig',),
+            bases=("siteconfig.gradingscaleconfig",),
         ),
         migrations.CreateModel(
-            name='HolidayCalendar',
-            fields=[
-            ],
+            name="HolidayCalendar",
+            fields=[],
             options={
-                'verbose_name': 'holiday calendar',
-                'verbose_name_plural': 'holiday calendars',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "holiday calendar",
+                "verbose_name_plural": "holiday calendars",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('academics.holidaycalendar',),
+            bases=("academics.holidaycalendar",),
         ),
         migrations.CreateModel(
-            name='Province',
-            fields=[
-            ],
+            name="Province",
+            fields=[],
             options={
-                'verbose_name': 'Province / State',
-                'verbose_name_plural': 'Provinces / States',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Province / State",
+                "verbose_name_plural": "Provinces / States",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.province',),
+            bases=("siteconfig.province",),
         ),
         migrations.CreateModel(
-            name='RegionConfig',
-            fields=[
-            ],
+            name="RegionConfig",
+            fields=[],
             options={
-                'verbose_name': 'region config',
-                'verbose_name_plural': 'Region Configurations',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "region config",
+                "verbose_name_plural": "Region Configurations",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.regionconfig',),
+            bases=("siteconfig.regionconfig",),
         ),
         migrations.CreateModel(
-            name='SystemFeature',
-            fields=[
-            ],
+            name="SystemFeature",
+            fields=[],
             options={
-                'verbose_name': 'System feature',
-                'verbose_name_plural': 'System features',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "System feature",
+                "verbose_name_plural": "System features",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.systemfeature',),
+            bases=("siteconfig.systemfeature",),
         ),
         migrations.CreateModel(
-            name='TenantSystem',
-            fields=[
-            ],
+            name="TenantSystem",
+            fields=[],
             options={
-                'verbose_name': 'Tenant system assignment',
-                'verbose_name_plural': 'Tenant system assignments',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Tenant system assignment",
+                "verbose_name_plural": "Tenant system assignments",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.tenantsystem',),
+            bases=("siteconfig.tenantsystem",),
         ),
         migrations.CreateModel(
-            name='WeatherLocation',
-            fields=[
-            ],
+            name="WeatherLocation",
+            fields=[],
             options={
-                'verbose_name': 'weather location',
-                'verbose_name_plural': 'weather locations',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "weather location",
+                "verbose_name_plural": "weather locations",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.weatherlocation',),
+            bases=("siteconfig.weatherlocation",),
         ),
     ]

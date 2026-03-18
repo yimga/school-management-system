@@ -4,6 +4,7 @@ Verify Platform Hardening plan deliverables: key docs and runbooks exist.
 Exit 0 if all required paths exist; exit 1 otherwise.
 Use in CI or locally to ensure runbook/command docs are present.
 """
+
 from __future__ import annotations
 
 import sys

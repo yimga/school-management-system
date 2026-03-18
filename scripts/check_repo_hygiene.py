@@ -3,15 +3,45 @@
 Repo hygiene: fail CI on conflict markers, backup files, and debug debris.
 Usage: python scripts/check_repo_hygiene.py [--exit-zero] [--base DIR]
 """
+
 from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
 
-SKIP_DIRS = {".git", "node_modules", "__pycache__", ".venv", "venv", "env", "htmlcov", ".pytest_cache", "media", "static", "backups", "staticfiles"}
+SKIP_DIRS = {
+    ".git",
+    "node_modules",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "env",
+    "htmlcov",
+    ".pytest_cache",
+    "media",
+    "static",
+    "backups",
+    "staticfiles",
+}
 # Only scan likely text files for conflict markers (skip binaries).
-TEXT_EXTENSIONS = {".py", ".md", ".yml", ".yaml", ".json", ".sh", ".html", ".css", ".js", ".ts", ".sql", ".txt", ".toml", ".ini", ".cfg"}
+TEXT_EXTENSIONS = {
+    ".py",
+    ".md",
+    ".yml",
+    ".yaml",
+    ".json",
+    ".sh",
+    ".html",
+    ".css",
+    ".js",
+    ".ts",
+    ".sql",
+    ".txt",
+    ".toml",
+    ".ini",
+    ".cfg",
+}
 BACKUP_GLOB = ("*.bak", "*.orig", "*.tmp")
 # Full-line merge conflict markers (exact match per line)
 CONFLICT_LINE_EXACT = ("<<<<<<<", "=======", ">>>>>>>")
@@ -20,8 +50,12 @@ CONFLICT_LINE_STARTS = ("<<<<<<< ", ">>>>>>> ")
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Check repo for conflict markers and backup/debug files.")
-    ap.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
+    ap = argparse.ArgumentParser(
+        description="Check repo for conflict markers and backup/debug files."
+    )
+    ap.add_argument(
+        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
+    )
     ap.add_argument("--base", default=".", help="Repo root (default: .)")
     args = ap.parse_args()
     base = Path(args.base).resolve()

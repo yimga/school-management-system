@@ -10,7 +10,6 @@ def backfill_attendance_timestamps(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("academics", "0025_add_incident_model"),
     ]

@@ -1,0 +1,74 @@
+/**
+ * Asymmetric bento overview: hero KPI (top-left bias), stack, wide drill-down chart row.
+ */
+.backend-bento-asymmetric {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-areas:
+    "hero stack"
+    "wide wide";
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+@media (max-width: 991px) {
+  .backend-bento-asymmetric {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hero"
+      "stack"
+      "wide";
+  }
+}
+.backend-bento-hero {
+  grid-area: hero;
+  padding: 1.25rem 1.35rem;
+  border-radius: 1.25rem;
+  min-height: 140px;
+}
+.backend-bento-stack {
+  grid-area: stack;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.backend-bento-stack .backend-v2-metric {
+  flex: 1;
+  margin: 0;
+  min-height: 0;
+}
+.backend-bento-chart-wide {
+  grid-area: wide;
+  padding: 1rem 1.25rem;
+  border-radius: 1.15rem;
+  border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.08));
+  background: var(--bs-body-bg, #fff);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+.backend-bento-chart-wide:hover,
+.backend-bento-chart-wide.is-expanded {
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+}
+.backend-bento-chart-wide .backend-bento-spark-combo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-top: 0.5rem;
+}
+.backend-bento-drill-panel {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--bs-border-color);
+}
+.backend-bento-drill-panel table {
+  font-size: 0.88rem;
+}
+.insight-anomaly-strip .card {
+  border-radius: 1rem;
+  border-left: 4px solid var(--bs-warning);
+}
+.insight-anomaly-strip .card.border-danger {
+  border-left-color: var(--bs-danger);
+}

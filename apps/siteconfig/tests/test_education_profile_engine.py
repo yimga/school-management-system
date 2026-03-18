@@ -21,7 +21,9 @@ class EducationProfileEngineTests(TestCase):
 
     def test_ensure_country_profile_creates_auto_pack(self):
         region = ensure_region_for_country("JPN")
-        profile = ensure_country_profile(region=region, sub_system=EducationSystemProfile.SubSystem.EN)
+        profile = ensure_country_profile(
+            region=region, sub_system=EducationSystemProfile.SubSystem.EN
+        )
         self.assertIsNotNone(profile)
         self.assertEqual(profile.code, "jpn-en-auto")
         self.assertEqual(profile.region_id, "JPN")
@@ -91,4 +93,6 @@ class EducationProfileEngineTests(TestCase):
         )
         self.assertIsNotNone(profile)
         self.assertNotEqual(profile.code, draft.code)
-        self.assertEqual(profile.approval_status, EducationSystemProfile.ApprovalStatus.APPROVED)
+        self.assertEqual(
+            profile.approval_status, EducationSystemProfile.ApprovalStatus.APPROVED
+        )

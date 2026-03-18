@@ -37,69 +37,85 @@ def alter_reminder_days_before_to_jsonb(apps, schema_editor):
 
 def migrate_payment_reminder_data(apps, schema_editor):
     """Migrate existing PaymentReminder data: convert single integer to list."""
-    PaymentReminder = apps.get_model('finance', 'PaymentReminder')
-    
+    PaymentReminder = apps.get_model("finance", "PaymentReminder")
+
     for reminder in PaymentReminder.objects.all():
         # Convert single integer to list if needed
         if isinstance(reminder.reminder_days_before, int):
             reminder.reminder_days_before = [reminder.reminder_days_before]
-            reminder.save(update_fields=['reminder_days_before'])
+            reminder.save(update_fields=["reminder_days_before"])
 
 
 def reverse_migrate_payment_reminder_data(apps, schema_editor):
     """Reverse migration: convert list to single integer (take first element)."""
-    PaymentReminder = apps.get_model('finance', 'PaymentReminder')
-    
+    PaymentReminder = apps.get_model("finance", "PaymentReminder")
+
     for reminder in PaymentReminder.objects.all():
-        if isinstance(reminder.reminder_days_before, list) and reminder.reminder_days_before:
+        if (
+            isinstance(reminder.reminder_days_before, list)
+            and reminder.reminder_days_before
+        ):
             reminder.reminder_days_before = reminder.reminder_days_before[0]
-            reminder.save(update_fields=['reminder_days_before'])
+            reminder.save(update_fields=["reminder_days_before"])
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0027_invoice_payment_code'),
+        ("finance", "0027_invoice_payment_code"),
     ]
 
     operations = [
         # First, add new fields with temporary defaults
         migrations.AddField(
-            model_name='paymentreminder',
-            name='message_template_email',
-            field=models.TextField(default='', help_text='Email message template'),
+            model_name="paymentreminder",
+            name="message_template_email",
+            field=models.TextField(default="", help_text="Email message template"),
         ),
         migrations.AddField(
-            model_name='paymentreminder',
-            name='message_template_sms',
-            field=models.TextField(blank=True, default='', help_text='SMS message template'),
+            model_name="paymentreminder",
+            name="message_template_sms",
+            field=models.TextField(
+                blank=True, default="", help_text="SMS message template"
+            ),
         ),
         migrations.AddField(
-            model_name='paymentreminder',
-            name='message_template_whatsapp',
-            field=models.TextField(blank=True, default='', help_text='WhatsApp message template'),
+            model_name="paymentreminder",
+            name="message_template_whatsapp",
+            field=models.TextField(
+                blank=True, default="", help_text="WhatsApp message template"
+            ),
         ),
         migrations.AddField(
-            model_name='paymentreminder',
-            name='reminder_channels',
-            field=models.JSONField(default=list, help_text="Channels to use: ['email'], ['whatsapp'], ['email', 'sms'], etc. Falls back to SiteSettings default if empty."),
+            model_name="paymentreminder",
+            name="reminder_channels",
+            field=models.JSONField(
+                default=list,
+                help_text="Channels to use: ['email'], ['whatsapp'], ['email', 'sms'], etc. Falls back to SiteSettings default if empty.",
+            ),
         ),
         # Migrate data: copy message_template to message_template_email
         migrations.RunPython(
-            code=lambda apps, schema_editor: migrate_message_templates(apps, schema_editor),
+            code=lambda apps, schema_editor: migrate_message_templates(
+                apps, schema_editor
+            ),
             reverse_code=migrations.RunPython.noop,
         ),
         # Alter reminder_days_before: smallint -> jsonb. Postgres cannot cast smallint to jsonb; use custom SQL.
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AlterField(
-                    model_name='paymentreminder',
-                    name='reminder_days_before',
-                    field=models.JSONField(default=list, help_text='List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to SiteSettings default if empty.'),
+                    model_name="paymentreminder",
+                    name="reminder_days_before",
+                    field=models.JSONField(
+                        default=list,
+                        help_text="List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to SiteSettings default if empty.",
+                    ),
                 ),
             ],
             database_operations=[
-                migrations.RunPython(alter_reminder_days_before_to_jsonb, migrations.RunPython.noop),
+                migrations.RunPython(
+                    alter_reminder_days_before_to_jsonb, migrations.RunPython.noop
+                ),
             ],
         ),
         # Migrate reminder_days_before data
@@ -109,33 +125,44 @@ class Migration(migrations.Migration):
         ),
         # Remove old message_template field
         migrations.RemoveField(
-            model_name='paymentreminder',
-            name='message_template',
+            model_name="paymentreminder",
+            name="message_template",
         ),
         # Set final defaults on new fields
         migrations.AlterField(
-            model_name='paymentreminder',
-            name='message_template_email',
-            field=models.TextField(default='Dear {guardian}, please pay {amount} for {invoice} by {due_date}.', help_text='Email message template'),
+            model_name="paymentreminder",
+            name="message_template_email",
+            field=models.TextField(
+                default="Dear {guardian}, please pay {amount} for {invoice} by {due_date}.",
+                help_text="Email message template",
+            ),
         ),
         migrations.AlterField(
-            model_name='paymentreminder',
-            name='message_template_sms',
-            field=models.TextField(blank=True, default='Reminder: Pay {amount} for {invoice} by {due_date}.', help_text='SMS message template'),
+            model_name="paymentreminder",
+            name="message_template_sms",
+            field=models.TextField(
+                blank=True,
+                default="Reminder: Pay {amount} for {invoice} by {due_date}.",
+                help_text="SMS message template",
+            ),
         ),
         migrations.AlterField(
-            model_name='paymentreminder',
-            name='message_template_whatsapp',
-            field=models.TextField(blank=True, default='Hi {guardian}! 👋 Please pay *{amount}* for invoice *{invoice}* by *{due_date}*.', help_text='WhatsApp message template'),
+            model_name="paymentreminder",
+            name="message_template_whatsapp",
+            field=models.TextField(
+                blank=True,
+                default="Hi {guardian}! 👋 Please pay *{amount}* for invoice *{invoice}* by *{due_date}*.",
+                help_text="WhatsApp message template",
+            ),
         ),
     ]
 
 
 def migrate_message_templates(apps, schema_editor):
     """Copy message_template to message_template_email."""
-    PaymentReminder = apps.get_model('finance', 'PaymentReminder')
-    
+    PaymentReminder = apps.get_model("finance", "PaymentReminder")
+
     for reminder in PaymentReminder.objects.all():
-        if hasattr(reminder, 'message_template') and reminder.message_template:
+        if hasattr(reminder, "message_template") and reminder.message_template:
             reminder.message_template_email = reminder.message_template
-            reminder.save(update_fields=['message_template_email'])
+            reminder.save(update_fields=["message_template_email"])

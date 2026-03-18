@@ -3,6 +3,7 @@ RLS (Row-Level Security) read-only checks: tenant table RLS status from PG catal
 §2.4 raw_sql_replacement_targets: single raw SQL for verify_tenant_rls lives here; command delegates.
 PostgreSQL only; staff/control-plane use.
 """
+
 from django.db import connection
 
 
@@ -22,7 +23,8 @@ def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
             JOIN pg_namespace n ON n.oid = c.relnamespace
             WHERE n.nspname = 'public' AND c.relkind = 'r'
             AND c.relname IN (%s)
-            """ % placeholders,
+            """
+            % placeholders,
             table_names,
         )
         return {row[0]: bool(row[1]) for row in cursor.fetchall()}

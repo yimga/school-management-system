@@ -6,39 +6,118 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0032_subject_credits_degree_program_graduate_milestone'),
-        ('people', '0031_index_renames'),
-        ('schools', '0013_link_default_admin_to_gilead'),
+        ("academics", "0032_subject_credits_degree_program_graduate_milestone"),
+        ("people", "0031_index_renames"),
+        ("schools", "0013_link_default_admin_to_gilead"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TransferCourseEquivalency',
+            name="TransferCourseEquivalency",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('external_course_code', models.CharField(max_length=80)),
-                ('internal_course_code', models.CharField(max_length=80)),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('APPROVED', 'Approved'), ('REJECTED', 'Rejected')], default='PENDING', max_length=20)),
-                ('request_notes', models.TextField(blank=True)),
-                ('reviewer_notes', models.TextField(blank=True)),
-                ('reviewed_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('program', models.ForeignKey(blank=True, help_text='Optional program-specific mapping. Blank means cross-program for the student.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='transfer_course_equivalencies', to='academics.degreeprogram')),
-                ('requested_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='requested_transfer_equivalencies', to=settings.AUTH_USER_MODEL)),
-                ('reviewed_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reviewed_transfer_equivalencies', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transfer_course_equivalencies', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transfer_course_equivalencies', to='people.studentprofile')),
-                ('transfer_credit', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equivalency_links', to='academics.transfercredit')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("external_course_code", models.CharField(max_length=80)),
+                ("internal_course_code", models.CharField(max_length=80)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("APPROVED", "Approved"),
+                            ("REJECTED", "Rejected"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("request_notes", models.TextField(blank=True)),
+                ("reviewer_notes", models.TextField(blank=True)),
+                ("reviewed_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "program",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Optional program-specific mapping. Blank means cross-program for the student.",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="transfer_course_equivalencies",
+                        to="academics.degreeprogram",
+                    ),
+                ),
+                (
+                    "requested_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="requested_transfer_equivalencies",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "reviewed_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="reviewed_transfer_equivalencies",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="transfer_course_equivalencies",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="transfer_course_equivalencies",
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "transfer_credit",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="equivalency_links",
+                        to="academics.transfercredit",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Transfer course equivalency',
-                'verbose_name_plural': 'Transfer course equivalencies',
-                'ordering': ['-created_at'],
-                'constraints': [models.UniqueConstraint(fields=('student', 'program', 'external_course_code', 'internal_course_code'), name='academics_transfer_equiv_unique_per_student_program_course_pair')],
+                "verbose_name": "Transfer course equivalency",
+                "verbose_name_plural": "Transfer course equivalencies",
+                "ordering": ["-created_at"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=(
+                            "student",
+                            "program",
+                            "external_course_code",
+                            "internal_course_code",
+                        ),
+                        name="academics_transfer_equiv_unique_per_student_program_course_pair",
+                    )
+                ],
             },
         ),
     ]

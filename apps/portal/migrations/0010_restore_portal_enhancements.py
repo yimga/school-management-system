@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("portal", "0009_delete_guardianlinkinvitation_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -15,7 +14,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="GuardianLinkInvitation",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("student_id", models.IntegerField()),
                 ("parent_email", models.EmailField(max_length=254)),
                 ("status", models.CharField(default="pending", max_length=20)),
@@ -28,16 +35,32 @@ class Migration(migrations.Migration):
             options={
                 "ordering": ["-sent_at"],
                 "indexes": [
-                    models.Index(fields=["token"], name="portal_guardianlinkinvitation_token_idx"),
-                    models.Index(fields=["parent_email"], name="portal_guardianlinkinvitation_parent_email_idx"),
-                    models.Index(fields=["student_id"], name="portal_guardianlinkinvitation_student_id_idx"),
+                    models.Index(
+                        fields=["token"], name="portal_guardianlinkinvitation_token_idx"
+                    ),
+                    models.Index(
+                        fields=["parent_email"],
+                        name="portal_guardianlinkinvitation_parent_email_idx",
+                    ),
+                    models.Index(
+                        fields=["student_id"],
+                        name="portal_guardianlinkinvitation_student_id_idx",
+                    ),
                 ],
             },
         ),
         migrations.CreateModel(
             name="ParentStudentLink",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("parent_id", models.IntegerField()),
                 ("student_id", models.IntegerField()),
                 ("relationship", models.CharField(default="parent", max_length=20)),
@@ -50,15 +73,29 @@ class Migration(migrations.Migration):
                 "ordering": ["-linked_at"],
                 "unique_together": {("parent_id", "student_id")},
                 "indexes": [
-                    models.Index(fields=["parent_id", "student_id"], name="portal_parentstudentlink_parent_student_idx"),
-                    models.Index(fields=["parent_id"], name="portal_parentstudentlink_parent_id_idx"),
+                    models.Index(
+                        fields=["parent_id", "student_id"],
+                        name="portal_parentstudentlink_parent_student_idx",
+                    ),
+                    models.Index(
+                        fields=["parent_id"],
+                        name="portal_parentstudentlink_parent_id_idx",
+                    ),
                 ],
             },
         ),
         migrations.CreateModel(
             name="PortalNotification",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("parent_id", models.IntegerField()),
                 ("student_id", models.IntegerField()),
                 ("notification_type", models.CharField(max_length=20)),
@@ -72,16 +109,37 @@ class Migration(migrations.Migration):
             options={
                 "ordering": ["-created_at"],
                 "indexes": [
-                    models.Index(fields=["parent_id", "is_read"], name="portal_portalnotification_parent_read_idx"),
-                    models.Index(fields=["student_id"], name="portal_portalnotification_student_id_idx"),
+                    models.Index(
+                        fields=["parent_id", "is_read"],
+                        name="portal_portalnotification_parent_read_idx",
+                    ),
+                    models.Index(
+                        fields=["student_id"],
+                        name="portal_portalnotification_student_id_idx",
+                    ),
                 ],
             },
         ),
         migrations.CreateModel(
             name="PortalPreferences",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("parent_id", models.OneToOneField(on_delete=models.CASCADE, related_name="portal_prefs", to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "parent_id",
+                    models.OneToOneField(
+                        on_delete=models.CASCADE,
+                        related_name="portal_prefs",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
                 ("notification_email", models.BooleanField(default=True)),
                 ("notification_sms", models.BooleanField(default=False)),
                 ("language", models.CharField(default="en", max_length=10)),
@@ -97,7 +155,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ParentMessage",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("sender_id", models.IntegerField()),
                 ("recipient_id", models.IntegerField()),
                 ("subject", models.CharField(max_length=200)),
@@ -105,19 +171,38 @@ class Migration(migrations.Migration):
                 ("status", models.CharField(default="sent", max_length=20)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("read_at", models.DateTimeField(blank=True, null=True)),
-                ("reply_to", models.ForeignKey(blank=True, null=True, on_delete=models.SET_NULL, to="portal.parentmessage")),
+                (
+                    "reply_to",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=models.SET_NULL,
+                        to="portal.parentmessage",
+                    ),
+                ),
             ],
             options={
                 "ordering": ["-created_at"],
                 "indexes": [
-                    models.Index(fields=["recipient_id", "status"], name="portal_parentmessage_recipient_status_idx"),
+                    models.Index(
+                        fields=["recipient_id", "status"],
+                        name="portal_parentmessage_recipient_status_idx",
+                    ),
                 ],
             },
         ),
         migrations.CreateModel(
             name="PortalFeatureAccess",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("parent_id", models.IntegerField()),
                 ("feature", models.CharField(max_length=50)),
                 ("is_enabled", models.BooleanField(default=True)),
@@ -131,7 +216,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PortalSession",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("parent_id", models.IntegerField()),
                 ("session_token", models.CharField(max_length=255, unique=True)),
                 ("ip_address", models.GenericIPAddressField()),
@@ -145,15 +238,29 @@ class Migration(migrations.Migration):
             options={
                 "ordering": ["-login_at"],
                 "indexes": [
-                    models.Index(fields=["parent_id", "is_active"], name="portal_portalsession_parent_active_idx"),
-                    models.Index(fields=["session_token"], name="portal_portalsession_session_token_idx"),
+                    models.Index(
+                        fields=["parent_id", "is_active"],
+                        name="portal_portalsession_parent_active_idx",
+                    ),
+                    models.Index(
+                        fields=["session_token"],
+                        name="portal_portalsession_session_token_idx",
+                    ),
                 ],
             },
         ),
         migrations.CreateModel(
             name="PortalAuditLog",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("parent_id", models.IntegerField()),
                 ("action", models.CharField(max_length=50)),
                 ("description", models.TextField()),
@@ -165,8 +272,13 @@ class Migration(migrations.Migration):
             options={
                 "ordering": ["-timestamp"],
                 "indexes": [
-                    models.Index(fields=["parent_id", "action"], name="portal_portalauditlog_parent_action_idx"),
-                    models.Index(fields=["timestamp"], name="portal_portalauditlog_timestamp_idx"),
+                    models.Index(
+                        fields=["parent_id", "action"],
+                        name="portal_portalauditlog_parent_action_idx",
+                    ),
+                    models.Index(
+                        fields=["timestamp"], name="portal_portalauditlog_timestamp_idx"
+                    ),
                 ],
             },
         ),

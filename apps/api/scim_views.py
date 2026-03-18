@@ -26,7 +26,9 @@ SCIM_PATCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp"
 SCIM_MUTATION_CONTENT_TYPES = {"application/json", "application/scim+json"}
 SCIM_RATE_LIMIT_WINDOW = 60 * 15
 SCIM_RATE_LIMIT_MAX = 240
-SCIM_REPLAY_WINDOW_SECONDS = 60 * 5  # 5 min (public_endpoint_audit §6 — optional replay hardening)
+SCIM_REPLAY_WINDOW_SECONDS = (
+    60 * 5
+)  # 5 min (public_endpoint_audit §6 — optional replay hardening)
 logger = logging.getLogger(__name__)
 
 
@@ -67,10 +69,9 @@ def _resolve_school(request: HttpRequest):
     school = getattr(request, "school", None)
     if school:
         return school
-    school_slug = (
-        (request.GET.get("school_slug") or "").strip()
-        or (request.headers.get("X-School-Slug") or "").strip()
-    )
+    school_slug = (request.GET.get("school_slug") or "").strip() or (
+        request.headers.get("X-School-Slug") or ""
+    ).strip()
     if not school_slug:
         return None
     return School.objects.filter(slug=school_slug, is_active=True).first()
@@ -108,7 +109,10 @@ def _scim_replay_check(request: HttpRequest) -> JsonResponse | None:
         return _scim_error("Invalid X-SCIM-Timestamp", status=401)
     now = int(time.time())
     if abs(now - ts) > SCIM_REPLAY_WINDOW_SECONDS:
-        logger.warning("SCIM request rejected: timestamp outside replay window", extra={"path": request.path})
+        logger.warning(
+            "SCIM request rejected: timestamp outside replay window",
+            extra={"path": request.path},
+        )
         return _scim_error("Request timestamp outside allowed window", status=401)
     return None
 
@@ -122,7 +126,11 @@ def _authorize_scim_request(request: HttpRequest):
         return None, None, _scim_error("School context required", status=400)
     integration = _resolve_scim_integration(school)
     if not integration:
-        return None, None, _scim_error("SCIM integration not configured for school", status=503)
+        return (
+            None,
+            None,
+            _scim_error("SCIM integration not configured for school", status=503),
+        )
     expected = (
         str((integration.config or {}).get("bearer_token") or "").strip()
         or str(integration.client_secret or "").strip()
@@ -171,7 +179,14 @@ def _log_scim_rejection(
     )
 
 
-def _log_scim_mutation(request: HttpRequest, *, school, resource: str, action: str, resource_id: str | None = None):
+def _log_scim_mutation(
+    request: HttpRequest,
+    *,
+    school,
+    resource: str,
+    action: str,
+    resource_id: str | None = None,
+):
     logger.info(
         "SCIM mutation processed",
         extra={
@@ -185,8 +200,18 @@ def _log_scim_mutation(request: HttpRequest, *, school, resource: str, action: s
     )
 
 
-def _resolve_scim_mutation_body(request: HttpRequest, *, school, resource: str) -> tuple[dict[str, Any] | None, JsonResponse | None]:
-    content_type = ((request.content_type or request.META.get("CONTENT_TYPE") or "").split(";", 1)[0]).strip().lower()
+def _resolve_scim_mutation_body(
+    request: HttpRequest, *, school, resource: str
+) -> tuple[dict[str, Any] | None, JsonResponse | None]:
+    content_type = (
+        (
+            (request.content_type or request.META.get("CONTENT_TYPE") or "").split(
+                ";", 1
+            )[0]
+        )
+        .strip()
+        .lower()
+    )
     if content_type not in SCIM_MUTATION_CONTENT_TYPES:
         _log_scim_rejection(
             request,
@@ -195,7 +220,9 @@ def _resolve_scim_mutation_body(request: HttpRequest, *, school, resource: str) 
             reason="unsupported_content_type",
             status=415,
         )
-        return None, _scim_error("Content-Type must be application/scim+json or application/json", status=415)
+        return None, _scim_error(
+            "Content-Type must be application/scim+json or application/json", status=415
+        )
     body = _json_body(request)
     if body is None:
         _log_scim_rejection(
@@ -205,7 +232,9 @@ def _resolve_scim_mutation_body(request: HttpRequest, *, school, resource: str) 
             reason="invalid_json",
             status=400,
         )
-        return None, _scim_error("Invalid JSON body", status=400, scim_type="invalidSyntax")
+        return None, _scim_error(
+            "Invalid JSON body", status=400, scim_type="invalidSyntax"
+        )
     return body, None
 
 
@@ -251,10 +280,17 @@ def _user_scim_payload(user: User, school) -> dict[str, Any]:
     }
 
 
-def _list_response(resources: list[dict[str, Any]], *, start_index: int = 1, total_results: int | None = None):
+def _list_response(
+    resources: list[dict[str, Any]],
+    *,
+    start_index: int = 1,
+    total_results: int | None = None,
+):
     payload = {
         "schemas": [SCIM_LIST_SCHEMA],
-        "totalResults": int(total_results if total_results is not None else len(resources)),
+        "totalResults": int(
+            total_results if total_results is not None else len(resources)
+        ),
         "startIndex": int(start_index),
         "itemsPerPage": len(resources),
         "Resources": resources,
@@ -278,7 +314,7 @@ def _parse_filter_username(filter_expr: str) -> str:
     if not raw:
         return ""
     lowered = raw.lower()
-    marker = ' eq '
+    marker = " eq "
     if marker not in lowered:
         return ""
     lhs, rhs = raw.split(marker, 1)
@@ -345,7 +381,11 @@ def scim_users(request: HttpRequest):
         )
         filter_username = _parse_filter_username(request.GET.get("filter") or "")
 
-        memberships = SchoolMembership.objects.filter(school=school).select_related("user").order_by("user_id")
+        memberships = (
+            SchoolMembership.objects.filter(school=school)
+            .select_related("user")
+            .order_by("user_id")
+        )
         if filter_username:
             memberships = memberships.filter(
                 Q(user__username__iexact=filter_username)
@@ -355,11 +395,15 @@ def scim_users(request: HttpRequest):
         if count == 0:
             memberships = memberships.none()
         else:
-            memberships = memberships[(start_index - 1):(start_index - 1 + count)]
+            memberships = memberships[(start_index - 1) : (start_index - 1 + count)]
         resources = [_user_scim_payload(m.user, school) for m in memberships]
-        return _list_response(resources, start_index=start_index, total_results=total_results)
+        return _list_response(
+            resources, start_index=start_index, total_results=total_results
+        )
 
-    body, error_response = _resolve_scim_mutation_body(request, school=school, resource="user")
+    body, error_response = _resolve_scim_mutation_body(
+        request, school=school, resource="user"
+    )
     if error_response:
         return error_response
     schema_error = _require_scim_schema(
@@ -396,7 +440,11 @@ def scim_users(request: HttpRequest):
                 email = str(item.get("value")).strip().lower()
                 break
 
-    default_role = str((integration.config or {}).get("default_role") or User.Role.PARENT).strip().upper()
+    default_role = (
+        str((integration.config or {}).get("default_role") or User.Role.PARENT)
+        .strip()
+        .upper()
+    )
     valid_roles = {choice[0] for choice in User.Role.choices}
     if default_role not in valid_roles:
         default_role = User.Role.PARENT
@@ -447,12 +495,16 @@ def scim_user_detail(request: HttpRequest, user_id: str):
     rl = _scim_rate_limited(request, "user_detail")
     if rl:
         return rl
-    school, _, err = _authorize_scim_request(request)
+    school, integration, err = _authorize_scim_request(request)
     if err:
         return err
     _log_scim_request(request, resource="users")
 
-    membership = SchoolMembership.objects.filter(school=school, user_id=user_id).select_related("user").first()
+    membership = (
+        SchoolMembership.objects.filter(school=school, user_id=user_id)
+        .select_related("user")
+        .first()
+    )
     if not membership:
         return _scim_error("User not found for this school", status=404)
     user = membership.user
@@ -461,12 +513,31 @@ def scim_user_detail(request: HttpRequest, user_id: str):
         return JsonResponse(_user_scim_payload(user, school), status=200)
 
     if request.method == "DELETE":
-        user.is_active = False
-        user.save(update_fields=["is_active"])
-        _log_scim_mutation(request, school=school, resource="user", action="delete", resource_id=str(user.pk))
+        cfg = (integration.config or {}) if integration else {}
+        if cfg.get("scim_hard_delete_membership"):
+            membership.delete()
+            _log_scim_mutation(
+                request,
+                school=school,
+                resource="user",
+                action="delete_hard",
+                resource_id=str(user.pk),
+            )
+        else:
+            user.is_active = False
+            user.save(update_fields=["is_active"])
+            _log_scim_mutation(
+                request,
+                school=school,
+                resource="user",
+                action="delete",
+                resource_id=str(user.pk),
+            )
         return HttpResponse(status=204)
 
-    body, error_response = _resolve_scim_mutation_body(request, school=school, resource="user")
+    body, error_response = _resolve_scim_mutation_body(
+        request, school=school, resource="user"
+    )
     if error_response:
         return error_response
     if request.method == "PUT":
@@ -484,8 +555,16 @@ def scim_user_detail(request: HttpRequest, user_id: str):
         user.last_name = str(name.get("familyName") or user.last_name).strip()
         user.email = email
         user.is_active = bool(body.get("active", user.is_active))
-        user.save(update_fields=["username", "first_name", "last_name", "email", "is_active"])
-        _log_scim_mutation(request, school=school, resource="user", action="put", resource_id=str(user.pk))
+        user.save(
+            update_fields=["username", "first_name", "last_name", "email", "is_active"]
+        )
+        _log_scim_mutation(
+            request,
+            school=school,
+            resource="user",
+            action="put",
+            resource_id=str(user.pk),
+        )
         return JsonResponse(_user_scim_payload(user, school), status=200)
 
     # PATCH
@@ -498,7 +577,9 @@ def scim_user_detail(request: HttpRequest, user_id: str):
             reason="missing_patch_schema",
             status=400,
         )
-        return _scim_error("PATCH must declare PatchOp schema", status=400, scim_type="invalidSyntax")
+        return _scim_error(
+            "PATCH must declare PatchOp schema", status=400, scim_type="invalidSyntax"
+        )
     for op in body.get("Operations") or []:
         if not isinstance(op, dict):
             continue
@@ -507,7 +588,10 @@ def scim_user_detail(request: HttpRequest, user_id: str):
         value = op.get("value")
         if operation in {"replace", "add"} and path in {"active", "user.active"}:
             user.is_active = bool(value)
-        elif operation in {"replace", "add"} and path in {"username", "userName".lower()}:
+        elif operation in {"replace", "add"} and path in {
+            "username",
+            "userName".lower(),
+        }:
             if str(value or "").strip():
                 user.username = str(value).strip()
         elif operation in {"replace", "add"} and path in {"name.givenname"}:
@@ -521,8 +605,16 @@ def scim_user_detail(request: HttpRequest, user_id: str):
                     user.email = str(first.get("value")).strip().lower()
             elif str(value or "").strip():
                 user.email = str(value).strip().lower()
-    user.save(update_fields=["username", "first_name", "last_name", "email", "is_active"])
-    _log_scim_mutation(request, school=school, resource="user", action="patch", resource_id=str(user.pk))
+    user.save(
+        update_fields=["username", "first_name", "last_name", "email", "is_active"]
+    )
+    _log_scim_mutation(
+        request,
+        school=school,
+        resource="user",
+        action="patch",
+        resource_id=str(user.pk),
+    )
     return JsonResponse(_user_scim_payload(user, school), status=200)
 
 
@@ -538,18 +630,68 @@ def _group_payload(role: AccessRole, school) -> dict[str, Any]:
     }
 
 
-@require_http_methods(["GET"])
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
 def scim_groups(request: HttpRequest):
     rl = _scim_rate_limited(request, "groups")
     if rl:
         return rl
-    school, _, err = _authorize_scim_request(request)
+    school, integration, err = _authorize_scim_request(request)
     if err:
         return err
     _log_scim_request(request, resource="groups")
-    roles = AccessRole.objects.order_by("code")
-    resources = [_group_payload(role, school) for role in roles]
-    return _list_response(resources)
+
+    if request.method == "GET":
+        roles = AccessRole.objects.order_by("code")
+        resources = [_group_payload(role, school) for role in roles]
+        return _list_response(resources)
+
+    body, error_response = _resolve_scim_mutation_body(
+        request, school=school, resource="group"
+    )
+    if error_response:
+        return error_response
+    schema_err = _require_scim_schema(
+        request,
+        school=school,
+        resource="group",
+        body=body,
+        required_schema=SCIM_GROUP_SCHEMA,
+        rejection_reason="missing_group_schema",
+        detail="Group create must declare core Group schema",
+    )
+    if schema_err:
+        return schema_err
+    display_name = str(body.get("displayName") or "").strip()
+    if not display_name:
+        return _scim_error(
+            "displayName is required", status=400, scim_type="invalidValue"
+        )
+    import re
+
+    slug = (
+        re.sub(r"[^A-Za-z0-9_]+", "_", display_name).strip("_").upper()[:48] or "GROUP"
+    )
+    sid = str(school.pk).replace("-", "")[:10]
+    code_base = f"SCIM_{sid}_{slug}"[:118]
+    code = code_base
+    suffix = 0
+    while AccessRole.objects.filter(code=code).exists():
+        suffix += 1
+        code = f"{code_base}_{suffix}"[:120]
+    role = AccessRole.objects.create(
+        code=code,
+        name=display_name[:200],
+        description="SCIM-provisioned group",
+    )
+    _log_scim_mutation(
+        request,
+        school=school,
+        resource="group",
+        action="create",
+        resource_id=str(role.pk),
+    )
+    return JsonResponse(_group_payload(role, school), status=201)
 
 
 @csrf_exempt
@@ -569,7 +711,9 @@ def scim_group_detail(request: HttpRequest, group_id: str):
     if request.method == "GET":
         return JsonResponse(_group_payload(role, school), status=200)
 
-    body, error_response = _resolve_scim_mutation_body(request, school=school, resource="group")
+    body, error_response = _resolve_scim_mutation_body(
+        request, school=school, resource="group"
+    )
     if error_response:
         return error_response
     schemas = body.get("schemas") or []
@@ -581,7 +725,9 @@ def scim_group_detail(request: HttpRequest, group_id: str):
             reason="missing_patch_schema",
             status=400,
         )
-        return _scim_error("PATCH must declare PatchOp schema", status=400, scim_type="invalidSyntax")
+        return _scim_error(
+            "PATCH must declare PatchOp schema", status=400, scim_type="invalidSyntax"
+        )
 
     for op in body.get("Operations") or []:
         if not isinstance(op, dict):
@@ -598,7 +744,11 @@ def scim_group_detail(request: HttpRequest, group_id: str):
             user_id = str(item.get("value") or "").strip()
             if not user_id:
                 continue
-            membership = SchoolMembership.objects.filter(school=school, user_id=user_id).select_related("user").first()
+            membership = (
+                SchoolMembership.objects.filter(school=school, user_id=user_id)
+                .select_related("user")
+                .first()
+            )
             if not membership:
                 continue
             if operation == "add":
@@ -606,5 +756,11 @@ def scim_group_detail(request: HttpRequest, group_id: str):
             elif operation == "remove":
                 membership.user.roles.remove(role)
 
-    _log_scim_mutation(request, school=school, resource="group", action="patch", resource_id=str(role.pk))
+    _log_scim_mutation(
+        request,
+        school=school,
+        resource="group",
+        action="patch",
+        resource_id=str(role.pk),
+    )
     return JsonResponse(_group_payload(role, school), status=200)

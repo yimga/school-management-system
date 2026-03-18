@@ -5,6 +5,7 @@ Verification for RUNMYCAMPUS §12 and BACKLOG §6.3. Catalog counts must meet
 MARKETPLACE_SEED_TARGETS minimums so the marketplace is product-grade (not optional).
 Run in pre_deploy_gate so the gate is mechanically enforced.
 """
+
 from django.core.management import call_command
 from django.test import TestCase
 
@@ -54,4 +55,6 @@ class MarketplaceCatalogMinimumsTests(TestCase):
         call_command("seed_workflow_dashboard_packs", verbosity=0)
         counts = get_platform_catalog_counts()
         ok, errors = satisfies_marketplace_minimums(counts)
-        self.assertTrue(ok, "Idempotent seed run must still meet minimums: " + "; ".join(errors))
+        self.assertTrue(
+            ok, "Idempotent seed run must still meet minimums: " + "; ".join(errors)
+        )

@@ -1,6 +1,7 @@
 """
 AfricasTalking SMS adapter. No direct AfricasTalking usage outside this module.
 """
+
 from __future__ import annotations
 
 import logging
@@ -41,9 +42,14 @@ class AfricasTalkingSMSProvider(SMSProvider):
         api_key = getattr(self.site_settings, "sms_api_key", None)
         if not api_key:
             return SMSResult(ok=False, error="AfricasTalking api_key not set")
-        from_ = sender_id or getattr(self.site_settings, "sms_sender_id", None) or "RUNMYCAMPUS"
+        from_ = (
+            sender_id
+            or getattr(self.site_settings, "sms_sender_id", None)
+            or "RUNMYCAMPUS"
+        )
         try:
             import africastalking
+
             at = africastalking.SMS(api_key=api_key)
             response = at.send(body, [to_phone], sender_id=from_ or None)
             msg_id = None

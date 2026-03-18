@@ -4,11 +4,12 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0010_add_file_upload_and_signatures'),
-        ('portal', '0011_rename_portal_guardianlinkinvitation_token_idx_portal_guar_token_0dc710_idx_and_more'),
+        ("portal", "0010_add_file_upload_and_signatures"),
+        (
+            "portal",
+            "0011_rename_portal_guardianlinkinvitation_token_idx_portal_guar_token_0dc710_idx_and_more",
+        ),
     ]
 
-    operations = [
-    ]
+    operations = []

@@ -1,6 +1,7 @@
 """
 Tests for backend-only navigation: is_backend_context and sidebar items when in backend.
 """
+
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -36,7 +37,10 @@ class BackendContextProcessorTests(TestCase):
     def test_is_backend_context_true_for_backend_root(self):
         request = self._request("/backend/")
         ctx = site_settings(request)
-        self.assertTrue(ctx["is_backend_context"], "path /backend/ should set is_backend_context True")
+        self.assertTrue(
+            ctx["is_backend_context"],
+            "path /backend/ should set is_backend_context True",
+        )
 
     def test_is_backend_context_true_for_authentication_backend(self):
         request = self._request("/authentication/backend/")
@@ -57,12 +61,18 @@ class BackendContextProcessorTests(TestCase):
     def test_is_backend_context_false_for_portal(self):
         request = self._request("/portal/")
         ctx = site_settings(request)
-        self.assertFalse(ctx["is_backend_context"], "path /portal/ should set is_backend_context False")
+        self.assertFalse(
+            ctx["is_backend_context"],
+            "path /portal/ should set is_backend_context False",
+        )
 
     def test_is_backend_context_false_for_admin(self):
         request = self._request("/admin/")
         ctx = site_settings(request)
-        self.assertFalse(ctx["is_backend_context"], "path /admin/ should set is_backend_context False")
+        self.assertFalse(
+            ctx["is_backend_context"],
+            "path /admin/ should set is_backend_context False",
+        )
 
 
 class BackendSidebarItemsTests(TestCase):
@@ -88,21 +98,38 @@ class BackendSidebarItemsTests(TestCase):
         ids = [it["id"] for it in items]
         self.assertNotIn("guardians", ids, "In backend, guardians should not appear")
         self.assertNotIn("groups", ids, "In backend, groups should not appear")
-        self.assertNotIn("site_settings", ids, "In backend, site_settings should not appear")
-        self.assertNotIn("region_config", ids, "In backend, region_config should not appear")
+        self.assertNotIn(
+            "site_settings", ids, "In backend, site_settings should not appear"
+        )
+        self.assertNotIn(
+            "region_config", ids, "In backend, region_config should not appear"
+        )
 
     def test_in_backend_superuser_has_configuration_engine(self):
         items = self._items_for_path("/authentication/backend/", self.superuser)
         ids = [it["id"] for it in items]
-        self.assertIn("admin_panel", ids, "In backend, Configuration Engine (admin_panel) should appear for superuser")
+        self.assertIn(
+            "admin_panel",
+            ids,
+            "In backend, Configuration Engine (admin_panel) should appear for superuser",
+        )
         admin_item = next(it for it in items if it["id"] == "admin_panel")
-        self.assertIn("/admin/", admin_item["url"], "Configuration Engine should link to /admin/")
+        # Bounded console is canonical for superuser (RUNMYCAMPUS Phase B); Django admin remains reachable from there.
+        url = admin_item["url"]
+        self.assertTrue(
+            "/siteconfig/console/" in url or "/admin/" in url,
+            f"Configuration Engine should link to bounded console or admin; got {url!r}",
+        )
 
     def test_in_backend_students_point_to_backend_when_present(self):
         items = self._items_for_path("/authentication/backend/", self.superuser)
         students_item = next((it for it in items if it["id"] == "students"), None)
         if students_item is not None:
-            self.assertIn("backend", students_item["url"], "Students should link to backend (not admin)")
+            self.assertIn(
+                "backend",
+                students_item["url"],
+                "Students should link to backend (not admin)",
+            )
 
     def test_not_in_backend_superuser_has_guardians_and_site_settings(self):
         items = self._items_for_path("/portal/", self.superuser)
@@ -111,7 +138,9 @@ class BackendSidebarItemsTests(TestCase):
             "guardians_backend" in ids or "guardians" in ids,
             "Outside backend, superuser should see a guardians management destination",
         )
-        self.assertIn("site_settings", ids, "Outside backend, superuser should see site_settings")
+        self.assertIn(
+            "site_settings", ids, "Outside backend, superuser should see site_settings"
+        )
 
 
 class DashboardExtrasTests(TestCase):
@@ -155,7 +184,9 @@ class DashboardExtrasTests(TestCase):
         self.assertEqual(extras["role_home_primary_action"]["label"], "Setup Studio")
         self.assertTrue(extras["contextual_actions"])
         self.assertEqual(extras["contextual_actions"][0]["id"], "setup_studio")
-        self.assertEqual(extras["dashboard_next_best_actions"][0]["label"], "Setup Studio")
+        self.assertEqual(
+            extras["dashboard_next_best_actions"][0]["label"], "Setup Studio"
+        )
 
     def test_finance_role_home_promotes_finance_console(self):
         from apps.dashboard.context import build_dashboard_extras
@@ -191,7 +222,9 @@ class DashboardExtrasTests(TestCase):
         extras = build_dashboard_extras(request, base=base)
 
         self.assertEqual(extras["role_home"]["key"], "finance")
-        self.assertEqual(extras["role_home_primary_action"]["label"], "Review collections")
+        self.assertEqual(
+            extras["role_home_primary_action"]["label"], "Review collections"
+        )
 
 
 class RecommendationServiceTests(TestCase):

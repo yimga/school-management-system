@@ -1,5 +1,7 @@
 # Phases 1–255 — Master Index
 
+> **Non-authoritative batch index.** Use SOT §11 for execution; this file links phase batches only.
+
 **Purpose:** Reference index of phase batch docs (1–255). **All status and "what's left" tracking lives in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4;** use that file first. This index is for batch-level links only. Authority: SOT, [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md). **Stock take:** [PLAN_AND_BACKLOG_STOCK_TAKE.md](PLAN_AND_BACKLOG_STOCK_TAKE.md).
 
 ---

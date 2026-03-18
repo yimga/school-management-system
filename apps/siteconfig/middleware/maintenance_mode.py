@@ -7,7 +7,14 @@ from apps.siteconfig.cache_utils import tenant_cache_key
 
 CACHE_KEY = "site_settings_v1"
 CACHE_TTL = 60
-OPTIONAL_CACHE_ERRORS = (AttributeError, DatabaseError, OSError, RuntimeError, TypeError, ValueError)
+OPTIONAL_CACHE_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 class MaintenanceModeMiddleware:
@@ -65,7 +72,11 @@ class MaintenanceModeMiddleware:
 
         # request.user may not exist if AuthenticationMiddleware isn't loaded yet
         user = getattr(request, "user", None)
-        if user and getattr(user, "is_authenticated", False) and getattr(user, "is_superuser", False):
+        if (
+            user
+            and getattr(user, "is_authenticated", False)
+            and getattr(user, "is_superuser", False)
+        ):
             return self.get_response(request)
 
         if self._is_maintenance_enabled(request):

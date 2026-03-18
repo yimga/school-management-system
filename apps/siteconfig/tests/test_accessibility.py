@@ -1,6 +1,7 @@
 """
 Phase 7 Task 3: Accessibility testing and WCAG compliance checking
 """
+
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -18,9 +19,7 @@ class AccessibilityTestCase(TestCase):
         """Set up test client and test user."""
         self.client = Client()
         self.test_user = User.objects.create_user(
-            username="testuser",
-            password="test123",
-            role="TEACHER"
+            username="testuser", password="test123", role="TEACHER"
         )
 
     def check_wcag_html_structure(self, html):
@@ -29,43 +28,44 @@ class AccessibilityTestCase(TestCase):
         Returns dict with compliance status and issues found.
         """
         issues = {
-            'missing_lang': False,
-            'missing_alt_text': [],
-            'missing_form_labels': [],
-            'missing_headings': False,
-            'low_contrast': False,
-            'missing_skip_links': False,
-            'missing_aria_labels': [],
+            "missing_lang": False,
+            "missing_alt_text": [],
+            "missing_form_labels": [],
+            "missing_headings": False,
+            "low_contrast": False,
+            "missing_skip_links": False,
+            "missing_aria_labels": [],
         }
 
         # Check for lang attribute
-        if '<html' in html and 'lang=' not in html[:200]:
-            issues['missing_lang'] = True
+        if "<html" in html and "lang=" not in html[:200]:
+            issues["missing_lang"] = True
 
         # Check for alt text on images
         import re
-        img_tags = re.findall(r'<img[^>]*>', html)
+
+        img_tags = re.findall(r"<img[^>]*>", html)
         for img in img_tags:
-            if 'alt=' not in img:
-                issues['missing_alt_text'].append(img[:50])
+            if "alt=" not in img:
+                issues["missing_alt_text"].append(img[:50])
 
         # Check for form labels
-        if '<input' in html or '<textarea' in html:
-            inputs = re.findall(r'<(?:input|textarea)[^>]*>', html)
-            labels = re.findall(r'<label[^>]*>', html)
+        if "<input" in html or "<textarea" in html:
+            inputs = re.findall(r"<(?:input|textarea)[^>]*>", html)
+            labels = re.findall(r"<label[^>]*>", html)
             if len(inputs) > len(labels):
-                issues['missing_form_labels'].append(
+                issues["missing_form_labels"].append(
                     f"Found {len(inputs)} inputs but only {len(labels)} labels"
                 )
 
         # Check for heading structure
-        headings = re.findall(r'<h[1-6]', html)
+        headings = re.findall(r"<h[1-6]", html)
         if not headings:
-            issues['missing_headings'] = True
+            issues["missing_headings"] = True
 
         # Check for skip links
-        if '<a href="#main' not in html and 'skip' not in html.lower():
-            issues['missing_skip_links'] = True
+        if '<a href="#main' not in html and "skip" not in html.lower():
+            issues["missing_skip_links"] = True
 
         return issues
 
@@ -82,6 +82,7 @@ class PortalAccessibilityTest(AccessibilityTestCase):
             issues = self.check_wcag_html_structure(response.content.decode())
             # Warnings for audit; use logging so CI stdout stays clean.
             import logging
+
             logging.getLogger(__name__).debug("Portal dashboard WCAG check: %s", issues)
 
     def test_grades_page_accessibility(self):
@@ -98,19 +99,18 @@ class AdminAccessibilityTest(AccessibilityTestCase):
         """Set up test admin user."""
         super().setUp()
         self.admin_user = User.objects.create_superuser(
-            username="admin",
-            email="admin@test.com",
-            password="admin123"
+            username="admin", email="admin@test.com", password="admin123"
         )
 
     def test_admin_dashboard_wcag(self):
         """Test admin dashboard HTML structure."""
         self.client.login(username="admin", password="admin123")
-        response = self.client.get('/admin/')
-        
+        response = self.client.get("/admin/")
+
         if response.status_code == 200:
             issues = self.check_wcag_html_structure(response.content.decode())
             import logging
+
             logging.getLogger(__name__).debug("Admin dashboard WCAG check: %s", issues)
 
 
@@ -122,13 +122,15 @@ class ColorContrastTest(TestCase):
         if not rgb_string:
             return None
         import re
-        match = re.search(r'rgba?\((\d+),\s*(\d+),\s*(\d+)', rgb_string)
+
+        match = re.search(r"rgba?\((\d+),\s*(\d+),\s*(\d+)", rgb_string)
         if match:
             return tuple(int(x) for x in match.groups())
         return None
 
     def calculate_luminance(self, r, g, b):
         """Calculate relative luminance per WCAG spec."""
+
         def adjust(c):
             c = c / 255.0
             if c <= 0.03928:

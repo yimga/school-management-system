@@ -15,14 +15,21 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from apps.compliance.models_audit import AuditLog, AccessLog, UserActivitySession, ComplianceReport
+from apps.compliance.models_audit import (
+    AuditLog,
+    AccessLog,
+    UserActivitySession,
+    ComplianceReport,
+)
 
 
 class Command(BaseCommand):
     help = "Purge compliance data according to retention policy"
 
     def add_arguments(self, parser):
-        parser.add_argument("--dry-run", action="store_true", help="Show counts only, do not delete")
+        parser.add_argument(
+            "--dry-run", action="store_true", help="Show counts only, do not delete"
+        )
         parser.add_argument(
             "--region",
             type=str,
@@ -46,7 +53,9 @@ class Command(BaseCommand):
         for model, field_name, key in targets:
             days = int(retention.get(prefix + key, retention.get(key, 0)))
             if days <= 0:
-                self.stdout.write(self.style.WARNING(f"Skipping {model.__name__}: retention disabled"))
+                self.stdout.write(
+                    self.style.WARNING(f"Skipping {model.__name__}: retention disabled")
+                )
                 continue
 
             cutoff = now - timedelta(days=days)
@@ -54,9 +63,15 @@ class Command(BaseCommand):
 
             count = qs.count()
             if options["dry_run"]:
-                self.stdout.write(f"{model.__name__}: would delete {count} records older than {days} days")
+                self.stdout.write(
+                    f"{model.__name__}: would delete {count} records older than {days} days"
+                )
             else:
                 deleted, _ = qs.delete()
-                self.stdout.write(self.style.SUCCESS(f"{model.__name__}: deleted {deleted} records older than {days} days"))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"{model.__name__}: deleted {deleted} records older than {days} days"
+                    )
+                )
 
         self.stdout.write(self.style.SUCCESS("Purge complete"))

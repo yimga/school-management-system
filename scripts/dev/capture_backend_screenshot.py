@@ -87,10 +87,16 @@ def main() -> int:
         driver.get(LOGIN_URL)
         (OUT_DIR / "debug").mkdir(parents=True, exist_ok=True)
         driver.save_screenshot(str(OUT_DIR / "debug" / "01-login-page.png"))
-        wait.until(EC.presence_of_element_located((By.NAME, "username"))).send_keys(USER)
-        wait.until(EC.presence_of_element_located((By.NAME, "password"))).send_keys(PASSWORD)
+        wait.until(EC.presence_of_element_located((By.NAME, "username"))).send_keys(
+            USER
+        )
+        wait.until(EC.presence_of_element_located((By.NAME, "password"))).send_keys(
+            PASSWORD
+        )
         wait.until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit'], input[type='submit']"))
+            EC.element_to_be_clickable(
+                (By.CSS_SELECTOR, "button[type='submit'], input[type='submit']")
+            )
         ).click()
         print("Stage: submitted login")
         time.sleep(1.0)
@@ -109,11 +115,15 @@ def main() -> int:
             radios = driver.find_elements(By.CSS_SELECTOR, "input[type='radio']")
             if radios:
                 radios[0].click()
-            picker_submit = driver.find_elements(By.CSS_SELECTOR, "button[type='submit'], input[type='submit']")
+            picker_submit = driver.find_elements(
+                By.CSS_SELECTOR, "button[type='submit'], input[type='submit']"
+            )
             if picker_submit:
                 picker_submit[0].click()
             time.sleep(1.0)
-            driver.save_screenshot(str(OUT_DIR / "debug" / "04-after-school-picker.png"))
+            driver.save_screenshot(
+                str(OUT_DIR / "debug" / "04-after-school-picker.png")
+            )
 
         if "/authentication/mfa/" in driver.current_url:
             print("Stage: MFA page detected; redirecting to backend for debug capture")
@@ -123,12 +133,17 @@ def main() -> int:
             driver.get(f"{BASE}/authentication/backend/")
             time.sleep(0.8)
             print(f"After direct backend GET URL: {driver.current_url}")
-            driver.save_screenshot(str(OUT_DIR / "debug" / "05-after-direct-backend.png"))
+            driver.save_screenshot(
+                str(OUT_DIR / "debug" / "05-after-direct-backend.png")
+            )
 
         wait.until(EC.url_contains("/authentication/backend"))
         wait.until(
             EC.presence_of_element_located(
-                (By.CSS_SELECTOR, ".backend-v2-workspace, #dashboard-layout, .backend-v2-panel, .admin-dashboard-grid")
+                (
+                    By.CSS_SELECTOR,
+                    ".backend-v2-workspace, #dashboard-layout, .backend-v2-panel, .admin-dashboard-grid",
+                )
             )
         )
         time.sleep(1.4)
@@ -157,7 +172,9 @@ def main() -> int:
             try:
                 print(f"Timeout URL: {driver.current_url}")
                 driver.save_screenshot(str(OUT_DIR / "debug" / "99-timeout.png"))
-                (OUT_DIR / "debug" / "99-timeout.html").write_text(driver.page_source, encoding="utf-8")
+                (OUT_DIR / "debug" / "99-timeout.html").write_text(
+                    driver.page_source, encoding="utf-8"
+                )
             except Exception:
                 pass
         print(f"Timeout while capturing screenshot: {exc}", file=sys.stderr)

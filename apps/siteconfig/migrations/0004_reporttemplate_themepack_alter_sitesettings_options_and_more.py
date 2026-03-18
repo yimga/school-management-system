@@ -41,10 +41,22 @@ def create_default_themes_and_reports(apps, schema_editor):
     )
 
     reports = [
-        ("students", "Student Register", "Full list of active students and their classrooms."),
-        ("teachers", "Teacher Directory", "List of teachers with payment methods and departments."),
+        (
+            "students",
+            "Student Register",
+            "Full list of active students and their classrooms.",
+        ),
+        (
+            "teachers",
+            "Teacher Directory",
+            "List of teachers with payment methods and departments.",
+        ),
         ("subjects", "Subject Catalog", "Available subjects and their categories."),
-        ("fee_payments", "Fee Payments", "Who paid school fees and the payment method used."),
+        (
+            "fee_payments",
+            "Fee Payments",
+            "Who paid school fees and the payment method used.",
+        ),
     ]
 
     for slug, name, description in reports:
@@ -60,121 +72,221 @@ def create_default_themes_and_reports(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0003_sitesettings_compliance_profile'),
+        ("siteconfig", "0003_sitesettings_compliance_profile"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ReportTemplate',
+            name="ReportTemplate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('slug', models.SlugField(max_length=80, unique=True)),
-                ('name', models.CharField(max_length=120)),
-                ('description', models.TextField(blank=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('preferred_format', models.CharField(choices=[('CSV', 'CSV'), ('PDF', 'PDF'), ('EXCEL', 'Excel')], default='CSV', max_length=10)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("slug", models.SlugField(max_length=80, unique=True)),
+                ("name", models.CharField(max_length=120)),
+                ("description", models.TextField(blank=True)),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "preferred_format",
+                    models.CharField(
+                        choices=[("CSV", "CSV"), ("PDF", "PDF"), ("EXCEL", "Excel")],
+                        default="CSV",
+                        max_length=10,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='ThemePack',
+            name="ThemePack",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('slug', models.SlugField(max_length=120, unique=True)),
-                ('description', models.TextField(blank=True)),
-                ('primary_color', models.CharField(default='#0d6efd', max_length=20)),
-                ('accent_color', models.CharField(default='#198754', max_length=20)),
-                ('background_color', models.CharField(default='#ffffff', max_length=20)),
-                ('font_family', models.CharField(default='Inter, system-ui, sans-serif', max_length=120)),
-                ('layout', models.CharField(choices=[('STANDARD', 'Standard'), ('WIDE', 'Wide'), ('CARD', 'Card focus'), ('MINIMAL', 'Minimal')], default='STANDARD', max_length=20)),
-                ('custom_css', models.TextField(blank=True)),
-                ('palette', models.JSONField(blank=True, default=dict)),
-                ('is_active', models.BooleanField(default=True)),
-                ('is_default', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("slug", models.SlugField(max_length=120, unique=True)),
+                ("description", models.TextField(blank=True)),
+                ("primary_color", models.CharField(default="#0d6efd", max_length=20)),
+                ("accent_color", models.CharField(default="#198754", max_length=20)),
+                (
+                    "background_color",
+                    models.CharField(default="#ffffff", max_length=20),
+                ),
+                (
+                    "font_family",
+                    models.CharField(
+                        default="Inter, system-ui, sans-serif", max_length=120
+                    ),
+                ),
+                (
+                    "layout",
+                    models.CharField(
+                        choices=[
+                            ("STANDARD", "Standard"),
+                            ("WIDE", "Wide"),
+                            ("CARD", "Card focus"),
+                            ("MINIMAL", "Minimal"),
+                        ],
+                        default="STANDARD",
+                        max_length=20,
+                    ),
+                ),
+                ("custom_css", models.TextField(blank=True)),
+                ("palette", models.JSONField(blank=True, default=dict)),
+                ("is_active", models.BooleanField(default=True)),
+                ("is_default", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.AlterModelOptions(
-            name='sitesettings',
-            options={'verbose_name': 'Site Settings'},
+            name="sitesettings",
+            options={"verbose_name": "Site Settings"},
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='background_image',
-            field=models.ImageField(blank=True, null=True, upload_to='branding/bg/'),
+            model_name="sitesettings",
+            name="background_image",
+            field=models.ImageField(blank=True, null=True, upload_to="branding/bg/"),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='brand_font',
-            field=models.CharField(default='Inter, system-ui, sans-serif', max_length=120),
+            model_name="sitesettings",
+            name="brand_font",
+            field=models.CharField(
+                default="Inter, system-ui, sans-serif", max_length=120
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='custom_css',
+            model_name="sitesettings",
+            name="custom_css",
             field=models.TextField(blank=True),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='default_dashboard_view',
-            field=models.CharField(choices=[('OVERVIEW', 'Overview'), ('FINANCE', 'Finances'), ('ACADEMICS', 'Academics'), ('ATTENDANCE', 'Attendance'), ('CUSTOM', 'Custom')], default='OVERVIEW', max_length=20),
+            model_name="sitesettings",
+            name="default_dashboard_view",
+            field=models.CharField(
+                choices=[
+                    ("OVERVIEW", "Overview"),
+                    ("FINANCE", "Finances"),
+                    ("ACADEMICS", "Academics"),
+                    ("ATTENDANCE", "Attendance"),
+                    ("CUSTOM", "Custom"),
+                ],
+                default="OVERVIEW",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='default_refresh_rate',
-            field=models.PositiveSmallIntegerField(default=60, help_text='Interval in seconds before dashboards refresh automatically.'),
+            model_name="sitesettings",
+            name="default_refresh_rate",
+            field=models.PositiveSmallIntegerField(
+                default=60,
+                help_text="Interval in seconds before dashboards refresh automatically.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='notification_channels',
+            model_name="sitesettings",
+            name="notification_channels",
             field=models.JSONField(blank=True, default=list),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='portal_features',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models.default_portal_features),
+            model_name="sitesettings",
+            name="portal_features",
+            field=models.JSONField(
+                blank=True, default=apps.siteconfig.models.default_portal_features
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='report_downloads_enabled',
+            model_name="sitesettings",
+            name="report_downloads_enabled",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='tagline',
-            field=models.CharField(blank=True, default='Knowledge ƒ?› Technology ƒ?› Excellence', max_length=200),
+            model_name="sitesettings",
+            name="tagline",
+            field=models.CharField(
+                blank=True,
+                default="Knowledge ƒ?› Technology ƒ?› Excellence",
+                max_length=200,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='theme_pack',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='site_settings', to='siteconfig.themepack'),
+            model_name="sitesettings",
+            name="theme_pack",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="site_settings",
+                to="siteconfig.themepack",
+            ),
         ),
         migrations.CreateModel(
-            name='UserPreference',
+            name="UserPreference",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('timezone', models.CharField(default='America/Chicago', max_length=64)),
-                ('dashboard_view', models.CharField(choices=[('OVERVIEW', 'Overview'), ('FINANCE', 'Finances'), ('ACADEMICS', 'Academics'), ('ATTENDANCE', 'Attendance'), ('CUSTOM', 'Custom')], default='OVERVIEW', max_length=20)),
-                ('refresh_rate_minutes', models.PositiveSmallIntegerField(default=60)),
-                ('notification_channels', models.JSONField(blank=True, default=list)),
-                ('receive_weekly_summary', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='preferences', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "timezone",
+                    models.CharField(default="America/Chicago", max_length=64),
+                ),
+                (
+                    "dashboard_view",
+                    models.CharField(
+                        choices=[
+                            ("OVERVIEW", "Overview"),
+                            ("FINANCE", "Finances"),
+                            ("ACADEMICS", "Academics"),
+                            ("ATTENDANCE", "Attendance"),
+                            ("CUSTOM", "Custom"),
+                        ],
+                        default="OVERVIEW",
+                        max_length=20,
+                    ),
+                ),
+                ("refresh_rate_minutes", models.PositiveSmallIntegerField(default=60)),
+                ("notification_channels", models.JSONField(blank=True, default=list)),
+                ("receive_weekly_summary", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="preferences",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['user__username'],
+                "ordering": ["user__username"],
             },
         ),
         migrations.RunPython(

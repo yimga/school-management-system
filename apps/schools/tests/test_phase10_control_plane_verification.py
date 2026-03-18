@@ -3,6 +3,7 @@ Phase 10 verification checklist (control plane shell and manager login).
 Automated tests for items that can be asserted without a live manager host.
 See docs/architecture/phase10_superadmin_vs_tenant_ui.md § Verification checklist.
 """
+
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import resolve, reverse
@@ -20,7 +21,9 @@ class Phase10ManagerLoginVerificationTests(TestCase):
         self.factory = RequestFactory()
 
     def test_manager_host_gets_manager_login_template(self):
-        request = self.factory.get("/authentication/login/", HTTP_HOST="manager.runmycampus.com")
+        request = self.factory.get(
+            "/authentication/login/", HTTP_HOST="manager.runmycampus.com"
+        )
         request.session = {}
         request.user = AnonymousUser()
         request.public_host_kind = "manager"
@@ -31,7 +34,9 @@ class Phase10ManagerLoginVerificationTests(TestCase):
         self.assertIn("RunMyCampus Manager", content)
 
     def test_non_manager_host_gets_standard_login_template(self):
-        request = self.factory.get("/authentication/login/", HTTP_HOST="school.runmycampus.com")
+        request = self.factory.get(
+            "/authentication/login/", HTTP_HOST="school.runmycampus.com"
+        )
         request.session = {}
         request.user = AnonymousUser()
         request.public_host_kind = None
@@ -41,7 +46,9 @@ class Phase10ManagerLoginVerificationTests(TestCase):
         self.assertIn("School portal login", content)
 
     def test_auth_root_redirects_to_login_on_manager_host(self):
-        request = self.factory.get("/authentication/", HTTP_HOST="manager.runmycampus.com")
+        request = self.factory.get(
+            "/authentication/", HTTP_HOST="manager.runmycampus.com"
+        )
         request.session = {}
         request.user = AnonymousUser()
         request.public_host_kind = "manager"
@@ -50,7 +57,9 @@ class Phase10ManagerLoginVerificationTests(TestCase):
         self.assertEqual(response["Location"], reverse("accounts:login"))
 
     def test_auth_root_redirects_to_login_on_tenant_host(self):
-        request = self.factory.get("/authentication/", HTTP_HOST="school.runmycampus.com")
+        request = self.factory.get(
+            "/authentication/", HTTP_HOST="school.runmycampus.com"
+        )
         request.session = {}
         request.user = AnonymousUser()
         request.public_host_kind = None
@@ -59,13 +68,17 @@ class Phase10ManagerLoginVerificationTests(TestCase):
         self.assertEqual(response["Location"], reverse("accounts:login"))
 
     def test_auth_root_preserves_next_query_string(self):
-        request = self.factory.get("/authentication/?next=/portal/", HTTP_HOST="school.runmycampus.com")
+        request = self.factory.get(
+            "/authentication/?next=/portal/", HTTP_HOST="school.runmycampus.com"
+        )
         request.session = {}
         request.user = AnonymousUser()
         request.public_host_kind = None
         response = auth_root_redirect(request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], reverse("accounts:login") + "?next=%2Fportal%2F")
+        self.assertEqual(
+            response["Location"], reverse("accounts:login") + "?next=%2Fportal%2F"
+        )
 
 
 class Phase10ErrorPagesVerificationTests(TestCase):
@@ -84,7 +97,9 @@ class Phase10ErrorPagesVerificationTests(TestCase):
         content = response.content.decode("utf-8", errors="replace")
         # Control-plane 403 shows "Back to Manager" (generic), "Control Plane" (admin-forbidden button), or "Tenant Mission Control".
         self.assertTrue(
-            "Back to Manager" in content or "Control Plane" in content or "Tenant Mission Control" in content,
+            "Back to Manager" in content
+            or "Control Plane" in content
+            or "Tenant Mission Control" in content,
             msg="Control plane 403 must show manager navigation (Back to Manager, Control Plane, or Tenant Mission Control)",
         )
 
@@ -138,5 +153,6 @@ class Phase10UrlConfVerificationTests(TestCase):
 
     def test_tenant_urlconf_does_not_resolve_super(self):
         from django.urls import Resolver404
+
         with self.assertRaises(Resolver404):
             resolve("/super/", urlconf="config.tenant_urls")

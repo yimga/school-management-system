@@ -17,6 +17,7 @@ SIGNAL_SOFT_FAILURES = (
 
 # Helper to get changed fields
 
+
 def get_changed_fields(instance):
     if not instance.pk:
         return {}
@@ -39,11 +40,13 @@ def get_changed_fields(instance):
             changes[fname] = (old_val, new_val)
     return changes
 
+
 @receiver(pre_save, sender=SiteSettings)
 def log_site_settings_change(sender, instance, **kwargs):
     changes = get_changed_fields(instance)
     if changes:
         logger.info(f"SiteSettings changed: {changes}")
+
 
 @receiver(pre_save, sender=ThemePack)
 def log_theme_pack_change(sender, instance, **kwargs):
@@ -58,7 +61,9 @@ def log_theme_pack_change(sender, instance, **kwargs):
 @receiver(post_delete, sender=ThemePack)
 def invalidate_effective_site_settings_runtime_cache(sender, instance, **kwargs):
     try:
-        from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
+        from apps.platform_runtime.helpers import (
+            invalidate_effective_site_settings_cache,
+        )
 
         invalidate_effective_site_settings_cache()
     except SIGNAL_SOFT_FAILURES as exc:
@@ -72,13 +77,16 @@ def sync_school_features_on_tenant_system(sender, instance, **kwargs):
     try:
         from .tenant_config import sync_tenant_modules_to_school_features
         from apps.schools.models import School
+
         school_id = getattr(instance, "school_id", None)
         if school_id:
             school = School.objects.filter(pk=school_id).first()
             if school:
                 sync_tenant_modules_to_school_features(school, persist=True)
     except SIGNAL_SOFT_FAILURES as e:
-        logger.debug("sync_tenant_modules_to_school_features after TenantSystem change: %s", e)
+        logger.debug(
+            "sync_tenant_modules_to_school_features after TenantSystem change: %s", e
+        )
 
 
 # Metadata plan todo 8: route workflow/dashboard pack install through PackageEngine
@@ -90,12 +98,15 @@ def _on_workflow_pack_assignment_save(sender, instance, created, **kwargs):
         if not pack:
             return
         from apps.packages.engine import PackageEngine
+
         school_id = getattr(instance, "school_id", None)
         PackageEngine.apply_package(
             tenant_id=school_id,
             package_id=getattr(pack, "code", "") or str(pack.pk),
             version=getattr(pack, "version", "1") or "1",
-            payload_sections={"workflow": {"module_slug": getattr(instance, "module_slug", "")}},
+            payload_sections={
+                "workflow": {"module_slug": getattr(instance, "module_slug", "")}
+            },
             mode="production",
         )
     except SIGNAL_SOFT_FAILURES as e:
@@ -110,6 +121,7 @@ def _on_dashboard_pack_assignment_save(sender, instance, created, **kwargs):
         if not pack:
             return
         from apps.packages.engine import PackageEngine
+
         school_id = getattr(instance, "school_id", None)
         PackageEngine.apply_package(
             tenant_id=school_id,
@@ -126,7 +138,14 @@ def _connect_pack_assignment_signals():
     try:
         from .models_workflow import WorkflowPackAssignment
         from .models_dashboard import DashboardPackAssignment
-        post_save.connect(_on_workflow_pack_assignment_save, sender=WorkflowPackAssignment, weak=False)
-        post_save.connect(_on_dashboard_pack_assignment_save, sender=DashboardPackAssignment, weak=False)
+
+        post_save.connect(
+            _on_workflow_pack_assignment_save, sender=WorkflowPackAssignment, weak=False
+        )
+        post_save.connect(
+            _on_dashboard_pack_assignment_save,
+            sender=DashboardPackAssignment,
+            weak=False,
+        )
     except (AttributeError, ImportError, RuntimeError):
         pass

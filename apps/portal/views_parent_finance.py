@@ -1,4 +1,5 @@
 """Parent finance, wallet, and feed views (moved from views.py)."""
+
 import logging
 from collections import Counter
 from decimal import Decimal
@@ -38,9 +39,15 @@ def parent_finance(request: HttpRequest):
     finance_link_count = finance_links.count()
     guardian_link_count = all_links.count()
     finance_access_granted = finance_link_count > 0
-    can_request_finance_access = require_finance_opt_in and guardian_link_count > finance_link_count
+    can_request_finance_access = (
+        require_finance_opt_in and guardian_link_count > finance_link_count
+    )
     finance_request_url = reverse("finance:finance_request_access")
-    links = finance_links if (finance_access_granted or not require_finance_opt_in) else all_links
+    links = (
+        finance_links
+        if (finance_access_granted or not require_finance_opt_in)
+        else all_links
+    )
 
     status_param = ""
     order_param = "-issued_date"
@@ -85,7 +92,6 @@ def parent_finance(request: HttpRequest):
     int((paid / total_due) * 100) if total_due else 0
     bool(students)
 
-
     payment_method_counts = Counter()
     invoice_rows = []
     reminders = []
@@ -100,7 +106,11 @@ def parent_finance(request: HttpRequest):
             {
                 "invoice": inv,
                 "payment_link": link,
-                "receipt_url": reverse("finance:invoice_receipt", args=(inv.id, receipt.id)) if receipt else None,
+                "receipt_url": reverse(
+                    "finance:invoice_receipt", args=(inv.id, receipt.id)
+                )
+                if receipt
+                else None,
                 "preferred_method": inv.get_preferred_payment_method_display() or "Any",
                 "attachment_url": inv.attachment.url if inv.attachment else None,
                 "recent_payment": receipt,
@@ -117,7 +127,9 @@ def parent_finance(request: HttpRequest):
             )
 
     referral_qs = ReferralReward.objects.filter(guardian__guardian_user=request.user)
-    referral_total = referral_qs.filter(status=ReferralReward.Status.APPROVED).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    referral_total = referral_qs.filter(
+        status=ReferralReward.Status.APPROVED
+    ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
     referral_pending = referral_qs.filter(status=ReferralReward.Status.PENDING).count()
     hero = {
         "title": "Finances",
@@ -128,7 +140,11 @@ def parent_finance(request: HttpRequest):
             {"label": "Outstanding", "value": balance},
             {"label": "Overdue", "value": overdue_count},
             {"label": "Reminders", "value": len(reminders), "meta": "Queued notices"},
-            {"label": "Referral credits", "value": f"{referral_total:.2f}", "meta": "Approved bonuses"},
+            {
+                "label": "Referral credits",
+                "value": f"{referral_total:.2f}",
+                "meta": "Approved bonuses",
+            },
         ],
     }
 
@@ -189,11 +205,14 @@ def parent_wallet(request: HttpRequest):
     transactions = []
     if wallet:
         transactions = list(
-            WalletTransaction.objects.filter(wallet=wallet).order_by("-created_at")[:50])
+            WalletTransaction.objects.filter(wallet=wallet).order_by("-created_at")[:50]
+        )
     try:
         top_up_url = reverse("api_v1:finance-wallet-top-up")
     except (NoReverseMatch, ImproperlyConfigured) as e:
-        logger.debug("reverse(api_v1:finance-wallet-top-up) failed, using fallback: %s", e)
+        logger.debug(
+            "reverse(api_v1:finance-wallet-top-up) failed, using fallback: %s", e
+        )
         top_up_url = "/api/v1/finance/wallet/top-up"
     return render(
         request,
@@ -217,9 +236,14 @@ def parent_feed(request: HttpRequest):
         messages.info(request, "Select a school to view the feed.")
         return redirect("portal:parent_dashboard")
     student_ids = set(
-        StudentGuardian.objects.filter(guardian_user=request.user)
-        .values_list("student_id", flat=True)
+        StudentGuardian.objects.filter(guardian_user=request.user).values_list(
+            "student_id", flat=True
+        )
     )
-    qs = FeedItem.objects.filter(school=school).select_related("student", "created_by").order_by("-created_at")[:100]
+    qs = (
+        FeedItem.objects.filter(school=school)
+        .select_related("student", "created_by")
+        .order_by("-created_at")[:100]
+    )
     items = [i for i in qs if i.student_id is None or i.student_id in student_ids]
     return render(request, "parent/feed.html", {"feed_items": items})

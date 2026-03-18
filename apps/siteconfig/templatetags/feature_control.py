@@ -3,6 +3,7 @@ Phase D: Template tags to hide or show UI based on school feature (plan/addon) f
 Use when a block should only render when the school has the feature enabled.
 Uses Policy Registry (is_feature_enabled) — no direct school.has_feature in templates.
 """
+
 from django import template
 
 register = template.Library()
@@ -20,8 +21,7 @@ def feature_enabled(context, feature_code: str) -> bool:
         return False
     try:
         from apps.schools.models import is_feature_enabled
+
         return bool(is_feature_enabled(school, feature_code))
     except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         return False
-
-

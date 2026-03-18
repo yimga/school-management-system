@@ -354,4 +354,8 @@
   });
 })();
 </script>
+<div id="cpTourFab" class="d-none position-fixed bottom-0 end-0 p-3" style="z-index:1035;">
+  <button type="button" class="btn btn-warning btn-sm shadow" id="cpTourStartBtn" aria-label="{% trans 'Start page tour' %}">{% trans "Page tour" %}</button>
+</div>
+<script src="{% static 'js/control-plane-tour.js' %}" defer data-tour-api="{% url 'siteconfig:tour_steps_api' %}"></script>
 {% endblock %}

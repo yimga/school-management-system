@@ -3,6 +3,7 @@ Search read layer: OpenSearch when configured, else None (caller uses DB).
 Single entry point for optional OpenSearch; no direct OpenSearch imports in callers.
 See docs/architecture/storage_and_search.md.
 """
+
 from __future__ import annotations
 
 import logging
@@ -39,7 +40,9 @@ def search(
     if not _opensearch_available():
         return None
     try:
-        return _search_opensearch(q, search_type=search_type, school_id=school_id, limit=limit)
+        return _search_opensearch(
+            q, search_type=search_type, school_id=school_id, limit=limit
+        )
     except OPENSEARCH_SEARCH_FAILURES as e:
         log_exception_with_context(
             "api.search_read_layer: OpenSearch search failed",
@@ -53,6 +56,7 @@ def search(
 def _opensearch_available() -> bool:
     try:
         import opensearchpy  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -65,10 +69,15 @@ def _search_opensearch(
     limit: int = 20,
 ) -> dict[str, Any]:
     from opensearchpy import OpenSearch
-    client = OpenSearch(hosts=[OPENSEARCH_DSN], use_ssl=OPENSEARCH_DSN.startswith("https"))
+
+    client = OpenSearch(
+        hosts=[OPENSEARCH_DSN], use_ssl=OPENSEARCH_DSN.startswith("https")
+    )
     body = {"query": {"multi_match": {"query": q, "fields": ["*"]}}, "size": limit}
     if school_id:
-        body["query"] = {"bool": {"must": [{"term": {"school_id": str(school_id)}}, body["query"]]}}
+        body["query"] = {
+            "bool": {"must": [{"term": {"school_id": str(school_id)}}, body["query"]]}
+        }
     res = client.search(index="runmycampus-search", body=body)
     hits = res.get("hits", {}).get("hits", [])
     results = [h.get("_source", {}) for h in hits]

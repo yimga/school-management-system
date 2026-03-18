@@ -10,7 +10,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("finance", "0019_finance_request_audit"),
         ("people", "0016_alter_studentprofile_specialty"),
@@ -22,23 +21,109 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PaymentMethod",
             fields=[
-                ("id", models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, serialize=False)),
+                (
+                    "id",
+                    models.UUIDField(
+                        primary_key=True,
+                        default=uuid.uuid4,
+                        editable=False,
+                        serialize=False,
+                    ),
+                ),
                 ("name", models.CharField(max_length=100, unique=True)),
-                ("method_type", models.CharField(choices=[("card", "Credit/Debit Card"), ("bank_transfer", "Bank Transfer"), ("wallet", "Digital Wallet"), ("mobile_money", "Mobile Money"), ("check", "Check")], max_length=20)),
-                ("gateway", models.CharField(blank=True, choices=[("stripe", "Stripe"), ("paypal", "PayPal"), ("flutterwave", "Flutterwave"), ("paystack", "Paystack"), ("manual", "Manual Processing")], max_length=20, null=True)),
+                (
+                    "method_type",
+                    models.CharField(
+                        choices=[
+                            ("card", "Credit/Debit Card"),
+                            ("bank_transfer", "Bank Transfer"),
+                            ("wallet", "Digital Wallet"),
+                            ("mobile_money", "Mobile Money"),
+                            ("check", "Check"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "gateway",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("stripe", "Stripe"),
+                            ("paypal", "PayPal"),
+                            ("flutterwave", "Flutterwave"),
+                            ("paystack", "Paystack"),
+                            ("manual", "Manual Processing"),
+                        ],
+                        max_length=20,
+                        null=True,
+                    ),
+                ),
                 ("is_active", models.BooleanField(default=True)),
-                ("api_key", models.CharField(blank=True, help_text="Encrypted API key", max_length=500)),
-                ("api_secret", models.CharField(blank=True, help_text="Encrypted secret", max_length=500)),
+                (
+                    "api_key",
+                    models.CharField(
+                        blank=True, help_text="Encrypted API key", max_length=500
+                    ),
+                ),
+                (
+                    "api_secret",
+                    models.CharField(
+                        blank=True, help_text="Encrypted secret", max_length=500
+                    ),
+                ),
                 ("webhook_url", models.URLField(blank=True)),
                 ("webhook_secret", models.CharField(blank=True, max_length=500)),
-                ("transaction_fee_percent", models.DecimalField(decimal_places=2, default=0, max_digits=5, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(100)])),
-                ("fixed_fee", models.DecimalField(decimal_places=2, default=0, max_digits=10)),
-                ("min_amount", models.DecimalField(decimal_places=2, default=0, max_digits=12, validators=[django.core.validators.MinValueValidator(0)])),
-                ("max_amount", models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
+                (
+                    "transaction_fee_percent",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        max_digits=5,
+                        validators=[
+                            django.core.validators.MinValueValidator(0),
+                            django.core.validators.MaxValueValidator(100),
+                        ],
+                    ),
+                ),
+                (
+                    "fixed_fee",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
+                ),
+                (
+                    "min_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        max_digits=12,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                    ),
+                ),
+                (
+                    "max_amount",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
+                    ),
+                ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
-                ("created_by", models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="created_payment_methods", to=settings.AUTH_USER_MODEL)),
-                ("region", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="payment_methods", to="siteconfig.regionconfig")),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="created_payment_methods",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "region",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payment_methods",
+                        to="siteconfig.regionconfig",
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "Payment Method",
@@ -54,17 +139,35 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="payment",
             name="student",
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name="payments", to="people.studentprofile"),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="payments",
+                to="people.studentprofile",
+            ),
         ),
         migrations.AddField(
             model_name="payment",
             name="region",
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name="payments", to="siteconfig.regionconfig"),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="payments",
+                to="siteconfig.regionconfig",
+            ),
         ),
         migrations.AddField(
             model_name="payment",
             name="payment_method",
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name="payments", to="finance.paymentmethod"),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="payments",
+                to="finance.paymentmethod",
+            ),
         ),
         migrations.AddField(
             model_name="payment",
@@ -74,7 +177,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="payment",
             name="purpose",
-            field=models.CharField(choices=[("tuition", "Tuition"), ("exam_fee", "Exam Fee"), ("activity_fee", "Activity Fee"), ("accommodation", "Accommodation"), ("other", "Other")], default="tuition", max_length=20),
+            field=models.CharField(
+                choices=[
+                    ("tuition", "Tuition"),
+                    ("exam_fee", "Exam Fee"),
+                    ("activity_fee", "Activity Fee"),
+                    ("accommodation", "Accommodation"),
+                    ("other", "Other"),
+                ],
+                default="tuition",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
             model_name="payment",
@@ -84,7 +197,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="payment",
             name="gateway_transaction_id",
-            field=models.CharField(blank=True, default=None, max_length=100, null=True, unique=True),
+            field=models.CharField(
+                blank=True, default=None, max_length=100, null=True, unique=True
+            ),
         ),
         migrations.AddField(
             model_name="payment",
@@ -119,65 +234,233 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="payment",
             name="processed_by",
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="processed_payments", to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="processed_payments",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
             model_name="invoice",
             name="preferred_payment_method",
-            field=models.CharField(blank=True, choices=[("CASH", "Cash"), ("BANK", "Bank Transfer"), ("MTN_MOMO", "MTN MoMo"), ("ORANGE_MOMO", "Orange Money"), ("CHECK", "Check"), ("OTHER", "Other")], default="", max_length=20),
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("CASH", "Cash"),
+                    ("BANK", "Bank Transfer"),
+                    ("MTN_MOMO", "MTN MoMo"),
+                    ("ORANGE_MOMO", "Orange Money"),
+                    ("CHECK", "Check"),
+                    ("OTHER", "Other"),
+                ],
+                default="",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
             model_name="payment",
             name="invoice",
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name="payments", to="finance.invoice"),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="payments",
+                to="finance.invoice",
+            ),
         ),
         migrations.AlterField(
             model_name="payment",
             name="method",
-            field=models.CharField(blank=True, choices=[("CASH", "Cash"), ("BANK", "Bank Transfer"), ("MTN_MOMO", "MTN MoMo"), ("ORANGE_MOMO", "Orange Money"), ("CHECK", "Check"), ("OTHER", "Other")], default="", max_length=20),
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("CASH", "Cash"),
+                    ("BANK", "Bank Transfer"),
+                    ("MTN_MOMO", "MTN MoMo"),
+                    ("ORANGE_MOMO", "Orange Money"),
+                    ("CHECK", "Check"),
+                    ("OTHER", "Other"),
+                ],
+                default="",
+                max_length=20,
+            ),
         ),
         migrations.CreateModel(
             name="PaymentReconciliation",
             fields=[
-                ("id", models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, serialize=False)),
+                (
+                    "id",
+                    models.UUIDField(
+                        primary_key=True,
+                        default=uuid.uuid4,
+                        editable=False,
+                        serialize=False,
+                    ),
+                ),
                 ("period_start", models.DateField()),
                 ("period_end", models.DateField()),
-                ("total_payments", models.DecimalField(decimal_places=2, default=0, max_digits=15)),
-                ("total_refunds", models.DecimalField(decimal_places=2, default=0, max_digits=15)),
-                ("total_fees", models.DecimalField(decimal_places=2, default=0, max_digits=15)),
-                ("net_amount", models.DecimalField(decimal_places=2, default=0, max_digits=15)),
-                ("status", models.CharField(choices=[("pending", "Pending"), ("reconciled", "Reconciled"), ("discrepancy", "Discrepancy Found")], default="pending", max_length=20)),
-                ("discrepancy_amount", models.DecimalField(decimal_places=2, default=0, max_digits=15)),
+                (
+                    "total_payments",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=15),
+                ),
+                (
+                    "total_refunds",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=15),
+                ),
+                (
+                    "total_fees",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=15),
+                ),
+                (
+                    "net_amount",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=15),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("reconciled", "Reconciled"),
+                            ("discrepancy", "Discrepancy Found"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "discrepancy_amount",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=15),
+                ),
                 ("discrepancy_notes", models.TextField(blank=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("reconciled_at", models.DateTimeField(blank=True, null=True)),
-                ("payment_method", models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name="reconciliations", to="finance.paymentmethod")),
-                ("reconciled_by", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="reconciled_payments", to=settings.AUTH_USER_MODEL)),
-                ("region", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="payment_reconciliations", to="siteconfig.regionconfig")),
+                (
+                    "payment_method",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="reconciliations",
+                        to="finance.paymentmethod",
+                    ),
+                ),
+                (
+                    "reconciled_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="reconciled_payments",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "region",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payment_reconciliations",
+                        to="siteconfig.regionconfig",
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "Payment Reconciliation",
                 "verbose_name_plural": "Payment Reconciliations",
                 "ordering": ["-period_end"],
-                "unique_together": {("region", "payment_method", "period_start", "period_end")},
+                "unique_together": {
+                    ("region", "payment_method", "period_start", "period_end")
+                },
             },
         ),
         migrations.CreateModel(
             name="RefundRequest",
             fields=[
-                ("id", models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, serialize=False)),
-                ("amount", models.DecimalField(decimal_places=2, max_digits=12, validators=[django.core.validators.MinValueValidator(Decimal("0.01"))])),
-                ("reason", models.CharField(choices=[("duplicate", "Duplicate Payment"), ("incorrect_amount", "Incorrect Amount"), ("student_request", "Student Request"), ("overpayment", "Overpayment"), ("compliance", "Compliance Issue"), ("other", "Other")], max_length=30)),
+                (
+                    "id",
+                    models.UUIDField(
+                        primary_key=True,
+                        default=uuid.uuid4,
+                        editable=False,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=12,
+                        validators=[
+                            django.core.validators.MinValueValidator(Decimal("0.01"))
+                        ],
+                    ),
+                ),
+                (
+                    "reason",
+                    models.CharField(
+                        choices=[
+                            ("duplicate", "Duplicate Payment"),
+                            ("incorrect_amount", "Incorrect Amount"),
+                            ("student_request", "Student Request"),
+                            ("overpayment", "Overpayment"),
+                            ("compliance", "Compliance Issue"),
+                            ("other", "Other"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
                 ("description", models.TextField()),
-                ("status", models.CharField(choices=[("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected"), ("processed", "Processed")], default="pending", max_length=20)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("approved", "Approved"),
+                            ("rejected", "Rejected"),
+                            ("processed", "Processed"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
                 ("status_notes", models.TextField(blank=True)),
                 ("processed_at", models.DateTimeField(blank=True, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
-                ("approved_by", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="approved_refunds", to=settings.AUTH_USER_MODEL)),
-                ("payment", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="refund_requests", to="finance.payment")),
-                ("region", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="refund_requests", to="siteconfig.regionconfig")),
-                ("requested_by", models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="requested_refunds", to=settings.AUTH_USER_MODEL)),
+                (
+                    "approved_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="approved_refunds",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "payment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="refund_requests",
+                        to="finance.payment",
+                    ),
+                ),
+                (
+                    "region",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="refund_requests",
+                        to="siteconfig.regionconfig",
+                    ),
+                ),
+                (
+                    "requested_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="requested_refunds",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "Refund Request",
@@ -188,16 +471,54 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Transaction",
             fields=[
-                ("id", models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, serialize=False)),
-                ("transaction_type", models.CharField(choices=[("payment", "Payment"), ("refund", "Refund"), ("chargeback", "Chargeback"), ("reversal", "Reversal")], default="payment", max_length=20)),
+                (
+                    "id",
+                    models.UUIDField(
+                        primary_key=True,
+                        default=uuid.uuid4,
+                        editable=False,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "transaction_type",
+                    models.CharField(
+                        choices=[
+                            ("payment", "Payment"),
+                            ("refund", "Refund"),
+                            ("chargeback", "Chargeback"),
+                            ("reversal", "Reversal"),
+                        ],
+                        default="payment",
+                        max_length=20,
+                    ),
+                ),
                 ("amount", models.DecimalField(decimal_places=2, max_digits=12)),
                 ("currency", models.CharField(default="USD", max_length=3)),
-                ("status", models.CharField(choices=[("pending", "Pending"), ("success", "Success"), ("failed", "Failed")], default="pending", max_length=20)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("success", "Success"),
+                            ("failed", "Failed"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
                 ("gateway_reference", models.CharField(blank=True, max_length=100)),
                 ("timestamp", models.DateTimeField(auto_now_add=True)),
                 ("metadata", models.JSONField(blank=True, default=dict)),
                 ("error_message", models.TextField(blank=True)),
-                ("payment", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="transactions", to="finance.payment")),
+                (
+                    "payment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="transactions",
+                        to="finance.payment",
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "Transaction",
@@ -208,37 +529,109 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PaymentAuditLog",
             fields=[
-                ("id", models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, serialize=False)),
-                ("action_type", models.CharField(choices=[("payment_created", "Payment Created"), ("payment_initiated", "Payment Initiated"), ("payment_completed", "Payment Completed"), ("payment_failed", "Payment Failed"), ("refund_requested", "Refund Requested"), ("refund_approved", "Refund Approved"), ("transaction_recorded", "Transaction Recorded"), ("reconciliation_completed", "Reconciliation Completed")], max_length=30)),
+                (
+                    "id",
+                    models.UUIDField(
+                        primary_key=True,
+                        default=uuid.uuid4,
+                        editable=False,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "action_type",
+                    models.CharField(
+                        choices=[
+                            ("payment_created", "Payment Created"),
+                            ("payment_initiated", "Payment Initiated"),
+                            ("payment_completed", "Payment Completed"),
+                            ("payment_failed", "Payment Failed"),
+                            ("refund_requested", "Refund Requested"),
+                            ("refund_approved", "Refund Approved"),
+                            ("transaction_recorded", "Transaction Recorded"),
+                            ("reconciliation_completed", "Reconciliation Completed"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
                 ("description", models.TextField()),
                 ("details", models.JSONField(blank=True, default=dict)),
-                ("severity", models.CharField(choices=[("low", "Low"), ("medium", "Medium"), ("high", "High"), ("critical", "Critical")], default="low", max_length=20)),
+                (
+                    "severity",
+                    models.CharField(
+                        choices=[
+                            ("low", "Low"),
+                            ("medium", "Medium"),
+                            ("high", "High"),
+                            ("critical", "Critical"),
+                        ],
+                        default="low",
+                        max_length=20,
+                    ),
+                ),
                 ("timestamp", models.DateTimeField(auto_now_add=True)),
                 ("ip_address", models.GenericIPAddressField(blank=True, null=True)),
-                ("payment", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name="audit_logs", to="finance.payment")),
-                ("region", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="payment_audit_logs", to="siteconfig.regionconfig")),
-                ("user", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="payment_audit_logs", to=settings.AUTH_USER_MODEL)),
+                (
+                    "payment",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="audit_logs",
+                        to="finance.payment",
+                    ),
+                ),
+                (
+                    "region",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payment_audit_logs",
+                        to="siteconfig.regionconfig",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="payment_audit_logs",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
                 "verbose_name": "Payment Audit Log",
                 "verbose_name_plural": "Payment Audit Logs",
                 "ordering": ["-timestamp"],
                 "indexes": [
-                    models.Index(fields=["action_type", "timestamp"], name="finance_pay_action__dddb27_idx"),
-                    models.Index(fields=["region", "timestamp"], name="finance_pay_region__9376c7_idx"),
+                    models.Index(
+                        fields=["action_type", "timestamp"],
+                        name="finance_pay_action__dddb27_idx",
+                    ),
+                    models.Index(
+                        fields=["region", "timestamp"],
+                        name="finance_pay_region__9376c7_idx",
+                    ),
                 ],
             },
         ),
         migrations.AddIndex(
             model_name="payment",
-            index=models.Index(fields=["status", "created_at"], name="finance_pay_status_05a375_idx"),
+            index=models.Index(
+                fields=["status", "created_at"], name="finance_pay_status_05a375_idx"
+            ),
         ),
         migrations.AddIndex(
             model_name="payment",
-            index=models.Index(fields=["student", "status"], name="finance_pay_student_237141_idx"),
+            index=models.Index(
+                fields=["student", "status"], name="finance_pay_student_237141_idx"
+            ),
         ),
         migrations.AddIndex(
             model_name="payment",
-            index=models.Index(fields=["region", "created_at"], name="finance_pay_region__83483d_idx"),
+            index=models.Index(
+                fields=["region", "created_at"], name="finance_pay_region__83483d_idx"
+            ),
         ),
     ]

@@ -1,6 +1,7 @@
 """
 Section 8: Tests for Industry Interoperability views — Caddy ask, discovery, LTI placeholder, frozen page.
 """
+
 import json
 from django.test import TestCase, RequestFactory, Client, override_settings
 from django.urls import reverse
@@ -25,12 +26,14 @@ class VerifyCaddyDomainTests(TestCase):
 
     def test_missing_domain_returns_404(self):
         from apps.schools.section8_views import verify_caddy_domain
+
         request = self.factory.get("/api/caddy-check/")
         response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 404)
 
     def test_localhost_not_allowed(self):
         from apps.schools.section8_views import verify_caddy_domain
+
         for domain in ("localhost", "127.0.0.1", "::1"):
             request = self.factory.get("/api/caddy-check/", {"domain": domain})
             response = verify_caddy_domain(request)
@@ -38,7 +41,10 @@ class VerifyCaddyDomainTests(TestCase):
 
     def test_subdomain_match_returns_200(self):
         from apps.schools.section8_views import verify_caddy_domain
-        request = self.factory.get("/api/caddy-check/", {"domain": "greenwood.yoursystem.com"})
+
+        request = self.factory.get(
+            "/api/caddy-check/", {"domain": "greenwood.yoursystem.com"}
+        )
         response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 200)
 
@@ -47,6 +53,7 @@ class VerifyCaddyDomainTests(TestCase):
         self.school.custom_domain_verified = True
         self.school.save()
         from apps.schools.section8_views import verify_caddy_domain
+
         request = self.factory.get("/api/caddy-check/", {"domain": "greenwood.edu"})
         response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 200)
@@ -58,13 +65,19 @@ class VerifyCaddyDomainTests(TestCase):
         self.school.custom_domain_verified = False
         self.school.save()
         from apps.schools.section8_views import verify_caddy_domain
-        request = self.factory.get("/api/caddy-check/", {"domain": "other-unverified.edu"})
+
+        request = self.factory.get(
+            "/api/caddy-check/", {"domain": "other-unverified.edu"}
+        )
         response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 404)
 
     def test_unknown_domain_returns_404(self):
         from apps.schools.section8_views import verify_caddy_domain
-        request = self.factory.get("/api/caddy-check/", {"domain": "unknown.example.com"})
+
+        request = self.factory.get(
+            "/api/caddy-check/", {"domain": "unknown.example.com"}
+        )
         response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 404)
 
@@ -82,7 +95,10 @@ class VerifyCaddyDomainTests(TestCase):
             is_verified=True,
         )
         from apps.schools.section8_views import verify_caddy_domain
-        request = self.factory.get("/api/caddy-check/", {"domain": "inactive-school.yoursystem.com"})
+
+        request = self.factory.get(
+            "/api/caddy-check/", {"domain": "inactive-school.yoursystem.com"}
+        )
         response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 404)
 
@@ -90,8 +106,11 @@ class VerifyCaddyDomainTests(TestCase):
         import os
         from unittest.mock import patch
         from apps.schools.section8_views import verify_caddy_domain
+
         with patch.dict(os.environ, {"CADDY_CHECK_ALLOWED_IPS": "10.0.0.1,10.0.0.2"}):
-            request = self.factory.get("/api/caddy-check/", {"domain": "greenwood.yoursystem.com"})
+            request = self.factory.get(
+                "/api/caddy-check/", {"domain": "greenwood.yoursystem.com"}
+            )
             request.META["REMOTE_ADDR"] = "192.168.1.1"
             response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 403)
@@ -100,8 +119,11 @@ class VerifyCaddyDomainTests(TestCase):
         import os
         from unittest.mock import patch
         from apps.schools.section8_views import verify_caddy_domain
+
         with patch.dict(os.environ, {"CADDY_CHECK_ALLOWED_IPS": "10.0.0.1"}):
-            request = self.factory.get("/api/caddy-check/", {"domain": "greenwood.yoursystem.com"})
+            request = self.factory.get(
+                "/api/caddy-check/", {"domain": "greenwood.yoursystem.com"}
+            )
             request.META["REMOTE_ADDR"] = "10.0.0.1"
             response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 200)
@@ -109,8 +131,13 @@ class VerifyCaddyDomainTests(TestCase):
     def test_caddy_rate_limit_returns_429_when_exceeded(self):
         from unittest.mock import patch
         from apps.schools.section8_views import verify_caddy_domain
-        with patch("apps.schools.section8_views.throttle_ip_request", return_value=(False, 900)):
-            request = self.factory.get("/api/caddy-check/", {"domain": "greenwood.yoursystem.com"})
+
+        with patch(
+            "apps.schools.section8_views.throttle_ip_request", return_value=(False, 900)
+        ):
+            request = self.factory.get(
+                "/api/caddy-check/", {"domain": "greenwood.yoursystem.com"}
+            )
             request.META["REMOTE_ADDR"] = "10.0.0.1"
             response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 429)
@@ -176,7 +203,10 @@ class GlobalLoginDiscoveryTests(TestCase):
     def test_discovery_rate_limit_429_when_exceeded(self):
         from unittest.mock import patch
         from apps.schools import section8_views
-        with patch.object(section8_views, "_discovery_rate_limit_exceeded", return_value=True):
+
+        with patch.object(
+            section8_views, "_discovery_rate_limit_exceeded", return_value=True
+        ):
             response = self.client.post(
                 reverse("global_login_discovery"),
                 {"email": "nobody@example.com"},
@@ -233,7 +263,14 @@ class LtiLaunchRuntimeTests(TestCase):
             client_id="client-123",
             config={
                 "deployment_id": "dep-1",
-                "public_jwk": {"kty": "RSA", "kid": "kid-1", "alg": "RS256", "use": "sig", "n": "abc", "e": "AQAB"},
+                "public_jwk": {
+                    "kty": "RSA",
+                    "kid": "kid-1",
+                    "alg": "RS256",
+                    "use": "sig",
+                    "n": "abc",
+                    "e": "AQAB",
+                },
             },
             is_active=True,
         )
@@ -242,6 +279,7 @@ class LtiLaunchRuntimeTests(TestCase):
     def _b64(obj):
         import json
         import base64
+
         raw = json.dumps(obj, separators=(",", ":")).encode("utf-8")
         return base64.urlsafe_b64encode(raw).decode("utf-8").rstrip("=")
 
@@ -283,6 +321,7 @@ class LtiLaunchRuntimeTests(TestCase):
         init = self.client.get(reverse("lti_launch", args=[self.integration.pk]))
         self.assertEqual(init.status_code, 302)
         from urllib.parse import parse_qs, urlparse
+
         parsed = urlparse(init["Location"])
         state = parse_qs(parsed.query)["state"][0]
         session_key = f"lti_oidc:{self.integration.pk}:{state}"
@@ -298,6 +337,7 @@ class LtiLaunchRuntimeTests(TestCase):
     def test_callback_with_bad_nonce_returns_403(self):
         init = self.client.get(reverse("lti_launch", args=[self.integration.pk]))
         from urllib.parse import parse_qs, urlparse
+
         state = parse_qs(urlparse(init["Location"]).query)["state"][0]
         callback = self.client.post(
             reverse("lti_launch_callback", args=[self.integration.pk]),
@@ -314,7 +354,10 @@ class LtiLaunchRuntimeTests(TestCase):
 
     def test_lti_launch_and_jwks_rate_limit_429_when_exceeded(self):
         from unittest.mock import patch
-        with patch("apps.schools.section8_views.throttle_ip_request", return_value=(False, 60)):
+
+        with patch(
+            "apps.schools.section8_views.throttle_ip_request", return_value=(False, 60)
+        ):
             launch = self.client.get(reverse("lti_launch", args=[self.integration.pk]))
             callback = self.client.post(
                 reverse("lti_launch_callback", args=[self.integration.pk]),
@@ -429,7 +472,9 @@ class LtiServicesRuntimeTests(TestCase):
         self.assertEqual(results.status_code, 200)
         payload = results.json()
         self.assertIn("results", payload)
-        self.assertTrue(any(r.get("userId") == str(self.student.pk) for r in payload["results"]))
+        self.assertTrue(
+            any(r.get("userId") == str(self.student.pk) for r in payload["results"])
+        )
 
     def test_nrps_memberships_returns_school_scoped_members(self):
         response = self.client.get(
@@ -448,7 +493,11 @@ class LtiServicesRuntimeTests(TestCase):
             data=json.dumps(
                 {
                     "content_items": [
-                        {"type": "ltiResourceLink", "title": "Cell Biology", "url": "https://publisher.example.com/cell-bio"}
+                        {
+                            "type": "ltiResourceLink",
+                            "title": "Cell Biology",
+                            "url": "https://publisher.example.com/cell-bio",
+                        }
                     ]
                 }
             ),
@@ -468,7 +517,9 @@ class LtiServicesRuntimeTests(TestCase):
             **self._auth(),
         )
         self.assertEqual(response.status_code, 415)
-        self.assertEqual(response.json().get("error"), "Content-Type must be application/json")
+        self.assertEqual(
+            response.json().get("error"), "Content-Type must be application/json"
+        )
 
     def test_lineitem_create_requires_json_object(self):
         response = self.client.post(
@@ -505,10 +556,14 @@ class LtiServicesRuntimeTests(TestCase):
             **self._auth(),
         )
         self.assertEqual(response.status_code, 415)
-        self.assertEqual(response.json().get("error"), "Content-Type must be application/json")
+        self.assertEqual(
+            response.json().get("error"), "Content-Type must be application/json"
+        )
 
     def test_services_reject_invalid_token(self):
-        response = self.client.get(reverse("lti_nrps_memberships", args=[self.integration.pk]))
+        response = self.client.get(
+            reverse("lti_nrps_memberships", args=[self.integration.pk])
+        )
         self.assertEqual(response.status_code, 403)
 
     def test_services_reject_cross_tenant_token(self):
@@ -523,13 +578,33 @@ class LtiServicesRuntimeTests(TestCase):
 
         checks = [
             ("get", reverse("lti_ags_lineitems", args=[self.integration.pk]), None),
-            ("get", reverse("lti_ags_lineitem_detail", args=[self.integration.pk, "line-1"]), None),
-            ("get", reverse("lti_ags_scores", args=[self.integration.pk, "line-1"]), None),
-            ("get", reverse("lti_ags_results", args=[self.integration.pk, "line-1"]), None),
+            (
+                "get",
+                reverse(
+                    "lti_ags_lineitem_detail", args=[self.integration.pk, "line-1"]
+                ),
+                None,
+            ),
+            (
+                "get",
+                reverse("lti_ags_scores", args=[self.integration.pk, "line-1"]),
+                None,
+            ),
+            (
+                "get",
+                reverse("lti_ags_results", args=[self.integration.pk, "line-1"]),
+                None,
+            ),
             ("get", reverse("lti_nrps_memberships", args=[self.integration.pk]), None),
-            ("post", reverse("lti_deep_linking", args=[self.integration.pk]), {"content_items": []}),
+            (
+                "post",
+                reverse("lti_deep_linking", args=[self.integration.pk]),
+                {"content_items": []},
+            ),
         ]
-        with patch("apps.schools.section8_views.throttle_ip_request", return_value=(False, 90)):
+        with patch(
+            "apps.schools.section8_views.throttle_ip_request", return_value=(False, 90)
+        ):
             for method, url, payload in checks:
                 if method == "post":
                     response = self.client.post(
@@ -552,6 +627,7 @@ class FrozenAccountViewTests(TestCase):
         from django.contrib.sessions.middleware import SessionMiddleware
         from django.contrib.auth.models import AnonymousUser
         from apps.schools.section8_views import frozen_account
+
         factory = RequestFactory()
         request = factory.get("/account-frozen/")
         request.school = None
@@ -568,6 +644,7 @@ class FrozenAccountViewTests(TestCase):
         from django.contrib.sessions.middleware import SessionMiddleware
         from django.contrib.auth.models import AnonymousUser
         from apps.schools.section8_views import frozen_account
+
         school = School.objects.create(
             name="Frozen School",
             slug="frozen",
@@ -606,9 +683,14 @@ class TenantFreezeMiddlewareTests(TestCase):
     def test_frozen_school_redirects_to_account_frozen(self):
         from apps.schools.middleware import TenantFreezeMiddleware
         from django.http import HttpResponse
+
         request = self.factory.get("/portal/")
         request.school = self.school
-        request.user = type("User", (), {"is_authenticated": False, "is_staff": False, "is_superuser": False})()
+        request.user = type(
+            "User",
+            (),
+            {"is_authenticated": False, "is_staff": False, "is_superuser": False},
+        )()
         get_response = lambda r: HttpResponse("ok")
         mw = TenantFreezeMiddleware(get_response)
         response = mw(request)
@@ -618,9 +700,14 @@ class TenantFreezeMiddlewareTests(TestCase):
     def test_exempt_path_not_redirected(self):
         from apps.schools.middleware import TenantFreezeMiddleware
         from django.http import HttpResponse
+
         request = self.factory.get("/account-frozen/")
         request.school = self.school
-        request.user = type("User", (), {"is_authenticated": False, "is_staff": False, "is_superuser": False})()
+        request.user = type(
+            "User",
+            (),
+            {"is_authenticated": False, "is_staff": False, "is_superuser": False},
+        )()
         get_response = lambda r: HttpResponse("ok")
         mw = TenantFreezeMiddleware(get_response)
         response = mw(request)
@@ -629,9 +716,14 @@ class TenantFreezeMiddlewareTests(TestCase):
     def test_staff_bypass_no_redirect(self):
         from apps.schools.middleware import TenantFreezeMiddleware
         from django.http import HttpResponse
+
         request = self.factory.get("/portal/")
         request.school = self.school
-        request.user = type("User", (), {"is_authenticated": True, "is_staff": True, "is_superuser": False})()
+        request.user = type(
+            "User",
+            (),
+            {"is_authenticated": True, "is_staff": True, "is_superuser": False},
+        )()
         get_response = lambda r: HttpResponse("ok")
         mw = TenantFreezeMiddleware(get_response)
         response = mw(request)

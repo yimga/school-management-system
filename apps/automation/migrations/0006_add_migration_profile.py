@@ -4,31 +4,69 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('automation', '0005_migrationrun_legacy_snapshot'),
+        ("automation", "0005_migrationrun_legacy_snapshot"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='MigrationProfile',
+            name="MigrationProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('slug', models.SlugField(max_length=64, unique=True)),
-                ('name', models.CharField(max_length=120)),
-                ('description', models.TextField(blank=True)),
-                ('format', models.CharField(choices=[('csv', 'CSV'), ('xlsx', 'XLSX'), ('generic_sis', 'Generic SIS')], default='csv', max_length=20)),
-                ('domain', models.CharField(choices=[('students', 'Student import'), ('finance', 'Finance import'), ('attendance', 'Attendance import'), ('grades', 'Grades import'), ('generic_sis', 'Generic SIS')], default='students', max_length=32)),
-                ('config', models.JSONField(blank=True, default=dict, help_text='Target fields, required columns, mapping hints for the migration wizard.')),
-                ('is_active', models.BooleanField(db_index=True, default=True)),
-                ('sort_order', models.PositiveSmallIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("slug", models.SlugField(max_length=64, unique=True)),
+                ("name", models.CharField(max_length=120)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "format",
+                    models.CharField(
+                        choices=[
+                            ("csv", "CSV"),
+                            ("xlsx", "XLSX"),
+                            ("generic_sis", "Generic SIS"),
+                        ],
+                        default="csv",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "domain",
+                    models.CharField(
+                        choices=[
+                            ("students", "Student import"),
+                            ("finance", "Finance import"),
+                            ("attendance", "Attendance import"),
+                            ("grades", "Grades import"),
+                            ("generic_sis", "Generic SIS"),
+                        ],
+                        default="students",
+                        max_length=32,
+                    ),
+                ),
+                (
+                    "config",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Target fields, required columns, mapping hints for the migration wizard.",
+                    ),
+                ),
+                ("is_active", models.BooleanField(db_index=True, default=True)),
+                ("sort_order", models.PositiveSmallIntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Migration profile',
-                'verbose_name_plural': 'Migration profiles',
-                'ordering': ['sort_order', 'slug'],
+                "verbose_name": "Migration profile",
+                "verbose_name_plural": "Migration profiles",
+                "ordering": ["sort_order", "slug"],
             },
         ),
     ]

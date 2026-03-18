@@ -9,7 +9,14 @@ from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
-from apps.finance.models import CashOfficeClosure, ComplianceProfile, Invoice, InvoiceLine, Payment, PaymentMethodCode
+from apps.finance.models import (
+    CashOfficeClosure,
+    ComplianceProfile,
+    Invoice,
+    InvoiceLine,
+    Payment,
+    PaymentMethodCode,
+)
 from apps.people.models import StudentProfile
 
 
@@ -98,7 +105,9 @@ class CashOfficeClosureTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
 
-        closure = CashOfficeClosure.objects.get(profile=self.profile, closure_date=timezone.localdate())
+        closure = CashOfficeClosure.objects.get(
+            profile=self.profile, closure_date=timezone.localdate()
+        )
         self.assertEqual(closure.cash_collected, Decimal("10000.00"))
         self.assertEqual(closure.expected_cash, Decimal("4000.00"))
         self.assertEqual(closure.discrepancy, Decimal("0.00"))

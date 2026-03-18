@@ -1,6 +1,7 @@
 """
 Portal student-facing and syllabus/preview views (§6.14 role separation).
 """
+
 from __future__ import annotations
 
 from django.contrib.auth.views import redirect_to_login
@@ -46,17 +47,25 @@ def portal_syllabus(request: HttpRequest):
     if role == User.Role.TEACHER and not site.enable_teacher_portal:
         return HttpResponseForbidden("Teacher portal is disabled.")
 
-    items = PortalFeatureItem.objects.filter(
-        feature=PortalFeatureItem.Feature.SYLLABUS,
-        is_active=True,
-    ).select_related("created_by").order_by("-created_at")
+    items = (
+        PortalFeatureItem.objects.filter(
+            feature=PortalFeatureItem.Feature.SYLLABUS,
+            is_active=True,
+        )
+        .select_related("created_by")
+        .order_by("-created_at")
+    )
 
     role = get_user_role(request.user)
-    return render(request, "portal/syllabus.html", {
-        "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
-        "items": items,
-        "is_teacher": role == User.Role.TEACHER,
-    })
+    return render(
+        request,
+        "portal/syllabus.html",
+        {
+            "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
+            "items": items,
+            "is_teacher": role == User.Role.TEACHER,
+        },
+    )
 
 
 @role_required(User.Role.ADMIN)
@@ -64,15 +73,31 @@ def portal_syllabus(request: HttpRequest):
 def preview_student_syllabus(request: HttpRequest):
     """Admin-only preview of student syllabus placeholder content."""
     synthetic_items = [
-        {"title": "Physics Lab Experience", "description": "Hands-on labs with sensors and robotics demos.", "created_at": timezone.now()},
-        {"title": "Digital Literacy Week", "description": "Interactive lesson on AI safety and documentation sharing.", "created_at": timezone.now()},
-        {"title": "Design & Technology", "description": "Project-based curriculum with 2026 compliance mockups.", "created_at": timezone.now()},
+        {
+            "title": "Physics Lab Experience",
+            "description": "Hands-on labs with sensors and robotics demos.",
+            "created_at": timezone.now(),
+        },
+        {
+            "title": "Digital Literacy Week",
+            "description": "Interactive lesson on AI safety and documentation sharing.",
+            "created_at": timezone.now(),
+        },
+        {
+            "title": "Design & Technology",
+            "description": "Project-based curriculum with 2026 compliance mockups.",
+            "created_at": timezone.now(),
+        },
     ]
-    return render(request, "portal/preview/student_syllabus_preview.html", {
-        "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
-        "items": synthetic_items,
-        "is_preview": True,
-    })
+    return render(
+        request,
+        "portal/preview/student_syllabus_preview.html",
+        {
+            "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
+            "items": synthetic_items,
+            "is_preview": True,
+        },
+    )
 
 
 @role_required(User.Role.ADMIN)
@@ -80,12 +105,24 @@ def preview_student_syllabus(request: HttpRequest):
 def preview_communication_test(request: HttpRequest):
     """Admin-only preview: send a test message with token replacement."""
     subject = request.POST.get("subject", "Preview notice for [Student Name]")
-    body_template = request.POST.get("body", "Dear [Student Name], this is a preview of your [Specialty] update.")
-    student = StudentProfile.objects.filter(is_active=True).select_related("classroom").first()
+    body_template = request.POST.get(
+        "body", "Dear [Student Name], this is a preview of your [Specialty] update."
+    )
+    student = (
+        StudentProfile.objects.filter(is_active=True)
+        .select_related("classroom")
+        .first()
+    )
     tokens = {
-        "Student Name": f"{student.first_name} {student.last_name}" if student else "Sample Learner",
-        "Classroom": student.classroom.name if student and hasattr(student, "classroom") else "Sample Classroom",
-        "Specialty": student.specialty.name if student and hasattr(student, "specialty") else "General Studies",
+        "Student Name": f"{student.first_name} {student.last_name}"
+        if student
+        else "Sample Learner",
+        "Classroom": student.classroom.name
+        if student and hasattr(student, "classroom")
+        else "Sample Classroom",
+        "Specialty": student.specialty.name
+        if student and hasattr(student, "specialty")
+        else "General Studies",
     }
 
     def fill_template(text):
@@ -97,15 +134,20 @@ def preview_communication_test(request: HttpRequest):
     filled_subject = fill_template(subject)
     filled_body = fill_template(body_template)
 
+    from apps.communication.comms_locale import locale_target_for_user
+
     Message.objects.create(
         sender=request.user,
         recipient=request.user,
         subject=f"{filled_subject} [Preview]",
         body=filled_body,
+        locale_target=locale_target_for_user(request.user),
     )
 
-    return JsonResponse({
-        "status": "success",
-        "subject": filled_subject,
-        "body": filled_body[:200] + ("…" if len(filled_body) > 200 else ""),
-    })
+    return JsonResponse(
+        {
+            "status": "success",
+            "subject": filled_subject,
+            "body": filled_body[:200] + ("…" if len(filled_body) > 200 else ""),
+        }
+    )

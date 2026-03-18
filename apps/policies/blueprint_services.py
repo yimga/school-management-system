@@ -3,6 +3,7 @@ Phase 6: Blueprint pack apply service.
 Applying a BlueprintPack to a school creates a PolicyBundle and sets TenantBlueprint.active_bundle.
 24.15: preview_blueprint_pack for preview/validation without apply; apply validates pack active.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -37,12 +38,20 @@ def preview_blueprint_pack(school, pack) -> dict[str, Any]:
     from apps.policies.models import BlueprintPack, TenantBlueprint
 
     if not isinstance(pack, BlueprintPack):
-        pack = BlueprintPack.objects.get(slug=pack) if isinstance(pack, str) else BlueprintPack.objects.get(pk=pack)
+        pack = (
+            BlueprintPack.objects.get(slug=pack)
+            if isinstance(pack, str)
+            else BlueprintPack.objects.get(pk=pack)
+        )
     snapshot = getattr(pack, "policy_snapshot", None) or {}
     policy_keys = list(snapshot.keys()) if isinstance(snapshot, dict) else []
     current_bundle_id = None
     if school:
-        tb = TenantBlueprint.objects.filter(school=school).select_related("active_bundle").first()
+        tb = (
+            TenantBlueprint.objects.filter(school=school)
+            .select_related("active_bundle")
+            .first()
+        )
         if tb and tb.active_bundle_id:
             current_bundle_id = tb.active_bundle_id
     return {
@@ -64,7 +73,11 @@ def apply_blueprint_pack(school, pack, *, applied_by=None):
     from apps.policies.policy_registry import invalidate_policy_cache
 
     if not isinstance(pack, BlueprintPack):
-        pack = BlueprintPack.objects.get(slug=pack) if isinstance(pack, str) else BlueprintPack.objects.get(pk=pack)
+        pack = (
+            BlueprintPack.objects.get(slug=pack)
+            if isinstance(pack, str)
+            else BlueprintPack.objects.get(pk=pack)
+        )
     if not pack.is_active:
         raise ValueError(f"Blueprint pack {pack.slug} is not active.")
 
@@ -89,11 +102,14 @@ def apply_blueprint_pack(school, pack, *, applied_by=None):
     # Wire to PackageEngine so Setup Studio and all blueprint applies are audited (metadata plan todo 7).
     try:
         from apps.packages.engine import PackageEngine
+
         PackageEngine.apply_package(
             tenant_id=getattr(school, "id", None),
             package_id=getattr(pack, "slug", "") or str(pack.pk),
             version=getattr(pack, "version", "") or "1",
-            payload_sections={"policy": dict(getattr(pack, "policy_snapshot", None) or {})},
+            payload_sections={
+                "policy": dict(getattr(pack, "policy_snapshot", None) or {})
+            },
             mode="production",
             actor_id=getattr(applied_by, "id", None) if applied_by else None,
         )
@@ -115,8 +131,13 @@ def update_bundle_for_schools(pack, *, school_ids=None, applied_by=None):
     Returns list of (school, bundle) for each updated school.
     """
     from apps.policies.models import BlueprintPack
+
     if not isinstance(pack, BlueprintPack):
-        pack = BlueprintPack.objects.get(slug=pack) if isinstance(pack, str) else BlueprintPack.objects.get(pk=pack)
+        pack = (
+            BlueprintPack.objects.get(slug=pack)
+            if isinstance(pack, str)
+            else BlueprintPack.objects.get(pk=pack)
+        )
     if school_ids is not None:
         schools = pack.get_schools_using_this_pack().filter(pk__in=school_ids)
     else:

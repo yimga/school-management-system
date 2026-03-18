@@ -4,6 +4,7 @@ Simulates "network down then back": when client sends sync_batch with attendance
 server creates/updates the Attendance record. Used to assert offline-queued writes
 are applied correctly when replayed.
 """
+
 import uuid
 from django.test import TestCase
 from django.urls import reverse

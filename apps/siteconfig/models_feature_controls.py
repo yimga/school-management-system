@@ -104,7 +104,11 @@ class TourStep(models.Model):
         null=True,
         blank=True,
     )
-    code = models.CharField(max_length=80, db_index=True, help_text="e.g. dashboard_welcome, grades_first_time")
+    code = models.CharField(
+        max_length=80,
+        db_index=True,
+        help_text="e.g. dashboard_welcome, grades_first_time",
+    )
     title = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

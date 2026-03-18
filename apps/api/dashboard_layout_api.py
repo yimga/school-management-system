@@ -2,6 +2,7 @@
 Dashboard layout APIs for drag/drop configuration.
 Security-first: role-gated per page and user-scoped save.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Set
@@ -25,11 +26,13 @@ from apps.runtime_blueprints.models import DashboardLayout, DashboardWidget
 from apps.platform_runtime.governor_limits import record_dashboard_refresh
 
 # Backend dashboard widgets that must never be hidden (no user preference, no persist).
-BACKEND_ALWAYS_VISIBLE_WIDGET_IDS = frozenset({
-    "backend-recent-activity",
-    "backend-top-performing",
-    "backend-attendance-today",
-})
+BACKEND_ALWAYS_VISIBLE_WIDGET_IDS = frozenset(
+    {
+        "backend-recent-activity",
+        "backend-top-performing",
+        "backend-attendance-today",
+    }
+)
 
 
 class DashboardWidgetSerializer(serializers.ModelSerializer):
@@ -80,7 +83,9 @@ class DashboardLayoutSerializer(serializers.Serializer):
         if not isinstance(items, list):
             raise serializers.ValidationError("layout.items must be a list.")
 
-        allowed_widgets: Dict[str, DashboardWidget] = self.context.get("allowed_widgets") or {}
+        allowed_widgets: Dict[str, DashboardWidget] = (
+            self.context.get("allowed_widgets") or {}
+        )
         if not isinstance(allowed_widgets, dict):
             allowed_widgets = {}
 
@@ -88,28 +93,40 @@ class DashboardLayoutSerializer(serializers.Serializer):
         seen_ids: Set[str] = set()
         for idx, item in enumerate(items):
             if not isinstance(item, dict):
-                raise serializers.ValidationError(f"layout.items[{idx}] must be an object.")
+                raise serializers.ValidationError(
+                    f"layout.items[{idx}] must be an object."
+                )
 
             widget_id = str(item.get("id") or "").strip()
             if not widget_id:
-                raise serializers.ValidationError(f"layout.items[{idx}].id is required.")
+                raise serializers.ValidationError(
+                    f"layout.items[{idx}].id is required."
+                )
             if widget_id in seen_ids:
-                raise serializers.ValidationError(f"Duplicate widget id '{widget_id}' in layout.")
+                raise serializers.ValidationError(
+                    f"Duplicate widget id '{widget_id}' in layout."
+                )
             seen_ids.add(widget_id)
 
             widget = allowed_widgets.get(widget_id) if allowed_widgets else None
             if allowed_widgets and widget_id not in allowed_widgets:
-                raise serializers.ValidationError(f"Widget '{widget_id}' is not allowed for this page/user.")
+                raise serializers.ValidationError(
+                    f"Widget '{widget_id}' is not allowed for this page/user."
+                )
 
             column = str(item.get("column") or "").strip()
             if not column:
-                raise serializers.ValidationError(f"layout.items[{idx}].column is required.")
+                raise serializers.ValidationError(
+                    f"layout.items[{idx}].column is required."
+                )
 
             order = item.get("order", idx)
             try:
                 order = int(order)
             except (TypeError, ValueError):
-                raise serializers.ValidationError(f"layout.items[{idx}].order must be an integer.")
+                raise serializers.ValidationError(
+                    f"layout.items[{idx}].order must be an integer."
+                )
 
             size = item.get("size")
             if widget and size is not None:
@@ -161,11 +178,15 @@ def _sanitize_custom_links(raw_links: Any) -> list[dict]:
         icon = str(link.get("icon") or "bi-link").strip()
         if not label or not url:
             continue
-        clean_links.append({"label": label[:60], "url": url[:256], "icon": icon or "bi-link"})
+        clean_links.append(
+            {"label": label[:60], "url": url[:256], "icon": icon or "bi-link"}
+        )
     return clean_links
 
 
-def _sanitize_widget_meta(raw_meta: Any, allowed_widgets: Dict[str, DashboardWidget]) -> dict:
+def _sanitize_widget_meta(
+    raw_meta: Any, allowed_widgets: Dict[str, DashboardWidget]
+) -> dict:
     clean_meta = {}
     if not isinstance(raw_meta, dict):
         return clean_meta
@@ -174,13 +195,19 @@ def _sanitize_widget_meta(raw_meta: Any, allowed_widgets: Dict[str, DashboardWid
             continue
         widget = allowed_widgets[widget_id]
         size = str(config.get("size") or widget.default_size or "md").strip().lower()
-        variant = str(config.get("variant") or widget.default_variant or "default").strip().lower()
+        variant = (
+            str(config.get("variant") or widget.default_variant or "default")
+            .strip()
+            .lower()
+        )
         allowed_sizes = widget.resolved_allowed_sizes()
         allowed_variants = widget.resolved_allowed_variants()
         if size not in allowed_sizes:
             size = widget.default_size or (allowed_sizes[0] if allowed_sizes else "md")
         if variant not in allowed_variants:
-            variant = widget.default_variant or (allowed_variants[0] if allowed_variants else "default")
+            variant = widget.default_variant or (
+                allowed_variants[0] if allowed_variants else "default"
+            )
         meta = {"size": size, "variant": variant}
         # chart_type for data visualizer widgets (user override)
         if getattr(widget, "widget_type", "") == "chart":
@@ -193,16 +220,22 @@ def _sanitize_widget_meta(raw_meta: Any, allowed_widgets: Dict[str, DashboardWid
     return clean_meta
 
 
-def _sanitize_layout_settings(raw_settings: Any, allowed_widgets: Dict[str, DashboardWidget]) -> dict:
+def _sanitize_layout_settings(
+    raw_settings: Any, allowed_widgets: Dict[str, DashboardWidget]
+) -> dict:
     """
     Sanitize layout settings; reuse _normalize_dashboard_settings and overlay API-specific sanitization.
     """
     settings = raw_settings if isinstance(raw_settings, dict) else {}
     base = _normalize_dashboard_settings(settings)
-    base["widget_meta"] = _sanitize_widget_meta(settings.get("widget_meta"), allowed_widgets)
+    base["widget_meta"] = _sanitize_widget_meta(
+        settings.get("widget_meta"), allowed_widgets
+    )
     base["custom_links"] = _sanitize_custom_links(settings.get("custom_links"))
     if allowed_widgets:
-        base["hidden_widget_ids"] = [w for w in base.get("hidden_widget_ids", []) if w in allowed_widgets]
+        base["hidden_widget_ids"] = [
+            w for w in base.get("hidden_widget_ids", []) if w in allowed_widgets
+        ]
         base["pinned_widgets"] = [
             p
             for p in base.get("pinned_widgets", [])
@@ -254,7 +287,18 @@ def _allowed_roles_for_page(page: str) -> List[str]:
         "emis": role_backend,
         "entity-console": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
         # Portal KB is safe to show to any authenticated role.
-        "portal-kb": ["ADMIN", "LEADERSHIP", "IT_ADMIN", "ACADEMICS_STAFF", "COMMS_STAFF", "TEACHER", "DEPT_LEAD", "HOD", "PARENT", "STUDENT"],
+        "portal-kb": [
+            "ADMIN",
+            "LEADERSHIP",
+            "IT_ADMIN",
+            "ACADEMICS_STAFF",
+            "COMMS_STAFF",
+            "TEACHER",
+            "DEPT_LEAD",
+            "HOD",
+            "PARENT",
+            "STUDENT",
+        ],
     }.get(page, [])
 
 
@@ -275,7 +319,9 @@ class AvailableWidgetsAPI(APIView):
         role = self.get_user_role(request.user)
         if not allowed or role not in allowed:
             raise Http404()
-        widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by("order")
+        widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by(
+            "order"
+        )
         widgets_qs = widgets_qs.filter(
             models.Q(required_role="ANY")
             | models.Q(required_role=role)
@@ -308,7 +354,9 @@ class DashboardLayoutAPI(APIView):
 
         role = self.get_user_role(request.user)
         # Widgets: active, for this page, and allowed by role
-        widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by("order")
+        widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by(
+            "order"
+        )
         widgets_qs = widgets_qs.filter(
             models.Q(required_role="ANY")
             | models.Q(required_role=role)
@@ -329,7 +377,9 @@ class DashboardLayoutAPI(APIView):
             if isinstance(settings, dict):
                 settings = dict(settings)
                 hidden = list(settings.get("hidden_widget_ids") or [])
-                settings["hidden_widget_ids"] = [w for w in hidden if w not in BACKEND_ALWAYS_VISIBLE_WIDGET_IDS]
+                settings["hidden_widget_ids"] = [
+                    w for w in hidden if w not in BACKEND_ALWAYS_VISIBLE_WIDGET_IDS
+                ]
                 layout_data["__settings__"] = settings
 
         return Response(
@@ -369,7 +419,9 @@ class DashboardLayoutAPI(APIView):
             )
 
         role = self.get_user_role(request.user)
-        widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by("order")
+        widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by(
+            "order"
+        )
         widgets_qs = widgets_qs.filter(
             models.Q(required_role="ANY")
             | models.Q(required_role=role)
@@ -377,7 +429,9 @@ class DashboardLayoutAPI(APIView):
         )
         allowed_widgets = {w.id: w for w in widgets_qs}
 
-        serializer = DashboardLayoutSerializer(data=request.data, context={"allowed_widgets": allowed_widgets})
+        serializer = DashboardLayoutSerializer(
+            data=request.data, context={"allowed_widgets": allowed_widgets}
+        )
         serializer.is_valid(raise_exception=True)
         new_layout = serializer.validated_data["layout"]
         # Backend: never persist these widgets as hidden (PUT/PATCH)
@@ -386,7 +440,9 @@ class DashboardLayoutAPI(APIView):
             if isinstance(settings, dict):
                 settings = dict(settings)
                 hidden = list(settings.get("hidden_widget_ids") or [])
-                settings["hidden_widget_ids"] = [w for w in hidden if w not in BACKEND_ALWAYS_VISIBLE_WIDGET_IDS]
+                settings["hidden_widget_ids"] = [
+                    w for w in hidden if w not in BACKEND_ALWAYS_VISIBLE_WIDGET_IDS
+                ]
                 new_layout = dict(new_layout)
                 new_layout["__settings__"] = settings
                 serializer.validated_data["layout"] = new_layout
@@ -402,6 +458,8 @@ class DashboardLayoutAPI(APIView):
         layout_obj.layout = new_layout
         layout_obj.is_default = False
         layout_obj.save(update_fields=["layout", "is_default", "updated_at"])
-        new_settings = (new_layout.get("__settings__", {}) or {})
+        new_settings = new_layout.get("__settings__", {}) or {}
         _log_layout_audit(request.user, old_settings, new_settings)
-        return Response({"status": "ok", "layout": layout_obj.layout}, status=status.HTTP_200_OK)
+        return Response(
+            {"status": "ok", "layout": layout_obj.layout}, status=status.HTTP_200_OK
+        )

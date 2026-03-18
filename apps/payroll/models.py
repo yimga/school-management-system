@@ -12,42 +12,42 @@ class PayScale(models.Model):
     Defines a pay scale/grade with salary ranges that can be applied to staff.
     Allows admins to create standardized pay structures and apply them to employees.
     """
+
     name = models.CharField(
         max_length=100,
-        help_text="Name of the pay scale (e.g., 'Grade 1', 'Senior Teacher', 'Administrative Staff')"
+        help_text="Name of the pay scale (e.g., 'Grade 1', 'Senior Teacher', 'Administrative Staff')",
     )
     code = models.CharField(
         max_length=20,
         unique=True,
-        help_text="Short code for the pay scale (e.g., 'GR1', 'SEN', 'ADM')"
+        help_text="Short code for the pay scale (e.g., 'GR1', 'SEN', 'ADM')",
     )
     description = models.TextField(
-        blank=True,
-        help_text="Description of this pay scale and who it applies to"
+        blank=True, help_text="Description of this pay scale and who it applies to"
     )
-    
+
     # Salary range for this scale
     min_salary = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        help_text="Minimum salary for this pay scale"
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Minimum salary for this pay scale",
     )
     max_salary = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        help_text="Maximum salary for this pay scale"
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Maximum salary for this pay scale",
     )
     default_salary = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         null=True,
         blank=True,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        help_text="Default starting salary when applying this scale (optional)"
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Default starting salary when applying this scale (optional)",
     )
-    
+
     # Department association (optional - can be department-specific or general)
     department = models.ForeignKey(
         Department,
@@ -55,15 +55,14 @@ class PayScale(models.Model):
         null=True,
         blank=True,
         related_name="pay_scales",
-        help_text="Optional: Restrict this scale to a specific department"
+        help_text="Optional: Restrict this scale to a specific department",
     )
-    
+
     # Status
     is_active = models.BooleanField(
-        default=True,
-        help_text="Only active scales can be applied to new employees"
+        default=True, help_text="Only active scales can be applied to new employees"
     )
-    
+
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -72,52 +71,60 @@ class PayScale(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="created_pay_scales"
+        related_name="created_pay_scales",
     )
-    
+
     class Meta:
-        ordering = ['code', 'name']
+        ordering = ["code", "name"]
         verbose_name = "Pay Scale"
         verbose_name_plural = "Pay Scales"
         indexes = [
-            models.Index(fields=['code', 'is_active']),
-            models.Index(fields=['department', 'is_active']),
+            models.Index(fields=["code", "is_active"]),
+            models.Index(fields=["department", "is_active"]),
         ]
-    
+
     def __str__(self):
         dept = f" ({self.department.name})" if self.department else ""
         return f"{self.name} ({self.code}){dept}"
-    
+
     def clean(self):
         from django.core.exceptions import ValidationError
+
         if self.min_salary and self.max_salary:
             if self.min_salary > self.max_salary:
-                raise ValidationError("Minimum salary cannot be greater than maximum salary.")
+                raise ValidationError(
+                    "Minimum salary cannot be greater than maximum salary."
+                )
             if self.default_salary:
-                if self.default_salary < self.min_salary or self.default_salary > self.max_salary:
-                    raise ValidationError("Default salary must be within the min/max range.")
-    
+                if (
+                    self.default_salary < self.min_salary
+                    or self.default_salary > self.max_salary
+                ):
+                    raise ValidationError(
+                        "Default salary must be within the min/max range."
+                    )
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-    
+
     def apply_to_employee(self, employee, use_default=True):
         """
         Apply this pay scale to an employee.
         Sets pay_grade and optionally salary_amount.
-        
+
         Args:
             employee: PayrollEmployee or TeacherProfile instance
             use_default: If True, sets salary_amount to default_salary if available
         """
-        if hasattr(employee, 'pay_grade'):
+        if hasattr(employee, "pay_grade"):
             employee.pay_grade = self.code
-        
-        if use_default and self.default_salary and hasattr(employee, 'salary_amount'):
+
+        if use_default and self.default_salary and hasattr(employee, "salary_amount"):
             employee.salary_amount = self.default_salary
-            employee.save(update_fields=['pay_grade', 'salary_amount'])
-        elif hasattr(employee, 'pay_grade'):
-            employee.save(update_fields=['pay_grade'])
+            employee.save(update_fields=["pay_grade", "salary_amount"])
+        elif hasattr(employee, "pay_grade"):
+            employee.save(update_fields=["pay_grade"])
 
 
 class PayrollEmployee(models.Model):
@@ -138,15 +145,25 @@ class PayrollEmployee(models.Model):
         related_name="payroll_profile",
     )
     employee_code = models.CharField(max_length=50, blank=True)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
+    department = models.ForeignKey(
+        Department, on_delete=models.SET_NULL, null=True, blank=True
+    )
     hire_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
-    pay_type = models.CharField(max_length=20, choices=PayType.choices, default=PayType.MONTHLY)
-    base_salary = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    hourly_rate = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    salary_cap = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    
+    pay_type = models.CharField(
+        max_length=20, choices=PayType.choices, default=PayType.MONTHLY
+    )
+    base_salary = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    hourly_rate = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    salary_cap = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+
     # Link to pay scale
     pay_scale = models.ForeignKey(
         PayScale,
@@ -154,7 +171,7 @@ class PayrollEmployee(models.Model):
         null=True,
         blank=True,
         related_name="employees",
-        help_text="Pay scale/grade assigned to this employee"
+        help_text="Pay scale/grade assigned to this employee",
     )
 
     payment_method = models.CharField(
@@ -179,18 +196,32 @@ class EmploymentContract(models.Model):
         FIXED = "FIXED", "Fixed-term"
         INDEFINITE = "INDEFINITE", "Indefinite"
 
-    employee = models.ForeignKey(PayrollEmployee, on_delete=models.CASCADE, related_name="contracts")
-    contract_type = models.CharField(max_length=20, choices=ContractType.choices, default=ContractType.INDEFINITE)
+    employee = models.ForeignKey(
+        PayrollEmployee, on_delete=models.CASCADE, related_name="contracts"
+    )
+    contract_type = models.CharField(
+        max_length=20, choices=ContractType.choices, default=ContractType.INDEFINITE
+    )
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     pay_type = models.CharField(max_length=20, choices=PayrollEmployee.PayType.choices)
-    base_salary = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    hourly_rate = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    salary_cap = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    hours_per_week = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-    overtime_multiplier = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    base_salary = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    hourly_rate = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    salary_cap = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    hours_per_week = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True
+    )
+    overtime_multiplier = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True
+    )
     is_active = models.BooleanField(default=True)
-    
+
     # Link to pay scale for this contract
     pay_scale = models.ForeignKey(
         PayScale,
@@ -198,7 +229,7 @@ class EmploymentContract(models.Model):
         null=True,
         blank=True,
         related_name="contracts",
-        help_text="Pay scale for this contract period"
+        help_text="Pay scale for this contract period",
     )
 
     class Meta:
@@ -209,7 +240,9 @@ class EmploymentContract(models.Model):
 
 
 class SalaryAdjustment(models.Model):
-    employee = models.ForeignKey(PayrollEmployee, on_delete=models.CASCADE, related_name="adjustments")
+    employee = models.ForeignKey(
+        PayrollEmployee, on_delete=models.CASCADE, related_name="adjustments"
+    )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     effective_date = models.DateField()
     description = models.CharField(max_length=200, blank=True)
@@ -223,9 +256,13 @@ class SalaryAdjustment(models.Model):
 
 
 class TimeEntry(models.Model):
-    employee = models.ForeignKey(PayrollEmployee, on_delete=models.CASCADE, related_name="time_entries")
+    employee = models.ForeignKey(
+        PayrollEmployee, on_delete=models.CASCADE, related_name="time_entries"
+    )
     entry_date = models.DateField()
-    hours_worked = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal("0.00"))
+    hours_worked = models.DecimalField(
+        max_digits=6, decimal_places=2, default=Decimal("0.00")
+    )
     is_approved = models.BooleanField(default=False)
     notes = models.CharField(max_length=200, blank=True)
 
@@ -251,13 +288,19 @@ class LeaveRequest(models.Model):
         REJECTED = "REJECTED", "Rejected"
         CANCELLED = "CANCELLED", "Cancelled"
 
-    employee = models.ForeignKey(PayrollEmployee, on_delete=models.CASCADE, related_name="leave_requests")
-    leave_type = models.CharField(max_length=20, choices=LeaveType.choices, default=LeaveType.ANNUAL)
+    employee = models.ForeignKey(
+        PayrollEmployee, on_delete=models.CASCADE, related_name="leave_requests"
+    )
+    leave_type = models.CharField(
+        max_length=20, choices=LeaveType.choices, default=LeaveType.ANNUAL
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     days = models.PositiveSmallIntegerField(default=0)
     is_paid = models.BooleanField(default=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING
+    )
     reason = models.TextField(blank=True)
     requested_at = models.DateTimeField(auto_now_add=True)
     approved_by = models.ForeignKey(
@@ -289,10 +332,14 @@ class PayrollRun(models.Model):
         APPROVED = "APPROVED", "Approved"
         PAID = "PAID", "Paid"
 
-    profile = models.ForeignKey(ComplianceProfile, on_delete=models.PROTECT, related_name="payroll_runs")
+    profile = models.ForeignKey(
+        ComplianceProfile, on_delete=models.PROTECT, related_name="payroll_runs"
+    )
     period_start = models.DateField()
     period_end = models.DateField()
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -313,8 +360,12 @@ class PayrollRun(models.Model):
 
 
 class PayrollRunApproval(models.Model):
-    run = models.ForeignKey(PayrollRun, on_delete=models.CASCADE, related_name="approvals")
-    approver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    run = models.ForeignKey(
+        PayrollRun, on_delete=models.CASCADE, related_name="approvals"
+    )
+    approver = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
     approved_at = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True)
 
@@ -328,25 +379,47 @@ class Payslip(models.Model):
         ISSUED = "ISSUED", "Issued"
         PAID = "PAID", "Paid"
 
-    payroll_run = models.ForeignKey(PayrollRun, on_delete=models.CASCADE, related_name="payslips")
-    employee = models.ForeignKey(PayrollEmployee, on_delete=models.CASCADE, related_name="payslips")
+    payroll_run = models.ForeignKey(
+        PayrollRun, on_delete=models.CASCADE, related_name="payslips"
+    )
+    employee = models.ForeignKey(
+        PayrollEmployee, on_delete=models.CASCADE, related_name="payslips"
+    )
     reference = models.CharField(max_length=64, blank=True)
 
-    gross_pay = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    net_pay = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    tax_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    employee_contributions = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    employer_contributions = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    overtime_pay = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    other_deductions = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    total_hours = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal("0.00"))
+    gross_pay = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    net_pay = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    tax_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    employee_contributions = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    employer_contributions = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    overtime_pay = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    other_deductions = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    total_hours = models.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0.00")
+    )
 
     payment_method = models.CharField(
         max_length=20,
         choices=PayrollEmployee.PaymentMethod.choices,
         default=PayrollEmployee.PaymentMethod.BANK_TRANSFER,
     )
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
     paid_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

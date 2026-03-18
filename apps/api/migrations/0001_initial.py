@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,117 +15,253 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='MobileDevice',
+            name="MobileDevice",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('device_id', models.UUIDField(db_index=True, default=uuid.uuid4, unique=True)),
-                ('device_name', models.CharField(max_length=255)),
-                ('platform', models.CharField(choices=[('IOS', 'iOS'), ('ANDROID', 'Android'), ('WEB', 'Web')], max_length=20)),
-                ('push_token', models.CharField(blank=True, max_length=500)),
-                ('app_version', models.CharField(max_length=50)),
-                ('os_version', models.CharField(blank=True, max_length=50)),
-                ('is_active', models.BooleanField(default=True)),
-                ('last_active', models.DateTimeField(auto_now=True)),
-                ('registered_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mobile_devices', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "device_id",
+                    models.UUIDField(db_index=True, default=uuid.uuid4, unique=True),
+                ),
+                ("device_name", models.CharField(max_length=255)),
+                (
+                    "platform",
+                    models.CharField(
+                        choices=[
+                            ("IOS", "iOS"),
+                            ("ANDROID", "Android"),
+                            ("WEB", "Web"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("push_token", models.CharField(blank=True, max_length=500)),
+                ("app_version", models.CharField(max_length=50)),
+                ("os_version", models.CharField(blank=True, max_length=50)),
+                ("is_active", models.BooleanField(default=True)),
+                ("last_active", models.DateTimeField(auto_now=True)),
+                ("registered_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="mobile_devices",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-last_active'],
+                "ordering": ["-last_active"],
             },
         ),
         migrations.CreateModel(
-            name='APIAccessLog',
+            name="APIAccessLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('endpoint', models.CharField(max_length=500)),
-                ('method', models.CharField(max_length=10)),
-                ('ip_address', models.GenericIPAddressField()),
-                ('user_agent', models.CharField(blank=True, max_length=500)),
-                ('status_code', models.IntegerField()),
-                ('response_time_ms', models.IntegerField()),
-                ('request_size', models.IntegerField(default=0)),
-                ('response_size', models.IntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('device', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.mobiledevice')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("endpoint", models.CharField(max_length=500)),
+                ("method", models.CharField(max_length=10)),
+                ("ip_address", models.GenericIPAddressField()),
+                ("user_agent", models.CharField(blank=True, max_length=500)),
+                ("status_code", models.IntegerField()),
+                ("response_time_ms", models.IntegerField()),
+                ("request_size", models.IntegerField(default=0)),
+                ("response_size", models.IntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "device",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="api.mobiledevice",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='OfflineSyncQueue',
+            name="OfflineSyncQueue",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('entity_type', models.CharField(max_length=100)),
-                ('entity_id', models.IntegerField()),
-                ('action', models.CharField(max_length=20)),
-                ('data', models.JSONField()),
-                ('client_timestamp', models.DateTimeField()),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('SYNCING', 'Syncing'), ('COMPLETED', 'Completed'), ('CONFLICT', 'Conflict'), ('FAILED', 'Failed')], default='PENDING', max_length=20)),
-                ('conflict_data', models.JSONField(blank=True, null=True)),
-                ('error_message', models.TextField(blank=True)),
-                ('synced_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('device', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.mobiledevice')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("entity_type", models.CharField(max_length=100)),
+                ("entity_id", models.IntegerField()),
+                ("action", models.CharField(max_length=20)),
+                ("data", models.JSONField()),
+                ("client_timestamp", models.DateTimeField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("SYNCING", "Syncing"),
+                            ("COMPLETED", "Completed"),
+                            ("CONFLICT", "Conflict"),
+                            ("FAILED", "Failed"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("conflict_data", models.JSONField(blank=True, null=True)),
+                ("error_message", models.TextField(blank=True)),
+                ("synced_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "device",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="api.mobiledevice",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['created_at'],
+                "ordering": ["created_at"],
             },
         ),
         migrations.CreateModel(
-            name='PushNotification',
+            name="PushNotification",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('body', models.TextField()),
-                ('data', models.JSONField(default=dict)),
-                ('priority', models.CharField(choices=[('LOW', 'Low'), ('NORMAL', 'Normal'), ('HIGH', 'High')], default='NORMAL', max_length=10)),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('SENT', 'Sent'), ('FAILED', 'Failed'), ('DELIVERED', 'Delivered')], default='PENDING', max_length=20)),
-                ('error_message', models.TextField(blank=True)),
-                ('sent_at', models.DateTimeField(blank=True, null=True)),
-                ('delivered_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('device', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.mobiledevice')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("body", models.TextField()),
+                ("data", models.JSONField(default=dict)),
+                (
+                    "priority",
+                    models.CharField(
+                        choices=[
+                            ("LOW", "Low"),
+                            ("NORMAL", "Normal"),
+                            ("HIGH", "High"),
+                        ],
+                        default="NORMAL",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("SENT", "Sent"),
+                            ("FAILED", "Failed"),
+                            ("DELIVERED", "Delivered"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("error_message", models.TextField(blank=True)),
+                ("sent_at", models.DateTimeField(blank=True, null=True)),
+                ("delivered_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "device",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="api.mobiledevice",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.AddIndex(
-            model_name='mobiledevice',
-            index=models.Index(fields=['user', 'is_active'], name='api_mobiled_user_id_a96bba_idx'),
+            model_name="mobiledevice",
+            index=models.Index(
+                fields=["user", "is_active"], name="api_mobiled_user_id_a96bba_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='mobiledevice',
-            index=models.Index(fields=['device_id'], name='api_mobiled_device__c3784d_idx'),
+            model_name="mobiledevice",
+            index=models.Index(
+                fields=["device_id"], name="api_mobiled_device__c3784d_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='apiaccesslog',
-            index=models.Index(fields=['user', 'created_at'], name='api_apiacce_user_id_4d43fd_idx'),
+            model_name="apiaccesslog",
+            index=models.Index(
+                fields=["user", "created_at"], name="api_apiacce_user_id_4d43fd_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='apiaccesslog',
-            index=models.Index(fields=['endpoint', 'created_at'], name='api_apiacce_endpoin_4423f7_idx'),
+            model_name="apiaccesslog",
+            index=models.Index(
+                fields=["endpoint", "created_at"], name="api_apiacce_endpoin_4423f7_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='apiaccesslog',
-            index=models.Index(fields=['ip_address', 'created_at'], name='api_apiacce_ip_addr_2290a2_idx'),
+            model_name="apiaccesslog",
+            index=models.Index(
+                fields=["ip_address", "created_at"],
+                name="api_apiacce_ip_addr_2290a2_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='offlinesyncqueue',
-            index=models.Index(fields=['device', 'status'], name='api_offline_device__9cdb2d_idx'),
+            model_name="offlinesyncqueue",
+            index=models.Index(
+                fields=["device", "status"], name="api_offline_device__9cdb2d_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='offlinesyncqueue',
-            index=models.Index(fields=['entity_type', 'entity_id'], name='api_offline_entity__564f94_idx'),
+            model_name="offlinesyncqueue",
+            index=models.Index(
+                fields=["entity_type", "entity_id"],
+                name="api_offline_entity__564f94_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='pushnotification',
-            index=models.Index(fields=['device', 'status'], name='api_pushnot_device__b9e48b_idx'),
+            model_name="pushnotification",
+            index=models.Index(
+                fields=["device", "status"], name="api_pushnot_device__b9e48b_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='pushnotification',
-            index=models.Index(fields=['status', 'created_at'], name='api_pushnot_status_343cf1_idx'),
+            model_name="pushnotification",
+            index=models.Index(
+                fields=["status", "created_at"], name="api_pushnot_status_343cf1_idx"
+            ),
         ),
     ]

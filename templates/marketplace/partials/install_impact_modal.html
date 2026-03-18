@@ -1,0 +1,124 @@
+{% load i18n %}
+{# N17: install_impact_preview_url, install_post_url, super_requires_school #}
+<div id="rmc-install-impact-boot" class="d-none" data-preview-url="{{ install_impact_preview_url }}" data-needs-school="{% if super_requires_school %}1{% else %}0{% endif %}"></div>
+<div class="modal fade" id="rmcInstallImpactModal" tabindex="-1" aria-labelledby="rmcInstallImpactModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="rmcInstallImpactModalLabel">{% trans "Install impact preview" %}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-2">{% trans "Review scopes, compatibility, and metadata impact before confirming sandbox install." %}</p>
+        <div id="rmcInstallImpactBody" class="small" role="region" aria-live="polite">
+          <div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">{% trans "Loading" %}…</span></div>
+        </div>
+      </div>
+      <div class="modal-footer flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+        <form id="rmcInstallImpactConfirmForm" method="post" action="{{ install_post_url }}" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="app_id" id="rmcInstallImpactAppId" value="">
+          <input type="hidden" name="school_id" id="rmcInstallImpactSchoolId" value="">
+          <button type="submit" class="btn btn-primary" id="rmcInstallImpactConfirmBtn" disabled>{% trans "Confirm install to sandbox" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var boot = document.getElementById("rmc-install-impact-boot");
+  var previewBase = boot ? boot.getAttribute("data-preview-url") || "" : "";
+  var superNeedsSchool = boot && boot.getAttribute("data-needs-school") === "1";
+  var modalEl = document.getElementById("rmcInstallImpactModal");
+  var bodyEl = document.getElementById("rmcInstallImpactBody");
+  var appInput = document.getElementById("rmcInstallImpactAppId");
+  var schoolInput = document.getElementById("rmcInstallImpactSchoolId");
+  var confirmBtn = document.getElementById("rmcInstallImpactConfirmBtn");
+  function esc(s) {
+    if (s == null) return "";
+    var d = document.createElement("div");
+    d.textContent = String(s);
+    return d.innerHTML;
+  }
+  function renderImpact(d) {
+    if (d.error) {
+      bodyEl.innerHTML = "<p class=\"text-danger\">" + esc(d.error) + "</p>";
+      confirmBtn.disabled = true;
+      return;
+    }
+    var html = "";
+    html += "<h3 class=\"h6\">" + esc(d.app && d.app.name) + "</h3>";
+    html += "<p class=\"text-muted\">" + esc(d.app && d.app.slug) + " · v" + esc(d.app && d.app.version) + "</p>";
+    var comp = d.compatibility || {};
+    if (comp.errors && comp.errors.length) {
+      html += "<div class=\"alert alert-danger\"><strong>{% trans 'Compatibility' %}:</strong><ul class=\"mb-0\">";
+      comp.errors.forEach(function (e) { html += "<li>" + esc(e) + "</li>"; });
+      html += "</ul></div>";
+    }
+    if (comp.warnings && comp.warnings.length) {
+      html += "<div class=\"alert alert-warning\"><strong>{% trans 'Warnings' %}:</strong><ul class=\"mb-0\">";
+      comp.warnings.forEach(function (w) { html += "<li>" + esc(w) + "</li>"; });
+      html += "</ul></div>";
+    }
+    html += "<h4 class=\"h6 mt-3\">{% trans 'Scopes' %}</h4><ul class=\"list-unstyled\">";
+    (d.scopes || []).forEach(function (s) {
+      html += "<li><code>" + esc(s.scope_code) + "</code>";
+      if (s.sensitive) html += " <span class=\"badge text-bg-warning\">{% trans 'Sensitive' %}</span>";
+      html += "</li>";
+    });
+    html += "</ul>";
+    var prev = d.package_impact_preview;
+    if (prev && prev.impacted_artifacts) {
+      html += "<h4 class=\"h6 mt-3\">{% trans 'Metadata / package impact' %}</h4>";
+      var sections = prev.impacted_artifacts.sections || [];
+      html += "<p class=\"mb-1\">{% trans 'Sections' %}: " + esc(sections.join(", ")) + "</p>";
+      if (prev.warnings && prev.warnings.length) {
+        html += "<p class=\"text-warning mb-0\">" + esc(prev.warnings.join("; ")) + "</p>";
+      }
+    } else if (d.installed_impact_summary && Object.keys(d.installed_impact_summary).length) {
+      html += "<h4 class=\"h6 mt-3\">{% trans 'Prior install impact (stored)' %}</h4>";
+      html += "<pre class=\"small bg-light p-2 rounded\">" + esc(JSON.stringify(d.installed_impact_summary, null, 2)) + "</pre>";
+    } else {
+      html += "<p class=\"text-muted mt-3 mb-0\">{% trans 'No package payload registered for this app slug; scope list defines API access. Register PackageVersion to enable full impact diff.' %}</p>";
+    }
+    var rb = (d.rollback && d.rollback.sandbox) || "";
+    html += "<p class=\"mt-3 small text-muted mb-0\"><strong>{% trans 'Rollback' %}:</strong> " + esc(rb) + "</p>";
+    bodyEl.innerHTML = html;
+    confirmBtn.disabled = !!(comp.errors && comp.errors.length);
+  }
+  function loadImpact(appId, schoolId) {
+    bodyEl.innerHTML = "<div class=\"spinner-border spinner-border-sm\"></div>";
+    confirmBtn.disabled = true;
+    appInput.value = appId;
+    schoolInput.value = schoolId || "";
+    var sep = previewBase.indexOf("?") >= 0 ? "&" : "?";
+    var url = previewBase + sep + "app_id=" + encodeURIComponent(appId);
+    if (schoolId) url += "&school_id=" + encodeURIComponent(schoolId);
+    fetch(url, { credentials: "same-origin", headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (x) { renderImpact(x.j); })
+      .catch(function () {
+        bodyEl.innerHTML = "<p class=\"text-danger\">{% trans 'Could not load preview.' %}</p>";
+        confirmBtn.disabled = true;
+      });
+  }
+  document.querySelectorAll("[data-rmc-open-install-impact]").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      var appId = btn.getAttribute("data-app-id");
+      var row = btn.closest("[data-rmc-school-select]");
+      var sel = row ? row.querySelector("select[name=\"school_id\"]") : null;
+      var schoolId = btn.getAttribute("data-school-id") || (sel && sel.value) || "";
+      if (superNeedsSchool && !schoolId) {
+        alert("{% trans 'Select a school first, then preview impact.' %}");
+        return;
+      }
+      if (!modalEl || typeof bootstrap === "undefined") return;
+      new bootstrap.Modal(modalEl).show();
+      loadImpact(appId, schoolId);
+    });
+  });
+})();
+</script>

@@ -3,7 +3,6 @@ import apps.siteconfig.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0029_sitesettings_backend_feature_flags"),
     ]

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("finance", "0019_add_finance_request_audit"),
         ("finance", "0021_convert_payment_ids_to_uuid"),

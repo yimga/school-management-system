@@ -4,15 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0024_rollover_item_is_graduate'),
+        ("accounts", "0024_rollover_item_is_graduate"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='securityauditlog',
-            name='event_type',
-            field=models.CharField(choices=[('LOGIN', 'Login'), ('LOGIN_FAILED', 'Login failed'), ('MFA_CHANGE', 'MFA changed'), ('PWD_RESET', 'Password reset'), ('DATA_EXPORT', 'Data export'), ('LOCKDOWN_TRIGGERED', 'Emergency lockdown'), ('SESSION_REVOKED', 'Sessions revoked'), ('IMPOSSIBLE_TRAVEL', 'Impossible travel (login from distant location)')], max_length=40),
+            model_name="securityauditlog",
+            name="event_type",
+            field=models.CharField(
+                choices=[
+                    ("LOGIN", "Login"),
+                    ("LOGIN_FAILED", "Login failed"),
+                    ("MFA_CHANGE", "MFA changed"),
+                    ("PWD_RESET", "Password reset"),
+                    ("DATA_EXPORT", "Data export"),
+                    ("LOCKDOWN_TRIGGERED", "Emergency lockdown"),
+                    ("SESSION_REVOKED", "Sessions revoked"),
+                    (
+                        "IMPOSSIBLE_TRAVEL",
+                        "Impossible travel (login from distant location)",
+                    ),
+                ],
+                max_length=40,
+            ),
         ),
     ]

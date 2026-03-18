@@ -14,12 +14,14 @@ def add_school_fields_if_missing(apps, schema_editor):
     with conn.cursor() as cursor:
         table = "schools_school"
         if conn.vendor == "postgresql":
+
             def col_exists(name):
                 cursor.execute(
                     "SELECT 1 FROM information_schema.columns WHERE table_name = %s AND column_name = %s",
                     [table, name],
                 )
                 return cursor.fetchone() is not None
+
             if not col_exists("branding_metadata"):
                 cursor.execute(
                     "ALTER TABLE schools_school ADD COLUMN branding_metadata jsonb NOT NULL DEFAULT '{}'"
@@ -53,7 +55,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0022_backfill_schooldomain"),
     ]

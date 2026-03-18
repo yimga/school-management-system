@@ -3,6 +3,7 @@ Security & Identity Powerhouse API (plan 3.13–3.23).
 Strength, audit feed, export (MFA-gated), lockdown.
 §10.5.4 Trust product: Sessions page (TRUST_PRODUCT_SURFACES.md).
 """
+
 from __future__ import annotations
 
 import csv
@@ -10,9 +11,7 @@ import io
 from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.sessions.exceptions import SuspiciousSession
 from django.contrib.sessions.models import Session
-from django.core.exceptions import SuspiciousOperation
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -41,12 +40,14 @@ def api_security_strength(request):
     missing = get_missing_tasks(user, school=school)
     grace_days = get_security_grace_period_days(school)
     within_grace = is_within_grace_period(user, school=school)
-    return JsonResponse({
-        "strength": strength,
-        "missing_tasks": missing,
-        "grace_period_days": grace_days,
-        "within_grace_period": within_grace,
-    })
+    return JsonResponse(
+        {
+            "strength": strength,
+            "missing_tasks": missing,
+            "grace_period_days": grace_days,
+            "within_grace_period": within_grace,
+        }
+    )
 
 
 @login_required
@@ -63,23 +64,30 @@ def api_security_activity(request):
         qs = qs.filter(school=school)
     events = []
     for e in qs:
-        events.append({
-            "id": e.pk,
-            "event_type": e.event_type,
-            "description": e.get_event_type_display() if hasattr(e, "get_event_type_display") else e.event_type,
-            "ip": e.ip_address or "",
-            "user_agent": (e.user_agent or "")[:80],
-            "location": (e.location_data or {}).get("city") or (e.location_data or {}).get("country") or "Unknown",
-            "is_suspicious": e.is_suspicious,
-            "timestamp": e.created_at.isoformat(),
-            "initiator": e.initiator or "",
-        })
+        events.append(
+            {
+                "id": e.pk,
+                "event_type": e.event_type,
+                "description": e.get_event_type_display()
+                if hasattr(e, "get_event_type_display")
+                else e.event_type,
+                "ip": e.ip_address or "",
+                "user_agent": (e.user_agent or "")[:80],
+                "location": (e.location_data or {}).get("city")
+                or (e.location_data or {}).get("country")
+                or "Unknown",
+                "is_suspicious": e.is_suspicious,
+                "timestamp": e.created_at.isoformat(),
+                "initiator": e.initiator or "",
+            }
+        )
     return JsonResponse({"activities": events})
 
 
 def _user_has_mfa(user) -> bool:
     try:
         from django_otp import user_has_device
+
         try:
             has_device = user_has_device(user, confirmed=True)
         except TypeError:
@@ -90,6 +98,7 @@ def _user_has_mfa(user) -> bool:
         pass
     try:
         from apps.accounts.models import UserPasskey
+
         return UserPasskey.objects.filter(user=user).exists()
     except (ImportError, AttributeError, TypeError):
         return False
@@ -106,18 +115,34 @@ def api_security_export_log(request):
     user = request.user
     school = getattr(request, "school", None)
     since = timezone.now() - timedelta(days=365)
-    qs = SecurityAuditLog.objects.filter(user=user, created_at__gte=since).order_by("-created_at")
+    qs = SecurityAuditLog.objects.filter(user=user, created_at__gte=since).order_by(
+        "-created_at"
+    )
     if school:
         qs = qs.filter(school=school)
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["timestamp", "event_type", "ip_address", "location", "is_suspicious"])
     for e in qs:
-        loc = (e.location_data or {}).get("city") or (e.location_data or {}).get("country") or ""
-        w.writerow([e.created_at.isoformat(), e.event_type, e.ip_address or "", loc, e.is_suspicious])
+        loc = (
+            (e.location_data or {}).get("city")
+            or (e.location_data or {}).get("country")
+            or ""
+        )
+        w.writerow(
+            [
+                e.created_at.isoformat(),
+                e.event_type,
+                e.ip_address or "",
+                loc,
+                e.is_suspicious,
+            ]
+        )
     resp = HttpResponse(buf.getvalue(), content_type="text/csv")
     resp["Content-Disposition"] = 'attachment; filename="security-log.csv"'
-    log_security_event(user, SecurityAuditLog.EventType.DATA_EXPORT, request=request, school=school)
+    log_security_event(
+        user, SecurityAuditLog.EventType.DATA_EXPORT, request=request, school=school
+    )
     return resp
 
 
@@ -129,8 +154,16 @@ def api_security_lockdown(request):
     """
     user = request.user
     if lockdown_user_account(user, request=request, initiator="self"):
-        return JsonResponse({"ok": True, "message": "Account locked. Please set a new password on next login."})
-    return JsonResponse({"ok": False, "message": "Lockdown cooldown: wait 24 hours or contact admin."}, status=400)
+        return JsonResponse(
+            {
+                "ok": True,
+                "message": "Account locked. Please set a new password on next login.",
+            }
+        )
+    return JsonResponse(
+        {"ok": False, "message": "Lockdown cooldown: wait 24 hours or contact admin."},
+        status=400,
+    )
 
 
 def _sessions_for_user(user, limit=50):
@@ -164,19 +197,23 @@ def sessions_page(request):
             data = s.get_decoded()
             user_agent = (data.get("_auth_user_backend") or "")[:80]
             # Django session often has no user_agent in data; we don't store it by default
-            session_list.append({
-                "session_key": s.session_key,
-                "expire_date": s.expire_date,
-                "is_current": s.session_key == current_session_key,
-                "user_agent": user_agent or "—",
-            })
+            session_list.append(
+                {
+                    "session_key": s.session_key,
+                    "expire_date": s.expire_date,
+                    "is_current": s.session_key == current_session_key,
+                    "user_agent": user_agent or "—",
+                }
+            )
         except _SECURITY_SESSION_DECODE_ERRORS:
-            session_list.append({
-                "session_key": s.session_key,
-                "expire_date": s.expire_date,
-                "is_current": s.session_key == current_session_key,
-                "user_agent": "—",
-            })
+            session_list.append(
+                {
+                    "session_key": s.session_key,
+                    "expire_date": s.expire_date,
+                    "is_current": s.session_key == current_session_key,
+                    "user_agent": "—",
+                }
+            )
     return render(
         request,
         "accounts/sessions_page.html",
@@ -214,6 +251,9 @@ def sessions_revoke(request, session_key):
         request=request,
         school=school,
     )
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.GET.get("format") == "json":
+    if (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or request.GET.get("format") == "json"
+    ):
         return JsonResponse({"ok": True})
     return redirect("accounts:sessions_page")

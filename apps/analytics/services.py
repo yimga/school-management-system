@@ -8,11 +8,17 @@ from typing import Iterable, Optional
 from django.db.models import Avg
 from django.utils import timezone
 
-from apps.academics.models import AcademicYear, Term, Classroom, Specialty, Subject, SubjectAssignment
+from apps.academics.models import (
+    AcademicYear,
+    Term,
+    Classroom,
+    Specialty,
+    Subject,
+    SubjectAssignment,
+)
 from apps.evals.models import AssessmentWeights, Evaluation, TeacherAssignment
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.reports.models import PromotionRule, TermPublishStatus
-
 
 
 DEADLINE_MODE_TERM_END = "TERM_END"
@@ -142,7 +148,9 @@ def resolve_deadline(
     return _term_end_deadline(term)
 
 
-def required_fields(academic_year: AcademicYear, classroom: Optional[Classroom], term: Term) -> list[str]:
+def required_fields(
+    academic_year: AcademicYear, classroom: Optional[Classroom], term: Term
+) -> list[str]:
     weights = AssessmentWeights.get_for(
         academic_year=academic_year,
         classroom=classroom,
@@ -195,7 +203,9 @@ def annual_average(student: StudentProfile, terms: Iterable[Term]) -> Optional[f
     return round(sum(term_avgs) / len(term_avgs), 2)
 
 
-def term_rankings(term: Term, classroom: Optional[Classroom] = None) -> list[tuple[StudentProfile, float]]:
+def term_rankings(
+    term: Term, classroom: Optional[Classroom] = None
+) -> list[tuple[StudentProfile, float]]:
     students = StudentProfile.objects.filter(
         academic_year=term.academic_year,
         is_active=True,
@@ -260,7 +270,9 @@ def teacher_compliance(
     for assignment in assignments:
         teacher = assignment.teacher
         teachers[teacher.id] = teacher
-        stats.setdefault(teacher.id, {"expected": 0, "on_time": 0, "late": 0, "missing": 0})
+        stats.setdefault(
+            teacher.id, {"expected": 0, "on_time": 0, "late": 0, "missing": 0}
+        )
 
         sa = assignment.subject_assignment
         classroom = sa.classroom
@@ -345,7 +357,11 @@ def subject_weaknesses(
             continue
         avg = total / count
         if Decimal(str(avg)) <= threshold:
-            rows.append(SubjectAverageRow(subject=subjects[subject_id], average=avg, count=count))
+            rows.append(
+                SubjectAverageRow(
+                    subject=subjects[subject_id], average=avg, count=count
+                )
+            )
 
     rows.sort(key=lambda row: row.average)
     return rows
@@ -392,7 +408,13 @@ def specialty_pass_rates(
     pass_mark: Decimal,
     use_promotion_rule: bool,
 ) -> list[SpecialtyPassRateRow]:
-    terms = [term] if term else list(Term.objects.filter(academic_year=academic_year).order_by("start_date"))
+    terms = (
+        [term]
+        if term
+        else list(
+            Term.objects.filter(academic_year=academic_year).order_by("start_date")
+        )
+    )
     students = StudentProfile.objects.filter(
         academic_year=academic_year,
         is_active=True,
@@ -405,7 +427,11 @@ def specialty_pass_rates(
 
     for student in students:
         specialties[student.specialty_id] = student.specialty
-        avg = annual_average(student, terms) if term is None else term_average(student, term)
+        avg = (
+            annual_average(student, terms)
+            if term is None
+            else term_average(student, term)
+        )
         if avg is None:
             missing[student.specialty_id] = missing.get(student.specialty_id, 0) + 1
             continue
@@ -441,6 +467,7 @@ def specialty_pass_rates(
 
 # ========== COMPLIANCE & AUDIT FUNCTIONS ==========
 
+
 def get_teacher_compliance(academic_year_id, term_id):
     """
     Get teacher submission compliance report.
@@ -459,19 +486,24 @@ def get_teacher_compliance(academic_year_id, term_id):
     today = timezone.now().date()
     compliance_data = []
 
-    teacher_assignments = TeacherAssignment.objects.filter(
-        academic_year_id=academic_year_id,
-        subject_assignment__term_id=term_id,
-    ).select_related(
-        "teacher",
-        "teacher__user",
-        "subject_assignment",
-        "subject_assignment__classroom",
-        "subject_assignment__subject",
-    ).order_by("teacher_id", "subject_assignment__classroom_id")
+    teacher_assignments = (
+        TeacherAssignment.objects.filter(
+            academic_year_id=academic_year_id,
+            subject_assignment__term_id=term_id,
+        )
+        .select_related(
+            "teacher",
+            "teacher__user",
+            "subject_assignment",
+            "subject_assignment__classroom",
+            "subject_assignment__subject",
+        )
+        .order_by("teacher_id", "subject_assignment__classroom_id")
+    )
 
     # Group by (teacher, classroom)
     from collections import defaultdict
+
     groups = defaultdict(list)
     for ta in teacher_assignments:
         key = (ta.teacher_id, ta.subject_assignment.classroom_id)
@@ -487,7 +519,9 @@ def get_teacher_compliance(academic_year_id, term_id):
             sa = ta.subject_assignment
             deadline_dt = sa.grading_deadline_at
             if deadline_dt:
-                deadline_date = deadline_dt.date() if hasattr(deadline_dt, "date") else deadline_dt
+                deadline_date = (
+                    deadline_dt.date() if hasattr(deadline_dt, "date") else deadline_dt
+                )
                 days_left = (deadline_date - today).days
                 if days_left < 0:
                     submission_status = "overdue"
@@ -500,27 +534,40 @@ def get_teacher_compliance(academic_year_id, term_id):
                 submission_status = "on_track"
                 deadline_date = None
 
-            submitted_count = Evaluation.objects.filter(
-                academic_year_id=academic_year_id,
-                term_id=term_id,
-                subject_assignment=sa,
-                teacher=teacher,
-            ).values("student").distinct().count()
+            submitted_count = (
+                Evaluation.objects.filter(
+                    academic_year_id=academic_year_id,
+                    term_id=term_id,
+                    subject_assignment=sa,
+                    teacher=teacher,
+                )
+                .values("student")
+                .distinct()
+                .count()
+            )
 
-            completion_rate = (submitted_count / total_students * 100) if total_students > 0 else 0
-            deadlines_info.append({
-                "subject_assignment_id": sa.id,
-                "subject_name": sa.subject.name,
-                "deadline_date": deadline_date.isoformat() if deadline_date else None,
-                "days_left": days_left,
-                "submission_status": submission_status,
-                "completion_rate": round(completion_rate, 1),
-                "submitted_count": submitted_count,
-                "total_students": total_students,
-            })
+            completion_rate = (
+                (submitted_count / total_students * 100) if total_students > 0 else 0
+            )
+            deadlines_info.append(
+                {
+                    "subject_assignment_id": sa.id,
+                    "subject_name": sa.subject.name,
+                    "deadline_date": deadline_date.isoformat()
+                    if deadline_date
+                    else None,
+                    "days_left": days_left,
+                    "submission_status": submission_status,
+                    "completion_rate": round(completion_rate, 1),
+                    "submitted_count": submitted_count,
+                    "total_students": total_students,
+                }
+            )
 
         if deadlines_info:
-            overall_completion = sum(d["completion_rate"] for d in deadlines_info) / len(deadlines_info)
+            overall_completion = sum(
+                d["completion_rate"] for d in deadlines_info
+            ) / len(deadlines_info)
             statuses = [d["submission_status"] for d in deadlines_info]
             if "overdue" in statuses:
                 overall_status = "overdue"
@@ -532,16 +579,18 @@ def get_teacher_compliance(academic_year_id, term_id):
             overall_completion = 100
             overall_status = "compliant"
 
-        compliance_data.append({
-            "teacher_id": teacher.id,
-            "teacher_name": f"{teacher.user.first_name} {teacher.user.last_name}",
-            "teacher_code": getattr(teacher, "teacher_code", "") or "",
-            "classroom_name": classroom.name,
-            "classroom_count": len(tas),
-            "deadlines": deadlines_info,
-            "overall_completion": round(overall_completion, 1),
-            "status": overall_status,
-        })
+        compliance_data.append(
+            {
+                "teacher_id": teacher.id,
+                "teacher_name": f"{teacher.user.first_name} {teacher.user.last_name}",
+                "teacher_code": getattr(teacher, "teacher_code", "") or "",
+                "classroom_name": classroom.name,
+                "classroom_count": len(tas),
+                "deadlines": deadlines_info,
+                "overall_completion": round(overall_completion, 1),
+                "status": overall_status,
+            }
+        )
 
     return compliance_data
 
@@ -549,41 +598,67 @@ def get_teacher_compliance(academic_year_id, term_id):
 def get_audit_trail(evaluation_id, limit=50):
     """
     Get audit trail for an evaluation with change history.
-    
+
     Returns:
         List of dicts: {'change_type', 'changed_by', 'changed_at', 'changes': {...}}
     """
     from apps.evals.models import GradeAudit
-    
-    audits = GradeAudit.objects.filter(
-        evaluation_id=evaluation_id
-    ).select_related('changed_by').order_by('-changed_at')[:limit]
-    
+
+    audits = (
+        GradeAudit.objects.filter(evaluation_id=evaluation_id)
+        .select_related("changed_by")
+        .order_by("-changed_at")[:limit]
+    )
+
     trail = []
     for audit in audits:
         changes = {}
         if audit.seq1_before is not None or audit.seq1_after is not None:
-            changes['seq1'] = {'before': float(audit.seq1_before or 0), 'after': float(audit.seq1_after or 0)}
+            changes["seq1"] = {
+                "before": float(audit.seq1_before or 0),
+                "after": float(audit.seq1_after or 0),
+            }
         if audit.seq2_before is not None or audit.seq2_after is not None:
-            changes['seq2'] = {'before': float(audit.seq2_before or 0), 'after': float(audit.seq2_after or 0)}
+            changes["seq2"] = {
+                "before": float(audit.seq2_before or 0),
+                "after": float(audit.seq2_after or 0),
+            }
         if audit.exam_before is not None or audit.exam_after is not None:
-            changes['exam'] = {'before': float(audit.exam_before or 0), 'after': float(audit.exam_after or 0)}
+            changes["exam"] = {
+                "before": float(audit.exam_before or 0),
+                "after": float(audit.exam_after or 0),
+            }
         if audit.mock_before is not None or audit.mock_after is not None:
-            changes['mock'] = {'before': float(audit.mock_before or 0) if audit.mock_before else None, 'after': float(audit.mock_after or 0) if audit.mock_after else None}
+            changes["mock"] = {
+                "before": float(audit.mock_before or 0) if audit.mock_before else None,
+                "after": float(audit.mock_after or 0) if audit.mock_after else None,
+            }
         if audit.practical_before is not None or audit.practical_after is not None:
-            changes['practical'] = {'before': float(audit.practical_before or 0) if audit.practical_before else None, 'after': float(audit.practical_after or 0) if audit.practical_after else None}
+            changes["practical"] = {
+                "before": float(audit.practical_before or 0)
+                if audit.practical_before
+                else None,
+                "after": float(audit.practical_after or 0)
+                if audit.practical_after
+                else None,
+            }
         if audit.remarks_before or audit.remarks_after:
-            changes['remarks'] = {'before': audit.remarks_before, 'after': audit.remarks_after}
-        
-        trail.append({
-            'change_type': audit.change_type,
-            'changed_by': f"{audit.changed_by.first_name} {audit.changed_by.last_name}",
-            'changed_at': audit.changed_at.isoformat(),
-            'changes': changes,
-            'validation_errors': audit.validation_errors or [],
-            'offline_conflict_resolved': audit.offline_conflict_resolved,
-        })
-    
+            changes["remarks"] = {
+                "before": audit.remarks_before,
+                "after": audit.remarks_after,
+            }
+
+        trail.append(
+            {
+                "change_type": audit.change_type,
+                "changed_by": f"{audit.changed_by.first_name} {audit.changed_by.last_name}",
+                "changed_at": audit.changed_at.isoformat(),
+                "changes": changes,
+                "validation_errors": audit.validation_errors or [],
+                "offline_conflict_resolved": audit.offline_conflict_resolved,
+            }
+        )
+
     return trail
 
 
@@ -601,16 +676,18 @@ def get_import_job_status(import_job_id):
     try:
         job = GradeImportJob.objects.get(id=import_job_id)
         return {
-            'id': job.id,
-            'status': job.status,
-            'created_count': job.created_count,
-            'updated_count': job.updated_count,
-            'failed_count': job.failed_count,
-            'total_rows': job.created_count + job.updated_count + job.failed_count,
-            'error_log': job.error_log or [],
-            'created_at': job.created_at.isoformat(),
-            'completed_at': job.completed_at.isoformat() if job.completed_at else None,
-            'duration_seconds': (job.completed_at - job.created_at).total_seconds() if job.completed_at else None,
+            "id": job.id,
+            "status": job.status,
+            "created_count": job.created_count,
+            "updated_count": job.updated_count,
+            "failed_count": job.failed_count,
+            "total_rows": job.created_count + job.updated_count + job.failed_count,
+            "error_log": job.error_log or [],
+            "created_at": job.created_at.isoformat(),
+            "completed_at": job.completed_at.isoformat() if job.completed_at else None,
+            "duration_seconds": (job.completed_at - job.created_at).total_seconds()
+            if job.completed_at
+            else None,
         }
     except _IMPORT_JOB_STATUS_ERRORS:
         return None
@@ -622,12 +699,12 @@ def get_import_job_status(import_job_id):
 
 class AdvancedAnalyticsService:
     """Advanced analytics and performance tracking"""
-    
+
     @staticmethod
     def identify_at_risk_students(threshold=50, school_id=None, school=None):
         """Identify students at risk of failing within a tenant context."""
         from apps.evals.models import Evaluation
-        
+
         at_risk = []
         students = StudentProfile.objects.filter(is_active=True).select_related("user")
         if school_id is not None:
@@ -643,75 +720,82 @@ class AdvancedAnalyticsService:
             )
             if student.school_id:
                 recent_evals = recent_evals.filter(school_id=student.school_id)
-            
+
             if recent_evals.exists():
                 avg_score = recent_evals.aggregate(avg=Avg("final_score"))["avg"]
-                
+
                 if avg_score and avg_score < threshold:
                     student_name = (
                         student.user.get_full_name()
                         if getattr(student, "user", None)
                         else f"{student.first_name} {student.last_name}".strip()
                     )
-                    risk_score = round(min(100, max(50, threshold + (threshold - float(avg_score)))), 2)
-                    at_risk.append({
-                        'id': student.id,
-                        'student': student_name,
-                        'average': round(avg_score, 2),
-                        'count': recent_evals.count(),
-                        'action': 'Intervention needed',
-                        'risk_score': risk_score,
-                        'risk_reason_summary': f"Average score over the last 30 days is {round(avg_score, 2)}",
-                    })
-        
+                    risk_score = round(
+                        min(100, max(50, threshold + (threshold - float(avg_score)))), 2
+                    )
+                    at_risk.append(
+                        {
+                            "id": student.id,
+                            "student": student_name,
+                            "average": round(avg_score, 2),
+                            "count": recent_evals.count(),
+                            "action": "Intervention needed",
+                            "risk_score": risk_score,
+                            "risk_reason_summary": f"Average score over the last 30 days is {round(avg_score, 2)}",
+                        }
+                    )
+
         return at_risk
-    
+
     @staticmethod
     def get_performance_trends(student, days=90, school_id=None):
         """Get performance trend data"""
         from apps.evals.models import Evaluation
-        
+
         start_date = timezone.now() - timedelta(days=days)
-        
+
         evals = Evaluation.objects.filter(
-            student=student,
-            created_at__gte=start_date
-        ).order_by('created_at')
+            student=student, created_at__gte=start_date
+        ).order_by("created_at")
         if school_id is not None:
             evals = evals.filter(school_id=school_id)
-        
-        return [{
-            'date': e.created_at.isoformat(),
-            'score': e.final_score,
-        } for e in evals]
-    
+
+        return [
+            {
+                "date": e.created_at.isoformat(),
+                "score": e.final_score,
+            }
+            for e in evals
+        ]
+
     @staticmethod
     def generate_performance_alerts(student, school_id=None):
         """Generate alerts for student performance issues"""
         from apps.evals.models import Evaluation
-        
+
         alerts = []
-        
+
         recent = Evaluation.objects.filter(
-            student=student,
-            created_at__gte=timezone.now() - timedelta(days=7)
+            student=student, created_at__gte=timezone.now() - timedelta(days=7)
         )
         if school_id is not None:
             recent = recent.filter(school_id=school_id)
-        
+
         if recent.exists():
             import statistics
+
             scores = [float(e.final_score) for e in recent if e.final_score is not None]
             if not scores:
                 return alerts
             avg = statistics.mean(scores)
-            
-            if avg < 50:
-                alerts.append({
-                    'type': 'LOW_GRADE',
-                    'severity': 'CRITICAL',
-                    'message': f'Average score is {avg:.1f}%'
-                })
-        
-        return alerts
 
+            if avg < 50:
+                alerts.append(
+                    {
+                        "type": "LOW_GRADE",
+                        "severity": "CRITICAL",
+                        "message": f"Average score is {avg:.1f}%",
+                    }
+                )
+
+        return alerts

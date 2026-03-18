@@ -17,10 +17,12 @@
               <tr>
                 <th>School</th>
                 <th>Slug</th>
+                <th>Sector</th>
                 <th>Lifecycle</th>
                 <th>Status</th>
                 <th>Approved</th>
                 <th>Students</th>
+                <th>Statutory</th>
                 <th>Last activity</th>
                 <th></th>
               </tr>
@@ -59,6 +61,13 @@
                   {% endif %}
                 </td>
                 <td>{{ t.student_count|default:0 }}</td>
+                <td>
+                  {% if t.missing_statutory %}
+                  <span class="table-status-chip table-status-chip--warning" title="{% trans 'Public/government school: statutory report pack not configured' %}">{% trans "Missing statutory" %}</span>
+                  {% else %}
+                  <span class="text-muted small">—</span>
+                  {% endif %}
+                </td>
                 <td class="text-muted small">{{ t.last_activity|date:"Y-m-d H:i"|default:"—" }}</td>
                 <td>
                   <a href="{% url 'super:tenant_360' t.id %}" class="btn btn-sm btn-outline-primary me-1">360</a>

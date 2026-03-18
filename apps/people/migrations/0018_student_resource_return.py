@@ -5,30 +5,57 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0016_academicyear_is_locked'),
-        ('people', '0017_studentprofile_user'),
+        ("academics", "0016_academicyear_is_locked"),
+        ("people", "0017_studentprofile_user"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='StudentResourceReturn',
+            name="StudentResourceReturn",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('item_label', models.CharField(help_text='e.g. Textbook, Laptop, Tablet, Lab coat', max_length=120)),
-                ('returned_at', models.DateTimeField(blank=True, null=True)),
-                ('notes', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='resource_returns', to='academics.academicyear')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='resource_returns', to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "item_label",
+                    models.CharField(
+                        help_text="e.g. Textbook, Laptop, Tablet, Lab coat",
+                        max_length=120,
+                    ),
+                ),
+                ("returned_at", models.DateTimeField(blank=True, null=True)),
+                ("notes", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="resource_returns",
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="resource_returns",
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Student resource return',
-                'verbose_name_plural': 'Student resource returns',
-                'ordering': ['academic_year', 'student', 'item_label'],
-                'unique_together': {('student', 'academic_year', 'item_label')},
+                "verbose_name": "Student resource return",
+                "verbose_name_plural": "Student resource returns",
+                "ordering": ["academic_year", "student", "item_label"],
+                "unique_together": {("student", "academic_year", "item_label")},
             },
         ),
     ]

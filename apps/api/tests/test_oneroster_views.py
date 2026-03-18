@@ -1,12 +1,14 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.test import TestCase
+from django.utils import timezone
 from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.schools.models import School
+from apps.interop.oneroster.constants import ONEROSTER_DISTRICT_API_SERVICE_NAME
 from apps.siteconfig.models import ServiceIntegration
 
 
@@ -47,7 +49,9 @@ class OneRosterViewsTests(TestCase):
             is_active=True,
             school=self.school,
         )
-        self.department = Department.objects.create(name="General", code="GEN-OR", school=self.school)
+        self.department = Department.objects.create(
+            name="General", code="GEN-OR", school=self.school
+        )
         self.classroom = Classroom.objects.create(
             name="Form 1",
             code="F1-OR",
@@ -88,22 +92,56 @@ class OneRosterViewsTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_manifest_returns_resource_links(self):
-        response = self.client.get(self._url("api:oneroster-manifest"), **self._headers())
+        response = self.client.get(
+            self._url("api:oneroster-manifest"), **self._headers()
+        )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["oneroster_version"], "1.1")
         self.assertIn("classes", payload["resources"])
 
+    def test_classes_changes_since_filters_by_updated_at(self):
+        Classroom.objects.filter(pk=self.classroom.pk).update(
+            updated_at=timezone.now() - timedelta(days=60)
+        )
+        dept2 = Department.objects.create(
+            name="Sci", code="SCI-OR2", school=self.school
+        )
+        newer = Classroom.objects.create(
+            name="Form 2",
+            code="F2-OR",
+            academic_year=self.year,
+            department=dept2,
+            school=self.school,
+        )
+        since = (timezone.now() - timedelta(days=7)).isoformat().replace("+00:00", "Z")
+        url = (
+            reverse("api:oneroster-classes")
+            + f"?school_slug={self.school.slug}&changesSince={since}"
+        )
+        r = self.client.get(url, **self._headers())
+        self.assertEqual(r.status_code, 200)
+        classes = r.json().get("classes", [])
+        ids = {c["sourcedId"] for c in classes}
+        self.assertIn(str(newer.pk), ids)
+        self.assertNotIn(str(self.classroom.pk), ids)
+
     def test_students_and_enrollments_return_rows(self):
-        students = self.client.get(self._url("api:oneroster-students"), **self._headers())
-        enrollments = self.client.get(self._url("api:oneroster-enrollments"), **self._headers())
+        students = self.client.get(
+            self._url("api:oneroster-students"), **self._headers()
+        )
+        enrollments = self.client.get(
+            self._url("api:oneroster-enrollments"), **self._headers()
+        )
         self.assertEqual(students.status_code, 200)
         self.assertEqual(enrollments.status_code, 200)
         self.assertEqual(students.json()["pagination"]["count"], 1)
         self.assertEqual(enrollments.json()["pagination"]["count"], 1)
 
     def test_teachers_returns_rows(self):
-        response = self.client.get(self._url("api:oneroster-teachers"), **self._headers())
+        response = self.client.get(
+            self._url("api:oneroster-teachers"), **self._headers()
+        )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["pagination"]["count"], 1)
@@ -111,10 +149,30 @@ class OneRosterViewsTests(TestCase):
 
     def test_rejects_cross_tenant_token(self):
         response = self.client.get(
-            reverse("api:oneroster-students") + f"?school_slug={self.other_school.slug}",
+            reverse("api:oneroster-students")
+            + f"?school_slug={self.other_school.slug}",
             **self._headers(token="or-token"),
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_accepts_district_hub_token_alongside_legacy_sync_token(self):
+        """District interop token + legacy OneRoster Sync token must both authorize."""
+        ServiceIntegration.objects.create(
+            school=self.school,
+            service_name=ONEROSTER_DISTRICT_API_SERVICE_NAME,
+            service_type=ServiceIntegration.ServiceType.OAUTH,
+            is_active=True,
+            config={"bearer_token": "district-only-token-xyz"},
+        )
+        legacy = self.client.get(
+            self._url("api:oneroster-manifest"), **self._headers("or-token")
+        )
+        district = self.client.get(
+            self._url("api:oneroster-manifest"),
+            HTTP_AUTHORIZATION="Bearer district-only-token-xyz",
+        )
+        self.assertEqual(legacy.status_code, 200)
+        self.assertEqual(district.status_code, 200)
 
     def test_oneroster_endpoints_rate_limit_429_when_exceeded(self):
         from unittest.mock import patch
@@ -126,7 +184,9 @@ class OneRosterViewsTests(TestCase):
             self._url("api:oneroster-teachers"),
             self._url("api:oneroster-enrollments"),
         ]
-        with patch("apps.api.oneroster_views.throttle_ip_request", return_value=(False, 30)):
+        with patch(
+            "apps.api.oneroster_views.throttle_ip_request", return_value=(False, 30)
+        ):
             for url in urls:
                 response = self.client.get(url, **self._headers())
                 self.assertEqual(response.status_code, 429, msg=url)

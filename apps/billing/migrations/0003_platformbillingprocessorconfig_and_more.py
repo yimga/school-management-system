@@ -5,45 +5,84 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('billing', '0002_billingaccount_delinquent_since_and_more'),
-        ('schools', '0027_school_country_code_school_education_levels_and_more'),
+        ("billing", "0002_billingaccount_delinquent_since_and_more"),
+        ("schools", "0027_school_country_code_school_education_levels_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PlatformBillingProcessorConfig',
+            name="PlatformBillingProcessorConfig",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.SlugField(max_length=32, unique=True)),
-                ('display_name', models.CharField(max_length=120)),
-                ('is_active', models.BooleanField(db_index=True, default=True)),
-                ('signature_header', models.CharField(default='X-Signature', max_length=64)),
-                ('signature_algorithm', models.CharField(default='sha256', max_length=16)),
-                ('signature_style', models.CharField(choices=[('PLAIN_HMAC', 'Plain HMAC'), ('PREFIXED_HMAC', 'Prefixed HMAC'), ('STRIPE_V1', 'Stripe v1')], default='PLAIN_HMAC', max_length=24)),
-                ('webhook_secret', models.CharField(blank=True, max_length=500)),
-                ('timestamp_tolerance_seconds', models.PositiveIntegerField(default=300)),
-                ('event_allowlist', models.JSONField(blank=True, default=list)),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('last_webhook_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("code", models.SlugField(max_length=32, unique=True)),
+                ("display_name", models.CharField(max_length=120)),
+                ("is_active", models.BooleanField(db_index=True, default=True)),
+                (
+                    "signature_header",
+                    models.CharField(default="X-Signature", max_length=64),
+                ),
+                (
+                    "signature_algorithm",
+                    models.CharField(default="sha256", max_length=16),
+                ),
+                (
+                    "signature_style",
+                    models.CharField(
+                        choices=[
+                            ("PLAIN_HMAC", "Plain HMAC"),
+                            ("PREFIXED_HMAC", "Prefixed HMAC"),
+                            ("STRIPE_V1", "Stripe v1"),
+                        ],
+                        default="PLAIN_HMAC",
+                        max_length=24,
+                    ),
+                ),
+                ("webhook_secret", models.CharField(blank=True, max_length=500)),
+                (
+                    "timestamp_tolerance_seconds",
+                    models.PositiveIntegerField(default=300),
+                ),
+                ("event_allowlist", models.JSONField(blank=True, default=list)),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("last_webhook_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Platform billing processor config',
-                'verbose_name_plural': 'Platform billing processor configs',
-                'ordering': ['code'],
+                "verbose_name": "Platform billing processor config",
+                "verbose_name_plural": "Platform billing processor configs",
+                "ordering": ["code"],
             },
         ),
         migrations.AlterField(
-            model_name='billingprocessorsyncevent',
-            name='billing_account',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='processor_events', to='billing.billingaccount'),
+            model_name="billingprocessorsyncevent",
+            name="billing_account",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="processor_events",
+                to="billing.billingaccount",
+            ),
         ),
         migrations.AlterField(
-            model_name='billingprocessorsyncevent',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='billing_processor_events', to='schools.school'),
+            model_name="billingprocessorsyncevent",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="billing_processor_events",
+                to="schools.school",
+            ),
         ),
     ]

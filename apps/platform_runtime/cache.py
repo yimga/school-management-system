@@ -3,6 +3,7 @@ Runtime cache: request-scope and per-tenant cache for stable runtime segments.
 Invalidate on: policy change, blueprint change, branding change, feature flag change,
 workflow/dashboard assignment change, marketplace install/uninstall, entitlement change.
 """
+
 from __future__ import annotations
 
 import time
@@ -23,7 +24,9 @@ def get_request_runtime_cache(request: Any) -> dict:
     return cache
 
 
-def get_cached_runtime_for_request(request: Any, tenant_ctx: Any, school: Any) -> Optional[Any]:
+def get_cached_runtime_for_request(
+    request: Any, tenant_ctx: Any, school: Any
+) -> Optional[Any]:
     """
     Return cached TenantRuntime for this request if present.
     Used to avoid rebuilding runtime multiple times in the same request.
@@ -36,7 +39,9 @@ def get_cached_runtime_for_request(request: Any, tenant_ctx: Any, school: Any) -
     return entry.get("runtime")
 
 
-def set_cached_runtime_for_request(request: Any, tenant_ctx: Any, school: Any, runtime: Any) -> None:
+def set_cached_runtime_for_request(
+    request: Any, tenant_ctx: Any, school: Any, runtime: Any
+) -> None:
     """Store runtime in request-scoped cache."""
     cache = get_request_runtime_cache(request)
     key = _request_cache_key(tenant_ctx, school)
@@ -44,7 +49,9 @@ def set_cached_runtime_for_request(request: Any, tenant_ctx: Any, school: Any, r
 
 
 def _request_cache_key(tenant_ctx: Any, school: Any) -> str:
-    tid = getattr(tenant_ctx, "tenant_id", None) or getattr(tenant_ctx, "school_id", None)
+    tid = getattr(tenant_ctx, "tenant_id", None) or getattr(
+        tenant_ctx, "school_id", None
+    )
     sid = getattr(school, "id", None) if school else None
     return f"rt:{tid}:{sid}"
 
@@ -60,7 +67,9 @@ def tenant_runtime_cache_key(school_id: Any, segment: str) -> str:
     return f"{RUNTIME_TENANT_CACHE_PREFIX}{school_id}:{segment}"
 
 
-def get_tenant_cached_segment(school_id: Any, segment: str, loader: Callable[[], Any]) -> Any:
+def get_tenant_cached_segment(
+    school_id: Any, segment: str, loader: Callable[[], Any]
+) -> Any:
     """
     Return cached segment for tenant, or compute via loader and cache.
     Use for stable segments (registry, blueprint, policy snapshot) when TTL is set.
@@ -68,6 +77,7 @@ def get_tenant_cached_segment(school_id: Any, segment: str, loader: Callable[[],
     try:
         from django.core.cache import cache
         from django.conf import settings
+
         ttl = getattr(settings, "RUNTIME_TENANT_CACHE_TTL", RUNTIME_TENANT_CACHE_TTL)
     except (AttributeError, ImportError, OSError, RuntimeError, TypeError, ValueError):
         return loader()
@@ -93,9 +103,18 @@ def invalidate_tenant_runtime_cache(school_id: Any) -> None:
     """
     try:
         from django.core.cache import cache
+
         # Delete by pattern if backend supports it (Redis); otherwise delete known segments
         key_prefix = f"{RUNTIME_TENANT_CACHE_PREFIX}{school_id}:"
-        for segment in ("registry", "blueprint", "policy", "branding", "workflows", "dashboards", "marketplace"):
+        for segment in (
+            "registry",
+            "blueprint",
+            "policy",
+            "branding",
+            "workflows",
+            "dashboards",
+            "marketplace",
+        ):
             cache.delete(f"{key_prefix}{segment}")
     except (AttributeError, ImportError, OSError, RuntimeError, TypeError, ValueError):
         pass
@@ -105,6 +124,7 @@ def invalidate_policy_and_runtime_caches(school: Any) -> None:
     """Convenience: invalidate policy cache (policies app) and tenant runtime cache."""
     try:
         from apps.policies.policy_registry import invalidate_policy_cache
+
         invalidate_policy_cache(school)
     except (AttributeError, ImportError, TypeError, ValueError):
         pass

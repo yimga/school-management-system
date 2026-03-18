@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("finance", "0018_alter_payment_status"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -16,7 +15,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="FinanceRequestAudit",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("action", models.CharField(default="marked_read", max_length=64)),
                 ("details", models.TextField(blank=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),

@@ -1,6 +1,7 @@
 """
 Signals to record MetadataChangeLog when metadata models are saved (metadata plan todo 6).
 """
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -18,7 +19,11 @@ def _summarize(instance, fields: list) -> dict:
 
 @receiver(post_save, sender=EntityCatalogEntry)
 def log_entity_catalog_save(sender, instance, created, **kwargs):
-    scope = getattr(instance, "scope", "platform") if hasattr(instance, "scope") else "platform"
+    scope = (
+        getattr(instance, "scope", "platform")
+        if hasattr(instance, "scope")
+        else "platform"
+    )
     record_metadata_changelog(
         object_type="EntityCatalogEntry",
         object_id=str(instance.pk),
@@ -34,7 +39,10 @@ def log_field_catalog_save(sender, instance, created, **kwargs):
         object_type="FieldCatalogEntry",
         object_id=str(instance.pk),
         scope="platform",
-        new_value_summary={"entity_id": instance.entity_id, "field_name": instance.field_name},
+        new_value_summary={
+            "entity_id": instance.entity_id,
+            "field_name": instance.field_name,
+        },
         reason="created" if created else "updated",
     )
 

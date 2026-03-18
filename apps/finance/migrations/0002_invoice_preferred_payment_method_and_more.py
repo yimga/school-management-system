@@ -5,48 +5,104 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0001_initial'),
+        ("finance", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='invoice',
-            name='preferred_payment_method',
-            field=models.CharField(blank=True, choices=[('CASH', 'Cash'), ('BANK', 'Bank Transfer'), ('MTN_MOMO', 'MTN MoMo'), ('ORANGE_MOMO', 'Orange Money'), ('CHECK', 'Check'), ('OTHER', 'Other')], default='', max_length=20),
+            model_name="invoice",
+            name="preferred_payment_method",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("CASH", "Cash"),
+                    ("BANK", "Bank Transfer"),
+                    ("MTN_MOMO", "MTN MoMo"),
+                    ("ORANGE_MOMO", "Orange Money"),
+                    ("CHECK", "Check"),
+                    ("OTHER", "Other"),
+                ],
+                default="",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='payment',
-            name='method',
-            field=models.CharField(choices=[('CASH', 'Cash'), ('BANK', 'Bank Transfer'), ('MTN_MOMO', 'MTN MoMo'), ('ORANGE_MOMO', 'Orange Money'), ('CHECK', 'Check'), ('OTHER', 'Other')], max_length=20),
+            model_name="payment",
+            name="method",
+            field=models.CharField(
+                choices=[
+                    ("CASH", "Cash"),
+                    ("BANK", "Bank Transfer"),
+                    ("MTN_MOMO", "MTN MoMo"),
+                    ("ORANGE_MOMO", "Orange Money"),
+                    ("CHECK", "Check"),
+                    ("OTHER", "Other"),
+                ],
+                max_length=20,
+            ),
         ),
         migrations.CreateModel(
-            name='PaymentReminder',
+            name="PaymentReminder",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('reminder_days_before', models.PositiveSmallIntegerField(default=3)),
-                ('next_send_at', models.DateTimeField(blank=True, null=True)),
-                ('last_sent_at', models.DateTimeField(blank=True, null=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('message_template', models.TextField(default='Dear {guardian}, please pay {amount} for {invoice} by {due_date}.')),
-                ('invoice', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='reminder', to='finance.invoice')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("reminder_days_before", models.PositiveSmallIntegerField(default=3)),
+                ("next_send_at", models.DateTimeField(blank=True, null=True)),
+                ("last_sent_at", models.DateTimeField(blank=True, null=True)),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "message_template",
+                    models.TextField(
+                        default="Dear {guardian}, please pay {amount} for {invoice} by {due_date}."
+                    ),
+                ),
+                (
+                    "invoice",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reminder",
+                        to="finance.invoice",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-invoice__due_date'],
+                "ordering": ["-invoice__due_date"],
             },
         ),
         migrations.CreateModel(
-            name='PaymentReminderLog',
+            name="PaymentReminderLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sent_at', models.DateTimeField(auto_now_add=True)),
-                ('status', models.CharField(default='SENT', max_length=20)),
-                ('note', models.TextField(blank=True)),
-                ('reminder', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='finance.paymentreminder')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("sent_at", models.DateTimeField(auto_now_add=True)),
+                ("status", models.CharField(default="SENT", max_length=20)),
+                ("note", models.TextField(blank=True)),
+                (
+                    "reminder",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="logs",
+                        to="finance.paymentreminder",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-sent_at'],
+                "ordering": ["-sent_at"],
             },
         ),
     ]

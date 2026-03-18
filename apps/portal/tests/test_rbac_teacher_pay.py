@@ -1,6 +1,7 @@
 """
 RBAC: Teacher pay history shows only the current teacher's data (Phase 10.2).
 """
+
 from datetime import date
 
 from django.test import TestCase
@@ -47,7 +48,11 @@ class TeacherPayHistoryRBACTest(TestCase):
         pay_records = list(response.context.get("pay_records", []))
         self.assertGreater(len(pay_records), 0)
         for record in pay_records:
-            self.assertEqual(record.teacher_id, self.profile_a.id, "Pay records must belong to logged-in teacher")
+            self.assertEqual(
+                record.teacher_id,
+                self.profile_a.id,
+                "Pay records must belong to logged-in teacher",
+            )
 
     def test_teacher_b_sees_only_own_records(self):
         """Teacher B sees only their pay, not Teacher A's."""

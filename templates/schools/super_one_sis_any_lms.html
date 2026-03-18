@@ -1,0 +1,70 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "One SIS, any LMS" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "One SIS, any LMS" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "One SIS, any LMS" %}</h1>
+    <p class="text-white-50 small mb-0">{% trans "We're the spine: configure integration → SSO → roster sync (OneRoster) → grade passback (LTI). Google, Microsoft, Canvas, D2L, Moodle, Blackboard." %}</p>
+  </header>
+  <ol class="list-group list-group-numbered list-group-flush">
+    <li class="list-group-item bg-dark border-secondary text-white">
+      <strong>{% trans "Configure integration" %}</strong>
+      <p class="small text-white-50 mb-0">{% trans "Add your LMS in Integrations; set SSO (OIDC/SAML) and roster export." %}</p>
+      {% if integration_url %}<a href="{{ integration_url }}" class="btn btn-outline-light btn-sm mt-2">{% trans "Integrations" %}</a>{% endif %}
+    </li>
+    <li class="list-group-item bg-dark border-secondary text-white">
+      <strong>{% trans "SSO" %}</strong>
+      <p class="small text-white-50 mb-0">{% trans "Single sign-on: users log in once; we support OIDC and SAML." %}</p>
+    </li>
+    <li class="list-group-item bg-dark border-secondary text-white">
+      <strong>{% trans "Roster sync (OneRoster)" %}</strong>
+      <p class="small text-white-50 mb-0">{% trans "Export classes and enrollments via OneRoster so your LMS has the same roster." %}</p>
+    </li>
+    <li class="list-group-item bg-dark border-secondary text-white">
+      <strong>{% trans "Grade passback (LTI 1.3 AGS)" %}</strong>
+      <p class="small text-white-50 mb-0">{% trans "Grades flow back into the LMS via LTI Assignment and Grade Services." %}</p>
+    </li>
+  </ol>
+  {% if lms_certification %}
+  <section class="mt-4 pt-3 border-top border-secondary" aria-label="{% trans 'LMS certification status' %}">
+    <h2 class="h6 mb-2 fw-bold text-white">{% trans "Certification status" %}</h2>
+    <div class="table-responsive">
+      <table class="table table-dark table-sm table-striped">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "LMS" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in lms_certification %}
+          <tr>
+            <td>{{ row.name }}</td>
+            <td><span class="badge {% if row.status == 'Certified' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ row.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+  <section class="mt-4 pt-3 border-top border-secondary" aria-label="{% trans 'Related catalogs' %}">
+    <h2 class="h6 mb-2 fw-bold text-white">{% trans "Tenant operators" %}</h2>
+    <p class="small text-white-50 mb-2">{% trans "Each school: Backend → District & LMS interop — OneRoster URLs, token rotate, CSV roster exports, SSO/LTI discovery." %}</p>
+    <p class="small text-white-50 mb-0">{% trans "Learning modes & institution types (23–43):" %} <a href="{% url 'super:learning_delivery_packs' %}" class="link-light">{% trans "Learning delivery & institution types" %}</a></p>
+  </section>
+  {% if onboarding_url %}<a href="{{ onboarding_url }}" class="btn btn-primary mt-3">{% trans "Setup Studio" %}</a>{% endif %}
+</div>
+{% endblock %}

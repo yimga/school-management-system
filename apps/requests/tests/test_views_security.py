@@ -20,7 +20,9 @@ class RequestsViewSecurityTests(TestCase):
             password="password",
         )
         self.staff.is_staff = True
-        self.staff.role = getattr(User.Role, "IT_ADMIN", getattr(User.Role, "ADMIN", "ADMIN"))
+        self.staff.role = getattr(
+            User.Role, "IT_ADMIN", getattr(User.Role, "ADMIN", "ADMIN")
+        )
         self.staff.save(update_fields=["is_staff", "role"])
         self.user = User.objects.create_user(
             username="requests-user",
@@ -42,7 +44,9 @@ class RequestsViewSecurityTests(TestCase):
 
     def test_requests_dashboard_handles_invalid_page_size(self):
         self.client.force_login(self.staff)
-        response = self.client.get(reverse("requests:dashboard"), {"page_size": "not-a-number"})
+        response = self.client.get(
+            reverse("requests:dashboard"), {"page_size": "not-a-number"}
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_module_access_rejects_external_next_redirect(self):
@@ -77,8 +81,12 @@ class RequestsViewSecurityTests(TestCase):
             schema_name="school-b",
         )
         self.client.force_login(self.staff)
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
-            response = self.client.get(reverse("requests:dashboard"), HTTP_HOST="school-a.runmycampus.com")
+        with patch.dict(
+            os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
+            response = self.client.get(
+                reverse("requests:dashboard"), HTTP_HOST="school-a.runmycampus.com"
+            )
         self.assertEqual(response.status_code, 200)
         rows = list(response.context["requests"])
         self.assertEqual(len(rows), 1)

@@ -6,6 +6,7 @@ Reconciliation after apply/rollback: reconciliation_status is set on InstalledPa
 and PackageChangeLog (reconciled, rolled_back, promoted). For lineage visibility,
 call apps.metadata.services.get_package_lineage_registry(package_id=...).
 """
+
 from __future__ import annotations
 
 import logging
@@ -17,9 +18,19 @@ from django.db import transaction
 logger = logging.getLogger(__name__)
 
 # Optional event emission: do not fail apply/rollback if event backend is unavailable.
-_EVENT_EMIT_ERRORS = (ImportError, AttributeError, TypeError, ValueError, ConnectionError, OSError)
+_EVENT_EMIT_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    ConnectionError,
+    OSError,
+)
 
-from apps.metadata.services import build_metadata_blast_radius, get_downstream_dependencies
+from apps.metadata.services import (
+    build_metadata_blast_radius,
+    get_downstream_dependencies,
+)
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
 from .models import InstalledPackage, PackageChangeLog, PackageVersion
@@ -47,7 +58,11 @@ def _infer_package_type(payload_sections: dict[str, Any]) -> str:
     if not payload_sections:
         return "blueprint"
     section = next(iter(payload_sections.keys()))
-    return section if section in {"blueprint", "workflow", "dashboard", "policy", "theme"} else "blueprint"
+    return (
+        section
+        if section in {"blueprint", "workflow", "dashboard", "policy", "theme"}
+        else "blueprint"
+    )
 
 
 def _entity_codes_from_payload(section_payload: Any) -> set[str]:
@@ -58,12 +73,16 @@ def _entity_codes_from_payload(section_payload: Any) -> set[str]:
             entity_codes.add(explicit_code)
         explicit_codes = section_payload.get("entity_codes")
         if isinstance(explicit_codes, list):
-            entity_codes.update(str(code).strip() for code in explicit_codes if str(code).strip())
+            entity_codes.update(
+                str(code).strip() for code in explicit_codes if str(code).strip()
+            )
         entities = section_payload.get("entities")
         if isinstance(entities, list):
             for entity in entities:
                 if isinstance(entity, dict):
-                    code = str(entity.get("code") or entity.get("entity_code") or "").strip()
+                    code = str(
+                        entity.get("code") or entity.get("entity_code") or ""
+                    ).strip()
                     if code:
                         entity_codes.add(code)
         for value in section_payload.values():
@@ -80,7 +99,14 @@ def _artifact_codes(section_payload: Any) -> list[str]:
         if section_payload.get("code"):
             codes.append(str(section_payload["code"]).strip())
         for key, value in section_payload.items():
-            if key in {"layouts", "workflows", "dashboards", "policies", "templates", "apis"} and isinstance(value, list):
+            if key in {
+                "layouts",
+                "workflows",
+                "dashboards",
+                "policies",
+                "templates",
+                "apis",
+            } and isinstance(value, list):
                 for item in value:
                     if isinstance(item, dict) and item.get("code"):
                         codes.append(str(item["code"]).strip())
@@ -112,7 +138,9 @@ def _field_names_from_payload(section_payload: Any) -> list[str]:
             if isinstance(item, str) and item.strip():
                 field_names.append(item.strip())
             elif isinstance(item, dict):
-                candidate = str(item.get("field_name") or item.get("name") or "").strip()
+                candidate = str(
+                    item.get("field_name") or item.get("name") or ""
+                ).strip()
                 if candidate:
                     field_names.append(candidate)
     return list(dict.fromkeys(field_names))
@@ -143,24 +171,47 @@ def _metadata_consumer_code(consumer_type: str, raw_code: str) -> str:
     return raw_code if ":" in raw_code else f"{consumer_type}:{raw_code}"
 
 
-def _collect_metadata_usages(payload_sections: dict[str, Any], package_id: str) -> list[dict[str, str]]:
+def _collect_metadata_usages(
+    payload_sections: dict[str, Any], package_id: str
+) -> list[dict[str, str]]:
     refs: set[tuple[str, str, str, str]] = set()
 
-    def walk(node: Any, key_hint: str | None = None, consumer_type: str | None = None, consumer_code: str | None = None) -> None:
+    def walk(
+        node: Any,
+        key_hint: str | None = None,
+        consumer_type: str | None = None,
+        consumer_code: str | None = None,
+    ) -> None:
         if isinstance(node, dict):
             local_consumer_type = _consumer_type_for_key(key_hint) or consumer_type
-            raw_code = str(node.get("code") or node.get("slug") or consumer_code or package_id).strip()
+            raw_code = str(
+                node.get("code") or node.get("slug") or consumer_code or package_id
+            ).strip()
             entity_codes = sorted(_entity_codes_from_payload(node))
             field_names = _field_names_from_payload(node)
             if local_consumer_type and raw_code and entity_codes and field_names:
                 normalized_code = _metadata_consumer_code(local_consumer_type, raw_code)
                 for entity_code in entity_codes:
                     for field_name in field_names:
-                        refs.add((local_consumer_type, normalized_code, entity_code, field_name))
-                        refs.add(("other", f"package:{package_id}", entity_code, field_name))
+                        refs.add(
+                            (
+                                local_consumer_type,
+                                normalized_code,
+                                entity_code,
+                                field_name,
+                            )
+                        )
+                        refs.add(
+                            ("other", f"package:{package_id}", entity_code, field_name)
+                        )
             for child_key, child_value in node.items():
                 if isinstance(child_value, (dict, list)):
-                    walk(child_value, child_key, local_consumer_type, raw_code or consumer_code)
+                    walk(
+                        child_value,
+                        child_key,
+                        local_consumer_type,
+                        raw_code or consumer_code,
+                    )
         elif isinstance(node, list):
             for item in node:
                 walk(item, key_hint, consumer_type, consumer_code)
@@ -212,7 +263,9 @@ def _build_impact_summary(payload_sections: dict[str, Any]) -> dict[str, Any]:
     for code in impacted["entity_codes"]:
         dependencies.extend(get_downstream_dependencies(entity_code=code))
     impacted["dependencies"] = dependencies
-    impacted["rollback_blast_radius"] = build_metadata_blast_radius(entity_codes=impacted["entity_codes"])
+    impacted["rollback_blast_radius"] = build_metadata_blast_radius(
+        entity_codes=impacted["entity_codes"]
+    )
     return impacted
 
 
@@ -228,7 +281,11 @@ def _compatibility_report(
     if tenant_id:
         from apps.schools.models import School
 
-        school = School.objects.filter(pk=tenant_id).select_related("default_region", "plan").first()
+        school = (
+            School.objects.filter(pk=tenant_id)
+            .select_related("default_region", "plan")
+            .first()
+        )
         if not school:
             errors.append("Tenant not found for package preview/apply")
 
@@ -238,15 +295,21 @@ def _compatibility_report(
 
     allowed_regions = compatibility.get("allowed_regions") or []
     if school and allowed_regions:
-        region_code = getattr(getattr(school, "default_region", None), "code", None) or getattr(school, "default_region_id", None)
+        region_code = getattr(
+            getattr(school, "default_region", None), "code", None
+        ) or getattr(school, "default_region_id", None)
         if region_code and region_code not in allowed_regions:
-            errors.append(f"School region '{region_code}' is not in package allowed_regions")
+            errors.append(
+                f"School region '{region_code}' is not in package allowed_regions"
+            )
 
     required_plan_slugs = compatibility.get("required_plan_slugs") or []
     if school and required_plan_slugs:
         plan_slug = getattr(getattr(school, "plan", None), "slug", "") or ""
         if plan_slug not in required_plan_slugs:
-            errors.append(f"School plan '{plan_slug or 'none'}' is not compatible with this package")
+            errors.append(
+                f"School plan '{plan_slug or 'none'}' is not compatible with this package"
+            )
 
     if dependencies:
         missing_dependencies = []
@@ -261,11 +324,15 @@ def _compatibility_report(
             if dependency not in existing_installs:
                 missing_dependencies.append(dependency)
         if missing_dependencies:
-            errors.append(f"Missing package dependencies: {', '.join(missing_dependencies)}")
+            errors.append(
+                f"Missing package dependencies: {', '.join(missing_dependencies)}"
+            )
 
     min_platform_version = str(compatibility.get("min_platform_version") or "").strip()
     if min_platform_version:
-        warnings.append(f"min_platform_version declared as {min_platform_version}; platform version enforcement is declarative")
+        warnings.append(
+            f"min_platform_version declared as {min_platform_version}; platform version enforcement is declarative"
+        )
 
     return {
         "ok": not errors,
@@ -296,7 +363,9 @@ def validate_package(payload: dict[str, Any]) -> dict[str, Any]:
     scope = str(payload.get("scope") or "tenant").strip() or "tenant"
     compatibility = payload.get("compatibility") or {}
     payload_sections = payload.get("payload_sections") or {}
-    raw_dependencies = payload.get("dependencies") or compatibility.get("dependencies") or []
+    raw_dependencies = (
+        payload.get("dependencies") or compatibility.get("dependencies") or []
+    )
 
     if not package_id:
         errors.append("Missing package id")
@@ -329,7 +398,9 @@ def validate_package(payload: dict[str, Any]) -> dict[str, Any]:
         "payload_sections": payload_sections,
         "package_type": _infer_package_type(payload_sections),
         "impact_summary": _build_impact_summary(payload_sections),
-        "metadata_usage_preview": _collect_metadata_usages(payload_sections, package_id),
+        "metadata_usage_preview": _collect_metadata_usages(
+            payload_sections, package_id
+        ),
     }
 
 
@@ -363,7 +434,9 @@ def preview_diff(
         validation["dependencies"],
     )
     current = list(
-        InstalledPackage.objects.filter(package_id=package_id, school_id=tenant_id, is_active=True).values_list("version", flat=True)
+        InstalledPackage.objects.filter(
+            package_id=package_id, school_id=tenant_id, is_active=True
+        ).values_list("version", flat=True)
     )
     errors = list(validation["errors"]) + list(compatibility_report["errors"])
     warnings = list(validation["warnings"]) + list(compatibility_report["warnings"])
@@ -379,7 +452,9 @@ def preview_diff(
         "compatibility": compatibility_report,
         "package_type": validation["package_type"],
         "impacted_artifacts": validation["impact_summary"],
-        "rollback_blast_radius": validation["impact_summary"].get("rollback_blast_radius", {}),
+        "rollback_blast_radius": validation["impact_summary"].get(
+            "rollback_blast_radius", {}
+        ),
         "metadata_usage_preview": validation["metadata_usage_preview"],
         "proposed": {
             "package_id": package_id,
@@ -429,8 +504,10 @@ def apply_package(
         with transaction.atomic():
             _register_metadata_usages(preview["metadata_usage_preview"])
             applied_impact_summary = dict(preview["impacted_artifacts"])
-            applied_impact_summary["rollback_blast_radius"] = build_metadata_blast_radius(
-                entity_codes=applied_impact_summary.get("entity_codes") or []
+            applied_impact_summary["rollback_blast_radius"] = (
+                build_metadata_blast_radius(
+                    entity_codes=applied_impact_summary.get("entity_codes") or []
+                )
             )
             PackageVersion.objects.update_or_create(
                 package_id=package_id,
@@ -448,7 +525,9 @@ def apply_package(
                 package_type=preview["package_type"],
                 version=version,
                 school_id=tenant_id,
-                scope=("sandbox" if mode == "sandbox" else scope) if tenant_id else "platform",
+                scope=("sandbox" if mode == "sandbox" else scope)
+                if tenant_id
+                else "platform",
                 applied_by_id=actor_id,
                 rollback_token=rollback_token,
                 dependency_snapshot=preview["dependencies"],
@@ -483,7 +562,9 @@ def apply_package(
                     dependency_snapshot=preview["dependencies"],
                     impact_summary={
                         "mid_apply_error": str(e),
-                        "entity_codes": list(preview["impacted_artifacts"].get("entity_codes") or []),
+                        "entity_codes": list(
+                            preview["impacted_artifacts"].get("entity_codes") or []
+                        ),
                     },
                     reconciliation_status="failed",
                 )
@@ -505,15 +586,23 @@ def apply_package(
         }
     try:
         from apps.platform_runtime.events import emit_platform_event
+
         emit_platform_event(
             "package_applied",
-            {"package_id": package_id, "package_type": preview["package_type"], "version": version, "mode": mode},
+            {
+                "package_id": package_id,
+                "package_type": preview["package_type"],
+                "version": version,
+                "mode": mode,
+            },
             tenant_id=str(tenant_id) if tenant_id else None,
             school_id=tenant_id,
             idempotency_key=f"apply:{package_id}:{version}:{tenant_id}:{rollback_token}",
         )
     except _EVENT_EMIT_ERRORS:
-        logger.debug("Optional emit_platform_event(package_applied) skipped", exc_info=True)
+        logger.debug(
+            "Optional emit_platform_event(package_applied) skipped", exc_info=True
+        )
     return {
         "ok": True,
         "installed_id": inst.pk,
@@ -530,7 +619,9 @@ def apply_package(
     }
 
 
-def rollback(installed_package: InstalledPackage, actor_id: Optional[int] = None) -> dict[str, Any]:
+def rollback(
+    installed_package: InstalledPackage, actor_id: Optional[int] = None
+) -> dict[str, Any]:
     """
     Deactivate an installed package and record rollback in PackageChangeLog.
     """
@@ -538,7 +629,9 @@ def rollback(installed_package: InstalledPackage, actor_id: Optional[int] = None
         installed_package.is_active = False
         installed_package.apply_stage = "rollback"
         installed_package.reconciliation_status = "rolled_back"
-        installed_package.save(update_fields=["is_active", "apply_stage", "reconciliation_status"])
+        installed_package.save(
+            update_fields=["is_active", "apply_stage", "reconciliation_status"]
+        )
         log = PackageChangeLog.objects.create(
             package_id=installed_package.package_id,
             version=installed_package.version,
@@ -553,14 +646,22 @@ def rollback(installed_package: InstalledPackage, actor_id: Optional[int] = None
         )
     try:
         from apps.platform_runtime.events import emit_platform_event
+
         emit_platform_event(
             "package_rolled_back",
-            {"package_id": installed_package.package_id, "version": installed_package.version},
-            tenant_id=str(installed_package.school_id) if installed_package.school_id else None,
+            {
+                "package_id": installed_package.package_id,
+                "version": installed_package.version,
+            },
+            tenant_id=str(installed_package.school_id)
+            if installed_package.school_id
+            else None,
             school_id=installed_package.school_id,
         )
     except _EVENT_EMIT_ERRORS:
-        logger.debug("Optional emit_platform_event(package_rolled_back) skipped", exc_info=True)
+        logger.debug(
+            "Optional emit_platform_event(package_rolled_back) skipped", exc_info=True
+        )
     return {
         "ok": True,
         "changelog_id": log.pk,
@@ -568,7 +669,9 @@ def rollback(installed_package: InstalledPackage, actor_id: Optional[int] = None
         "rollback_token": installed_package.rollback_token,
         "dependencies": installed_package.dependency_snapshot,
         "impacted_artifacts": installed_package.impact_summary,
-        "rollback_blast_radius": (installed_package.impact_summary or {}).get("rollback_blast_radius", {}),
+        "rollback_blast_radius": (installed_package.impact_summary or {}).get(
+            "rollback_blast_radius", {}
+        ),
     }
 
 
@@ -582,15 +685,26 @@ def promote_package(
     Promote a sandbox or test install to a later stage without changing package identity.
     """
     previous_mode = installed_package.apply_stage
-    next_scope = "tenant" if installed_package.scope == "sandbox" and target_mode == "production" else installed_package.scope
+    next_scope = (
+        "tenant"
+        if installed_package.scope == "sandbox" and target_mode == "production"
+        else installed_package.scope
+    )
     reconciliation_status = "promoted" if target_mode != "production" else "reconciled"
     with transaction.atomic():
-        installed_package.apply_stage = "promoted" if target_mode == "production" else target_mode
+        installed_package.apply_stage = (
+            "promoted" if target_mode == "production" else target_mode
+        )
         installed_package.reconciliation_status = reconciliation_status
         installed_package.promoted_from_mode = previous_mode
         installed_package.scope = next_scope
         installed_package.save(
-            update_fields=["apply_stage", "reconciliation_status", "promoted_from_mode", "scope"]
+            update_fields=[
+                "apply_stage",
+                "reconciliation_status",
+                "promoted_from_mode",
+                "scope",
+            ]
         )
         log = PackageChangeLog.objects.create(
             package_id=installed_package.package_id,
@@ -669,7 +783,9 @@ class PackageEngine:
         )
 
     @staticmethod
-    def rollback(installed_package: InstalledPackage, actor_id: Optional[int] = None) -> dict[str, Any]:
+    def rollback(
+        installed_package: InstalledPackage, actor_id: Optional[int] = None
+    ) -> dict[str, Any]:
         return rollback(installed_package, actor_id=actor_id)
 
     @staticmethod
@@ -679,4 +795,6 @@ class PackageEngine:
         actor_id: Optional[int] = None,
         target_mode: str = "production",
     ) -> dict[str, Any]:
-        return promote_package(installed_package, actor_id=actor_id, target_mode=target_mode)
+        return promote_package(
+            installed_package, actor_id=actor_id, target_mode=target_mode
+        )

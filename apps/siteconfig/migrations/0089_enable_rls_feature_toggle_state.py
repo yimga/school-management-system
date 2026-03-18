@@ -12,8 +12,12 @@ def enable_rls(apps, schema_editor):
     if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
-        cursor.execute("ALTER TABLE siteconfig_featuretogglestate ENABLE ROW LEVEL SECURITY;")
-        cursor.execute(f"DROP POLICY IF EXISTS {POLICY_NAME} ON siteconfig_featuretogglestate;")
+        cursor.execute(
+            "ALTER TABLE siteconfig_featuretogglestate ENABLE ROW LEVEL SECURITY;"
+        )
+        cursor.execute(
+            f"DROP POLICY IF EXISTS {POLICY_NAME} ON siteconfig_featuretogglestate;"
+        )
         cursor.execute(
             f"""
             CREATE POLICY {POLICY_NAME} ON siteconfig_featuretogglestate
@@ -36,8 +40,12 @@ def disable_rls(apps, schema_editor):
     if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
-        cursor.execute(f"DROP POLICY IF EXISTS {POLICY_NAME} ON siteconfig_featuretogglestate;")
-        cursor.execute("ALTER TABLE siteconfig_featuretogglestate DISABLE ROW LEVEL SECURITY;")
+        cursor.execute(
+            f"DROP POLICY IF EXISTS {POLICY_NAME} ON siteconfig_featuretogglestate;"
+        )
+        cursor.execute(
+            "ALTER TABLE siteconfig_featuretogglestate DISABLE ROW LEVEL SECURITY;"
+        )
 
 
 class Migration(migrations.Migration):

@@ -6,15 +6,50 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('communication', '0014_rls_policy_default_deny'),
+        ("communication", "0014_rls_policy_default_deny"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='contactrequestattachment',
-            name='file',
-            field=models.FileField(upload_to=apps.communication.models.contact_request_attachment_upload_to, validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.odt', '.ods', '.jpg', '.jpeg', '.png', '.gif', '.webp'], allowed_types=['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet', 'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'], message='Only PDF, Office (Word/Excel or LibreOffice ODT/ODS), or image files are allowed for attachments.'), apps.accounts.validators.FileSizeValidator(max_size_mb=10)]),
+            model_name="contactrequestattachment",
+            name="file",
+            field=models.FileField(
+                upload_to=apps.communication.models.contact_request_attachment_upload_to,
+                validators=[
+                    apps.accounts.validators.FileTypeValidator(
+                        allowed_extensions=[
+                            ".pdf",
+                            ".doc",
+                            ".docx",
+                            ".xls",
+                            ".xlsx",
+                            ".odt",
+                            ".ods",
+                            ".jpg",
+                            ".jpeg",
+                            ".png",
+                            ".gif",
+                            ".webp",
+                        ],
+                        allowed_types=[
+                            "application/pdf",
+                            "application/msword",
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "application/vnd.ms-excel",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "application/vnd.oasis.opendocument.text",
+                            "application/vnd.oasis.opendocument.spreadsheet",
+                            "image/jpeg",
+                            "image/png",
+                            "image/jpg",
+                            "image/gif",
+                            "image/webp",
+                        ],
+                        message="Only PDF, Office (Word/Excel or LibreOffice ODT/ODS), or image files are allowed for attachments.",
+                    ),
+                    apps.accounts.validators.FileSizeValidator(max_size_mb=10),
+                ],
+            ),
         ),
     ]

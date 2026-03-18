@@ -1,4 +1,5 @@
 """API views for schools: /api/config for dynamic branding (Phase 2)."""
+
 import logging
 
 from rest_framework.views import APIView
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 def _offline_enabled_for_request(request):
     """True if offline is enabled: global switch on and (no school or school has offline_mode via Policy Registry)."""
     from apps.policies.policy_registry import get_effective_policy
+
     offline_settings = get_effective_offline_runtime_settings(request=request)
     school = getattr(request, "school", None)
     if not school:
@@ -35,10 +37,12 @@ class SchoolConfigAPI(APIView):
     Used by SPA/mobile when not using server-rendered context.
     Rate-limited per IP to avoid abuse (see ALLOWANY_API_AUDIT.md).
     """
+
     permission_classes = [AllowAny]
 
     def get(self, request):
         from apps.api.rate_limit import throttle_ip_request
+
         allowed, retry_after = throttle_ip_request(
             request,
             scope="school_config_api",
@@ -62,22 +66,29 @@ class SchoolConfigAPI(APIView):
         )
         if not school:
             offline_settings = get_effective_offline_runtime_settings(request=request)
-            return Response({
-                "schoolName": None,
-                "logoUrl": None,
-                "primaryColor": "#0d6efd",
-                "accentColor": "#198754",
-                "features": {},
-                "offlineEnabled": bool(offline_settings.get("enable_offline_mode", False)),
-            })
+            return Response(
+                {
+                    "schoolName": None,
+                    "logoUrl": None,
+                    "primaryColor": "#0d6efd",
+                    "accentColor": "#198754",
+                    "features": {},
+                    "offlineEnabled": bool(
+                        offline_settings.get("enable_offline_mode", False)
+                    ),
+                }
+            )
         from apps.policies.policy_registry import get_effective_policy
+
         policy = get_effective_policy(school, user=getattr(request, "user", None))
         features = policy.get("features") or {}
-        return Response({
-            "schoolName": school.name,
-            "logoUrl": getattr(school, "logo_url", None) or "",
-            "primaryColor": getattr(school, "primary_color", None) or "#0d6efd",
-            "accentColor": getattr(school, "accent_color", None) or "#198754",
-            "features": features,
-            "offlineEnabled": _offline_enabled_for_request(request),
-        })
+        return Response(
+            {
+                "schoolName": school.name,
+                "logoUrl": getattr(school, "logo_url", None) or "",
+                "primaryColor": getattr(school, "primary_color", None) or "#0d6efd",
+                "accentColor": getattr(school, "accent_color", None) or "#198754",
+                "features": features,
+                "offlineEnabled": _offline_enabled_for_request(request),
+            }
+        )

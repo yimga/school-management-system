@@ -6,15 +6,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('analytics', '0012_risk_thresholds_intervention_action_center'),
+        ("analytics", "0012_risk_thresholds_intervention_action_center"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='gradeimportjob',
-            name='uploaded_file',
-            field=models.FileField(blank=True, null=True, upload_to=apps.analytics.models.grade_import_job_upload_to, validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.csv', '.xls', '.xlsx'], allowed_types=['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'], message='Only CSV or Excel files are allowed for imports.'), apps.accounts.validators.FileSizeValidator(max_size_mb=5)]),
+            model_name="gradeimportjob",
+            name="uploaded_file",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to=apps.analytics.models.grade_import_job_upload_to,
+                validators=[
+                    apps.accounts.validators.FileTypeValidator(
+                        allowed_extensions=[".csv", ".xls", ".xlsx"],
+                        allowed_types=[
+                            "text/csv",
+                            "application/vnd.ms-excel",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        ],
+                        message="Only CSV or Excel files are allowed for imports.",
+                    ),
+                    apps.accounts.validators.FileSizeValidator(max_size_mb=5),
+                ],
+            ),
         ),
     ]

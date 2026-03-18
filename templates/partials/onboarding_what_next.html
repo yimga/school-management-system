@@ -1,0 +1,43 @@
+{% load i18n %}
+{# §8.0.7 Guided onboarding: role-based first-run "what should I do next?" — show when first_login_tour_show #}
+<div class="onboarding-what-next border rounded-3 p-3 mb-3 bg-light bg-opacity-25" data-onboarding-spotlight="true" role="region" aria-label="{% trans 'What should I do next?' %}">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+    <h2 class="h6 mb-0 text-uppercase text-muted">{% trans "What should I do next?" %}</h2>
+    {% if tour_complete_url %}
+    <form method="post" action="{{ tour_complete_url }}" class="d-inline js-onboarding-dismiss-form">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Dismiss' %}">{% trans "Got it" %}</button>
+    </form>
+    {% endif %}
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    {% if role_home_primary_action %}
+    <a class="btn btn-primary" href="{{ role_home_primary_action.url }}">
+      {% if role_home_primary_action.icon %}<i class="bi {{ role_home_primary_action.icon }} me-1"></i>{% endif %}{{ role_home_primary_action.label }}
+    </a>
+    {% endif %}
+    {% for cta in role_home_supporting_actions|slice:":2" %}
+    <a class="btn btn-outline-primary btn-sm" href="{{ cta.url }}">{% if cta.icon %}<i class="bi {{ cta.icon }} me-1"></i>{% endif %}{{ cta.label }}</a>
+    {% endfor %}
+    {% if tour_steps_api_url %}
+    <a class="btn btn-outline-secondary btn-sm" href="#" data-tour-trigger="backend_dashboard" data-tour-steps-url="{{ tour_steps_api_url }}">{% trans "Take a quick tour" %}</a>
+    {% endif %}
+  </div>
+</div>
+<script>
+(function() {
+  var form = document.querySelector('.js-onboarding-dismiss-form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var block = document.querySelector('[data-onboarding-spotlight]');
+      if (block) block.remove();
+      var fd = new FormData(form);
+      var token = form.querySelector('[name=csrfmiddlewaretoken]');
+      if (token) fd.set('csrfmiddlewaretoken', token.value);
+      fetch(form.action, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function() {});
+    });
+  }
+})();
+</script>

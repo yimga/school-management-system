@@ -1,6 +1,7 @@
 """
 Internal contract for SMS delivery. Implementations in sms_twilio, sms_africastalking.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -8,10 +9,10 @@ from dataclasses import dataclass
 from typing import Any
 
 
-
 @dataclass
 class SMSResult:
     """Result of an SMS send (internal only)."""
+
     ok: bool
     provider_message_id: str | None = None
     error: str | None = None
@@ -49,8 +50,10 @@ def get_sms_provider(site_settings: Any) -> SMSProvider | None:
         return None
     if provider == "twilio":
         from .sms_twilio import TwilioSMSProvider
+
         return TwilioSMSProvider(site_settings)
     if provider == "africastalking":
         from .sms_africastalking import AfricasTalkingSMSProvider
+
         return AfricasTalkingSMSProvider(site_settings)
     return None

@@ -43,7 +43,13 @@ DEFAULT_UI_CONFIG = {
 }
 
 
-OPTIONAL_BRAND_REGISTRY_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
+OPTIONAL_BRAND_REGISTRY_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    TypeError,
+    ValueError,
+)
 
 
 def _normalize_country_codes(country_code: str | None) -> tuple[str, str]:
@@ -99,6 +105,7 @@ def _deep_merge_dict(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str,
 
 def _school_label_overrides(school) -> dict[str, Any]:
     from apps.policies.policy_registry import get_effective_policy
+
     policy = get_effective_policy(school) if school else {}
     labels = policy.get("labels_map")
     if isinstance(labels, dict):
@@ -132,7 +139,9 @@ def resolve_global_brand_context(
 
     defaults = GlobalGeoCatalog.country_defaults(alpha3 or alpha2)
     country_name = defaults.get("country_name") or alpha3 or alpha2 or "Global"
-    primary_language = (language_code or defaults.get("default_language") or "en").strip() or "en"
+    primary_language = (
+        language_code or defaults.get("default_language") or "en"
+    ).strip() or "en"
     currency_code = (defaults.get("currency") or "USD").strip().upper()
 
     base_context: dict[str, Any] = {
@@ -163,7 +172,9 @@ def resolve_global_brand_context(
 
     try:
         if alpha2:
-            row = GlobalBrandRegistry.objects.filter(iso_code=alpha2, is_active=True).first()
+            row = GlobalBrandRegistry.objects.filter(
+                iso_code=alpha2, is_active=True
+            ).first()
         else:
             row = None
     except OPTIONAL_BRAND_REGISTRY_ERRORS:
@@ -171,8 +182,12 @@ def resolve_global_brand_context(
 
     if row is not None:
         base_context["country_name"] = row.country_name or base_context["country_name"]
-        base_context["primary_language"] = row.primary_language or base_context["primary_language"]
-        base_context["currency_code"] = (row.currency_code or base_context["currency_code"]).upper()
+        base_context["primary_language"] = (
+            row.primary_language or base_context["primary_language"]
+        )
+        base_context["currency_code"] = (
+            row.currency_code or base_context["currency_code"]
+        ).upper()
         base_context["academic_config"] = _deep_merge_dict(
             base_context["academic_config"],
             row.academic_config if isinstance(row.academic_config, dict) else {},
@@ -198,6 +213,8 @@ def resolve_global_brand_context(
         base_context["is_registry_record"] = True
 
     if school is not None:
-        base_context["labels_map"] = _deep_merge_dict(base_context["labels_map"], _school_label_overrides(school))
+        base_context["labels_map"] = _deep_merge_dict(
+            base_context["labels_map"], _school_label_overrides(school)
+        )
 
     return base_context

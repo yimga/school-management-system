@@ -22,6 +22,7 @@ def _normalize_role(r) -> str:
 def _has_any_role(user, roles: tuple[str, ...]) -> bool:
     from apps.accounts.permissions import has_role
     from apps.accounts.portal_roles import has_teacher_hat, has_parent_hat
+
     if not user.is_authenticated:
         return False
     if getattr(user, "is_superuser", False):
@@ -41,6 +42,7 @@ def _has_any_role(user, roles: tuple[str, ...]) -> bool:
 def role_required(*roles: str):
     def check(user):
         return _has_any_role(user, roles)
+
     return user_passes_test(check)
 
 
@@ -51,6 +53,7 @@ def permission_required(*codes: str):
         if getattr(user, "is_superuser", False):
             return True
         return any(user.has_feature_permission(code) for code in codes)
+
     return user_passes_test(check)
 
 
@@ -63,22 +66,30 @@ def portal_toggle_required(flag_name: str, message: str):
             if getattr(site, flag_name, True) is False:
                 return HttpResponseForbidden(message)
             return view_func(request, *args, **kwargs)
+
         return _wrapped
+
     return decorator
 
 
-parent_portal_required = portal_toggle_required("enable_parent_portal", "Parent portal is disabled.")
-teacher_portal_required = portal_toggle_required("enable_teacher_portal", "Teacher portal is disabled.")
+parent_portal_required = portal_toggle_required(
+    "enable_parent_portal", "Parent portal is disabled."
+)
+teacher_portal_required = portal_toggle_required(
+    "enable_teacher_portal", "Teacher portal is disabled."
+)
 
 
-def object_permission_required(check_func, error_message="You don't have permission to access this resource."):
+def object_permission_required(
+    check_func, error_message="You don't have permission to access this resource."
+):
     """
     Decorator for object-level permission checks.
-    
+
     Args:
         check_func: Callable that takes (request, *args, **kwargs) and returns bool
         error_message: Error message to display if permission denied
-        
+
     Example:
         @object_permission_required(
             lambda request, invoice_id: can_access_invoice(request.user, invoice_id),
@@ -87,13 +98,16 @@ def object_permission_required(check_func, error_message="You don't have permiss
         def invoice_detail(request, invoice_id):
             ...
     """
+
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped(request, *args, **kwargs):
             if not check_func(request, *args, **kwargs):
                 return HttpResponseForbidden(error_message)
             return view_func(request, *args, **kwargs)
+
         return _wrapped
+
     return decorator
 
 
@@ -103,17 +117,18 @@ def parent_can_access_student(request, student_id: int) -> bool:
     Returns True if user is parent/guardian of the student or is staff.
     """
     from apps.accounts.models import User
-    
+
     user = request.user
     if not user.is_authenticated:
         return False
-    
+
     # Staff can access all students
     if user.is_staff or user.is_superuser or user.role == User.Role.ADMIN:
         return True
-    
+
     # Any user with a guardian link to this student (and can_view_results) can access
     from apps.people.models import StudentGuardian
+
     return StudentGuardian.objects.filter(
         guardian_user=user,
         student_id=student_id,
@@ -128,21 +143,22 @@ def parent_can_access_invoice(request, invoice_id: int) -> bool:
     """
     from apps.accounts.models import User
     from apps.finance.models import Invoice
-    
+
     user = request.user
     if not user.is_authenticated:
         return False
-    
+
     # Staff/admin can access all invoices
     if user.is_staff or user.is_superuser or user.role == User.Role.ADMIN:
         return True
 
     # Any user with guardian finance access to this invoice's student can access
     try:
-        invoice = Invoice.objects.select_related('student').get(id=invoice_id)
+        invoice = Invoice.objects.select_related("student").get(id=invoice_id)
         if not invoice.student:
             return False
         from apps.accounts.permissions import _guardian_finance_qs
+
         return _guardian_finance_qs(user).filter(student=invoice.student).exists()
     except Invoice.DoesNotExist:
         return False

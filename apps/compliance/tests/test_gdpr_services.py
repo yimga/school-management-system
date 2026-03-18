@@ -1,7 +1,10 @@
 from django.test import TestCase
 
 from apps.accounts.models import User
-from apps.compliance.gdpr_services import export_student_data_portability, gdpr_scrub_student
+from apps.compliance.gdpr_services import (
+    export_student_data_portability,
+    gdpr_scrub_student,
+)
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.schools.models import School
 from apps.siteconfig.models import RegionConfig
@@ -56,7 +59,9 @@ class GDPRServicesTests(TestCase):
         )
 
     def test_portability_export_returns_payload(self):
-        payload = export_student_data_portability(self.school.id, self.student.id, format="json")
+        payload = export_student_data_portability(
+            self.school.id, self.student.id, format="json"
+        )
         self.assertIsNotNone(payload)
         self.assertEqual(payload["student_id"], self.student.id)
         self.assertEqual(payload["student"]["first_name"], "Jane")
@@ -68,7 +73,12 @@ class GDPRServicesTests(TestCase):
         self.assertIn("would_anonymize", result)
 
     def test_gdpr_scrub_executes_anonymization(self):
-        result = gdpr_scrub_student(self.school.id, self.student.id, dry_run=False, requested_by_user_id=self.student_user.id)
+        result = gdpr_scrub_student(
+            self.school.id,
+            self.student.id,
+            dry_run=False,
+            requested_by_user_id=self.student_user.id,
+        )
         self.assertTrue(result.get("ok"))
 
         self.student.refresh_from_db()

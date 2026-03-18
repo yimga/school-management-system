@@ -4,6 +4,7 @@ HTML template with tenant branding (primary_color, logo_url) and dynamic block (
 Triggered post-provisioning; sent via Celery to avoid blocking.
 Optional: regional SMTP — set Django EMAIL_BACKEND / use SES Frankfurt etc. per region (e.g. in settings or env).
 """
+
 from __future__ import annotations
 
 import logging
@@ -28,6 +29,7 @@ def _regional_from_email(school) -> str:
 def _login_url(school) -> str:
     """Login URL for the school (subdomain or main)."""
     from django.urls import reverse
+
     base = getattr(settings, "BASE_URL", "") or ""
     if base:
         return f"{base.rstrip('/')}/accounts/login/"
@@ -49,11 +51,21 @@ def render_welcome_email_html(
         from apps.siteconfig.branding import resolve_brand_profile
         from apps.platform_runtime.helpers import get_effective_site_settings
 
-        brand = resolve_brand_profile(school=school, site=get_effective_site_settings(school=school))
+        brand = resolve_brand_profile(
+            school=school, site=get_effective_site_settings(school=school)
+        )
     except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
-        logger.debug("Welcome email brand resolve fallback for school %s: %s", getattr(school, "id", None), e)
+        logger.debug(
+            "Welcome email brand resolve fallback for school %s: %s",
+            getattr(school, "id", None),
+            e,
+        )
         brand = {}
-    primary = brand.get("primary_color") or getattr(school, "primary_color", None) or "#0d6efd"
+    primary = (
+        brand.get("primary_color")
+        or getattr(school, "primary_color", None)
+        or "#0d6efd"
+    )
     _logo_url = brand.get("logo_url") or getattr(school, "logo_url", None) or ""
     name = getattr(school, "name", None) or "Your School"
     login = login_url or _login_url(school)
@@ -67,7 +79,7 @@ def render_welcome_email_html(
     <h1 style="color: {primary};">Your school is ready!</h1>
     <p>Welcome to {name}. Your school has been set up. You can log in with this email address.</p>
     <p><a href="{login}" style="background: {primary}; color: #fff; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px;">Open dashboard</a></p>
-    {f'<div style="margin-top: 1rem;">{block}</div>' if block else ''}
+    {f'<div style="margin-top: 1rem;">{block}</div>' if block else ""}
     <p style="color: #666; font-size: 0.9rem;">If you did not request this, please ignore this email.</p>
   </div>
 </body>
@@ -83,11 +95,15 @@ def send_welcome_email(school_id: str, contact_email: str) -> bool:
     if not (contact_email or "").strip():
         return False
     from apps.schools.models import School
+
     school = School.objects.filter(id=school_id).first()
     if not school:
         return False
     from apps.siteconfig.education_profile_engine import resolve_profile_for_school
-    profile = resolve_profile_for_school(school, requested_profile_code="", auto_create=False)
+
+    profile = resolve_profile_for_school(
+        school, requested_profile_code="", auto_create=False
+    )
     dynamic_block = ""
     if profile and getattr(profile, "config", None):
         cfg = profile.config
@@ -121,6 +137,7 @@ try:
         if not send_welcome_email(school_id, contact_email):
             return
 except ImportError:
+
     def send_welcome_email_task(*args, **kwargs):
         """No-op when Celery not installed; provisioning code calls send_welcome_email synchronously."""
         pass

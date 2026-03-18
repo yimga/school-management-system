@@ -73,6 +73,8 @@ class Command(BaseCommand):
                 for term_id, pos in updates:
                     Term.objects.filter(id=term_id).update(position=pos)
                 total_updates += len(updates)
-                self.stdout.write(self.style.SUCCESS(f"  Applied {len(updates)} updates."))
+                self.stdout.write(
+                    self.style.SUCCESS(f"  Applied {len(updates)} updates.")
+                )
 
         self.stdout.write(self.style.SUCCESS(f"Done. Total updates: {total_updates}"))

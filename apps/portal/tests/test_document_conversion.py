@@ -7,7 +7,9 @@ from apps.portal.document_conversion import convert_html_to_docx
 
 
 class DocumentConversionTests(SimpleTestCase):
-    @mock.patch("apps.portal.document_conversion.convert_to_odt", return_value=b"odt-bytes")
+    @mock.patch(
+        "apps.portal.document_conversion.convert_to_odt", return_value=b"odt-bytes"
+    )
     def test_convert_html_to_docx_uses_odt_intermediate(self, convert_to_odt_mock):
         observed = {}
 

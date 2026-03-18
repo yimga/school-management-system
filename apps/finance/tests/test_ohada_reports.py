@@ -22,7 +22,9 @@ from apps.people.models import StudentProfile
 
 class OhadaReportTests(TestCase):
     def setUp(self):
-        self.profile = ComplianceProfile.objects.create(name="CM Test", country_code="CM")
+        self.profile = ComplianceProfile.objects.create(
+            name="CM Test", country_code="CM"
+        )
         self.asset_cash = LedgerAccount.objects.create(
             profile=self.profile,
             code="57",
@@ -54,8 +56,18 @@ class OhadaReportTests(TestCase):
             posted_at=timezone.now(),
             source_type="test",
         )
-        JournalLine.objects.create(entry=entry, account=self.asset_cash, debit=Decimal("1000.00"), credit=Decimal("0.00"))
-        JournalLine.objects.create(entry=entry, account=self.revenue, debit=Decimal("0.00"), credit=Decimal("1000.00"))
+        JournalLine.objects.create(
+            entry=entry,
+            account=self.asset_cash,
+            debit=Decimal("1000.00"),
+            credit=Decimal("0.00"),
+        )
+        JournalLine.objects.create(
+            entry=entry,
+            account=self.revenue,
+            debit=Decimal("0.00"),
+            credit=Decimal("1000.00"),
+        )
 
         entry2 = JournalEntry.objects.create(
             profile=self.profile,
@@ -63,8 +75,18 @@ class OhadaReportTests(TestCase):
             posted_at=timezone.now(),
             source_type="test",
         )
-        JournalLine.objects.create(entry=entry2, account=self.expense, debit=Decimal("200.00"), credit=Decimal("0.00"))
-        JournalLine.objects.create(entry=entry2, account=self.asset_cash, debit=Decimal("0.00"), credit=Decimal("200.00"))
+        JournalLine.objects.create(
+            entry=entry2,
+            account=self.expense,
+            debit=Decimal("200.00"),
+            credit=Decimal("0.00"),
+        )
+        JournalLine.objects.create(
+            entry=entry2,
+            account=self.asset_cash,
+            debit=Decimal("0.00"),
+            credit=Decimal("200.00"),
+        )
 
         entry3 = JournalEntry.objects.create(
             profile=self.profile,
@@ -72,8 +94,18 @@ class OhadaReportTests(TestCase):
             posted_at=timezone.now(),
             source_type="test",
         )
-        JournalLine.objects.create(entry=entry3, account=self.asset_cash, debit=Decimal("500.00"), credit=Decimal("0.00"))
-        JournalLine.objects.create(entry=entry3, account=self.equity, debit=Decimal("0.00"), credit=Decimal("500.00"))
+        JournalLine.objects.create(
+            entry=entry3,
+            account=self.asset_cash,
+            debit=Decimal("500.00"),
+            credit=Decimal("0.00"),
+        )
+        JournalLine.objects.create(
+            entry=entry3,
+            account=self.equity,
+            debit=Decimal("0.00"),
+            credit=Decimal("500.00"),
+        )
 
         year = AcademicYear.objects.create(
             name="2025/2026",
@@ -82,7 +114,9 @@ class OhadaReportTests(TestCase):
             is_active=True,
         )
         department = Department.objects.create(name="General", code="GEN-OHADA")
-        specialty = Specialty.objects.create(name="General Studies", code="GEN-OHADA", department=department)
+        specialty = Specialty.objects.create(
+            name="General Studies", code="GEN-OHADA", department=department
+        )
         classroom = Classroom.objects.create(
             academic_year=year,
             department=department,
@@ -150,4 +184,6 @@ class OhadaReportTests(TestCase):
         self.assertEqual(report.cash_flow["cash_in"], Decimal("25000.00"))
         self.assertEqual(report.annexes["payment_count"], 1)
         self.assertEqual(report.annexes["unresolved_suspense_count"], 1)
-        self.assertGreaterEqual(report.annexes["estimated_stamp_duty_xaf"], Decimal("1000.00"))
+        self.assertGreaterEqual(
+            report.annexes["estimated_stamp_duty_xaf"], Decimal("1000.00")
+        )

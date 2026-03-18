@@ -132,9 +132,7 @@ class MockExamSettingModelTests(TestCase):
     def test_get_for_creates_with_defaults(self):
         """Test get_for() class method creates with defaults."""
         classroom = self._get_next_classroom()
-        setting = MockExamSetting.get_for(
-            self.academic_year, classroom, self.term
-        )
+        setting = MockExamSetting.get_for(self.academic_year, classroom, self.term)
         self.assertEqual(setting.final_weight, 70)
         self.assertEqual(setting.mock_weight, 30)
         self.assertFalse(setting.is_active)
@@ -151,9 +149,7 @@ class MockExamSettingModelTests(TestCase):
             mock_weight=20,
             is_active=True,
         )
-        retrieved = MockExamSetting.get_for(
-            self.academic_year, classroom, self.term
-        )
+        retrieved = MockExamSetting.get_for(self.academic_year, classroom, self.term)
         self.assertEqual(retrieved.id, created.id)
         self.assertEqual(retrieved.final_weight, 80)
 
@@ -480,6 +476,7 @@ class RankingWithMockBlendingTests(TestCase):
     def test_ranking_cache_key_includes_mock_suffix(self):
         """Test that cache keys include :mock suffix for mock-blended rankings (and tenant prefix)."""
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+
         prefix = get_tenant_cache_prefix(None)
         cache_key_standard = RankingCache.get_cache_key(
             self.term, self.classroom, use_mock_blending=False

@@ -72,7 +72,13 @@ class BankStatementImportService:
                     created_count += 1
                 if self._link_or_create_suspense(entry, row):
                     suspense_count += 1
-            except (ValueError, TypeError, DatabaseError, IntegrityError, ValidationError) as exc:
+            except (
+                ValueError,
+                TypeError,
+                DatabaseError,
+                IntegrityError,
+                ValidationError,
+            ) as exc:
                 errors.append(f"Row {idx}: {exc}")
 
         upload.entries_imported = created_count
@@ -98,7 +104,9 @@ class BankStatementImportService:
             "status": upload.status,
         }
 
-    def _parse_statement_file(self, upload: BankStatementUpload) -> list[ParsedStatementRow]:
+    def _parse_statement_file(
+        self, upload: BankStatementUpload
+    ) -> list[ParsedStatementRow]:
         upload.statement_file.open("rb")
         raw = upload.statement_file.read()
         upload.statement_file.close()
@@ -122,7 +130,9 @@ class BankStatementImportService:
                 continue
 
             amount = self._to_decimal(amount_str)
-            txn_type = self._infer_transaction_type(amount, self._pick(row, self.CSV_TYPE_KEYS))
+            txn_type = self._infer_transaction_type(
+                amount, self._pick(row, self.CSV_TYPE_KEYS)
+            )
             description = self._pick(row, self.CSV_DESCRIPTION_KEYS)
             reference = self._pick(row, self.CSV_REFERENCE_KEYS)
             balance_str = self._pick(row, self.CSV_BALANCE_KEYS)
@@ -212,7 +222,9 @@ class BankStatementImportService:
         )
         return entry, True
 
-    def _link_or_create_suspense(self, entry: BankStatementEntry, row: ParsedStatementRow) -> bool:
+    def _link_or_create_suspense(
+        self, entry: BankStatementEntry, row: ParsedStatementRow
+    ) -> bool:
         if entry.transaction_type not in (
             BankStatementEntry.TransactionType.DEPOSIT,
             BankStatementEntry.TransactionType.TRANSFER_IN,
@@ -227,12 +239,15 @@ class BankStatementImportService:
             return False
 
         # No receipt proof match -> open suspense queue item
-        suggested_invoice = self._suggest_invoice(entry.transaction_reference, entry.description)
+        suggested_invoice = self._suggest_invoice(
+            entry.transaction_reference, entry.description
+        )
         suspense, created = SuspensePayment.objects.get_or_create(
             bank_statement_entry=entry,
             defaults={
                 "amount": abs(entry.amount),
-                "currency": entry.bank_account.currency or get_platform_defaults(use_db=False)["currency"],
+                "currency": entry.bank_account.currency
+                or get_platform_defaults(use_db=False)["currency"],
                 "transaction_reference": entry.transaction_reference,
                 "payer_name": row.payer_name,
                 "payer_phone": row.payer_phone,
@@ -244,22 +259,32 @@ class BankStatementImportService:
         )
         return created
 
-    def _find_matching_receipt_proof(self, entry: BankStatementEntry) -> PaymentProofUpload | None:
+    def _find_matching_receipt_proof(
+        self, entry: BankStatementEntry
+    ) -> PaymentProofUpload | None:
         ref = (entry.transaction_reference or "").strip()
         if ref:
-            by_ref = PaymentProofUpload.objects.filter(
-                transaction_reference__iexact=ref,
-                bank_verified=False,
-            ).order_by("-created_at").first()
+            by_ref = (
+                PaymentProofUpload.objects.filter(
+                    transaction_reference__iexact=ref,
+                    bank_verified=False,
+                )
+                .order_by("-created_at")
+                .first()
+            )
             if by_ref:
                 return by_ref
 
-        by_amount = PaymentProofUpload.objects.filter(
-            uploaded_amount=abs(entry.amount),
-            bank_verified=False,
-            created_at__date__gte=entry.transaction_date - timedelta(days=7),
-            created_at__date__lte=entry.transaction_date + timedelta(days=7),
-        ).order_by("-created_at").first()
+        by_amount = (
+            PaymentProofUpload.objects.filter(
+                uploaded_amount=abs(entry.amount),
+                bank_verified=False,
+                created_at__date__gte=entry.transaction_date - timedelta(days=7),
+                created_at__date__lte=entry.transaction_date + timedelta(days=7),
+            )
+            .order_by("-created_at")
+            .first()
+        )
         return by_amount
 
     def _suggest_invoice(self, reference: str, description: str) -> Invoice | None:
@@ -346,7 +371,9 @@ class BankStatementImportService:
             suspense_payment.resolved_at = timezone.now()
             if suspense_payment.bank_statement_entry_id:
                 suspense_payment.bank_statement_entry.is_verified = True
-                suspense_payment.bank_statement_entry.save(update_fields=["is_verified"])
+                suspense_payment.bank_statement_entry.save(
+                    update_fields=["is_verified"]
+                )
         else:
             suspense_payment.status = SuspensePayment.Status.PARTIAL
         suspense_payment.save()
@@ -359,10 +386,14 @@ class BankStatementImportService:
             "payment_ids": [str(p.pk) for p in created_payments],
         }
 
-    def _payment_method_from_bank_account(self, suspense_payment: SuspensePayment) -> str:
+    def _payment_method_from_bank_account(
+        self, suspense_payment: SuspensePayment
+    ) -> str:
         account_type = None
         if suspense_payment.bank_statement_entry_id:
-            account_type = suspense_payment.bank_statement_entry.bank_account.account_type
+            account_type = (
+                suspense_payment.bank_statement_entry.bank_account.account_type
+            )
         if account_type == BankAccount.AccountType.MTN_MOMO:
             return PaymentMethodCode.MTN_MOMO
         if account_type == BankAccount.AccountType.ORANGE_MONEY:

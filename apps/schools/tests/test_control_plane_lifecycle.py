@@ -31,12 +31,24 @@ class ControlPlaneLifecycleTests(TestCase):
     def test_lifecycle_api_can_deactivate_and_activate_school(self):
         url = reverse("super:api_school_lifecycle", args=[self.school.id])
 
-        response = self.client.post(url, {"action": "deactivate", "next": reverse("super:tenant_360", args=[self.school.id])})
+        response = self.client.post(
+            url,
+            {
+                "action": "deactivate",
+                "next": reverse("super:tenant_360", args=[self.school.id]),
+            },
+        )
         self.assertEqual(response.status_code, 302)
         self.school.refresh_from_db()
         self.assertFalse(self.school.is_active)
 
-        response = self.client.post(url, {"action": "activate", "next": reverse("super:tenant_360", args=[self.school.id])})
+        response = self.client.post(
+            url,
+            {
+                "action": "activate",
+                "next": reverse("super:tenant_360", args=[self.school.id]),
+            },
+        )
         self.assertEqual(response.status_code, 302)
         self.school.refresh_from_db()
         self.assertTrue(self.school.is_active)

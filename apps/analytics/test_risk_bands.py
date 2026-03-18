@@ -1,4 +1,5 @@
 """Unit tests for get_risk_band_for_school (Plan XVII risk thresholds)."""
+
 from decimal import Decimal
 
 from django.test import TestCase

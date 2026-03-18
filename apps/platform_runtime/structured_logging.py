@@ -20,6 +20,7 @@ Example (task/celery, no request):
         extra={"task_id": task_id},
     )
 """
+
 from __future__ import annotations
 
 import logging
@@ -76,7 +77,9 @@ def request_context_for_log(request: Any) -> dict[str, Any]:
     school = getattr(request, "school", None)
     if school and getattr(school, "id", None) is not None:
         out["school_id"] = str(school.id)
-        out["tenant_id"] = str(school.id)  # often same as school_id in single-tenant-per-schema
+        out["tenant_id"] = str(
+            school.id
+        )  # often same as school_id in single-tenant-per-schema
     user = getattr(request, "user", None)
     if user and getattr(user, "id", None) is not None:
         out["actor_id"] = str(user.id)

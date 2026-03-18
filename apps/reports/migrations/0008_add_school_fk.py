@@ -5,16 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('reports', '0007_promotionrule_use_technical_promotion_rule'),
-        ('schools', '0001_initial'),
+        ("reports", "0007_promotionrule_use_technical_promotion_rule"),
+        ("schools", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='reportcard',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='report_cards', to='schools.school'),
+            model_name="reportcard",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="report_cards",
+                to="schools.school",
+            ),
         ),
     ]

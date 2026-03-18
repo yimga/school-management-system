@@ -6,6 +6,7 @@ These tests validate that:
 2. Cache is working correctly
 3. Performance meets targets
 """
+
 from decimal import Decimal
 
 from django.core.cache import cache
@@ -13,7 +14,15 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.test import TestCase, TransactionTestCase
 
-from apps.academics.models import AcademicYear, Term, Department, Classroom, Specialty, Subject, SubjectAssignment
+from apps.academics.models import (
+    AcademicYear,
+    Term,
+    Department,
+    Classroom,
+    Specialty,
+    Subject,
+    SubjectAssignment,
+)
 from apps.accounts.models import User
 from apps.evals.models import Evaluation
 from apps.finance.models import Invoice, ComplianceProfile
@@ -39,9 +48,11 @@ class PerformanceOptimizationTest(TransactionTestCase):
     def setUp(self):
         """Set up test data."""
         cache.clear()
-        
+
         # Create academic setup
-        self.year = AcademicYear.objects.create(name="2024-2025", starts_on="2024-01-01", ends_on="2024-12-31")
+        self.year = AcademicYear.objects.create(
+            name="2024-2025", starts_on="2024-01-01", ends_on="2024-12-31"
+        )
         self.term = Term.objects.create(
             academic_year=self.year,
             name="Term 1",
@@ -49,12 +60,12 @@ class PerformanceOptimizationTest(TransactionTestCase):
             end_date="2024-04-30",
             order=1,
         )
-        
+
         # Create site settings
         self.site = get_platform_site_settings_record(create=True)
         self.site.pass_mark = 12
         self.site.save()
-        
+
         # Create parent user
         self.parent_user = User.objects.create_user(
             username="parent@example.com",
@@ -65,8 +76,15 @@ class PerformanceOptimizationTest(TransactionTestCase):
 
         # Create department, classroom and specialty required by StudentProfile
         self.department = Department.objects.create(name="General", code="GEN")
-        self.classroom = Classroom.objects.create(academic_year=self.year, department=self.department, name="Form 1A", code="F1A")
-        self.specialty = Specialty.objects.create(department=self.department, name="General Studies", code="GEN-ST")
+        self.classroom = Classroom.objects.create(
+            academic_year=self.year,
+            department=self.department,
+            name="Form 1A",
+            code="F1A",
+        )
+        self.specialty = Specialty.objects.create(
+            department=self.department, name="General Studies", code="GEN-ST"
+        )
         # Create a subject and subject assignment required by Evaluation
         self.subject = Subject.objects.create(name="Mathematics")
         self.subject_assignment = SubjectAssignment.objects.create(
@@ -78,8 +96,10 @@ class PerformanceOptimizationTest(TransactionTestCase):
             coefficient=1,
         )
         # Create a minimal compliance profile required for Invoice.profile
-        self.compliance_profile = ComplianceProfile.objects.create(name="Default", country_code="US")
-        
+        self.compliance_profile = ComplianceProfile.objects.create(
+            name="Default", country_code="US"
+        )
+
         # Create students
         self.students = []
         # Create a teacher for evaluations
@@ -89,7 +109,9 @@ class PerformanceOptimizationTest(TransactionTestCase):
             password="test123",
             role=User.Role.TEACHER,
         )
-        self.teacher = TeacherProfile.objects.create(user=self.teacher_user, department=self.department)
+        self.teacher = TeacherProfile.objects.create(
+            user=self.teacher_user, department=self.department
+        )
         for i in range(3):  # 3 children per parent
             student = StudentProfile.objects.create(
                 first_name=f"Student{i}",
@@ -100,7 +122,7 @@ class PerformanceOptimizationTest(TransactionTestCase):
                 specialty=self.specialty,
             )
             self.students.append(student)
-            
+
             # Link to guardian
             StudentGuardian.objects.create(
                 guardian_user=self.parent_user,
@@ -109,7 +131,7 @@ class PerformanceOptimizationTest(TransactionTestCase):
                 can_view_results=True,
                 can_view_finance=True,
             )
-        
+
         # Create invoices for students
         for student in self.students:
             Invoice.objects.create(
@@ -127,15 +149,15 @@ class PerformanceOptimizationTest(TransactionTestCase):
         cache.clear()
         with CaptureQueriesContext(connection) as first_ctx:
             result1 = parent_dashboard_widget_data(self.students)
-        
+
         self.assertIsNotNone(result1)
         self.assertIn("attendance", result1)
         self.assertGreaterEqual(len(first_ctx), 1)
-        
+
         # Second call should be cache-backed and significantly cheaper.
         with CaptureQueriesContext(connection) as second_ctx:
             result2 = parent_dashboard_widget_data(self.students)
-        
+
         self.assertLessEqual(len(second_ctx), 1)
         self.assertEqual(result1, result2)
 
@@ -153,14 +175,14 @@ class PerformanceOptimizationTest(TransactionTestCase):
                 teacher=self.teacher,
                 exam_score=14,
             )
-        
+
         # Clear cache
         cache.clear()
-        
+
         # Query count should remain bounded for small student cohorts.
         with CaptureQueriesContext(connection) as ctx:
             overview = _performance_overview(self.students, self.year, self.term)
-        
+
         self.assertIsNotNone(overview.get("average"))
         self.assertGreater(len(ctx), 0)
         self.assertLessEqual(len(ctx), 500)
@@ -169,11 +191,11 @@ class PerformanceOptimizationTest(TransactionTestCase):
         """Test that finance summary uses single aggregation query."""
         # Clear cache
         cache.clear()
-        
+
         # Should be single aggregation query
         with self.assertNumQueries(1):
             summary = _finance_summary(self.students)
-        
+
         self.assertEqual(summary["total_due"], Decimal("300.00"))
         self.assertEqual(summary["balance"], Decimal("150.00"))
 
@@ -189,13 +211,13 @@ class PerformanceOptimizationTest(TransactionTestCase):
                 teacher=self.teacher,
                 seq1_score=10,
             )
-        
+
         cache.clear()
-        
+
         # Should use single aggregation + read all evals
         with self.assertNumQueries(1):
             snapshot = _attendance_snapshot(self.students, self.year, self.term)
-        
+
         self.assertIsNotNone(snapshot.get("overall"))
 
     def test_analytics_insights_caching(self):
@@ -210,27 +232,27 @@ class PerformanceOptimizationTest(TransactionTestCase):
                 teacher=self.teacher,
                 seq1_score=10,
             )
-        
+
         cache.clear()
-        
+
         # First call - computes
         with self.assertNumQueries(1):
             insights1 = _analytics_insights(self.students, self.year, self.term)
-        
+
         # Second call - uses cache
         with self.assertNumQueries(0):
             insights2 = _analytics_insights(self.students, self.year, self.term)
-        
+
         self.assertEqual(insights1, insights2)
 
     def test_cache_invalidation_on_evaluation_change(self):
         """Test that cache is properly invalidated when data changes."""
         cache.clear()
-        
+
         # Get initial widget data
         widget_data1 = parent_dashboard_widget_data(self.students)
         widget_data1["attendance"]["overall"]
-        
+
         # Modify a student evaluation
         Evaluation.objects.create(
             student=self.students[0],
@@ -240,10 +262,10 @@ class PerformanceOptimizationTest(TransactionTestCase):
             teacher=self.teacher,
             seq1_score=18,
         )
-        
+
         # Cache is still valid (we haven't explicitly invalidated)
         widget_data2 = parent_dashboard_widget_data(self.students)
-        
+
         # They should be same because cache key is based on student IDs
         self.assertEqual(widget_data1["attendance"], widget_data2["attendance"])
 
@@ -267,7 +289,7 @@ class PerformanceOptimizationTest(TransactionTestCase):
                     coefficient=1,
                 )
             )
-        
+
         # Create evaluations
         for student in self.students:
             for i in range(5):
@@ -279,21 +301,23 @@ class PerformanceOptimizationTest(TransactionTestCase):
                     teacher=self.teacher,
                     seq1_score=10 + i,
                 )
-        
+
         # Query should use indexes
         queryset = Evaluation.objects.filter(
             student__in=self.students,
             academic_year=self.year,
             term=self.term,
         )
-        
+
         # Execute query
         list(queryset)
-        
+
         # Get query explanation
         with connection.cursor() as cursor:
             cursor.execute(
-                str(queryset.query) if hasattr(queryset.query, '__str__') else str(queryset)
+                str(queryset.query)
+                if hasattr(queryset.query, "__str__")
+                else str(queryset)
             )
 
     def test_empty_students_returns_empty_data(self):
@@ -309,22 +333,26 @@ class QueryCountValidationTest(TestCase):
 
     def setUp(self):
         cache.clear()
-        
-        self.year = AcademicYear.objects.create(name="2024", starts_on="2024-01-01", ends_on="2024-12-31")
+
+        self.year = AcademicYear.objects.create(
+            name="2024", starts_on="2024-01-01", ends_on="2024-12-31"
+        )
         self.term = Term.objects.create(
             academic_year=self.year,
             name="Term 1",
             start_date="2024-01-01",
             end_date="2024-04-30",
         )
-        self.compliance_profile = ComplianceProfile.objects.create(name="Default", country_code="US")
+        self.compliance_profile = ComplianceProfile.objects.create(
+            name="Default", country_code="US"
+        )
 
     def test_finance_summary_single_query_target(self):
         """Finance summary MUST use single aggregation query."""
         # Create test data
         parent = User.objects.create_user(username="parent", role=User.Role.PARENT)
         students = []
-        
+
         for i in range(10):  # Many students
             student = StudentProfile.objects.create(
                 first_name=f"Student{i}",
@@ -341,7 +369,7 @@ class QueryCountValidationTest(TestCase):
                 balance_amount=Decimal("50"),
                 academic_year=self.year,
             )
-        
+
         # Should be exactly 1 query regardless of student count
         with self.assertNumQueries(1):
             _finance_summary(students)
@@ -350,7 +378,7 @@ class QueryCountValidationTest(TestCase):
         """Performance overview should use <3 queries (was N x 3 before)."""
         parent = User.objects.create_user(username="parent", role=User.Role.PARENT)
         students = []
-        
+
         # Create 10 students to show N+1 reduction
         for i in range(10):
             student = StudentProfile.objects.create(
@@ -361,9 +389,9 @@ class QueryCountValidationTest(TestCase):
             )
             students.append(student)
             StudentGuardian.objects.create(guardian_user=parent, student=student)
-        
+
         cache.clear()
-        
+
         # Should remain bounded even with larger student sets.
         with CaptureQueriesContext(connection) as ctx:
             _performance_overview(students, self.year, self.term)
@@ -379,8 +407,10 @@ class CacheStrategyTest(TestCase):
 
     def test_cache_key_includes_student_ids(self):
         """Cache key should differentiate different parent-child combinations."""
-        year = AcademicYear.objects.create(name="2024", starts_on="2024-01-01", ends_on="2024-12-31")
-        
+        year = AcademicYear.objects.create(
+            name="2024", starts_on="2024-01-01", ends_on="2024-12-31"
+        )
+
         student1 = StudentProfile.objects.create(
             first_name="Student1",
             last_name="Test",
@@ -393,18 +423,18 @@ class CacheStrategyTest(TestCase):
             date_of_birth="2010-01-01",
             academic_year=year,
         )
-        
+
         # Get data for student 1
         parent_dashboard_widget_data([student1])
-        
+
         # Get data for student 2
         parent_dashboard_widget_data([student2])
-        
+
         # Get data for both
         parent_dashboard_widget_data([student1, student2])
-        
+
         # Cache should store them separately
-        cache_keys = list(cache._cache.keys()) if hasattr(cache._cache, 'keys') else []
+        cache_keys = list(cache._cache.keys()) if hasattr(cache._cache, "keys") else []
         self.assertTrue(len(cache_keys) > 0, "Cache should have stored data")
 
     def test_cache_ttl_reasonable(self):
@@ -425,16 +455,23 @@ class EdgeCaseHandling(TestCase):
 
     def test_no_evaluations_returns_zero(self):
         """Students with no evaluations should show zeros."""
-        year = AcademicYear.objects.create(name="2024", starts_on="2024-01-01", ends_on="2024-12-31")
-        term = Term.objects.create(academic_year=year, name="Term 1", start_date="2024-01-01", end_date="2024-04-30")
-        
+        year = AcademicYear.objects.create(
+            name="2024", starts_on="2024-01-01", ends_on="2024-12-31"
+        )
+        term = Term.objects.create(
+            academic_year=year,
+            name="Term 1",
+            start_date="2024-01-01",
+            end_date="2024-04-30",
+        )
+
         student = StudentProfile.objects.create(
             first_name="Student",
             last_name="Test",
             date_of_birth="2010-01-01",
             academic_year=year,
         )
-        
+
         snapshot = _attendance_snapshot([student], year, term)
         self.assertEqual(snapshot["overall"], 0)
         self.assertEqual(snapshot["missing"], 0)
@@ -446,6 +483,6 @@ class EdgeCaseHandling(TestCase):
             last_name="Test",
             date_of_birth="2010-01-01",
         )
-        
+
         result = parent_dashboard_widget_data([student])
         self.assertIsNotNone(result)

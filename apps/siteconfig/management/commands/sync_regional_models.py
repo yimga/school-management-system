@@ -2,6 +2,7 @@
 World Engine: sync Ollama models per region from AIModelRegistry.
 Runs `ollama pull <model_id>` for each active model in the given cluster (background threads so DB is not locked).
 """
+
 import logging
 import subprocess
 import threading
@@ -67,7 +68,9 @@ class Command(BaseCommand):
         cluster = (options.get("cluster") or "").strip().upper()
         dry_run = options.get("dry_run", False)
 
-        qs = AIModelRegistry.objects.filter(is_active=True).order_by("regional_cluster", "-priority")
+        qs = AIModelRegistry.objects.filter(is_active=True).order_by(
+            "regional_cluster", "-priority"
+        )
         if cluster:
             qs = qs.filter(regional_cluster=cluster)
 
@@ -81,7 +84,11 @@ class Command(BaseCommand):
             models.append((row.regional_cluster, row.model_id))
 
         if not models:
-            self.stdout.write(self.style.WARNING("No active models in registry for cluster=%s." % (cluster or "all")))
+            self.stdout.write(
+                self.style.WARNING(
+                    "No active models in registry for cluster=%s." % (cluster or "all")
+                )
+            )
             return
 
         for c, mid in models:
@@ -100,4 +107,8 @@ class Command(BaseCommand):
 
         for t in threads:
             t.join(timeout=3700)
-        self.stdout.write(self.style.SUCCESS("Sync regional models started (pulls run in background)."))
+        self.stdout.write(
+            self.style.SUCCESS(
+                "Sync regional models started (pulls run in background)."
+            )
+        )

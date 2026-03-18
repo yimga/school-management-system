@@ -13,4 +13,3 @@ from .monitoring import (  # noqa: F401
     PlatformIncident,
     SystemHealthMetric,
 )
-

@@ -2,6 +2,7 @@
 DNS verification for custom domains: query TXT records for runmycampus-verify=<dns_token>
 and mark SchoolDomain as verified.
 """
+
 import logging
 
 from django.db.utils import DatabaseError
@@ -26,6 +27,7 @@ def verify_domain_txt(domain: str, expected_token: str) -> bool:
     expected = str(expected_token).strip().lower()
     try:
         import dns.resolver
+
         answers = dns.resolver.resolve(domain, "TXT")
         for rdata in answers:
             for s in rdata.strings:
@@ -37,7 +39,16 @@ def verify_domain_txt(domain: str, expected_token: str) -> bool:
                         if token_part.lower() == expected:
                             return True
         return False
-    except (ImportError, OSError, ConnectionError, TimeoutError, UnicodeDecodeError, AttributeError, TypeError, ValueError) as e:
+    except (
+        ImportError,
+        OSError,
+        ConnectionError,
+        TimeoutError,
+        UnicodeDecodeError,
+        AttributeError,
+        TypeError,
+        ValueError,
+    ) as e:
         log_exception_with_context(
             "dns_verification: TXT verification failed",
             school_id=None,
@@ -70,14 +81,31 @@ def verify_and_activate_schooldomain(school_domain) -> bool:
     school_domain.save(update_fields=["is_verified", "verified_at"])
     try:
         sync_verified_schooldomain(school_domain)
-    except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError) as exc:
-        school_id = str(school_domain.school_id) if getattr(school_domain, "school_id", None) else None
+    except (
+        OSError,
+        ConnectionError,
+        DatabaseError,
+        AttributeError,
+        TypeError,
+        ValueError,
+    ) as exc:
+        school_id = (
+            str(school_domain.school_id)
+            if getattr(school_domain, "school_id", None)
+            else None
+        )
         log_exception_with_context(
             "dns_verification: sync_verified_schooldomain failed",
             school_id=school_id,
-            extra={"domain": domain, "school_domain_id": getattr(school_domain, "pk", None), "error": str(exc)},
+            extra={
+                "domain": domain,
+                "school_domain_id": getattr(school_domain, "pk", None),
+                "error": str(exc),
+            },
         )
-        logger.warning("Domain verified but runtime sync failed for %s: %s", domain, exc)
+        logger.warning(
+            "Domain verified but runtime sync failed for %s: %s", domain, exc
+        )
     SchoolProvisioningEvent.log_event(
         school=school_domain.school,
         event_type=SchoolProvisioningEvent.EventType.DOMAIN_VERIFIED,

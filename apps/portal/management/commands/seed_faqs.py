@@ -17,27 +17,74 @@ class Command(BaseCommand):
     help = "Seed curated FAQs for operators/teachers/parents."
 
     def add_arguments(self, parser):
-        parser.add_argument("--dry-run", action="store_true", help="Show what would be created without writing.")
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Show what would be created without writing.",
+        )
 
     def handle(self, *args, **options):
         if options.get("dry_run"):
-            self.stdout.write(self.style.SUCCESS("Dry run: would ensure FAQ categories and curated questions."))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Dry run: would ensure FAQ categories and curated questions."
+                )
+            )
             return
-        admin_user = User.objects.filter(is_superuser=True).first() or User.objects.filter(is_staff=True).first()
+        admin_user = (
+            User.objects.filter(is_superuser=True).first()
+            or User.objects.filter(is_staff=True).first()
+        )
 
         categories = {
-            "getting-started": {"name": "Getting Started", "icon": "fa-rocket", "order": 1},
+            "getting-started": {
+                "name": "Getting Started",
+                "icon": "fa-rocket",
+                "order": 1,
+            },
             "year-setup": {"name": "Year Setup", "icon": "fa-calendar", "order": 2},
-            "student-management": {"name": "Student Management", "icon": "fa-user-graduate", "order": 3},
-            "teacher-management": {"name": "Teacher Management", "icon": "fa-chalkboard-teacher", "order": 4},
-            "marks-evaluations": {"name": "Marks & Evaluations", "icon": "fa-clipboard-check", "order": 5},
-            "reports": {"name": "Reports & Report Cards", "icon": "fa-file-alt", "order": 6},
+            "student-management": {
+                "name": "Student Management",
+                "icon": "fa-user-graduate",
+                "order": 3,
+            },
+            "teacher-management": {
+                "name": "Teacher Management",
+                "icon": "fa-chalkboard-teacher",
+                "order": 4,
+            },
+            "marks-evaluations": {
+                "name": "Marks & Evaluations",
+                "icon": "fa-clipboard-check",
+                "order": 5,
+            },
+            "reports": {
+                "name": "Reports & Report Cards",
+                "icon": "fa-file-alt",
+                "order": 6,
+            },
             "finance": {"name": "Finance & Fees", "icon": "fa-coins", "order": 7},
-            "messaging": {"name": "Messaging & Communication", "icon": "fa-comments", "order": 8},
-            "document-library": {"name": "Document Library", "icon": "fa-folder-open", "order": 9},
-            "gce-certification": {"name": "GCE/Certification", "icon": "fa-certificate", "order": 10},
+            "messaging": {
+                "name": "Messaging & Communication",
+                "icon": "fa-comments",
+                "order": 8,
+            },
+            "document-library": {
+                "name": "Document Library",
+                "icon": "fa-folder-open",
+                "order": 9,
+            },
+            "gce-certification": {
+                "name": "GCE/Certification",
+                "icon": "fa-certificate",
+                "order": 10,
+            },
             "onboarding": {"name": "Onboarding", "icon": "fa-user-plus", "order": 11},
-            "troubleshooting": {"name": "Troubleshooting", "icon": "fa-life-ring", "order": 99},
+            "troubleshooting": {
+                "name": "Troubleshooting",
+                "icon": "fa-life-ring",
+                "order": 99,
+            },
         }
 
         cat_objs = {}

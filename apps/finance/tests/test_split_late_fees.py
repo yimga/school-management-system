@@ -6,7 +6,12 @@ from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear
-from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, InvoicePayerShare
+from apps.finance.models import (
+    ComplianceProfile,
+    Invoice,
+    InvoiceLine,
+    InvoicePayerShare,
+)
 from apps.finance.services import assign_invoice_payer_shares
 from apps.finance.tasks import run_split_late_fees
 from apps.people.models import StudentGuardian, StudentProfile
@@ -15,9 +20,11 @@ from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 class SplitLateFeeTaskTests(TestCase):
     def setUp(self):
-        self.profile = ComplianceProfile.objects.create(name="Split Late Fee", country_code="CM")
+        self.profile = ComplianceProfile.objects.create(
+            name="Split Late Fee", country_code="CM"
+        )
         site = get_platform_site_settings_record(create=True)
-        site.compliance_profile = self.profile
+        site.compliance_profile_id = self.profile.pk
         site.backend_feature_flags = {
             **(site.backend_feature_flags or {}),
             "finance_split_late_fee_enabled": True,
@@ -26,7 +33,7 @@ class SplitLateFeeTaskTests(TestCase):
             "finance_split_late_fee_percent": "2.00",
             "finance_split_late_fee_cap_percent": "20.00",
         }
-        site.save(update_fields=["compliance_profile", "backend_feature_flags"])
+        site.save(update_fields=["compliance_profile_id", "backend_feature_flags"])
 
         self.year = AcademicYear.objects.create(
             name="2025/2026",
@@ -83,14 +90,18 @@ class SplitLateFeeTaskTests(TestCase):
         self.assertEqual(result["applied"], 1)
         self.assertEqual(result["total_fee"], Decimal("2.00"))
 
-        share = InvoicePayerShare.objects.get(invoice=self.invoice, guardian=self.guardian_link)
+        share = InvoicePayerShare.objects.get(
+            invoice=self.invoice, guardian=self.guardian_link
+        )
         self.assertEqual(share.late_fee_amount, Decimal("2.00"))
         self.assertIsNotNone(share.last_late_fee_applied_at)
 
         self.invoice.refresh_from_db()
         self.assertEqual(self.invoice.total_amount, Decimal("102.00"))
         self.assertEqual(self.invoice.balance_amount, Decimal("102.00"))
-        self.assertEqual(self.invoice.lines.filter(description__startswith="Late fee (").count(), 1)
+        self.assertEqual(
+            self.invoice.lines.filter(description__startswith="Late fee (").count(), 1
+        )
 
     def test_run_split_late_fees_is_idempotent_same_day(self):
         first = run_split_late_fees()
@@ -99,6 +110,10 @@ class SplitLateFeeTaskTests(TestCase):
         self.assertEqual(second["applied"], 0)
         self.assertEqual(second["total_fee"], Decimal("0.00"))
 
-        share = InvoicePayerShare.objects.get(invoice=self.invoice, guardian=self.guardian_link)
+        share = InvoicePayerShare.objects.get(
+            invoice=self.invoice, guardian=self.guardian_link
+        )
         self.assertEqual(share.late_fee_amount, Decimal("2.00"))
-        self.assertEqual(self.invoice.lines.filter(description__startswith="Late fee (").count(), 1)
+        self.assertEqual(
+            self.invoice.lines.filter(description__startswith="Late fee (").count(), 1
+        )

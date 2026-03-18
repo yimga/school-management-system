@@ -102,6 +102,8 @@ def resolve_platform_incident(
         incident.resolved_at = now
         if resolved_by is not None:
             incident.resolved_by = resolved_by
-        incident.save(update_fields=["status", "resolved_at", "resolved_by", "updated_at"])
+        incident.save(
+            update_fields=["status", "resolved_at", "resolved_by", "updated_at"]
+        )
         resolved += 1
     return resolved

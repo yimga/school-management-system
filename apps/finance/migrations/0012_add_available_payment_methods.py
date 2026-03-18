@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0011_add_audit_logging_fields'),
+        ("finance", "0011_add_audit_logging_fields"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='complianceprofile',
-            name='available_payment_methods',
-            field=models.JSONField(default=list, help_text='List of allowed payment method codes (e.g., MTN_MOMO, ORANGE_MOMO, BANK, CASH). Defaults applied at migration time.'),
+            model_name="complianceprofile",
+            name="available_payment_methods",
+            field=models.JSONField(
+                default=list,
+                help_text="List of allowed payment method codes (e.g., MTN_MOMO, ORANGE_MOMO, BANK, CASH). Defaults applied at migration time.",
+            ),
         ),
     ]

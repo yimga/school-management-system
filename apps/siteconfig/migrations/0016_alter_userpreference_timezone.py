@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0015_add_internationalization'),
+        ("siteconfig", "0015_add_internationalization"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='userpreference',
-            name='timezone',
-            field=models.CharField(default='UTC', max_length=64),
+            model_name="userpreference",
+            name="timezone",
+            field=models.CharField(default="UTC", max_length=64),
         ),
     ]

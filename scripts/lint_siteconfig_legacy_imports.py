@@ -3,6 +3,7 @@
 Block new app code from importing legacy siteconfig modules for domain-owned
 objects that already have bounded-context import surfaces.
 """
+
 from __future__ import annotations
 
 import ast
@@ -105,9 +106,14 @@ def main() -> int:
             for line_no, replacement in _iter_violations(path, rel):
                 violations.append((rel, line_no, replacement))
     if not violations:
-        print("lint_siteconfig_legacy_imports: no legacy direct siteconfig domain imports found.")
+        print(
+            "lint_siteconfig_legacy_imports: no legacy direct siteconfig domain imports found."
+        )
         return 0
-    print("lint_siteconfig_legacy_imports: legacy direct siteconfig imports must move to bounded-context surfaces:\n", file=sys.stderr)
+    print(
+        "lint_siteconfig_legacy_imports: legacy direct siteconfig imports must move to bounded-context surfaces:\n",
+        file=sys.stderr,
+    )
     for rel, line_no, replacement in violations:
         print(f"  {rel}:{line_no} -> import from {replacement}", file=sys.stderr)
     return 1

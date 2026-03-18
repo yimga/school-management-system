@@ -5,6 +5,7 @@ Call register_usage() where dashboards, workflows, and policies are resolved or 
 Lineage: use get_lineage_consumers() to answer "what uses this entity/field?" (downstream dashboards,
 workflows, policies, reports) for impact preview and rollback safety.
 """
+
 from __future__ import annotations
 
 import logging
@@ -42,9 +43,14 @@ def register_usage(
             FieldCatalogEntry,
             MetadataDependency,
         )
+
         entity, _ = EntityCatalogEntry.objects.get_or_create(
             code=entity_code,
-            defaults={"name": entity_code.replace("_", " ").title(), "description": "", "is_core": True},
+            defaults={
+                "name": entity_code.replace("_", " ").title(),
+                "description": "",
+                "is_core": True,
+            },
         )
         field, _ = FieldCatalogEntry.objects.get_or_create(
             entity=entity,
@@ -76,6 +82,7 @@ def get_lineage_consumers(
     """
     try:
         from apps.metadata.services import get_downstream_dependencies
+
         return get_downstream_dependencies(
             entity_code=entity_code,
             field_id=field_id,

@@ -2,6 +2,7 @@
 Tests for contrast_guard: WCAG 4.5:1 text color for background, contrast ratio, meets_contrast.
 Run with: python manage.py test apps.siteconfig.tests.test_contrast_guard -v 1
 """
+
 from django.test import SimpleTestCase
 
 from apps.siteconfig.contrast_guard import (
@@ -67,7 +68,8 @@ class ContrastGuardTests(SimpleTestCase):
                 text = text_color_for_background(bg)
                 ratio = contrast_ratio(text, bg)
                 self.assertGreaterEqual(
-                    ratio, 4.5,
+                    ratio,
+                    4.5,
                     msg=f"text_color_for_background({bg}) -> {text} ratio {ratio}",
                 )
 

@@ -17,7 +17,7 @@ def get_model_changes(sender, instance, created=False, **kwargs):
     """
     if created:
         return None, _serialize_instance(instance), None
-    
+
     try:
         old_instance = sender.objects.get(pk=instance.pk)
         old_values = _serialize_instance(old_instance)
@@ -33,11 +33,13 @@ def _serialize_instance(instance):
     data = {}
     for field in instance._meta.fields:
         value = getattr(instance, field.name)
-        if hasattr(value, 'isoformat'):  # datetime
+        if hasattr(value, "isoformat"):  # datetime
             value = value.isoformat()
         elif isinstance(value, Decimal):
             value = float(value)
-        elif hasattr(value, '__dict__') and not isinstance(value, (str, int, float, bool, type(None))):
+        elif hasattr(value, "__dict__") and not isinstance(
+            value, (str, int, float, bool, type(None))
+        ):
             value = str(value)
         data[field.name] = value
     return data
@@ -58,33 +60,43 @@ def _get_changed_fields(old_values, new_values):
 def log_model_save(sender, instance, created, **kwargs):
     """Auto-log model CREATE and UPDATE via AuditLog."""
     from apps.compliance.models_audit import AuditLog
-    
+
     # Skip audit models and Django internals
-    if sender.__name__ in ['AuditLog', 'UserActivitySession', 'AccessLog', 'ComplianceReport']:
+    if sender.__name__ in [
+        "AuditLog",
+        "UserActivitySession",
+        "AccessLog",
+        "ComplianceReport",
+    ]:
         return
-    if sender.__module__.startswith('django.'):
+    if sender.__module__.startswith("django."):
         return
-    if not getattr(sender, 'audit_enabled', False):
+    if not getattr(sender, "audit_enabled", False):
         return
-    
+
     action = AuditLog.Action.CREATE if created else AuditLog.Action.UPDATE
-    old_values, new_values, changed_fields = get_model_changes(sender, instance, created=created)
-    
+    old_values, new_values, changed_fields = get_model_changes(
+        sender, instance, created=created
+    )
+
     # Classify sensitivity
     model_name = sender.__name__
-    if any(x in model_name for x in ['Invoice', 'Payment', 'Salary', 'Grade', 'StudentProfile']):
+    if any(
+        x in model_name
+        for x in ["Invoice", "Payment", "Salary", "Grade", "StudentProfile"]
+    ):
         sensitivity = AuditLog.Sensitivity.CRITICAL
-    elif any(x in model_name for x in ['User', 'Permission', 'Teacher', 'Student']):
+    elif any(x in model_name for x in ["User", "Permission", "Teacher", "Student"]):
         sensitivity = AuditLog.Sensitivity.HIGH
     else:
         sensitivity = AuditLog.Sensitivity.MEDIUM
-    
+
     AuditLog.objects.create(
         action=action,
         model_name=model_name,
         object_id=str(instance.pk),
         object_repr=str(instance)[:500],
-        app_label=sender.__module__.split('.')[1],
+        app_label=sender.__module__.split(".")[1],
         old_values=old_values,
         new_values=new_values,
         changed_fields=changed_fields,
@@ -96,28 +108,36 @@ def log_model_save(sender, instance, created, **kwargs):
 def log_model_delete(sender, instance, **kwargs):
     """Auto-log model DELETE via AuditLog."""
     from apps.compliance.models_audit import AuditLog
-    
-    if sender.__name__ in ['AuditLog', 'UserActivitySession', 'AccessLog', 'ComplianceReport']:
+
+    if sender.__name__ in [
+        "AuditLog",
+        "UserActivitySession",
+        "AccessLog",
+        "ComplianceReport",
+    ]:
         return
-    if sender.__module__.startswith('django.'):
+    if sender.__module__.startswith("django."):
         return
-    if not getattr(sender, 'audit_enabled', False):
+    if not getattr(sender, "audit_enabled", False):
         return
-    
+
     model_name = sender.__name__
-    if any(x in model_name for x in ['Invoice', 'Payment', 'Salary', 'Grade', 'StudentProfile']):
+    if any(
+        x in model_name
+        for x in ["Invoice", "Payment", "Salary", "Grade", "StudentProfile"]
+    ):
         sensitivity = AuditLog.Sensitivity.CRITICAL
-    elif any(x in model_name for x in ['User', 'Permission', 'Teacher', 'Student']):
+    elif any(x in model_name for x in ["User", "Permission", "Teacher", "Student"]):
         sensitivity = AuditLog.Sensitivity.HIGH
     else:
         sensitivity = AuditLog.Sensitivity.MEDIUM
-    
+
     AuditLog.objects.create(
         action=AuditLog.Action.DELETE,
         model_name=model_name,
         object_id=str(instance.pk),
         object_repr=str(instance)[:500],
-        app_label=sender.__module__.split('.')[1],
+        app_label=sender.__module__.split(".")[1],
         old_values=_serialize_instance(instance),
         sensitivity=sensitivity,
     )
@@ -131,6 +151,7 @@ def alert_on_critical_audit(sender, instance: AuditLog, created, **kwargs):
 
     # Avoid alert loops if alerts are disabled
     from django.conf import settings
+
     if not getattr(settings, "COMPLIANCE_ALERTS", {}).get("enabled", True):
         return
 
@@ -152,12 +173,14 @@ def _bump_rules_version():
     """Increment a cached version key used by access control cache keys (tenant-scoped)."""
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+
         prefix = get_tenant_cache_prefix()
         key = f"{prefix}:access_rules_version"
         cache.incr(key)
     except (ValueError, TypeError, AttributeError, ConnectionError, OSError):
         try:
             from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+
             prefix = get_tenant_cache_prefix()
             cache.set(f"{prefix}:access_rules_version", 1, None)
         except (ValueError, TypeError, AttributeError, ConnectionError, OSError):

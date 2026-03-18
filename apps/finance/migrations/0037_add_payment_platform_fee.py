@@ -4,15 +4,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0036_add_school_fk'),
+        ("finance", "0036_add_school_fk"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='payment',
-            name='platform_fee',
-            field=models.DecimalField(blank=True, decimal_places=2, default=0, help_text='Optional platform fee (e.g. Mobile Money) deducted and recorded.', max_digits=12, null=True),
+            model_name="payment",
+            name="platform_fee",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                default=0,
+                help_text="Optional platform fee (e.g. Mobile Money) deducted and recorded.",
+                max_digits=12,
+                null=True,
+            ),
         ),
     ]

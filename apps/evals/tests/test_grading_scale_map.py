@@ -1,6 +1,7 @@
 """
 Tests for AssessmentWeights -> grading scale mapping (scale_for_assessment_weights, ASSESSMENT_WEIGHTS_SCALE_MAP).
 """
+
 from unittest.mock import MagicMock
 
 from django.test import TestCase

@@ -4,25 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0007_sitesettings_referral_bonus_amount'),
+        ("siteconfig", "0007_sitesettings_referral_bonus_amount"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='country',
-            field=models.CharField(blank=True, default='', help_text='Country where the school is located.', max_length=80),
+            model_name="sitesettings",
+            name="country",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Country where the school is located.",
+                max_length=80,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='ministry',
-            field=models.CharField(blank=True, default='', help_text='Oversight ministry, delegation, or authority.', max_length=160),
+            model_name="sitesettings",
+            name="ministry",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Oversight ministry, delegation, or authority.",
+                max_length=160,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='region',
-            field=models.CharField(blank=True, default='', help_text='Region, division, or state where the school operates.', max_length=120),
+            model_name="sitesettings",
+            name="region",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Region, division, or state where the school operates.",
+                max_length=120,
+            ),
         ),
     ]

@@ -4,42 +4,41 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0008_portal_enhancements'),
+        ("portal", "0008_portal_enhancements"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='GuardianLinkInvitation',
+            name="GuardianLinkInvitation",
         ),
         migrations.RemoveField(
-            model_name='parentmessage',
-            name='reply_to',
+            model_name="parentmessage",
+            name="reply_to",
         ),
         migrations.DeleteModel(
-            name='ParentStudentLink',
+            name="ParentStudentLink",
         ),
         migrations.DeleteModel(
-            name='PortalAuditLog',
+            name="PortalAuditLog",
         ),
         migrations.DeleteModel(
-            name='PortalFeatureAccess',
+            name="PortalFeatureAccess",
         ),
         migrations.DeleteModel(
-            name='PortalNotification',
+            name="PortalNotification",
         ),
         migrations.RemoveField(
-            model_name='portalpreferences',
-            name='parent_id',
+            model_name="portalpreferences",
+            name="parent_id",
         ),
         migrations.DeleteModel(
-            name='PortalSession',
+            name="PortalSession",
         ),
         migrations.DeleteModel(
-            name='ParentMessage',
+            name="ParentMessage",
         ),
         migrations.DeleteModel(
-            name='PortalPreferences',
+            name="PortalPreferences",
         ),
     ]

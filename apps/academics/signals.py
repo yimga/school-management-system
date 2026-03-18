@@ -3,13 +3,14 @@ Signals for academics app: e.g. notify parents when a student is marked absent o
 Domain events: enrollment.created, attendance.recorded (non-negotiable).
 §2.4: All broad except replaced with _ACADEMICS_SIGNAL_ERRORS + structured logging.
 """
+
 import logging
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import DatabaseError, IntegrityError
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from .models import Attendance, Incident, StudentDegreeEnrollment
+from .models import Attendance, Classroom, Incident, StudentDegreeEnrollment
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +31,66 @@ _ACADEMICS_SIGNAL_ERRORS = (
 def _log_signal_failure(message: str, school_id=None, extra=None):
     try:
         from apps.platform_runtime.structured_logging import log_exception_with_context
+
         log_exception_with_context(message, school_id=school_id, extra=extra or {})
     except (ImportError, AttributeError, TypeError, ValueError) as e:
         logger.debug("%s (school_id=%s): %s", message, school_id, e, exc_info=True)
+
+
+@receiver(pre_save, sender=StudentDegreeEnrollment)
+def live_compliance_enrollment_strict_br05(sender, instance, **kwargs):
+    """BR-05 enrollment: block save when region pack violated (live_compliance_enrollment_strict)."""
+    try:
+        from apps.compliance.enrollment_region_packs import (
+            enrollment_compliance_errors,
+            should_enforce_enrollment_strict_block,
+        )
+
+        if not should_enforce_enrollment_strict_block(instance):
+            return
+        errs = enrollment_compliance_errors(instance)
+        if errs:
+            raise ValidationError(errs)
+    except ValidationError:
+        raise
+    except _ACADEMICS_SIGNAL_ERRORS as exc:
+        logger.debug("live_compliance_enrollment_strict_br05: %s", exc)
+
+
+@receiver(post_save, sender=StudentDegreeEnrollment)
+def live_compliance_enrollment_audit_br05(sender, instance, **kwargs):
+    """BR-05: audit soft violations when live_compliance_enrollment (feature flags)."""
+    try:
+        school = getattr(getattr(instance, "student", None), "school", None)
+        if not school:
+            return
+        feats = getattr(school, "features", None) or {}
+        if not feats.get("live_compliance_enrollment"):
+            return
+        from apps.compliance.enrollment_region_packs import (
+            enrollment_soft_compliance_issues,
+            get_resolved_enrollment_pack,
+        )
+
+        issues = enrollment_soft_compliance_issues(instance)
+        if not issues:
+            return
+        from apps.platform_runtime.events import emit_platform_event
+
+        pack = get_resolved_enrollment_pack(instance)
+        emit_platform_event(
+            "live_compliance_enrollment",
+            {
+                "enrollment_id": str(instance.id),
+                "issues": issues,
+                "school_id": str(school.id),
+                "enrollment_pack_key": pack.get("key"),
+            },
+            tenant_id=str(school.id),
+            school_id=school.id,
+        )
+    except _ACADEMICS_SIGNAL_ERRORS as exc:
+        logger.debug("live_compliance_enrollment_audit_br05: %s", exc)
 
 
 @receiver(post_save, sender=StudentDegreeEnrollment)
@@ -42,7 +100,12 @@ def emit_enrollment_created(sender, instance, created, **kwargs):
         return
     try:
         from apps.events.services import emit_event
-        school_id = getattr(instance.student, "school_id", None) if instance.student_id else None
+
+        school_id = (
+            getattr(instance.student, "school_id", None)
+            if instance.student_id
+            else None
+        )
         emit_event(
             "enrollment.created",
             {
@@ -55,7 +118,13 @@ def emit_enrollment_created(sender, instance, created, **kwargs):
         )
     except _ACADEMICS_SIGNAL_ERRORS as e:
         logger.debug("emit enrollment.created skipped: %s", e)
-        _log_signal_failure("academics signal enrollment.created failed", school_id=getattr(instance.student, "school_id", None) if instance.student_id else None, extra={"enrollment_id": instance.id})
+        _log_signal_failure(
+            "academics signal enrollment.created failed",
+            school_id=getattr(instance.student, "school_id", None)
+            if instance.student_id
+            else None,
+            extra={"enrollment_id": instance.id},
+        )
 
 
 @receiver(post_save, sender=Attendance)
@@ -63,12 +132,19 @@ def emit_attendance_recorded(sender, instance, created, **kwargs):
     """Emit domain event when student attendance is recorded."""
     try:
         from apps.events.services import emit_event
-        school_id = getattr(instance.student, "school_id", None) if getattr(instance, "student_id", None) else None
+
+        school_id = (
+            getattr(instance.student, "school_id", None)
+            if getattr(instance, "student_id", None)
+            else None
+        )
         emit_event(
             "attendance.recorded",
             {
                 "attendance_id": str(instance.id),
-                "student_id": str(instance.student_id) if getattr(instance, "student_id", None) else None,
+                "student_id": str(instance.student_id)
+                if getattr(instance, "student_id", None)
+                else None,
                 "date": str(instance.date) if getattr(instance, "date", None) else None,
                 "status": getattr(instance, "status", "") or "",
                 "school_id": str(school_id) if school_id else None,
@@ -77,7 +153,91 @@ def emit_attendance_recorded(sender, instance, created, **kwargs):
         )
     except _ACADEMICS_SIGNAL_ERRORS as e:
         logger.debug("emit attendance.recorded skipped: %s", e)
-        _log_signal_failure("academics signal attendance.recorded failed", school_id=getattr(instance.student, "school_id", None) if getattr(instance, "student_id", None) else None, extra={"attendance_id": instance.id})
+        _log_signal_failure(
+            "academics signal attendance.recorded failed",
+            school_id=getattr(instance.student, "school_id", None)
+            if getattr(instance, "student_id", None)
+            else None,
+            extra={"attendance_id": instance.id},
+        )
+
+
+@receiver(pre_save, sender=Attendance)
+def live_compliance_attendance_strict_br05(sender, instance, **kwargs):
+    """BR-05 strict: block save when region pack violated (feature live_compliance_attendance_strict)."""
+    try:
+        from apps.compliance.attendance_region_packs import (
+            attendance_compliance_errors,
+            should_enforce_strict_block,
+        )
+
+        if not should_enforce_strict_block(instance):
+            return
+        errs = attendance_compliance_errors(instance)
+        if errs:
+            raise ValidationError(errs)
+    except ValidationError:
+        raise
+    except _ACADEMICS_SIGNAL_ERRORS as exc:
+        logger.debug("live_compliance_attendance_strict_br05: %s", exc)
+
+
+@receiver(post_save, sender=Attendance)
+def live_compliance_attendance_br05(sender, instance, **kwargs):
+    """BR-05: optional validate-on-write flags → PlatformEventLog when live_compliance_attendance (feature flags)."""
+    try:
+        school = getattr(instance.student, "school", None)
+        if not school:
+            return
+        feats = getattr(school, "features", None) or {}
+        if not feats.get("live_compliance_attendance"):
+            return
+        from apps.compliance.attendance_region_packs import get_resolved_attendance_pack
+
+        pack = get_resolved_attendance_pack(instance)
+        issues = []
+        if (
+            instance.status == Attendance.Status.ABSENT
+            and not (instance.remarks or "").strip()
+        ):
+            issues.append("absent_without_remarks")
+        if not issues:
+            return
+        from apps.platform_runtime.events import emit_platform_event
+
+        emit_platform_event(
+            "live_compliance_attendance",
+            {
+                "attendance_id": str(instance.id),
+                "issues": issues,
+                "school_id": str(school.id),
+                "date": str(instance.date),
+                "attendance_pack_key": pack.get("key"),
+            },
+            tenant_id=str(school.id),
+            school_id=school.id,
+        )
+    except _ACADEMICS_SIGNAL_ERRORS as exc:
+        logger.debug("live_compliance_attendance_br05: %s", exc)
+
+
+@receiver(post_save, sender=Attendance)
+def ews_recompute_on_attendance_br06(sender, instance, **kwargs):
+    """BR-06: async risk recompute when ews_recompute_on_attendance (feature flags)."""
+    try:
+        school = getattr(instance.student, "school", None)
+        if not school:
+            return
+        feats = getattr(school, "features", None) or {}
+        if not feats.get("ews_recompute_on_attendance"):
+            return
+        from apps.analytics.tasks import compute_risk_factors_task
+
+        compute_risk_factors_task.apply_async(
+            kwargs={"school_id": str(school.id)}, countdown=90
+        )
+    except _ACADEMICS_SIGNAL_ERRORS as exc:
+        logger.debug("ews_recompute_on_attendance_br06: %s", exc)
 
 
 @receiver(post_save, sender=Attendance)
@@ -118,9 +278,19 @@ def on_attendance_saved(sender, instance, created, **kwargs):
                         created_by_id=None,
                     )
         except _ACADEMICS_SIGNAL_ERRORS:
-            _log_signal_failure("academics on_attendance_saved notify guardians failed", school_id=school_id, extra={"attendance_id": instance.id})
+            _log_signal_failure(
+                "academics on_attendance_saved notify guardians failed",
+                school_id=school_id,
+                extra={"attendance_id": instance.id},
+            )
     except _ACADEMICS_SIGNAL_ERRORS:
-        _log_signal_failure("academics on_attendance_saved failed", school_id=getattr(getattr(instance.student, "school", None), "id", None) if getattr(instance, "student_id", None) else None, extra={"attendance_id": instance.id})
+        _log_signal_failure(
+            "academics on_attendance_saved failed",
+            school_id=getattr(getattr(instance.student, "school", None), "id", None)
+            if getattr(instance, "student_id", None)
+            else None,
+            extra={"attendance_id": instance.id},
+        )
 
 
 @receiver(post_save, sender=Incident)
@@ -143,7 +313,9 @@ def on_incident_saved(sender, instance, created, **kwargs):
         if instance.description:
             msg += f" {instance.description[:200]}"
         title = "Disciplinary notice"
-        school_id = getattr(getattr(student, "school", None), "id", None) if student else None
+        school_id = (
+            getattr(getattr(student, "school", None), "id", None) if student else None
+        )
         try:
             portal_url = "/portal/parent/"
             for g in guardians:
@@ -157,6 +329,38 @@ def on_incident_saved(sender, instance, created, **kwargs):
                         created_by_id=instance.created_by_id,
                     )
         except _ACADEMICS_SIGNAL_ERRORS:
-            _log_signal_failure("academics on_incident_saved notify guardians failed", school_id=school_id, extra={"incident_id": instance.id})
+            _log_signal_failure(
+                "academics on_incident_saved notify guardians failed",
+                school_id=school_id,
+                extra={"incident_id": instance.id},
+            )
     except _ACADEMICS_SIGNAL_ERRORS:
-        _log_signal_failure("academics on_incident_saved failed", school_id=getattr(getattr(instance.student, "school", None), "id", None) if getattr(instance, "student_id", None) else None, extra={"incident_id": instance.id})
+        _log_signal_failure(
+            "academics on_incident_saved failed",
+            school_id=getattr(getattr(instance.student, "school", None), "id", None)
+            if getattr(instance, "student_id", None)
+            else None,
+            extra={"incident_id": instance.id},
+        )
+
+
+@receiver(post_save, sender=Classroom)
+def roster_webhook_on_classroom_save(sender, instance, created, **kwargs):
+    try:
+        from apps.interop.oneroster.webhook_dispatch import emit_roster_webhook
+
+        school = getattr(instance, "school", None)
+        if not school:
+            return
+        emit_roster_webhook(
+            school,
+            event="class.created" if created else "class.updated",
+            entity="class",
+            sourced_id=str(instance.pk),
+            payload={
+                "name": getattr(instance, "name", "") or "",
+                "code": getattr(instance, "code", "") or "",
+            },
+        )
+    except (ImportError, AttributeError, TypeError, ValueError) as e:
+        logger.debug("roster_webhook class: %s", e)

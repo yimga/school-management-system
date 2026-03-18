@@ -7,10 +7,26 @@ from typing import Any
 
 # Trigger types: when a workflow can run
 TRIGGER_TYPES = {
-    "scheduled": {"label": "Scheduled", "description": "Run on a schedule (cron/interval).", "config_schema": {"schedule": "cron_expr or interval"}},
-    "event": {"label": "Event", "description": "Run when a domain event is emitted.", "config_schema": {"event_type": "string"}},
-    "manual": {"label": "Manual", "description": "Run on demand via API or UI.", "config_schema": {}},
-    "webhook": {"label": "Webhook", "description": "Run when an external webhook is received.", "config_schema": {"path": "string"}},
+    "scheduled": {
+        "label": "Scheduled",
+        "description": "Run on a schedule (cron/interval).",
+        "config_schema": {"schedule": "cron_expr or interval"},
+    },
+    "event": {
+        "label": "Event",
+        "description": "Run when a domain event is emitted.",
+        "config_schema": {"event_type": "string"},
+    },
+    "manual": {
+        "label": "Manual",
+        "description": "Run on demand via API or UI.",
+        "config_schema": {},
+    },
+    "webhook": {
+        "label": "Webhook",
+        "description": "Run when an external webhook is received.",
+        "config_schema": {"path": "string"},
+    },
 }
 
 # Condition operators for evaluating context
@@ -27,10 +43,26 @@ CONDITION_OPERATORS = {
 
 # Action types: what the workflow can do (implementations in workflow_engine.run_actions)
 ACTION_TYPES = {
-    "notify": {"label": "Send notification", "description": "Notify user or role.", "params_schema": {"target": "user_id or role", "message": "string"}},
-    "email": {"label": "Send email", "description": "Send an email to a recipient.", "params_schema": {"to": "email or role", "subject": "string", "body": "string"}},
-    "log": {"label": "Log only", "description": "Audit log only, no side effect.", "params_schema": {"message": "string"}},
-    "webhook": {"label": "Call webhook", "description": "POST to an external URL.", "params_schema": {"url": "string", "payload": "object"}},
+    "notify": {
+        "label": "Send notification",
+        "description": "Notify user or role.",
+        "params_schema": {"target": "user_id or role", "message": "string"},
+    },
+    "email": {
+        "label": "Send email",
+        "description": "Send an email to a recipient.",
+        "params_schema": {"to": "email or role", "subject": "string", "body": "string"},
+    },
+    "log": {
+        "label": "Log only",
+        "description": "Audit log only, no side effect.",
+        "params_schema": {"message": "string"},
+    },
+    "webhook": {
+        "label": "Call webhook",
+        "description": "POST to an external URL.",
+        "params_schema": {"url": "string", "payload": "object"},
+    },
 }
 
 

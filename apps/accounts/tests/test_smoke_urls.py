@@ -3,6 +3,7 @@ Smoke tests for URL resolution. Use SimpleTestCase so no database is created.
 CI can run: python manage.py test apps.accounts.tests.test_smoke_urls
 even when the DB is missing or broken.
 """
+
 from django.test import SimpleTestCase
 from django.urls import reverse
 
@@ -39,13 +40,19 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         self.assertEqual(reverse("studio_os:experience"), "/studio/experience/")
 
     def test_siteconfig_user_preferences(self):
-        self.assertEqual(reverse("siteconfig:user_preferences"), "/siteconfig/preferences/")
+        self.assertEqual(
+            reverse("siteconfig:user_preferences"), "/siteconfig/preferences/"
+        )
 
     def test_siteconfig_clear_preview(self):
-        self.assertEqual(reverse("siteconfig:clear_preview"), "/siteconfig/customizer/clear-preview/")
+        self.assertEqual(
+            reverse("siteconfig:clear_preview"), "/siteconfig/customizer/clear-preview/"
+        )
 
     def test_siteconfig_feature_control_panel(self):
-        self.assertEqual(reverse("siteconfig:feature_control_panel"), "/siteconfig/feature-control/")
+        self.assertEqual(
+            reverse("siteconfig:feature_control_panel"), "/siteconfig/feature-control/"
+        )
 
     def test_portal_parent_dashboard(self):
         self.assertEqual(reverse("portal:parent_dashboard"), "/portal/parent/")
@@ -64,7 +71,9 @@ class SmokeUrlResolutionTests(SimpleTestCase):
 
     def test_backend_dashboard(self):
         """Frontend admin: canonical URL is under authentication."""
-        self.assertEqual(reverse("accounts:backend_dashboard"), "/authentication/backend/")
+        self.assertEqual(
+            reverse("accounts:backend_dashboard"), "/authentication/backend/"
+        )
 
     def test_admin_dashboard(self):
         """No-regression: admin dashboard (obs) path."""
@@ -93,7 +102,10 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         self.assertEqual(reverse("finance:dashboard"), "/finance/")
 
     def test_admin_siteconfig_changelist(self):
-        self.assertEqual(reverse("admin:siteconfig_sitesettings_changelist"), "/admin/siteconfig/sitesettings/")
+        self.assertEqual(
+            reverse("admin:siteconfig_sitesettings_changelist"),
+            "/admin/siteconfig/sitesettings/",
+        )
 
     def test_admin_siteconfig_change_with_pk(self):
         url = reverse("admin:siteconfig_sitesettings_change", args=[1])
@@ -123,7 +135,9 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         self.assertEqual(reverse("studio_os:experience"), "/studio/experience/")
 
     def test_siteconfig_dashboard_hub(self):
-        self.assertEqual(reverse("siteconfig:dashboard_hub"), "/siteconfig/dashboard-hub/")
+        self.assertEqual(
+            reverse("siteconfig:dashboard_hub"), "/siteconfig/dashboard-hub/"
+        )
 
     def test_compliance_dashboard(self):
         self.assertEqual(reverse("compliance:dashboard"), "/compliance/dashboard/")

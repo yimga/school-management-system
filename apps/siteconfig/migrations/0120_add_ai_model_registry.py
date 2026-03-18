@@ -4,31 +4,56 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0119_add_regional_ai_config'),
+        ("siteconfig", "0119_add_regional_ai_config"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AIModelRegistry',
+            name="AIModelRegistry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('regional_cluster', models.CharField(db_index=True, max_length=32)),
-                ('hardware_tier', models.CharField(default='default', help_text='e.g. 8GB_RAM, GPU, default', max_length=32)),
-                ('model_id', models.CharField(help_text='Ollama model tag (e.g. llama3.1:8b-q4).', max_length=128)),
-                ('is_active', models.BooleanField(default=True)),
-                ('priority', models.PositiveSmallIntegerField(default=0, help_text='Fallback order (higher = preferred).')),
-                ('lora_adapter_path', models.CharField(blank=True, max_length=512)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("regional_cluster", models.CharField(db_index=True, max_length=32)),
+                (
+                    "hardware_tier",
+                    models.CharField(
+                        default="default",
+                        help_text="e.g. 8GB_RAM, GPU, default",
+                        max_length=32,
+                    ),
+                ),
+                (
+                    "model_id",
+                    models.CharField(
+                        help_text="Ollama model tag (e.g. llama3.1:8b-q4).",
+                        max_length=128,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "priority",
+                    models.PositiveSmallIntegerField(
+                        default=0, help_text="Fallback order (higher = preferred)."
+                    ),
+                ),
+                ("lora_adapter_path", models.CharField(blank=True, max_length=512)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'AI model registry',
-                'verbose_name_plural': 'AI model registries',
-                'db_table': 'siteconfig_aimodelregistry',
-                'ordering': ['regional_cluster', '-priority', 'hardware_tier'],
-                'unique_together': {('regional_cluster', 'hardware_tier')},
+                "verbose_name": "AI model registry",
+                "verbose_name_plural": "AI model registries",
+                "db_table": "siteconfig_aimodelregistry",
+                "ordering": ["regional_cluster", "-priority", "hardware_tier"],
+                "unique_together": {("regional_cluster", "hardware_tier")},
             },
         ),
     ]

@@ -4,6 +4,7 @@ RBAC: Tiered announcement permissions.
 - Department: HOD and leadership only.
 - Class: teachers can create (class_announcement_create).
 """
+
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -31,11 +32,19 @@ class SchoolWideAnnouncementCreateRBACTest(TestCase):
             password="testpass",
             role=User.Role.PRINCIPAL,
         )
-        region = RegionConfig.objects.filter(code="US").first() or RegionConfig.objects.filter(code="GLOBAL").first()
+        region = (
+            RegionConfig.objects.filter(code="US").first()
+            or RegionConfig.objects.filter(code="GLOBAL").first()
+        )
         if not region:
             region = RegionConfig.objects.create(
-                code="US", name="United States", default_language="en", timezone="UTC",
-                date_format="YYYY-MM-DD", grading_scale="0-100", default_currency="USD",
+                code="US",
+                name="United States",
+                default_language="en",
+                timezone="UTC",
+                date_format="YYYY-MM-DD",
+                grading_scale="0-100",
+                default_currency="USD",
             )
         cls.school = School.objects.create(
             name="RBAC School",
@@ -75,11 +84,19 @@ class DepartmentAnnouncementCreateRBACTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        region = RegionConfig.objects.filter(code="US").first() or RegionConfig.objects.filter(code="GLOBAL").first()
+        region = (
+            RegionConfig.objects.filter(code="US").first()
+            or RegionConfig.objects.filter(code="GLOBAL").first()
+        )
         if not region:
             region = RegionConfig.objects.create(
-                code="US", name="United States", default_language="en", timezone="UTC",
-                date_format="YYYY-MM-DD", grading_scale="0-100", default_currency="USD",
+                code="US",
+                name="United States",
+                default_language="en",
+                timezone="UTC",
+                date_format="YYYY-MM-DD",
+                grading_scale="0-100",
+                default_currency="USD",
             )
         cls.school = School.objects.create(
             name="Dept School",
@@ -88,7 +105,9 @@ class DepartmentAnnouncementCreateRBACTest(TestCase):
             default_region=region,
             is_active=True,
         )
-        cls.dept = Department.objects.create(school=cls.school, name="Mathematics", code="MATH-DEPT")
+        cls.dept = Department.objects.create(
+            school=cls.school, name="Mathematics", code="MATH-DEPT"
+        )
         cls.teacher_user = User.objects.create_user(
             username="teacher1",
             password="testpass",
@@ -110,13 +129,17 @@ class DepartmentAnnouncementCreateRBACTest(TestCase):
     def test_teacher_cannot_create_department_announcement(self):
         """Regular teacher gets 403 when accessing department announcement create."""
         self.client.force_login(self.teacher_user)
-        response = self.client.get(reverse("communication:department_announcement_create"))
+        response = self.client.get(
+            reverse("communication:department_announcement_create")
+        )
         self.assertEqual(response.status_code, 403)
 
     def test_hod_can_access_department_announcement_create(self):
         """HOD can reach department create flow; may require tenant/school context in test env."""
         self.client.force_login(self.hod_user)
-        response = self.client.get(reverse("communication:department_announcement_create"))
+        response = self.client.get(
+            reverse("communication:department_announcement_create")
+        )
         self.assertIn(response.status_code, (200, 403))
         if response.status_code == 403:
             body = response.content.decode().lower()
@@ -129,9 +152,13 @@ class DepartmentAnnouncementCreateRBACTest(TestCase):
     def test_leadership_can_access_department_announcement_create(self, mock_school):
         """Leadership can access the create page when school context and department are present."""
         mock_school.return_value = self.school
-        TeacherProfile.objects.get_or_create(user=self.leadership_user, defaults={"department": self.dept})
+        TeacherProfile.objects.get_or_create(
+            user=self.leadership_user, defaults={"department": self.dept}
+        )
         self.client.force_login(self.leadership_user)
-        response = self.client.get(reverse("communication:department_announcement_create"))
+        response = self.client.get(
+            reverse("communication:department_announcement_create")
+        )
         self.assertIn(response.status_code, (200, 403))
         if response.status_code == 403:
             body = response.content.decode().lower()

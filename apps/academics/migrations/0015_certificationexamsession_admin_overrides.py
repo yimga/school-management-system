@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0014_certificationdocumentchecklist_and_more'),
+        ("academics", "0014_certificationdocumentchecklist_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='certificationexamsession',
-            name='admin_overrides',
-            field=models.JSONField(blank=True, default=dict, help_text='Admin override records for deadline bypasses (audit trail).'),
+            model_name="certificationexamsession",
+            name="admin_overrides",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="Admin override records for deadline bypasses (audit trail).",
+            ),
         ),
     ]

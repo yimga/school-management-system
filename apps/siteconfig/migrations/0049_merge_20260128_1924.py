@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0045_alter_sitesettings_admission_number_pattern_and_more'),
-        ('siteconfig', '0048_remove_sitesettings_preview_banner_text_and_more'),
+        ("siteconfig", "0045_alter_sitesettings_admission_number_pattern_and_more"),
+        ("siteconfig", "0048_remove_sitesettings_preview_banner_text_and_more"),
     ]
 
-    operations = [
-    ]
+    operations = []

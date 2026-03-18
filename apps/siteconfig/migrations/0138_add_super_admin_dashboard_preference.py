@@ -6,25 +6,46 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0137_add_meta_description'),
+        ("siteconfig", "0137_add_meta_description"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SuperAdminDashboardPreference',
+            name="SuperAdminDashboardPreference",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('section_order', models.JSONField(blank=True, default=list, help_text='Order of section IDs (e.g. cp-action-queue, cp-fleet-health). Empty = default order.')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='super_dashboard_preference', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "section_order",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="Order of section IDs (e.g. cp-action-queue, cp-fleet-health). Empty = default order.",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="super_dashboard_preference",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Super Admin dashboard preference',
-                'verbose_name_plural': 'Super Admin dashboard preferences',
+                "verbose_name": "Super Admin dashboard preference",
+                "verbose_name_plural": "Super Admin dashboard preferences",
             },
         ),
     ]

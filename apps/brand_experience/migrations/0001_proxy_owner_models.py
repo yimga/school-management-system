@@ -4,77 +4,71 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('siteconfig', '0147_sitesettings_compliance_profile_pointer'),
+        ("siteconfig", "0147_sitesettings_compliance_profile_pointer"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BrandProfile',
-            fields=[
-            ],
+            name="BrandProfile",
+            fields=[],
             options={
-                'verbose_name': 'Brand profile',
-                'verbose_name_plural': 'Brand profiles',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Brand profile",
+                "verbose_name_plural": "Brand profiles",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.brandprofile',),
+            bases=("siteconfig.brandprofile",),
         ),
         migrations.CreateModel(
-            name='BrandSettings',
-            fields=[
-            ],
+            name="BrandSettings",
+            fields=[],
             options={
-                'verbose_name': 'Brand settings',
-                'verbose_name_plural': 'Brand settings',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Brand settings",
+                "verbose_name_plural": "Brand settings",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.brandsettings',),
+            bases=("siteconfig.brandsettings",),
         ),
         migrations.CreateModel(
-            name='DesignTemplate',
-            fields=[
-            ],
+            name="DesignTemplate",
+            fields=[],
             options={
-                'verbose_name': 'Design template',
-                'verbose_name_plural': 'Design templates',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Design template",
+                "verbose_name_plural": "Design templates",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.designtemplate',),
+            bases=("siteconfig.designtemplate",),
         ),
         migrations.CreateModel(
-            name='GlobalBrandRegistry',
-            fields=[
-            ],
+            name="GlobalBrandRegistry",
+            fields=[],
             options={
-                'verbose_name': 'Global brand registry',
-                'verbose_name_plural': 'Global brand registry',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Global brand registry",
+                "verbose_name_plural": "Global brand registry",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.globalbrandregistry',),
+            bases=("siteconfig.globalbrandregistry",),
         ),
         migrations.CreateModel(
-            name='ThemePack',
-            fields=[
-            ],
+            name="ThemePack",
+            fields=[],
             options={
-                'verbose_name': 'theme pack',
-                'verbose_name_plural': 'theme packs',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "theme pack",
+                "verbose_name_plural": "theme packs",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('siteconfig.themepack',),
+            bases=("siteconfig.themepack",),
         ),
     ]

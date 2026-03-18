@@ -5,51 +5,125 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('schools', '0026_rls_policy_default_deny'),
+        ("schools", "0026_rls_policy_default_deny"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DynamicFieldDefinition',
+            name="DynamicFieldDefinition",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('entity_type', models.CharField(db_index=True, help_text='Entity type, e.g. student, invoice, classroom.', max_length=80)),
-                ('field_key', models.CharField(help_text='Unique key within entity_type, e.g. preferred_name.', max_length=120)),
-                ('label', models.CharField(blank=True, max_length=255)),
-                ('data_type', models.CharField(choices=[('string', 'String'), ('number', 'Number'), ('boolean', 'Boolean'), ('json', 'JSON'), ('date', 'Date')], default='string', max_length=20)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(blank=True, help_text='Null = platform-wide definition.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "entity_type",
+                    models.CharField(
+                        db_index=True,
+                        help_text="Entity type, e.g. student, invoice, classroom.",
+                        max_length=80,
+                    ),
+                ),
+                (
+                    "field_key",
+                    models.CharField(
+                        help_text="Unique key within entity_type, e.g. preferred_name.",
+                        max_length=120,
+                    ),
+                ),
+                ("label", models.CharField(blank=True, max_length=255)),
+                (
+                    "data_type",
+                    models.CharField(
+                        choices=[
+                            ("string", "String"),
+                            ("number", "Number"),
+                            ("boolean", "Boolean"),
+                            ("json", "JSON"),
+                            ("date", "Date"),
+                        ],
+                        default="string",
+                        max_length=20,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Null = platform-wide definition.",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="+",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Dynamic Field Definition',
-                'verbose_name_plural': 'Dynamic Field Definitions',
-                'ordering': ['entity_type', 'field_key'],
-                'unique_together': {('entity_type', 'field_key', 'school')},
+                "verbose_name": "Dynamic Field Definition",
+                "verbose_name_plural": "Dynamic Field Definitions",
+                "ordering": ["entity_type", "field_key"],
+                "unique_together": {("entity_type", "field_key", "school")},
             },
         ),
         migrations.CreateModel(
-            name='DynamicFieldValue',
+            name="DynamicFieldValue",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('entity_type', models.CharField(db_index=True, max_length=80)),
-                ('entity_id', models.CharField(db_index=True, help_text='Target entity PK (e.g. student id).', max_length=64)),
-                ('field_key', models.CharField(max_length=120)),
-                ('value_json', models.JSONField(blank=True, default=dict, help_text='Stored value (string as {"v": "..."}, number as {"v": 1}, etc.).')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("entity_type", models.CharField(db_index=True, max_length=80)),
+                (
+                    "entity_id",
+                    models.CharField(
+                        db_index=True,
+                        help_text="Target entity PK (e.g. student id).",
+                        max_length=64,
+                    ),
+                ),
+                ("field_key", models.CharField(max_length=120)),
+                (
+                    "value_json",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text='Stored value (string as {"v": "..."}, number as {"v": 1}, etc.).',
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="+",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Dynamic Field Value',
-                'verbose_name_plural': 'Dynamic Field Values',
-                'ordering': ['entity_type', 'entity_id', 'field_key'],
-                'unique_together': {('school', 'entity_type', 'entity_id', 'field_key')},
+                "verbose_name": "Dynamic Field Value",
+                "verbose_name_plural": "Dynamic Field Values",
+                "ordering": ["entity_type", "entity_id", "field_key"],
+                "unique_together": {
+                    ("school", "entity_type", "entity_id", "field_key")
+                },
             },
         ),
     ]

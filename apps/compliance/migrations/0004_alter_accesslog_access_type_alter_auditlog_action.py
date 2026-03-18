@@ -4,20 +4,45 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compliance', '0003_accesslog_auditlog_compliancereport_and_more'),
+        ("compliance", "0003_accesslog_auditlog_compliancereport_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='accesslog',
-            name='access_type',
-            field=models.CharField(choices=[('WEB', 'Web Page'), ('API', 'API Call'), ('DOWNLOAD', 'File Download'), ('ADMIN', 'Admin Interface'), ('REPORT', 'Report Generation')], max_length=20),
+            model_name="accesslog",
+            name="access_type",
+            field=models.CharField(
+                choices=[
+                    ("WEB", "Web Page"),
+                    ("API", "API Call"),
+                    ("DOWNLOAD", "File Download"),
+                    ("ADMIN", "Admin Interface"),
+                    ("REPORT", "Report Generation"),
+                ],
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='auditlog',
-            name='action',
-            field=models.CharField(choices=[('CREATE', 'Record Created'), ('UPDATE', 'Record Updated'), ('DELETE', 'Record Deleted'), ('VIEW', 'Record Viewed'), ('EXPORT', 'Data Exported'), ('LOGIN', 'User Login'), ('LOGOUT', 'User Logout'), ('PERM_GRANT', 'Permission Granted'), ('PERM_REVOKE', 'Permission Revoked'), ('PUBLISH', 'Content Published'), ('APPROVE', 'Action Approved'), ('REJECT', 'Action Rejected'), ('ACCESS_DENIED', 'Access Denied')], max_length=20),
+            model_name="auditlog",
+            name="action",
+            field=models.CharField(
+                choices=[
+                    ("CREATE", "Record Created"),
+                    ("UPDATE", "Record Updated"),
+                    ("DELETE", "Record Deleted"),
+                    ("VIEW", "Record Viewed"),
+                    ("EXPORT", "Data Exported"),
+                    ("LOGIN", "User Login"),
+                    ("LOGOUT", "User Logout"),
+                    ("PERM_GRANT", "Permission Granted"),
+                    ("PERM_REVOKE", "Permission Revoked"),
+                    ("PUBLISH", "Content Published"),
+                    ("APPROVE", "Action Approved"),
+                    ("REJECT", "Action Rejected"),
+                    ("ACCESS_DENIED", "Access Denied"),
+                ],
+                max_length=20,
+            ),
         ),
     ]

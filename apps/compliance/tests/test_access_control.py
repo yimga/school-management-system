@@ -33,14 +33,14 @@ class IPAccessControlTestCase(TestCase):
             rule_type=IPAccessRule.RuleType.DENY,
             ip_address="192.168.1.100",
             is_active=True,
-            description="Test block"
+            description="Test block",
         )
-        
+
         # Blocked IP
         is_allowed, reason = check_ip_access("192.168.1.100")
         self.assertFalse(is_allowed)
         self.assertIn("blocked", reason.lower())
-        
+
         # Allowed IP
         is_allowed, reason = check_ip_access("192.168.1.101")
         self.assertTrue(is_allowed)
@@ -51,16 +51,16 @@ class IPAccessControlTestCase(TestCase):
             rule_type=IPAccessRule.RuleType.DENY,
             ip_address="192.168.1.0/24",
             is_active=True,
-            description="Block subnet"
+            description="Block subnet",
         )
-        
+
         # IPs within range should be blocked
         is_allowed, _ = check_ip_access("192.168.1.1")
         self.assertFalse(is_allowed)
-        
+
         is_allowed, _ = check_ip_access("192.168.1.255")
         self.assertFalse(is_allowed)
-        
+
         # IP outside range should be allowed
         is_allowed, _ = check_ip_access("192.168.2.1")
         self.assertTrue(is_allowed)
@@ -72,22 +72,22 @@ class IPAccessControlTestCase(TestCase):
             rule_type=IPAccessRule.RuleType.ALLOW,
             ip_address="192.168.1.100",
             is_active=True,
-            description="Allowed IP"
+            description="Allowed IP",
         )
         IPAccessRule.objects.create(
             rule_type=IPAccessRule.RuleType.ALLOW,
             ip_address="10.0.0.0/8",
             is_active=True,
-            description="Allowed internal network"
+            description="Allowed internal network",
         )
-        
+
         # Whitelisted IP should be allowed
         is_allowed, _ = check_ip_access("192.168.1.100")
         self.assertTrue(is_allowed)
-        
+
         is_allowed, _ = check_ip_access("10.0.5.5")
         self.assertTrue(is_allowed)
-        
+
         # Non-whitelisted IP should be blocked
         is_allowed, reason = check_ip_access("192.168.1.101")
         self.assertFalse(is_allowed)
@@ -99,21 +99,21 @@ class IPAccessControlTestCase(TestCase):
         IPAccessRule.objects.create(
             rule_type=IPAccessRule.RuleType.ALLOW,
             ip_address="192.168.1.0/24",
-            is_active=True
+            is_active=True,
         )
-        
+
         # Create deny rule for specific IP in that range
         IPAccessRule.objects.create(
             rule_type=IPAccessRule.RuleType.DENY,
             ip_address="192.168.1.100",
-            is_active=True
+            is_active=True,
         )
-        
+
         # Denied IP should be blocked even if in allow range
         is_allowed, reason = check_ip_access("192.168.1.100")
         self.assertFalse(is_allowed)
         self.assertIn("blocked", reason.lower())
-        
+
         # Other IPs in range should be allowed
         is_allowed, _ = check_ip_access("192.168.1.101")
         self.assertTrue(is_allowed)
@@ -124,9 +124,9 @@ class IPAccessControlTestCase(TestCase):
             rule_type=IPAccessRule.RuleType.DENY,
             ip_address="192.168.1.100",
             is_active=False,  # Inactive
-            description="Disabled rule"
+            description="Disabled rule",
         )
-        
+
         # IP should be allowed since rule is inactive
         is_allowed, _ = check_ip_access("192.168.1.100")
         self.assertTrue(is_allowed)
@@ -147,14 +147,14 @@ class CountryAccessControlTestCase(TestCase):
             rule_type=CountryAccessRule.RuleType.DENY,
             country_code="CN",
             country_name="China",
-            is_active=True
+            is_active=True,
         )
-        
+
         # Blocked country
         is_allowed, reason = check_country_access("CN")
         self.assertFalse(is_allowed)
         self.assertIn("blocked", reason.lower())
-        
+
         # Allowed country
         is_allowed, _ = check_country_access("US")
         self.assertTrue(is_allowed)
@@ -165,22 +165,22 @@ class CountryAccessControlTestCase(TestCase):
             rule_type=CountryAccessRule.RuleType.ALLOW,
             country_code="US",
             country_name="United States",
-            is_active=True
+            is_active=True,
         )
         CountryAccessRule.objects.create(
             rule_type=CountryAccessRule.RuleType.ALLOW,
             country_code="CM",
             country_name="Cameroon",
-            is_active=True
+            is_active=True,
         )
-        
+
         # Whitelisted countries
         is_allowed, _ = check_country_access("US")
         self.assertTrue(is_allowed)
-        
+
         is_allowed, _ = check_country_access("CM")
         self.assertTrue(is_allowed)
-        
+
         # Non-whitelisted country
         is_allowed, reason = check_country_access("RU")
         self.assertFalse(is_allowed)
@@ -189,18 +189,16 @@ class CountryAccessControlTestCase(TestCase):
     def test_case_insensitive_country_code(self):
         """Test that country code matching is case-insensitive."""
         CountryAccessRule.objects.create(
-            rule_type=CountryAccessRule.RuleType.DENY,
-            country_code="CN",
-            is_active=True
+            rule_type=CountryAccessRule.RuleType.DENY, country_code="CN", is_active=True
         )
-        
+
         # Test various cases
         is_allowed, _ = check_country_access("CN")
         self.assertFalse(is_allowed)
-        
+
         is_allowed, _ = check_country_access("cn")
         self.assertFalse(is_allowed)
-        
+
         is_allowed, _ = check_country_access("Cn")
         self.assertFalse(is_allowed)
 
@@ -218,13 +216,13 @@ class RequestAccessControlTestCase(TestCase):
         IPAccessRule.objects.create(
             rule_type=IPAccessRule.RuleType.DENY,
             ip_address="192.168.1.100",
-            is_active=True
+            is_active=True,
         )
-        
+
         # Create request from blocked IP
-        request = self.factory.get('/')
-        request.META['REMOTE_ADDR'] = '192.168.1.100'
-        
+        request = self.factory.get("/")
+        request.META["REMOTE_ADDR"] = "192.168.1.100"
+
         is_allowed, reason = check_request_access(request)
         self.assertFalse(is_allowed)
         self.assertIn("blocked", reason.lower())
@@ -235,14 +233,14 @@ class RequestAccessControlTestCase(TestCase):
         IPAccessRule.objects.create(
             rule_type=IPAccessRule.RuleType.DENY,
             ip_address="203.0.113.5",
-            is_active=True
+            is_active=True,
         )
-        
+
         # Create request with X-Forwarded-For
-        request = self.factory.get('/')
-        request.META['HTTP_X_FORWARDED_FOR'] = '203.0.113.5, 192.168.1.1'
-        request.META['REMOTE_ADDR'] = '192.168.1.1'
-        
+        request = self.factory.get("/")
+        request.META["HTTP_X_FORWARDED_FOR"] = "203.0.113.5, 192.168.1.1"
+        request.META["REMOTE_ADDR"] = "192.168.1.1"
+
         # Should use first IP from X-Forwarded-For
         is_allowed, _ = check_request_access(request)
         self.assertFalse(is_allowed)

@@ -3,6 +3,7 @@ Plan VI: WhatsApp and Push notification channels.
 Tenants configure credentials in API Center (integration_catalog: whatsapp, push).
 Provider abstraction: WhatsAppProvider and PushProvider base classes for pluggable backends.
 """
+
 from __future__ import annotations
 
 import logging
@@ -15,7 +16,14 @@ class WhatsAppProvider(ABC):
     """Abstract base for WhatsApp Business API backends (Meta, Twilio, etc.)."""
 
     @abstractmethod
-    def send(self, to_phone: str, body: str, *, template_name: str | None = None, template_params: list[str] | None = None) -> bool:
+    def send(
+        self,
+        to_phone: str,
+        body: str,
+        *,
+        template_name: str | None = None,
+        template_params: list[str] | None = None,
+    ) -> bool:
         """Send message; return True if sent or queued."""
         pass
 
@@ -28,7 +36,9 @@ class PushProvider(ABC):
     """Abstract base for push backends (FCM, WebPush, APNS)."""
 
     @abstractmethod
-    def send(self, token: str, title: str, body: str, *, data: dict | None = None) -> bool:
+    def send(
+        self, token: str, title: str, body: str, *, data: dict | None = None
+    ) -> bool:
         """Send to one device token; return True if sent."""
         pass
 
@@ -38,13 +48,20 @@ class PushProvider(ABC):
 
 
 def _get_whatsapp_config(school) -> dict | None:
-    from apps.siteconfig.integration_registry import resolve_active_integration, resolve_service_integration
+    from apps.siteconfig.integration_registry import (
+        resolve_active_integration,
+        resolve_service_integration,
+    )
     from apps.integrations_marketplace.models import ServiceIntegration
 
     rec = resolve_active_integration(school, "whatsapp")
     if rec and rec.is_active and rec.config:
         return rec.config
-    svc = resolve_service_integration(school, service_type=ServiceIntegration.ServiceType.WHATSAPP, name_hints=["whatsapp"])
+    svc = resolve_service_integration(
+        school,
+        service_type=ServiceIntegration.ServiceType.WHATSAPP,
+        name_hints=["whatsapp"],
+    )
     if svc and svc.config:
         return svc.config
     return None
@@ -65,26 +82,46 @@ def send_whatsapp(
     """
     config = _get_whatsapp_config(school)
     if not config:
-        logger.debug("WhatsApp: no integration for school %s", getattr(school, "pk", None))
+        logger.debug(
+            "WhatsApp: no integration for school %s", getattr(school, "pk", None)
+        )
         return False
     phone_number_id = config.get("phone_number_id")
     access_token = config.get("access_token")
     if not phone_number_id or not access_token:
-        logger.warning("WhatsApp: missing phone_number_id or access_token for school %s", getattr(school, "pk", None))
+        logger.warning(
+            "WhatsApp: missing phone_number_id or access_token for school %s",
+            getattr(school, "pk", None),
+        )
         return False
     to_phone = (to_phone or "").strip().replace(" ", "")
     if not to_phone.startswith("+"):
         to_phone = "+" + to_phone
     try:
         import requests
+
         url = f"https://graph.facebook.com/{(config.get('api_version') or 'v18.0')}/{phone_number_id}/messages"
-        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
         if template_name and template_params is not None:
             payload = {
                 "messaging_product": "whatsapp",
                 "to": to_phone[1:],
                 "type": "template",
-                "template": {"name": template_name, "language": {"code": "en"}, "components": [{"type": "body", "parameters": [{"type": "text", "text": p} for p in template_params]}]},
+                "template": {
+                    "name": template_name,
+                    "language": {"code": "en"},
+                    "components": [
+                        {
+                            "type": "body",
+                            "parameters": [
+                                {"type": "text", "text": p} for p in template_params
+                            ],
+                        }
+                    ],
+                },
             }
         else:
             payload = {
@@ -104,13 +141,20 @@ def send_whatsapp(
 
 
 def _get_push_config(school) -> dict | None:
-    from apps.siteconfig.integration_registry import resolve_active_integration, resolve_service_integration
+    from apps.siteconfig.integration_registry import (
+        resolve_active_integration,
+        resolve_service_integration,
+    )
     from apps.integrations_marketplace.models import ServiceIntegration
 
     rec = resolve_active_integration(school, "push")
     if rec and rec.is_active and rec.config:
         return rec.config
-    svc = resolve_service_integration(school, service_type=ServiceIntegration.ServiceType.PUSH, name_hints=["push", "fcm"])
+    svc = resolve_service_integration(
+        school,
+        service_type=ServiceIntegration.ServiceType.PUSH,
+        name_hints=["push", "fcm"],
+    )
     if svc and svc.config:
         return svc.config
     return None
@@ -134,7 +178,12 @@ def send_push(
         logger.debug("Push: no integration for school %s", getattr(school, "pk", None))
         return False
     provider = (config.get("provider") or "fcm").lower()
-    device_token = token_or_user if isinstance(token_or_user, str) else getattr(token_or_user, "fcm_token", None) or getattr(token_or_user, "device_token", None)
+    device_token = (
+        token_or_user
+        if isinstance(token_or_user, str)
+        else getattr(token_or_user, "fcm_token", None)
+        or getattr(token_or_user, "device_token", None)
+    )
     if not device_token:
         logger.warning("Push: no device token")
         return False
@@ -144,10 +193,18 @@ def send_push(
             if not server_key:
                 return False
             import requests
+
             r = requests.post(
                 "https://fcm.googleapis.com/fcm/send",
-                headers={"Authorization": f"Key {server_key}", "Content-Type": "application/json"},
-                json={"to": device_token, "notification": {"title": title, "body": body}, "data": data or {}},
+                headers={
+                    "Authorization": f"Key {server_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "to": device_token,
+                    "notification": {"title": title, "body": body},
+                    "data": data or {},
+                },
                 timeout=10,
             )
             return r.status_code == 200
@@ -156,7 +213,17 @@ def send_push(
             if not url:
                 return False
             import requests
-            r = requests.post(url, json={"to": device_token, "title": title, "body": body, "data": data or {}}, timeout=10)
+
+            r = requests.post(
+                url,
+                json={
+                    "to": device_token,
+                    "title": title,
+                    "body": body,
+                    "data": data or {},
+                },
+                timeout=10,
+            )
             return r.status_code in (200, 201, 204)
         logger.warning("Push: unsupported provider %s", provider)
         return False

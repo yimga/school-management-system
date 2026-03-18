@@ -12,13 +12,21 @@ from django.utils import timezone
 
 from apps.dashboard.role_home_engine import select_kpis_for_intent
 from apps.dashboard.services.role_home_service import build_role_home_context
-from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
-from apps.platform_runtime.structured_logging import log_exception_with_context, log_view_exception
+from apps.platform_runtime.helpers import (
+    get_effective_flags,
+    get_effective_site_settings,
+)
+from apps.platform_runtime.structured_logging import log_view_exception
 
 logger = logging.getLogger(__name__)
 
 # Typed exceptions for dashboard context (§2.4 broad-except policy)
-_DASHBOARD_REVERSE_ERRORS = (NoReverseMatch, ImproperlyConfigured, ValueError, TypeError)
+_DASHBOARD_REVERSE_ERRORS = (
+    NoReverseMatch,
+    ImproperlyConfigured,
+    ValueError,
+    TypeError,
+)
 # Snapshot/query and optional feature failures (resilient counts; log and keep going)
 _DASHBOARD_SNAPSHOT_ERRORS = (
     ImportError,
@@ -29,7 +37,12 @@ _DASHBOARD_SNAPSHOT_ERRORS = (
     DatabaseError,
     OperationalError,
 )
-_DASHBOARD_PERMISSION_CHECK_ERRORS = (AttributeError, TypeError, ValueError, ImportError)
+_DASHBOARD_PERMISSION_CHECK_ERRORS = (
+    AttributeError,
+    TypeError,
+    ValueError,
+    ImportError,
+)
 _DASHBOARD_PARSING_ERRORS = (TypeError, ValueError)
 _DASHBOARD_CONFIG_ERRORS = (ImproperlyConfigured,)
 
@@ -88,7 +101,9 @@ def _has_permission(user, *codes: str) -> bool:
     return False
 
 
-def _build_nav_item(label: str, icon: str, url: str, *, item_id: str = "", allow: bool = True) -> Optional[Dict[str, str]]:
+def _build_nav_item(
+    label: str, icon: str, url: str, *, item_id: str = "", allow: bool = True
+) -> Optional[Dict[str, str]]:
     if not allow:
         return None
     if not url or url == "#":
@@ -130,6 +145,7 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
 
     try:
         from apps.people.models import StudentProfile, TeacherProfile
+
         students = StudentProfile.objects.filter(is_active=True).count()
         teachers = TeacherProfile.objects.filter(is_active=True).count()
     except _DASHBOARD_SNAPSHOT_ERRORS:
@@ -137,6 +153,7 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
 
     try:
         from apps.academics.models import Classroom, Subject
+
         classrooms = Classroom.objects.count()
         subjects = Subject.objects.count()
     except _DASHBOARD_SNAPSHOT_ERRORS:
@@ -144,6 +161,7 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
 
     try:
         from apps.accounts.models import User
+
         users = User.objects.count()
         if hasattr(User, "role"):
             parents = User.objects.filter(role="PARENT").count()
@@ -152,6 +170,7 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
 
     try:
         from apps.finance.models import Invoice
+
         invoices = Invoice.objects.count()
         overdue = Invoice.objects.filter(status="OVERDUE").count()
         drafts = Invoice.objects.filter(status="DRAFT").count()
@@ -160,24 +179,35 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
 
     try:
         from apps.requests.models import AccessRequest
-        pending_approvals = AccessRequest.objects.filter(status=AccessRequest.Status.PENDING).count()
+
+        pending_approvals = AccessRequest.objects.filter(
+            status=AccessRequest.Status.PENDING
+        ).count()
     except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
 
     try:
         from apps.compliance.models_audit import AccessLog
+
         cutoff = timezone.now() - timedelta(hours=24)
-        failed_logins_24h = AccessLog.objects.filter(
-            resource__in=["/authentication/login/", "/admin/login/"],
-            request_method="POST",
-            timestamp__gte=cutoff,
-        ).exclude(status__in=["302", "303"]).count()
+        failed_logins_24h = (
+            AccessLog.objects.filter(
+                resource__in=["/authentication/login/", "/admin/login/"],
+                request_method="POST",
+                timestamp__gte=cutoff,
+            )
+            .exclude(status__in=["302", "303"])
+            .count()
+        )
     except _DASHBOARD_SNAPSHOT_ERRORS:
         failed_logins_24h = 0
 
     try:
         from apps.finance.models import Notification
-        system_incidents = Notification.objects.filter(title__icontains="incident").count()
+
+        system_incidents = Notification.objects.filter(
+            title__icontains="incident"
+        ).count()
     except _DASHBOARD_SNAPSHOT_ERRORS:
         system_incidents = 0
 
@@ -199,45 +229,77 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
     return snapshot
 
 
-def _build_priority_queue(items: list[Dict[str, Any]], *, max_items: int = 4) -> list[Dict[str, Any]]:
+def _build_priority_queue(
+    items: list[Dict[str, Any]], *, max_items: int = 4
+) -> list[Dict[str, Any]]:
     priority = {"danger": 0, "warn": 1, "ok": 2}
     ranked = sorted(
         [item for item in items if _safe_int(item.get("value")) > 0],
-        key=lambda item: (priority.get(str(item.get("status")), 3), -_safe_int(item.get("value"))),
+        key=lambda item: (
+            priority.get(str(item.get("status")), 3),
+            -_safe_int(item.get("value")),
+        ),
     )
     if ranked:
         return ranked[:max_items]
-    return [{
-        "label": "No urgent blockers",
-        "value": 0,
-        "status": "ok",
-        "url": __safe_reverse("studio_os:workflow_center"),
-        "icon": "bi-check2-circle",
-        "meta": "The main queues are clear right now.",
-    }]
+    return [
+        {
+            "label": "No urgent blockers",
+            "value": 0,
+            "status": "ok",
+            "url": __safe_reverse("studio_os:workflow_center"),
+            "icon": "bi-check2-circle",
+            "meta": "The main queues are clear right now.",
+        }
+    ]
 
 
-def _build_recent_activity_block(activities: Any, *, max_items: int = 4) -> list[Dict[str, Any]]:
+def _build_recent_activity_block(
+    activities: Any, *, max_items: int = 4
+) -> list[Dict[str, Any]]:
     results: list[Dict[str, Any]] = []
     if not isinstance(activities, list):
         return results
     for activity in activities[:max_items]:
-        user = activity.get("user") if isinstance(activity, dict) else getattr(activity, "user", None)
+        user = (
+            activity.get("user")
+            if isinstance(activity, dict)
+            else getattr(activity, "user", None)
+        )
         actor = ""
         if user is not None:
-            actor = getattr(user, "get_full_name", lambda: "")() or getattr(user, "username", "")
+            actor = getattr(user, "get_full_name", lambda: "")() or getattr(
+                user, "username", ""
+            )
         results.append(
             {
-                "title": str(activity.get("object") if isinstance(activity, dict) else getattr(activity, "object", "")) or "Platform update",
+                "title": str(
+                    activity.get("object")
+                    if isinstance(activity, dict)
+                    else getattr(activity, "object", "")
+                )
+                or "Platform update",
                 "actor": actor or "System",
-                "action": str(activity.get("action") if isinstance(activity, dict) else getattr(activity, "action", "")) or "updated",
-                "time_ago": str(activity.get("time_ago") if isinstance(activity, dict) else getattr(activity, "time_ago", "")) or "just now",
+                "action": str(
+                    activity.get("action")
+                    if isinstance(activity, dict)
+                    else getattr(activity, "action", "")
+                )
+                or "updated",
+                "time_ago": str(
+                    activity.get("time_ago")
+                    if isinstance(activity, dict)
+                    else getattr(activity, "time_ago", "")
+                )
+                or "just now",
             }
         )
     return results
 
 
-def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def build_dashboard_extras(
+    request, base: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """
     Backend dashboard additions:
     - Overview cards
@@ -269,6 +331,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             default_header_weather_config,
             default_backend_feature_flags,
         )
+
         backend_defaults = default_backend_feature_flags()
         backend_flags = dict(backend_defaults)
         site = get_effective_site_settings(request=request)
@@ -281,17 +344,36 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         else:
             site_id = str(site.pk)
         weather_defaults = default_header_weather_config()
-        weather_cfg.update({
-            "enabled": backend_flags.get("show_header_context_weather", weather_cfg["enabled"]),
-            "label": backend_flags.get("header_weather_label", weather_defaults["header_weather_label"]),
-            "lat": backend_flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),
-            "lon": backend_flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),
-            "unit": backend_flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"]),
-        })
+        weather_cfg.update(
+            {
+                "enabled": backend_flags.get(
+                    "show_header_context_weather", weather_cfg["enabled"]
+                ),
+                "label": backend_flags.get(
+                    "header_weather_label", weather_defaults["header_weather_label"]
+                ),
+                "lat": backend_flags.get(
+                    "header_weather_latitude",
+                    weather_defaults["header_weather_latitude"],
+                ),
+                "lon": backend_flags.get(
+                    "header_weather_longitude",
+                    weather_defaults["header_weather_longitude"],
+                ),
+                "unit": backend_flags.get(
+                    "header_weather_temperature_unit",
+                    weather_defaults["header_weather_temperature_unit"],
+                ),
+            }
+        )
     except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
     except _DASHBOARD_CONFIG_ERRORS:
-        log_view_exception(request, "dashboard backend flags/weather failed", extra={"step": "weather_cfg"})
+        log_view_exception(
+            request,
+            "dashboard backend flags/weather failed",
+            extra={"step": "weather_cfg"},
+        )
 
     def _clamp_max_items(value, default=5):
         try:
@@ -308,37 +390,71 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "overview": bool(backend_flags.get("backend_module_overview", True)),
         "admin_portal": bool(backend_flags.get("backend_module_admin_portal", True)),
         "welcome": bool(backend_flags.get("backend_module_welcome", True)),
-        "enrollment_trends": bool(backend_flags.get("backend_module_enrollment_trends", True)),
-        "at_risk_students": bool(backend_flags.get("backend_module_at_risk_students", True)),
-        "outstanding_fees": bool(backend_flags.get("backend_module_outstanding_fees", True)),
-        "recent_admissions": bool(backend_flags.get("backend_module_recent_admissions", True)),
-        "recent_activity": bool(backend_flags.get("backend_module_recent_activity", True)),
-        "top_performing": bool(backend_flags.get("backend_module_top_performing", True)),
-        "attendance_today": bool(backend_flags.get("backend_module_attendance_today", True)),
+        "enrollment_trends": bool(
+            backend_flags.get("backend_module_enrollment_trends", True)
+        ),
+        "at_risk_students": bool(
+            backend_flags.get("backend_module_at_risk_students", True)
+        ),
+        "outstanding_fees": bool(
+            backend_flags.get("backend_module_outstanding_fees", True)
+        ),
+        "recent_admissions": bool(
+            backend_flags.get("backend_module_recent_admissions", True)
+        ),
+        "recent_activity": bool(
+            backend_flags.get("backend_module_recent_activity", True)
+        ),
+        "top_performing": bool(
+            backend_flags.get("backend_module_top_performing", True)
+        ),
+        "attendance_today": bool(
+            backend_flags.get("backend_module_attendance_today", True)
+        ),
         "ops_watch": bool(backend_flags.get("backend_module_ops_watch", True)),
         "quick_links": bool(backend_flags.get("backend_module_quick_links", True)),
         "planner": bool(backend_flags.get("backend_module_planner", True)),
     }
     visual_settings = {
-        "show_trend_ribbons": bool(backend_flags.get("backend_viz_show_trend_ribbons", True)),
-        "show_progress_rings": bool(backend_flags.get("backend_viz_show_progress_rings", True)),
-        "show_rank_sparklines": bool(backend_flags.get("backend_viz_show_rank_sparklines", True)),
+        "show_trend_ribbons": bool(
+            backend_flags.get("backend_viz_show_trend_ribbons", True)
+        ),
+        "show_progress_rings": bool(
+            backend_flags.get("backend_viz_show_progress_rings", True)
+        ),
+        "show_rank_sparklines": bool(
+            backend_flags.get("backend_viz_show_rank_sparklines", True)
+        ),
     }
     theme_settings = {
         "warm_palette": bool(backend_flags.get("backend_warm_palette", True)),
-        "reduce_card_flatness": bool(backend_flags.get("backend_reduce_card_flatness", True)),
-        "high_depth_surfaces": bool(backend_flags.get("backend_high_depth_surfaces", True)),
+        "reduce_card_flatness": bool(
+            backend_flags.get("backend_reduce_card_flatness", True)
+        ),
+        "high_depth_surfaces": bool(
+            backend_flags.get("backend_high_depth_surfaces", True)
+        ),
         "balanced_motion": bool(backend_flags.get("backend_balanced_motion", True)),
-        "layout_equal_heights": bool(backend_flags.get("backend_layout_equal_heights", True)),
+        "layout_equal_heights": bool(
+            backend_flags.get("backend_layout_equal_heights", True)
+        ),
     }
 
     snapshot = _build_cached_snapshot(site_id, role_code)
 
-    fallback_stats = (base.get("stats") or {}) if isinstance(base.get("stats"), dict) else {}
-    pending_approvals = snapshot.get("pending_approvals") or _safe_int(base.get("pending_approvals_count"))
-    overdue = snapshot.get("overdue") or _safe_int(fallback_stats.get("overdue_invoices"))
+    fallback_stats = (
+        (base.get("stats") or {}) if isinstance(base.get("stats"), dict) else {}
+    )
+    pending_approvals = snapshot.get("pending_approvals") or _safe_int(
+        base.get("pending_approvals_count")
+    )
+    overdue = snapshot.get("overdue") or _safe_int(
+        fallback_stats.get("overdue_invoices")
+    )
     finance_requests = _safe_int(base.get("finance_requests_count"))
-    failed_logins_24h = snapshot.get("failed_logins_24h") or _safe_int(base.get("failed_logins_24h"))
+    failed_logins_24h = snapshot.get("failed_logins_24h") or _safe_int(
+        base.get("failed_logins_24h")
+    )
     system_incidents = snapshot.get("system_incidents")
 
     at_risk_value = _safe_int(fallback_stats.get("pending_referrals")) + overdue
@@ -418,8 +534,13 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         delta_str = f"{d} {delta_suffix}" if d else ""
         return f"{m} {meta_suffix}", delta_str
 
-    oa_meta, oa_delta = _meta_delta(snapshot.get("subjects"), snapshot.get("classrooms"), "subjects", "classrooms")
-    oacc_meta, oacc_delta = _meta_delta(snapshot.get("teachers"), snapshot.get("parents"), "staff", "parents")
+    oa_meta, oa_delta = _meta_delta(
+        snapshot.get("subjects"), snapshot.get("classrooms"), "subjects", "classrooms"
+    )
+    oacc_meta, oacc_delta = _meta_delta(
+        snapshot.get("teachers"), snapshot.get("parents"), "staff", "parents"
+    )
+
     def _sparkline_points(data: list) -> str:
         """Convert list of numbers to SVG polyline points for viewBox 0 0 100 24 (y inverted)."""
         if not data or len(data) < 2:
@@ -427,7 +548,10 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         try:
             mx = max(data) or 1
             n = len(data)
-            pts = [f"{i * 100 / (n - 1):.1f},{24 - (v / mx * 22):.1f}" for i, v in enumerate(data)]
+            pts = [
+                f"{i * 100 / (n - 1):.1f},{24 - (v / mx * 22):.1f}"
+                for i, v in enumerate(data)
+            ]
             return " ".join(pts)
         except (TypeError, ValueError, ZeroDivisionError):
             return ""
@@ -435,7 +559,13 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     students = snapshot.get("students", 0)
     academics_spark = []
     if students and students > 0:
-        academics_spark = [max(0, students - 2), students - 1, students, min(students + 1, students + 2), students]
+        academics_spark = [
+            max(0, students - 2),
+            students - 1,
+            students,
+            min(students + 1, students + 2),
+            students,
+        ]
     if len(academics_spark) < 2:
         academics_spark = [students] * 5 if students else []
     overview_cards = [
@@ -452,8 +582,8 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         {
             "title": "Accounts",
             "value": snapshot.get("users", 0),
-            "meta": f'{snapshot.get("teachers", 0)} staff',
-            "delta": f'{snapshot.get("parents", 0)} parents',
+            "meta": f"{snapshot.get('teachers', 0)} staff",
+            "delta": f"{snapshot.get('parents', 0)} parents",
             "status": "ok",
             "icon": "bi-people",
             "sparkline_data": [],
@@ -510,80 +640,115 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     staff_like = bool(
         getattr(user, "is_staff", False)
         or getattr(user, "is_superuser", False)
-        or role_code in (admin_roles | {"SECRETARY", "BURSAR", "ACCOUNTANT", "PROPRIETOR", "DISCIPLINE_MASTER"})
+        or role_code
+        in (
+            admin_roles
+            | {"SECRETARY", "BURSAR", "ACCOUNTANT", "PROPRIETOR", "DISCIPLINE_MASTER"}
+        )
     )
     pending_signatures = 0
     if can_manage_settings or staff_like:
         try:
             from apps.portal.models import FormSignature
-            pending_signatures = FormSignature.objects.filter(status=FormSignature.SignatureStatus.PENDING).count()
+
+            pending_signatures = FormSignature.objects.filter(
+                status=FormSignature.SignatureStatus.PENDING
+            ).count()
         except _DASHBOARD_SNAPSHOT_ERRORS:
             pass
     if pending_signatures > 0:
-        operations_watch.append({
-            "key": "pending_signatures",
-            "label": "Pending Signatures",
-            "value": pending_signatures,
-            "status": _status_from_value(pending_signatures, warn_at=1, danger_at=5),
-            "url": _safe_reverse("portal:signature_requests_manage"),
-            "icon": "bi-pen",
-        })
+        operations_watch.append(
+            {
+                "key": "pending_signatures",
+                "label": "Pending Signatures",
+                "value": pending_signatures,
+                "status": _status_from_value(
+                    pending_signatures, warn_at=1, danger_at=5
+                ),
+                "url": _safe_reverse("portal:signature_requests_manage"),
+                "icon": "bi-pen",
+            }
+        )
 
     contact_requests_count = 0
     if staff_like:
         try:
             from apps.communication.models import ContactRequest
+
             contact_requests_count = ContactRequest.objects.exclude(
-                status__in=(ContactRequest.Status.RESOLVED, ContactRequest.Status.CLOSED)
+                status__in=(
+                    ContactRequest.Status.RESOLVED,
+                    ContactRequest.Status.CLOSED,
+                )
             ).count()
         except _DASHBOARD_SNAPSHOT_ERRORS:
             pass
     if contact_requests_count > 0:
-        operations_watch.append({
-            "key": "contact_requests",
-            "label": "Contact Requests",
-            "value": contact_requests_count,
-            "status": _status_from_value(contact_requests_count, warn_at=1, danger_at=5),
-            "url": _safe_reverse("portal:staff_contact_request_list"),
-            "icon": "bi-inbox",
-        })
+        operations_watch.append(
+            {
+                "key": "contact_requests",
+                "label": "Contact Requests",
+                "value": contact_requests_count,
+                "status": _status_from_value(
+                    contact_requests_count, warn_at=1, danger_at=5
+                ),
+                "url": _safe_reverse("portal:staff_contact_request_list"),
+                "icon": "bi-inbox",
+            }
+        )
 
     messages_unread = _safe_int(getattr(request, "messages_unread_count", None))
     try:
         from apps.communication.models import Message
+
         if messages_unread == 0 and user:
-            messages_unread = Message.objects.filter(recipient=user, is_read=False).count()
+            messages_unread = Message.objects.filter(
+                recipient=user, is_read=False
+            ).count()
     except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
     if messages_unread > 0:
-        operations_watch.append({
-            "key": "unread_messages",
-            "label": "Unread Messages",
-            "value": messages_unread,
-            "status": _status_from_value(messages_unread, warn_at=1, danger_at=10),
-            "url": _safe_reverse("accounts:user_messages"),
-            "icon": "bi-chat-dots",
-        })
+        operations_watch.append(
+            {
+                "key": "unread_messages",
+                "label": "Unread Messages",
+                "value": messages_unread,
+                "status": _status_from_value(messages_unread, warn_at=1, danger_at=10),
+                "url": _safe_reverse("accounts:user_messages"),
+                "icon": "bi-chat-dots",
+            }
+        )
 
     announcements_pending = 0
     if can_use_messages:
         try:
             from apps.communication.models import Announcement
+
             announcements_pending = Announcement.objects.filter(
                 status=Announcement.Status.PENDING_APPROVAL
             ).count()
         except _DASHBOARD_SNAPSHOT_ERRORS:
             pass
     if announcements_pending > 0:
-        operations_watch.append({
-            "key": "announcements_pending",
-            "label": "Announcements (pending)",
-            "value": announcements_pending,
-            "status": "warn",
-            "url": _safe_reverse("communication:announcement_list_pending") or _safe_reverse("communication:announcement_create"),
-            "icon": "bi-megaphone",
-        })
+        operations_watch.append(
+            {
+                "key": "announcements_pending",
+                "label": "Announcements (pending)",
+                "value": announcements_pending,
+                "status": "warn",
+                "url": _safe_reverse("communication:announcement_list_pending")
+                or _safe_reverse("communication:announcement_create"),
+                "icon": "bi-megaphone",
+            }
+        )
 
+    can_access_control_plane = False
+    try:
+        from apps.schools.control_plane import user_has_control_plane_access
+
+        can_access_control_plane = bool(user_has_control_plane_access(user))
+    except _DASHBOARD_PERMISSION_CHECK_ERRORS:
+        pass
     perms = {
         "can_manage_settings": can_manage_settings,
         "can_manage_people": can_manage_people,
@@ -591,6 +756,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "can_manage_reports": can_manage_reports,
         "can_use_messages": can_use_messages,
         "can_manage_rbac": can_manage_rbac,
+        "can_access_control_plane": can_access_control_plane,
     }
     # Role-home slice from single service (RUNMYCAMPUS §6.13: move role-home logic into services)
     role_home_result = build_role_home_context(
@@ -612,12 +778,15 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     role_home_destinations = role_home_result["role_home_destinations"]
     role_home_primary_action = role_home_result["role_home_primary_action"]
     role_home_supporting_actions = role_home_result["role_home_supporting_actions"]
-    dashboard_next_best_actions = role_home_result.get("dashboard_next_best_actions") or []
+    dashboard_next_best_actions = (
+        role_home_result.get("dashboard_next_best_actions") or []
+    )
 
     upcoming_events = []
     try:
         from apps.academics.services import get_active_year_and_term
         from apps.portal.services import _merged_upcoming_events
+
         year, _ = get_active_year_and_term()
         upcoming_events = _merged_upcoming_events(year)[:7]
     except _DASHBOARD_SNAPSHOT_ERRORS:
@@ -652,7 +821,9 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     if attendance_total > 0:
         attendance_rate = round((attended_today / max(attendance_total, 1)) * 100)
     attendance_meta = (
-        f"{attendance_rate}% present today" if attendance_rate is not None else "No attendance records yet"
+        f"{attendance_rate}% present today"
+        if attendance_rate is not None
+        else "No attendance records yet"
     )
     if attendance_rate is None:
         attendance_status = "warn"
@@ -699,7 +870,9 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     ]
     kpi_strip_cards = select_kpis_for_intent(kpi_strip_cards, intent)
     dashboard_priority_queue = _build_priority_queue(operations_watch, max_items=4)
-    dashboard_recent_activity = _build_recent_activity_block(base.get("recent_activities"), max_items=4)
+    dashboard_recent_activity = _build_recent_activity_block(
+        base.get("recent_activities"), max_items=4
+    )
     if not dashboard_recent_activity:
         dashboard_recent_activity = [
             {

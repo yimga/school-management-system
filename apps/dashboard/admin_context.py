@@ -69,7 +69,10 @@ def _build_admin_weather_config(site: SiteSettings) -> dict[str, Any]:
         flags = getattr(site, "backend_feature_flags", None) or {}
     weather_defaults = default_header_weather_config()
     raw_unit = str(
-        flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"])
+        flags.get(
+            "header_weather_temperature_unit",
+            weather_defaults["header_weather_temperature_unit"],
+        )
     ).lower()
     temp_unit = "fahrenheit" if raw_unit in {"f", "fahrenheit"} else "celsius"
     timezone_name = str(
@@ -80,13 +83,19 @@ def _build_admin_weather_config(site: SiteSettings) -> dict[str, Any]:
     )
     return {
         "enabled": bool(flags.get("show_header_context_weather", False)),
-        "label": str(flags.get("header_weather_label", weather_defaults["header_weather_label"])),
+        "label": str(
+            flags.get("header_weather_label", weather_defaults["header_weather_label"])
+        ),
         "latitude": _safe_float(
-            flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),
+            flags.get(
+                "header_weather_latitude", weather_defaults["header_weather_latitude"]
+            ),
             weather_defaults["header_weather_latitude"],
         ),
         "longitude": _safe_float(
-            flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),
+            flags.get(
+                "header_weather_longitude", weather_defaults["header_weather_longitude"]
+            ),
             weather_defaults["header_weather_longitude"],
         ),
         "temperature_unit": temp_unit,
@@ -311,10 +320,18 @@ def _query_kpi_cards(query_context: dict[str, Any]) -> dict[str, Any]:
 
     total_users = int(query_context.get("total_users", 0)) if can_see_user_stats else 0
     admin_count = int(query_context.get("admin_count", 0)) if can_see_user_stats else 0
-    student_count = int(query_context.get("student_count", 0)) if can_see_user_stats else 0
-    teacher_count = int(query_context.get("teacher_count", 0)) if can_see_user_stats else 0
-    parent_count = int(query_context.get("parent_count", 0)) if can_see_user_stats else 0
-    active_sessions = int(query_context.get("active_sessions", 0)) if can_see_sessions else 0
+    student_count = (
+        int(query_context.get("student_count", 0)) if can_see_user_stats else 0
+    )
+    teacher_count = (
+        int(query_context.get("teacher_count", 0)) if can_see_user_stats else 0
+    )
+    parent_count = (
+        int(query_context.get("parent_count", 0)) if can_see_user_stats else 0
+    )
+    active_sessions = (
+        int(query_context.get("active_sessions", 0)) if can_see_sessions else 0
+    )
     sessions_24h = int(query_context.get("sessions_24h", 0)) if can_see_sessions else 0
 
     mfa_enabled_count = 0
@@ -446,7 +463,9 @@ def _query_security_compliance(query_context: dict[str, Any]) -> dict[str, Any]:
             }
         )
     except _ADMIN_WIDGET_QUERY_ERRORS:
-        logger.debug("Failed to compute security/compliance widget payload.", exc_info=True)
+        logger.debug(
+            "Failed to compute security/compliance widget payload.", exc_info=True
+        )
     return data
 
 
@@ -526,7 +545,9 @@ def _query_settings_audit(_query_context: dict[str, Any]) -> dict[str, Any]:
             for entry in entries
         ]
     except _ADMIN_WIDGET_QUERY_ERRORS:
-        logger.debug("Failed to compute site settings audit widget payload.", exc_info=True)
+        logger.debug(
+            "Failed to compute site settings audit widget payload.", exc_info=True
+        )
     return {"settings_change_log": settings_change_log}
 
 
@@ -619,6 +640,7 @@ def _widget_cache_key(
     spec: AdminDashboardWidgetSpec, query_context: dict[str, Any]
 ) -> str:
     from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+
     user = query_context["user"]
     site_pk = query_context.get("site_pk") or "global"
     role_code = (getattr(user, "role", "") or "unknown").upper()
@@ -770,9 +792,11 @@ def build_admin_dashboard_context(
 
     can_see_user_stats = user.is_superuser or user.has_perm("auth.view_user")
     can_see_sessions = user.is_superuser or user.has_perm("sessions.view_session")
-    can_see_compliance = user.is_superuser or user.has_perm(
-        "compliance.view_auditlog"
-    ) or user.has_perm("compliance.view_accesslog")
+    can_see_compliance = (
+        user.is_superuser
+        or user.has_perm("compliance.view_auditlog")
+        or user.has_perm("compliance.view_accesslog")
+    )
     can_see_finance_inbox = user.is_superuser or getattr(
         user, "has_feature_permission", lambda _: False
     )("finance.view_invoice")

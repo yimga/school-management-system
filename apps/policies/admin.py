@@ -25,7 +25,15 @@ class CountryProfileAdmin(admin.ModelAdmin):
 
 @admin.register(PolicyBundle, site=tenant_admin_site)
 class PolicyBundleAdmin(admin.ModelAdmin):
-    list_display = ("id", "school", "name", "version", "applied_pack_version", "is_active", "created_at")
+    list_display = (
+        "id",
+        "school",
+        "name",
+        "version",
+        "applied_pack_version",
+        "is_active",
+        "created_at",
+    )
     list_filter = ("is_active",)
     search_fields = ("name",)
     raw_id_fields = ("school", "created_by")
@@ -39,7 +47,15 @@ class TenantBlueprintAdmin(admin.ModelAdmin):
 
 @admin.register(BlueprintPack)
 class BlueprintPackAdmin(admin.ModelAdmin):
-    list_display = ("slug", "name", "category", "country_code", "version", "is_active", "updated_at")
+    list_display = (
+        "slug",
+        "name",
+        "category",
+        "country_code",
+        "version",
+        "is_active",
+        "updated_at",
+    )
     list_filter = ("is_active", "category")
     search_fields = ("slug", "name", "description", "category")
     prepopulated_fields = {"slug": ("name",)}
@@ -48,12 +64,16 @@ class BlueprintPackAdmin(admin.ModelAdmin):
     def update_bundle_for_schools_needing_update(self, request, queryset):
         """Re-apply selected pack(s) to schools that have it applied but older version (11.2)."""
         from .blueprint_services import update_bundle_for_schools
+
         total = 0
         for pack in queryset:
             updated = update_bundle_for_schools(pack, applied_by=request.user)
             total += len(updated)
         self.message_user(request, f"Updated bundle for {total} school(s).")
-    update_bundle_for_schools_needing_update.short_description = "Update bundle for schools needing this version"
+
+    update_bundle_for_schools_needing_update.short_description = (
+        "Update bundle for schools needing this version"
+    )
 
 
 @admin.register(BlueprintCompatibilityRule, site=platform_admin_site)

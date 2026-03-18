@@ -1,6 +1,7 @@
 """
 Part F Section 25.1: Tax engine — regional tax (VAT/GST) computation from policy/settings.
 """
+
 from __future__ import annotations
 
 from decimal import Decimal

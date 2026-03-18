@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0005_add_term_custom_label'),
+        ("academics", "0005_add_term_custom_label"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='term',
-            name='position',
+            model_name="term",
+            name="position",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='term',
-            name='name',
+            model_name="term",
+            name="name",
             field=models.CharField(max_length=20),
         ),
     ]

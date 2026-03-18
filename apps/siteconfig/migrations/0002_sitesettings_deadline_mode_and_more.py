@@ -4,40 +4,47 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0001_initial'),
+        ("siteconfig", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='deadline_mode',
-            field=models.CharField(choices=[('TERM_END', 'Term end date'), ('CUSTOM_DEADLINE', 'Custom deadline'), ('PUBLISH_DATE', 'Publish date')], default='TERM_END', max_length=20),
+            model_name="sitesettings",
+            name="deadline_mode",
+            field=models.CharField(
+                choices=[
+                    ("TERM_END", "Term end date"),
+                    ("CUSTOM_DEADLINE", "Custom deadline"),
+                    ("PUBLISH_DATE", "Publish date"),
+                ],
+                default="TERM_END",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='improvement_delta_threshold',
+            model_name="sitesettings",
+            name="improvement_delta_threshold",
             field=models.DecimalField(decimal_places=2, default=1, max_digits=5),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='pass_mark',
+            model_name="sitesettings",
+            name="pass_mark",
             field=models.DecimalField(decimal_places=2, default=10, max_digits=5),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='top_students_default_limit',
+            model_name="sitesettings",
+            name="top_students_default_limit",
             field=models.PositiveSmallIntegerField(default=10),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='use_promotion_rule_for_pass',
+            model_name="sitesettings",
+            name="use_promotion_rule_for_pass",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='weak_subject_threshold',
+            model_name="sitesettings",
+            name="weak_subject_threshold",
             field=models.DecimalField(decimal_places=2, default=10, max_digits=5),
         ),
     ]

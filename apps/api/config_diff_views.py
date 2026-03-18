@@ -2,6 +2,7 @@
 Config diff API (Section 29.4): compare effective policy/settings between contexts.
 Staff or config_diff capability required.
 """
+
 from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
@@ -16,6 +17,7 @@ class ConfigDiffAPI(View):
     GET /api/config-diff/?base=current&compare=staged
     Or ?school_id=X&compare_school_id=Y to compare two schools' effective policy (key-level diff).
     """
+
     def get(self, request):
         user = getattr(request, "user", None)
         if not user or not user.is_authenticated:
@@ -25,6 +27,7 @@ class ConfigDiffAPI(View):
             if not school:
                 return JsonResponse({"detail": "Forbidden."}, status=403)
             from apps.schools.models import can
+
             if not can(school, "CONFIG_DIFF"):
                 return JsonResponse({"detail": "Forbidden."}, status=403)
 
@@ -41,7 +44,10 @@ class ConfigDiffAPI(View):
             out = {}
             for k, v in p.items():
                 if k == "payment_gateways" and isinstance(v, dict):
-                    out[k] = {kk: "***" if "secret" in str(vv).lower() else vv for kk, vv in v.items()}
+                    out[k] = {
+                        kk: "***" if "secret" in str(vv).lower() else vv
+                        for kk, vv in v.items()
+                    }
                 else:
                     out[k] = v
             return out

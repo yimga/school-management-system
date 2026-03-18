@@ -6,6 +6,7 @@ observability can correlate get_effective_site_settings / build_tenant_runtime
 with downstream work. Set at entry to resolution; include in structured_logging
 via request_context_for_log.
 """
+
 from __future__ import annotations
 
 import secrets

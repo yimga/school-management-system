@@ -16,51 +16,63 @@ def _user(request):
 
 class IsAdminUser(permissions.BasePermission):
     """Only admin users can access."""
+
     def has_permission(self, request, view):
         user = _user(request)
         if not user or not getattr(user, "is_authenticated", False):
             return False
-        return bool(user.is_staff or (getattr(user, "role", None) or "").upper() == "ADMIN")
+        return bool(
+            user.is_staff or (getattr(user, "role", None) or "").upper() == "ADMIN"
+        )
 
 
 class IsTeacherOrAdmin(permissions.BasePermission):
     """Only teachers and admins can access."""
+
     def has_permission(self, request, view):
-        return api_user_has_any_role(_user(request), {"TEACHER", "ADMIN", "HOD", "LEADERSHIP"})
+        return api_user_has_any_role(
+            _user(request), {"TEACHER", "ADMIN", "HOD", "LEADERSHIP"}
+        )
 
 
 class IsTeacher(permissions.BasePermission):
     """Only teachers can access."""
+
     def has_permission(self, request, view):
         return api_user_has_any_role(_user(request), {"TEACHER"})
 
 
 class IsParent(permissions.BasePermission):
     """Only parents can access."""
+
     def has_permission(self, request, view):
         return api_user_has_any_role(_user(request), {"PARENT"})
 
 
 class IsStudent(permissions.BasePermission):
     """Only students can access."""
+
     def has_permission(self, request, view):
         return api_user_has_any_role(_user(request), {"STUDENT"})
 
 
 class IsStudentOrParent(permissions.BasePermission):
     """Only students and parents can access."""
+
     def has_permission(self, request, view):
         return api_user_has_any_role(_user(request), {"STUDENT", "PARENT"})
 
 
 class IsBursar(permissions.BasePermission):
     """Only bursars can access."""
+
     def has_permission(self, request, view):
         return api_user_has_any_role(_user(request), {"BURSAR", "ADMIN", "LEADERSHIP"})
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """Object-level permission to only allow owners of an object to edit it."""
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -74,6 +86,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
 class CanViewChild(permissions.BasePermission):
     """Parent can only view their own children's data."""
+
     def has_object_permission(self, request, view, obj):
         user = _user(request)
         if not user or not getattr(user, "is_authenticated", False):
@@ -81,6 +94,7 @@ class CanViewChild(permissions.BasePermission):
         if not api_user_has_any_role(user, {"PARENT"}):
             return True
         from apps.people.models import StudentGuardian
+
         return StudentGuardian.objects.filter(
             guardian_user=user,
             student=obj,
@@ -90,6 +104,7 @@ class CanViewChild(permissions.BasePermission):
 
 class RoleBasedPermission(permissions.BasePermission):
     """Base permission for role-based access (uses shared RBAC: user.role + AccessRole)."""
+
     ROLE_PERMISSIONS = {
         "ADMIN": ["list", "retrieve", "create", "update", "delete"],
         "LEADERSHIP": ["list", "retrieve", "create", "update"],
@@ -119,9 +134,16 @@ class RoleBasedPermission(permissions.BasePermission):
 
 class IsAdminLike(permissions.BasePermission):
     """Staff/superuser or admin-like role gate for sensitive endpoints."""
+
     ADMIN_ROLES = {
-        "ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN",
-        "IT_ADMIN", "CENSOR", "BURSAR",
+        "ADMIN",
+        "LEADERSHIP",
+        "PRINCIPAL",
+        "VICE_PRINCIPAL",
+        "DEAN",
+        "IT_ADMIN",
+        "CENSOR",
+        "BURSAR",
     }
 
     def has_permission(self, request, view):
@@ -129,6 +151,7 @@ class IsAdminLike(permissions.BasePermission):
         if not user or not getattr(user, "is_authenticated", False):
             return False
         return bool(
-            user.is_staff or user.is_superuser
+            user.is_staff
+            or user.is_superuser
             or api_user_has_any_role(user, self.ADMIN_ROLES)
         )

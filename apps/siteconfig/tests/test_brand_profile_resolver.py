@@ -46,7 +46,9 @@ class BrandProfileResolverTests(TestCase):
 
         self.assertEqual(brand["source"], "brand_profile")
         self.assertEqual(brand["logo_url"], "https://brand-profile.example/logo.svg")
-        self.assertEqual(brand["favicon_url"], "https://brand-profile.example/favicon.ico")
+        self.assertEqual(
+            brand["favicon_url"], "https://brand-profile.example/favicon.ico"
+        )
         self.assertEqual(brand["primary_color"], "#abcdef")
         self.assertEqual(brand["accent_color"], "#fedcba")
         self.assertEqual(brand["font_family"], "IBM Plex Sans")

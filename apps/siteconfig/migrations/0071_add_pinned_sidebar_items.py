@@ -5,30 +5,52 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0070_finance_notify_guardians_flags'),
+        ("siteconfig", "0070_finance_notify_guardians_flags"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dashboarduserpreference',
-            name='pinned_sidebar_items',
-            field=models.JSONField(blank=True, default=list, help_text='Sidebar item IDs to show in Quick access.'),
+            model_name="dashboarduserpreference",
+            name="pinned_sidebar_items",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Sidebar item IDs to show in Quick access.",
+            ),
         ),
         migrations.AlterField(
-            model_name='reporttemplate',
-            name='preferred_format',
-            field=models.CharField(choices=[('CSV', 'CSV'), ('PDF', 'PDF'), ('EXCEL', 'Excel'), ('ODS', 'LibreOffice (ODS)')], default='CSV', max_length=10),
+            model_name="reporttemplate",
+            name="preferred_format",
+            field=models.CharField(
+                choices=[
+                    ("CSV", "CSV"),
+                    ("PDF", "PDF"),
+                    ("EXCEL", "Excel"),
+                    ("ODS", "LibreOffice (ODS)"),
+                ],
+                default="CSV",
+                max_length=10,
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='finance_overpayment_tolerance_xaf',
-            field=models.DecimalField(decimal_places=2, default=Decimal('1000.00'), help_text='Max overpayment to allow, in site default currency (Region config). Above this always flag for review.', max_digits=12),
+            model_name="sitesettings",
+            name="finance_overpayment_tolerance_xaf",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=Decimal("1000.00"),
+                help_text="Max overpayment to allow, in site default currency (Region config). Above this always flag for review.",
+                max_digits=12,
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='finance_receipt_second_approval_threshold_xaf',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0'), help_text='Receipts above this amount (site default currency, Region config) require second approver (0 = disabled).', max_digits=12),
+            model_name="sitesettings",
+            name="finance_receipt_second_approval_threshold_xaf",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=Decimal("0"),
+                help_text="Receipts above this amount (site default currency, Region config) require second approver (0 = disabled).",
+                max_digits=12,
+            ),
         ),
     ]

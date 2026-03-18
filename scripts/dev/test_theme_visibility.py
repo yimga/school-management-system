@@ -3,14 +3,17 @@
 Comprehensive Theme Testing - Check all dashboards for dark/light mode visibility.
 Run from project root: python scripts/dev/test_theme_visibility.py
 """
+
 import os
 import re
 import sys
 
+
 def main():
     import django
+
     _script_dir = os.path.dirname(os.path.abspath(__file__))
-    _project_root = os.path.abspath(os.path.join(_script_dir, '..', '..'))
+    _project_root = os.path.abspath(os.path.join(_script_dir, "..", ".."))
     sys.path.insert(0, _project_root)
     os.chdir(_project_root)
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
@@ -57,12 +60,16 @@ def main():
             if "theme-visibility-guard.css" in content:
                 print(f"  OK {template_name}: Loads guard")
             else:
-                print(f"  WARN {template_name}: Does not reference theme-visibility-guard.css")
+                print(
+                    f"  WARN {template_name}: Does not reference theme-visibility-guard.css"
+                )
         except Exception as exc:
             print(f"  ERROR {template_name}: {exc}")
 
     print("\nOK Test 1c: Guard CSS File (--vis-* and .theme-experience-page)")
-    guard_path = os.path.join(_project_root, "static", "css", "theme-visibility-guard.css")
+    guard_path = os.path.join(
+        _project_root, "static", "css", "theme-visibility-guard.css"
+    )
     if os.path.isfile(guard_path):
         with open(guard_path, "r", encoding="utf-8") as f:
             guard_content = f.read()
@@ -121,8 +128,11 @@ def main():
 
     print("\nOK Test 4: Form Controls (Input, Select, etc.)")
     for check, name in [
-        (".form-control", "Text inputs"), (".form-select", "Select dropdowns"),
-        (".form-label", "Form labels"), ("focus", "Focus states"), ("border", "Border visibility"),
+        (".form-control", "Text inputs"),
+        (".form-select", "Select dropdowns"),
+        (".form-label", "Form labels"),
+        ("focus", "Focus states"),
+        ("border", "Border visibility"),
     ]:
         if check in content:
             print(f"  OK {name}: Styled")
@@ -143,8 +153,10 @@ def main():
 
     print("\nOK Test 6: Responsive Design & Media Queries")
     for pattern, name in [
-        ("@media", "Media queries"), ("(max-width:", "Breakpoints"),
-        ("display: none", "Responsive hiding"), ("transform:", "Mobile animations"),
+        ("@media", "Media queries"),
+        ("(max-width:", "Breakpoints"),
+        ("display: none", "Responsive hiding"),
+        ("transform:", "Mobile animations"),
     ]:
         if pattern in content:
             print(f"  OK {name}: Implemented")
@@ -206,6 +218,7 @@ def main():
     print("\n" + "=" * 100)
     print("SUMMARY: THEME VISIBILITY TESTING")
     print("=" * 100)
+
 
 if __name__ == "__main__":
     main()

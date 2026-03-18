@@ -1,6 +1,7 @@
 """
 Fail-fast runtime checks for multi-tenant access-point critical tables/columns.
 """
+
 from __future__ import annotations
 
 from django.conf import settings
@@ -13,7 +14,12 @@ class Command(BaseCommand):
 
     def _table_columns(self, table_name: str) -> set[str]:
         with connection.cursor() as cursor:
-            return {col.name for col in connection.introspection.get_table_description(cursor, table_name)}
+            return {
+                col.name
+                for col in connection.introspection.get_table_description(
+                    cursor, table_name
+                )
+            }
 
     def handle(self, *args, **options):
         tables = set(connection.introspection.table_names())
@@ -27,11 +33,17 @@ class Command(BaseCommand):
         missing_tables = sorted(required_tables - tables)
         if missing_tables:
             raise CommandError(
-                "Missing critical tables: %s. Apply pending migrations before boot." % ", ".join(missing_tables)
+                "Missing critical tables: %s. Apply pending migrations before boot."
+                % ", ".join(missing_tables)
             )
 
         school_columns = self._table_columns("schools_school")
-        required_school_columns = {"theme_pack_id", "trial_end_date", "parent_school_id", "hierarchy_path"}
+        required_school_columns = {
+            "theme_pack_id",
+            "trial_end_date",
+            "parent_school_id",
+            "hierarchy_path",
+        }
         missing_school_columns = sorted(required_school_columns - school_columns)
         if missing_school_columns:
             raise CommandError(
@@ -40,7 +52,13 @@ class Command(BaseCommand):
             )
 
         domain_columns = self._table_columns("schools_schooldomain")
-        required_domain_columns = {"school_id", "domain", "kind", "is_verified", "dns_token"}
+        required_domain_columns = {
+            "school_id",
+            "domain",
+            "kind",
+            "is_verified",
+            "dns_token",
+        }
         missing_domain_columns = sorted(required_domain_columns - domain_columns)
         if missing_domain_columns:
             raise CommandError(
@@ -48,7 +66,10 @@ class Command(BaseCommand):
                 % ", ".join(missing_domain_columns)
             )
 
-        if getattr(settings, "USE_DJANGO_TENANTS", False) and connection.vendor == "postgresql":
+        if (
+            getattr(settings, "USE_DJANGO_TENANTS", False)
+            and connection.vendor == "postgresql"
+        ):
             tenant_tables = {"customers_client", "customers_domain"}
             missing_tenant_tables = sorted(tenant_tables - tables)
             if missing_tenant_tables:
@@ -60,11 +81,15 @@ class Command(BaseCommand):
             client_columns = self._table_columns("customers_client")
             for required in ("schema_name", "school_id"):
                 if required not in client_columns:
-                    raise CommandError(f"customers_client is missing column: {required}.")
+                    raise CommandError(
+                        f"customers_client is missing column: {required}."
+                    )
 
             runtime_domain_columns = self._table_columns("customers_domain")
             for required in ("domain", "tenant_id", "is_primary"):
                 if required not in runtime_domain_columns:
-                    raise CommandError(f"customers_domain is missing column: {required}.")
+                    raise CommandError(
+                        f"customers_domain is missing column: {required}."
+                    )
 
         self.stdout.write(self.style.SUCCESS("Tenant runtime checks passed."))

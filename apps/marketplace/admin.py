@@ -17,14 +17,28 @@ from .models import (
 
 @admin.register(PublisherOrganization, site=platform_admin_site)
 class PublisherOrganizationAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "verification_status", "country_code", "payout_processor_code")
+    list_display = (
+        "name",
+        "slug",
+        "verification_status",
+        "country_code",
+        "payout_processor_code",
+    )
     list_filter = ("verification_status", "country_code", "payout_processor_code")
     search_fields = ("name", "legal_name", "slug", "payout_ref")
 
 
 @admin.register(MarketplaceApp, site=platform_admin_site)
 class MarketplaceAppAdmin(admin.ModelAdmin):
-    list_display = ("slug", "name", "publisher", "kind", "version", "is_active", "updated_at")
+    list_display = (
+        "slug",
+        "name",
+        "publisher",
+        "kind",
+        "version",
+        "is_active",
+        "updated_at",
+    )
     list_filter = ("kind", "is_active")
     search_fields = ("slug", "name", "publisher__name")
 
@@ -40,16 +54,32 @@ class MarketplaceListingAdmin(admin.ModelAdmin):
         "kill_switch_active",
         "revenue_share_percent",
     )
-    list_filter = ("status", "security_review_status", "certification_status", "kill_switch_active")
+    list_filter = (
+        "status",
+        "security_review_status",
+        "certification_status",
+        "kill_switch_active",
+    )
     search_fields = ("app__slug", "app__name", "publisher__name")
     raw_id_fields = ("app", "publisher", "approved_by")
 
 
 @admin.register(MarketplaceReview, site=platform_admin_site)
 class MarketplaceReviewAdmin(admin.ModelAdmin):
-    list_display = ("listing", "review_type", "status", "app_version", "requested_at", "reviewed_at")
+    list_display = (
+        "listing",
+        "review_type",
+        "status",
+        "app_version",
+        "requested_at",
+        "reviewed_at",
+    )
     list_filter = ("review_type", "status")
-    search_fields = ("listing__app__slug", "listing__app__name", "listing__publisher__name")
+    search_fields = (
+        "listing__app__slug",
+        "listing__app__name",
+        "listing__publisher__name",
+    )
     raw_id_fields = ("listing", "requested_by", "reviewed_by")
 
 
@@ -76,7 +106,15 @@ class AppInstallationAdmin(admin.ModelAdmin):
 
 @admin.register(ScopeGrant, site=platform_admin_site)
 class ScopeGrantAdmin(admin.ModelAdmin):
-    list_display = ("installation", "scope", "status", "elevated_approved_at", "elevated_approved_by", "granted_at", "granted_by")
+    list_display = (
+        "installation",
+        "scope",
+        "status",
+        "elevated_approved_at",
+        "elevated_approved_by",
+        "granted_at",
+        "granted_by",
+    )
     list_filter = ("status",)
     raw_id_fields = ("installation", "scope", "granted_by", "elevated_approved_by")
 

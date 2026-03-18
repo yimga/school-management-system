@@ -2,6 +2,7 @@
 Tests for Tenant Runtime Contract and compilation order.
 Phase 1: runtime contract shape, strict compilation order, precedence, job helper.
 """
+
 from decimal import Decimal
 from io import StringIO
 
@@ -120,8 +121,14 @@ class TenantRuntimeContractTests(TestCase):
         self.assertFalse(runtime.flags.is_enabled("new_gradebook"))
         # With feature_flags set on context, flag is respected
         ctx2 = TenantContext(
-            tenant_id="t1", schema_name="t1", school_id=None, country=None, timezone=None,
-            feature_flags={"new_gradebook": True}, policy_overrides={}, host="x.com",
+            tenant_id="t1",
+            schema_name="t1",
+            school_id=None,
+            country=None,
+            timezone=None,
+            feature_flags={"new_gradebook": True},
+            policy_overrides={},
+            host="x.com",
         )
         runtime2 = build_tenant_runtime(ctx2, request=None)
         self.assertTrue(runtime2.flags.is_enabled("new_gradebook"))
@@ -129,6 +136,7 @@ class TenantRuntimeContractTests(TestCase):
     def test_runtime_with_school_and_policy_contains_all_compilation_steps(self):
         """Runtime built with a real school and policy contains all 13 steps with real data."""
         from unittest.mock import Mock
+
         school = School.objects.create(
             name="Runtime Contract School",
             slug="runtime-contract-school",
@@ -166,6 +174,29 @@ class TenantRuntimeContractTests(TestCase):
         self.assertEqual(len(runtime.debug.compilation_trace), 13)
         school.delete()
 
+    def test_runtime_tenant_identity_includes_primary_sector(self):
+        """Wedges 14–22: When school has primary_sector, runtime.tenant.primary_sector is set for RBAC/config."""
+        school = School.objects.create(
+            name="Sector School",
+            slug="sector-school",
+            subdomain="sector-school",
+            is_active=True,
+            primary_sector="PUBLIC",
+        )
+        tenant_ctx = TenantContext(
+            tenant_id=str(school.id),
+            schema_name="public",
+            school_id=school.id,
+            country="US",
+            timezone="UTC",
+            feature_flags={},
+            policy_overrides={},
+            host="sector-school.runmycampus.com",
+        )
+        runtime = build_tenant_runtime(tenant_ctx, request=None, school=school)
+        self.assertEqual(runtime.tenant.primary_sector, "PUBLIC")
+        school.delete()
+
     def test_build_tenant_runtime_for_tenant_job_mode(self):
         """build_tenant_runtime_for_tenant(tenant, mode='job') returns TenantRuntime."""
         # Pass None as tenant: should still return a runtime (empty tenant_ctx)
@@ -181,7 +212,13 @@ class RuntimeHelperResolutionTests(TestCase):
         site.site_name = "Brand Surface"
         site.backend_feature_flags = {"enable_api_center": True}
         site.default_dashboard_view = "ACADEMICS"
-        site.save(update_fields=["site_name", "backend_feature_flags", "default_dashboard_view"])
+        site.save(
+            update_fields=[
+                "site_name",
+                "backend_feature_flags",
+                "default_dashboard_view",
+            ]
+        )
 
         brand_payload = site.owned_payload("brand_experience")
         runtime_payload = site.owned_payload("runtime_blueprints")
@@ -190,14 +227,22 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(brand_payload["site_name"], "Brand Surface")
         self.assertIn("default_dashboard_view", runtime_payload)
         self.assertNotIn("site_name", runtime_payload)
-        self.assertEqual(policy_payload["backend_feature_flags"]["enable_api_center"], True)
+        self.assertEqual(
+            policy_payload["backend_feature_flags"]["enable_api_center"], True
+        )
 
     def test_runtime_defaults_sync_from_site_settings_can_scope_to_owner_domains(self):
         site = get_platform_site_settings_record(create=True)
         site.site_name = "Scoped Brand"
         site.default_dashboard_view = "ACADEMICS"
         site.backend_feature_flags = {"enable_api_center": True}
-        site.save(update_fields=["site_name", "default_dashboard_view", "backend_feature_flags"])
+        site.save(
+            update_fields=[
+                "site_name",
+                "default_dashboard_view",
+                "backend_feature_flags",
+            ]
+        )
         RuntimeDefaults.objects.all().delete()
 
         runtime_defaults, _created = RuntimeDefaults.sync_from_site_settings(
@@ -221,7 +266,9 @@ class RuntimeHelperResolutionTests(TestCase):
 
         runtime_defaults = RuntimeDefaults.get_singleton()
         self.assertIsNotNone(runtime_defaults)
-        self.assertEqual(runtime_defaults.payload["site_name"], "Command Synced Platform")
+        self.assertEqual(
+            runtime_defaults.payload["site_name"], "Command Synced Platform"
+        )
         self.assertTrue(runtime_defaults.payload["enable_offline_mode"])
         self.assertIn("created", stdout.getvalue().lower())
 
@@ -230,7 +277,13 @@ class RuntimeHelperResolutionTests(TestCase):
         site.site_name = "Brand Baseline"
         site.default_dashboard_view = "OVERVIEW"
         site.backend_feature_flags = {"enable_api_center": False}
-        site.save(update_fields=["site_name", "default_dashboard_view", "backend_feature_flags"])
+        site.save(
+            update_fields=[
+                "site_name",
+                "default_dashboard_view",
+                "backend_feature_flags",
+            ]
+        )
 
         RuntimeDefaults.objects.update_or_create(
             pk=1,
@@ -251,22 +304,30 @@ class RuntimeHelperResolutionTests(TestCase):
 
         self.assertEqual(runtime_defaults.payload["site_name"], "Brand Baseline")
         self.assertEqual(runtime_defaults.payload["default_dashboard_view"], "OVERVIEW")
-        self.assertEqual(runtime_defaults.payload["backend_feature_flags"]["enable_api_center"], True)
+        self.assertEqual(
+            runtime_defaults.payload["backend_feature_flags"]["enable_api_center"], True
+        )
 
-    def test_site_settings_save_auto_syncs_runtime_defaults_for_changed_owner_domains(self):
+    def test_site_settings_save_auto_syncs_runtime_defaults_for_changed_owner_domains(
+        self,
+    ):
         site = get_platform_site_settings_record(create=True)
         RuntimeDefaults.objects.all().delete()
 
         site.site_name = "Auto Synced Brand"
         site.backend_feature_flags = {"enable_api_center": True}
         site.maintenance_mode = True
-        site.save(update_fields=["site_name", "backend_feature_flags", "maintenance_mode"])
+        site.save(
+            update_fields=["site_name", "backend_feature_flags", "maintenance_mode"]
+        )
 
         runtime_defaults = RuntimeDefaults.get_singleton()
 
         self.assertIsNotNone(runtime_defaults)
         self.assertEqual(runtime_defaults.payload["site_name"], "Auto Synced Brand")
-        self.assertEqual(runtime_defaults.payload["backend_feature_flags"]["enable_api_center"], True)
+        self.assertEqual(
+            runtime_defaults.payload["backend_feature_flags"]["enable_api_center"], True
+        )
         self.assertNotIn("maintenance_mode", runtime_defaults.payload)
 
     def test_site_settings_resolve_default_report_style_uses_owner_surface(self):
@@ -289,7 +350,9 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(resolved.pk, style.pk)
         self.assertEqual(resolved._meta.app_label, "runtime_blueprints")
 
-    def test_get_effective_site_settings_prefers_runtime_defaults_over_legacy_singleton(self):
+    def test_get_effective_site_settings_prefers_runtime_defaults_over_legacy_singleton(
+        self,
+    ):
         site = get_platform_site_settings_record(create=True)
         site.site_name = "Legacy Site Settings"
         site.enable_offline_mode = False
@@ -337,7 +400,10 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_get_effective_flags_for_school_merges_school_backend_flags(self):
         site = get_platform_site_settings_record(create=True)
-        site.backend_feature_flags = {"enable_api_center": False, "require_guardian_finance_opt_in": False}
+        site.backend_feature_flags = {
+            "enable_api_center": False,
+            "require_guardian_finance_opt_in": False,
+        }
         site.save(update_fields=["backend_feature_flags"])
 
         school = School.objects.create(
@@ -409,7 +475,9 @@ class RuntimeHelperResolutionTests(TestCase):
         delivery_settings = site.get_notification_delivery_settings()
 
         self.assertEqual(delivery_settings["notification_channels"], ["email", "sms"])
-        self.assertEqual(delivery_settings["email_from_address"], "northstar@example.com")
+        self.assertEqual(
+            delivery_settings["email_from_address"], "northstar@example.com"
+        )
 
     def test_site_settings_offline_runtime_settings_use_owner_surfaces(self):
         site = get_platform_site_settings_record(create=True)
@@ -459,7 +527,9 @@ class RuntimeHelperResolutionTests(TestCase):
             "+15550001111",
         )
 
-    def test_site_settings_owner_accessors_expose_brand_and_report_preview_payloads(self):
+    def test_site_settings_owner_accessors_expose_brand_and_report_preview_payloads(
+        self,
+    ):
         site = get_platform_site_settings_record(create=True)
         site.site_name = "North Star Academy"
         site.school_code = "NSA"
@@ -613,14 +683,19 @@ class RuntimeHelperResolutionTests(TestCase):
 
         self.assertEqual(brand_metadata["school_name"], "RunMyCampus")
         self.assertEqual(brand_metadata["school_code"], "RMC")
-        self.assertEqual(brand_metadata["tagline"], "Education management for every school.")
+        self.assertEqual(
+            brand_metadata["tagline"], "Education management for every school."
+        )
         self.assertEqual(preview_settings["contact_email"], "support@runmycampus.com")
         self.assertEqual(preview_settings["contact_phone"], "")
 
     def test_site_settings_finance_runtime_config_uses_policy_owner_payload(self):
         site = get_platform_site_settings_record(create=True)
         site.finance_auto_generate_invoices_enabled = True
-        site.finance_auto_generate_schedule = {"mode": "term_start", "term_start_offset_days": 5}
+        site.finance_auto_generate_schedule = {
+            "mode": "term_start",
+            "term_start_offset_days": 5,
+        }
         site.finance_fee_plan_auto_copy_mode = "year_end"
         site.finance_invoice_overdue_grace_period_days = 4
         site.finance_receipt_amount_tolerance = Decimal("2.50")
@@ -641,7 +716,9 @@ class RuntimeHelperResolutionTests(TestCase):
         finance_settings = site.get_finance_runtime_config()
 
         self.assertTrue(finance_settings["auto_generate_invoices_enabled"])
-        self.assertEqual(finance_settings["auto_generate_schedule"]["mode"], "term_start")
+        self.assertEqual(
+            finance_settings["auto_generate_schedule"]["mode"], "term_start"
+        )
         self.assertEqual(finance_settings["fee_plan_auto_copy_mode"], "year_end")
         self.assertEqual(finance_settings["invoice_overdue_grace_period_days"], 4)
         self.assertEqual(finance_settings["receipt_amount_tolerance"], Decimal("2.50"))
@@ -670,8 +747,12 @@ class RuntimeHelperResolutionTests(TestCase):
             "/opt/runmycampus/bin/tesseract",
         )
         self.assertEqual(integration_settings["sms_sender_id"], "RUNMYCAMPUS")
-        self.assertEqual(integration_settings["email_from_address"], "platform@runmycampus.com")
-        self.assertEqual(integration_settings["whatsapp_support_number"], "+15551234567")
+        self.assertEqual(
+            integration_settings["email_from_address"], "platform@runmycampus.com"
+        )
+        self.assertEqual(
+            integration_settings["whatsapp_support_number"], "+15551234567"
+        )
 
     def test_build_platform_default_site_settings_returns_unsaved_compat_shape(self):
         site = build_platform_default_site_settings()
@@ -693,13 +774,17 @@ class ResolverRegistryContractTests(TestCase):
         self.assertIsInstance(RESOLVER_ENTRY_POINTS, list)
         self.assertGreater(len(RESOLVER_ENTRY_POINTS), 0)
         for entry in RESOLVER_ENTRY_POINTS:
-            self.assertIsInstance(entry, (list, tuple), f"Entry {entry!r} must be (name, location)")
+            self.assertIsInstance(
+                entry, (list, tuple), f"Entry {entry!r} must be (name, location)"
+            )
             self.assertEqual(len(entry), 2)
             name, location = entry
             self.assertIsInstance(name, str)
             self.assertIsInstance(location, str)
             self.assertTrue(name.strip(), f"Resolver name must be non-empty: {entry!r}")
-            self.assertTrue(location.strip(), f"Resolver location must be non-empty: {entry!r}")
+            self.assertTrue(
+                location.strip(), f"Resolver location must be non-empty: {entry!r}"
+            )
 
     def test_resolver_registry_dotted_paths_importable(self):
         """Any entry point that is a dotted Python path must be importable (catches typos in registry)."""
@@ -733,7 +818,9 @@ class ResolverRegistryContractTests(TestCase):
                     f"Resolver {name!r} location {location!r}: module {mod_path} has no attr {attr_name!r}",
                 )
             except ImportError as e:
-                self.fail(f"Resolver {name!r} location {location!r} not importable: {e}")
+                self.fail(
+                    f"Resolver {name!r} location {location!r} not importable: {e}"
+                )
 
 
 class IntegrationGovernanceTests(TestCase):
@@ -749,7 +836,11 @@ class IntegrationGovernanceTests(TestCase):
 
     def test_integration_catalog_keys_non_empty(self):
         """INTEGRATION_CATALOG defines at least one key; API Center and resolve_* use these keys."""
-        from apps.siteconfig.integration_catalog import INTEGRATION_CATALOG, list_catalog_keys
+        from apps.siteconfig.integration_catalog import (
+            INTEGRATION_CATALOG,
+            list_catalog_keys,
+        )
+
         keys = list_catalog_keys()
         self.assertGreater(len(keys), 0)
         for k in keys:

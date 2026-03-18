@@ -5,6 +5,7 @@ Use for theme pack preview, dynamic UI, and stress-test assertions so cards, chi
 badges, and buttons never get unreadable text. Token-aligned defaults (#0f172a, #f1f5f9)
 so guard output fits design-tokens.
 """
+
 from __future__ import annotations
 
 
@@ -22,9 +23,11 @@ def hex_to_rgb(value: str) -> tuple[int, int, int]:
 
 def luminance(rgb: tuple[int, int, int]) -> float:
     """Relative luminance per WCAG (sRGB linearized)."""
+
     def channel(c: int) -> float:
         c = c / 255.0
         return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
     r, g, b = rgb
     return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 
@@ -71,6 +74,8 @@ def text_color_for_background(
     return dark_option if dark_ratio >= light_ratio else light_option
 
 
-def meets_contrast(foreground_hex: str, background_hex: str, min_ratio: float = 4.5) -> bool:
+def meets_contrast(
+    foreground_hex: str, background_hex: str, min_ratio: float = 4.5
+) -> bool:
     """True if foreground on background meets WCAG min_ratio (e.g. 4.5:1)."""
     return contrast_ratio(foreground_hex, background_hex) >= min_ratio

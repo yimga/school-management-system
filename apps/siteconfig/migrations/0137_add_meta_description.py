@@ -27,33 +27,43 @@ def reverse_remove_meta_description(apps, schema_editor):
     conn = schema_editor.connection
     if conn.vendor == "postgresql":
         with conn.cursor() as cursor:
-            cursor.execute("ALTER TABLE siteconfig_sitesettings DROP COLUMN IF EXISTS meta_description;")
+            cursor.execute(
+                "ALTER TABLE siteconfig_sitesettings DROP COLUMN IF EXISTS meta_description;"
+            )
     else:
         # SQLite: DROP COLUMN supported in 3.35.0+; skip reverse on older SQLite to avoid breakage
         with conn.cursor() as cursor:
             cursor.execute("PRAGMA table_info(siteconfig_sitesettings)")
             cols = [row[1] for row in cursor.fetchall()]
             if "meta_description" in cols:
-                cursor.execute("ALTER TABLE siteconfig_sitesettings DROP COLUMN meta_description")
+                cursor.execute(
+                    "ALTER TABLE siteconfig_sitesettings DROP COLUMN meta_description"
+                )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0136_form_draft_26_5'),
+        ("siteconfig", "0136_form_draft_26_5"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='sitesettings',
-                    name='meta_description',
-                    field=models.CharField(blank=True, default='', help_text='Optional SEO meta description for pages (used in base/portal_base templates).', max_length=320),
+                    model_name="sitesettings",
+                    name="meta_description",
+                    field=models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Optional SEO meta description for pages (used in base/portal_base templates).",
+                        max_length=320,
+                    ),
                 ),
             ],
             database_operations=[
-                migrations.RunPython(add_meta_description_if_missing, reverse_remove_meta_description),
+                migrations.RunPython(
+                    add_meta_description_if_missing, reverse_remove_meta_description
+                ),
             ],
         ),
     ]

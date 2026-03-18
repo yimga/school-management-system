@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("compliance", "0008_change_accesslog_timestamp"),
     ]
@@ -14,7 +13,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="RegionFeatureCompliance",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 (
                     "feature_code",
                     models.CharField(

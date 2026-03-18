@@ -115,10 +115,17 @@ class PlatformBillingServicesTests(TestCase):
         subscription.current_period_end = timezone.now() - timedelta(days=1)
         subscription.billed_amount = Decimal("199.00")
         subscription.save(
-            update_fields=["current_period_start", "current_period_end", "billed_amount", "updated_at"]
+            update_fields=[
+                "current_period_start",
+                "current_period_end",
+                "billed_amount",
+                "updated_at",
+            ]
         )
 
-        summary = run_platform_billing_lifecycle(as_of=timezone.now(), grace_days=7, suspension_days=30)
+        summary = run_platform_billing_lifecycle(
+            as_of=timezone.now(), grace_days=7, suspension_days=30
+        )
 
         subscription.refresh_from_db()
         account.refresh_from_db()
@@ -147,10 +154,18 @@ class PlatformBillingServicesTests(TestCase):
         subscription.current_period_end = anchor + timedelta(days=1)
         subscription.billed_amount = Decimal("199.00")
         subscription.save(
-            update_fields=["status", "current_period_start", "current_period_end", "billed_amount", "updated_at"]
+            update_fields=[
+                "status",
+                "current_period_start",
+                "current_period_end",
+                "billed_amount",
+                "updated_at",
+            ]
         )
 
-        summary = run_platform_billing_lifecycle(as_of=timezone.now(), grace_days=7, suspension_days=30)
+        summary = run_platform_billing_lifecycle(
+            as_of=timezone.now(), grace_days=7, suspension_days=30
+        )
 
         subscription.refresh_from_db()
         account.refresh_from_db()
@@ -165,7 +180,9 @@ class PlatformBillingServicesTests(TestCase):
         self.school.billing_type = School.BillingType.REGULAR
         self.school.is_frozen = True
         self.school.frozen_reason = "BILLING"
-        self.school.save(update_fields=["billing_type", "is_frozen", "frozen_reason", "updated_at"])
+        self.school.save(
+            update_fields=["billing_type", "is_frozen", "frozen_reason", "updated_at"]
+        )
         account, subscription, _ = ensure_subscription_for_school(self.school)
         subscription.status = TenantSubscription.Status.SUSPENDED
         subscription.current_period_end = timezone.now() + timedelta(days=10)
@@ -187,7 +204,9 @@ class PlatformBillingServicesTests(TestCase):
             source="payments",
         )
 
-        summary = run_platform_billing_lifecycle(as_of=timezone.now(), grace_days=7, suspension_days=30)
+        summary = run_platform_billing_lifecycle(
+            as_of=timezone.now(), grace_days=7, suspension_days=30
+        )
 
         subscription.refresh_from_db()
         account.refresh_from_db()
@@ -221,7 +240,9 @@ class PlatformBillingServicesTests(TestCase):
         self.assertEqual(account.status, BillingAccount.Status.ACTIVE)
         self.assertEqual(account.currency_code, "EUR")
         self.assertEqual(subscription.status, TenantSubscription.Status.ACTIVE)
-        self.assertEqual(subscription.billing_cycle, TenantSubscription.BillingCycle.ANNUAL)
+        self.assertEqual(
+            subscription.billing_cycle, TenantSubscription.BillingCycle.ANNUAL
+        )
         self.assertEqual(subscription.base_amount, Decimal("249.00"))
 
     def test_schedule_revenue_share_payout_creates_scheduled_payout(self):
@@ -328,14 +349,20 @@ class PlatformBillingServicesTests(TestCase):
 
         self.assertEqual(summary["selected"], 1)
         self.assertEqual(summary["paid"], 1)
-        self.assertEqual(RevenueSharePayout.objects.get(payee_ref="pub_002").status, RevenueSharePayout.Status.PAID)
+        self.assertEqual(
+            RevenueSharePayout.objects.get(payee_ref="pub_002").status,
+            RevenueSharePayout.Status.PAID,
+        )
 
     def test_stripe_connect_processor_executes_transfer_api(self):
         PlatformBillingProcessorConfig.objects.create(
             code="stripe",
             display_name="Stripe",
             is_active=True,
-            metadata={"api_key": "sk_test_123", "api_base_url": "https://api.stripe.com"},
+            metadata={
+                "api_key": "sk_test_123",
+                "api_base_url": "https://api.stripe.com",
+            },
         )
         payout = schedule_revenue_share_payout(
             payee_name="Stripe Publisher",
@@ -349,13 +376,19 @@ class PlatformBillingServicesTests(TestCase):
 
         with patch(
             "apps.billing.processors._default_form_post",
-            return_value=(200, {"id": "tr_123", "object": "transfer"}, "{\"id\":\"tr_123\"}"),
+            return_value=(
+                200,
+                {"id": "tr_123", "object": "transfer"},
+                '{"id":"tr_123"}',
+            ),
         ) as mock_post:
             payout, _result = execute_revenue_share_payout(payout)
 
         self.assertEqual(payout.status, RevenueSharePayout.Status.IN_TRANSIT)
         self.assertEqual(payout.external_payout_ref, "tr_123")
-        called_url, called_payload, called_headers, called_timeout = mock_post.call_args[0]
+        called_url, called_payload, called_headers, called_timeout = (
+            mock_post.call_args[0]
+        )
         self.assertEqual(called_url, "https://api.stripe.com/v1/transfers")
         self.assertEqual(called_payload["destination"], "acct_123")
         self.assertEqual(called_payload["amount"], "22500")
@@ -439,7 +472,11 @@ class PlatformBillingCommandTests(TestCase):
 
         with patch(
             "apps.billing.processors._default_json_post",
-            return_value=(202, {"id": "relay_cmd_001", "status": "submitted"}, "queued"),
+            return_value=(
+                202,
+                {"id": "relay_cmd_001", "status": "submitted"},
+                "queued",
+            ),
         ):
             call_command("run_revenue_share_payouts")
 

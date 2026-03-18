@@ -32,11 +32,15 @@ def _pick_support_owner() -> User | None:
         User.Role.LEADERSHIP,
     ]
 
-    qs = User.objects.filter(Q(role__in=preferred_roles) | Q(roles__code__in=preferred_roles)).distinct()
+    qs = User.objects.filter(
+        Q(role__in=preferred_roles) | Q(roles__code__in=preferred_roles)
+    ).distinct()
     if qs.exists():
         return qs.order_by("id").first()
 
-    qs = User.objects.filter(Q(role__in=fallback_roles) | Q(roles__code__in=fallback_roles)).distinct()
+    qs = User.objects.filter(
+        Q(role__in=fallback_roles) | Q(roles__code__in=fallback_roles)
+    ).distinct()
     if qs.exists():
         return qs.order_by("id").first()
 
@@ -58,7 +62,9 @@ def support_request(request):
     form = SupportRequestForm(request.POST or None, initial=initial)
     if request.method == "POST" and form.is_valid():
         school = getattr(request, "school", None)
-        subject_prefix = "[Support]" if form.cleaned_data["category"] == "SUPPORT" else "[Feedback]"
+        subject_prefix = (
+            "[Support]" if form.cleaned_data["category"] == "SUPPORT" else "[Feedback]"
+        )
         subject = f"{subject_prefix} {form.cleaned_data['subject']}"
         body = (
             f"From: {request.user.get_full_name()} ({request.user.username})\n"
@@ -73,6 +79,7 @@ def support_request(request):
             try:
                 from apps.siteconfig.models_feature_controls import GlobalSupportTicket
                 from apps.portal.runtime_helpers import get_policy_for_request
+
                 policy = get_policy_for_request(request)
                 plan_slug = (policy.get("plan_slug") or "").strip().lower()
                 country_code = (policy.get("country_code") or "")[:2]
@@ -86,19 +93,28 @@ def support_request(request):
                     body=body,
                     priority=priority,
                     status=GlobalSupportTicket.Status.OPEN,
-                    metadata={"country_code": country_code, "plan_slug": plan_slug, "category": form.cleaned_data["category"]},
+                    metadata={
+                        "country_code": country_code,
+                        "plan_slug": plan_slug,
+                        "category": form.cleaned_data["category"],
+                    },
                 )
             except SUPPORT_TICKET_SOFT_FAILURES:
                 pass
         recipient = _pick_support_owner()
         if recipient:
+            from apps.communication.comms_locale import locale_target_for_user
+
             Message.objects.create(
                 sender=request.user,
                 recipient=recipient,
                 subject=subject,
                 body=body,
+                locale_target=locale_target_for_user(recipient),
             )
-        messages.success(request, "Thanks! Your message has been sent to the support team.")
+        messages.success(
+            request, "Thanks! Your message has been sent to the support team."
+        )
         if next_url:
             return redirect(next_url)
         return redirect("portal:portal_home")

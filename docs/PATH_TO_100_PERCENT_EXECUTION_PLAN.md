@@ -6,7 +6,13 @@
 
 **Visible after deployment:** Every implementation must be verifiable post-deploy—in UI, API, or documented behavior (lint/test/ledger). When marking [x], note how to verify (e.g. "redirect from /siteconfig/customizer/ to Studio OS Experience"). See SOT §11.3.
 
-**Execution order:** Phase II → Phase III → Phase IV → Phase V. Within Phase III, strict section order: §6.1 → §6.2 → … → §6.24. Within each section, complete Actions in order. See SOT §11.3 for full logical order and legacy replacement status.
+**Execution order:** Phase I → Phase II → Phase III → Phase IV → Phase V. Phase I: wedges 1→2→3→4→5→6 in order (see SOT Phase I section). Within Phase III, strict section order: §6.1 → §6.2 → … → §6.24. Within each section, complete Actions in order. See SOT §11.3 for full logical order and legacy replacement status.
+
+---
+
+## Phase I — Core wedges 1–6 (§0.2.1)
+
+**Authority:** The authoritative checklist for Phase I (wedges 1–6) is in **SOT §11 Phase I**. Do not duplicate tracking here. Use [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) Phase I for scope, codebase evidence, gaps, and per-wedge checklist items. Complete wedges in order 1→2→3→4→5→6; within each wedge, complete all checklist items before moving to the next.
 
 ---
 
@@ -14,6 +20,7 @@
 
 | Phase | Scope | Item count | Notes |
 |-------|--------|------------|--------|
+| **Phase I** | §0.2.1 (wedges 1–6) | 6 wedges | Core wedges: K–12 SIS, LMS, UK, District, Advancement, HE. See SOT Phase I. |
 | **Phase II** | §2.4, §3.2 | 3 | Unblock and high-impact security/runtime |
 | **Phase III** | §6.1–6.24 | 58 | App-by-app ledger |
 | **Phase IV** | §5.1–5.9, §4.5 | 35 | Toolset and productization |

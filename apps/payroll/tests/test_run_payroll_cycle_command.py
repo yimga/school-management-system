@@ -10,9 +10,15 @@ from apps.automation.models import AutomationExecutionLog
 
 class RunPayrollCycleCommandTests(TestCase):
     @patch("apps.payroll.management.commands.run_payroll_cycle.generate_payslips")
-    @patch("apps.payroll.management.commands.run_payroll_cycle.PayrollRun.objects.get_or_create")
-    @patch("apps.payroll.management.commands.run_payroll_cycle.get_active_payroll_profile")
-    def test_command_logs_success(self, mock_profile, mock_get_or_create, mock_generate):
+    @patch(
+        "apps.payroll.management.commands.run_payroll_cycle.PayrollRun.objects.get_or_create"
+    )
+    @patch(
+        "apps.payroll.management.commands.run_payroll_cycle.get_active_payroll_profile"
+    )
+    def test_command_logs_success(
+        self, mock_profile, mock_get_or_create, mock_generate
+    ):
         mock_profile.return_value = SimpleNamespace(id=1)
         mock_run = SimpleNamespace(id=77)
         mock_get_or_create.return_value = (mock_run, True)
@@ -27,7 +33,9 @@ class RunPayrollCycleCommandTests(TestCase):
         self.assertEqual(log.records_processed, 2)
         self.assertEqual(log.execution_summary.get("payroll_run_id"), 77)
 
-    @patch("apps.payroll.management.commands.run_payroll_cycle.get_active_payroll_profile")
+    @patch(
+        "apps.payroll.management.commands.run_payroll_cycle.get_active_payroll_profile"
+    )
     def test_command_logs_failed_when_profile_missing(self, mock_profile):
         mock_profile.return_value = None
 

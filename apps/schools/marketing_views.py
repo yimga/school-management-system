@@ -1,6 +1,7 @@
 """
 RunMyCampus marketing and SEO endpoints.
 """
+
 from __future__ import annotations
 
 import json
@@ -27,7 +28,9 @@ from apps.siteconfig.brand_registry import resolve_global_brand_context
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 # Region/variant reserved for A/B or regional content (file naming: slug.json or slug_region_variant.json).
-MARKETING_CONTENT_DIR = os.path.join(getattr(settings, "BASE_DIR", os.getcwd()), "config", "marketing_content")
+MARKETING_CONTENT_DIR = os.path.join(
+    getattr(settings, "BASE_DIR", os.getcwd()), "config", "marketing_content"
+)
 # Single source of truth: how many primary nav items show in the bar before "More" dropdown (IMPROVEMENTS_RUNBOOK 3.1).
 MARKETING_NAVBAR_VISIBLE_COUNT = 7
 
@@ -70,7 +73,9 @@ def _load_marketing_page_from_file(
             "headline": data.get("headline", ""),
             "subheadline": data.get("subheadline", ""),
             "schema_type": data.get("schema_type", "WebPage"),
-            "segments": data.get("segments") if isinstance(data.get("segments"), list) else [],
+            "segments": data.get("segments")
+            if isinstance(data.get("segments"), list)
+            else [],
         }
         extras = data.get("extras")
         if not isinstance(extras, dict):
@@ -88,12 +93,30 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "RunMyCampus combines school operations, district governance, migration, apps, analytics, and integrations in one platform.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Education OS", "body": "Run every part of school operations in one platform: admissions, academics, attendance, finance, communication, workflows, reports, and Student 360."},
-            {"title": "Control Plane", "body": "Govern one school or one thousand from one command center. Multi-school oversight, policies, health monitoring, and usage."},
-            {"title": "Tenant Runtime", "body": "One platform core, configured for your institution. Country, language, education model, branding, workflow packs, and dashboard packs."},
-            {"title": "Marketplace", "body": "Extend the platform without rebuilding your system. Apps, integrations, workflow packs, dashboard packs, blueprint packs, and templates."},
-            {"title": "Migration Cloud", "body": "Switch from legacy systems without chaos. Imports, field mapping, validation, dry-runs, and migration run portfolio."},
-            {"title": "Analytics & Integrations", "body": "See what matters and connect what you already use. School and district analytics, health scores, payments, messaging, SSO, APIs, and webhooks."},
+            {
+                "title": "Education OS",
+                "body": "Run every part of school operations in one platform: admissions, academics, attendance, finance, communication, workflows, reports, and Student 360.",
+            },
+            {
+                "title": "Control Plane",
+                "body": "Govern one school or one thousand from one command center. Multi-school oversight, policies, health monitoring, and usage.",
+            },
+            {
+                "title": "Tenant Runtime",
+                "body": "One platform core, configured for your institution. Country, language, education model, branding, workflow packs, and dashboard packs.",
+            },
+            {
+                "title": "Marketplace",
+                "body": "Extend the platform without rebuilding your system. Apps, integrations, workflow packs, dashboard packs, blueprint packs, and templates.",
+            },
+            {
+                "title": "Migration Cloud",
+                "body": "Switch from legacy systems without chaos. Imports, field mapping, validation, dry-runs, and migration run portfolio.",
+            },
+            {
+                "title": "Analytics & Integrations",
+                "body": "See what matters and connect what you already use. School and district analytics, health scores, payments, messaging, SSO, APIs, and webhooks.",
+            },
         ],
     },
     "platform": {
@@ -104,12 +127,30 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Education OS, Control Plane, Tenant Runtime, Marketplace, Migration Cloud, and Analytics & Integrations.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Education OS", "body": "Run every part of school operations: admissions, academics, attendance, finance, communication, workflows, reports, Student 360."},
-            {"title": "Control Plane", "body": "Govern schools, districts, and networks from one command center. Policies, health, usage."},
-            {"title": "Tenant Runtime", "body": "One platform core, configured for your institution. Country, language, branding, workflow and dashboard packs."},
-            {"title": "Marketplace", "body": "Apps, integrations, workflow packs, dashboard packs, blueprint packs, templates."},
-            {"title": "Migration Cloud", "body": "Import, map, validate, and switch from legacy systems safely."},
-            {"title": "Analytics & Integrations", "body": "School and district analytics, health scores, payments, messaging, SSO, APIs, webhooks."},
+            {
+                "title": "Education OS",
+                "body": "Run every part of school operations: admissions, academics, attendance, finance, communication, workflows, reports, Student 360.",
+            },
+            {
+                "title": "Control Plane",
+                "body": "Govern schools, districts, and networks from one command center. Policies, health, usage.",
+            },
+            {
+                "title": "Tenant Runtime",
+                "body": "One platform core, configured for your institution. Country, language, branding, workflow and dashboard packs.",
+            },
+            {
+                "title": "Marketplace",
+                "body": "Apps, integrations, workflow packs, dashboard packs, blueprint packs, templates.",
+            },
+            {
+                "title": "Migration Cloud",
+                "body": "Import, map, validate, and switch from legacy systems safely.",
+            },
+            {
+                "title": "Analytics & Integrations",
+                "body": "School and district analytics, health scores, payments, messaging, SSO, APIs, webhooks.",
+            },
         ],
     },
     "platform-education-os": {
@@ -120,12 +161,30 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Run every part of school operations in one platform.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Admissions to graduation", "body": "From enquiry to completion in one configurable flow."},
-            {"title": "Academics & attendance", "body": "Syllabi, grades, report cards, attendance, and interventions."},
-            {"title": "Finance & billing", "body": "Fees, payments, and financial reporting without spreadsheets."},
-            {"title": "Communication & portals", "body": "Parent, teacher, and student portals with messaging and announcements."},
-            {"title": "Workflows & automation", "body": "Configurable approval chains and automated triggers."},
-            {"title": "Student 360", "body": "One view per student: profile, attendance, grades, interventions."},
+            {
+                "title": "Admissions to graduation",
+                "body": "From enquiry to completion in one configurable flow.",
+            },
+            {
+                "title": "Academics & attendance",
+                "body": "Syllabi, grades, report cards, attendance, and interventions.",
+            },
+            {
+                "title": "Finance & billing",
+                "body": "Fees, payments, and financial reporting without spreadsheets.",
+            },
+            {
+                "title": "Communication & portals",
+                "body": "Parent, teacher, and student portals with messaging and announcements.",
+            },
+            {
+                "title": "Workflows & automation",
+                "body": "Configurable approval chains and automated triggers.",
+            },
+            {
+                "title": "Student 360",
+                "body": "One view per student: profile, attendance, grades, interventions.",
+            },
         ],
     },
     "platform-control-plane": {
@@ -136,11 +195,26 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Govern one school or one thousand from one command center.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Tenant governance", "body": "Manage schools, districts, and networks with central oversight and campus autonomy."},
-            {"title": "Policies & blueprints", "body": "Apply policy bundles, blueprint packs, workflow and dashboard packs across tenants."},
-            {"title": "Health & usage", "body": "Monitor tenant health, usage, and compliance from one dashboard."},
-            {"title": "Marketplace governance", "body": "Control which apps and integrations are available per tenant or network."},
-            {"title": "Migration portfolio", "body": "Track migration runs and rollouts across your schools."},
+            {
+                "title": "Tenant governance",
+                "body": "Manage schools, districts, and networks with central oversight and campus autonomy.",
+            },
+            {
+                "title": "Policies & blueprints",
+                "body": "Apply policy bundles, blueprint packs, workflow and dashboard packs across tenants.",
+            },
+            {
+                "title": "Health & usage",
+                "body": "Monitor tenant health, usage, and compliance from one dashboard.",
+            },
+            {
+                "title": "Marketplace governance",
+                "body": "Control which apps and integrations are available per tenant or network.",
+            },
+            {
+                "title": "Migration portfolio",
+                "body": "Track migration runs and rollouts across your schools.",
+            },
         ],
     },
     "platform-marketplace": {
@@ -151,11 +225,26 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Extend the platform without rebuilding your system.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Apps", "body": "Install apps for admissions, academics, operations, and more."},
-            {"title": "Integrations", "body": "Connect LMS, payments, messaging, SSO, and identity providers."},
-            {"title": "Workflow & dashboard packs", "body": "Pre-built workflows and dashboards for common school models."},
-            {"title": "Blueprint & policy packs", "body": "Country and institution-type blueprints and policy bundles."},
-            {"title": "Templates", "body": "Report templates, form templates, and branding templates."},
+            {
+                "title": "Apps",
+                "body": "Install apps for admissions, academics, operations, and more.",
+            },
+            {
+                "title": "Integrations",
+                "body": "Connect LMS, payments, messaging, SSO, and identity providers.",
+            },
+            {
+                "title": "Workflow & dashboard packs",
+                "body": "Pre-built workflows and dashboards for common school models.",
+            },
+            {
+                "title": "Blueprint & policy packs",
+                "body": "Country and institution-type blueprints and policy bundles.",
+            },
+            {
+                "title": "Templates",
+                "body": "Report templates, form templates, and branding templates.",
+            },
         ],
     },
     "platform-migration-cloud": {
@@ -166,10 +255,22 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Switch from legacy systems without chaos.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Imports & connectors", "body": "Bring in students, staff, and historical data from spreadsheets or legacy SIS."},
-            {"title": "Field mapping", "body": "Map source fields to RunMyCampus with guided setup."},
-            {"title": "Validation & dry-runs", "body": "Validate data and run dry-runs before go-live."},
-            {"title": "Migration runs", "body": "Track migration portfolio and rollback readiness."},
+            {
+                "title": "Imports & connectors",
+                "body": "Bring in students, staff, and historical data from spreadsheets or legacy SIS.",
+            },
+            {
+                "title": "Field mapping",
+                "body": "Map source fields to RunMyCampus with guided setup.",
+            },
+            {
+                "title": "Validation & dry-runs",
+                "body": "Validate data and run dry-runs before go-live.",
+            },
+            {
+                "title": "Migration runs",
+                "body": "Track migration portfolio and rollback readiness.",
+            },
         ],
     },
     "platform-runtime": {
@@ -180,11 +281,26 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "One platform core, configured for your institution.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Country & locale", "body": "Language, timezone, calendar, and regional compliance defaults."},
-            {"title": "Education model", "body": "Structure terms, grades, and academic levels to your system."},
-            {"title": "Branding", "body": "Logo, colors, themes, and portal appearance per school."},
-            {"title": "Workflow & dashboard packs", "body": "Assign workflow and dashboard packs without custom code."},
-            {"title": "Feature entitlements", "body": "Enable or limit modules and features by plan or policy."},
+            {
+                "title": "Country & locale",
+                "body": "Language, timezone, calendar, and regional compliance defaults.",
+            },
+            {
+                "title": "Education model",
+                "body": "Structure terms, grades, and academic levels to your system.",
+            },
+            {
+                "title": "Branding",
+                "body": "Logo, colors, themes, and portal appearance per school.",
+            },
+            {
+                "title": "Workflow & dashboard packs",
+                "body": "Assign workflow and dashboard packs without custom code.",
+            },
+            {
+                "title": "Feature entitlements",
+                "body": "Enable or limit modules and features by plan or policy.",
+            },
         ],
     },
     "platform-integrations": {
@@ -195,11 +311,26 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "See what matters and connect what you already use.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "LMS & LTI", "body": "LTI 1.3 launch and deep linking for learning management systems."},
-            {"title": "Payments", "body": "Stripe, PayPal, and local payment gateways."},
-            {"title": "Messaging", "body": "SMS and email providers for notifications."},
-            {"title": "SSO & identity", "body": "SAML and OAuth for enterprise identity."},
-            {"title": "APIs & webhooks", "body": "REST API, OpenAPI schema, and webhook events for custom integrations."},
+            {
+                "title": "LMS & LTI",
+                "body": "LTI 1.3 launch and deep linking for learning management systems.",
+            },
+            {
+                "title": "Payments",
+                "body": "Stripe, PayPal, and local payment gateways.",
+            },
+            {
+                "title": "Messaging",
+                "body": "SMS and email providers for notifications.",
+            },
+            {
+                "title": "SSO & identity",
+                "body": "SAML and OAuth for enterprise identity.",
+            },
+            {
+                "title": "APIs & webhooks",
+                "body": "REST API, OpenAPI schema, and webhook events for custom integrations.",
+            },
         ],
     },
     "platform-security": {
@@ -211,9 +342,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "schema_type": "WebPage",
         "segments": [
             {"title": "Encryption", "body": "Encryption at rest and in transit."},
-            {"title": "Access control", "body": "Role-based access and tenant isolation."},
-            {"title": "Audit trails", "body": "Full audit trails for compliance and governance."},
-            {"title": "Compliance", "body": "FERPA aligned, GDPR ready, SOC 2 roadmap."},
+            {
+                "title": "Access control",
+                "body": "Role-based access and tenant isolation.",
+            },
+            {
+                "title": "Audit trails",
+                "body": "Full audit trails for compliance and governance.",
+            },
+            {
+                "title": "Compliance",
+                "body": "FERPA aligned, GDPR ready, SOC 2 roadmap.",
+            },
         ],
     },
     "platform-analytics": {
@@ -224,10 +364,22 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "See what matters and connect what you already use.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "School dashboards", "body": "Enrollment, attendance, finance, and outcomes at a glance."},
-            {"title": "District rollups", "body": "Multi-school and network-level visibility."},
-            {"title": "Health scores", "body": "Tenant and platform health monitoring."},
-            {"title": "Reports & exports", "body": "Export-ready reports for boards and regulators."},
+            {
+                "title": "School dashboards",
+                "body": "Enrollment, attendance, finance, and outcomes at a glance.",
+            },
+            {
+                "title": "District rollups",
+                "body": "Multi-school and network-level visibility.",
+            },
+            {
+                "title": "Health scores",
+                "body": "Tenant and platform health monitoring.",
+            },
+            {
+                "title": "Reports & exports",
+                "body": "Export-ready reports for boards and regulators.",
+            },
         ],
     },
     "product": {
@@ -272,9 +424,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Capture leads, qualify applicants, and onboard students in one configurable flow.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Application workflow", "body": "From enquiry to decision with configurable stages and automation."},
-            {"title": "Waitlists & communications", "body": "Manage waitlists and automated parent and staff communications."},
-            {"title": "Analytics", "body": "Funnel and conversion dashboards for admissions leads and enrollment."},
+            {
+                "title": "Application workflow",
+                "body": "From enquiry to decision with configurable stages and automation.",
+            },
+            {
+                "title": "Waitlists & communications",
+                "body": "Manage waitlists and automated parent and staff communications.",
+            },
+            {
+                "title": "Analytics",
+                "body": "Funnel and conversion dashboards for admissions leads and enrollment.",
+            },
         ],
     },
     "products-academics": {
@@ -285,9 +446,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Syllabi, attendance, report cards, and interventions with role-ready dashboards.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Grades and report cards", "body": "Configurable grading scales, report cards, and transcript-ready exports."},
-            {"title": "Attendance", "body": "Daily attendance, trends, and early intervention signals."},
-            {"title": "Teacher dashboard", "body": "One place for classes, grading, and parent communication."},
+            {
+                "title": "Grades and report cards",
+                "body": "Configurable grading scales, report cards, and transcript-ready exports.",
+            },
+            {
+                "title": "Attendance",
+                "body": "Daily attendance, trends, and early intervention signals.",
+            },
+            {
+                "title": "Teacher dashboard",
+                "body": "One place for classes, grading, and parent communication.",
+            },
         ],
     },
     "products-finance": {
@@ -298,9 +468,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Fees, payments, and financial reporting without spreadsheets.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Tuition and fees", "body": "Billing cycles, payment plans, and fee structures by program or grade."},
-            {"title": "Payment tracking", "body": "Payment gateways, receipts, and reconciliation in one place."},
-            {"title": "Reporting", "body": "Financial dashboards and export-ready reports for leadership and auditors."},
+            {
+                "title": "Tuition and fees",
+                "body": "Billing cycles, payment plans, and fee structures by program or grade.",
+            },
+            {
+                "title": "Payment tracking",
+                "body": "Payment gateways, receipts, and reconciliation in one place.",
+            },
+            {
+                "title": "Reporting",
+                "body": "Financial dashboards and export-ready reports for leadership and auditors.",
+            },
         ],
     },
     "products-communication": {
@@ -311,9 +490,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Parents, teachers, and students stay connected with purpose-built portals.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Parent portal", "body": "Attendance, grades, fees, and messages in one place for families."},
-            {"title": "Teacher and student portals", "body": "Class tools, assignments, and school-wide announcements."},
-            {"title": "Messaging", "body": "SMS and email providers with governed templates and delivery tracking."},
+            {
+                "title": "Parent portal",
+                "body": "Attendance, grades, fees, and messages in one place for families.",
+            },
+            {
+                "title": "Teacher and student portals",
+                "body": "Class tools, assignments, and school-wide announcements.",
+            },
+            {
+                "title": "Messaging",
+                "body": "SMS and email providers with governed templates and delivery tracking.",
+            },
         ],
     },
     "products-automation": {
@@ -324,9 +512,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Build flows without code: triggers, conditions, and actions that scale.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Triggers", "body": "Grade changes, attendance patterns, payments, and custom events."},
-            {"title": "Actions", "body": "Notify teacher, notify parent, assign intervention, or update records."},
-            {"title": "Visibility", "body": "Audit trails and dashboards for every automated step."},
+            {
+                "title": "Triggers",
+                "body": "Grade changes, attendance patterns, payments, and custom events.",
+            },
+            {
+                "title": "Actions",
+                "body": "Notify teacher, notify parent, assign intervention, or update records.",
+            },
+            {
+                "title": "Visibility",
+                "body": "Audit trails and dashboards for every automated step.",
+            },
         ],
     },
     "products-analytics": {
@@ -340,9 +537,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "data_viz_path": "images/marketing/platform-diagram-marketing.svg",
         "data_viz_caption": "Data intelligence loop: collect, analyze, act.",
         "segments": [
-            {"title": "Leader dashboards", "body": "Enrollment, attendance, and performance at a glance."},
-            {"title": "Trends and reports", "body": "Export-ready reports and trend analysis for boards and regulators."},
-            {"title": "AI insights", "body": "Predictive signals and recommended interventions where enabled."},
+            {
+                "title": "Leader dashboards",
+                "body": "Enrollment, attendance, and performance at a glance.",
+            },
+            {
+                "title": "Trends and reports",
+                "body": "Export-ready reports and trend analysis for boards and regulators.",
+            },
+            {
+                "title": "AI insights",
+                "body": "Predictive signals and recommended interventions where enabled.",
+            },
         ],
     },
     "school-management-system": {
@@ -353,9 +559,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "One platform for admissions, academics, finance, communication, and compliance—from single campus to multi-country.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Unified operations", "body": "Replace spreadsheets and point solutions with one tenant-first platform."},
-            {"title": "K-12 and higher ed", "body": "Purpose-built workflows for every institution type."},
-            {"title": "Multi-tenant from day one", "body": "Each school gets its own domain, branding, and data isolation."},
+            {
+                "title": "Unified operations",
+                "body": "Replace spreadsheets and point solutions with one tenant-first platform.",
+            },
+            {
+                "title": "K-12 and higher ed",
+                "body": "Purpose-built workflows for every institution type.",
+            },
+            {
+                "title": "Multi-tenant from day one",
+                "body": "Each school gets its own domain, branding, and data isolation.",
+            },
         ],
     },
     "student-information-system": {
@@ -366,9 +581,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Enrollment, grades, attendance, and parent communication in one secure platform.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Student 360", "body": "One view per student: profile, attendance, grades, and interventions."},
-            {"title": "Role-ready portals", "body": "Admins, teachers, parents, and students get the right data and tools."},
-            {"title": "Reporting and compliance", "body": "Export-ready reports and regional compliance defaults."},
+            {
+                "title": "Student 360",
+                "body": "One view per student: profile, attendance, grades, and interventions.",
+            },
+            {
+                "title": "Role-ready portals",
+                "body": "Admins, teachers, parents, and students get the right data and tools.",
+            },
+            {
+                "title": "Reporting and compliance",
+                "body": "Export-ready reports and regional compliance defaults.",
+            },
         ],
     },
     "education-erp": {
@@ -379,9 +603,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Academics, finance, HR, and operations in one platform—from single school to enterprise.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "End-to-end operations", "body": "From admissions to graduation, finance to compliance, in one system."},
-            {"title": "Multi-campus", "body": "Central oversight with campus-level autonomy and branding."},
-            {"title": "Global-ready", "body": "Multi-currency, multi-language, and country-specific compliance."},
+            {
+                "title": "End-to-end operations",
+                "body": "From admissions to graduation, finance to compliance, in one system.",
+            },
+            {
+                "title": "Multi-campus",
+                "body": "Central oversight with campus-level autonomy and branding.",
+            },
+            {
+                "title": "Global-ready",
+                "body": "Multi-currency, multi-language, and country-specific compliance.",
+            },
         ],
     },
     "school-administration-software": {
@@ -392,9 +625,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Dashboards, workflows, and reporting for admins, principals, and district leaders.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Admin dashboards", "body": "Enrollment, attendance, finance, and compliance at a glance."},
-            {"title": "Configurable workflows", "body": "Approvals, communications, and processes without custom code."},
-            {"title": "Audit and reporting", "body": "Audit trails and export-ready reports for boards and regulators."},
+            {
+                "title": "Admin dashboards",
+                "body": "Enrollment, attendance, finance, and compliance at a glance.",
+            },
+            {
+                "title": "Configurable workflows",
+                "body": "Approvals, communications, and processes without custom code.",
+            },
+            {
+                "title": "Audit and reporting",
+                "body": "Audit trails and export-ready reports for boards and regulators.",
+            },
         ],
     },
     "solutions": {
@@ -515,9 +757,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Encryption, tenant isolation, and access controls protect your school data.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Architecture", "body": "Subdomain tenant isolation; dedicated host contract for public, tenant, and manager surfaces."},
-            {"title": "Encryption", "body": "Encryption at rest and in transit; secrets and credentials managed securely."},
-            {"title": "Access controls", "body": "Role-based access and audit trails for all administrative and support actions."},
+            {
+                "title": "Architecture",
+                "body": "Subdomain tenant isolation; dedicated host contract for public, tenant, and manager surfaces.",
+            },
+            {
+                "title": "Encryption",
+                "body": "Encryption at rest and in transit; secrets and credentials managed securely.",
+            },
+            {
+                "title": "Access controls",
+                "body": "Role-based access and audit trails for all administrative and support actions.",
+            },
         ],
     },
     "compliance": {
@@ -528,9 +779,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "FERPA and GDPR-aligned workflows; regional compliance defaults and audit readiness.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "FERPA alignment", "body": "Student record access and disclosure controls aligned to FERPA practices."},
-            {"title": "GDPR readiness", "body": "Data subject rights, lawful basis, and cross-border transfer considerations."},
-            {"title": "Regional defaults", "body": "Country-specific compliance profiles and terminology from the global registry."},
+            {
+                "title": "FERPA alignment",
+                "body": "Student record access and disclosure controls aligned to FERPA practices.",
+            },
+            {
+                "title": "GDPR readiness",
+                "body": "Data subject rights, lawful basis, and cross-border transfer considerations.",
+            },
+            {
+                "title": "Regional defaults",
+                "body": "Country-specific compliance profiles and terminology from the global registry.",
+            },
         ],
     },
     "ferpa": {
@@ -541,8 +801,14 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Access controls, audit trails, and disclosure safeguards for education records.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Access and disclosure", "body": "Role-based access to education records; audit trails for disclosure events."},
-            {"title": "Consent and consent management", "body": "Where applicable, consent and preference controls for sharing and communications."},
+            {
+                "title": "Access and disclosure",
+                "body": "Role-based access to education records; audit trails for disclosure events.",
+            },
+            {
+                "title": "Consent and consent management",
+                "body": "Where applicable, consent and preference controls for sharing and communications.",
+            },
         ],
     },
     "gdpr": {
@@ -553,9 +819,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Lawful basis, data subject rights, and cross-border transfer considerations.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Lawful basis and purpose", "body": "Processing aligned to contract and legitimate interest where appropriate."},
-            {"title": "Data subject rights", "body": "Access, rectification, erasure, and portability support via platform and processes."},
-            {"title": "Cross-border and DPA", "body": "Transfer mechanisms and data processing agreements where required."},
+            {
+                "title": "Lawful basis and purpose",
+                "body": "Processing aligned to contract and legitimate interest where appropriate.",
+            },
+            {
+                "title": "Data subject rights",
+                "body": "Access, rectification, erasure, and portability support via platform and processes.",
+            },
+            {
+                "title": "Cross-border and DPA",
+                "body": "Transfer mechanisms and data processing agreements where required.",
+            },
         ],
     },
     "lgpd": {
@@ -566,8 +841,14 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Data processing in line with LGPD principles and legal basis.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Legal basis", "body": "Processing based on consent, contract, or legitimate interest as appropriate."},
-            {"title": "Rights of data subjects", "body": "Access, correction, deletion, and portability in line with LGPD."},
+            {
+                "title": "Legal basis",
+                "body": "Processing based on consent, contract, or legitimate interest as appropriate.",
+            },
+            {
+                "title": "Rights of data subjects",
+                "body": "Access, correction, deletion, and portability in line with LGPD.",
+            },
         ],
     },
     "integrations": {
@@ -622,9 +903,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "One platform for global school operations, built for 195 countries.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Mission", "body": "Empower every school with unified operations, compliance, and growth tools."},
-            {"title": "Global reach", "body": "Multi-language, multi-currency, and data residency options for every region."},
-            {"title": "Security first", "body": "Schema-per-tenant isolation and audit-ready controls for trust and compliance."},
+            {
+                "title": "Mission",
+                "body": "Empower every school with unified operations, compliance, and growth tools.",
+            },
+            {
+                "title": "Global reach",
+                "body": "Multi-language, multi-currency, and data residency options for every region.",
+            },
+            {
+                "title": "Security first",
+                "body": "Schema-per-tenant isolation and audit-ready controls for trust and compliance.",
+            },
         ],
     },
     "features": {
@@ -635,12 +925,30 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "From admissions to finance, one platform for every school workflow.",
         "schema_type": "CollectionPage",
         "segments": [
-            {"title": "AI Co-pilot", "body": "Smart assistance for workflows, reporting, and decision support across the platform."},
-            {"title": "Real-time Analytics", "body": "Live dashboards and actionable insights for enrollment, attendance, and operations."},
-            {"title": "Customizable Workflows", "body": "Adapt processes, forms, and approvals to your school's policies."},
-            {"title": "Admissions & enrollment", "body": "Online applications, applicant tracking, and enrollment management."},
-            {"title": "Academics & grading", "body": "Curriculum, gradebooks, report cards, and metadata-driven rubrics."},
-            {"title": "Finance & billing", "body": "Fee management, invoicing, multi-currency, and audit trail."},
+            {
+                "title": "AI Co-pilot",
+                "body": "Smart assistance for workflows, reporting, and decision support across the platform.",
+            },
+            {
+                "title": "Real-time Analytics",
+                "body": "Live dashboards and actionable insights for enrollment, attendance, and operations.",
+            },
+            {
+                "title": "Customizable Workflows",
+                "body": "Adapt processes, forms, and approvals to your school's policies.",
+            },
+            {
+                "title": "Admissions & enrollment",
+                "body": "Online applications, applicant tracking, and enrollment management.",
+            },
+            {
+                "title": "Academics & grading",
+                "body": "Curriculum, gradebooks, report cards, and metadata-driven rubrics.",
+            },
+            {
+                "title": "Finance & billing",
+                "body": "Fee management, invoicing, multi-currency, and audit trail.",
+            },
         ],
     },
     "blog": {
@@ -651,9 +959,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Product updates, best practices, and stories from schools worldwide.",
         "schema_type": "Blog",
         "segments": [
-            {"title": "Product updates", "body": "New features and improvements to the RunMyCampus platform."},
-            {"title": "Best practices", "body": "How schools use RunMyCampus for admissions, compliance, and operations."},
-            {"title": "Global education", "body": "Trends and insights for K-12 and international school operations."},
+            {
+                "title": "Product updates",
+                "body": "New features and improvements to the RunMyCampus platform.",
+            },
+            {
+                "title": "Best practices",
+                "body": "How schools use RunMyCampus for admissions, compliance, and operations.",
+            },
+            {
+                "title": "Global education",
+                "body": "Trends and insights for K-12 and international school operations.",
+            },
         ],
     },
     "contact": {
@@ -664,9 +981,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Sales, support, and partnership inquiries. We respond within 24 hours.",
         "schema_type": "ContactPage",
         "segments": [
-            {"title": "Sales", "body": "Request a demo or discuss plans for your school or network."},
-            {"title": "Support", "body": "Existing customers can reach 24/7 support via the tenant portal or support hub."},
-            {"title": "Partnerships", "body": "Integrations, resellers, and technology partners."},
+            {
+                "title": "Sales",
+                "body": "Request a demo or discuss plans for your school or network.",
+            },
+            {
+                "title": "Support",
+                "body": "Existing customers can reach 24/7 support via the tenant portal or support hub.",
+            },
+            {
+                "title": "Partnerships",
+                "body": "Integrations, resellers, and technology partners.",
+            },
         ],
     },
     "privacy": {
@@ -677,9 +1003,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "How we collect, use, and protect your data. FERPA and GDPR aligned.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Data we collect", "body": "Account, usage, and school data necessary to operate the platform."},
-            {"title": "How we use it", "body": "To provide and improve the service, support, and compliance."},
-            {"title": "Your rights", "body": "Access, correction, deletion, and portability where applicable by law."},
+            {
+                "title": "Data we collect",
+                "body": "Account, usage, and school data necessary to operate the platform.",
+            },
+            {
+                "title": "How we use it",
+                "body": "To provide and improve the service, support, and compliance.",
+            },
+            {
+                "title": "Your rights",
+                "body": "Access, correction, deletion, and portability where applicable by law.",
+            },
         ],
     },
     "terms": {
@@ -690,9 +1025,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Terms governing use of the RunMyCampus platform and services.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Acceptance", "body": "By using the platform you agree to these terms."},
-            {"title": "Use of service", "body": "Permitted use, account responsibility, and acceptable use."},
-            {"title": "Limitation of liability", "body": "Standard limitations as permitted by applicable law."},
+            {
+                "title": "Acceptance",
+                "body": "By using the platform you agree to these terms.",
+            },
+            {
+                "title": "Use of service",
+                "body": "Permitted use, account responsibility, and acceptable use.",
+            },
+            {
+                "title": "Limitation of liability",
+                "body": "Standard limitations as permitted by applicable law.",
+            },
         ],
     },
     "cookie-policy": {
@@ -703,9 +1047,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "How we use cookies and similar technologies on our public website.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "What we use", "body": "We use strictly necessary cookies for session and security. When analytics or chat widgets are enabled via settings, third-party cookies may be used; we document them in deployment settings."},
-            {"title": "Your choices", "body": "You can disable non-essential cookies via browser settings. Essential cookies are required for the site to function."},
-            {"title": "Updates", "body": "We may update this policy when we add or change features that use cookies. The date of the last update is reflected on this page."},
+            {
+                "title": "What we use",
+                "body": "We use strictly necessary cookies for session and security. When analytics or chat widgets are enabled via settings, third-party cookies may be used; we document them in deployment settings.",
+            },
+            {
+                "title": "Your choices",
+                "body": "You can disable non-essential cookies via browser settings. Essential cookies are required for the site to function.",
+            },
+            {
+                "title": "Updates",
+                "body": "We may update this policy when we add or change features that use cookies. The date of the last update is reflected on this page.",
+            },
         ],
     },
     "developers": {
@@ -716,9 +1069,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Build integrations with versioned APIs, webhooks, and LTI. Auth, rate limiting, and OpenAPI documented.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "API access", "body": "Authenticate with API keys or OAuth; versioned endpoints under /api/."},
-            {"title": "Rate limiting", "body": "Per-tenant and per-IP limits; 429 with Retry-After for fair use."},
-            {"title": "Integrations", "body": "LTI 1.3, OneRoster, webhooks, and custom integrations. See docs for details."},
+            {
+                "title": "API access",
+                "body": "Authenticate with API keys or OAuth; versioned endpoints under /api/.",
+            },
+            {
+                "title": "Rate limiting",
+                "body": "Per-tenant and per-IP limits; 429 with Retry-After for fair use.",
+            },
+            {
+                "title": "Integrations",
+                "body": "LTI 1.3, OneRoster, webhooks, and custom integrations. See docs for details.",
+            },
         ],
     },
     # Section 11.5: Public website superiority — category clarity, vertical landings, migration-first, trust center, app marketplace
@@ -730,9 +1092,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Migration-first design: bring your data, keep your workflows, gain one platform for operations.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Migration-first", "body": "Structured import paths and provisioning so you move data once and run on a single source of truth."},
-            {"title": "No lock-in", "body": "Export and portability options so you stay in control of your school data."},
-            {"title": "Same day readiness", "body": "Templates and blueprints get you live quickly without starting from scratch."},
+            {
+                "title": "Migration-first",
+                "body": "Structured import paths and provisioning so you move data once and run on a single source of truth.",
+            },
+            {
+                "title": "No lock-in",
+                "body": "Export and portability options so you stay in control of your school data.",
+            },
+            {
+                "title": "Same day readiness",
+                "body": "Templates and blueprints get you live quickly without starting from scratch.",
+            },
         ],
     },
     "10-reasons": {
@@ -743,16 +1114,46 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "From single campus to enterprise white-label—one platform for admissions, academics, finance, and compliance.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "One platform", "body": "Admissions, academics, finance, communication, and compliance in one place—no tool sprawl."},
-            {"title": "Multi-tenant from day one", "body": "Each school gets its own domain, branding, and data isolation."},
-            {"title": "Global compliance", "body": "FERPA, GDPR, and regional defaults. 195+ country-ready profiles."},
-            {"title": "Migration support", "body": "Guided import, phased rollout, and dedicated support during go-live."},
-            {"title": "Role-ready portals", "body": "Admins, teachers, parents, and students get purpose-built workflows."},
-            {"title": "Operator command center", "body": "Super-admin visibility across tenants for approvals, support, and billing."},
-            {"title": "Developer platform", "body": "APIs, webhooks, and an app marketplace to extend without custom code."},
-            {"title": "Transparent pricing", "body": "Starter, Growth, and Enterprise plans that map to your stage."},
-            {"title": "Security by design", "body": "Encryption at rest and in transit, audit trails, role-based access."},
-            {"title": "We set you up", "body": "Dedicated onboarding and support—you're not just buying software."},
+            {
+                "title": "One platform",
+                "body": "Admissions, academics, finance, communication, and compliance in one place—no tool sprawl.",
+            },
+            {
+                "title": "Multi-tenant from day one",
+                "body": "Each school gets its own domain, branding, and data isolation.",
+            },
+            {
+                "title": "Global compliance",
+                "body": "FERPA, GDPR, and regional defaults. 195+ country-ready profiles.",
+            },
+            {
+                "title": "Migration support",
+                "body": "Guided import, phased rollout, and dedicated support during go-live.",
+            },
+            {
+                "title": "Role-ready portals",
+                "body": "Admins, teachers, parents, and students get purpose-built workflows.",
+            },
+            {
+                "title": "Operator command center",
+                "body": "Super-admin visibility across tenants for approvals, support, and billing.",
+            },
+            {
+                "title": "Developer platform",
+                "body": "APIs, webhooks, and an app marketplace to extend without custom code.",
+            },
+            {
+                "title": "Transparent pricing",
+                "body": "Starter, Growth, and Enterprise plans that map to your stage.",
+            },
+            {
+                "title": "Security by design",
+                "body": "Encryption at rest and in transit, audit trails, role-based access.",
+            },
+            {
+                "title": "We set you up",
+                "body": "Dedicated onboarding and support—you're not just buying software.",
+            },
         ],
     },
     "resources": {
@@ -763,10 +1164,22 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Reports, checklists, webinars, and guides—all in one place.",
         "schema_type": "CollectionPage",
         "segments": [
-            {"title": "State of School Operations report", "body": "Download our flagship report on how schools are unifying operations."},
-            {"title": "Buyer toolkit", "body": "Checklists and implementation timeline for evaluation and go-live."},
-            {"title": "Webinars", "body": "Customer roundtables and migration best practices. Register for upcoming sessions."},
-            {"title": "Blog", "body": "Admissions, finance, multi-campus, migration, and compliance topics."},
+            {
+                "title": "State of School Operations report",
+                "body": "Download our flagship report on how schools are unifying operations.",
+            },
+            {
+                "title": "Buyer toolkit",
+                "body": "Checklists and implementation timeline for evaluation and go-live.",
+            },
+            {
+                "title": "Webinars",
+                "body": "Customer roundtables and migration best practices. Register for upcoming sessions.",
+            },
+            {
+                "title": "Blog",
+                "body": "Admissions, finance, multi-campus, migration, and compliance topics.",
+            },
         ],
     },
     "events": {
@@ -777,8 +1190,14 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Join customer roundtables, webinars, and be first to know for RunMyCampus Live.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Customer roundtable", "body": "Monthly session: Migration in 90 days. Register for the next session."},
-            {"title": "RunMyCampus Live", "body": "Annual education operations summit. Be first to know when we announce dates."},
+            {
+                "title": "Customer roundtable",
+                "body": "Monthly session: Migration in 90 days. Register for the next session.",
+            },
+            {
+                "title": "RunMyCampus Live",
+                "body": "Annual education operations summit. Be first to know when we announce dates.",
+            },
         ],
     },
     "verticals": {
@@ -789,9 +1208,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Vertical-specific workflows, compliance defaults, and ROI that match how you operate.",
         "schema_type": "CollectionPage",
         "segments": [
-            {"title": "Private K12", "body": "Admissions, grading, fee management, and parent communication in one tenant."},
-            {"title": "International schools", "body": "Multi-currency, multi-language, and region-aware compliance out of the box."},
-            {"title": "Districts & networks", "body": "Multi-campus with central oversight and school-level autonomy."},
+            {
+                "title": "Private K12",
+                "body": "Admissions, grading, fee management, and parent communication in one tenant.",
+            },
+            {
+                "title": "International schools",
+                "body": "Multi-currency, multi-language, and region-aware compliance out of the box.",
+            },
+            {
+                "title": "Districts & networks",
+                "body": "Multi-campus with central oversight and school-level autonomy.",
+            },
         ],
     },
     "trust-center": {
@@ -802,9 +1230,124 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Transparent security posture, compliance alignment, and audit-ready controls for schools and regulators.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Security", "body": "Tenant isolation, encryption, access controls, and audit logs as standard."},
-            {"title": "Compliance", "body": "Region-aware defaults and workflows aligned to local education and data regulations."},
-            {"title": "Transparency", "body": "Documented practices, runbooks, and support for audits and due diligence."},
+            {
+                "title": "Security",
+                "body": "Tenant isolation, encryption, access controls, and audit logs as standard.",
+            },
+            {
+                "title": "Compliance",
+                "body": "Region-aware defaults and workflows aligned to local education and data regulations.",
+            },
+            {
+                "title": "Transparency",
+                "body": "Documented practices, runbooks, and support for audits and due diligence.",
+            },
+            {
+                "title": "Deep dives",
+                "body": "FERPA alignment, GDPR & UK GDPR, retention schedules, and incident response — see linked trust pages below.",
+            },
+        ],
+    },
+    "trust-center-ferpa": {
+        "label": "FERPA & student records",
+        "seo_title": "RunMyCampus FERPA — student education records",
+        "seo_description": "How RunMyCampus supports FERPA-aligned handling of student education records for US K12 and higher ed.",
+        "headline": "FERPA and student education records.",
+        "subheadline": "RunMyCampus is designed so schools remain the custodian of education records; we act as a school official tool under your direction.",
+        "schema_type": "WebPage",
+        "segments": [
+            {
+                "title": "School as custodian",
+                "body": "Your institution controls access, roles, and data exports. Directory information flags and parent/guardian access are configured per your policy.",
+            },
+            {
+                "title": "Minimum necessary",
+                "body": "Role-based access, audit logs, and tenant isolation reduce exposure of student PII to only what each workflow requires.",
+            },
+            {
+                "title": "Subprocessors",
+                "body": "List subprocessors and DPA terms in your order form; regional hosting options documented under data residency.",
+            },
+        ],
+    },
+    "trust-center-gdpr": {
+        "label": "GDPR & UK GDPR",
+        "seo_title": "RunMyCampus GDPR — EU/UK data protection",
+        "seo_description": "GDPR-aligned processing: lawful basis, data subject rights, DPA, and international transfers.",
+        "headline": "GDPR and UK GDPR readiness.",
+        "subheadline": "We support controllers (schools) with technical and organizational measures: access control, export, retention tooling, and breach notification workflows.",
+        "schema_type": "WebPage",
+        "segments": [
+            {
+                "title": "Roles",
+                "body": "Your school is typically the controller; RunMyCampus processes data on documented instructions (processor).",
+            },
+            {
+                "title": "Rights",
+                "body": "Export, rectification, and erasure flows are exposed per tenant admin workflows; DSAR coordination via your DPO contact.",
+            },
+            {
+                "title": "Transfers",
+                "body": "Standard contractual clauses and regional deployment options per TENANT_ISOLATION_AND_DATA_RESIDENCY.md.",
+            },
+        ],
+    },
+    "trust-center-retention": {
+        "label": "Retention & deletion",
+        "seo_title": "RunMyCampus — data retention and deletion",
+        "seo_description": "Configurable retention, archival, and end-of-contract deletion practices.",
+        "headline": "Retention and deletion.",
+        "subheadline": "Align retention to your jurisdiction: academic records, finance, communications, and logs have configurable policies per module.",
+        "schema_type": "WebPage",
+        "segments": [
+            {
+                "title": "Configurable periods",
+                "body": "Admins set retention-aligned exports and offboarding checklists; audit logs support compliance evidence.",
+            },
+            {
+                "title": "End of contract",
+                "body": "School data export and tenant teardown per contract schedule; subprocessors notified per DPA.",
+            },
+        ],
+    },
+    "trust-center-breach": {
+        "label": "Incident response",
+        "seo_title": "RunMyCampus — security incident & breach notification",
+        "seo_description": "Incident response coordination with customer security contacts and regulator timelines where applicable.",
+        "headline": "Security incidents and breach notification.",
+        "subheadline": "We maintain incident playbooks, logging, and customer notification channels defined in your security addendum.",
+        "schema_type": "WebPage",
+        "segments": [
+            {
+                "title": "Detection",
+                "body": "Monitoring, alerting, and audit trails across application and infrastructure layers.",
+            },
+            {
+                "title": "Notification",
+                "body": "Customer security contact notified without undue delay; regulatory timelines depend on your role as controller.",
+            },
+        ],
+    },
+    "compare-replacement": {
+        "label": "Compare & replacement",
+        "seo_title": "RunMyCampus vs legacy SIS/LMS — migration",
+        "seo_description": "Env-driven comparison copy: why districts and schools switch to a unified operating system.",
+        "headline": "Replace fragmented tools with one campus OS.",
+        "subheadline": "Override this page with config/marketing_content/compare-replacement.json for your region.",
+        "schema_type": "WebPage",
+        "segments": [
+            {
+                "title": "Single tenant of record",
+                "body": "Admissions, academics, finance, and communications share one model — fewer exports and CSV bridges.",
+            },
+            {
+                "title": "Interop-first",
+                "body": "OneRoster, LTI 1.3, SCIM, and versioned APIs — meet districts where they are.",
+            },
+            {
+                "title": "Time to value",
+                "body": "Packs and guided onboarding reduce months of configuration.",
+            },
         ],
     },
     "app-marketplace": {
@@ -815,9 +1358,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Extend your platform with approved apps, blueprint packs, and integrations—governed and tenant-safe.",
         "schema_type": "ItemList",
         "segments": [
-            {"title": "Blueprint packs", "body": "Pre-built policy and workflow bundles for faster setup and best practices."},
-            {"title": "Integrations", "body": "LMS, payments, messaging, and data exchange with versioning and kill switches."},
-            {"title": "Governed rollout", "body": "Review pipeline, permission scopes, and sandbox so only safe extensions reach your tenant."},
+            {
+                "title": "Blueprint packs",
+                "body": "Pre-built policy and workflow bundles for faster setup and best practices.",
+            },
+            {
+                "title": "Integrations",
+                "body": "LMS, payments, messaging, and data exchange with versioning and kill switches.",
+            },
+            {
+                "title": "Governed rollout",
+                "body": "Review pipeline, permission scopes, and sandbox so only safe extensions reach your tenant.",
+            },
         ],
     },
     # Section 11.5: Interactive preview and clean demo
@@ -829,8 +1381,14 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "A clean, focused demo of school operations. No sign-up required to explore.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "What you'll see", "body": "Dashboard, student list, grading, and report card preview with sample data. Read-only where applicable."},
-            {"title": "Book a live demo", "body": "Get a guided walkthrough and Q&A. We'll show tenant login, manager command center, and migration flows."},
+            {
+                "title": "What you'll see",
+                "body": "Dashboard, student list, grading, and report card preview with sample data. Read-only where applicable.",
+            },
+            {
+                "title": "Book a live demo",
+                "body": "Get a guided walkthrough and Q&A. We'll show tenant login, manager command center, and migration flows.",
+            },
         ],
     },
     "interactive-preview": {
@@ -841,8 +1399,14 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Explore the interface with sample data. Links to full demo and sign-up when you're ready.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Sample experience", "body": "Navigate a simulated school backend: dashboards, lists, and forms with safe sample data."},
-            {"title": "Next step", "body": "Book a live demo or start a trial to get your own tenant and real data migration."},
+            {
+                "title": "Sample experience",
+                "body": "Navigate a simulated school backend: dashboards, lists, and forms with safe sample data.",
+            },
+            {
+                "title": "Next step",
+                "body": "Book a live demo or start a trial to get your own tenant and real data migration.",
+            },
         ],
     },
     "buyer-toolkit": {
@@ -853,8 +1417,14 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Evaluate RunMyCampus with a structured checklist and plan rollout with clear role ownership.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Buyer evaluation checklist", "body": "Criteria for tenancy, security, localization, and support. Use before you commit."},
-            {"title": "Implementation checklist", "body": "Phased rollout with school lead, IT, finance, and admissions ownership. Download and track progress."},
+            {
+                "title": "Buyer evaluation checklist",
+                "body": "Criteria for tenancy, security, localization, and support. Use before you commit.",
+            },
+            {
+                "title": "Implementation checklist",
+                "body": "Phased rollout with school lead, IT, finance, and admissions ownership. Download and track progress.",
+            },
         ],
     },
     "getting-started": {
@@ -865,12 +1435,30 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "From sign-up to launch: setup wizard, branding, features, migration, and go-live.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Step 1 — Sign up", "body": "Create your account and confirm your school or district. Choose your plan and region."},
-            {"title": "Step 2 — Setup wizard", "body": "Configure timezone, calendar, terms, and academic structure. The wizard guides you through core settings."},
-            {"title": "Step 3 — Branding", "body": "Upload your logo, set colors, and customize portal appearance. Your school identity across the platform."},
-            {"title": "Step 4 — Features", "body": "Enable modules and assign workflow and dashboard packs. Turn on admissions, academics, finance, and communication as needed."},
-            {"title": "Step 5 — Migration", "body": "Import students and staff from spreadsheets or your current SIS. Use field mapping and validation before go-live."},
-            {"title": "Step 6 — Launch", "body": "Go live with your tenant. Train users, invite parents and teachers, and switch to RunMyCampus as your source of truth."},
+            {
+                "title": "Step 1 — Sign up",
+                "body": "Create your account and confirm your school or district. Choose your plan and region.",
+            },
+            {
+                "title": "Step 2 — Setup wizard",
+                "body": "Configure timezone, calendar, terms, and academic structure. The wizard guides you through core settings.",
+            },
+            {
+                "title": "Step 3 — Branding",
+                "body": "Upload your logo, set colors, and customize portal appearance. Your school identity across the platform.",
+            },
+            {
+                "title": "Step 4 — Features",
+                "body": "Enable modules and assign workflow and dashboard packs. Turn on admissions, academics, finance, and communication as needed.",
+            },
+            {
+                "title": "Step 5 — Migration",
+                "body": "Import students and staff from spreadsheets or your current SIS. Use field mapping and validation before go-live.",
+            },
+            {
+                "title": "Step 6 — Launch",
+                "body": "Go live with your tenant. Train users, invite parents and teachers, and switch to RunMyCampus as your source of truth.",
+            },
         ],
     },
     "themes": {
@@ -881,11 +1469,26 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Brand your portal with logo, colors, templates, and dashboards. Mobile-responsive and consistent across roles.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Branding", "body": "Logo, colors, and portal appearance per school. Consistent identity for admin, teacher, parent, and student views."},
-            {"title": "Templates", "body": "Report templates, form templates, and dashboard layouts. Start from blueprints or customize."},
-            {"title": "Dashboards", "body": "Role-based dashboards with widgets and KPIs. Configure what each role sees on login."},
-            {"title": "Live previews", "body": "Preview branding and layout changes before publishing. No surprises at go-live."},
-            {"title": "Mobile responsiveness", "body": "Portals and forms work on phones and tablets. Parents and staff can use the platform on any device."},
+            {
+                "title": "Branding",
+                "body": "Logo, colors, and portal appearance per school. Consistent identity for admin, teacher, parent, and student views.",
+            },
+            {
+                "title": "Templates",
+                "body": "Report templates, form templates, and dashboard layouts. Start from blueprints or customize.",
+            },
+            {
+                "title": "Dashboards",
+                "body": "Role-based dashboards with widgets and KPIs. Configure what each role sees on login.",
+            },
+            {
+                "title": "Live previews",
+                "body": "Preview branding and layout changes before publishing. No surprises at go-live.",
+            },
+            {
+                "title": "Mobile responsiveness",
+                "body": "Portals and forms work on phones and tablets. Parents and staff can use the platform on any device.",
+            },
         ],
     },
     "design-studio": {
@@ -896,9 +1499,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Theme and customization in one place. Branding, templates, and live preview without code.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Theme studio", "body": "Central place to manage logo, colors, and portal theme. Changes apply across admin, teacher, parent, and student portals."},
-            {"title": "Customization", "body": "Tweak layouts, labels, and visibility. No code required—configure from the UI."},
-            {"title": "Live preview", "body": "See how your branding and layout look before you publish. Iterate with confidence."},
+            {
+                "title": "Theme studio",
+                "body": "Central place to manage logo, colors, and portal theme. Changes apply across admin, teacher, parent, and student portals.",
+            },
+            {
+                "title": "Customization",
+                "body": "Tweak layouts, labels, and visibility. No code required—configure from the UI.",
+            },
+            {
+                "title": "Live preview",
+                "body": "See how your branding and layout look before you publish. Iterate with confidence.",
+            },
         ],
     },
     "uptime": {
@@ -909,9 +1521,18 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Platform availability, SLA, and a link to our live status page when configured.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Uptime target", "body": "RunMyCampus targets 99.9% platform availability. Planned maintenance is communicated in advance."},
-            {"title": "SLA", "body": "Service level commitments for availability and support. Details in your agreement."},
-            {"title": "Status page", "body": "When a public status page is configured, you can check current status and incident history here."},
+            {
+                "title": "Uptime target",
+                "body": "RunMyCampus targets 99.9% platform availability. Planned maintenance is communicated in advance.",
+            },
+            {
+                "title": "SLA",
+                "body": "Service level commitments for availability and support. Details in your agreement.",
+            },
+            {
+                "title": "Status page",
+                "body": "When a public status page is configured, you can check current status and incident history here.",
+            },
         ],
     },
     "research": {
@@ -922,8 +1543,14 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Insights on education operations, EdTech trends, and platform adoption.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Insights", "body": "Reports and analysis on school operations, migration, and platform best practices."},
-            {"title": "Resources", "body": "Link to resources, blog, and guides for deeper reading."},
+            {
+                "title": "Insights",
+                "body": "Reports and analysis on school operations, migration, and platform best practices.",
+            },
+            {
+                "title": "Resources",
+                "body": "Link to resources, blog, and guides for deeper reading.",
+            },
         ],
     },
     "reports": {
@@ -934,8 +1561,14 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Benchmarks and reports on education operations and platform adoption.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Benchmarks", "body": "Industry benchmarks and adoption reports."},
-            {"title": "Resources", "body": "Download reports and link to resources when available."},
+            {
+                "title": "Benchmarks",
+                "body": "Industry benchmarks and adoption reports.",
+            },
+            {
+                "title": "Resources",
+                "body": "Download reports and link to resources when available.",
+            },
         ],
     },
     "guides": {
@@ -946,8 +1579,14 @@ MARKETING_PAGE_DEFINITIONS = {
         "subheadline": "Implementation and how-to guides for setup, migration, and operations.",
         "schema_type": "WebPage",
         "segments": [
-            {"title": "Implementation", "body": "Getting started, migration, and rollout guides."},
-            {"title": "How-to", "body": "Step-by-step guides for common tasks and workflows."},
+            {
+                "title": "Implementation",
+                "body": "Getting started, migration, and rollout guides.",
+            },
+            {
+                "title": "How-to",
+                "body": "Step-by-step guides for common tasks and workflows.",
+            },
         ],
     },
 }
@@ -975,13 +1614,39 @@ MARKETING_PAGE_EXTRAS = {
         "data_viz_path": "images/marketing/viz-admin.svg",
         "data_viz_caption": "Sample admin dashboard: health and usage at a glance.",
     },
+    "products-analytics": {
+        "data_viz_path": "images/marketing/platform-diagram-marketing.svg",
+        "data_viz_caption": "Data intelligence loop: collect, analyze, act.",
+    },
     "product": {
-        "trust_strip": ["Unified data model", "Role-ready portals", "Global tenancy", "FERPA aligned", "GDPR ready"],
+        "trust_strip": [
+            "Unified data model",
+            "Role-ready portals",
+            "Global tenancy",
+            "FERPA aligned",
+            "GDPR ready",
+        ],
         "metrics": [
-            {"value": "1", "label": "unified data model", "detail": "Admissions, academics, finance, and communication stay in one platform."},
-            {"value": "4", "label": "core operator modules", "detail": "Enrollment, academics, operations, and support control surfaces."},
-            {"value": "3", "label": "role portals", "detail": "Parent, teacher, and student experiences stay role-specific and auditable."},
-            {"value": "24/7", "label": "operational continuity", "detail": "Manager-level workflows keep support and governance responsive."},
+            {
+                "value": "1",
+                "label": "unified data model",
+                "detail": "Admissions, academics, finance, and communication stay in one platform.",
+            },
+            {
+                "value": "4",
+                "label": "core operator modules",
+                "detail": "Enrollment, academics, operations, and support control surfaces.",
+            },
+            {
+                "value": "3",
+                "label": "role portals",
+                "detail": "Parent, teacher, and student experiences stay role-specific and auditable.",
+            },
+            {
+                "value": "24/7",
+                "label": "operational continuity",
+                "detail": "Manager-level workflows keep support and governance responsive.",
+            },
         ],
         "execution_blocks": [
             {
@@ -998,18 +1663,46 @@ MARKETING_PAGE_EXTRAS = {
             },
         ],
         "faqs": [
-            {"question": "What is RunMyCampus AI Co-pilot?", "answer": "AI Co-pilot provides smart assistance for workflows, reporting, and decision support across admissions, academics, and operations."},
-            {"question": "Does RunMyCampus offer real-time analytics?", "answer": "Yes. Live dashboards show enrollment and attendance trends, with actionable insights for school leaders."},
-            {"question": "Can we customize workflows to our school?", "answer": "Yes. Customizable Workflows let you adapt processes, forms, and approval chains to your policies without custom code."},
-            {"question": "How does the unified data model work?", "answer": "Students, staff, payments, reports, and interventions share one source of truth across the platform."},
+            {
+                "question": "What is RunMyCampus AI Co-pilot?",
+                "answer": "AI Co-pilot provides smart assistance for workflows, reporting, and decision support across admissions, academics, and operations.",
+            },
+            {
+                "question": "Does RunMyCampus offer real-time analytics?",
+                "answer": "Yes. Live dashboards show enrollment and attendance trends, with actionable insights for school leaders.",
+            },
+            {
+                "question": "Can we customize workflows to our school?",
+                "answer": "Yes. Customizable Workflows let you adapt processes, forms, and approval chains to your policies without custom code.",
+            },
+            {
+                "question": "How does the unified data model work?",
+                "answer": "Students, staff, payments, reports, and interventions share one source of truth across the platform.",
+            },
         ],
     },
     "solutions": {
         "metrics": [
-            {"value": "3", "label": "deployment archetypes", "detail": "Single-campus, multi-campus, and regional operator models."},
-            {"value": "195+", "label": "country-ready design", "detail": "Localization logic aligns terminology and compliance defaults by region."},
-            {"value": "1", "label": "manager command center", "detail": "Central oversight with school-level autonomy across tenants."},
-            {"value": "100%", "label": "subdomain isolation", "detail": "Tenant boundaries remain explicit and secure for every school."},
+            {
+                "value": "3",
+                "label": "deployment archetypes",
+                "detail": "Single-campus, multi-campus, and regional operator models.",
+            },
+            {
+                "value": "195+",
+                "label": "country-ready design",
+                "detail": "Localization logic aligns terminology and compliance defaults by region.",
+            },
+            {
+                "value": "1",
+                "label": "manager command center",
+                "detail": "Central oversight with school-level autonomy across tenants.",
+            },
+            {
+                "value": "100%",
+                "label": "subdomain isolation",
+                "detail": "Tenant boundaries remain explicit and secure for every school.",
+            },
         ],
         "execution_blocks": [
             {
@@ -1026,23 +1719,60 @@ MARKETING_PAGE_EXTRAS = {
             },
         ],
         "faqs": [
-            {"question": "What deployment options does RunMyCampus support?", "answer": "Single-campus, multi-campus networks, and regional operator models with templates for each."},
-            {"question": "Is RunMyCampus available in our country?", "answer": "RunMyCampus is designed for 195+ country-ready profiles with localization for language, compliance, and terms."},
-            {"question": "How does multi-campus governance work?", "answer": "Manager command center provides central oversight while preserving school-level autonomy and identity."},
-            {"question": "Can each school keep its own domain?", "answer": "Yes. Subdomain isolation gives each tenant explicit, secure boundaries and dedicated branding."},
+            {
+                "question": "What deployment options does RunMyCampus support?",
+                "answer": "Single-campus, multi-campus networks, and regional operator models with templates for each.",
+            },
+            {
+                "question": "Is RunMyCampus available in our country?",
+                "answer": "RunMyCampus is designed for 195+ country-ready profiles with localization for language, compliance, and terms.",
+            },
+            {
+                "question": "How does multi-campus governance work?",
+                "answer": "Manager command center provides central oversight while preserving school-level autonomy and identity.",
+            },
+            {
+                "question": "Can each school keep its own domain?",
+                "answer": "Yes. Subdomain isolation gives each tenant explicit, secure boundaries and dedicated branding.",
+            },
         ],
     },
     "pricing": {
         "metrics": [
-            {"value": "3", "label": "clear plan bands", "detail": "Starter, Growth, and Enterprise White-label framing."},
-            {"value": "0", "label": "migration guesswork", "detail": "Plan boundaries map to growth stages and governance requirements."},
-            {"value": "1", "label": "billing oversight layer", "detail": "Manager workflows provide trial and usage visibility across tenants."},
-            {"value": "Flexible", "label": "add-on model", "detail": "Activate advanced modules as schools scale operational complexity."},
+            {
+                "value": "3",
+                "label": "clear plan bands",
+                "detail": "Starter, Growth, and Enterprise White-label framing.",
+            },
+            {
+                "value": "0",
+                "label": "migration guesswork",
+                "detail": "Plan boundaries map to growth stages and governance requirements.",
+            },
+            {
+                "value": "1",
+                "label": "billing oversight layer",
+                "detail": "Manager workflows provide trial and usage visibility across tenants.",
+            },
+            {
+                "value": "Flexible",
+                "label": "add-on model",
+                "detail": "Activate advanced modules as schools scale operational complexity.",
+            },
         ],
         "faqs": [
-            {"question": "What plans does RunMyCampus offer?", "answer": "Starter for single-campus schools, Growth for multi-campus networks, and Enterprise White-label for operators at national scale."},
-            {"question": "Can I try RunMyCampus before committing?", "answer": "Yes. Start a free trial from the signup flow; you can also book a demo for a guided walkthrough."},
-            {"question": "How does billing work for multiple schools?", "answer": "Manager workflows provide visibility into trial status, usage, and billing across all tenants in one command center."},
+            {
+                "question": "What plans does RunMyCampus offer?",
+                "answer": "Starter for single-campus schools, Growth for multi-campus networks, and Enterprise White-label for operators at national scale.",
+            },
+            {
+                "question": "Can I try RunMyCampus before committing?",
+                "answer": "Yes. Start a free trial from the signup flow; you can also book a demo for a guided walkthrough.",
+            },
+            {
+                "question": "How does billing work for multiple schools?",
+                "answer": "Manager workflows provide visibility into trial status, usage, and billing across all tenants in one command center.",
+            },
         ],
         "execution_blocks": [
             {
@@ -1061,10 +1791,26 @@ MARKETING_PAGE_EXTRAS = {
     },
     "compare": {
         "metrics": [
-            {"value": "1", "label": "canonical host contract", "detail": "Public, tenant, manager, API, and docs surfaces are explicitly separated."},
-            {"value": "100%", "label": "subdomain tenancy", "detail": "No path-based tenant rendering in production contract."},
-            {"value": "3", "label": "governance layers", "detail": "School-level control, manager oversight, and registry-based defaults."},
-            {"value": "Audit-ready", "label": "operator traceability", "detail": "Support and provisioning actions remain attributable and reviewable."},
+            {
+                "value": "1",
+                "label": "canonical host contract",
+                "detail": "Public, tenant, manager, API, and docs surfaces are explicitly separated.",
+            },
+            {
+                "value": "100%",
+                "label": "subdomain tenancy",
+                "detail": "No path-based tenant rendering in production contract.",
+            },
+            {
+                "value": "3",
+                "label": "governance layers",
+                "detail": "School-level control, manager oversight, and registry-based defaults.",
+            },
+            {
+                "value": "Audit-ready",
+                "label": "operator traceability",
+                "detail": "Support and provisioning actions remain attributable and reviewable.",
+            },
         ],
         "execution_blocks": [
             {
@@ -1111,10 +1857,26 @@ MARKETING_PAGE_EXTRAS = {
     },
     "case-studies": {
         "metrics": [
-            {"value": "42%", "label": "faster onboarding cycles", "detail": "Template-led school launch patterns shorten go-live timelines."},
-            {"value": "31%", "label": "faster intervention response", "detail": "Action-center workflows improve follow-through speed for at-risk learners."},
-            {"value": "2.3x", "label": "support visibility gain", "detail": "Manager control workflows reduce unresolved queue blind spots."},
-            {"value": "99.9%", "label": "platform continuity target", "detail": "Operational posture designed for day-to-day reliability."},
+            {
+                "value": "42%",
+                "label": "faster onboarding cycles",
+                "detail": "Template-led school launch patterns shorten go-live timelines.",
+            },
+            {
+                "value": "31%",
+                "label": "faster intervention response",
+                "detail": "Action-center workflows improve follow-through speed for at-risk learners.",
+            },
+            {
+                "value": "2.3x",
+                "label": "support visibility gain",
+                "detail": "Manager control workflows reduce unresolved queue blind spots.",
+            },
+            {
+                "value": "99.9%",
+                "label": "platform continuity target",
+                "detail": "Operational posture designed for day-to-day reliability.",
+            },
         ],
         "execution_blocks": [
             {
@@ -1135,28 +1897,56 @@ MARKETING_PAGE_EXTRAS = {
                 "title": "Multi-campus governance modernization",
                 "result": "Reduced onboarding time while preserving campus identity autonomy.",
                 "impact": "Faster go-live and clearer ownership boundaries.",
-                "outcomes": ["42% faster onboarding", "3 campuses live in 8 weeks", "Single sign-on across network"],
+                "outcomes": [
+                    "42% faster onboarding",
+                    "3 campuses live in 8 weeks",
+                    "Single sign-on across network",
+                ],
             },
             {
                 "title": "Admissions-to-enrollment conversion lift",
                 "result": "Unified enquiry, qualification, and onboarding workflow improved conversion flow.",
                 "impact": "Lower handoff friction and better counselor throughput.",
-                "outcomes": ["31% higher application-to-enrollment rate", "50% less manual data re-entry", "2-week shorter cycle"],
+                "outcomes": [
+                    "31% higher application-to-enrollment rate",
+                    "50% less manual data re-entry",
+                    "2-week shorter cycle",
+                ],
             },
             {
                 "title": "Regional localization program",
                 "result": "Registry-driven terminology and compliance defaults removed regional hardcoding.",
                 "impact": "Faster country rollout with lower maintenance overhead.",
-                "outcomes": ["4 countries on one codebase", "60% less localization effort", "Same-day terminology updates"],
+                "outcomes": [
+                    "4 countries on one codebase",
+                    "60% less localization effort",
+                    "Same-day terminology updates",
+                ],
             },
         ],
     },
     "book-demo": {
         "metrics": [
-            {"value": "45 min", "label": "guided walkthrough", "detail": "Structured review of public, tenant, and manager experiences."},
-            {"value": "3", "label": "live surface demonstrations", "detail": "Marketing conversion, tenant login, and manager operations in one session."},
-            {"value": "1", "label": "architecture recommendation", "detail": "You receive a clear operating model fit summary."},
-            {"value": "Next-day", "label": "follow-up package", "detail": "Implementation notes and rollout guidance after demo completion."},
+            {
+                "value": "45 min",
+                "label": "guided walkthrough",
+                "detail": "Structured review of public, tenant, and manager experiences.",
+            },
+            {
+                "value": "3",
+                "label": "live surface demonstrations",
+                "detail": "Marketing conversion, tenant login, and manager operations in one session.",
+            },
+            {
+                "value": "1",
+                "label": "architecture recommendation",
+                "detail": "You receive a clear operating model fit summary.",
+            },
+            {
+                "value": "Next-day",
+                "label": "follow-up package",
+                "detail": "Implementation notes and rollout guidance after demo completion.",
+            },
         ],
         "execution_blocks": [
             {
@@ -1181,31 +1971,105 @@ MARKETING_PAGE_EXTRAS = {
     },
     "buyer-toolkit": {
         "implementation_timeline": [
-            {"phase": "1", "title": "Discovery and signup", "owner": "School lead", "items": ["Evaluate platform fit", "Start free trial", "Confirm data and compliance requirements"]},
-            {"phase": "2", "title": "Tenant and data setup", "owner": "IT", "items": ["Provision tenant", "Import students and staff", "Configure SSO and integrations"]},
-            {"phase": "3", "title": "Finance and billing", "owner": "Finance", "items": ["Configure fee structure", "Connect payment gateway", "Run first billing cycle"]},
-            {"phase": "4", "title": "Academics and go-live", "owner": "Admissions / Academics", "items": ["Configure grading and terms", "Train teachers and staff", "Go live and monitor"]},
+            {
+                "phase": "1",
+                "title": "Discovery and signup",
+                "owner": "School lead",
+                "items": [
+                    "Evaluate platform fit",
+                    "Start free trial",
+                    "Confirm data and compliance requirements",
+                ],
+            },
+            {
+                "phase": "2",
+                "title": "Tenant and data setup",
+                "owner": "IT",
+                "items": [
+                    "Provision tenant",
+                    "Import students and staff",
+                    "Configure SSO and integrations",
+                ],
+            },
+            {
+                "phase": "3",
+                "title": "Finance and billing",
+                "owner": "Finance",
+                "items": [
+                    "Configure fee structure",
+                    "Connect payment gateway",
+                    "Run first billing cycle",
+                ],
+            },
+            {
+                "phase": "4",
+                "title": "Academics and go-live",
+                "owner": "Admissions / Academics",
+                "items": [
+                    "Configure grading and terms",
+                    "Train teachers and staff",
+                    "Go live and monitor",
+                ],
+            },
         ],
         "checklist_intro": "Use this checklist to evaluate RunMyCampus before you commit. Download and track progress.",
     },
     "security-compliance": {
-        "trust_strip": ["FERPA aligned", "GDPR ready", "SOC 2 roadmap", "Encryption at rest & in transit", "Audit trails"],
+        "trust_strip": [
+            "FERPA aligned",
+            "GDPR ready",
+            "SOC 2 roadmap",
+            "Encryption at rest & in transit",
+            "Audit trails",
+        ],
     },
     "integrations": {
         "integration_trust_categories": [
-            {"name": "SIS & student data", "summary": "OneRoster, Ed-Fi, and custom SIS sync. Student records stay in sync with your source of truth.", "icon": "SIS"},
-            {"name": "LMS & LTI", "summary": "LTI 1.3 and deep linking. Connect Canvas, Moodle, Google Classroom, and other LMS providers.", "icon": "LMS"},
-            {"name": "Payments", "summary": "Stripe, PayPal, and regional gateways. Multi-currency and receipt automation.", "icon": "Pay"},
-            {"name": "Messaging", "summary": "SMS and email providers for notifications, reminders, and alerts. Delivery tracking.", "icon": "Msg"},
-            {"name": "Identity", "summary": "SAML and OAuth. Single sign-on with your identity provider.", "icon": "SSO"},
+            {
+                "name": "SIS & student data",
+                "summary": "OneRoster, Ed-Fi, and custom SIS sync. Student records stay in sync with your source of truth.",
+                "icon": "SIS",
+            },
+            {
+                "name": "LMS & LTI",
+                "summary": "LTI 1.3 and deep linking. Connect Canvas, Moodle, Google Classroom, and other LMS providers.",
+                "icon": "LMS",
+            },
+            {
+                "name": "Payments",
+                "summary": "Stripe, PayPal, and regional gateways. Multi-currency and receipt automation.",
+                "icon": "Pay",
+            },
+            {
+                "name": "Messaging",
+                "summary": "SMS and email providers for notifications, reminders, and alerts. Delivery tracking.",
+                "icon": "Msg",
+            },
+            {
+                "name": "Identity",
+                "summary": "SAML and OAuth. Single sign-on with your identity provider.",
+                "icon": "SSO",
+            },
         ],
     },
     "why-switch": {
         "faqs": [
-            {"question": "Why switch from spreadsheets to RunMyCampus?", "answer": "One platform for admissions, academics, finance, and compliance with guided import and no ongoing spreadsheet sync."},
-            {"question": "How long does migration take?", "answer": "Timelines depend on data volume and complexity; templates and support typically get schools live in weeks."},
-            {"question": "Can we keep our existing data?", "answer": "Yes. Structured import paths let you bring students, staff, and historical data into a single source of truth."},
-            {"question": "What if we need to leave the platform?", "answer": "Export and portability options keep you in control of your school data with no lock-in."},
+            {
+                "question": "Why switch from spreadsheets to RunMyCampus?",
+                "answer": "One platform for admissions, academics, finance, and compliance with guided import and no ongoing spreadsheet sync.",
+            },
+            {
+                "question": "How long does migration take?",
+                "answer": "Timelines depend on data volume and complexity; templates and support typically get schools live in weeks.",
+            },
+            {
+                "question": "Can we keep our existing data?",
+                "answer": "Yes. Structured import paths let you bring students, staff, and historical data into a single source of truth.",
+            },
+            {
+                "question": "What if we need to leave the platform?",
+                "answer": "Export and portability options keep you in control of your school data with no lock-in.",
+            },
         ],
     },
     "10-reasons": {},
@@ -1221,11 +2085,31 @@ MARKETING_PAGE_EXTRAS = {
             "support_summary": "24/7 operator readiness for critical issues. Support and governance from manager workflows.",
         },
         "integration_trust_categories": [
-            {"name": "SIS & student data", "summary": "OneRoster, Ed-Fi, and custom SIS sync. Student records stay in sync with your source of truth.", "icon": "SIS"},
-            {"name": "LMS & LTI", "summary": "LTI 1.3 and deep linking. Connect Canvas, Moodle, Google Classroom, and other LMS providers.", "icon": "LMS"},
-            {"name": "Payments", "summary": "Stripe, PayPal, and regional gateways. Multi-currency and receipt automation.", "icon": "Pay"},
-            {"name": "Messaging", "summary": "SMS and email providers for notifications, reminders, and alerts. Delivery tracking.", "icon": "Msg"},
-            {"name": "Identity", "summary": "SAML and OAuth. Single sign-on with your identity provider.", "icon": "SSO"},
+            {
+                "name": "SIS & student data",
+                "summary": "OneRoster, Ed-Fi, and custom SIS sync. Student records stay in sync with your source of truth.",
+                "icon": "SIS",
+            },
+            {
+                "name": "LMS & LTI",
+                "summary": "LTI 1.3 and deep linking. Connect Canvas, Moodle, Google Classroom, and other LMS providers.",
+                "icon": "LMS",
+            },
+            {
+                "name": "Payments",
+                "summary": "Stripe, PayPal, and regional gateways. Multi-currency and receipt automation.",
+                "icon": "Pay",
+            },
+            {
+                "name": "Messaging",
+                "summary": "SMS and email providers for notifications, reminders, and alerts. Delivery tracking.",
+                "icon": "Msg",
+            },
+            {
+                "name": "Identity",
+                "summary": "SAML and OAuth. Single sign-on with your identity provider.",
+                "icon": "SSO",
+            },
         ],
     },
     "uptime": {
@@ -1252,8 +2136,16 @@ TOPICAL_LANDING_DEFINITIONS = {
         ],
         "role_pain": "Admissions teams juggle spreadsheets, email, and legacy tools—leading to lost leads and slow conversion.",
         "migration_angle": "Import existing enquiries and applicants; map counselor workflows; go live with one source of truth.",
-        "proof_points": ["Faster application-to-enrollment conversion", "Single enquiry pipeline", "Counselor assignment visibility"],
-        "related_slugs": ["school-erp", "k12-school-management-system", "multi-campus-school-software"],
+        "proof_points": [
+            "Faster application-to-enrollment conversion",
+            "Single enquiry pipeline",
+            "Counselor assignment visibility",
+        ],
+        "related_slugs": [
+            "school-erp",
+            "k12-school-management-system",
+            "multi-campus-school-software",
+        ],
     },
     "school-erp": {
         "label": "School ERP",
@@ -1268,8 +2160,16 @@ TOPICAL_LANDING_DEFINITIONS = {
         ],
         "role_pain": "Finance, academics, and operations run on separate systems—leading to duplicate data and reporting gaps.",
         "migration_angle": "Map your current modules to RunMyCampus; import students, staff, and fees; phase out legacy ERP.",
-        "proof_points": ["One source of truth", "Role-ready portals", "Audit-ready reporting"],
-        "related_slugs": ["admissions-software", "k12-school-management-system", "parent-app"],
+        "proof_points": [
+            "One source of truth",
+            "Role-ready portals",
+            "Audit-ready reporting",
+        ],
+        "related_slugs": [
+            "admissions-software",
+            "k12-school-management-system",
+            "parent-app",
+        ],
     },
     "parent-app": {
         "label": "Parent App",
@@ -1284,7 +2184,11 @@ TOPICAL_LANDING_DEFINITIONS = {
         ],
         "role_pain": "Parents chase teachers and office staff for grades and updates; schools lack a single channel for family communication.",
         "migration_angle": "Turn on the parent portal; no separate app to install—parents use one link for all school communication.",
-        "proof_points": ["One place for attendance, grades, fees", "School-controlled messaging", "No app sprawl"],
+        "proof_points": [
+            "One place for attendance, grades, fees",
+            "School-controlled messaging",
+            "No app sprawl",
+        ],
         "related_slugs": ["school-erp", "k12-school-management-system"],
     },
     "k12-school-management-system": {
@@ -1300,7 +2204,11 @@ TOPICAL_LANDING_DEFINITIONS = {
         ],
         "role_pain": "K12 admins and teachers need one system that handles enrollment, grades, attendance, and parent communication.",
         "migration_angle": "Import students and terms from your SIS or spreadsheets; configure grading and calendars; go live with teacher and parent access.",
-        "proof_points": ["Term and calendar alignment", "Teacher and parent portals", "At-risk insights"],
+        "proof_points": [
+            "Term and calendar alignment",
+            "Teacher and parent portals",
+            "At-risk insights",
+        ],
         "related_slugs": ["admissions-software", "school-erp", "parent-app"],
     },
     "multi-campus-school-software": {
@@ -1316,8 +2224,16 @@ TOPICAL_LANDING_DEFINITIONS = {
         ],
         "role_pain": "Multi-campus operators need central visibility without forcing one-size-fits-all on each school.",
         "migration_angle": "Provision campuses as tenants; migrate one or many at a time; keep central reporting and support workflows.",
-        "proof_points": ["Per-campus autonomy", "Central command center", "Shared reporting"],
-        "related_slugs": ["school-erp", "admissions-software", "student-passport-transcript-portability"],
+        "proof_points": [
+            "Per-campus autonomy",
+            "Central command center",
+            "Shared reporting",
+        ],
+        "related_slugs": [
+            "school-erp",
+            "admissions-software",
+            "student-passport-transcript-portability",
+        ],
     },
     "student-passport-transcript-portability": {
         "label": "Student Passport Portability",
@@ -1332,8 +2248,16 @@ TOPICAL_LANDING_DEFINITIONS = {
         ],
         "role_pain": "When students move between schools, records are lost or re-entered manually—slowing enrollment and hurting continuity.",
         "migration_angle": "Adopt the student passport model; enable transfer workflows so sending and receiving schools share a single record.",
-        "proof_points": ["Portable identifier", "Transfer workflow", "Document-ready transcripts"],
-        "related_slugs": ["k12-school-management-system", "multi-campus-school-software", "school-erp"],
+        "proof_points": [
+            "Portable identifier",
+            "Transfer workflow",
+            "Document-ready transcripts",
+        ],
+        "related_slugs": [
+            "k12-school-management-system",
+            "multi-campus-school-software",
+            "school-erp",
+        ],
     },
 }
 
@@ -1345,9 +2269,18 @@ INSTITUTION_LANDING_DEFINITIONS = {
         "headline": "K-12 operations in one platform.",
         "subheadline": "Elementary and secondary schools get enrollment, academics, communication, and compliance without tool sprawl.",
         "workflow_examples": [
-            {"title": "Enrollment and attendance", "body": "Daily attendance, term calendars, and parent visibility in one flow."},
-            {"title": "Grades and report cards", "body": "Grading workflows and report cards aligned to your school calendar."},
-            {"title": "Parent and teacher portals", "body": "Role-ready access so families and staff see what they need."},
+            {
+                "title": "Enrollment and attendance",
+                "body": "Daily attendance, term calendars, and parent visibility in one flow.",
+            },
+            {
+                "title": "Grades and report cards",
+                "body": "Grading workflows and report cards aligned to your school calendar.",
+            },
+            {
+                "title": "Parent and teacher portals",
+                "body": "Role-ready access so families and staff see what they need.",
+            },
         ],
         "compliance_angle": "FERPA-aligned workflows and regional compliance defaults for K-12.",
         "migration_pathway": "Import students and staff from your SIS or spreadsheets; configure terms and grading; go live with teacher and parent access.",
@@ -1361,9 +2294,18 @@ INSTITUTION_LANDING_DEFINITIONS = {
         "headline": "Higher ed operations that scale.",
         "subheadline": "Admissions, academic structure, and multi-campus governance for universities and colleges.",
         "workflow_examples": [
-            {"title": "Admissions and enrollment", "body": "From application to enrolled student with counselor workflows and document tracking."},
-            {"title": "Academic structure", "body": "Programs, courses, and sections with role-based access for faculty and staff."},
-            {"title": "Multi-campus governance", "body": "Central oversight with campus-level autonomy and reporting."},
+            {
+                "title": "Admissions and enrollment",
+                "body": "From application to enrolled student with counselor workflows and document tracking.",
+            },
+            {
+                "title": "Academic structure",
+                "body": "Programs, courses, and sections with role-based access for faculty and staff.",
+            },
+            {
+                "title": "Multi-campus governance",
+                "body": "Central oversight with campus-level autonomy and reporting.",
+            },
         ],
         "compliance_angle": "GDPR and FERPA-aligned controls with audit trails and data residency options.",
         "migration_pathway": "Map your current SIS and CRM; migrate students and courses; phase in by campus or module.",
@@ -1377,9 +2319,18 @@ INSTITUTION_LANDING_DEFINITIONS = {
         "headline": "Career and technical education, unified.",
         "subheadline": "Programs, certification tracking, and placement workflows in one platform.",
         "workflow_examples": [
-            {"title": "Program and certification tracking", "body": "Track credentials and certifications with audit-ready records."},
-            {"title": "Placement and outcomes", "body": "Placement and employment outcomes for reporting and accreditation."},
-            {"title": "Finance and billing", "body": "Tuition, aid, and billing aligned to technical program cycles."},
+            {
+                "title": "Program and certification tracking",
+                "body": "Track credentials and certifications with audit-ready records.",
+            },
+            {
+                "title": "Placement and outcomes",
+                "body": "Placement and employment outcomes for reporting and accreditation.",
+            },
+            {
+                "title": "Finance and billing",
+                "body": "Tuition, aid, and billing aligned to technical program cycles.",
+            },
         ],
         "compliance_angle": "Regional accreditation and compliance reporting with role-based access.",
         "migration_pathway": "Import programs and students; configure certification workflows; connect to placement and reporting.",
@@ -1393,9 +2344,18 @@ INSTITUTION_LANDING_DEFINITIONS = {
         "headline": "Private schools run with one platform.",
         "subheadline": "Independent and faith-based schools get admissions, academics, finance, and fundraising without sprawl.",
         "workflow_examples": [
-            {"title": "Admissions and enrollment", "body": "Enquiry to enrollment with family communication and financial aid workflows."},
-            {"title": "Academics and reporting", "body": "Grades, attendance, and report cards with parent and teacher portals."},
-            {"title": "Development and fundraising", "body": "Donor and event management for advancement and engagement."},
+            {
+                "title": "Admissions and enrollment",
+                "body": "Enquiry to enrollment with family communication and financial aid workflows.",
+            },
+            {
+                "title": "Academics and reporting",
+                "body": "Grades, attendance, and report cards with parent and teacher portals.",
+            },
+            {
+                "title": "Development and fundraising",
+                "body": "Donor and event management for advancement and engagement.",
+            },
         ],
         "compliance_angle": "Audit trails and policy controls for independent school governance.",
         "migration_pathway": "Import students and families; configure fees and aid; add development and events as needed.",
@@ -1409,9 +2369,18 @@ INSTITUTION_LANDING_DEFINITIONS = {
         "headline": "Government education, compliant by design.",
         "subheadline": "Public sector and government-run institutions with compliance, reporting, and multi-entity governance.",
         "workflow_examples": [
-            {"title": "Compliance and reporting", "body": "Audit-ready workflows and regional compliance defaults."},
-            {"title": "Multi-entity governance", "body": "Central oversight with entity-level isolation and reporting."},
-            {"title": "Access and security", "body": "Role-based access and encryption at rest and in transit."},
+            {
+                "title": "Compliance and reporting",
+                "body": "Audit-ready workflows and regional compliance defaults.",
+            },
+            {
+                "title": "Multi-entity governance",
+                "body": "Central oversight with entity-level isolation and reporting.",
+            },
+            {
+                "title": "Access and security",
+                "body": "Role-based access and encryption at rest and in transit.",
+            },
         ],
         "compliance_angle": "FERPA, GDPR, and government security requirements with data residency options.",
         "migration_pathway": "Map compliance and reporting requirements; migrate entities with phased rollout and audit trails.",
@@ -1427,9 +2396,22 @@ ROLE_PAGE_DEFINITIONS = {
         "seo_description": "RunMyCampus for school administrators: one console for enrollment, academics, finance, and reporting.",
         "headline": "One console for school operations.",
         "subheadline": "Enrollment, academics, finance, and reporting without switching tools or re-entering data.",
-        "workflows": ["Enrollment and admissions", "Attendance and grades", "Fee and billing", "Reporting and compliance"],
-        "dashboards": ["Student and staff overview", "Finance summary", "Compliance and audit"],
-        "outcomes": ["Single source of truth", "Faster reporting", "Audit-ready operations"],
+        "workflows": [
+            "Enrollment and admissions",
+            "Attendance and grades",
+            "Fee and billing",
+            "Reporting and compliance",
+        ],
+        "dashboards": [
+            "Student and staff overview",
+            "Finance summary",
+            "Compliance and audit",
+        ],
+        "outcomes": [
+            "Single source of truth",
+            "Faster reporting",
+            "Audit-ready operations",
+        ],
     },
     "teachers": {
         "label": "Teachers",
@@ -1437,9 +2419,18 @@ ROLE_PAGE_DEFINITIONS = {
         "seo_description": "RunMyCampus for teachers: grading, attendance, and parent communication in one place.",
         "headline": "Teacher tools that save time.",
         "subheadline": "Grading, attendance, and parent communication without leaving one platform.",
-        "workflows": ["Attendance", "Grading and report cards", "Class and assignment visibility", "Parent messaging"],
+        "workflows": [
+            "Attendance",
+            "Grading and report cards",
+            "Class and assignment visibility",
+            "Parent messaging",
+        ],
         "dashboards": ["My classes", "Attendance summary", "Grade book"],
-        "outcomes": ["Less duplicate entry", "Clear parent communication", "One place for grades"],
+        "outcomes": [
+            "Less duplicate entry",
+            "Clear parent communication",
+            "One place for grades",
+        ],
     },
     "parents": {
         "label": "Parents",
@@ -1447,7 +2438,11 @@ ROLE_PAGE_DEFINITIONS = {
         "seo_description": "RunMyCampus parent portal: attendance, grades, fees, and messages in one place.",
         "headline": "One place for your child's school.",
         "subheadline": "Attendance, grades, fees, and messages so you stay informed without chasing updates.",
-        "workflows": ["View attendance and grades", "Pay fees", "School messages and announcements"],
+        "workflows": [
+            "View attendance and grades",
+            "Pay fees",
+            "School messages and announcements",
+        ],
         "dashboards": ["My children", "Fee statements", "Message history"],
         "outcomes": ["Real-time visibility", "One login", "No app sprawl"],
     },
@@ -1467,7 +2462,11 @@ ROLE_PAGE_DEFINITIONS = {
         "seo_description": "RunMyCampus for IT: tenant provisioning, SSO, integrations, and security.",
         "headline": "IT control without lock-in.",
         "subheadline": "Tenant provisioning, SSO, integrations, and security from one platform.",
-        "workflows": ["Tenant and user provisioning", "SSO and identity", "Integrations and API"],
+        "workflows": [
+            "Tenant and user provisioning",
+            "SSO and identity",
+            "Integrations and API",
+        ],
         "dashboards": ["Tenant health", "Integration status", "Audit and access"],
         "outcomes": ["Subdomain isolation", "API and webhooks", "Audit-ready"],
     },
@@ -1477,7 +2476,11 @@ ROLE_PAGE_DEFINITIONS = {
         "seo_description": "RunMyCampus for government education: compliance, reporting, and multi-entity governance.",
         "headline": "Government education operations.",
         "subheadline": "Compliance, reporting, and multi-entity governance with audit trails and data residency.",
-        "workflows": ["Compliance and reporting", "Multi-entity oversight", "Audit and access control"],
+        "workflows": [
+            "Compliance and reporting",
+            "Multi-entity oversight",
+            "Audit and access control",
+        ],
         "dashboards": ["Entity overview", "Compliance status", "Reporting"],
         "outcomes": ["Audit-ready", "Data residency options", "Role-based governance"],
     },
@@ -1487,7 +2490,11 @@ ROLE_PAGE_DEFINITIONS = {
         "seo_description": "RunMyCampus for principals: oversight, reporting, and school operations in one platform.",
         "headline": "One platform for school leadership.",
         "subheadline": "Oversight, reporting, and operations so you lead with clarity.",
-        "workflows": ["School overview and reporting", "Staff and enrollment visibility", "Compliance and interventions"],
+        "workflows": [
+            "School overview and reporting",
+            "Staff and enrollment visibility",
+            "Compliance and interventions",
+        ],
         "dashboards": ["School health", "Enrollment and attendance", "Key metrics"],
         "outcomes": ["Single source of truth", "Faster reporting", "Audit-ready"],
     },
@@ -1497,7 +2504,11 @@ ROLE_PAGE_DEFINITIONS = {
         "seo_description": "RunMyCampus for district leaders: multi-school oversight, policy, and governance.",
         "headline": "District and network oversight.",
         "subheadline": "Govern multiple schools from one command center with school-level autonomy.",
-        "workflows": ["Multi-school oversight", "Policy and blueprint rollout", "Reporting and compliance"],
+        "workflows": [
+            "Multi-school oversight",
+            "Policy and blueprint rollout",
+            "Reporting and compliance",
+        ],
         "dashboards": ["District overview", "School health", "Usage and compliance"],
         "outcomes": ["Central visibility", "Consistent policy", "School autonomy"],
     },
@@ -1568,17 +2579,53 @@ MIGRATION_SIMULATOR_SOURCES = {
         "display_name": "PowerSchool",
         "typical_timeline": "4–8 weeks",
         "steps": [
-            {"order": 1, "title": "Export and extract", "description": "Export students, staff, and courses from PowerSchool. We provide export templates and scripts for common versions."},
-            {"order": 2, "title": "Field mapping", "description": "Map PowerSchool fields to RunMyCampus using our mapping UI. Templates cover students, staff, courses, and enrollments."},
-            {"order": 3, "title": "Validation and dry-run", "description": "Validate data and run a dry-run import. Fix any mapping or data issues before go-live."},
-            {"order": 4, "title": "Cutover and go-live", "description": "Run the final import during your cutover window. Keep PowerSchool read-only. Verify parity and switch traffic."},
-            {"order": 5, "title": "Post-go-live", "description": "Reconcile any edge cases, train users, and decommission PowerSchool when ready."},
+            {
+                "order": 1,
+                "title": "Export and extract",
+                "description": "Export students, staff, and courses from PowerSchool. We provide export templates and scripts for common versions.",
+            },
+            {
+                "order": 2,
+                "title": "Field mapping",
+                "description": "Map PowerSchool fields to RunMyCampus using our mapping UI. Templates cover students, staff, courses, and enrollments.",
+            },
+            {
+                "order": 3,
+                "title": "Validation and dry-run",
+                "description": "Validate data and run a dry-run import. Fix any mapping or data issues before go-live.",
+            },
+            {
+                "order": 4,
+                "title": "Cutover and go-live",
+                "description": "Run the final import during your cutover window. Keep PowerSchool read-only. Verify parity and switch traffic.",
+            },
+            {
+                "order": 5,
+                "title": "Post-go-live",
+                "description": "Reconcile any edge cases, train users, and decommission PowerSchool when ready.",
+            },
         ],
         "field_mapping_examples": [
-            {"source_field": "student_id", "target_field": "External ID", "notes": "Unique student identifier"},
-            {"source_field": "first_name / last_name", "target_field": "Name", "notes": "Split or combined per your export"},
-            {"source_field": "grade_level", "target_field": "Grade level", "notes": "Map to your RunMyCampus grade set"},
-            {"source_field": "homeroom", "target_field": "Section / class", "notes": "Optional for class assignment"},
+            {
+                "source_field": "student_id",
+                "target_field": "External ID",
+                "notes": "Unique student identifier",
+            },
+            {
+                "source_field": "first_name / last_name",
+                "target_field": "Name",
+                "notes": "Split or combined per your export",
+            },
+            {
+                "source_field": "grade_level",
+                "target_field": "Grade level",
+                "notes": "Map to your RunMyCampus grade set",
+            },
+            {
+                "source_field": "homeroom",
+                "target_field": "Section / class",
+                "notes": "Optional for class assignment",
+            },
         ],
     },
     "from-blackbaud": {
@@ -1586,16 +2633,48 @@ MIGRATION_SIMULATOR_SOURCES = {
         "display_name": "Blackbaud",
         "typical_timeline": "6–10 weeks",
         "steps": [
-            {"order": 1, "title": "Export and extract", "description": "Export students, families, and fee data from Blackbaud. We support common export formats and can advise on data extraction."},
-            {"order": 2, "title": "Field mapping", "description": "Map Blackbaud data to RunMyCampus students, guardians, and finance. Templates for admissions and enrollment data."},
-            {"order": 3, "title": "Validation and dry-run", "description": "Validate and dry-run. Parity checks for key records and balances."},
-            {"order": 4, "title": "Cutover and go-live", "description": "Final import during cutover. Phased rollout with rollback option and support."},
-            {"order": 5, "title": "Post-go-live", "description": "Reconcile, train users, and retire Blackbaud when ready."},
+            {
+                "order": 1,
+                "title": "Export and extract",
+                "description": "Export students, families, and fee data from Blackbaud. We support common export formats and can advise on data extraction.",
+            },
+            {
+                "order": 2,
+                "title": "Field mapping",
+                "description": "Map Blackbaud data to RunMyCampus students, guardians, and finance. Templates for admissions and enrollment data.",
+            },
+            {
+                "order": 3,
+                "title": "Validation and dry-run",
+                "description": "Validate and dry-run. Parity checks for key records and balances.",
+            },
+            {
+                "order": 4,
+                "title": "Cutover and go-live",
+                "description": "Final import during cutover. Phased rollout with rollback option and support.",
+            },
+            {
+                "order": 5,
+                "title": "Post-go-live",
+                "description": "Reconcile, train users, and retire Blackbaud when ready.",
+            },
         ],
         "field_mapping_examples": [
-            {"source_field": "Student ID", "target_field": "External ID", "notes": "Unique identifier"},
-            {"source_field": "Family / household", "target_field": "Guardians and contacts", "notes": "Map family relationships"},
-            {"source_field": "Fee / billing", "target_field": "Fees and invoices", "notes": "Outstanding balances if migrating mid-year"},
+            {
+                "source_field": "Student ID",
+                "target_field": "External ID",
+                "notes": "Unique identifier",
+            },
+            {
+                "source_field": "Family / household",
+                "target_field": "Guardians and contacts",
+                "notes": "Map family relationships",
+            },
+            {
+                "source_field": "Fee / billing",
+                "target_field": "Fees and invoices",
+                "notes": "Outstanding balances if migrating mid-year",
+            },
         ],
     },
     "from-infinite-campus": {
@@ -1603,16 +2682,48 @@ MIGRATION_SIMULATOR_SOURCES = {
         "display_name": "Infinite Campus",
         "typical_timeline": "4–8 weeks",
         "steps": [
-            {"order": 1, "title": "Export and extract", "description": "Export student, course, and grade data from Infinite Campus. Use our export guidance for your version."},
-            {"order": 2, "title": "Field mapping", "description": "Map Infinite Campus fields to RunMyCampus students, courses, and grades. Templates provided."},
-            {"order": 3, "title": "Validation and dry-run", "description": "Validate enrollment and grades. Run dry-run and parity reports."},
-            {"order": 4, "title": "Cutover and go-live", "description": "Staged cutover with rollback plan. Final import and traffic switch."},
-            {"order": 5, "title": "Post-go-live", "description": "Reconcile and train. Decommission Infinite Campus when ready."},
+            {
+                "order": 1,
+                "title": "Export and extract",
+                "description": "Export student, course, and grade data from Infinite Campus. Use our export guidance for your version.",
+            },
+            {
+                "order": 2,
+                "title": "Field mapping",
+                "description": "Map Infinite Campus fields to RunMyCampus students, courses, and grades. Templates provided.",
+            },
+            {
+                "order": 3,
+                "title": "Validation and dry-run",
+                "description": "Validate enrollment and grades. Run dry-run and parity reports.",
+            },
+            {
+                "order": 4,
+                "title": "Cutover and go-live",
+                "description": "Staged cutover with rollback plan. Final import and traffic switch.",
+            },
+            {
+                "order": 5,
+                "title": "Post-go-live",
+                "description": "Reconcile and train. Decommission Infinite Campus when ready.",
+            },
         ],
         "field_mapping_examples": [
-            {"source_field": "student_number", "target_field": "External ID", "notes": "Unique student ID"},
-            {"source_field": "course_code", "target_field": "Course code", "notes": "Align to your course catalog"},
-            {"source_field": "term / grade", "target_field": "Term and grade level", "notes": "Map to RunMyCampus terms and grades"},
+            {
+                "source_field": "student_number",
+                "target_field": "External ID",
+                "notes": "Unique student ID",
+            },
+            {
+                "source_field": "course_code",
+                "target_field": "Course code",
+                "notes": "Align to your course catalog",
+            },
+            {
+                "source_field": "term / grade",
+                "target_field": "Term and grade level",
+                "notes": "Map to RunMyCampus terms and grades",
+            },
         ],
     },
     "from-veracross": {
@@ -1620,16 +2731,48 @@ MIGRATION_SIMULATOR_SOURCES = {
         "display_name": "Veracross",
         "typical_timeline": "4–8 weeks",
         "steps": [
-            {"order": 1, "title": "Export and extract", "description": "Export student, family, and course data from Veracross. We provide export guidance for your setup."},
-            {"order": 2, "title": "Field mapping", "description": "Map Veracross fields to RunMyCampus students, guardians, and courses. Pre-built templates for common exports."},
-            {"order": 3, "title": "Validation and dry-run", "description": "Validate data and run dry-run import. Parity checks for key records."},
-            {"order": 4, "title": "Cutover and go-live", "description": "Staged cutover with rollback plan. Final import and traffic switch."},
-            {"order": 5, "title": "Post-go-live", "description": "Reconcile, train users, and decommission Veracross when ready."},
+            {
+                "order": 1,
+                "title": "Export and extract",
+                "description": "Export student, family, and course data from Veracross. We provide export guidance for your setup.",
+            },
+            {
+                "order": 2,
+                "title": "Field mapping",
+                "description": "Map Veracross fields to RunMyCampus students, guardians, and courses. Pre-built templates for common exports.",
+            },
+            {
+                "order": 3,
+                "title": "Validation and dry-run",
+                "description": "Validate data and run dry-run import. Parity checks for key records.",
+            },
+            {
+                "order": 4,
+                "title": "Cutover and go-live",
+                "description": "Staged cutover with rollback plan. Final import and traffic switch.",
+            },
+            {
+                "order": 5,
+                "title": "Post-go-live",
+                "description": "Reconcile, train users, and decommission Veracross when ready.",
+            },
         ],
         "field_mapping_examples": [
-            {"source_field": "person_id / student_id", "target_field": "External ID", "notes": "Unique identifier"},
-            {"source_field": "section / advisor", "target_field": "Section or class", "notes": "Map to RunMyCampus sections"},
-            {"source_field": "grade / form", "target_field": "Grade level", "notes": "Map to your grade set"},
+            {
+                "source_field": "person_id / student_id",
+                "target_field": "External ID",
+                "notes": "Unique identifier",
+            },
+            {
+                "source_field": "section / advisor",
+                "target_field": "Section or class",
+                "notes": "Map to RunMyCampus sections",
+            },
+            {
+                "source_field": "grade / form",
+                "target_field": "Grade level",
+                "notes": "Map to your grade set",
+            },
         ],
     },
     "from-spreadsheets": {
@@ -1637,27 +2780,91 @@ MIGRATION_SIMULATOR_SOURCES = {
         "display_name": "Spreadsheets / CSV",
         "typical_timeline": "2–4 weeks",
         "steps": [
-            {"order": 1, "title": "Prepare CSV templates", "description": "Download our CSV templates for students, staff, and optional courses. Populate from your spreadsheets."},
-            {"order": 2, "title": "Upload and map", "description": "Upload CSVs in the migration wizard. Map columns to RunMyCampus fields. Validation runs on upload."},
-            {"order": 3, "title": "Fix and re-upload", "description": "Address any validation errors and re-upload. Repeat until clean."},
-            {"order": 4, "title": "Import and go-live", "description": "Run the import. Your tenant is populated. Invite users and switch to RunMyCampus."},
+            {
+                "order": 1,
+                "title": "Prepare CSV templates",
+                "description": "Download our CSV templates for students, staff, and optional courses. Populate from your spreadsheets.",
+            },
+            {
+                "order": 2,
+                "title": "Upload and map",
+                "description": "Upload CSVs in the migration wizard. Map columns to RunMyCampus fields. Validation runs on upload.",
+            },
+            {
+                "order": 3,
+                "title": "Fix and re-upload",
+                "description": "Address any validation errors and re-upload. Repeat until clean.",
+            },
+            {
+                "order": 4,
+                "title": "Import and go-live",
+                "description": "Run the import. Your tenant is populated. Invite users and switch to RunMyCampus.",
+            },
         ],
         "field_mapping_examples": [
-            {"source_field": "Column A (ID)", "target_field": "External ID", "notes": "Unique per student or staff"},
-            {"source_field": "Name columns", "target_field": "First name, Last name", "notes": "Or single Full name"},
-            {"source_field": "Grade / year", "target_field": "Grade level", "notes": "Match your grade set"},
+            {
+                "source_field": "Column A (ID)",
+                "target_field": "External ID",
+                "notes": "Unique per student or staff",
+            },
+            {
+                "source_field": "Name columns",
+                "target_field": "First name, Last name",
+                "notes": "Or single Full name",
+            },
+            {
+                "source_field": "Grade / year",
+                "target_field": "Grade level",
+                "notes": "Match your grade set",
+            },
         ],
     },
 }
 
 # Backend-driven getting-started / setup simulator: ordered steps (Phase 5).
 GETTING_STARTED_SIMULATOR_STEPS = [
-    {"order": 1, "title": "Sign up", "description": "Create your account and confirm your school or district. Choose your plan and region. You'll get a verification email.", "cta_label": "Start for real", "cta_url_slug": "signup"},
-    {"order": 2, "title": "Setup wizard", "description": "Configure timezone, calendar, terms, and academic structure. The wizard guides you through core settings so your tenant matches your school.", "cta_label": "Go to wizard", "cta_url_slug": "onboard"},
-    {"order": 3, "title": "Branding", "description": "Upload your logo, set colors, and customize portal appearance. Your school identity across admin, teacher, and parent portals.", "cta_label": "Customize", "cta_url_slug": "themes"},
-    {"order": 4, "title": "Features", "description": "Enable modules and assign workflow and dashboard packs. Turn on admissions, academics, finance, and communication as needed.", "cta_label": "Explore features", "cta_url_slug": "product"},
-    {"order": 5, "title": "Migration", "description": "Import students and staff from spreadsheets or your current SIS. Use field mapping and validation before go-live.", "cta_label": "Migration guide", "cta_url_slug": "migrate"},
-    {"order": 6, "title": "Launch", "description": "Go live with your tenant. Train users, invite parents and teachers, and switch to RunMyCampus as your source of truth.", "cta_label": "Book launch support", "cta_url_slug": "book-demo"},
+    {
+        "order": 1,
+        "title": "Sign up",
+        "description": "Create your account and confirm your school or district. Choose your plan and region. You'll get a verification email.",
+        "cta_label": "Start for real",
+        "cta_url_slug": "signup",
+    },
+    {
+        "order": 2,
+        "title": "Setup wizard",
+        "description": "Configure timezone, calendar, terms, and academic structure. The wizard guides you through core settings so your tenant matches your school.",
+        "cta_label": "Go to wizard",
+        "cta_url_slug": "onboard",
+    },
+    {
+        "order": 3,
+        "title": "Branding",
+        "description": "Upload your logo, set colors, and customize portal appearance. Your school identity across admin, teacher, and parent portals.",
+        "cta_label": "Customize",
+        "cta_url_slug": "themes",
+    },
+    {
+        "order": 4,
+        "title": "Features",
+        "description": "Enable modules and assign workflow and dashboard packs. Turn on admissions, academics, finance, and communication as needed.",
+        "cta_label": "Explore features",
+        "cta_url_slug": "product",
+    },
+    {
+        "order": 5,
+        "title": "Migration",
+        "description": "Import students and staff from spreadsheets or your current SIS. Use field mapping and validation before go-live.",
+        "cta_label": "Migration guide",
+        "cta_url_slug": "migrate",
+    },
+    {
+        "order": 6,
+        "title": "Launch",
+        "description": "Go live with your tenant. Train users, invite parents and teachers, and switch to RunMyCampus as your source of truth.",
+        "cta_label": "Book launch support",
+        "cta_url_slug": "book-demo",
+    },
 ]
 
 COMPARE_PAGE_DEFINITIONS = {
@@ -1668,9 +2875,21 @@ COMPARE_PAGE_DEFINITIONS = {
         "headline": "RunMyCampus vs PowerSchool.",
         "subheadline": "Compare tenancy, security, workflow depth, and long-term fit.",
         "criteria": [
-            {"name": "Tenant isolation", "runmycampus": "Strict subdomain tenancy; each school isolated.", "competitor": "Path or district-based; shared infrastructure."},
-            {"name": "Workflow depth", "runmycampus": "Admissions, academics, finance, compliance in one platform.", "competitor": "Strong SIS; other modules vary."},
-            {"name": "Multi-campus", "runmycampus": "Native multi-tenant with manager command center.", "competitor": "District-centric; different product for multi-entity."},
+            {
+                "name": "Tenant isolation",
+                "runmycampus": "Strict subdomain tenancy; each school isolated.",
+                "competitor": "Path or district-based; shared infrastructure.",
+            },
+            {
+                "name": "Workflow depth",
+                "runmycampus": "Admissions, academics, finance, compliance in one platform.",
+                "competitor": "Strong SIS; other modules vary.",
+            },
+            {
+                "name": "Multi-campus",
+                "runmycampus": "Native multi-tenant with manager command center.",
+                "competitor": "District-centric; different product for multi-entity.",
+            },
         ],
     },
     "blackbaud": {
@@ -1680,9 +2899,21 @@ COMPARE_PAGE_DEFINITIONS = {
         "headline": "RunMyCampus vs Blackbaud.",
         "subheadline": "Compare operations, fundraising, and platform approach.",
         "criteria": [
-            {"name": "Tenant isolation", "runmycampus": "Subdomain tenancy; each school isolated.", "competitor": "Multi-product; shared backend."},
-            {"name": "Unified operations", "runmycampus": "One platform for admissions, academics, finance.", "competitor": "Separate products for SIS, RMM, etc."},
-            {"name": "Pricing and scale", "runmycampus": "Transparent plans; scale from single campus to white-label.", "competitor": "Enterprise-focused; complex pricing."},
+            {
+                "name": "Tenant isolation",
+                "runmycampus": "Subdomain tenancy; each school isolated.",
+                "competitor": "Multi-product; shared backend.",
+            },
+            {
+                "name": "Unified operations",
+                "runmycampus": "One platform for admissions, academics, finance.",
+                "competitor": "Separate products for SIS, RMM, etc.",
+            },
+            {
+                "name": "Pricing and scale",
+                "runmycampus": "Transparent plans; scale from single campus to white-label.",
+                "competitor": "Enterprise-focused; complex pricing.",
+            },
         ],
     },
     "infinite-campus": {
@@ -1692,9 +2923,21 @@ COMPARE_PAGE_DEFINITIONS = {
         "headline": "RunMyCampus vs Infinite Campus.",
         "subheadline": "Compare K-12 SIS, tenancy, and operations.",
         "criteria": [
-            {"name": "Tenant isolation", "runmycampus": "Subdomain tenancy; each school isolated.", "competitor": "District-based; shared instance."},
-            {"name": "Platform scope", "runmycampus": "Admissions, academics, finance, compliance in one.", "competitor": "Strong K-12 SIS; other modules vary."},
-            {"name": "Integration", "runmycampus": "API, webhooks, LTI; marketplace.", "competitor": "Ecosystem and integrations vary."},
+            {
+                "name": "Tenant isolation",
+                "runmycampus": "Subdomain tenancy; each school isolated.",
+                "competitor": "District-based; shared instance.",
+            },
+            {
+                "name": "Platform scope",
+                "runmycampus": "Admissions, academics, finance, compliance in one.",
+                "competitor": "Strong K-12 SIS; other modules vary.",
+            },
+            {
+                "name": "Integration",
+                "runmycampus": "API, webhooks, LTI; marketplace.",
+                "competitor": "Ecosystem and integrations vary.",
+            },
         ],
     },
 }
@@ -1718,15 +2961,33 @@ def _marketing_navbar_primary() -> list[dict]:
     """Primary marketing navbar: Product | Solutions | Pricing | Compare | Why Switch | Customers | Marketplace | Resources | Events | Company | [Login] [Start Free Trial]."""
     return [
         {"label": "Product", "path": _safe_reverse("marketing_product") or "/product/"},
-        {"label": "Solutions", "path": _safe_reverse("marketing_solutions") or "/solutions/"},
+        {
+            "label": "Solutions",
+            "path": _safe_reverse("marketing_solutions") or "/solutions/",
+        },
         {"label": "Pricing", "path": _safe_reverse("marketing_pricing") or "/pricing/"},
         {"label": "Compare", "path": _safe_reverse("marketing_compare") or "/compare/"},
-        {"label": "Why Switch", "path": _safe_reverse("marketing_why_switch") or "/why-switch/"},
-        {"label": "Customers", "path": _safe_reverse("marketing_case_studies") or "/case-studies/"},
-        {"label": "Marketplace", "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"},
-        {"label": "Resources", "path": _safe_reverse("marketing_resources") or "/resources/"},
+        {
+            "label": "Why Switch",
+            "path": _safe_reverse("marketing_why_switch") or "/why-switch/",
+        },
+        {
+            "label": "Customers",
+            "path": _safe_reverse("marketing_case_studies") or "/case-studies/",
+        },
+        {
+            "label": "Marketplace",
+            "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/",
+        },
+        {
+            "label": "Resources",
+            "path": _safe_reverse("marketing_resources") or "/resources/",
+        },
         {"label": "Events", "path": _safe_reverse("marketing_events") or "/events/"},
-        {"label": "10 Reasons", "path": _safe_reverse("marketing_10_reasons") or "/10-reasons/"},
+        {
+            "label": "10 Reasons",
+            "path": _safe_reverse("marketing_10_reasons") or "/10-reasons/",
+        },
         {"label": "Company", "path": _safe_reverse("marketing_about") or "/about/"},
     ]
 
@@ -1743,10 +3004,9 @@ def _get_country_from_request(request) -> str:
     try:
         from apps.compliance.access_control import get_country_from_ip
 
-        ip = (
-            request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-            or request.META.get("REMOTE_ADDR", "")
-        )
+        ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[
+            0
+        ].strip() or request.META.get("REMOTE_ADDR", "")
         if not ip:
             return ""
         code = (get_country_from_ip(ip) or "").strip().upper()[:2]
@@ -1780,7 +3040,9 @@ def _absolute_url(request, path: str) -> str:
     return f"{scheme}://{host}{path}"
 
 
-def _global_hreflang_entries(request, *, country_code: str, language_code: str) -> list[dict]:
+def _global_hreflang_entries(
+    request, *, country_code: str, language_code: str
+) -> list[dict]:
     _language = _normalize_language_code(language_code or "en")
     country = _normalize_country_code(country_code)
     if not country:
@@ -1789,7 +3051,9 @@ def _global_hreflang_entries(request, *, country_code: str, language_code: str) 
     supported = ["en", "fr", "pt", "ar"]
     for item in supported:
         path = f"/{item}/{country.lower()}/"
-        entries.append({"hreflang": f"{item}-{country}", "href": _absolute_url(request, path)})
+        entries.append(
+            {"hreflang": f"{item}-{country}", "href": _absolute_url(request, path)}
+        )
     entries.append({"hreflang": "x-default", "href": _absolute_url(request, "/")})
     return entries
 
@@ -1806,15 +3070,19 @@ def _get_regional_pitch(country_code: str, language_code: str) -> dict:
     """
     Merge RegionalPitch overrides over GlobalBrandRegistry defaults.
     """
-    brand = resolve_global_brand_context(country_code=country_code, language_code=language_code)
+    brand = resolve_global_brand_context(
+        country_code=country_code, language_code=language_code
+    )
     seo = brand.get("seo_config") or {}
     default = {
         "headline": seo.get("headline") or "RunMyCampus",
-        "subheadline": seo.get("subheadline") or "Global school operations, localized for every campus.",
+        "subheadline": seo.get("subheadline")
+        or "Global school operations, localized for every campus.",
         "features": seo.get("features") or [],
         "visual_variant": seo.get("visual_variant") or "",
         "seo_title": seo.get("seo_title") or "RunMyCampus - Global School Operations",
-        "seo_description": seo.get("seo_description") or "Tenant-first school platform for academics, finance, and operations.",
+        "seo_description": seo.get("seo_description")
+        or "Tenant-first school platform for academics, finance, and operations.",
     }
 
     country = _normalize_country_code(country_code)
@@ -1824,7 +3092,9 @@ def _get_regional_pitch(country_code: str, language_code: str) -> dict:
     try:
         from apps.siteconfig.models import RegionalPitch
 
-        pitch = RegionalPitch.objects.filter(country_code=country, is_active=True).first()
+        pitch = RegionalPitch.objects.filter(
+            country_code=country, is_active=True
+        ).first()
     except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError):
         pitch = None
     if not pitch:
@@ -1843,12 +3113,30 @@ def _get_regional_pitch(country_code: str, language_code: str) -> dict:
 def _geo_copy_variations(country: str) -> dict:
     """Evidence-driven copy variations by geo cluster (Wave 4). Use in templates for CTA/headline by region."""
     variants = {
-        "CM": {"cta_primary": "Démarrer l'essai gratuit", "proof_lead": "Adapté aux écoles francophones et au contexte local."},
-        "CA": {"cta_primary": "Start free trial", "proof_lead": "Built for Canadian schools and multi-province deployments."},
-        "NG": {"cta_primary": "Start free trial", "proof_lead": "Designed for Nigerian schools and WAEC alignment."},
-        "GB": {"cta_primary": "Start free trial", "proof_lead": "UK term structures and British curriculum support."},
+        "CM": {
+            "cta_primary": "Démarrer l'essai gratuit",
+            "proof_lead": "Adapté aux écoles francophones et au contexte local.",
+        },
+        "CA": {
+            "cta_primary": "Start free trial",
+            "proof_lead": "Built for Canadian schools and multi-province deployments.",
+        },
+        "NG": {
+            "cta_primary": "Start free trial",
+            "proof_lead": "Designed for Nigerian schools and WAEC alignment.",
+        },
+        "GB": {
+            "cta_primary": "Start free trial",
+            "proof_lead": "UK term structures and British curriculum support.",
+        },
     }
-    return variants.get(country, {"cta_primary": "Start free trial", "proof_lead": "One platform for admissions, academics, and operations."})
+    return variants.get(
+        country,
+        {
+            "cta_primary": "Start free trial",
+            "proof_lead": "One platform for admissions, academics, and operations.",
+        },
+    )
 
 
 def _tenant_example_slug_for_marketing() -> str | None:
@@ -1868,25 +3156,31 @@ def _tenant_example_slug_for_marketing() -> str | None:
         for item in (os.getenv("MARKETING_EXCLUDED_TENANT_SLUGS") or "").split(",")
         if item.strip()
     }
-    school = (
-        School.objects.filter(is_active=True)
-        .order_by("created_at")
-    )
+    school = School.objects.filter(is_active=True).order_by("created_at")
     if excluded:
         school = school.exclude(slug__in=excluded).exclude(subdomain__in=excluded)
     return school.values_list("slug", flat=True).first()
 
-def _marketing_context(request, *, country_code: str, language_code: str, regional: bool) -> dict:
+
+def _marketing_context(
+    request, *, country_code: str, language_code: str, regional: bool
+) -> dict:
     country = _normalize_country_code(country_code)
-    brand = resolve_global_brand_context(country_code=country, language_code=language_code)
-    language = _normalize_language_code(language_code, fallback=brand.get("primary_language") or "en")
+    brand = resolve_global_brand_context(
+        country_code=country, language_code=language_code
+    )
+    language = _normalize_language_code(
+        language_code, fallback=brand.get("primary_language") or "en"
+    )
     pitch = _get_regional_pitch(country, language)
     if regional and not country:
         raise Http404("Region not found")
 
     canonical_path = "/" if not regional else f"/{language}/{country.lower()}/"
     canonical_url = _absolute_url(request, canonical_path)
-    hreflang_entries = _global_hreflang_entries(request, country_code=country, language_code=language)
+    hreflang_entries = _global_hreflang_entries(
+        request, country_code=country, language_code=language
+    )
     canonical_domain = get_canonical_base_domain()
     country_label = brand.get("country_name") or "Global"
     tenant_example_slug = _tenant_example_slug_for_marketing()
@@ -1895,7 +3189,11 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     manager_host = f"manager.{canonical_domain}"
     api_host = f"api.{canonical_domain}"
     docs_host = f"docs.{canonical_domain}"
-    tenant_host = f"{tenant_example_slug}.{canonical_domain}" if tenant_example_slug else f"your-school.{canonical_domain}"
+    tenant_host = (
+        f"{tenant_example_slug}.{canonical_domain}"
+        if tenant_example_slug
+        else f"your-school.{canonical_domain}"
+    )
 
     # School Identity card: link to tenant login only if we have a real example; else link to find school
     school_identity_primary_url = (
@@ -1903,7 +3201,9 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         if tenant_example_slug
         else request.build_absolute_uri(_safe_reverse("find_school"))
     )
-    school_identity_primary_label = "Tenant login" if tenant_example_slug else "Find your school"
+    school_identity_primary_label = (
+        "Tenant login" if tenant_example_slug else "Find your school"
+    )
 
     surface_cards = [
         {
@@ -2024,36 +3324,116 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     ]
 
     proof_stats = [
-        {"value": "3", "label": "dedicated surfaces", "detail": "Public, tenant, and manager host separation."},
-        {"value": "195+", "label": "country-ready profiles", "detail": "Registry-driven localization and defaults."},
-        {"value": "24/7", "label": "operator readiness", "detail": "Support and governance from manager workflows."},
-        {"value": "100%", "label": "subdomain tenancy", "detail": "Strict isolation for tenant security boundaries."},
+        {
+            "value": "3",
+            "label": "dedicated surfaces",
+            "detail": "Public, tenant, and manager host separation.",
+        },
+        {
+            "value": "195+",
+            "label": "country-ready profiles",
+            "detail": "Registry-driven localization and defaults.",
+        },
+        {
+            "value": "24/7",
+            "label": "operator readiness",
+            "detail": "Support and governance from manager workflows.",
+        },
+        {
+            "value": "100%",
+            "label": "subdomain tenancy",
+            "detail": "Strict isolation for tenant security boundaries.",
+        },
     ]
     # Wave 2: localized proof cards for country-language landing variants
     _proof_by_country = {
         "CM": [
-            {"value": "3", "label": "surfaces dédiées", "detail": "Séparation public, tenant et manager."},
-            {"value": "195+", "label": "pays pris en charge", "detail": "Localisation et conformité par région."},
-            {"value": "24/7", "label": "disponibilité opérationnelle", "detail": "Support et gouvernance depuis le manager."},
-            {"value": "100%", "label": "tenance par sous-domaine", "detail": "Isolation stricte par école."},
+            {
+                "value": "3",
+                "label": "surfaces dédiées",
+                "detail": "Séparation public, tenant et manager.",
+            },
+            {
+                "value": "195+",
+                "label": "pays pris en charge",
+                "detail": "Localisation et conformité par région.",
+            },
+            {
+                "value": "24/7",
+                "label": "disponibilité opérationnelle",
+                "detail": "Support et gouvernance depuis le manager.",
+            },
+            {
+                "value": "100%",
+                "label": "tenance par sous-domaine",
+                "detail": "Isolation stricte par école.",
+            },
         ],
         "CA": [
-            {"value": "3", "label": "dedicated surfaces", "detail": "Public, tenant, and manager host separation."},
-            {"value": "195+", "label": "country-ready profiles", "detail": "Registry-driven localization and defaults."},
-            {"value": "24/7", "label": "operator readiness", "detail": "Support and governance from manager workflows."},
-            {"value": "100%", "label": "subdomain tenancy", "detail": "Strict isolation for tenant security boundaries."},
+            {
+                "value": "3",
+                "label": "dedicated surfaces",
+                "detail": "Public, tenant, and manager host separation.",
+            },
+            {
+                "value": "195+",
+                "label": "country-ready profiles",
+                "detail": "Registry-driven localization and defaults.",
+            },
+            {
+                "value": "24/7",
+                "label": "operator readiness",
+                "detail": "Support and governance from manager workflows.",
+            },
+            {
+                "value": "100%",
+                "label": "subdomain tenancy",
+                "detail": "Strict isolation for tenant security boundaries.",
+            },
         ],
         "NG": [
-            {"value": "3", "label": "dedicated surfaces", "detail": "Public, tenant, and manager host separation."},
-            {"value": "195+", "label": "country-ready profiles", "detail": "Registry-driven localization and defaults."},
-            {"value": "24/7", "label": "operator readiness", "detail": "Support and governance from manager workflows."},
-            {"value": "100%", "label": "subdomain tenancy", "detail": "Strict isolation for tenant security boundaries."},
+            {
+                "value": "3",
+                "label": "dedicated surfaces",
+                "detail": "Public, tenant, and manager host separation.",
+            },
+            {
+                "value": "195+",
+                "label": "country-ready profiles",
+                "detail": "Registry-driven localization and defaults.",
+            },
+            {
+                "value": "24/7",
+                "label": "operator readiness",
+                "detail": "Support and governance from manager workflows.",
+            },
+            {
+                "value": "100%",
+                "label": "subdomain tenancy",
+                "detail": "Strict isolation for tenant security boundaries.",
+            },
         ],
         "GB": [
-            {"value": "3", "label": "dedicated surfaces", "detail": "Public, tenant, and manager host separation."},
-            {"value": "195+", "label": "country-ready profiles", "detail": "Registry-driven localization and defaults."},
-            {"value": "24/7", "label": "operator readiness", "detail": "Support and governance from manager workflows."},
-            {"value": "100%", "label": "subdomain tenancy", "detail": "Strict isolation for tenant security boundaries."},
+            {
+                "value": "3",
+                "label": "dedicated surfaces",
+                "detail": "Public, tenant, and manager host separation.",
+            },
+            {
+                "value": "195+",
+                "label": "country-ready profiles",
+                "detail": "Registry-driven localization and defaults.",
+            },
+            {
+                "value": "24/7",
+                "label": "operator readiness",
+                "detail": "Support and governance from manager workflows.",
+            },
+            {
+                "value": "100%",
+                "label": "subdomain tenancy",
+                "detail": "Strict isolation for tenant security boundaries.",
+            },
         ],
     }
     # Use localized proof stats when country matches (regional or geo-personalized main landing)
@@ -2071,8 +3451,22 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "Riverside Preparatory",
     ]
     _logos_by_country = {
-        "CM": ["Institut des Sciences Douala", "Lycée Bilingue", "École Greenfield", "Réseau Nile Valley", "Académie Maple", "Campus Riverside"],
-        "CA": ["Toronto Scholars Group", "Maple Heights College", "Blue Coast International", "Riverside Preparatory", "Nile Valley Schools", "Greenfield Academy"],
+        "CM": [
+            "Institut des Sciences Douala",
+            "Lycée Bilingue",
+            "École Greenfield",
+            "Réseau Nile Valley",
+            "Académie Maple",
+            "Campus Riverside",
+        ],
+        "CA": [
+            "Toronto Scholars Group",
+            "Maple Heights College",
+            "Blue Coast International",
+            "Riverside Preparatory",
+            "Nile Valley Schools",
+            "Greenfield Academy",
+        ],
     }
     if regional and country in _logos_by_country:
         institution_logos = _logos_by_country[country]
@@ -2191,13 +3585,17 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         request.session["marketing_cta_variant"] = marketing_cta_variant
 
     demo_tenant_url = getattr(settings, "MARKETING_DEMO_TENANT_URL", "") or ""
-    marketing_analytics_script_url = getattr(settings, "MARKETING_ANALYTICS_SCRIPT_URL", "") or ""
+    marketing_analytics_script_url = (
+        getattr(settings, "MARKETING_ANALYTICS_SCRIPT_URL", "") or ""
+    )
     marketing_analytics_preconnect_origin = ""
     if marketing_analytics_script_url:
         try:
             parsed = urlparse(marketing_analytics_script_url)
             if parsed.scheme and parsed.netloc:
-                marketing_analytics_preconnect_origin = f"{parsed.scheme}://{parsed.netloc}"
+                marketing_analytics_preconnect_origin = (
+                    f"{parsed.scheme}://{parsed.netloc}"
+                )
         except (ValueError, TypeError, AttributeError):
             pass
 
@@ -2206,30 +3604,73 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     hero_headline = "The Operating System for Modern Schools"
     hero_subheadline = "Admissions, academics, finance, communication, analytics, and governance — unified in one platform."
     _hero_by_country = {
-        "CM": {"headline": "La plateforme pour les établissements scolaires modernes.", "subheadline": "Admissions, académique, finance, communication et conformité dans une seule plateforme. Gérez votre campus avec clarté."},
-        "CA": {"headline": "The Global Operating System for Education", "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across Canada and beyond."},
-        "NG": {"headline": "The Global Operating System for Education", "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across Nigeria and Africa."},
-        "GB": {"headline": "The Global Operating System for Education", "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across the UK and beyond."},
+        "CM": {
+            "headline": "La plateforme pour les établissements scolaires modernes.",
+            "subheadline": "Admissions, académique, finance, communication et conformité dans une seule plateforme. Gérez votre campus avec clarté.",
+        },
+        "CA": {
+            "headline": "The Global Operating System for Education",
+            "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across Canada and beyond.",
+        },
+        "NG": {
+            "headline": "The Global Operating System for Education",
+            "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across Nigeria and Africa.",
+        },
+        "GB": {
+            "headline": "The Global Operating System for Education",
+            "subheadline": "One platform for admissions, academics, finance, and compliance. Trusted by schools across the UK and beyond.",
+        },
     }
     _hero_by_channel = {
-        "google": {"headline": "The Global Operating System for Education", "subheadline": "One platform for admissions, academics, finance, and compliance. Try free—no credit card required."},
-        "linkedin": {"headline": "School operations, unified.", "subheadline": "For education leaders: admissions, finance, compliance, and reporting in one platform. Scale without sprawl."},
-        "facebook": {"headline": "Run your school on one platform.", "subheadline": "Admissions, finance, and compliance in one place. Start free—no credit card required."},
-        "newsletter": {"headline": "The Global Operating System for Education", "subheadline": "For subscribers: one platform for admissions, academics, finance, and compliance. Book a demo or start free."},
+        "google": {
+            "headline": "The Global Operating System for Education",
+            "subheadline": "One platform for admissions, academics, finance, and compliance. Try free—no credit card required.",
+        },
+        "linkedin": {
+            "headline": "School operations, unified.",
+            "subheadline": "For education leaders: admissions, finance, compliance, and reporting in one platform. Scale without sprawl.",
+        },
+        "facebook": {
+            "headline": "Run your school on one platform.",
+            "subheadline": "Admissions, finance, and compliance in one place. Start free—no credit card required.",
+        },
+        "newsletter": {
+            "headline": "The Global Operating System for Education",
+            "subheadline": "For subscribers: one platform for admissions, academics, finance, and compliance. Book a demo or start free.",
+        },
     }
     if country in _hero_by_country:
         hero_headline = _hero_by_country[country].get("headline", hero_headline)
-        hero_subheadline = _hero_by_country[country].get("subheadline", hero_subheadline)
+        hero_subheadline = _hero_by_country[country].get(
+            "subheadline", hero_subheadline
+        )
     utm_source = (request.GET.get("utm_source") or "").strip().lower()
     if utm_source in _hero_by_channel:
         hero_headline = _hero_by_channel[utm_source].get("headline", hero_headline)
-        hero_subheadline = _hero_by_channel[utm_source].get("subheadline", hero_subheadline)
-    _education_os_path = _safe_reverse("marketing_education_operating_system") or "/education-operating-system/"
+        hero_subheadline = _hero_by_channel[utm_source].get(
+            "subheadline", hero_subheadline
+        )
+    _education_os_path = (
+        _safe_reverse("marketing_education_operating_system")
+        or "/education-operating-system/"
+    )
     hero_ctas = [
-        {"label": "Start Free Trial", "url": _safe_reverse("signup_school"), "primary": True},
-        {"label": "Book a Demo", "url": _safe_reverse("marketing_book_demo") or "/book-demo/", "primary": False},
+        {
+            "label": "Start Free Trial",
+            "url": _safe_reverse("signup_school"),
+            "primary": True,
+        },
+        {
+            "label": "Book a Demo",
+            "url": _safe_reverse("marketing_book_demo") or "/book-demo/",
+            "primary": False,
+        },
         {"label": "See How It Works", "url": _education_os_path, "primary": False},
-        {"label": "Login", "url": _safe_reverse("global_login_discovery"), "primary": False},
+        {
+            "label": "Login",
+            "url": _safe_reverse("global_login_discovery"),
+            "primary": False,
+        },
     ]
     trust_logos = [
         {"name": "School Trust", "image_url": ""},
@@ -2238,20 +3679,55 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     ]
     # Module screenshot paths relative to static root (SVG placeholders included; replace with PNGs if desired)
     core_modules = [
-        {"title": "Admissions & Enrollment", "summary": "Capture leads, track applications, and onboard students in one flow.", "screenshot_url": "images/marketing/module-admissions.svg"},
-        {"title": "Academics & Grades", "summary": "Syllabi, attendance, report cards, and interventions in a single source of truth.", "screenshot_url": "images/marketing/module-academics.svg"},
-        {"title": "Finance & Billing", "summary": "Fees, payments, and financial reporting tailored to your school model.", "screenshot_url": "images/marketing/module-finance.svg"},
-        {"title": "Communication", "summary": "Parents, teachers, and students stay connected with role-ready portals.", "screenshot_url": "images/marketing/module-communication.svg"},
-        {"title": "Compliance & Reporting", "summary": "Audit trails, regional compliance defaults, and export-ready reports.", "screenshot_url": "images/marketing/module-compliance.svg"},
+        {
+            "title": "Admissions & Enrollment",
+            "summary": "Capture leads, track applications, and onboard students in one flow.",
+            "screenshot_url": "images/marketing/module-admissions.svg",
+        },
+        {
+            "title": "Academics & Grades",
+            "summary": "Syllabi, attendance, report cards, and interventions in a single source of truth.",
+            "screenshot_url": "images/marketing/module-academics.svg",
+        },
+        {
+            "title": "Finance & Billing",
+            "summary": "Fees, payments, and financial reporting tailored to your school model.",
+            "screenshot_url": "images/marketing/module-finance.svg",
+        },
+        {
+            "title": "Communication",
+            "summary": "Parents, teachers, and students stay connected with role-ready portals.",
+            "screenshot_url": "images/marketing/module-communication.svg",
+        },
+        {
+            "title": "Compliance & Reporting",
+            "summary": "Audit trails, regional compliance defaults, and export-ready reports.",
+            "screenshot_url": "images/marketing/module-compliance.svg",
+        },
     ]
     platform_cards = [
-        {"title": "Workflows that adapt", "summary": "From enquiry to graduation, every step is configurable to your school's processes and policies."},
-        {"title": "Dashboards that inform", "summary": "Leaders get real-time visibility into enrollment, attendance, and outcomes without switching tools."},
-        {"title": "Marketplace that extends", "summary": "Add integrations and apps from the marketplace without leaving the platform."},
+        {
+            "title": "Workflows that adapt",
+            "summary": "From enquiry to graduation, every step is configurable to your school's processes and policies.",
+        },
+        {
+            "title": "Dashboards that inform",
+            "summary": "Leaders get real-time visibility into enrollment, attendance, and outcomes without switching tools.",
+        },
+        {
+            "title": "Marketplace that extends",
+            "summary": "Add integrations and apps from the marketplace without leaving the platform.",
+        },
     ]
     # O17: "Scales globally" (WHAT_IS_LEFT_MASTER)
-    scales_globally_line = "195+ country-ready profiles, multi-currency, data residency."
-    three_key_features = ["AI Co-pilot", "Real-time Analytics", "Customizable Workflows"]
+    scales_globally_line = (
+        "195+ country-ready profiles, multi-currency, data residency."
+    )
+    three_key_features = [
+        "AI Co-pilot",
+        "Real-time Analytics",
+        "Customizable Workflows",
+    ]
     migration_bullets = [
         "Import students, staff, and historical data from spreadsheets or legacy systems.",
         "Map your existing workflows to RunMyCampus modules with guided setup.",
@@ -2267,48 +3743,144 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     # 7.1: Prefer AI-generated / governed assets from marketing_ai when set
     from apps.schools.marketing_ai import get_marketing_ai_asset_url
 
-    hero_dashboard_image_url = get_marketing_ai_asset_url("hero_dashboard") or getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
+    hero_dashboard_image_url = (
+        get_marketing_ai_asset_url("hero_dashboard")
+        or getattr(settings, "MARKETING_HERO_IMAGE_URL", None)
+        or ""
+    )
     if not hero_dashboard_image_url:
         hero_dashboard_image_url = static("images/marketing/hero-placeholder.svg")
     # 9.5 proof-rich marketing: key for asset governance (style guide, versioning, approval).
-    proof_hero_image_key = getattr(settings, "MARKETING_PROOF_HERO_IMAGE_KEY", None) or "hero_dashboard"
-    hero_video_url = get_marketing_ai_asset_url("hero_video") or getattr(settings, "MARKETING_HERO_VIDEO_URL", None) or ""
-    hero_video_poster_url = getattr(settings, "MARKETING_HERO_VIDEO_POSTER_URL", None) or hero_dashboard_image_url or ""
-    product_demo_image_url = getattr(settings, "MARKETING_PRODUCT_DEMO_IMAGE_URL", None) or getattr(settings, "MARKETING_HERO_IMAGE_URL", None) or ""
+    proof_hero_image_key = (
+        getattr(settings, "MARKETING_PROOF_HERO_IMAGE_KEY", None) or "hero_dashboard"
+    )
+    hero_video_url = (
+        get_marketing_ai_asset_url("hero_video")
+        or getattr(settings, "MARKETING_HERO_VIDEO_URL", None)
+        or ""
+    )
+    hero_video_poster_url = (
+        getattr(settings, "MARKETING_HERO_VIDEO_POSTER_URL", None)
+        or hero_dashboard_image_url
+        or ""
+    )
+    product_demo_image_url = (
+        getattr(settings, "MARKETING_PRODUCT_DEMO_IMAGE_URL", None)
+        or getattr(settings, "MARKETING_HERO_IMAGE_URL", None)
+        or ""
+    )
     # Product visualization strip: 5 slides required (Batch 1 — admin, teacher, parent, student, analytics).
     # Proof-rich §8.4: every slide has non-empty image_static when image_url missing so section never shows empty frames.
     _proof_viz_fallback = "images/marketing/platform-diagram-marketing.svg"
-    product_visualization_slides = getattr(settings, "MARKETING_PRODUCT_VISUALIZATION_SLIDES", None) or [
-        {"title": "Admin dashboard", "caption": "Real-time enrollment, finance, and compliance dashboards.", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
-        {"title": "Teacher dashboard", "caption": "Grades, attendance, and class tools in one place.", "image_url": "", "image_static": "images/marketing/viz-teacher.svg"},
-        {"title": "Parent portal", "caption": "One place for your children: attendance, grades, and school updates.", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
-        {"title": "Student 360", "caption": "One view per student: attendance, grades, interventions.", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
-        {"title": "Admin analytics", "caption": "Operational intelligence and reporting at a glance.", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
+    product_visualization_slides = getattr(
+        settings, "MARKETING_PRODUCT_VISUALIZATION_SLIDES", None
+    ) or [
+        {
+            "title": "Admin dashboard",
+            "caption": "Real-time enrollment, finance, and compliance dashboards.",
+            "image_url": "",
+            "image_static": "images/marketing/viz-admin.svg",
+        },
+        {
+            "title": "Teacher dashboard",
+            "caption": "Grades, attendance, and class tools in one place.",
+            "image_url": "",
+            "image_static": "images/marketing/viz-teacher.svg",
+        },
+        {
+            "title": "Parent portal",
+            "caption": "One place for your children: attendance, grades, and school updates.",
+            "image_url": "",
+            "image_static": "images/marketing/viz-student360.svg",
+        },
+        {
+            "title": "Student 360",
+            "caption": "One view per student: attendance, grades, interventions.",
+            "image_url": "",
+            "image_static": "images/marketing/viz-student360.svg",
+        },
+        {
+            "title": "Admin analytics",
+            "caption": "Operational intelligence and reporting at a glance.",
+            "image_url": "",
+            "image_static": "images/marketing/viz-admin.svg",
+        },
     ]
     for slide in product_visualization_slides:
         if not slide.get("image_url") and not slide.get("image_static"):
             slide["image_static"] = _proof_viz_fallback
     _ecosystem_icon = static("images/marketing/logo-placeholder.svg")
-    _marketplace_path = _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"
+    _marketplace_path = (
+        _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"
+    )
     _integrations_path = _safe_reverse("marketing_integrations") or "/integrations/"
     ecosystem_apps = [
-        {"name": "LMS / LTI", "summary": "Connect your learning management system.", "image_url": _ecosystem_icon, "install_path": _marketplace_path, "cta_path": _marketplace_path, "cta_label": "Explore"},
-        {"name": "Payment gateways", "summary": "Stripe, PayPal, and local providers.", "image_url": _ecosystem_icon, "install_path": _integrations_path, "cta_path": _integrations_path, "cta_label": "View integrations"},
-        {"name": "Messaging", "summary": "SMS and email providers for notifications.", "image_url": _ecosystem_icon, "install_path": _integrations_path, "cta_path": _integrations_path, "cta_label": "View integrations"},
-        {"name": "Single sign-on", "summary": "SAML and OAuth for enterprise identity.", "image_url": _ecosystem_icon, "install_path": _integrations_path, "cta_path": _integrations_path, "cta_label": "View integrations"},
+        {
+            "name": "LMS / LTI",
+            "summary": "Connect your learning management system.",
+            "image_url": _ecosystem_icon,
+            "install_path": _marketplace_path,
+            "cta_path": _marketplace_path,
+            "cta_label": "Explore",
+        },
+        {
+            "name": "Payment gateways",
+            "summary": "Stripe, PayPal, and local providers.",
+            "image_url": _ecosystem_icon,
+            "install_path": _integrations_path,
+            "cta_path": _integrations_path,
+            "cta_label": "View integrations",
+        },
+        {
+            "name": "Messaging",
+            "summary": "SMS and email providers for notifications.",
+            "image_url": _ecosystem_icon,
+            "install_path": _integrations_path,
+            "cta_path": _integrations_path,
+            "cta_label": "View integrations",
+        },
+        {
+            "name": "Single sign-on",
+            "summary": "SAML and OAuth for enterprise identity.",
+            "image_url": _ecosystem_icon,
+            "install_path": _integrations_path,
+            "cta_path": _integrations_path,
+            "cta_label": "View integrations",
+        },
     ]
     testimonials = [
-        {"quote": "We moved from spreadsheets to RunMyCampus in one term. Admissions and billing are finally in one place.", "author": "Sarah M.", "role": "Operations Director, Greenfield Academy", "stars": 5},
-        {"quote": "Multi-campus visibility without losing each school's identity. Exactly what we needed.", "author": "James K.", "role": "Network Lead, Nile Valley Schools", "stars": 5},
-        {"quote": "Compliance and reporting used to take days. Now we have dashboards and exports in minutes.", "author": "Priya L.", "role": "Finance & Compliance, Toronto Scholars", "stars": 5},
+        {
+            "quote": "We moved from spreadsheets to RunMyCampus in one term. Admissions and billing are finally in one place.",
+            "author": "Sarah M.",
+            "role": "Operations Director, Greenfield Academy",
+            "stars": 5,
+        },
+        {
+            "quote": "Multi-campus visibility without losing each school's identity. Exactly what we needed.",
+            "author": "James K.",
+            "role": "Network Lead, Nile Valley Schools",
+            "stars": 5,
+        },
+        {
+            "quote": "Compliance and reporting used to take days. Now we have dashboards and exports in minutes.",
+            "author": "Priya L.",
+            "role": "Finance & Compliance, Toronto Scholars",
+            "stars": 5,
+        },
     ]
     # Video testimonials: list of {url, title, thumbnail_url}; override via MARKETING_VIDEO_TESTIMONIALS when ready
-    _video_testimonials_setting = getattr(settings, "MARKETING_VIDEO_TESTIMONIALS", None)
+    _video_testimonials_setting = getattr(
+        settings, "MARKETING_VIDEO_TESTIMONIALS", None
+    )
     if _video_testimonials_setting:
         video_testimonials = _video_testimonials_setting
     else:
         video_testimonials = [
-            {"url": _safe_reverse("marketing_landing") or "#", "title": "Customer story", "thumbnail_url": static("images/marketing/testimonial-thumb.svg")},
+            {
+                "url": _safe_reverse("marketing_landing") or "#",
+                "title": "Customer story",
+                "thumbnail_url": static("images/marketing/testimonial-thumb.svg"),
+            },
         ]
     security_badges = [
         "FERPA aligned",
@@ -2321,19 +3893,51 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
 
     # Phase 2: Institutional coverage (section 2) – K-12, Universities, Technical, Private, Government
     institution_types = [
-        {"label": "K-12", "summary": "Elementary and secondary schools with enrollment, grades, and parent engagement.", "path": "/solutions/"},
-        {"label": "Universities", "summary": "Higher ed admissions, academic structure, and multi-campus governance.", "path": "/solutions/"},
-        {"label": "Technical schools", "summary": "Career and technical education with certification and placement tracking.", "path": "/solutions/"},
-        {"label": "Private schools", "summary": "Independent and faith-based schools with full operations and fundraising.", "path": "/solutions/"},
-        {"label": "Government education", "summary": "Public sector and government-run institutions with compliance and reporting.", "path": "/solutions/"},
+        {
+            "label": "K-12",
+            "summary": "Elementary and secondary schools with enrollment, grades, and parent engagement.",
+            "path": "/solutions/",
+        },
+        {
+            "label": "Universities",
+            "summary": "Higher ed admissions, academic structure, and multi-campus governance.",
+            "path": "/solutions/",
+        },
+        {
+            "label": "Technical schools",
+            "summary": "Career and technical education with certification and placement tracking.",
+            "path": "/solutions/",
+        },
+        {
+            "label": "Private schools",
+            "summary": "Independent and faith-based schools with full operations and fundraising.",
+            "path": "/solutions/",
+        },
+        {
+            "label": "Government education",
+            "summary": "Public sector and government-run institutions with compliance and reporting.",
+            "path": "/solutions/",
+        },
     ]
 
     # Phase 2: Workflow automation (section 4)
     workflow_automation = [
-        {"title": "Enquiry to enrollment", "body": "Capture leads, qualify applicants, and onboard students in one configurable flow."},
-        {"title": "Grades and attendance", "body": "Syllabi, report cards, and interventions with role-ready dashboards for teachers and admins."},
-        {"title": "Fees and payments", "body": "Billing cycles, payment gateways, and financial reporting without spreadsheets."},
-        {"title": "Approvals and audits", "body": "Configurable approval chains and audit trails for compliance and governance."},
+        {
+            "title": "Enquiry to enrollment",
+            "body": "Capture leads, qualify applicants, and onboard students in one configurable flow.",
+        },
+        {
+            "title": "Grades and attendance",
+            "body": "Syllabi, report cards, and interventions with role-ready dashboards for teachers and admins.",
+        },
+        {
+            "title": "Fees and payments",
+            "body": "Billing cycles, payment gateways, and financial reporting without spreadsheets.",
+        },
+        {
+            "title": "Approvals and audits",
+            "body": "Configurable approval chains and audit trails for compliance and governance.",
+        },
     ]
 
     # Phase 2: Developer platform (section 8) – one card for landing
@@ -2350,15 +3954,33 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     platform_pillar_grid = [
         {"label": "Education OS", "sub": "One platform for running the entire school."},
         {"label": "Control Plane", "sub": "Manage schools, districts, and networks."},
-        {"label": "Marketplace", "sub": "Extend the platform with apps and integrations."},
+        {
+            "label": "Marketplace",
+            "sub": "Extend the platform with apps and integrations.",
+        },
         {"label": "Migration Cloud", "sub": "Switch from legacy systems safely."},
-        {"label": "Tenant Runtime", "sub": "One platform core, configured for your institution."},
-        {"label": "Analytics & Integrations", "sub": "See what matters and connect what you use."},
+        {
+            "label": "Tenant Runtime",
+            "sub": "One platform core, configured for your institution.",
+        },
+        {
+            "label": "Analytics & Integrations",
+            "sub": "See what matters and connect what you use.",
+        },
     ]
     from_single_to_enterprise = [
-        {"stage": "Single school", "summary": "One campus, one tenant. Launch in days."},
-        {"stage": "Network", "summary": "Multi-campus with central oversight and campus autonomy."},
-        {"stage": "White-label operator", "summary": "National scale with dedicated manager operations and branding."},
+        {
+            "stage": "Single school",
+            "summary": "One campus, one tenant. Launch in days.",
+        },
+        {
+            "stage": "Network",
+            "summary": "Multi-campus with central oversight and campus autonomy.",
+        },
+        {
+            "stage": "White-label operator",
+            "summary": "National scale with dedicated manager operations and branding.",
+        },
     ]
 
     # Non-negotiables: social proof & scale
@@ -2369,8 +3991,18 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     ]
     # Outcome metrics for data viz (e.g. case study outcomes); optional bar_pct for mini chart (0-100)
     outcome_metrics = getattr(settings, "MARKETING_OUTCOME_METRICS", None) or [
-        {"value": "40%", "label": "less admin workload", "detail": "Schools report reduced time on manual processes.", "bar_pct": 40},
-        {"value": "2×", "label": "faster admissions", "detail": "From application to decision in half the time.", "bar_pct": 50},
+        {
+            "value": "40%",
+            "label": "less admin workload",
+            "detail": "Schools report reduced time on manual processes.",
+            "bar_pct": 40,
+        },
+        {
+            "value": "2×",
+            "label": "faster admissions",
+            "detail": "From application to decision in half the time.",
+            "bar_pct": 50,
+        },
     ]
     _logo_placeholder = static("images/marketing/logo-placeholder.svg")
     customer_logos = [
@@ -2391,20 +4023,64 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
 
     # Non-negotiables: discovery (role + challenge)
     for_your_role = [
-        {"label": "Principal", "path": _safe_reverse("marketing_solutions") or "/solutions/", "summary": "Visibility and control across your school."},
-        {"label": "Admin", "path": _safe_reverse("role_school_admin") or "/roles/school-admin/", "summary": "Day-to-day operations in one place."},
-        {"label": "Finance", "path": _safe_reverse("marketing_pricing") or "/pricing/", "summary": "Billing, fees, and reporting."},
-        {"label": "IT", "path": _safe_reverse("role_it_directors") or "/roles/it-directors/", "summary": "Integrations, security, and provisioning."},
-        {"label": "Teacher", "path": _safe_reverse("role_teachers") or "/roles/teachers/", "summary": "Grades, attendance, and class tools."},
-        {"label": "Parent", "path": _safe_reverse("role_parents") or "/roles/parents/", "summary": "One portal for your children."},
-        {"label": "Operator", "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/", "summary": "Multi-tenant command center."},
+        {
+            "label": "Principal",
+            "path": _safe_reverse("marketing_solutions") or "/solutions/",
+            "summary": "Visibility and control across your school.",
+        },
+        {
+            "label": "Admin",
+            "path": _safe_reverse("role_school_admin") or "/roles/school-admin/",
+            "summary": "Day-to-day operations in one place.",
+        },
+        {
+            "label": "Finance",
+            "path": _safe_reverse("marketing_pricing") or "/pricing/",
+            "summary": "Billing, fees, and reporting.",
+        },
+        {
+            "label": "IT",
+            "path": _safe_reverse("role_it_directors") or "/roles/it-directors/",
+            "summary": "Integrations, security, and provisioning.",
+        },
+        {
+            "label": "Teacher",
+            "path": _safe_reverse("role_teachers") or "/roles/teachers/",
+            "summary": "Grades, attendance, and class tools.",
+        },
+        {
+            "label": "Parent",
+            "path": _safe_reverse("role_parents") or "/roles/parents/",
+            "summary": "One portal for your children.",
+        },
+        {
+            "label": "Operator",
+            "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/",
+            "summary": "Multi-tenant command center.",
+        },
     ]
     solve_by_challenge = [
-        {"title": "Reduce admin burden", "path": _safe_reverse("marketing_product") or "/product/"},
-        {"title": "Multi-campus visibility", "path": _safe_reverse("marketing_case_studies") or "/case-studies/"},
-        {"title": "Parent engagement", "path": _safe_reverse("marketing_solutions") or "/solutions/"},
-        {"title": "Migration from spreadsheets", "path": _safe_reverse("migrate_marketing_page") or "/migrate/"},
-        {"title": "Compliance without the headache", "path": _safe_reverse("marketing_security_compliance") or "/security-compliance/"},
+        {
+            "title": "Reduce admin burden",
+            "path": _safe_reverse("marketing_product") or "/product/",
+        },
+        {
+            "title": "Multi-campus visibility",
+            "path": _safe_reverse("marketing_case_studies") or "/case-studies/",
+        },
+        {
+            "title": "Parent engagement",
+            "path": _safe_reverse("marketing_solutions") or "/solutions/",
+        },
+        {
+            "title": "Migration from spreadsheets",
+            "path": _safe_reverse("migrate_marketing_page") or "/migrate/",
+        },
+        {
+            "title": "Compliance without the headache",
+            "path": _safe_reverse("marketing_security_compliance")
+            or "/security-compliance/",
+        },
     ]
 
     # Non-negotiables: ecosystem
@@ -2420,7 +4096,14 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         {"name": "Implementation Partner 1", "url": "#"},
         {"name": "Implementation Partner 2", "url": "#"},
     ]
-    integrations_strip = ["Clever", "Google Classroom", "Stripe", "PayPal", "SAML", "OAuth"]
+    integrations_strip = [
+        "Clever",
+        "Google Classroom",
+        "Stripe",
+        "PayPal",
+        "SAML",
+        "OAuth",
+    ]
 
     # Non-negotiables: thought leadership
     gated_report_cta = {
@@ -2431,13 +4114,22 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     second_lead_magnet = {
         "title": "Implementation checklist",
         "summary": "Step-by-step checklist to go live with RunMyCampus.",
-        "url": _safe_reverse("marketing_buyer_toolkit_download", kwargs={"document": "implementation-checklist"}) or "/buyer-toolkit/download/implementation-checklist/",
+        "url": _safe_reverse(
+            "marketing_buyer_toolkit_download",
+            kwargs={"document": "implementation-checklist"},
+        )
+        or "/buyer-toolkit/download/implementation-checklist/",
     }
     resources_hub_path = _safe_reverse("marketing_resources") or "/resources/"
 
     # Non-negotiables: events & community
     events_list = [
-        {"title": "Customer roundtable: Migration in 90 days", "date": "Monthly", "cta_url": _safe_reverse("marketing_events") or "/events/", "cta_label": "Register"},
+        {
+            "title": "Customer roundtable: Migration in 90 days",
+            "date": "Monthly",
+            "cta_url": _safe_reverse("marketing_events") or "/events/",
+            "cta_label": "Register",
+        },
     ]
     flagship_event = {
         "name": "RunMyCampus Live",
@@ -2468,19 +4160,59 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
 
     # Non-negotiables: 3-step get started
     get_started_three_steps = [
-        {"step": 1, "title": "Sign up", "body": "Start your free trial—no credit card required."},
-        {"step": 2, "title": "Add your school", "body": "Configure your tenant, terms, and branding."},
-        {"step": 3, "title": "Invite your team", "body": "Invite admins, teachers, and parents. Go live."},
+        {
+            "step": 1,
+            "title": "Sign up",
+            "body": "Start your free trial—no credit card required.",
+        },
+        {
+            "step": 2,
+            "title": "Add your school",
+            "body": "Configure your tenant, terms, and branding.",
+        },
+        {
+            "step": 3,
+            "title": "Invite your team",
+            "body": "Invite admins, teachers, and parents. Go live.",
+        },
     ]
 
     # Non-negotiables: product pillars (6) + AI + differentiation; link to deep product pages when available
     product_pillars_home = [
-        {"title": "Admissions & Enrollment", "summary": "Capture leads, track applications, onboard students.", "path": _safe_reverse("marketing_products_admissions") or "/products/admissions/"},
-        {"title": "Academics & Grades", "summary": "Syllabi, attendance, report cards, interventions.", "path": _safe_reverse("marketing_products_academics") or "/products/academics/"},
-        {"title": "Finance & Billing", "summary": "Fees, payments, financial reporting.", "path": _safe_reverse("marketing_products_finance") or "/products/finance/"},
-        {"title": "Communication", "summary": "Role-ready portals for parents, teachers, students.", "path": _safe_reverse("marketing_products_communication") or "/products/communication/"},
-        {"title": "Compliance & Reporting", "summary": "Audit trails, regional compliance, export-ready reports.", "path": _safe_reverse("marketing_security_compliance") or "/security-compliance/"},
-        {"title": "Manager / Operations", "summary": "Super-admin command center for multi-tenant operators.", "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/"},
+        {
+            "title": "Admissions & Enrollment",
+            "summary": "Capture leads, track applications, onboard students.",
+            "path": _safe_reverse("marketing_products_admissions")
+            or "/products/admissions/",
+        },
+        {
+            "title": "Academics & Grades",
+            "summary": "Syllabi, attendance, report cards, interventions.",
+            "path": _safe_reverse("marketing_products_academics")
+            or "/products/academics/",
+        },
+        {
+            "title": "Finance & Billing",
+            "summary": "Fees, payments, financial reporting.",
+            "path": _safe_reverse("marketing_products_finance") or "/products/finance/",
+        },
+        {
+            "title": "Communication",
+            "summary": "Role-ready portals for parents, teachers, students.",
+            "path": _safe_reverse("marketing_products_communication")
+            or "/products/communication/",
+        },
+        {
+            "title": "Compliance & Reporting",
+            "summary": "Audit trails, regional compliance, export-ready reports.",
+            "path": _safe_reverse("marketing_security_compliance")
+            or "/security-compliance/",
+        },
+        {
+            "title": "Manager / Operations",
+            "summary": "Super-admin command center for multi-tenant operators.",
+            "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/",
+        },
     ]
     hero_ai_line = "One platform for admissions, academics, finance, and compliance—with AI that helps your team save time."
     differentiation_block = [
@@ -2494,29 +4226,81 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     enterprise_path_copy = "For operators at national scale. Book an architecture call for dedicated governance, compliance posture, and white-label branding."
 
     # Asset defaults: use static placeholders when settings are unset (no 404s). All required per Visual Asset plan.
-    global_map_image_url = getattr(settings, "MARKETING_GLOBAL_MAP_IMAGE_URL", None) or static("images/marketing/global-map.svg")
-    illustration_workflow_url = getattr(settings, "MARKETING_ILLUSTRATION_WORKFLOW_URL", None) or static("images/marketing/illustration-workflow.svg")
-    illustration_globe_url = getattr(settings, "MARKETING_ILLUSTRATION_GLOBE_URL", None) or static("images/marketing/illustration-globe.svg")
-    illustration_students_url = getattr(settings, "MARKETING_ILLUSTRATION_STUDENTS_URL", None) or static("images/marketing/illustration-students.svg")
+    global_map_image_url = getattr(
+        settings, "MARKETING_GLOBAL_MAP_IMAGE_URL", None
+    ) or static("images/marketing/global-map.svg")
+    illustration_workflow_url = getattr(
+        settings, "MARKETING_ILLUSTRATION_WORKFLOW_URL", None
+    ) or static("images/marketing/illustration-workflow.svg")
+    illustration_globe_url = getattr(
+        settings, "MARKETING_ILLUSTRATION_GLOBE_URL", None
+    ) or static("images/marketing/illustration-globe.svg")
+    illustration_students_url = getattr(
+        settings, "MARKETING_ILLUSTRATION_STUDENTS_URL", None
+    ) or static("images/marketing/illustration-students.svg")
     # Strategic diagram URLs (Batch 1/2; ultra high-end: dedicated SVGs per MARKETING_FRONT_PLACEHOLDER).
     _diagram_fallback = static("images/marketing/platform-diagram-marketing.svg")
-    platform_architecture_diagram_url = getattr(settings, "MARKETING_PLATFORM_ARCHITECTURE_DIAGRAM_URL", None) or _diagram_fallback
-    migration_cloud_diagram_url = getattr(settings, "MARKETING_MIGRATION_CLOUD_DIAGRAM_URL", None) or static("images/marketing/migration-flow.svg")
-    school_in_a_box_flow_image_url = getattr(settings, "MARKETING_SCHOOL_IN_A_BOX_FLOW_IMAGE_URL", None) or static("images/marketing/setup-studio-flow.svg")
-    data_intelligence_loop_image_url = getattr(settings, "MARKETING_DATA_INTELLIGENCE_LOOP_IMAGE_URL", None) or _diagram_fallback
-    ecosystem_map_image_url = getattr(settings, "MARKETING_ECOSYSTEM_MAP_IMAGE_URL", None) or static("images/marketing/ecosystem-diagram.svg")
+    platform_architecture_diagram_url = (
+        getattr(settings, "MARKETING_PLATFORM_ARCHITECTURE_DIAGRAM_URL", None)
+        or _diagram_fallback
+    )
+    migration_cloud_diagram_url = getattr(
+        settings, "MARKETING_MIGRATION_CLOUD_DIAGRAM_URL", None
+    ) or static("images/marketing/migration-flow.svg")
+    school_in_a_box_flow_image_url = getattr(
+        settings, "MARKETING_SCHOOL_IN_A_BOX_FLOW_IMAGE_URL", None
+    ) or static("images/marketing/setup-studio-flow.svg")
+    data_intelligence_loop_image_url = (
+        getattr(settings, "MARKETING_DATA_INTELLIGENCE_LOOP_IMAGE_URL", None)
+        or _diagram_fallback
+    )
+    ecosystem_map_image_url = getattr(
+        settings, "MARKETING_ECOSYSTEM_MAP_IMAGE_URL", None
+    ) or static("images/marketing/ecosystem-diagram.svg")
     # §12 MARKETING_FRONT_PLACEHOLDER: wire all asset keys (templates use these).
-    migration_diagram_url = getattr(settings, "MARKETING_MIGRATION_DIAGRAM_URL", None) or migration_cloud_diagram_url
-    ecosystem_diagram_url = getattr(settings, "MARKETING_ECOSYSTEM_DIAGRAM_URL", None) or ecosystem_map_image_url
-    control_plane_diagram_url = getattr(settings, "MARKETING_CONTROL_PLANE_DIAGRAM_URL", None) or static("images/marketing/control-plane-diagram.svg")
-    setup_studio_flow_image_url = getattr(settings, "MARKETING_SETUP_STUDIO_FLOW_IMAGE_URL", None) or static("images/marketing/setup-studio-flow.svg")
+    migration_diagram_url = (
+        getattr(settings, "MARKETING_MIGRATION_DIAGRAM_URL", None)
+        or migration_cloud_diagram_url
+    )
+    ecosystem_diagram_url = (
+        getattr(settings, "MARKETING_ECOSYSTEM_DIAGRAM_URL", None)
+        or ecosystem_map_image_url
+    )
+    control_plane_diagram_url = getattr(
+        settings, "MARKETING_CONTROL_PLANE_DIAGRAM_URL", None
+    ) or static("images/marketing/control-plane-diagram.svg")
+    setup_studio_flow_image_url = getattr(
+        settings, "MARKETING_SETUP_STUDIO_FLOW_IMAGE_URL", None
+    ) or static("images/marketing/setup-studio-flow.svg")
     # §12 platform-grade: every asset slot has a non-empty fallback so marketing front never shows broken/empty sections.
-    health_score_visual_url = getattr(settings, "MARKETING_HEALTH_SCORE_VISUAL_URL", None) or static("images/marketing/health-score-visual.svg")
+    health_score_visual_url = getattr(
+        settings, "MARKETING_HEALTH_SCORE_VISUAL_URL", None
+    ) or static("images/marketing/health-score-visual.svg")
     role_preview_images = getattr(settings, "MARKETING_ROLE_PREVIEW_IMAGES", None) or [
-        {"role": "principal", "label": "Principal", "image_url": "", "image_static": "images/marketing/viz-admin.svg"},
-        {"role": "teacher", "label": "Teacher", "image_url": "", "image_static": "images/marketing/viz-teacher.svg"},
-        {"role": "parent", "label": "Parent", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
-        {"role": "student", "label": "Student", "image_url": "", "image_static": "images/marketing/viz-student360.svg"},
+        {
+            "role": "principal",
+            "label": "Principal",
+            "image_url": "",
+            "image_static": "images/marketing/viz-admin.svg",
+        },
+        {
+            "role": "teacher",
+            "label": "Teacher",
+            "image_url": "",
+            "image_static": "images/marketing/viz-teacher.svg",
+        },
+        {
+            "role": "parent",
+            "label": "Parent",
+            "image_url": "",
+            "image_static": "images/marketing/viz-student360.svg",
+        },
+        {
+            "role": "student",
+            "label": "Student",
+            "image_url": "",
+            "image_static": "images/marketing/viz-student360.svg",
+        },
     ]
 
     # AI Intelligence section: dedicated homepage block (required).
@@ -2525,7 +4309,11 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "Surface insights for enrollment and retention.",
         "Automate routine reporting so staff focus on teaching.",
     ]
-    ai_intelligence_cta_path = _safe_reverse("marketing_products_analytics") or _safe_reverse("marketing_landing") or "/"
+    ai_intelligence_cta_path = (
+        _safe_reverse("marketing_products_analytics")
+        or _safe_reverse("marketing_landing")
+        or "/"
+    )
 
     return {
         "pitch": pitch,
@@ -2561,9 +4349,16 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "hero_variant": hero_variant,
         "marketing_cta_variant": marketing_cta_variant,
         "demo_tenant_url": demo_tenant_url,
-        "demo_what_you_see": getattr(settings, "MARKETING_DEMO_WHAT_YOU_SEE", None) or [],
-        "marketing_product_tour_url": getattr(settings, "MARKETING_PRODUCT_TOUR_URL", None) or "",
-        "marketing_newsletter_form_action": getattr(settings, "MARKETING_NEWSLETTER_FORM_ACTION", None) or "",
+        "demo_what_you_see": getattr(settings, "MARKETING_DEMO_WHAT_YOU_SEE", None)
+        or [],
+        "marketing_product_tour_url": getattr(
+            settings, "MARKETING_PRODUCT_TOUR_URL", None
+        )
+        or "",
+        "marketing_newsletter_form_action": getattr(
+            settings, "MARKETING_NEWSLETTER_FORM_ACTION", None
+        )
+        or "",
         "marketing_analytics_script_url": marketing_analytics_script_url,
         "marketing_analytics_preconnect_origin": marketing_analytics_preconnect_origin,
         "SHOW_HEADER_CONTEXT_STRIP": False,
@@ -2588,15 +4383,22 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "final_cta_headline": final_cta_headline,
         "hero_dashboard_image_url": hero_dashboard_image_url,
         "proof_hero_image_key": proof_hero_image_key,
-        "hero_dashboard_image_srcset": getattr(settings, "MARKETING_HERO_IMAGE_SRCSET", None) or "",
-        "hero_dashboard_image_sizes": getattr(settings, "MARKETING_HERO_IMAGE_SIZES", None) or "(max-width: 800px) 100vw, 800px",
+        "hero_dashboard_image_srcset": getattr(
+            settings, "MARKETING_HERO_IMAGE_SRCSET", None
+        )
+        or "",
+        "hero_dashboard_image_sizes": getattr(
+            settings, "MARKETING_HERO_IMAGE_SIZES", None
+        )
+        or "(max-width: 800px) 100vw, 800px",
         "hero_video_url": hero_video_url,
         "hero_video_poster_url": hero_video_poster_url,
         "product_demo_image_url": product_demo_image_url,
         "product_visualization_slides": product_visualization_slides,
         "organization_schema_json": organization_schema_json,
         "geo_copy": _geo_copy_variations(country),
-        "marketing_calendly_url": getattr(settings, "MARKETING_CALENDLY_URL", None) or "",
+        "marketing_calendly_url": getattr(settings, "MARKETING_CALENDLY_URL", None)
+        or "",
         "institution_types": institution_types,
         "workflow_automation": workflow_automation,
         "developer_platform_card": developer_platform_card,
@@ -2607,7 +4409,8 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "by_the_numbers": by_the_numbers,
         "outcome_metrics": outcome_metrics,
         "global_map_image_url": global_map_image_url,
-        "global_stats": getattr(settings, "MARKETING_GLOBAL_STATS", None) or [
+        "global_stats": getattr(settings, "MARKETING_GLOBAL_STATS", None)
+        or [
             {"label": "Countries", "value": "195+"},
             {"label": "Currencies", "value": "Multi-currency"},
             {"label": "Languages", "value": "Multi-language"},
@@ -2655,7 +4458,47 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "enterprise_path_copy": enterprise_path_copy,
         # §8.4 MARKETING_FRONT_PLACEHOLDER: safe defaults so templates can reference without KeyError
         "comparison_table": getattr(settings, "MARKETING_COMPARISON_TABLE", None) or [],
-        "replacement_messaging": getattr(settings, "MARKETING_REPLACEMENT_MESSAGING", None) or {},
+        "replacement_messaging": getattr(
+            settings, "MARKETING_REPLACEMENT_MESSAGING", None
+        )
+        or {},
+        "marketing_story_journey": [
+            {
+                "phase": "Morning chaos",
+                "copy": "Forms, fees, and parent messages live in different tools — until they don't.",
+            },
+            {
+                "phase": "One search",
+                "copy": "Ctrl+K surfaces each student with class context, fee posture, and recent guardian messages.",
+            },
+            {
+                "phase": "Super-admin calm",
+                "copy": "Automations handle reminders and reconciliation; you work exceptions from Student 360.",
+            },
+        ],
+        "marketing_data_flow_chain": [
+            {"label": "Admissions", "detail": "One application record"},
+            {"label": "Roster", "detail": "Class placement in sync"},
+            {"label": "Finance", "detail": "Invoices tied to the same student"},
+        ],
+        "marketing_apac_story": {
+            "headline": "Asia–Pacific momentum",
+            "body": (
+                "Government digitization and private-school growth are accelerating education software adoption "
+                "across APAC. RunMyCampus ships multi-tenant, multi-currency, and locale-aware operations "
+                "so regional schools can launch without re-architecting later."
+            ),
+            "citations_note": (
+                "Analysts consistently rank Asia–Pacific among the fastest-growing regions for EdTech and "
+                "school management software (see sector reports from Grand View Research, Mordor Intelligence, "
+                "and comparable market research)."
+            ),
+        },
+        "marketing_admin_efficiency_note": (
+            "In-product automation — fee reminders, receipt workflows, attendance pipelines — is designed to "
+            "replace repetitive manual steps. We encourage each school to measure time saved after go-live "
+            "rather than publishing a one-size-fits-all percentage."
+        ),
     }
 
 
@@ -2678,25 +4521,33 @@ def _faq_schema(faq_list: list[dict], canonical_url: str) -> dict:
         "@type": "FAQPage",
         "url": canonical_url,
         "mainEntity": [
-            {"@type": "Question", "name": faq["question"], "acceptedAnswer": {"@type": "Answer", "text": faq["answer"]}}
+            {
+                "@type": "Question",
+                "name": faq["question"],
+                "acceptedAnswer": {"@type": "Answer", "text": faq["answer"]},
+            }
             for faq in faq_list
         ],
     }
 
 
-def _breadcrumb_list_schema(canonical_base_url: str, path_segments: list[tuple[str, str]]) -> dict:
+def _breadcrumb_list_schema(
+    canonical_base_url: str, path_segments: list[tuple[str, str]]
+) -> dict:
     """Schema.org BreadcrumbList from (name, path) segments. path is relative (e.g. /, /product/)."""
     base = canonical_base_url.rstrip("/")
     items = []
     for i, (name, path) in enumerate(path_segments, 1):
         p = path if path.startswith("/") else "/" + path
         item_url = base + p if p != "/" else base + "/"
-        items.append({
-            "@type": "ListItem",
-            "position": i,
-            "name": name,
-            "item": item_url,
-        })
+        items.append(
+            {
+                "@type": "ListItem",
+                "position": i,
+                "name": name,
+                "item": item_url,
+            }
+        )
     return {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
@@ -2704,8 +4555,14 @@ def _breadcrumb_list_schema(canonical_base_url: str, path_segments: list[tuple[s
     }
 
 
-def _structured_data_for_page(*, page_type: str, canonical_url: str, name: str, description: str, path: str) -> dict:
-    base_url = canonical_url.rsplit(path, 1)[0] + "/" if path in canonical_url else canonical_url
+def _structured_data_for_page(
+    *, page_type: str, canonical_url: str, name: str, description: str, path: str
+) -> dict:
+    base_url = (
+        canonical_url.rsplit(path, 1)[0] + "/"
+        if path in canonical_url
+        else canonical_url
+    )
     payload: dict = {
         "@context": "https://schema.org",
         "@type": page_type,
@@ -2716,9 +4573,21 @@ def _structured_data_for_page(*, page_type: str, canonical_url: str, name: str, 
     }
     if page_type == "OfferCatalog":
         payload["itemListElement"] = [
-            {"@type": "Offer", "name": "Starter", "description": "For single-campus schools: admissions, academics, portals."},
-            {"@type": "Offer", "name": "Growth", "description": "For expanding networks: multi-campus, localization, support visibility."},
-            {"@type": "Offer", "name": "Enterprise", "description": "White-label for national scale: manager operations, API, compliance."},
+            {
+                "@type": "Offer",
+                "name": "Starter",
+                "description": "For single-campus schools: admissions, academics, portals.",
+            },
+            {
+                "@type": "Offer",
+                "name": "Growth",
+                "description": "For expanding networks: multi-campus, localization, support visibility.",
+            },
+            {
+                "@type": "Offer",
+                "name": "Enterprise",
+                "description": "White-label for national scale: manager operations, API, compliance.",
+            },
         ]
     if page_type == "ItemList":
         payload["itemListElement"] = [
@@ -2746,6 +4615,7 @@ def _marketing_base_context(request) -> dict:
 def marketing_landing(request):
     """Global marketing landing with geo-personalized copy."""
     from apps.schools.funnel_events import record_marketing_funnel_event
+
     record_marketing_funnel_event("visit", request)
     geo_country = _get_country_from_request(request)
     ctx = _marketing_context(
@@ -2763,8 +4633,9 @@ def _get_blog_posts(limit: int = 20):
         from apps.siteconfig.models import BlogPost
 
         return list(
-            BlogPost.objects.filter(is_published=True)
-            .order_by("-published_at", "-created_at")[:limit]
+            BlogPost.objects.filter(is_published=True).order_by(
+                "-published_at", "-created_at"
+            )[:limit]
         )
     except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError):
         return []
@@ -2811,7 +4682,11 @@ def marketing_page(request, page_slug: str):
         page_extras = deepcopy(MARKETING_PAGE_EXTRAS.get(normalized_slug, {}))
     base_ctx = _marketing_base_context(request)
     slug_based_path = f"/{page_slug}/"
-    canonical_path = (request.path if request.path.endswith("/") else request.path + "/") if (getattr(request, "path", None) and request.path != slug_based_path) else slug_based_path
+    canonical_path = (
+        (request.path if request.path.endswith("/") else request.path + "/")
+        if (getattr(request, "path", None) and request.path != slug_based_path)
+        else slug_based_path
+    )
     canonical_url = _absolute_url(request, canonical_path)
     page_copy["slug"] = page_slug
     page_copy["path"] = canonical_path
@@ -2831,13 +4706,21 @@ def marketing_page(request, page_slug: str):
 
     # BreadcrumbList schema: Home > Page label
     base_url = _absolute_url(request, "/").rstrip("/")
-    breadcrumb_segments = [("Home", "/"), (page_copy.get("label") or page_slug, canonical_path)]
-    breadcrumb_schema_json = json.dumps(_breadcrumb_list_schema(base_url, breadcrumb_segments))
+    breadcrumb_segments = [
+        ("Home", "/"),
+        (page_copy.get("label") or page_slug, canonical_path),
+    ]
+    breadcrumb_schema_json = json.dumps(
+        _breadcrumb_list_schema(base_url, breadcrumb_segments)
+    )
 
     # Wave 3: SLA/uptime status URL from settings for trust-center and uptime
     if page_slug in ("trust-center", "uptime") and page_extras.get("sla_uptime"):
         status_url = getattr(settings, "MARKETING_STATUS_PAGE_URL", None) or ""
-        page_extras["sla_uptime"] = {**page_extras["sla_uptime"], "status_url": status_url}
+        page_extras["sla_uptime"] = {
+            **page_extras["sla_uptime"],
+            "status_url": status_url,
+        }
 
     ctx = {
         **base_ctx,
@@ -2877,12 +4760,14 @@ def submit_demo_request(request):
     webhook_url = getattr(settings, "MARKETING_DEMO_WEBHOOK_URL", None) or ""
     success = False
     if webhook_url and email:
-        payload = json.dumps({
-            "name": name,
-            "email": email,
-            "school": school,
-            "message": message,
-        })
+        payload = json.dumps(
+            {
+                "name": name,
+                "email": email,
+                "school": school,
+                "message": message,
+            }
+        )
         try:
             from urllib.request import Request, urlopen
             from urllib.error import URLError, HTTPError
@@ -3004,7 +4889,9 @@ def marketing_funnel_dashboard(request):
     from apps.schools.models import MarketingFunnelEvent
 
     now = timezone.now()
-    all_time = MarketingFunnelEvent.objects.values("event_type").annotate(count=Count("id"))
+    all_time = MarketingFunnelEvent.objects.values("event_type").annotate(
+        count=Count("id")
+    )
     all_time_map = {r["event_type"]: r["count"] for r in all_time}
     visit = all_time_map.get("visit", 0)
     discovery = all_time_map.get("discovery", 0)
@@ -3013,10 +4900,19 @@ def marketing_funnel_dashboard(request):
 
     # Last 7 and 30 days
     from datetime import timedelta
+
     week_ago = now - timedelta(days=7)
     month_ago = now - timedelta(days=30)
-    last7 = MarketingFunnelEvent.objects.filter(created_at__gte=week_ago).values("event_type").annotate(count=Count("id"))
-    last30 = MarketingFunnelEvent.objects.filter(created_at__gte=month_ago).values("event_type").annotate(count=Count("id"))
+    last7 = (
+        MarketingFunnelEvent.objects.filter(created_at__gte=week_ago)
+        .values("event_type")
+        .annotate(count=Count("id"))
+    )
+    last30 = (
+        MarketingFunnelEvent.objects.filter(created_at__gte=month_ago)
+        .values("event_type")
+        .annotate(count=Count("id"))
+    )
     last7_map = {r["event_type"]: r["count"] for r in last7}
     last30_map = {r["event_type"]: r["count"] for r in last30}
 
@@ -3086,8 +4982,14 @@ def topical_marketing_landing(request, topic_slug: str):
     )
 
     base_url = _absolute_url(request, "/").rstrip("/")
-    breadcrumb_segments = [("Home", "/"), ("Solutions", "/solutions/"), (topic_copy.get("label") or topic_slug, canonical_path)]
-    breadcrumb_schema_json = json.dumps(_breadcrumb_list_schema(base_url, breadcrumb_segments))
+    breadcrumb_segments = [
+        ("Home", "/"),
+        ("Solutions", "/solutions/"),
+        (topic_copy.get("label") or topic_slug, canonical_path),
+    ]
+    breadcrumb_schema_json = json.dumps(
+        _breadcrumb_list_schema(base_url, breadcrumb_segments)
+    )
 
     ctx = {
         **base_ctx,
@@ -3105,7 +5007,9 @@ def topical_marketing_landing(request, topic_slug: str):
 @require_GET
 def institution_marketing_page(request, institution_slug: str):
     """Institutional segment landing: K-12, universities, technical-schools, private-schools, government-education."""
-    definition = INSTITUTION_LANDING_DEFINITIONS.get((institution_slug or "").strip().lower())
+    definition = INSTITUTION_LANDING_DEFINITIONS.get(
+        (institution_slug or "").strip().lower()
+    )
     if not definition:
         raise Http404("Institution segment not found")
     base_ctx = _marketing_base_context(request)
@@ -3121,8 +5025,14 @@ def institution_marketing_page(request, institution_slug: str):
         path=canonical_path,
     )
     base_url = _absolute_url(request, "/").rstrip("/")
-    breadcrumb_segments = [("Home", "/"), ("Solutions", "/solutions/"), (page_copy.get("label") or institution_slug, canonical_path)]
-    breadcrumb_schema_json = json.dumps(_breadcrumb_list_schema(base_url, breadcrumb_segments))
+    breadcrumb_segments = [
+        ("Home", "/"),
+        ("Solutions", "/solutions/"),
+        (page_copy.get("label") or institution_slug, canonical_path),
+    ]
+    breadcrumb_schema_json = json.dumps(
+        _breadcrumb_list_schema(base_url, breadcrumb_segments)
+    )
     ctx = {
         **base_ctx,
         "seo_title": page_copy.get("seo_title"),
@@ -3155,8 +5065,14 @@ def role_marketing_page(request, role_slug: str):
         path=canonical_path,
     )
     base_url = _absolute_url(request, "/").rstrip("/")
-    breadcrumb_segments = [("Home", "/"), ("Roles", "/roles/"), (page_copy.get("label") or role_slug, canonical_path)]
-    breadcrumb_schema_json = json.dumps(_breadcrumb_list_schema(base_url, breadcrumb_segments))
+    breadcrumb_segments = [
+        ("Home", "/"),
+        ("Roles", "/roles/"),
+        (page_copy.get("label") or role_slug, canonical_path),
+    ]
+    breadcrumb_schema_json = json.dumps(
+        _breadcrumb_list_schema(base_url, breadcrumb_segments)
+    )
     ctx = {
         **base_ctx,
         "seo_title": page_copy.get("seo_title"),
@@ -3192,8 +5108,12 @@ def migrate_marketing_page(request, source_slug: str | None = None):
     base_url = _absolute_url(request, "/").rstrip("/")
     breadcrumb_segments = [("Home", "/"), ("Migrate", "/migrate/")]
     if slug_key:
-        breadcrumb_segments.append((page_copy.get("headline", "Migration"), canonical_path))
-    breadcrumb_schema_json = json.dumps(_breadcrumb_list_schema(base_url, breadcrumb_segments))
+        breadcrumb_segments.append(
+            (page_copy.get("headline", "Migration"), canonical_path)
+        )
+    breadcrumb_schema_json = json.dumps(
+        _breadcrumb_list_schema(base_url, breadcrumb_segments)
+    )
     ctx = {
         **base_ctx,
         "seo_title": page_copy.get("seo_title"),
@@ -3212,11 +5132,18 @@ def migration_simulator_page(request):
     """Migration simulator: select source and see steps, timeline, and field mapping (backend-driven)."""
     source_slug = (request.GET.get("source") or "").strip().lower()
     sources_list = [
-        {"source_id": sid, "display_name": data["display_name"], "typical_timeline": data["typical_timeline"]}
+        {
+            "source_id": sid,
+            "display_name": data["display_name"],
+            "typical_timeline": data["typical_timeline"],
+        }
         for sid, data in MIGRATION_SIMULATOR_SOURCES.items()
     ]
     selected = MIGRATION_SIMULATOR_SOURCES.get(source_slug) if source_slug else None
-    if request.headers.get("Accept", "").find("application/json") >= 0 or request.GET.get("format") == "json":
+    if (
+        request.headers.get("Accept", "").find("application/json") >= 0
+        or request.GET.get("format") == "json"
+    ):
         payload = {"sources": sources_list}
         if selected:
             payload["selected"] = {
@@ -3273,7 +5200,9 @@ def setup_simulator_page(request):
     for step in GETTING_STARTED_SIMULATOR_STEPS:
         step_copy = dict(step)
         cta_slug = step_copy.get("cta_url_slug")
-        step_copy["cta_url"] = _setup_simulator_cta_url(request, cta_slug) if cta_slug else None
+        step_copy["cta_url"] = (
+            _setup_simulator_cta_url(request, cta_slug) if cta_slug else None
+        )
         steps.append(step_copy)
     ctx = {
         **base_ctx,
@@ -3305,8 +5234,14 @@ def compare_marketing_page(request, competitor_slug: str):
         path=canonical_path,
     )
     base_url = _absolute_url(request, "/").rstrip("/")
-    breadcrumb_segments = [("Home", "/"), ("Compare", "/compare/"), (page_copy.get("competitor_name", competitor_slug), canonical_path)]
-    breadcrumb_schema_json = json.dumps(_breadcrumb_list_schema(base_url, breadcrumb_segments))
+    breadcrumb_segments = [
+        ("Home", "/"),
+        ("Compare", "/compare/"),
+        (page_copy.get("competitor_name", competitor_slug), canonical_path),
+    ]
+    breadcrumb_schema_json = json.dumps(
+        _breadcrumb_list_schema(base_url, breadcrumb_segments)
+    )
     ctx = {
         **base_ctx,
         "seo_title": page_copy.get("seo_title"),
@@ -3328,8 +5263,14 @@ DEVELOPER_PAGE_DEFINITIONS = {
         "headline": "API overview",
         "subheadline": "REST API and OpenAPI schema available at your school subdomain after login.",
         "sections": [
-            {"title": "Schema", "body": "OpenAPI 3 schema at /api/schema/ui/ on your tenant subdomain."},
-            {"title": "Authentication", "body": "POST /api/auth/token/ with username/password; use Bearer token in Authorization header."},
+            {
+                "title": "Schema",
+                "body": "OpenAPI 3 schema at /api/schema/ui/ on your tenant subdomain.",
+            },
+            {
+                "title": "Authentication",
+                "body": "POST /api/auth/token/ with username/password; use Bearer token in Authorization header.",
+            },
         ],
     },
     "webhooks": {
@@ -3339,8 +5280,14 @@ DEVELOPER_PAGE_DEFINITIONS = {
         "headline": "Webhooks",
         "subheadline": "Subscribe to events and receive payloads at your endpoint.",
         "sections": [
-            {"title": "Events", "body": "Subscribe to enrollment, grade, and billing events."},
-            {"title": "Delivery", "body": "Signed payloads and retry policy; configure in tenant settings."},
+            {
+                "title": "Events",
+                "body": "Subscribe to enrollment, grade, and billing events.",
+            },
+            {
+                "title": "Delivery",
+                "body": "Signed payloads and retry policy; configure in tenant settings.",
+            },
         ],
     },
     "integrations": {
@@ -3350,9 +5297,18 @@ DEVELOPER_PAGE_DEFINITIONS = {
         "headline": "Integrations",
         "subheadline": "Connect SIS, LMS, payment gateways, and identity providers.",
         "sections": [
-            {"title": "LTI 1.3", "body": "LTI launch and deep linking; readiness at /api/interop/lti13/."},
-            {"title": "OneRoster", "body": "OneRoster API and CSV; readiness at /api/interop/oneroster/."},
-            {"title": "Ed-Fi & CEDS", "body": "Ed-Fi and CEDS endpoints for student and grade data."},
+            {
+                "title": "LTI 1.3",
+                "body": "LTI launch and deep linking; readiness at /api/interop/lti13/.",
+            },
+            {
+                "title": "OneRoster",
+                "body": "OneRoster API and CSV; readiness at /api/interop/oneroster/.",
+            },
+            {
+                "title": "Ed-Fi & CEDS",
+                "body": "Ed-Fi and CEDS endpoints for student and grade data.",
+            },
         ],
     },
     "sdk": {
@@ -3362,8 +5318,14 @@ DEVELOPER_PAGE_DEFINITIONS = {
         "headline": "SDK",
         "subheadline": "Client libraries and auth helpers for API integration.",
         "sections": [
-            {"title": "Repository", "body": "RunMyCampus SDK on GitHub: auth, base URL, and request helpers."},
-            {"title": "Sandbox", "body": "Try the sandbox at /developer-portal/sandbox/ for app preview."},
+            {
+                "title": "Repository",
+                "body": "RunMyCampus SDK on GitHub: auth, base URL, and request helpers.",
+            },
+            {
+                "title": "Sandbox",
+                "body": "Try the sandbox at /developer-portal/sandbox/ for app preview.",
+            },
         ],
     },
     "app-building": {
@@ -3373,9 +5335,18 @@ DEVELOPER_PAGE_DEFINITIONS = {
         "headline": "App building",
         "subheadline": "Build apps and extensions that run on RunMyCampus. Use the API, SDK, and sandbox.",
         "sections": [
-            {"title": "Getting started", "body": "Register your app, get credentials, and use the API or SDK to build integrations."},
-            {"title": "Sandbox", "body": "Test your app in the developer sandbox at /developer-portal/sandbox/ before publishing."},
-            {"title": "Marketplace", "body": "Submit your app to the marketplace for schools to install. Governance and review pipeline."},
+            {
+                "title": "Getting started",
+                "body": "Register your app, get credentials, and use the API or SDK to build integrations.",
+            },
+            {
+                "title": "Sandbox",
+                "body": "Test your app in the developer sandbox at /developer-portal/sandbox/ before publishing.",
+            },
+            {
+                "title": "Marketplace",
+                "body": "Submit your app to the marketplace for schools to install. Governance and review pipeline.",
+            },
         ],
     },
 }
@@ -3391,12 +5362,66 @@ MARKETPLACE_PAGE_DEFINITIONS = {
         "policy_packs_copy": "Pre-built policy bundles and compliance packs.",
         "partners_copy": "Built with our partners for education.",
     },
-    "apps": {"headline": "Marketplace apps", "subheadline": "Apps to extend RunMyCampus.", "apps_copy": "Browse and install apps.", "integrations_copy": "", "templates_copy": "", "blueprints_copy": "", "policy_packs_copy": "", "partners_copy": ""},
-    "integrations": {"headline": "Integrations", "subheadline": "Connect your systems.", "apps_copy": "", "integrations_copy": "LMS, SIS, payments, messaging.", "templates_copy": "", "blueprints_copy": "", "policy_packs_copy": "", "partners_copy": ""},
-    "templates": {"headline": "Templates", "subheadline": "Report, form, and branding templates.", "apps_copy": "", "integrations_copy": "", "templates_copy": "Report templates, form templates, and dashboard layouts. Start from blueprints or customize.", "blueprints_copy": "", "policy_packs_copy": "", "partners_copy": ""},
-    "blueprints": {"headline": "Blueprints", "subheadline": "Country and institution blueprints.", "apps_copy": "", "integrations_copy": "", "templates_copy": "", "blueprints_copy": "Pre-built policy and workflow bundles for faster setup and best practices. Country and institution-type blueprints.", "policy_packs_copy": "", "partners_copy": ""},
-    "policy-packs": {"headline": "Policy packs", "subheadline": "Pre-built policy and compliance packs.", "apps_copy": "", "integrations_copy": "", "templates_copy": "", "blueprints_copy": "", "policy_packs_copy": "Policy bundles and compliance packs. Apply across tenants from the control plane.", "partners_copy": ""},
-    "partners": {"headline": "Partners", "subheadline": "Built with our partners.", "apps_copy": "", "integrations_copy": "", "templates_copy": "", "blueprints_copy": "", "policy_packs_copy": "", "partners_copy": "Partner solutions and certified integrations."},
+    "apps": {
+        "headline": "Marketplace apps",
+        "subheadline": "Apps to extend RunMyCampus.",
+        "apps_copy": "Browse and install apps.",
+        "integrations_copy": "",
+        "templates_copy": "",
+        "blueprints_copy": "",
+        "policy_packs_copy": "",
+        "partners_copy": "",
+    },
+    "integrations": {
+        "headline": "Integrations",
+        "subheadline": "Connect your systems.",
+        "apps_copy": "",
+        "integrations_copy": "LMS, SIS, payments, messaging.",
+        "templates_copy": "",
+        "blueprints_copy": "",
+        "policy_packs_copy": "",
+        "partners_copy": "",
+    },
+    "templates": {
+        "headline": "Templates",
+        "subheadline": "Report, form, and branding templates.",
+        "apps_copy": "",
+        "integrations_copy": "",
+        "templates_copy": "Report templates, form templates, and dashboard layouts. Start from blueprints or customize.",
+        "blueprints_copy": "",
+        "policy_packs_copy": "",
+        "partners_copy": "",
+    },
+    "blueprints": {
+        "headline": "Blueprints",
+        "subheadline": "Country and institution blueprints.",
+        "apps_copy": "",
+        "integrations_copy": "",
+        "templates_copy": "",
+        "blueprints_copy": "Pre-built policy and workflow bundles for faster setup and best practices. Country and institution-type blueprints.",
+        "policy_packs_copy": "",
+        "partners_copy": "",
+    },
+    "policy-packs": {
+        "headline": "Policy packs",
+        "subheadline": "Pre-built policy and compliance packs.",
+        "apps_copy": "",
+        "integrations_copy": "",
+        "templates_copy": "",
+        "blueprints_copy": "",
+        "policy_packs_copy": "Policy bundles and compliance packs. Apply across tenants from the control plane.",
+        "partners_copy": "",
+    },
+    "partners": {
+        "headline": "Partners",
+        "subheadline": "Built with our partners.",
+        "apps_copy": "",
+        "integrations_copy": "",
+        "templates_copy": "",
+        "blueprints_copy": "",
+        "policy_packs_copy": "",
+        "partners_copy": "Partner solutions and certified integrations.",
+    },
 }
 
 
@@ -3434,7 +5459,9 @@ def developer_marketing_page(request, section_slug: str):
 def marketplace_marketing_page(request, section: str = ""):
     """Marketplace landing and sections: apps, integrations, partners."""
     section_key = (section or "").strip().lower()
-    definition = MARKETPLACE_PAGE_DEFINITIONS.get(section_key, MARKETPLACE_PAGE_DEFINITIONS.get(""))
+    definition = MARKETPLACE_PAGE_DEFINITIONS.get(
+        section_key, MARKETPLACE_PAGE_DEFINITIONS.get("")
+    )
     base_ctx = _marketing_base_context(request)
     if section_key:
         canonical_path = f"/marketplace/{section}/"
@@ -3499,7 +5526,17 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
 
     path_specs["/"] = ("1.0", "weekly")
     path_specs["/education-operating-system/"] = ("0.95", "weekly")
-    for platform_path in ("/platform/", "/platform/education-os/", "/platform/control-plane/", "/platform/marketplace/", "/platform/migration-cloud/", "/platform/runtime/", "/platform/integrations/", "/platform/security/", "/platform/analytics/"):
+    for platform_path in (
+        "/platform/",
+        "/platform/education-os/",
+        "/platform/control-plane/",
+        "/platform/marketplace/",
+        "/platform/migration-cloud/",
+        "/platform/runtime/",
+        "/platform/integrations/",
+        "/platform/security/",
+        "/platform/analytics/",
+    ):
         path_specs[platform_path] = ("0.85", "monthly")
     path_specs["/getting-started/"] = ("0.85", "monthly")
     path_specs["/getting-started/simulator/"] = ("0.75", "monthly")
@@ -3527,14 +5564,34 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
     path_specs["/book-demo/"] = ("0.9", "weekly")
     path_specs["/cookie-policy/"] = ("0.5", "monthly")
     # Phase 3–4: institution, role, migrate, compare, trust, developers, marketplace
-    for inst in ("k12", "universities", "technical-schools", "private-schools", "government-education"):
+    for inst in (
+        "k12",
+        "universities",
+        "technical-schools",
+        "private-schools",
+        "government-education",
+    ):
         path_specs[f"/solutions/{inst}/"] = ("0.8", "monthly")
-    for role in ("school-admin", "teachers", "parents", "students", "it-directors", "government", "principals", "district-leaders"):
+    for role in (
+        "school-admin",
+        "teachers",
+        "parents",
+        "students",
+        "it-directors",
+        "government",
+        "principals",
+        "district-leaders",
+    ):
         path_specs[f"/roles/{role}/"] = ("0.8", "monthly")
     path_specs["/for/principals/"] = ("0.75", "monthly")
     path_specs["/for/district-leaders/"] = ("0.75", "monthly")
     path_specs["/migrate/"] = ("0.8", "monthly")
-    for src in ("from-power-school", "from-blackbaud", "from-infinite-campus", "from-veracross"):
+    for src in (
+        "from-power-school",
+        "from-blackbaud",
+        "from-infinite-campus",
+        "from-veracross",
+    ):
         path_specs[f"/migrate/{src}/"] = ("0.8", "monthly")
     for src in ("from-power-school", "from-blackbaud", "from-infinite-campus"):
         path_specs[f"/migrate-from/{src}/"] = ("0.75", "monthly")
@@ -3551,9 +5608,21 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
     path_specs["/marketplace/blueprints/"] = ("0.7", "monthly")
     path_specs["/marketplace/policy-packs/"] = ("0.7", "monthly")
     path_specs["/marketplace/partners/"] = ("0.7", "monthly")
-    for prod in ("admissions", "academics", "finance", "communication", "automation", "analytics"):
+    for prod in (
+        "admissions",
+        "academics",
+        "finance",
+        "communication",
+        "automation",
+        "analytics",
+    ):
         path_specs[f"/products/{prod}/"] = ("0.85", "monthly")
-    for seo_slug in ("school-management-system", "student-information-system", "education-erp", "school-administration-software"):
+    for seo_slug in (
+        "school-management-system",
+        "student-information-system",
+        "education-erp",
+        "school-administration-software",
+    ):
         path_specs[f"/{seo_slug}/"] = ("0.85", "monthly")
 
     try:
@@ -3577,7 +5646,10 @@ def _sitemap_entries(request) -> list[tuple[str, str, str]]:
             continue
         path_specs[f"/{lang}/{code}/"] = ("0.7", "monthly")
 
-    return [(base + (p if p != "/" else "/"), prio, freq) for p, (prio, freq) in path_specs.items()]
+    return [
+        (base + (p if p != "/" else "/"), prio, freq)
+        for p, (prio, freq) in path_specs.items()
+    ]
 
 
 @require_GET
@@ -3587,7 +5659,10 @@ def marketing_sitemap_xml(request):
     """
     now = datetime.now(dt_timezone.utc).strftime("%Y-%m-%d")
     entries = _sitemap_entries(request)
-    chunks = ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">"]
+    chunks = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
     for loc, priority, changefreq in entries:
         chunks.append("  <url>")
         chunks.append(f"    <loc>{loc}</loc>")
@@ -3615,19 +5690,27 @@ def developer_portal(request):
         "interop_lti13": request.build_absolute_uri("/api/interop/lti13/"),
         "interop_edfi": request.build_absolute_uri("/api/interop/edfi/"),
         "interop_ceds": request.build_absolute_uri("/api/interop/ceds/"),
-        "webhooks_doc": f"{scheme}://docs.{base}/webhooks/" if base != "localhost" else request.build_absolute_uri("/docs/webhooks/"),
-        "app_lifecycle_anchor": request.build_absolute_uri(reverse("developer_portal") + "#app-lifecycle"),
+        "webhooks_doc": f"{scheme}://docs.{base}/webhooks/"
+        if base != "localhost"
+        else request.build_absolute_uri("/docs/webhooks/"),
+        "app_lifecycle_anchor": request.build_absolute_uri(
+            reverse("developer_portal") + "#app-lifecycle"
+        ),
         "sandbox": request.build_absolute_uri(reverse("developer_sandbox")),
         "sdk_repo": "https://github.com/runmycampus/sdk",
     }
     base_ctx = _marketing_base_context(request)
-    return render(request, "schools/developer_portal.html", {
-        **base_ctx,
-        "page_slug": "developer-portal",
-        "headline": "Developer Portal",
-        "subheadline": "APIs, webhooks, LTI, OneRoster, and app extensions.",
-        "links": links,
-    })
+    return render(
+        request,
+        "schools/developer_portal.html",
+        {
+            **base_ctx,
+            "page_slug": "developer-portal",
+            "headline": "Developer Portal",
+            "subheadline": "APIs, webhooks, LTI, OneRoster, and app extensions.",
+            "links": links,
+        },
+    )
 
 
 @require_GET
@@ -3648,13 +5731,32 @@ def developer_sdk(request):
         "interop_ceds": "/api/interop/ceds/ (readiness); /api/interop/ceds/students/, .../enrollments/, .../grades/.",
     }
     base_ctx = _marketing_base_context(request)
-    return render(request, "schools/developer_sdk.html", {
-        **base_ctx,
-        "page_slug": "developer-sdk",
-        "headline": "SDK & API reference",
-        "subheadline": "Authentication, base URL, and API endpoints for RunMyCampus integrations.",
-        "links": links,
-    })
+    return render(
+        request,
+        "schools/developer_sdk.html",
+        {
+            **base_ctx,
+            "page_slug": "developer-sdk",
+            "headline": "SDK & API reference",
+            "subheadline": "Authentication, base URL, and API endpoints for RunMyCampus integrations.",
+            "links": links,
+        },
+    )
+
+
+@require_GET
+def developer_public_api_docs(request):
+    """Public developer API summary (§0.3); full detail in docs/DEVELOPER_PUBLIC_API.md."""
+    base_ctx = _marketing_base_context(request)
+    return render(
+        request,
+        "schools/developer_public_api_docs.html",
+        {
+            **base_ctx,
+            "manifest_url": request.build_absolute_uri("/api/v1/manifest.json"),
+            "schema_note": "/api/schema/ and /api/schema/ui/ after staff login on tenant host.",
+        },
+    )
 
 
 @require_GET
@@ -3666,6 +5768,8 @@ def developer_sandbox(request):
     html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sandbox</title></head>
 <body><p>App sandbox placeholder. Third-party apps run in an iframe with restricted permissions (CSP, sandbox attribute).</p></body></html>"""
     response = HttpResponse(html, content_type="text/html; charset=utf-8")
-    response["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'"
+    response["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'"
+    )
     response["X-Frame-Options"] = "SAMEORIGIN"
     return response

@@ -7,6 +7,7 @@ Run from repo root: python scripts/gen_models_png.py
 Exits 0 if generation succeeded or if graph_models/graphviz are not available (no-op; install deps and re-run).
 CI: install graphviz (e.g. sudo apt-get install -y graphviz) before running this script to upload models.png.
 """
+
 from __future__ import annotations
 
 import os
@@ -33,16 +34,27 @@ def main() -> int:
             print(f"Generated {out}")
             return 0
         # graph_models not available or graphviz missing
-        if "graph_models" in (result.stderr or result.stdout or "").lower() or "unknown command" in (result.stderr or "").lower():
-            print("Required: install django-extensions and graphviz to generate models.png (see docs/architecture/README.md)")
+        if (
+            "graph_models" in (result.stderr or result.stdout or "").lower()
+            or "unknown command" in (result.stderr or "").lower()
+        ):
+            print(
+                "Required: install django-extensions and graphviz to generate models.png (see docs/architecture/README.md)"
+            )
             return 0
         print(result.stderr or result.stdout or "graph_models failed", file=sys.stderr)
         return 0  # still exit 0 so CI/docs regen does not fail
     except FileNotFoundError:
-        print("Required: manage.py not found or Django env not set; fix env and re-run for models.png", file=sys.stderr)
+        print(
+            "Required: manage.py not found or Django env not set; fix env and re-run for models.png",
+            file=sys.stderr,
+        )
         return 0
     except subprocess.TimeoutExpired:
-        print("graph_models timed out; re-run or increase timeout for models.png", file=sys.stderr)
+        print(
+            "graph_models timed out; re-run or increase timeout for models.png",
+            file=sys.stderr,
+        )
         return 0
     except Exception as e:
         print(f"models.png generation failed (required): {e}", file=sys.stderr)

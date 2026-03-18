@@ -3,6 +3,7 @@ Code-backed event catalog: standard naming (domain.action), payload schemas, and
 Use emit_event() from apps.events.services only; event_type must be in EVENT_CATALOG when strict.
 Master Platform Checklist §7.1, §7.2.
 """
+
 from __future__ import annotations
 
 # Event type -> {payload_required_keys, description, retry_policy, schema_version}
@@ -23,14 +24,26 @@ EVENT_CATALOG = {
     },
     "attendance.recorded": {
         "payload_required_keys": ("school_id",),
-        "payload_optional_keys": ("attendance_id", "teacher_attendance_id", "student_id", "teacher_id", "date", "status"),
+        "payload_optional_keys": (
+            "attendance_id",
+            "teacher_attendance_id",
+            "student_id",
+            "teacher_id",
+            "date",
+            "status",
+        ),
         "description": "Student or teacher attendance recorded",
         "retry_policy": "default",
         "schema_version": "1.0",
     },
     "grade.published": {
         "payload_required_keys": ("school_id",),
-        "payload_optional_keys": ("evaluation_id", "student_id", "term", "published_at"),
+        "payload_optional_keys": (
+            "evaluation_id",
+            "student_id",
+            "term",
+            "published_at",
+        ),
         "description": "Grades published for a term/evaluation",
         "retry_policy": "default",
         "schema_version": "1.0",
@@ -44,7 +57,13 @@ EVENT_CATALOG = {
     },
     "payment.received": {
         "payload_required_keys": ("payment_id", "school_id"),
-        "payload_optional_keys": ("invoice_id", "student_id", "amount", "method", "reference"),
+        "payload_optional_keys": (
+            "invoice_id",
+            "student_id",
+            "amount",
+            "method",
+            "reference",
+        ),
         "description": "Payment recorded",
         "retry_policy": "default",
         "schema_version": "1.0",
@@ -65,7 +84,12 @@ EVENT_CATALOG = {
     },
     "parent.notified": {
         "payload_required_keys": ("school_id",),
-        "payload_optional_keys": ("guardian_id", "student_id", "channel", "message_type"),
+        "payload_optional_keys": (
+            "guardian_id",
+            "student_id",
+            "channel",
+            "message_type",
+        ),
         "description": "Parent/guardian notified",
         "retry_policy": "default",
         "schema_version": "1.0",
@@ -86,7 +110,13 @@ EVENT_CATALOG = {
     },
     "migration.completed": {
         "payload_required_keys": ("school_id",),
-        "payload_optional_keys": ("migration_run_id", "status", "rows_created", "rows_updated", "error_count"),
+        "payload_optional_keys": (
+            "migration_run_id",
+            "status",
+            "rows_created",
+            "rows_updated",
+            "error_count",
+        ),
         "description": "Migration run completed",
         "retry_policy": "default",
         "schema_version": "1.0",

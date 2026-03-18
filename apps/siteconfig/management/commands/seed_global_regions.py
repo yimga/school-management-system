@@ -27,7 +27,11 @@ class Command(BaseCommand):
         with_profiles = bool(options.get("with_profiles"))
         countries = GlobalGeoCatalog.list_countries()
         if not countries:
-            self.stdout.write(self.style.ERROR("Global catalog unavailable. Install pycountry + geonamescache."))
+            self.stdout.write(
+                self.style.ERROR(
+                    "Global catalog unavailable. Install pycountry + geonamescache."
+                )
+            )
             return
 
         created_count = 0
@@ -63,7 +67,10 @@ class Command(BaseCommand):
             if defaults["timezone"] and region.timezone != defaults["timezone"]:
                 region.timezone = defaults["timezone"]
                 changed = True
-            if defaults["default_language"] and region.default_language != defaults["default_language"]:
+            if (
+                defaults["default_language"]
+                and region.default_language != defaults["default_language"]
+            ):
                 region.default_language = defaults["default_language"]
                 changed = True
             if defaults["currency"] and region.default_currency != defaults["currency"]:

@@ -2,6 +2,7 @@
 Celery tasks for people app (e.g. Plan XI: certification/badge expiry alerts).
 Runs in tenant context (per school_id or all active schools).
 """
+
 from __future__ import annotations
 
 import logging
@@ -14,11 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, name="people.check_badge_expiry_alerts")
-def check_badge_expiry_alerts_task(self, days: int = 60, school_id: str | None = None) -> dict:
+def check_badge_expiry_alerts_task(
+    self, days: int = 60, school_id: str | None = None
+) -> dict:
     """
     Plan XI: Create notifications for badges/certifications expiring within N days.
     Runs in tenant context (per school_id or all active schools).
     """
+
     def _run(d):
         call_command("check_badge_expiry_alerts", days=d)
 

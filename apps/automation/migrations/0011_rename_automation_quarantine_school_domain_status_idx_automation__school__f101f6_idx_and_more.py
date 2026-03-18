@@ -4,20 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('automation', '0010_migrationquarantinerecord'),
+        ("automation", "0010_migrationquarantinerecord"),
     ]
 
     operations = [
         migrations.RenameIndex(
-            model_name='migrationquarantinerecord',
-            new_name='automation__school__f101f6_idx',
-            old_name='automation_quarantine_school_domain_status_idx',
+            model_name="migrationquarantinerecord",
+            new_name="automation__school__f101f6_idx",
+            old_name="automation_quarantine_school_domain_status_idx",
         ),
         migrations.AlterField(
-            model_name='migrationplaybook',
-            name='profile_slugs',
-            field=models.JSONField(default=list, help_text='Ordered list of MigrationProfile slugs to run in sequence.'),
+            model_name="migrationplaybook",
+            name="profile_slugs",
+            field=models.JSONField(
+                default=list,
+                help_text="Ordered list of MigrationProfile slugs to run in sequence.",
+            ),
         ),
     ]

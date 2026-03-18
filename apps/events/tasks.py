@@ -1,6 +1,7 @@
 """
 Celery tasks and batch helpers for the canonical event/webhook runtime.
 """
+
 from __future__ import annotations
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -37,10 +38,9 @@ except ImportError:  # pragma: no cover - celery is optional in tests
 def process_outbox_batch(batch_size: int = 100):
     from apps.events.models import DomainEvent
 
-    queryset = (
-        DomainEvent.objects.filter(status=DomainEvent.Status.PENDING)
-        .order_by("created_at")[: max(1, int(batch_size))]
-    )
+    queryset = DomainEvent.objects.filter(status=DomainEvent.Status.PENDING).order_by(
+        "created_at"
+    )[: max(1, int(batch_size))]
     processed = 0
     for event in queryset:
         try:

@@ -6,70 +6,193 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0011_remove_scheduleentry_room_and_more'),
-        ('people', '0017_studentprofile_user'),
+        ("academics", "0011_remove_scheduleentry_room_and_more"),
+        ("people", "0017_studentprofile_user"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='academicyear',
-            name='enable_gce_registration',
-            field=models.BooleanField(default=False, help_text='Enable the GCE/certification registration workflow for this academic year.'),
+            model_name="academicyear",
+            name="enable_gce_registration",
+            field=models.BooleanField(
+                default=False,
+                help_text="Enable the GCE/certification registration workflow for this academic year.",
+            ),
         ),
         migrations.CreateModel(
-            name='CertificationExamSession',
+            name="CertificationExamSession",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('board', models.CharField(choices=[('GCE_BOARD', 'GCE Board'), ('OBC', 'Office du Baccalauréat du Cameroun (OBC)'), ('OTHER', 'Other')], default='GCE_BOARD', max_length=20)),
-                ('level', models.CharField(choices=[('O_LEVEL', 'GCE O-Level'), ('A_LEVEL', 'GCE A-Level'), ('TECHNICAL', 'Technical (CAP/Probatoire/Bac)'), ('OTHER', 'Other')], default='OTHER', max_length=20)),
-                ('name', models.CharField(help_text="e.g., 'GCE Registration 2026 - O Level'", max_length=120)),
-                ('registration_opens_at', models.DateTimeField(blank=True, null=True)),
-                ('registration_closes_at', models.DateTimeField(blank=True, null=True)),
-                ('ca_submission_deadline_at', models.DateTimeField(blank=True, null=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='certification_sessions', to='academics.academicyear')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "board",
+                    models.CharField(
+                        choices=[
+                            ("GCE_BOARD", "GCE Board"),
+                            ("OBC", "Office du Baccalauréat du Cameroun (OBC)"),
+                            ("OTHER", "Other"),
+                        ],
+                        default="GCE_BOARD",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "level",
+                    models.CharField(
+                        choices=[
+                            ("O_LEVEL", "GCE O-Level"),
+                            ("A_LEVEL", "GCE A-Level"),
+                            ("TECHNICAL", "Technical (CAP/Probatoire/Bac)"),
+                            ("OTHER", "Other"),
+                        ],
+                        default="OTHER",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        help_text="e.g., 'GCE Registration 2026 - O Level'",
+                        max_length=120,
+                    ),
+                ),
+                ("registration_opens_at", models.DateTimeField(blank=True, null=True)),
+                ("registration_closes_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "ca_submission_deadline_at",
+                    models.DateTimeField(blank=True, null=True),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="certification_sessions",
+                        to="academics.academicyear",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
-                'unique_together': {('academic_year', 'board', 'level', 'name')},
+                "ordering": ["-created_at"],
+                "unique_together": {("academic_year", "board", "level", "name")},
             },
         ),
         migrations.CreateModel(
-            name='CertificationCandidate',
+            name="CertificationCandidate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('SUBMITTED', 'Submitted'), ('VERIFIED', 'Verified'), ('EXPORTED', 'Exported'), ('ARCHIVED', 'Archived')], default='DRAFT', max_length=20)),
-                ('candidate_number', models.CharField(blank=True, help_text='Board candidate number (if assigned).', max_length=60)),
-                ('ca_uploaded_at', models.DateTimeField(blank=True, null=True)),
-                ('notes', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='certification_candidates', to='people.studentprofile')),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='candidates', to='academics.certificationexamsession')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("SUBMITTED", "Submitted"),
+                            ("VERIFIED", "Verified"),
+                            ("EXPORTED", "Exported"),
+                            ("ARCHIVED", "Archived"),
+                        ],
+                        default="DRAFT",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "candidate_number",
+                    models.CharField(
+                        blank=True,
+                        help_text="Board candidate number (if assigned).",
+                        max_length=60,
+                    ),
+                ),
+                ("ca_uploaded_at", models.DateTimeField(blank=True, null=True)),
+                ("notes", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="certification_candidates",
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "session",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="candidates",
+                        to="academics.certificationexamsession",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['student__last_name', 'student__first_name'],
-                'unique_together': {('session', 'student')},
+                "ordering": ["student__last_name", "student__first_name"],
+                "unique_together": {("session", "student")},
             },
         ),
         migrations.CreateModel(
-            name='CertificationAuditLog',
+            name="CertificationAuditLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('action', models.CharField(max_length=120)),
-                ('detail', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('actor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
-                ('candidate', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='audit_logs', to='academics.certificationcandidate')),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='audit_logs', to='academics.certificationexamsession')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("action", models.CharField(max_length=120)),
+                ("detail", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "actor",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "candidate",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="audit_logs",
+                        to="academics.certificationcandidate",
+                    ),
+                ),
+                (
+                    "session",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="audit_logs",
+                        to="academics.certificationexamsession",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
     ]

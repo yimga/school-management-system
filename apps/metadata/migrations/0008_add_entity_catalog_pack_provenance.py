@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("metadata", "0007_add_entity_catalog_lifecycle_state"),
     ]

@@ -1,6 +1,7 @@
 """
 Record MetadataChangeLog entries from admin and metadata-changing APIs (metadata plan todo 6).
 """
+
 from __future__ import annotations
 
 import logging
@@ -27,6 +28,7 @@ def record_metadata_changelog(
     """Create a MetadataChangeLog entry. Safe to call from signals or admin save_model."""
     try:
         from apps.metadata.models import MetadataChangeLog
+
         MetadataChangeLog.objects.create(
             object_type=object_type,
             object_id=str(object_id),
@@ -43,4 +45,9 @@ def record_metadata_changelog(
             school_id=None,
             extra={"object_type": object_type, "object_id": object_id, "error": str(e)},
         )
-        logger.warning("record_metadata_changelog failed (object_type=%s, object_id=%s): %s", object_type, object_id, e)
+        logger.warning(
+            "record_metadata_changelog failed (object_type=%s, object_id=%s): %s",
+            object_type,
+            object_id,
+            e,
+        )

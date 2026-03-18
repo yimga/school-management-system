@@ -6,8 +6,15 @@ from django.db import migrations, connection
 
 # Keys to strip from old_values/new_values (never log in audit).
 REDACT_KEYS = [
-    "password", "password_hash", "secret", "token", "api_key",
-    "card_last4", "card_number", "ssn", "social_security",
+    "password",
+    "password_hash",
+    "secret",
+    "token",
+    "api_key",
+    "card_last4",
+    "card_number",
+    "ssn",
+    "social_security",
 ]
 
 
@@ -56,7 +63,9 @@ def apply_audit_triggers(apps, schema_editor):
         )
 
         # Attach to people_studentprofile (drop if exists for idempotency)
-        cursor.execute("DROP TRIGGER IF EXISTS audit_people_studentprofile ON people_studentprofile;")
+        cursor.execute(
+            "DROP TRIGGER IF EXISTS audit_people_studentprofile ON people_studentprofile;"
+        )
         cursor.execute("""
             CREATE TRIGGER audit_people_studentprofile
             AFTER INSERT OR UPDATE OR DELETE ON people_studentprofile
@@ -64,7 +73,9 @@ def apply_audit_triggers(apps, schema_editor):
         """)
 
         # Attach to people_teacherprofile
-        cursor.execute("DROP TRIGGER IF EXISTS audit_people_teacherprofile ON people_teacherprofile;")
+        cursor.execute(
+            "DROP TRIGGER IF EXISTS audit_people_teacherprofile ON people_teacherprofile;"
+        )
         cursor.execute("""
             CREATE TRIGGER audit_people_teacherprofile
             AFTER INSERT OR UPDATE OR DELETE ON people_teacherprofile
@@ -76,13 +87,16 @@ def reverse_audit_triggers(apps, schema_editor):
     if connection.vendor != "postgresql":
         return
     with connection.cursor() as cursor:
-        cursor.execute("DROP TRIGGER IF EXISTS audit_people_studentprofile ON people_studentprofile;")
-        cursor.execute("DROP TRIGGER IF EXISTS audit_people_teacherprofile ON people_teacherprofile;")
+        cursor.execute(
+            "DROP TRIGGER IF EXISTS audit_people_studentprofile ON people_studentprofile;"
+        )
+        cursor.execute(
+            "DROP TRIGGER IF EXISTS audit_people_teacherprofile ON people_teacherprofile;"
+        )
         cursor.execute("DROP FUNCTION IF EXISTS audit_trigger_fn();")
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("people", "0036_add_tenant_audit_log"),
     ]

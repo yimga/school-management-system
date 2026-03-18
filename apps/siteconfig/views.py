@@ -18,13 +18,19 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.clickjacking import xframe_options_exempt, xframe_options_sameorigin
+from django.views.decorators.clickjacking import (
+    xframe_options_exempt,
+    xframe_options_sameorigin,
+)
 
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.brand_experience.models import ThemePack
 from apps.people.models import StudentProfile
-from apps.platform_runtime.helpers import get_effective_site_settings, get_platform_defaults
+from apps.platform_runtime.helpers import (
+    get_effective_site_settings,
+    get_platform_defaults,
+)
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.policies.policy_registry import get_effective_policy
 from apps.reports.models import ReportCard
@@ -64,6 +70,7 @@ from .tenant_config import apply_tenant_settings_overrides
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
 from apps.schools.control_plane import use_control_plane_shell
+
 logger = logging.getLogger(__name__)
 
 CACHE_KEY = "site_settings_v1"
@@ -98,17 +105,26 @@ PREVIEW_FROM_FORM_KEYS = [
     "parent_theme_pack",
 ]
 
-PREVIEW_BOOLEAN_KEYS = frozenset({
-    "use_dark_mode",
-    "admin_use_site_primary",
-})
+PREVIEW_BOOLEAN_KEYS = frozenset(
+    {
+        "use_dark_mode",
+        "admin_use_site_primary",
+    }
+)
 
 
 # Color field names for optional hex validation in preview.
-PREVIEW_COLOR_KEYS = frozenset({
-    "primary_color", "accent_color", "header_bg_color", "footer_bg_color",
-    "success_color", "warning_color", "danger_color",
-})
+PREVIEW_COLOR_KEYS = frozenset(
+    {
+        "primary_color",
+        "accent_color",
+        "header_bg_color",
+        "footer_bg_color",
+        "success_color",
+        "warning_color",
+        "danger_color",
+    }
+)
 
 
 def _is_valid_hex(s):
@@ -127,7 +143,12 @@ def _normalize_preview_value(key, val):
         return val in ("on", "true", "1", 1, True)
     if val is None or val == "":
         return None
-    if key in ("admin_theme_pack", "theme_pack", "teacher_theme_pack", "parent_theme_pack"):
+    if key in (
+        "admin_theme_pack",
+        "theme_pack",
+        "teacher_theme_pack",
+        "parent_theme_pack",
+    ):
         if isinstance(val, str) and val.strip().isdigit():
             return int(val.strip())
         if isinstance(val, int):
@@ -154,7 +175,9 @@ def _safe_next_url(request, candidate, fallback):
     return fallback
 
 
-def _registry_grade_scale_choices(country_code: str | None = None) -> list[tuple[str, str]]:
+def _registry_grade_scale_choices(
+    country_code: str | None = None,
+) -> list[tuple[str, str]]:
     try:
         from apps.registries.services import get_grade_scale_families
 
@@ -182,7 +205,10 @@ def _language_choices_for_school(school) -> list[tuple[str, str]]:
             raw_country = policy.get("country_code") or ""
             from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
-            country_code = GlobalGeoCatalog.alpha2_for_country(raw_country) or str(raw_country or "").upper()[:2]
+            country_code = (
+                GlobalGeoCatalog.alpha2_for_country(raw_country)
+                or str(raw_country or "").upper()[:2]
+            )
         except (AttributeError, LookupError, TypeError, ValueError):
             country_code = ""
     try:
@@ -198,7 +224,9 @@ def _language_choices_for_school(school) -> list[tuple[str, str]]:
             if not language_code or language_code in seen:
                 continue
             seen.add(language_code)
-            choices.append((language_code, str(row.get("name") or language_code.upper())))
+            choices.append(
+                (language_code, str(row.get("name") or language_code.upper()))
+            )
         if choices:
             return choices
     except (AttributeError, ImportError, LookupError, TypeError, ValueError):
@@ -228,7 +256,15 @@ def _known_scale_types() -> list[str]:
     )
     if not scale_types:
         scale_types = [code for code, _label in _registry_grade_scale_choices()]
-    return list(dict.fromkeys([str(scale_type).strip() for scale_type in scale_types if str(scale_type).strip()]))
+    return list(
+        dict.fromkeys(
+            [
+                str(scale_type).strip()
+                for scale_type in scale_types
+                if str(scale_type).strip()
+            ]
+        )
+    )
 
 
 def _snapshot_theme_field_values(instance, field_names):
@@ -258,7 +294,11 @@ def preview_from_form(request):
         val = request.POST.get(key)
         normalized = _normalize_preview_value(key, val)
         if normalized is not None:
-            if key in PREVIEW_COLOR_KEYS and normalized and not _is_valid_hex(str(normalized)):
+            if (
+                key in PREVIEW_COLOR_KEYS
+                and normalized
+                and not _is_valid_hex(str(normalized))
+            ):
                 errors.append(f"{key.replace('_', ' ')}: invalid hex color")
                 continue
             payload[key] = normalized
@@ -338,7 +378,10 @@ def get_grading_scale_choices_for_school(school):
             raw_country = policy.get("country_code") or ""
             from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
-            country_code = GlobalGeoCatalog.alpha2_for_country(raw_country) or str(raw_country or "").upper()[:2]
+            country_code = (
+                GlobalGeoCatalog.alpha2_for_country(raw_country)
+                or str(raw_country or "").upper()[:2]
+            )
         except (AttributeError, LookupError, TypeError, ValueError):
             country_code = ""
     registry_choices = _registry_grade_scale_choices(country_code)
@@ -347,9 +390,14 @@ def get_grading_scale_choices_for_school(school):
     if school and getattr(school, "default_region_id", None):
         try:
             from apps.siteconfig.models import GradingScaleConfig
-            configs = GradingScaleConfig.objects.filter(region_id=school.default_region_id).order_by("scale_type")
+
+            configs = GradingScaleConfig.objects.filter(
+                region_id=school.default_region_id
+            ).order_by("scale_type")
             if configs:
-                return [(c.scale_type, c.display_format or c.scale_type) for c in configs]
+                return [
+                    (c.scale_type, c.display_format or c.scale_type) for c in configs
+                ]
         except (DatabaseError, OperationalError, ImportError, TypeError, ValueError):
             pass
     return list(GRADING_SCALE_CHOICES_NEUTRAL)
@@ -359,15 +407,28 @@ def get_grading_scale_choices_for_school(school):
 def grading_settings(request):
     """School grading and default language (Phase 2). Requires request.school and admin-like role."""
     from django.http import HttpResponseForbidden
+
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(request, "Select a school (use your school subdomain) to manage grading.")
+        messages.warning(
+            request, "Select a school (use your school subdomain) to manage grading."
+        )
         return redirect("siteconfig:user_preferences")
     role = (getattr(request.user, "role", "") or "").upper()
-    if role not in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL") and not (request.user.is_staff or request.user.is_superuser):
-        return HttpResponseForbidden("You do not have permission to change school grading settings.")
+    if role not in (
+        "ADMIN",
+        "LEADERSHIP",
+        "IT_ADMIN",
+        "PRINCIPAL",
+        "VICE_PRINCIPAL",
+    ) and not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden(
+            "You do not have permission to change school grading settings."
+        )
     policy = get_effective_policy(school)
-    current_grading = (policy.get("grading") or {}).get("grading_scale") or get_platform_defaults(use_db=False)["grading_scale"]
+    current_grading = (policy.get("grading") or {}).get(
+        "grading_scale"
+    ) or get_platform_defaults(use_db=False)["grading_scale"]
     current_language = policy.get("default_language") or "en"
     if request.method == "POST":
         new_grading = (request.POST.get("grading_scale") or "").strip() or None
@@ -397,16 +458,20 @@ def grading_settings(request):
     region = getattr(school, "default_region", None)
     grading_choices = get_grading_scale_choices_for_school(school)
     action_url = reverse("siteconfig:user_preferences")
-    return render(request, "siteconfig/grading_settings.html", {
-        "school": school,
-        "region": region,
-        "current_grading": current_grading,
-        "current_language": current_language,
-        "grading_choices": grading_choices,
-        "language_choices": _language_choices_for_school(school),
-        "action_url": action_url,
-        "action_text": "Back to preferences",
-    })
+    return render(
+        request,
+        "siteconfig/grading_settings.html",
+        {
+            "school": school,
+            "region": region,
+            "current_grading": current_grading,
+            "current_language": current_language,
+            "grading_choices": grading_choices,
+            "language_choices": _language_choices_for_school(school),
+            "action_url": action_url,
+            "action_text": "Back to preferences",
+        },
+    )
 
 
 @login_required
@@ -415,13 +480,18 @@ def module_market(request):
     from django.http import HttpResponseForbidden
     from apps.schools.feature_registry import get_available_modules
     from apps.siteconfig.feature_toggles import set_toggle_state
+
     school = getattr(request, "school", None)
     if not school:
         messages.warning(request, "Select a school to manage modules.")
         return redirect("siteconfig:user_preferences")
     role = (getattr(request.user, "role", "") or "").upper()
-    if role not in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL") and not (request.user.is_staff or request.user.is_superuser):
-        return HttpResponseForbidden("You do not have permission to manage school modules.")
+    if role not in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL") and not (
+        request.user.is_staff or request.user.is_superuser
+    ):
+        return HttpResponseForbidden(
+            "You do not have permission to manage school modules."
+        )
     modules = get_available_modules()
     features = getattr(school, "features", None) or {}
     if request.method == "POST":
@@ -437,6 +507,7 @@ def module_market(request):
             school.save(update_fields=["features", "updated_at"])
             try:
                 from apps.policies.policy_registry import invalidate_policy_cache
+
                 invalidate_policy_cache(school)
             except (AttributeError, ImportError, TypeError, ValueError):
                 pass
@@ -453,12 +524,17 @@ def module_market(request):
             messages.success(request, f"Module '{code}' updated.")
             return redirect("siteconfig:module_market")
     active_codes = [k for k, v in features.items() if v]
-    return render(request, "siteconfig/module_market.html", {
-        "school": school,
-        "modules": modules,
-        "features": features,
-        "active_codes": active_codes,
-    })
+    return render(
+        request,
+        "siteconfig/module_market.html",
+        {
+            "school": school,
+            "modules": modules,
+            "features": features,
+            "active_codes": active_codes,
+        },
+    )
+
 
 @permission_required("settings.manage")
 def reportcard_builder(request):
@@ -477,16 +553,18 @@ def reportcard_builder(request):
     for style in styles:
         style.assignment_count = style_assignment_counts.get(style.id, 0)
     assignments = list(
-        ReportCardStyleAssignment.objects
-        .select_related("classroom", "style")
-        .order_by("classroom__name")
+        ReportCardStyleAssignment.objects.select_related("classroom", "style").order_by(
+            "classroom__name"
+        )
     )
     all_classrooms = list(Classroom.objects.order_by("name"))
     sample_students = {}
     classroom_ids = [assignment.classroom_id for assignment in assignments]
     if classroom_ids:
         sample_candidates = (
-            StudentProfile.objects.filter(classroom_id__in=classroom_ids, is_active=True)
+            StudentProfile.objects.filter(
+                classroom_id__in=classroom_ids, is_active=True
+            )
             .defer("passport")
             .order_by("classroom_id", "last_name", "first_name")
         )
@@ -501,17 +579,20 @@ def reportcard_builder(request):
         .select_related("classroom")
         .order_by("last_name", "first_name")[:40]
     )
-    default_style = (
-        settings_obj.resolve_default_report_style(ReportCard.Type.TERM)
-        or settings_obj.resolve_default_report_style(ReportCard.Type.ANNUAL)
-    )
-    preview_default_style_slug = (
-        getattr(default_style, "slug", None) or (styles[0].slug if styles else "")
+    default_style = settings_obj.resolve_default_report_style(
+        ReportCard.Type.TERM
+    ) or settings_obj.resolve_default_report_style(ReportCard.Type.ANNUAL)
+    preview_default_style_slug = getattr(default_style, "slug", None) or (
+        styles[0].slug if styles else ""
     )
     preview_default_student_id = preview_students[0].id if preview_students else ""
     assigned_classroom_ids = {assignment.classroom_id for assignment in assignments}
-    style_form = ReportCardStyleForm(request.POST or None, request.FILES or None, prefix="style")
-    assignment_form = ReportCardStyleAssignmentForm(request.POST or None, prefix="assign")
+    style_form = ReportCardStyleForm(
+        request.POST or None, request.FILES or None, prefix="style"
+    )
+    assignment_form = ReportCardStyleAssignmentForm(
+        request.POST or None, prefix="assign"
+    )
     selection_form = ReportCardStyleSelectionForm(
         request.POST or None,
         prefix="selection",
@@ -538,21 +619,28 @@ def reportcard_builder(request):
             messages.success(request, "Default styles saved.")
             return redirect("siteconfig:reportcard_builder")
 
-    return render(request, "siteconfig/reportcard_builder.html", {
-        "settings": settings_obj,
-        "styles": styles,
-        "assignments": assignments,
-        "preview_students": preview_students,
-        "preview_default_style_slug": preview_default_style_slug,
-        "preview_default_student_id": preview_default_student_id,
-        "total_classroom_count": len(all_classrooms),
-        "assigned_classroom_count": len(assigned_classroom_ids),
-        "unassigned_classroom_count": max(0, len(all_classrooms) - len(assigned_classroom_ids)),
-        "style_form": style_form,
-        "assignment_form": assignment_form,
-        "selection_form": selection_form,
-        "workflow_step": workflow_step,
-    })
+    return render(
+        request,
+        "siteconfig/reportcard_builder.html",
+        {
+            "settings": settings_obj,
+            "styles": styles,
+            "assignments": assignments,
+            "preview_students": preview_students,
+            "preview_default_style_slug": preview_default_style_slug,
+            "preview_default_student_id": preview_default_student_id,
+            "total_classroom_count": len(all_classrooms),
+            "assigned_classroom_count": len(assigned_classroom_ids),
+            "unassigned_classroom_count": max(
+                0, len(all_classrooms) - len(assigned_classroom_ids)
+            ),
+            "style_form": style_form,
+            "assignment_form": assignment_form,
+            "selection_form": selection_form,
+            "workflow_step": workflow_step,
+        },
+    )
+
 
 def _build_style_metadata(site: SiteSettings) -> dict:
     if callable(getattr(site, "get_brand_metadata", None)):
@@ -608,7 +696,9 @@ def _mock_preview_student():
 
 
 def _preview_student_queryset():
-    return StudentProfile.objects.filter(is_active=True).select_related("classroom", "specialty")
+    return StudentProfile.objects.filter(is_active=True).select_related(
+        "classroom", "specialty"
+    )
 
 
 def _resolve_preview_student(request):
@@ -663,33 +753,59 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
                         "promotion_status": "PENDING",
                         "teacher_remark": "Pending results.",
                     },
-                    "weights": SimpleNamespace(seq1_weight=20, seq2_weight=20, exam_weight=60, mock_weight=0, practical_weight=0),
+                    "weights": SimpleNamespace(
+                        seq1_weight=20,
+                        seq2_weight=20,
+                        exam_weight=60,
+                        mock_weight=0,
+                        practical_weight=0,
+                    ),
                     "sequence_cues": [
-                        {"key": "seq1", "label": labels.get("sequence_1", GLOBAL_REPORT_LABELS["sequence_1"]), "weight": 20},
-                        {"key": "seq2", "label": labels.get("sequence_2", GLOBAL_REPORT_LABELS["sequence_2"]), "weight": 20},
-                        {"key": "exam", "label": labels.get("exam", GLOBAL_REPORT_LABELS["exam"]), "weight": 60},
+                        {
+                            "key": "seq1",
+                            "label": labels.get(
+                                "sequence_1", GLOBAL_REPORT_LABELS["sequence_1"]
+                            ),
+                            "weight": 20,
+                        },
+                        {
+                            "key": "seq2",
+                            "label": labels.get(
+                                "sequence_2", GLOBAL_REPORT_LABELS["sequence_2"]
+                            ),
+                            "weight": 20,
+                        },
+                        {
+                            "key": "exam",
+                            "label": labels.get("exam", GLOBAL_REPORT_LABELS["exam"]),
+                            "weight": 60,
+                        },
                     ],
                 }
             )
     else:
-        annual_ctx = annual_report_context(student, year) if year else {
-            "term_rows": [],
-            "annual_average": None,
-            "class_position": None,
-            "class_size": 0,
-            "class_rank_display": "- / -",
-            "specialty_position": None,
-            "specialty_size": 0,
-            "specialty_rank_display": "- / -",
-            "school_position": None,
-            "school_size": 0,
-            "school_rank_display": "- / -",
-            "promotion_status": "PENDING",
-            "promotion_average": None,
-            "demotion_average": None,
-            "teacher_remark": "Pending results.",
-            "labels": labels,
-        }
+        annual_ctx = (
+            annual_report_context(student, year)
+            if year
+            else {
+                "term_rows": [],
+                "annual_average": None,
+                "class_position": None,
+                "class_size": 0,
+                "class_rank_display": "- / -",
+                "specialty_position": None,
+                "specialty_size": 0,
+                "specialty_rank_display": "- / -",
+                "school_position": None,
+                "school_size": 0,
+                "school_rank_display": "- / -",
+                "promotion_status": "PENDING",
+                "promotion_average": None,
+                "demotion_average": None,
+                "teacher_remark": "Pending results.",
+                "labels": labels,
+            }
+        )
         context.update(annual_ctx)
         context.update({"year": year or SimpleNamespace(name="2025/2026")})
     return context
@@ -721,12 +837,78 @@ def reportcard_style_preview(request, slug: str):
         year_obj = SimpleNamespace(name="2025/2026")
         term_obj = _PreviewTerm(name="First Term")
         rows = [
-            {"subject": "English", "coef": 2, "seq1": 12.0, "seq2": 13.5, "exam": 14.0, "mock": 0, "practical": 0, "total": 13.25, "remark": "Very good", "complete": True},
-            {"subject": "Mathematics", "coef": 4, "seq1": 11.0, "seq2": 12.0, "exam": 15.5, "mock": 0, "practical": 0, "total": 13.74, "remark": "Excellent", "complete": True},
-            {"subject": "Physics", "coef": 3, "seq1": 10.0, "seq2": 11.0, "exam": 12.0, "mock": 0, "practical": 0, "total": 11.66, "remark": "Solid", "complete": True},
-            {"subject": "Technical Drawing", "coef": 2, "seq1": 9.0, "seq2": 10.5, "exam": 11.0, "mock": 0, "practical": 0, "total": 10.19, "remark": "Improving", "complete": True},
-            {"subject": "ICT", "coef": 1, "seq1": 13.0, "seq2": 14.0, "exam": 15.0, "mock": 0, "practical": 0, "total": 14.29, "remark": "Strong", "complete": True},
-            {"subject": "Sports", "coef": 1, "seq1": 14.0, "seq2": 14.5, "exam": 0, "mock": 0, "practical": 0, "total": 14.25, "remark": "Active", "complete": False},
+            {
+                "subject": "English",
+                "coef": 2,
+                "seq1": 12.0,
+                "seq2": 13.5,
+                "exam": 14.0,
+                "mock": 0,
+                "practical": 0,
+                "total": 13.25,
+                "remark": "Very good",
+                "complete": True,
+            },
+            {
+                "subject": "Mathematics",
+                "coef": 4,
+                "seq1": 11.0,
+                "seq2": 12.0,
+                "exam": 15.5,
+                "mock": 0,
+                "practical": 0,
+                "total": 13.74,
+                "remark": "Excellent",
+                "complete": True,
+            },
+            {
+                "subject": "Physics",
+                "coef": 3,
+                "seq1": 10.0,
+                "seq2": 11.0,
+                "exam": 12.0,
+                "mock": 0,
+                "practical": 0,
+                "total": 11.66,
+                "remark": "Solid",
+                "complete": True,
+            },
+            {
+                "subject": "Technical Drawing",
+                "coef": 2,
+                "seq1": 9.0,
+                "seq2": 10.5,
+                "exam": 11.0,
+                "mock": 0,
+                "practical": 0,
+                "total": 10.19,
+                "remark": "Improving",
+                "complete": True,
+            },
+            {
+                "subject": "ICT",
+                "coef": 1,
+                "seq1": 13.0,
+                "seq2": 14.0,
+                "exam": 15.0,
+                "mock": 0,
+                "practical": 0,
+                "total": 14.29,
+                "remark": "Strong",
+                "complete": True,
+            },
+            {
+                "subject": "Sports",
+                "coef": 1,
+                "seq1": 14.0,
+                "seq2": 14.5,
+                "exam": 0,
+                "mock": 0,
+                "practical": 0,
+                "total": 14.25,
+                "remark": "Active",
+                "complete": False,
+            },
         ]
         summary = {
             "average": 13.21,
@@ -739,12 +921,30 @@ def reportcard_style_preview(request, slug: str):
             "promotion_status": "PROMOTED",
             "teacher_remark": "Consistent dedication.",
         }
-        weights = SimpleNamespace(seq1_weight=20, seq2_weight=20, exam_weight=60, mock_weight=0, practical_weight=0)
+        weights = SimpleNamespace(
+            seq1_weight=20,
+            seq2_weight=20,
+            exam_weight=60,
+            mock_weight=0,
+            practical_weight=0,
+        )
         labels = resolve_report_labels(student=student_obj)
         sequence_cues = [
-            {"key": "seq1", "label": labels.get("sequence_1", GLOBAL_REPORT_LABELS["sequence_1"]), "weight": 20},
-            {"key": "seq2", "label": labels.get("sequence_2", GLOBAL_REPORT_LABELS["sequence_2"]), "weight": 20},
-            {"key": "exam", "label": labels.get("exam", GLOBAL_REPORT_LABELS["exam"]), "weight": 60},
+            {
+                "key": "seq1",
+                "label": labels.get("sequence_1", GLOBAL_REPORT_LABELS["sequence_1"]),
+                "weight": 20,
+            },
+            {
+                "key": "seq2",
+                "label": labels.get("sequence_2", GLOBAL_REPORT_LABELS["sequence_2"]),
+                "weight": 20,
+            },
+            {
+                "key": "exam",
+                "label": labels.get("exam", GLOBAL_REPORT_LABELS["exam"]),
+                "weight": 60,
+            },
         ]
 
     context = {
@@ -817,6 +1017,8 @@ def reportcard_style_embed_preview(request, slug: str, report_type: str):
     response = render(request, template_name, context)
     response["Content-Security-Policy"] = "frame-ancestors 'self'"
     return response
+
+
 @permission_required("settings.manage")
 def clear_preview(request):
     request.session.pop(SESSION_KEY, None)
@@ -857,7 +1059,10 @@ def user_preferences(request):
         previous = _safe_next_url(request, previous, "")
         if previous:
             normalized = previous.split("?")[0]
-            if "/siteconfig/preferences" not in normalized and "/siteconfig/user_preferences" not in normalized:
+            if (
+                "/siteconfig/preferences" not in normalized
+                and "/siteconfig/user_preferences" not in normalized
+            ):
                 request.session[PORTAL_PREF_PREVIOUS_PAGE] = previous
 
     if request.method == "POST":
@@ -877,7 +1082,10 @@ def user_preferences(request):
         or request.META.get("HTTP_REFERER"),
         reverse("accounts:redirect"),
     )
-    if next_page and ("/siteconfig/preferences" in next_page or "/siteconfig/user_preferences" in next_page):
+    if next_page and (
+        "/siteconfig/preferences" in next_page
+        or "/siteconfig/user_preferences" in next_page
+    ):
         next_page = reverse("accounts:redirect")
 
     return render(
@@ -898,7 +1106,9 @@ def _get_classrooms_queryset():
     year, _ = get_active_year_and_term()
     if year:
         return Classroom.objects.filter(academic_year=year).order_by("name")
-    return Classroom.objects.select_related("academic_year").order_by("-academic_year__start_date", "name")
+    return Classroom.objects.select_related("academic_year").order_by(
+        "-academic_year__start_date", "name"
+    )
 
 
 BULK_LETTER_BODY_MAX_LENGTH = 100_000
@@ -928,7 +1138,9 @@ def bulk_letters(request):
         .annotate(count=Count("id"))
         .values_list("classroom_id", "count")
     )
-    classroom_list = [{"room": r, "student_count": student_counts.get(r.id, 0)} for r in classrooms]
+    classroom_list = [
+        {"room": r, "student_count": student_counts.get(r.id, 0)} for r in classrooms
+    ]
     if request.method != "POST":
         return render(
             request,
@@ -942,13 +1154,21 @@ def bulk_letters(request):
     include_pdf = form_data["include_pdf"]
     if not letter_body:
         messages.warning(request, "Please enter the letter body.")
-        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+        return render(
+            request,
+            "siteconfig/bulk_letters.html",
+            {"classroom_list": classroom_list, "form_data": form_data},
+        )
     if len(letter_body) > BULK_LETTER_BODY_MAX_LENGTH:
         messages.warning(
             request,
             f"Letter body is too long (max {BULK_LETTER_BODY_MAX_LENGTH:,} characters).",
         )
-        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+        return render(
+            request,
+            "siteconfig/bulk_letters.html",
+            {"classroom_list": classroom_list, "form_data": form_data},
+        )
     classroom = None
     if classroom_id:
         try:
@@ -957,22 +1177,44 @@ def bulk_letters(request):
             pass
     if not classroom:
         messages.warning(request, "Please select a classroom.")
-        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
-    students = StudentProfile.objects.filter(classroom=classroom).order_by("last_name", "first_name")
+        return render(
+            request,
+            "siteconfig/bulk_letters.html",
+            {"classroom_list": classroom_list, "form_data": form_data},
+        )
+    students = StudentProfile.objects.filter(classroom=classroom).order_by(
+        "last_name", "first_name"
+    )
     if not students.exists():
         messages.warning(request, f"No students in {classroom.name}.")
-        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+        return render(
+            request,
+            "siteconfig/bulk_letters.html",
+            {"classroom_list": classroom_list, "form_data": form_data},
+        )
     try:
         from apps.portal.document_generation import html_to_odt
     except ImportError:
-        messages.error(request, "Bulk letters require the portal document_generation module.")
-        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+        messages.error(
+            request, "Bulk letters require the portal document_generation module."
+        )
+        return render(
+            request,
+            "siteconfig/bulk_letters.html",
+            {"classroom_list": classroom_list, "form_data": form_data},
+        )
     if include_pdf:
         try:
             from apps.portal.document_conversion import convert_to_pdf
         except ImportError:
-            messages.error(request, "PDF option requires the portal document_conversion module.")
-            return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+            messages.error(
+                request, "PDF option requires the portal document_conversion module."
+            )
+            return render(
+                request,
+                "siteconfig/bulk_letters.html",
+                {"classroom_list": classroom_list, "form_data": form_data},
+            )
     buf = io.BytesIO()
     pdf_skipped = []  # list of "LastName FirstName (reason)" when PDF conversion is skipped
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -989,16 +1231,18 @@ def bulk_letters(request):
             )
             html = (
                 "<!DOCTYPE html><html><head><meta charset='utf-8'/></head><body>"
-                "<div style='font-family: sans-serif;'>"
-                + body
-                + "</div></body></html>"
+                "<div style='font-family: sans-serif;'>" + body + "</div></body></html>"
             )
             doc_title = letter_title or f"Letter - {last_name} {first_name}"
             try:
                 odt_bytes = html_to_odt(html, title=doc_title)
             except RuntimeError as e:
                 messages.error(request, f"Pandoc conversion failed: {e}")
-                return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+                return render(
+                    request,
+                    "siteconfig/bulk_letters.html",
+                    {"classroom_list": classroom_list, "form_data": form_data},
+                )
             safe_name = f"{last_name}_{first_name}_{student_code}".replace(" ", "_")
             zf.writestr(f"letter_{safe_name}.odt", odt_bytes)
             if include_pdf:
@@ -1022,11 +1266,16 @@ def bulk_letters(request):
                     except OSError:
                         pass
         if pdf_skipped:
-            note = "PDF conversion was skipped for the following (ODT included; LibreOffice may be missing or failed):\n\n" + "\n".join(pdf_skipped)
+            note = (
+                "PDF conversion was skipped for the following (ODT included; LibreOffice may be missing or failed):\n\n"
+                + "\n".join(pdf_skipped)
+            )
             zf.writestr("PDF_CONVERSION_SKIPPED.txt", note.encode("utf-8"))
     buf.seek(0)
     response = HttpResponse(buf.getvalue(), content_type="application/zip")
-    response["Content-Disposition"] = f'attachment; filename="bulk_letters_{classroom.code}.zip"'
+    response["Content-Disposition"] = (
+        f'attachment; filename="bulk_letters_{classroom.code}.zip"'
+    )
     return response
 
 
@@ -1038,7 +1287,9 @@ def theme_colors_page(request):
         site = build_platform_default_site_settings()
     theme_settings = _get_theme_experience_settings(site)
     all_packs = list(
-        ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
+        ThemePack.objects.filter(is_active=True).order_by(
+            "-applies_to_admin", "-is_default", "name"
+        )
     )
     canonical_admin_slugs = {
         slug
@@ -1046,15 +1297,21 @@ def theme_colors_page(request):
         for slug in slugs
         if slug.startswith("admin-")
     }
-    active_admin_count = sum(1 for pack in all_packs if getattr(pack, "applies_to_admin", False))
-    has_seeded_admin_catalog = any(pack.slug in canonical_admin_slugs for pack in all_packs)
+    active_admin_count = sum(
+        1 for pack in all_packs if getattr(pack, "applies_to_admin", False)
+    )
+    has_seeded_admin_catalog = any(
+        pack.slug in canonical_admin_slugs for pack in all_packs
+    )
     # Safety net for environments where predeploy seed command was skipped.
     # We expect several distinct admin packs so the catalog does not collapse.
     if active_admin_count < 6 or not has_seeded_admin_catalog:
         try:
             call_command("seed_admin_dashboard_palettes")
             all_packs = list(
-                ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
+                ThemePack.objects.filter(is_active=True).order_by(
+                    "-applies_to_admin", "-is_default", "name"
+                )
             )
             logger.info("Theme catalog auto-seeded from Theme & Experience page.")
         except (CommandError, OSError, RuntimeError, TypeError, ValueError):
@@ -1065,7 +1322,9 @@ def theme_colors_page(request):
 
     # Show all active packs (admin and portal) so the catalog does not collapse to a single card.
     admin_theme_packs = all_packs
-    admin_theme_packs_by_group = build_theme_pack_groups(admin_theme_packs, THEME_PALETTE_GROUPS)
+    admin_theme_packs_by_group = build_theme_pack_groups(
+        admin_theme_packs, THEME_PALETTE_GROUPS
+    )
     tracked_theme_fields = list(ThemeColorsForm.Meta.fields)
 
     if request.method == "POST":
@@ -1082,24 +1341,42 @@ def theme_colors_page(request):
                     next_value = next_value.pk
                 if str(previous_value) != str(next_value):
                     changed_fields.append(field_name)
-            preview_confirmed = request.POST.get("preview_confirmed") in ("1", "true", "on")
+            preview_confirmed = request.POST.get("preview_confirmed") in (
+                "1",
+                "true",
+                "on",
+            )
             if theme_settings.get("skip_theme_publish_guard", False):
                 preview_confirmed = True
 
             changed_labels = []
             for field_name in changed_fields:
                 field_obj = form.fields.get(field_name)
-                label = field_obj.label if field_obj else field_name.replace("_", " ").title()
+                label = (
+                    field_obj.label
+                    if field_obj
+                    else field_name.replace("_", " ").title()
+                )
                 changed_labels.append(str(label))
-            governed_changes = [name for name in changed_fields if name in THEME_PUBLISH_GUARDED_FIELDS]
+            governed_changes = [
+                name for name in changed_fields if name in THEME_PUBLISH_GUARDED_FIELDS
+            ]
             governed_labels = []
             for field_name in governed_changes:
                 field_obj = form.fields.get(field_name)
-                label = field_obj.label if field_obj else field_name.replace("_", " ").title()
+                label = (
+                    field_obj.label
+                    if field_obj
+                    else field_name.replace("_", " ").title()
+                )
                 governed_labels.append(str(label))
 
             now_label = timezone.localtime().strftime("%Y-%m-%d %H:%M")
-            actor_label = request.user.get_username() if request.user.is_authenticated else "system"
+            actor_label = (
+                request.user.get_username()
+                if request.user.is_authenticated
+                else "system"
+            )
             if governed_changes and not preview_confirmed:
                 request.session["theme_recent_change_meta"] = {
                     "status": "blocked",
@@ -1147,7 +1424,11 @@ def theme_colors_page(request):
                     messages.success(request, "Theme & experience settings saved.")
                 else:
                     messages.info(request, "No theme changes detected.")
-                back_url = _safe_next_url(request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "")
+                back_url = _safe_next_url(
+                    request,
+                    request.GET.get("next") or request.META.get("HTTP_REFERER"),
+                    "",
+                )
                 if back_url:
                     return redirect(back_url)
                 return redirect("siteconfig:theme_colors")
@@ -1166,7 +1447,8 @@ def theme_colors_page(request):
     back_url = _safe_next_url(request, request.GET.get("next"), admin_change_url)
     preview_config = _get_preview_platform_config(site)
     preview_mode_active = bool(
-        request.session.get("preview_mode_enabled") or preview_config.get("preview_mode_enabled", False)
+        request.session.get("preview_mode_enabled")
+        or preview_config.get("preview_mode_enabled", False)
     )
     theme_recent_change_meta = request.session.get("theme_recent_change_meta")
 
@@ -1205,7 +1487,9 @@ def theme_colors_page(request):
             "theme_recent_change_meta": theme_recent_change_meta,
             "theme_contrast_report": contrast_report,
             "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
-            "skip_theme_publish_guard": bool(theme_settings.get("skip_theme_publish_guard", False)),
+            "skip_theme_publish_guard": bool(
+                theme_settings.get("skip_theme_publish_guard", False)
+            ),
         },
     )
 
@@ -1256,12 +1540,16 @@ def perform_theme_experience_publish(request):
         return {
             "ok": False,
             "errors": [
-                "Live preview confirmation required for high-impact theme changes: " + ", ".join(labels) + ". Use Preview, then confirm and publish again.",
+                "Live preview confirmation required for high-impact theme changes: "
+                + ", ".join(labels)
+                + ". Use Preview, then confirm and publish again.",
             ],
         }
 
     now_label = timezone.localtime().strftime("%Y-%m-%d %H:%M")
-    actor_label = request.user.get_username() if request.user.is_authenticated else "system"
+    actor_label = (
+        request.user.get_username() if request.user.is_authenticated else "system"
+    )
     form.save()
     if changed_fields:
         request.session["theme_previous_state"] = {
@@ -1269,8 +1557,18 @@ def perform_theme_experience_publish(request):
             "actor": actor_label,
             "timestamp": now_label,
         }
-    changed_labels = [form.fields.get(fn).label if form.fields.get(fn) else fn.replace("_", " ").title() for fn in changed_fields]
-    governed_labels = [form.fields.get(fn).label if form.fields.get(fn) else fn.replace("_", " ").title() for fn in governed_changes]
+    changed_labels = [
+        form.fields.get(fn).label
+        if form.fields.get(fn)
+        else fn.replace("_", " ").title()
+        for fn in changed_fields
+    ]
+    governed_labels = [
+        form.fields.get(fn).label
+        if form.fields.get(fn)
+        else fn.replace("_", " ").title()
+        for fn in governed_changes
+    ]
     request.session["theme_recent_change_meta"] = {
         "status": "saved",
         "actor": actor_label,
@@ -1305,24 +1603,36 @@ def get_theme_colors_context(request):
     theme_settings = _get_theme_experience_settings(site)
     form = ThemeColorsForm(instance=site, request=request)
     all_packs = list(
-        ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
+        ThemePack.objects.filter(is_active=True).order_by(
+            "-applies_to_admin", "-is_default", "name"
+        )
     )
     admin_theme_packs = all_packs
-    admin_theme_packs_by_group = build_theme_pack_groups(admin_theme_packs, THEME_PALETTE_GROUPS)
+    admin_theme_packs_by_group = build_theme_pack_groups(
+        admin_theme_packs, THEME_PALETTE_GROUPS
+    )
     try:
-        admin_change_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
+        admin_change_url = reverse(
+            "admin:siteconfig_sitesettings_change", args=[site.pk]
+        )
     except NoReverseMatch:
         admin_change_url = None
     back_url = _safe_next_url(request, request.GET.get("next"), admin_change_url or "")
     preview_config = _get_preview_platform_config(site)
     preview_mode_active = bool(
-        request.session.get("preview_mode_enabled") or preview_config.get("preview_mode_enabled", False)
+        request.session.get("preview_mode_enabled")
+        or preview_config.get("preview_mode_enabled", False)
     )
     theme_recent_change_meta = request.session.get("theme_recent_change_meta")
     contrast_values = {}
     for field_name in (
-        "primary_color", "accent_color", "header_bg_color", "footer_bg_color",
-        "success_color", "warning_color", "danger_color",
+        "primary_color",
+        "accent_color",
+        "header_bg_color",
+        "footer_bg_color",
+        "success_color",
+        "warning_color",
+        "danger_color",
     ):
         incoming = form.data.get(field_name) if form.is_bound else None
         if incoming in (None, ""):
@@ -1341,7 +1651,9 @@ def get_theme_colors_context(request):
         "theme_contrast_report": contrast_report,
         "theme_token_values": contrast_values,
         "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
-        "skip_theme_publish_guard": bool(theme_settings.get("skip_theme_publish_guard", False)),
+        "skip_theme_publish_guard": bool(
+            theme_settings.get("skip_theme_publish_guard", False)
+        ),
     }
 
 
@@ -1375,6 +1687,7 @@ def brand_import_from_url_view(request):
         messages.error(request, "URL is required.")
         return redirect(reverse("siteconfig:theme_colors"))
     from apps.siteconfig.brand_import import fetch_and_parse_brand_url
+
     result = fetch_and_parse_brand_url(url)
     if result.get("error"):
         messages.error(request, result["error"])
@@ -1389,11 +1702,14 @@ def brand_import_from_url_view(request):
         # Apply suggested theme pack if user requested (metadata plan todo 7: brand import assistant).
         apply_theme = request.POST.get("apply_theme") in ("1", "true", "on")
         if apply_theme and result.get("suggested_theme_pack_slug"):
-            pack = ThemePack.objects.filter(slug=result["suggested_theme_pack_slug"], is_active=True).first()
+            pack = ThemePack.objects.filter(
+                slug=result["suggested_theme_pack_slug"], is_active=True
+            ).first()
             if pack:
                 site.apply_theme_pack(pack, save=True)
                 try:
                     from apps.packages.engine import PackageEngine
+
                     school = getattr(request, "school", None)
                     PackageEngine.apply_package(
                         tenant_id=getattr(school, "id", None),
@@ -1401,15 +1717,34 @@ def brand_import_from_url_view(request):
                         version=getattr(pack, "version", "1") or "1",
                         payload_sections={"theme": {"name": pack.name}},
                         mode="production",
-                        actor_id=getattr(request.user, "id", None) if getattr(request, "user", None) else None,
+                        actor_id=getattr(request.user, "id", None)
+                        if getattr(request, "user", None)
+                        else None,
                     )
-                except (AttributeError, ImportError, LookupError, OSError, RuntimeError, TypeError, ValueError):
+                except (
+                    AttributeError,
+                    ImportError,
+                    LookupError,
+                    OSError,
+                    RuntimeError,
+                    TypeError,
+                    ValueError,
+                ):
                     pass
-                messages.success(request, f'Theme "{pack.name}" applied. Refine colors below if needed.')
+                messages.success(
+                    request,
+                    f'Theme "{pack.name}" applied. Refine colors below if needed.',
+                )
             else:
-                messages.success(request, "Brand details applied. Refine colors and logo below if needed.")
+                messages.success(
+                    request,
+                    "Brand details applied. Refine colors and logo below if needed.",
+                )
         else:
-            messages.success(request, "Brand details applied. Refine colors and logo below if needed.")
+            messages.success(
+                request,
+                "Brand details applied. Refine colors and logo below if needed.",
+            )
     else:
         messages.info(request, "Brand fetched; create or save site settings to apply.")
     return redirect(reverse("siteconfig:theme_colors"))
@@ -1424,7 +1759,9 @@ def template_gallery_page(request):
     site = get_effective_site_settings(request=request)
     if site is None:
         site = build_platform_default_site_settings()
-    packs = list(ThemePack.objects.filter(is_active=True).order_by("-is_default", "name"))
+    packs = list(
+        ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
+    )
     if request.method == "POST":
         slug = (request.POST.get("template_slug") or "").strip()
         if slug:
@@ -1433,6 +1770,7 @@ def template_gallery_page(request):
                 site.apply_theme_pack(pack, save=True)
                 try:
                     from apps.packages.engine import PackageEngine
+
                     school = getattr(request, "school", None)
                     PackageEngine.apply_package(
                         tenant_id=getattr(school, "id", None),
@@ -1440,11 +1778,24 @@ def template_gallery_page(request):
                         version=getattr(pack, "version", "1") or "1",
                         payload_sections={"theme": {"name": pack.name}},
                         mode="production",
-                        actor_id=getattr(request.user, "id", None) if getattr(request, "user", None) else None,
+                        actor_id=getattr(request.user, "id", None)
+                        if getattr(request, "user", None)
+                        else None,
                     )
-                except (AttributeError, ImportError, LookupError, OSError, RuntimeError, TypeError, ValueError):
+                except (
+                    AttributeError,
+                    ImportError,
+                    LookupError,
+                    OSError,
+                    RuntimeError,
+                    TypeError,
+                    ValueError,
+                ):
                     pass
-                messages.success(request, f'Template "{pack.name}" applied. You can refine colors in Theme & Experience.')
+                messages.success(
+                    request,
+                    f'Template "{pack.name}" applied. You can refine colors in Theme & Experience.',
+                )
         return redirect(reverse("siteconfig:theme_colors"))
     theme_colors_url = reverse("siteconfig:theme_colors")
     return render(
@@ -1463,14 +1814,18 @@ def toggle_preview_mode(request):
     request.session[PREVIEW_MODE_SESSION_KEY] = not enabled
     status = "enabled" if not enabled else "disabled"
     messages.info(request, f"Preview/sandbox mode {status}.")
-    next_url = _safe_next_url(request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "/")
+    next_url = _safe_next_url(
+        request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "/"
+    )
     return redirect(next_url)
 
 
 @staff_member_required
 def set_act_as_role(request):
     if request.method != "POST":
-        next_url = _safe_next_url(request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "/")
+        next_url = _safe_next_url(
+            request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "/"
+        )
         return redirect(next_url)
 
     role_code = request.POST.get("role")
@@ -1480,15 +1835,21 @@ def set_act_as_role(request):
     if role_code in valid_roles:
         request.session[ACT_AS_ROLE_SESSION_KEY] = role_code
         messages.info(request, f"Now acting as {valid_roles[role_code]}.")
-        logger.info("User %s acting as %s (was %s)", request.user.username, role_code, previous)
+        logger.info(
+            "User %s acting as %s (was %s)", request.user.username, role_code, previous
+        )
     else:
         request.session.pop(ACT_AS_ROLE_SESSION_KEY, None)
         messages.info(request, "Act-as role cleared.")
-        logger.info("User %s cleared act-as role (was %s)", request.user.username, previous)
+        logger.info(
+            "User %s cleared act-as role (was %s)", request.user.username, previous
+        )
 
     next_url = _safe_next_url(
         request,
-        request.POST.get("next") or request.GET.get("next") or request.META.get("HTTP_REFERER"),
+        request.POST.get("next")
+        or request.GET.get("next")
+        or request.META.get("HTTP_REFERER"),
         "/",
     )
     return redirect(next_url)
@@ -1519,10 +1880,14 @@ def download_report(request, slug):
     school = getattr(request, "school", None)
     if school and template.template_family:
         from apps.siteconfig.tenant_config import get_report_template_family_for_school
+
         family = get_report_template_family_for_school(school)
         if family and template.template_family != family:
             from django.http import HttpResponseForbidden
-            return HttpResponseForbidden("This report template is not available for your school's configuration.")
+
+            return HttpResponseForbidden(
+                "This report template is not available for your school's configuration."
+            )
     headers, rows = template.get_export_data()
 
     if not headers:
@@ -1537,7 +1902,9 @@ def download_report(request, slug):
     if fmt == ReportTemplate.ReportFormat.ODS:
         return _render_ods_response(headers, rows, filename)
     if fmt == ReportTemplate.ReportFormat.PDF:
-        return _render_report_pdf_response(request, template.name, headers, rows, filename)
+        return _render_report_pdf_response(
+            request, template.name, headers, rows, filename
+        )
 
     return render_csv_response(headers, rows, filename)
 
@@ -1570,10 +1937,14 @@ def _render_xlsx_response(headers, rows, filename) -> HttpResponse:
         for col_idx, value in enumerate(row, 1):
             ws.cell(row=row_idx, column=col_idx, value=value)
     from io import BytesIO
+
     buf = BytesIO()
     wb.save(buf)
     buf.seek(0)
-    response = HttpResponse(buf.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response = HttpResponse(
+        buf.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
@@ -1591,6 +1962,7 @@ def _render_ods_response(headers, rows, filename) -> HttpResponse:
             content_type="text/plain",
         )
     from io import BytesIO
+
     doc = OpenDocumentSpreadsheet()
     table = Table(name="Report")
     doc.spreadsheet.addElement(table)
@@ -1620,18 +1992,23 @@ def _render_ods_response(headers, rows, filename) -> HttpResponse:
     return response
 
 
-def _render_report_pdf_response(request, report_name, headers, rows, filename) -> HttpResponse:
+def _render_report_pdf_response(
+    request, report_name, headers, rows, filename
+) -> HttpResponse:
     """Serve report as PDF using WeasyPrint (table template)."""
     from apps.reports.weasy import render_pdf_bytes
+
     context = {"report_name": report_name, "headers": headers, "rows": rows}
     pdf_bytes = render_pdf_bytes(request, "siteconfig/report_table_pdf.html", context)
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
+
 # ==========================
 # REGIONAL CONFIGURATION VIEWS
 # ==========================
+
 
 @staff_member_required
 def region_validation_dashboard(request):
@@ -1642,99 +2019,118 @@ def region_validation_dashboard(request):
     from django.db.models import Count
     import pytz
     from apps.academics.models import AcademicYear
-    
+
     regions = RegionConfig.objects.annotate(
-        grading_scales_count=Count('gradingscaleconfig'),
-        holidays_count=Count('holidaycalendar')
+        grading_scales_count=Count("gradingscaleconfig"),
+        holidays_count=Count("holidaycalendar"),
     )
-    
+
     validation_results = []
     issues_count = 0
-    
+
     for region in regions:
         issues = []
-        severity = 'success'  # success, warning, danger
-        
+        severity = "success"  # success, warning, danger
+
         # Check grading scales
         if region.grading_scales_count < 5:
-            issues.append({
-                'icon': '❌',
-                'type': 'danger',
-                'message': f'Missing grading scales ({region.grading_scales_count}/5)'
-            })
-            severity = 'danger'
+            issues.append(
+                {
+                    "icon": "❌",
+                    "type": "danger",
+                    "message": f"Missing grading scales ({region.grading_scales_count}/5)",
+                }
+            )
+            severity = "danger"
             issues_count += 1
-        
+
         # Check timezone validity
         try:
             pytz.timezone(region.timezone)
         except pytz.exceptions.UnknownTimeZoneError:
-            issues.append({
-                'icon': '❌',
-                'type': 'danger',
-                'message': f'Invalid timezone: {region.timezone}'
-            })
-            severity = 'danger'
+            issues.append(
+                {
+                    "icon": "❌",
+                    "type": "danger",
+                    "message": f"Invalid timezone: {region.timezone}",
+                }
+            )
+            severity = "danger"
             issues_count += 1
-        
+
         # Check currency
         if not _is_known_currency_code(region.default_currency):
-            issues.append({
-                'icon': '⚠️',
-                'type': 'warning',
-                'message': f'Unknown currency: {region.default_currency}'
-            })
-            if severity == 'success':
-                severity = 'warning'
+            issues.append(
+                {
+                    "icon": "⚠️",
+                    "type": "warning",
+                    "message": f"Unknown currency: {region.default_currency}",
+                }
+            )
+            if severity == "success":
+                severity = "warning"
             issues_count += 1
-        
+
         # Check portal features
-        portal_count = sum([
-            region.enable_online_admissions,
-            region.enable_parent_portal,
-            region.enable_student_portal
-        ])
+        portal_count = sum(
+            [
+                region.enable_online_admissions,
+                region.enable_parent_portal,
+                region.enable_student_portal,
+            ]
+        )
         if portal_count == 0:
-            issues.append({
-                'icon': '⚠️',
-                'type': 'warning',
-                'message': 'No portal features enabled'
-            })
-            if severity == 'success':
-                severity = 'warning'
-        
+            issues.append(
+                {
+                    "icon": "⚠️",
+                    "type": "warning",
+                    "message": "No portal features enabled",
+                }
+            )
+            if severity == "success":
+                severity = "warning"
+
         # Check holiday coverage for current year
         current_year = AcademicYear.objects.filter(is_current=True).first()
         if current_year:
             holidays_for_year = HolidayCalendar.objects.filter(
-                region=region,
-                academic_year=current_year
+                region=region, academic_year=current_year
             ).count()
             if holidays_for_year == 0:
-                issues.append({
-                    'icon': 'ℹ️',
-                    'type': 'info',
-                    'message': f'No holidays configured for {current_year}'
-                })
-        
-        validation_results.append({
-            'region': region,
-            'issues': issues,
-            'severity': severity,
-            'status_badge': '✓' if severity == 'success' else ('⚠️' if severity == 'warning' else '❌'),
-            'grading_scales': region.grading_scales_count,
-            'holidays': region.holidays_count,
-        })
-    
+                issues.append(
+                    {
+                        "icon": "ℹ️",
+                        "type": "info",
+                        "message": f"No holidays configured for {current_year}",
+                    }
+                )
+
+        validation_results.append(
+            {
+                "region": region,
+                "issues": issues,
+                "severity": severity,
+                "status_badge": "✓"
+                if severity == "success"
+                else ("⚠️" if severity == "warning" else "❌"),
+                "grading_scales": region.grading_scales_count,
+                "holidays": region.holidays_count,
+            }
+        )
+
     context = {
-        'validation_results': validation_results,
-        'total_regions': regions.count(),
-        'complete_regions': sum(1 for r in validation_results if r['severity'] == 'success'),
-        'regions_with_warnings': sum(1 for r in validation_results if r['severity'] in ['warning', 'danger']),
-        'total_issues': issues_count,
+        "validation_results": validation_results,
+        "total_regions": regions.count(),
+        "complete_regions": sum(
+            1 for r in validation_results if r["severity"] == "success"
+        ),
+        "regions_with_warnings": sum(
+            1 for r in validation_results if r["severity"] in ["warning", "danger"]
+        ),
+        "total_issues": issues_count,
     }
-    
-    return render(request, 'admin/region_validation_dashboard.html', context)
+
+    return render(request, "admin/region_validation_dashboard.html", context)
 
 
 @staff_member_required
@@ -1743,28 +2139,30 @@ def region_comparison_view(request):
     Comparison view for regional configurations.
     Shows side-by-side comparison of settings across regions.
     """
-    regions = RegionConfig.objects.all().order_by('code')
-    
+    regions = RegionConfig.objects.all().order_by("code")
+
     # Prepare comparison data
     comparison_data = {
-        'Timezone': [r.timezone for r in regions],
-        'Date Format': [r.date_format for r in regions],
-        'Grading Scale': [r.grading_scale for r in regions],
-        'Currency': [r.default_currency for r in regions],
-        'Year Starts (Month)': [r.academic_year_start_month for r in regions],
-        'Terms per Year': [r.term_count_per_year for r in regions],
-        'Online Admissions': ['✓' if r.enable_online_admissions else '✗' for r in regions],
-        'Parent Portal': ['✓' if r.enable_parent_portal else '✗' for r in regions],
-        'Student Portal': ['✓' if r.enable_student_portal else '✗' for r in regions],
+        "Timezone": [r.timezone for r in regions],
+        "Date Format": [r.date_format for r in regions],
+        "Grading Scale": [r.grading_scale for r in regions],
+        "Currency": [r.default_currency for r in regions],
+        "Year Starts (Month)": [r.academic_year_start_month for r in regions],
+        "Terms per Year": [r.term_count_per_year for r in regions],
+        "Online Admissions": [
+            "✓" if r.enable_online_admissions else "✗" for r in regions
+        ],
+        "Parent Portal": ["✓" if r.enable_parent_portal else "✗" for r in regions],
+        "Student Portal": ["✓" if r.enable_student_portal else "✗" for r in regions],
     }
-    
+
     context = {
-        'regions': regions,
-        'comparison_data': comparison_data,
-        'settings_list': comparison_data.keys(),
+        "regions": regions,
+        "comparison_data": comparison_data,
+        "settings_list": comparison_data.keys(),
     }
-    
-    return render(request, 'admin/region_comparison.html', context)
+
+    return render(request, "admin/region_comparison.html", context)
 
 
 @staff_member_required
@@ -1774,19 +2172,21 @@ def region_grading_scales_view(request):
     Shows breakpoints and allows comparison between scales.
     """
     scales_by_region = {}
-    
+
     for region in RegionConfig.objects.all():
-        scales_by_region[region] = region.gradingscaleconfig_set.all().order_by('scale_type')
-    
+        scales_by_region[region] = region.gradingscaleconfig_set.all().order_by(
+            "scale_type"
+        )
+
     # Prepare comparison matrix
     scale_types = _known_scale_types()
-    
+
     context = {
-        'scales_by_region': scales_by_region,
-        'scale_types': scale_types,
+        "scales_by_region": scales_by_region,
+        "scale_types": scale_types,
     }
-    
-    return render(request, 'admin/region_grading_scales.html', context)
+
+    return render(request, "admin/region_grading_scales.html", context)
 
 
 @login_required
@@ -1797,7 +2197,9 @@ def branding_api(request):
     school = getattr(request, "school", None)
     from .branding import resolve_brand_profile
 
-    brand = resolve_brand_profile(school=school, site=get_effective_site_settings(request=request))
+    brand = resolve_brand_profile(
+        school=school, site=get_effective_site_settings(request=request)
+    )
     return JsonResponse(
         {
             "logo_url": brand.get("logo_url") or "",
@@ -1821,7 +2223,10 @@ def workflow_clues_api(request):
     """
     World Engine: workflow setup suggestions by country (Ollama). GET params: workflow_key, country_code.
     """
-    if not (request.user.is_superuser or request.user.has_feature_permission("settings.manage")):
+    if not (
+        request.user.is_superuser
+        or request.user.has_feature_permission("settings.manage")
+    ):
         return JsonResponse({"error": "Forbidden"}, status=403)
     workflow_key = (request.GET.get("workflow_key") or "").strip()
     country_code = (request.GET.get("country_code") or "").strip()[:10]
@@ -1832,12 +2237,21 @@ def workflow_clues_api(request):
         )
     try:
         from apps.portal.ai_provider import get_workflow_clues
+
         text, meta = get_workflow_clues(workflow_key, country_code)
         return JsonResponse(
             {"suggestions": text, "meta": meta},
             safe=False,
         )
-    except (AttributeError, ImportError, LookupError, OSError, RuntimeError, TypeError, ValueError) as e:
+    except (
+        AttributeError,
+        ImportError,
+        LookupError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as e:
         return JsonResponse(
             {"error": str(e), "suggestions": None},
             status=500,
@@ -1853,14 +2267,26 @@ def admission_number_preview_api(request):
     school = getattr(request, "school", None)
     if not school:
         return JsonResponse({"error": "No tenant context"}, status=400)
-    from .identifier_policy_service import default_school_code_for, get_admissions_policy, preview_admission_number
+    from .identifier_policy_service import (
+        default_school_code_for,
+        get_admissions_policy,
+        preview_admission_number,
+    )
+
     policy = get_admissions_policy(school)
     from datetime import datetime
-    year_2digit = (request.GET.get("year_2digit") or str(datetime.now().year % 100))[:2].zfill(2)
+
+    year_2digit = (request.GET.get("year_2digit") or str(datetime.now().year % 100))[
+        :2
+    ].zfill(2)
     seq_4digit = (request.GET.get("seq_4digit") or "0001")[:4].zfill(4)
     spec_code = (request.GET.get("spec_code") or "XX")[:10]
     class_segment = (request.GET.get("class_segment") or "00")[:10]
-    school_code = (request.GET.get("school_code") or policy.get("school_code") or default_school_code_for(school)).upper()
+    school_code = (
+        request.GET.get("school_code")
+        or policy.get("school_code")
+        or default_school_code_for(school)
+    ).upper()
     preview = preview_admission_number(
         school,
         year_2digit=year_2digit,
@@ -1870,7 +2296,13 @@ def admission_number_preview_api(request):
         class_segment=class_segment,
     )
     return JsonResponse(
-        {"preview": preview, "policy": {"strategy": policy.get("admission_number_strategy"), "school_code": policy.get("school_code")}},
+        {
+            "preview": preview,
+            "policy": {
+                "strategy": policy.get("admission_number_strategy"),
+                "school_code": policy.get("school_code"),
+            },
+        },
         safe=False,
     )
 
@@ -1881,9 +2313,21 @@ def feedback_roadmap(request):
     """Product feedback roadmap: Planned / In Development / Released (tagged by region/module)."""
     from .models import ProductFeedback
 
-    planned = list(ProductFeedback.objects.filter(status=ProductFeedback.Status.PLANNED).order_by("-upvotes", "-created_at")[:50])
-    in_dev = list(ProductFeedback.objects.filter(status=ProductFeedback.Status.IN_DEVELOPMENT).order_by("-upvotes", "-created_at")[:50])
-    released = list(ProductFeedback.objects.filter(status=ProductFeedback.Status.RELEASED).order_by("-updated_at")[:50])
+    planned = list(
+        ProductFeedback.objects.filter(status=ProductFeedback.Status.PLANNED).order_by(
+            "-upvotes", "-created_at"
+        )[:50]
+    )
+    in_dev = list(
+        ProductFeedback.objects.filter(
+            status=ProductFeedback.Status.IN_DEVELOPMENT
+        ).order_by("-upvotes", "-created_at")[:50]
+    )
+    released = list(
+        ProductFeedback.objects.filter(status=ProductFeedback.Status.RELEASED).order_by(
+            "-updated_at"
+        )[:50]
+    )
     return render(
         request,
         "siteconfig/feedback_roadmap.html",

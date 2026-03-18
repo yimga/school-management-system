@@ -6,6 +6,7 @@ Supports:
 - full scan report mode
 - baseline-enforced allowlist mode for high-risk files
 """
+
 from __future__ import annotations
 
 import argparse
@@ -69,9 +70,13 @@ def _load_allowlist(path: str | None) -> dict[str, int]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Flag broad except usage.")
-    parser.add_argument("--strict", action="store_true", help="Exit 1 when violations are found.")
+    parser.add_argument(
+        "--strict", action="store_true", help="Exit 1 when violations are found."
+    )
     parser.add_argument("--exit-zero", action="store_true", help="Always exit 0.")
-    parser.add_argument("--allowlist", help="JSON file of file -> allowed broad-except count.")
+    parser.add_argument(
+        "--allowlist", help="JSON file of file -> allowed broad-except count."
+    )
     parser.add_argument("--base", default=".", help="Repo base path.")
     args = parser.parse_args()
 
@@ -97,7 +102,9 @@ def main() -> int:
         return 0 if args.exit_zero else 1
 
     if not counts:
-        print("lint_broad_except: No broad except Exception/BaseException in non-allowed paths.")
+        print(
+            "lint_broad_except: No broad except Exception/BaseException in non-allowed paths."
+        )
         return 0
 
     items = sorted(counts.items())

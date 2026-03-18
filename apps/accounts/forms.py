@@ -19,11 +19,19 @@ class UserPreferenceForm(forms.ModelForm):
             "reduced_motion",
         ]
         widgets = {
-            "show_background_logo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "background_logo_opacity": forms.NumberInput(attrs={"class": "form-range", "min": 0, "max": 1, "step": 0.01}),
-            "high_contrast_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "show_background_logo": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "background_logo_opacity": forms.NumberInput(
+                attrs={"class": "form-range", "min": 0, "max": 1, "step": 0.01}
+            ),
+            "high_contrast_mode": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
             "reduced_motion": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+
 class RoleForm(forms.ModelForm):
     permissions = forms.ModelMultipleChoiceField(
         queryset=Permission.objects.all(),
@@ -54,8 +62,12 @@ class PermissionForm(forms.ModelForm):
 
 class EditRoleForm(forms.Form):
     """Edit an existing role's description and permissions (used in RBAC Edit Role modal)."""
+
     role_id = forms.IntegerField(widget=forms.HiddenInput)
-    description = forms.CharField(required=False, widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}))
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+    )
     permissions = forms.ModelMultipleChoiceField(
         queryset=Permission.objects.all(),
         required=False,
@@ -89,6 +101,7 @@ class UserRoleForm(forms.Form):
 
 class TemporaryRoleGrantForm(forms.Form):
     """Grant a role to a user with an expiry date (e.g. auditor for one month)."""
+
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),
         required=True,
@@ -114,7 +127,9 @@ class TemporaryRoleGrantForm(forms.Form):
     notes = forms.CharField(
         required=False,
         max_length=255,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. External auditor"}),
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "e.g. External auditor"}
+        ),
     )
 
     def clean_expires_at(self):
@@ -139,14 +154,23 @@ class UserPermissionForm(forms.Form):
 
 class UserProfileEditForm(forms.ModelForm):
     """My profile: edit name, email, profile photo (user can only edit self)."""
+
     class Meta:
         model = User
         fields = ["first_name", "last_name", "email", "profile_photo"]
         widgets = {
-            "first_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "First name"}),
-            "last_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Last name"}),
-            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "Email"}),
-            "profile_photo": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
+            "first_name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "First name"}
+            ),
+            "last_name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Last name"}
+            ),
+            "email": forms.EmailInput(
+                attrs={"class": "form-control", "placeholder": "Email"}
+            ),
+            "profile_photo": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -196,7 +220,9 @@ class ClaimInviteAccountForm(forms.Form):
 
         token = self.cleaned_data["token"].strip()
         try:
-            invite = PendingGuardianInvite.objects.select_related("student").get(token=token)
+            invite = PendingGuardianInvite.objects.select_related("student").get(
+                token=token
+            )
         except PendingGuardianInvite.DoesNotExist:
             raise forms.ValidationError("Invite not found.")
         if invite.is_claimed:
@@ -246,12 +272,16 @@ class DelegationForm(forms.Form):
     )
     start_date = forms.DateTimeField(
         required=True,
-        widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}),
+        widget=forms.DateTimeInput(
+            attrs={"class": "form-control", "type": "datetime-local"}
+        ),
         help_text="When the delegation becomes active.",
     )
     end_date = forms.DateTimeField(
         required=True,
-        widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}),
+        widget=forms.DateTimeInput(
+            attrs={"class": "form-control", "type": "datetime-local"}
+        ),
         help_text="When the delegation ends (max duration set by admin).",
     )
     scope = forms.MultipleChoiceField(
@@ -263,7 +293,9 @@ class DelegationForm(forms.Form):
     reason = forms.CharField(
         max_length=255,
         required=False,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Annual leave"}),
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "e.g. Annual leave"}
+        ),
     )
     notes = forms.CharField(
         required=False,
@@ -286,7 +318,9 @@ class DelegationForm(forms.Form):
             site = get_effective_site_settings(school=school)
             max_days = getattr(site, "delegation_max_days", 14) or 14
             if (end - start).days > max_days:
-                raise ValidationError(f"Duration cannot exceed {max_days} days (admin setting).")
+                raise ValidationError(
+                    f"Duration cannot exceed {max_days} days (admin setting)."
+                )
         return end
 
     def clean_delegate(self):

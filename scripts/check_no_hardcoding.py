@@ -5,6 +5,7 @@ Flags likely tenant/country/region hardcoding in app code. Run in CI or pre-push
 Excludes: control plane, migrations, tests (optional), and allowlisted paths.
 Usage: python scripts/check_no_hardcoding.py [--allow-tests] [--exit-zero]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -14,12 +15,15 @@ from pathlib import Path
 
 # Patterns that suggest hardcoded tenant/country/region logic (app code should use policy).
 PATTERNS = [
-    (re.compile(r'\bcountry\s*==\s*["\']'), "country == \"...\" (use policy/tenant_ctx)"),
-    (re.compile(r'\btenant\.country\s*=='), "tenant.country == (use policy)"),
-    (re.compile(r'\bregion\s*==\s*["\']'), "region == \"...\" (use policy)"),
-    (re.compile(r'\bcountry_code\s*==\s*["\']'), "country_code == \"...\" (use policy)"),
-    (re.compile(r'\bin\s*\[\s*["\'](?:CM|FR|US|NG|KE|GB|AE)\s*["\']'), "in [\"CM\", ...] country list (use policy/registry)"),
-    (re.compile(r'if\s+.*\.country\s*=='), "if ... .country == (use policy)"),
+    (re.compile(r'\bcountry\s*==\s*["\']'), 'country == "..." (use policy/tenant_ctx)'),
+    (re.compile(r"\btenant\.country\s*=="), "tenant.country == (use policy)"),
+    (re.compile(r'\bregion\s*==\s*["\']'), 'region == "..." (use policy)'),
+    (re.compile(r'\bcountry_code\s*==\s*["\']'), 'country_code == "..." (use policy)'),
+    (
+        re.compile(r'\bin\s*\[\s*["\'](?:CM|FR|US|NG|KE|GB|AE)\s*["\']'),
+        'in ["CM", ...] country list (use policy/registry)',
+    ),
+    (re.compile(r"if\s+.*\.country\s*=="), "if ... .country == (use policy)"),
 ]
 
 # Paths to skip (control plane, migrations, seed data, docs, this script).
@@ -47,9 +51,15 @@ SKIP_FILES = {
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Flag tenant/country/region hardcoding in app code.")
-    ap.add_argument("--allow-tests", action="store_true", help="Do not flag test files.")
-    ap.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
+    ap = argparse.ArgumentParser(
+        description="Flag tenant/country/region hardcoding in app code."
+    )
+    ap.add_argument(
+        "--allow-tests", action="store_true", help="Do not flag test files."
+    )
+    ap.add_argument(
+        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
+    )
     ap.add_argument("--base", default=".", help="Base directory to scan (default: .)")
     args = ap.parse_args()
     base = Path(args.base).resolve()
@@ -79,11 +89,15 @@ def main() -> int:
     if not hits:
         print("No hardcoding patterns found.")
         return 0
-    print("Possible tenant/country/region hardcoding (use policy/tenant_runtime instead):\n")
+    print(
+        "Possible tenant/country/region hardcoding (use policy/tenant_runtime instead):\n"
+    )
     for path, line_no, snippet, label in hits:
         print(f"  {path}:{line_no}  {label}")
         print(f"    {snippet}")
-    print(f"\nTotal: {len(hits)} hit(s). See docs/architecture/no_hardcoding_checklist.md.")
+    print(
+        f"\nTotal: {len(hits)} hit(s). See docs/architecture/no_hardcoding_checklist.md."
+    )
     return 0 if args.exit_zero else 1
 
 

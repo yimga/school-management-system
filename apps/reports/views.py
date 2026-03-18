@@ -20,7 +20,12 @@ from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
 from apps.api.rate_limit import throttle_ip_request
 from apps.people.models import StudentGuardian, StudentProfile
-from apps.reports.models import ReportCard, ReportCardAudit, ReportDocumentHash, TermPublishStatus
+from apps.reports.models import (
+    ReportCard,
+    ReportCardAudit,
+    ReportDocumentHash,
+    TermPublishStatus,
+)
 from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.reports.services import (
     annual_report_context,
@@ -85,7 +90,9 @@ def _scoped_years_queryset(school):
     return years.order_by("-start_date")
 
 
-def _get_guardian_student(request: HttpRequest, student_id: int) -> StudentProfile | None:
+def _get_guardian_student(
+    request: HttpRequest, student_id: int
+) -> StudentProfile | None:
     link = (
         StudentGuardian.objects.filter(
             guardian_user=request.user,
@@ -96,6 +103,7 @@ def _get_guardian_student(request: HttpRequest, student_id: int) -> StudentProfi
         .first()
     )
     return link.student if link else None
+
 
 REPORT_PREVIEW_TEMPLATES = {
     ReportCard.Type.TERM: "reports/preview_term_card.html",
@@ -111,7 +119,9 @@ def _sample_student(school=None):
     only students from that school are considered. When school is None (e.g. control-plane),
     uses first active student in current schema — do not use in tenant views without passing school.
     """
-    qs = StudentProfile.objects.filter(is_active=True).select_related("classroom", "specialty")
+    qs = StudentProfile.objects.filter(is_active=True).select_related(
+        "classroom", "specialty"
+    )
     if school is not None:
         qs = qs.filter(school_id=getattr(school, "id", school))
     student = qs.first()
@@ -127,7 +137,9 @@ def _sample_student(school=None):
     )
 
 
-def _build_preview_context(style: ReportCardStyle, report_type: str, request: HttpRequest | None = None) -> dict:
+def _build_preview_context(
+    style: ReportCardStyle, report_type: str, request: HttpRequest | None = None
+) -> dict:
     school = _report_scope_school(request) if request else None
     student = _sample_student(school=school)
     year, term = get_active_year_and_term(school=getattr(student, "school", None))
@@ -135,24 +147,34 @@ def _build_preview_context(style: ReportCardStyle, report_type: str, request: Ht
     if report_type == ReportCard.Type.TERM and year and term:
         context = term_report_context(student, year, term)
         result.update(context)
-        result.update({
-            "student": student,
-            "student_name": f"{student.last_name} {student.first_name}",
-            "year": year,
-            "term": term,
-        })
+        result.update(
+            {
+                "student": student,
+                "student_name": f"{student.last_name} {student.first_name}",
+                "year": year,
+                "term": term,
+            }
+        )
     else:
-        context = annual_report_context(student, year) if year else {"term_rows": [], "annual_average": None}
+        context = (
+            annual_report_context(student, year)
+            if year
+            else {"term_rows": [], "annual_average": None}
+        )
         result.update(context)
-        result.update({
-            "student": student,
-            "student_name": f"{student.last_name} {student.first_name}",
-            "year": year,
-        })
+        result.update(
+            {
+                "student": student,
+                "student_name": f"{student.last_name} {student.first_name}",
+                "year": year,
+            }
+        )
     return result
 
 
-def _log_report_card_action(user: User, report_card: ReportCard, action: str, metadata=None):
+def _log_report_card_action(
+    user: User, report_card: ReportCard, action: str, metadata=None
+):
     if not report_card:
         return
     if metadata is None:
@@ -203,7 +225,9 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         return HttpResponseForbidden("No active academic year/term configured yet.")
 
     if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
-        return HttpResponseForbidden("Third term report is not available for this classroom.")
+        return HttpResponseForbidden(
+            "Third term report is not available for this classroom."
+        )
 
     if not is_term_published(year.id, term.id, student.classroom_id):
         return HttpResponseForbidden("Results not published yet.")
@@ -219,13 +243,15 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         )
 
     context = term_report_context(student, year, term)
-    context.update({
-        "student": student,
-        "student_name": f"{student.last_name} {student.first_name}",
-        "year": year,
-        "term": term,
-        "generated_at": timezone.now(),
-    })
+    context.update(
+        {
+            "student": student,
+            "student_name": f"{student.last_name} {student.first_name}",
+            "year": year,
+            "term": term,
+            "generated_at": timezone.now(),
+        }
+    )
 
     # Generate QR code for report authenticity verification
     share_token = build_share_token("term", student.id, year.id, term.id)
@@ -234,7 +260,11 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     context["verification_url"] = share_url
 
     style = get_report_card_style_for_student(student, ReportCard.Type.TERM)
-    template_name = style.template_for(ReportCard.Type.TERM) if style else "reports/term_report.html"
+    template_name = (
+        style.template_for(ReportCard.Type.TERM)
+        if style
+        else "reports/term_report.html"
+    )
     context["report_style"] = style
     pdf_bytes = render_pdf_bytes(request, template_name, context)
 
@@ -244,7 +274,9 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         student=student,
         type=ReportCard.Type.TERM,
     )
-    filename = f"report_{student.student_code}_{year.name}_{term.name}.pdf".replace("/", "-")
+    filename = f"report_{student.student_code}_{year.name}_{term.name}.pdf".replace(
+        "/", "-"
+    )
     rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
     _record_report_hash(request.user, rc, pdf_bytes)
 
@@ -279,7 +311,9 @@ def parent_download_term_report_csv(request: HttpRequest, student_id: int):
         return HttpResponseForbidden("No active academic year/term configured yet.")
 
     if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
-        return HttpResponseForbidden("Third term report is not available for this classroom.")
+        return HttpResponseForbidden(
+            "Third term report is not available for this classroom."
+        )
 
     if not is_term_published(year.id, term.id, student.classroom_id):
         return HttpResponseForbidden("Results not published yet.")
@@ -297,23 +331,49 @@ def parent_download_term_report_csv(request: HttpRequest, student_id: int):
     context = term_report_context(student, year, term)
     rows = []
     for r in context["rows"]:
-        rows.append([
-            r["subject"],
-            r["coef"],
-            r["seq1"],
-            r["seq2"],
-            r["exam"],
-            r["mock"],
-            r["practical"],
-            r["total"],
-            "yes" if r["complete"] else "no",
-            r["remark"],
-        ])
+        rows.append(
+            [
+                r["subject"],
+                r["coef"],
+                r["seq1"],
+                r["seq2"],
+                r["exam"],
+                r["mock"],
+                r["practical"],
+                r["total"],
+                "yes" if r["complete"] else "no",
+                r["remark"],
+            ]
+        )
     summary = context["summary"]
     rows.append([])
-    rows.append(["Average", summary["average"], "Class pos", summary["class_position"], "Size", summary["class_size"]])
-    filename = f"{student.last_name}_{student.first_name}_{term.name}_{year.name}.csv".replace(" ", "_")
-    headers = ["Subject", "Coef", "Seq1", "Seq2", "Exam", "Mock", "Practical", "Total", "Complete", "Remark"]
+    rows.append(
+        [
+            "Average",
+            summary["average"],
+            "Class pos",
+            summary["class_position"],
+            "Size",
+            summary["class_size"],
+        ]
+    )
+    filename = (
+        f"{student.last_name}_{student.first_name}_{term.name}_{year.name}.csv".replace(
+            " ", "_"
+        )
+    )
+    headers = [
+        "Subject",
+        "Coef",
+        "Seq1",
+        "Seq2",
+        "Exam",
+        "Mock",
+        "Practical",
+        "Total",
+        "Complete",
+        "Remark",
+    ]
     return _csv_response(filename, headers, rows)
 
 
@@ -345,12 +405,14 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
         )
 
     context = annual_report_context(student, year)
-    context.update({
-        "student": student,
-        "student_name": f"{student.last_name} {student.first_name}",
-        "year": year,
-        "generated_at": timezone.now(),
-    })
+    context.update(
+        {
+            "student": student,
+            "student_name": f"{student.last_name} {student.first_name}",
+            "year": year,
+            "generated_at": timezone.now(),
+        }
+    )
 
     # QR code for annual report verification
     share_token = build_share_token("annual", student.id, year.id, None)
@@ -359,7 +421,11 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
     context["verification_url"] = share_url
 
     style = get_report_card_style_for_student(student, ReportCard.Type.ANNUAL)
-    template_name = style.template_for(ReportCard.Type.ANNUAL) if style else "reports/annual_report.html"
+    template_name = (
+        style.template_for(ReportCard.Type.ANNUAL)
+        if style
+        else "reports/annual_report.html"
+    )
     context["report_style"] = style
     pdf_bytes = render_pdf_bytes(request, template_name, context)
 
@@ -394,7 +460,9 @@ def verify_report_hash(request: HttpRequest):
         window_seconds=VERIFY_REPORT_HASH_RATE_LIMIT_WINDOW,
     )
     if not allowed:
-        response = JsonResponse({"verified": False, "error": "Too many requests"}, status=429)
+        response = JsonResponse(
+            {"verified": False, "error": "Too many requests"}, status=429
+        )
         response["Retry-After"] = str(retry_after)
         return response
 
@@ -402,11 +470,21 @@ def verify_report_hash(request: HttpRequest):
     report_card_id = (request.GET.get("report_card_id") or "").strip()
     row = None
     if sha:
-        row = ReportDocumentHash.objects.filter(sha256_hash=sha).select_related("report_card").first()
+        row = (
+            ReportDocumentHash.objects.filter(sha256_hash=sha)
+            .select_related("report_card")
+            .first()
+        )
     elif report_card_id.isdigit():
-        row = ReportDocumentHash.objects.filter(report_card_id=int(report_card_id)).select_related("report_card").first()
+        row = (
+            ReportDocumentHash.objects.filter(report_card_id=int(report_card_id))
+            .select_related("report_card")
+            .first()
+        )
     else:
-        return JsonResponse({"verified": False, "error": "Provide hash or report_card_id"}, status=400)
+        return JsonResponse(
+            {"verified": False, "error": "Provide hash or report_card_id"}, status=400
+        )
 
     if not row:
         return JsonResponse({"verified": False, "error": "Hash not found"}, status=404)
@@ -443,7 +521,9 @@ def parent_download_annual_report_csv(request: HttpRequest, student_id: int):
         return HttpResponseForbidden("No active academic year configured yet.")
 
     terms_annual = terms_for_student(year, student.classroom)
-    if not are_terms_published(year.id, [t.id for t in terms_annual], student.classroom_id):
+    if not are_terms_published(
+        year.id, [t.id for t in terms_annual], student.classroom_id
+    ):
         return HttpResponseForbidden("Annual report is not available yet.")
     if not student_has_financial_clearance(student, year):
         notify_parent_report_blocked_by_debt(student, year)
@@ -458,22 +538,30 @@ def parent_download_annual_report_csv(request: HttpRequest, student_id: int):
     context = annual_report_context(student, year)
     rows = []
     for term_row in context["term_rows"]:
-        rows.append([
-            term_row["term"],
-            term_row["avg"],
-            term_row["pos"],
-            term_row["class_size"],
-        ])
+        rows.append(
+            [
+                term_row["term"],
+                term_row["avg"],
+                term_row["pos"],
+                term_row["class_size"],
+            ]
+        )
     rows.append([])
-    rows.append([
-        "Annual average",
-        context["annual_average"],
-        "Class position",
-        context["class_position"],
-        "School position",
-        context["school_position"],
-    ])
-    filename = f"{student.last_name}_{student.first_name}_annual_{year.name}.csv".replace(" ", "_")
+    rows.append(
+        [
+            "Annual average",
+            context["annual_average"],
+            "Class position",
+            context["class_position"],
+            "School position",
+            context["school_position"],
+        ]
+    )
+    filename = (
+        f"{student.last_name}_{student.first_name}_annual_{year.name}.csv".replace(
+            " ", "_"
+        )
+    )
     headers = ["Term", "Average", "Class position", "Class size"]
     return _csv_response(filename, headers, rows)
 
@@ -496,14 +584,21 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
     if report_type == ReportCard.Type.TERM:
         if not term:
             return HttpResponseForbidden("No active term configured yet.")
-        if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
-            return HttpResponseForbidden("Third term report is not available for this classroom.")
+        if (
+            getattr(term, "position", None) == 3
+            and not student.classroom.allows_third_term
+        ):
+            return HttpResponseForbidden(
+                "Third term report is not available for this classroom."
+            )
         if not is_term_published(year.id, term.id, student.classroom_id):
             return HttpResponseForbidden("Results not published yet.")
         term_id = term.id
     elif report_type == ReportCard.Type.ANNUAL:
         terms = terms_for_student(year, student.classroom)
-        if not are_terms_published(year.id, [t.id for t in terms], student.classroom_id):
+        if not are_terms_published(
+            year.id, [t.id for t in terms], student.classroom_id
+        ):
             return HttpResponseForbidden("Annual report is not available yet.")
     else:
         return HttpResponseForbidden("Unknown report type.")
@@ -524,7 +619,9 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
     if request.method == "POST" and request.POST.get("action") == "email":
         if not request.user.email:
             messages.error(request, "No email address found on your account.")
-        elif not getattr(settings, "EMAIL_HOST", "") and settings.EMAIL_BACKEND.endswith("smtp.EmailBackend"):
+        elif not getattr(
+            settings, "EMAIL_HOST", ""
+        ) and settings.EMAIL_BACKEND.endswith("smtp.EmailBackend"):
             messages.error(request, "Email is not configured on the server.")
         else:
             subject = f"{student.last_name} {student.first_name} Report Card"
@@ -543,14 +640,18 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
 
     site = get_effective_site_settings(request=request)
     enable_whatsapp_share = getattr(site, "enable_whatsapp_parent_portal", False)
-    return render(request, "reports/share_link.html", {
-        "student": student,
-        "year": year,
-        "term": term,
-        "report_type": report_type,
-        "share_url": share_url,
-        "enable_whatsapp_share": enable_whatsapp_share,
-    })
+    return render(
+        request,
+        "reports/share_link.html",
+        {
+            "student": student,
+            "year": year,
+            "term": term,
+            "report_type": report_type,
+            "share_url": share_url,
+            "enable_whatsapp_share": enable_whatsapp_share,
+        },
+    )
 
 
 def report_share(request: HttpRequest, token: str):
@@ -567,7 +668,11 @@ def report_share(request: HttpRequest, token: str):
     student = get_object_or_404(StudentProfile, id=payload["student_id"])
     year = get_object_or_404(AcademicYear, id=payload["academic_year_id"])
     report_type = payload["report_type"]
-    if getattr(student, "school_id", None) and getattr(year, "school_id", None) and student.school_id != year.school_id:
+    if (
+        getattr(student, "school_id", None)
+        and getattr(year, "school_id", None)
+        and student.school_id != year.school_id
+    ):
         return HttpResponseForbidden("Invalid link.")
 
     if not student_has_financial_clearance(student, year):
@@ -585,21 +690,32 @@ def report_share(request: HttpRequest, token: str):
         if not term_id:
             return HttpResponseForbidden("Invalid link.")
         term = get_object_or_404(Term, id=term_id, academic_year=year)
-        if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
-            return HttpResponseForbidden("Third term report is not available for this classroom.")
+        if (
+            getattr(term, "position", None) == 3
+            and not student.classroom.allows_third_term
+        ):
+            return HttpResponseForbidden(
+                "Third term report is not available for this classroom."
+            )
         if not is_term_published(year.id, term.id, student.classroom_id):
             return HttpResponseForbidden("Results not published yet.")
 
         context = term_report_context(student, year, term)
-        context.update({
-            "student": student,
-            "student_name": f"{student.last_name} {student.first_name}",
-            "year": year,
-            "term": term,
-            "generated_at": timezone.now(),
-        })
+        context.update(
+            {
+                "student": student,
+                "student_name": f"{student.last_name} {student.first_name}",
+                "year": year,
+                "term": term,
+                "generated_at": timezone.now(),
+            }
+        )
         style = get_report_card_style_for_student(student, ReportCard.Type.TERM)
-        template_name = style.template_for(ReportCard.Type.TERM) if style else "reports/term_report.html"
+        template_name = (
+            style.template_for(ReportCard.Type.TERM)
+            if style
+            else "reports/term_report.html"
+        )
         context["report_style"] = style
         pdf_bytes = render_pdf_bytes(request, template_name, context)
         resp = HttpResponse(pdf_bytes, content_type="application/pdf")
@@ -608,18 +724,26 @@ def report_share(request: HttpRequest, token: str):
 
     if report_type == ReportCard.Type.ANNUAL:
         terms = terms_for_student(year, student.classroom)
-        if not are_terms_published(year.id, [t.id for t in terms], student.classroom_id):
+        if not are_terms_published(
+            year.id, [t.id for t in terms], student.classroom_id
+        ):
             return HttpResponseForbidden("Annual report is not available yet.")
 
         context = annual_report_context(student, year)
-        context.update({
-            "student": student,
-            "student_name": f"{student.last_name} {student.first_name}",
-            "year": year,
-            "generated_at": timezone.now(),
-        })
+        context.update(
+            {
+                "student": student,
+                "student_name": f"{student.last_name} {student.first_name}",
+                "year": year,
+                "generated_at": timezone.now(),
+            }
+        )
         style = get_report_card_style_for_student(student, ReportCard.Type.ANNUAL)
-        template_name = style.template_for(ReportCard.Type.ANNUAL) if style else "reports/annual_report.html"
+        template_name = (
+            style.template_for(ReportCard.Type.ANNUAL)
+            if style
+            else "reports/annual_report.html"
+        )
         context["report_style"] = style
         pdf_bytes = render_pdf_bytes(request, template_name, context)
         resp = HttpResponse(pdf_bytes, content_type="application/pdf")
@@ -627,6 +751,7 @@ def report_share(request: HttpRequest, token: str):
         return resp
 
     return HttpResponseForbidden("Unknown report type.")
+
 
 @staff_member_required
 def publish_term_results(request: HttpRequest):
@@ -654,7 +779,9 @@ def publish_term_results(request: HttpRequest):
     classrooms = classrooms.order_by("name")
 
     site = get_effective_site_settings(request=request)
-    require_approved_before_publish = getattr(site, "reports_require_approved_grades_before_publish", False)
+    require_approved_before_publish = getattr(
+        site, "reports_require_approved_grades_before_publish", False
+    )
     grade_approval_enabled = getattr(site, "grade_approval_enabled", False)
     approval_state = grade_approval_publish_readiness(year_obj.id, term_obj.id)
     pending_approvals = approval_state["pending_count"]
@@ -678,7 +805,9 @@ def publish_term_results(request: HttpRequest):
         if publish_intent:
             scoped_classroom_ids = None
             if not publish_school:
-                scoped_classroom_ids = [int(classroom_id) for classroom_id in selected_classrooms]
+                scoped_classroom_ids = [
+                    int(classroom_id) for classroom_id in selected_classrooms
+                ]
             scoped_approval_state = grade_approval_publish_readiness(
                 year_obj.id,
                 term_obj.id,
@@ -688,7 +817,9 @@ def publish_term_results(request: HttpRequest):
             rejected_approvals = scoped_approval_state["rejected_count"]
             missing_approvals = scoped_approval_state["missing_count"]
             all_grades_approved = scoped_approval_state["ready_for_publish"]
-            subject_assignments_with_grades = scoped_approval_state["subject_assignments_with_grades"]
+            subject_assignments_with_grades = scoped_approval_state[
+                "subject_assignments_with_grades"
+            ]
             approved_grade_approvals = scoped_approval_state["approved_count"]
 
         if (
@@ -729,6 +860,7 @@ def publish_term_results(request: HttpRequest):
                 )
             try:
                 from apps.compliance.models_audit import AuditLog
+
                 AuditLog.objects.create(
                     action=AuditLog.Action.PUBLISH,
                     user=request.user,
@@ -736,9 +868,18 @@ def publish_term_results(request: HttpRequest):
                     object_id=f"{year_obj.id}_{term_obj.id}",
                     object_repr=f"{year_obj} {term_obj}",
                     app_label="reports",
-                    new_values={"publish_school": publish_school, "classroom_ids": list(selected_classrooms)},
+                    new_values={
+                        "publish_school": publish_school,
+                        "classroom_ids": list(selected_classrooms),
+                    },
                 )
-            except (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError):
+            except (
+                DatabaseError,
+                IntegrityError,
+                ValidationError,
+                TypeError,
+                ValueError,
+            ):
                 log_view_exception(
                     request,
                     "reports publish: AuditLog create failed",
@@ -749,9 +890,16 @@ def publish_term_results(request: HttpRequest):
                     },
                 )
             # Phase 3: Award Honor Roll badges for students in published classrooms
-            published_classroom_ids = {str(c.id) for c in classrooms} if publish_school else selected_classrooms
+            published_classroom_ids = (
+                {str(c.id) for c in classrooms}
+                if publish_school
+                else selected_classrooms
+            )
             if published_classroom_ids:
-                from apps.people.badge_services import create_honor_roll_badge_for_student
+                from apps.people.badge_services import (
+                    create_honor_roll_badge_for_student,
+                )
+
                 for classroom in classrooms:
                     if str(classroom.id) not in published_classroom_ids:
                         continue
@@ -766,8 +914,18 @@ def publish_term_results(request: HttpRequest):
                             ctx = term_report_context(student, year_obj, term_obj)
                             avg = ctx.get("average")
                             if avg is not None:
-                                create_honor_roll_badge_for_student(student, year_obj, term_obj, avg)
-                        except (DatabaseError, IntegrityError, ValidationError, TypeError, ValueError, KeyError, ObjectDoesNotExist):
+                                create_honor_roll_badge_for_student(
+                                    student, year_obj, term_obj, avg
+                                )
+                        except (
+                            DatabaseError,
+                            IntegrityError,
+                            ValidationError,
+                            TypeError,
+                            ValueError,
+                            KeyError,
+                            ObjectDoesNotExist,
+                        ):
                             log_view_exception(
                                 request,
                                 "reports publish: honor roll badge create failed",
@@ -791,28 +949,36 @@ def publish_term_results(request: HttpRequest):
     classroom_states = []
     for classroom in classrooms:
         status = classroom_status.get(classroom.id)
-        classroom_states.append({
-            "classroom": classroom,
-            "is_published": bool(status and status.is_published),
-        })
+        classroom_states.append(
+            {
+                "classroom": classroom,
+                "is_published": bool(status and status.is_published),
+            }
+        )
 
-    return render(request, "reports/publish_term.html", {
-        "year": year_obj,
-        "term": term_obj,
-        "years": _scoped_years_queryset(school),
-        "terms": Term.objects.filter(academic_year=year_obj).order_by("start_date", "name"),
-        "classrooms": classrooms,
-        "school_published": bool(school_status),
-        "classroom_states": classroom_states,
-        "pending_grade_approvals": pending_approvals,
-        "rejected_grade_approvals": rejected_approvals,
-        "missing_grade_approvals": missing_approvals,
-        "subject_assignments_with_grades": subject_assignments_with_grades,
-        "approved_grade_approvals": approved_grade_approvals,
-        "all_grades_approved": all_grades_approved,
-        "grade_approval_enabled": grade_approval_enabled,
-        "reports_require_approved_grades_before_publish": require_approved_before_publish,
-    })
+    return render(
+        request,
+        "reports/publish_term.html",
+        {
+            "year": year_obj,
+            "term": term_obj,
+            "years": _scoped_years_queryset(school),
+            "terms": Term.objects.filter(academic_year=year_obj).order_by(
+                "start_date", "name"
+            ),
+            "classrooms": classrooms,
+            "school_published": bool(school_status),
+            "classroom_states": classroom_states,
+            "pending_grade_approvals": pending_approvals,
+            "rejected_grade_approvals": rejected_approvals,
+            "missing_grade_approvals": missing_approvals,
+            "subject_assignments_with_grades": subject_assignments_with_grades,
+            "approved_grade_approvals": approved_grade_approvals,
+            "all_grades_approved": all_grades_approved,
+            "grade_approval_enabled": grade_approval_enabled,
+            "reports_require_approved_grades_before_publish": require_approved_before_publish,
+        },
+    )
 
 
 @staff_member_required
@@ -832,11 +998,19 @@ def statistical_return(request: HttpRequest):
     export = request.GET.get("export") == "csv"
 
     if not year_id:
-        return render(request, "reports/statistical_return.html", {"years": years, "year": None, "rows": [], "totals": None})
+        return render(
+            request,
+            "reports/statistical_return.html",
+            {"years": years, "year": None, "rows": [], "totals": None},
+        )
 
     year_obj = get_object_or_404(AcademicYear, id=year_id, school=school)
-    terms = list(Term.objects.filter(academic_year=year_obj).order_by("position", "start_date"))
-    classrooms = list(Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name"))
+    terms = list(
+        Term.objects.filter(academic_year=year_obj).order_by("position", "start_date")
+    )
+    classrooms = list(
+        Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name")
+    )
 
     rows = []
     total_students = 0
@@ -847,7 +1021,10 @@ def statistical_return(request: HttpRequest):
     for classroom in classrooms:
         students = list(
             StudentProfile.objects.filter(
-                academic_year=year_obj, classroom=classroom, school=school, is_active=True
+                academic_year=year_obj,
+                classroom=classroom,
+                school=school,
+                is_active=True,
             ).select_related("classroom")
         )
         male = sum(1 for s in students if getattr(s, "gender", None) == "MALE")
@@ -863,14 +1040,16 @@ def statistical_return(request: HttpRequest):
         total_female += female
         total_promoted += promoted
         success_rate = (promoted / n * 100) if n else 0
-        rows.append({
-            "classroom": classroom.name,
-            "students": n,
-            "male": male,
-            "female": female,
-            "promoted": promoted,
-            "success_rate": round(success_rate, 1),
-        })
+        rows.append(
+            {
+                "classroom": classroom.name,
+                "students": n,
+                "male": male,
+                "female": female,
+                "promoted": promoted,
+                "success_rate": round(success_rate, 1),
+            }
+        )
 
     teacher_count = TeacherProfile.objects.filter(is_active=True, school=school).count()
     totals = {
@@ -878,30 +1057,69 @@ def statistical_return(request: HttpRequest):
         "male": total_male,
         "female": total_female,
         "promoted": total_promoted,
-        "success_rate": round((total_promoted / total_students * 100), 1) if total_students else 0,
+        "success_rate": round((total_promoted / total_students * 100), 1)
+        if total_students
+        else 0,
         "teachers": teacher_count,
-        "teacher_student_ratio": round(teacher_count / total_students, 2) if total_students else None,
+        "teacher_student_ratio": round(teacher_count / total_students, 2)
+        if total_students
+        else None,
     }
 
     if export:
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = f'attachment; filename="statistical_return_{year_obj.name.replace("/", "-")}.csv"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="statistical_return_{year_obj.name.replace("/", "-")}.csv"'
+        )
         writer = csv.writer(response)
-        writer.writerow(["Classroom", "Students", "Male", "Female", "Promoted", "Success %"])
+        writer.writerow(
+            ["Classroom", "Students", "Male", "Female", "Promoted", "Success %"]
+        )
         for r in rows:
-            writer.writerow([r["classroom"], r["students"], r["male"], r["female"], r["promoted"], r["success_rate"]])
+            writer.writerow(
+                [
+                    r["classroom"],
+                    r["students"],
+                    r["male"],
+                    r["female"],
+                    r["promoted"],
+                    r["success_rate"],
+                ]
+            )
         writer.writerow([])
-        writer.writerow(["Total", totals["students"], totals["male"], totals["female"], totals["promoted"], totals["success_rate"]])
+        writer.writerow(
+            [
+                "Total",
+                totals["students"],
+                totals["male"],
+                totals["female"],
+                totals["promoted"],
+                totals["success_rate"],
+            ]
+        )
         writer.writerow(["Teachers", totals["teachers"], "", "", "", ""])
-        writer.writerow(["Teacher/student ratio", totals["teacher_student_ratio"] or "", "", "", "", ""])
+        writer.writerow(
+            [
+                "Teacher/student ratio",
+                totals["teacher_student_ratio"] or "",
+                "",
+                "",
+                "",
+                "",
+            ]
+        )
         return response
 
-    return render(request, "reports/statistical_return.html", {
-        "years": years,
-        "year": year_obj,
-        "rows": rows,
-        "totals": totals,
-    })
+    return render(
+        request,
+        "reports/statistical_return.html",
+        {
+            "years": years,
+            "year": year_obj,
+            "rows": rows,
+            "totals": totals,
+        },
+    )
 
 
 @staff_member_required
@@ -933,8 +1151,12 @@ def promotion_preview(request: HttpRequest):
         )
 
     year_obj = get_object_or_404(AcademicYear, id=year_id, school=school)
-    terms = list(Term.objects.filter(academic_year=year_obj).order_by("position", "start_date"))
-    classrooms_qs = Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name")
+    terms = list(
+        Term.objects.filter(academic_year=year_obj).order_by("position", "start_date")
+    )
+    classrooms_qs = Classroom.objects.filter(
+        academic_year=year_obj, school=school
+    ).order_by("name")
     classroom_id = request.GET.get("classroom")
     if classroom_id:
         classrooms_qs = classrooms_qs.filter(id=classroom_id)
@@ -947,13 +1169,20 @@ def promotion_preview(request: HttpRequest):
     for classroom in classrooms:
         students = list(
             StudentProfile.objects.filter(
-                academic_year=year_obj, classroom=classroom, school=school, is_active=True
+                academic_year=year_obj,
+                classroom=classroom,
+                school=school,
+                is_active=True,
             ).select_related("classroom")
         )
         student_rows = []
         for s in students:
             annual_avg = _annual_average_for_student(s, terms) if terms else None
-            promo = get_promotion_status(s, year_obj, annual_avg) if annual_avg is not None else "NO_DATA"
+            promo = (
+                get_promotion_status(s, year_obj, annual_avg)
+                if annual_avg is not None
+                else "NO_DATA"
+            )
             thresholds = get_promotion_thresholds(s, year_obj)
             promo_avg = float(thresholds["promotion_average"]) if thresholds else 10.0
             demotion_avg = float(thresholds["demotion_average"]) if thresholds else 0.0
@@ -965,32 +1194,46 @@ def promotion_preview(request: HttpRequest):
             row_data = {
                 "classroom": classroom,
                 "student": s,
-                "annual_average": round(annual_avg, 2) if annual_avg is not None else None,
+                "annual_average": round(annual_avg, 2)
+                if annual_avg is not None
+                else None,
                 "promotion_status": promo,
                 "is_borderline": is_borderline,
             }
             student_rows.append(row_data)
             flat_rows.append(row_data)
-        by_classroom.append({
-            "classroom": classroom,
-            "students": student_rows,
-        })
+        by_classroom.append(
+            {
+                "classroom": classroom,
+                "students": student_rows,
+            }
+        )
 
     if export:
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = f'attachment; filename="promotion_preview_{year_obj.name.replace("/", "-")}.csv"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="promotion_preview_{year_obj.name.replace("/", "-")}.csv"'
+        )
         writer = csv.writer(response)
-        writer.writerow(["Classroom", "Student", "Annual average", "Promotion status", "Borderline"])
+        writer.writerow(
+            ["Classroom", "Student", "Annual average", "Promotion status", "Borderline"]
+        )
         for group in by_classroom:
             for row in group["students"]:
-                name = (row["student"].get_full_name() or row["student"].last_name or "").strip()
-                writer.writerow([
-                    group["classroom"].name,
-                    name,
-                    row["annual_average"] if row["annual_average"] is not None else "",
-                    row["promotion_status"],
-                    "Yes" if row["is_borderline"] else "No",
-                ])
+                name = (
+                    row["student"].get_full_name() or row["student"].last_name or ""
+                ).strip()
+                writer.writerow(
+                    [
+                        group["classroom"].name,
+                        name,
+                        row["annual_average"]
+                        if row["annual_average"] is not None
+                        else "",
+                        row["promotion_status"],
+                        "Yes" if row["is_borderline"] else "No",
+                    ]
+                )
         return response
 
     per_page = min(100, max(10, int(request.GET.get("page_size", 25))))
@@ -1005,7 +1248,9 @@ def promotion_preview(request: HttpRequest):
     q = request.GET.copy()
     q.pop("page", None)
     pagination_extra_query = q.urlencode()
-    all_classrooms = list(Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name"))
+    all_classrooms = list(
+        Classroom.objects.filter(academic_year=year_obj, school=school).order_by("name")
+    )
 
     return render(
         request,
@@ -1040,7 +1285,11 @@ def regulatory_export(request: HttpRequest):
 
     if not request.user.is_authenticated:
         return redirect(settings.LOGIN_URL + "?next=" + request.path)
-    if not (request.user.is_staff or (getattr(request.user, "role", "") or "").upper() in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "BURSAR")):
+    if not (
+        request.user.is_staff
+        or (getattr(request.user, "role", "") or "").upper()
+        in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "BURSAR")
+    ):
         return HttpResponseForbidden("Staff only.")
     presets = get_moe_presets()
 
@@ -1049,7 +1298,10 @@ def regulatory_export(request: HttpRequest):
     if request.method == "POST":
         school = _regulatory_export_school(request)
         if not school:
-            export_result = {"ok": False, "error": "Select a school (backend/session) to run export."}
+            export_result = {
+                "ok": False,
+                "error": "Select a school (backend/session) to run export.",
+            }
         else:
             preset_id = (request.POST.get("preset_id") or "").strip()
             if not preset_id:
@@ -1068,25 +1320,43 @@ def regulatory_export(request: HttpRequest):
                     except (TypeError, ValueError):
                         term_id = None
                 export_result = build_regulatory_export(
-                    school, preset_id,
+                    school,
+                    preset_id,
                     academic_year_id=academic_year_id,
                     term_id=term_id,
                 )
-        if request.headers.get("Accept", "").find("application/json") >= 0 or request.GET.get("format") == "json":
+        if (
+            request.headers.get("Accept", "").find("application/json") >= 0
+            or request.GET.get("format") == "json"
+        ):
             return JsonResponse(export_result or {})
 
-    if request.headers.get("Accept", "").find("application/json") >= 0 or request.GET.get("format") == "json":
+    if (
+        request.headers.get("Accept", "").find("application/json") >= 0
+        or request.GET.get("format") == "json"
+    ):
         return JsonResponse({"presets": presets})
     # Years/terms for dropdowns
     school_for_years = _regulatory_export_school(request)
     years = []
     if school_for_years:
-        years = list(AcademicYear.objects.filter(school=school_for_years).order_by("-start_date")[:20])
-    terms = list(Term.objects.filter(academic_year_id=years[0].id).order_by("start_date")) if years else []
-    return render(request, "reports/regulatory_export.html", {
-        "presets": presets,
-        "export_result": export_result,
-        "academic_years": years,
-        "terms": terms,
-    })
-
+        years = list(
+            AcademicYear.objects.filter(school=school_for_years).order_by(
+                "-start_date"
+            )[:20]
+        )
+    terms = (
+        list(Term.objects.filter(academic_year_id=years[0].id).order_by("start_date"))
+        if years
+        else []
+    )
+    return render(
+        request,
+        "reports/regulatory_export.html",
+        {
+            "presets": presets,
+            "export_result": export_result,
+            "academic_years": years,
+            "terms": terms,
+        },
+    )

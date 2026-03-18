@@ -6,135 +6,288 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('reports', '0004_add_report_definition_cache'),
-        ('siteconfig', '0019_merge_20260124_1405'),
+        ("reports", "0004_add_report_definition_cache"),
+        ("siteconfig", "0019_merge_20260124_1405"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DashboardWidgetPlacement',
+            name="DashboardWidgetPlacement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('position_x', models.IntegerField(default=0)),
-                ('position_y', models.IntegerField(default=0)),
-                ('width', models.IntegerField(default=1)),
-                ('height', models.IntegerField(default=1)),
-                ('is_visible', models.BooleanField(default=True)),
-                ('widget', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='siteconfig.dashboardwidget')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("position_x", models.IntegerField(default=0)),
+                ("position_y", models.IntegerField(default=0)),
+                ("width", models.IntegerField(default=1)),
+                ("height", models.IntegerField(default=1)),
+                ("is_visible", models.BooleanField(default=True)),
+                (
+                    "widget",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="siteconfig.dashboardwidget",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['position_y', 'position_x'],
+                "ordering": ["position_y", "position_x"],
             },
         ),
         migrations.CreateModel(
-            name='MaterializedReportCache',
+            name="MaterializedReportCache",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('cache_key', models.CharField(db_index=True, max_length=255, unique=True)),
-                ('report_type', models.CharField(max_length=50)),
-                ('data', models.JSONField()),
-                ('parameters', models.JSONField(default=dict)),
-                ('row_count', models.IntegerField()),
-                ('generated_at', models.DateTimeField(auto_now_add=True)),
-                ('expires_at', models.DateTimeField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "cache_key",
+                    models.CharField(db_index=True, max_length=255, unique=True),
+                ),
+                ("report_type", models.CharField(max_length=50)),
+                ("data", models.JSONField()),
+                ("parameters", models.JSONField(default=dict)),
+                ("row_count", models.IntegerField()),
+                ("generated_at", models.DateTimeField(auto_now_add=True)),
+                ("expires_at", models.DateTimeField()),
             ],
             options={
-                'ordering': ['-generated_at'],
-                'indexes': [models.Index(fields=['cache_key', 'expires_at'], name='reports_mat_cache_k_8234f9_idx'), models.Index(fields=['report_type', 'generated_at'], name='reports_mat_report__964730_idx')],
+                "ordering": ["-generated_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["cache_key", "expires_at"],
+                        name="reports_mat_cache_k_8234f9_idx",
+                    ),
+                    models.Index(
+                        fields=["report_type", "generated_at"],
+                        name="reports_mat_report__964730_idx",
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='ReportDefinition',
+            name="ReportDefinition",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('report_type', models.CharField(choices=[('FINANCE', 'Financial Report'), ('ACADEMIC', 'Academic Performance'), ('ATTENDANCE', 'Attendance Report'), ('ENROLLMENT', 'Enrollment Statistics'), ('CUSTOM', 'Custom Query')], max_length=20)),
-                ('description', models.TextField(blank=True)),
-                ('query_template', models.TextField()),
-                ('parameters', models.JSONField(default=dict)),
-                ('is_public', models.BooleanField(default=False)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='created_reports', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "report_type",
+                    models.CharField(
+                        choices=[
+                            ("FINANCE", "Financial Report"),
+                            ("ACADEMIC", "Academic Performance"),
+                            ("ATTENDANCE", "Attendance Report"),
+                            ("ENROLLMENT", "Enrollment Statistics"),
+                            ("CUSTOM", "Custom Query"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("description", models.TextField(blank=True)),
+                ("query_template", models.TextField()),
+                ("parameters", models.JSONField(default=dict)),
+                ("is_public", models.BooleanField(default=False)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="created_reports",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ReportExecution',
+            name="ReportExecution",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('parameters', models.JSONField(default=dict)),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('RUNNING', 'Running'), ('COMPLETED', 'Completed'), ('FAILED', 'Failed')], default='PENDING', max_length=20)),
-                ('result_data', models.JSONField(blank=True, null=True)),
-                ('error_message', models.TextField(blank=True)),
-                ('execution_time_ms', models.IntegerField(null=True)),
-                ('row_count', models.IntegerField(null=True)),
-                ('file_path', models.CharField(blank=True, max_length=500)),
-                ('started_at', models.DateTimeField(null=True)),
-                ('completed_at', models.DateTimeField(null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('executed_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('report_definition', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reports.reportdefinition')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("parameters", models.JSONField(default=dict)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("RUNNING", "Running"),
+                            ("COMPLETED", "Completed"),
+                            ("FAILED", "Failed"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("result_data", models.JSONField(blank=True, null=True)),
+                ("error_message", models.TextField(blank=True)),
+                ("execution_time_ms", models.IntegerField(null=True)),
+                ("row_count", models.IntegerField(null=True)),
+                ("file_path", models.CharField(blank=True, max_length=500)),
+                ("started_at", models.DateTimeField(null=True)),
+                ("completed_at", models.DateTimeField(null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "executed_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "report_definition",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="reports.reportdefinition",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ScheduledReport',
+            name="ScheduledReport",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('schedule_frequency', models.CharField(choices=[('DAILY', 'Daily'), ('WEEKLY', 'Weekly'), ('MONTHLY', 'Monthly'), ('QUARTERLY', 'Quarterly')], max_length=20)),
-                ('schedule_time', models.TimeField()),
-                ('recipients', models.JSONField(default=list)),
-                ('parameters', models.JSONField(default=dict)),
-                ('is_active', models.BooleanField(default=True)),
-                ('last_run', models.DateTimeField(blank=True, null=True)),
-                ('next_run', models.DateTimeField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('report_definition', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reports.reportdefinition')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "schedule_frequency",
+                    models.CharField(
+                        choices=[
+                            ("DAILY", "Daily"),
+                            ("WEEKLY", "Weekly"),
+                            ("MONTHLY", "Monthly"),
+                            ("QUARTERLY", "Quarterly"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("schedule_time", models.TimeField()),
+                ("recipients", models.JSONField(default=list)),
+                ("parameters", models.JSONField(default=dict)),
+                ("is_active", models.BooleanField(default=True)),
+                ("last_run", models.DateTimeField(blank=True, null=True)),
+                ("next_run", models.DateTimeField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "report_definition",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="reports.reportdefinition",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['next_run'],
+                "ordering": ["next_run"],
             },
         ),
         migrations.CreateModel(
-            name='UserDashboard',
+            name="UserDashboard",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('layout_config', models.JSONField(default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('widgets', models.ManyToManyField(through='reports.DashboardWidgetPlacement', to='siteconfig.dashboardwidget')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("layout_config", models.JSONField(default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "widgets",
+                    models.ManyToManyField(
+                        through="reports.DashboardWidgetPlacement",
+                        to="siteconfig.dashboardwidget",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='dashboardwidgetplacement',
-            name='dashboard',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reports.userdashboard'),
+            model_name="dashboardwidgetplacement",
+            name="dashboard",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="reports.userdashboard"
+            ),
         ),
         migrations.AddIndex(
-            model_name='reportdefinition',
-            index=models.Index(fields=['report_type', 'is_active'], name='reports_rep_report__86d79d_idx'),
+            model_name="reportdefinition",
+            index=models.Index(
+                fields=["report_type", "is_active"],
+                name="reports_rep_report__86d79d_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='reportexecution',
-            index=models.Index(fields=['status', 'created_at'], name='reports_rep_status_8339bb_idx'),
+            model_name="reportexecution",
+            index=models.Index(
+                fields=["status", "created_at"], name="reports_rep_status_8339bb_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='reportexecution',
-            index=models.Index(fields=['executed_by', 'created_at'], name='reports_rep_execute_07b8b0_idx'),
+            model_name="reportexecution",
+            index=models.Index(
+                fields=["executed_by", "created_at"],
+                name="reports_rep_execute_07b8b0_idx",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='dashboardwidgetplacement',
-            unique_together={('dashboard', 'widget')},
+            name="dashboardwidgetplacement",
+            unique_together={("dashboard", "widget")},
         ),
     ]

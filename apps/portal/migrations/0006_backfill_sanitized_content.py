@@ -27,7 +27,6 @@ def backfill_sanitized_content(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("portal", "0005_announcement"),
     ]

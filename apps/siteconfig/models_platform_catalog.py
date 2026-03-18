@@ -28,7 +28,9 @@ class RegionConfig(models.Model):
         primary_key=True,
         help_text="ISO country code (CMR, USA, GBR, KEN, NGA, etc.)",
     )
-    name = models.CharField(max_length=100, help_text="Country/Region name (Cameroon, United States, etc.)")
+    name = models.CharField(
+        max_length=100, help_text="Country/Region name (Cameroon, United States, etc.)"
+    )
     default_language = models.CharField(
         max_length=10,
         default="en",
@@ -39,8 +41,12 @@ class RegionConfig(models.Model):
         default="UTC",
         help_text="Timezone name (Africa/Douala, America/New_York, Europe/London, etc.)",
     )
-    decimal_separator = models.CharField(max_length=1, default=".", help_text="Decimal separator (. or ,)")
-    thousands_separator = models.CharField(max_length=1, default=",", help_text="Thousands separator (, or .)")
+    decimal_separator = models.CharField(
+        max_length=1, default=".", help_text="Decimal separator (. or ,)"
+    )
+    thousands_separator = models.CharField(
+        max_length=1, default=",", help_text="Thousands separator (, or .)"
+    )
     date_format = models.CharField(
         max_length=20,
         default="DD/MM/YYYY",
@@ -191,7 +197,9 @@ class EducationSystemProfile(models.Model):
         related_name="education_profiles",
         help_text="Optional province/state for filtering systems by geography.",
     )
-    sub_system = models.CharField(max_length=10, choices=SubSystem.choices, default=SubSystem.ANY)
+    sub_system = models.CharField(
+        max_length=10, choices=SubSystem.choices, default=SubSystem.ANY
+    )
     is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     approval_status = models.CharField(
@@ -250,10 +258,17 @@ class EducationSystemProfile(models.Model):
         super().save(*args, **kwargs)
 
     def normalized_term_labels(self) -> list[str]:
-        labels = [str(item).strip() for item in (self.term_labels or []) if str(item).strip()]
+        labels = [
+            str(item).strip() for item in (self.term_labels or []) if str(item).strip()
+        ]
         if len(labels) >= int(self.term_count_per_year or 0):
             return labels
-        labels.extend([f"Term {idx + 1}" for idx in range(len(labels), int(self.term_count_per_year or 0))])
+        labels.extend(
+            [
+                f"Term {idx + 1}"
+                for idx in range(len(labels), int(self.term_count_per_year or 0))
+            ]
+        )
         return labels
 
     def normalized_subject_seed(self) -> list[dict]:
@@ -268,7 +283,9 @@ class EducationSystemProfile(models.Model):
                 name = str(item.get("name") or "").strip()
                 if not name:
                     continue
-                category = str(item.get("category") or "GENERAL").strip().upper() or "GENERAL"
+                category = (
+                    str(item.get("category") or "GENERAL").strip().upper() or "GENERAL"
+                )
                 rows.append({"name": name, "category": category})
         if rows:
             return rows
@@ -317,7 +334,9 @@ class Province(models.Model):
         related_name="provinces",
         help_text="Country (region) this province belongs to.",
     )
-    code = models.CharField(max_length=32, help_text="Province/state code (e.g. NW, CA)")
+    code = models.CharField(
+        max_length=32, help_text="Province/state code (e.g. NW, CA)"
+    )
     name = models.CharField(max_length=120, help_text="Province/state name")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -388,7 +407,9 @@ class TenantAdmissionNumberPolicy(models.Model):
         help_text="Regex to validate admission numbers. Leave blank for default.",
     )
     school_code = models.CharField(max_length=20, default="SCH")
-    seq_width = models.PositiveSmallIntegerField(default=4, help_text="Padding width for sequence (e.g. 4 -> 0001).")
+    seq_width = models.PositiveSmallIntegerField(
+        default=4, help_text="Padding width for sequence (e.g. 4 -> 0001)."
+    )
     reset_frequency = models.CharField(
         max_length=20,
         choices=ResetFrequency.choices,
@@ -434,8 +455,12 @@ class Plan(models.Model):
         PER_STUDENT = "PER_STUDENT", "Per student"
         TIERED = "TIERED", "Tiered (volume bands)"
 
-    name = models.CharField(max_length=120, help_text="Plan name (e.g. Basic, Pro, Enterprise)")
-    slug = models.SlugField(max_length=80, unique=True, help_text="Unique slug (e.g. basic, pro)")
+    name = models.CharField(
+        max_length=120, help_text="Plan name (e.g. Basic, Pro, Enterprise)"
+    )
+    slug = models.SlugField(
+        max_length=80, unique=True, help_text="Unique slug (e.g. basic, pro)"
+    )
     max_students = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -502,7 +527,9 @@ class SyncConflict(models.Model):
         on_delete=models.CASCADE,
         related_name="sync_conflicts",
     )
-    entity_type = models.CharField(max_length=40, help_text="e.g. student, attendance, classroom")
+    entity_type = models.CharField(
+        max_length=40, help_text="e.g. student, attendance, classroom"
+    )
     entity_id = models.BigIntegerField(help_text="Primary key of the conflicted record")
     client_data = models.JSONField(
         default=dict,
@@ -553,7 +580,9 @@ class SyncConflict(models.Model):
 
 
 class PlanAddon(models.Model):
-    code = models.SlugField(max_length=80, unique=True, help_text="Feature code e.g. design_studio")
+    code = models.SlugField(
+        max_length=80, unique=True, help_text="Feature code e.g. design_studio"
+    )
     name = models.CharField(max_length=120, help_text="Display name")
     price = models.DecimalField(
         max_digits=10,
@@ -580,7 +609,9 @@ class CountryMultiplier(models.Model):
         B = "B", "Zone B (standard)"
         C = "C", "Zone C (discounted)"
 
-    country_code = models.CharField(max_length=3, unique=True, help_text="ISO 3166-1 alpha-2/3")
+    country_code = models.CharField(
+        max_length=3, unique=True, help_text="ISO 3166-1 alpha-2/3"
+    )
     zone = models.CharField(
         max_length=1,
         choices=Zone.choices,
@@ -613,7 +644,9 @@ class RevenueSnapshot(models.Model):
         on_delete=models.CASCADE,
         related_name="revenue_snapshots",
     )
-    snapshot_date = models.DateField(help_text="First day of the month for this snapshot")
+    snapshot_date = models.DateField(
+        help_text="First day of the month for this snapshot"
+    )
     actual_revenue = models.DecimalField(
         max_digits=14,
         decimal_places=2,
@@ -761,8 +794,12 @@ class PendingNuance(models.Model):
         related_name="pending_nuances",
     )
     hook_point = models.CharField(max_length=50, choices=CustomNuance.HOOK_CHOICES)
-    proposed_logic = models.JSONField(default=dict, help_text="JSON-Logic to apply at hook_point")
-    human_explanation = models.TextField(blank=True, help_text="Plain-language description for reviewer")
+    proposed_logic = models.JSONField(
+        default=dict, help_text="JSON-Logic to apply at hook_point"
+    )
+    human_explanation = models.TextField(
+        blank=True, help_text="Plain-language description for reviewer"
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
@@ -805,15 +842,21 @@ class ServiceIntegration(models.Model):
         on_delete=models.CASCADE,
         related_name="service_integrations",
     )
-    service_name = models.CharField(max_length=100, help_text="e.g. Moodle, Stripe, Google Classroom")
-    service_type = models.CharField(max_length=20, choices=ServiceType.choices, default=ServiceType.OTHER)
+    service_name = models.CharField(
+        max_length=100, help_text="e.g. Moodle, Stripe, Google Classroom"
+    )
+    service_type = models.CharField(
+        max_length=20, choices=ServiceType.choices, default=ServiceType.OTHER
+    )
     client_id = models.CharField(max_length=255, blank=True)
     client_secret = models.CharField(
         max_length=255,
         blank=True,
         help_text="Encrypt at rest in production; use for OAuth/LTI.",
     )
-    endpoint_url = models.URLField(blank=True, help_text="Base URL for API or launch endpoint")
+    endpoint_url = models.URLField(
+        blank=True, help_text="Base URL for API or launch endpoint"
+    )
     enabled_scopes = models.JSONField(
         default=list,
         blank=True,
@@ -844,7 +887,9 @@ class WebhookSubscription(models.Model):
         on_delete=models.CASCADE,
         related_name="webhook_subscriptions",
     )
-    event_type = models.CharField(max_length=80, help_text="e.g. exam.completed, fee.paid")
+    event_type = models.CharField(
+        max_length=80, help_text="e.g. exam.completed, fee.paid"
+    )
     target_url = models.URLField(help_text="Endpoint to POST the payload")
     secret = models.CharField(
         max_length=255,
@@ -880,7 +925,9 @@ class WebhookDelivery(models.Model):
     event_type = models.CharField(max_length=80)
     payload = models.JSONField(default=dict, blank=True)
     signature = models.CharField(max_length=255, blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING
+    )
     attempts = models.PositiveSmallIntegerField(default=0)
     max_attempts = models.PositiveSmallIntegerField(default=4)
     next_attempt_at = models.DateTimeField(null=True, blank=True)
@@ -894,8 +941,13 @@ class WebhookDelivery(models.Model):
     class Meta:
         ordering = ["next_attempt_at", "created_at"]
         indexes = [
-            models.Index(fields=["status", "next_attempt_at"], name="siteconfig_webhook_queue_idx"),
-            models.Index(fields=["event_type", "created_at"], name="siteconfig_webhook_event_idx"),
+            models.Index(
+                fields=["status", "next_attempt_at"],
+                name="siteconfig_webhook_queue_idx",
+            ),
+            models.Index(
+                fields=["event_type", "created_at"], name="siteconfig_webhook_event_idx"
+            ),
         ]
         constraints = [
             models.UniqueConstraint(
@@ -905,7 +957,9 @@ class WebhookDelivery(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.subscription_id}:{self.event_type}:{self.event_id} [{self.status}]"
+        return (
+            f"{self.subscription_id}:{self.event_type}:{self.event_id} [{self.status}]"
+        )
 
 
 class CustomFeatureTicket(models.Model):
@@ -937,12 +991,19 @@ class CustomFeatureTicket(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    upvote_count = models.PositiveIntegerField(default=0, help_text="Upvotes from school admins (Vision Board).")
-    is_vip = models.BooleanField(default=False, help_text="VIP / high-priority feature request for roadmap.")
+    upvote_count = models.PositiveIntegerField(
+        default=0, help_text="Upvotes from school admins (Vision Board)."
+    )
+    is_vip = models.BooleanField(
+        default=False, help_text="VIP / high-priority feature request for roadmap."
+    )
 
     class Meta:
         ordering = ["-is_vip", "-upvote_count", "-created_at"]
-        indexes = [models.Index(fields=["school", "status"]), models.Index(fields=["is_vip", "-upvote_count"])]
+        indexes = [
+            models.Index(fields=["school", "status"]),
+            models.Index(fields=["is_vip", "-upvote_count"]),
+        ]
 
     def __str__(self):
         return f"{self.school.name}: {self.title} ({self.status})"
@@ -1008,6 +1069,10 @@ class FeatureFragment(models.Model):
                 qs = qs.exclude(pk=self.pk)
             if qs.count() >= cap:
                 raise ValidationError(
-                    {"__all__": [f"Plan limit reached: this school can have at most {cap} custom fragment(s). Upgrade to add more."]}
+                    {
+                        "__all__": [
+                            f"Plan limit reached: this school can have at most {cap} custom fragment(s). Upgrade to add more."
+                        ]
+                    }
                 )
         super().clean()

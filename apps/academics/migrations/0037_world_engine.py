@@ -4,26 +4,46 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0036_course_syllabus_curriculum_nodes'),
+        ("academics", "0036_course_syllabus_curriculum_nodes"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='WorkflowConfig',
+            name="WorkflowConfig",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('workflow_key', models.CharField(help_text='Identifier for this workflow (e.g. student_onboarding, teacher_setup).', max_length=120, unique=True)),
-                ('steps', models.JSONField(default=list, help_text='Ordered list of steps: [{"id": "step1", "title": "...", "template": "...", "form": "..."}].')),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "workflow_key",
+                    models.CharField(
+                        help_text="Identifier for this workflow (e.g. student_onboarding, teacher_setup).",
+                        max_length=120,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "steps",
+                    models.JSONField(
+                        default=list,
+                        help_text='Ordered list of steps: [{"id": "step1", "title": "...", "template": "...", "form": "..."}].',
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Workflow configuration',
-                'verbose_name_plural': 'Workflow configurations',
-                'ordering': ['workflow_key'],
+                "verbose_name": "Workflow configuration",
+                "verbose_name_plural": "Workflow configurations",
+                "ordering": ["workflow_key"],
             },
         ),
     ]

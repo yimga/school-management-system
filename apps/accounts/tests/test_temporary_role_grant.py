@@ -1,4 +1,5 @@
 """Tests for temporary role grants: permission and role checks include active grants."""
+
 from datetime import timedelta
 
 from django.test import TestCase

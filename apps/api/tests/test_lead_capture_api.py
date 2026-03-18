@@ -97,7 +97,9 @@ class LeadCaptureAPITests(TestCase):
         self.assertIn("retry_after", second.json())
 
     def test_cache_failure_does_not_block_submission(self):
-        with patch("apps.api.lead_capture_api.cache.add", side_effect=OSError("cache down")):
+        with patch(
+            "apps.api.lead_capture_api.cache.add", side_effect=OSError("cache down")
+        ):
             response = self._post(
                 {
                     "school_slug": self.school.slug,

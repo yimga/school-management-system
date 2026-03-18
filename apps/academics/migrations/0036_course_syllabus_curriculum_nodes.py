@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0035_degree_program_transcript_track'),
+        ("academics", "0035_degree_program_transcript_track"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='coursesyllabus',
-            name='curriculum_nodes',
-            field=models.ManyToManyField(blank=True, help_text='Curriculum standards/topics this syllabus aligns to (Wave 6 standards tagging).', related_name='course_syllabi', to='academics.curriculumnode'),
+            model_name="coursesyllabus",
+            name="curriculum_nodes",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Curriculum standards/topics this syllabus aligns to (Wave 6 standards tagging).",
+                related_name="course_syllabi",
+                to="academics.curriculumnode",
+            ),
         ),
     ]

@@ -23,7 +23,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0017_stakeholder_roles_accountant_proprietor_discipline_master"),
     ]

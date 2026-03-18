@@ -8,7 +8,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("finance", "0041_invoicepayershare_invoicepayersharepaymentallocation"),
         ("schools", "0001_initial"),
@@ -18,7 +17,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ParentWallet",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("currency_code", models.CharField(default="XAF", max_length=3)),
                 (
                     "balance",
@@ -56,7 +63,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="WalletTransaction",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 (
                     "amount",
                     models.DecimalField(

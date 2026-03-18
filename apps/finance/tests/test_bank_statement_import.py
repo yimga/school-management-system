@@ -47,7 +47,9 @@ class BankStatementImportServiceTests(TestCase):
             is_active=True,
         )
         self.department = Department.objects.create(name="Science", code="SCI")
-        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
+        self.specialty = Specialty.objects.create(
+            name="General", code="GEN", department=self.department
+        )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
             department=self.department,
@@ -102,7 +104,9 @@ class BankStatementImportServiceTests(TestCase):
         )
         upload = BankStatementUpload.objects.create(
             bank_account=self.bank_account,
-            statement_file=SimpleUploadedFile("statement.csv", csv_data.encode("utf-8"), content_type="text/csv"),
+            statement_file=SimpleUploadedFile(
+                "statement.csv", csv_data.encode("utf-8"), content_type="text/csv"
+            ),
             statement_period_start="2026-02-01",
             statement_period_end="2026-02-28",
             uploaded_by=self.staff,
@@ -146,6 +150,9 @@ class BankStatementImportServiceTests(TestCase):
 
         self.assertEqual(result["status"], SuspensePayment.Status.RESOLVED)
         self.assertEqual(suspense.status, SuspensePayment.Status.RESOLVED)
-        self.assertEqual(SuspensePaymentAllocation.objects.filter(suspense_payment=suspense).count(), 1)
+        self.assertEqual(
+            SuspensePaymentAllocation.objects.filter(suspense_payment=suspense).count(),
+            1,
+        )
         self.assertEqual(self.invoice.status, Invoice.Status.PAID)
         self.assertEqual(self.invoice.balance_amount, Decimal("0.00"))

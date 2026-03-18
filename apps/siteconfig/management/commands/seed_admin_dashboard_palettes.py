@@ -3,6 +3,7 @@ Management command to seed admin dashboard color palettes.
 Creates preset ThemePacks with admin_dashboard palette from Unfold design system.
 Run: python manage.py seed_admin_dashboard_palettes [--reset]
 """
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -119,7 +120,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         reset = options.get("reset", False)
 
-        self.stdout.write(self.style.SUCCESS("Creating admin dashboard color palettes...\n"))
+        self.stdout.write(
+            self.style.SUCCESS("Creating admin dashboard color palettes...\n")
+        )
 
         # School-focused palettes: professional, readable, all theme modes supported
         palettes = [
@@ -1442,13 +1445,19 @@ class Command(BaseCommand):
         palettes = [by_slug[slug] for slug in CURATED_CATALOG_SLUGS if slug in by_slug]
         missing_slugs = [slug for slug in CURATED_CATALOG_SLUGS if slug not in by_slug]
         if missing_slugs:
-            self.stdout.write(self.style.WARNING(f"Skipped missing curated slugs: {', '.join(missing_slugs)}"))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Skipped missing curated slugs: {', '.join(missing_slugs)}"
+                )
+            )
 
         slugs = [p["slug"] for p in palettes]
         if reset:
             self.stdout.write("Deleting existing admin dashboard palettes...")
             ThemePack.objects.filter(slug__in=slugs).delete()
-            ThemePack.objects.filter(slug__in=all_defined_slugs).exclude(slug__in=slugs).delete()
+            ThemePack.objects.filter(slug__in=all_defined_slugs).exclude(
+                slug__in=slugs
+            ).delete()
             self.stdout.write(self.style.SUCCESS("  Deleted.\n"))
 
         created_count = 0
@@ -1473,7 +1482,11 @@ class Command(BaseCommand):
             if default_pack:
                 site_settings.admin_theme_pack = default_pack
                 site_settings.save(update_fields=["admin_theme_pack"])
-                self.stdout.write(self.style.SUCCESS(f"\n  + Set default admin theme: {default_pack.name}"))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"\n  + Set default admin theme: {default_pack.name}"
+                    )
+                )
 
         self.stdout.write(
             self.style.SUCCESS(

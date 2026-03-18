@@ -4,20 +4,19 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0051_restore_payment_plan_and_subscription'),
+        ("finance", "0051_restore_payment_plan_and_subscription"),
     ]
 
     operations = [
         migrations.RenameIndex(
-            model_name='recurringpaymentsubscription',
-            new_name='finance_rec_status_77e410_idx',
-            old_name='finance_rec_status_8a1b2c_idx',
+            model_name="recurringpaymentsubscription",
+            new_name="finance_rec_status_77e410_idx",
+            old_name="finance_rec_status_8a1b2c_idx",
         ),
         migrations.RenameIndex(
-            model_name='recurringpaymentsubscription',
-            new_name='finance_rec_user_id_6a9826_idx',
-            old_name='finance_rec_user_i_9d2e3f_idx',
+            model_name="recurringpaymentsubscription",
+            new_name="finance_rec_user_id_6a9826_idx",
+            old_name="finance_rec_user_i_9d2e3f_idx",
         ),
     ]

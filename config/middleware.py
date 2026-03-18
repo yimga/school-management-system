@@ -2,6 +2,7 @@
 Early middleware to block common scanner/probe paths with 404.
 Reduces log noise and avoids any redirect (e.g. .git) that could leak info.
 """
+
 import re
 from django.http import HttpResponseNotFound
 
@@ -70,4 +71,53 @@ class BlockScannerPathsMiddleware:
         if _SCANNER_PATH_PATTERN.match(path):
             return HttpResponseNotFound()
 
+        return self.get_response(request)
+
+
+class GlobalHotPathRateLimitMiddleware:
+    """
+    Per-IP rate limit on high-abuse public-ish paths (§0.3 security — noisy neighbor).
+    Disabled when GLOBAL_HOT_PATH_RATE_LIMIT_RPM is 0 or DISABLE_GLOBAL_HOT_PATH_RATE_LIMIT=1.
+    """
+
+    _PREFIXES = (
+        "/api/oneroster/",
+        "/scim/",
+        "/finance/payments/webhook/",
+        "/lti/launch/",
+        "/lti/service/",
+        "/api/auth/token/",
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        import os
+
+        if os.getenv("DISABLE_GLOBAL_HOT_PATH_RATE_LIMIT", "").strip() in (
+            "1",
+            "true",
+            "yes",
+        ):
+            return self.get_response(request)
+        from django.conf import settings
+        from django.http import JsonResponse
+
+        from apps.api.rate_limit import throttle_ip_request
+
+        rpm = int(getattr(settings, "GLOBAL_HOT_PATH_RATE_LIMIT_RPM", 240) or 0)
+        if rpm <= 0:
+            return self.get_response(request)
+        path = (request.path or "").lower()
+        if not any(path.startswith(p.lower()) for p in self._PREFIXES):
+            return self.get_response(request)
+        ok, retry = throttle_ip_request(
+            request, scope="global_hot_path", max_count=rpm, window_seconds=60
+        )
+        if not ok:
+            r = JsonResponse({"detail": "Rate limit exceeded"}, status=429)
+            if retry:
+                r["Retry-After"] = str(retry)
+            return r
         return self.get_response(request)

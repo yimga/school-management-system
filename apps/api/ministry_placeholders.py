@@ -19,7 +19,10 @@ from apps.academics.models import AcademicYear
 from apps.api.rate_limit import throttle_ip_request
 from apps.finance.models import Invoice, Payment
 from apps.people.models import StudentProfile
-from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
+from apps.platform_runtime.helpers import (
+    get_effective_flags,
+    get_effective_site_settings,
+)
 from apps.api.ministry_connectors import (
     ministry_runtime_status,
     submit_cartescolaire,
@@ -56,7 +59,12 @@ def _feature_enabled(request, flag_key: str) -> bool:
 
 
 def _wants_sync(request) -> bool:
-    return str(request.GET.get("sync", "")).strip().lower() in {"1", "true", "yes", "on"}
+    return str(request.GET.get("sync", "")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 
 def _ministry_rate_limited(request, scope: str):
@@ -87,7 +95,10 @@ def cartescolaire_placeholder(request):
         return denied
     if not _feature_enabled(request, "enable_ministry_api_cartescolaire"):
         return JsonResponse(
-            {"status": "disabled", "message": "Cartescolaire integration is disabled in Feature Control."},
+            {
+                "status": "disabled",
+                "message": "Cartescolaire integration is disabled in Feature Control.",
+            },
             status=503,
         )
     rl = _ministry_rate_limited(request, "cartescolaire")
@@ -132,11 +143,15 @@ def cartescolaire_placeholder(request):
 
     gender_breakdown = {
         row["gender"] or "UNKNOWN": row["count"]
-        for row in students_qs.values("gender").annotate(count=Count("id")).order_by("gender")
+        for row in students_qs.values("gender")
+        .annotate(count=Count("id"))
+        .order_by("gender")
     }
     by_classroom = {
         row["classroom__name"] or "Unassigned": row["count"]
-        for row in students_qs.values("classroom__name").annotate(count=Count("id")).order_by("classroom__name")
+        for row in students_qs.values("classroom__name")
+        .annotate(count=Count("id"))
+        .order_by("classroom__name")
     }
     site = get_effective_site_settings(request=request)
     runtime = ministry_runtime_status()
@@ -189,7 +204,10 @@ def dgi_placeholder(request):
         return denied
     if not _feature_enabled(request, "enable_ministry_api_dgi"):
         return JsonResponse(
-            {"status": "disabled", "message": "DGI integration is disabled in Feature Control."},
+            {
+                "status": "disabled",
+                "message": "DGI integration is disabled in Feature Control.",
+            },
             status=503,
         )
     rl = _ministry_rate_limited(request, "dgi")
@@ -204,17 +222,24 @@ def dgi_placeholder(request):
         end = date.today()
 
     invoices_qs = Invoice.objects.filter(issued_date__gte=start, issued_date__lte=end)
-    payments_qs = Payment.objects.filter(paid_at__date__gte=start, paid_at__date__lte=end, status="completed")
+    payments_qs = Payment.objects.filter(
+        paid_at__date__gte=start, paid_at__date__lte=end, status="completed"
+    )
 
-    invoiced_total = invoices_qs.aggregate(total=Sum("total_amount")).get("total") or Decimal("0.00")
-    outstanding_total = invoices_qs.aggregate(total=Sum("balance_amount")).get("total") or Decimal("0.00")
-    collected_total = payments_qs.aggregate(total=Sum("amount")).get("total") or Decimal("0.00")
+    invoiced_total = invoices_qs.aggregate(total=Sum("total_amount")).get(
+        "total"
+    ) or Decimal("0.00")
+    outstanding_total = invoices_qs.aggregate(total=Sum("balance_amount")).get(
+        "total"
+    ) or Decimal("0.00")
+    collected_total = payments_qs.aggregate(total=Sum("amount")).get(
+        "total"
+    ) or Decimal("0.00")
     paid_receipt_count = payments_qs.exclude(receipt_number="").count()
     estimated_stamp_duty = Decimal("1000.00") * Decimal(str(paid_receipt_count))
 
     recent_invoices = list(
-        invoices_qs.select_related("student")
-        .order_by("-issued_date", "-id")[:100]
+        invoices_qs.select_related("student").order_by("-issued_date", "-id")[:100]
     )
     entries = [
         {

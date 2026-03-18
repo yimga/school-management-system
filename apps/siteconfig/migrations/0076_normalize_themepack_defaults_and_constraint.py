@@ -10,7 +10,11 @@ def normalize_default_themepack(apps, schema_editor):
     existing_defaults = list(ThemePack.objects.filter(is_default=True).order_by("id"))
 
     preferred = None
-    if site and site.theme_pack_id and ThemePack.objects.filter(pk=site.theme_pack_id).exists():
+    if (
+        site
+        and site.theme_pack_id
+        and ThemePack.objects.filter(pk=site.theme_pack_id).exists()
+    ):
         preferred = ThemePack.objects.get(pk=site.theme_pack_id)
     elif existing_defaults:
         preferred = existing_defaults[0]
@@ -20,7 +24,9 @@ def normalize_default_themepack(apps, schema_editor):
     if not preferred:
         return
 
-    ThemePack.objects.exclude(pk=preferred.pk).filter(is_default=True).update(is_default=False)
+    ThemePack.objects.exclude(pk=preferred.pk).filter(is_default=True).update(
+        is_default=False
+    )
     ThemePack.objects.filter(pk=preferred.pk).update(is_default=True)
 
     if site and site.theme_pack_id != preferred.pk:

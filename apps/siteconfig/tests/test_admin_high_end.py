@@ -1,6 +1,7 @@
 """
 Tests for high-end admin (Configuration Engine) experience: superadmin-only, no tenant comingling.
 """
+
 from pathlib import Path
 
 from django.test import RequestFactory, TestCase
@@ -27,7 +28,14 @@ class AdminLoginTemplateTests(TestCase):
     def test_admin_login_template_has_no_tenant_copy(self):
         """Admin login must not contain tenant-facing or school-specific wording."""
         t = get_template("auth/admin_login.html")
-        path = Path(t.origin.name) if getattr(t, "origin", None) and getattr(t.origin, "name", None) else Path(__file__).resolve().parent.parent.parent.parent / "templates" / "auth" / "admin_login.html"
+        path = (
+            Path(t.origin.name)
+            if getattr(t, "origin", None) and getattr(t.origin, "name", None)
+            else Path(__file__).resolve().parent.parent.parent.parent
+            / "templates"
+            / "auth"
+            / "admin_login.html"
+        )
         self.assertTrue(path.exists(), f"Template not found: {path}")
         content = path.read_text(encoding="utf-8", errors="replace")
         # Superadmin-only: no tenant/school/staff-account/powerhouse tagline
@@ -46,7 +54,15 @@ class UnfoldDashboardCallbackAdminTests(TestCase):
     def test_admin_path_gets_platform_branding_only(self):
         request = self.factory.get("/admin/")
         request.path = "/admin/"
-        request.school = type("School", (), {"logo_url": "/tenant.png", "primary_color": "#ff0000", "accent_color": "#00ff00"})()
+        request.school = type(
+            "School",
+            (),
+            {
+                "logo_url": "/tenant.png",
+                "primary_color": "#ff0000",
+                "accent_color": "#00ff00",
+            },
+        )()
         context = {}
         result = dashboard_callback(request, context)
         self.assertEqual(result["unfold_school_logo_url"], "")

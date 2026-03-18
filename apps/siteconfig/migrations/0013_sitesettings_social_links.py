@@ -5,15 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0012_userpreference_dashboard_widgets'),
+        ("siteconfig", "0012_userpreference_dashboard_widgets"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='social_links',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models.default_social_links),
+            model_name="sitesettings",
+            name="social_links",
+            field=models.JSONField(
+                blank=True, default=apps.siteconfig.models.default_social_links
+            ),
         ),
     ]

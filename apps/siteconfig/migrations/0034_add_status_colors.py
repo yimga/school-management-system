@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0033_dashboardwidget_allowed_sizes_and_more'),
+        ("siteconfig", "0033_dashboardwidget_allowed_sizes_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='danger_color',
-            field=models.CharField(default='#ef4444', max_length=20),
+            model_name="sitesettings",
+            name="danger_color",
+            field=models.CharField(default="#ef4444", max_length=20),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='success_color',
-            field=models.CharField(default='#22c55e', max_length=20),
+            model_name="sitesettings",
+            name="success_color",
+            field=models.CharField(default="#22c55e", max_length=20),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='warning_color',
-            field=models.CharField(default='#fbbf24', max_length=20),
+            model_name="sitesettings",
+            name="warning_color",
+            field=models.CharField(default="#fbbf24", max_length=20),
         ),
     ]

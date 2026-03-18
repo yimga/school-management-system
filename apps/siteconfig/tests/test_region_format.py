@@ -2,6 +2,7 @@
 Tests for region-aware template filters (format_date, format_currency, format_number).
 Requires region_settings context processor for production; tests use mock context.
 """
+
 from datetime import date, datetime
 from decimal import Decimal
 

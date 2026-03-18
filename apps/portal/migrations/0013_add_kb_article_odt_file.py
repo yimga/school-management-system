@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0012_merge_20260128_1924'),
+        ("portal", "0012_merge_20260128_1924"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='kbarticle',
-            name='odt_file',
-            field=models.FileField(blank=True, help_text='LibreOffice Writer (ODT) version of this article; generated from Markdown.', null=True, upload_to='kb/odt/%Y/%m/', verbose_name='ODT document'),
+            model_name="kbarticle",
+            name="odt_file",
+            field=models.FileField(
+                blank=True,
+                help_text="LibreOffice Writer (ODT) version of this article; generated from Markdown.",
+                null=True,
+                upload_to="kb/odt/%Y/%m/",
+                verbose_name="ODT document",
+            ),
         ),
     ]

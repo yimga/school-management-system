@@ -34,7 +34,6 @@ def add_columns_if_not_exists(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0124_add_dashboard_template_and_tenant_layout_assignment"),
     ]
@@ -69,7 +68,9 @@ class Migration(migrations.Migration):
                 ),
             ],
             database_operations=[
-                migrations.RunPython(add_columns_if_not_exists, migrations.RunPython.noop),
+                migrations.RunPython(
+                    add_columns_if_not_exists, migrations.RunPython.noop
+                ),
             ],
         ),
     ]

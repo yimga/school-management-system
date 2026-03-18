@@ -32,7 +32,6 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("portal", "0024_kbcategory_target_roles"),
     ]

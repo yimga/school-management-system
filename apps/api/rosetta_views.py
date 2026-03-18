@@ -26,16 +26,22 @@ class RosettaStoneConvertAPI(View):
         to_scale = request.GET.get("to_scale") or "0-20"
 
         if not score_str:
-            return JsonResponse({"error": "Missing 'score' query parameter"}, status=400)
+            return JsonResponse(
+                {"error": "Missing 'score' query parameter"}, status=400
+            )
         try:
             score = float(score_str)
         except ValueError:
-            return JsonResponse({"error": "Invalid 'score': must be a number"}, status=400)
+            return JsonResponse(
+                {"error": "Invalid 'score': must be a number"}, status=400
+            )
 
         try:
             from apps.evals.rosetta_stone import convert_grade
 
-            result = convert_grade(score=score, from_scale=from_scale, to_scale=to_scale, school=school)
+            result = convert_grade(
+                score=score, from_scale=from_scale, to_scale=to_scale, school=school
+            )
             return JsonResponse(result)
         except ValueError as e:
             return JsonResponse({"error": str(e)}, status=400)

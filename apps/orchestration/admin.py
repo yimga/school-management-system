@@ -10,7 +10,15 @@ class ProcessDefinitionAdmin(admin.ModelAdmin):
 
 @admin.register(OrchestrationRun)
 class OrchestrationRunAdmin(admin.ModelAdmin):
-    list_display = ("id", "definition", "school", "status", "retry_count", "created_at", "completed_at")
+    list_display = (
+        "id",
+        "definition",
+        "school",
+        "status",
+        "retry_count",
+        "created_at",
+        "completed_at",
+    )
     list_filter = ("status", "definition")
     search_fields = ("definition__code",)
     raw_id_fields = ("school", "triggered_by")

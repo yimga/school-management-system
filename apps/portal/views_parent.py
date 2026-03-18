@@ -4,6 +4,7 @@ Parent-only dashboard, workflow, claim invite, medal case, set active child, wor
 child_digital_id, portal_stats, parent_attendance_discipline, parent_child_results,
 parent_dashboard, link_child, link_child_wizard.
 """
+
 from __future__ import annotations
 
 import json
@@ -22,7 +23,12 @@ from django.utils import timezone
 from apps.accounts.decorators import parent_portal_required, role_required
 from apps.accounts.models import User
 from apps.accounts.utils import get_user_role, get_dashboard_context
-from apps.people.models import StudentGuardian, Badge, StudentProfile, StudentResourceReturn
+from apps.people.models import (
+    StudentGuardian,
+    Badge,
+    StudentProfile,
+    StudentResourceReturn,
+)
 from apps.academics.models import Attendance, Term
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
@@ -55,7 +61,11 @@ from apps.portal.services import (
     class_announcements_for_parent,
 )
 from django import forms
-from apps.portal.forms import ClaimInviteForm, AttendanceJustificationForm, LinkChildForm
+from apps.portal.forms import (
+    ClaimInviteForm,
+    AttendanceJustificationForm,
+    LinkChildForm,
+)
 from apps.portal.models import AttendanceJustification
 from apps.platform_runtime.helpers import (
     get_effective_flags,
@@ -67,7 +77,11 @@ from apps.platform_runtime.structured_logging import log_view_exception
 from apps.siteconfig.models_support import filter_portal_items
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from .runtime_helpers import get_policy_for_request
-from .views_common import PORTAL_SOFT_FAILURES, _qr_png_data_uri, _portal_features_status
+from .views_common import (
+    PORTAL_SOFT_FAILURES,
+    _qr_png_data_uri,
+    _portal_features_status,
+)
 
 
 def _parent_workflow_link(label: str, url_name: str, *args, **kwargs) -> dict | None:
@@ -90,14 +104,18 @@ def parent_dashboard(request: HttpRequest):
     - Cache widget data for 5 minutes per student set
     - Single aggregation query for reminders count
     """
-    links = guardian_student_links(request.user, results_only=True).prefetch_related("student__evaluations")
+    links = guardian_student_links(request.user, results_only=True).prefetch_related(
+        "student__evaluations"
+    )
     finance_links = guardian_student_links(request.user, finance_only=True)
 
     flags = get_effective_flags(request)
     require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     finance_link_count = finance_links.count()
     guardian_link_count = links.count()
-    can_request_finance_access = require_finance_opt_in and guardian_link_count > finance_link_count
+    can_request_finance_access = (
+        require_finance_opt_in and guardian_link_count > finance_link_count
+    )
 
     portal_features = _portal_features_status(request)
     students = [link.student for link in links]
@@ -106,7 +124,9 @@ def parent_dashboard(request: HttpRequest):
     can_view_finance = bool(finance_students)
 
     # Widget data is now cached internally for 5 minutes
-    widget_data = parent_dashboard_widget_data(students, school=getattr(request, "school", None))
+    widget_data = parent_dashboard_widget_data(
+        students, school=getattr(request, "school", None)
+    )
     if can_view_finance:
         finance_widget = parent_dashboard_widget_data(
             finance_students,
@@ -151,9 +171,18 @@ def parent_dashboard(request: HttpRequest):
     ).order_by("-created_at")
     finance_request_link = reverse("requests:dashboard")
 
-    perf_map = {row.get("student_id"): row for row in widget_data.get("performance", {}).get("per_student", [])}
-    att_map = {row.get("student_id"): row for row in widget_data.get("attendance", {}).get("per_student", [])}
-    fin_map = {row.get("student_id"): row for row in widget_data.get("finance", {}).get("per_student", [])}
+    perf_map = {
+        row.get("student_id"): row
+        for row in widget_data.get("performance", {}).get("per_student", [])
+    }
+    att_map = {
+        row.get("student_id"): row
+        for row in widget_data.get("attendance", {}).get("per_student", [])
+    }
+    fin_map = {
+        row.get("student_id"): row
+        for row in widget_data.get("finance", {}).get("per_student", [])
+    }
 
     onboarding = parent_onboarding_score(request.user, students)
     year, _term = get_active_year_and_term()
@@ -165,7 +194,9 @@ def parent_dashboard(request: HttpRequest):
                 student_id__in=student_ids,
                 academic_year=year,
                 returned_at__isnull=True,
-            ).values("student_id").annotate(cnt=Count("id"))
+            )
+            .values("student_id")
+            .annotate(cnt=Count("id"))
         ):
             resource_pending_map[row["student_id"]] = row["cnt"]
     badges_qs = Badge.objects.none()
@@ -194,7 +225,9 @@ def parent_dashboard(request: HttpRequest):
         )
         for e in evals_this_term:
             if not e.is_complete_for_ranking:
-                missing_work_by_student[e.student_id] = missing_work_by_student.get(e.student_id, 0) + 1
+                missing_work_by_student[e.student_id] = (
+                    missing_work_by_student.get(e.student_id, 0) + 1
+                )
     class_threads = class_threads_for_parent(request.user, limit=3)
     unread_messages_aggregate = sum(t.get("unread_count", 0) for t in class_threads)
     child_cards = []
@@ -203,37 +236,87 @@ def parent_dashboard(request: HttpRequest):
         perf = perf_map.get(student_id, {})
         att = att_map.get(student_id, {})
         fin = fin_map.get(student_id, {})
-        child_cards.append({
-            "link": link,
-            "attendance": att.get("overall", 0),
-            "average": perf.get("average"),
-            "rank": perf.get("rank"),
-            "finance_total": fin.get("total_due"),
-            "finance_paid": fin.get("paid"),
-            "finance_balance": fin.get("balance"),
-            "resource_pending": resource_pending_map.get(student_id, 0),
-            "badges": badges_by_student.get(student_id, []),
-            "missing_work": missing_work_by_student.get(student_id, 0),
-            "unread_messages": unread_messages_aggregate,
-        })
+        child_cards.append(
+            {
+                "link": link,
+                "attendance": att.get("overall", 0),
+                "average": perf.get("average"),
+                "rank": perf.get("rank"),
+                "finance_total": fin.get("total_due"),
+                "finance_paid": fin.get("paid"),
+                "finance_balance": fin.get("balance"),
+                "resource_pending": resource_pending_map.get(student_id, 0),
+                "badges": badges_by_student.get(student_id, []),
+                "missing_work": missing_work_by_student.get(student_id, 0),
+                "unread_messages": unread_messages_aggregate,
+            }
+        )
 
     workflow_steps = [
-        {"label": "Link children", "done": bool(students), "meta": f"{len(students)} linked", "action": "Link a child", "url": reverse("portal:link_child")},
-        {"label": "Review results and attendance", "done": can_view_results, "meta": f"Attendance {attendance_pct}%", "action": "Open results", "url": reverse("portal:parent_dashboard")},
-        {"label": "Clear follow-up work", "done": missing_work_count == 0, "meta": f"{missing_work_count} pending", "action": "Open workflow", "url": reverse("portal:parent_workflow")},
-        {"label": "Review finance", "done": can_view_finance and (widget_data.get("finance", {}).get("balance") or Decimal("0.00")) <= 0, "meta": (f"Balance {widget_data.get('finance', {}).get('balance') or Decimal('0.00')}" if can_view_finance else "Access needed"), "action": "Open finance", "url": reverse("portal:parent_finance")},
-        {"label": "Respond to school messages", "done": unread_messages_aggregate == 0, "meta": f"{unread_messages_aggregate} unread", "action": "Contact school", "url": reverse("portal:parent_contact_school")},
+        {
+            "label": "Link children",
+            "done": bool(students),
+            "meta": f"{len(students)} linked",
+            "action": "Link a child",
+            "url": reverse("portal:link_child"),
+        },
+        {
+            "label": "Review results and attendance",
+            "done": can_view_results,
+            "meta": f"Attendance {attendance_pct}%",
+            "action": "Open results",
+            "url": reverse("portal:parent_dashboard"),
+        },
+        {
+            "label": "Clear follow-up work",
+            "done": missing_work_count == 0,
+            "meta": f"{missing_work_count} pending",
+            "action": "Open workflow",
+            "url": reverse("portal:parent_workflow"),
+        },
+        {
+            "label": "Review finance",
+            "done": can_view_finance
+            and (widget_data.get("finance", {}).get("balance") or Decimal("0.00")) <= 0,
+            "meta": (
+                f"Balance {widget_data.get('finance', {}).get('balance') or Decimal('0.00')}"
+                if can_view_finance
+                else "Access needed"
+            ),
+            "action": "Open finance",
+            "url": reverse("portal:parent_finance"),
+        },
+        {
+            "label": "Respond to school messages",
+            "done": unread_messages_aggregate == 0,
+            "meta": f"{unread_messages_aggregate} unread",
+            "action": "Contact school",
+            "url": reverse("portal:parent_contact_school"),
+        },
     ]
     workflow_total_steps = len(workflow_steps)
     workflow_done_steps = sum(1 for step in workflow_steps if step["done"])
-    workflow_completion_pct = int(round((workflow_done_steps / workflow_total_steps) * 100)) if workflow_total_steps else 0
+    workflow_completion_pct = (
+        int(round((workflow_done_steps / workflow_total_steps) * 100))
+        if workflow_total_steps
+        else 0
+    )
     workflow_open_steps = [step for step in workflow_steps if not step["done"]]
     if workflow_open_steps:
         workflow_focus_step = workflow_open_steps[0]
-        workflow_next_actions = [{"label": step["action"], "url": step["url"]} for step in workflow_open_steps[:2]]
+        workflow_next_actions = [
+            {"label": step["action"], "url": step["url"]}
+            for step in workflow_open_steps[:2]
+        ]
     else:
-        workflow_focus_step = {"label": "All core parent tasks completed", "meta": "You're up to date. Open workflow for detailed planning."}
-        workflow_next_actions = [{"label": "Open workflow", "url": reverse("portal:parent_workflow")}, {"label": "View calendar", "url": reverse("portal:unified_calendar")}]
+        workflow_focus_step = {
+            "label": "All core parent tasks completed",
+            "meta": "You're up to date. Open workflow for detailed planning.",
+        }
+        workflow_next_actions = [
+            {"label": "Open workflow", "url": reverse("portal:parent_workflow")},
+            {"label": "View calendar", "url": reverse("portal:unified_calendar")},
+        ]
     workflow_summary = {
         "total_steps": workflow_total_steps,
         "done_steps": workflow_done_steps,
@@ -245,14 +328,21 @@ def parent_dashboard(request: HttpRequest):
 
     runtime = getattr(request, "tenant_runtime", None)
     if runtime is not None and getattr(runtime, "_school", None):
-        dash = runtime.dashboard_for(role=get_user_role(request.user), user=request.user)
+        dash = runtime.dashboard_for(
+            role=get_user_role(request.user), user=request.user
+        )
     else:
-        dash = dashboard_for_role(getattr(request, "school", None), get_user_role(request.user), user=request.user)
+        dash = dashboard_for_role(
+            getattr(request, "school", None),
+            get_user_role(request.user),
+            user=request.user,
+        )
     display_widgets = dash["widget_keys"]
 
     certification_stats = {}
     if year and getattr(year, "enable_gce_registration", False) and students:
         from apps.academics.models import CertificationCandidate
+
         candidates = CertificationCandidate.objects.filter(
             session__academic_year=year,
             student_id__in=student_ids,
@@ -263,7 +353,11 @@ def parent_dashboard(request: HttpRequest):
                 "draft_candidates": candidates.filter(status="DRAFT").count(),
                 "verified_candidates": candidates.filter(status="VERIFIED").count(),
                 "candidates_by_student": {
-                    c.student_id: {"status": c.status, "session_name": c.session.name, "session_id": c.session.id}
+                    c.student_id: {
+                        "status": c.status,
+                        "session_name": c.session.name,
+                        "session_id": c.session.id,
+                    }
                     for c in candidates
                 },
             }
@@ -273,7 +367,9 @@ def parent_dashboard(request: HttpRequest):
     portal_quick_actions = filter_portal_items(site.portal_quick_actions, role)
     portal_announcements = filter_portal_items(site.portal_announcements, role)
     portal_recent_grades = filter_portal_items(site.portal_recent_grades, role)
-    portal_upcoming_assessments = filter_portal_items(site.portal_upcoming_assessments, role)
+    portal_upcoming_assessments = filter_portal_items(
+        site.portal_upcoming_assessments, role
+    )
     class_announcements = class_announcements_for_parent(request.user, students)
 
     if can_view_finance:
@@ -290,24 +386,58 @@ def parent_dashboard(request: HttpRequest):
         "subtitle": "Live snapshot of your learners, attendance, and finances",
         "icon": "bi-mortarboard",
         "stats": [
-            {"label": "Linked Students", "value": links.count(), "meta": "Active profiles"},
-            {"label": "Attendance", "value": f"{widget_data['attendance']['overall']}%", "progress": widget_data["attendance"]["overall"], "meta": "Completion"},
+            {
+                "label": "Linked Students",
+                "value": links.count(),
+                "meta": "Active profiles",
+            },
+            {
+                "label": "Attendance",
+                "value": f"{widget_data['attendance']['overall']}%",
+                "progress": widget_data["attendance"]["overall"],
+                "meta": "Completion",
+            },
         ],
         "actions": [{"label": "Link a Child", "url": "#link-child"}],
         "status_pills": [
-            {"label": "Active students", "value": links.count(), "meta": "Linked children"},
-            {"label": "Tasks", "value": widget_data["tasks"]["pending_evaluations"], "meta": "Eval gaps"},
+            {
+                "label": "Active students",
+                "value": links.count(),
+                "meta": "Linked children",
+            },
+            {
+                "label": "Tasks",
+                "value": widget_data["tasks"]["pending_evaluations"],
+                "meta": "Eval gaps",
+            },
         ],
     }
-    hero["actions"].append({"label": "Contact School", "url": reverse("portal:parent_contact_school")})
+    hero["actions"].append(
+        {"label": "Contact School", "url": reverse("portal:parent_contact_school")}
+    )
     if can_view_results:
         hero["actions"].insert(0, {"label": "View Results", "url": "#children"})
-        hero["actions"].insert(1, {"label": "View Attendance", "url": reverse("portal:portal_stats")})
+        hero["actions"].insert(
+            1, {"label": "View Attendance", "url": reverse("portal:portal_stats")}
+        )
     if can_view_finance:
-        hero["stats"].append({"label": "Balance", "value": widget_data["finance"]["balance"], "meta": "Outstanding fees"})
-        hero["stats"].append({"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
-        hero["status_pills"].insert(1, {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
-        hero["actions"].append({"label": "Pay Fees", "url": reverse("portal:parent_finance")})
+        hero["stats"].append(
+            {
+                "label": "Balance",
+                "value": widget_data["finance"]["balance"],
+                "meta": "Outstanding fees",
+            }
+        )
+        hero["stats"].append(
+            {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"}
+        )
+        hero["status_pills"].insert(
+            1,
+            {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"},
+        )
+        hero["actions"].append(
+            {"label": "Pay Fees", "url": reverse("portal:parent_finance")}
+        )
 
     chart_attendance_donut_json = ""
     chart_finance_donut_json = ""
@@ -316,53 +446,115 @@ def parent_dashboard(request: HttpRequest):
     if att.get("overall") is not None and can_view_results:
         overall = int(att.get("overall", 0) or 0)
         other = max(0, 100 - overall)
-        chart_attendance_donut_json = json.dumps({
-            "type": "doughnut",
-            "data": {"labels": ["Completion", "Pending"], "datasets": [{"data": [overall, other], "backgroundColor": ["#198754", "#e2e8f0"]}]},
-        })
+        chart_attendance_donut_json = json.dumps(
+            {
+                "type": "doughnut",
+                "data": {
+                    "labels": ["Completion", "Pending"],
+                    "datasets": [
+                        {
+                            "data": [overall, other],
+                            "backgroundColor": ["#198754", "#e2e8f0"],
+                        }
+                    ],
+                },
+            }
+        )
     fin = widget_data.get("finance") or {}
     if can_view_finance and (fin.get("paid") or fin.get("balance")):
         paid = float(fin.get("paid") or 0)
         balance = float(fin.get("balance") or 0)
         if paid or balance:
-            chart_finance_donut_json = json.dumps({
-                "type": "doughnut",
-                "data": {"labels": ["Paid", "Balance due"], "datasets": [{"data": [paid, balance], "backgroundColor": ["#198754", "#ffc107"]}]},
-            })
+            chart_finance_donut_json = json.dumps(
+                {
+                    "type": "doughnut",
+                    "data": {
+                        "labels": ["Paid", "Balance due"],
+                        "datasets": [
+                            {
+                                "data": [paid, balance],
+                                "backgroundColor": ["#198754", "#ffc107"],
+                            }
+                        ],
+                    },
+                }
+            )
     trend = widget_data.get("attendance_trend") or []
     if trend and can_view_results:
-        chart_attendance_trend_json = json.dumps({
-            "type": "line",
-            "data": {
-                "labels": [t.get("label", "") for t in trend],
-                "datasets": [{"label": "Completion %", "data": [t.get("value", 0) for t in trend], "fill": True, "borderColor": "#0d6efd", "backgroundColor": "rgba(13, 110, 253, 0.15)", "tension": 0.3}],
-            },
-        })
+        chart_attendance_trend_json = json.dumps(
+            {
+                "type": "line",
+                "data": {
+                    "labels": [t.get("label", "") for t in trend],
+                    "datasets": [
+                        {
+                            "label": "Completion %",
+                            "data": [t.get("value", 0) for t in trend],
+                            "fill": True,
+                            "borderColor": "#0d6efd",
+                            "backgroundColor": "rgba(13, 110, 253, 0.15)",
+                            "tension": 0.3,
+                        }
+                    ],
+                },
+            }
+        )
 
     try:
         from apps.portal.models import FormSignature
+
         signature_stats = {
-            "pending": FormSignature.objects.filter(parent=request.user, status="PENDING").count(),
-            "signed": FormSignature.objects.filter(parent=request.user, status="SIGNED").count(),
+            "pending": FormSignature.objects.filter(
+                parent=request.user, status="PENDING"
+            ).count(),
+            "signed": FormSignature.objects.filter(
+                parent=request.user, status="SIGNED"
+            ).count(),
         }
     except (ImportError, Exception) as e:
         if not isinstance(e, ImportError):
-            log_view_exception(request, "parent_dashboard: FormSignature stats failed", extra={"widget": "signature_stats"})
+            log_view_exception(
+                request,
+                "parent_dashboard: FormSignature stats failed",
+                extra={"widget": "signature_stats"},
+            )
         signature_stats = {"pending": 0, "signed": 0}
 
     dashboard_context = get_dashboard_context(request.user, "parent")
     available_sidebar_items = [
-        {"id": "parent-home", "label": "Parent Home", "url": reverse("portal:parent_dashboard"), "icon": "bi-house"},
-        {"id": "parent-workflow", "label": "My Workflow", "url": reverse("portal:parent_workflow"), "icon": "bi-diagram-3"},
-        {"id": "parent-finance", "label": "Finance", "url": reverse("portal:parent_finance"), "icon": "bi-cash-stack"},
-        {"id": "parent-stats", "label": "Portal Stats", "url": reverse("portal:portal_stats"), "icon": "bi-graph-up"},
+        {
+            "id": "parent-home",
+            "label": "Parent Home",
+            "url": reverse("portal:parent_dashboard"),
+            "icon": "bi-house",
+        },
+        {
+            "id": "parent-workflow",
+            "label": "My Workflow",
+            "url": reverse("portal:parent_workflow"),
+            "icon": "bi-diagram-3",
+        },
+        {
+            "id": "parent-finance",
+            "label": "Finance",
+            "url": reverse("portal:parent_finance"),
+            "icon": "bi-cash-stack",
+        },
+        {
+            "id": "parent-stats",
+            "label": "Portal Stats",
+            "url": reverse("portal:portal_stats"),
+            "icon": "bi-graph-up",
+        },
     ]
     site = get_effective_site_settings(request=request)
 
     if request.GET.get("dismiss_hint") == "parent_link_child":
         request.session["hint_parent_link_child_dismissed"] = True
         return redirect("portal:parent_dashboard")
-    show_parent_dashboard_hint = not links and not request.session.get("hint_parent_link_child_dismissed")
+    show_parent_dashboard_hint = not links and not request.session.get(
+        "hint_parent_link_child_dismissed"
+    )
 
     finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
     has_fees_due = can_view_finance and (finance_balance > 0)
@@ -383,60 +575,76 @@ def parent_dashboard(request: HttpRequest):
 
     active_child_id = get_active_child_id(request)
     guardian_students_for_switcher = [
-        {"id": s.id, "display_name": (f"{getattr(s, 'first_name', '')} {getattr(s, 'last_name', '')}".strip() or f"Student {s.id}")}
+        {
+            "id": s.id,
+            "display_name": (
+                f"{getattr(s, 'first_name', '')} {getattr(s, 'last_name', '')}".strip()
+                or f"Student {s.id}"
+            ),
+        }
         for s in students
     ]
-    if guardian_students_for_switcher and active_child_id not in [s["id"] for s in guardian_students_for_switcher]:
+    if guardian_students_for_switcher and active_child_id not in [
+        s["id"] for s in guardian_students_for_switcher
+    ]:
         set_active_child(request, guardian_students_for_switcher[0]["id"])
         active_child_id = guardian_students_for_switcher[0]["id"]
     policy = get_policy_for_request(request)
     is_rtl = bool(policy.get("rtl", False))
 
-    return render(request, "parent/dashboard.html", {
-        "links": links,
-        "show_parent_dashboard_hint": show_parent_dashboard_hint,
-        "can_view_results": can_view_results,
-        "can_view_finance": can_view_finance,
-        "chart_attendance_donut_json": chart_attendance_donut_json,
-        "chart_finance_donut_json": chart_finance_donut_json,
-        "chart_attendance_trend_json": chart_attendance_trend_json,
-        "portal_features": portal_features,
-        "widget_data": widget_data,
-        "onboarding": onboarding,
-        "child_cards": child_cards,
-        "display_widgets": display_widgets,
-        "portal_quick_actions": portal_quick_actions,
-        "portal_announcements": portal_announcements,
-        "portal_recent_grades": portal_recent_grades,
-        "portal_upcoming_assessments": portal_upcoming_assessments,
-        "hero": hero,
-        "reminders_count": reminders_count,
-        "class_announcements": class_announcements,
-        "class_threads": class_threads,
-        "attendance_pct": attendance_pct,
-        "has_fees_due": has_fees_due,
-        "finance_paid_pct": finance_paid_pct,
-        "finance_total": finance_total,
-        "finance_paid": finance_paid,
-        "available_sidebar_items": available_sidebar_items,
-        **dashboard_context,
-        "finance_access_banner": finance_access_banner,
-        "finance_requests_count": finance_requests_qs.count(),
-        "finance_request_notifications": finance_requests_qs[:5],
-        "finance_request_link": finance_request_link,
-        "certification_stats": certification_stats,
-        "gce_enabled": bool(year and getattr(year, "enable_gce_registration", False)) if year else False,
-        "signature_stats": signature_stats,
-        "site": site,
-        "parent_verified": parent_verified,
-        "unread_messages_aggregate": unread_messages_aggregate,
-        "missing_work_count": missing_work_count,
-        "recent_payments": recent_payments,
-        "workflow_summary": workflow_summary,
-        "active_child_id": active_child_id,
-        "guardian_students_for_switcher": guardian_students_for_switcher,
-        "is_rtl": is_rtl,
-    })
+    return render(
+        request,
+        "parent/dashboard.html",
+        {
+            "links": links,
+            "show_parent_dashboard_hint": show_parent_dashboard_hint,
+            "can_view_results": can_view_results,
+            "can_view_finance": can_view_finance,
+            "chart_attendance_donut_json": chart_attendance_donut_json,
+            "chart_finance_donut_json": chart_finance_donut_json,
+            "chart_attendance_trend_json": chart_attendance_trend_json,
+            "portal_features": portal_features,
+            "widget_data": widget_data,
+            "onboarding": onboarding,
+            "child_cards": child_cards,
+            "display_widgets": display_widgets,
+            "portal_quick_actions": portal_quick_actions,
+            "portal_announcements": portal_announcements,
+            "portal_recent_grades": portal_recent_grades,
+            "portal_upcoming_assessments": portal_upcoming_assessments,
+            "hero": hero,
+            "reminders_count": reminders_count,
+            "class_announcements": class_announcements,
+            "class_threads": class_threads,
+            "attendance_pct": attendance_pct,
+            "has_fees_due": has_fees_due,
+            "finance_paid_pct": finance_paid_pct,
+            "finance_total": finance_total,
+            "finance_paid": finance_paid,
+            "available_sidebar_items": available_sidebar_items,
+            **dashboard_context,
+            "finance_access_banner": finance_access_banner,
+            "finance_requests_count": finance_requests_qs.count(),
+            "finance_request_notifications": finance_requests_qs[:5],
+            "finance_request_link": finance_request_link,
+            "certification_stats": certification_stats,
+            "gce_enabled": bool(
+                year and getattr(year, "enable_gce_registration", False)
+            )
+            if year
+            else False,
+            "signature_stats": signature_stats,
+            "site": site,
+            "parent_verified": parent_verified,
+            "unread_messages_aggregate": unread_messages_aggregate,
+            "missing_work_count": missing_work_count,
+            "recent_payments": recent_payments,
+            "workflow_summary": workflow_summary,
+            "active_child_id": active_child_id,
+            "guardian_students_for_switcher": guardian_students_for_switcher,
+            "is_rtl": is_rtl,
+        },
+    )
 
 
 @parent_portal_required
@@ -476,8 +684,12 @@ def claim_invite(request: HttpRequest, token: str | None = None):
             messages.info(request, "You are already linked to this student.")
             return redirect("portal:parent_dashboard")
 
-        guardian, reward = link_guardian_via_invite(invite, request.user, awarded_by=request.user)
-        messages.success(request, f"Invite claimed. You are now linked to {guardian.student}.")
+        guardian, reward = link_guardian_via_invite(
+            invite, request.user, awarded_by=request.user
+        )
+        messages.success(
+            request, f"Invite claimed. You are now linked to {guardian.student}."
+        )
         messages.info(
             request,
             "What's next: You can view their attendance, grades, and fees on your dashboard.",
@@ -489,10 +701,14 @@ def claim_invite(request: HttpRequest, token: str | None = None):
             )
         return redirect("portal:parent_dashboard")
 
-    return render(request, "parent/claim_invite.html", {
-        "form": form,
-        "show_claim_invite_hint": show_claim_invite_hint,
-    })
+    return render(
+        request,
+        "parent/claim_invite.html",
+        {
+            "form": form,
+            "show_claim_invite_hint": show_claim_invite_hint,
+        },
+    )
 
 
 def _guardian_students_for_medal_case(user):
@@ -515,13 +731,21 @@ def parent_medal_case(request: HttpRequest):
             .order_by("-issued_at")
         )
         for b in badges:
-            cm = b.criteria_met if isinstance(getattr(b, "criteria_met", None), dict) else {}
+            cm = (
+                b.criteria_met
+                if isinstance(getattr(b, "criteria_met", None), dict)
+                else {}
+            )
             setattr(b, "_evidence_report_term_id", cm.get("report_term_id"))
             setattr(b, "_evidence_syllabus_id", cm.get("syllabus_id"))
         student_badges.append((s, badges))
-    return render(request, "parent/medal_case.html", {
-        "student_badges": student_badges,
-    })
+    return render(
+        request,
+        "parent/medal_case.html",
+        {
+            "student_badges": student_badges,
+        },
+    )
 
 
 @parent_portal_required
@@ -543,21 +767,37 @@ def parent_workflow_center(request: HttpRequest):
         fw = parent_dashboard_widget_data(finance_students).get("finance", {})
         widget_data["finance"] = fw or widget_data.get("finance", {})
     else:
-        widget_data["finance"] = {"total_due": Decimal("0.00"), "paid": Decimal("0.00"), "balance": Decimal("0.00"), "overdue": 0}
+        widget_data["finance"] = {
+            "total_due": Decimal("0.00"),
+            "paid": Decimal("0.00"),
+            "balance": Decimal("0.00"),
+            "overdue": 0,
+        }
     attendance_pct = widget_data.get("attendance", {}).get("overall") or 0
     finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
     finance_overdue = widget_data.get("finance", {}).get("overdue", 0)
 
     flags = get_effective_flags(request)
     require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
-    can_request_finance_access = require_finance_opt_in and links.exists() and not can_view_finance
+    can_request_finance_access = (
+        require_finance_opt_in and links.exists() and not can_view_finance
+    )
 
     def _filter_links(link_list):
         return [lnk for lnk in link_list if lnk is not None and lnk.get("url")]
 
     finance_step_links = (
-        [_parent_workflow_link("Finance", "portal:parent_finance")] if can_view_finance
-        else ([_parent_workflow_link("Request finance access", "finance:finance_request_access")] if can_request_finance_access else [])
+        [_parent_workflow_link("Finance", "portal:parent_finance")]
+        if can_view_finance
+        else (
+            [
+                _parent_workflow_link(
+                    "Request finance access", "finance:finance_request_access"
+                )
+            ]
+            if can_request_finance_access
+            else []
+        )
     )
 
     steps = [
@@ -566,31 +806,43 @@ def parent_workflow_center(request: HttpRequest):
             "subtitle": "Connect your account to your child's profile to see results and finance.",
             "step_key": "link",
             "icon": "bi-link-45deg",
-            "progress_label": f"{links.count()} child(ren) linked" if links.exists() else "No children linked yet",
+            "progress_label": f"{links.count()} child(ren) linked"
+            if links.exists()
+            else "No children linked yet",
             "tip": "Use the link-a-child wizard or claim an invite from the school.",
-            "links": _filter_links([
-                _parent_workflow_link("Link a child", "portal:link_child"),
-                _parent_workflow_link("Parent home", "portal:parent_dashboard"),
-            ]),
+            "links": _filter_links(
+                [
+                    _parent_workflow_link("Link a child", "portal:link_child"),
+                    _parent_workflow_link("Parent home", "portal:parent_dashboard"),
+                ]
+            ),
         },
         {
             "title": "2) Results & attendance",
             "subtitle": "View report cards, term results, and attendance.",
             "step_key": "results",
             "icon": "bi-journal-check",
-            "progress_label": f"{links.count()} profile(s) · Attendance {attendance_pct}%" if can_view_results else "Link a child first",
+            "progress_label": f"{links.count()} profile(s) · Attendance {attendance_pct}%"
+            if can_view_results
+            else "Link a child first",
             "tip": "Open a child's card on the home page to view results, or go to Portal Stats.",
-            "links": _filter_links([
-                _parent_workflow_link("Parent home (results)", "portal:parent_dashboard"),
-                _parent_workflow_link("Portal stats", "portal:portal_stats"),
-            ]),
+            "links": _filter_links(
+                [
+                    _parent_workflow_link(
+                        "Parent home (results)", "portal:parent_dashboard"
+                    ),
+                    _parent_workflow_link("Portal stats", "portal:portal_stats"),
+                ]
+            ),
         },
         {
             "title": "3) Finance",
             "subtitle": "Invoices, payments, and balance.",
             "step_key": "finance",
             "icon": "bi-cash-stack",
-            "progress_label": f"Balance: {finance_balance}" if can_view_finance else "Finance access not granted",
+            "progress_label": f"Balance: {finance_balance}"
+            if can_view_finance
+            else "Finance access not granted",
             "tip": "Pay fees and view payment history. Request access if you don't see finance.",
             "links": _filter_links(finance_step_links),
         },
@@ -601,9 +853,13 @@ def parent_workflow_center(request: HttpRequest):
             "icon": "bi-chat-dots",
             "progress_label": None,
             "tip": "Send a message or request a callback.",
-            "links": _filter_links([
-                _parent_workflow_link("Contact school", "portal:parent_contact_school"),
-            ]),
+            "links": _filter_links(
+                [
+                    _parent_workflow_link(
+                        "Contact school", "portal:parent_contact_school"
+                    ),
+                ]
+            ),
         },
         {
             "title": "5) Documents",
@@ -612,9 +868,15 @@ def parent_workflow_center(request: HttpRequest):
             "icon": "bi-folder2-open",
             "progress_label": None,
             "tip": "Download documents published by the school.",
-            "links": _filter_links([
-                _parent_workflow_link("Document library", "portal:portal_feature", kwargs={"feature": "documents"}),
-            ]),
+            "links": _filter_links(
+                [
+                    _parent_workflow_link(
+                        "Document library",
+                        "portal:portal_feature",
+                        kwargs={"feature": "documents"},
+                    ),
+                ]
+            ),
         },
     ]
     total_steps = len(steps)
@@ -632,12 +894,16 @@ def parent_workflow_center(request: HttpRequest):
 
     year, term = get_active_year_and_term()
 
-    return render(request, "parent/workflow_center.html", {
-        "active_year": year,
-        "active_term": term,
-        "steps": steps,
-        "workflow_progress": workflow_progress,
-    })
+    return render(
+        request,
+        "parent/workflow_center.html",
+        {
+            "active_year": year,
+            "active_term": term,
+            "steps": steps,
+            "workflow_progress": workflow_progress,
+        },
+    )
 
 
 @parent_portal_required
@@ -652,13 +918,17 @@ def parent_dashboard(request: HttpRequest):
     - Cache widget data for 5 minutes per student set
     - Single aggregation query for reminders count
     """
-    links = guardian_student_links(request.user, results_only=True).prefetch_related("student__evaluations")
+    links = guardian_student_links(request.user, results_only=True).prefetch_related(
+        "student__evaluations"
+    )
     finance_links = guardian_student_links(request.user, finance_only=True)
     flags = get_effective_flags(request)
     require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     finance_link_count = finance_links.count()
     guardian_link_count = links.count()
-    can_request_finance_access = require_finance_opt_in and guardian_link_count > finance_link_count
+    can_request_finance_access = (
+        require_finance_opt_in and guardian_link_count > finance_link_count
+    )
 
     portal_features = _portal_features_status(request)
     students = [link.student for link in links]
@@ -666,7 +936,9 @@ def parent_dashboard(request: HttpRequest):
     can_view_results = bool(students)
     can_view_finance = bool(finance_students)
 
-    widget_data = parent_dashboard_widget_data(students, school=getattr(request, "school", None))
+    widget_data = parent_dashboard_widget_data(
+        students, school=getattr(request, "school", None)
+    )
     if can_view_finance:
         finance_widget = parent_dashboard_widget_data(
             finance_students,
@@ -711,9 +983,18 @@ def parent_dashboard(request: HttpRequest):
     ).order_by("-created_at")
     finance_request_link = reverse("requests:dashboard")
 
-    perf_map = {row.get("student_id"): row for row in widget_data.get("performance", {}).get("per_student", [])}
-    att_map = {row.get("student_id"): row for row in widget_data.get("attendance", {}).get("per_student", [])}
-    fin_map = {row.get("student_id"): row for row in widget_data.get("finance", {}).get("per_student", [])}
+    perf_map = {
+        row.get("student_id"): row
+        for row in widget_data.get("performance", {}).get("per_student", [])
+    }
+    att_map = {
+        row.get("student_id"): row
+        for row in widget_data.get("attendance", {}).get("per_student", [])
+    }
+    fin_map = {
+        row.get("student_id"): row
+        for row in widget_data.get("finance", {}).get("per_student", [])
+    }
 
     onboarding = parent_onboarding_score(request.user, students)
     student_ids = [s.id for s in students] if students else []
@@ -725,7 +1006,9 @@ def parent_dashboard(request: HttpRequest):
                 student_id__in=student_ids,
                 academic_year=year,
                 returned_at__isnull=True,
-            ).values("student_id").annotate(cnt=Count("id"))
+            )
+            .values("student_id")
+            .annotate(cnt=Count("id"))
         ):
             resource_pending_map[row["student_id"]] = row["cnt"]
 
@@ -756,7 +1039,9 @@ def parent_dashboard(request: HttpRequest):
         )
         for e in evals_this_term:
             if not e.is_complete_for_ranking:
-                missing_work_by_student[e.student_id] = missing_work_by_student.get(e.student_id, 0) + 1
+                missing_work_by_student[e.student_id] = (
+                    missing_work_by_student.get(e.student_id, 0) + 1
+                )
 
     class_threads = class_threads_for_parent(request.user, limit=3)
     unread_messages_aggregate = sum(t.get("unread_count", 0) for t in class_threads)
@@ -766,36 +1051,83 @@ def parent_dashboard(request: HttpRequest):
         perf = perf_map.get(student_id, {})
         att = att_map.get(student_id, {})
         fin = fin_map.get(student_id, {})
-        child_cards.append({
-            "link": link,
-            "attendance": att.get("overall", 0),
-            "average": perf.get("average"),
-            "rank": perf.get("rank"),
-            "finance_total": fin.get("total_due"),
-            "finance_paid": fin.get("paid"),
-            "finance_balance": fin.get("balance"),
-            "resource_pending": resource_pending_map.get(student_id, 0),
-            "badges": badges_by_student.get(student_id, []),
-            "missing_work": missing_work_by_student.get(student_id, 0),
-            "unread_messages": unread_messages_aggregate,
-        })
+        child_cards.append(
+            {
+                "link": link,
+                "attendance": att.get("overall", 0),
+                "average": perf.get("average"),
+                "rank": perf.get("rank"),
+                "finance_total": fin.get("total_due"),
+                "finance_paid": fin.get("paid"),
+                "finance_balance": fin.get("balance"),
+                "resource_pending": resource_pending_map.get(student_id, 0),
+                "badges": badges_by_student.get(student_id, []),
+                "missing_work": missing_work_by_student.get(student_id, 0),
+                "unread_messages": unread_messages_aggregate,
+            }
+        )
 
     workflow_steps = [
-        {"label": "Link children", "done": bool(students), "meta": f"{len(students)} linked", "action": "Link a child", "url": reverse("portal:link_child")},
-        {"label": "Review results and attendance", "done": can_view_results, "meta": f"Attendance {attendance_pct}%", "action": "Open results", "url": reverse("portal:parent_dashboard")},
-        {"label": "Clear follow-up work", "done": missing_work_count == 0, "meta": f"{missing_work_count} pending", "action": "Open workflow", "url": reverse("portal:parent_workflow")},
-        {"label": "Review finance", "done": can_view_finance and (widget_data.get("finance", {}).get("balance") or Decimal("0.00")) <= 0, "meta": (f"Balance {widget_data.get('finance', {}).get('balance') or Decimal('0.00')}" if can_view_finance else "Access needed"), "action": "Open finance", "url": reverse("portal:parent_finance")},
-        {"label": "Respond to school messages", "done": unread_messages_aggregate == 0, "meta": f"{unread_messages_aggregate} unread", "action": "Contact school", "url": reverse("portal:parent_contact_school")},
+        {
+            "label": "Link children",
+            "done": bool(students),
+            "meta": f"{len(students)} linked",
+            "action": "Link a child",
+            "url": reverse("portal:link_child"),
+        },
+        {
+            "label": "Review results and attendance",
+            "done": can_view_results,
+            "meta": f"Attendance {attendance_pct}%",
+            "action": "Open results",
+            "url": reverse("portal:parent_dashboard"),
+        },
+        {
+            "label": "Clear follow-up work",
+            "done": missing_work_count == 0,
+            "meta": f"{missing_work_count} pending",
+            "action": "Open workflow",
+            "url": reverse("portal:parent_workflow"),
+        },
+        {
+            "label": "Review finance",
+            "done": can_view_finance
+            and (widget_data.get("finance", {}).get("balance") or Decimal("0.00")) <= 0,
+            "meta": (
+                f"Balance {widget_data.get('finance', {}).get('balance') or Decimal('0.00')}"
+                if can_view_finance
+                else "Access needed"
+            ),
+            "action": "Open finance",
+            "url": reverse("portal:parent_finance"),
+        },
+        {
+            "label": "Respond to school messages",
+            "done": unread_messages_aggregate == 0,
+            "meta": f"{unread_messages_aggregate} unread",
+            "action": "Contact school",
+            "url": reverse("portal:parent_contact_school"),
+        },
     ]
     workflow_total_steps = len(workflow_steps)
     workflow_done_steps = sum(1 for step in workflow_steps if step["done"])
-    workflow_completion_pct = int(round((workflow_done_steps / workflow_total_steps) * 100)) if workflow_total_steps else 0
+    workflow_completion_pct = (
+        int(round((workflow_done_steps / workflow_total_steps) * 100))
+        if workflow_total_steps
+        else 0
+    )
     workflow_open_steps = [step for step in workflow_steps if not step["done"]]
     if workflow_open_steps:
         workflow_focus_step = workflow_open_steps[0]
-        workflow_next_actions = [{"label": step["action"], "url": step["url"]} for step in workflow_open_steps[:2]]
+        workflow_next_actions = [
+            {"label": step["action"], "url": step["url"]}
+            for step in workflow_open_steps[:2]
+        ]
     else:
-        workflow_focus_step = {"label": "All core parent tasks completed", "meta": "You're up to date. Open workflow for detailed planning."}
+        workflow_focus_step = {
+            "label": "All core parent tasks completed",
+            "meta": "You're up to date. Open workflow for detailed planning.",
+        }
         workflow_next_actions = [
             {"label": "Open workflow", "url": reverse("portal:parent_workflow")},
             {"label": "View calendar", "url": reverse("portal:unified_calendar")},
@@ -811,9 +1143,15 @@ def parent_dashboard(request: HttpRequest):
 
     runtime = getattr(request, "tenant_runtime", None)
     if runtime is not None and getattr(runtime, "_school", None):
-        dash = runtime.dashboard_for(role=get_user_role(request.user), user=request.user)
+        dash = runtime.dashboard_for(
+            role=get_user_role(request.user), user=request.user
+        )
     else:
-        dash = dashboard_for_role(getattr(request, "school", None), get_user_role(request.user), user=request.user)
+        dash = dashboard_for_role(
+            getattr(request, "school", None),
+            get_user_role(request.user),
+            user=request.user,
+        )
     display_widgets = dash["widget_keys"]
 
     certification_stats = {}
@@ -828,7 +1166,11 @@ def parent_dashboard(request: HttpRequest):
                 "draft_candidates": candidates.filter(status="DRAFT").count(),
                 "verified_candidates": candidates.filter(status="VERIFIED").count(),
                 "candidates_by_student": {
-                    c.student_id: {"status": c.status, "session_name": c.session.name, "session_id": c.session.id}
+                    c.student_id: {
+                        "status": c.status,
+                        "session_name": c.session.name,
+                        "session_id": c.session.id,
+                    }
                     for c in candidates
                 },
             }
@@ -838,7 +1180,9 @@ def parent_dashboard(request: HttpRequest):
     portal_quick_actions = filter_portal_items(site.portal_quick_actions, role)
     portal_announcements = filter_portal_items(site.portal_announcements, role)
     portal_recent_grades = filter_portal_items(site.portal_recent_grades, role)
-    portal_upcoming_assessments = filter_portal_items(site.portal_upcoming_assessments, role)
+    portal_upcoming_assessments = filter_portal_items(
+        site.portal_upcoming_assessments, role
+    )
     class_announcements = class_announcements_for_parent(request.user, students)
 
     if can_view_finance:
@@ -855,24 +1199,58 @@ def parent_dashboard(request: HttpRequest):
         "subtitle": "Live snapshot of your learners, attendance, and finances",
         "icon": "bi-mortarboard",
         "stats": [
-            {"label": "Linked Students", "value": links.count(), "meta": "Active profiles"},
-            {"label": "Attendance", "value": f"{widget_data['attendance']['overall']}%", "progress": widget_data["attendance"]["overall"], "meta": "Completion"},
+            {
+                "label": "Linked Students",
+                "value": links.count(),
+                "meta": "Active profiles",
+            },
+            {
+                "label": "Attendance",
+                "value": f"{widget_data['attendance']['overall']}%",
+                "progress": widget_data["attendance"]["overall"],
+                "meta": "Completion",
+            },
         ],
         "actions": [{"label": "Link a Child", "url": "#link-child"}],
         "status_pills": [
-            {"label": "Active students", "value": links.count(), "meta": "Linked children"},
-            {"label": "Tasks", "value": widget_data["tasks"]["pending_evaluations"], "meta": "Eval gaps"},
+            {
+                "label": "Active students",
+                "value": links.count(),
+                "meta": "Linked children",
+            },
+            {
+                "label": "Tasks",
+                "value": widget_data["tasks"]["pending_evaluations"],
+                "meta": "Eval gaps",
+            },
         ],
     }
-    hero["actions"].append({"label": "Contact School", "url": reverse("portal:parent_contact_school")})
+    hero["actions"].append(
+        {"label": "Contact School", "url": reverse("portal:parent_contact_school")}
+    )
     if can_view_results:
         hero["actions"].insert(0, {"label": "View Results", "url": "#children"})
-        hero["actions"].insert(1, {"label": "View Attendance", "url": reverse("portal:portal_stats")})
+        hero["actions"].insert(
+            1, {"label": "View Attendance", "url": reverse("portal:portal_stats")}
+        )
     if can_view_finance:
-        hero["stats"].append({"label": "Balance", "value": widget_data["finance"]["balance"], "meta": "Outstanding fees"})
-        hero["stats"].append({"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
-        hero["status_pills"].insert(1, {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
-        hero["actions"].append({"label": "Pay Fees", "url": reverse("portal:parent_finance")})
+        hero["stats"].append(
+            {
+                "label": "Balance",
+                "value": widget_data["finance"]["balance"],
+                "meta": "Outstanding fees",
+            }
+        )
+        hero["stats"].append(
+            {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"}
+        )
+        hero["status_pills"].insert(
+            1,
+            {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"},
+        )
+        hero["actions"].append(
+            {"label": "Pay Fees", "url": reverse("portal:parent_finance")}
+        )
 
     att = widget_data.get("attendance") or {}
     chart_attendance_donut_json = ""
@@ -881,50 +1259,111 @@ def parent_dashboard(request: HttpRequest):
     if att.get("overall") is not None and can_view_results:
         overall = int(att.get("overall", 0) or 0)
         other = max(0, 100 - overall)
-        chart_attendance_donut_json = json.dumps({
-            "type": "doughnut",
-            "data": {"labels": ["Completion", "Pending"], "datasets": [{"data": [overall, other], "backgroundColor": ["#198754", "#e2e8f0"]}]},
-        })
+        chart_attendance_donut_json = json.dumps(
+            {
+                "type": "doughnut",
+                "data": {
+                    "labels": ["Completion", "Pending"],
+                    "datasets": [
+                        {
+                            "data": [overall, other],
+                            "backgroundColor": ["#198754", "#e2e8f0"],
+                        }
+                    ],
+                },
+            }
+        )
     fin = widget_data.get("finance") or {}
     if can_view_finance and (fin.get("paid") or fin.get("balance")):
         paid = float(fin.get("paid") or 0)
         balance = float(fin.get("balance") or 0)
         if paid or balance:
-            chart_finance_donut_json = json.dumps({
-                "type": "doughnut",
-                "data": {"labels": ["Paid", "Balance due"], "datasets": [{"data": [paid, balance], "backgroundColor": ["#198754", "#ffc107"]}]},
-            })
+            chart_finance_donut_json = json.dumps(
+                {
+                    "type": "doughnut",
+                    "data": {
+                        "labels": ["Paid", "Balance due"],
+                        "datasets": [
+                            {
+                                "data": [paid, balance],
+                                "backgroundColor": ["#198754", "#ffc107"],
+                            }
+                        ],
+                    },
+                }
+            )
     trend = widget_data.get("attendance_trend") or []
     if trend and can_view_results:
-        chart_attendance_trend_json = json.dumps({
-            "type": "line",
-            "data": {
-                "labels": [t.get("label", "") for t in trend],
-                "datasets": [{"label": "Completion %", "data": [t.get("value", 0) for t in trend], "fill": True, "borderColor": "#0d6efd", "backgroundColor": "rgba(13, 110, 253, 0.15)", "tension": 0.3}],
-            },
-        })
+        chart_attendance_trend_json = json.dumps(
+            {
+                "type": "line",
+                "data": {
+                    "labels": [t.get("label", "") for t in trend],
+                    "datasets": [
+                        {
+                            "label": "Completion %",
+                            "data": [t.get("value", 0) for t in trend],
+                            "fill": True,
+                            "borderColor": "#0d6efd",
+                            "backgroundColor": "rgba(13, 110, 253, 0.15)",
+                            "tension": 0.3,
+                        }
+                    ],
+                },
+            }
+        )
 
     try:
         signature_stats = {
-            "pending": FormSignature.objects.filter(parent=request.user, status="PENDING").count(),
-            "signed": FormSignature.objects.filter(parent=request.user, status="SIGNED").count(),
+            "pending": FormSignature.objects.filter(
+                parent=request.user, status="PENDING"
+            ).count(),
+            "signed": FormSignature.objects.filter(
+                parent=request.user, status="SIGNED"
+            ).count(),
         }
     except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError) as e:
-        log_view_exception(request, "parent_dashboard: FormSignature stats failed", extra={"widget": "signature_stats", "error": str(e)})
+        log_view_exception(
+            request,
+            "parent_dashboard: FormSignature stats failed",
+            extra={"widget": "signature_stats", "error": str(e)},
+        )
         signature_stats = {"pending": 0, "signed": 0}
 
     dashboard_context = get_dashboard_context(request.user, "parent")
     available_sidebar_items = [
-        {"id": "parent-home", "label": "Parent Home", "url": reverse("portal:parent_dashboard"), "icon": "bi-house"},
-        {"id": "parent-workflow", "label": "My Workflow", "url": reverse("portal:parent_workflow"), "icon": "bi-diagram-3"},
-        {"id": "parent-finance", "label": "Finance", "url": reverse("portal:parent_finance"), "icon": "bi-cash-stack"},
-        {"id": "parent-stats", "label": "Portal Stats", "url": reverse("portal:portal_stats"), "icon": "bi-graph-up"},
+        {
+            "id": "parent-home",
+            "label": "Parent Home",
+            "url": reverse("portal:parent_dashboard"),
+            "icon": "bi-house",
+        },
+        {
+            "id": "parent-workflow",
+            "label": "My Workflow",
+            "url": reverse("portal:parent_workflow"),
+            "icon": "bi-diagram-3",
+        },
+        {
+            "id": "parent-finance",
+            "label": "Finance",
+            "url": reverse("portal:parent_finance"),
+            "icon": "bi-cash-stack",
+        },
+        {
+            "id": "parent-stats",
+            "label": "Portal Stats",
+            "url": reverse("portal:portal_stats"),
+            "icon": "bi-graph-up",
+        },
     ]
 
     if request.GET.get("dismiss_hint") == "parent_link_child":
         request.session["hint_parent_link_child_dismissed"] = True
         return redirect("portal:parent_dashboard")
-    show_parent_dashboard_hint = not links and not request.session.get("hint_parent_link_child_dismissed")
+    show_parent_dashboard_hint = not links and not request.session.get(
+        "hint_parent_link_child_dismissed"
+    )
 
     finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
     has_fees_due = can_view_finance and (finance_balance > 0)
@@ -944,60 +1383,74 @@ def parent_dashboard(request: HttpRequest):
 
     active_child_id = get_active_child_id(request)
     guardian_students_for_switcher = [
-        {"id": s.id, "display_name": (f"{getattr(s, 'first_name', '')} {getattr(s, 'last_name', '')}".strip() or f"Student {s.id}")}
+        {
+            "id": s.id,
+            "display_name": (
+                f"{getattr(s, 'first_name', '')} {getattr(s, 'last_name', '')}".strip()
+                or f"Student {s.id}"
+            ),
+        }
         for s in students
     ]
-    if guardian_students_for_switcher and active_child_id not in [s["id"] for s in guardian_students_for_switcher]:
+    if guardian_students_for_switcher and active_child_id not in [
+        s["id"] for s in guardian_students_for_switcher
+    ]:
         set_active_child(request, guardian_students_for_switcher[0]["id"])
         active_child_id = guardian_students_for_switcher[0]["id"]
     policy = get_policy_for_request(request)
     is_rtl = bool(policy.get("rtl", False))
 
-    return render(request, "parent/dashboard.html", {
-        "links": links,
-        "show_parent_dashboard_hint": show_parent_dashboard_hint,
-        "can_view_results": can_view_results,
-        "can_view_finance": can_view_finance,
-        "chart_attendance_donut_json": chart_attendance_donut_json,
-        "chart_finance_donut_json": chart_finance_donut_json,
-        "chart_attendance_trend_json": chart_attendance_trend_json,
-        "portal_features": portal_features,
-        "widget_data": widget_data,
-        "onboarding": onboarding,
-        "child_cards": child_cards,
-        "display_widgets": display_widgets,
-        "portal_quick_actions": portal_quick_actions,
-        "portal_announcements": portal_announcements,
-        "portal_recent_grades": portal_recent_grades,
-        "portal_upcoming_assessments": portal_upcoming_assessments,
-        "hero": hero,
-        "reminders_count": reminders_count,
-        "class_announcements": class_announcements,
-        "class_threads": class_threads,
-        "attendance_pct": attendance_pct,
-        "has_fees_due": has_fees_due,
-        "finance_paid_pct": finance_paid_pct,
-        "finance_total": finance_total,
-        "finance_paid": finance_paid,
-        "available_sidebar_items": available_sidebar_items,
-        **dashboard_context,
-        "finance_access_banner": finance_access_banner,
-        "finance_requests_count": finance_requests_qs.count(),
-        "finance_request_notifications": finance_requests_qs[:5],
-        "finance_request_link": finance_request_link,
-        "certification_stats": certification_stats,
-        "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
-        "signature_stats": signature_stats,
-        "site": site,
-        "parent_verified": parent_verified,
-        "unread_messages_aggregate": unread_messages_aggregate,
-        "missing_work_count": missing_work_count,
-        "recent_payments": recent_payments,
-        "workflow_summary": workflow_summary,
-        "active_child_id": active_child_id,
-        "guardian_students_for_switcher": guardian_students_for_switcher,
-        "is_rtl": is_rtl,
-    })
+    return render(
+        request,
+        "parent/dashboard.html",
+        {
+            "links": links,
+            "show_parent_dashboard_hint": show_parent_dashboard_hint,
+            "can_view_results": can_view_results,
+            "can_view_finance": can_view_finance,
+            "chart_attendance_donut_json": chart_attendance_donut_json,
+            "chart_finance_donut_json": chart_finance_donut_json,
+            "chart_attendance_trend_json": chart_attendance_trend_json,
+            "portal_features": portal_features,
+            "widget_data": widget_data,
+            "onboarding": onboarding,
+            "child_cards": child_cards,
+            "display_widgets": display_widgets,
+            "portal_quick_actions": portal_quick_actions,
+            "portal_announcements": portal_announcements,
+            "portal_recent_grades": portal_recent_grades,
+            "portal_upcoming_assessments": portal_upcoming_assessments,
+            "hero": hero,
+            "reminders_count": reminders_count,
+            "class_announcements": class_announcements,
+            "class_threads": class_threads,
+            "attendance_pct": attendance_pct,
+            "has_fees_due": has_fees_due,
+            "finance_paid_pct": finance_paid_pct,
+            "finance_total": finance_total,
+            "finance_paid": finance_paid,
+            "available_sidebar_items": available_sidebar_items,
+            **dashboard_context,
+            "finance_access_banner": finance_access_banner,
+            "finance_requests_count": finance_requests_qs.count(),
+            "finance_request_notifications": finance_requests_qs[:5],
+            "finance_request_link": finance_request_link,
+            "certification_stats": certification_stats,
+            "gce_enabled": year and getattr(year, "enable_gce_registration", False)
+            if year
+            else False,
+            "signature_stats": signature_stats,
+            "site": site,
+            "parent_verified": parent_verified,
+            "unread_messages_aggregate": unread_messages_aggregate,
+            "missing_work_count": missing_work_count,
+            "recent_payments": recent_payments,
+            "workflow_summary": workflow_summary,
+            "active_child_id": active_child_id,
+            "guardian_students_for_switcher": guardian_students_for_switcher,
+            "is_rtl": is_rtl,
+        },
+    )
 
 
 @parent_portal_required
@@ -1006,30 +1459,51 @@ def parent_dashboard(request: HttpRequest):
 def child_digital_id(request: HttpRequest, student_id: int):
     """Phase 4: Child's digital ID card – school branding, photo, name, grade/class, STUDENT ID bar, QR."""
     from apps.people.badge_services import get_signed_id_token
-    link = StudentGuardian.objects.filter(
-        guardian_user=request.user,
-        student_id=student_id,
-    ).select_related("student", "student__classroom", "student__academic_year").first()
+
+    link = (
+        StudentGuardian.objects.filter(
+            guardian_user=request.user,
+            student_id=student_id,
+        )
+        .select_related("student", "student__classroom", "student__academic_year")
+        .first()
+    )
     if not link:
-        return HttpResponseForbidden("You are not authorized to view this student's ID.")
+        return HttpResponseForbidden(
+            "You are not authorized to view this student's ID."
+        )
     student = link.student
     site = get_effective_site_settings(request=request)
     classroom = getattr(student, "classroom", None)
-    grade_label = classroom.name if classroom else (getattr(student, "academic_year", None) and str(student.academic_year) or "—")
+    grade_label = (
+        classroom.name
+        if classroom
+        else (
+            getattr(student, "academic_year", None)
+            and str(student.academic_year)
+            or "—"
+        )
+    )
     photo = getattr(student, "profile_photo", None) and student.profile_photo or None
     qr_token = get_signed_id_token("student", student.pk)
-    verify_url = request.build_absolute_uri(reverse("portal:badge_verify") + "?token=" + quote_plus(qr_token))
+    verify_url = request.build_absolute_uri(
+        reverse("portal:badge_verify") + "?token=" + quote_plus(qr_token)
+    )
     qr_image_url = _qr_png_data_uri(verify_url)
-    return render(request, "portal/digital_id_student.html", {
-        "site_name": getattr(site, "site_name", None) or "School",
-        "student": student,
-        "name": student.get_full_name(),
-        "grade_label": grade_label,
-        "photo": photo,
-        "qr_token": qr_token,
-        "verify_url": verify_url,
-        "qr_image_url": qr_image_url,
-    })
+    return render(
+        request,
+        "portal/digital_id_student.html",
+        {
+            "site_name": getattr(site, "site_name", None) or "School",
+            "student": student,
+            "name": student.get_full_name(),
+            "grade_label": grade_label,
+            "photo": photo,
+            "qr_token": qr_token,
+            "verify_url": verify_url,
+            "qr_image_url": qr_image_url,
+        },
+    )
 
 
 @parent_portal_required
@@ -1088,7 +1562,9 @@ def portal_stats(request: HttpRequest):
             use_promotion_rule=site.use_promotion_rule_for_pass,
         )
         if specialty_ids:
-            specialty_rows = [row for row in specialty_rows if row.specialty.id in specialty_ids]
+            specialty_rows = [
+                row for row in specialty_rows if row.specialty.id in specialty_ids
+            ]
 
         classroom_scope = classrooms[0] if classrooms else None
         weak_subjects = subject_weaknesses(
@@ -1106,17 +1582,23 @@ def portal_stats(request: HttpRequest):
                 classroom=classroom_scope,
                 min_delta=improvement_delta,
             )
-            improvement_rows = [r for r in improvement_rows if r.student.id in parent_student_ids]
+            improvement_rows = [
+                r for r in improvement_rows if r.student.id in parent_student_ids
+            ]
 
-    return render(request, "portal/stats.html", {
-        "year": year,
-        "term": term,
-        "top_students": top_students,
-        "specialty_rows": specialty_rows,
-        "weak_subjects": weak_subjects,
-        "improvement_rows": improvement_rows,
-        "widget_data": widget_data,
-    })
+    return render(
+        request,
+        "portal/stats.html",
+        {
+            "year": year,
+            "term": term,
+            "top_students": top_students,
+            "specialty_rows": specialty_rows,
+            "weak_subjects": weak_subjects,
+            "improvement_rows": improvement_rows,
+            "widget_data": widget_data,
+        },
+    )
 
 
 @parent_portal_required
@@ -1135,7 +1617,11 @@ def parent_attendance_discipline(request: HttpRequest):
             .select_related("student", "classroom")
             .order_by("-date")[:100]
         )
-    justifications = AttendanceJustification.objects.filter(guardian=request.user).select_related("student").order_by("-attendance_date")[:50]
+    justifications = (
+        AttendanceJustification.objects.filter(guardian=request.user)
+        .select_related("student")
+        .order_by("-attendance_date")[:50]
+    )
     form = AttendanceJustificationForm(request.POST or None, request.FILES or None)
     form.fields["student"].queryset = StudentProfile.objects.filter(id__in=student_ids)
     form.fields["student"].required = True
@@ -1144,18 +1630,28 @@ def parent_attendance_discipline(request: HttpRequest):
         obj.guardian = request.user
         obj.student = form.cleaned_data["student"]
         if obj.student_id not in student_ids:
-            return HttpResponseForbidden("You can only submit for your linked children.")
+            return HttpResponseForbidden(
+                "You can only submit for your linked children."
+            )
         obj.save()
         messages.success(request, "Justification submitted.")
         return redirect("portal:parent_attendance_discipline")
-    hero = {"title": "Attendance & Discipline", "subtitle": "View absences and submit justifications", "actions": []}
-    return render(request, "parent/attendance_discipline.html", {
-        "hero": hero,
-        "absences": absences,
-        "justifications": justifications,
-        "form": form,
-        "children": [link.student for link in links],
-    })
+    hero = {
+        "title": "Attendance & Discipline",
+        "subtitle": "View absences and submit justifications",
+        "actions": [],
+    }
+    return render(
+        request,
+        "parent/attendance_discipline.html",
+        {
+            "hero": hero,
+            "absences": absences,
+            "justifications": justifications,
+            "form": form,
+            "children": [link.student for link in links],
+        },
+    )
 
 
 @parent_portal_required
@@ -1165,30 +1661,40 @@ def parent_child_results(request: HttpRequest, student_id: int):
     if not year or not term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
 
-    link = StudentGuardian.objects.filter(
-        guardian_user=request.user,
-        student_id=student_id,
-        can_view_results=True
-    ).select_related("student").first()
+    link = (
+        StudentGuardian.objects.filter(
+            guardian_user=request.user, student_id=student_id, can_view_results=True
+        )
+        .select_related("student")
+        .first()
+    )
 
     if not link:
-        return HttpResponseForbidden("You are not authorized to view this student's results.")
+        return HttpResponseForbidden(
+            "You are not authorized to view this student's results."
+        )
 
     student = link.student
 
     published = is_term_published(year.id, term.id, student.classroom_id)
     terms = terms_for_student(year, student.classroom)
-    annual_published = are_terms_published(year.id, [t.id for t in terms], student.classroom_id)
+    annual_published = are_terms_published(
+        year.id, [t.id for t in terms], student.classroom_id
+    )
     if not published:
-        return render(request, "parent/results.html", {
-            "student": student,
-            "year": year,
-            "term": term,
-            "published": False,
-            "annual_published": annual_published,
-            "rows": [],
-            "totals": None,
-        })
+        return render(
+            request,
+            "parent/results.html",
+            {
+                "student": student,
+                "year": year,
+                "term": term,
+                "published": False,
+                "annual_published": annual_published,
+                "rows": [],
+                "totals": None,
+            },
+        )
 
     report_ctx = term_report_context(student, year, term)
 
@@ -1199,7 +1705,11 @@ def parent_child_results(request: HttpRequest, student_id: int):
     }
 
     completed_count = sum(1 for row in report_ctx["rows"] if row.get("complete"))
-    completion_pct = int(round((completed_count / len(report_ctx["rows"])) * 100)) if report_ctx["rows"] else 0
+    completion_pct = (
+        int(round((completed_count / len(report_ctx["rows"])) * 100))
+        if report_ctx["rows"]
+        else 0
+    )
     context = {
         "student": student,
         "year": year,
@@ -1223,19 +1733,25 @@ def parent_dashboard(request: HttpRequest):
     Parent dashboard with optimized query loading.
     Use select_related/prefetch_related; cache widget data; single aggregation for reminders.
     """
-    links = guardian_student_links(request.user, results_only=True).prefetch_related("student__evaluations")
+    links = guardian_student_links(request.user, results_only=True).prefetch_related(
+        "student__evaluations"
+    )
     finance_links = guardian_student_links(request.user, finance_only=True)
     flags = get_effective_flags(request)
     require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     finance_link_count = finance_links.count()
     guardian_link_count = links.count()
-    can_request_finance_access = require_finance_opt_in and guardian_link_count > finance_link_count
+    can_request_finance_access = (
+        require_finance_opt_in and guardian_link_count > finance_link_count
+    )
     portal_features = _portal_features_status(request)
     students = [link.student for link in links]
     finance_students = [link.student for link in finance_links]
     can_view_results = bool(students)
     can_view_finance = bool(finance_students)
-    widget_data = parent_dashboard_widget_data(students, school=getattr(request, "school", None))
+    widget_data = parent_dashboard_widget_data(
+        students, school=getattr(request, "school", None)
+    )
     if can_view_finance:
         finance_widget = parent_dashboard_widget_data(
             finance_students, school=getattr(request, "school", None)
@@ -1258,12 +1774,14 @@ def parent_dashboard(request: HttpRequest):
     finance_request_url = reverse("finance:finance_request_access")
     finance_summary = (
         f"{finance_paid_pct}% paid ({finance_paid} settled of {finance_total})"
-        if finance_total else "No invoices recorded yet."
+        if finance_total
+        else "No invoices recorded yet."
     )
     finance_access_banner = {
         "text": (
             "Finance access is granted for your linked students."
-            if can_view_finance else "Finance details are hidden until access is granted."
+            if can_view_finance
+            else "Finance details are hidden until access is granted."
         ),
         "summary": finance_summary,
         "level": "success" if can_view_finance else "warning",
@@ -1275,21 +1793,33 @@ def parent_dashboard(request: HttpRequest):
         title__icontains="finance access request",
     ).order_by("-created_at")
     finance_request_link = reverse("requests:dashboard")
-    perf_map = {row.get("student_id"): row for row in widget_data.get("performance", {}).get("per_student", [])}
-    att_map = {row.get("student_id"): row for row in widget_data.get("attendance", {}).get("per_student", [])}
-    fin_map = {row.get("student_id"): row for row in widget_data.get("finance", {}).get("per_student", [])}
+    perf_map = {
+        row.get("student_id"): row
+        for row in widget_data.get("performance", {}).get("per_student", [])
+    }
+    att_map = {
+        row.get("student_id"): row
+        for row in widget_data.get("attendance", {}).get("per_student", [])
+    }
+    fin_map = {
+        row.get("student_id"): row
+        for row in widget_data.get("finance", {}).get("per_student", [])
+    }
     onboarding = parent_onboarding_score(request.user, students)
     student_ids = [s.id for s in students] if students else []
     year, _term = get_active_year_and_term()
     resource_pending_map = {}
     if year and student_ids:
         from apps.people.models import StudentResourceReturn
+
         for row in (
             StudentResourceReturn.objects.filter(
                 student_id__in=student_ids,
                 academic_year=year,
                 returned_at__isnull=True,
-            ).values("student_id").annotate(cnt=Count("id"))
+            )
+            .values("student_id")
+            .annotate(cnt=Count("id"))
         ):
             resource_pending_map[row["student_id"]] = row["cnt"]
     badges_qs = Badge.objects.none()
@@ -1318,7 +1848,9 @@ def parent_dashboard(request: HttpRequest):
         )
         for e in evals_this_term:
             if not e.is_complete_for_ranking:
-                missing_work_by_student[e.student_id] = missing_work_by_student.get(e.student_id, 0) + 1
+                missing_work_by_student[e.student_id] = (
+                    missing_work_by_student.get(e.student_id, 0) + 1
+                )
     class_threads = class_threads_for_parent(request.user, limit=3)
     unread_messages_aggregate = sum(t.get("unread_count", 0) for t in class_threads)
     child_cards = []
@@ -1327,36 +1859,83 @@ def parent_dashboard(request: HttpRequest):
         perf = perf_map.get(student_id, {})
         att = att_map.get(student_id, {})
         fin = fin_map.get(student_id, {})
-        child_cards.append({
-            "link": link,
-            "attendance": att.get("overall", 0),
-            "average": perf.get("average"),
-            "rank": perf.get("rank"),
-            "finance_total": fin.get("total_due"),
-            "finance_paid": fin.get("paid"),
-            "finance_balance": fin.get("balance"),
-            "resource_pending": resource_pending_map.get(student_id, 0),
-            "badges": badges_by_student.get(student_id, []),
-            "missing_work": missing_work_by_student.get(student_id, 0),
-            "unread_messages": unread_messages_aggregate,
-        })
+        child_cards.append(
+            {
+                "link": link,
+                "attendance": att.get("overall", 0),
+                "average": perf.get("average"),
+                "rank": perf.get("rank"),
+                "finance_total": fin.get("total_due"),
+                "finance_paid": fin.get("paid"),
+                "finance_balance": fin.get("balance"),
+                "resource_pending": resource_pending_map.get(student_id, 0),
+                "badges": badges_by_student.get(student_id, []),
+                "missing_work": missing_work_by_student.get(student_id, 0),
+                "unread_messages": unread_messages_aggregate,
+            }
+        )
     workflow_steps = [
-        {"label": "Link children", "done": bool(students), "meta": f"{len(students)} linked", "action": "Link a child", "url": reverse("portal:link_child")},
-        {"label": "Review results and attendance", "done": can_view_results, "meta": f"Attendance {attendance_pct}%", "action": "Open results", "url": reverse("portal:parent_dashboard")},
-        {"label": "Clear follow-up work", "done": missing_work_count == 0, "meta": f"{missing_work_count} pending", "action": "Open workflow", "url": reverse("portal:parent_workflow")},
-        {"label": "Review finance", "done": can_view_finance and (widget_data.get("finance", {}).get("balance") or Decimal("0.00")) <= 0, "meta": f"Balance {widget_data.get('finance', {}).get('balance') or Decimal('0.00')}" if can_view_finance else "Access needed", "action": "Open finance", "url": reverse("portal:parent_finance")},
-        {"label": "Respond to school messages", "done": unread_messages_aggregate == 0, "meta": f"{unread_messages_aggregate} unread", "action": "Contact school", "url": reverse("portal:parent_contact_school")},
+        {
+            "label": "Link children",
+            "done": bool(students),
+            "meta": f"{len(students)} linked",
+            "action": "Link a child",
+            "url": reverse("portal:link_child"),
+        },
+        {
+            "label": "Review results and attendance",
+            "done": can_view_results,
+            "meta": f"Attendance {attendance_pct}%",
+            "action": "Open results",
+            "url": reverse("portal:parent_dashboard"),
+        },
+        {
+            "label": "Clear follow-up work",
+            "done": missing_work_count == 0,
+            "meta": f"{missing_work_count} pending",
+            "action": "Open workflow",
+            "url": reverse("portal:parent_workflow"),
+        },
+        {
+            "label": "Review finance",
+            "done": can_view_finance
+            and (widget_data.get("finance", {}).get("balance") or Decimal("0.00")) <= 0,
+            "meta": f"Balance {widget_data.get('finance', {}).get('balance') or Decimal('0.00')}"
+            if can_view_finance
+            else "Access needed",
+            "action": "Open finance",
+            "url": reverse("portal:parent_finance"),
+        },
+        {
+            "label": "Respond to school messages",
+            "done": unread_messages_aggregate == 0,
+            "meta": f"{unread_messages_aggregate} unread",
+            "action": "Contact school",
+            "url": reverse("portal:parent_contact_school"),
+        },
     ]
     workflow_total_steps = len(workflow_steps)
     workflow_done_steps = sum(1 for step in workflow_steps if step["done"])
-    workflow_completion_pct = int(round((workflow_done_steps / workflow_total_steps) * 100)) if workflow_total_steps else 0
+    workflow_completion_pct = (
+        int(round((workflow_done_steps / workflow_total_steps) * 100))
+        if workflow_total_steps
+        else 0
+    )
     workflow_open_steps = [s for s in workflow_steps if not s["done"]]
     if workflow_open_steps:
         workflow_focus_step = workflow_open_steps[0]
-        workflow_next_actions = [{"label": s["action"], "url": s["url"]} for s in workflow_open_steps[:2]]
+        workflow_next_actions = [
+            {"label": s["action"], "url": s["url"]} for s in workflow_open_steps[:2]
+        ]
     else:
-        workflow_focus_step = {"label": "All core parent tasks completed", "meta": "You're up to date. Open workflow for detailed planning."}
-        workflow_next_actions = [{"label": "Open workflow", "url": reverse("portal:parent_workflow")}, {"label": "View calendar", "url": reverse("portal:unified_calendar")}]
+        workflow_focus_step = {
+            "label": "All core parent tasks completed",
+            "meta": "You're up to date. Open workflow for detailed planning.",
+        }
+        workflow_next_actions = [
+            {"label": "Open workflow", "url": reverse("portal:parent_workflow")},
+            {"label": "View calendar", "url": reverse("portal:unified_calendar")},
+        ]
     workflow_summary = {
         "total_steps": workflow_total_steps,
         "done_steps": workflow_done_steps,
@@ -1367,13 +1946,20 @@ def parent_dashboard(request: HttpRequest):
     }
     runtime = getattr(request, "tenant_runtime", None)
     if runtime is not None and getattr(runtime, "_school", None):
-        dash = runtime.dashboard_for(role=get_user_role(request.user), user=request.user)
+        dash = runtime.dashboard_for(
+            role=get_user_role(request.user), user=request.user
+        )
     else:
-        dash = dashboard_for_role(getattr(request, "school", None), get_user_role(request.user), user=request.user)
+        dash = dashboard_for_role(
+            getattr(request, "school", None),
+            get_user_role(request.user),
+            user=request.user,
+        )
     display_widgets = dash["widget_keys"]
     certification_stats = {}
     if year and getattr(year, "enable_gce_registration", False) and students:
         from apps.academics.models import CertificationCandidate
+
         candidates = CertificationCandidate.objects.filter(
             session__academic_year=year,
             student_id__in=student_ids,
@@ -1384,7 +1970,11 @@ def parent_dashboard(request: HttpRequest):
                 "draft_candidates": candidates.filter(status="DRAFT").count(),
                 "verified_candidates": candidates.filter(status="VERIFIED").count(),
                 "candidates_by_student": {
-                    c.student_id: {"status": c.status, "session_name": c.session.name, "session_id": c.session.id}
+                    c.student_id: {
+                        "status": c.status,
+                        "session_name": c.session.name,
+                        "session_id": c.session.id,
+                    }
                     for c in candidates
                 },
             }
@@ -1393,7 +1983,9 @@ def parent_dashboard(request: HttpRequest):
     portal_quick_actions = filter_portal_items(site.portal_quick_actions, role)
     portal_announcements = filter_portal_items(site.portal_announcements, role)
     portal_recent_grades = filter_portal_items(site.portal_recent_grades, role)
-    portal_upcoming_assessments = filter_portal_items(site.portal_upcoming_assessments, role)
+    portal_upcoming_assessments = filter_portal_items(
+        site.portal_upcoming_assessments, role
+    )
     class_announcements = class_announcements_for_parent(request.user, students)
     if can_view_finance:
         reminders_count = PaymentReminder.objects.filter(
@@ -1407,24 +1999,58 @@ def parent_dashboard(request: HttpRequest):
         "subtitle": "Live snapshot of your learners, attendance, and finances",
         "icon": "bi-mortarboard",
         "stats": [
-            {"label": "Linked Students", "value": links.count(), "meta": "Active profiles"},
-            {"label": "Attendance", "value": f"{widget_data['attendance']['overall']}%", "progress": widget_data["attendance"]["overall"], "meta": "Completion"},
+            {
+                "label": "Linked Students",
+                "value": links.count(),
+                "meta": "Active profiles",
+            },
+            {
+                "label": "Attendance",
+                "value": f"{widget_data['attendance']['overall']}%",
+                "progress": widget_data["attendance"]["overall"],
+                "meta": "Completion",
+            },
         ],
         "actions": [{"label": "Link a Child", "url": "#link-child"}],
         "status_pills": [
-            {"label": "Active students", "value": links.count(), "meta": "Linked children"},
-            {"label": "Tasks", "value": widget_data["tasks"]["pending_evaluations"], "meta": "Eval gaps"},
+            {
+                "label": "Active students",
+                "value": links.count(),
+                "meta": "Linked children",
+            },
+            {
+                "label": "Tasks",
+                "value": widget_data["tasks"]["pending_evaluations"],
+                "meta": "Eval gaps",
+            },
         ],
     }
-    hero["actions"].append({"label": "Contact School", "url": reverse("portal:parent_contact_school")})
+    hero["actions"].append(
+        {"label": "Contact School", "url": reverse("portal:parent_contact_school")}
+    )
     if can_view_results:
         hero["actions"].insert(0, {"label": "View Results", "url": "#children"})
-        hero["actions"].insert(1, {"label": "View Attendance", "url": reverse("portal:portal_stats")})
+        hero["actions"].insert(
+            1, {"label": "View Attendance", "url": reverse("portal:portal_stats")}
+        )
     if can_view_finance:
-        hero["stats"].append({"label": "Balance", "value": widget_data["finance"]["balance"], "meta": "Outstanding fees"})
-        hero["stats"].append({"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
-        hero["status_pills"].insert(1, {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
-        hero["actions"].append({"label": "Pay Fees", "url": reverse("portal:parent_finance")})
+        hero["stats"].append(
+            {
+                "label": "Balance",
+                "value": widget_data["finance"]["balance"],
+                "meta": "Outstanding fees",
+            }
+        )
+        hero["stats"].append(
+            {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"}
+        )
+        hero["status_pills"].insert(
+            1,
+            {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"},
+        )
+        hero["actions"].append(
+            {"label": "Pay Fees", "url": reverse("portal:parent_finance")}
+        )
     chart_attendance_donut_json = ""
     chart_finance_donut_json = ""
     chart_attendance_trend_json = ""
@@ -1432,36 +2058,117 @@ def parent_dashboard(request: HttpRequest):
     if att.get("overall") is not None and can_view_results:
         overall = int(att.get("overall", 0) or 0)
         other = max(0, 100 - overall)
-        chart_attendance_donut_json = json.dumps({"type": "doughnut", "data": {"labels": ["Completion", "Pending"], "datasets": [{"data": [overall, other], "backgroundColor": ["#198754", "#e2e8f0"]}]}})
+        chart_attendance_donut_json = json.dumps(
+            {
+                "type": "doughnut",
+                "data": {
+                    "labels": ["Completion", "Pending"],
+                    "datasets": [
+                        {
+                            "data": [overall, other],
+                            "backgroundColor": ["#198754", "#e2e8f0"],
+                        }
+                    ],
+                },
+            }
+        )
     fin = widget_data.get("finance") or {}
     if can_view_finance and (fin.get("paid") or fin.get("balance")):
         paid, balance = float(fin.get("paid") or 0), float(fin.get("balance") or 0)
         if paid or balance:
-            chart_finance_donut_json = json.dumps({"type": "doughnut", "data": {"labels": ["Paid", "Balance due"], "datasets": [{"data": [paid, balance], "backgroundColor": ["#198754", "#ffc107"]}]}})
+            chart_finance_donut_json = json.dumps(
+                {
+                    "type": "doughnut",
+                    "data": {
+                        "labels": ["Paid", "Balance due"],
+                        "datasets": [
+                            {
+                                "data": [paid, balance],
+                                "backgroundColor": ["#198754", "#ffc107"],
+                            }
+                        ],
+                    },
+                }
+            )
     trend = widget_data.get("attendance_trend") or []
     if trend and can_view_results:
-        chart_attendance_trend_json = json.dumps({"type": "line", "data": {"labels": [t.get("label", "") for t in trend], "datasets": [{"label": "Completion %", "data": [t.get("value", 0) for t in trend], "fill": True, "borderColor": "#0d6efd", "backgroundColor": "rgba(13, 110, 253, 0.15)", "tension": 0.3}]}})
+        chart_attendance_trend_json = json.dumps(
+            {
+                "type": "line",
+                "data": {
+                    "labels": [t.get("label", "") for t in trend],
+                    "datasets": [
+                        {
+                            "label": "Completion %",
+                            "data": [t.get("value", 0) for t in trend],
+                            "fill": True,
+                            "borderColor": "#0d6efd",
+                            "backgroundColor": "rgba(13, 110, 253, 0.15)",
+                            "tension": 0.3,
+                        }
+                    ],
+                },
+            }
+        )
     try:
         from apps.portal.models import FormSignature
-        signature_stats = {"pending": FormSignature.objects.filter(parent=request.user, status="PENDING").count(), "signed": FormSignature.objects.filter(parent=request.user, status="SIGNED").count()}
+
+        signature_stats = {
+            "pending": FormSignature.objects.filter(
+                parent=request.user, status="PENDING"
+            ).count(),
+            "signed": FormSignature.objects.filter(
+                parent=request.user, status="SIGNED"
+            ).count(),
+        }
     except (ImportError, Exception) as e:
         if not isinstance(e, ImportError):
-            log_view_exception(request, "parent_dashboard: FormSignature stats failed", extra={"widget": "signature_stats"})
+            log_view_exception(
+                request,
+                "parent_dashboard: FormSignature stats failed",
+                extra={"widget": "signature_stats"},
+            )
         signature_stats = {"pending": 0, "signed": 0}
     dashboard_context = get_dashboard_context(request.user, "parent")
     available_sidebar_items = [
-        {"id": "parent-home", "label": "Parent Home", "url": reverse("portal:parent_dashboard"), "icon": "bi-house"},
-        {"id": "parent-workflow", "label": "My Workflow", "url": reverse("portal:parent_workflow"), "icon": "bi-diagram-3"},
-        {"id": "parent-finance", "label": "Finance", "url": reverse("portal:parent_finance"), "icon": "bi-cash-stack"},
-        {"id": "parent-stats", "label": "Portal Stats", "url": reverse("portal:portal_stats"), "icon": "bi-graph-up"},
+        {
+            "id": "parent-home",
+            "label": "Parent Home",
+            "url": reverse("portal:parent_dashboard"),
+            "icon": "bi-house",
+        },
+        {
+            "id": "parent-workflow",
+            "label": "My Workflow",
+            "url": reverse("portal:parent_workflow"),
+            "icon": "bi-diagram-3",
+        },
+        {
+            "id": "parent-finance",
+            "label": "Finance",
+            "url": reverse("portal:parent_finance"),
+            "icon": "bi-cash-stack",
+        },
+        {
+            "id": "parent-stats",
+            "label": "Portal Stats",
+            "url": reverse("portal:portal_stats"),
+            "icon": "bi-graph-up",
+        },
     ]
     if request.GET.get("dismiss_hint") == "parent_link_child":
         request.session["hint_parent_link_child_dismissed"] = True
         return redirect("portal:parent_dashboard")
-    show_parent_dashboard_hint = not links and not request.session.get("hint_parent_link_child_dismissed")
+    show_parent_dashboard_hint = not links and not request.session.get(
+        "hint_parent_link_child_dismissed"
+    )
     finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
     has_fees_due = can_view_finance and (finance_balance > 0)
-    parent_verified = bool(getattr(request.user, "email", None) and str(request.user.email).strip() and not str(request.user.email).lower().startswith("pending"))
+    parent_verified = bool(
+        getattr(request.user, "email", None)
+        and str(request.user.email).strip()
+        and not str(request.user.email).lower().startswith("pending")
+    )
     recent_payments = []
     if can_view_finance and finance_students:
         recent_payments = list(
@@ -1470,57 +2177,74 @@ def parent_dashboard(request: HttpRequest):
             .order_by("-paid_at")[:5]
         )
     active_child_id = get_active_child_id(request)
-    guardian_students_for_switcher = [{"id": s.id, "display_name": (f"{getattr(s, 'first_name', '')} {getattr(s, 'last_name', '')}".strip() or f"Student {s.id}")} for s in students]
-    if guardian_students_for_switcher and active_child_id not in [s["id"] for s in guardian_students_for_switcher]:
+    guardian_students_for_switcher = [
+        {
+            "id": s.id,
+            "display_name": (
+                f"{getattr(s, 'first_name', '')} {getattr(s, 'last_name', '')}".strip()
+                or f"Student {s.id}"
+            ),
+        }
+        for s in students
+    ]
+    if guardian_students_for_switcher and active_child_id not in [
+        s["id"] for s in guardian_students_for_switcher
+    ]:
         set_active_child(request, guardian_students_for_switcher[0]["id"])
         active_child_id = guardian_students_for_switcher[0]["id"]
     policy = get_policy_for_request(request)
     is_rtl = bool(policy.get("rtl", False))
-    return render(request, "parent/dashboard.html", {
-        "links": links,
-        "show_parent_dashboard_hint": show_parent_dashboard_hint,
-        "can_view_results": can_view_results,
-        "can_view_finance": can_view_finance,
-        "chart_attendance_donut_json": chart_attendance_donut_json,
-        "chart_finance_donut_json": chart_finance_donut_json,
-        "chart_attendance_trend_json": chart_attendance_trend_json,
-        "portal_features": portal_features,
-        "widget_data": widget_data,
-        "onboarding": onboarding,
-        "child_cards": child_cards,
-        "display_widgets": display_widgets,
-        "portal_quick_actions": portal_quick_actions,
-        "portal_announcements": portal_announcements,
-        "portal_recent_grades": portal_recent_grades,
-        "portal_upcoming_assessments": portal_upcoming_assessments,
-        "hero": hero,
-        "reminders_count": reminders_count,
-        "class_announcements": class_announcements,
-        "class_threads": class_threads,
-        "attendance_pct": attendance_pct,
-        "has_fees_due": has_fees_due,
-        "finance_paid_pct": finance_paid_pct,
-        "finance_total": finance_total,
-        "finance_paid": finance_paid,
-        "available_sidebar_items": available_sidebar_items,
-        **dashboard_context,
-        "finance_access_banner": finance_access_banner,
-        "finance_requests_count": finance_requests_qs.count(),
-        "finance_request_notifications": finance_requests_qs[:5],
-        "finance_request_link": finance_request_link,
-        "certification_stats": certification_stats,
-        "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
-        "signature_stats": signature_stats,
-        "site": site,
-        "parent_verified": parent_verified,
-        "unread_messages_aggregate": unread_messages_aggregate,
-        "missing_work_count": missing_work_count,
-        "recent_payments": recent_payments,
-        "workflow_summary": workflow_summary,
-        "active_child_id": active_child_id,
-        "guardian_students_for_switcher": guardian_students_for_switcher,
-        "is_rtl": is_rtl,
-    })
+    return render(
+        request,
+        "parent/dashboard.html",
+        {
+            "links": links,
+            "show_parent_dashboard_hint": show_parent_dashboard_hint,
+            "can_view_results": can_view_results,
+            "can_view_finance": can_view_finance,
+            "chart_attendance_donut_json": chart_attendance_donut_json,
+            "chart_finance_donut_json": chart_finance_donut_json,
+            "chart_attendance_trend_json": chart_attendance_trend_json,
+            "portal_features": portal_features,
+            "widget_data": widget_data,
+            "onboarding": onboarding,
+            "child_cards": child_cards,
+            "display_widgets": display_widgets,
+            "portal_quick_actions": portal_quick_actions,
+            "portal_announcements": portal_announcements,
+            "portal_recent_grades": portal_recent_grades,
+            "portal_upcoming_assessments": portal_upcoming_assessments,
+            "hero": hero,
+            "reminders_count": reminders_count,
+            "class_announcements": class_announcements,
+            "class_threads": class_threads,
+            "attendance_pct": attendance_pct,
+            "has_fees_due": has_fees_due,
+            "finance_paid_pct": finance_paid_pct,
+            "finance_total": finance_total,
+            "finance_paid": finance_paid,
+            "available_sidebar_items": available_sidebar_items,
+            **dashboard_context,
+            "finance_access_banner": finance_access_banner,
+            "finance_requests_count": finance_requests_qs.count(),
+            "finance_request_notifications": finance_requests_qs[:5],
+            "finance_request_link": finance_request_link,
+            "certification_stats": certification_stats,
+            "gce_enabled": year and getattr(year, "enable_gce_registration", False)
+            if year
+            else False,
+            "signature_stats": signature_stats,
+            "site": site,
+            "parent_verified": parent_verified,
+            "unread_messages_aggregate": unread_messages_aggregate,
+            "missing_work_count": missing_work_count,
+            "recent_payments": recent_payments,
+            "workflow_summary": workflow_summary,
+            "active_child_id": active_child_id,
+            "guardian_students_for_switcher": guardian_students_for_switcher,
+            "is_rtl": is_rtl,
+        },
+    )
 
 
 def _whatsapp_invite_link(request: HttpRequest) -> str | None:
@@ -1529,7 +2253,12 @@ def _whatsapp_invite_link(request: HttpRequest) -> str | None:
     number = None
     try:
         from apps.siteconfig.integration_registry import resolve_active_integration
-        record = resolve_active_integration(school, "whatsapp") if school is not None else None
+
+        record = (
+            resolve_active_integration(school, "whatsapp")
+            if school is not None
+            else None
+        )
         if record and record.is_active:
             number = (
                 record.config.get("phone")
@@ -1540,10 +2269,9 @@ def _whatsapp_invite_link(request: HttpRequest) -> str | None:
         number = None
     if not number:
         contact_settings = get_effective_support_contact_settings(request=request)
-        number = (
-            contact_settings.get("whatsapp_admissions_number")
-            or contact_settings.get("whatsapp_support_number")
-        )
+        number = contact_settings.get(
+            "whatsapp_admissions_number"
+        ) or contact_settings.get("whatsapp_support_number")
     if not number:
         return None
     digits = "".join(ch for ch in number if ch.isdigit())
@@ -1645,10 +2373,15 @@ def link_child_wizard(request: HttpRequest):
             relationship = request.POST.get("relationship", "")
             has_errors = False
             if not admission:
-                form.add_error("admission_number", forms.ValidationError("Admission number is required."))
+                form.add_error(
+                    "admission_number",
+                    forms.ValidationError("Admission number is required."),
+                )
                 has_errors = True
             if not relationship:
-                form.add_error("relationship", forms.ValidationError("Relationship is required."))
+                form.add_error(
+                    "relationship", forms.ValidationError("Relationship is required.")
+                )
                 has_errors = True
             if admission and relationship and not has_errors:
                 try:
@@ -1656,18 +2389,42 @@ def link_child_wizard(request: HttpRequest):
                         "academic_year", "classroom", "specialty"
                     ).get(admission_number__iexact=admission)
                     if not student.is_active:
-                        form.add_error("admission_number", forms.ValidationError("This student profile is inactive."))
-                    elif StudentGuardian.objects.filter(guardian_user=request.user, student=student).exists():
-                        form.add_error("admission_number", forms.ValidationError("You are already linked to this student."))
+                        form.add_error(
+                            "admission_number",
+                            forms.ValidationError("This student profile is inactive."),
+                        )
+                    elif StudentGuardian.objects.filter(
+                        guardian_user=request.user, student=student
+                    ).exists():
+                        form.add_error(
+                            "admission_number",
+                            forms.ValidationError(
+                                "You are already linked to this student."
+                            ),
+                        )
                     else:
                         step = 2
                         request.session[session_key] = wizard_data
                         return redirect(f"{request.path}?step={step}")
                 except StudentProfile.DoesNotExist:
-                    form.add_error("admission_number", forms.ValidationError("No student found with that admission number."))
+                    form.add_error(
+                        "admission_number",
+                        forms.ValidationError(
+                            "No student found with that admission number."
+                        ),
+                    )
                 except PORTAL_SOFT_FAILURES as e:
-                    log_view_exception(request, "portal.views_parent: error validating admission number", extra={"error": str(e)})
-                    form.add_error("admission_number", forms.ValidationError("An error occurred. Please try again or contact support."))
+                    log_view_exception(
+                        request,
+                        "portal.views_parent: error validating admission number",
+                        extra={"error": str(e)},
+                    )
+                    form.add_error(
+                        "admission_number",
+                        forms.ValidationError(
+                            "An error occurred. Please try again or contact support."
+                        ),
+                    )
         elif step == 2:
             step = 3
             request.session[session_key] = wizard_data
@@ -1684,17 +2441,28 @@ def link_child_wizard(request: HttpRequest):
                 for attr, value in parent_updates.items():
                     setattr(request.user, attr, value)
                 request.user.save(update_fields=list(parent_updates.keys()))
-            messages.success(request, f"Linked {guardian_link.student} successfully. Results and finance access will reflect your choices.")
+            messages.success(
+                request,
+                f"Linked {guardian_link.student} successfully. Results and finance access will reflect your choices.",
+            )
             referral_code = form.cleaned_data.get("referral_code", "").strip()
             reward = award_referral_reward(guardian_link, referral_code, request.user)
             if reward and reward.amount > Decimal("0.00"):
-                messages.info(request, f"Referral bonus of {reward.amount:.2f} will appear in your finance view once approved.")
+                messages.info(
+                    request,
+                    f"Referral bonus of {reward.amount:.2f} will appear in your finance view once approved.",
+                )
             if session_key in request.session:
                 del request.session[session_key]
             return redirect("portal:parent_dashboard")
     form_data = wizard_data if request.method == "GET" else None
     policy = get_policy_for_request(request)
-    form = LinkChildForm(data=form_data, guardian_user=request.user, policy=policy, school_code=site.school_code)
+    form = LinkChildForm(
+        data=form_data,
+        guardian_user=request.user,
+        policy=policy,
+        school_code=site.school_code,
+    )
     if wizard_data:
         for key, value in wizard_data.items():
             if key in form.fields:
@@ -1704,9 +2472,9 @@ def link_child_wizard(request: HttpRequest):
         student_info = form.student
     elif "admission_number" in wizard_data:
         try:
-            student_info = StudentProfile.objects.select_related("academic_year", "classroom", "specialty").get(
-                admission_number__iexact=wizard_data["admission_number"]
-            )
+            student_info = StudentProfile.objects.select_related(
+                "academic_year", "classroom", "specialty"
+            ).get(admission_number__iexact=wizard_data["admission_number"])
         except StudentProfile.DoesNotExist:
             pass
     if not wizard_data.get("parent_first_name") and request.user.first_name:

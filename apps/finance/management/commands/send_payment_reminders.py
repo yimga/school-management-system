@@ -3,6 +3,7 @@ Send payment reminders for upcoming invoice due dates.
 When CELERY_BROKER_URL is set, enqueues the task; otherwise runs the logic inline.
 Use --dry-run to report what would be sent without sending.
 """
+
 from __future__ import annotations
 
 from django.conf import settings
@@ -28,7 +29,9 @@ class Command(BaseCommand):
         if broker_url and not dry_run:
             send_payment_reminders_task.delay(dry_run=False)
             self.stdout.write(
-                self.style.SUCCESS("Payment reminders queued. Worker will process them.")
+                self.style.SUCCESS(
+                    "Payment reminders queued. Worker will process them."
+                )
             )
             return
         if broker_url and dry_run:
@@ -37,7 +40,9 @@ class Command(BaseCommand):
             result = run_payment_reminders(dry_run=dry_run)
 
         if result.get("sent", 0) == 0 and result.get("count", 0) == 0:
-            self.stdout.write("No reminders due." if not dry_run else "No reminders would be sent.")
+            self.stdout.write(
+                "No reminders due." if not dry_run else "No reminders would be sent."
+            )
             return
         if dry_run:
             self.stdout.write(

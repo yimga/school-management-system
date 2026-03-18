@@ -9,7 +9,9 @@ def enable_rls_schoolmembership(apps, schema_editor):
     if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
-        cursor.execute("ALTER TABLE schools_schoolmembership ENABLE ROW LEVEL SECURITY;")
+        cursor.execute(
+            "ALTER TABLE schools_schoolmembership ENABLE ROW LEVEL SECURITY;"
+        )
         # Allow rows where school_id matches current request's school (set by middleware)
         # When app.current_school_id is set (by middleware), restrict to that school. When not set (e.g. mgmt commands), allow all.
         cursor.execute("""
@@ -30,12 +32,15 @@ def disable_rls_schoolmembership(apps, schema_editor):
     if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
-        cursor.execute("DROP POLICY IF EXISTS schools_schoolmembership_tenant_isolation ON schools_schoolmembership;")
-        cursor.execute("ALTER TABLE schools_schoolmembership DISABLE ROW LEVEL SECURITY;")
+        cursor.execute(
+            "DROP POLICY IF EXISTS schools_schoolmembership_tenant_isolation ON schools_schoolmembership;"
+        )
+        cursor.execute(
+            "ALTER TABLE schools_schoolmembership DISABLE ROW LEVEL SECURITY;"
+        )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0001_initial"),
     ]

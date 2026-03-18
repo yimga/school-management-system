@@ -4,14 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0008_term_unique_term_position_per_year_and_more'),
+        ("academics", "0008_term_unique_term_position_per_year_and_more"),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='term',
-            constraint=models.UniqueConstraint(condition=models.Q(('custom_label', ''), _negated=True), fields=('academic_year', 'custom_label'), name='unique_term_custom_label_per_year'),
+            model_name="term",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("custom_label", ""), _negated=True),
+                fields=("academic_year", "custom_label"),
+                name="unique_term_custom_label_per_year",
+            ),
         ),
     ]

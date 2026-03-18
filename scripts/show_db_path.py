@@ -3,6 +3,7 @@
 Print the SQLite DB path Django uses (no DB connection).
 Run from project root: python scripts/show_db_path.py
 """
+
 import os
 import sys
 from pathlib import Path
@@ -11,6 +12,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
     load_dotenv(BASE_DIR / ".env.local")
 except Exception:

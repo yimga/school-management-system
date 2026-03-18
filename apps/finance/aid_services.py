@@ -2,6 +2,7 @@
 Financial Aid & Scholarships: eligibility check, simulate and execute disbursement.
 Uses nuance engine (JSON-Logic) for eligibility; audit log on every balance change.
 """
+
 from __future__ import annotations
 
 import logging
@@ -14,7 +15,12 @@ from django.utils import timezone
 
 from apps.metadata.services import get_dynamic_field_map, get_dynamic_field_value
 from apps.people.models import StudentProfile
-from apps.siteconfig.nuance_engine import _safe_eval, HOOK_REGISTRY, _scrub_context, DEFAULT_ALLOWED_KEYS
+from apps.siteconfig.nuance_engine import (
+    _safe_eval,
+    HOOK_REGISTRY,
+    _scrub_context,
+    DEFAULT_ALLOWED_KEYS,
+)
 
 from .models import (
     AwardSource,
@@ -30,13 +36,24 @@ from .services import recalculate_invoice, post_scholarship_disbursement_to_ledg
 
 def _student_context(student: StudentProfile) -> dict[str, Any]:
     """Build context for eligibility: gpa, sibling_count, student_tags, custom_attributes, etc."""
-    tags = list(student.tags.values_list("name", flat=True)) if hasattr(student, "tags") else []
+    tags = (
+        list(student.tags.values_list("name", flat=True))
+        if hasattr(student, "tags")
+        else []
+    )
     sibling_count = 0
     try:
         from apps.people.models import StudentGuardian
-        guardian_ids = list(student.guardian_links.values_list("guardian_user_id", flat=True))
+
+        guardian_ids = list(
+            student.guardian_links.values_list("guardian_user_id", flat=True)
+        )
         if guardian_ids:
-            same_guardian = StudentGuardian.objects.filter(guardian_user_id__in=guardian_ids).values_list("student_id", flat=True).distinct()
+            same_guardian = (
+                StudentGuardian.objects.filter(guardian_user_id__in=guardian_ids)
+                .values_list("student_id", flat=True)
+                .distinct()
+            )
             sibling_count = max(0, len(set(same_guardian)) - 1)
     except (ImportError, AttributeError, TypeError, ValueError) as e:
         logging.getLogger(__name__).debug("_student_context sibling_count skip: %s", e)
@@ -44,19 +61,27 @@ def _student_context(student: StudentProfile) -> dict[str, Any]:
     gpa = get_dynamic_field_value(student, "gpa", default=getattr(student, "gpa", None))
     if gpa is None and hasattr(student, "gpa"):
         gpa = getattr(student, "gpa", None)
-    attendance_rate = get_dynamic_field_value(student, "attendance_rate", default=custom.get("attendance_rate"))
-    fee_status = get_dynamic_field_value(student, "fee_status", default=custom.get("fee_status", "unknown"))
+    attendance_rate = get_dynamic_field_value(
+        student, "attendance_rate", default=custom.get("attendance_rate")
+    )
+    fee_status = get_dynamic_field_value(
+        student, "fee_status", default=custom.get("fee_status", "unknown")
+    )
     return {
         "gpa": float(gpa) if gpa is not None else None,
         "sibling_count": sibling_count,
         "student_tags": tags,
         "custom_attributes": custom,
-        "attendance_rate": float(attendance_rate) if attendance_rate is not None else None,
+        "attendance_rate": float(attendance_rate)
+        if attendance_rate is not None
+        else None,
         "fee_status": fee_status,
     }
 
 
-def check_eligibility(student: StudentProfile, scholarship: Scholarship) -> tuple[bool, str]:
+def check_eligibility(
+    student: StudentProfile, scholarship: Scholarship
+) -> tuple[bool, str]:
     """
     Run scholarship.eligibility_criteria (JSON-Logic) against student context.
     Returns (True, "") if eligible, (False, reason) otherwise.
@@ -76,7 +101,9 @@ def check_eligibility(student: StudentProfile, scholarship: Scholarship) -> tupl
         return True, ""
     if result is False:
         return False, "Does not meet eligibility criteria."
-    return False, str(result) if result is not None else "Eligibility check returned no result."
+    return False, str(
+        result
+    ) if result is not None else "Eligibility check returned no result."
 
 
 def simulate_bulk_disbursement(
@@ -89,25 +116,38 @@ def simulate_bulk_disbursement(
     Simulate disbursing to given students. Returns summary: total_amount, per_student, insufficient_funds.
     Does not modify DB.
     """
-    scholarship = Scholarship.objects.filter(school_id=school_id, pk=scholarship_id).first()
+    scholarship = Scholarship.objects.filter(
+        school_id=school_id, pk=scholarship_id
+    ).first()
     if not scholarship:
-        return {"error": "Scholarship not found", "total_amount": 0, "per_student": [], "insufficient_funds": True}
+        return {
+            "error": "Scholarship not found",
+            "total_amount": 0,
+            "per_student": [],
+            "insufficient_funds": True,
+        }
     source = scholarship.source
     students = list(
-        StudentProfile.objects.filter(school_id=school_id, pk__in=student_ids).select_related("school")
+        StudentProfile.objects.filter(
+            school_id=school_id, pk__in=student_ids
+        ).select_related("school")
     )
     per_student = []
     total = Decimal("0.00")
     amount_per = scholarship.award_amount
     for student in students:
         eligible, reason = check_eligibility(student, scholarship)
-        per_student.append({
-            "student_id": student.pk,
-            "student_name": getattr(student, "user", None) and getattr(student.user, "get_full_name", lambda: str(student))() or str(student),
-            "eligible": eligible,
-            "reason": reason,
-            "amount": amount_per if eligible else Decimal("0.00"),
-        })
+        per_student.append(
+            {
+                "student_id": student.pk,
+                "student_name": getattr(student, "user", None)
+                and getattr(student.user, "get_full_name", lambda: str(student))()
+                or str(student),
+                "eligible": eligible,
+                "reason": reason,
+                "amount": amount_per if eligible else Decimal("0.00"),
+            }
+        )
         if eligible:
             total += amount_per
     insufficient = source.remaining_funds < total
@@ -130,20 +170,32 @@ def execute_disbursement(
     In a transaction: decrement source.remaining_funds, set Application to DISBURSED,
     create Invoice line (credit) or Payment record, write AidAuditLog.
     """
-    app = FinancialAidApplication.objects.select_related("student", "scholarship", "scholarship__source").filter(
-        school_id=school_id,
-        pk=application_id,
-    ).first()
+    app = (
+        FinancialAidApplication.objects.select_related(
+            "student", "scholarship", "scholarship__source"
+        )
+        .filter(
+            school_id=school_id,
+            pk=application_id,
+        )
+        .first()
+    )
     if not app:
         return {"ok": False, "error": "Application not found"}
     if app.status == FinancialAidApplication.Status.DISBURSED:
         return {"ok": False, "error": "Already disbursed"}
-    if app.status not in (FinancialAidApplication.Status.APPROVED, FinancialAidApplication.Status.UNDER_REVIEW):
+    if app.status not in (
+        FinancialAidApplication.Status.APPROVED,
+        FinancialAidApplication.Status.UNDER_REVIEW,
+    ):
         return {"ok": False, "error": f"Invalid status for disbursement: {app.status}"}
     amount = app.amount_approved or app.scholarship.award_amount
     source = app.scholarship.source
     if source.remaining_funds < amount:
-        return {"ok": False, "error": f"Insufficient funds: {source.remaining_funds} < {amount}"}
+        return {
+            "ok": False,
+            "error": f"Insufficient funds: {source.remaining_funds} < {amount}",
+        }
 
     with transaction.atomic():
         source.remaining_funds -= amount
@@ -162,11 +214,19 @@ def execute_disbursement(
         app.disbursed_at = timezone.now()
         app.save(update_fields=["status", "disbursed_at", "updated_at"])
         # Create credit on student's invoice or a payment-type record
-        invoice = Invoice.objects.filter(
-            school_id=school_id,
-            student=app.student,
-            status__in=(Invoice.Status.ISSUED, Invoice.Status.PARTIAL, Invoice.Status.PAID),
-        ).order_by("-issued_date").first()
+        invoice = (
+            Invoice.objects.filter(
+                school_id=school_id,
+                student=app.student,
+                status__in=(
+                    Invoice.Status.ISSUED,
+                    Invoice.Status.PARTIAL,
+                    Invoice.Status.PAID,
+                ),
+            )
+            .order_by("-issued_date")
+            .first()
+        )
         created_payment = None
         if invoice:
             InvoiceLine.objects.create(
@@ -216,8 +276,17 @@ def execute_disbursement(
                     "payment_id": getattr(created_payment, "pk", None),
                 },
             )
-        except (ImportError, AttributeError, TypeError, ValueError, ConnectionError, OSError) as e:
-            logging.getLogger(__name__).debug("disbursement webhook enqueue skip: %s", e)
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            ConnectionError,
+            OSError,
+        ) as e:
+            logging.getLogger(__name__).debug(
+                "disbursement webhook enqueue skip: %s", e
+            )
     return {"ok": True, "application_id": app.pk, "amount": amount}
 
 
@@ -227,33 +296,29 @@ def get_endowment_health_report(school_id: Any, *, years_ahead: int = 4) -> list
     Returns list of {name, total_budget, remaining_funds, committed, net_liquidity, status}.
     """
     from django.db.models import Sum
+
     years_ahead = max(1, min(int(years_ahead), 6))
     sources = AwardSource.objects.filter(school_id=school_id, is_active=True)
     result = []
     trailing_window_start = timezone.now() - timedelta(days=365)
     for src in sources:
-        committed = (
-            FinancialAidApplication.objects.filter(
-                scholarship__source=src,
-                status__in=(
-                    FinancialAidApplication.Status.APPROVED,
-                    FinancialAidApplication.Status.UNDER_REVIEW,
-                ),
-            ).aggregate(s=Sum("amount_approved"))["s"] or Decimal("0.00")
-        )
+        committed = FinancialAidApplication.objects.filter(
+            scholarship__source=src,
+            status__in=(
+                FinancialAidApplication.Status.APPROVED,
+                FinancialAidApplication.Status.UNDER_REVIEW,
+            ),
+        ).aggregate(s=Sum("amount_approved"))["s"] or Decimal("0.00")
         committed = committed or Decimal("0.00")
         if not isinstance(committed, Decimal):
             committed = Decimal(str(committed))
 
         # Use trailing 12-month disbursement activity as a conservative annual burn estimate.
-        burn_aggregate = (
-            AidAuditLog.objects.filter(
-                source=src,
-                action="disbursement",
-                created_at__gte=trailing_window_start,
-            ).aggregate(s=Sum("amount"))["s"]
-            or Decimal("0.00")
-        )
+        burn_aggregate = AidAuditLog.objects.filter(
+            source=src,
+            action="disbursement",
+            created_at__gte=trailing_window_start,
+        ).aggregate(s=Sum("amount"))["s"] or Decimal("0.00")
         annual_burn_estimate = abs(Decimal(str(burn_aggregate)))
 
         net = src.remaining_funds - committed
@@ -269,18 +334,20 @@ def get_endowment_health_report(school_id: Any, *, years_ahead: int = 4) -> list
                     "status": "HEALTHY" if projected >= Decimal("0") else "CRITICAL",
                 }
             )
-        result.append({
-            "id": src.pk,
-            "name": src.name,
-            "total_budget": src.total_budget,
-            "remaining_funds": src.remaining_funds,
-            "committed": committed,
-            "net_liquidity": net,
-            "status": status,
-            "currency": src.currency,
-            "annual_burn_estimate": annual_burn_estimate,
-            "projections": projections,
-        })
+        result.append(
+            {
+                "id": src.pk,
+                "name": src.name,
+                "total_budget": src.total_budget,
+                "remaining_funds": src.remaining_funds,
+                "committed": committed,
+                "net_liquidity": net,
+                "status": status,
+                "currency": src.currency,
+                "annual_burn_estimate": annual_burn_estimate,
+                "projections": projections,
+            }
+        )
     return result
 
 
@@ -290,6 +357,7 @@ def net_price_estimate(school_id: Any, context: dict) -> dict:
     Uses nuance hook tuition_calc / fee_discount if available; otherwise returns list price.
     """
     from apps.siteconfig.nuance_engine import apply_nuance
+
     tuition = context.get("tuition") or context.get("fee") or 0
     try:
         tuition = float(tuition)
@@ -298,9 +366,12 @@ def net_price_estimate(school_id: Any, context: dict) -> dict:
     school = None
     try:
         from apps.schools.models import School
+
         school = School.objects.filter(pk=school_id).first()
     except (ImportError, AttributeError, TypeError, ValueError) as e:
-        logging.getLogger(__name__).debug("net_price_estimate School lookup skip: %s", e)
+        logging.getLogger(__name__).debug(
+            "net_price_estimate School lookup skip: %s", e
+        )
     if school:
         discounted = apply_nuance(school, "tuition_calc", {**context, "fee": tuition})
         if discounted is not None:

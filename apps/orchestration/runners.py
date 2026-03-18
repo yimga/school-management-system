@@ -1,6 +1,7 @@
 """
 Phase 10 — 4.1: Orchestration runners. Create/update OrchestrationRun; retries, compensation, SLA.
 """
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -35,6 +36,7 @@ _ORCHESTRATION_STEP_QUERY_ERRORS = (
 
 class BaseOrchestrationRunner:
     """Base for long-running process runners. Subclass and implement run_step()."""
+
     code: str = ""
 
     def __init__(self, run: OrchestrationRun, max_retries: int = 3):
@@ -47,7 +49,10 @@ class BaseOrchestrationRunner:
 
     def execute(self) -> bool:
         """Run one step; update run state; return True if completed (or compensated)."""
-        if self.run.status not in (OrchestrationRun.Status.PENDING, OrchestrationRun.Status.RUNNING):
+        if self.run.status not in (
+            OrchestrationRun.Status.PENDING,
+            OrchestrationRun.Status.RUNNING,
+        ):
             return True
         try:
             self.run.status = OrchestrationRun.Status.RUNNING
@@ -58,7 +63,9 @@ class BaseOrchestrationRunner:
             self.run.output_payload = {**(self.run.output_payload or {}), **out}
             self.run.status = OrchestrationRun.Status.COMPLETED
             self.run.completed_at = timezone.now()
-            self.run.save(update_fields=["output_payload", "status", "completed_at", "updated_at"])
+            self.run.save(
+                update_fields=["output_payload", "status", "completed_at", "updated_at"]
+            )
             return True
         except _ORCHESTRATION_RUN_ERRORS as e:
             school_id = getattr(self.run, "school_id", None)
@@ -68,7 +75,9 @@ class BaseOrchestrationRunner:
                 extra={
                     "run_id": getattr(self.run, "pk", None),
                     "retry_count": (self.run.retry_count or 0) + 1,
-                    "definition_code": getattr(getattr(self.run, "definition", None), "code", None),
+                    "definition_code": getattr(
+                        getattr(self.run, "definition", None), "code", None
+                    ),
                 },
             )
             self.run.retry_count = (self.run.retry_count or 0) + 1
@@ -77,7 +86,13 @@ class BaseOrchestrationRunner:
                 self.run.status = OrchestrationRun.Status.FAILED
                 self.run.completed_at = timezone.now()
                 self.run.save(
-                    update_fields=["retry_count", "error_message", "status", "completed_at", "updated_at"]
+                    update_fields=[
+                        "retry_count",
+                        "error_message",
+                        "status",
+                        "completed_at",
+                        "updated_at",
+                    ]
                 )
                 try:
                     self.compensate()
@@ -85,7 +100,12 @@ class BaseOrchestrationRunner:
                     log_exception_with_context(
                         "Orchestration compensate failed",
                         school_id=school_id,
-                        extra={"run_id": getattr(self.run, "pk", None), "definition_code": getattr(getattr(self.run, "definition", None), "code", None)},
+                        extra={
+                            "run_id": getattr(self.run, "pk", None),
+                            "definition_code": getattr(
+                                getattr(self.run, "definition", None), "code", None
+                            ),
+                        },
                     )
                 return False
             self.run.save(
@@ -100,10 +120,13 @@ class BaseOrchestrationRunner:
 
 class FeeFollowUpRunner(BaseOrchestrationRunner):
     """Runner for fee_follow_up: enqueue reminder work per school; records run in OrchestrationRun."""
+
     code = "fee_follow_up"
 
     def run_step(self) -> dict:
-        school_id = getattr(self.run.school_id, "hex", None) or str(getattr(self.run.school_id, "", ""))
+        school_id = getattr(self.run.school_id, "hex", None) or str(
+            getattr(self.run.school_id, "", "")
+        )
         count = 0
         try:
             from apps.finance.models import InvoiceReminder
@@ -125,13 +148,17 @@ class FeeFollowUpRunner(BaseOrchestrationRunner):
 
 class AdmissionsRunner(BaseOrchestrationRunner):
     """Runner for admissions: batch application processing / offer letters (4.1)."""
+
     code = "admissions"
 
     def run_step(self) -> dict:
-        school_id = getattr(self.run.school_id, "hex", None) or str(getattr(self.run.school_id, "", ""))
+        school_id = getattr(self.run.school_id, "hex", None) or str(
+            getattr(self.run.school_id, "", "")
+        )
         count = 0
         try:
             from apps.requests.models import AdmissionApplication
+
             if self.run.school_id:
                 count = AdmissionApplication.objects.filter(
                     school_id=self.run.school_id,
@@ -143,31 +170,46 @@ class AdmissionsRunner(BaseOrchestrationRunner):
                 school_id=school_id,
                 extra={"step": "admissions"},
             )
-        return {"school_id": school_id, "pending_applications": count, "step": "admissions"}
+        return {
+            "school_id": school_id,
+            "pending_applications": count,
+            "step": "admissions",
+        }
 
 
 class ReEnrollmentRunner(BaseOrchestrationRunner):
     """Runner for re_enrollment: next-year re-enrollment invitations / confirmations (4.1)."""
+
     code = "re_enrollment"
 
     def run_step(self) -> dict:
-        school_id = getattr(self.run.school_id, "hex", None) or str(getattr(self.run.school_id, "", ""))
+        school_id = getattr(self.run.school_id, "hex", None) or str(
+            getattr(self.run.school_id, "", "")
+        )
         count = 0
         try:
             from apps.accounts.models import StudentProfile
+
             if self.run.school_id:
-                count = StudentProfile.objects.filter(school_id=self.run.school_id, is_active=True).count()
+                count = StudentProfile.objects.filter(
+                    school_id=self.run.school_id, is_active=True
+                ).count()
         except _ORCHESTRATION_STEP_QUERY_ERRORS:
             log_exception_with_context(
                 "ReEnrollmentRunner run_step query failed",
                 school_id=school_id,
                 extra={"step": "re_enrollment"},
             )
-        return {"school_id": school_id, "eligible_students": count, "step": "re_enrollment"}
+        return {
+            "school_id": school_id,
+            "eligible_students": count,
+            "step": "re_enrollment",
+        }
 
 
 class ApprovalChainRunner(BaseOrchestrationRunner):
     """Runner for approval_chain: multi-step approval workflows (e.g. fee waiver, leave) (4.1)."""
+
     code = "approval_chain"
 
     def run_step(self) -> dict:
@@ -176,7 +218,12 @@ class ApprovalChainRunner(BaseOrchestrationRunner):
         return {"chain_id": chain_id, "step": "approval_chain"}
 
 
-def start_run(definition_code: str, school=None, triggered_by=None, input_payload: Optional[dict] = None) -> Optional[OrchestrationRun]:
+def start_run(
+    definition_code: str,
+    school=None,
+    triggered_by=None,
+    input_payload: Optional[dict] = None,
+) -> Optional[OrchestrationRun]:
     """Create a PENDING OrchestrationRun for the given definition. Returns the run or None."""
     try:
         definition = ProcessDefinition.objects.get(code=definition_code)
@@ -188,7 +235,9 @@ def start_run(definition_code: str, school=None, triggered_by=None, input_payloa
         triggered_by=triggered_by,
         input_payload=input_payload or {},
         status=OrchestrationRun.Status.PENDING,
-        sla_deadline=timezone.now() + timedelta(hours=24) if definition_code == "fee_follow_up" else None,
+        sla_deadline=timezone.now() + timedelta(hours=24)
+        if definition_code == "fee_follow_up"
+        else None,
     )
     return run
 
@@ -216,8 +265,14 @@ def run_workflow_simulation(definition_code: str, payload: dict, school=None) ->
     try:
         definition = ProcessDefinition.objects.get(code=definition_code)
     except ProcessDefinition.DoesNotExist:
-        return {"impact_count": 0, "steps": [], "dry_run": True, "error": "unknown_definition"}
+        return {
+            "impact_count": 0,
+            "steps": [],
+            "dry_run": True,
+            "error": "unknown_definition",
+        }
     from .models import OrchestrationRun
+
     run = OrchestrationRun(
         definition=definition,
         school=school,

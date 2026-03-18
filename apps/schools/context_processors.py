@@ -2,6 +2,7 @@
 Context processors for schools app.
 Exposes MARKETING_BASE_URL so tenant and manager templates can link to the canonical marketing site.
 """
+
 from django.conf import settings as django_settings
 
 from .host_routing import get_canonical_base_domain

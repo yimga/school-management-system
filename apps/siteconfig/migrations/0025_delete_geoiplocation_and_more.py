@@ -4,30 +4,29 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0024_regionalconfig_geoiplocation_ipwhitelist_and_more'),
+        ("siteconfig", "0024_regionalconfig_geoiplocation_ipwhitelist_and_more"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='GeoIPLocation',
+            name="GeoIPLocation",
         ),
         migrations.AlterUniqueTogether(
-            name='regionalaccesspolicy',
+            name="regionalaccesspolicy",
             unique_together=None,
         ),
         migrations.RemoveField(
-            model_name='regionalaccesspolicy',
-            name='region',
+            model_name="regionalaccesspolicy",
+            name="region",
         ),
         migrations.DeleteModel(
-            name='IPWhitelist',
+            name="IPWhitelist",
         ),
         migrations.DeleteModel(
-            name='RegionalAccessPolicy',
+            name="RegionalAccessPolicy",
         ),
         migrations.DeleteModel(
-            name='RegionalConfig',
+            name="RegionalConfig",
         ),
     ]

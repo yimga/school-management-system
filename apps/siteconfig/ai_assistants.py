@@ -1,6 +1,7 @@
 """
 G1–G4: AI config/workflow/migration/support assistants.
 """
+
 from __future__ import annotations
 
 # Config assistant: suggest settings from region/blueprint (nuance_engine, brand_import).

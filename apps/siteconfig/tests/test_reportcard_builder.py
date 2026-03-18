@@ -29,7 +29,9 @@ class ReportCardBuilderViewTests(TestCase):
             is_active=True,
         )
         self.department = Department.objects.create(name="Science", code="SCI")
-        self.specialty = Specialty.objects.create(department=self.department, name="General", code="GEN")
+        self.specialty = Specialty.objects.create(
+            department=self.department, name="General", code="GEN"
+        )
         self.classroom_a = Classroom.objects.create(
             academic_year=self.year,
             department=self.department,
@@ -52,7 +54,9 @@ class ReportCardBuilderViewTests(TestCase):
             accent_color="#abcdef",
             is_active=True,
         )
-        ReportCardStyleAssignment.objects.create(classroom=self.classroom_a, style=self.style)
+        ReportCardStyleAssignment.objects.create(
+            classroom=self.classroom_a, style=self.style
+        )
         StudentProfile.objects.create(
             first_name="Ada",
             last_name="Lovelace",
@@ -65,7 +69,9 @@ class ReportCardBuilderViewTests(TestCase):
         site = get_platform_site_settings_record(create=True)
         site.default_term_report_style = self.style
         site.default_annual_report_style = self.style
-        site.save(update_fields=["default_term_report_style", "default_annual_report_style"])
+        site.save(
+            update_fields=["default_term_report_style", "default_annual_report_style"]
+        )
 
     def test_builder_page_places_workflow_with_catalog_and_assignments(self):
         response = self.client.get(self.url)
@@ -141,8 +147,13 @@ class ReportCardBuilderViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'id="workflow-assignment" class="accordion-collapse collapse show"')
-        self.assertContains(response, 'id="workflow-style" class="accordion-collapse collapse"')
+        self.assertContains(
+            response,
+            'id="workflow-assignment" class="accordion-collapse collapse show"',
+        )
+        self.assertContains(
+            response, 'id="workflow-style" class="accordion-collapse collapse"'
+        )
 
     def test_builder_keeps_default_mapping_workflow_open_on_selection_form_error(self):
         response = self.client.post(
@@ -155,8 +166,12 @@ class ReportCardBuilderViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'id="workflow-defaults" class="accordion-collapse collapse show"')
-        self.assertContains(response, 'id="workflow-style" class="accordion-collapse collapse"')
+        self.assertContains(
+            response, 'id="workflow-defaults" class="accordion-collapse collapse show"'
+        )
+        self.assertContains(
+            response, 'id="workflow-style" class="accordion-collapse collapse"'
+        )
 
     def test_live_preview_html_endpoint_allows_same_origin_iframe(self):
         response = self.client.get(
@@ -168,7 +183,10 @@ class ReportCardBuilderViewTests(TestCase):
 
     def test_live_preview_iframe_endpoint_allows_same_origin(self):
         response = self.client.get(
-            reverse("siteconfig:reportcard_style_live_preview", args=[self.style.slug, "term"])
+            reverse(
+                "siteconfig:reportcard_style_live_preview",
+                args=[self.style.slug, "term"],
+            )
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers.get("X-Frame-Options"), "SAMEORIGIN")
@@ -176,16 +194,25 @@ class ReportCardBuilderViewTests(TestCase):
 
     def test_embed_preview_endpoint_uses_csp_self_without_xfo_header(self):
         response = self.client.get(
-            reverse("siteconfig:reportcard_style_embed_preview", args=[self.style.slug, "term"])
+            reverse(
+                "siteconfig:reportcard_style_embed_preview",
+                args=[self.style.slug, "term"],
+            )
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(response.headers.get("X-Frame-Options"))
-        self.assertIn("frame-ancestors 'self'", response.headers.get("Content-Security-Policy", ""))
+        self.assertIn(
+            "frame-ancestors 'self'",
+            response.headers.get("Content-Security-Policy", ""),
+        )
         self.assertContains(response, "cameroon-letterhead")
 
     def test_embed_preview_endpoint_injects_ready_signal_with_preview_token(self):
         response = self.client.get(
-            reverse("siteconfig:reportcard_style_embed_preview", args=[self.style.slug, "term"]),
+            reverse(
+                "siteconfig:reportcard_style_embed_preview",
+                args=[self.style.slug, "term"],
+            ),
             {"preview_token": "abc123"},
         )
         self.assertEqual(response.status_code, 200)
@@ -199,7 +226,9 @@ class ReportCardBuilderViewTests(TestCase):
                 content_type="application/pdf",
             )
             response = self.client.get(
-                reverse("siteconfig:reportcard_style_pdf", args=[self.style.slug, "term"])
+                reverse(
+                    "siteconfig:reportcard_style_pdf", args=[self.style.slug, "term"]
+                )
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers.get("X-Frame-Options"), "SAMEORIGIN")

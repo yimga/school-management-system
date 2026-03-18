@@ -2,6 +2,7 @@
 RLS mode isolation: unset GUC => deny; set app.current_school_id => only that school; bypass => allow.
 Requires PostgreSQL and USE_DJANGO_TENANTS=False. Tag: tenants_rls.
 """
+
 import unittest
 
 from django.db import connection
@@ -9,7 +10,9 @@ from django.test import TestCase, override_settings, tag
 
 
 @tag("tenants_rls")
-@unittest.skipIf(connection.vendor != "postgresql", "RLS isolation tests require PostgreSQL")
+@unittest.skipIf(
+    connection.vendor != "postgresql", "RLS isolation tests require PostgreSQL"
+)
 @override_settings(USE_DJANGO_TENANTS=False)
 class TenantIsolationRlsModeTests(TestCase):
     """With RLS default-deny, unset context must return 0 rows; set context restricts to that school."""
@@ -49,7 +52,9 @@ class TenantIsolationRlsModeTests(TestCase):
         from apps.schools.models import SchoolMembership
 
         count = SchoolMembership.objects.count()
-        self.assertEqual(count, 0, "Unset app.current_school_id must deny all rows (default-deny)")
+        self.assertEqual(
+            count, 0, "Unset app.current_school_id must deny all rows (default-deny)"
+        )
 
     def test_set_school_id_restricts_to_that_school(self):
         """Setting app.current_school_id to school A, only A's rows are visible."""
@@ -57,8 +62,12 @@ class TenantIsolationRlsModeTests(TestCase):
         from apps.accounts.models import User
 
         user = User.objects.create_user(username="rlsuser", password="test")
-        SchoolMembership.objects.create(user=user, school=self.school_a, role=User.Role.ADMIN, is_primary=True)
-        SchoolMembership.objects.create(user=user, school=self.school_b, role=User.Role.ADMIN, is_primary=False)
+        SchoolMembership.objects.create(
+            user=user, school=self.school_a, role=User.Role.ADMIN, is_primary=True
+        )
+        SchoolMembership.objects.create(
+            user=user, school=self.school_b, role=User.Role.ADMIN, is_primary=False
+        )
 
         with self.rls_school(self.school_a.id):
             ids = list(SchoolMembership.objects.values_list("id", flat=True))
@@ -76,8 +85,12 @@ class TenantIsolationRlsModeTests(TestCase):
         from apps.accounts.models import User
 
         user = User.objects.create_user(username="rlsbypass", password="test")
-        SchoolMembership.objects.create(user=user, school=self.school_a, role=User.Role.ADMIN, is_primary=True)
-        SchoolMembership.objects.create(user=user, school=self.school_b, role=User.Role.ADMIN, is_primary=False)
+        SchoolMembership.objects.create(
+            user=user, school=self.school_a, role=User.Role.ADMIN, is_primary=True
+        )
+        SchoolMembership.objects.create(
+            user=user, school=self.school_b, role=User.Role.ADMIN, is_primary=False
+        )
 
         with self.rls_bypass():
             count = SchoolMembership.objects.count()

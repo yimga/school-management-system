@@ -144,7 +144,9 @@ class TenantConfigCompilerTests(TestCase):
         self.assertIn("tenant_config_layers", settings)
         self.assertIn("tenant_policy_pack", settings)
         self.assertIn("tenant_config_compiled_at", settings)
-        self.assertEqual(settings.get("tenant_compiled_config"), compiled.get("effective"))
+        self.assertEqual(
+            settings.get("tenant_compiled_config"), compiled.get("effective")
+        )
 
     def test_apply_tenant_settings_overrides_blocks_locked_keys(self):
         result = apply_tenant_settings_overrides(

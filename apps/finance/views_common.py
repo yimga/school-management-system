@@ -3,6 +3,7 @@ Shared helpers and constants for finance views (§6.15 app-by-app split).
 Used by views_dashboard, views_invoicing, views_payments, views_access,
 views_accounting, views_requests. Single place for runtime/settings resolution.
 """
+
 from __future__ import annotations
 
 import logging
@@ -10,9 +11,11 @@ from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError
 from django.http import HttpRequest
 from django.conf import settings
-from django.core.mail import send_mail
 
-from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
+from apps.platform_runtime.helpers import (
+    get_effective_flags,
+    get_effective_site_settings,
+)
 
 from .models import ComplianceProfile, Notification, FinanceRequestAudit
 
@@ -63,9 +66,8 @@ def _notification_delivery_settings(
         else {}
     )
     channels = list(feature_settings.get("notification_channels") or [])
-    from_email = (
-        feature_settings.get("email_from_address")
-        or getattr(settings, "DEFAULT_FROM_EMAIL", None)
+    from_email = feature_settings.get("email_from_address") or getattr(
+        settings, "DEFAULT_FROM_EMAIL", None
     )
     return channels, from_email
 
@@ -80,17 +82,25 @@ def _finance_access_state(user, request: HttpRequest | None = None) -> dict:
 
     flags = _backend_flags(request)
     guardian_qs = StudentGuardian.objects.filter(guardian_user=user)
-    finance_qs = _guardian_finance_qs(user) if getattr(user, "is_authenticated", False) else StudentGuardian.objects.none()
+    finance_qs = (
+        _guardian_finance_qs(user)
+        if getattr(user, "is_authenticated", False)
+        else StudentGuardian.objects.none()
+    )
     return {
         "require_opt_in": bool(flags.get("require_guardian_finance_opt_in")),
         "allow_requests": bool(flags.get("allow_finance_access_requests", True)),
         "guardian_count": guardian_qs.count(),
         "finance_count": finance_qs.count(),
-        "guardian_names": [str(link.student) for link in guardian_qs.select_related("student")],
+        "guardian_names": [
+            str(link.student) for link in guardian_qs.select_related("student")
+        ],
     }
 
 
-def _log_finance_request_audit(notification: Notification | None, user, action: str, details: str = "") -> None:
+def _log_finance_request_audit(
+    notification: Notification | None, user, action: str, details: str = ""
+) -> None:
     if not notification:
         return
     FinanceRequestAudit.objects.create(
@@ -157,7 +167,9 @@ def _notify_finance_staff_suspicious_receipt(proof_upload, fraud_result: dict) -
                     channels=["email"],
                 )
             except FINANCE_SOFT_FAILURES as e:
-                logger.error("Failed to notify finance staff %s: %s", staff_member.id, e)
+                logger.error(
+                    "Failed to notify finance staff %s: %s", staff_member.id, e
+                )
     except FINANCE_SOFT_FAILURES as e:
         logger.error("Error notifying finance staff about suspicious receipt: %s", e)
 

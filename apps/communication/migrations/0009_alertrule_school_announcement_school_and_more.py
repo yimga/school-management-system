@@ -23,7 +23,11 @@ COMMUNICATION_TABLES = [
 def _user_school_id(user_id, *, membership_map, student_map, teacher_map):
     if not user_id:
         return None
-    return student_map.get(user_id) or teacher_map.get(user_id) or membership_map.get(user_id)
+    return (
+        student_map.get(user_id)
+        or teacher_map.get(user_id)
+        or membership_map.get(user_id)
+    )
 
 
 def backfill_communication_school(apps, schema_editor):
@@ -40,7 +44,9 @@ def backfill_communication_school(apps, schema_editor):
     Announcement = apps.get_model("communication", "Announcement")
     AnnouncementAuditLog = apps.get_model("communication", "AnnouncementAuditLog")
     ContactRequest = apps.get_model("communication", "ContactRequest")
-    ContactRequestAttachment = apps.get_model("communication", "ContactRequestAttachment")
+    ContactRequestAttachment = apps.get_model(
+        "communication", "ContactRequestAttachment"
+    )
     Message = apps.get_model("communication", "Message")
     DirectConversation = apps.get_model("communication", "DirectConversation")
     AlertRule = apps.get_model("communication", "AlertRule")
@@ -113,7 +119,9 @@ def backfill_communication_school(apps, schema_editor):
             )
         )
         if school_id:
-            ClassAnnouncement.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            ClassAnnouncement.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
 
     for row in (
         MessageThread.objects.using(db_alias)
@@ -132,7 +140,9 @@ def backfill_communication_school(apps, schema_editor):
             )
         )
         if school_id:
-            MessageThread.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            MessageThread.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
             thread_map[row["id"]] = school_id
 
     for row in (
@@ -148,7 +158,9 @@ def backfill_communication_school(apps, schema_editor):
             teacher_map=teacher_map,
         )
         if school_id:
-            ThreadMessage.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            ThreadMessage.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
 
     for row in (
         ThreadReadState.objects.using(db_alias)
@@ -163,7 +175,9 @@ def backfill_communication_school(apps, schema_editor):
             teacher_map=teacher_map,
         )
         if school_id:
-            ThreadReadState.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            ThreadReadState.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
 
     for row in (
         Announcement.objects.using(db_alias)
@@ -178,7 +192,9 @@ def backfill_communication_school(apps, schema_editor):
             teacher_map=teacher_map,
         )
         if school_id:
-            Announcement.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            Announcement.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
             announcement_map[row["id"]] = school_id
 
     for row in (
@@ -194,7 +210,9 @@ def backfill_communication_school(apps, schema_editor):
             teacher_map=teacher_map,
         )
         if school_id:
-            AnnouncementAuditLog.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            AnnouncementAuditLog.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
 
     for row in (
         ContactRequest.objects.using(db_alias)
@@ -229,7 +247,9 @@ def backfill_communication_school(apps, schema_editor):
             teacher_map=teacher_map,
         )
         if school_id:
-            ContactRequest.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            ContactRequest.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
             contact_request_map[row["id"]] = school_id
 
     for row in (
@@ -245,7 +265,9 @@ def backfill_communication_school(apps, schema_editor):
             teacher_map=teacher_map,
         )
         if school_id:
-            ContactRequestAttachment.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            ContactRequestAttachment.objects.using(db_alias).filter(
+                pk=row["id"]
+            ).update(school_id=school_id)
 
     for row in (
         Message.objects.using(db_alias)
@@ -265,7 +287,9 @@ def backfill_communication_school(apps, schema_editor):
             teacher_map=teacher_map,
         )
         if school_id:
-            Message.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            Message.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
 
     for row in (
         DirectConversation.objects.using(db_alias)
@@ -285,7 +309,9 @@ def backfill_communication_school(apps, schema_editor):
             teacher_map=teacher_map,
         )
         if school_id:
-            DirectConversation.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            DirectConversation.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
 
     for row in (
         AlertRule.objects.using(db_alias)
@@ -300,7 +326,9 @@ def backfill_communication_school(apps, schema_editor):
             teacher_map=teacher_map,
         )
         if school_id:
-            AlertRule.objects.using(db_alias).filter(pk=row["id"]).update(school_id=school_id)
+            AlertRule.objects.using(db_alias).filter(pk=row["id"]).update(
+                school_id=school_id
+            )
 
 
 def enable_communication_rls(apps, schema_editor):
@@ -340,6 +368,7 @@ def disable_communication_rls(apps, schema_editor):
 def add_school_id_to_communication_tables(apps, schema_editor):
     """Add school_id to all communication tables; idempotent (duplicate_column)."""
     from django.db import connection
+
     tables = [
         "communication_alertrule",
         "communication_announcement",
@@ -363,13 +392,17 @@ def add_school_id_to_communication_tables(apps, schema_editor):
                     EXCEPTION WHEN duplicate_column THEN NULL;
                     END $$;
                 """)
-                cursor.execute(f"CREATE INDEX IF NOT EXISTS {table}_school_id_idx ON {table} (school_id)")
+                cursor.execute(
+                    f"CREATE INDEX IF NOT EXISTS {table}_school_id_idx ON {table} (school_id)"
+                )
         else:
             for table in tables:
                 cursor.execute(f"PRAGMA table_info({table})")
                 cols = [row[1] for row in cursor.fetchall()]
                 if "school_id" not in cols:
-                    cursor.execute(f"ALTER TABLE {table} ADD COLUMN school_id integer NULL REFERENCES schools_school(id) ON DELETE CASCADE")
+                    cursor.execute(
+                        f"ALTER TABLE {table} ADD COLUMN school_id integer NULL REFERENCES schools_school(id) ON DELETE CASCADE"
+                    )
 
 
 def noop_school_id(apps, schema_editor):
@@ -377,74 +410,143 @@ def noop_school_id(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('communication', '0008_announcement_audit_log'),
-        ('academics', '0031_incident_school_tenant_scope'),
-        ('people', '0028_merge_people_conflicting_leaves'),
-        ('schools', '0002_enable_rls_postgresql'),
+        ("communication", "0008_announcement_audit_log"),
+        ("academics", "0031_incident_school_tenant_scope"),
+        ("people", "0028_merge_people_conflicting_leaves"),
+        ("schools", "0002_enable_rls_postgresql"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='alertrule',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='alert_rules', to='schools.school'),
+                    model_name="alertrule",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="alert_rules",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='announcement',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='announcements', to='schools.school'),
+                    model_name="announcement",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="announcements",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='announcementauditlog',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='announcement_audit_logs', to='schools.school'),
+                    model_name="announcementauditlog",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="announcement_audit_logs",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='classannouncement',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='class_announcements', to='schools.school'),
+                    model_name="classannouncement",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="class_announcements",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='contactrequest',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='contact_requests', to='schools.school'),
+                    model_name="contactrequest",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="contact_requests",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='contactrequestattachment',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='contact_request_attachments', to='schools.school'),
+                    model_name="contactrequestattachment",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="contact_request_attachments",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='directconversation',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='direct_conversations', to='schools.school'),
+                    model_name="directconversation",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="direct_conversations",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='message',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='messages', to='schools.school'),
+                    model_name="message",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="messages",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='messagethread',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='message_threads', to='schools.school'),
+                    model_name="messagethread",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="message_threads",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='threadmessage',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='thread_messages', to='schools.school'),
+                    model_name="threadmessage",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="thread_messages",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='threadreadstate',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='thread_read_states', to='schools.school'),
+                    model_name="threadreadstate",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="thread_read_states",
+                        to="schools.school",
+                    ),
                 ),
             ],
-            database_operations=[migrations.RunPython(add_school_id_to_communication_tables, noop_school_id)],
+            database_operations=[
+                migrations.RunPython(
+                    add_school_id_to_communication_tables, noop_school_id
+                )
+            ],
         ),
         migrations.RunPython(backfill_communication_school, migrations.RunPython.noop),
         migrations.RunPython(enable_communication_rls, disable_communication_rls),

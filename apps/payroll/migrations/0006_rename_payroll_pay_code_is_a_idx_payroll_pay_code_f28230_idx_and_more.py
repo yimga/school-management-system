@@ -6,31 +6,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('payroll', '0005_auto_20260128_1502'),
+        ("payroll", "0005_auto_20260128_1502"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RenameIndex(
-            model_name='payscale',
-            new_name='payroll_pay_code_f28230_idx',
-            old_name='payroll_pay_code_is_a_idx',
+            model_name="payscale",
+            new_name="payroll_pay_code_f28230_idx",
+            old_name="payroll_pay_code_is_a_idx",
         ),
         migrations.RenameIndex(
-            model_name='payscale',
-            new_name='payroll_pay_departm_abf1c2_idx',
-            old_name='payroll_pay_departm_idx',
+            model_name="payscale",
+            new_name="payroll_pay_departm_abf1c2_idx",
+            old_name="payroll_pay_departm_idx",
         ),
         migrations.AlterField(
-            model_name='payrollrunapproval',
-            name='approver',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="payrollrunapproval",
+            name="approver",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='payslipline',
-            name='amount',
+            model_name="payslipline",
+            name="amount",
             field=models.DecimalField(decimal_places=2, max_digits=12),
         ),
     ]

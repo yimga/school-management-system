@@ -10,6 +10,7 @@ changing name, slug, or subdomain. Ensures:
 
 Run after migrations and when adding new tenants. Safe to run repeatedly.
 """
+
 from django.core.management.base import BaseCommand
 from django.db import DatabaseError, IntegrityError, OperationalError
 
@@ -32,6 +33,7 @@ def _alpha2_for_region(region) -> str:
     if not region or not getattr(region, "code", None):
         return ""
     from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
     return (GlobalGeoCatalog.alpha2_for_country(region.code) or "").upper()[:2]
 
 
@@ -96,7 +98,9 @@ class Command(BaseCommand):
         school = School.objects.filter(slug=slug, is_active=True).first()
         if not school:
             self.stdout.write(
-                self.style.WARNING("School with slug '%s' not found or inactive." % slug)
+                self.style.WARNING(
+                    "School with slug '%s' not found or inactive." % slug
+                )
             )
             return
 
@@ -110,11 +114,18 @@ class Command(BaseCommand):
                     school.default_region = region
                     school.save(update_fields=["default_region", "updated_at"])
 
-        region = school.default_region if not dry_run else (region or school.default_region)
+        region = (
+            school.default_region if not dry_run else (region or school.default_region)
+        )
         if region:
             alpha2 = _alpha2_for_region(region)
-            if alpha2 and (not getattr(school, "country_code", None) or not school.country_code.strip()):
-                changes.append(("country_code", getattr(school, "country_code", ""), alpha2))
+            if alpha2 and (
+                not getattr(school, "country_code", None)
+                or not school.country_code.strip()
+            ):
+                changes.append(
+                    ("country_code", getattr(school, "country_code", ""), alpha2)
+                )
                 if not dry_run:
                     school.country_code = alpha2
                     school.save(update_fields=["country_code", "updated_at"])
@@ -135,24 +146,50 @@ class Command(BaseCommand):
             else:
                 self.stdout.write("No field changes needed.")
             if not no_compile or not no_features:
-                self.stdout.write("Would run compile/features steps (use --no-compile / --no-features to skip).")
+                self.stdout.write(
+                    "Would run compile/features steps (use --no-compile / --no-features to skip)."
+                )
             return
 
         if not no_compile:
             try:
                 from apps.siteconfig.tenant_config import persist_compiled_tenant_config
+
                 persist_compiled_tenant_config(school, persist=True)
                 changes.append(("tenant_compiled_config", "(persisted)", "ok"))
-            except (ImportError, DatabaseError, OperationalError, IntegrityError, ValueError, TypeError, AttributeError) as e:
-                self.stdout.write(self.style.WARNING("persist_compiled_tenant_config: %s" % e))
+            except (
+                ImportError,
+                DatabaseError,
+                OperationalError,
+                IntegrityError,
+                ValueError,
+                TypeError,
+                AttributeError,
+            ) as e:
+                self.stdout.write(
+                    self.style.WARNING("persist_compiled_tenant_config: %s" % e)
+                )
 
         if not no_features:
             try:
-                from apps.siteconfig.tenant_config import sync_tenant_modules_to_school_features
+                from apps.siteconfig.tenant_config import (
+                    sync_tenant_modules_to_school_features,
+                )
+
                 sync_tenant_modules_to_school_features(school, persist=True)
                 changes.append(("features (synced from modules)", "", "ok"))
-            except (ImportError, DatabaseError, OperationalError, IntegrityError, ValueError, TypeError, AttributeError) as e:
-                self.stdout.write(self.style.WARNING("sync_tenant_modules_to_school_features: %s" % e))
+            except (
+                ImportError,
+                DatabaseError,
+                OperationalError,
+                IntegrityError,
+                ValueError,
+                TypeError,
+                AttributeError,
+            ) as e:
+                self.stdout.write(
+                    self.style.WARNING("sync_tenant_modules_to_school_features: %s" % e)
+                )
 
         if changes:
             self.stdout.write(
@@ -162,4 +199,6 @@ class Command(BaseCommand):
                 )
             )
         else:
-            self.stdout.write(self.style.SUCCESS("Tenant '%s' already aligned; no changes." % slug))
+            self.stdout.write(
+                self.style.SUCCESS("Tenant '%s' already aligned; no changes." % slug)
+            )

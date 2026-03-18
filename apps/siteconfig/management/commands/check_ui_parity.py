@@ -90,15 +90,19 @@ class Command(BaseCommand):
         mismatches: list[str] = []
         db_themes = {theme.pk: theme for theme in ThemePack.objects.order_by("pk")}
 
-        missing_theme_ids = sorted(set(fixture_theme_rows.keys()) - set(db_themes.keys()))
+        missing_theme_ids = sorted(
+            set(fixture_theme_rows.keys()) - set(db_themes.keys())
+        )
         extra_theme_ids = sorted(set(db_themes.keys()) - set(fixture_theme_rows.keys()))
         if missing_theme_ids:
             mismatches.append(
-                "Missing ThemePack rows in DB: " + ", ".join(str(pk) for pk in missing_theme_ids)
+                "Missing ThemePack rows in DB: "
+                + ", ".join(str(pk) for pk in missing_theme_ids)
             )
         if extra_theme_ids:
             mismatches.append(
-                "Extra ThemePack rows in DB: " + ", ".join(str(pk) for pk in extra_theme_ids)
+                "Extra ThemePack rows in DB: "
+                + ", ".join(str(pk) for pk in extra_theme_ids)
             )
 
         for theme_id, fixture_fields in sorted(fixture_theme_rows.items()):
@@ -152,7 +156,9 @@ class Command(BaseCommand):
             )
         )
 
-    def _load_fixture(self, input_path: Path) -> tuple[dict[int, dict[str, Any]], dict[str, Any]]:
+    def _load_fixture(
+        self, input_path: Path
+    ) -> tuple[dict[int, dict[str, Any]], dict[str, Any]]:
         if not input_path.exists():
             raise CommandError(f"Fixture not found: {input_path}")
         raw = input_path.read_text(encoding="utf-8").strip()

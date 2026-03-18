@@ -5,30 +5,43 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0041_sitesettings_grade_approval_enabled_and_more'),
+        ("siteconfig", "0041_sitesettings_grade_approval_enabled_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='grade_approval_auto_validate',
-            field=models.BooleanField(default=True, help_text='Automatically flag missing or anomalous scores before sending to approvers.'),
+            model_name="sitesettings",
+            name="grade_approval_auto_validate",
+            field=models.BooleanField(
+                default=True,
+                help_text="Automatically flag missing or anomalous scores before sending to approvers.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='grade_approval_deadline_days',
-            field=models.PositiveSmallIntegerField(default=3, help_text='Days before a submitted request must be reviewed.'),
+            model_name="sitesettings",
+            name="grade_approval_deadline_days",
+            field=models.PositiveSmallIntegerField(
+                default=3, help_text="Days before a submitted request must be reviewed."
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='grade_approval_deadline_note',
-            field=models.CharField(blank=True, default='Please review before the deadline.', help_text='Friendly reminder shown when deadline approaches.', max_length=160),
+            model_name="sitesettings",
+            name="grade_approval_deadline_note",
+            field=models.CharField(
+                blank=True,
+                default="Please review before the deadline.",
+                help_text="Friendly reminder shown when deadline approaches.",
+                max_length=160,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='grade_post_roles',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models.default_grade_post_roles, help_text='Roles that can finalize/post grade approvals (post/extract).'),
+            model_name="sitesettings",
+            name="grade_post_roles",
+            field=models.JSONField(
+                blank=True,
+                default=apps.siteconfig.models.default_grade_post_roles,
+                help_text="Roles that can finalize/post grade approvals (post/extract).",
+            ),
         ),
     ]

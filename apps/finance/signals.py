@@ -9,16 +9,21 @@ from .services import apply_payment, recalculate_invoice
 def ensure_invoice_reference(sender, instance: Invoice, created: bool, **kwargs):
     if instance.reference:
         return
-    Invoice.objects.filter(id=instance.id, reference="").update(reference=f"INV-{instance.id:05d}")
+    Invoice.objects.filter(id=instance.id, reference="").update(
+        reference=f"INV-{instance.id:05d}"
+    )
 
 
 @receiver(post_save, sender=Invoice)
-def emit_invoice_created_platform_event(sender, instance: Invoice, created: bool, **kwargs):
+def emit_invoice_created_platform_event(
+    sender, instance: Invoice, created: bool, **kwargs
+):
     """Path-to-10: emit platform event catalog for automation/analytics."""
     if not created:
         return
     try:
         from apps.platform_runtime.events import emit_platform_event
+
         school_id = getattr(instance, "school_id", None)
         emit_platform_event(
             "invoice_created",
@@ -27,19 +32,28 @@ def emit_invoice_created_platform_event(sender, instance: Invoice, created: bool
         )
     except (ImportError, AttributeError, TypeError, ValueError) as e:
         import logging
+
         logging.getLogger(__name__).debug("emit_invoice_created_platform_event: %s", e)
 
 
 @receiver(post_save, sender=Invoice)
-def notify_guardians_new_invoice_signal(sender, instance: Invoice, created: bool, **kwargs):
+def notify_guardians_new_invoice_signal(
+    sender, instance: Invoice, created: bool, **kwargs
+):
     """Phase 2.3: In-app (and optional email) notification when a new invoice is issued."""
-    if not created or not instance.student_id or instance.invoice_type != Invoice.InvoiceType.AR:
+    if (
+        not created
+        or not instance.student_id
+        or instance.invoice_type != Invoice.InvoiceType.AR
+    ):
         return
     try:
         from .notifications import notify_guardians_new_invoice
+
         notify_guardians_new_invoice(instance, created_by=None)
     except (ImportError, AttributeError, TypeError, ValueError) as e:
         import logging
+
         logging.getLogger(__name__).debug("notify_guardians_new_invoice_signal: %s", e)
 
 
@@ -49,7 +63,10 @@ def ensure_payment_reminder(sender, instance: Invoice, created: bool, **kwargs):
         return
 
     reminder, _ = PaymentReminder.objects.get_or_create(invoice=instance)
-    reminder.is_active = instance.status not in (Invoice.Status.PAID, Invoice.Status.VOID)
+    reminder.is_active = instance.status not in (
+        Invoice.Status.PAID,
+        Invoice.Status.VOID,
+    )
     reminder.save(update_fields=["is_active"])
     reminder.schedule_next()
 
@@ -68,18 +85,26 @@ def sync_invoice_totals_delete(sender, instance: InvoiceLine, **kwargs):
 def sync_payment(sender, instance: Payment, created: bool, **kwargs):
     if not instance.receipt_number:
         receipt = f"RCPT-{instance.id:05d}"
-        Payment.objects.filter(id=instance.id, receipt_number="").update(receipt_number=receipt)
+        Payment.objects.filter(id=instance.id, receipt_number="").update(
+            receipt_number=receipt
+        )
         instance.receipt_number = receipt
     if instance.invoice_id:
         apply_payment(instance)
     if created and instance.invoice_id:
         try:
             from .notifications import notify_guardians_payment_received
-            created_by = getattr(instance, "processed_by", None) or getattr(instance, "created_by", None)
+
+            created_by = getattr(instance, "processed_by", None) or getattr(
+                instance, "created_by", None
+            )
             notify_guardians_payment_received(instance, created_by=created_by)
         except (ImportError, AttributeError, TypeError, ValueError) as e:
             import logging
-            logging.getLogger(__name__).debug("notify_guardians_payment_received signal: %s", e)
+
+            logging.getLogger(__name__).debug(
+                "notify_guardians_payment_received signal: %s", e
+            )
 
 
 @receiver(post_delete, sender=Payment)
@@ -104,6 +129,7 @@ def _on_student_inactive_stop_reminders(sender, instance, **kwargs):
 
 try:
     from apps.people.models import StudentProfile
+
     post_save.connect(_on_student_inactive_stop_reminders, sender=StudentProfile)
 except ImportError:
     pass

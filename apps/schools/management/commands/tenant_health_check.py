@@ -21,7 +21,10 @@ from typing import Iterable
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
-from apps.schools.repositories.health_repository import check_table_exists, count_table_rows
+from apps.schools.repositories.health_repository import (
+    check_table_exists,
+    count_table_rows,
+)
 
 
 class Command(BaseCommand):
@@ -48,7 +51,9 @@ class Command(BaseCommand):
         if not getattr(settings, "USE_DJANGO_TENANTS", False):
             raise CommandError("USE_DJANGO_TENANTS is not enabled.")
         if connection.vendor != "postgresql":
-            raise CommandError("tenant_health_check requires PostgreSQL (django-tenants).")
+            raise CommandError(
+                "tenant_health_check requires PostgreSQL (django-tenants)."
+            )
 
         from apps.customers.models import Client, Domain
         from apps.schools.models import School
@@ -80,7 +85,9 @@ class Command(BaseCommand):
             school = getattr(client, "school", None)
 
         if not client:
-            raise CommandError("Unable to resolve tenant Client from provided arguments.")
+            raise CommandError(
+                "Unable to resolve tenant Client from provided arguments."
+            )
 
         # Basic identity summary
         self.stdout.write(self.style.SUCCESS("Tenant identity"))
@@ -94,7 +101,9 @@ class Command(BaseCommand):
         else:
             self.stdout.write("  School:          <none linked>")
 
-        domains: Iterable[Domain] = Domain.objects.filter(tenant=client).order_by("domain")
+        domains: Iterable[Domain] = Domain.objects.filter(tenant=client).order_by(
+            "domain"
+        )
         if domains:
             self.stdout.write("  Domains:")
             for d in domains:
@@ -107,7 +116,9 @@ class Command(BaseCommand):
         try:
             from django_tenants.utils import tenant_context
         except ImportError as exc:
-            raise CommandError(f"django-tenants is not installed correctly: {exc}") from exc
+            raise CommandError(
+                f"django-tenants is not installed correctly: {exc}"
+            ) from exc
 
         # Shared tables live in the public schema even when you're in tenant_context.
         shared_tables = {
@@ -144,10 +155,18 @@ class Command(BaseCommand):
                 full = f"{schema}.{table}"
                 exists = check_table_exists(full)
                 if not exists:
-                    self.stdout.write(self.style.WARNING(f"  [MISSING] {full} ({shared_tables[(schema, table)]})"))
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"  [MISSING] {full} ({shared_tables[(schema, table)]})"
+                        )
+                    )
                     continue
                 count = count_table_rows(schema, table)
-                self.stdout.write(self.style.SUCCESS(f"  [OK] {full:<36} ({shared_tables[(schema, table)]})  rows={count}"))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"  [OK] {full:<36} ({shared_tables[(schema, table)]})  rows={count}"
+                    )
+                )
 
             # Tenant schema checks (explicitly the tenant schema)
             tenant_schema = client.schema_name
@@ -156,11 +175,18 @@ class Command(BaseCommand):
                 full = f"{tenant_schema}.{table}"
                 exists = check_table_exists(full)
                 if not exists:
-                    self.stdout.write(self.style.WARNING(f"  [MISSING] {full} ({tenant_tables[(app_label, model_table)]})"))
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"  [MISSING] {full} ({tenant_tables[(app_label, model_table)]})"
+                        )
+                    )
                     continue
                 count = count_table_rows(tenant_schema, table)
-                self.stdout.write(self.style.SUCCESS(f"  [OK] {full:<36} ({tenant_tables[(app_label, model_table)]})  rows={count}"))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"  [OK] {full:<36} ({tenant_tables[(app_label, model_table)]})  rows={count}"
+                    )
+                )
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("Done. No data was modified."))
-

@@ -4,6 +4,7 @@ Shared utilities for Django management commands.
 Used by §10 management-commands inventory and deprecation policy
 (BACKLOG §2e row 9; management_commands_inventory.md).
 """
+
 from __future__ import annotations
 
 from typing import Any, Optional

@@ -11,4 +11,3 @@ urlpatterns = [
     path("<slug:slug>/", views.event_detail, name="event_detail"),
     path("<slug:slug>/register/", views.register_for_event, name="register_for_event"),
 ]
-

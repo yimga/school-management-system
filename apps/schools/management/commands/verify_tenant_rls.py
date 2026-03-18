@@ -5,6 +5,7 @@ Usage: python manage.py verify_tenant_rls
 Use after deployment to PostgreSQL to confirm tenant isolation is active.
 On SQLite/MySQL the command exits with OK and a note that RLS is N/A.
 """
+
 from django.core.management.base import BaseCommand
 from django.db import connection
 
@@ -57,7 +58,10 @@ class Command(BaseCommand):
         quiet = options.get("quiet", False)
         if connection.vendor != "postgresql":
             self.stdout.write(
-                self.style.WARNING("RLS is only used on PostgreSQL. Current backend: %s. Skipping check." % connection.vendor)
+                self.style.WARNING(
+                    "RLS is only used on PostgreSQL. Current backend: %s. Skipping check."
+                    % connection.vendor
+                )
             )
             return
         rows = get_tenant_rls_status(TENANT_RLS_TABLES)
@@ -77,11 +81,20 @@ class Command(BaseCommand):
             for t in disabled:
                 self.stdout.write(self.style.ERROR("  ✗ %s RLS disabled" % t))
             for t in missing:
-                self.stdout.write(self.style.WARNING("  ⚠ %s table not found (migration not applied?)" % t))
+                self.stdout.write(
+                    self.style.WARNING(
+                        "  ⚠ %s table not found (migration not applied?)" % t
+                    )
+                )
         if disabled or missing:
             self.stdout.write("")
             self.stdout.write(
-                self.style.ERROR("Verify tenant RLS: FAILED (%s disabled, %s missing)" % (len(disabled), len(missing)))
+                self.style.ERROR(
+                    "Verify tenant RLS: FAILED (%s disabled, %s missing)"
+                    % (len(disabled), len(missing))
+                )
             )
             return
-        self.stdout.write(self.style.SUCCESS("Verify tenant RLS: OK (%s tables)" % len(ok)))
+        self.stdout.write(
+            self.style.SUCCESS("Verify tenant RLS: OK (%s tables)" % len(ok))
+        )

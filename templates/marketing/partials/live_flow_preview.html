@@ -1,0 +1,37 @@
+{% load i18n static %}
+<section id="live-flow-preview" class="mkt-section mkt-reveal" data-chapter="11" aria-label="{% trans 'Interactive product flow' %}">
+  <div class="container">
+    <h2 class="mkt-section-heading">{% trans "See admissions, roster, and fees as one flow" %}</h2>
+    <p class="mkt-section-lead">{% trans "Hover the sidebar or use the steps — the main pane switches like the real product." %}</p>
+    <div class="mkt-live-demo rmc-glass-surface" data-mkt-live-flow>
+      <div class="mkt-live-demo-sidebar" aria-hidden="true">
+        <div class="text-uppercase small text-muted mb-1">{% trans "Demo nav" %}</div>
+        <div class="mkt-live-nav-item is-active" data-goto="admission" tabindex="0" role="button">{% trans "Admissions" %}</div>
+        <div class="mkt-live-nav-item" data-goto="roster" tabindex="0" role="button">{% trans "Roster" %}</div>
+        <div class="mkt-live-nav-item" data-goto="ledger" tabindex="0" role="button">{% trans "Finance" %}</div>
+      </div>
+      <div class="mkt-live-demo-main">
+        <div class="mkt-live-stage" data-stage="admission">
+          <h3 class="h6">{% trans "New application" %}</h3>
+          <p class="small text-muted mb-2">{% trans "A. Mensah — Grade 8 — Pending documents" %}</p>
+          <div class="p-2 rounded" style="background:rgba(34,197,94,0.1);font-size:0.85rem;">{% trans "One click enrolls the student and creates the person record used everywhere else." %}</div>
+        </div>
+        <div class="mkt-live-stage d-none" data-stage="roster">
+          <h3 class="h6">{% trans "Class roster" %}</h3>
+          <p class="small mb-2">{% trans "Grade 8A · 32 students" %}</p>
+          <ul class="small mb-0 ps-3"><li>A. Mensah</li><li>{% trans "Same record as admissions — no re-entry." %}</li></ul>
+        </div>
+        <div class="mkt-live-stage d-none" data-stage="ledger">
+          <h3 class="h6">{% trans "Fee ledger" %}</h3>
+          <p class="small mb-2">{% trans "Invoice #2841 · Tuition term 2" %}</p>
+          <p class="small text-success mb-0">{% trans "Linked to the same student — bursar sees balance next to class context." %}</p>
+        </div>
+      </div>
+    </div>
+    <div class="mkt-live-tabs" role="tablist">
+      <button type="button" data-goto="admission" class="is-active">1. {% trans "Admit" %}</button>
+      <button type="button" data-goto="roster">2. {% trans "Roster" %}</button>
+      <button type="button" data-goto="ledger">3. {% trans "Ledger" %}</button>
+    </div>
+  </div>
+</section>

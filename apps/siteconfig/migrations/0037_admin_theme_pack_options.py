@@ -5,27 +5,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0036_sitesettings_preview_banner_text_and_more'),
+        ("siteconfig", "0036_sitesettings_preview_banner_text_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='themepack',
-            name='applies_to_admin',
-            field=models.BooleanField(default=False, help_text='Use this pack for the Django /admin interface.'),
+            model_name="themepack",
+            name="applies_to_admin",
+            field=models.BooleanField(
+                default=False,
+                help_text="Use this pack for the Django /admin interface.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='admin_theme_pack',
+            model_name="sitesettings",
+            name="admin_theme_pack",
             field=models.ForeignKey(
                 blank=True,
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
-                related_name='admin_site_settings',
-                to='siteconfig.themepack',
-                help_text='Theme pack specifically for the Django /admin interface.',
+                related_name="admin_site_settings",
+                to="siteconfig.themepack",
+                help_text="Theme pack specifically for the Django /admin interface.",
             ),
         ),
     ]

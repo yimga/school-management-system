@@ -5,15 +5,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('reports', '0012_rls_policy_default_deny'),
+        ("reports", "0012_rls_policy_default_deny"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='reportcard',
-            name='pdf_file',
-            field=models.FileField(blank=True, null=True, upload_to=apps.reports.models.reportcard_pdf_upload_to),
+            model_name="reportcard",
+            name="pdf_file",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to=apps.reports.models.reportcard_pdf_upload_to,
+            ),
         ),
     ]

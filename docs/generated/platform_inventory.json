@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
-    "allow_any": 61,
-    "csrf_exempt": 106,
+    "allow_any": 63,
+    "csrf_exempt": 124,
     "cursor_execute": 351,
-    "except_exception": 159,
+    "except_exception": 205,
     "get_solo": 181,
-    "gilead": 685,
+    "gilead": 687,
     "gilead_files": 134,
-    "html_files": 510,
-    "management_commands": 138,
-    "markdown_files": 904,
-    "migration_files": 601,
-    "print_calls": 506,
-    "python_files": 1859,
-    "site_settings": 1128
+    "html_files": 536,
+    "management_commands": 140,
+    "markdown_files": 953,
+    "migration_files": 616,
+    "print_calls": 530,
+    "python_files": 1946,
+    "site_settings": 1132
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -23,63 +23,63 @@
   },
   "largest_python_files": [
     {
-      "bytes": 213796,
-      "lines": 3671,
+      "bytes": 248104,
+      "lines": 5775,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 136032,
-      "lines": 3149,
+      "bytes": 128290,
+      "lines": 3444,
       "path": "apps/schools/super_views.py"
     },
     {
-      "bytes": 107567,
-      "lines": 2564,
-      "path": "apps/evals/views.py"
-    },
-    {
-      "bytes": 106915,
-      "lines": 2542,
+      "bytes": 116292,
+      "lines": 3269,
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 104459,
-      "lines": 2341,
+      "bytes": 114435,
+      "lines": 3100,
+      "path": "apps/evals/views.py"
+    },
+    {
+      "bytes": 113808,
+      "lines": 2990,
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 95914,
-      "lines": 2556,
-      "path": "apps/finance/models.py"
-    },
-    {
-      "bytes": 95144,
-      "lines": 2360,
-      "path": "apps/siteconfig/models.py"
-    },
-    {
-      "bytes": 90640,
-      "lines": 1741,
+      "bytes": 103010,
+      "lines": 2463,
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 86491,
-      "lines": 1736,
+      "bytes": 98728,
+      "lines": 2504,
       "path": "apps/portal/views_parent.py"
     },
     {
-      "bytes": 80448,
-      "lines": 1895,
+      "bytes": 98407,
+      "lines": 2807,
+      "path": "apps/finance/models.py"
+    },
+    {
+      "bytes": 96669,
+      "lines": 2482,
+      "path": "apps/siteconfig/models.py"
+    },
+    {
+      "bytes": 86367,
+      "lines": 2339,
       "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 80075,
-      "lines": 1775,
+      "bytes": 84718,
+      "lines": 2069,
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 63755,
-      "lines": 1482,
+      "bytes": 63960,
+      "lines": 1495,
       "path": "apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py"
     }
   ],
@@ -151,6 +151,11 @@
     },
     {
       "app": "accounts",
+      "command": "refresh_saml_idp_metadata",
+      "path": "apps/accounts/management/commands/refresh_saml_idp_metadata.py"
+    },
+    {
+      "app": "accounts",
       "command": "security_log_retention",
       "path": "apps/accounts/management/commands/security_log_retention.py"
     },
@@ -193,6 +198,11 @@
       "app": "billing",
       "command": "run_revenue_share_payouts",
       "path": "apps/billing/management/commands/run_revenue_share_payouts.py"
+    },
+    {
+      "app": "communication",
+      "command": "purge_thread_message_retention",
+      "path": "apps/communication/management/commands/purge_thread_message_retention.py"
     },
     {
       "app": "communication",
@@ -786,15 +796,18 @@
     "csrf_exempt": {
       "owners": [
         "api_platform",
+        "beyond_reach_api",
         "billing",
         "finance_payments",
         "identity_access",
         "identity_provisioning",
         "interop_lti",
-        "marketing_leads"
+        "learning_institution",
+        "marketing_leads",
+        "north_star_api"
       ],
-      "reviewed_endpoints": 13,
-      "reviewed_files": 7
+      "reviewed_endpoints": 27,
+      "reviewed_files": 10
     }
   },
   "site_settings_fields": [

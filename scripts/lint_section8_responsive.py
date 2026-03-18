@@ -9,6 +9,7 @@ manual review. Use --strict to exit 1 when any violation is found.
 
 Symptom → subsection: "Not responsive / horizontal scroll / fixed width" → §8.0.6.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -47,7 +48,11 @@ def scan_css_file(path: Path, min_px: int) -> list[tuple[int, str, str]]:
             num = int(num_str)
             if num >= min_px:
                 violations.append(
-                    (i, stripped[:100], f"{prop}: {num}px (layout? prefer rem/%/clamp per §8.0.6)")
+                    (
+                        i,
+                        stripped[:100],
+                        f"{prop}: {num}px (layout? prefer rem/%/clamp per §8.0.6)",
+                    )
                 )
                 break
     return violations
@@ -66,10 +71,24 @@ def scan_css_dir(dir_path: Path, min_px: int) -> dict[Path, list[tuple[int, str,
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="§8.0.6 responsive lint: find fixed px layout dimensions")
-    ap.add_argument("--strict", action="store_true", help="Exit 1 if any violation found")
-    ap.add_argument("--min-px", type=int, default=DEFAULT_MIN_PX, help=f"Report px >= this (default {DEFAULT_MIN_PX}, layout-sized)")
-    ap.add_argument("--dir", type=Path, default=STATIC_CSS, help="CSS directory to scan (default: static/css)")
+    ap = argparse.ArgumentParser(
+        description="§8.0.6 responsive lint: find fixed px layout dimensions"
+    )
+    ap.add_argument(
+        "--strict", action="store_true", help="Exit 1 if any violation found"
+    )
+    ap.add_argument(
+        "--min-px",
+        type=int,
+        default=DEFAULT_MIN_PX,
+        help=f"Report px >= this (default {DEFAULT_MIN_PX}, layout-sized)",
+    )
+    ap.add_argument(
+        "--dir",
+        type=Path,
+        default=STATIC_CSS,
+        help="CSS directory to scan (default: static/css)",
+    )
     args = ap.parse_args()
     css_dir = args.dir.resolve() if args.dir.is_absolute() else ROOT / args.dir
     results = scan_css_dir(css_dir, args.min_px)
@@ -80,7 +99,9 @@ def main() -> int:
             print(f"{rel}:{line_no}: {reason}")
             print(f"  {line}")
     if total > 0:
-        print(f"\n§8.0.6 responsive lint: {total} potential fixed-px layout issue(s) in {len(results)} file(s)")
+        print(
+            f"\n§8.0.6 responsive lint: {total} potential fixed-px layout issue(s) in {len(results)} file(s)"
+        )
         print("Consider: rem, em, %, clamp(), or minmax() for layout (SOT §8.0.6).")
         if args.strict:
             return 1

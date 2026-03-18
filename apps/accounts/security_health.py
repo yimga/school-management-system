@@ -4,6 +4,7 @@ SecurityTask registry and SecurityHealth service: calculate_profile_strength(use
 Weights: Password 20%, MFA 30%, Identity 15%, Passkeys 20%, Recovery 15%.
 Region-aware (stricter for EU); configurable weights per tenant; grace period for new users.
 """
+
 from __future__ import annotations
 
 import logging
@@ -31,6 +32,7 @@ TOTAL_POINTS = 100
 @dataclass
 class SecurityTask:
     """Single security task with point value and checker."""
+
     code: str
     points: int
     label_key: str  # i18n key for labels_map
@@ -50,7 +52,9 @@ def _check_password_strength(user) -> bool:
     score = getattr(user, "password_strength_score", None)
     if score is not None:
         return int(score) >= 3
-    return True  # has a set password; frontend should run zxcvbn on change and store score
+    return (
+        True  # has a set password; frontend should run zxcvbn on change and store score
+    )
 
 
 def _check_mfa(user) -> bool:
@@ -59,6 +63,7 @@ def _check_mfa(user) -> bool:
         return False
     try:
         from django_otp import user_has_device
+
         return user_has_device(user, confirmed=True)
     except (ImportError, AttributeError, TypeError):
         return False
@@ -71,11 +76,14 @@ def _check_identity_verified(user) -> bool:
     email_ok = False
     try:
         from allauth.account.models import EmailAddress
+
         email_ok = EmailAddress.objects.filter(user=user, verified=True).exists()
     except (ImportError, AttributeError, TypeError):
         if getattr(user, "email", None) and getattr(user, "is_active", True):
             email_ok = True  # fallback when allauth not used
-    phone_ok = getattr(user, "phone_verified", False) or getattr(user, "profile_phone_verified", False)
+    phone_ok = getattr(user, "phone_verified", False) or getattr(
+        user, "profile_phone_verified", False
+    )
     return email_ok and phone_ok
 
 
@@ -85,6 +93,7 @@ def _check_passkeys(user) -> bool:
         return False
     try:
         from apps.accounts.models import UserPasskey
+
         return UserPasskey.objects.filter(user=user).exists()
     except (ImportError, AttributeError, TypeError):
         return False
@@ -97,6 +106,7 @@ def _check_recovery(user) -> bool:
     has_static = False
     try:
         from django_otp.plugins.otp_static.models import StaticDevice
+
         has_static = StaticDevice.objects.filter(user=user, confirmed=True).exists()
     except (ImportError, AttributeError, TypeError):
         pass
@@ -109,12 +119,38 @@ class SecurityTaskRegistry:
     Registry of security tasks with point values.
     Region/school can override weights via get_security_weights(school).
     """
+
     _tasks: list[SecurityTask] = [
-        SecurityTask("password_strength", DEFAULT_WEIGHTS["password_strength"], "security.task.password", _check_password_strength),
-        SecurityTask("mfa_verification", DEFAULT_WEIGHTS["mfa_verification"], "security.task.mfa", _check_mfa),
-        SecurityTask("identity_verification", DEFAULT_WEIGHTS["identity_verification"], "security.task.identity", _check_identity_verified),
-        SecurityTask("biometric_passkeys", DEFAULT_WEIGHTS["biometric_passkeys"], "security.task.passkeys", _check_passkeys),
-        SecurityTask("security_recovery", DEFAULT_WEIGHTS["security_recovery"], "security.task.recovery", _check_recovery),
+        SecurityTask(
+            "password_strength",
+            DEFAULT_WEIGHTS["password_strength"],
+            "security.task.password",
+            _check_password_strength,
+        ),
+        SecurityTask(
+            "mfa_verification",
+            DEFAULT_WEIGHTS["mfa_verification"],
+            "security.task.mfa",
+            _check_mfa,
+        ),
+        SecurityTask(
+            "identity_verification",
+            DEFAULT_WEIGHTS["identity_verification"],
+            "security.task.identity",
+            _check_identity_verified,
+        ),
+        SecurityTask(
+            "biometric_passkeys",
+            DEFAULT_WEIGHTS["biometric_passkeys"],
+            "security.task.passkeys",
+            _check_passkeys,
+        ),
+        SecurityTask(
+            "security_recovery",
+            DEFAULT_WEIGHTS["security_recovery"],
+            "security.task.recovery",
+            _check_recovery,
+        ),
     ]
 
     @classmethod
@@ -128,13 +164,19 @@ class SecurityTaskRegistry:
             return DEFAULT_WEIGHTS
         try:
             from apps.policies.policy_registry import get_effective_policy
+
             policy = get_effective_policy(school)
-            w = policy.get("security_weights") or policy.get("security_weights_override")
+            w = policy.get("security_weights") or policy.get(
+                "security_weights_override"
+            )
             if isinstance(w, dict):
                 return {**DEFAULT_WEIGHTS, **w}
             from apps.siteconfig.tenant_config import get_tenant_locale
+
             config = get_tenant_locale(school=school) or {}
-            w = config.get("security_weights") or config.get("security_weights_override")
+            w = config.get("security_weights") or config.get(
+                "security_weights_override"
+            )
             if isinstance(w, dict):
                 return {**DEFAULT_WEIGHTS, **w}
         except (ImportError, AttributeError, TypeError, KeyError, ValueError):
@@ -151,6 +193,7 @@ def calculate_profile_strength(user, school=None, use_cache=True) -> float:
         return 0.0
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+
         school_id = getattr(school, "id", None) or getattr(user, "school_id", None)
         prefix = f"school:{school_id}" if school_id else get_tenant_cache_prefix()
     except (ImportError, AttributeError, TypeError):
@@ -175,7 +218,10 @@ def calculate_profile_strength(user, school=None, use_cache=True) -> float:
 def get_missing_tasks(user, school=None) -> list[dict]:
     """List of tasks not yet satisfied: [{code, points, label_key}, ...]."""
     if not user or not user.is_authenticated:
-        return [{"code": t.code, "points": t.points, "label_key": t.label_key} for t in SecurityTaskRegistry.get_tasks()]
+        return [
+            {"code": t.code, "points": t.points, "label_key": t.label_key}
+            for t in SecurityTaskRegistry.get_tasks()
+        ]
     weights = SecurityTaskRegistry.get_weights(school)
     out = []
     for task in SecurityTaskRegistry.get_tasks():
@@ -190,10 +236,12 @@ def get_security_grace_period_days(school=None) -> int:
     try:
         if school:
             from apps.policies.policy_registry import get_effective_policy
+
             policy = get_effective_policy(school)
             if "security_grace_period_days" in policy:
                 return int(policy["security_grace_period_days"])
         from apps.siteconfig.tenant_config import get_tenant_locale
+
         config = get_tenant_locale(school=school) or {}
         return int(config.get("security_grace_period_days", 7))
     except (ImportError, AttributeError, TypeError, KeyError, ValueError):
@@ -206,13 +254,21 @@ def is_within_grace_period(user, school=None) -> bool:
     if not user or not getattr(user, "date_joined", None):
         return True
     from datetime import timedelta
+
     grace_days = get_security_grace_period_days(school or getattr(user, "school", None))
     return timezone.now() - user.date_joined < timedelta(days=grace_days)
 
 
 def get_minimum_security_score_for_role(role_code: str, school=None) -> float:
     """Stricter minimum for Admins and Financial staff (plan 3.21)."""
-    strict_roles = ("ADMIN", "SUPERADMIN", "BURSAR", "ACCOUNTANT", "FINANCE_STAFF", "PROPRIETOR")
+    strict_roles = (
+        "ADMIN",
+        "SUPERADMIN",
+        "BURSAR",
+        "ACCOUNTANT",
+        "FINANCE_STAFF",
+        "PROPRIETOR",
+    )
     if (role_code or "").upper() in strict_roles:
         return 80.0
     return 0.0

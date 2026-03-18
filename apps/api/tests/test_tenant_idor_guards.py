@@ -4,7 +4,13 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Payment, PaymentMethodCode
+from apps.finance.models import (
+    ComplianceProfile,
+    Invoice,
+    InvoiceLine,
+    Payment,
+    PaymentMethodCode,
+)
 from apps.people.models import StudentProfile
 from apps.schools.models import School, SchoolMembership
 
@@ -112,17 +118,23 @@ class TenantIdorGuardsTests(TestCase):
 
     def test_student_detail_blocks_cross_tenant_idor(self):
         self._login_as_tenant_a()
-        response = self.client.get(reverse("api:entity-student-detail", args=[self.student_b.id]))
+        response = self.client.get(
+            reverse("api:entity-student-detail", args=[self.student_b.id])
+        )
         self.assertEqual(response.status_code, 404)
 
     def test_invoice_detail_blocks_cross_tenant_idor(self):
         self._login_as_tenant_a()
-        response = self.client.get(reverse("api:finance-invoice-detail", args=[self.invoice_b.id]))
+        response = self.client.get(
+            reverse("api:finance-invoice-detail", args=[self.invoice_b.id])
+        )
         self.assertEqual(response.status_code, 404)
 
     def test_payment_detail_blocks_cross_tenant_idor(self):
         self._login_as_tenant_a()
-        response = self.client.get(reverse("api:finance-payment-detail", args=[self.payment_b.id]))
+        response = self.client.get(
+            reverse("api:finance-payment-detail", args=[self.payment_b.id])
+        )
         self.assertEqual(response.status_code, 404)
 
     def test_finance_analytics_is_school_scoped(self):
@@ -161,9 +173,21 @@ class TenantIdorGuardsTests(TestCase):
         invoices_payload = invoices_response.json()
         payments_payload = payments_response.json()
 
-        students_rows = students_payload.get("results") if isinstance(students_payload, dict) else students_payload
-        invoices_rows = invoices_payload.get("results") if isinstance(invoices_payload, dict) else invoices_payload
-        payments_rows = payments_payload.get("results") if isinstance(payments_payload, dict) else payments_payload
+        students_rows = (
+            students_payload.get("results")
+            if isinstance(students_payload, dict)
+            else students_payload
+        )
+        invoices_rows = (
+            invoices_payload.get("results")
+            if isinstance(invoices_payload, dict)
+            else invoices_payload
+        )
+        payments_rows = (
+            payments_payload.get("results")
+            if isinstance(payments_payload, dict)
+            else payments_payload
+        )
 
         self.assertEqual(len(students_rows or []), 0)
         self.assertEqual(len(invoices_rows or []), 0)

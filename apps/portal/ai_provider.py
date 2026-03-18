@@ -14,6 +14,7 @@ Sync vs async: Use generate_ai_response (sync) for single-turn copilot only. For
 or long-running (syllabus sync, bulk support suggestion, report-card remarks), use
 apps.portal.tasks.generate_ai_response_async and poll cache key ai:async_result:{task_id}.
 """
+
 from __future__ import annotations
 
 import json
@@ -139,8 +140,14 @@ def _call_gemini(prompt: str) -> str | None:
             "maxOutputTokens": 500,
         },
         "safetySettings": [
-            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
         ],
     }
     request = urllib.request.Request(
@@ -150,11 +157,20 @@ def _call_gemini(prompt: str) -> str | None:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=_request_timeout_seconds()) as response:
+        with urllib.request.urlopen(
+            request, timeout=_request_timeout_seconds()
+        ) as response:
             data = json.loads(response.read().decode("utf-8"))
     except urllib.error.URLError:
         return None
-    except (OSError, TimeoutError, ValueError, TypeError, json.JSONDecodeError, UnicodeDecodeError):
+    except (
+        OSError,
+        TimeoutError,
+        ValueError,
+        TypeError,
+        json.JSONDecodeError,
+        UnicodeDecodeError,
+    ):
         logger.exception("Gemini call failed")
         return None
     return (
@@ -187,9 +203,7 @@ def get_ai_provider_status() -> dict[str, Any]:
     endpoint, ollama_model = _ollama_config()
     gemini_model = _gemini_model()
     gemini_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
-    rules_enabled = bool(
-        getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)
-    )
+    rules_enabled = bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True))
     has_live = bool(endpoint and ollama_model) or bool(gemini_key)
     return {
         "preference": _provider_preference(),
@@ -308,7 +322,9 @@ def generate_ai_response(
         )
 
 
-def get_workflow_clues(workflow_key: str, country_code: str) -> tuple[str | None, dict[str, Any]]:
+def get_workflow_clues(
+    workflow_key: str, country_code: str
+) -> tuple[str | None, dict[str, Any]]:
     """
     World Engine: workflow setup suggestions by country. Uses AI gateway (setup_recommend) when enabled.
     Returns (suggestions_text, metadata). Use for onboarding/setup wizards.
@@ -332,7 +348,11 @@ def get_workflow_clues(workflow_key: str, country_code: str) -> tuple[str | None
         text = result if isinstance(result, str) else None
         if text:
             return text.strip(), {**meta, "gateway": True}
-        return None, {**meta, "gateway": True, "error": meta.get("error", "unavailable")}
+        return None, {
+            **meta,
+            "gateway": True,
+            "error": meta.get("error", "unavailable"),
+        }
     except _AI_GATEWAY_INVOKE_ERRORS as e:
         logger.warning("Gateway get_workflow_clues failed: %s", e)
         return None, {"gateway": True, "error": "unavailable"}
@@ -351,7 +371,7 @@ def suggest_support_ticket_response(
     """
     prompt = (
         f"Support ticket — Subject: {subject[:200]}. Body: {body[:800]}.\n"
-        "Respond with a short JSON only: {\"category\": \"...\", \"priority\": \"LOW|NORMAL|HIGH|URGENT\", \"suggested_reply\": \"...\"}. "
+        'Respond with a short JSON only: {"category": "...", "priority": "LOW|NORMAL|HIGH|URGENT", "suggested_reply": "..."}. '
         "Keep suggested_reply under 200 words."
     )
     if not getattr(settings, "AI_GATEWAY_ENABLED", True):
@@ -367,7 +387,11 @@ def suggest_support_ticket_response(
             user_query=subject[:200],
             metadata={"country_code": country_code, "school": school},
         )
-        text = result if isinstance(result, str) else (str(result) if result is not None else None)
+        text = (
+            result
+            if isinstance(result, str)
+            else (str(result) if result is not None else None)
+        )
         meta.setdefault("gateway", True)
     except _AI_GATEWAY_INVOKE_ERRORS as e:
         logger.warning("Gateway suggest_support_ticket failed: %s", e)

@@ -4,15 +4,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0017_add_payment_status'),
+        ("finance", "0017_add_payment_status"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='payment',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), ('completed', 'Completed'), ('failed', 'Failed'), ('cancelled', 'Cancelled'), ('refunded', 'Refunded')], default='pending', max_length=20),
+            model_name="payment",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("processing", "Processing"),
+                    ("completed", "Completed"),
+                    ("failed", "Failed"),
+                    ("cancelled", "Cancelled"),
+                    ("refunded", "Refunded"),
+                ],
+                default="pending",
+                max_length=20,
+            ),
         ),
     ]

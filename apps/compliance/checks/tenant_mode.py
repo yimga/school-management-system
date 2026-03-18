@@ -2,6 +2,7 @@
 Django system checks for tenancy mode consistency.
 Fails fast if production is misconfigured (USE_DJANGO_TENANTS vs DB engine).
 """
+
 from django.conf import settings
 from django.core.checks import Error, register
 

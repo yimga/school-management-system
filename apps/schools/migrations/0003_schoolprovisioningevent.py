@@ -6,30 +6,91 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0002_enable_rls_postgresql'),
+        ("schools", "0002_enable_rls_postgresql"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SchoolProvisioningEvent',
+            name="SchoolProvisioningEvent",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('event_type', models.CharField(choices=[('REQUEST_RECEIVED', 'Request Received'), ('QUEUED', 'Queued'), ('STARTED', 'Started'), ('PROFILE_APPLIED', 'Profile Applied'), ('ACADEMIC_YEAR_READY', 'Academic Year Ready'), ('SUBJECTS_READY', 'Subjects Ready'), ('DOMAIN_PENDING', 'Domain Pending'), ('DOMAIN_VERIFIED', 'Domain Verified'), ('DOMAIN_UNVERIFIED', 'Domain Unverified'), ('COMPLETED', 'Completed'), ('FAILED', 'Failed')], max_length=40)),
-                ('status', models.CharField(choices=[('INFO', 'Info'), ('SUCCESS', 'Success'), ('WARNING', 'Warning'), ('ERROR', 'Error')], default='INFO', max_length=20)),
-                ('message', models.CharField(blank=True, max_length=255)),
-                ('payload', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='school_provisioning_events', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='provisioning_events', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "event_type",
+                    models.CharField(
+                        choices=[
+                            ("REQUEST_RECEIVED", "Request Received"),
+                            ("QUEUED", "Queued"),
+                            ("STARTED", "Started"),
+                            ("PROFILE_APPLIED", "Profile Applied"),
+                            ("ACADEMIC_YEAR_READY", "Academic Year Ready"),
+                            ("SUBJECTS_READY", "Subjects Ready"),
+                            ("DOMAIN_PENDING", "Domain Pending"),
+                            ("DOMAIN_VERIFIED", "Domain Verified"),
+                            ("DOMAIN_UNVERIFIED", "Domain Unverified"),
+                            ("COMPLETED", "Completed"),
+                            ("FAILED", "Failed"),
+                        ],
+                        max_length=40,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("INFO", "Info"),
+                            ("SUCCESS", "Success"),
+                            ("WARNING", "Warning"),
+                            ("ERROR", "Error"),
+                        ],
+                        default="INFO",
+                        max_length=20,
+                    ),
+                ),
+                ("message", models.CharField(blank=True, max_length=255)),
+                ("payload", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="school_provisioning_events",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="provisioning_events",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'School provisioning event',
-                'verbose_name_plural': 'School provisioning events',
-                'ordering': ['-created_at', '-id'],
-                'indexes': [models.Index(fields=['school', '-created_at'], name='schools_sch_school__731432_idx'), models.Index(fields=['event_type'], name='schools_sch_event_t_d8691d_idx')],
+                "verbose_name": "School provisioning event",
+                "verbose_name_plural": "School provisioning events",
+                "ordering": ["-created_at", "-id"],
+                "indexes": [
+                    models.Index(
+                        fields=["school", "-created_at"],
+                        name="schools_sch_school__731432_idx",
+                    ),
+                    models.Index(
+                        fields=["event_type"], name="schools_sch_event_t_d8691d_idx"
+                    ),
+                ],
             },
         ),
     ]

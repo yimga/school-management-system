@@ -1,6 +1,7 @@
 """
 Minimal workflow execution engine (Part 2c). Evaluates conditions and runs actions; logs each run.
 """
+
 import logging
 from smtplib import SMTPException
 
@@ -41,15 +42,25 @@ def evaluate_conditions(conditions: list, context: dict) -> bool:
             return False
         if op == "neq" and actual == want:
             return False
-        if op == "gt" and not (actual is not None and want is not None and actual > want):
+        if op == "gt" and not (
+            actual is not None and want is not None and actual > want
+        ):
             return False
-        if op == "gte" and not (actual is not None and want is not None and actual >= want):
+        if op == "gte" and not (
+            actual is not None and want is not None and actual >= want
+        ):
             return False
-        if op == "lt" and not (actual is not None and want is not None and actual < want):
+        if op == "lt" and not (
+            actual is not None and want is not None and actual < want
+        ):
             return False
-        if op == "lte" and not (actual is not None and want is not None and actual <= want):
+        if op == "lte" and not (
+            actual is not None and want is not None and actual <= want
+        ):
             return False
-        if op == "in" and actual not in (want if isinstance(want, (list, tuple)) else []):
+        if op == "in" and actual not in (
+            want if isinstance(want, (list, tuple)) else []
+        ):
             return False
         if op == "contains":
             if want is None:
@@ -71,7 +82,10 @@ def _run_action_notify(params: dict, context: dict, school=None) -> None:
     if channel == "email" and params.get("to"):
         try:
             from apps.communication.notification_service import send_email
-            to_list = [params["to"]] if isinstance(params["to"], str) else list(params["to"])
+
+            to_list = (
+                [params["to"]] if isinstance(params["to"], str) else list(params["to"])
+            )
             send_email(
                 to_list,
                 subject=params.get("subject", "Notification"),
@@ -80,7 +94,11 @@ def _run_action_notify(params: dict, context: dict, school=None) -> None:
                 fail_silently=True,
             )
         except (*WORKFLOW_SOFT_FAILURES, SMTPException) as e:
-            school_id = str(getattr(school, "pk", None) or getattr(school, "id", None)) if school else None
+            school_id = (
+                str(getattr(school, "pk", None) or getattr(school, "id", None))
+                if school
+                else None
+            )
             log_exception_with_context(
                 "workflow_engine: notify email failed",
                 school_id=school_id,
@@ -96,13 +114,16 @@ def _run_action_emit_event(params: dict, context: dict, school=None) -> None:
     """Emit a domain event. params: event_type, payload (dict or context keys)."""
     try:
         from apps.events.services import emit_event
+
         event_type = params.get("event_type") or "workflow.triggered"
         payload = dict(params.get("payload") or {})
         for k, v in (context or {}).items():
             if k.startswith("event_"):
                 payload[k] = v
         school_id = getattr(school, "pk", None) or getattr(school, "id", None)
-        schema_name = getattr(getattr(school, "client", None), "schema_name", None) or getattr(school, "schema_name", None)
+        schema_name = getattr(
+            getattr(school, "client", None), "schema_name", None
+        ) or getattr(school, "schema_name", None)
         emit_event(
             event_type=event_type,
             payload=payload,
@@ -110,7 +131,11 @@ def _run_action_emit_event(params: dict, context: dict, school=None) -> None:
             schema_name=schema_name,
         )
     except WORKFLOW_SOFT_FAILURES as e:
-        school_id = str(getattr(school, "pk", None) or getattr(school, "id", None)) if school else None
+        school_id = (
+            str(getattr(school, "pk", None) or getattr(school, "id", None))
+            if school
+            else None
+        )
         log_exception_with_context(
             "workflow_engine: emit_event failed",
             school_id=school_id,
@@ -149,25 +174,33 @@ def run_actions(actions: list, context: dict, school=None) -> list:
                     params,
                     getattr(school, "id", None),
                 )
-            results.append({
-                "type": action_type,
-                "params": params,
-                "run_at": timezone.now().isoformat(),
-            })
+            results.append(
+                {
+                    "type": action_type,
+                    "params": params,
+                    "run_at": timezone.now().isoformat(),
+                }
+            )
         except WorkflowActionExecutionError as e:
-            school_id = str(getattr(school, "pk", None) or getattr(school, "id", None)) if school else None
+            school_id = (
+                str(getattr(school, "pk", None) or getattr(school, "id", None))
+                if school
+                else None
+            )
             log_exception_with_context(
                 "workflow_engine: action failed",
                 school_id=school_id,
                 extra={"action_type": action_type, "error": str(e)},
             )
             logger.warning("Workflow action failed: type=%s error=%s", action_type, e)
-            results.append({
-                "type": action_type,
-                "params": params,
-                "run_at": timezone.now().isoformat(),
-                "error": str(e),
-            })
+            results.append(
+                {
+                    "type": action_type,
+                    "params": params,
+                    "run_at": timezone.now().isoformat(),
+                    "error": str(e),
+                }
+            )
     return results
 
 
@@ -194,11 +227,22 @@ def get_effective_workflow_dsl(tenant_workflow) -> dict:
             "actions": list(template.actions or []),
         }
     # Level 2/3: merge overrides
-    conditions = overrides.get("conditions") if isinstance(overrides.get("conditions"), list) else (template.conditions or [])
-    actions = overrides.get("actions") if isinstance(overrides.get("actions"), list) else (template.actions or [])
+    conditions = (
+        overrides.get("conditions")
+        if isinstance(overrides.get("conditions"), list)
+        else (template.conditions or [])
+    )
+    actions = (
+        overrides.get("actions")
+        if isinstance(overrides.get("actions"), list)
+        else (template.actions or [])
+    )
     return {
         "trigger": overrides.get("trigger") or template.trigger,
-        "trigger_config": {**(template.trigger_config or {}), **(overrides.get("trigger_config") or {})},
+        "trigger_config": {
+            **(template.trigger_config or {}),
+            **(overrides.get("trigger_config") or {}),
+        },
         "conditions": conditions,
         "actions": actions,
     }
@@ -229,6 +273,7 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
         audit_ref = ""
         try:
             from .models_workflow import WorkflowRunLog
+
             log = WorkflowRunLog.objects.create(
                 tenant_workflow=tenant_workflow,
                 conditions_passed=False,
@@ -237,19 +282,29 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
             )
             audit_ref = str(log.id)
         except WORKFLOW_SOFT_FAILURES as e:
-            school_id = str(getattr(getattr(tenant_workflow, "school", None), "id", None)) if getattr(tenant_workflow, "school", None) else None
+            school_id = (
+                str(getattr(getattr(tenant_workflow, "school", None), "id", None))
+                if getattr(tenant_workflow, "school", None)
+                else None
+            )
             log_exception_with_context(
                 "workflow_engine: WorkflowRunLog create failed (conditions_passed=False)",
                 school_id=school_id,
                 extra={"error": str(e)},
             )
             logger.warning("WorkflowRunLog create failed: %s", e)
-        return {"ok": True, "conditions_passed": False, "actions_run": [], "audit_ref": audit_ref}
+        return {
+            "ok": True,
+            "conditions_passed": False,
+            "actions_run": [],
+            "audit_ref": audit_ref,
+        }
 
     school = getattr(tenant_workflow, "school", None)
     actions_run = run_actions(actions, context, school=school)
     try:
         from apps.platform_runtime.governor_limits import record_workflow_run
+
         record_workflow_run(school_id=getattr(school, "id", None) if school else None)
     except WORKFLOW_SOFT_FAILURES as e:
         logger.debug("record_workflow_run skipped: %s", e)
@@ -257,6 +312,7 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
     audit_ref = ""
     try:
         from .models_workflow import WorkflowRunLog
+
         log = WorkflowRunLog.objects.create(
             tenant_workflow=tenant_workflow,
             conditions_passed=True,
@@ -274,13 +330,18 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
         logger.warning("WorkflowRunLog create failed: %s", e)
     try:
         from apps.schools.models import SchoolProvisioningEvent
+
         if school:
             SchoolProvisioningEvent.log_event(
                 school=school,
                 event_type="WORKFLOW_RUN",
                 status="INFO",
                 message=f"Workflow {template.code} ran; {len(actions_run)} action(s).",
-                payload={"template": template.code, "actions_run": actions_run, "context_keys": context_keys},
+                payload={
+                    "template": template.code,
+                    "actions_run": actions_run,
+                    "context_keys": context_keys,
+                },
             )
     except WORKFLOW_SOFT_FAILURES as e:
         school_id = str(getattr(school, "id", None)) if school else None
@@ -296,10 +357,12 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
     if failed and school:
         try:
             from apps.customersuccess.services import record_workflow_failure
+
             error_summary = "; ".join([r.get("error", "")[:100] for r in failed[:3]])
             record_workflow_failure(
                 school=school,
-                workflow_name=getattr(template, "code", "") or str(getattr(template, "id", "")),
+                workflow_name=getattr(template, "code", "")
+                or str(getattr(template, "id", "")),
                 workflow_run_id=audit_ref,
                 error_summary=error_summary or "One or more actions failed",
                 payload={"actions_run": actions_run},
@@ -339,7 +402,9 @@ def run_workflows_for_trigger(school, trigger_type: str, context: dict) -> list:
     for tw in qs:
         try:
             r = run_workflow(tw, context)
-            results.append({"tenant_workflow_id": tw.pk, "template_code": tw.template.code, **r})
+            results.append(
+                {"tenant_workflow_id": tw.pk, "template_code": tw.template.code, **r}
+            )
         except WORKFLOW_SOFT_FAILURES as e:
             school_id = str(getattr(school, "id", None)) if school else None
             log_exception_with_context(
@@ -348,10 +413,12 @@ def run_workflows_for_trigger(school, trigger_type: str, context: dict) -> list:
                 extra={"tenant_workflow_id": tw.pk, "error": str(e)},
             )
             logger.warning("run_workflow failed: tw=%s error=%s", tw.pk, e)
-            results.append({
-                "tenant_workflow_id": tw.pk,
-                "template_code": getattr(tw.template, "code", ""),
-                "ok": False,
-                "error": str(e),
-            })
+            results.append(
+                {
+                    "tenant_workflow_id": tw.pk,
+                    "template_code": getattr(tw.template, "code", ""),
+                    "ok": False,
+                    "error": str(e),
+                }
+            )
     return results

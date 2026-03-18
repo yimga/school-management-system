@@ -14,7 +14,11 @@ def admin_kpis():
     """
     Student = django_apps.get_model("people", "StudentProfile")
     Subject = django_apps.get_model("academics", "Subject")
-    Report = django_apps.get_model("reports", "ReportCard") if django_apps.is_installed("reports") else None
+    Report = (
+        django_apps.get_model("reports", "ReportCard")
+        if django_apps.is_installed("reports")
+        else None
+    )
     Invoice = django_apps.get_model("finance", "Invoice")
 
     students = Student.objects.count()
@@ -22,8 +26,12 @@ def admin_kpis():
     report_count = Report.objects.count() if Report else 0
 
     invoices = Invoice.objects.all()
-    overdue = invoices.filter(status="OVERDUE").count() if hasattr(Invoice, "Status") else 0
-    due_today = invoices.filter(status="ISSUED").count() if hasattr(Invoice, "Status") else 0
+    overdue = (
+        invoices.filter(status="OVERDUE").count() if hasattr(Invoice, "Status") else 0
+    )
+    due_today = (
+        invoices.filter(status="ISSUED").count() if hasattr(Invoice, "Status") else 0
+    )
 
     return {
         "students": students,

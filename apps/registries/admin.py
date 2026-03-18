@@ -21,7 +21,14 @@ from .models import (
 
 @admin.register(CountryRegistry, site=platform_admin_site)
 class CountryRegistryAdmin(admin.ModelAdmin):
-    list_display = ("code", "alpha3_code", "name", "default_language", "default_currency", "is_active")
+    list_display = (
+        "code",
+        "alpha3_code",
+        "name",
+        "default_language",
+        "default_currency",
+        "is_active",
+    )
     list_filter = ("is_active", "default_language", "default_currency")
     search_fields = ("code", "alpha3_code", "name")
 
@@ -56,7 +63,14 @@ class TimeZoneRegistryAdmin(admin.ModelAdmin):
 
 @admin.register(CurrencyRegistry, site=platform_admin_site)
 class CurrencyRegistryAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "symbol", "decimal_places", "sort_order", "is_active")
+    list_display = (
+        "code",
+        "name",
+        "symbol",
+        "decimal_places",
+        "sort_order",
+        "is_active",
+    )
     list_filter = ("is_active",)
     search_fields = ("code", "name", "symbol")
 
@@ -70,7 +84,14 @@ class LocaleRegistryAdmin(admin.ModelAdmin):
 
 @admin.register(CalendarSystemRegistry, site=platform_admin_site)
 class CalendarSystemRegistryAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "country_code", "term_count_per_year", "sort_order", "is_active")
+    list_display = (
+        "code",
+        "name",
+        "country_code",
+        "term_count_per_year",
+        "sort_order",
+        "is_active",
+    )
     list_filter = ("is_active", "country_code")
     search_fields = ("code", "name")
 
@@ -91,14 +112,28 @@ class AcademicTerminologyRegistryAdmin(admin.ModelAdmin):
 
 @admin.register(DocumentTypeRegistry, site=platform_admin_site)
 class DocumentTypeRegistryAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "category", "country_code", "sort_order", "is_active")
+    list_display = (
+        "code",
+        "name",
+        "category",
+        "country_code",
+        "sort_order",
+        "is_active",
+    )
     list_filter = ("is_active", "category")
     search_fields = ("code", "name")
 
 
 @admin.register(FeeCategoryRegistry, site=platform_admin_site)
 class FeeCategoryRegistryAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "category", "country_code", "sort_order", "is_active")
+    list_display = (
+        "code",
+        "name",
+        "category",
+        "country_code",
+        "sort_order",
+        "is_active",
+    )
     list_filter = ("is_active", "category")
     search_fields = ("code", "name")
 

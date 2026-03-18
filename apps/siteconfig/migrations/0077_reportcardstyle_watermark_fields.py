@@ -5,35 +5,74 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0076_normalize_themepack_defaults_and_constraint'),
+        ("siteconfig", "0076_normalize_themepack_defaults_and_constraint"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='reportcardstyle',
-            name='watermark_logo',
-            field=models.ImageField(blank=True, help_text="Optional custom watermark logo used when mode is 'Use style logo'.", null=True, upload_to='branding/reportcard/watermarks/'),
+            model_name="reportcardstyle",
+            name="watermark_logo",
+            field=models.ImageField(
+                blank=True,
+                help_text="Optional custom watermark logo used when mode is 'Use style logo'.",
+                null=True,
+                upload_to="branding/reportcard/watermarks/",
+            ),
         ),
         migrations.AddField(
-            model_name='reportcardstyle',
-            name='watermark_mode',
-            field=models.CharField(choices=[('TEXT', 'Text watermark'), ('SITE_LOGO', 'Use site logo'), ('STYLE_LOGO', 'Use style logo'), ('NONE', 'Disabled')], default='TEXT', help_text='Choose how watermark is rendered in report templates.', max_length=20),
+            model_name="reportcardstyle",
+            name="watermark_mode",
+            field=models.CharField(
+                choices=[
+                    ("TEXT", "Text watermark"),
+                    ("SITE_LOGO", "Use site logo"),
+                    ("STYLE_LOGO", "Use style logo"),
+                    ("NONE", "Disabled"),
+                ],
+                default="TEXT",
+                help_text="Choose how watermark is rendered in report templates.",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='reportcardstyle',
-            name='watermark_opacity',
-            field=models.FloatField(default=0.08, help_text='Watermark opacity from 0.0 to 1.0.', validators=[django.core.validators.MinValueValidator(0.0), django.core.validators.MaxValueValidator(1.0)]),
+            model_name="reportcardstyle",
+            name="watermark_opacity",
+            field=models.FloatField(
+                default=0.08,
+                help_text="Watermark opacity from 0.0 to 1.0.",
+                validators=[
+                    django.core.validators.MinValueValidator(0.0),
+                    django.core.validators.MaxValueValidator(1.0),
+                ],
+            ),
         ),
         migrations.AddField(
-            model_name='reportcardstyle',
-            name='watermark_position',
-            field=models.CharField(choices=[('CENTER', 'Center'), ('TOP_LEFT', 'Top left'), ('TOP_RIGHT', 'Top right'), ('BOTTOM_LEFT', 'Bottom left'), ('BOTTOM_RIGHT', 'Bottom right')], default='CENTER', help_text='Watermark placement in the report canvas.', max_length=20),
+            model_name="reportcardstyle",
+            name="watermark_position",
+            field=models.CharField(
+                choices=[
+                    ("CENTER", "Center"),
+                    ("TOP_LEFT", "Top left"),
+                    ("TOP_RIGHT", "Top right"),
+                    ("BOTTOM_LEFT", "Bottom left"),
+                    ("BOTTOM_RIGHT", "Bottom right"),
+                ],
+                default="CENTER",
+                help_text="Watermark placement in the report canvas.",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='reportcardstyle',
-            name='watermark_scale',
-            field=models.PositiveSmallIntegerField(default=55, help_text='Watermark size as percentage (20-180).', validators=[django.core.validators.MinValueValidator(20), django.core.validators.MaxValueValidator(180)]),
+            model_name="reportcardstyle",
+            name="watermark_scale",
+            field=models.PositiveSmallIntegerField(
+                default=55,
+                help_text="Watermark size as percentage (20-180).",
+                validators=[
+                    django.core.validators.MinValueValidator(20),
+                    django.core.validators.MaxValueValidator(180),
+                ],
+            ),
         ),
     ]

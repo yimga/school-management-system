@@ -79,7 +79,13 @@ class Command(BaseCommand):
         try:
             from apps.compliance.middleware import COMPLIANCE_GUARD_PATH_MAP
 
-            return sorted({str(v).strip() for v in COMPLIANCE_GUARD_PATH_MAP.values() if str(v).strip()})
+            return sorted(
+                {
+                    str(v).strip()
+                    for v in COMPLIANCE_GUARD_PATH_MAP.values()
+                    if str(v).strip()
+                }
+            )
         except _COMPLIANCE_AUDITOR_RESOLVE_GUARD_ERRORS as e:
             log_exception_with_context(
                 "compliance_auditor: resolve guard feature codes failed",
@@ -114,9 +120,7 @@ class Command(BaseCommand):
         missing_core = [code for code in core_features if code not in region_rules]
         dsar_codes = {"Right_to_Erasure", "Export_All_Student_Data"}
         disabled_dsar = [
-            code
-            for code in dsar_codes
-            if region_rules.get(code) == "DISABLED"
+            code for code in dsar_codes if region_rules.get(code) == "DISABLED"
         ]
 
         checks: list[dict] = [
@@ -132,13 +136,19 @@ class Command(BaseCommand):
             },
             {
                 "check": "tenant_compiled_config_present",
-                "ok": bool(settings.get("tenant_compiled_config") and settings.get("tenant_config_metadata")),
+                "ok": bool(
+                    settings.get("tenant_compiled_config")
+                    and settings.get("tenant_config_metadata")
+                ),
                 "value": bool(settings.get("tenant_compiled_config")),
             },
             {
                 "check": "region_core_feature_rule_coverage",
                 "ok": not missing_core,
-                "value": {"missing_count": len(missing_core), "missing_features": missing_core},
+                "value": {
+                    "missing_count": len(missing_core),
+                    "missing_features": missing_core,
+                },
             },
             {
                 "check": "dsar_rules_not_disabled",
@@ -170,7 +180,9 @@ class Command(BaseCommand):
         from apps.schools.models import School
         from apps.siteconfig.models import WaiverRequest
 
-        schools_qs = School.objects.select_related("default_region").filter(is_active=True)
+        schools_qs = School.objects.select_related("default_region").filter(
+            is_active=True
+        )
         if region_filter:
             schools_qs = schools_qs.filter(default_region_id=region_filter)
         schools = list(schools_qs)
@@ -182,13 +194,17 @@ class Command(BaseCommand):
             rules_qs = rules_qs.filter(region_id=region_filter)
         rules_by_region: dict[str, dict[str, str]] = defaultdict(dict)
         for row in rules_qs.values("region_id", "feature_code", "status"):
-            rules_by_region[str(row["region_id"])][str(row["feature_code"])] = str(row["status"])
+            rules_by_region[str(row["region_id"])][str(row["feature_code"])] = str(
+                row["status"]
+            )
 
         pending_waiver_by_school: dict[str, int] = defaultdict(int)
         waiver_qs = WaiverRequest.objects.filter(status=WaiverRequest.Status.PENDING)
         if region_filter:
             waiver_qs = waiver_qs.filter(school__default_region_id=region_filter)
-        for row in waiver_qs.values("school_id").annotate(total_count=models.Count("id")):
+        for row in waiver_qs.values("school_id").annotate(
+            total_count=models.Count("id")
+        ):
             pending_waiver_by_school[str(row["school_id"])] = int(row["total_count"])
 
         school_results: list[SchoolComplianceResult] = []
@@ -196,7 +212,9 @@ class Command(BaseCommand):
             school_results.append(
                 self._build_school_scorecard(
                     school=school,
-                    pending_waiver_count=pending_waiver_by_school.get(str(school.pk), 0),
+                    pending_waiver_count=pending_waiver_by_school.get(
+                        str(school.pk), 0
+                    ),
                     core_features=core_features,
                     rule_lookup=rules_by_region,
                 )
@@ -221,8 +239,12 @@ class Command(BaseCommand):
             bucket["core_feature_missing"] = missing
 
         for region_code, bucket in region_rollup.items():
-            scores = [item.score for item in school_results if item.region_code == region_code]
-            bucket["average_score"] = round(sum(scores) / len(scores), 2) if scores else 0.0
+            scores = [
+                item.score for item in school_results if item.region_code == region_code
+            ]
+            bucket["average_score"] = (
+                round(sum(scores) / len(scores), 2) if scores else 0.0
+            )
 
         global_checks = [
             {
@@ -237,8 +259,13 @@ class Command(BaseCommand):
             },
             {
                 "check": "schools_without_region",
-                "value": int(sum(1 for s in schools if not getattr(s, "default_region_id", None))),
-                "ok": int(sum(1 for s in schools if not getattr(s, "default_region_id", None))) == 0,
+                "value": int(
+                    sum(1 for s in schools if not getattr(s, "default_region_id", None))
+                ),
+                "ok": int(
+                    sum(1 for s in schools if not getattr(s, "default_region_id", None))
+                )
+                == 0,
             },
         ]
 

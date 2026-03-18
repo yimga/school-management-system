@@ -51,7 +51,9 @@ class InvoiceAccessTests(TestCase):
             end_date=date(2026, 6, 30),
         )
         self.department = Department.objects.create(name="General", code="GEN")
-        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
+        self.specialty = Specialty.objects.create(
+            name="General", code="GEN", department=self.department
+        )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
             department=self.department,
@@ -83,7 +85,9 @@ class InvoiceAccessTests(TestCase):
             password="pass1234",
             role=User.Role.PARENT,
         )
-        StudentGuardian.objects.create(guardian_user=parent, student=self.student, can_view_finance=True)
+        StudentGuardian.objects.create(
+            guardian_user=parent, student=self.student, can_view_finance=True
+        )
         self.assertTrue(can_view_invoice(parent, self.invoice.id))
 
     def test_unrelated_parent_cannot_view_invoice(self):
@@ -98,7 +102,10 @@ class InvoiceAccessTests(TestCase):
 class GuardianFinanceOptInTests(TestCase):
     def setUp(self):
         site = get_platform_site_settings_record(create=True)
-        flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        flags = {
+            **default_backend_feature_flags(),
+            **(site.backend_feature_flags or {}),
+        }
         flags["require_guardian_finance_opt_in"] = True
         site.backend_feature_flags = flags
         site.save()
@@ -109,14 +116,18 @@ class GuardianFinanceOptInTests(TestCase):
             end_date=date(2026, 6, 30),
         )
         self.department = Department.objects.create(name="General", code="GEN")
-        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
+        self.specialty = Specialty.objects.create(
+            name="General", code="GEN", department=self.department
+        )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
             department=self.department,
             name="Form 1",
             code="F1",
         )
-        self.profile = ComplianceProfile.objects.create(name="Default", country_code="CM")
+        self.profile = ComplianceProfile.objects.create(
+            name="Default", country_code="CM"
+        )
         self.student = StudentProfile.objects.create(
             first_name="Alex",
             last_name="Student",
@@ -138,7 +149,9 @@ class GuardianFinanceOptInTests(TestCase):
             password="pass1234",
             role=User.Role.PARENT,
         )
-        StudentGuardian.objects.create(guardian_user=parent, student=self.student, can_view_finance=False)
+        StudentGuardian.objects.create(
+            guardian_user=parent, student=self.student, can_view_finance=False
+        )
         self.assertFalse(can_view_invoice(parent, self.invoice.id))
 
     def test_parent_allowed_when_opt_in_disabled_even_if_flag_missing(self):
@@ -147,10 +160,15 @@ class GuardianFinanceOptInTests(TestCase):
             password="pass1234",
             role=User.Role.PARENT,
         )
-        StudentGuardian.objects.create(guardian_user=parent, student=self.student, can_view_finance=False)
+        StudentGuardian.objects.create(
+            guardian_user=parent, student=self.student, can_view_finance=False
+        )
 
         site = get_platform_site_settings_record(create=True)
-        flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        flags = {
+            **default_backend_feature_flags(),
+            **(site.backend_feature_flags or {}),
+        }
         flags["require_guardian_finance_opt_in"] = False
         site.backend_feature_flags = flags
         site.save()

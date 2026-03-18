@@ -1,0 +1,153 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block backend_title %}{% trans "District & LMS interoperability" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4" data-page-archetype="setup-flow">
+  <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "District & LMS interop" %}</li>
+    </ol>
+  </nav>
+  {% include "studio_os/components/page_header.html" with title=_("District & LMS interoperability") subtitle=_("OneRoster roster pull + SSO/LTI spine — same motion as district roster hubs (Bearer token).") %}
+
+  <div class="alert alert-info small">
+    {% trans "Configure your LMS or district ETL to call the URLs below with header: Authorization: Bearer &lt;token&gt;. CSV exports use your logged-in session (for bursars/IT)." %}
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="{{ packet_url }}" class="btn btn-outline-light btn-sm" target="_blank" rel="noopener">{% trans "District packet (print)" %}</a>
+    <a href="{{ partner_url }}" class="btn btn-outline-light btn-sm">{% trans "Partner certification" %}</a>
+    <a href="{% url 'accounts:institution_profile_wizard' %}" class="btn btn-outline-light btn-sm">{% trans "Institution profile wizard" %}</a>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "Integration readiness" %}</div>
+    <div class="card-body small row">
+      <div class="col-md-3"><span class="badge bg-{% if readiness.oneroster == 'green' %}success{% elif readiness.oneroster == 'amber' %}warning{% else %}danger{% endif %}">OneRoster</span></div>
+      <div class="col-md-3"><span class="badge bg-{% if readiness.lti == 'green' %}success{% elif readiness.lti == 'amber' %}warning{% else %}danger{% endif %}">LTI 1.3</span></div>
+      <div class="col-md-3"><span class="badge bg-{% if readiness.scim == 'green' %}success{% else %}warning{% endif %}">SCIM</span></div>
+      <div class="col-md-3"><span class="badge bg-{% if readiness.sso == 'green' %}success{% else %}warning{% endif %}">SSO</span></div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "LTI 1.3 happy path (copy to LMS)" %}</div>
+    <div class="card-body small font-monospace">
+      <p class="mb-1"><strong>issuer / platform</strong><br>{{ readiness.lti_wizard.platform_issuer }}</p>
+      <p class="mb-1"><strong>JWKS</strong><br>{{ readiness.lti_wizard.jwks_url }}</p>
+      <p class="mb-0"><strong>OIDC launch template</strong><br>{{ readiness.lti_wizard.oidc_login_template }}{% if readiness.lti_wizard.first_lti_tool_id %} {% trans "e.g. tool_id =" %} {{ readiness.lti_wizard.first_lti_tool_id }}{% endif %}</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "SSO diagnostics" %}</div>
+    <div class="card-body small">
+      <ul class="mb-0"><li>{{ readiness.sso_tips.saml_acs }}</li><li>{{ readiness.sso_tips.clock_skew }}</li><li>{{ readiness.sso_tips.cert_expiry }}</li></ul>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "SSO / IdP login health" %} <span class="badge bg-secondary">{% trans "Wedge 45" %}</span></div>
+    <div class="card-body small">
+      {% if federation_sso_rows %}
+      <div class="table-responsive">
+        <table class="table table-sm table-borderless mb-0">
+          <thead><tr><th>{% trans "Integration" %}</th><th>{% trans "Last OK" %}</th><th>{% trans "Last fail" %}</th><th>{% trans "Fails" %}</th><th>{% trans "Last error" %}</th></tr></thead>
+          <tbody>
+            {% for row in federation_sso_rows %}
+            <tr>
+              <td>{{ row.name }} <span class="text-muted">#{{ row.id }}</span></td>
+              <td>{% if row.last_success_at %}{{ row.last_success_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+              <td>{% if row.last_failure_at %}{{ row.last_failure_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+              <td>{{ row.failure_count }} / {{ row.success_count }}</td>
+              <td class="text-break">{% if row.last_error %}<span class="text-warning">{{ row.last_error|truncatechars:80 }}</span>{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted mb-0">{% trans "No SAML/OIDC IdP integrations yet (besides OneRoster district token). Add integrations under Integrations." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "Security: webhooks, IP allowlist, scopes, export profile" %}</div>
+    <div class="card-body">
+      <form method="post" action="{% url 'accounts:district_interop_save_advanced' %}" class="small">
+        {% csrf_token %}
+        <div class="mb-2"><label class="form-label">{% trans "Roster webhook URL" %}</label><input class="form-control form-control-sm" name="roster_webhook_url" value="{{ advanced.roster_webhook_url|default:'' }}" placeholder="https://district.example/roster-hook"></div>
+        <div class="mb-2"><label class="form-label">{% trans "Webhook secret (HMAC)" %}</label><input class="form-control form-control-sm" name="roster_webhook_secret" type="password" autocomplete="new-password" placeholder="{% trans 'Leave blank to keep' %}"></div>
+        <div class="mb-2"><label class="form-label">{% trans "Allowed IPs (comma-separated; empty = any)" %}</label><input class="form-control form-control-sm" name="allowed_ips" value="{{ advanced.allowed_ips|default:'' }}"></div>
+        <div class="mb-2"><label class="form-label">{% trans "Scopes" %}</label><input class="form-control form-control-sm" name="oneroster_scopes" value="{{ advanced.oneroster_scopes|default:'*' }}" placeholder="* or roster.students roster.teachers"></div>
+        <div class="mb-2"><label class="form-label">{% trans "Export profile" %}</label>
+          <select class="form-select form-select-sm" name="oneroster_export_profile">
+            <option value="minimal" {% if advanced.oneroster_export_profile == 'minimal' %}selected{% endif %}>minimal</option>
+            <option value="standard" {% if not advanced.oneroster_export_profile or advanced.oneroster_export_profile == 'standard' %}selected{% endif %}>standard</option>
+            <option value="full" {% if advanced.oneroster_export_profile == 'full' %}selected{% endif %}>full</option>
+          </select></div>
+        <div class="mb-2"><label class="form-label">{% trans "Max requests per 15m (per token)" %}</label><input class="form-control form-control-sm" name="rate_limit" value="{{ advanced.oneroster_rate_limit_per_window|default:600 }}"></div>
+        <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="disable_audit" id="da" {% if advanced.oneroster_audit_disabled %}checked{% endif %}><label class="form-check-label" for="da">{% trans "Disable API audit log" %}</label></div>
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "Sandbox: synthetic roster (no PII)" %}</div>
+    <div class="card-body">
+      <p class="small text-muted mb-2">{% if synthetic_demo %}{% trans "Synthetic data is ON for OneRoster API." %}{% else %}{% trans "Off — API returns live tenant data." %}{% endif %}</p>
+      <form method="post" action="{% url 'accounts:district_interop_toggle_synthetic' %}">{% csrf_token %}<button type="submit" class="btn btn-outline-warning btn-sm">{% trans "Toggle synthetic demo roster" %}</button></form>
+    </div>
+  </div>
+
+  <p class="small"><a href="{{ studio_interop_doc }}">{% trans "Studio: interop checklist (docs)" %}</a> · <a href="{{ studio_institution_doc }}">{% trans "Institution checklist" %}</a> · <a href="{{ partner_trust_doc }}">{% trans "Partner trust signals" %}</a></p>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "Bearer token" %}</div>
+    <div class="card-body">
+      <p class="small text-muted mb-2">{% trans "Token status" %}: {% if token_preview %}<code>{{ token_preview }}</code>{% else %}<span class="text-warning">{% trans "Not set — generate below" %}</span>{% endif %}</p>
+      <form method="post" action="{% url 'accounts:district_interop_rotate_token' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-warning btn-sm">{% trans "Generate / rotate token" %}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "OneRoster 1.1 endpoints" %} <span class="badge bg-secondary">GET</span></div>
+    <div class="card-body small font-monospace">
+      <p class="mb-1"><strong>manifest</strong><br><a href="{{ oneroster_manifest }}" class="text-break">{{ oneroster_manifest }}</a></p>
+      <p class="mb-1"><strong>academicSessions</strong><br><a href="{{ oneroster_academic_sessions }}" class="text-break">{{ oneroster_academic_sessions }}</a></p>
+      <p class="mb-1"><strong>classes</strong><br><a href="{{ oneroster_classes }}" class="text-break">{{ oneroster_classes }}</a></p>
+      <p class="mb-1"><strong>students</strong><br><a href="{{ oneroster_students }}" class="text-break">{{ oneroster_students }}</a></p>
+      <p class="mb-1"><strong>teachers</strong><br><a href="{{ oneroster_teachers }}" class="text-break">{{ oneroster_teachers }}</a></p>
+      <p class="mb-1"><strong>enrollments</strong><br><a href="{{ oneroster_enrollments }}" class="text-break">{{ oneroster_enrollments }}</a></p>
+      <p class="mb-1"><strong>orgs</strong><br><a href="{{ oneroster_orgs }}" class="text-break">{{ oneroster_orgs }}</a></p>
+      <p class="mb-1"><strong>courses</strong><br><a href="{{ oneroster_courses }}" class="text-break">{{ oneroster_courses }}</a></p>
+      <p class="mb-0"><strong>users</strong><br><a href="{{ oneroster_users }}" class="text-break">{{ oneroster_users }}</a></p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "CSV roster (session download)" %}</div>
+    <div class="card-body">
+      <a class="btn btn-outline-primary btn-sm me-2" href="{{ csv_students }}">{% trans "Students CSV" %}</a>
+      <a class="btn btn-outline-primary btn-sm me-2" href="{{ csv_teachers }}">{% trans "Teachers CSV" %}</a>
+      <a class="btn btn-outline-primary btn-sm" href="{{ csv_classes }}">{% trans "Classes CSV" %}</a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header fw-semibold">{% trans "Discovery & readiness" %}</div>
+    <div class="card-body">
+      <a href="{{ readiness_oneroster }}" class="btn btn-outline-secondary btn-sm me-2" target="_blank" rel="noopener">{% trans "OneRoster readiness" %}</a>
+      <a href="{{ readiness_lti }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">{% trans "LTI 1.3 readiness" %}</a>
+    </div>
+  </div>
+
+  <p class="small text-muted mb-0">{% trans "SSO: configure OIDC/SAML under Integrations. LTI: register tools per tenant. Clever/ClassLink vendor connectors require separate partnership." %}</p>
+</div>
+{% endblock %}

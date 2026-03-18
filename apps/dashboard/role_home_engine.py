@@ -243,7 +243,9 @@ def prioritize_destinations(
     reorders by role_home["destinations"] preferred IDs, then by combined order.
     """
     combined = _dedupe_nav_items(
-        list(action_chips or []) + list(quick_links or []) + list(contextual_actions or [])
+        list(action_chips or [])
+        + list(quick_links or [])
+        + list(contextual_actions or [])
     )
     preferred_ids = list(role_home.get("destinations") or [])
     by_id = {str(item.get("id", "")): item for item in combined if item.get("id")}
@@ -310,7 +312,9 @@ def select_role_home_actions(
     return primary_action, supporting_actions
 
 
-def select_kpis_for_intent(kpis: List[Dict[str, Any]], intent: str) -> List[Dict[str, Any]]:
+def select_kpis_for_intent(
+    kpis: List[Dict[str, Any]], intent: str
+) -> List[Dict[str, Any]]:
     """
     Reorder KPI strip cards by intent priority; return up to 3.
 

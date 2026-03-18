@@ -18,7 +18,15 @@
 
 {% block cp_content %}
 <div class="container-fluid py-2" data-page-archetype="catalog">
-  {% include "studio_os/components/page_header.html" with title=_("Blueprint Packs") subtitle=_("Institution archetypes: assign to schools for default structure, workflow and dashboard recommendations.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  {% include "studio_os/components/page_header.html" with title=_("Blueprint Packs") subtitle=_("Institution archetypes: assign to schools for default structure, workflow and dashboard recommendations. Filter by sector (Wedges 14–22).") action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  {% if sector_choices %}
+  <p class="small text-muted mb-2">{% trans "Filter by sector:" %}
+    <a href="?">{% trans "All" %}</a>
+    {% for code in sector_choices %}
+    <span class="ms-2"><a href="?primary_sector={{ code }}" class="{% if primary_sector_filter == code %}fw-bold{% endif %}">{{ code|default:"—" }}</a></span>
+    {% endfor %}
+  </p>
+  {% endif %}
   <div class="card shadow-sm border-secondary">
     <div class="card-body p-0">
       <table class="table table-dark table-hover mb-0">
@@ -27,6 +35,7 @@
             <th>{% trans "Name" %}</th>
             <th>{% trans "Family" %}</th>
             <th>{% trans "Category" %}</th>
+            <th>{% trans "Sector" %}</th>
             <th>{% trans "Version" %}</th>
             <th></th>
           </tr>
@@ -37,11 +46,12 @@
             <td>{{ p.name }}</td>
             <td>{{ p.family|default:"—" }}</td>
             <td>{{ p.category|default:"—" }}</td>
+            <td>{% for b in p.sector_badges %}<span class="badge bg-secondary me-1">{{ b }}</span>{% empty %}—{% endfor %}</td>
             <td>{{ p.version }}</td>
             <td>{% if p.admin_url %}<a href="{{ p.admin_url }}" class="btn btn-sm btn-outline-light">{% trans "Edit" %}</a>{% endif %}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="5" class="text-secondary">{% trans "No blueprint packs. Run seed_blueprint_policy_packs." %}</td></tr>
+          <tr><td colspan="6" class="text-secondary">{% trans "No blueprint packs. Run seed_blueprint_policy_packs." %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

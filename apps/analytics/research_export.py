@@ -2,6 +2,7 @@
 De-identified export for Analytics/Research DB (Section 1.15).
 Stub service: aggregates and snapshot without PII; schema versioned.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
@@ -48,6 +49,7 @@ def get_deidentified_aggregates(
     }
     try:
         from django.apps import apps
+
         if apps.is_installed("people"):
             StudentProfile = apps.get_model("people", "StudentProfile")
             qs = StudentProfile.objects.filter(school_id=school_id, is_active=True)
@@ -59,9 +61,14 @@ def get_deidentified_aggregates(
         if apps.is_installed("finance"):
             Invoice = apps.get_model("finance", "Invoice")
             from django.db.models import Sum
-            tot = Invoice.objects.filter(school_id=school_id).aggregate(s=Sum("total_amount"))
+
+            tot = Invoice.objects.filter(school_id=school_id).aggregate(
+                s=Sum("total_amount")
+            )
             out["aggregates"]["invoices_total"] = float(tot["s"] or 0)
-            out["aggregates"]["invoices_count"] = Invoice.objects.filter(school_id=school_id).count()
+            out["aggregates"]["invoices_count"] = Invoice.objects.filter(
+                school_id=school_id
+            ).count()
     except _RESEARCH_AGGREGATE_ERRORS:
         log_exception_with_context(
             "research get_deidentified_aggregates failed",
@@ -91,4 +98,5 @@ def export_research_snapshot(
 def _hash_school_id(school_id: int) -> str:
     """Stable pseudonymous id for school (e.g. for longitudinal research)."""
     import hashlib
+
     return hashlib.sha256(f"school:{school_id}".encode()).hexdigest()[:16]

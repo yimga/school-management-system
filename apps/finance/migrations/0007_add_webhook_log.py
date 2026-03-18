@@ -5,32 +5,91 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0006_referralreward'),
+        ("finance", "0006_referralreward"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='WebhookLog',
+            name="WebhookLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('provider', models.CharField(max_length=50)),
-                ('reference_id', models.CharField(max_length=255)),
-                ('client_ip', models.GenericIPAddressField()),
-                ('signature_valid', models.BooleanField(default=False)),
-                ('status', models.CharField(choices=[('RECEIVED', 'Received'), ('VALIDATED', 'Validated'), ('PROCESSING', 'Processing'), ('PROCESSED', 'Successfully Processed'), ('FAILED', 'Failed'), ('DUPLICATE', 'Duplicate (Already Processed)'), ('INVALID', 'Invalid Data')], default='RECEIVED', max_length=20)),
-                ('request_body', models.TextField(blank=True)),
-                ('response_status', models.PositiveSmallIntegerField(blank=True, null=True)),
-                ('error_message', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('invoice', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='webhook_logs', to='finance.invoice')),
-                ('payment', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='webhook_logs', to='finance.payment')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("provider", models.CharField(max_length=50)),
+                ("reference_id", models.CharField(max_length=255)),
+                ("client_ip", models.GenericIPAddressField()),
+                ("signature_valid", models.BooleanField(default=False)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("RECEIVED", "Received"),
+                            ("VALIDATED", "Validated"),
+                            ("PROCESSING", "Processing"),
+                            ("PROCESSED", "Successfully Processed"),
+                            ("FAILED", "Failed"),
+                            ("DUPLICATE", "Duplicate (Already Processed)"),
+                            ("INVALID", "Invalid Data"),
+                        ],
+                        default="RECEIVED",
+                        max_length=20,
+                    ),
+                ),
+                ("request_body", models.TextField(blank=True)),
+                (
+                    "response_status",
+                    models.PositiveSmallIntegerField(blank=True, null=True),
+                ),
+                ("error_message", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "invoice",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="webhook_logs",
+                        to="finance.invoice",
+                    ),
+                ),
+                (
+                    "payment",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="webhook_logs",
+                        to="finance.payment",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['provider', 'reference_id', '-created_at'], name='finance_web_provide_7029a9_idx'), models.Index(fields=['status', '-created_at'], name='finance_web_status_76ca8e_idx'), models.Index(fields=['client_ip', '-created_at'], name='finance_web_client__d17694_idx'), models.Index(fields=['-created_at'], name='finance_web_created_d3be3d_idx')],
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["provider", "reference_id", "-created_at"],
+                        name="finance_web_provide_7029a9_idx",
+                    ),
+                    models.Index(
+                        fields=["status", "-created_at"],
+                        name="finance_web_status_76ca8e_idx",
+                    ),
+                    models.Index(
+                        fields=["client_ip", "-created_at"],
+                        name="finance_web_client__d17694_idx",
+                    ),
+                    models.Index(
+                        fields=["-created_at"], name="finance_web_created_d3be3d_idx"
+                    ),
+                ],
             },
         ),
     ]

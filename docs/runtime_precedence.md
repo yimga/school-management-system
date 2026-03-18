@@ -39,4 +39,6 @@ Tenant-effective value is resolved in this order (first non-null / applicable wi
 
 ---
 
+**Tenant registry keys and compiled layers:** [RUNTIME_PRECEDENCE_AND_TENANT_REGISTRY_KEYS.md](RUNTIME_PRECEDENCE_AND_TENANT_REGISTRY_KEYS.md).
+
 *Source of truth: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §3.2.*

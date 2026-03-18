@@ -21,7 +21,9 @@ def normalize_report_pack_dependencies(pack: ReportPack) -> list[dict[str, Any]]
         if isinstance(raw_items, list):
             items = [str(item).strip() for item in raw_items if str(item).strip()]
         elif isinstance(raw_items, Mapping):
-            items = [str(value).strip() for value in raw_items.values() if str(value).strip()]
+            items = [
+                str(value).strip() for value in raw_items.values() if str(value).strip()
+            ]
         elif raw_items not in (None, ""):
             items = [str(raw_items).strip()]
         if items:

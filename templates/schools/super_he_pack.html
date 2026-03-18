@@ -1,0 +1,34 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Higher education pack" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "HE pack" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Higher education pack" %}</h1>
+    <p class="text-white-50 small mb-0">{% trans "Catalog, enrollment, degree audit; semester/term; months-not-years implementation. All target continents." %}</p>
+  </header>
+  <div class="card border-secondary mb-3">
+    <div class="card-body">
+      <h6 class="card-title">{% trans "HE pack includes" %}</h6>
+      <ul class="mb-0">
+        <li>{% trans "Degree audit and graduate research (plan addons)" %}</li>
+        <li>{% trans "Semester/term model; credit hours" %}</li>
+        <li>{% trans "Student degree enrollment" %}</li>
+      </ul>
+      {% if plans_url %}<a href="{{ plans_url }}" class="btn btn-outline-primary btn-sm mt-2">{% trans "Plans & addons" %}</a>{% endif %}
+    </div>
+  </div>
+  <p class="text-white-50 small">{% trans "Implementation in months not years; modern UX; cloud-native." %}</p>
+</div>
+{% endblock %}

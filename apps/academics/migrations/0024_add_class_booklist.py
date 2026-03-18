@@ -5,28 +5,66 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0023_course_syllabus_portal_item'),
+        ("academics", "0023_course_syllabus_portal_item"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ClassBooklist',
+            name="ClassBooklist",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('items', models.JSONField(blank=True, default=list, help_text='List of {title, author, isbn, notes} or similar.')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='class_booklists', to='academics.academicyear')),
-                ('classroom', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='booklists', to='academics.classroom')),
-                ('term', models.ForeignKey(blank=True, help_text='Optional: leave blank for full-year list.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='class_booklists', to='academics.term')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "items",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="List of {title, author, isbn, notes} or similar.",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="class_booklists",
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "classroom",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="booklists",
+                        to="academics.classroom",
+                    ),
+                ),
+                (
+                    "term",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Optional: leave blank for full-year list.",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="class_booklists",
+                        to="academics.term",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Class booklist',
-                'verbose_name_plural': 'Class booklists',
-                'ordering': ['classroom__name', 'term__position'],
-                'unique_together': {('academic_year', 'classroom', 'term')},
+                "verbose_name": "Class booklist",
+                "verbose_name_plural": "Class booklists",
+                "ordering": ["classroom__name", "term__position"],
+                "unique_together": {("academic_year", "classroom", "term")},
             },
         ),
     ]

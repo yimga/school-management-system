@@ -3,7 +3,6 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("compliance", "0007_alertdigest"),
     ]
@@ -12,6 +11,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="accesslog",
             name="timestamp",
-            field=models.DateTimeField(default=django.utils.timezone.now, db_index=True),
+            field=models.DateTimeField(
+                default=django.utils.timezone.now, db_index=True
+            ),
         ),
     ]

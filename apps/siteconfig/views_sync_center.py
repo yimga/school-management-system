@@ -11,15 +11,19 @@ from apps.accounts.decorators import login_required, permission_required
 def _resolve_sync_conflict(conflict, resolution, resolved_by):
     from django.utils import timezone
     from .models import SyncConflict
+
     conflict.resolved_by = resolved_by
     conflict.resolved_at = timezone.now()
     conflict.status = resolution
     if resolution == SyncConflict.Status.RESOLVED_CLIENT:
         from apps.api.sync_services import _get_entity_config
+
         config = _get_entity_config()
         if conflict.entity_type in config:
             model, allowed = config[conflict.entity_type]
-            updates = {k: v for k, v in (conflict.client_data or {}).items() if k in allowed}
+            updates = {
+                k: v for k, v in (conflict.client_data or {}).items() if k in allowed
+            }
             if updates:
                 try:
                     instance = model.objects.get(pk=conflict.entity_id)
@@ -44,19 +48,27 @@ def sync_center(request):
         from .models import SyncConflict
     except ImportError:
         action_url = reverse("accounts:backend_dashboard")
-        return render(request, "siteconfig/sync_center.html", {
-            "school": school,
-            "conflicts": [],
-            "sync_available": False,
-            "action_url": action_url,
-            "action_text": "Back to dashboard",
-        })
+        return render(
+            request,
+            "siteconfig/sync_center.html",
+            {
+                "school": school,
+                "conflicts": [],
+                "sync_available": False,
+                "action_url": action_url,
+                "action_text": "Back to dashboard",
+            },
+        )
     conflicts = SyncConflict.objects.filter(school=school).order_by("-created_at")[:50]
-    return render(request, "siteconfig/sync_center.html", {
-        "school": school,
-        "conflicts": conflicts,
-        "sync_available": True,
-    })
+    return render(
+        request,
+        "siteconfig/sync_center.html",
+        {
+            "school": school,
+            "conflicts": conflicts,
+            "sync_available": True,
+        },
+    )
 
 
 @login_required
@@ -73,7 +85,9 @@ def sync_center_resolve(request, conflict_id):
         from .models import SyncConflict
     except ImportError:
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return JsonResponse({"ok": False, "error": "SyncConflict not available"}, status=404)
+            return JsonResponse(
+                {"ok": False, "error": "SyncConflict not available"}, status=404
+            )
         return redirect("siteconfig:sync_center")
     conflict = get_object_or_404(SyncConflict, pk=conflict_id, school=school)
     if conflict.status != SyncConflict.Status.PENDING:

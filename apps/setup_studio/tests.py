@@ -51,7 +51,9 @@ class SetupStudioServiceTests(TestCase):
         self.assertEqual(payload["recommended_next"]["key"], "plan_choice")
         self.assertTrue(payload["blueprint_rankings"])
         self.assertEqual(len(payload["data_path_choices"]), 3)
-        self.assertEqual(payload["recommended_blueprint"]["title"], "Cameroon launch baseline")
+        self.assertEqual(
+            payload["recommended_blueprint"]["title"], "Cameroon launch baseline"
+        )
 
         progress = SetupProgress.objects.get(school=self.school)
         self.assertEqual(progress.health_score, payload["health_score"])
@@ -62,18 +64,33 @@ class SetupStudioServiceTests(TestCase):
     def test_role_previews_are_present(self):
         payload = get_setup_studio_payload(self.school)
         role_codes = {item["role"] for item in payload["role_previews"]}
-        self.assertEqual(role_codes, {"admin", "teacher", "parent", "finance", "student"})
+        self.assertEqual(
+            role_codes, {"admin", "teacher", "parent", "finance", "student"}
+        )
         preview_titles = {item["title"] for item in payload["preview_cards"]}
         self.assertEqual(
             preview_titles,
-            {"School website", "Admin shell", "Teacher dashboard", "Parent portal", "Finance console", "Student portal"},
+            {
+                "School website",
+                "Admin shell",
+                "Teacher dashboard",
+                "Parent portal",
+                "Finance console",
+                "Student portal",
+            },
         )
         self.assertGreaterEqual(len(payload["preview_workspace"]["surfaces"]), 6)
         self.assertEqual(len(payload["preview_workspace"]["recommended_sequence"]), 6)
-        self.assertIn(payload["preview_workspace"]["preview_fidelity_level"], ("full", "partial", "none"))
+        self.assertIn(
+            payload["preview_workspace"]["preview_fidelity_level"],
+            ("full", "partial", "none"),
+        )
         self.assertIn("preview_note", payload["preview_workspace"])
         orchestration_keys = {item["key"] for item in payload["launch_orchestration"]}
-        self.assertEqual(orchestration_keys, {"preflight", "preview", "launch_control", "post_launch"})
+        self.assertEqual(
+            orchestration_keys,
+            {"preflight", "preview", "launch_control", "post_launch"},
+        )
 
     def test_launch_orchestration_stages_have_required_fields(self):
         """RUNMYCAMPUS §6.5: launch_orchestration stages must have key, label, detail, done, link, status."""

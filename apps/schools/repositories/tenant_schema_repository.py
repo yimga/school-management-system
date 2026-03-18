@@ -3,6 +3,7 @@ Tenant schema DDL: drop schema (onboarding kill-switch).
 §2.4 raw_sql_replacement_targets: single raw SQL for DROP SCHEMA lives here; onboarding_service delegates.
 Use only on onboarding failure; staff/control-plane only.
 """
+
 from django.db import connection
 
 

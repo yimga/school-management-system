@@ -3,6 +3,7 @@ Tag Manager UI: School Settings → create/edit InformationTag (zero-hardcoding 
 Scoped to request.school; only tags for current tenant.
 §2.4 Structured logging: tag save failures logged via log_view_exception for audit.
 """
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -16,15 +17,23 @@ from apps.accounts.decorators import permission_required
 from apps.people.models import InformationTag
 from apps.platform_runtime.structured_logging import log_view_exception
 
-_TAG_SAVE_ERRORS = (ValidationError, IntegrityError, DatabaseError, TypeError, ValueError)
+_TAG_SAVE_ERRORS = (
+    ValidationError,
+    IntegrityError,
+    DatabaseError,
+    TypeError,
+    ValueError,
+)
 
 
 def _school_required(view_func):
     """Require request.school (tenant). Use after login_required."""
+
     def _wrapped(request, *args, **kwargs):
         if not getattr(request, "school", None):
             return HttpResponseForbidden("School context required.")
         return view_func(request, *args, **kwargs)
+
     return _wrapped
 
 
@@ -40,7 +49,9 @@ def tag_manager(request):
     )
     if request.method == "POST":
         name = (request.POST.get("name") or "").strip()
-        category = (request.POST.get("category") or InformationTag.Category.GENERAL).strip()
+        category = (
+            request.POST.get("category") or InformationTag.Category.GENERAL
+        ).strip()
         color_hex = (request.POST.get("color_hex") or "#3498db").strip()
         description = (request.POST.get("description") or "").strip()
         is_private = request.POST.get("is_private") == "on"
@@ -53,7 +64,9 @@ def tag_manager(request):
             InformationTag.objects.create(
                 school=school,
                 name=name,
-                category=category if category in dict(InformationTag.Category.choices) else InformationTag.Category.GENERAL,
+                category=category
+                if category in dict(InformationTag.Category.choices)
+                else InformationTag.Category.GENERAL,
                 color_hex=color_hex if color_hex.startswith("#") else f"#{color_hex}",
                 description=description,
                 is_private=is_private,
@@ -61,10 +74,14 @@ def tag_manager(request):
             )
             messages.success(request, f"Tag «{name}» created.")
             return redirect("siteconfig:tag_manager")
-    return render(request, "siteconfig/tag_manager.html", {
-        "tags": all_tags,
-        "category_choices": InformationTag.Category.choices,
-    })
+    return render(
+        request,
+        "siteconfig/tag_manager.html",
+        {
+            "tags": all_tags,
+            "category_choices": InformationTag.Category.choices,
+        },
+    )
 
 
 @login_required
@@ -85,7 +102,11 @@ def tag_manager_edit(request, tag_id):
         if action == "save":
             tag.name = (request.POST.get("name") or tag.name).strip()
             category = (request.POST.get("category") or tag.category).strip()
-            tag.category = category if category in dict(InformationTag.Category.choices) else tag.category
+            tag.category = (
+                category
+                if category in dict(InformationTag.Category.choices)
+                else tag.category
+            )
             tag.color_hex = (request.POST.get("color_hex") or tag.color_hex).strip()
             if not tag.color_hex.startswith("#"):
                 tag.color_hex = f"#{tag.color_hex}"
@@ -103,11 +124,15 @@ def tag_manager_edit(request, tag_id):
                 )
                 messages.error(request, str(e))
             return redirect("siteconfig:tag_manager")
-    return render(request, "siteconfig/tag_manager_edit.html", {
-        "tag": tag,
-        "category_choices": InformationTag.Category.choices,
-        "page_title": "Edit tag",
-        "page_subtitle": tag.name,
-        "action_url": reverse("siteconfig:tag_manager"),
-        "action_text": "Back to List",
-    })
+    return render(
+        request,
+        "siteconfig/tag_manager_edit.html",
+        {
+            "tag": tag,
+            "category_choices": InformationTag.Category.choices,
+            "page_title": "Edit tag",
+            "page_subtitle": tag.name,
+            "action_url": reverse("siteconfig:tag_manager"),
+            "action_text": "Back to List",
+        },
+    )

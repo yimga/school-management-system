@@ -2,6 +2,7 @@
 Phase 10 — 2.1: Year clone and rollover views (clone_year_setup, rollover_year, rollover_queue, proposal detail/prepare).
 Extracted from accounts/views.py for giant-file decomposition.
 """
+
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.db import DatabaseError
@@ -16,14 +17,19 @@ from apps.academics.services_year_setup import clone_academic_year
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import RolloverProposal, RolloverProposalItem, User
 from apps.people.models import StudentProfile, StudentResourceReturn
-from apps.platform_runtime.helpers import get_effective_flags, get_effective_site_settings
+from apps.platform_runtime.helpers import (
+    get_effective_flags,
+    get_effective_site_settings,
+)
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.reports.services import get_promotion_status, _annual_average_for_student
 
 
 def _is_admin_user(user):
     return user.is_authenticated and (
-        user.is_superuser or user.is_staff or getattr(user, "role", None) == User.Role.ADMIN
+        user.is_superuser
+        or user.is_staff
+        or getattr(user, "role", None) == User.Role.ADMIN
     )
 
 
@@ -62,7 +68,12 @@ def clone_year_setup(request):
             log_exception_with_context(
                 "accounts clone_year_setup: clone_academic_year failed",
                 school_id=school_id,
-                extra={"view": "clone_year_setup", "source_year_id": source_year.id, "target_year_id": target_year.id, "error": str(e)},
+                extra={
+                    "view": "clone_year_setup",
+                    "source_year_id": source_year.id,
+                    "target_year_id": target_year.id,
+                    "error": str(e),
+                },
             )
             messages.error(request, f"Clone failed: {e}")
             return render(request, "accounts/clone_year_setup.html", {"years": years})
@@ -84,7 +95,9 @@ def rollover_year(request):
         target_id = request.POST.get("target_year")
         lock_source = request.POST.get("lock_source") == "on"
         notify_parents = request.POST.get("notify_parents") == "on"
-        allow_outstanding_returns = request.POST.get("allow_outstanding_returns") == "on"
+        allow_outstanding_returns = (
+            request.POST.get("allow_outstanding_returns") == "on"
+        )
         carry_forward_arrears_check = request.POST.get("carry_forward_arrears") == "on"
         if not source_id or not target_id:
             messages.error(request, "Please select both source and target year.")
@@ -93,17 +106,26 @@ def rollover_year(request):
         source_year = get_object_or_404(AcademicYear, id=source_id)
         target_year = get_object_or_404(AcademicYear, id=target_id)
         if getattr(source_year, "is_locked", False):
-            messages.error(request, f"{source_year.name} is locked; rollover from this year is not allowed.")
+            messages.error(
+                request,
+                f"{source_year.name} is locked; rollover from this year is not allowed.",
+            )
             return render(request, "accounts/rollover_year.html", {"years": years})
 
-        target_classrooms = list(Classroom.objects.filter(academic_year=target_year).order_by("name"))
+        target_classrooms = list(
+            Classroom.objects.filter(academic_year=target_year).order_by("name")
+        )
         target_classrooms_by_id = {c.id: c for c in target_classrooms}
 
-        students = list(StudentProfile.objects.filter(
-            academic_year=source_year, is_active=True
-        ).select_related("classroom"))
+        students = list(
+            StudentProfile.objects.filter(
+                academic_year=source_year, is_active=True
+            ).select_related("classroom")
+        )
         flags = get_effective_flags(request)
-        block_if_outstanding = flags.get("block_promotion_if_outstanding_returns", False)
+        block_if_outstanding = flags.get(
+            "block_promotion_if_outstanding_returns", False
+        )
         outstanding_by_student = dict(
             StudentResourceReturn.objects.filter(
                 academic_year=source_year,
@@ -124,7 +146,11 @@ def rollover_year(request):
             if not classroom_id:
                 continue
             outstanding = outstanding_by_student.get(s.id, 0)
-            if block_if_outstanding and not allow_outstanding_returns and outstanding > 0:
+            if (
+                block_if_outstanding
+                and not allow_outstanding_returns
+                and outstanding > 0
+            ):
                 skipped_outstanding += 1
                 continue
             if classroom_id == GRADUATE_VALUE:
@@ -132,7 +158,9 @@ def rollover_year(request):
                 s.classroom = None
                 s.status = StudentProfile.Status.ALUMNI
                 s.is_active = False
-                s.save(update_fields=["academic_year", "classroom", "status", "is_active"])
+                s.save(
+                    update_fields=["academic_year", "classroom", "status", "is_active"]
+                )
                 graduated += 1
                 continue
             try:
@@ -149,15 +177,19 @@ def rollover_year(request):
         if notify_parents and rolled_students:
             from apps.people.models import StudentGuardian
             from apps.finance.models import Notification as FinanceNotification
+
             notifier = None
             try:
                 from apps.evals.notifications import NotificationService
+
                 notifier = NotificationService()
             except ImportError:
                 pass
             for student, new_classroom in rolled_students:
                 msg = f"Your child {student.get_full_name() or student.last_name} has been assigned to {new_classroom.name} for {target_year.name}."
-                for link in StudentGuardian.objects.filter(student=student).select_related("guardian_user"):
+                for link in StudentGuardian.objects.filter(
+                    student=student
+                ).select_related("guardian_user"):
                     if link.guardian_user_id:
                         FinanceNotification.objects.create(
                             title="Class assignment",
@@ -166,26 +198,53 @@ def rollover_year(request):
                             recipient_id=link.guardian_user_id,
                             created_by=request.user,
                         )
-                    if notifier and getattr(link, "phone", None) and link.phone and getattr(link, "receives_sms", False):
+                    if (
+                        notifier
+                        and getattr(link, "phone", None)
+                        and link.phone
+                        and getattr(link, "receives_sms", False)
+                    ):
                         try:
                             notifier.send_sms(link.phone, msg)
-                        except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
+                        except (
+                            AttributeError,
+                            OSError,
+                            RuntimeError,
+                            TypeError,
+                            ValueError,
+                        ):
                             pass
-        if carry_forward_arrears_check and flags.get("carry_forward_arrears_on_rollover", True):
+        if carry_forward_arrears_check and flags.get(
+            "carry_forward_arrears_on_rollover", True
+        ):
             try:
                 from apps.finance.services import carry_forward_arrears
+
                 arrears_created = carry_forward_arrears(source_year, target_year)
                 if arrears_created:
                     messages.success(
                         request,
                         f"Created {arrears_created} opening balance (arrears) invoice(s) in {target_year.name}.",
                     )
-            except (DatabaseError, ImportError, RuntimeError, TypeError, ValueError) as e:
-                school_id = str(getattr(getattr(request, "school", None), "pk", None) or "")
+            except (
+                DatabaseError,
+                ImportError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
+                school_id = str(
+                    getattr(getattr(request, "school", None), "pk", None) or ""
+                )
                 log_exception_with_context(
                     "accounts rollover_year: carry_forward_arrears failed",
                     school_id=school_id,
-                    extra={"view": "rollover_year", "source_year_id": source_year.id, "target_year_id": target_year.id, "error": str(e)},
+                    extra={
+                        "view": "rollover_year",
+                        "source_year_id": source_year.id,
+                        "target_year_id": target_year.id,
+                        "error": str(e),
+                    },
                 )
                 messages.error(
                     request,
@@ -194,9 +253,14 @@ def rollover_year(request):
         if lock_source:
             source_year.is_locked = True
             source_year.save(update_fields=["is_locked"])
-            messages.success(request, f"Rolled over {updated} students to {target_year.name} and locked {source_year.name}.")
+            messages.success(
+                request,
+                f"Rolled over {updated} students to {target_year.name} and locked {source_year.name}.",
+            )
         else:
-            messages.success(request, f"Rolled over {updated} students to {target_year.name}.")
+            messages.success(
+                request, f"Rolled over {updated} students to {target_year.name}."
+            )
         if graduated:
             messages.success(request, f"Marked {graduated} student(s) as Alumni.")
         if skipped_outstanding:
@@ -209,7 +273,16 @@ def rollover_year(request):
 
     source_id = request.GET.get("source_year")
     target_id = request.GET.get("target_year")
-    context = {"years": years, "rows": [], "source_year": None, "target_year": None, "target_classrooms": [], "checklist": [], "block_promotion_if_outstanding_returns": False, "carry_forward_arrears_on_rollover": False}
+    context = {
+        "years": years,
+        "rows": [],
+        "source_year": None,
+        "target_year": None,
+        "target_classrooms": [],
+        "checklist": [],
+        "block_promotion_if_outstanding_returns": False,
+        "carry_forward_arrears_on_rollover": False,
+    }
     if source_id and target_id:
         source_year = AcademicYear.objects.filter(id=source_id).first()
         target_year = AcademicYear.objects.filter(id=target_id).first()
@@ -223,25 +296,49 @@ def rollover_year(request):
             source_locked = getattr(source_year, "is_locked", False)
             context["checklist"] = [
                 {"label": "Source year is not locked", "ok": not source_locked},
-                {"label": "Target year has classrooms", "ok": len(target_classrooms_list) > 0},
-                {"label": "Final grades entered and reports finalized (manual check)", "ok": None},
+                {
+                    "label": "Target year has classrooms",
+                    "ok": len(target_classrooms_list) > 0,
+                },
+                {
+                    "label": "Final grades entered and reports finalized (manual check)",
+                    "ok": None,
+                },
             ]
             promotion_map = {}
             try:
                 from apps.academics.models import ClassroomPromotionMapping
+
                 for m in ClassroomPromotionMapping.objects.filter(
                     source_year=source_year, target_year=target_year
                 ).select_related("source_classroom", "target_classroom"):
                     if m.source_classroom_id:
                         promotion_map[m.source_classroom_id] = m.target_classroom
-            except (DatabaseError, ImportError, RuntimeError, TypeError, ValueError) as e:
-                school_id = str(getattr(getattr(request, "school", None), "pk", None) or "")
+            except (
+                DatabaseError,
+                ImportError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
+                school_id = str(
+                    getattr(getattr(request, "school", None), "pk", None) or ""
+                )
                 log_exception_with_context(
                     "accounts rollover_year: ClassroomPromotionMapping query failed",
                     school_id=school_id,
-                    extra={"view": "rollover_year", "source_year_id": source_year.id, "target_year_id": target_year.id, "error": str(e)},
+                    extra={
+                        "view": "rollover_year",
+                        "source_year_id": source_year.id,
+                        "target_year_id": target_year.id,
+                        "error": str(e),
+                    },
                 )
-            terms = list(Term.objects.filter(academic_year=source_year).order_by("position", "start_date"))
+            terms = list(
+                Term.objects.filter(academic_year=source_year).order_by(
+                    "position", "start_date"
+                )
+            )
             students = StudentProfile.objects.filter(
                 academic_year=source_year, is_active=True
             ).select_related("classroom")
@@ -255,20 +352,24 @@ def rollover_year(request):
                 .values_list("student_id", "count")
             )
             site = get_effective_site_settings(request=request)
-            context["block_promotion_if_outstanding_returns"] = (
-                get_effective_flags(request).get("block_promotion_if_outstanding_returns", False)
-            )
+            context["block_promotion_if_outstanding_returns"] = get_effective_flags(
+                request
+            ).get("block_promotion_if_outstanding_returns", False)
             backend_flags = (
                 site.get_backend_feature_flags()
                 if callable(getattr(site, "get_backend_feature_flags", None))
                 else {}
             )
-            context["carry_forward_arrears_on_rollover"] = (
-                backend_flags.get("carry_forward_arrears_on_rollover", True)
+            context["carry_forward_arrears_on_rollover"] = backend_flags.get(
+                "carry_forward_arrears_on_rollover", True
             )
             for s in students:
                 annual_avg = _annual_average_for_student(s, terms) if terms else None
-                promo = get_promotion_status(s, source_year, annual_avg) if annual_avg is not None else "NO_DATA"
+                promo = (
+                    get_promotion_status(s, source_year, annual_avg)
+                    if annual_avg is not None
+                    else "NO_DATA"
+                )
                 suggested = None
                 if s.classroom_id and promotion_map:
                     suggested = promotion_map.get(s.classroom_id)
@@ -278,13 +379,17 @@ def rollover_year(request):
                     ).first()
                 if not suggested and context["target_classrooms"]:
                     suggested = context["target_classrooms"][0]
-                context["rows"].append({
-                    "student": s,
-                    "annual_average": round(annual_avg, 2) if annual_avg is not None else None,
-                    "promotion_status": promo,
-                    "suggested_classroom": suggested,
-                    "outstanding_returns": outstanding_counts.get(s.id, 0),
-                })
+                context["rows"].append(
+                    {
+                        "student": s,
+                        "annual_average": round(annual_avg, 2)
+                        if annual_avg is not None
+                        else None,
+                        "promotion_status": promo,
+                        "suggested_classroom": suggested,
+                        "outstanding_returns": outstanding_counts.get(s.id, 0),
+                    }
+                )
     context["rollover_queue_url"] = reverse("accounts:rollover_queue")
     return render(request, "accounts/rollover_year.html", context)
 
@@ -301,7 +406,12 @@ def rollover_queue(request):
         return redirect("accounts:rollover_year")
     proposals = list(
         RolloverProposal.objects.filter(school_id=school_id)
-        .exclude(status__in=[RolloverProposal.Status.APPLIED, RolloverProposal.Status.CANCELLED])
+        .exclude(
+            status__in=[
+                RolloverProposal.Status.APPLIED,
+                RolloverProposal.Status.CANCELLED,
+            ]
+        )
         .select_related("source_year", "target_year", "created_by")
         .order_by("-created_at")[:50]
     )
@@ -317,13 +427,19 @@ def rollover_proposal_detail(request, proposal_id):
     school = getattr(request, "school", None)
     if not school or proposal.school_id != school.pk:
         from django.http import HttpResponseForbidden
+
         return HttpResponseForbidden()
     target_classrooms = list(
         Classroom.objects.filter(academic_year=proposal.target_year).order_by("name")
     )
     items = list(
         RolloverProposalItem.objects.filter(proposal=proposal)
-        .select_related("student", "student__classroom", "suggested_next_classroom", "approved_next_classroom")
+        .select_related(
+            "student",
+            "student__classroom",
+            "suggested_next_classroom",
+            "approved_next_classroom",
+        )
         .order_by("student__last_name", "student__first_name")
     )
     if request.method == "POST":
@@ -341,27 +457,44 @@ def rollover_proposal_detail(request, proposal_id):
                         try:
                             item.approved_next_classroom_id = int(room_id)
                         except (ValueError, TypeError):
-                            item.approved_next_classroom_id = item.suggested_next_classroom_id
+                            item.approved_next_classroom_id = (
+                                item.suggested_next_classroom_id
+                            )
                     else:
-                        item.approved_next_classroom_id = item.suggested_next_classroom_id
+                        item.approved_next_classroom_id = (
+                            item.suggested_next_classroom_id
+                        )
                 item.save(update_fields=["is_graduate", "approved_next_classroom_id"])
             proposal.status = RolloverProposal.Status.APPROVED
             proposal.approved_at = timezone.now()
             proposal.approved_by = request.user
             proposal.save(update_fields=["status", "approved_at", "approved_by"])
-            messages.success(request, "Rollover proposal approved. You can now Apply it.")
-            return redirect("accounts:rollover_proposal_detail", proposal_id=proposal_id)
+            messages.success(
+                request, "Rollover proposal approved. You can now Apply it."
+            )
+            return redirect(
+                "accounts:rollover_proposal_detail", proposal_id=proposal_id
+            )
         if action == "apply":
             lock_source = request.POST.get("lock_source") == "on"
             notify_parents = request.POST.get("notify_parents") == "on"
             allow_outstanding = request.POST.get("allow_outstanding_returns") == "on"
             carry_arrears = request.POST.get("carry_forward_arrears") == "on"
             from apps.accounts.tasks import apply_rollover_proposal
+
             apply_rollover_proposal.apply(
                 args=[proposal_id],
-                kwargs=dict(lock_source=lock_source, notify_parents=notify_parents, allow_outstanding_returns=allow_outstanding, carry_forward_arrears=carry_arrears),
+                kwargs=dict(
+                    lock_source=lock_source,
+                    notify_parents=notify_parents,
+                    allow_outstanding_returns=allow_outstanding,
+                    carry_forward_arrears=carry_arrears,
+                ),
             )
-            messages.success(request, "Rollover applied. Students have been moved to the target year.")
+            messages.success(
+                request,
+                "Rollover applied. Students have been moved to the target year.",
+            )
             return redirect("accounts:rollover_queue")
     return render(
         request,
@@ -391,6 +524,7 @@ def rollover_prepare(request):
         messages.error(request, "Source year is locked.")
         return redirect("accounts:rollover_year")
     from apps.accounts.tasks import prepare_rollover_proposal
+
     result = prepare_rollover_proposal.apply(
         args=[school_id, source_year.id, target_year.id],
         kwargs={"created_by_id": request.user.pk},
@@ -398,7 +532,17 @@ def rollover_prepare(request):
     if getattr(result, "result", {}).get("ok"):
         proposal_id = result.result.get("proposal_id")
         if proposal_id:
-            messages.success(request, f"Rollover proposal created with {result.result.get('items', 0)} students. Review and approve below.")
-            return redirect("accounts:rollover_proposal_detail", proposal_id=proposal_id)
-    messages.error(request, (getattr(result, "result", None) or {}).get("error", "Failed to prepare proposal."))
+            messages.success(
+                request,
+                f"Rollover proposal created with {result.result.get('items', 0)} students. Review and approve below.",
+            )
+            return redirect(
+                "accounts:rollover_proposal_detail", proposal_id=proposal_id
+            )
+    messages.error(
+        request,
+        (getattr(result, "result", None) or {}).get(
+            "error", "Failed to prepare proposal."
+        ),
+    )
     return redirect("accounts:rollover_year")

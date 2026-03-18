@@ -2,6 +2,7 @@
 Metadata engine: custom fields without DDL (JSONB/EAV style).
 DynamicFieldDefinition defines allowed keys per entity type; DynamicFieldValue stores values.
 """
+
 from django.db import models
 
 
@@ -16,7 +17,9 @@ class DynamicFieldDefinition(models.Model):
         db_index=True,
         help_text="Entity type, e.g. student, invoice, classroom.",
     )
-    field_key = models.CharField(max_length=120, help_text="Unique key within entity_type, e.g. preferred_name.")
+    field_key = models.CharField(
+        max_length=120, help_text="Unique key within entity_type, e.g. preferred_name."
+    )
     label = models.CharField(max_length=255, blank=True)
     data_type = models.CharField(
         max_length=20,
@@ -59,12 +62,14 @@ class DynamicFieldValue(models.Model):
     """
 
     entity_type = models.CharField(max_length=80, db_index=True)
-    entity_id = models.CharField(max_length=64, db_index=True, help_text="Target entity PK (e.g. student id).")
+    entity_id = models.CharField(
+        max_length=64, db_index=True, help_text="Target entity PK (e.g. student id)."
+    )
     field_key = models.CharField(max_length=120)
     value_json = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Stored value (string as {\"v\": \"...\"}, number as {\"v\": 1}, etc.).",
+        help_text='Stored value (string as {"v": "..."}, number as {"v": 1}, etc.).',
     )
     school = models.ForeignKey(
         "schools.School",
@@ -90,10 +95,18 @@ class StateMachineDefinition(models.Model):
     Minimal state machine definition (versioned, tenant-configurable).
     states: list of state codes; transitions: list of {from_state, to_state, event}.
     """
+
     code = models.CharField(max_length=80, unique=True)
     name = models.CharField(max_length=120)
-    entity_type = models.CharField(max_length=80, db_index=True, help_text="e.g. admission, invoice, discipline_case.")
-    states = models.JSONField(default=list, help_text="List of state codes, e.g. [\"draft\", \"submitted\", \"closed\"].")
+    entity_type = models.CharField(
+        max_length=80,
+        db_index=True,
+        help_text="e.g. admission, invoice, discipline_case.",
+    )
+    states = models.JSONField(
+        default=list,
+        help_text='List of state codes, e.g. ["draft", "submitted", "closed"].',
+    )
     transitions = models.JSONField(
         default=list,
         help_text="List of {from_state, to_state, event}.",
@@ -121,12 +134,15 @@ class StateMachineDefinition(models.Model):
 
 class EntityState(models.Model):
     """Current state of an entity in a state machine."""
+
     definition = models.ForeignKey(
         StateMachineDefinition,
         on_delete=models.CASCADE,
         related_name="entity_states",
     )
-    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="+")
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="+"
+    )
     entity_type = models.CharField(max_length=80, db_index=True)
     entity_id = models.CharField(max_length=64, db_index=True)
     current_state = models.CharField(max_length=80)
@@ -362,7 +378,9 @@ class ConfigMutationAuditLog(models.Model):
         ("sandbox", "Sandbox"),
     ]
 
-    actor_id = models.IntegerField(null=True, blank=True, help_text="User ID if applicable.")
+    actor_id = models.IntegerField(
+        null=True, blank=True, help_text="User ID if applicable."
+    )
     target_type = models.CharField(
         max_length=80,
         help_text="Config type (e.g. SiteSettings, RegionConfig, blueprint, policy_bundle).",
@@ -393,7 +411,10 @@ class MetadataChangeLog(models.Model):
     """
 
     actor_id = models.IntegerField(null=True, blank=True)
-    object_type = models.CharField(max_length=80, help_text="Metadata type (e.g. EntityCatalogEntry, PolicyBundle).")
+    object_type = models.CharField(
+        max_length=80,
+        help_text="Metadata type (e.g. EntityCatalogEntry, PolicyBundle).",
+    )
     object_id = models.CharField(max_length=120, blank=True, db_index=True)
     scope = models.CharField(
         max_length=20,
@@ -403,7 +424,9 @@ class MetadataChangeLog(models.Model):
     )
     old_value_summary = models.JSONField(default=dict, blank=True)
     new_value_summary = models.JSONField(default=dict, blank=True)
-    tenants_affected = models.JSONField(default=list, blank=True, help_text="List of tenant/school IDs if scope allows.")
+    tenants_affected = models.JSONField(
+        default=list, blank=True, help_text="List of tenant/school IDs if scope allows."
+    )
     reason = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -422,7 +445,12 @@ class LayoutDefinition(models.Model):
     Layout/UI as metadata (plan I6). Page or section layout: widget keys, order, options.
     Drives UI composition without code changes.
     """
-    code = models.CharField(max_length=80, db_index=True, help_text="e.g. dashboard_principal_home, form_student_edit.")
+
+    code = models.CharField(
+        max_length=80,
+        db_index=True,
+        help_text="e.g. dashboard_principal_home, form_student_edit.",
+    )
     name = models.CharField(max_length=120, blank=True)
     scope = models.CharField(
         max_length=20,

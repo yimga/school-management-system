@@ -4,20 +4,19 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0039_add_financial_aid_models'),
+        ("finance", "0039_add_financial_aid_models"),
     ]
 
     operations = [
         migrations.RenameIndex(
-            model_name='financialaidapplication',
-            new_name='finance_fin_school__d12150_idx',
-            old_name='finance_fin_school__a0e0e4_idx',
+            model_name="financialaidapplication",
+            new_name="finance_fin_school__d12150_idx",
+            old_name="finance_fin_school__a0e0e4_idx",
         ),
         migrations.RenameIndex(
-            model_name='financialaidapplication',
-            new_name='finance_fin_student_7abcf5_idx',
-            old_name='finance_fin_student_7b0e8a_idx',
+            model_name="financialaidapplication",
+            new_name="finance_fin_student_7abcf5_idx",
+            old_name="finance_fin_student_7b0e8a_idx",
         ),
     ]

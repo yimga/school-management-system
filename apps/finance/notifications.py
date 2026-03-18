@@ -3,6 +3,7 @@ Finance in-app and optional email notifications to guardians.
 Phase 2: New invoice issued (2.3), Payment received (2.4).
 Configurable via SiteSettings; respects guardians with can_view_finance.
 """
+
 from __future__ import annotations
 
 import contextvars
@@ -12,7 +13,9 @@ from django.core.exceptions import ImproperlyConfigured
 from django.urls.exceptions import NoReverseMatch
 
 # When True, skip automatic new-invoice notification (e.g. during bulk create; use "Notify guardians" instead).
-_skip_new_invoice_notify: contextvars.ContextVar[bool] = contextvars.ContextVar("skip_new_invoice_notify", default=False)
+_skip_new_invoice_notify: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "skip_new_invoice_notify", default=False
+)
 
 from apps.finance.models import Invoice, Payment, Notification
 from apps.people.models import StudentGuardian
@@ -56,7 +59,10 @@ def notify_guardians_new_invoice(
     """
     if not force and _skip_new_invoice_notify.get():
         return 0
-    site = get_effective_site_settings(school=getattr(invoice, "school", None) or getattr(getattr(invoice, "student", None), "school", None))
+    site = get_effective_site_settings(
+        school=getattr(invoice, "school", None)
+        or getattr(getattr(invoice, "student", None), "school", None)
+    )
     if not getattr(site, "finance_notify_guardians_new_invoice", True):
         return 0
     guardians = _guardians_with_finance_access(invoice)
@@ -95,6 +101,7 @@ def _send_new_invoice_emails(invoice: Invoice, guardians: list) -> None:
     """Send optional email to guardians (Phase 2.3)."""
     from django.core.mail import EmailMessage
     from django.conf import settings
+
     ref = invoice.reference or f"INV-{invoice.id}"
     subject = f"New invoice: {ref}"
     body = (
@@ -103,10 +110,14 @@ def _send_new_invoice_emails(invoice: Invoice, guardians: list) -> None:
     )
     from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@school.example")
     for g in guardians:
-        email = (getattr(g, "email", None) or "").strip() or (g.guardian_user.email or "").strip()
+        email = (getattr(g, "email", None) or "").strip() or (
+            g.guardian_user.email or ""
+        ).strip()
         if email:
             try:
-                EmailMessage(subject, body, from_email, [email]).send(fail_silently=True)
+                EmailMessage(subject, body, from_email, [email]).send(
+                    fail_silently=True
+                )
             except (OSError, ConnectionError, ValueError, TypeError) as e:
                 logger.warning("Failed to send new-invoice email to %s: %s", email, e)
 
@@ -124,7 +135,10 @@ def notify_guardians_payment_received(
     invoice = payment.invoice
     if not invoice:
         return 0
-    site = get_effective_site_settings(school=getattr(invoice, "school", None) or getattr(getattr(invoice, "student", None), "school", None))
+    site = get_effective_site_settings(
+        school=getattr(invoice, "school", None)
+        or getattr(getattr(invoice, "student", None), "school", None)
+    )
     if not getattr(site, "finance_notify_guardians_payment_received", True):
         return 0
     guardians = _guardians_with_finance_access(invoice)
@@ -159,17 +173,24 @@ def _send_payment_received_emails(payment: Payment, guardians: list) -> None:
     """Optional email when payment is received (Phase 2.4)."""
     from django.core.mail import EmailMessage
     from django.conf import settings
+
     ref = payment.invoice.reference if payment.invoice else str(payment.id)
     subject = f"Payment received for invoice {ref}"
     body = f"Payment of {payment.amount} has been recorded for invoice {ref}."
     from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@school.example")
     for g in guardians:
-        email = (getattr(g, "email", None) or "").strip() or (g.guardian_user.email or "").strip()
+        email = (getattr(g, "email", None) or "").strip() or (
+            g.guardian_user.email or ""
+        ).strip()
         if email:
             try:
-                EmailMessage(subject, body, from_email, [email]).send(fail_silently=True)
+                EmailMessage(subject, body, from_email, [email]).send(
+                    fail_silently=True
+                )
             except (OSError, ConnectionError, ValueError, TypeError) as e:
-                logger.warning("Failed to send payment-received email to %s: %s", email, e)
+                logger.warning(
+                    "Failed to send payment-received email to %s: %s", email, e
+                )
 
 
 def notify_guardians_new_invoices_bulk(
@@ -185,6 +206,7 @@ def notify_guardians_new_invoices_bulk(
     Returns total number of in-app notifications created.
     """
     from apps.finance.models import Invoice
+
     total = 0
     for inv in Invoice.objects.filter(id__in=invoice_ids).select_related("student"):
         total += notify_guardians_new_invoice(

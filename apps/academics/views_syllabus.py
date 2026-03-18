@@ -2,6 +2,7 @@
 Syllabus Builder: teacher hub (course cards), builder, upload, preview, approval queue.
 Uses workflow_resolver.get_approval_workflow(school, "syllabus_approval") and log_delegation_action for delegate approvals.
 """
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
@@ -19,8 +20,13 @@ from apps.evals.models import TeacherAssignment
 
 # Typed exception sets for syllabus approval soft-fail paths (§2e broad-except replacement).
 _SYLLABUS_BADGE_ERRORS = (
-    ImportError, AttributeError, TypeError, ValueError,
-    ObjectDoesNotExist, DatabaseError, IntegrityError,
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    ObjectDoesNotExist,
+    DatabaseError,
+    IntegrityError,
 )
 
 
@@ -33,23 +39,31 @@ def _get_teacher_assignments(user):
     year, _ = get_active_year_and_term()
     if not year:
         return TeacherAssignment.objects.none()
-    return TeacherAssignment.objects.filter(
-        teacher=teacher,
-        academic_year=year,
-        is_active=True,
-    ).select_related(
-        "subject_assignment",
-        "subject_assignment__classroom",
-        "subject_assignment__subject",
-        "subject_assignment__term",
-        "subject_assignment__academic_year",
-    ).order_by("subject_assignment__classroom__name", "subject_assignment__subject__name")
+    return (
+        TeacherAssignment.objects.filter(
+            teacher=teacher,
+            academic_year=year,
+            is_active=True,
+        )
+        .select_related(
+            "subject_assignment",
+            "subject_assignment__classroom",
+            "subject_assignment__subject",
+            "subject_assignment__term",
+            "subject_assignment__academic_year",
+        )
+        .order_by(
+            "subject_assignment__classroom__name", "subject_assignment__subject__name"
+        )
+    )
 
 
 def _assignment_syllabus_status(assignment):
     """Return (syllabus_or_none, status_label) for a TeacherAssignment."""
     try:
-        syllabus = CourseSyllabus.objects.get(subject_assignment=assignment.subject_assignment)
+        syllabus = CourseSyllabus.objects.get(
+            subject_assignment=assignment.subject_assignment
+        )
         return syllabus, syllabus.get_status_display()
     except CourseSyllabus.DoesNotExist:
         return None, "Missing"
@@ -65,25 +79,33 @@ def teacher_syllabus_hub(request):
     cards = []
     for ta in assignments:
         syllabus, status_label = _assignment_syllabus_status(ta)
-        cards.append({
-            "assignment": ta,
-            "subject_assignment": ta.subject_assignment,
-            "syllabus": syllabus,
-            "status_label": status_label,
-        })
+        cards.append(
+            {
+                "assignment": ta,
+                "subject_assignment": ta.subject_assignment,
+                "syllabus": syllabus,
+                "status_label": status_label,
+            }
+        )
     approved_count = sum(1 for c in cards if c["status_label"] == "Approved")
-    return render(request, "academics/teacher_syllabus_hub.html", {
-        "cards": cards,
-        "year_term": get_active_year_and_term(),
-        "approved_count": approved_count,
-    })
+    return render(
+        request,
+        "academics/teacher_syllabus_hub.html",
+        {
+            "cards": cards,
+            "year_term": get_active_year_and_term(),
+            "approved_count": approved_count,
+        },
+    )
 
 
 @login_required
 def syllabus_builder(request, subject_assignment_id: int):
     """Edit syllabus via builder (builder_data JSON). Create CourseSyllabus if missing."""
     sa = get_object_or_404(
-        SubjectAssignment.objects.select_related("classroom", "subject", "term", "academic_year"),
+        SubjectAssignment.objects.select_related(
+            "classroom", "subject", "term", "academic_year"
+        ),
         pk=subject_assignment_id,
     )
     assignments_qs = _get_teacher_assignments(request.user)
@@ -93,10 +115,17 @@ def syllabus_builder(request, subject_assignment_id: int):
         subject_assignment=sa,
         defaults={"status": CourseSyllabus.Status.DRAFT, "created_by": request.user},
     )
-    if syllabus.status not in (CourseSyllabus.Status.DRAFT, CourseSyllabus.Status.NEEDS_REVISION):
-        messages.info(request, "This syllabus is not in draft state; you can still edit builder data.")
+    if syllabus.status not in (
+        CourseSyllabus.Status.DRAFT,
+        CourseSyllabus.Status.NEEDS_REVISION,
+    ):
+        messages.info(
+            request,
+            "This syllabus is not in draft state; you can still edit builder data.",
+        )
     if request.method == "POST":
         import json
+
         raw = request.POST.get("builder_data") or "{}"
         try:
             data = json.loads(raw)
@@ -118,29 +147,44 @@ def syllabus_builder(request, subject_assignment_id: int):
                     )
                     syllabus.curriculum_nodes.set(qs)
                 else:
-                    syllabus.curriculum_nodes.set(CurriculumNode.objects.filter(pk__in=valid_ids))
+                    syllabus.curriculum_nodes.set(
+                        CurriculumNode.objects.filter(pk__in=valid_ids)
+                    )
             except (ValueError, TypeError):
                 pass
         messages.success(request, "Syllabus draft saved.")
         return redirect("academics:teacher_syllabus_hub")
     import json
-    builder_json = json.dumps(syllabus.builder_data, indent=2) if syllabus.builder_data else "{}"
+
+    builder_json = (
+        json.dumps(syllabus.builder_data, indent=2) if syllabus.builder_data else "{}"
+    )
     # W6-2: Load curriculum nodes for "Tag with standards" (school-scoped or global)
     school_id = getattr(sa.academic_year, "school_id", None)
     if school_id is not None:
-        available_nodes = CurriculumNode.objects.filter(
-            standard__school_id__in=(school_id, None),
-        ).select_related("standard").order_by("standard__name", "code")[:200]
+        available_nodes = (
+            CurriculumNode.objects.filter(
+                standard__school_id__in=(school_id, None),
+            )
+            .select_related("standard")
+            .order_by("standard__name", "code")[:200]
+        )
     else:
-        available_nodes = CurriculumNode.objects.select_related("standard").order_by("code")[:200]
+        available_nodes = CurriculumNode.objects.select_related("standard").order_by(
+            "code"
+        )[:200]
     selected_node_ids = list(syllabus.curriculum_nodes.values_list("pk", flat=True))
-    return render(request, "academics/syllabus_builder.html", {
-        "syllabus": syllabus,
-        "subject_assignment": sa,
-        "builder_data_json": builder_json,
-        "available_curriculum_nodes": available_nodes,
-        "selected_curriculum_node_ids": selected_node_ids,
-    })
+    return render(
+        request,
+        "academics/syllabus_builder.html",
+        {
+            "syllabus": syllabus,
+            "subject_assignment": sa,
+            "builder_data_json": builder_json,
+            "available_curriculum_nodes": available_nodes,
+            "selected_curriculum_node_ids": selected_node_ids,
+        },
+    )
 
 
 @login_required
@@ -157,10 +201,19 @@ def syllabus_upload(request, subject_assignment_id: int):
     if request.method == "POST" and request.FILES.get("file"):
         from apps.accounts.validators import FileTypeValidator, FileSizeValidator
         from django.core.exceptions import ValidationError
+
         up = request.FILES["file"]
         try:
             FileTypeValidator(
-                allowed_extensions=[".pdf", ".doc", ".docx", ".xls", ".xlsx", ".odt", ".ods"],
+                allowed_extensions=[
+                    ".pdf",
+                    ".doc",
+                    ".docx",
+                    ".xls",
+                    ".xlsx",
+                    ".odt",
+                    ".ods",
+                ],
                 allowed_types=[
                     "application/pdf",
                     "application/msword",
@@ -174,17 +227,25 @@ def syllabus_upload(request, subject_assignment_id: int):
             )(up)
             FileSizeValidator(max_size_mb=10)(up)
         except ValidationError as e:
-            messages.error(request, e.messages[0] if getattr(e, "messages", None) else str(e))
+            messages.error(
+                request, e.messages[0] if getattr(e, "messages", None) else str(e)
+            )
             return redirect("academics:syllabus_upload", subject_assignment_id=sa.id)
         syllabus.uploaded_file = up
         syllabus.status = CourseSyllabus.Status.DRAFT
         syllabus.save()
-        messages.success(request, "File uploaded. You can submit for approval when ready.")
+        messages.success(
+            request, "File uploaded. You can submit for approval when ready."
+        )
         return redirect("academics:teacher_syllabus_hub")
-    return render(request, "academics/syllabus_upload.html", {
-        "syllabus": syllabus,
-        "subject_assignment": sa,
-    })
+    return render(
+        request,
+        "academics/syllabus_upload.html",
+        {
+            "syllabus": syllabus,
+            "subject_assignment": sa,
+        },
+    )
 
 
 @login_required
@@ -195,7 +256,10 @@ def syllabus_submit(request, subject_assignment_id: int):
     if not assignments_qs or not assignments_qs.filter(subject_assignment=sa).exists():
         return HttpResponseForbidden("You are not assigned to this class/subject.")
     syllabus = get_object_or_404(CourseSyllabus, subject_assignment=sa)
-    if syllabus.status not in (CourseSyllabus.Status.DRAFT, CourseSyllabus.Status.NEEDS_REVISION):
+    if syllabus.status not in (
+        CourseSyllabus.Status.DRAFT,
+        CourseSyllabus.Status.NEEDS_REVISION,
+    ):
         messages.warning(request, "Syllabus is already submitted or approved.")
         return redirect("academics:teacher_syllabus_hub")
     if request.method == "POST":
@@ -211,28 +275,40 @@ def syllabus_submit(request, subject_assignment_id: int):
 def syllabus_preview(request, subject_assignment_id: int):
     """Preview syllabus as student/dean (read-only, optional watermark)."""
     sa = get_object_or_404(
-        SubjectAssignment.objects.select_related("classroom", "subject", "term", "academic_year"),
+        SubjectAssignment.objects.select_related(
+            "classroom", "subject", "term", "academic_year"
+        ),
         pk=subject_assignment_id,
     )
     syllabus = get_object_or_404(CourseSyllabus, subject_assignment=sa)
     # Allow: owner teacher, or any effective approver (for dean view)
     assignments_qs = _get_teacher_assignments(request.user)
-    from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
+    from apps.siteconfig.workflow_resolver import (
+        get_approval_workflow as workflow_get_approval,
+    )
+
     is_owner = assignments_qs and assignments_qs.filter(subject_assignment=sa).exists()
     _wf = workflow_get_approval(getattr(request, "school", None), "syllabus_approval")
     is_approver = request.user.pk in (_wf.get("approver_ids") or [])
     if not (is_owner or is_approver):
         return HttpResponseForbidden("You cannot view this syllabus.")
-    return render(request, "academics/syllabus_preview.html", {
-        "syllabus": syllabus,
-        "subject_assignment": sa,
-    })
+    return render(
+        request,
+        "academics/syllabus_preview.html",
+        {
+            "syllabus": syllabus,
+            "subject_assignment": sa,
+        },
+    )
 
 
 @login_required
 def syllabus_approval_queue(request):
     """List syllabi pending approval for current user (effective approver: role or delegate)."""
-    from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
+    from apps.siteconfig.workflow_resolver import (
+        get_approval_workflow as workflow_get_approval,
+    )
+
     _wf = workflow_get_approval(getattr(request, "school", None), "syllabus_approval")
     approver_ids = _wf.get("approver_ids") or []
     if request.user.pk not in approver_ids:
@@ -248,14 +324,22 @@ def syllabus_approval_queue(request):
         )
         .order_by("submitted_at")
     )
-    return render(request, "academics/syllabus_approval_queue.html", {"pending": pending})
+    return render(
+        request, "academics/syllabus_approval_queue.html", {"pending": pending}
+    )
 
 
 @login_required
 def syllabus_approve(request, subject_assignment_id: int):
     """Approve a syllabus (effective approver). Log delegation action if acting as delegate."""
-    from apps.accounts.delegation import get_active_delegation_for_delegate, log_delegation_action
-    from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
+    from apps.accounts.delegation import (
+        get_active_delegation_for_delegate,
+        log_delegation_action,
+    )
+    from apps.siteconfig.workflow_resolver import (
+        get_approval_workflow as workflow_get_approval,
+    )
+
     sa = get_object_or_404(SubjectAssignment, pk=subject_assignment_id)
     syllabus = get_object_or_404(CourseSyllabus, subject_assignment=sa)
     if syllabus.status != CourseSyllabus.Status.PENDING:
@@ -283,17 +367,25 @@ def syllabus_approve(request, subject_assignment_id: int):
             )
         # Award badge to teacher (e.g. Syllabus Master)
         try:
-            from apps.people.badge_services import create_teacher_badge_for_syllabus_approval
+            from apps.people.badge_services import (
+                create_teacher_badge_for_syllabus_approval,
+            )
+
             create_teacher_badge_for_syllabus_approval(syllabus)
         except _SYLLABUS_BADGE_ERRORS as e:
             log_view_exception(
                 request,
                 "syllabus_approve: teacher badge creation skipped",
-                extra={"syllabus_id": syllabus.pk, "subject_assignment_id": sa.pk, "error": str(e)},
+                extra={
+                    "syllabus_id": syllabus.pk,
+                    "subject_assignment_id": sa.pk,
+                    "error": str(e),
+                },
             )
         # Sync to Document Library (portal syllabus feature); do not fail approval if sync fails
         try:
             from apps.portal.models import PortalFeatureItem
+
             preview_url = request.build_absolute_uri(
                 reverse("academics:syllabus_preview", args=[sa.pk])
             )
@@ -315,11 +407,23 @@ def syllabus_approve(request, subject_assignment_id: int):
                 )
                 syllabus.portal_item = item
                 syllabus.save(update_fields=["portal_item"])
-        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError, IntegrityError) as e:
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            ObjectDoesNotExist,
+            DatabaseError,
+            IntegrityError,
+        ) as e:
             log_view_exception(
                 request,
                 "syllabus_approve: portal syllabus sync skipped",
-                extra={"syllabus_id": syllabus.pk, "subject_assignment_id": sa.pk, "error": str(e)},
+                extra={
+                    "syllabus_id": syllabus.pk,
+                    "subject_assignment_id": sa.pk,
+                    "error": str(e),
+                },
             )
         messages.success(request, "Syllabus approved.")
         return redirect("academics:syllabus_approval_queue")
@@ -329,8 +433,14 @@ def syllabus_approve(request, subject_assignment_id: int):
 @login_required
 def syllabus_reject(request, subject_assignment_id: int):
     """Send syllabus back to teacher (Needs revision). Log delegation action if delegate."""
-    from apps.accounts.delegation import get_active_delegation_for_delegate, log_delegation_action
-    from apps.siteconfig.workflow_resolver import get_approval_workflow as workflow_get_approval
+    from apps.accounts.delegation import (
+        get_active_delegation_for_delegate,
+        log_delegation_action,
+    )
+    from apps.siteconfig.workflow_resolver import (
+        get_approval_workflow as workflow_get_approval,
+    )
+
     sa = get_object_or_404(SubjectAssignment, pk=subject_assignment_id)
     syllabus = get_object_or_404(CourseSyllabus, subject_assignment=sa)
     if syllabus.status != CourseSyllabus.Status.PENDING:
@@ -366,18 +476,27 @@ def syllabus_clone(request, subject_assignment_id: int):
     """Clone syllabus from one SubjectAssignment to another (e.g. Form 3A → 3B). Target selection via GET/POST."""
     source_sa = get_object_or_404(SubjectAssignment, pk=subject_assignment_id)
     assignments_qs = _get_teacher_assignments(request.user)
-    if not assignments_qs or not assignments_qs.filter(subject_assignment=source_sa).exists():
+    if (
+        not assignments_qs
+        or not assignments_qs.filter(subject_assignment=source_sa).exists()
+    ):
         return HttpResponseForbidden("You are not assigned to this class/subject.")
     source_syllabus = get_object_or_404(CourseSyllabus, subject_assignment=source_sa)
     # Targets: same year/term/subject, teacher assigned, no syllabus yet
     my_sa_ids = set(assignments_qs.values_list("subject_assignment_id", flat=True))
     existing_sa_ids = set(
-        CourseSyllabus.objects.filter(subject_assignment__in=my_sa_ids).values_list("subject_assignment_id", flat=True)
+        CourseSyllabus.objects.filter(subject_assignment__in=my_sa_ids).values_list(
+            "subject_assignment_id", flat=True
+        )
     )
     candidate_ids = my_sa_ids - existing_sa_ids - {source_sa.pk}
     target_assignments = list(
         SubjectAssignment.objects.filter(pk__in=candidate_ids)
-        .filter(academic_year=source_sa.academic_year, term=source_sa.term, subject=source_sa.subject)
+        .filter(
+            academic_year=source_sa.academic_year,
+            term=source_sa.term,
+            subject=source_sa.subject,
+        )
         .select_related("classroom", "subject", "term")
     )
     target_sa_ids = {t.pk for t in target_assignments}
@@ -398,8 +517,12 @@ def syllabus_clone(request, subject_assignment_id: int):
                 pass
             messages.success(request, f"Syllabus cloned to {target_sa.classroom}.")
             return redirect("academics:teacher_syllabus_hub")
-    return render(request, "academics/syllabus_clone.html", {
-        "source_syllabus": source_syllabus,
-        "source_assignment": source_sa,
-        "target_assignments": target_assignments,
-    })
+    return render(
+        request,
+        "academics/syllabus_clone.html",
+        {
+            "source_syllabus": source_syllabus,
+            "source_assignment": source_sa,
+            "target_assignments": target_assignments,
+        },
+    )

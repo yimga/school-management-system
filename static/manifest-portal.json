@@ -1,0 +1,10 @@
+{
+  "name": "RunMyCampus Parent Portal",
+  "short_name": "RMC Parent",
+  "start_url": "/portal/parent/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "description": "Parent portal — grades, attendance, messages.",
+  "icons": []
+}

@@ -76,7 +76,9 @@ class LeadCaptureAPI(View):
         except (TypeError, ValueError):
             return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-        school_slug = (body.get("school_slug") or "").strip() or request.GET.get("school_slug", "").strip()
+        school_slug = (body.get("school_slug") or "").strip() or request.GET.get(
+            "school_slug", ""
+        ).strip()
         if not school_slug:
             return JsonResponse({"error": "school_slug required"}, status=400)
 
@@ -122,7 +124,9 @@ class LeadCaptureAPI(View):
         email = (body.get("email") or "").strip().lower()
 
         if not email or not first_name or not last_name:
-            return JsonResponse({"error": "first_name, last_name, and email required"}, status=400)
+            return JsonResponse(
+                {"error": "first_name, last_name, and email required"}, status=400
+            )
 
         try:
             validate_email(email)

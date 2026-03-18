@@ -15,8 +15,12 @@ from apps.siteconfig.branding import resolve_brand_profile
 
 class ExperiencePackServiceTests(TestCase):
     def setUp(self):
-        self.portal_theme = ThemePack.objects.create(name="Portal Theme", slug="portal-theme", is_active=True)
-        self.fallback_theme = ThemePack.objects.create(name="Fallback Theme", slug="fallback-theme", is_active=True)
+        self.portal_theme = ThemePack.objects.create(
+            name="Portal Theme", slug="portal-theme", is_active=True
+        )
+        self.fallback_theme = ThemePack.objects.create(
+            name="Fallback Theme", slug="fallback-theme", is_active=True
+        )
         self.school = School.objects.create(
             name="Experience Academy",
             slug="experience-academy",
@@ -80,4 +84,9 @@ class ExperiencePackServiceTests(TestCase):
         self.assertTrue(result["ok"], result)
         self.assertTrue(result["rolled_back"])
         self.assertFalse(installed.is_active)
-        self.assertEqual(PackageChangeLog.objects.filter(package_id=self.pack.code, action="rollback").count(), 1)
+        self.assertEqual(
+            PackageChangeLog.objects.filter(
+                package_id=self.pack.code, action="rollback"
+            ).count(),
+            1,
+        )

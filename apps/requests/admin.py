@@ -5,9 +5,23 @@ from .models import AccessRequest, RequestDecision, RequestAudit
 
 
 class AccessRequestAdmin(admin.ModelAdmin):
-    list_display = ("reference", "school", "schema_name", "request_type", "status", "requester", "requested_at")
+    list_display = (
+        "reference",
+        "school",
+        "schema_name",
+        "request_type",
+        "status",
+        "requester",
+        "requested_at",
+    )
     list_filter = ("school", "request_type", "status")
-    search_fields = ("reference", "title", "schema_name", "requester__username", "requester__email")
+    search_fields = (
+        "reference",
+        "title",
+        "schema_name",
+        "requester__username",
+        "requester__email",
+    )
     readonly_fields = ("reference", "requested_at", "updated_at")
     list_per_page = 50
     show_full_result_count = False

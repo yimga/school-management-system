@@ -1,5 +1,7 @@
 # Module-by-Module Audit: Gaps, Redundancies, Security & Workflow
 
+> **Non-authoritative snapshot (2025-02-02).** For current security and BR status use SOT and `public_endpoint_audit.md`.
+
 **Date:** 2025-02-02  
 **Scope:** All apps under `apps/` — gaps, redundancies, security issues, workflow issues, and suggestions.
 

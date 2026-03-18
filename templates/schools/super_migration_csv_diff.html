@@ -1,0 +1,43 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Migration CSV diff" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ trust_center_url }}">{% trans "Trust center" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "CSV diff" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+  <div data-tour="cp-migration-intro">
+  <h1 class="h4">{% trans "Migration CSV diff (BR-04)" %}</h1>
+  <p class="text-secondary small">{% trans "Upload baseline + candidate CSV (same headers). Key column = first by default." %}</p>
+  </div>
+  <form method="post" enctype="multipart/form-data" class="mb-4" data-tour="cp-migration-form">
+    {% csrf_token %}
+    <div class="row g-2">
+      <div class="col-md-5"><label class="form-label">{% trans "CSV A (baseline)" %}</label><input type="file" name="csv_a" accept=".csv" class="form-control" required></div>
+      <div class="col-md-5"><label class="form-label">{% trans "CSV B (candidate)" %}</label><input type="file" name="csv_b" accept=".csv" class="form-control" required></div>
+      <div class="col-md-2"><label class="form-label">{% trans "Key column" %}</label><input type="text" name="key_column" class="form-control" placeholder="{% trans "optional" %}"></div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">{% trans "Compare" %}</button>
+  </form>
+  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+  {% if result %}
+  <div class="card">
+    <div class="card-body">
+      <p><strong>{% trans "Key:" %}</strong> {{ result.key }}. {% trans "Count A:" %} {{ result.count_a }}, {% trans "Count B:" %} {{ result.count_b }}.</p>
+      <p>{% trans "Only in A:" %} {{ result.only_a_count }}. {% trans "Only in B:" %} {{ result.only_b_count }}. {% trans "Value diffs:" %} {{ result.value_diff_count }}.</p>
+      {% if result.only_a_sample %}<p class="small">{% trans "Sample only in A:" %} {{ result.only_a_sample|join:", " }}</p>{% endif %}
+      {% if result.only_b_sample %}<p class="small">{% trans "Sample only in B:" %} {{ result.only_b_sample|join:", " }}</p>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

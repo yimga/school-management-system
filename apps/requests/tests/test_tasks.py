@@ -6,13 +6,19 @@ from apps.finance.models import Notification
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.requests.models import AccessRequest
 from apps.requests.tasks import remind_pending_assignees_task
-
+from apps.schools.models import School
 
 User = get_user_model()
 
 
 class RequestsReminderTaskTests(TestCase):
     def setUp(self):
+        self.school = School.objects.create(
+            name="Requests Task School",
+            slug="requests-task-school",
+            subdomain="requests-task-school",
+            is_active=True,
+        )
         self.assignee = User.objects.create_user(
             username="assignee-user",
             email="assignee@example.com",
@@ -31,6 +37,7 @@ class RequestsReminderTaskTests(TestCase):
             title="Need module access",
             requester=self.requester,
             assigned_to=self.assignee,
+            school=self.school,
         )
 
     def test_task_creates_success_execution_log_when_enabled(self):
@@ -38,7 +45,7 @@ class RequestsReminderTaskTests(TestCase):
         settings.requests_reminder_interval_hours = 24
         settings.save(update_fields=["requests_reminder_interval_hours"])
 
-        result = remind_pending_assignees_task()
+        result = remind_pending_assignees_task(school_id=str(self.school.id))
 
         self.assertEqual(result["notified"], 1)
         self.assertEqual(Notification.objects.count(), 1)
@@ -54,7 +61,7 @@ class RequestsReminderTaskTests(TestCase):
         settings.requests_reminder_interval_hours = 0
         settings.save(update_fields=["requests_reminder_interval_hours"])
 
-        result = remind_pending_assignees_task()
+        result = remind_pending_assignees_task(school_id=str(self.school.id))
 
         self.assertEqual(result["notified"], 0)
         log = AutomationExecutionLog.objects.filter(

@@ -1,6 +1,7 @@
 """
 C4: Runtime and tenant-isolation tests. C5: Tenant identity on every request.
 """
+
 from django.test import TestCase
 from django.http import HttpRequest
 

@@ -4,38 +4,37 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0012_add_final_score'),
+        ("evals", "0012_add_final_score"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='assessmentweights',
+            name="assessmentweights",
             unique_together=set(),
         ),
         migrations.RemoveField(
-            model_name='assessmentweights',
-            name='grade_a_min',
+            model_name="assessmentweights",
+            name="grade_a_min",
         ),
         migrations.RemoveField(
-            model_name='assessmentweights',
-            name='grade_b_min',
+            model_name="assessmentweights",
+            name="grade_b_min",
         ),
         migrations.RemoveField(
-            model_name='assessmentweights',
-            name='grade_c_min',
+            model_name="assessmentweights",
+            name="grade_c_min",
         ),
         migrations.RemoveField(
-            model_name='assessmentweights',
-            name='grade_d_min',
+            model_name="assessmentweights",
+            name="grade_d_min",
         ),
         migrations.RemoveField(
-            model_name='assessmentweights',
-            name='grade_e_min',
+            model_name="assessmentweights",
+            name="grade_e_min",
         ),
         migrations.RemoveField(
-            model_name='assessmentweights',
-            name='region',
+            model_name="assessmentweights",
+            name="region",
         ),
     ]

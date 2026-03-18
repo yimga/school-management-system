@@ -1,0 +1,39 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Platform events" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ trust_center_url }}">{% trans "Trust center" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Platform events" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+  <h1 class="h4">{% trans "Platform event log" %}</h1>
+  <p class="text-secondary small">{% trans "emit_platform_event persistence (pack apply, rollback, etc.). Limit query: ?limit=100" %}</p>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped">
+      <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "Tenant" %}</th><th>{% trans "School" %}</th><th>{% trans "Payload" %}</th></tr></thead>
+      <tbody>
+        {% for e in events %}
+        <tr>
+          <td class="text-nowrap">{{ e.created_at_display }}</td>
+          <td><code>{{ e.event_type }}</code></td>
+          <td>{{ e.tenant_id|default:"—" }}</td>
+          <td>{{ e.school_id|default:"—" }}</td>
+          <td class="small text-break"><code>{{ e.payload_preview }}</code></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted">{% trans "No events yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

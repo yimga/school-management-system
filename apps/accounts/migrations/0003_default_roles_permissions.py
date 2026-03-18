@@ -2,11 +2,19 @@ from django.db import migrations
 
 
 PERMISSION_DEFINITIONS = [
-    ("attendance.view", "Attendance dashboards", "View attendance dashboards and logs."),
+    (
+        "attendance.view",
+        "Attendance dashboards",
+        "View attendance dashboards and logs.",
+    ),
     ("finance.view", "Finance access", "View finance dashboards and invoices."),
     ("reports.manage", "Reports & exports", "Generate reports and exports (PDF/CSV)."),
     ("data.access", "Data exports", "Access student and staff data exports."),
-    ("settings.manage", "Backend configuration", "Manage site-wide settings and configuration."),
+    (
+        "settings.manage",
+        "Backend configuration",
+        "Manage site-wide settings and configuration.",
+    ),
 ]
 
 ROLE_DEFINITIONS = {
@@ -18,7 +26,12 @@ ROLE_DEFINITIONS = {
     "LEADERSHIP": {
         "name": "Leadership",
         "description": "Access attendance, finance, reports, and key data exports.",
-        "permissions": ["attendance.view", "finance.view", "reports.manage", "data.access"],
+        "permissions": [
+            "attendance.view",
+            "finance.view",
+            "reports.manage",
+            "data.access",
+        ],
     },
     "TEACHER": {
         "name": "Teacher",
@@ -50,14 +63,20 @@ def _create_defaults(apps, schema_editor):
             code=code,
             defaults={"name": data["name"], "description": data["description"]},
         )
-        perms = [perm_map[perm_code] for perm_code in data["permissions"] if perm_code in perm_map]
+        perms = [
+            perm_map[perm_code]
+            for perm_code in data["permissions"]
+            if perm_code in perm_map
+        ]
         role.permissions.set(perms)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ("accounts", "0002_accessrole_permission_user_profile_photo_user_roles_and_more"),
+        (
+            "accounts",
+            "0002_accessrole_permission_user_profile_photo_user_roles_and_more",
+        ),
     ]
 
     operations = [

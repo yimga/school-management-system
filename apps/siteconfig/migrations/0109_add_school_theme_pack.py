@@ -4,29 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0020_add_school_theme_pack'),
-        ('siteconfig', '0108_tour_step_feature_usage_event'),
+        ("schools", "0020_add_school_theme_pack"),
+        ("siteconfig", "0108_tour_step_feature_usage_event"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='tourstep',
-            name='siteconfig_tourstep_school_code_uniq',
+            model_name="tourstep",
+            name="siteconfig_tourstep_school_code_uniq",
         ),
         migrations.RenameIndex(
-            model_name='featureusageevent',
-            new_name='siteconfig__school__8a5b4f_idx',
-            old_name='siteconfig_f_school__feat_idx',
+            model_name="featureusageevent",
+            new_name="siteconfig__school__8a5b4f_idx",
+            old_name="siteconfig_f_school__feat_idx",
         ),
         migrations.AlterField(
-            model_name='featureusageevent',
-            name='created_at',
+            model_name="featureusageevent",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, db_index=True),
         ),
         migrations.AlterUniqueTogether(
-            name='tourstep',
-            unique_together={('school', 'code')},
+            name="tourstep",
+            unique_together={("school", "code")},
         ),
     ]

@@ -4,12 +4,19 @@ Central preview service; side-by-side before/after; preview by role/device/tenan
 """
 
 
-def get_preview_url(*, role: str | None = None, device: str | None = None, tenant_id=None, path: str = "/") -> str | None:
+def get_preview_url(
+    *,
+    role: str | None = None,
+    device: str | None = None,
+    tenant_id=None,
+    path: str = "/",
+) -> str | None:
     """
     Return URL for a live preview session (role/device/tenant scoped).
     Builds a preview path with query params; front-end or preview view can resolve session from them.
     """
     from urllib.parse import urlencode
+
     params = {}
     if role:
         params["role"] = role

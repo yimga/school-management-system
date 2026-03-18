@@ -5,6 +5,7 @@ Sweep = constants (A), forms (B), conditionals (C) that should use policy/regist
 Exits 0 only if both scripts report no hits. Use in CI or pre-push.
 Usage: python scripts/run_sweep_ab.py [--exit-zero]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -14,13 +15,25 @@ from pathlib import Path
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Run Sweep A/B/C linters (check_no_hardcoding + lint_tenant_settings).")
-    ap.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
+    ap = argparse.ArgumentParser(
+        description="Run Sweep A/B/C linters (check_no_hardcoding + lint_tenant_settings)."
+    )
+    ap.add_argument(
+        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
+    )
     args = ap.parse_args()
     root = Path(__file__).resolve().parent.parent
     scripts = [
-        (root / "scripts" / "check_no_hardcoding.py", "No-hardcoding (country/region/tenant literals)", []),
-        (root / "scripts" / "lint_tenant_settings.py", "Tenant settings (SiteSettings.get_solo in tenant apps)", ["--check-get-solo-only"]),
+        (
+            root / "scripts" / "check_no_hardcoding.py",
+            "No-hardcoding (country/region/tenant literals)",
+            [],
+        ),
+        (
+            root / "scripts" / "lint_tenant_settings.py",
+            "Tenant settings (SiteSettings.get_solo in tenant apps)",
+            ["--check-get-solo-only"],
+        ),
     ]
     failed = []
     for script, label, extra_args in scripts:
@@ -40,7 +53,9 @@ def main() -> int:
         if r.returncode != 0:
             failed.append(label)
     if failed:
-        print(f"\nSweep A/B/C: {len(failed)} linter(s) reported hits: {', '.join(failed)}.")
+        print(
+            f"\nSweep A/B/C: {len(failed)} linter(s) reported hits: {', '.join(failed)}."
+        )
         return 0 if args.exit_zero else 1
     print("\nSweep A/B/C: no hits.")
     return 0

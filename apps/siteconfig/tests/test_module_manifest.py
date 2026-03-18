@@ -2,6 +2,7 @@
 World Engine: Tests for module manifest loader and get_school_type_config (inheritance).
 Plan: Manifest loader and get_school_type_config with inheritance; get_tenant_modules returns manifest required_apps.
 """
+
 from django.test import TestCase
 
 from apps.schools.models import School
@@ -66,6 +67,7 @@ class GetTenantModulesWithManifestTests(TestCase):
 
     def setUp(self):
         from apps.siteconfig.models import RegionConfig
+
         self.region = RegionConfig.objects.first()
         if not self.region:
             self.region = RegionConfig.objects.create(

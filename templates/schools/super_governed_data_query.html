@@ -1,0 +1,31 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Governed data query (BR-07)" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Governed query" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+  <div data-tour="cp-gov-intro">
+  <h1 class="h4">{% trans "Governed NL-style query (intents only)" %}</h1>
+  <p class="text-secondary small">{% trans "Whitelisted intents; audit logged." %}</p>
+  </div>
+  <form method="post" class="mb-4" data-tour="cp-gov-form">
+    {% csrf_token %}
+    <select name="intent" class="form-select w-auto d-inline-block">
+      {% for i in intents %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary ms-2">{% trans "Run" %}</button>
+  </form>
+  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+  {% if result %}<div class="card"><div class="card-body"><pre>{{ result }}</pre></div></div>{% endif %}
+</div>
+{% endblock %}

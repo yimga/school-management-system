@@ -2,6 +2,7 @@
 Tests for customers.repositories.schema_provisioning_repository (§2.4 raw SQL wrap).
 Non-PG: schema_exists returns False, create_schema_if_not_exists no-ops. Empty name no-ops.
 """
+
 import unittest
 from unittest.mock import patch
 

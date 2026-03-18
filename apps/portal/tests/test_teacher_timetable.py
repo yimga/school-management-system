@@ -1,13 +1,21 @@
 """
 Tests for teacher timetable view (portal:teacher_timetable).
 """
+
 from datetime import date, time
 
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Term, Classroom, Subject, Department, Specialty
+from apps.academics.models import (
+    AcademicYear,
+    Term,
+    Classroom,
+    Subject,
+    Department,
+    Specialty,
+)
 from apps.people.models import TeacherProfile
 
 from apps.academics.scheduling import Schedule, ScheduleEntry, Room, TimeSlot
@@ -48,11 +56,15 @@ class TeacherTimetableViewTests(TestCase):
             end_time=time(9, 0),
             slot_name="Period 1",
         )
-        self.teacher_user = User.objects.create_user(username="teacher_tt", password="test")
+        self.teacher_user = User.objects.create_user(
+            username="teacher_tt", password="test"
+        )
         self.teacher_user.role = User.Role.TEACHER
         self.teacher_user.save(update_fields=["role"])
         TeacherProfile.objects.create(user=self.teacher_user)
-        self.other_teacher = User.objects.create_user(username="teacher_other", password="test")
+        self.other_teacher = User.objects.create_user(
+            username="teacher_other", password="test"
+        )
         self.other_teacher.role = User.Role.TEACHER
         self.other_teacher.save(update_fields=["role"])
         TeacherProfile.objects.create(user=self.other_teacher)

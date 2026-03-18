@@ -13,13 +13,17 @@ from apps.academics.models import AcademicYear, Classroom, Specialty, Department
 
 def _people_tenant_upload_to(subpath):
     """Tenant-prefixed upload_to for models with school_id (Section 25.3). Inline to avoid circular import with siteconfig."""
+
     def upload_to(instance, filename):
         school_id = getattr(instance, "school_id", None) or (
-            getattr(getattr(instance, "school", None), "pk", None) if getattr(instance, "school", None) else None
+            getattr(getattr(instance, "school", None), "pk", None)
+            if getattr(instance, "school", None)
+            else None
         )
         if school_id is None:
             return f"tenant_uploads/people/{subpath}/{filename}"
         return f"tenants/{school_id}/people/{subpath}/{filename}"
+
     return upload_to
 
 
@@ -55,6 +59,7 @@ class InformationTag(models.Model):
     Security: tags are scoped by school (tenant). is_private = only Medical/Admin can see.
     is_critical = when added to a student, can trigger dispute workflow / Principal notification.
     """
+
     class Category(models.TextChoices):
         MEDICAL = "MED", _("Medical")
         FINANCIAL = "FIN", _("Financial")
@@ -66,17 +71,27 @@ class InformationTag(models.Model):
         on_delete=models.CASCADE,
         related_name="information_tags",
     )
-    name = models.CharField(max_length=50, help_text=_("e.g. Asthma, Early Bird, Scholarship"))
-    category = models.CharField(max_length=3, choices=Category.choices, default=Category.GENERAL)
+    name = models.CharField(
+        max_length=50, help_text=_("e.g. Asthma, Early Bird, Scholarship")
+    )
+    category = models.CharField(
+        max_length=3, choices=Category.choices, default=Category.GENERAL
+    )
     color_hex = models.CharField(max_length=7, default="#3498db")
-    description = models.TextField(blank=True, help_text=_("Metadata for the AI Nuance Engine"))
+    description = models.TextField(
+        blank=True, help_text=_("Metadata for the AI Nuance Engine")
+    )
     is_private = models.BooleanField(
         default=False,
-        help_text=_("Only users with Medical or Admin permissions can see this tag on students."),
+        help_text=_(
+            "Only users with Medical or Admin permissions can see this tag on students."
+        ),
     )
     is_critical = models.BooleanField(
         default=False,
-        help_text=_("When this tag is added to a student, a notification or support workflow can be triggered."),
+        help_text=_(
+            "When this tag is added to a student, a notification or support workflow can be triggered."
+        ),
     )
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
@@ -104,6 +119,7 @@ class TeacherProfile(models.Model):
         blank=True,
         related_name="teacher_profiles",
     )
+
     class DashboardView(models.TextChoices):
         OVERVIEW = "OVERVIEW", "Overview"
         FINANCE = "FINANCE", "Finances"
@@ -132,7 +148,9 @@ class TeacherProfile(models.Model):
         blank=True,
         related_name="teachers",
     )
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile")
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="teacher_profile"
+    )
     is_active = models.BooleanField(default=True)
     pay_grade = models.CharField(
         max_length=50,
@@ -147,8 +165,12 @@ class TeacherProfile(models.Model):
         related_name="teacher_profiles",
         help_text="Structured pay scale/grade assigned to this teacher",
     )
-    salary_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    salary_cap = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    salary_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    salary_cap = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
     next_pay_date = models.DateField(null=True, blank=True)
     paystub_notes = models.TextField(blank=True)
     custom_attributes = models.JSONField(
@@ -178,6 +200,7 @@ class TeacherProfile(models.Model):
     allow_paystub_access = models.BooleanField(default=True)
     allow_leave_approvals = models.BooleanField(default=False)
     mark_reminder_opt_in = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def suggested_dashboard_view(self) -> str:
         """
@@ -188,13 +211,19 @@ class TeacherProfile(models.Model):
             return self.DashboardView.FINANCE
         if any(k in title for k in ["discipline", "attendance", "pastoral"]):
             return self.DashboardView.ATTENDANCE
-        if any(k in title for k in ["principal", "director", "dean", "head", "vice principal"]):
+        if any(
+            k in title
+            for k in ["principal", "director", "dean", "head", "vice principal"]
+        ):
             return self.DashboardView.OVERVIEW
         return self.default_dashboard_view or self.DashboardView.OVERVIEW
 
     def save(self, *args, **kwargs):
         # Only auto-adjust if a specific default hasn't been chosen yet.
-        if self.position_title and self.default_dashboard_view == self.DashboardView.OVERVIEW:
+        if (
+            self.position_title
+            and self.default_dashboard_view == self.DashboardView.OVERVIEW
+        ):
             suggested = self.suggested_dashboard_view()
             if suggested != self.default_dashboard_view:
                 self.default_dashboard_view = suggested
@@ -208,7 +237,9 @@ class TeacherProfile(models.Model):
             getattr(User.Role, "LEADERSHIP", User.Role.TEACHER),
         }
         if self.user and self.user.role not in allowed_roles:
-            raise ValidationError("TeacherProfile user must have a teacher or department-lead role")
+            raise ValidationError(
+                "TeacherProfile user must have a teacher or department-lead role"
+            )
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username}"
@@ -220,12 +251,22 @@ class TeacherPayRecord(models.Model):
         RAISE = "RAISE", "Raise/Stipend"
         BONUS = "BONUS", "Bonus"
 
-    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="pay_records")
-    record_type = models.CharField(max_length=12, choices=RecordType.choices, default=RecordType.PAY)
+    teacher = models.ForeignKey(
+        TeacherProfile, on_delete=models.CASCADE, related_name="pay_records"
+    )
+    record_type = models.CharField(
+        max_length=12, choices=RecordType.choices, default=RecordType.PAY
+    )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     effective_date = models.DateField()
     description = models.CharField(max_length=255, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_pay_records")
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_pay_records",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -241,12 +282,22 @@ class TeacherLeaveRequest(models.Model):
         APPROVED = "APPROVED", "Approved"
         REJECTED = "REJECTED", "Rejected"
 
-    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="leave_requests")
+    teacher = models.ForeignKey(
+        TeacherProfile, on_delete=models.CASCADE, related_name="leave_requests"
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     reason = models.CharField(max_length=255, blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
-    approver = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="approved_leave_requests")
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING
+    )
+    approver = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_leave_requests",
+    )
     decision_notes = models.TextField(blank=True)
     decided_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -255,7 +306,9 @@ class TeacherLeaveRequest(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Leave {self.teacher} {self.start_date} -> {self.end_date} ({self.status})"
+        return (
+            f"Leave {self.teacher} {self.start_date} -> {self.end_date} ({self.status})"
+        )
 
 
 class TeacherAttendance(models.Model):
@@ -265,11 +318,15 @@ class TeacherAttendance(models.Model):
         LATE = "LATE", "Late"
         ON_LEAVE = "ON_LEAVE", "On leave"
 
-    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="attendance_logs")
+    teacher = models.ForeignKey(
+        TeacherProfile, on_delete=models.CASCADE, related_name="attendance_logs"
+    )
     date = models.DateField()
     check_in = models.DateTimeField(null=True, blank=True)
     check_out = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PRESENT)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PRESENT
+    )
     remarks = models.CharField(max_length=255, blank=True)
 
     class Meta:
@@ -302,7 +359,9 @@ class StudentProfile(models.Model):
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
     student_code = models.CharField(max_length=50, unique=True, blank=True)
-    admission_number = models.CharField(max_length=64, unique=True, blank=True, null=True)
+    admission_number = models.CharField(
+        max_length=64, unique=True, blank=True, null=True
+    )
     profile_photo = models.ImageField(
         upload_to=tenant_upload_to_student_profile_photo,
         blank=True,
@@ -331,8 +390,20 @@ class StudentProfile(models.Model):
     parent_phone = models.CharField(max_length=50, blank=True)
     referral_code = models.CharField(max_length=80, blank=True)
 
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="students", null=True, blank=True)
-    classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="students", null=True, blank=True)
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.PROTECT,
+        related_name="students",
+        null=True,
+        blank=True,
+    )
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.PROTECT,
+        related_name="students",
+        null=True,
+        blank=True,
+    )
     specialty = models.ForeignKey(
         Specialty,
         on_delete=models.PROTECT,
@@ -350,17 +421,13 @@ class StudentProfile(models.Model):
     exam_candidate_number = models.CharField(
         max_length=50,
         blank=True,
-        help_text="National exam candidate number (e.g., GCE, WAEC, etc.)"
+        help_text="National exam candidate number (e.g., GCE, WAEC, etc.)",
     )
     exam_center_code = models.CharField(
-        max_length=20,
-        blank=True,
-        help_text="Exam center code"
+        max_length=20, blank=True, help_text="Exam center code"
     )
     exam_system = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Exam system (e.g., GCE, WAEC, IB, etc.)"
+        max_length=50, blank=True, help_text="Exam system (e.g., GCE, WAEC, IB, etc.)"
     )
 
     is_active = models.BooleanField(default=True)
@@ -373,23 +440,23 @@ class StudentProfile(models.Model):
     deleted_at = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="Soft delete timestamp - preserves grade history when student leaves"
+        help_text="Soft delete timestamp - preserves grade history when student leaves",
     )
     created_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='students_created',
-        help_text="User who created this student record"
+        related_name="students_created",
+        help_text="User who created this student record",
     )
     updated_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='students_updated',
-        help_text="User who last updated this student record"
+        related_name="students_updated",
+        help_text="User who last updated this student record",
     )
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
@@ -398,7 +465,9 @@ class StudentProfile(models.Model):
         InformationTag,
         blank=True,
         related_name="students",
-        help_text=_("School-defined information tags for nuance, discounts, and workflows."),
+        help_text=_(
+            "School-defined information tags for nuance, discounts, and workflows."
+        ),
     )
     # Lifetime identity: optional link to StudentPassport for cross-school transcript portability
     passport = models.ForeignKey(
@@ -407,8 +476,11 @@ class StudentProfile(models.Model):
         null=True,
         blank=True,
         related_name="school_profiles",
-        help_text=_("Lifetime student passport (verified transcripts, invite new school to view)."),
+        help_text=_(
+            "Lifetime student passport (verified transcripts, invite new school to view)."
+        ),
     )
+
     # Dual transcript (Plan XI): program/track for academic vs vocational vs dual report templates
     class TranscriptTrack(models.TextChoices):
         ACADEMIC = "ACADEMIC", _("Academic")
@@ -420,7 +492,9 @@ class StudentProfile(models.Model):
         choices=TranscriptTrack.choices,
         default=TranscriptTrack.ACADEMIC,
         blank=True,
-        help_text=_("Used by report templates for dual transcript (academic + vocational sections)."),
+        help_text=_(
+            "Used by report templates for dual transcript (academic + vocational sections)."
+        ),
     )
 
     class Meta:
@@ -500,11 +574,13 @@ class StudentProfile(models.Model):
                 return adm
         if school is not None:
             from apps.policies.policy_registry import get_effective_policy
+
             policy = get_effective_policy(school)
             adm = policy.get("admissions") or {}
             if adm:
                 return adm
         from apps.siteconfig.identifier_policy_service import default_school_code_for
+
         # Platform default when policy has no admissions; tenant reads via policy/runtime only.
         school_code = default_school_code_for(school) if school else "SCH"
         return {
@@ -530,7 +606,10 @@ class StudentProfile(models.Model):
         school = school or getattr(academic_year, "school", None)
         admissions = cls._get_admissions_policy(school)
         from apps.siteconfig.identifier_policy_service import default_school_code_for
-        school_code = (admissions.get("school_code") or default_school_code_for(school)).upper()
+
+        school_code = (
+            admissions.get("school_code") or default_school_code_for(school)
+        ).upper()
 
         year_str = (academic_year.name or "")[:4]
         yy = year_str[-2:] if year_str and year_str[:4].isdigit() else "00"
@@ -563,10 +642,16 @@ class StudentProfile(models.Model):
 
     def save(self, *args, **kwargs):
         # Auto-generate admission number when not provided, from policy (admission_number_mode).
-        if getattr(self, "academic_year_id", None) and getattr(self, "specialty_id", None) and getattr(
-            self, "classroom_id", None
+        if (
+            getattr(self, "academic_year_id", None)
+            and getattr(self, "specialty_id", None)
+            and getattr(self, "classroom_id", None)
         ):
-            school = getattr(self.academic_year, "school", None) if getattr(self, "academic_year", None) else None
+            school = (
+                getattr(self.academic_year, "school", None)
+                if getattr(self, "academic_year", None)
+                else None
+            )
             admissions = self._get_admissions_policy(school)
             mode = admissions.get("admission_number_mode") or "AUTO_OR_MANUAL"
             auto_modes = ("AUTO", "AUTO_OR_MANUAL")
@@ -578,9 +663,13 @@ class StudentProfile(models.Model):
                 year = AcademicYear.objects.get(id=self.academic_year_id)
                 specialty = Specialty.objects.get(id=self.specialty_id)
                 classroom = Classroom.objects.get(id=self.classroom_id)
-                self.admission_number = self.generate_admission_number(year, specialty, classroom, school=school)
+                self.admission_number = self.generate_admission_number(
+                    year, specialty, classroom, school=school
+                )
         if not self.student_code:
-            self.student_code = self.admission_number or f"TEMP-{uuid.uuid4().hex[:8].upper()}"
+            self.student_code = (
+                self.admission_number or f"TEMP-{uuid.uuid4().hex[:8].upper()}"
+            )
         if not self.referral_code:
             self.referral_code = f"REF-{uuid.uuid4().hex[:6].upper()}"
         super().save(*args, **kwargs)
@@ -588,7 +677,11 @@ class StudentProfile(models.Model):
     def clean(self):
         """Validate admission number format from policy (admission_number_pattern)."""
         if self.admission_number:
-            school = getattr(self.academic_year, "school", None) if getattr(self, "academic_year", None) else None
+            school = (
+                getattr(self.academic_year, "school", None)
+                if getattr(self, "academic_year", None)
+                else None
+            )
             admissions = self._get_admissions_policy(school)
             pattern = (admissions.get("admission_number_pattern") or "").strip()
             if not pattern:
@@ -610,10 +703,12 @@ class StudentProfile(models.Model):
 # Older code/tests import `Student` from apps.people.models — keep this alias to avoid ImportError
 Student = StudentProfile
 
+
 class StudentGuardian(models.Model):
     """
     Links a Parent user to one or more students.
     """
+
     class Relationship(models.TextChoices):
         MOTHER = "MOTHER", "Mother"
         FATHER = "FATHER", "Father"
@@ -626,10 +721,16 @@ class StudentGuardian(models.Model):
         WHATSAPP = "WHATSAPP", "WhatsApp"
         PHONE = "PHONE", "Phone Call"
 
-    guardian_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="guardian_links")
-    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="guardian_links")
+    guardian_user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="guardian_links"
+    )
+    student = models.ForeignKey(
+        StudentProfile, on_delete=models.CASCADE, related_name="guardian_links"
+    )
 
-    relationship = models.CharField(max_length=20, choices=Relationship.choices, default=Relationship.GUARDIAN)
+    relationship = models.CharField(
+        max_length=20, choices=Relationship.choices, default=Relationship.GUARDIAN
+    )
     phone = models.CharField(max_length=50, blank=True)
     email = models.EmailField(blank=True)
     whatsapp_number = models.CharField(max_length=50, blank=True)
@@ -650,67 +751,66 @@ class StudentGuardian(models.Model):
 
     def clean(self):
         # Allow PARENT or TEACHER (dual-role: teacher who is also a parent uses same account)
-        if self.guardian_user and self.guardian_user.role not in (User.Role.PARENT, User.Role.TEACHER):
-            raise ValidationError("StudentGuardian guardian_user must have role PARENT or TEACHER")
+        if self.guardian_user and self.guardian_user.role not in (
+            User.Role.PARENT,
+            User.Role.TEACHER,
+        ):
+            raise ValidationError(
+                "StudentGuardian guardian_user must have role PARENT or TEACHER"
+            )
 
     def __str__(self):
         return f"{self.guardian_user.username} -> {self.student}"
 
+
 # ========== NOTIFICATION PREFERENCES ==========
+
 
 class NotificationPreference(models.Model):
     """Guardian notification settings per student."""
-    
+
     CONTACT_METHOD_CHOICES = [
-        ('email', 'Email'),
-        ('sms', 'SMS'),
-        ('both', 'Email & SMS'),
-        ('none', 'Opt Out'),
+        ("email", "Email"),
+        ("sms", "SMS"),
+        ("both", "Email & SMS"),
+        ("none", "Opt Out"),
     ]
-    
+
     DIGEST_CHOICES = [
-        ('immediate', 'Immediately'),
-        ('daily', 'Daily Digest at 6 PM'),
-        ('weekly', 'Weekly Digest (Fri 6 PM)'),
+        ("immediate", "Immediately"),
+        ("daily", "Daily Digest at 6 PM"),
+        ("weekly", "Weekly Digest (Fri 6 PM)"),
     ]
-    
+
     guardian = models.OneToOneField(
         StudentGuardian,
         on_delete=models.CASCADE,
-        related_name='notification_preference'
+        related_name="notification_preference",
     )
-    
+
     # Grade publication
     grade_publication_method = models.CharField(
-        max_length=20,
-        choices=CONTACT_METHOD_CHOICES,
-        default='both'
+        max_length=20, choices=CONTACT_METHOD_CHOICES, default="both"
     )
     grade_publication_frequency = models.CharField(
-        max_length=20,
-        choices=DIGEST_CHOICES,
-        default='immediate'
+        max_length=20, choices=DIGEST_CHOICES, default="immediate"
     )
-    
+
     # Deadline reminders
     deadline_reminder_method = models.CharField(
-        max_length=20,
-        choices=CONTACT_METHOD_CHOICES,
-        default='email'
+        max_length=20, choices=CONTACT_METHOD_CHOICES, default="email"
     )
     deadline_reminder_enabled = models.BooleanField(default=True)
-    
+
     # Teacher reminders (if guardian is also teacher)
     teacher_reminder_times = models.JSONField(default=list, blank=True)
     teacher_reminder_method = models.CharField(
-        max_length=20,
-        choices=CONTACT_METHOD_CHOICES,
-        default='email'
+        max_length=20, choices=CONTACT_METHOD_CHOICES, default="email"
     )
-    
+
     class Meta:
-        verbose_name_plural = 'Notification Preferences'
-    
+        verbose_name_plural = "Notification Preferences"
+
     def __str__(self):
         return f"Prefs for {self.guardian.guardian_user.get_full_name()}"
 
@@ -720,6 +820,7 @@ class StudentResourceReturn(models.Model):
     Resource return checklist: items (e.g. textbook, laptop) issued to a student per academic year.
     Mark returned_at when the item is returned; optional block on promotion if not returned.
     """
+
     student = models.ForeignKey(
         StudentProfile,
         on_delete=models.CASCADE,
@@ -747,11 +848,14 @@ class StudentResourceReturn(models.Model):
 
     def __str__(self):
         status = "Returned" if self.returned_at else "Outstanding"
-        return f"{self.student} – {self.item_label} ({self.academic_year.name}) – {status}"
+        return (
+            f"{self.student} – {self.item_label} ({self.academic_year.name}) – {status}"
+        )
 
 
 class BadgeType(models.Model):
     """Configurable badge type (e.g. Syllabus Master, Honor Roll, Acting Principal)."""
+
     class Audience(models.TextChoices):
         STAFF = "STAFF", "Staff"
         STUDENT = "STUDENT", "Student"
@@ -759,10 +863,20 @@ class BadgeType(models.Model):
     code = models.CharField(max_length=60, unique=True)
     label = models.CharField(max_length=120)
     description = models.TextField(blank=True)
-    icon = models.CharField(max_length=60, blank=True, help_text="Icon name/code (e.g. Bootstrap icon class).")
+    icon = models.CharField(
+        max_length=60,
+        blank=True,
+        help_text="Icon name/code (e.g. Bootstrap icon class).",
+    )
     sort_order = models.PositiveSmallIntegerField(default=0)
-    audience = models.CharField(max_length=20, choices=Audience.choices, default=Audience.STAFF)
-    criteria_rule = models.JSONField(default=dict, blank=True, help_text="Optional rule config (e.g. threshold, trigger).")
+    audience = models.CharField(
+        max_length=20, choices=Audience.choices, default=Audience.STAFF
+    )
+    criteria_rule = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional rule config (e.g. threshold, trigger).",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -777,7 +891,10 @@ class BadgeType(models.Model):
 
 class Badge(models.Model):
     """Awarded badge (staff or student). Trigger-based; optional QR for verification."""
-    badge_type = models.ForeignKey(BadgeType, on_delete=models.CASCADE, related_name="badges")
+
+    badge_type = models.ForeignKey(
+        BadgeType, on_delete=models.CASCADE, related_name="badges"
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -796,9 +913,17 @@ class Badge(models.Model):
     )
     criteria_met = models.JSONField(default=dict, blank=True)
     issued_at = models.DateTimeField(auto_now_add=True)
-    expiry_at = models.DateTimeField(null=True, blank=True, help_text="When badge is automatically revoked (e.g. delegation end).")
+    expiry_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When badge is automatically revoked (e.g. delegation end).",
+    )
     is_physical_printed = models.BooleanField(default=False)
-    qr_data = models.CharField(max_length=255, blank=True, help_text="Signed token or payload for QR verification.")
+    qr_data = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Signed token or payload for QR verification.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -821,6 +946,7 @@ class Badge(models.Model):
 
 class BadgeScanEvent(models.Model):
     """Phase 5: Optional log of badge/ID scan events for attendance and activity tracking."""
+
     KIND_BADGE = "badge"
     KIND_STAFF = "staff"
     KIND_STUDENT = "student"
@@ -859,7 +985,9 @@ class BadgeScanEvent(models.Model):
         help_text="Student verified (for student ID).",
     )
     verified_at = models.DateTimeField(auto_now_add=True)
-    verified = models.BooleanField(default=True, help_text="Whether verification succeeded.")
+    verified = models.BooleanField(
+        default=True, help_text="Whether verification succeeded."
+    )
     ip_address = models.GenericIPAddressField(null=True, blank=True, unpack_ipv4=True)
     user_agent = models.CharField(max_length=255, blank=True)
     notes = models.CharField(max_length=255, blank=True)
@@ -881,6 +1009,7 @@ class BadgeScanEvent(models.Model):
 
 class Applicant(models.Model):
     """Lead/applicant for admissions funnel. ENROLLED stage triggers creation of StudentProfile (same tenant)."""
+
     class Stage(models.TextChoices):
         LEAD = "LEAD", "Lead"
         APPLIED = "APPLIED", "Applied"
@@ -932,6 +1061,7 @@ class Applicant(models.Model):
 
 class RetentionAlert(models.Model):
     """At-risk student alert for advisor dashboard. Sovereign AI: analysis_summary must be human-readable."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -949,7 +1079,9 @@ class RetentionAlert(models.Model):
         blank=True,
         help_text="0–100 risk score",
     )
-    alert_level = models.CharField(max_length=20, default="MEDIUM")  # LOW, MEDIUM, HIGH, CRITICAL
+    alert_level = models.CharField(
+        max_length=20, default="MEDIUM"
+    )  # LOW, MEDIUM, HIGH, CRITICAL
     analysis_summary = models.TextField(
         blank=True,
         help_text="Human-readable explanation (Sovereign AI: why this flag was raised).",
@@ -983,7 +1115,10 @@ class StudentPassport(models.Model):
     owner (User) for login to view/manage; verified documents attached via
     PassportDocument; invite schools via PassportSchoolInvite.
     """
-    guid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+
+    guid = models.UUIDField(
+        default=uuid.uuid4, editable=False, unique=True, db_index=True
+    )
     owner = models.OneToOneField(
         User,
         on_delete=models.SET_NULL,
@@ -1006,6 +1141,7 @@ class StudentPassport(models.Model):
 
 class PassportDocument(models.Model):
     """Verified document (transcript, certificate, diploma) attached to a passport."""
+
     class DocType(models.TextChoices):
         TRANSCRIPT = "TRANSCRIPT", _("Transcript")
         CERTIFICATE = "CERTIFICATE", _("Certificate")
@@ -1017,7 +1153,9 @@ class PassportDocument(models.Model):
         on_delete=models.CASCADE,
         related_name="documents",
     )
-    document_type = models.CharField(max_length=20, choices=DocType.choices, default=DocType.OTHER)
+    document_type = models.CharField(
+        max_length=20, choices=DocType.choices, default=DocType.OTHER
+    )
     title = models.CharField(max_length=255, blank=True)
     file = models.FileField(upload_to=_passport_doc_upload_to, blank=True, null=True)
     file_url = models.URLField(blank=True, help_text=_("External URL if not uploaded."))
@@ -1043,6 +1181,7 @@ class PassportDocument(models.Model):
 
 class PassportSchoolInvite(models.Model):
     """Invite a school to view this passport (read-only). Token-based link."""
+
     passport = models.ForeignKey(
         StudentPassport,
         on_delete=models.CASCADE,
@@ -1060,7 +1199,9 @@ class PassportSchoolInvite(models.Model):
         blank=True,
         related_name="+",
     )
-    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    token = models.UUIDField(
+        default=uuid.uuid4, editable=False, unique=True, db_index=True
+    )
     expires_at = models.DateTimeField()
     accepted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1082,6 +1223,7 @@ class PassportSchoolInvite(models.Model):
 
 class ApprenticePlacement(models.Model):
     """Links an employer (User with role EMPLOYER) to a student for on-site hours verification."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -1121,6 +1263,7 @@ class ApprenticePlacement(models.Model):
 
 class EmployerProfile(models.Model):
     """Optional profile for users with EMPLOYER role: company name and school link (Plan XI)."""
+
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -1159,6 +1302,7 @@ class VocationalCertification(models.Model):
     Industry or vocational certification (e.g. FAA, Nursing, CompTIA).
     expiry_date drives "Certification Watchdog" alerts (e.g. expiring in 30 days).
     """
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -1169,9 +1313,13 @@ class VocationalCertification(models.Model):
         on_delete=models.CASCADE,
         related_name="vocational_certifications",
     )
-    name = models.CharField(max_length=255, help_text=_("e.g. FAA Medical, Nursing License"))
+    name = models.CharField(
+        max_length=255, help_text=_("e.g. FAA Medical, Nursing License")
+    )
     issue_date = models.DateField(null=True, blank=True)
-    expiry_date = models.DateField(null=True, blank=True, help_text=_("When set, used for expiry alerts"))
+    expiry_date = models.DateField(
+        null=True, blank=True, help_text=_("When set, used for expiry alerts")
+    )
     issuing_body = models.CharField(max_length=255, blank=True)
     credential_id = models.CharField(max_length=120, blank=True)
     notes = models.TextField(blank=True)
@@ -1198,10 +1346,16 @@ class TenantAuditLog(models.Model):
     permissions to revoke UPDATE/DELETE. Who/What/Where/When/Why + correlation_id.
     Populated by app-level logging or PostgreSQL triggers (see docs/AUDIT_TRAIL_TRIGGER_BASED.md).
     """
+
     table_name = models.CharField(max_length=128)
     record_id = models.CharField(max_length=255, blank=True)
-    action = models.CharField(max_length=16, choices=[("INSERT", "INSERT"), ("UPDATE", "UPDATE"), ("DELETE", "DELETE")])
-    old_values = models.JSONField(default=dict, blank=True)  # PII masking applied before write
+    action = models.CharField(
+        max_length=16,
+        choices=[("INSERT", "INSERT"), ("UPDATE", "UPDATE"), ("DELETE", "DELETE")],
+    )
+    old_values = models.JSONField(
+        default=dict, blank=True
+    )  # PII masking applied before write
     new_values = models.JSONField(default=dict, blank=True)
     changed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

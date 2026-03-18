@@ -54,7 +54,7 @@ class PaymentEncryption:
 class WebhookSecurityValidator:
     """
     Validates incoming payment webhooks for security.
-    
+
     Checks:
     - IP whitelist (provider's known IPs)
     - Rate limiting (max requests per minute per IP)
@@ -76,7 +76,9 @@ class WebhookSecurityValidator:
         self.webhook_secret = provider_config.get("webhook_secret", "")
         self.rate_limit = provider_config.get("rate_limit", 100)
         self.require_timestamp = bool(provider_config.get("require_timestamp", False))
-        self.timestamp_tolerance_seconds = int(provider_config.get("timestamp_tolerance_seconds", 300) or 300)
+        self.timestamp_tolerance_seconds = int(
+            provider_config.get("timestamp_tolerance_seconds", 300) or 300
+        )
 
     @staticmethod
     def get_client_ip(request: HttpRequest) -> str:
@@ -90,16 +92,16 @@ class WebhookSecurityValidator:
 
     def validate_ip_whitelist(self, client_ip: str) -> bool:
         """Check if client IP is in whitelist.
-        
+
         Args:
             client_ip: IP address from request
-            
+
         Returns:
             True if IP is whitelisted or whitelist is empty (disabled)
         """
         if not self.webhook_ips:
             return True  # Whitelist disabled
-        
+
         is_allowed = client_ip in self.webhook_ips
         if not is_allowed:
             logger.warning(f"Webhook IP not whitelisted: {client_ip}")
@@ -109,20 +111,22 @@ class WebhookSecurityValidator:
         """
         Check rate limit for client IP.
         Uses cache to track request count per minute.
-        
+
         Args:
             client_ip: IP address from request
-            
+
         Returns:
             True if request is within limit
         """
         cache_key = f"webhook_rate_limit:{client_ip}"
         current_count = cache.get(cache_key, 0)
-        
+
         if current_count >= self.rate_limit:
-            logger.warning(f"Webhook rate limit exceeded for {client_ip}: {current_count}/{self.rate_limit}")
+            logger.warning(
+                f"Webhook rate limit exceeded for {client_ip}: {current_count}/{self.rate_limit}"
+            )
             return False
-        
+
         # Increment and set 60-second expiry
         cache.set(cache_key, current_count + 1, 60)
         return True
@@ -131,30 +135,33 @@ class WebhookSecurityValidator:
         self,
         request_body: bytes,
         signature_header: str,
-        signature_algorithm: str = "sha256"
+        signature_algorithm: str = "sha256",
     ) -> bool:
         """
         Verify HMAC signature using timing-safe comparison.
-        
+
         Args:
             request_body: Raw request body bytes
             signature_header: Signature from request header
             signature_algorithm: Hash algorithm (default: sha256)
-            
+
         Returns:
             True if signature is valid
         """
         if not self.webhook_secret:
             logger.warning("Webhook secret not configured, skipping signature check")
             return False
-        
+
         if not signature_header:
             logger.warning("No signature provided in webhook request")
             return False
         signature_value = str(signature_header).strip()
         if "=" in signature_value:
             maybe_alg, maybe_sig = signature_value.split("=", 1)
-            if maybe_alg.lower() in {"sha256", "hmac-sha256", "v1"} and maybe_sig.strip():
+            if (
+                maybe_alg.lower() in {"sha256", "hmac-sha256", "v1"}
+                and maybe_sig.strip()
+            ):
                 signature_value = maybe_sig.strip()
 
         # Compute expected signature
@@ -162,21 +169,23 @@ class WebhookSecurityValidator:
             expected_signature = hmac.new(
                 self.webhook_secret.encode(),
                 request_body,
-                getattr(hashlib, signature_algorithm)
+                getattr(hashlib, signature_algorithm),
             ).hexdigest()
         except (ValueError, AttributeError):
             logger.error(f"Invalid signature algorithm: {signature_algorithm}")
             return False
-        
+
         # Timing-safe comparison (prevents timing attacks)
-        is_valid = hmac.compare_digest(signature_value.lower(), expected_signature.lower())
-        
+        is_valid = hmac.compare_digest(
+            signature_value.lower(), expected_signature.lower()
+        )
+
         if not is_valid:
             logger.warning(
                 f"Webhook signature mismatch. Expected: {expected_signature[:8]}..., "
                 f"Got: {signature_value[:8]}..."
             )
-        
+
         return is_valid
 
     def validate_timestamp(self, timestamp_header: str | None, now=None) -> bool:
@@ -225,27 +234,27 @@ class WebhookSecurityValidator:
         """
         Check if webhook has already been processed.
         Uses WebhookLog to prevent duplicate payments.
-        
+
         Args:
             provider: Payment provider slug (mtm_momo, orange_money, etc.)
             reference_id: External payment reference
-            
+
         Returns:
             True if this is a new webhook (not processed before)
         """
         from .models import WebhookLog
-        
+
         # Check if this reference was already processed successfully
         duplicate = WebhookLog.objects.filter(
             provider=provider,
             reference_id=reference_id,
-            status__in=["PROCESSED", "DUPLICATE"]
+            status__in=["PROCESSED", "DUPLICATE"],
         ).exists()
-        
+
         if duplicate:
             logger.info(f"Duplicate webhook detected: {provider} {reference_id}")
             return False
-        
+
         return True
 
 
@@ -256,23 +265,24 @@ class PaymentValidator:
     def validate_amount(amount: Decimal) -> tuple[bool, Optional[str]]:
         """
         Validate payment amount.
-        
+
         Returns:
             (is_valid, error_message)
         """
         try:
             from decimal import InvalidOperation
+
             amount_decimal = Decimal(str(amount))
         except (ValueError, TypeError, InvalidOperation):
             return False, "Amount must be a valid decimal number"
-        
+
         if amount_decimal <= 0:
             return False, f"Amount must be positive, got {amount_decimal}"
-        
+
         # Practical limit: 1 billion XAF (~1.6M USD)
         if amount_decimal > Decimal("1000000000"):
             return False, f"Amount exceeds maximum limit: {amount_decimal}"
-        
+
         return True, None
 
     @staticmethod
@@ -281,12 +291,15 @@ class PaymentValidator:
         invoice_total: Decimal,
         invoice_paid: Decimal,
     ) -> tuple[bool, Optional[str]]:
-        return FraudDetector.validate_against_invoice(amount, invoice_total, invoice_paid)
+        return FraudDetector.validate_against_invoice(
+            amount, invoice_total, invoice_paid
+        )
 
     @staticmethod
-    def validate_reference(reference: str, max_length: int = 128) -> tuple[bool, Optional[str]]:
+    def validate_reference(
+        reference: str, max_length: int = 128
+    ) -> tuple[bool, Optional[str]]:
         return FraudDetector.validate_reference(reference, max_length)
-
 
 
 class FraudDetector:
@@ -338,111 +351,120 @@ class FraudDetector:
 
     @staticmethod
     def validate_against_invoice(
-        amount: Decimal,
-        invoice_total: Decimal,
-        invoice_paid: Decimal
+        amount: Decimal, invoice_total: Decimal, invoice_paid: Decimal
     ) -> tuple[bool, Optional[str]]:
         """
         Validate payment doesn't exceed invoice balance.
-        
+
         Args:
             amount: Payment amount
             invoice_total: Invoice total
             invoice_paid: Amount already paid
-            
+
         Returns:
             (is_valid, error_message)
         """
         remaining_balance = invoice_total - invoice_paid
-        
+
         if amount > remaining_balance:
             return (
                 False,
-                f"Payment {amount} exceeds remaining balance {remaining_balance}"
+                f"Payment {amount} exceeds remaining balance {remaining_balance}",
             )
-        
+
         return True, None
 
     @staticmethod
-    def validate_reference(reference: str, max_length: int = 128) -> tuple[bool, Optional[str]]:
+    def validate_reference(
+        reference: str, max_length: int = 128
+    ) -> tuple[bool, Optional[str]]:
         """
         Validate payment reference string.
-        
+
         Returns:
             (is_valid, error_message)
         """
         if not reference or len(reference) == 0:
             return False, "Reference is required"
-        
+
         if len(reference) > max_length:
             return False, f"Reference exceeds {max_length} characters"
-        
+
         return True, None
 
 
 def webhook_security_required(view_func):
     """
     Decorator for webhook views that enforces security checks.
-    
+
     Checks: HTTP method, IP whitelist, rate limit, signature.
-    
+
     Usage:
         @webhook_security_required
         def payment_provider_webhook(request, provider_slug):
             ...
     """
+
     @require_http_methods(["POST"])
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         from .models import PaymentIntegration, WebhookLog
-        
+
         provider_slug = kwargs.get("provider_slug")
         if not provider_slug:
             provider_slug = args[1] if len(args) > 1 else None
-        
+
         if not provider_slug:
             logger.error("No provider_slug in webhook request")
             return HttpResponseForbidden("Invalid request")
-        
+
         # Get provider config
         try:
-            integration = PaymentIntegration.objects.get(code=provider_slug, is_active=True)
+            integration = PaymentIntegration.objects.get(
+                code=provider_slug, is_active=True
+            )
         except PaymentIntegration.DoesNotExist:
             logger.warning(f"Unknown payment provider: {provider_slug}")
             return HttpResponseForbidden("Unknown provider")
-        
+
         # Create validator
         validator = WebhookSecurityValidator(integration.config)
         client_ip = validator.get_client_ip(request)
-        
+
         # Step 1: IP whitelist check
         if not validator.validate_ip_whitelist(client_ip):
             return HttpResponseForbidden("IP not whitelisted")
-        
+
         # Step 2: Rate limiting check
         if not validator.validate_rate_limit(client_ip):
             return HttpResponse("Rate limit exceeded", status=429)
-        
+
         # §2.4 Webhook signature verification; reject missing or invalid signature with 401.
         signature_header = integration.config.get("signature_header", "X-Signature")
-        signature = (
-            request.headers.get(signature_header)
-            or request.META.get(f"HTTP_{signature_header.upper().replace('-', '_')}")
+        signature = request.headers.get(signature_header) or request.META.get(
+            f"HTTP_{signature_header.upper().replace('-', '_')}"
         )
         if not signature:
-            logger.warning(f"Missing webhook signature from {provider_slug} ({client_ip})")
+            logger.warning(
+                f"Missing webhook signature from {provider_slug} ({client_ip})"
+            )
             return HttpResponse("Missing signature", status=401)
         if not validator.validate_signature(request.body, signature):
-            logger.warning(f"Invalid webhook signature from {provider_slug} ({client_ip})")
+            logger.warning(
+                f"Invalid webhook signature from {provider_slug} ({client_ip})"
+            )
             return HttpResponse("Invalid signature", status=401)
-        
+
         # Log webhook receipt
         try:
             import json
             from django.db import DatabaseError, IntegrityError
             from django.core.exceptions import ValidationError
+
             data = json.loads(request.body.decode() or "{}")
-            reference_id = data.get("reference") or data.get("payment_reference") or "unknown"
+            reference_id = (
+                data.get("reference") or data.get("payment_reference") or "unknown"
+            )
             WebhookLog.objects.create(
                 provider=provider_slug,
                 reference_id=reference_id,
@@ -451,10 +473,17 @@ def webhook_security_required(view_func):
                 status="RECEIVED",
                 request_body=request.body.decode(),
             )
-        except (ValueError, TypeError, UnicodeDecodeError, DatabaseError, IntegrityError, ValidationError) as e:
+        except (
+            ValueError,
+            TypeError,
+            UnicodeDecodeError,
+            DatabaseError,
+            IntegrityError,
+            ValidationError,
+        ) as e:
             logger.error("Failed to log webhook: %s", e, exc_info=True)
-        
+
         # Call the actual view
         return view_func(request, *args, **kwargs)
-    
+
     return _wrapped

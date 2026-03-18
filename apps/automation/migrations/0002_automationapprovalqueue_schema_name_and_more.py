@@ -28,8 +28,12 @@ def add_columns_if_missing(apps, schema_editor):
                 EXCEPTION WHEN duplicate_column THEN NULL;
                 END $$;
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS automation_automationapprovalqueue_schema_name_idx ON automation_automationapprovalqueue (schema_name)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS automation_automationapprovalqueue_school_id_idx ON automation_automationapprovalqueue (school_id)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS automation_automationapprovalqueue_schema_name_idx ON automation_automationapprovalqueue (schema_name)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS automation_automationapprovalqueue_school_id_idx ON automation_automationapprovalqueue (school_id)"
+            )
             # automation_automationexecutionlog
             cursor.execute("""
                 DO $$
@@ -47,8 +51,12 @@ def add_columns_if_missing(apps, schema_editor):
                 EXCEPTION WHEN duplicate_column THEN NULL;
                 END $$;
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS automation_automationexecutionlog_schema_name_idx ON automation_automationexecutionlog (schema_name)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS automation_automationexecutionlog_school_id_idx ON automation_automationexecutionlog (school_id)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS automation_automationexecutionlog_schema_name_idx ON automation_automationexecutionlog (schema_name)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS automation_automationexecutionlog_school_id_idx ON automation_automationexecutionlog (school_id)"
+            )
         else:
             # SQLite: add only if column missing (idempotent for test DBs)
             cursor.execute("PRAGMA table_info(automation_automationapprovalqueue)")
@@ -78,34 +86,45 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('automation', '0001_initial'),
-        ('schools', '0027_school_country_code_school_education_levels_and_more'),
+        ("automation", "0001_initial"),
+        ("schools", "0027_school_country_code_school_education_levels_and_more"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='automationapprovalqueue',
-                    name='schema_name',
+                    model_name="automationapprovalqueue",
+                    name="schema_name",
                     field=models.CharField(blank=True, db_index=True, max_length=63),
                 ),
                 migrations.AddField(
-                    model_name='automationapprovalqueue',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='automation_approval_queue', to='schools.school'),
+                    model_name="automationapprovalqueue",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="automation_approval_queue",
+                        to="schools.school",
+                    ),
                 ),
                 migrations.AddField(
-                    model_name='automationexecutionlog',
-                    name='schema_name',
+                    model_name="automationexecutionlog",
+                    name="schema_name",
                     field=models.CharField(blank=True, db_index=True, max_length=63),
                 ),
                 migrations.AddField(
-                    model_name='automationexecutionlog',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='automation_execution_logs', to='schools.school'),
+                    model_name="automationexecutionlog",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="automation_execution_logs",
+                        to="schools.school",
+                    ),
                 ),
             ],
             database_operations=[

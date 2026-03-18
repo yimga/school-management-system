@@ -10,7 +10,7 @@ from apps.accounts.models import User
 def organize_sidebar_items(items: List[Dict], user: User) -> Dict[str, List[Dict]]:
     """
     Organize sidebar items into logical categories.
-    
+
     Returns:
         {
             "quick_actions": [...],
@@ -29,18 +29,24 @@ def organize_sidebar_items(items: List[Dict], user: User) -> Dict[str, List[Dict
         "communication": [],
         "settings": [],
     }
-    
+
     # Category mappings
     quick_action_ids = {"backend", "workflow", "portal"}
     people_ids = {"students", "teachers", "parents", "guardians"}
     academic_ids = {"classrooms", "subjects", "years", "terms", "certification"}
-    reports_ids = {"reports", "report_builder", "report_library", "bulk_letters", "analytics"}
+    reports_ids = {
+        "reports",
+        "report_builder",
+        "report_library",
+        "bulk_letters",
+        "analytics",
+    }
     communication_ids = {"messages", "notifications", "groups", "announcements"}
     settings_ids = {"preferences", "admin", "kb", "documents", "signatures"}
-    
+
     for item in items:
         item_id = item.get("id", "").lower()
-        
+
         if item_id in quick_action_ids:
             organized["quick_actions"].append(item)
         elif item_id in people_ids:
@@ -56,7 +62,7 @@ def organize_sidebar_items(items: List[Dict], user: User) -> Dict[str, List[Dict
         else:
             # Default to settings if unknown
             organized["settings"].append(item)
-    
+
     # Remove empty categories
     return {k: v for k, v in organized.items() if v}
 

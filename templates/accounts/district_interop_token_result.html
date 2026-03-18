@@ -1,0 +1,12 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block backend_title %}{% trans "OneRoster token" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="alert alert-warning">
+    <strong>{% trans "Copy this token now." %}</strong> {% trans "Store it in your district secret manager or LMS roster config." %}
+  </div>
+  <pre class="p-3 bg-dark text-warning rounded small text-break user-select-all">{{ plain_token }}</pre>
+  <a href="{% url 'accounts:district_lms_interop' %}" class="btn btn-primary">{% trans "Back to interop hub" %}</a>
+</div>
+{% endblock %}

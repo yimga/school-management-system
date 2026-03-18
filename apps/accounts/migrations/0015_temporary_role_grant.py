@@ -6,26 +6,68 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0014_secretary_ea_va_roles'),
+        ("accounts", "0014_secretary_ea_va_roles"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TemporaryRoleGrant',
+            name="TemporaryRoleGrant",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('valid_from', models.DateTimeField(blank=True, help_text='Optional: grant active from this time.', null=True)),
-                ('expires_at', models.DateTimeField(help_text='Grant stops being active after this time.')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('notes', models.CharField(blank=True, max_length=255)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_temporary_grants', to=settings.AUTH_USER_MODEL)),
-                ('role', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='temporary_grants', to='accounts.accessrole')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='temporary_role_grants', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "valid_from",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="Optional: grant active from this time.",
+                        null=True,
+                    ),
+                ),
+                (
+                    "expires_at",
+                    models.DateTimeField(
+                        help_text="Grant stops being active after this time."
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("notes", models.CharField(blank=True, max_length=255)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="created_temporary_grants",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "role",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="temporary_grants",
+                        to="accounts.accessrole",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="temporary_role_grants",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-expires_at'],
+                "ordering": ["-expires_at"],
             },
         ),
     ]

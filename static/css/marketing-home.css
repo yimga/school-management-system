@@ -700,3 +700,96 @@
 .marketing-home .mkt-final-cta .mkt-hero-ctas {
   justify-content: center;
 }
+
+/* ----- Scrollytelling: day-in-the-life + data-flow linkage ----- */
+.marketing-home .mkt-hero-journey .mkt-journey-steps {
+  list-style: none;
+  padding: 0;
+  margin: var(--mkt-spacing-lg) 0 0;
+  max-width: 42rem;
+}
+.marketing-home .mkt-journey-steps li {
+  padding: var(--mkt-spacing-md);
+  margin-bottom: var(--mkt-spacing-sm);
+  border-radius: var(--mkt-radius-lg);
+  background: linear-gradient(120deg, rgba(11, 61, 145, 0.08), rgba(0, 168, 120, 0.06));
+  border: 1px solid var(--mkt-border);
+}
+.marketing-home .mkt-journey-steps strong {
+  display: block;
+  color: var(--mkt-text, #0f172a);
+  margin-bottom: 0.35rem;
+}
+.marketing-home .mkt-data-flow-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  margin-top: var(--mkt-spacing-lg);
+}
+.marketing-home .mkt-flow-node {
+  flex: 1 1 140px;
+  max-width: 200px;
+  padding: var(--mkt-spacing-md);
+  text-align: center;
+  border-radius: var(--mkt-radius-md);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--mkt-border);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.marketing-home .mkt-flow-node small {
+  display: block;
+  margin-top: 0.35rem;
+  opacity: 0.85;
+  font-size: 0.8rem;
+}
+.marketing-home .mkt-reveal.in-view .mkt-flow-node:nth-child(1) {
+  transition-delay: 0s;
+}
+.marketing-home .mkt-reveal.in-view .mkt-flow-node:nth-child(3) {
+  transition-delay: 0.12s;
+}
+.marketing-home .mkt-reveal.in-view .mkt-flow-node:nth-child(5) {
+  transition-delay: 0.24s;
+}
+.marketing-home .mkt-reveal.in-view .mkt-flow-node {
+  transform: translateY(0);
+  box-shadow: var(--mkt-shadow-md);
+}
+.marketing-home .mkt-flow-arrow {
+  align-self: center;
+  font-size: 1.5rem;
+  color: var(--mkt-secondary, #00a878);
+  opacity: 0.9;
+}
+.marketing-home .mkt-apac-panel {
+  border-radius: var(--mkt-radius-xl);
+  padding: var(--mkt-spacing-lg);
+  background: linear-gradient(145deg, rgba(14, 165, 233, 0.12), rgba(99, 102, 241, 0.08));
+  border: 1px solid var(--mkt-border);
+  max-width: 52rem;
+  margin: 0 auto;
+}
+.marketing-home .mkt-apac-panel .mkt-citation-note {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin-top: var(--mkt-spacing-md);
+}
+
+/* Light sections: same glass recipe tokens as product light shell (hero uses dark-tint via .marketing-surface) */
+.marketing-home .mkt-section:not(#hero) .rmc-glass-surface {
+  --rmc-glass-bg: rgba(255, 255, 255, 0.78);
+  --rmc-glass-bg-strong: rgba(255, 255, 255, 0.92);
+  --rmc-glass-border: rgba(148, 163, 184, 0.22);
+  --rmc-glass-border-subtle: rgba(148, 163, 184, 0.18);
+  --rmc-glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+}
+.marketing-home .mkt-section .mkt-pillar-card.rmc-glass-surface,
+.marketing-home .mkt-section .mkt-platform-card.rmc-glass-surface {
+  background: var(--rmc-glass-bg);
+  border-color: var(--rmc-glass-border);
+  box-shadow: var(--rmc-glass-shadow);
+  backdrop-filter: blur(var(--rmc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--rmc-glass-blur));
+}

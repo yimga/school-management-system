@@ -23,7 +23,9 @@ def request_custom_requirement(request):
         return redirect("portal:home")
 
     cap = get_feature_fragment_cap(school)
-    _can_request = cap is None or cap > 0  # Basic has cap 0; we still allow submitting the request
+    _can_request = (
+        cap is None or cap > 0
+    )  # Basic has cap 0; we still allow submitting the request
     upgrade_message = None
     if cap == 0:
         upgrade_message = (
@@ -50,7 +52,9 @@ def request_custom_requirement(request):
         )
         return redirect("siteconfig:request_custom_requirement")
 
-    recent = CustomFeatureTicket.objects.filter(school=school).order_by("-created_at")[:10]
+    recent = CustomFeatureTicket.objects.filter(school=school).order_by("-created_at")[
+        :10
+    ]
     return render(
         request,
         "siteconfig/request_custom_requirement.html",

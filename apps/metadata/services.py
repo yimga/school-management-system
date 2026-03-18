@@ -18,14 +18,18 @@ def entity_type_for(instance_or_entity_type: Any) -> str:
         return instance_or_entity_type
     meta = getattr(instance_or_entity_type, "_meta", None)
     if meta is None:
-        raise ValueError("Metadata entity must be a Django model instance or explicit entity type.")
+        raise ValueError(
+            "Metadata entity must be a Django model instance or explicit entity type."
+        )
     return f"{meta.app_label}.{meta.model_name}"
 
 
 def entity_id_for(instance: Any) -> str:
     pk = getattr(instance, "pk", None)
     if pk is None:
-        raise ValueError("Metadata entity must have a primary key before metadata can be resolved.")
+        raise ValueError(
+            "Metadata entity must have a primary key before metadata can be resolved."
+        )
     return str(pk)
 
 
@@ -50,7 +54,9 @@ def legacy_custom_attributes(instance: Any) -> dict[str, Any]:
     return dict(custom or {}) if isinstance(custom, dict) else {}
 
 
-def get_dynamic_field_map(instance: Any, *, school=None, keys: list[str] | tuple[str, ...] | None = None) -> dict[str, Any]:
+def get_dynamic_field_map(
+    instance: Any, *, school=None, keys: list[str] | tuple[str, ...] | None = None
+) -> dict[str, Any]:
     resolved_school = school_for_entity(instance, school=school)
     values = legacy_custom_attributes(instance)
     if resolved_school is None or getattr(instance, "pk", None) is None:
@@ -72,7 +78,9 @@ def get_dynamic_field_map(instance: Any, *, school=None, keys: list[str] | tuple
     return {key: values[key] for key in keys if key in values}
 
 
-def get_dynamic_field_value(instance: Any, field_key: str, *, default=None, school=None):
+def get_dynamic_field_value(
+    instance: Any, field_key: str, *, default=None, school=None
+):
     values = get_dynamic_field_map(instance, school=school, keys=[field_key])
     return values.get(field_key, default)
 
@@ -143,7 +151,9 @@ def get_downstream_dependencies(
     Used for lineage-first rule: check downstream impact before metadata changes.
     """
     if field_id is not None:
-        deps = MetadataDependency.objects.filter(field_id=field_id).select_related("field", "field__entity")
+        deps = MetadataDependency.objects.filter(field_id=field_id).select_related(
+            "field", "field__entity"
+        )
     elif entity_code is not None:
         deps = MetadataDependency.objects.filter(
             field__entity__code=entity_code,
@@ -171,7 +181,9 @@ def summarize_dependency_consumers(
     which APIs, templates, dashboards, workflows, and policies touch which
     entities and fields.
     """
-    queryset = MetadataDependency.objects.select_related("field", "field__entity").order_by(
+    queryset = MetadataDependency.objects.select_related(
+        "field", "field__entity"
+    ).order_by(
         "consumer_type",
         "consumer_code",
         "field__entity__code",
@@ -222,8 +234,12 @@ def build_metadata_blast_radius(
     Summarize downstream consumers affected by changing or rolling back metadata.
     This powers package impact previews and rollback safety checks.
     """
-    entity_codes = [str(code).strip() for code in (entity_codes or []) if str(code).strip()]
-    field_ids = [int(field_id) for field_id in (field_ids or []) if field_id is not None]
+    entity_codes = [
+        str(code).strip() for code in (entity_codes or []) if str(code).strip()
+    ]
+    field_ids = [
+        int(field_id) for field_id in (field_ids or []) if field_id is not None
+    ]
     exclude_consumers = exclude_consumers or set()
 
     queryset = MetadataDependency.objects.select_related("field", "field__entity")
@@ -241,7 +257,9 @@ def build_metadata_blast_radius(
         }
 
     grouped: dict[tuple[str, str], dict[str, Any]] = {}
-    for dep in queryset.order_by("consumer_type", "consumer_code", "field__entity__code", "field__field_name"):
+    for dep in queryset.order_by(
+        "consumer_type", "consumer_code", "field__entity__code", "field__field_name"
+    ):
         key = (dep.consumer_type, dep.consumer_code)
         if key in exclude_consumers:
             continue
@@ -342,7 +360,9 @@ def get_package_lineage_registry(
                 "active_install_count": len(active_installs),
                 "active_installs": [
                     {
-                        "school_id": str(item["school_id"]) if item["school_id"] else None,
+                        "school_id": str(item["school_id"])
+                        if item["school_id"]
+                        else None,
                         "scope": item["scope"],
                         "apply_stage": item["apply_stage"],
                         "reconciliation_status": item["reconciliation_status"],
@@ -477,7 +497,8 @@ def import_entity_catalog_bundle(
                     "owning_app": ent_payload.get("owning_app", ""),
                     "model_label": ent_payload.get("model_label", ""),
                     "is_core": ent_payload.get("is_core", False),
-                    "lifecycle_state": ent_payload.get("lifecycle_state", "active") or "active",
+                    "lifecycle_state": ent_payload.get("lifecycle_state", "active")
+                    or "active",
                 },
             )
             if created:

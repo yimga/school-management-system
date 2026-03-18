@@ -5,12 +5,28 @@ from django.db import migrations, models
 
 # New permission codes to create (additive; do not remove existing Permission rows)
 NEW_PERMISSIONS = [
-    ("discipline.manage", "Discipline management", "Create/edit incidents, trigger parent alerts for discipline/absence."),
-    ("accounting.view", "Accounting view", "View Bursar entries, expense reports, budget vs actual."),
-    ("accounting.manage", "Accounting management", "Record expenditures, reconcile Bursar entries."),
+    (
+        "discipline.manage",
+        "Discipline management",
+        "Create/edit incidents, trigger parent alerts for discipline/absence.",
+    ),
+    (
+        "accounting.view",
+        "Accounting view",
+        "View Bursar entries, expense reports, budget vs actual.",
+    ),
+    (
+        "accounting.manage",
+        "Accounting management",
+        "Record expenditures, reconcile Bursar entries.",
+    ),
     ("stock.view", "Stock view", "View inventory/stock."),
     ("stock.manage", "Stock management", "Manage stock/inventory."),
-    ("strategic.report", "Strategic reporting", "Access strategic reporting and school roadmap view."),
+    (
+        "strategic.report",
+        "Strategic reporting",
+        "Access strategic reporting and school roadmap view.",
+    ),
     ("exam_registration.manage", "Exam registration", "GCE/Baccalauréat registration."),
 ]
 
@@ -19,12 +35,24 @@ NEW_ROLE_DEFINITIONS = {
     "ACCOUNTANT": {
         "name": "Accountant",
         "description": "Reporting and expense management; tracks Bursar entries; expenditures vs budget; stock control.",
-        "permissions": ["accounting.view", "accounting.manage", "stock.view", "stock.manage", "finance.view"],
+        "permissions": [
+            "accounting.view",
+            "accounting.manage",
+            "stock.view",
+            "stock.manage",
+            "finance.view",
+        ],
     },
     "PROPRIETOR": {
         "name": "Proprietor",
         "description": "Strategic reporting, super user, global dashboards, enrollment data, report card printing.",
-        "permissions": ["strategic.report", "reports.manage", "student.manage", "finance.view", "data.access"],
+        "permissions": [
+            "strategic.report",
+            "reports.manage",
+            "student.manage",
+            "finance.view",
+            "data.access",
+        ],
     },
     "DISCIPLINE_MASTER": {
         "name": "Discipline Master",
@@ -52,7 +80,9 @@ def create_permissions_and_roles(apps, schema_editor):
     perm_map = {p.code: p for p in Permission.objects.all()}
     for code, name, description in NEW_PERMISSIONS:
         if code not in perm_map:
-            perm = Permission.objects.create(code=code, name=name, description=description)
+            perm = Permission.objects.create(
+                code=code, name=name, description=description
+            )
             perm_map[code] = perm
 
     # 2. Create new AccessRole rows for ACCOUNTANT, PROPRIETOR, DISCIPLINE_MASTER only
@@ -80,7 +110,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0016_add_delegation_and_action_log"),
     ]

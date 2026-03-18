@@ -1,4 +1,5 @@
 """Tests for delegation (Out of Office / Acting) helpers and models."""
+
 from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
@@ -47,9 +48,15 @@ class DelegationHelperTests(TestCase):
         self.assertNotIn(self.teacher.id, ids)
 
     def test_can_user_approve_for_workflow(self):
-        self.assertTrue(can_user_approve_for_workflow(self.dean, WORKFLOW_SYLLABUS_APPROVAL))
-        self.assertTrue(can_user_approve_for_workflow(self.hod, WORKFLOW_SYLLABUS_APPROVAL))
-        self.assertFalse(can_user_approve_for_workflow(self.teacher, WORKFLOW_SYLLABUS_APPROVAL))
+        self.assertTrue(
+            can_user_approve_for_workflow(self.dean, WORKFLOW_SYLLABUS_APPROVAL)
+        )
+        self.assertTrue(
+            can_user_approve_for_workflow(self.hod, WORKFLOW_SYLLABUS_APPROVAL)
+        )
+        self.assertFalse(
+            can_user_approve_for_workflow(self.teacher, WORKFLOW_SYLLABUS_APPROVAL)
+        )
 
     def test_get_effective_approvers_with_delegation(self):
         """When Dean is OOO and delegated to Teacher, Teacher should be an effective approver."""

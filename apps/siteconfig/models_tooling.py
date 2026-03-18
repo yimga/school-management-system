@@ -29,16 +29,51 @@ class ThemePack(models.Model):
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
     background_color = models.CharField(max_length=20, default="#ffffff")
-    font_family = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
-    layout = models.CharField(max_length=20, choices=ThemeLayout.choices, default=ThemeLayout.STANDARD)
+    font_family = models.CharField(
+        max_length=120, default="Inter, system-ui, sans-serif"
+    )
+    layout = models.CharField(
+        max_length=20, choices=ThemeLayout.choices, default=ThemeLayout.STANDARD
+    )
     custom_css = models.TextField(blank=True)
     palette = models.JSONField(default=dict, blank=True)
-    logo = models.ImageField(upload_to="branding/themepack/logo/", blank=True, null=True, help_text="Optional: Logo for this theme pack.")
-    background_image = models.ImageField(upload_to="branding/themepack/bg/", blank=True, null=True, help_text="Optional: Background image for this theme pack.")
-    video_background = models.FileField(upload_to="branding/themepack/video/", blank=True, null=True, help_text="Optional: Video background for this theme pack.")
-    svg_background = models.FileField(upload_to="branding/themepack/svg/", blank=True, null=True, help_text="Optional: SVG background for this theme pack.")
-    logo_opacity = models.FloatField(default=0.3, blank=True, null=True, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)")
-    logo_background_mode = models.CharField(max_length=16, choices=LOGO_BG_MODE_CHOICES, default="contain", help_text="How the theme logo background image is displayed.")
+    logo = models.ImageField(
+        upload_to="branding/themepack/logo/",
+        blank=True,
+        null=True,
+        help_text="Optional: Logo for this theme pack.",
+    )
+    background_image = models.ImageField(
+        upload_to="branding/themepack/bg/",
+        blank=True,
+        null=True,
+        help_text="Optional: Background image for this theme pack.",
+    )
+    video_background = models.FileField(
+        upload_to="branding/themepack/video/",
+        blank=True,
+        null=True,
+        help_text="Optional: Video background for this theme pack.",
+    )
+    svg_background = models.FileField(
+        upload_to="branding/themepack/svg/",
+        blank=True,
+        null=True,
+        help_text="Optional: SVG background for this theme pack.",
+    )
+    logo_opacity = models.FloatField(
+        default=0.3,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)",
+    )
+    logo_background_mode = models.CharField(
+        max_length=16,
+        choices=LOGO_BG_MODE_CHOICES,
+        default="contain",
+        help_text="How the theme logo background image is displayed.",
+    )
     applies_to_admin = models.BooleanField(
         default=False,
         help_text="Use this pack for the Django /admin interface.",
@@ -69,18 +104,30 @@ class ThemePack(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if self.logo and hasattr(self.logo, "file") and not getattr(self.logo.file, "_optimized", False):
+        if (
+            self.logo
+            and hasattr(self.logo, "file")
+            and not getattr(self.logo.file, "_optimized", False)
+        ):
             optimized = optimize_image(self.logo)
             if optimized:
                 optimized._optimized = True
                 self.logo.save(self.logo.name, optimized, save=False)
-        if self.background_image and hasattr(self.background_image, "file") and not getattr(self.background_image.file, "_optimized", False):
+        if (
+            self.background_image
+            and hasattr(self.background_image, "file")
+            and not getattr(self.background_image.file, "_optimized", False)
+        ):
             optimized = optimize_image(self.background_image)
             if optimized:
                 optimized._optimized = True
-                self.background_image.save(self.background_image.name, optimized, save=False)
+                self.background_image.save(
+                    self.background_image.name, optimized, save=False
+                )
         if self.is_default:
-            ThemePack.objects.exclude(pk=self.pk).filter(is_default=True).update(is_default=False)
+            ThemePack.objects.exclude(pk=self.pk).filter(is_default=True).update(
+                is_default=False
+            )
         super().save(*args, **kwargs)
 
     @property
@@ -131,7 +178,9 @@ class Integration(models.Model):
     name = models.CharField(max_length=120)
     slug = models.SlugField(max_length=50, unique=True)
     provider = models.CharField(max_length=30, choices=PROVIDERS, default="other")
-    category = models.CharField(max_length=20, choices=CATEGORIES, default="OTHER", blank=True)
+    category = models.CharField(
+        max_length=20, choices=CATEGORIES, default="OTHER", blank=True
+    )
     enabled = models.BooleanField(
         default=False,
         help_text="Master kill switch: when False, this integration is not used (payments, email, portal links).",
@@ -142,7 +191,9 @@ class Integration(models.Model):
     allowed_scopes = models.JSONField(default=dict, blank=True)
     secret_key_hash = models.TextField(blank=True)
     last_call_at = models.DateTimeField(null=True, blank=True)
-    health_status = models.CharField(max_length=20, choices=HEALTH_STATUS, default="healthy", blank=True)
+    health_status = models.CharField(
+        max_length=20, choices=HEALTH_STATUS, default="healthy", blank=True
+    )
     pii_masking = models.BooleanField(default=False)
     school = models.ForeignKey(
         "schools.School",
@@ -310,7 +361,10 @@ def _teacher_export():
 @report_exporter("subjects")
 def _subject_export():
     headers = ["Subject", "Category"]
-    rows = [[subject.name, subject.get_category_display()] for subject in Subject.objects.all()]
+    rows = [
+        [subject.name, subject.get_category_display()]
+        for subject in Subject.objects.all()
+    ]
     return headers, rows
 
 
@@ -383,7 +437,9 @@ class OfficialReportTemplate(models.Model):
         INT = "INT", "International"
 
     region_code = models.CharField(max_length=20, blank=True, help_text="e.g. CMR")
-    sub_system = models.CharField(max_length=10, choices=SubSystem.choices, default=SubSystem.EN)
+    sub_system = models.CharField(
+        max_length=10, choices=SubSystem.choices, default=SubSystem.EN
+    )
     name = models.CharField(max_length=120)
     template_file = models.FileField(
         upload_to="report_templates/official/",
@@ -437,14 +493,25 @@ class ReportCardStyle(models.Model):
     ANNUAL_TEMPLATE_CHOICES = [
         ("reports/annual_report.html", "Standard annual template"),
         ("reports/annual_report_cameroon.html", "Cameroon annual template"),
-        ("reports/annual_report_cameroon_modern.html", "Cameroon annual template (modern)"),
+        (
+            "reports/annual_report_cameroon_modern.html",
+            "Cameroon annual template (modern)",
+        ),
     ]
 
     slug = models.SlugField(max_length=80, unique=True)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
-    term_template = models.CharField(max_length=120, choices=TERM_TEMPLATE_CHOICES, default=TERM_TEMPLATE_CHOICES[0][0])
-    annual_template = models.CharField(max_length=120, choices=ANNUAL_TEMPLATE_CHOICES, default=ANNUAL_TEMPLATE_CHOICES[0][0])
+    term_template = models.CharField(
+        max_length=120,
+        choices=TERM_TEMPLATE_CHOICES,
+        default=TERM_TEMPLATE_CHOICES[0][0],
+    )
+    annual_template = models.CharField(
+        max_length=120,
+        choices=ANNUAL_TEMPLATE_CHOICES,
+        default=ANNUAL_TEMPLATE_CHOICES[0][0],
+    )
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
     watermark_text = models.CharField(max_length=150, blank=True)
@@ -525,7 +592,9 @@ class ReportCardStyle(models.Model):
 from apps.academics.models import ReportCardStyleAssignment  # noqa: E402,F401
 
 
-def get_report_card_style_for_student(student: StudentProfile, report_type: str) -> ReportCardStyle | None:
+def get_report_card_style_for_student(
+    student: StudentProfile, report_type: str
+) -> ReportCardStyle | None:
     if not student or not student.classroom:
         return None
     assignment = getattr(student.classroom, "report_card_style_assignment", None)

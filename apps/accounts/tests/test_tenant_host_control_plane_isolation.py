@@ -37,19 +37,28 @@ class TenantHostControlPlaneIsolationMiddlewareTests(TestCase):
         return request
 
     def test_superadmin_without_impersonation_is_redirected_to_manager_host(self):
-        middleware = TenantHostControlPlaneIsolationMiddleware(lambda request: HttpResponse("ok"))
+        middleware = TenantHostControlPlaneIsolationMiddleware(
+            lambda request: HttpResponse("ok")
+        )
         request = self._request()
 
-        with patch.dict("os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+        with patch.dict(
+            "os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
             response = middleware(request)
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "https://manager.runmycampus.com/super/")
 
     def test_superadmin_with_matching_impersonation_session_is_allowed(self):
-        middleware = TenantHostControlPlaneIsolationMiddleware(lambda request: HttpResponse("ok"))
+        middleware = TenantHostControlPlaneIsolationMiddleware(
+            lambda request: HttpResponse("ok")
+        )
         request = self._request()
-        request.session["impersonation"] = {"school_id": str(self.school.id), "actor_id": self.superadmin.id}
+        request.session["impersonation"] = {
+            "school_id": str(self.school.id),
+            "actor_id": self.superadmin.id,
+        }
         request.session.save()
 
         response = middleware(request)

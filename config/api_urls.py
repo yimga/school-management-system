@@ -1,6 +1,7 @@
 """
 API host URL configuration (api.runmycampus.com).
 """
+
 from django.http import JsonResponse
 from django.urls import include, path
 

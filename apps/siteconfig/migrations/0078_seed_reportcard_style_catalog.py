@@ -305,11 +305,12 @@ def seed_report_card_style_catalog(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0077_reportcardstyle_watermark_fields"),
     ]
 
     operations = [
-        migrations.RunPython(seed_report_card_style_catalog, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(
+            seed_report_card_style_catalog, reverse_code=migrations.RunPython.noop
+        ),
     ]

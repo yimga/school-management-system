@@ -1,13 +1,20 @@
 """
 Section 8: Industry Interoperability — landing, Caddy ask, LTI placeholder, global login.
 """
+
+import logging
 import os
 import json
 import base64
 import secrets
 from binascii import Error as BinasciiError
 from urllib.parse import urlencode
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
+from django.http import (
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseNotFound,
+    JsonResponse,
+)
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -19,6 +26,8 @@ from django.utils import timezone
 
 from apps.api.rate_limit import throttle_ip_request
 from apps.siteconfig.integration_registry import resolve_service_integration
+
+logger = logging.getLogger(__name__)
 
 
 def _caddy_ip_allowed(request) -> bool:
@@ -66,6 +75,7 @@ def verify_caddy_domain(request):
     try:
         from django.core.cache import cache
         from django.conf import settings as django_settings
+
         cache_ttl = getattr(django_settings, "CADDY_ASK_CACHE_TTL", 60) or 60
         if cache_ttl > 0:
             cached = cache.get(cache_key)
@@ -79,7 +89,10 @@ def verify_caddy_domain(request):
     # 1. Runtime domain table (django-tenants): authoritative routing map.
     try:
         from apps.customers.models import Domain
-        if Domain.objects.filter(domain=domain_lower, tenant__school__is_active=True).exists():
+
+        if Domain.objects.filter(
+            domain=domain_lower, tenant__school__is_active=True
+        ).exists():
             if cache:
                 try:
                     cache.set(cache_key, True, timeout=cache_ttl)
@@ -92,7 +105,10 @@ def verify_caddy_domain(request):
     # 2. SchoolDomain (shared schema): multiple domains per tenant, is_verified
     try:
         from .models import SchoolDomain
-        if SchoolDomain.objects.filter(domain=domain_lower, is_verified=True, school__is_active=True).exists():
+
+        if SchoolDomain.objects.filter(
+            domain=domain_lower, is_verified=True, school__is_active=True
+        ).exists():
             if cache:
                 try:
                     cache.set(cache_key, True, timeout=cache_ttl)
@@ -104,6 +120,7 @@ def verify_caddy_domain(request):
 
     # 3. Legacy: School.subdomain and School.custom_domain
     from .models import School
+
     subdomain = domain_lower.split(".")[0] if "." in domain_lower else domain_lower
     if School.objects.filter(subdomain=subdomain, is_active=True).exists():
         if cache:
@@ -112,7 +129,9 @@ def verify_caddy_domain(request):
             except SECTION8_CACHE_FAILURES:
                 pass
         return HttpResponse(status=200)
-    if School.objects.filter(custom_domain=domain_lower, custom_domain_verified=True, is_active=True).exists():
+    if School.objects.filter(
+        custom_domain=domain_lower, custom_domain_verified=True, is_active=True
+    ).exists():
         if cache:
             try:
                 cache.set(cache_key, True, timeout=cache_ttl)
@@ -134,9 +153,21 @@ DISCOVERY_RATE_LIMIT_WINDOW = 60 * 15  # 15 minutes
 LTI_RATE_LIMIT_WINDOW = 60 * 15
 LTI_RATE_LIMIT_MAX = 240
 SECTION8_MUTATION_CONTENT_TYPES = {"application/json"}
-SECTION8_OPTIONAL_FAILURES = (AttributeError, ImportError, LookupError, RuntimeError, TypeError, ValueError)
+SECTION8_OPTIONAL_FAILURES = (
+    AttributeError,
+    ImportError,
+    LookupError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 SECTION8_CACHE_FAILURES = SECTION8_OPTIONAL_FAILURES + (DatabaseError, OSError)
-SECTION8_JSON_FAILURES = (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError)
+SECTION8_JSON_FAILURES = (
+    UnicodeDecodeError,
+    json.JSONDecodeError,
+    TypeError,
+    ValueError,
+)
 SECTION8_JWT_FAILURES = SECTION8_JSON_FAILURES + (BinasciiError,)
 
 
@@ -232,6 +263,7 @@ def _role_onboarding_checklists() -> list[dict]:
 def _discovery_rate_limit_exceeded(request) -> bool:
     """True if this IP has exceeded POST rate limit for /discover/."""
     from django.core.cache import cache
+
     ip = (request.META.get("REMOTE_ADDR") or "unknown").strip()
     key = DISCOVERY_RATE_LIMIT_KEY.format(ip=ip)
     count = cache.get(key, 0)
@@ -241,6 +273,7 @@ def _discovery_rate_limit_exceeded(request) -> bool:
 def _discovery_rate_limit_incr(request) -> None:
     """Increment POST count for this IP."""
     from django.core.cache import cache
+
     ip = (request.META.get("REMOTE_ADDR") or "unknown").strip()
     key = DISCOVERY_RATE_LIMIT_KEY.format(ip=ip)
     try:
@@ -253,6 +286,7 @@ def _discovery_rate_limit_incr(request) -> None:
 def _record_discovery_funnel_event(request) -> None:
     try:
         from apps.schools.funnel_events import record_marketing_funnel_event
+
         record_marketing_funnel_event("discovery", request)
     except SECTION8_OPTIONAL_FAILURES:
         pass
@@ -311,6 +345,7 @@ def global_login_discovery(request):
         )
     from .models import SchoolMembership
     from apps.schools.domain_resolution_service import get_canonical_base_domain
+
     memberships = SchoolMembership.objects.filter(
         user__email__iexact=email,
         school__is_active=True,
@@ -345,7 +380,11 @@ def _build_school_portal_url(request, school) -> str:
     from apps.schools.domain_sync import get_base_domain
 
     base_domain = get_base_domain()
-    slug = (getattr(school, "subdomain", "") or getattr(school, "slug", "") or "").strip().lower()
+    slug = (
+        (getattr(school, "subdomain", "") or getattr(school, "slug", "") or "")
+        .strip()
+        .lower()
+    )
     if slug and base_domain:
         return f"https://{slug}.{base_domain}"
     return request.build_absolute_uri(reverse("global_login_discovery"))
@@ -366,7 +405,11 @@ def find_school(request):
     if len(query) >= 2:
         schools = (
             School.objects.filter(is_active=True)
-            .filter(Q(name__icontains=query) | Q(slug__icontains=query) | Q(subdomain__icontains=query))
+            .filter(
+                Q(name__icontains=query)
+                | Q(slug__icontains=query)
+                | Q(subdomain__icontains=query)
+            )
             .order_by("name")[:8]
         )
         for school in schools:
@@ -427,10 +470,9 @@ def lti_launch(request, tool_id):
         return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
 
     cfg = integration.config or {}
-    authorization_endpoint = (
-        (cfg.get("authorization_endpoint") or "").strip()
-        or (integration.endpoint_url or "").strip()
-    )
+    authorization_endpoint = (cfg.get("authorization_endpoint") or "").strip() or (
+        integration.endpoint_url or ""
+    ).strip()
     client_id = (integration.client_id or cfg.get("client_id") or "").strip()
     deployment_id = (cfg.get("deployment_id") or "").strip()
     if not authorization_endpoint or not client_id or not deployment_id:
@@ -449,8 +491,9 @@ def lti_launch(request, tool_id):
     request.session.modified = True
 
     redirect_uri = (
-        (cfg.get("redirect_uri") or "").strip()
-        or request.build_absolute_uri(reverse("lti_launch_callback", args=[integration.pk]))
+        cfg.get("redirect_uri") or ""
+    ).strip() or request.build_absolute_uri(
+        reverse("lti_launch_callback", args=[integration.pk])
     )
     params = {
         "response_type": "id_token",
@@ -458,7 +501,9 @@ def lti_launch(request, tool_id):
         "scope": "openid",
         "client_id": client_id,
         "redirect_uri": redirect_uri,
-        "login_hint": request.GET.get("login_hint") or getattr(request.user, "email", "") or "",
+        "login_hint": request.GET.get("login_hint")
+        or getattr(request.user, "email", "")
+        or "",
         "lti_message_hint": request.GET.get("lti_message_hint", ""),
         "nonce": nonce,
         "state": state,
@@ -500,11 +545,15 @@ def _resolve_lti_integration_for_request(request, tool_id):
 
     try:
         pk = int(tool_id)
-        integration = ServiceIntegration.objects.filter(
-            pk=pk,
-            service_type=ServiceIntegration.ServiceType.LTI,
-            is_active=True,
-        ).select_related("school").first()
+        integration = (
+            ServiceIntegration.objects.filter(
+                pk=pk,
+                service_type=ServiceIntegration.ServiceType.LTI,
+                is_active=True,
+            )
+            .select_related("school")
+            .first()
+        )
     except ValueError:
         integration = None
 
@@ -568,9 +617,19 @@ def _json_body(request):
 
 
 def _resolve_json_mutation_body(request):
-    content_type = ((request.content_type or request.META.get("CONTENT_TYPE") or "").split(";", 1)[0]).strip().lower()
+    content_type = (
+        (
+            (request.content_type or request.META.get("CONTENT_TYPE") or "").split(
+                ";", 1
+            )[0]
+        )
+        .strip()
+        .lower()
+    )
     if content_type not in SECTION8_MUTATION_CONTENT_TYPES:
-        return None, JsonResponse({"error": "Content-Type must be application/json"}, status=415)
+        return None, JsonResponse(
+            {"error": "Content-Type must be application/json"}, status=415
+        )
     try:
         payload = json.loads((request.body or b"{}").decode("utf-8"))
     except SECTION8_JSON_FAILURES:
@@ -618,16 +677,36 @@ def lti_launch_callback(request, tool_id):
     if not pending:
         return JsonResponse({"error": "Invalid or expired state"}, status=403)
 
-    claims = _decode_unverified_jwt(id_token)
+    from apps.schools.lti_id_token_verify import decode_lti_id_token_safe
+
+    client_id = (
+        integration.client_id or (integration.config or {}).get("client_id") or ""
+    ).strip()
+    claims, verify_err = decode_lti_id_token_safe(
+        id_token, audience=client_id or "lti", cfg=integration.config or {}
+    )
+    if verify_err == "invalid_id_token_signature":
+        return JsonResponse({"error": "Invalid id_token signature"}, status=401)
+    if verify_err == "lti_tool_jwks_uri_required":
+        return JsonResponse(
+            {"error": "Configure lti_tool_jwks_uri on LTI integration (strict mode)."},
+            status=400,
+        )
     expected_nonce = str(pending.get("nonce") or "")
     if not claims or str(claims.get("nonce") or "") != expected_nonce:
         return JsonResponse({"error": "Invalid nonce"}, status=403)
 
-    expected_deployment = str((integration.config or {}).get("deployment_id") or "").strip()
+    expected_deployment = str(
+        (integration.config or {}).get("deployment_id") or ""
+    ).strip()
     claim_deployment = str(
         claims.get("https://purl.imsglobal.org/spec/lti/claim/deployment_id") or ""
     ).strip()
-    if expected_deployment and claim_deployment and claim_deployment != expected_deployment:
+    if (
+        expected_deployment
+        and claim_deployment
+        and claim_deployment != expected_deployment
+    ):
         return JsonResponse({"error": "Deployment mismatch"}, status=403)
 
     request.session.pop(session_key, None)
@@ -703,7 +782,9 @@ def lti_ags_lineitem_detail(request, tool_id, lineitem_id):
         return auth_err
     cfg = _lti_state(integration)
     items = list(cfg.get("_lti_lineitems") or [])
-    idx = next((i for i, row in enumerate(items) if str(row.get("id")) == str(lineitem_id)), -1)
+    idx = next(
+        (i for i, row in enumerate(items) if str(row.get("id")) == str(lineitem_id)), -1
+    )
     if idx < 0:
         return JsonResponse({"error": "Line item not found"}, status=404)
 
@@ -838,6 +919,7 @@ def lti_nrps_memberships(request, tool_id):
         return auth_err
 
     from apps.schools.models import SchoolMembership
+
     memberships = (
         SchoolMembership.objects.filter(school=integration.school)
         .select_related("user")
@@ -894,7 +976,9 @@ def lti_deep_linking(request, tool_id):
                 "title": str(item.get("title") or "LTI Resource"),
                 "text": str(item.get("text") or ""),
                 "url": str(item.get("url") or ""),
-                "lineItem": item.get("lineItem") if isinstance(item.get("lineItem"), dict) else {},
+                "lineItem": item.get("lineItem")
+                if isinstance(item.get("lineItem"), dict)
+                else {},
             }
         )
 
@@ -955,6 +1039,7 @@ def frozen_account(request):
     display frozen_reason and link to billing/upgrade. No auth required to view.
     """
     from django.shortcuts import render
+
     school = getattr(request, "school", None)
     reason = getattr(school, "frozen_reason", None) or "STORAGE"
     return render(request, "schools/frozen_account.html", {"frozen_reason": reason})

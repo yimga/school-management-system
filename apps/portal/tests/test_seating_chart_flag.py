@@ -9,7 +9,9 @@ from apps.platform_runtime.helpers import get_platform_site_settings_record
 class SeatingChartFlagTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.create_user(username="attendance-admin", password="testpass123")
+        self.user = User.objects.create_user(
+            username="attendance-admin", password="testpass123"
+        )
         self.user.has_feature_permission = lambda code: code == "attendance.manage"
 
     def test_seating_chart_disabled_raises_404(self):

@@ -4,7 +4,9 @@ from django.utils.text import slugify
 
 
 class EventVenue(models.Model):
-    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="event_venues")
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="event_venues"
+    )
     name = models.CharField(max_length=160)
     code = models.SlugField(max_length=80)
     location = models.CharField(max_length=255, blank=True)
@@ -38,10 +40,14 @@ class EventSponsor(models.Model):
         FULFILLED = "fulfilled", "Fulfilled"
         INACTIVE = "inactive", "Inactive"
 
-    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="event_sponsors")
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="event_sponsors"
+    )
     name = models.CharField(max_length=255)
     tier = models.CharField(max_length=24, choices=Tier.choices, default=Tier.COMMUNITY)
-    status = models.CharField(max_length=24, choices=Status.choices, default=Status.LEAD)
+    status = models.CharField(
+        max_length=24, choices=Status.choices, default=Status.LEAD
+    )
     contact_name = models.CharField(max_length=160, blank=True)
     contact_email = models.EmailField(blank=True)
     website_url = models.URLField(blank=True)
@@ -66,10 +72,14 @@ class SchoolEvent(models.Model):
         COMPLETED = "completed", "Completed"
         CANCELED = "canceled", "Canceled"
 
-    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="school_events")
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="school_events"
+    )
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=100)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT, db_index=True)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT, db_index=True
+    )
     summary = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     venue = models.ForeignKey(
@@ -113,7 +123,9 @@ class SchoolEvent(models.Model):
 
 
 class EventTicketTier(models.Model):
-    event = models.ForeignKey(SchoolEvent, on_delete=models.CASCADE, related_name="ticket_tiers")
+    event = models.ForeignKey(
+        SchoolEvent, on_delete=models.CASCADE, related_name="ticket_tiers"
+    )
     name = models.CharField(max_length=120)
     code = models.SlugField(max_length=40)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -147,9 +159,15 @@ class EventSponsorCommitment(models.Model):
         FULFILLED = "fulfilled", "Fulfilled"
         CANCELED = "canceled", "Canceled"
 
-    event = models.ForeignKey(SchoolEvent, on_delete=models.CASCADE, related_name="sponsor_commitments")
-    sponsor = models.ForeignKey(EventSponsor, on_delete=models.CASCADE, related_name="commitments")
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PLEDGED)
+    event = models.ForeignKey(
+        SchoolEvent, on_delete=models.CASCADE, related_name="sponsor_commitments"
+    )
+    sponsor = models.ForeignKey(
+        EventSponsor, on_delete=models.CASCADE, related_name="commitments"
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PLEDGED
+    )
     pledged_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -172,7 +190,9 @@ class EventRegistration(models.Model):
         CANCELED = "canceled", "Canceled"
         CHECKED_IN = "checked_in", "Checked in"
 
-    event = models.ForeignKey(SchoolEvent, on_delete=models.CASCADE, related_name="registrations")
+    event = models.ForeignKey(
+        SchoolEvent, on_delete=models.CASCADE, related_name="registrations"
+    )
     ticket_tier = models.ForeignKey(
         EventTicketTier,
         on_delete=models.SET_NULL,
@@ -192,7 +212,9 @@ class EventRegistration(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     amount_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.RESERVED)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.RESERVED
+    )
     check_in_at = models.DateTimeField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -205,4 +227,3 @@ class EventRegistration(models.Model):
 
     def __str__(self):
         return f"{self.attendee_name} @ {self.event.title}"
-

@@ -3,6 +3,7 @@ Django migrations state: query whether a migration is applied.
 §2.4 raw_sql_replacement_targets: single raw SQL for django_migrations lives here; portal.onboarding_verification delegates.
 Staff/onboarding verification only.
 """
+
 from __future__ import annotations
 
 import logging

@@ -5,7 +5,15 @@ from django.db import migrations, models
 
 
 def _category_to_provider(category):
-    return {"PAYMENT": "payments", "LMS": "other", "ATTENDANCE": "other", "LIBRARY": "other", "AI": "other", "SIS": "other", "OTHER": "other"}.get(category, "other")
+    return {
+        "PAYMENT": "payments",
+        "LMS": "other",
+        "ATTENDANCE": "other",
+        "LIBRARY": "other",
+        "AI": "other",
+        "SIS": "other",
+        "OTHER": "other",
+    }.get(category, "other")
 
 
 def migrate_audit_to_integration(apps, schema_editor):
@@ -46,7 +54,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("apicenter", "0002_add_integration_fk"),
         ("siteconfig", "0084_integration_unified_governance_fields"),

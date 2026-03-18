@@ -10,6 +10,7 @@ Usage:
   python scripts/phase_h_url_check.py --hit http://localhost:8000   # resolve + GET each URL
   python scripts/phase_h_url_check.py --hit https://example.com --host manager.example.com  # with Host header
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,9 +22,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import os
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 import django
+
 django.setup()
 
 from django.urls import reverse, NoReverseMatch
@@ -75,10 +78,16 @@ def resolve_all():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Phase H URL check (resolve and optionally hit)")
-    parser.add_argument("--hit", metavar="BASE_URL", help="GET each resolved URL and report status")
+    parser = argparse.ArgumentParser(
+        description="Phase H URL check (resolve and optionally hit)"
+    )
+    parser.add_argument(
+        "--hit", metavar="BASE_URL", help="GET each resolved URL and report status"
+    )
     parser.add_argument("--host", default="", help="Host header when using --hit")
-    parser.add_argument("-q", "--quiet", action="store_true", help="Only print failures")
+    parser.add_argument(
+        "-q", "--quiet", action="store_true", help="Only print failures"
+    )
     args = parser.parse_args()
 
     results = resolve_all()
@@ -104,7 +113,9 @@ def main():
         for name_or_path, url_path, err in results:
             if err or not url_path:
                 continue
-            full = base + url_path if url_path.startswith("/") else base + "/" + url_path
+            full = (
+                base + url_path if url_path.startswith("/") else base + "/" + url_path
+            )
             try:
                 req = urllib.request.Request(full, headers=headers)
                 with urllib.request.urlopen(req, timeout=15) as r:

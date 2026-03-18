@@ -3,6 +3,7 @@ Student 360 full-page view (Section 26.1 / 15.1).
 Permission-gated; tabbed UI: Summary, Academic, Finance, Attendance, Timeline.
 Immutable transcript: freeze action and cross-year archive view.
 """
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError
@@ -23,19 +24,30 @@ def _student_360_academic(student):
     evaluations = []
     try:
         from django.apps import apps
+
         if apps.is_installed("academics"):
             from apps.academics.models import ClassEnrollment
+
             enrollments = list(
-                ClassEnrollment.objects.filter(student=student)
-                .select_related("classroom", "academic_year")[:20]
+                ClassEnrollment.objects.filter(student=student).select_related(
+                    "classroom", "academic_year"
+                )[:20]
             )
         if apps.is_installed("evals"):
             Evaluation = apps.get_model("evals", "Evaluation")
             evaluations = list(
-                Evaluation.objects.filter(student=student)
-                .select_related("term", "academic_year")[:20]
+                Evaluation.objects.filter(student=student).select_related(
+                    "term", "academic_year"
+                )[:20]
             )
-    except (ImportError, LookupError, AttributeError, TypeError, ValueError, DatabaseError):
+    except (
+        ImportError,
+        LookupError,
+        AttributeError,
+        TypeError,
+        ValueError,
+        DatabaseError,
+    ):
         pass
     return {"enrollments": enrollments, "evaluations": evaluations}
 
@@ -45,12 +57,20 @@ def _student_360_finance(student):
     invoices = []
     try:
         from django.apps import apps
+
         if apps.is_installed("finance"):
             Invoice = apps.get_model("finance", "Invoice")
             invoices = list(
                 Invoice.objects.filter(student=student).order_by("-created_at")[:20]
             )
-    except (ImportError, LookupError, AttributeError, TypeError, ValueError, DatabaseError):
+    except (
+        ImportError,
+        LookupError,
+        AttributeError,
+        TypeError,
+        ValueError,
+        DatabaseError,
+    ):
         pass
     return {"invoices": invoices}
 
@@ -65,23 +85,38 @@ def student_360_page(request, student_id):
     if not school:
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
-    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+
+    _student = get_object_or_404(
+        StudentProfile, pk=student_id, school=school, is_active=True
+    )
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data
+
         if not can_view_student_data(user, student_id):
-            return HttpResponseForbidden("You do not have permission to view this student.")
-    summary = get_student_360_summary(school.id, student_id, include_timeline_count=True, include_export_available=True)
+            return HttpResponseForbidden(
+                "You do not have permission to view this student."
+            )
+    summary = get_student_360_summary(
+        school.id,
+        student_id,
+        include_timeline_count=True,
+        include_export_available=True,
+    )
     timeline = get_student_timeline_feed(school.id, student_id, limit=50)
     academic = _student_360_academic(student)
     finance = _student_360_finance(student)
-    return render(request, "student360/student_360_page.html", {
-        "student": student,
-        "summary": summary,
-        "timeline": timeline,
-        "academic": academic,
-        "finance": finance,
-    })
+    return render(
+        request,
+        "student360/student_360_page.html",
+        {
+            "student": student,
+            "summary": summary,
+            "timeline": timeline,
+            "academic": academic,
+            "finance": finance,
+        },
+    )
 
 
 @login_required
@@ -91,20 +126,31 @@ def student_360_export(request, student_id):
     if not school:
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
-    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+
+    _student = get_object_or_404(
+        StudentProfile, pk=student_id, school=school, is_active=True
+    )
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data
+
         if not can_view_student_data(user, student_id):
-            return HttpResponseForbidden("You do not have permission to export this student.")
+            return HttpResponseForbidden(
+                "You do not have permission to export this student."
+            )
     from .services import export_student_pack
     import json
     from django.http import HttpResponse
+
     data = export_student_pack(school.id, student_id, format="json")
     if not data:
         return HttpResponseForbidden("Export not available.")
-    response = HttpResponse(json.dumps(data, indent=2, default=str), content_type="application/json")
-    response["Content-Disposition"] = f'attachment; filename="student_360_export_{student_id}.json"'
+    response = HttpResponse(
+        json.dumps(data, indent=2, default=str), content_type="application/json"
+    )
+    response["Content-Disposition"] = (
+        f'attachment; filename="student_360_export_{student_id}.json"'
+    )
     return response
 
 
@@ -118,20 +164,33 @@ def transcript_archive(request, student_id):
     if not school:
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
-    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+
+    _student = get_object_or_404(
+        StudentProfile, pk=student_id, school=school, is_active=True
+    )
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data
+
         if not can_view_student_data(user, student_id):
-            return HttpResponseForbidden("You do not have permission to view this student.")
+            return HttpResponseForbidden(
+                "You do not have permission to view this student."
+            )
     archives = get_immutable_transcripts_for_student(student)
     from apps.academics.models import AcademicYear
-    academic_years = list(AcademicYear.objects.filter(school=school).order_by("-start_date")[:20])
-    return render(request, "student360/transcript_archive.html", {
-        "student": student,
-        "archives": archives,
-        "academic_years": academic_years,
-    })
+
+    academic_years = list(
+        AcademicYear.objects.filter(school=school).order_by("-start_date")[:20]
+    )
+    return render(
+        request,
+        "student360/transcript_archive.html",
+        {
+            "student": student,
+            "archives": archives,
+            "academic_years": academic_years,
+        },
+    )
 
 
 @login_required
@@ -142,22 +201,32 @@ def transcript_archive_year(request, student_id, year_id):
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
     from .models import ImmutableTranscript
-    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+
+    _student = get_object_or_404(
+        StudentProfile, pk=student_id, school=school, is_active=True
+    )
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data
+
         if not can_view_student_data(user, student_id):
-            return HttpResponseForbidden("You do not have permission to view this student.")
+            return HttpResponseForbidden(
+                "You do not have permission to view this student."
+            )
     transcript = get_object_or_404(
         ImmutableTranscript,
         student=student,
         academic_year_id=year_id,
     )
-    return render(request, "student360/transcript_archive_year.html", {
-        "student": student,
-        "transcript": transcript,
-        "snapshot": transcript.snapshot,
-    })
+    return render(
+        request,
+        "student360/transcript_archive_year.html",
+        {
+            "student": student,
+            "transcript": transcript,
+            "snapshot": transcript.snapshot,
+        },
+    )
 
 
 @login_required
@@ -172,24 +241,36 @@ def transcript_freeze(request, student_id):
     if not school:
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
-    _student = get_object_or_404(StudentProfile, pk=student_id, school=school, is_active=True)
+
+    _student = get_object_or_404(
+        StudentProfile, pk=student_id, school=school, is_active=True
+    )
     user = request.user
     if not user.is_staff:
         from apps.accounts.permissions import can_view_student_data
+
         if not can_view_student_data(user, student_id):
-            return HttpResponseForbidden("You do not have permission to update this student's transcript.")
+            return HttpResponseForbidden(
+                "You do not have permission to update this student's transcript."
+            )
     year_id = request.POST.get("academic_year_id")
     if not year_id:
         messages.error(request, "Please select an academic year.")
         return redirect("portal:student_360_page", student_id=student_id)
     from apps.academics.models import AcademicYear
+
     academic_year = AcademicYear.objects.filter(pk=year_id, school=school).first()
     if not academic_year:
         messages.error(request, "Invalid academic year.")
         return redirect("portal:student_360_page", student_id=student_id)
     obj = create_immutable_transcript(student, academic_year, created_by=user)
     if obj:
-        messages.success(request, f"Transcript for {academic_year.name} frozen successfully.")
+        messages.success(
+            request, f"Transcript for {academic_year.name} frozen successfully."
+        )
     else:
-        messages.error(request, "Could not freeze transcript; check that report data is available for this year.")
+        messages.error(
+            request,
+            "Could not freeze transcript; check that report data is available for this year.",
+        )
     return redirect("portal:transcript_archive", student_id=student_id)

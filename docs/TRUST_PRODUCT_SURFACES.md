@@ -33,7 +33,7 @@
 | **Operator / admin** | Control Studio or siteconfig “Security & trust” hub | MFA enforcement; admin activity / audit log; impersonation log; integration/API governance; policy enforcement summary; audit export. |
 | **Super / platform** | Super dashboard or “Trust center” | All of the above at platform scope; tenant-level audit; data residency; risky-action log; role/permission review. |
 
-**Current state:** MFA and impersonation live under accounts; feature-control audit and Studio audit under siteconfig/studio_os; compliance and evals have their own audit trails. No single “Trust center” page yet.
+**Current state:** Super **Trust center** (`super:trust_center`) links Compliance, API Center, Sessions, Audit export, SSO health, Platform events, developer API. MFA and impersonation under accounts; feature-control and Studio audit under siteconfig/studio_os; compliance/evals retain dedicated trails.
 
 **Roadmap:**
 1. Add a **Trust** or **Security & trust** entry in the unified shell (sidebar or Control Studio) that links to: MFA, Sessions, Admin activity, Impersonation log, Integrations/API keys, Audit export.
@@ -53,6 +53,7 @@ Key trust dimensions are visible today via the following; together they satisfy 
 | **Control plane nav** | Compliance | `super:compliance_overview` — policy pack, audit review, export risk. |
 | **Control plane nav** | API Center | `apicenter:dashboard` — integration/API key governance. |
 | **Super** | Audit export | `super:audit_export` — date range, CSV/JSON, rate-limited (60s). |
+| **Super** | Platform events | `super:platform_events` — PlatformEventLog (pack apply/rollback, emit_platform_event); linked from trust center. |
 | **Accounts** | Sessions | `accounts:sessions_page` — list sessions, revoke; `accounts:sessions_revoke` POST. |
 | **Accounts (user)** | MFA | `accounts:mfa_setup`, `accounts:mfa_verify`; MFA banner in admin context. |
 | **Accounts (user)** | Security activity & export | `accounts:api_security_strength`, `accounts:api_security_activity`, `accounts:api_security_export_log`, `accounts:api_security_lockdown` (profile/security/*). |

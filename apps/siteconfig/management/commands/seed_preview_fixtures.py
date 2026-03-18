@@ -23,22 +23,82 @@ class Command(BaseCommand):
         if site is None:
             raise RuntimeError("Site settings baseline could not be initialized")
         site.portal_recent_grades = [
-            {"label": "Physics", "grade": "A (95%)", "tone": "success", "roles": ["PARENT"], "enabled": True},
-            {"label": "Mathematics", "grade": "A- (89%)", "tone": "primary", "roles": ["PARENT"], "enabled": True},
-            {"label": "Literature", "grade": "B+ (86%)", "tone": "warning", "roles": ["PARENT"], "enabled": True},
+            {
+                "label": "Physics",
+                "grade": "A (95%)",
+                "tone": "success",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
+            {
+                "label": "Mathematics",
+                "grade": "A- (89%)",
+                "tone": "primary",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
+            {
+                "label": "Literature",
+                "grade": "B+ (86%)",
+                "tone": "warning",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
         ]
         site.portal_upcoming_assessments = [
-            {"title": "Chemistry Test", "when": "Tomorrow 8AM", "detail": "Organic unit 3", "tone": "info", "roles": ["PARENT"], "enabled": True},
-            {"title": "History Essay", "when": "Fri 2PM", "detail": "African Independence", "tone": "secondary", "roles": ["PARENT"], "enabled": True},
+            {
+                "title": "Chemistry Test",
+                "when": "Tomorrow 8AM",
+                "detail": "Organic unit 3",
+                "tone": "info",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
+            {
+                "title": "History Essay",
+                "when": "Fri 2PM",
+                "detail": "African Independence",
+                "tone": "secondary",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
         ]
         site.portal_announcements = [
-            {"title": "Midterm Grades Published", "meta": "Moments ago", "roles": ["PARENT"], "enabled": True},
-            {"title": "New WhatsApp Support Line", "meta": "2 days ago", "roles": ["PARENT"], "enabled": True},
+            {
+                "title": "Midterm Grades Published",
+                "meta": "Moments ago",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
+            {
+                "title": "New WhatsApp Support Line",
+                "meta": "2 days ago",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
         ]
         site.portal_quick_actions = [
-            {"label": "Message Teacher", "url": "#contact-teacher", "icon": "bi-chat-dots", "roles": ["PARENT"], "enabled": True},
-            {"label": "Access Report Card", "url": "#report-card", "icon": "bi-file-earmark-text", "roles": ["PARENT"], "enabled": True},
-            {"label": "Book Counseling", "url": "#counseling", "icon": "bi-calendar-event", "roles": ["PARENT"], "enabled": True},
+            {
+                "label": "Message Teacher",
+                "url": "#contact-teacher",
+                "icon": "bi-chat-dots",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
+            {
+                "label": "Access Report Card",
+                "url": "#report-card",
+                "icon": "bi-file-earmark-text",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
+            {
+                "label": "Book Counseling",
+                "url": "#counseling",
+                "icon": "bi-calendar-event",
+                "roles": ["PARENT"],
+                "enabled": True,
+            },
         ]
         site.footer_badges = [
             {"label": "Live Chat Ready", "tone": "secure"},
@@ -120,4 +180,6 @@ class Command(BaseCommand):
         admin = User.objects.filter(is_superuser=True).first()
         if admin:
             return admin
-        return User.objects.create_superuser("preview-admin", "preview@example.com", "Preview123!")
+        return User.objects.create_superuser(
+            "preview-admin", "preview@example.com", "Preview123!"
+        )

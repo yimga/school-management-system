@@ -1,6 +1,7 @@
 """
 Portal teacher-facing and staff (cahier, discipline) views (§6.14 Phase 2 — role separation).
 """
+
 from __future__ import annotations
 
 from collections import Counter
@@ -25,7 +26,6 @@ from apps.academics.models import (
     CurriculumNode,
     Incident,
     SubjectAssignment,
-    Term,
 )
 from apps.academics.scheduling import Schedule, ScheduleEntry
 from apps.academics.services import get_active_year_and_term
@@ -45,7 +45,6 @@ from apps.platform_runtime.helpers import get_effective_flags
 from apps.portal.models import (
     LessonPlan,
     TeacherTrainingEntry,
-    AttendanceJustification,
     CahierDeTexteEntry,
 )
 from apps.portal.forms import (
@@ -53,10 +52,8 @@ from apps.portal.forms import (
     LessonPlanUploadForm,
     LessonPlanAttachmentForm,
     TeacherTrainingEntryForm,
-    AttendanceJustificationForm,
     CahierDeTexteEntryForm,
 )
-from apps.portal.views_common import PORTAL_SOFT_FAILURES
 
 logger = logging.getLogger(__name__)
 
@@ -64,15 +61,18 @@ logger = logging.getLogger(__name__)
 def _teacher_feed_school(request: HttpRequest):
     """Resolve school for teacher feed."""
     from apps.schools.models import School, SchoolMembership
+
     school = getattr(request, "school", None)
     if school is not None:
         return school
     school_id = getattr(request, "session", {}).get("school_id")
     if school_id:
         return School.objects.filter(pk=school_id, is_active=True).first()
-    membership = SchoolMembership.objects.filter(
-        user=request.user, school__is_active=True
-    ).select_related("school").first()
+    membership = (
+        SchoolMembership.objects.filter(user=request.user, school__is_active=True)
+        .select_related("school")
+        .first()
+    )
     return membership.school if membership else None
 
 
@@ -80,13 +80,16 @@ def _teacher_feed_school(request: HttpRequest):
 def teacher_feed(request: HttpRequest):
     """Plan VI: Social feed for teachers — school announcements, achievements, interventions."""
     from apps.communication.models import FeedItem
+
     school = _teacher_feed_school(request)
     if not school:
         messages.info(request, "Select a school to view the feed.")
         return redirect("portal:teacher_dashboard_alias")
-    items = FeedItem.objects.filter(school=school).select_related(
-        "student", "created_by"
-    ).order_by("-created_at")[:100]
+    items = (
+        FeedItem.objects.filter(school=school)
+        .select_related("student", "created_by")
+        .order_by("-created_at")[:100]
+    )
     return render(request, "teacher/feed.html", {"feed_items": list(items)})
 
 
@@ -124,15 +127,21 @@ def teacher_pay_history(request: HttpRequest):
     """RBAC: only the logged-in teacher's pay history (strict data isolation)."""
     profile = TeacherProfile.objects.filter(user=request.user).first()
     if not profile or profile.user_id != request.user.id:
-        messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
+        messages.error(
+            request, "No teacher profile found. Ask an admin to complete your profile."
+        )
         return redirect("evals:teacher_dashboard")
 
     pay_records = profile.pay_records.select_related("created_by").order_by(
         "-effective_date", "-created_at"
     )
     latest_pay = pay_records.filter(record_type=TeacherPayRecord.RecordType.PAY).first()
-    raises_count = pay_records.filter(record_type=TeacherPayRecord.RecordType.RAISE).count()
-    bonus_count = pay_records.filter(record_type=TeacherPayRecord.RecordType.BONUS).count()
+    raises_count = pay_records.filter(
+        record_type=TeacherPayRecord.RecordType.RAISE
+    ).count()
+    bonus_count = pay_records.filter(
+        record_type=TeacherPayRecord.RecordType.BONUS
+    ).count()
     last_pay_amount = latest_pay.amount if latest_pay else None
     last_pay_date = latest_pay.effective_date if latest_pay else None
     payment_totals = Counter()
@@ -140,15 +149,18 @@ def teacher_pay_history(request: HttpRequest):
         payment_totals[record.record_type] += record.amount
 
     total_paid_amount = sum(
-        record.amount for record in pay_records
+        record.amount
+        for record in pay_records
         if record.record_type == TeacherPayRecord.RecordType.PAY
     )
     raise_total = sum(
-        record.amount for record in pay_records
+        record.amount
+        for record in pay_records
         if record.record_type == TeacherPayRecord.RecordType.RAISE
     )
     bonus_total = sum(
-        record.amount for record in pay_records
+        record.amount
+        for record in pay_records
         if record.record_type == TeacherPayRecord.RecordType.BONUS
     )
 
@@ -156,8 +168,10 @@ def teacher_pay_history(request: HttpRequest):
     streak = _compute_attendance_streak(attendance_logs)
     recent_absence = next(
         (
-            entry for entry in attendance_logs
-            if entry.status in {
+            entry
+            for entry in attendance_logs
+            if entry.status
+            in {
                 TeacherAttendance.Status.ABSENT,
                 TeacherAttendance.Status.LATE,
                 TeacherAttendance.Status.ON_LEAVE,
@@ -168,7 +182,8 @@ def teacher_pay_history(request: HttpRequest):
     absence_alert = (
         f"Last absence recorded on {recent_absence.date}: "
         f"{recent_absence.remarks or recent_absence.get_status_display()}."
-        if recent_absence else None
+        if recent_absence
+        else None
     )
 
     hero = {
@@ -176,9 +191,21 @@ def teacher_pay_history(request: HttpRequest):
         "subtitle": "Recent pay, raises, and stipends",
         "actions": [],
         "stats": [
-            {"label": "Last pay", "value": last_pay_amount or "-", "meta": last_pay_date or "Not set"},
-            {"label": "Next pay date", "value": profile.next_pay_date or "Not set", "meta": profile.pay_grade or "Pay grade"},
-            {"label": "Raises", "value": raises_count, "meta": f"Bonuses: {bonus_count}"},
+            {
+                "label": "Last pay",
+                "value": last_pay_amount or "-",
+                "meta": last_pay_date or "Not set",
+            },
+            {
+                "label": "Next pay date",
+                "value": profile.next_pay_date or "Not set",
+                "meta": profile.pay_grade or "Pay grade",
+            },
+            {
+                "label": "Raises",
+                "value": raises_count,
+                "meta": f"Bonuses: {bonus_count}",
+            },
             {"label": "Streak", "value": streak, "meta": "days present"},
         ],
     }
@@ -186,21 +213,25 @@ def teacher_pay_history(request: HttpRequest):
         {"label": TeacherPayRecord.RecordType(record_type).label, "amount": amount}
         for record_type, amount in payment_totals.items()
     ]
-    return render(request, "teacher/pay_history.html", {
-        "hero": hero,
-        "pay_records": pay_records,
-        "teacher_profile": profile,
-        "latest_pay": latest_pay,
-        "raises_count": raises_count,
-        "bonus_count": bonus_count,
-        "payment_type_breakdown": payment_type_breakdown,
-        "total_paid_amount": total_paid_amount,
-        "raise_total": raise_total,
-        "bonus_total": bonus_total,
-        "attendance_logs": attendance_logs,
-        "attendance_streak": streak,
-        "attendance_alert": absence_alert,
-    })
+    return render(
+        request,
+        "teacher/pay_history.html",
+        {
+            "hero": hero,
+            "pay_records": pay_records,
+            "teacher_profile": profile,
+            "latest_pay": latest_pay,
+            "raises_count": raises_count,
+            "bonus_count": bonus_count,
+            "payment_type_breakdown": payment_type_breakdown,
+            "total_paid_amount": total_paid_amount,
+            "raise_total": raise_total,
+            "bonus_total": bonus_total,
+            "attendance_logs": attendance_logs,
+            "attendance_streak": streak,
+            "attendance_alert": absence_alert,
+        },
+    )
 
 
 @teacher_portal_required
@@ -209,7 +240,9 @@ def teacher_leave(request: HttpRequest):
     """RBAC: only the logged-in teacher's leave requests."""
     profile = TeacherProfile.objects.filter(user=request.user).first()
     if not profile or profile.user_id != request.user.id:
-        messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
+        messages.error(
+            request, "No teacher profile found. Ask an admin to complete your profile."
+        )
         return redirect("evals:teacher_dashboard")
 
     form = TeacherLeaveForm(request.POST or None)
@@ -222,12 +255,20 @@ def teacher_leave(request: HttpRequest):
         return redirect("portal:teacher_leave")
 
     leave_requests = profile.leave_requests.select_related("approver")
-    hero = {"title": "Leave requests", "subtitle": "Submit a request and track approvals", "actions": []}
-    return render(request, "teacher/leave.html", {
-        "hero": hero,
-        "form": form,
-        "leave_requests": leave_requests,
-    })
+    hero = {
+        "title": "Leave requests",
+        "subtitle": "Submit a request and track approvals",
+        "actions": [],
+    }
+    return render(
+        request,
+        "teacher/leave.html",
+        {
+            "hero": hero,
+            "form": form,
+            "leave_requests": leave_requests,
+        },
+    )
 
 
 @teacher_portal_required
@@ -236,22 +277,32 @@ def teacher_attendance_view(request: HttpRequest):
     """Teacher attendance summary and logs."""
     profile = getattr(request.user, "teacher_profile", None)
     if not profile:
-        messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
+        messages.error(
+            request, "No teacher profile found. Ask an admin to complete your profile."
+        )
         return redirect("evals:teacher_dashboard")
 
     logs = profile.attendance_logs.all()
     present = logs.filter(status=TeacherAttendance.Status.PRESENT).count()
     absences = logs.filter(status=TeacherAttendance.Status.ABSENT).count()
     late = logs.filter(status=TeacherAttendance.Status.LATE).count()
-    hero = {"title": "Attendance", "subtitle": "Check-ins, check-outs, and leave days", "actions": []}
-    return render(request, "teacher/attendance.html", {
-        "hero": hero,
-        "logs": logs,
-        "present": present,
-        "absences": absences,
-        "late": late,
-        "export_url": reverse("portal:teacher_attendance_export"),
-    })
+    hero = {
+        "title": "Attendance",
+        "subtitle": "Check-ins, check-outs, and leave days",
+        "actions": [],
+    }
+    return render(
+        request,
+        "teacher/attendance.html",
+        {
+            "hero": hero,
+            "logs": logs,
+            "present": present,
+            "absences": absences,
+            "late": late,
+            "export_url": reverse("portal:teacher_attendance_export"),
+        },
+    )
 
 
 @teacher_portal_required
@@ -269,13 +320,15 @@ def teacher_attendance_export(request: HttpRequest):
     writer = csv.writer(response)
     writer.writerow(["Date", "Status", "Check-in", "Check-out", "Remarks"])
     for entry in logs:
-        writer.writerow([
-            entry.date,
-            entry.get_status_display(),
-            entry.check_in or "",
-            entry.check_out or "",
-            entry.remarks or "",
-        ])
+        writer.writerow(
+            [
+                entry.date,
+                entry.get_status_display(),
+                entry.check_in or "",
+                entry.check_out or "",
+                entry.remarks or "",
+            ]
+        )
     return response
 
 
@@ -285,6 +338,7 @@ def _cahier_enabled(request=None):
         return False
     if request and getattr(request, "school", None):
         from apps.policies.policy_registry import get_effective_policy
+
         result = get_effective_policy(
             request.school,
             user=getattr(request, "user", None),
@@ -298,10 +352,18 @@ def _cahier_enabled(request=None):
 @login_required
 def take_student_attendance(request: HttpRequest):
     """Student roll call: date + classroom, default present, one save. Requires attendance.manage."""
-    if not getattr(request.user, "has_feature_permission", lambda _: False)("attendance.manage"):
-        return HttpResponseForbidden("You do not have permission to take student attendance.")
+    if not getattr(request.user, "has_feature_permission", lambda _: False)(
+        "attendance.manage"
+    ):
+        return HttpResponseForbidden(
+            "You do not have permission to take student attendance."
+        )
     year, _term = get_active_year_and_term()
-    classrooms = list(Classroom.objects.filter(academic_year=year).order_by("name")) if year else []
+    classrooms = (
+        list(Classroom.objects.filter(academic_year=year).order_by("name"))
+        if year
+        else []
+    )
     today = timezone.localdate()
     date_str = request.GET.get("date") or request.POST.get("date") or today.isoformat()
     classroom_id = request.GET.get("classroom") or request.POST.get("classroom")
@@ -313,7 +375,9 @@ def take_student_attendance(request: HttpRequest):
     students = []
     classroom_obj = None
     if classroom_id and classrooms:
-        classroom_obj = next((c for c in classrooms if str(c.id) == str(classroom_id)), None)
+        classroom_obj = next(
+            (c for c in classrooms if str(c.id) == str(classroom_id)), None
+        )
         if classroom_obj:
             students = list(
                 classroom_obj.students.filter(
@@ -331,7 +395,9 @@ def take_student_attendance(request: HttpRequest):
                     existing[a.student_id] = a.status
     if request.method == "POST" and classroom_obj and students:
         for s in students:
-            status = (request.POST.get(f"status_{s.id}") or "").strip() or Attendance.Status.PRESENT
+            status = (
+                request.POST.get(f"status_{s.id}") or ""
+            ).strip() or Attendance.Status.PRESENT
             if status not in {c[0] for c in Attendance.Status.choices}:
                 status = Attendance.Status.PRESENT
             Attendance.objects.update_or_create(
@@ -373,8 +439,12 @@ def take_student_attendance(request: HttpRequest):
 @login_required
 def record_teacher_attendance(request: HttpRequest):
     """Teacher roll call: date, list of teachers, default present, one save. Requires attendance.manage."""
-    if not getattr(request.user, "has_feature_permission", lambda _: False)("attendance.manage"):
-        return HttpResponseForbidden("You do not have permission to record teacher attendance.")
+    if not getattr(request.user, "has_feature_permission", lambda _: False)(
+        "attendance.manage"
+    ):
+        return HttpResponseForbidden(
+            "You do not have permission to record teacher attendance."
+        )
     teachers = list(
         TeacherProfile.objects.select_related("user").order_by(
             "user__last_name", "user__first_name"
@@ -387,15 +457,13 @@ def record_teacher_attendance(request: HttpRequest):
     except (ValueError, TypeError):
         att_date = today
     existing = {
-        e.teacher_id: e.status
-        for e in TeacherAttendance.objects.filter(date=att_date)
+        e.teacher_id: e.status for e in TeacherAttendance.objects.filter(date=att_date)
     }
     if request.method == "POST" and teachers:
         for t in teachers:
             status = (
-                (request.POST.get(f"status_{t.id}") or "").strip()
-                or TeacherAttendance.Status.PRESENT
-            )
+                request.POST.get(f"status_{t.id}") or ""
+            ).strip() or TeacherAttendance.Status.PRESENT
             if status not in {c[0] for c in TeacherAttendance.Status.choices}:
                 status = TeacherAttendance.Status.PRESENT
             TeacherAttendance.objects.update_or_create(
@@ -436,10 +504,18 @@ def seating_chart_view(request: HttpRequest):
     flags = get_effective_flags(request)
     if not flags.get("enable_seating_chart_beta"):
         raise Http404("Seating chart is not enabled.")
-    if not getattr(request.user, "has_feature_permission", lambda _: False)("attendance.manage"):
-        return HttpResponseForbidden("You do not have permission to view seating chart.")
+    if not getattr(request.user, "has_feature_permission", lambda _: False)(
+        "attendance.manage"
+    ):
+        return HttpResponseForbidden(
+            "You do not have permission to view seating chart."
+        )
     year, _term = get_active_year_and_term()
-    classrooms = list(Classroom.objects.filter(academic_year=year).order_by("name")) if year else []
+    classrooms = (
+        list(Classroom.objects.filter(academic_year=year).order_by("name"))
+        if year
+        else []
+    )
     classroom_id = request.GET.get("classroom")
     classroom_obj = None
     if classroom_id and classrooms:
@@ -506,7 +582,11 @@ def cahier_list(request: HttpRequest):
             .order_by("standard", "order", "code")
             .values_list("code", "title")[:500]
         )
-    hero = {"title": "Cahier de Texte", "subtitle": "Lesson diary entries", "actions": []}
+    hero = {
+        "title": "Cahier de Texte",
+        "subtitle": "Lesson diary entries",
+        "actions": [],
+    }
     return render(
         request,
         "portal/cahier_list.html",
@@ -525,11 +605,15 @@ def cahier_verify_list(request: HttpRequest):
     if not _cahier_enabled(request):
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
     can_verify = (
-        getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify")
+        getattr(request.user, "has_feature_permission", lambda _: False)(
+            "cahier.verify"
+        )
         or get_user_role(request.user) == "CENSOR"
     )
     if not can_verify:
-        return HttpResponseForbidden("You do not have permission to verify Cahier entries.")
+        return HttpResponseForbidden(
+            "You do not have permission to verify Cahier entries."
+        )
     entries = (
         CahierDeTexteEntry.objects.filter(status=CahierDeTexteEntry.Status.SUBMITTED)
         .select_related(
@@ -558,7 +642,9 @@ def cahier_visa(request: HttpRequest, entry_id: int):
     if not _cahier_enabled(request):
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
     if not (
-        getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify")
+        getattr(request.user, "has_feature_permission", lambda _: False)(
+            "cahier.verify"
+        )
         or get_user_role(request.user) == "CENSOR"
     ):
         return HttpResponseForbidden("You do not have permission to verify.")
@@ -582,7 +668,9 @@ def cahier_request_revisions(request: HttpRequest, entry_id: int):
     if not _cahier_enabled(request):
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
     if not (
-        getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify")
+        getattr(request.user, "has_feature_permission", lambda _: False)(
+            "cahier.verify"
+        )
         or get_user_role(request.user) == "CENSOR"
     ):
         return HttpResponseForbidden("You do not have permission to verify.")
@@ -683,7 +771,11 @@ def teacher_lesson_notes(request: HttpRequest):
         obj.save()
         messages.success(request, "Lesson plan uploaded.")
         return redirect("portal:teacher_lesson_notes")
-    hero = {"title": "Lesson Notes", "subtitle": "Upload weekly lesson plans (PDF)", "actions": []}
+    hero = {
+        "title": "Lesson Notes",
+        "subtitle": "Upload weekly lesson plans (PDF)",
+        "actions": [],
+    }
     return render(
         request,
         "teacher/lesson_notes.html",
@@ -712,7 +804,7 @@ def teacher_lesson_plan_add_attachment(request: HttpRequest, lesson_plan_id: int
         form = LessonPlanAttachmentForm()
     hero = {
         "title": "Add resource",
-        "subtitle": f"Attach a file to « {plan.title } »",
+        "subtitle": f"Attach a file to « {plan.title} »",
         "actions": [],
     }
     return render(
@@ -741,7 +833,11 @@ def teacher_hr_status(request: HttpRequest):
     attestation_valid = getattr(profile, "attestation_valid", None)
     if attestation_valid is None:
         attestation_valid = True
-    hero = {"title": "HR & Status", "subtitle": "Employment and attestation", "actions": []}
+    hero = {
+        "title": "HR & Status",
+        "subtitle": "Employment and attestation",
+        "actions": [],
+    }
     return render(
         request,
         "teacher/hr_status.html",
@@ -818,7 +914,9 @@ def teacher_training_log(request: HttpRequest):
     if not profile:
         messages.error(request, "No teacher profile found.")
         return redirect("portal:teacher_dashboard_alias")
-    entries = TeacherTrainingEntry.objects.filter(teacher=profile).order_by("-date")[:50]
+    entries = TeacherTrainingEntry.objects.filter(teacher=profile).order_by("-date")[
+        :50
+    ]
     form = TeacherTrainingEntryForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
         obj = form.save(commit=False)

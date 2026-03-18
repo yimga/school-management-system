@@ -9,6 +9,7 @@ Checks:
 
 Usage: python manage.py phase_i_gap_analysis
 """
+
 from django.core.management.base import BaseCommand
 from django.apps import apps
 
@@ -72,7 +73,11 @@ class Command(BaseCommand):
 
         # 1. Duplicate slug / subdomain (DB unique constraints already enforce; report any bad state)
         slugs = list(School.objects.values_list("slug", flat=True))
-        subdomains = list(School.objects.filter(subdomain__isnull=False).exclude(subdomain="").values_list("subdomain", flat=True))
+        subdomains = list(
+            School.objects.filter(subdomain__isnull=False)
+            .exclude(subdomain="")
+            .values_list("subdomain", flat=True)
+        )
         duplicate_slugs = [s for s in slugs if slugs.count(s) > 1]
         duplicate_subdomains = [s for s in subdomains if subdomains.count(s) > 1]
         if duplicate_slugs:
@@ -85,9 +90,13 @@ class Command(BaseCommand):
             out.append("Subdomains: no duplicates (OK)")
 
         # 2. Schools with empty slug (invalid for schema_name; slug is required and unique)
-        empty_slug = list(School.objects.filter(slug="").values_list("id", "name", flat=False))
+        empty_slug = list(
+            School.objects.filter(slug="").values_list("id", "name", flat=False)
+        )
         if empty_slug:
-            errors.append(f"Schools with empty slug (invalid for schema_name): {empty_slug}")
+            errors.append(
+                f"Schools with empty slug (invalid for schema_name): {empty_slug}"
+            )
         else:
             out.append("All schools have non-empty slug (OK)")
 
@@ -99,9 +108,19 @@ class Command(BaseCommand):
             out.append(f"Example schema_name: '{raw}' -> '{suggested}'")
 
         # 4. SHARED_APPS vs TENANT_APPS (report partition)
-        _installed = [a for a in SHARED_APPS + TENANT_APPS if a in [cfg.label for cfg in apps.get_app_configs()]]
-        missing_apps = [a for a in SHARED_APPS + TENANT_APPS if a not in [cfg.label for cfg in apps.get_app_configs()]]
-        out.append("SHARED_APPS (django-tenants): " + ", ".join(SHARED_APPS[:8]) + ", ...")
+        _installed = [
+            a
+            for a in SHARED_APPS + TENANT_APPS
+            if a in [cfg.label for cfg in apps.get_app_configs()]
+        ]
+        missing_apps = [
+            a
+            for a in SHARED_APPS + TENANT_APPS
+            if a not in [cfg.label for cfg in apps.get_app_configs()]
+        ]
+        out.append(
+            "SHARED_APPS (django-tenants): " + ", ".join(SHARED_APPS[:8]) + ", ..."
+        )
         out.append("TENANT_APPS: " + ", ".join(TENANT_APPS))
         if missing_apps:
             warnings.append(f"Apps in partition not installed: {missing_apps}")
@@ -116,15 +135,27 @@ class Command(BaseCommand):
 
         if options.get("json"):
             import json
-            self.stdout.write(json.dumps({
-                "errors": errors,
-                "warnings": warnings,
-                "checks": out,
-                "shared_apps": SHARED_APPS,
-                "tenant_apps": TENANT_APPS,
-            }, indent=2))
+
+            self.stdout.write(
+                json.dumps(
+                    {
+                        "errors": errors,
+                        "warnings": warnings,
+                        "checks": out,
+                        "shared_apps": SHARED_APPS,
+                        "tenant_apps": TENANT_APPS,
+                    },
+                    indent=2,
+                )
+            )
 
         if errors:
-            self.stdout.write(self.style.ERROR("Gap analysis found errors; fix before schema-per-tenant migration."))
+            self.stdout.write(
+                self.style.ERROR(
+                    "Gap analysis found errors; fix before schema-per-tenant migration."
+                )
+            )
         else:
-            self.stdout.write(self.style.SUCCESS("Gap analysis complete; no blocking issues."))
+            self.stdout.write(
+                self.style.SUCCESS("Gap analysis complete; no blocking issues.")
+            )

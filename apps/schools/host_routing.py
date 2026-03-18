@@ -1,6 +1,7 @@
 """
 Shared host-routing helpers for public vs tenant access points.
 """
+
 from __future__ import annotations
 
 import ipaddress
@@ -17,7 +18,16 @@ LOCAL_HOSTS = {
     "docs.localhost",
     "developer.localhost",
 }
-RESERVED_PUBLIC_SUBDOMAINS = {"www", "admin", "verify", "support", "api", "docs", "manager", "developer"}
+RESERVED_PUBLIC_SUBDOMAINS = {
+    "www",
+    "admin",
+    "verify",
+    "support",
+    "api",
+    "docs",
+    "manager",
+    "developer",
+}
 
 
 def normalize_host(host: str) -> str:
@@ -103,7 +113,11 @@ def public_host_kind(host: str) -> str | None:
     for base in [get_canonical_base_domain(), *sorted(get_legacy_base_domains())]:
         if not base:
             continue
-        if normalized == base or normalized == f"www.{base}" or normalized == f"admin.{base}":
+        if (
+            normalized == base
+            or normalized == f"www.{base}"
+            or normalized == f"admin.{base}"
+        ):
             return "base"
         if normalized == f"verify.{base}":
             return "verify"
@@ -152,4 +166,8 @@ def allow_path_based_tenant_fallback(host: str, debug: bool = False) -> bool:
     """
     if not (debug or is_local_dev_host(host)):
         return False
-    return os.getenv("ALLOW_PATH_TENANT_FALLBACK", "").strip().lower() in {"1", "true", "yes"}
+    return os.getenv("ALLOW_PATH_TENANT_FALLBACK", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }

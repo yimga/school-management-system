@@ -1,0 +1,76 @@
+/* Interactive marketing demo: admission → roster → ledger */
+.mkt-live-demo {
+  display: grid;
+  grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (max-width: 767px) {
+  .mkt-live-demo {
+    grid-template-columns: 1fr;
+  }
+}
+.mkt-live-demo-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+}
+.mkt-live-demo-sidebar .mkt-live-nav-item {
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.2s, border-color 0.2s;
+}
+.mkt-live-demo-sidebar .mkt-live-nav-item:hover,
+.mkt-live-demo-sidebar .mkt-live-nav-item.is-active {
+  background: rgba(11, 61, 145, 0.12);
+  border-color: rgba(11, 61, 145, 0.2);
+}
+.mkt-live-demo-main {
+  min-height: 220px;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.04);
+}
+.marketing-home .mkt-live-demo-main {
+  background: rgba(255, 255, 255, 0.06);
+}
+.mkt-live-stage {
+  animation: mktLiveFade 0.35s ease;
+}
+@keyframes mktLiveFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.mkt-live-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.mkt-live-tabs button {
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: transparent;
+  cursor: pointer;
+}
+.mkt-live-tabs button.is-active {
+  background: var(--color-primary-500, #2563eb);
+  color: #fff;
+  border-color: transparent;
+}

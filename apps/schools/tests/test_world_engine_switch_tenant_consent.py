@@ -1,6 +1,7 @@
 """
 World Engine: switch_to_tenant requires JIT consent when JIT_IMPERSONATION_REQUIRE_CONSENT is True.
 """
+
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -56,7 +57,12 @@ class SwitchToTenantConsentTests(TestCase):
         """When consent is granted, switch_to_tenant redirects to tenant impersonation URL."""
         self.school.impersonation_consent_granted_at = timezone.now()
         self.school.impersonation_consent_granted_by_id = self.superuser.id
-        self.school.save(update_fields=["impersonation_consent_granted_at", "impersonation_consent_granted_by_id"])
+        self.school.save(
+            update_fields=[
+                "impersonation_consent_granted_at",
+                "impersonation_consent_granted_by_id",
+            ]
+        )
         self.client.force_login(self.superuser)
         response = self.client.post(
             reverse("super:switch_to_tenant"),

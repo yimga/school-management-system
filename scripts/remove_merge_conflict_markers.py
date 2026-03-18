@@ -4,6 +4,7 @@ Remove git merge conflict markers from all .py files in the project.
 Keeps the HEAD version between <<<<<<< and =======; drops ======= to >>>>>>>.
 Run from project root: python scripts/remove_merge_conflict_markers.py
 """
+
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

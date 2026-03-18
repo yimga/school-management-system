@@ -33,7 +33,9 @@ def add_school_type_if_missing(apps, schema_editor):
                 cursor.execute(
                     "ALTER TABLE schools_school ADD COLUMN school_type varchar(32) NOT NULL DEFAULT 'BASE_SCHOOL'"
                 )
-                cursor.execute("CREATE INDEX IF NOT EXISTS schools_school_school_type_idx ON schools_school (school_type)")
+                cursor.execute(
+                    "CREATE INDEX IF NOT EXISTS schools_school_school_type_idx ON schools_school (school_type)"
+                )
 
 
 def noop(apps, schema_editor):
@@ -41,7 +43,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0024_world_engine_phase2"),
     ]

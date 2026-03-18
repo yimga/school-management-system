@@ -3,6 +3,7 @@ Delegation (Out of Office / Acting) helpers.
 Resolve effective approvers for a workflow: configurable roles + delegate substitution.
 No hardcoded role names; all from SiteSettings.
 """
+
 from __future__ import annotations
 
 from django.contrib.auth import get_user_model
@@ -10,7 +11,10 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.platform_runtime.helpers import get_effective_site_settings
-from apps.siteconfig.models import default_grade_approval_roles, default_syllabus_approval_roles
+from apps.siteconfig.models import (
+    default_grade_approval_roles,
+    default_syllabus_approval_roles,
+)
 
 User = get_user_model()
 
@@ -59,9 +63,15 @@ def get_approval_roles_for_workflow(workflow_key: str, school=None) -> list[str]
     """Return list of role codes that can approve for this workflow (from SiteSettings)."""
     site = get_effective_site_settings(school=school)
     if workflow_key == WORKFLOW_SYLLABUS_APPROVAL:
-        roles = getattr(site, "syllabus_approval_roles", None) or default_syllabus_approval_roles()
+        roles = (
+            getattr(site, "syllabus_approval_roles", None)
+            or default_syllabus_approval_roles()
+        )
     elif workflow_key == WORKFLOW_GRADE_APPROVAL:
-        roles = getattr(site, "grade_approval_roles", None) or default_grade_approval_roles()
+        roles = (
+            getattr(site, "grade_approval_roles", None)
+            or default_grade_approval_roles()
+        )
     else:
         return []
     return _normalize_roles(roles)
@@ -76,7 +86,9 @@ def get_users_with_roles(role_codes: list[str]):
     ).distinct()
 
 
-def get_active_delegations_for_delegators(delegator_user_ids: list[int], workflow_key: str | None = None):
+def get_active_delegations_for_delegators(
+    delegator_user_ids: list[int], workflow_key: str | None = None
+):
     """
     Return active Delegation objects where delegator is in the given set.
     If workflow_key is set and delegation has scope, only include if scope is empty or contains workflow_key.
@@ -95,8 +107,17 @@ def get_active_delegations_for_delegators(delegator_user_ids: list[int], workflo
     if workflow_key:
         # scope empty or None = "all"; else scope must contain workflow_key (filter in Python for DB compatibility)
         delegations = list(qs)
-        filtered_ids = [d.id for d in delegations if not d.scope or workflow_key in (d.scope if isinstance(d.scope, list) else [])]
-        return Delegation.objects.filter(id__in=filtered_ids) if filtered_ids else qs.none()
+        filtered_ids = [
+            d.id
+            for d in delegations
+            if not d.scope
+            or workflow_key in (d.scope if isinstance(d.scope, list) else [])
+        ]
+        return (
+            Delegation.objects.filter(id__in=filtered_ids)
+            if filtered_ids
+            else qs.none()
+        )
     return qs
 
 
@@ -116,7 +137,9 @@ def get_effective_approvers(workflow_key: str, school=None):
     effective = set(primary_ids)
 
     # Add delegates for any primary approver who is currently OOO
-    active_delegations = get_active_delegations_for_delegators(primary_ids, workflow_key)
+    active_delegations = get_active_delegations_for_delegators(
+        primary_ids, workflow_key
+    )
     for d in active_delegations.select_related("delegate"):
         effective.add(d.delegate_id)
 
@@ -157,7 +180,15 @@ def can_user_approve_for_workflow(user: User, workflow_key: str, school=None) ->
     return user in approvers
 
 
-def log_delegation_action(delegation, actor, action_taken, object_repr="", object_id=None, content_type=None, metadata=None):
+def log_delegation_action(
+    delegation,
+    actor,
+    action_taken,
+    object_repr="",
+    object_id=None,
+    content_type=None,
+    metadata=None,
+):
     """Record an action taken by a delegate for catch-up and audit."""
     from apps.accounts.models import DelegationActionLog
 
@@ -199,10 +230,17 @@ def get_allowed_delegate_role_codes(delegator_user: User, school=None) -> list[s
 
 def get_allowed_delegate_queryset(delegator_user: User):
     """Return queryset of users the delegator can assign as delegate (excluding self)."""
-    role_codes = get_allowed_delegate_role_codes(delegator_user, school=_school_for_user(delegator_user))
+    role_codes = get_allowed_delegate_role_codes(
+        delegator_user, school=_school_for_user(delegator_user)
+    )
     if not role_codes:
         return User.objects.none()
-    return get_users_with_roles(role_codes).exclude(pk=delegator_user.pk).filter(is_active=True).order_by("username")
+    return (
+        get_users_with_roles(role_codes)
+        .exclude(pk=delegator_user.pk)
+        .filter(is_active=True)
+        .order_by("username")
+    )
 
 
 def user_can_create_delegation(user: User) -> bool:

@@ -6,6 +6,7 @@ Historical references inside migrations, archived docs, and tests are allowed
 until the data migration history is retired. Runtime-visible defaults, fixtures,
 deployment config, and user-facing surfaces are not.
 """
+
 from __future__ import annotations
 
 import re
@@ -55,7 +56,10 @@ def main() -> int:
                 rel = path.relative_to(ROOT).as_posix()
                 violations.append(f"{rel}:{line_no}: {line.strip()}")
     if violations:
-        print("lint_gilead_residue: runtime-visible Gilead residue detected:\n", file=sys.stderr)
+        print(
+            "lint_gilead_residue: runtime-visible Gilead residue detected:\n",
+            file=sys.stderr,
+        )
         for violation in violations:
             print(f"  {violation}", file=sys.stderr)
         return 1

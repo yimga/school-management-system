@@ -10,7 +10,9 @@ def populate_admission_numbers(apps, schema_editor):
     Classroom = apps.get_model("academics", "Classroom")
     SiteSettings = apps.get_model("siteconfig", "SiteSettings")
 
-    settings_obj, _ = SiteSettings.objects.get_or_create(pk=1, defaults={"school_code": "GIL"})
+    settings_obj, _ = SiteSettings.objects.get_or_create(
+        pk=1, defaults={"school_code": "GIL"}
+    )
     school_code = (settings_obj.school_code or "GIL").upper()
 
     # Cache related objects for efficiency
@@ -54,7 +56,6 @@ def populate_admission_numbers(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("academics", "0001_initial"),
         ("siteconfig", "0006_sitesettings_school_code"),

@@ -1,4 +1,5 @@
 """Tests for Report Library and Bulk Letters views (RBAC and basic behaviour)."""
+
 from datetime import date
 from io import BytesIO
 from unittest.mock import patch
@@ -75,7 +76,9 @@ class ReportLibraryRBACTestCase(TestCase):
         )
 
         self.client.login(username="super_rl", password="testpass123")
-        response = self.client.get(reverse("studio_os:output") + "?embed=1&pack=ops-pack")
+        response = self.client.get(
+            reverse("studio_os:output") + "?embed=1&pack=ops-pack"
+        )
         self.assertEqual(response.status_code, 200)
         # Output Studio page loads; pack-specific content may be in iframe/embed
         self.assertTrue(response.content)
@@ -151,12 +154,16 @@ class BulkLettersPostTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg="Expected 200 with zip; got %s. Body: %s" % (response.status_code, response.content[:400]),
+            msg="Expected 200 with zip; got %s. Body: %s"
+            % (response.status_code, response.content[:400]),
         )
         content_type = response.get("Content-Type", "")
         self.assertIn("application/zip", content_type, "Response should be a zip file")
         buf = BytesIO(response.content)
         with zipfile.ZipFile(buf, "r") as zf:
             names = zf.namelist()
-            self.assertTrue(any(n.endswith(".odt") for n in names), "Zip should contain at least one .odt")
+            self.assertTrue(
+                any(n.endswith(".odt") for n in names),
+                "Zip should contain at least one .odt",
+            )
         self.assertIn("attachment", response.get("Content-Disposition", ""))

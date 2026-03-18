@@ -40,7 +40,9 @@ class GovernmentAggregatesApiTests(SimpleTestCase):
 
     def test_government_aggregates_returns_defaults_when_model_lookup_fails(self):
         request = self.factory.get("/api/government/aggregates/")
-        request.user = SimpleNamespace(is_authenticated=True, is_superuser=True, is_staff=True)
+        request.user = SimpleNamespace(
+            is_authenticated=True, is_superuser=True, is_staff=True
+        )
         request.school = None
 
         with patch("django.apps.apps.is_installed", return_value=True):

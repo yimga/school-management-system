@@ -18,7 +18,9 @@ from apps.marketplace.models import (
     PublisherOrganization as LegacyPublisherOrganization,
     ScopeGrant as LegacyScopeGrant,
 )
-from apps.siteconfig.models_platform_catalog import ServiceIntegration as LegacyServiceIntegration
+from apps.siteconfig.models_platform_catalog import (
+    ServiceIntegration as LegacyServiceIntegration,
+)
 from apps.siteconfig.models_tooling import Integration as LegacyIntegration
 
 

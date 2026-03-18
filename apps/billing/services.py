@@ -68,7 +68,9 @@ def _resolve_subscription_status(school) -> str:
     return TenantSubscription.Status.ACTIVE
 
 
-def _normalize_status(raw_status: str | None, status_map: dict[str, str], default: str) -> str:
+def _normalize_status(
+    raw_status: str | None, status_map: dict[str, str], default: str
+) -> str:
     normalized = str(raw_status or "").strip().lower()
     if not normalized:
         return default
@@ -87,11 +89,17 @@ def _subscription_amount(subscription: TenantSubscription) -> Decimal:
     billed_amount = Decimal(str(subscription.billed_amount or "0"))
     if billed_amount > 0:
         return billed_amount
-    return Decimal(str(subscription.base_amount or "0")) + Decimal(str(subscription.addons_amount or "0"))
+    return Decimal(str(subscription.base_amount or "0")) + Decimal(
+        str(subscription.addons_amount or "0")
+    )
 
 
-def _period_reference(subscription: TenantSubscription, period_start: datetime, period_end: datetime) -> str:
-    return f"PLATFORM-{subscription.school_id}-{period_start:%Y%m%d}-{period_end:%Y%m%d}"
+def _period_reference(
+    subscription: TenantSubscription, period_start: datetime, period_end: datetime
+) -> str:
+    return (
+        f"PLATFORM-{subscription.school_id}-{period_start:%Y%m%d}-{period_end:%Y%m%d}"
+    )
 
 
 def _current_balance_for_account(account: BillingAccount) -> Decimal:
@@ -126,7 +134,9 @@ def _current_balance_for_account(account: BillingAccount) -> Decimal:
             )
         ),
     )
-    return Decimal(str(totals.get("debits") or "0")) - Decimal(str(totals.get("credits") or "0"))
+    return Decimal(str(totals.get("debits") or "0")) - Decimal(
+        str(totals.get("credits") or "0")
+    )
 
 
 def _coerce_datetime(value, default: datetime) -> datetime:
@@ -170,13 +180,18 @@ def convert_quote_to_contract(quote: Quote):
         if subscription:
             return account, subscription
     if quote.status not in (Quote.Status.DRAFT, Quote.Status.SENT):
-        raise ValueError(f"Quote must be DRAFT or SENT to convert; current status: {quote.status}")
+        raise ValueError(
+            f"Quote must be DRAFT or SENT to convert; current status: {quote.status}"
+        )
     if not quote.school_id:
         raise ValueError("Quote must have a school to convert to contract")
     with transaction.atomic():
         account, _ = ensure_billing_account_for_school(quote.school)
         period_start = timezone.now()
-        billing_cycle = str((quote.metadata or {}).get("billing_cycle") or TenantSubscription.BillingCycle.MONTHLY).upper()
+        billing_cycle = str(
+            (quote.metadata or {}).get("billing_cycle")
+            or TenantSubscription.BillingCycle.MONTHLY
+        ).upper()
         if billing_cycle not in {
             TenantSubscription.BillingCycle.MONTHLY,
             TenantSubscription.BillingCycle.ANNUAL,
@@ -204,7 +219,9 @@ def convert_quote_to_contract(quote: Quote):
         if getattr(quote.school, "plan_id", None) != getattr(quote.plan, "pk", None):
             quote.school.plan = quote.plan
             school_changed.append("plan")
-        if getattr(quote.school, "billing_type", "") != getattr(quote.school.BillingType, "REGULAR", "REGULAR"):
+        if getattr(quote.school, "billing_type", "") != getattr(
+            quote.school.BillingType, "REGULAR", "REGULAR"
+        ):
             quote.school.billing_type = quote.school.BillingType.REGULAR
             school_changed.append("billing_type")
         if getattr(quote.school, "trial_end_date", None) is not None:
@@ -269,12 +286,15 @@ def convert_quote_to_contract(quote: Quote):
 
 def ensure_billing_account_for_school(school):
     from apps.policies.policy_registry import get_effective_policy
+
     policy = get_effective_policy(school)
     contact_email = str((policy.get("contact_email") or "") or "").strip()
     currency_code = "USD"
     default_region = getattr(school, "default_region", None)
     if default_region and getattr(default_region, "default_currency", None):
-        currency_code = str(default_region.default_currency).strip().upper()[:3] or "USD"
+        currency_code = (
+            str(default_region.default_currency).strip().upper()[:3] or "USD"
+        )
     account, created = BillingAccount.objects.get_or_create(
         school=school,
         defaults={
@@ -310,7 +330,9 @@ def record_app_install_for_billing(school, app, installation, *, amount=None):
         return None
     account, _ = ensure_billing_account_for_school(school)
     amt = amount if amount is not None else Decimal("0.00")
-    app_name = getattr(app, "name", None) or (app.slug if hasattr(app, "slug") else str(app))
+    app_name = getattr(app, "name", None) or (
+        app.slug if hasattr(app, "slug") else str(app)
+    )
     inst_id = getattr(installation, "id", None) or getattr(installation, "pk", "")
     ref = f"app_install_{inst_id}"
     entry = PlatformLedgerEntry.objects.create(
@@ -343,14 +365,18 @@ def ensure_subscription_for_school(school):
         TenantSubscription.Status.SUSPENDED,
     ]
     subscription = (
-        TenantSubscription.objects.filter(school=school, billing_account=account, status__in=active_statuses)
+        TenantSubscription.objects.filter(
+            school=school, billing_account=account, status__in=active_statuses
+        )
         .order_by("-updated_at", "-created_at")
         .first()
     )
     period_start = timezone.now()
     period_end = period_start + timedelta(days=30)
     desired_status = _resolve_subscription_status(school)
-    base_amount = Decimal(str(getattr(getattr(school, "plan", None), "base_price", None) or "0"))
+    base_amount = Decimal(
+        str(getattr(getattr(school, "plan", None), "base_price", None) or "0")
+    )
     billed_amount = base_amount
     if subscription is None:
         subscription = TenantSubscription.objects.create(
@@ -385,7 +411,10 @@ def ensure_subscription_for_school(school):
     if subscription.base_amount != base_amount:
         subscription.base_amount = base_amount
         changed_fields.append("base_amount")
-    if not subscription.external_subscription_ref and subscription.billed_amount != billed_amount:
+    if (
+        not subscription.external_subscription_ref
+        and subscription.billed_amount != billed_amount
+    ):
         subscription.billed_amount = billed_amount
         changed_fields.append("billed_amount")
     if changed_fields:
@@ -393,7 +422,9 @@ def ensure_subscription_for_school(school):
     return account, subscription, False
 
 
-def reconcile_subscription_entitlements(subscription: TenantSubscription, *, as_of: datetime | None = None):
+def reconcile_subscription_entitlements(
+    subscription: TenantSubscription, *, as_of: datetime | None = None
+):
     as_of = as_of or timezone.now()
     school = subscription.school
     account = subscription.billing_account
@@ -445,12 +476,18 @@ def reconcile_subscription_entitlements(subscription: TenantSubscription, *, as_
 
 
 def sync_billing_incident_state(subscription: TenantSubscription):
-    from apps.observability.incident_services import resolve_platform_incident, upsert_platform_incident
+    from apps.observability.incident_services import (
+        resolve_platform_incident,
+        upsert_platform_incident,
+    )
     from apps.observability.models import PlatformIncident
 
     school = subscription.school
     incident_key = f"billing-delinquency:{school.pk}"
-    if subscription.status in {TenantSubscription.Status.PAST_DUE, TenantSubscription.Status.SUSPENDED}:
+    if subscription.status in {
+        TenantSubscription.Status.PAST_DUE,
+        TenantSubscription.Status.SUSPENDED,
+    }:
         severity = (
             PlatformIncident.Severity.CRITICAL
             if subscription.status == TenantSubscription.Status.SUSPENDED
@@ -469,13 +506,18 @@ def sync_billing_incident_state(subscription: TenantSubscription):
             summary=summary,
             source_system=_BILLING_INCIDENT_SOURCE,
             affected_school=school,
-            affected_schema_name=getattr(school, "schema_name", "") or getattr(school, "subdomain", ""),
+            affected_schema_name=getattr(school, "schema_name", "")
+            or getattr(school, "subdomain", ""),
             details={
                 "subscription_status": subscription.status,
                 "account_status": subscription.billing_account.status,
-                "trial_end_date": subscription.trial_end_date.isoformat() if subscription.trial_end_date else None,
+                "trial_end_date": subscription.trial_end_date.isoformat()
+                if subscription.trial_end_date
+                else None,
                 "current_period_end": (
-                    subscription.current_period_end.isoformat() if subscription.current_period_end else None
+                    subscription.current_period_end.isoformat()
+                    if subscription.current_period_end
+                    else None
                 ),
                 "external_subscription_ref": subscription.external_subscription_ref,
             },
@@ -495,14 +537,20 @@ def sync_platform_usage_snapshot(school):
     now = timezone.now().date()
     period_start = now.replace(day=1)
     if period_start.month == 12:
-        period_end = period_start.replace(year=period_start.year + 1, month=1) - timedelta(days=1)
+        period_end = period_start.replace(
+            year=period_start.year + 1, month=1
+        ) - timedelta(days=1)
     else:
-        period_end = period_start.replace(month=period_start.month + 1) - timedelta(days=1)
+        period_end = period_start.replace(month=period_start.month + 1) - timedelta(
+            days=1
+        )
 
     from apps.schools.models import TenantApiUsage
 
     total_api_calls = (
-        TenantApiUsage.objects.filter(school=school, period_date__gte=period_start, period_date__lte=period_end)
+        TenantApiUsage.objects.filter(
+            school=school, period_date__gte=period_start, period_date__lte=period_end
+        )
         .aggregate(total=models.Sum("request_count"))
         .get("total")
         or 0
@@ -513,7 +561,10 @@ def sync_platform_usage_snapshot(school):
         metric_code="api_calls",
         period_start=period_start,
         period_end=period_end,
-        defaults={"quantity": int(total_api_calls), "metadata": {"source": "schools.TenantApiUsage"}},
+        defaults={
+            "quantity": int(total_api_calls),
+            "metadata": {"source": "schools.TenantApiUsage"},
+        },
     )
     return meter
 
@@ -569,7 +620,9 @@ def apply_processor_snapshot(
         account_changed = []
         subscription_changed = []
 
-        normalized_account_status = _normalize_status(account_status, _ACCOUNT_STATUS_MAP, account.status)
+        normalized_account_status = _normalize_status(
+            account_status, _ACCOUNT_STATUS_MAP, account.status
+        )
         normalized_subscription_status = _normalize_status(
             subscription_status,
             _SUBSCRIPTION_STATUS_MAP,
@@ -579,7 +632,10 @@ def apply_processor_snapshot(
         if account.processor_code != processor_code:
             account.processor_code = processor_code
             account_changed.append("processor_code")
-        if external_customer_ref and account.external_customer_ref != external_customer_ref:
+        if (
+            external_customer_ref
+            and account.external_customer_ref != external_customer_ref
+        ):
             account.external_customer_ref = external_customer_ref
             account_changed.append("external_customer_ref")
         if currency_code and account.currency_code != currency_code:
@@ -592,7 +648,10 @@ def apply_processor_snapshot(
             account.last_processor_sync_at = happened_at
             account_changed.append("last_processor_sync_at")
 
-        if external_subscription_ref and subscription.external_subscription_ref != external_subscription_ref:
+        if (
+            external_subscription_ref
+            and subscription.external_subscription_ref != external_subscription_ref
+        ):
             subscription.external_subscription_ref = external_subscription_ref
             subscription_changed.append("external_subscription_ref")
         if subscription.status != normalized_subscription_status:
@@ -603,8 +662,12 @@ def apply_processor_snapshot(
             if subscription.billed_amount != normalized_amount:
                 subscription.billed_amount = normalized_amount
                 subscription_changed.append("billed_amount")
-        period_start = _coerce_datetime(current_period_start, subscription.current_period_start or timezone.now())
-        period_end = _coerce_datetime(current_period_end, subscription.current_period_end or period_start)
+        period_start = _coerce_datetime(
+            current_period_start, subscription.current_period_start or timezone.now()
+        )
+        period_end = _coerce_datetime(
+            current_period_end, subscription.current_period_end or period_start
+        )
         if subscription.current_period_start != period_start:
             subscription.current_period_start = period_start
             subscription_changed.append("current_period_start")
@@ -615,7 +678,10 @@ def apply_processor_snapshot(
         if subscription.trial_end_date != normalized_trial_end:
             subscription.trial_end_date = normalized_trial_end
             subscription_changed.append("trial_end_date")
-        if normalized_subscription_status == TenantSubscription.Status.CANCELED and subscription.canceled_at != happened_at:
+        if (
+            normalized_subscription_status == TenantSubscription.Status.CANCELED
+            and subscription.canceled_at != happened_at
+        ):
             subscription.canceled_at = happened_at
             subscription_changed.append("canceled_at")
 
@@ -632,8 +698,10 @@ def apply_processor_snapshot(
             processor_code=processor_code,
             event_type=event_type,
             status=BillingProcessorSyncEvent.Status.APPLIED,
-            external_customer_ref=external_customer_ref or account.external_customer_ref,
-            external_subscription_ref=external_subscription_ref or subscription.external_subscription_ref,
+            external_customer_ref=external_customer_ref
+            or account.external_customer_ref,
+            external_subscription_ref=external_subscription_ref
+            or subscription.external_subscription_ref,
             payload=_json_safe(payload or {}),
             message=message,
             happened_at=happened_at,
@@ -658,7 +726,9 @@ def run_platform_billing_lifecycle(
         "restored": 0,
     }
     subscriptions = list(
-        TenantSubscription.objects.select_related("school", "billing_account", "plan").filter(
+        TenantSubscription.objects.select_related(
+            "school", "billing_account", "plan"
+        ).filter(
             status__in=[
                 TenantSubscription.Status.TRIALING,
                 TenantSubscription.Status.ACTIVE,
@@ -673,7 +743,11 @@ def run_platform_billing_lifecycle(
         subscription_changed = []
         account_changed = []
         cycle_delta = _cycle_delta(subscription.billing_cycle)
-        due_anchor = subscription.current_period_end or subscription.current_period_start or as_of
+        due_anchor = (
+            subscription.current_period_end
+            or subscription.current_period_start
+            or as_of
+        )
 
         if (
             school.billing_type == school.BillingType.FREE_TRIAL
@@ -687,8 +761,16 @@ def run_platform_billing_lifecycle(
                 subscription_changed.append("status")
             summary["trial_converted"] += 1
 
-        if cycle_delta and subscription.current_period_end and subscription.current_period_end <= as_of:
-            period_start = subscription.current_period_start or subscription.starts_at or subscription.current_period_end
+        if (
+            cycle_delta
+            and subscription.current_period_end
+            and subscription.current_period_end <= as_of
+        ):
+            period_start = (
+                subscription.current_period_start
+                or subscription.starts_at
+                or subscription.current_period_end
+            )
             period_end = subscription.current_period_end
             reference = _period_reference(subscription, period_start, period_end)
             if not PlatformLedgerEntry.objects.filter(
@@ -704,18 +786,25 @@ def run_platform_billing_lifecycle(
                         description=f"Platform subscription renewal {period_start:%Y-%m-%d} to {period_end:%Y-%m-%d}",
                         reference=reference,
                         source="billing_lifecycle",
-                        metadata={"period_start": period_start.isoformat(), "period_end": period_end.isoformat()},
+                        metadata={
+                            "period_start": period_start.isoformat(),
+                            "period_end": period_end.isoformat(),
+                        },
                     )
                     summary["charges_created"] += 1
             subscription.last_invoiced_at = as_of
             subscription.current_period_start = period_end
             subscription.current_period_end = period_end + cycle_delta
-            subscription_changed.extend(["last_invoiced_at", "current_period_start", "current_period_end"])
+            subscription_changed.extend(
+                ["last_invoiced_at", "current_period_start", "current_period_end"]
+            )
             summary["renewed"] += 1
 
         balance = _current_balance_for_account(account)
         overdue_threshold = due_anchor + timedelta(days=grace_days)
-        suspension_threshold = overdue_threshold + timedelta(days=max(suspension_days - grace_days, 0))
+        suspension_threshold = overdue_threshold + timedelta(
+            days=max(suspension_days - grace_days, 0)
+        )
 
         if balance > 0 and as_of >= overdue_threshold:
             if account.delinquent_since is None:
@@ -726,7 +815,10 @@ def run_platform_billing_lifecycle(
                     subscription.status = TenantSubscription.Status.SUSPENDED
                     subscription_changed.append("status")
                     summary["suspended"] += 1
-            elif subscription.status not in {TenantSubscription.Status.PAST_DUE, TenantSubscription.Status.SUSPENDED}:
+            elif subscription.status not in {
+                TenantSubscription.Status.PAST_DUE,
+                TenantSubscription.Status.SUSPENDED,
+            }:
                 subscription.status = TenantSubscription.Status.PAST_DUE
                 subscription_changed.append("status")
                 summary["past_due"] += 1
@@ -738,7 +830,10 @@ def run_platform_billing_lifecycle(
                 and subscription.trial_end_date >= as_of.date()
                 else TenantSubscription.Status.ACTIVE
             )
-            if subscription.status in {TenantSubscription.Status.PAST_DUE, TenantSubscription.Status.SUSPENDED}:
+            if subscription.status in {
+                TenantSubscription.Status.PAST_DUE,
+                TenantSubscription.Status.SUSPENDED,
+            }:
                 subscription.status = target_status
                 subscription_changed.append("status")
                 summary["restored"] += 1
@@ -749,7 +844,9 @@ def run_platform_billing_lifecycle(
         if account_changed:
             account.save(update_fields=account_changed + ["updated_at"])
         if subscription_changed:
-            subscription.save(update_fields=list(dict.fromkeys(subscription_changed + ["updated_at"])))
+            subscription.save(
+                update_fields=list(dict.fromkeys(subscription_changed + ["updated_at"]))
+            )
         reconcile_subscription_entitlements(subscription, as_of=as_of)
         sync_billing_incident_state(subscription)
 
@@ -819,7 +916,9 @@ def _record_payout_sync_event(
         account = BillingAccount.objects.filter(school=payout.source_school).first()
         if account is not None:
             subscription = (
-                TenantSubscription.objects.filter(billing_account=account, school=payout.source_school)
+                TenantSubscription.objects.filter(
+                    billing_account=account, school=payout.source_school
+                )
                 .order_by("-updated_at", "-created_at")
                 .first()
             )
@@ -836,8 +935,13 @@ def _record_payout_sync_event(
     )
 
 
-def _sync_revenue_share_payout_incident_state(payout: RevenueSharePayout, *, error_message: str = ""):
-    from apps.observability.incident_services import resolve_platform_incident, upsert_platform_incident
+def _sync_revenue_share_payout_incident_state(
+    payout: RevenueSharePayout, *, error_message: str = ""
+):
+    from apps.observability.incident_services import (
+        resolve_platform_incident,
+        upsert_platform_incident,
+    )
     from apps.observability.models import PlatformIncident
 
     incident_key = f"revenue-share-payout:{payout.pk}"
@@ -847,7 +951,8 @@ def _sync_revenue_share_payout_incident_state(payout: RevenueSharePayout, *, err
             title=f"Revenue-share payout failed: {payout.payee_name}",
             incident_type=PlatformIncident.IncidentType.BILLING,
             severity=PlatformIncident.Severity.HIGH,
-            summary=error_message or "A scheduled revenue-share payout could not be executed.",
+            summary=error_message
+            or "A scheduled revenue-share payout could not be executed.",
             source_system=_PAYOUT_INCIDENT_SOURCE,
             affected_school=payout.source_school,
             affected_schema_name=(
@@ -886,19 +991,34 @@ def execute_revenue_share_payout(
         payout = RevenueSharePayout.objects.get(pk=payout)
     executed_at = executed_at or timezone.now()
 
-    if payout.status in {RevenueSharePayout.Status.PAID, RevenueSharePayout.Status.VOIDED}:
-        return payout, {"status": "skipped", "message": "Payout is already finalized.", "skipped": True}
+    if payout.status in {
+        RevenueSharePayout.Status.PAID,
+        RevenueSharePayout.Status.VOIDED,
+    }:
+        return payout, {
+            "status": "skipped",
+            "message": "Payout is already finalized.",
+            "skipped": True,
+        }
     if not force and payout.scheduled_for and payout.scheduled_for > executed_at:
-        return payout, {"status": "skipped", "message": "Payout is not due yet.", "skipped": True}
+        return payout, {
+            "status": "skipped",
+            "message": "Payout is not due yet.",
+            "skipped": True,
+        }
 
     error_message = ""
     try:
         processor_code = str(payout.processor_code or "").strip().lower()
         if not processor_code:
             raise ValueError("Payout processor is not configured.")
-        config = PlatformBillingProcessorConfig.objects.filter(code=processor_code, is_active=True).first()
+        config = PlatformBillingProcessorConfig.objects.filter(
+            code=processor_code, is_active=True
+        ).first()
         if config is None:
-            raise ValueError(f"Platform billing processor '{processor_code}' is not configured.")
+            raise ValueError(
+                f"Platform billing processor '{processor_code}' is not configured."
+            )
 
         processor = get_platform_billing_processor(config)
         result = processor.execute_payout(
@@ -947,7 +1067,15 @@ def execute_revenue_share_payout(
         )
         _sync_revenue_share_payout_incident_state(payout)
         return payout, result
-    except (ValueError, KeyError, TypeError, AttributeError, DatabaseError, ConnectionError, OSError) as exc:
+    except (
+        ValueError,
+        KeyError,
+        TypeError,
+        AttributeError,
+        DatabaseError,
+        ConnectionError,
+        OSError,
+    ) as exc:
         error_message = str(exc).strip() or "Payout execution failed."
         logger.warning(
             "Payout execution failed: payout_id=%s processor_code=%s error=%s",
@@ -991,7 +1119,9 @@ def run_revenue_share_payout_execution(
         statuses.append(RevenueSharePayout.Status.FAILED)
     payouts = list(
         RevenueSharePayout.objects.filter(status__in=statuses)
-        .filter(models.Q(scheduled_for__isnull=True) | models.Q(scheduled_for__lte=as_of))
+        .filter(
+            models.Q(scheduled_for__isnull=True) | models.Q(scheduled_for__lte=as_of)
+        )
         .select_related("source_school")
         .order_by("scheduled_for", "created_at")[: max(1, int(limit))]
     )

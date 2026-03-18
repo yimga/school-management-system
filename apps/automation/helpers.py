@@ -1,6 +1,7 @@
 """
 Helper functions for automation tasks.
 """
+
 from typing import Optional
 from django.utils import timezone
 from django.core.cache import cache
@@ -25,25 +26,23 @@ def get_current_academic_year() -> Optional[AcademicYear]:
     Falls back to most recent year if no active year found.
     """
     now = timezone.now().date()
-    
+
     # First try: active year that contains today's date
     active = AcademicYear.objects.filter(
-        start_date__lte=now,
-        end_date__gte=now,
-        is_active=True
+        start_date__lte=now, end_date__gte=now, is_active=True
     ).first()
-    
+
     if active:
         return active
-    
+
     # Second try: any active year
-    active = AcademicYear.objects.filter(is_active=True).order_by('-start_date').first()
-    
+    active = AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
+
     if active:
         return active
-    
+
     # Fallback: most recent year by start date
-    return AcademicYear.objects.order_by('-start_date').first()
+    return AcademicYear.objects.order_by("-start_date").first()
 
 
 def get_current_term(academic_year: Optional[AcademicYear] = None) -> Optional[Term]:
@@ -53,27 +52,26 @@ def get_current_term(academic_year: Optional[AcademicYear] = None) -> Optional[T
     """
     if not academic_year:
         academic_year = get_current_academic_year()
-    
+
     if not academic_year:
         return None
-    
+
     now = timezone.now().date()
-    
+
     # Find term that contains today's date
     term = Term.objects.filter(
-        academic_year=academic_year,
-        start_date__lte=now,
-        end_date__gte=now
+        academic_year=academic_year, start_date__lte=now, end_date__gte=now
     ).first()
-    
+
     if term:
         return term
-    
+
     # Fallback: active term in this year
-    return Term.objects.filter(
-        academic_year=academic_year,
-        is_active=True
-    ).order_by('start_date').first()
+    return (
+        Term.objects.filter(academic_year=academic_year, is_active=True)
+        .order_by("start_date")
+        .first()
+    )
 
 
 def get_notification_channels(user, automation_type: str = "default") -> list:
@@ -82,11 +80,11 @@ def get_notification_channels(user, automation_type: str = "default") -> list:
     1. UserPreference (if set)
     2. SiteSettings default for automation type
     3. System default
-    
+
     Args:
         user: User instance
         automation_type: Type of automation (e.g., "payment_reminder", "deadline_reminder")
-    
+
     Returns:
         List of channel strings: ["email"], ["whatsapp"], ["email", "sms"], etc.
     """
@@ -98,19 +96,19 @@ def get_notification_channels(user, automation_type: str = "default") -> list:
     except AttributeError:
         # UserPreference doesn't exist for this user
         pass
-    
+
     # Fall back to SiteSettings
     site = get_cached_site_settings()
-    
+
     if automation_type == "payment_reminder":
         channels = getattr(site, "finance_payment_reminder_default_channels", None)
         if channels:
             return channels
-    
+
     elif automation_type == "deadline_reminder":
         channels = getattr(site, "deadline_reminder_channels", None)
         if channels:
             return channels
-    
+
     # System default
     return ["email"]

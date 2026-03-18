@@ -31,6 +31,7 @@ This doc aligns the codebase with the RunMyCampus plan Phase 11 (Marketplace and
 | Area | Note |
 |------|------|
 | **integration_adapters** | Runtime already populates from manifest; extend if more adapter metadata is needed. |
+| **Dependency graph and impact preview (N17)** | Package engine preview returns compatibility, impact, and dependency details; dependency_snapshot stored on apply. Full dependency graph and impact preview in marketplace UI is North star N17 — roadmap. |
 | **Versioning policy** | Full “update app version” flow (e.g. prompt tenant to upgrade) can be added when versioning policy is defined. |
 
 Phase 11 marketplace and all previously optional items are implemented.

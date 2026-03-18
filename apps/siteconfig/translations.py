@@ -100,6 +100,7 @@ class LocalizationService:
     def format_currency(amount, currency=None, lang=None, region=None):
         """Format amount. If region has default_currency and separators, use them."""
         from apps.siteconfig.currency import get_currency_symbol
+
         try:
             amt = float(amount)
         except (TypeError, ValueError):
@@ -359,7 +360,11 @@ class TextTranslator:
             return entry[language]
 
         # Fallback to translation manager (handles registered strings)
-        translated = TranslationManager.translate_text(key.capitalize(), language) if language != "en" else key.capitalize()
+        translated = (
+            TranslationManager.translate_text(key.capitalize(), language)
+            if language != "en"
+            else key.capitalize()
+        )
         if translated != key.capitalize():
             return translated
 
@@ -374,7 +379,9 @@ class MultiLanguageContent:
     """Helper for generating lightweight multilingual mockups."""
 
     @staticmethod
-    def create_multilingual_report(template: str, data: dict, languages: list[str]) -> dict[str, str]:
+    def create_multilingual_report(
+        template: str, data: dict, languages: list[str]
+    ) -> dict[str, str]:
         try:
             rendered = template.format(**data)
         except _SITECONFIG_TRANSLATIONS_FORMAT_ERRORS:
@@ -386,7 +393,11 @@ class MultiLanguageContent:
 
         previews: dict[str, str] = {}
         for lang in languages:
-            localized = TranslationManager.translate_text(rendered, lang) if lang != "en" else rendered
+            localized = (
+                TranslationManager.translate_text(rendered, lang)
+                if lang != "en"
+                else rendered
+            )
             previews[lang] = localized
 
         return previews

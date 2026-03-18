@@ -24,6 +24,7 @@ def _access_control_prefix():
     """Tenant-scoped prefix for access rule cache keys."""
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+
         return get_tenant_cache_prefix()
     except _ACCESS_CONTROL_PREFIX_ERRORS:
         return "public"
@@ -72,13 +73,11 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
     # Get active rules (exclude expired ones)
     try:
         deny_rules = IPAccessRule.objects.filter(
-            rule_type=IPAccessRule.RuleType.DENY,
-            is_active=True
+            rule_type=IPAccessRule.RuleType.DENY, is_active=True
         ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
 
         allow_rules = IPAccessRule.objects.filter(
-            rule_type=IPAccessRule.RuleType.ALLOW,
-            is_active=True
+            rule_type=IPAccessRule.RuleType.ALLOW, is_active=True
         ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
     except _ACCESS_CONTROL_DB_ERRORS:
         # Database error - allow access (fail open)
@@ -88,7 +87,10 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
     # Check DENY rules first
     for rule in deny_rules:
         if rule.matches(ip_address):
-            result = (False, f"IP blocked by deny rule: {rule.description or rule.ip_address}")
+            result = (
+                False,
+                f"IP blocked by deny rule: {rule.description or rule.ip_address}",
+            )
             cache.set(cache_key, result, 300)  # Cache for 5 min
             return result
 
@@ -96,7 +98,10 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
     if allow_rules.exists():
         for rule in allow_rules:
             if rule.matches(ip_address):
-                result = (True, f"IP allowed by rule: {rule.description or rule.ip_address}")
+                result = (
+                    True,
+                    f"IP allowed by rule: {rule.description or rule.ip_address}",
+                )
                 cache.set(cache_key, result, 300)
                 return result
         # No ALLOW rule matched
@@ -143,12 +148,11 @@ def check_country_access(country_code: str) -> Tuple[bool, str]:
     deny_rules = CountryAccessRule.objects.filter(
         rule_type=CountryAccessRule.RuleType.DENY,
         is_active=True,
-        country_code=country_code
+        country_code=country_code,
     )
 
     allow_rules = CountryAccessRule.objects.filter(
-        rule_type=CountryAccessRule.RuleType.ALLOW,
-        is_active=True
+        rule_type=CountryAccessRule.RuleType.ALLOW, is_active=True
     )
 
     # Check DENY

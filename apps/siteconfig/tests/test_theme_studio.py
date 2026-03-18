@@ -76,7 +76,10 @@ class ThemeStudioAccessTests(TestCase):
         self.assertIn(response.status_code, (403, 200))
         if response.status_code == 200:
             self.assertTrue(
-                any("/authentication/login/" in redirect for redirect, _code in response.redirect_chain),
+                any(
+                    "/authentication/login/" in redirect
+                    for redirect, _code in response.redirect_chain
+                ),
                 "Expected redirect to login for users without settings.manage permission.",
             )
 
@@ -85,7 +88,10 @@ class ThemeStudioAccessTests(TestCase):
         response = self.client.get(self.url, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(
-            any("/authentication/login/" in redirect for redirect, _code in response.redirect_chain),
+            any(
+                "/authentication/login/" in redirect
+                for redirect, _code in response.redirect_chain
+            ),
             "User with settings.manage should not be redirected to login.",
         )
 
@@ -113,7 +119,9 @@ class ThemeStudioAccessTests(TestCase):
             applies_to_admin=False,
         )
         form = ThemeColorsForm(instance=get_platform_site_settings_record(create=True))
-        admin_ids = set(form.fields["admin_theme_pack"].queryset.values_list("id", flat=True))
+        admin_ids = set(
+            form.fields["admin_theme_pack"].queryset.values_list("id", flat=True)
+        )
         theme_ids = set(form.fields["theme_pack"].queryset.values_list("id", flat=True))
         self.assertNotIn(non_admin_pack.id, admin_ids)
         self.assertIn(non_admin_pack.id, theme_ids)
@@ -196,7 +204,9 @@ class ThemeStudioAccessTests(TestCase):
 
         self.assertContains(response, "theme-last-change-audit")
 
-    def test_theme_studio_blocks_report_style_default_change_without_preview_confirmation(self):
+    def test_theme_studio_blocks_report_style_default_change_without_preview_confirmation(
+        self,
+    ):
         style_a = ReportCardStyle.objects.create(
             slug="report-style-a-theme-guard",
             name="Report Style A",
@@ -286,11 +296,16 @@ class ThemeStudioAccessTests(TestCase):
         self.client.login(username="theme-manager", password="password")
         response = self.client.get(
             reverse("siteconfig:theme_experience_redirect"),
-            {"next": "/admin/siteconfig/sitesettings/1/change/#section-theme-experience"},
+            {
+                "next": "/admin/siteconfig/sitesettings/1/change/#section-theme-experience"
+            },
         )
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("siteconfig:theme_colors"), response.url)
-        self.assertIn("next=%2Fadmin%2Fsiteconfig%2Fsitesettings%2F1%2Fchange%2F%23section-theme-experience", response.url)
+        self.assertIn(
+            "next=%2Fadmin%2Fsiteconfig%2Fsitesettings%2F1%2Fchange%2F%23section-theme-experience",
+            response.url,
+        )
 
 
 class ThemeResolutionTests(TestCase):
@@ -317,7 +332,9 @@ class ThemeResolutionTests(TestCase):
         request.session = {}
         return site_settings(request)
 
-    def test_site_settings_theme_resolution_prefers_brand_experience_owner_surface(self):
+    def test_site_settings_theme_resolution_prefers_brand_experience_owner_surface(
+        self,
+    ):
         self.site.theme_pack = self.admin_pack
         self.site.save(update_fields=["theme_pack"])
 
@@ -335,7 +352,9 @@ class ThemeResolutionTests(TestCase):
     def test_theme_colors_form_initials_use_theme_experience_settings(self):
         self.site.skip_theme_publish_guard = True
         self.site.default_refresh_rate = 75
-        self.site.save(update_fields=["skip_theme_publish_guard", "default_refresh_rate"])
+        self.site.save(
+            update_fields=["skip_theme_publish_guard", "default_refresh_rate"]
+        )
 
         form = ThemeColorsForm(instance=self.site)
 
@@ -365,7 +384,11 @@ class ThemeResolutionTests(TestCase):
         form = ThemeColorsForm(payload, instance=self.site)
         self.assertTrue(form.is_valid(), form.errors)
 
-        with patch.object(self.site, "apply_theme_experience_state", wraps=self.site.apply_theme_experience_state) as mocked_apply:
+        with patch.object(
+            self.site,
+            "apply_theme_experience_state",
+            wraps=self.site.apply_theme_experience_state,
+        ) as mocked_apply:
             saved = form.save()
 
         self.assertEqual(saved.pk, self.site.pk)
@@ -435,16 +458,18 @@ class ThemePackSelectorTemplateTests(TestCase):
         self.assertIn('data-admin-active="1"', html)
         self.assertIn("Site active", html)
         self.assertIn("Admin active", html)
-        self.assertIn("data-success=\"#22c55e\"", html)
-        self.assertIn("data-warning=\"#f59e0b\"", html)
-        self.assertIn("data-danger=\"#ef4444\"", html)
+        self.assertIn('data-success="#22c55e"', html)
+        self.assertIn('data-warning="#f59e0b"', html)
+        self.assertIn('data-danger="#ef4444"', html)
 
 
 class ThemeStudioSingleSurfaceTests(TestCase):
     def test_sitesettings_theme_fieldset_is_launcher_only(self):
         model_admin = tenant_admin_site._registry[SiteSettings]
         theme_fieldset = next(
-            config for title, config in model_admin.fieldsets if title == "Theme & Experience"
+            config
+            for title, config in model_admin.fieldsets
+            if title == "Theme & Experience"
         )
         self.assertEqual(theme_fieldset["fields"], ("theme_color_tools_link_block",))
 
@@ -481,7 +506,9 @@ class ThemeStudioApplyScriptTests(SimpleTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.node_binary = shutil.which("node")
-        cls.script_path = Path(settings.BASE_DIR) / "static" / "js" / "theme-studio-apply.js"
+        cls.script_path = (
+            Path(settings.BASE_DIR) / "static" / "js" / "theme-studio-apply.js"
+        )
 
     def test_apply_from_dataset_sets_admin_and_site_pack_when_enabled(self):
         if not self.node_binary:

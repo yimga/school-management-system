@@ -1,6 +1,7 @@
 """
 Phase D: Tests for Plan model, is_feature_enabled (plan + addons), and Feature Gatekeeper middleware.
 """
+
 from django.test import TestCase, RequestFactory
 from django.http import HttpResponse
 
@@ -27,7 +28,12 @@ class PlanModelTests(TestCase):
         self.assertIn("transport", plan.included_features)
 
     def test_plan_billing_models(self):
-        plan = Plan.objects.create(name="Pro", slug="pro", billing_model=Plan.BillingModel.PER_STUDENT, price_per_student=2)
+        plan = Plan.objects.create(
+            name="Pro",
+            slug="pro",
+            billing_model=Plan.BillingModel.PER_STUDENT,
+            price_per_student=2,
+        )
         self.assertEqual(plan.billing_model, "PER_STUDENT")
         self.assertEqual(plan.price_per_student, 2)
 
@@ -105,6 +111,7 @@ class FeatureGatekeeperMiddlewareTests(TestCase):
 
     def test_middleware_skips_when_no_school(self):
         from apps.schools.middleware import FeatureGatekeeperMiddleware
+
         request = self.factory.get("/portal/design-studio/")
         request.school = None
         mw = FeatureGatekeeperMiddleware(lambda r: HttpResponse("ok"))
@@ -113,6 +120,7 @@ class FeatureGatekeeperMiddlewareTests(TestCase):
 
     def test_middleware_skips_when_path_not_in_map(self):
         from apps.schools.middleware import FeatureGatekeeperMiddleware
+
         request = self.factory.get("/some/other/path/")
         request.school = self.school
         mw = FeatureGatekeeperMiddleware(lambda r: HttpResponse("ok"))
@@ -120,7 +128,11 @@ class FeatureGatekeeperMiddlewareTests(TestCase):
         self.assertEqual(resp.status_code, 200)
 
     def test_middleware_403_when_path_gated_and_feature_disabled(self):
-        from apps.schools.middleware import FeatureGatekeeperMiddleware, FEATURE_GATE_PATH_MAP
+        from apps.schools.middleware import (
+            FeatureGatekeeperMiddleware,
+            FEATURE_GATE_PATH_MAP,
+        )
+
         # Temporarily add a path that requires design_studio (school doesn't have it)
         original = dict(FEATURE_GATE_PATH_MAP)
         try:
@@ -135,7 +147,11 @@ class FeatureGatekeeperMiddlewareTests(TestCase):
             FEATURE_GATE_PATH_MAP.update(original)
 
     def test_middleware_200_when_path_gated_and_feature_enabled(self):
-        from apps.schools.middleware import FeatureGatekeeperMiddleware, FEATURE_GATE_PATH_MAP
+        from apps.schools.middleware import (
+            FeatureGatekeeperMiddleware,
+            FEATURE_GATE_PATH_MAP,
+        )
+
         self.school.addons = ["design_studio"]
         self.school.save()
         original = dict(FEATURE_GATE_PATH_MAP)

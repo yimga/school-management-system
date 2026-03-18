@@ -78,7 +78,7 @@
                         {{ student.first_name|first }}{{ student.last_name|first }}
                       </div>
                       <div>
-                        <div class="fw-semibold">{{ student.first_name }} {{ student.last_name }}</div>
+                        <a href="{% url 'accounts:backend_student_detail' student.id %}" class="fw-semibold text-decoration-none">{{ student.first_name }} {{ student.last_name }}</a>
                         {% if student.date_of_birth %}
                         <small class="text-muted">{{ student.date_of_birth|format_date }}</small>
                         {% endif %}
@@ -103,7 +103,7 @@
                     </span>
                   </td>
                   <td>
-                    <span class="text-muted small">—</span>
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:backend_student_detail' student.id %}">360</a>
                   </td>
                 </tr>
                 {% endfor %}

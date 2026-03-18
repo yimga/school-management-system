@@ -6,20 +6,66 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0047_rls_policy_default_deny'),
+        ("finance", "0047_rls_policy_default_deny"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='invoice',
-            name='attachment',
-            field=models.FileField(blank=True, help_text='Optional PDF or image attachment for this invoice (max 5MB).', null=True, upload_to=apps.finance.models._invoice_attachment_upload_to, validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.odt', '.ods'], allowed_types=['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet'], message='Only document files (PDF, Word, Excel, or LibreOffice ODT/ODS) are allowed.'), apps.accounts.validators.FileSizeValidator(max_size_mb=5)]),
+            model_name="invoice",
+            name="attachment",
+            field=models.FileField(
+                blank=True,
+                help_text="Optional PDF or image attachment for this invoice (max 5MB).",
+                null=True,
+                upload_to=apps.finance.models._invoice_attachment_upload_to,
+                validators=[
+                    apps.accounts.validators.FileTypeValidator(
+                        allowed_extensions=[
+                            ".pdf",
+                            ".doc",
+                            ".docx",
+                            ".xls",
+                            ".xlsx",
+                            ".odt",
+                            ".ods",
+                        ],
+                        allowed_types=[
+                            "application/pdf",
+                            "application/msword",
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "application/vnd.ms-excel",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "application/vnd.oasis.opendocument.text",
+                            "application/vnd.oasis.opendocument.spreadsheet",
+                        ],
+                        message="Only document files (PDF, Word, Excel, or LibreOffice ODT/ODS) are allowed.",
+                    ),
+                    apps.accounts.validators.FileSizeValidator(max_size_mb=5),
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='invoice',
-            name='payment_proof',
-            field=models.FileField(blank=True, help_text='Upload proof of payment (receipt, screenshot, etc.) - max 2MB', null=True, upload_to=apps.finance.models._invoice_payment_proof_upload_to, validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.jpg', '.jpeg', '.png'], allowed_types=['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'], message='Only PDF or image files are allowed for receipts.'), apps.accounts.validators.FileSizeValidator(max_size_mb=2)]),
+            model_name="invoice",
+            name="payment_proof",
+            field=models.FileField(
+                blank=True,
+                help_text="Upload proof of payment (receipt, screenshot, etc.) - max 2MB",
+                null=True,
+                upload_to=apps.finance.models._invoice_payment_proof_upload_to,
+                validators=[
+                    apps.accounts.validators.FileTypeValidator(
+                        allowed_extensions=[".pdf", ".jpg", ".jpeg", ".png"],
+                        allowed_types=[
+                            "application/pdf",
+                            "image/jpeg",
+                            "image/png",
+                            "image/jpg",
+                        ],
+                        message="Only PDF or image files are allowed for receipts.",
+                    ),
+                    apps.accounts.validators.FileSizeValidator(max_size_mb=2),
+                ],
+            ),
         ),
     ]

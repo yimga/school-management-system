@@ -13,8 +13,12 @@ class Command(BaseCommand):
     help = "Detect threats and optionally send alerts"
 
     def add_arguments(self, parser):
-        parser.add_argument("--window", type=int, default=None, help="Lookback window in minutes")
-        parser.add_argument("--no-alert", action="store_true", help="Do not send alerts, just print")
+        parser.add_argument(
+            "--window", type=int, default=None, help="Lookback window in minutes"
+        )
+        parser.add_argument(
+            "--no-alert", action="store_true", help="Do not send alerts, just print"
+        )
 
     def handle(self, *args, **options):
         window = options.get("window")

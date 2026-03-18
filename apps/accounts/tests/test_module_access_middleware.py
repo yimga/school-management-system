@@ -1,4 +1,5 @@
 """Tests for ModuleAccessMiddleware: fail-closed when path looks module-like but module cannot be resolved."""
+
 from unittest.mock import patch
 
 from django.contrib.auth.models import AnonymousUser
@@ -30,7 +31,9 @@ class ModuleAccessMiddlewareTests(TestCase):
         user = User.objects.create_user(username="teacher1", password="pass1234")
         user.role = User.Role.TEACHER
         user.save(update_fields=["role"])
-        request = self.factory.get("/portal")  # no trailing slash: prefix match fails, resolve may fail
+        request = self.factory.get(
+            "/portal"
+        )  # no trailing slash: prefix match fails, resolve may fail
         request.user = user
         response = self.middleware(request)
         self.assertEqual(response.status_code, 403)

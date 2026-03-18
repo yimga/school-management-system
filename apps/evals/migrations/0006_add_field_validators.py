@@ -5,35 +5,84 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0005_assessmentweights_grade_a_min_and_more'),
+        ("evals", "0005_assessmentweights_grade_a_min_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='evaluation',
-            name='exam_score',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(20)], verbose_name='Exam'),
+            model_name="evaluation",
+            name="exam_score",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                max_digits=5,
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(20),
+                ],
+                verbose_name="Exam",
+            ),
         ),
         migrations.AlterField(
-            model_name='evaluation',
-            name='mock_score',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(20)], verbose_name='Mock'),
+            model_name="evaluation",
+            name="mock_score",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                max_digits=5,
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(20),
+                ],
+                verbose_name="Mock",
+            ),
         ),
         migrations.AlterField(
-            model_name='evaluation',
-            name='practical_score',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(20)], verbose_name='Practical'),
+            model_name="evaluation",
+            name="practical_score",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                max_digits=5,
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(20),
+                ],
+                verbose_name="Practical",
+            ),
         ),
         migrations.AlterField(
-            model_name='evaluation',
-            name='seq1_score',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(20)], verbose_name='Seq 1'),
+            model_name="evaluation",
+            name="seq1_score",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                max_digits=5,
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(20),
+                ],
+                verbose_name="Seq 1",
+            ),
         ),
         migrations.AlterField(
-            model_name='evaluation',
-            name='seq2_score',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(20)], verbose_name='Seq 2'),
+            model_name="evaluation",
+            name="seq2_score",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                max_digits=5,
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(20),
+                ],
+                verbose_name="Seq 2",
+            ),
         ),
     ]

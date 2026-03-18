@@ -1,0 +1,85 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Advancement" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Advancement" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Advancement" %}</h1>
+    <p class="text-white-50 small mb-0">{% trans "One identity graph: student, family, alumni, donor. Phase 1: Alumni, campaigns, aid. Phase 2: donor/campaign/gift/receipt (in-product placeholder)." %}</p>
+  </header>
+  <div class="card border-secondary mb-3" role="region" aria-label="{% trans 'Identity graph' %}">
+    <div class="card-body py-2">
+      <h6 class="card-title mb-1">{% trans "One identity graph" %}</h6>
+      <p class="small text-white-50 mb-0">{% trans "Students, families, alumni, and donors in one graph; same platform, no second CRM. Identity and giving data in one place." %}</p>
+    </div>
+  </div>
+  <div class="row g-3">
+    {% if alumni_list_url %}
+    <div class="col-md-4">
+      <div class="card h-100 border-secondary">
+        <div class="card-body">
+          <h6 class="card-title">{% trans "Alumni" %}</h6>
+          <a href="{{ alumni_list_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% if campaigns_url %}
+    <div class="col-md-4">
+      <div class="card h-100 border-secondary">
+        <div class="card-body">
+          <h6 class="card-title">{% trans "Campaigns" %}</h6>
+          <a href="{{ campaigns_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% if aid_services_url %}
+    <div class="col-md-4">
+      <div class="card h-100 border-secondary">
+        <div class="card-body">
+          <h6 class="card-title">{% trans "Aid & awards" %}</h6>
+          <a href="{{ aid_services_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% if phase2_placeholder_url %}
+    <div class="col-md-4">
+      <div class="card h-100 border-secondary">
+        <div class="card-body">
+          <h6 class="card-title">{% trans "Donors" %}</h6>
+          <p class="small text-white-50 mb-2">{% trans "Constituent giving; Phase 2." %}</p>
+          <a href="{{ phase2_placeholder_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-secondary">
+        <div class="card-body">
+          <h6 class="card-title">{% trans "Gifts & receipts" %}</h6>
+          <p class="small text-white-50 mb-2">{% trans "Gifts and acknowledgments; Phase 2." %}</p>
+          <a href="{{ phase2_placeholder_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% if phase2_placeholder_url %}
+  <div class="alert alert-secondary mt-3 mb-0">{% trans "Phase 2: donor/campaign/gift/receipt — in-product placeholder; full surface coming next." %}</div>
+  {% else %}
+  <div class="alert alert-secondary mt-3 mb-0">{% trans "Phase 2: donor/campaign/gift/receipt — coming next. One platform, no second CRM." %}</div>
+  {% endif %}
+</div>
+{% endblock %}

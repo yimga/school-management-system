@@ -42,14 +42,18 @@ def get_experience_pack_code_for_school(school: Any, *, role: str | None = None)
     return ""
 
 
-def get_effective_experience_pack(school: Any = None, *, role: str | None = None) -> ExperiencePack | None:
+def get_effective_experience_pack(
+    school: Any = None, *, role: str | None = None
+) -> ExperiencePack | None:
     code = get_experience_pack_code_for_school(school, role=role)
     if not code:
         return None
     return ExperiencePack.objects.filter(code=code, is_active=True).first()
 
 
-def resolve_experience_theme_pack(school: Any = None, *, role: str | None = None) -> ThemePack | None:
+def resolve_experience_theme_pack(
+    school: Any = None, *, role: str | None = None
+) -> ThemePack | None:
     pack = get_effective_experience_pack(school, role=role)
     theme_pack_id = getattr(pack, "theme_pack_id", None)
     if not theme_pack_id:
@@ -95,10 +99,16 @@ def compare_experience_packs(
     }
 
 
-def rollback_experience_pack(school: Any, *, actor_id: int | None = None) -> dict[str, Any]:
+def rollback_experience_pack(
+    school: Any, *, actor_id: int | None = None
+) -> dict[str, Any]:
     code = get_experience_pack_code_for_school(school)
     if not school or not code:
-        return {"ok": False, "message": "No active experience pack configured.", "rolled_back": False}
+        return {
+            "ok": False,
+            "message": "No active experience pack configured.",
+            "rolled_back": False,
+        }
     install = (
         InstalledPackage.objects.filter(
             school=school,
@@ -110,7 +120,11 @@ def rollback_experience_pack(school: Any, *, actor_id: int | None = None) -> dic
         .first()
     )
     if install is None:
-        return {"ok": False, "message": "No active installed package found for the configured experience pack.", "rolled_back": False}
+        return {
+            "ok": False,
+            "message": "No active installed package found for the configured experience pack.",
+            "rolled_back": False,
+        }
     result = rollback_package(install, actor_id=actor_id)
     result["rolled_back"] = bool(result.get("ok"))
     return result

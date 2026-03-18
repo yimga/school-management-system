@@ -5,71 +5,62 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0009_add_performance_indexes'),
+        ("finance", "0009_add_performance_indexes"),
     ]
 
     operations = [
         # Invoice indexes for faster filtering and joins
         migrations.AddIndex(
-            model_name='invoice',
+            model_name="invoice",
             index=models.Index(
-                fields=['student', 'academic_year'],
-                name='finance_inv_student_year_idx'
+                fields=["student", "academic_year"], name="finance_inv_student_year_idx"
             ),
         ),
         migrations.AddIndex(
-            model_name='invoice',
+            model_name="invoice",
             index=models.Index(
-                fields=['status', 'due_date'],
-                name='finance_inv_status_due_idx'
+                fields=["status", "due_date"], name="finance_inv_status_due_idx"
             ),
         ),
         migrations.AddIndex(
-            model_name='invoice',
+            model_name="invoice",
             index=models.Index(
-                fields=['profile', 'status', 'issued_date'],
-                name='finance_inv_profile_status_idx'
+                fields=["profile", "status", "issued_date"],
+                name="finance_inv_profile_status_idx",
             ),
         ),
-        
         # Payment indexes for faster lookups
         migrations.AddIndex(
-            model_name='payment',
+            model_name="payment",
             index=models.Index(
-                fields=['invoice', 'paid_at'],
-                name='finance_pay_invoice_paid_idx'
+                fields=["invoice", "paid_at"], name="finance_pay_invoice_paid_idx"
             ),
         ),
         migrations.AddIndex(
-            model_name='payment',
+            model_name="payment",
             index=models.Index(
-                fields=['receipt_number'],
-                name='finance_pay_receipt_idx'
+                fields=["receipt_number"], name="finance_pay_receipt_idx"
             ),
         ),
         migrations.AddIndex(
-            model_name='payment',
+            model_name="payment",
             index=models.Index(
-                fields=['external_reference'],
-                name='finance_pay_ext_ref_idx'
+                fields=["external_reference"], name="finance_pay_ext_ref_idx"
             ),
         ),
-        
         # WebhookLog indexes for audit and rate limiting
         migrations.AddIndex(
-            model_name='webhooklog',
+            model_name="webhooklog",
             index=models.Index(
-                fields=['provider', 'reference_id'],
-                name='finance_webhook_provider_ref_idx'
+                fields=["provider", "reference_id"],
+                name="finance_webhook_provider_ref_idx",
             ),
         ),
         migrations.AddIndex(
-            model_name='webhooklog',
+            model_name="webhooklog",
             index=models.Index(
-                fields=['client_ip', 'created_at'],
-                name='finance_webhook_ip_time_idx'
+                fields=["client_ip", "created_at"], name="finance_webhook_ip_time_idx"
             ),
         ),
     ]

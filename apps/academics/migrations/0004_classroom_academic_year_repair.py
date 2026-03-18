@@ -10,7 +10,9 @@ def ensure_classroom_academic_year(apps, schema_editor):
     with connection.cursor() as cursor:
         existing_columns = {
             column.name
-            for column in connection.introspection.get_table_description(cursor, table_name)
+            for column in connection.introspection.get_table_description(
+                cursor, table_name
+            )
         }
 
     if "academic_year_id" not in existing_columns:
@@ -30,17 +32,20 @@ def ensure_classroom_academic_year(apps, schema_editor):
     AcademicYear = apps.get_model("academics", "AcademicYear")
     Classroom = apps.get_model("academics", "Classroom")
 
-    active_year = AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
+    active_year = (
+        AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
+    )
     if not active_year:
         active_year = AcademicYear.objects.order_by("-start_date").first()
     if not active_year:
         return
 
-    Classroom.objects.filter(academic_year__isnull=True).update(academic_year=active_year)
+    Classroom.objects.filter(academic_year__isnull=True).update(
+        academic_year=active_year
+    )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("academics", "0003_classroom_academic_year_backfill"),
     ]

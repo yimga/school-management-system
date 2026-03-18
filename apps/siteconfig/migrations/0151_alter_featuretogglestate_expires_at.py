@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0150_featuretogglestate_expires_at'),
+        ("siteconfig", "0150_featuretogglestate_expires_at"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='featuretogglestate',
-            name='expires_at',
-            field=models.DateTimeField(blank=True, help_text='When set, this override is ignored after this time (Phase 10 — 10.2 capability expiry).', null=True),
+            model_name="featuretogglestate",
+            name="expires_at",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="When set, this override is ignored after this time (Phase 10 — 10.2 capability expiry).",
+                null=True,
+            ),
         ),
     ]

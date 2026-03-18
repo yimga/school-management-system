@@ -5,92 +5,175 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='CountryRegistry',
+            name="CountryRegistry",
             fields=[
-                ('code', models.CharField(help_text='Canonical ISO 3166-1 alpha-2 country code.', max_length=2, primary_key=True, serialize=False)),
-                ('alpha3_code', models.CharField(blank=True, db_index=True, help_text='Compatibility alpha-3 code used by older RegionConfig flows.', max_length=3)),
-                ('name', models.CharField(max_length=120)),
-                ('default_language', models.CharField(default='en', max_length=16)),
-                ('default_currency', models.CharField(default='USD', max_length=3)),
-                ('default_timezone', models.CharField(default='UTC', max_length=64)),
-                ('labels', models.JSONField(blank=True, default=dict, help_text='Country-specific display labels and terminology overrides.')),
-                ('metadata', models.JSONField(blank=True, default=dict, help_text='Registry-driven configuration such as academic/compliance defaults.')),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "code",
+                    models.CharField(
+                        help_text="Canonical ISO 3166-1 alpha-2 country code.",
+                        max_length=2,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "alpha3_code",
+                    models.CharField(
+                        blank=True,
+                        db_index=True,
+                        help_text="Compatibility alpha-3 code used by older RegionConfig flows.",
+                        max_length=3,
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("default_language", models.CharField(default="en", max_length=16)),
+                ("default_currency", models.CharField(default="USD", max_length=3)),
+                ("default_timezone", models.CharField(default="UTC", max_length=64)),
+                (
+                    "labels",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Country-specific display labels and terminology overrides.",
+                    ),
+                ),
+                (
+                    "metadata",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Registry-driven configuration such as academic/compliance defaults.",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Country registry entry',
-                'verbose_name_plural': 'Country registry',
-                'ordering': ['name'],
+                "verbose_name": "Country registry entry",
+                "verbose_name_plural": "Country registry",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='EducationLevelRegistry',
+            name="EducationLevelRegistry",
             fields=[
-                ('code', models.CharField(max_length=32, primary_key=True, serialize=False)),
-                ('global_name', models.CharField(max_length=120)),
-                ('description', models.TextField(blank=True)),
-                ('sort_order', models.PositiveIntegerField(default=0)),
-                ('country_labels', models.JSONField(blank=True, default=dict, help_text='Map of country code -> localized label.')),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "code",
+                    models.CharField(max_length=32, primary_key=True, serialize=False),
+                ),
+                ("global_name", models.CharField(max_length=120)),
+                ("description", models.TextField(blank=True)),
+                ("sort_order", models.PositiveIntegerField(default=0)),
+                (
+                    "country_labels",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Map of country code -> localized label.",
+                    ),
+                ),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Education level registry entry',
-                'verbose_name_plural': 'Education level registry',
-                'ordering': ['sort_order', 'global_name'],
+                "verbose_name": "Education level registry entry",
+                "verbose_name_plural": "Education level registry",
+                "ordering": ["sort_order", "global_name"],
             },
         ),
         migrations.CreateModel(
-            name='EducationSystemTypeRegistry',
+            name="EducationSystemTypeRegistry",
             fields=[
-                ('code', models.CharField(max_length=48, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=120)),
-                ('description', models.TextField(blank=True)),
-                ('category', models.CharField(blank=True, max_length=80)),
-                ('country_labels', models.JSONField(blank=True, default=dict, help_text='Map of country code -> localized label.')),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('is_active', models.BooleanField(default=True)),
-                ('sort_order', models.PositiveIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "code",
+                    models.CharField(max_length=48, primary_key=True, serialize=False),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("description", models.TextField(blank=True)),
+                ("category", models.CharField(blank=True, max_length=80)),
+                (
+                    "country_labels",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Map of country code -> localized label.",
+                    ),
+                ),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("is_active", models.BooleanField(default=True)),
+                ("sort_order", models.PositiveIntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Education system type registry entry',
-                'verbose_name_plural': 'Education system type registry',
-                'ordering': ['sort_order', 'name'],
+                "verbose_name": "Education system type registry entry",
+                "verbose_name_plural": "Education system type registry",
+                "ordering": ["sort_order", "name"],
             },
         ),
         migrations.CreateModel(
-            name='SubdivisionRegistry',
+            name="SubdivisionRegistry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(help_text='Canonical subdivision code, preferably ISO 3166-2.', max_length=32)),
-                ('name', models.CharField(max_length=160)),
-                ('subdivision_type', models.CharField(default='state', help_text='Subdivision type such as state, province, region, territory.', max_length=40)),
-                ('labels', models.JSONField(blank=True, default=dict, help_text='Country or locale-specific display label overrides.')),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subdivisions', to='registries.countryregistry')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "code",
+                    models.CharField(
+                        help_text="Canonical subdivision code, preferably ISO 3166-2.",
+                        max_length=32,
+                    ),
+                ),
+                ("name", models.CharField(max_length=160)),
+                (
+                    "subdivision_type",
+                    models.CharField(
+                        default="state",
+                        help_text="Subdivision type such as state, province, region, territory.",
+                        max_length=40,
+                    ),
+                ),
+                (
+                    "labels",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Country or locale-specific display label overrides.",
+                    ),
+                ),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "country",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="subdivisions",
+                        to="registries.countryregistry",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Subdivision registry entry',
-                'verbose_name_plural': 'Subdivision registry',
-                'ordering': ['country_id', 'name'],
-                'unique_together': {('country', 'code')},
+                "verbose_name": "Subdivision registry entry",
+                "verbose_name_plural": "Subdivision registry",
+                "ordering": ["country_id", "name"],
+                "unique_together": {("country", "code")},
             },
         ),
     ]

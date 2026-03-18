@@ -23,16 +23,22 @@ class DomainSyncTests(TestCase):
         )
 
     def test_school_subdomain_fqdn_uses_base_domain(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+        with patch.dict(
+            os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
             self.assertEqual(
                 school_subdomain_fqdn(self.school),
                 "domain-sync-school.runmycampus.com",
             )
 
     def test_ensure_schooldomain_records_creates_verified_subdomain_row(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+        with patch.dict(
+            os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
             ensure_schooldomain_records_for_school(self.school)
-        row = SchoolDomain.objects.get(school=self.school, kind=SchoolDomain.Kind.SUBDOMAIN)
+        row = SchoolDomain.objects.get(
+            school=self.school, kind=SchoolDomain.Kind.SUBDOMAIN
+        )
         self.assertEqual(row.domain, "domain-sync-school.runmycampus.com")
         self.assertTrue(row.is_verified)
 
@@ -49,4 +55,6 @@ class DomainSyncTests(TestCase):
         self.assertTrue(self.school.custom_domain_verified)
 
     def test_runtime_domain_check_is_false_without_tenant_mode(self):
-        self.assertFalse(is_runtime_domain_in_use("portal.domain-sync.edu", school=self.school))
+        self.assertFalse(
+            is_runtime_domain_in_use("portal.domain-sync.edu", school=self.school)
+        )

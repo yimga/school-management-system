@@ -8,47 +8,131 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0034_suspensepayment_suspensepaymentallocation_and_more'),
+        ("finance", "0034_suspensepayment_suspensepaymentallocation_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='payment',
-            name='physical_receipt_book_serial',
-            field=models.CharField(blank=True, help_text='Physical receipt book serial used at the bursar desk (for paper audit trail).', max_length=40),
+            model_name="payment",
+            name="physical_receipt_book_serial",
+            field=models.CharField(
+                blank=True,
+                help_text="Physical receipt book serial used at the bursar desk (for paper audit trail).",
+                max_length=40,
+            ),
         ),
         migrations.AddField(
-            model_name='payment',
-            name='physical_receipt_number',
-            field=models.PositiveIntegerField(blank=True, help_text='Receipt number from the physical receipt book.', null=True),
+            model_name="payment",
+            name="physical_receipt_number",
+            field=models.PositiveIntegerField(
+                blank=True,
+                help_text="Receipt number from the physical receipt book.",
+                null=True,
+            ),
         ),
         migrations.CreateModel(
-            name='CashOfficeClosure',
+            name="CashOfficeClosure",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('closure_date', models.DateField(default=django.utils.timezone.localdate)),
-                ('status', models.CharField(choices=[('OPEN', 'Open'), ('CLOSED', 'Closed')], default='OPEN', max_length=10)),
-                ('opening_cash', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('cash_collected', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('deposited_to_bank', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('cash_on_hand', models.DecimalField(decimal_places=2, default=Decimal('0.00'), help_text="Physical cash count remaining in cashier's drawer at closure.", max_digits=12)),
-                ('expected_cash', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('discrepancy', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('deposit_reference', models.CharField(blank=True, max_length=100)),
-                ('notes', models.TextField(blank=True)),
-                ('closed_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('bank_account', models.ForeignKey(blank=True, help_text='Bank account where daily cash was deposited (if any).', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='cash_closures', to='finance.bankaccount')),
-                ('closed_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='cash_office_closures', to=settings.AUTH_USER_MODEL)),
-                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cash_office_closures', to='finance.complianceprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "closure_date",
+                    models.DateField(default=django.utils.timezone.localdate),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("OPEN", "Open"), ("CLOSED", "Closed")],
+                        default="OPEN",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "opening_cash",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "cash_collected",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "deposited_to_bank",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "cash_on_hand",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        help_text="Physical cash count remaining in cashier's drawer at closure.",
+                        max_digits=12,
+                    ),
+                ),
+                (
+                    "expected_cash",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "discrepancy",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                ("deposit_reference", models.CharField(blank=True, max_length=100)),
+                ("notes", models.TextField(blank=True)),
+                ("closed_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "bank_account",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Bank account where daily cash was deposited (if any).",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="cash_closures",
+                        to="finance.bankaccount",
+                    ),
+                ),
+                (
+                    "closed_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="cash_office_closures",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cash_office_closures",
+                        to="finance.complianceprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-closure_date', '-updated_at'],
-                'unique_together': {('profile', 'closure_date')},
+                "ordering": ["-closure_date", "-updated_at"],
+                "unique_together": {("profile", "closure_date")},
             },
         ),
     ]

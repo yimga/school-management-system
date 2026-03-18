@@ -1,4 +1,5 @@
 """Tests for split payment allocation flow."""
+
 from datetime import date
 from decimal import Decimal
 
@@ -16,8 +17,8 @@ class SplitAllocationTests(TestCase):
     def setUp(self):
         self.profile = ComplianceProfile.objects.create(name="Test", country_code="CM")
         site = get_platform_site_settings_record(create=True)
-        site.compliance_profile = self.profile
-        site.save(update_fields=["compliance_profile"])
+        site.compliance_profile_id = self.profile.pk
+        site.save(update_fields=["compliance_profile_id"])
         self.year = AcademicYear.objects.create(
             name="2025/2026",
             start_date=date(2025, 9, 1),
@@ -65,7 +66,9 @@ class SplitAllocationTests(TestCase):
     def test_split_allocation_creates_invoice_and_payment(self):
         self.client.force_login(self.staff)
         total = Decimal("50000.00")
-        self.client.get(reverse("finance:split_allocation"))  # load form so session has CSRF
+        self.client.get(
+            reverse("finance:split_allocation")
+        )  # load form so session has CSRF
         post_data = {
             "student": self.student.id,
             "total_amount": str(total),
@@ -80,7 +83,11 @@ class SplitAllocationTests(TestCase):
         }
         response = self.client.post(reverse("finance:split_allocation"), post_data)
         self.assertEqual(response.status_code, 302)
-        invoice = Invoice.objects.filter(student=self.student, reference__startswith="SPLIT-").order_by("-id").first()
+        invoice = (
+            Invoice.objects.filter(student=self.student, reference__startswith="SPLIT-")
+            .order_by("-id")
+            .first()
+        )
         self.assertIsNotNone(invoice)
         self.assertEqual(invoice.student_id, self.student.id)
         self.assertEqual(invoice.total_amount, total)
@@ -93,7 +100,11 @@ class SplitAllocationTests(TestCase):
         self.assertEqual(payment.method, "CASH")
         # Optional assert: payment was applied (invoice balance updated)
         invoice.refresh_from_db()
-        self.assertEqual(invoice.balance_amount, Decimal("0.00"), "Invoice balance should be zero after full payment")
+        self.assertEqual(
+            invoice.balance_amount,
+            Decimal("0.00"),
+            "Invoice balance should be zero after full payment",
+        )
 
     def test_custom_split_creates_payer_shares(self):
         self.client.force_login(self.staff)
@@ -122,9 +133,15 @@ class SplitAllocationTests(TestCase):
         }
         response = self.client.post(reverse("finance:split_allocation"), post_data)
         self.assertEqual(response.status_code, 302)
-        invoice = Invoice.objects.filter(student=self.student, reference__startswith="SPLIT-").order_by("-id").first()
+        invoice = (
+            Invoice.objects.filter(student=self.student, reference__startswith="SPLIT-")
+            .order_by("-id")
+            .first()
+        )
         self.assertIsNotNone(invoice)
-        shares = InvoicePayerShare.objects.filter(invoice=invoice).order_by("guardian_id")
+        shares = InvoicePayerShare.objects.filter(invoice=invoice).order_by(
+            "guardian_id"
+        )
         self.assertEqual(shares.count(), 2)
         self.assertEqual(shares[0].allocated_amount, Decimal("25000.00"))
         self.assertEqual(shares[1].allocated_amount, Decimal("25000.00"))

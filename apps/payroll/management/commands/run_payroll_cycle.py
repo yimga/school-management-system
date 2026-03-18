@@ -86,7 +86,9 @@ class Command(BaseCommand):
                 },
             )
             if not created:
-                self.stdout.write("Payroll run already exists for that period; regenerating payslips.")
+                self.stdout.write(
+                    "Payroll run already exists for that period; regenerating payslips."
+                )
 
             payslips = generate_payslips(run)
             summary = {
@@ -101,7 +103,11 @@ class Command(BaseCommand):
                 records_processed=len(payslips),
                 summary=summary,
             )
-            self.stdout.write(self.style.SUCCESS(f"Payroll run {run} processed with {len(payslips)} payslips."))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Payroll run {run} processed with {len(payslips)} payslips."
+                )
+            )
         except _PAYROLL_RUN_CYCLE_ERRORS as exc:
             school_id = getattr(profile, "school_id", None) if profile else None
             log_exception_with_context(

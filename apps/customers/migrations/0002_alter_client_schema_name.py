@@ -5,15 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('customers', '0001_initial'),
+        ("customers", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='client',
-            name='schema_name',
-            field=models.CharField(db_index=True, max_length=63, unique=True, validators=[django_tenants.postgresql_backend.base._check_schema_name]),
+            model_name="client",
+            name="schema_name",
+            field=models.CharField(
+                db_index=True,
+                max_length=63,
+                unique=True,
+                validators=[django_tenants.postgresql_backend.base._check_schema_name],
+            ),
         ),
     ]

@@ -5,7 +5,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0094_plan_model_phase_d"),
     ]

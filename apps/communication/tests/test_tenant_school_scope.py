@@ -79,9 +79,18 @@ class CommunicationTenantScopeTests(TestCase):
             role=User.Role.TEACHER,
         )
 
-        SchoolMembership.objects.create(user=self.staff, school=self.school, role=User.Role.TEACHER, is_primary=True)
-        SchoolMembership.objects.create(user=self.parent, school=self.school, role=User.Role.PARENT, is_primary=True)
-        SchoolMembership.objects.create(user=self.other_staff, school=self.other_school, role=User.Role.TEACHER, is_primary=True)
+        SchoolMembership.objects.create(
+            user=self.staff, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
+        SchoolMembership.objects.create(
+            user=self.parent, school=self.school, role=User.Role.PARENT, is_primary=True
+        )
+        SchoolMembership.objects.create(
+            user=self.other_staff,
+            school=self.other_school,
+            role=User.Role.TEACHER,
+            is_primary=True,
+        )
 
         TeacherProfile.objects.create(user=self.staff, school=self.school)
         TeacherProfile.objects.create(user=self.other_staff, school=self.other_school)
@@ -132,7 +141,9 @@ class CommunicationTenantScopeTests(TestCase):
         attachment = ContactRequestAttachment.objects.create(
             request=contact_request,
             uploaded_by=self.staff,
-            file=SimpleUploadedFile("proof.pdf", b"%PDF-1.4 mock", content_type="application/pdf"),
+            file=SimpleUploadedFile(
+                "proof.pdf", b"%PDF-1.4 mock", content_type="application/pdf"
+            ),
         )
         self.assertEqual(contact_request.school_id, self.school.id)
         self.assertEqual(attachment.school_id, self.school.id)

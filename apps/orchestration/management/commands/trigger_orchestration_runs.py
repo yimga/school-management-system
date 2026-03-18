@@ -2,6 +2,7 @@
 Phase 10 — 4.1: Create PENDING OrchestrationRun(s) by definition code (cron/Celery trigger).
 Example: trigger_orchestration_runs --code fee_follow_up (one run per active school).
 """
+
 from django.core.management.base import BaseCommand
 
 from apps.orchestration.models import ProcessDefinition
@@ -13,9 +14,21 @@ class Command(BaseCommand):
     help = "Create PENDING orchestration runs for a definition (e.g. fee_follow_up). Use from cron/Celery."
 
     def add_arguments(self, parser):
-        parser.add_argument("--code", type=str, required=True, help="ProcessDefinition code (e.g. fee_follow_up, admissions).")
-        parser.add_argument("--school-id", type=str, default=None, help="Optional: run for this school only (UUID).")
-        parser.add_argument("--dry-run", action="store_true", help="Only report what would be created.")
+        parser.add_argument(
+            "--code",
+            type=str,
+            required=True,
+            help="ProcessDefinition code (e.g. fee_follow_up, admissions).",
+        )
+        parser.add_argument(
+            "--school-id",
+            type=str,
+            default=None,
+            help="Optional: run for this school only (UUID).",
+        )
+        parser.add_argument(
+            "--dry-run", action="store_true", help="Only report what would be created."
+        )
 
     def handle(self, *args, **options):
         code = options["code"]
@@ -24,7 +37,11 @@ class Command(BaseCommand):
         try:
             ProcessDefinition.objects.get(code=code)
         except ProcessDefinition.DoesNotExist:
-            self.stdout.write(self.style.ERROR(f"Unknown definition: {code}. Run seed_process_definitions."))
+            self.stdout.write(
+                self.style.ERROR(
+                    f"Unknown definition: {code}. Run seed_process_definitions."
+                )
+            )
             return
         schools = []
         if school_id:

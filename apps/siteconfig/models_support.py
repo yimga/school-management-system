@@ -33,7 +33,12 @@ def default_portal_features():
 def default_social_links():
     return [
         {"platform": "Facebook", "url": "", "icon": "bi bi-facebook", "enabled": False},
-        {"platform": "Instagram", "url": "", "icon": "bi bi-instagram", "enabled": False},
+        {
+            "platform": "Instagram",
+            "url": "",
+            "icon": "bi bi-instagram",
+            "enabled": False,
+        },
         {"platform": "YouTube", "url": "", "icon": "bi bi-youtube", "enabled": False},
     ]
 
@@ -86,26 +91,86 @@ def default_portal_quick_actions():
 
 def default_portal_announcements():
     return [
-        {"title": "New Homework Policy", "meta": "2 days ago", "roles": ["PARENT"], "enabled": True},
-        {"title": "Sports Day Registration Open", "meta": "4 days ago", "roles": ["PARENT"], "enabled": True},
-        {"title": "Library Hours Extended", "meta": "1 week ago", "roles": ["PARENT"], "enabled": True},
+        {
+            "title": "New Homework Policy",
+            "meta": "2 days ago",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "title": "Sports Day Registration Open",
+            "meta": "4 days ago",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "title": "Library Hours Extended",
+            "meta": "1 week ago",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
     ]
 
 
 def default_portal_recent_grades():
     return [
-        {"label": "Mathematics", "grade": "A (92%)", "tone": "success", "roles": ["PARENT"], "enabled": True},
-        {"label": "English", "grade": "A- (88%)", "tone": "success", "roles": ["PARENT"], "enabled": True},
-        {"label": "Science", "grade": "B+ (85%)", "tone": "primary", "roles": ["PARENT"], "enabled": True},
-        {"label": "History", "grade": "B (82%)", "tone": "warning", "roles": ["PARENT"], "enabled": True},
+        {
+            "label": "Mathematics",
+            "grade": "A (92%)",
+            "tone": "success",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "label": "English",
+            "grade": "A- (88%)",
+            "tone": "success",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "label": "Science",
+            "grade": "B+ (85%)",
+            "tone": "primary",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "label": "History",
+            "grade": "B (82%)",
+            "tone": "warning",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
     ]
 
 
 def default_portal_upcoming_assessments():
     return [
-        {"title": "Physics Test", "when": "Tomorrow", "detail": "Chapter 5-7", "tone": "info", "roles": ["PARENT"], "enabled": True},
-        {"title": "Math Quiz", "when": "Jan 28", "detail": "Algebra II", "tone": "secondary", "roles": ["PARENT"], "enabled": True},
-        {"title": "English Essay", "when": "Feb 2", "detail": "Due by 5 PM", "tone": "secondary", "roles": ["PARENT"], "enabled": True},
+        {
+            "title": "Physics Test",
+            "when": "Tomorrow",
+            "detail": "Chapter 5-7",
+            "tone": "info",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "title": "Math Quiz",
+            "when": "Jan 28",
+            "detail": "Algebra II",
+            "tone": "secondary",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "title": "English Essay",
+            "when": "Feb 2",
+            "detail": "Due by 5 PM",
+            "tone": "secondary",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
     ]
 
 
@@ -579,7 +644,9 @@ def default_dashboard_widgets(role: str | None) -> list[str]:
                     return filtered
     except (AttributeError, ImportError, LookupError, TypeError, ValueError):
         pass
-    return list(ROLE_WIDGET_DEFAULTS.get(role_key, [key for key, _ in DASHBOARD_WIDGET_OPTIONS]))
+    return list(
+        ROLE_WIDGET_DEFAULTS.get(role_key, [key for key, _ in DASHBOARD_WIDGET_OPTIONS])
+    )
 
 
 def get_dashboard_widget_choices(role: str | None) -> list[tuple[str, str]]:
@@ -587,7 +654,9 @@ def get_dashboard_widget_choices(role: str | None) -> list[tuple[str, str]]:
     return [(key, label) for key, label in DASHBOARD_WIDGET_OPTIONS if key in allowed]
 
 
-def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | None" = None) -> list[str]:
+def resolve_dashboard_widgets(
+    role: str | None, preference: "UserPreference | None" = None
+) -> list[str]:
     allowed = default_dashboard_widgets(role)
     if preference:
         if preference.dashboard_view == DashboardView.CUSTOM:
@@ -600,15 +669,34 @@ def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | No
             except (DashboardUserPreference.DoesNotExist, AttributeError):
                 dashboard_pref = None
             if dashboard_pref:
-                selected = [key for key in dashboard_pref.get_dashboard_widgets() if key in allowed]
+                selected = [
+                    key
+                    for key in dashboard_pref.get_dashboard_widgets()
+                    if key in allowed
+                ]
             if not selected:
-                selected = [key for key in preference.dashboard_widgets if key in allowed]
+                selected = [
+                    key for key in preference.dashboard_widgets if key in allowed
+                ]
             return selected or allowed
         view_map = {
             DashboardView.FINANCE: ["finance", "events", "communications", "links"],
             DashboardView.ATTENDANCE: ["attendance", "events", "tasks", "links"],
-            DashboardView.ACADEMICS: ["performance", "completion", "upcoming", "analytics", "tasks", "links"],
-            DashboardView.CERTIFICATION: ["certification", "performance", "tasks", "links", "events"],
+            DashboardView.ACADEMICS: [
+                "performance",
+                "completion",
+                "upcoming",
+                "analytics",
+                "tasks",
+                "links",
+            ],
+            DashboardView.CERTIFICATION: [
+                "certification",
+                "performance",
+                "tasks",
+                "links",
+                "events",
+            ],
         }
         mapped = view_map.get(preference.dashboard_view)
         if mapped:

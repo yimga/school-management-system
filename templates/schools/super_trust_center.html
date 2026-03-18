@@ -17,14 +17,30 @@
   {% trans "Security & Trust" as page_title %}
   {% trans "MFA, sessions, admin activity, audit export, and integrations. §10.5.4 Trust product (TRUST_PRODUCT_SURFACES.md)." as page_subtitle %}
   {% trans "Open Compliance" as page_action %}
+  <div data-tour="cp-trust-header">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=compliance_url action_text=page_action %}
-  <div class="row g-3">
+  <p class="small mb-0"><a href="{% url 'super:migration_csv_diff' %}" class="fw-semibold" data-tour="cp-trust-migration-link">{% trans "Migration CSV diff (BR-04)" %}</a>
+    <span class="text-muted px-1">·</span>
+    <a href="{% url 'super:governed_data_query' %}" class="fw-semibold">{% trans "Governed data query (BR-07)" %}</a></p>
+  </div>
+  <div class="row g-3 mt-1" data-tour="cp-trust-cards">
     <div class="col-md-6 col-lg-4">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h6 class="card-title"><span class="bi bi-shield-check me-2" aria-hidden="true"></span>{% trans "Compliance" %}</h6>
           <p class="card-text small text-secondary">{% trans "Policy pack, audit review, export risk." %}</p>
           <a href="{{ compliance_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-key me-2" aria-hidden="true"></span>{% trans "SSO / IdP health (7d)" %}</h6>
+          <p class="card-text small text-secondary">
+            {% blocktrans with t=sso_health.integrations_tracked ok=sso_health.ok_last_7d fl=sso_health.fail_last_7d %}Federation integrations tracked: {{ t }}. Successful logins (7d): {{ ok }}. Failures (7d): {{ fl }}.{% endblocktrans %}
+          </p>
+          <span class="badge bg-info text-dark">{% trans "Live" %}</span>
         </div>
       </div>
     </div>
@@ -49,9 +65,94 @@
     <div class="col-md-6 col-lg-4">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-lightning-charge me-2" aria-hidden="true"></span>{% trans "Platform events (7d)" %}</h6>
+          <p class="card-text small text-secondary">{% blocktrans with n=platform_events_7d %}Pack apply, rollback, and catalog events persisted for replay and ops. Recent count (7d): {{ n }}.{% endblocktrans %}</p>
+          <a href="{{ platform_events_url }}" class="btn btn-outline-primary btn-sm">{% trans "View log" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
           <h6 class="card-title"><span class="bi bi-download me-2" aria-hidden="true"></span>{% trans "Export audit" %}</h6>
           <p class="card-text small text-secondary">{% trans "Export security and admin audit (date range, CSV/JSON)." %}</p>
           <a href="{% url 'super:audit_export' %}" class="btn btn-outline-primary btn-sm">{% trans "Export" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-geo-alt me-2" aria-hidden="true"></span>{% trans "Data residency & sovereignty" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Where data lives; region-specific compliance (GDPR, FERPA). Region packs define default data residency per continent; see Geography." %}</p>
+          <span class="badge bg-secondary">{% trans "Docs" %}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-award me-2" aria-hidden="true"></span>{% trans "Certifications & attestations" %}</h6>
+          <p class="card-text small text-secondary">{% trans "SOC 2 and ISO 27001 (or equivalent) on roadmap; security review and trust signals for marketplace and partners (North star N16)." %}</p>
+          <span class="badge bg-secondary">{% trans "Roadmap" %}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-shield-lock me-2" aria-hidden="true"></span>{% trans "Security posture" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Least-privilege support access; audit of data access; trust-center-grade transparency. See BEYOND_REACH_BLOCKED_AND_MEASUREMENT and compliance docs." %}</p>
+          <span class="badge bg-secondary">{% trans "Docs" %}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-speedometer2 me-2" aria-hidden="true"></span>{% trans "SLO & uptime (N11)" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Webhook SLOs, regional buckets, BR-01 targets in docs/SLO_TARGETS_AND_OBSERVABILITY.md." %}</p>
+          <a href="{{ slo_dashboard_url }}" class="btn btn-outline-primary btn-sm me-1">{% trans "SLO dashboard" %}</a>
+          <a href="{% url 'super:control_health' %}" class="btn btn-outline-secondary btn-sm">{% trans "Health" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-heart-pulse me-2" aria-hidden="true"></span>{% trans "Resilience & BCP" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Uptime, health checks, runbooks; designed against Bromcom-style outages. Runbooks and SLO/playbooks: Health hub (runbooks link when configured); reference NORTH_STAR_TRUST_AND_OPS.md in docs." %}</p>
+          <a href="{% url 'super:control_health' %}" class="btn btn-outline-primary btn-sm">{% trans "Health" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-people me-2" aria-hidden="true"></span>{% trans "Support & onboarding (N26)" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Training, post-go-live support, day-two experience. Workflow Center for queues; Setup Studio for guided onboarding and launch readiness." %}</p>
+          {% if workflow_center_url %}<a href="{{ workflow_center_url }}" class="btn btn-outline-primary btn-sm me-1">{% trans "Workflow Center" %}</a>{% endif %}
+          {% if setup_studio_url %}<a href="{{ setup_studio_url }}" class="btn btn-outline-primary btn-sm">{% trans "Setup Studio" %}</a>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-code-slash me-2" aria-hidden="true"></span>{% trans "Ecosystem (N18–N20)" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Public API manifest (discovery), OpenAPI schema for staff, sandbox embed in siteconfig. See docs/DEVELOPER_PUBLIC_API.md." %}</p>
+          <a href="{{ apicenter_url }}" class="btn btn-outline-primary btn-sm">{% trans "API Center" %}</a>
+          <a href="{{ developer_api_url }}" class="btn btn-outline-secondary btn-sm ms-1" target="_blank" rel="noopener">{% trans "API manifest" %}</a>
+          <a href="{% url 'siteconfig:marketplace_sandbox_embed' %}" class="btn btn-outline-secondary btn-sm ms-1">{% trans "Sandbox" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-building me-2" aria-hidden="true"></span>{% trans "District & ERP integrations" %}</h6>
+          <p class="card-text small text-secondary">{% trans "OneRoster + SSO today; Clever/ClassLink on roadmap. SAP, Oracle, and other big ERP integration via API Center and webhooks." %}</p>
+          <a href="{{ apicenter_url }}" class="btn btn-outline-primary btn-sm">{% trans "API Center" %}</a>
         </div>
       </div>
     </div>

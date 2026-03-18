@@ -24,7 +24,9 @@ class AggregateAIGatewayMetricsCommandTests(TestCase):
         }
 
         stdout = StringIO()
-        call_command("aggregate_ai_metrics", "--date", agg_date, "--no-delete", stdout=stdout)
+        call_command(
+            "aggregate_ai_metrics", "--date", agg_date, "--no-delete", stdout=stdout
+        )
 
         metric = AIGatewayMetric.objects.get(
             date=agg_date,

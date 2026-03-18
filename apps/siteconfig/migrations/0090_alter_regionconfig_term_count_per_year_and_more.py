@@ -140,7 +140,10 @@ def seed_education_profiles(apps, schema_editor):
                 {"name": "English", "category": "GENERAL"},
                 {"name": "Science", "category": "GENERAL"},
             ],
-            "config": {"grading_logic": "percentage", "report_template_family": "global"},
+            "config": {
+                "grading_logic": "percentage",
+                "report_template_family": "global",
+            },
         },
         {
             "code": "cmr-anglophone-default",
@@ -163,7 +166,10 @@ def seed_education_profiles(apps, schema_editor):
                 {"name": "Physics", "category": "GENERAL"},
                 {"name": "History", "category": "GENERAL"},
             ],
-            "config": {"grading_logic": "numeric_0_20", "report_template_family": "cameroon"},
+            "config": {
+                "grading_logic": "numeric_0_20",
+                "report_template_family": "cameroon",
+            },
         },
         {
             "code": "cmr-francophone-default",
@@ -186,7 +192,10 @@ def seed_education_profiles(apps, schema_editor):
                 {"name": "Chimie", "category": "GENERAL"},
                 {"name": "Histoire", "category": "GENERAL"},
             ],
-            "config": {"grading_logic": "numeric_0_20", "report_template_family": "cameroon"},
+            "config": {
+                "grading_logic": "numeric_0_20",
+                "report_template_family": "cameroon",
+            },
         },
         {
             "code": "uga-national-default",
@@ -209,7 +218,10 @@ def seed_education_profiles(apps, schema_editor):
                 {"name": "Physics", "category": "GENERAL"},
                 {"name": "Geography", "category": "GENERAL"},
             ],
-            "config": {"grading_logic": "percentage", "report_template_family": "east_africa"},
+            "config": {
+                "grading_logic": "percentage",
+                "report_template_family": "east_africa",
+            },
         },
         {
             "code": "nga-national-default",
@@ -231,7 +243,10 @@ def seed_education_profiles(apps, schema_editor):
                 {"name": "Civic Education", "category": "GENERAL"},
                 {"name": "Agricultural Science", "category": "GENERAL"},
             ],
-            "config": {"grading_logic": "percentage", "report_template_family": "west_africa"},
+            "config": {
+                "grading_logic": "percentage",
+                "report_template_family": "west_africa",
+            },
         },
         {
             "code": "ken-national-default",
@@ -253,7 +268,10 @@ def seed_education_profiles(apps, schema_editor):
                 {"name": "Biology", "category": "GENERAL"},
                 {"name": "Chemistry", "category": "GENERAL"},
             ],
-            "config": {"grading_logic": "percentage", "report_template_family": "east_africa"},
+            "config": {
+                "grading_logic": "percentage",
+                "report_template_family": "east_africa",
+            },
         },
     ]
 
@@ -269,41 +287,115 @@ def seed_education_profiles(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0089_enable_rls_feature_toggle_state'),
+        ("siteconfig", "0089_enable_rls_feature_toggle_state"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='regionconfig',
-            name='term_count_per_year',
-            field=models.IntegerField(default=3, help_text='Number of instructional periods in a school year (1-12).', validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(12)]),
+            model_name="regionconfig",
+            name="term_count_per_year",
+            field=models.IntegerField(
+                default=3,
+                help_text="Number of instructional periods in a school year (1-12).",
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(12),
+                ],
+            ),
         ),
         migrations.CreateModel(
-            name='EducationSystemProfile',
+            name="EducationSystemProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.SlugField(max_length=80, unique=True)),
-                ('name', models.CharField(max_length=160)),
-                ('sub_system', models.CharField(choices=[('ANY', 'Any'), ('FR', 'French sub-system'), ('EN', 'English sub-system'), ('INT', 'International')], default='ANY', max_length=10)),
-                ('is_default', models.BooleanField(default=False)),
-                ('is_active', models.BooleanField(default=True)),
-                ('academic_year_start_month', models.IntegerField(default=9, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(12)])),
-                ('term_count_per_year', models.IntegerField(default=3, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(12)])),
-                ('term_labels', models.JSONField(blank=True, default=_default_term_labels, help_text='Ordered labels for terms/semesters (e.g. ["Term 1", "Term 2", "Term 3"]).')),
-                ('grading_scale', models.CharField(default='0-100', max_length=20)),
-                ('default_language', models.CharField(default='en', max_length=10)),
-                ('default_currency', models.CharField(default='USD', max_length=3)),
-                ('default_timezone', models.CharField(default='UTC', max_length=64)),
-                ('subject_seed', models.JSONField(blank=True, default=_default_subject_seed, help_text='Default subjects to seed when onboarding a school.')),
-                ('config', models.JSONField(blank=True, default=dict, help_text='Additional profile settings (grading logic, compliance tags, etc.).')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('region', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='education_profiles', to='siteconfig.regionconfig')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("code", models.SlugField(max_length=80, unique=True)),
+                ("name", models.CharField(max_length=160)),
+                (
+                    "sub_system",
+                    models.CharField(
+                        choices=[
+                            ("ANY", "Any"),
+                            ("FR", "French sub-system"),
+                            ("EN", "English sub-system"),
+                            ("INT", "International"),
+                        ],
+                        default="ANY",
+                        max_length=10,
+                    ),
+                ),
+                ("is_default", models.BooleanField(default=False)),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "academic_year_start_month",
+                    models.IntegerField(
+                        default=9,
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            django.core.validators.MaxValueValidator(12),
+                        ],
+                    ),
+                ),
+                (
+                    "term_count_per_year",
+                    models.IntegerField(
+                        default=3,
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            django.core.validators.MaxValueValidator(12),
+                        ],
+                    ),
+                ),
+                (
+                    "term_labels",
+                    models.JSONField(
+                        blank=True,
+                        default=_default_term_labels,
+                        help_text='Ordered labels for terms/semesters (e.g. ["Term 1", "Term 2", "Term 3"]).',
+                    ),
+                ),
+                ("grading_scale", models.CharField(default="0-100", max_length=20)),
+                ("default_language", models.CharField(default="en", max_length=10)),
+                ("default_currency", models.CharField(default="USD", max_length=3)),
+                ("default_timezone", models.CharField(default="UTC", max_length=64)),
+                (
+                    "subject_seed",
+                    models.JSONField(
+                        blank=True,
+                        default=_default_subject_seed,
+                        help_text="Default subjects to seed when onboarding a school.",
+                    ),
+                ),
+                (
+                    "config",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Additional profile settings (grading logic, compliance tags, etc.).",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "region",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="education_profiles",
+                        to="siteconfig.regionconfig",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['name', 'code'],
+                "ordering": ["name", "code"],
             },
         ),
         migrations.RunPython(seed_education_profiles, migrations.RunPython.noop),

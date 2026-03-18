@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0153_alter_tenantadmissionnumberpolicy_seq_width"),
     ]

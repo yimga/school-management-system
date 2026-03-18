@@ -112,8 +112,12 @@ class SplitBillingFlowTests(TestCase):
         )
         apply_payment(payment)
 
-        share_a = InvoicePayerShare.objects.get(invoice=invoice, guardian=self.guardian_link_a)
-        share_b = InvoicePayerShare.objects.get(invoice=invoice, guardian=self.guardian_link_b)
+        share_a = InvoicePayerShare.objects.get(
+            invoice=invoice, guardian=self.guardian_link_a
+        )
+        share_b = InvoicePayerShare.objects.get(
+            invoice=invoice, guardian=self.guardian_link_b
+        )
         self.assertEqual(share_a.paid_amount, Decimal("30.00"))
         self.assertEqual(share_a.outstanding_amount, Decimal("20.00"))
         self.assertEqual(share_a.status, InvoicePayerShare.Status.PARTIAL)
@@ -123,7 +127,9 @@ class SplitBillingFlowTests(TestCase):
 
     @patch("apps.finance.tasks.get_notification_channels", return_value=["email"])
     @patch("apps.finance.tasks._send_payment_email")
-    def test_reminder_targets_only_guardian_with_outstanding_share(self, send_email_mock, _channels_mock):
+    def test_reminder_targets_only_guardian_with_outstanding_share(
+        self, send_email_mock, _channels_mock
+    ):
         invoice = self._create_invoice()
         assign_invoice_payer_shares(
             invoice,
@@ -133,7 +139,9 @@ class SplitBillingFlowTests(TestCase):
             ],
             due_date=timezone.localdate(),
         )
-        share_a = InvoicePayerShare.objects.get(invoice=invoice, guardian=self.guardian_link_a)
+        share_a = InvoicePayerShare.objects.get(
+            invoice=invoice, guardian=self.guardian_link_a
+        )
         share_a.paid_amount = Decimal("50.00")
         share_a.refresh_status(save=False)
         share_a.save(update_fields=["paid_amount", "status", "updated_at"])
@@ -143,7 +151,14 @@ class SplitBillingFlowTests(TestCase):
         reminder.reminder_days_before = [0]
         reminder.is_active = True
         reminder.next_send_at = timezone.now() - timedelta(minutes=1)
-        reminder.save(update_fields=["reminder_channels", "reminder_days_before", "is_active", "next_send_at"])
+        reminder.save(
+            update_fields=[
+                "reminder_channels",
+                "reminder_days_before",
+                "is_active",
+                "next_send_at",
+            ]
+        )
 
         result = run_payment_reminders()
         self.assertEqual(result["sent"], 1)
@@ -153,7 +168,9 @@ class SplitBillingFlowTests(TestCase):
         self.assertIn("50.00", args[2])
 
     @patch("apps.finance.tasks.get_notification_channels", return_value=["email"])
-    @patch("apps.finance.tasks.EmailMessage.send", side_effect=SMTPException("mail failed"))
+    @patch(
+        "apps.finance.tasks.EmailMessage.send", side_effect=SMTPException("mail failed")
+    )
     def test_reminder_logs_failed_email_delivery(self, _send_mock, _channels_mock):
         invoice = self._create_invoice()
         assign_invoice_payer_shares(
@@ -166,12 +183,21 @@ class SplitBillingFlowTests(TestCase):
         reminder.reminder_days_before = [0]
         reminder.is_active = True
         reminder.next_send_at = timezone.now() - timedelta(minutes=1)
-        reminder.save(update_fields=["reminder_channels", "reminder_days_before", "is_active", "next_send_at"])
+        reminder.save(
+            update_fields=[
+                "reminder_channels",
+                "reminder_days_before",
+                "is_active",
+                "next_send_at",
+            ]
+        )
 
         result = run_payment_reminders()
 
         self.assertEqual(result["sent"], 0)
-        failure_log = PaymentReminderLog.objects.filter(reminder=reminder, status="FAILED").latest("sent_at")
+        failure_log = PaymentReminderLog.objects.filter(
+            reminder=reminder, status="FAILED"
+        ).latest("sent_at")
         self.assertIn("Failed to send email", failure_log.note)
 
     def test_invoice_list_exposes_split_summary_for_parent_and_staff(self):

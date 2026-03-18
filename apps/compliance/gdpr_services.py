@@ -21,7 +21,13 @@ from apps.platform_runtime.structured_logging import log_exception_with_context
 logger = logging.getLogger(__name__)
 
 # §2.4: Typed tuples for GDPR service paths (no broad except).
-_GDPR_GET_MODEL_ERRORS = (LookupError, ImportError, ValueError, AttributeError, TypeError)
+_GDPR_GET_MODEL_ERRORS = (
+    LookupError,
+    ImportError,
+    ValueError,
+    AttributeError,
+    TypeError,
+)
 _GDPR_AUDIT_LOG_ERRORS = (
     DatabaseError,
     IntegrityError,
@@ -31,7 +37,13 @@ _GDPR_AUDIT_LOG_ERRORS = (
     TypeError,
     ValueError,
 )
-_GDPR_FILE_DELETE_ERRORS = (OSError, PermissionError, ValueError, AttributeError, TypeError)
+_GDPR_FILE_DELETE_ERRORS = (
+    OSError,
+    PermissionError,
+    ValueError,
+    AttributeError,
+    TypeError,
+)
 _GDPR_STATUS_ASSIGN_ERRORS = (AttributeError, ValueError, TypeError)
 
 
@@ -52,14 +64,23 @@ def _anonymized_email(user_id: int) -> str:
     return f"deleted+{user_id}_{suffix}@invalid.local"
 
 
-def _log_compliance_event(*, school_id: Any, student_id: Any, action: str, detail: str, user_id: int | None = None) -> None:
+def _log_compliance_event(
+    *,
+    school_id: Any,
+    student_id: Any,
+    action: str,
+    detail: str,
+    user_id: int | None = None,
+) -> None:
     try:
         School = _get_model("schools", "School")
         ComplianceAuditLog = _get_model("compliance", "ComplianceAuditLog")
         User = _get_model("accounts", "User")
         if not School or not ComplianceAuditLog:
             return
-        school = School.objects.filter(pk=school_id).select_related("default_region").first()
+        school = (
+            School.objects.filter(pk=school_id).select_related("default_region").first()
+        )
         if not school or not getattr(school, "default_region", None):
             return
         actor = User.objects.filter(pk=user_id).first() if user_id else None
@@ -67,7 +88,11 @@ def _log_compliance_event(*, school_id: Any, student_id: Any, action: str, detai
             region=school.default_region,
             action_type="policy_enforced",
             description=detail,
-            details={"school_id": str(school_id), "student_id": str(student_id), "gdpr_action": action},
+            details={
+                "school_id": str(school_id),
+                "student_id": str(student_id),
+                "gdpr_action": action,
+            },
             user=actor,
             severity="high",
         )
@@ -111,12 +136,27 @@ def gdpr_scrub_student(
         .first()
     )
     if not student:
-        return {"ok": False, "error": "Student not found", "school_id": school_id, "student_id": student_id}
+        return {
+            "ok": False,
+            "error": "Student not found",
+            "school_id": school_id,
+            "student_id": student_id,
+        }
 
-    attendance_count = Attendance.objects.filter(student_id=student_id).count() if Attendance else 0
-    incident_count = Incident.objects.filter(student_id=student_id).count() if Incident else 0
-    evaluation_count = Evaluation.objects.filter(student_id=student_id).count() if Evaluation else 0
-    guardian_count = StudentGuardian.objects.filter(student_id=student_id).count() if StudentGuardian else 0
+    attendance_count = (
+        Attendance.objects.filter(student_id=student_id).count() if Attendance else 0
+    )
+    incident_count = (
+        Incident.objects.filter(student_id=student_id).count() if Incident else 0
+    )
+    evaluation_count = (
+        Evaluation.objects.filter(student_id=student_id).count() if Evaluation else 0
+    )
+    guardian_count = (
+        StudentGuardian.objects.filter(student_id=student_id).count()
+        if StudentGuardian
+        else 0
+    )
 
     summary = {
         "school_id": str(school_id),
@@ -176,7 +216,10 @@ def gdpr_scrub_student(
                     school_id=school_id,
                     extra={"student_id": student_id},
                 )
-                logger.debug("Could not delete student profile photo for student_id=%s", student_id)
+                logger.debug(
+                    "Could not delete student profile photo for student_id=%s",
+                    student_id,
+                )
             student.profile_photo = None
 
         gdpr_marker = {
@@ -230,12 +273,16 @@ def gdpr_scrub_student(
         if Attendance:
             Attendance.objects.filter(student_id=student_id).update(remarks="")
         if Incident:
-            Incident.objects.filter(student_id=student_id).update(description="Redacted under GDPR Art. 17")
+            Incident.objects.filter(student_id=student_id).update(
+                description="Redacted under GDPR Art. 17"
+            )
         if Evaluation:
             Evaluation.objects.filter(student_id=student_id).update(remarks="")
 
         if Applicant and old_email:
-            Applicant.objects.filter(school_id=school_id, email__iexact=old_email).update(
+            Applicant.objects.filter(
+                school_id=school_id, email__iexact=old_email
+            ).update(
                 first_name="Deleted",
                 last_name=f"Applicant-{student.pk}",
                 email=_anonymized_email(student.pk),
@@ -275,7 +322,9 @@ def _student_core_payload(student) -> dict[str, Any]:
         "student_code": student.student_code,
         "admission_number": student.admission_number,
         "gender": student.gender,
-        "date_of_birth": student.date_of_birth.isoformat() if student.date_of_birth else None,
+        "date_of_birth": student.date_of_birth.isoformat()
+        if student.date_of_birth
+        else None,
         "status": student.status,
         "joined_date": student.joined_date.isoformat() if student.joined_date else None,
         "classroom_id": student.classroom_id,
@@ -286,7 +335,9 @@ def _student_core_payload(student) -> dict[str, Any]:
     }
 
 
-def export_student_data_portability(school_id: int, student_id: int, format: str = "json") -> dict[str, Any] | None:
+def export_student_data_portability(
+    school_id: int, student_id: int, format: str = "json"
+) -> dict[str, Any] | None:
     """
     Data Portability (GDPR Art. 20).
     Caller must enforce MFA before calling.
@@ -314,7 +365,9 @@ def export_student_data_portability(school_id: int, student_id: int, format: str
 
     guardians_payload: list[dict[str, Any]] = []
     if StudentGuardian:
-        guardians = StudentGuardian.objects.filter(student_id=student_id).select_related("guardian_user")
+        guardians = StudentGuardian.objects.filter(
+            student_id=student_id
+        ).select_related("guardian_user")
         for guardian in guardians:
             user = getattr(guardian, "guardian_user", None)
             guardians_payload.append(
@@ -340,7 +393,9 @@ def export_student_data_portability(school_id: int, student_id: int, format: str
             evaluations_payload.append(
                 {
                     "id": ev.pk,
-                    "academic_year": getattr(getattr(ev, "academic_year", None), "name", ""),
+                    "academic_year": getattr(
+                        getattr(ev, "academic_year", None), "name", ""
+                    ),
                     "term": getattr(getattr(ev, "term", None), "name", ""),
                     "subject": getattr(subject, "name", ""),
                     "seq1_score": ev.seq1_score,
@@ -355,7 +410,9 @@ def export_student_data_portability(school_id: int, student_id: int, format: str
 
     attendance_payload: list[dict[str, Any]] = []
     if Attendance:
-        for row in Attendance.objects.filter(school_id=school_id, student_id=student_id).order_by("date"):
+        for row in Attendance.objects.filter(
+            school_id=school_id, student_id=student_id
+        ).order_by("date"):
             attendance_payload.append(
                 {
                     "id": row.pk,
@@ -368,7 +425,9 @@ def export_student_data_portability(school_id: int, student_id: int, format: str
 
     incidents_payload: list[dict[str, Any]] = []
     if Incident:
-        for row in Incident.objects.filter(school_id=school_id, student_id=student_id).order_by("-date"):
+        for row in Incident.objects.filter(
+            school_id=school_id, student_id=student_id
+        ).order_by("-date"):
             incidents_payload.append(
                 {
                     "id": row.pk,
@@ -382,14 +441,18 @@ def export_student_data_portability(school_id: int, student_id: int, format: str
 
     invoices_payload: list[dict[str, Any]] = []
     if Invoice:
-        invoices = Invoice.objects.filter(school_id=school_id, student_id=student_id).order_by("-issued_date")
+        invoices = Invoice.objects.filter(
+            school_id=school_id, student_id=student_id
+        ).order_by("-issued_date")
         for row in invoices:
             invoices_payload.append(
                 {
                     "id": row.pk,
                     "reference": row.reference,
                     "status": row.status,
-                    "issued_date": row.issued_date.isoformat() if row.issued_date else None,
+                    "issued_date": row.issued_date.isoformat()
+                    if row.issued_date
+                    else None,
                     "due_date": row.due_date.isoformat() if row.due_date else None,
                     "total_amount": row.total_amount,
                     "balance_amount": row.balance_amount,
@@ -399,7 +462,9 @@ def export_student_data_portability(school_id: int, student_id: int, format: str
 
     payments_payload: list[dict[str, Any]] = []
     if Payment:
-        payments = Payment.objects.filter(school_id=school_id, student_id=student_id).order_by("-paid_at")
+        payments = Payment.objects.filter(
+            school_id=school_id, student_id=student_id
+        ).order_by("-paid_at")
         for row in payments:
             payments_payload.append(
                 {

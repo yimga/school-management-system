@@ -10,6 +10,7 @@ Use as Release Command on Render so login works after every deploy.
 Example Release Command:
   python manage.py migrate --noinput && python manage.py seed_render_users
 """
+
 import os
 from django.core.management import BaseCommand, call_command
 
@@ -22,15 +23,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         tenant_slug = (os.environ.get("DEFAULT_TENANT_SLUG") or "").strip()
-        tenant_admin_username = (os.environ.get("DEFAULT_TENANT_ADMIN_USERNAME") or "tenant_admin").strip()
-        tenant_admin_password = (os.environ.get("DEFAULT_TENANT_ADMIN_PASSWORD") or "Sch00l_1234").strip()
+        tenant_admin_username = (
+            os.environ.get("DEFAULT_TENANT_ADMIN_USERNAME") or "tenant_admin"
+        ).strip()
+        tenant_admin_password = (
+            os.environ.get("DEFAULT_TENANT_ADMIN_PASSWORD") or "Sch00l_1234"
+        ).strip()
 
         # 1. Always ensure platform super-admin: username=admin, password=admin (no env override)
         call_command(
             "ensure_superuser",
-            "--username", "admin",
-            "--password", "admin",
-            "--email", "admin@example.com",
+            "--username",
+            "admin",
+            "--password",
+            "admin",
+            "--email",
+            "admin@example.com",
             "--no-input",
             verbosity=options.get("verbosity", 1),
         )
@@ -43,8 +51,10 @@ class Command(BaseCommand):
         # 2. Tenant admin: configurable bootstrap account for one tenant login surface.
         ensure_tenant_admin_args = [
             "ensure_default_tenant_admin",
-            "--username", tenant_admin_username,
-            "--password", tenant_admin_password,
+            "--username",
+            tenant_admin_username,
+            "--password",
+            tenant_admin_password,
         ]
         if tenant_slug:
             ensure_tenant_admin_args.extend(["--slug", tenant_slug])
@@ -55,10 +65,14 @@ class Command(BaseCommand):
         if tenant_password:
             call_command(
                 "create_teacher_parent_accounts",
-                "--teacher-username", "teacher1",
-                "--parent-username", "Parent1",
-                "--principal-username", "principal1",
-                "--password", tenant_password,
+                "--teacher-username",
+                "teacher1",
+                "--parent-username",
+                "Parent1",
+                "--principal-username",
+                "principal1",
+                "--password",
+                tenant_password,
                 verbosity=options.get("verbosity", 1),
             )
             self.stdout.write(

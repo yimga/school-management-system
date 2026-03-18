@@ -15,18 +15,19 @@ class OwnerScopedConsumerTests(TestCase):
         site = type(
             "Site",
             (),
-            {
-                "get_feature_control_settings": lambda self: {
-                    "maintenance_mode": True
-                }
-            },
+            {"get_feature_control_settings": lambda self: {"maintenance_mode": True}},
         )()
 
-        with patch(
-            "apps.siteconfig.middleware.maintenance_mode.get_effective_site_settings",
-            return_value=site,
-        ), patch("apps.siteconfig.middleware.maintenance_mode.cache.get", return_value=None), patch(
-            "apps.siteconfig.middleware.maintenance_mode.cache.set"
+        with (
+            patch(
+                "apps.siteconfig.middleware.maintenance_mode.get_effective_site_settings",
+                return_value=site,
+            ),
+            patch(
+                "apps.siteconfig.middleware.maintenance_mode.cache.get",
+                return_value=None,
+            ),
+            patch("apps.siteconfig.middleware.maintenance_mode.cache.set"),
         ):
             self.assertTrue(MaintenanceModeMiddleware._is_maintenance_enabled(request))
 

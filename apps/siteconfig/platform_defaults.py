@@ -2,6 +2,7 @@
 Platform defaults for site config (B2 — SiteSettings holds platform defaults only).
 Canonical default values used when no tenant/school override exists.
 """
+
 from __future__ import annotations
 
 # Keys and defaults used by get_effective_* and runtime; avoid reading SiteSettings in tenant paths.

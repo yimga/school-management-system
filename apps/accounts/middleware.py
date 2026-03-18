@@ -28,10 +28,18 @@ class ManagerCookieIsolationMiddleware:
         self.get_response = get_response
         self.session_cookie_name = settings.SESSION_COOKIE_NAME
         self.csrf_cookie_name = settings.CSRF_COOKIE_NAME
-        self.manager_session_cookie_name = getattr(settings, "MANAGER_SESSION_COOKIE_NAME", "rmc_manager_sessionid")
-        self.manager_csrf_cookie_name = getattr(settings, "MANAGER_CSRF_COOKIE_NAME", "rmc_manager_csrftoken")
-        self.manager_session_cookie_domain = getattr(settings, "MANAGER_SESSION_COOKIE_DOMAIN", None)
-        self.manager_csrf_cookie_domain = getattr(settings, "MANAGER_CSRF_COOKIE_DOMAIN", None)
+        self.manager_session_cookie_name = getattr(
+            settings, "MANAGER_SESSION_COOKIE_NAME", "rmc_manager_sessionid"
+        )
+        self.manager_csrf_cookie_name = getattr(
+            settings, "MANAGER_CSRF_COOKIE_NAME", "rmc_manager_csrftoken"
+        )
+        self.manager_session_cookie_domain = getattr(
+            settings, "MANAGER_SESSION_COOKIE_DOMAIN", None
+        )
+        self.manager_csrf_cookie_domain = getattr(
+            settings, "MANAGER_CSRF_COOKIE_DOMAIN", None
+        )
 
     def __call__(self, request):
         self._alias_request_cookies(request)
@@ -39,7 +47,11 @@ class ManagerCookieIsolationMiddleware:
         return self._rewrite_response_cookies(request, response)
 
     def _is_manager_request(self, request) -> bool:
-        host = (request.META.get("HTTP_HOST") or request.META.get("SERVER_NAME") or "").strip().lower()
+        host = (
+            (request.META.get("HTTP_HOST") or request.META.get("SERVER_NAME") or "")
+            .strip()
+            .lower()
+        )
         return public_host_kind(host) == "manager"
 
     def _alias_request_cookies(self, request):
@@ -56,13 +68,17 @@ class ManagerCookieIsolationMiddleware:
             (self.manager_csrf_cookie_name, self.csrf_cookie_name),
         ):
             default_morsel = cookie.get(default_name)
-            default_blank = default_morsel is None or str(default_morsel.value or "").strip() == ""
+            default_blank = (
+                default_morsel is None or str(default_morsel.value or "").strip() == ""
+            )
             if manager_name in cookie and default_blank:
                 cookie[default_name] = cookie[manager_name].value
                 changed = True
         if not changed:
             return
-        request.META["HTTP_COOKIE"] = "; ".join(f"{key}={morsel.value}" for key, morsel in cookie.items())
+        request.META["HTTP_COOKIE"] = "; ".join(
+            f"{key}={morsel.value}" for key, morsel in cookie.items()
+        )
         request.COOKIES = {key: morsel.value for key, morsel in cookie.items()}
 
     def _rewrite_response_cookies(self, request, response):
@@ -84,7 +100,15 @@ class ManagerCookieIsolationMiddleware:
         )
         return response
 
-    def _mirror_cookie(self, response, *, source_name: str, target_name: str, target_domain, source_domain):
+    def _mirror_cookie(
+        self,
+        response,
+        *,
+        source_name: str,
+        target_name: str,
+        target_domain,
+        source_domain,
+    ):
         morsel = response.cookies.get(source_name)
         if morsel is None:
             return
@@ -94,7 +118,9 @@ class ManagerCookieIsolationMiddleware:
         httponly = bool(morsel["httponly"])
         delete_cookie = self._morsel_is_delete(morsel)
         if delete_cookie:
-            response.delete_cookie(target_name, path=path, domain=target_domain, samesite=samesite)
+            response.delete_cookie(
+                target_name, path=path, domain=target_domain, samesite=samesite
+            )
         else:
             response.set_cookie(
                 target_name,
@@ -107,7 +133,9 @@ class ManagerCookieIsolationMiddleware:
                 httponly=httponly,
                 samesite=samesite,
             )
-        response.delete_cookie(source_name, path=path, domain=source_domain, samesite=samesite)
+        response.delete_cookie(
+            source_name, path=path, domain=source_domain, samesite=samesite
+        )
 
     @staticmethod
     def _parse_int(value):
@@ -223,7 +251,10 @@ class ModuleAccessMiddleware:
         # Allow guardians to POST to finance request-access URLs without full finance module access
         if module == "finance" and request.resolver_match:
             view_name = request.resolver_match.view_name
-            if view_name in ("finance:invoice_request_access", "finance:finance_request_access"):
+            if view_name in (
+                "finance:invoice_request_access",
+                "finance:finance_request_access",
+            ):
                 return self.get_response(request)
 
         action = "read" if request.method in self.SAFE_METHODS else "write"
@@ -233,7 +264,11 @@ class ModuleAccessMiddleware:
         # For /api/ paths return JSON so API clients get machine-readable errors
         if path.startswith("/api/"):
             return JsonResponse(
-                {"detail": "You do not have access to this module.", "module": module, "action": action},
+                {
+                    "detail": "You do not have access to this module.",
+                    "module": module,
+                    "action": action,
+                },
                 status=403,
             )
         # Block with a friendly request-access page for HTML requests
@@ -252,11 +287,14 @@ class ModuleAccessMiddleware:
         return HttpResponseForbidden("You do not have access to this module.")
 
     def _accepts_html(self, request) -> bool:
-        path = (getattr(request, "path", "") or "")
+        path = getattr(request, "path", "") or ""
         # API clients often send Accept: */*; treat as JSON for /api/ so they get JSON error responses
         if path.startswith("/api/"):
             accept = request.headers.get("Accept", "")
-            return "text/html" in accept and "*/*" not in (accept or "").split(",")[0].strip()
+            return (
+                "text/html" in accept
+                and "*/*" not in (accept or "").split(",")[0].strip()
+            )
         accept = request.headers.get("Accept", "")
         return "text/html" in accept or "*/*" in accept
 
@@ -280,7 +318,21 @@ class ModuleAccessMiddleware:
         ("/academics/", "academics"),
     )
     MODULE_LIKE_FIRST_SEGMENTS = frozenset(
-        {"admin", "api", "portal", "evals", "finance", "reports", "people", "analytics", "payroll", "compliance", "communication", "requests", "academics"}
+        {
+            "admin",
+            "api",
+            "portal",
+            "evals",
+            "finance",
+            "reports",
+            "people",
+            "analytics",
+            "payroll",
+            "compliance",
+            "communication",
+            "requests",
+            "academics",
+        }
     )
 
     def _path_looks_module_like(self, path: str) -> bool:
@@ -349,11 +401,17 @@ class TenantHostControlPlaneIsolationMiddleware:
             return self.get_response(request)
 
         path = request.path or "/"
-        if path in self.ALLOWED_TENANT_PATHS or any(path.startswith(prefix) for prefix in self.ALLOWED_TENANT_PREFIXES):
+        if path in self.ALLOWED_TENANT_PATHS or any(
+            path.startswith(prefix) for prefix in self.ALLOWED_TENANT_PREFIXES
+        ):
             return self.get_response(request)
 
         user = getattr(request, "user", None)
-        if not user or not user.is_authenticated or getattr(user, "is_superuser", False):
+        if (
+            not user
+            or not user.is_authenticated
+            or getattr(user, "is_superuser", False)
+        ):
             return self.get_response(request)
 
         role = (getattr(user, "role", "") or "").upper()
@@ -373,7 +431,18 @@ class RequireMFAMiddleware:
     Phase 4: When SiteSettings.require_mfa_roles contains the user's role,
     redirect to MFA setup if they have no TOTP device (zero-cost MFA for compliance).
     """
-    BYPASS_PREFIXES = ("/static/", "/media/", "/favicon.ico", "/health/", "/healthz/", "/ready", "/status/", "/metrics/", "/api/")
+
+    BYPASS_PREFIXES = (
+        "/static/",
+        "/media/",
+        "/favicon.ico",
+        "/health/",
+        "/healthz/",
+        "/ready",
+        "/status/",
+        "/metrics/",
+        "/api/",
+    )
     BYPASS_PATHS = (
         "/authentication/login/",
         "/authentication/logout/",
@@ -389,7 +458,10 @@ class RequireMFAMiddleware:
 
     def __call__(self, request):
         path = (request.path or "").rstrip("/") or "/"
-        if any(path.startswith(p) for p in self.BYPASS_PREFIXES) or path in self.BYPASS_PATHS:
+        if (
+            any(path.startswith(p) for p in self.BYPASS_PREFIXES)
+            or path in self.BYPASS_PATHS
+        ):
             return self.get_response(request)
         # Allow MFA setup, verify, and passkey endpoints so user can complete setup
         if "/mfa/setup" in path or "/mfa/verify" in path or "/mfa/passkey/" in path:
@@ -426,24 +498,39 @@ class RequireMFAMiddleware:
 
             # Ensure only confirmed TOTP devices count as configured MFA
             if not has_device:
-                has_device = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
+                has_device = TOTPDevice.objects.filter(
+                    user=user, confirmed=True
+                ).exists()
             # WebAuthn/Passkey also counts as MFA (25.5, 29.1)
             if not has_device:
                 from apps.accounts.models import UserPasskey
+
                 has_device = UserPasskey.objects.filter(user=user).exists()
 
             # If MFA is required OR user has MFA configured, enforce verification
             if must_have_mfa and not has_device:
                 mfa_setup_url = reverse("accounts:mfa_setup")
-                if path != mfa_setup_url.rstrip("/") and not path.endswith(mfa_setup_url):
-                    return redirect(mfa_setup_url + "?next=" + (request.GET.get("next") or request.path))
+                if path != mfa_setup_url.rstrip("/") and not path.endswith(
+                    mfa_setup_url
+                ):
+                    return redirect(
+                        mfa_setup_url
+                        + "?next="
+                        + (request.GET.get("next") or request.path)
+                    )
                 return self.get_response(request)
 
             if has_device or must_have_mfa:
                 if not self._is_mfa_verified(request):
                     mfa_verify_url = reverse("accounts:mfa_verify")
-                    if path != mfa_verify_url.rstrip("/") and not path.endswith(mfa_verify_url):
-                        return redirect(mfa_verify_url + "?next=" + (request.GET.get("next") or request.path))
+                    if path != mfa_verify_url.rstrip("/") and not path.endswith(
+                        mfa_verify_url
+                    ):
+                        return redirect(
+                            mfa_verify_url
+                            + "?next="
+                            + (request.GET.get("next") or request.path)
+                        )
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
         return self.get_response(request)
@@ -458,7 +545,9 @@ class RequireMFAMiddleware:
         try:
             until_dt = timezone.datetime.fromisoformat(until_raw)
             if timezone.is_naive(until_dt):
-                until_dt = timezone.make_aware(until_dt, timezone.get_current_timezone())
+                until_dt = timezone.make_aware(
+                    until_dt, timezone.get_current_timezone()
+                )
             if timezone.now() <= until_dt:
                 return True
         except (ValueError, TypeError, AttributeError):
@@ -488,7 +577,10 @@ class ImpossibleTravelMiddleware:
                 pass
             try:
                 from apps.accounts.security_audit import check_impossible_travel
+
                 check_impossible_travel(request, user)
             except (ValueError, TypeError, ImportError, AttributeError, OSError) as e:
-                logger.exception("ImpossibleTravelMiddleware: check_impossible_travel failed: %s", e)
+                logger.exception(
+                    "ImpossibleTravelMiddleware: check_impossible_travel failed: %s", e
+                )
         return response

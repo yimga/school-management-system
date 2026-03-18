@@ -4,6 +4,7 @@ Run: python manage.py verify_custom_domains
 Uses socket.getaddrinfo to check that the custom_domain resolves; optional CNAME check.
 §2.4: invalidate_policy_cache wrapped with typed exceptions + logger.debug.
 """
+
 import logging
 import socket
 
@@ -18,11 +19,15 @@ class Command(BaseCommand):
     help = "Verify school custom domains via DNS and set custom_domain_verified."
 
     def add_arguments(self, parser):
-        parser.add_argument("--dry-run", action="store_true", help="Only print, do not update.")
+        parser.add_argument(
+            "--dry-run", action="store_true", help="Only print, do not update."
+        )
 
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
-        for school in School.objects.exclude(custom_domain="").filter(custom_domain__isnull=False):
+        for school in School.objects.exclude(custom_domain="").filter(
+            custom_domain__isnull=False
+        ):
             domain = (school.custom_domain or "").strip()
             if not domain:
                 continue
@@ -32,7 +37,9 @@ class Command(BaseCommand):
                     if not dry_run:
                         school.custom_domain_verified = True
                         settings_payload = dict(school.settings or {})
-                        custom_domain_payload = dict(settings_payload.get("custom_domain") or {})
+                        custom_domain_payload = dict(
+                            settings_payload.get("custom_domain") or {}
+                        )
                         custom_domain_payload.update(
                             {
                                 "hostname": domain,
@@ -42,12 +49,29 @@ class Command(BaseCommand):
                         )
                         settings_payload["custom_domain"] = custom_domain_payload
                         school.settings = settings_payload
-                        school.save(update_fields=["custom_domain_verified", "settings", "updated_at"])
+                        school.save(
+                            update_fields=[
+                                "custom_domain_verified",
+                                "settings",
+                                "updated_at",
+                            ]
+                        )
                         try:
-                            from apps.policies.policy_registry import invalidate_policy_cache
+                            from apps.policies.policy_registry import (
+                                invalidate_policy_cache,
+                            )
+
                             invalidate_policy_cache(school)
-                        except (ImportError, AttributeError, TypeError, ValueError) as e:
-                            logger.debug("verify_custom_domains invalidate_policy_cache (verified): %s", e)
+                        except (
+                            ImportError,
+                            AttributeError,
+                            TypeError,
+                            ValueError,
+                        ) as e:
+                            logger.debug(
+                                "verify_custom_domains invalidate_policy_cache (verified): %s",
+                                e,
+                            )
                         SchoolProvisioningEvent.log_event(
                             school=school,
                             event_type=SchoolProvisioningEvent.EventType.DOMAIN_VERIFIED,
@@ -55,7 +79,11 @@ class Command(BaseCommand):
                             message=f"Custom domain {domain} verified via DNS resolution.",
                             payload={"hostname": domain},
                         )
-                    self.stdout.write(self.style.SUCCESS(f"{school.name}: {domain} resolves -> verified"))
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"{school.name}: {domain} resolves -> verified"
+                        )
+                    )
                 else:
                     self.stdout.write(f"{school.name}: {domain} already verified")
             except (socket.gaierror, OSError) as e:
@@ -63,7 +91,9 @@ class Command(BaseCommand):
                     if not dry_run:
                         school.custom_domain_verified = False
                         settings_payload = dict(school.settings or {})
-                        custom_domain_payload = dict(settings_payload.get("custom_domain") or {})
+                        custom_domain_payload = dict(
+                            settings_payload.get("custom_domain") or {}
+                        )
                         custom_domain_payload.update(
                             {
                                 "hostname": domain,
@@ -73,12 +103,29 @@ class Command(BaseCommand):
                         )
                         settings_payload["custom_domain"] = custom_domain_payload
                         school.settings = settings_payload
-                        school.save(update_fields=["custom_domain_verified", "settings", "updated_at"])
+                        school.save(
+                            update_fields=[
+                                "custom_domain_verified",
+                                "settings",
+                                "updated_at",
+                            ]
+                        )
                         try:
-                            from apps.policies.policy_registry import invalidate_policy_cache
+                            from apps.policies.policy_registry import (
+                                invalidate_policy_cache,
+                            )
+
                             invalidate_policy_cache(school)
-                        except (ImportError, AttributeError, TypeError, ValueError) as e:
-                            logger.debug("verify_custom_domains invalidate_policy_cache (unverified): %s", e)
+                        except (
+                            ImportError,
+                            AttributeError,
+                            TypeError,
+                            ValueError,
+                        ) as e:
+                            logger.debug(
+                                "verify_custom_domains invalidate_policy_cache (unverified): %s",
+                                e,
+                            )
                         SchoolProvisioningEvent.log_event(
                             school=school,
                             event_type=SchoolProvisioningEvent.EventType.DOMAIN_UNVERIFIED,
@@ -86,6 +133,14 @@ class Command(BaseCommand):
                             message=f"Custom domain {domain} no longer resolves.",
                             payload={"hostname": domain},
                         )
-                    self.stdout.write(self.style.WARNING(f"{school.name}: {domain} no longer resolves -> unverified"))
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"{school.name}: {domain} no longer resolves -> unverified"
+                        )
+                    )
                 else:
-                    self.stdout.write(self.style.NOTICE(f"{school.name}: {domain} does not resolve ({e})"))
+                    self.stdout.write(
+                        self.style.NOTICE(
+                            f"{school.name}: {domain} does not resolve ({e})"
+                        )
+                    )

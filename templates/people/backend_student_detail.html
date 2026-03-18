@@ -1,0 +1,119 @@
+{% extends "backend_base.html" %}
+{% load i18n static region_format %}
+{% block backend_title %}{% trans "Student 360" %} — {{ student.first_name }} {{ student.last_name }}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/student-360-bento.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container-fluid py-4 student-360-page" data-page-archetype="record-detail">
+  <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_student_list' %}">{% trans "Students" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ student.first_name }} {{ student.last_name }}</li>
+    </ol>
+  </nav>
+
+  {% include "studio_os/components/page_header.html" with title=student_display_name subtitle="Student 360 — one record across modules" %}
+
+  <div class="row g-3 student-360-bento mt-2">
+    {% with d=record.data %}
+    <div class="col-lg-4 col-md-6">
+      <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="ban">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-1 fw-semibold">{% trans "Profile" %}</p>
+          <h3 class="h4 mb-2">{{ d.profile.classroom_name|default:"—" }}</h3>
+          <p class="mb-1 small"><strong>{% trans "Code" %}:</strong> {{ d.profile.student_code|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Admission" %}:</strong> {{ d.profile.admission_number|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Year" %}:</strong> {{ d.profile.academic_year_name|default:"—" }}</p>
+          <p class="mb-0 small"><strong>{% trans "Status" %}:</strong> {{ d.profile.status|default:"—" }}</p>
+        </div>
+        <div class="card-footer bg-transparent border-top-0 pt-0">
+          <a href="{{ detail_urls.admin_student }}" class="btn btn-sm btn-outline-primary">{% trans "Open in Admin" %}</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6">
+      <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="trend">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Academics" %}</p>
+          {% if d.academics.recent_evaluations %}
+          <ul class="list-unstyled mb-0 small">
+            {% for ev in d.academics.recent_evaluations %}
+            <li class="d-flex justify-content-between py-1 border-bottom border-light">
+              <span>{{ ev.subject }}{% if ev.term %} <span class="text-muted">({{ ev.term }})</span>{% endif %}</span>
+              {% if ev.score is not None %}<strong>{{ ev.score }}</strong>{% else %}<span class="text-muted">—</span>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="text-muted small mb-0">{% trans "No evaluations on file yet." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6">
+      <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="ban">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-1 fw-semibold">{% trans "Attendance" %}</p>
+          {% if d.attendance.last_date %}
+          <h3 class="h5 mb-1">{{ d.attendance.last_status_display }}</h3>
+          <p class="small text-muted mb-0">{{ d.attendance.last_date }} — {{ d.attendance.classroom }}</p>
+          {% else %}
+          <p class="text-muted small mb-0">{% trans "No attendance records yet." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="drill-down">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Finance" %}</p>
+          <p class="display-6 fs-3 mb-2">{{ d.finance.currency_code }} {{ d.finance.pending_total }}</p>
+          <p class="small text-muted mb-2">{% trans "Outstanding balance (open invoices)" %}</p>
+          {% if d.finance.open_invoices %}
+          <ul class="list-unstyled small mb-0">
+            {% for inv in d.finance.open_invoices %}
+            <li class="py-1 border-bottom border-light d-flex justify-content-between">
+              <a href="{% url 'finance:invoice_detail' inv.id %}">{{ inv.reference }}</a>
+              <span>{{ inv.balance }} <span class="text-muted">({{ inv.status }})</span></span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="small text-success mb-0">{% trans "No open balances." %}</p>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-transparent border-top-0 pt-0">
+          <a href="{{ detail_urls.invoices }}" class="btn btn-sm btn-outline-secondary">{% trans "All invoices" %}</a>
+          {% if d.finance.open_invoices %}
+          <a href="{{ detail_urls.primary_invoice }}" class="btn btn-sm btn-primary ms-1">{% trans "Top invoice" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="drill-down">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Communications" %}</p>
+          {% if d.communications.latest %}
+          <p class="fw-semibold mb-1">{{ d.communications.latest.subject }}</p>
+          <p class="small text-muted mb-2">{{ d.communications.latest.preview }}</p>
+          <p class="small mb-0"><span class="text-muted">{% trans "With" %}:</span> {{ d.communications.latest.counterparty }} · {{ d.communications.latest.created_at }}</p>
+          {% else %}
+          <p class="text-muted small mb-0">{% trans "No recent messages linked to this student's guardians." %}</p>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-transparent border-top-0 pt-0">
+          <a href="{{ detail_urls.messages }}" class="btn btn-sm btn-outline-secondary">{% trans "Messages" %}</a>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+  </div>
+</div>
+{% endblock %}

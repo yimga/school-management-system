@@ -10,7 +10,12 @@ class Command(BaseCommand):
     help = "Execute due revenue-share payouts through configured platform billing processors."
 
     def add_arguments(self, parser):
-        parser.add_argument("--limit", type=int, default=50, help="Maximum number of payouts to execute.")
+        parser.add_argument(
+            "--limit",
+            type=int,
+            default=50,
+            help="Maximum number of payouts to execute.",
+        )
         parser.add_argument(
             "--include-failed",
             action="store_true",

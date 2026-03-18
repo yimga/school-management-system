@@ -52,7 +52,8 @@ class SamlViewsTests(TestCase):
 
     def test_saml_start_redirects_with_authn_request(self):
         response = self.client.get(
-            reverse("accounts:saml_start", args=[self.integration.pk]) + f"?school_slug={self.school.slug}"
+            reverse("accounts:saml_start", args=[self.integration.pk])
+            + f"?school_slug={self.school.slug}"
         )
         self.assertEqual(response.status_code, 302)
         self.assertIn("https://idp.example.com/sso", response["Location"])
@@ -62,13 +63,16 @@ class SamlViewsTests(TestCase):
 
     def test_saml_acs_provisions_user_and_membership(self):
         start = self.client.get(
-            reverse("accounts:saml_start", args=[self.integration.pk]) + f"?school_slug={self.school.slug}&next=/portal/"
+            reverse("accounts:saml_start", args=[self.integration.pk])
+            + f"?school_slug={self.school.slug}&next=/portal/"
         )
         self.assertEqual(start.status_code, 302)
         query = parse_qs(urlparse(start["Location"]).query)
         relay_state = query["RelayState"][0]
 
-        saml_response = base64.b64encode(self._saml_response_xml().encode("utf-8")).decode("utf-8")
+        saml_response = base64.b64encode(
+            self._saml_response_xml().encode("utf-8")
+        ).decode("utf-8")
         callback = self.client.post(
             reverse("accounts:saml_acs", args=[self.integration.pk]),
             {"RelayState": relay_state, "SAMLResponse": saml_response},
@@ -78,14 +82,20 @@ class SamlViewsTests(TestCase):
 
         user = User.objects.get(email="teacher.saml@example.com")
         self.assertEqual(user.role, User.Role.TEACHER)
-        self.assertTrue(SchoolMembership.objects.filter(school=self.school, user=user).exists())
+        self.assertTrue(
+            SchoolMembership.objects.filter(school=self.school, user=user).exists()
+        )
 
     def test_saml_acs_rejects_get_requests(self):
-        response = self.client.get(reverse("accounts:saml_acs", args=[self.integration.pk]))
+        response = self.client.get(
+            reverse("accounts:saml_acs", args=[self.integration.pk])
+        )
         self.assertEqual(response.status_code, 405)
 
     def test_saml_metadata_returns_xml(self):
-        response = self.client.get(reverse("accounts:saml_metadata", args=[self.integration.pk]))
+        response = self.client.get(
+            reverse("accounts:saml_metadata", args=[self.integration.pk])
+        )
         self.assertEqual(response.status_code, 200)
         content = response.content.decode("utf-8")
         self.assertIn("EntityDescriptor", content)

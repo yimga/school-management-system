@@ -1,6 +1,7 @@
 """
 Tests for §3.3 unified lineage API (usage_registry + package lineage + blast radius).
 """
+
 from django.test import TestCase
 
 from apps.metadata.lineage_api import get_unified_lineage

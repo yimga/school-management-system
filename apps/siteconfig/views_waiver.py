@@ -13,9 +13,13 @@ def request_waiver(request):
     """School admin submits a waiver request (reason + optional proof). Super Admin approves/denies in Django admin."""
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(request, "Select your school (use your school subdomain) to request a waiver.")
+        messages.warning(
+            request,
+            "Select your school (use your school subdomain) to request a waiver.",
+        )
         return redirect("portal:home")
     from .models import WaiverRequest
+
     if request.method == "POST":
         reason = (request.POST.get("reason") or "").strip()
         if not reason:
@@ -30,10 +34,16 @@ def request_waiver(request):
         if proof_file:
             wr.proof_file = proof_file
             wr.save(update_fields=["proof_file", "updated_at"])
-        messages.success(request, "Waiver request submitted. A Super Admin will review it.")
+        messages.success(
+            request, "Waiver request submitted. A Super Admin will review it."
+        )
         return redirect("siteconfig:request_waiver")
     pending = WaiverRequest.objects.filter(school=school).order_by("-created_at")[:10]
-    return render(request, "siteconfig/request_waiver.html", {
-        "school": school,
-        "pending_requests": pending,
-    })
+    return render(
+        request,
+        "siteconfig/request_waiver.html",
+        {
+            "school": school,
+            "pending_requests": pending,
+        },
+    )

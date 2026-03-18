@@ -5,6 +5,7 @@ Use these to decide if a user can act as Teacher or Parent in the portal.
 Effective portal role (session) drives sidebar and redirect; these helpers
 drive access control and UI visibility.
 """
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 from apps.platform_runtime.helpers import get_effective_site_settings
@@ -33,6 +34,7 @@ def has_teacher_hat(user) -> bool:
     if not user or not getattr(user, "is_authenticated", False):
         return False
     from apps.people.models import TeacherProfile
+
     return TeacherProfile.objects.filter(user=user).exists()
 
 
@@ -43,6 +45,7 @@ def has_parent_hat(user) -> bool:
     if not user or not getattr(user, "is_authenticated", False):
         return False
     from apps.people.models import StudentGuardian
+
     return StudentGuardian.objects.filter(guardian_user=user).exists()
 
 
@@ -86,14 +89,23 @@ def get_effective_portal_role(request) -> str:
     if has_teacher and has_parent:
         try:
             from apps.siteconfig.models import UserPreference
-            pref = UserPreference.objects.filter(user=user).only("last_portal_role").first()
+
+            pref = (
+                UserPreference.objects.filter(user=user)
+                .only("last_portal_role")
+                .first()
+            )
             saved = (getattr(pref, "last_portal_role", "") or "").strip().upper()
             if saved in ALLOWED_PORTAL_ROLES:
                 request.session[ACTIVE_PORTAL_ROLE_KEY] = saved
                 return saved
             # No valid user preference: fall back to site-level default
             site = get_effective_site_settings(request=request)
-            default_role = (getattr(site, "default_portal_role_dual_role", "") or "").strip().upper()
+            default_role = (
+                (getattr(site, "default_portal_role_dual_role", "") or "")
+                .strip()
+                .upper()
+            )
             if default_role in ALLOWED_PORTAL_ROLES:
                 request.session[ACTIVE_PORTAL_ROLE_KEY] = default_role
                 if pref is None:

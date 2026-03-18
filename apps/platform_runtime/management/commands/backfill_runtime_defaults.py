@@ -3,6 +3,7 @@ Phase 10 — 1.2: Backfill RuntimeDefaults.payload from SiteSettings.
 Run after deploying RuntimeDefaults; get_effective_site_settings will prefer this
 payload before falling back to legacy singleton fields.
 """
+
 from django.core.management.base import BaseCommand
 
 from apps.siteconfig.domain_ownership import OWNERSHIP_DOMAINS

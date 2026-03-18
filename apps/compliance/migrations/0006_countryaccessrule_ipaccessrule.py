@@ -6,49 +6,137 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compliance', '0005_threatdetectionconfig'),
+        ("compliance", "0005_threatdetectionconfig"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CountryAccessRule',
+            name="CountryAccessRule",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('rule_type', models.CharField(choices=[('ALLOW', 'Allow (Whitelist)'), ('DENY', 'Deny (Blacklist)')], max_length=10)),
-                ('country_code', models.CharField(help_text='ISO 3166-1 alpha-2 code (e.g., CM, NG, US)', max_length=2)),
-                ('country_name', models.CharField(blank=True, help_text='Human-readable name', max_length=100)),
-                ('description', models.CharField(blank=True, max_length=255)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='country_rules_created', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "rule_type",
+                    models.CharField(
+                        choices=[
+                            ("ALLOW", "Allow (Whitelist)"),
+                            ("DENY", "Deny (Blacklist)"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "country_code",
+                    models.CharField(
+                        help_text="ISO 3166-1 alpha-2 code (e.g., CM, NG, US)",
+                        max_length=2,
+                    ),
+                ),
+                (
+                    "country_name",
+                    models.CharField(
+                        blank=True, help_text="Human-readable name", max_length=100
+                    ),
+                ),
+                ("description", models.CharField(blank=True, max_length=255)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="country_rules_created",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Country Access Rule',
-                'verbose_name_plural': 'Country Access Rules',
-                'ordering': ['country_code'],
-                'indexes': [models.Index(fields=['rule_type', 'is_active'], name='compliance__rule_ty_c418c9_idx')],
+                "verbose_name": "Country Access Rule",
+                "verbose_name_plural": "Country Access Rules",
+                "ordering": ["country_code"],
+                "indexes": [
+                    models.Index(
+                        fields=["rule_type", "is_active"],
+                        name="compliance__rule_ty_c418c9_idx",
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='IPAccessRule',
+            name="IPAccessRule",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('rule_type', models.CharField(choices=[('ALLOW', 'Allow (Whitelist)'), ('DENY', 'Deny (Blacklist)')], max_length=10)),
-                ('ip_address', models.CharField(help_text='IP address or CIDR range (e.g., 192.168.1.0/24)', max_length=100)),
-                ('description', models.CharField(blank=True, help_text='Reason for this rule', max_length=255)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('expires_at', models.DateTimeField(blank=True, help_text='Auto-disable rule after this time (optional)', null=True)),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='ip_rules_created', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "rule_type",
+                    models.CharField(
+                        choices=[
+                            ("ALLOW", "Allow (Whitelist)"),
+                            ("DENY", "Deny (Blacklist)"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "ip_address",
+                    models.CharField(
+                        help_text="IP address or CIDR range (e.g., 192.168.1.0/24)",
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "description",
+                    models.CharField(
+                        blank=True, help_text="Reason for this rule", max_length=255
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "expires_at",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="Auto-disable rule after this time (optional)",
+                        null=True,
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="ip_rules_created",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'IP Access Rule',
-                'verbose_name_plural': 'IP Access Rules',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['rule_type', 'is_active'], name='compliance__rule_ty_efe32d_idx')],
+                "verbose_name": "IP Access Rule",
+                "verbose_name_plural": "IP Access Rules",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["rule_type", "is_active"],
+                        name="compliance__rule_ty_efe32d_idx",
+                    )
+                ],
             },
         ),
     ]

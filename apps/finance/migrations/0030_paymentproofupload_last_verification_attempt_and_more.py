@@ -4,20 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0029_bankaccount_bankstatemententry_bankstatementupload_and_more'),
+        ("finance", "0029_bankaccount_bankstatemententry_bankstatementupload_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='paymentproofupload',
-            name='last_verification_attempt',
-            field=models.DateTimeField(blank=True, help_text='Last time bank verification was attempted', null=True),
+            model_name="paymentproofupload",
+            name="last_verification_attempt",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="Last time bank verification was attempted",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='paymentproofupload',
-            name='verification_retry_count',
-            field=models.IntegerField(default=0, help_text='Number of times bank verification has been retried'),
+            model_name="paymentproofupload",
+            name="verification_retry_count",
+            field=models.IntegerField(
+                default=0,
+                help_text="Number of times bank verification has been retried",
+            ),
         ),
     ]

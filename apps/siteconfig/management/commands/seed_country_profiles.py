@@ -28,14 +28,20 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        requested_country = GlobalGeoCatalog.normalize_country_code(options.get("country") or "")
+        requested_country = GlobalGeoCatalog.normalize_country_code(
+            options.get("country") or ""
+        )
         target_sub_system = normalize_sub_system(options.get("sub_system") or "ANY")
 
         countries: list[str]
         if requested_country:
             countries = [requested_country]
         else:
-            countries = [str(item.get("code") or "") for item in GlobalGeoCatalog.list_countries() if item.get("code")]
+            countries = [
+                str(item.get("code") or "")
+                for item in GlobalGeoCatalog.list_countries()
+                if item.get("code")
+            ]
 
         created_count = 0
         skipped_count = 0
@@ -44,7 +50,9 @@ class Command(BaseCommand):
             if region is None:
                 skipped_count += 1
                 continue
-            profile = ensure_country_profile(region=region, sub_system=target_sub_system)
+            profile = ensure_country_profile(
+                region=region, sub_system=target_sub_system
+            )
             if profile is None:
                 skipped_count += 1
                 continue

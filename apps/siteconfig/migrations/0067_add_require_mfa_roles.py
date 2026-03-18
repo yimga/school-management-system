@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0066_reports_require_approved_grades_and_approved_only'),
+        ("siteconfig", "0066_reports_require_approved_grades_and_approved_only"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='require_mfa_roles',
-            field=models.JSONField(blank=True, default=list, help_text='Role codes that must have MFA (TOTP) enabled, e.g. ["ADMIN","BURSAR","IT_ADMIN"]. Empty = not required.'),
+            model_name="sitesettings",
+            name="require_mfa_roles",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text='Role codes that must have MFA (TOTP) enabled, e.g. ["ADMIN","BURSAR","IT_ADMIN"]. Empty = not required.',
+            ),
         ),
     ]

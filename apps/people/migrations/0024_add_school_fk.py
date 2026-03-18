@@ -5,21 +5,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0023_add_badge_scan_event'),
-        ('schools', '0001_initial'),
+        ("people", "0023_add_badge_scan_event"),
+        ("schools", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='studentprofile',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='student_profiles', to='schools.school'),
+            model_name="studentprofile",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="student_profiles",
+                to="schools.school",
+            ),
         ),
         migrations.AddField(
-            model_name='teacherprofile',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='teacher_profiles', to='schools.school'),
+            model_name="teacherprofile",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="teacher_profiles",
+                to="schools.school",
+            ),
         ),
     ]

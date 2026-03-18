@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0003_schoolprovisioningevent"),
         ("accounts", "0001_initial"),
@@ -17,9 +16,27 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="SyncConflict",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("entity_type", models.CharField(help_text="e.g. student, attendance, classroom", max_length=40)),
-                ("entity_id", models.BigIntegerField(help_text="Primary key of the conflicted record")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "entity_type",
+                    models.CharField(
+                        help_text="e.g. student, attendance, classroom", max_length=40
+                    ),
+                ),
+                (
+                    "entity_id",
+                    models.BigIntegerField(
+                        help_text="Primary key of the conflicted record"
+                    ),
+                ),
                 (
                     "client_data",
                     models.JSONField(
@@ -92,10 +109,15 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="syncconflict",
-            index=models.Index(fields=["school", "status"], name="siteconfig_s_school__a0e0b4_idx"),
+            index=models.Index(
+                fields=["school", "status"], name="siteconfig_s_school__a0e0b4_idx"
+            ),
         ),
         migrations.AddIndex(
             model_name="syncconflict",
-            index=models.Index(fields=["entity_type", "entity_id"], name="siteconfig_s_entity__b1f1c5_idx"),
+            index=models.Index(
+                fields=["entity_type", "entity_id"],
+                name="siteconfig_s_entity__b1f1c5_idx",
+            ),
         ),
     ]

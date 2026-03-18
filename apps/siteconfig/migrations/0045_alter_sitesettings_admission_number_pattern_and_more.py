@@ -4,25 +4,51 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0044_reportcardstyle_labels_and_layout_config'),
+        ("siteconfig", "0044_reportcardstyle_labels_and_layout_config"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sitesettings',
-            name='admission_number_pattern',
-            field=models.CharField(blank=True, default='(\\\\d{2}[A-Z0-9]{2,10}\\\\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4})|(\\\\d{2}-[A-Z0-9]{2,10}-\\\\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4})', help_text='Regex used to validate admission numbers. Defaults to YY + SCHOOL + #### + SPEC + CLASS (no dashes) or the legacy dashed format.', max_length=255),
+            model_name="sitesettings",
+            name="admission_number_pattern",
+            field=models.CharField(
+                blank=True,
+                default="(\\\\d{2}[A-Z0-9]{2,10}\\\\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4})|(\\\\d{2}-[A-Z0-9]{2,10}-\\\\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4})",
+                help_text="Regex used to validate admission numbers. Defaults to YY + SCHOOL + #### + SPEC + CLASS (no dashes) or the legacy dashed format.",
+                max_length=255,
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='default_dashboard_view',
-            field=models.CharField(choices=[('OVERVIEW', 'Overview'), ('FINANCE', 'Finances'), ('ACADEMICS', 'Academics'), ('ATTENDANCE', 'Attendance'), ('CERTIFICATION', 'Certification & Exams'), ('CUSTOM', 'Custom')], default='OVERVIEW', max_length=20),
+            model_name="sitesettings",
+            name="default_dashboard_view",
+            field=models.CharField(
+                choices=[
+                    ("OVERVIEW", "Overview"),
+                    ("FINANCE", "Finances"),
+                    ("ACADEMICS", "Academics"),
+                    ("ATTENDANCE", "Attendance"),
+                    ("CERTIFICATION", "Certification & Exams"),
+                    ("CUSTOM", "Custom"),
+                ],
+                default="OVERVIEW",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='userpreference',
-            name='dashboard_view',
-            field=models.CharField(choices=[('OVERVIEW', 'Overview'), ('FINANCE', 'Finances'), ('ACADEMICS', 'Academics'), ('ATTENDANCE', 'Attendance'), ('CERTIFICATION', 'Certification & Exams'), ('CUSTOM', 'Custom')], default='OVERVIEW', max_length=20),
+            model_name="userpreference",
+            name="dashboard_view",
+            field=models.CharField(
+                choices=[
+                    ("OVERVIEW", "Overview"),
+                    ("FINANCE", "Finances"),
+                    ("ACADEMICS", "Academics"),
+                    ("ATTENDANCE", "Attendance"),
+                    ("CERTIFICATION", "Certification & Exams"),
+                    ("CUSTOM", "Custom"),
+                ],
+                default="OVERVIEW",
+                max_length=20,
+            ),
         ),
     ]

@@ -6,62 +6,140 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compliance', '0009_regionfeaturecompliance'),
-        ('schools', '0010_security_powerhouse_audit_passkey'),
+        ("compliance", "0009_regionfeaturecompliance"),
+        ("schools", "0010_security_powerhouse_audit_passkey"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ConsentRequest',
+            name="ConsentRequest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('category', models.CharField(blank=True, help_text='e.g. field_trip, photo_usage, privacy_policy', max_length=80)),
-                ('document_type', models.CharField(blank=True, max_length=50)),
-                ('document_version_id', models.IntegerField(blank=True, help_text='LegalDocument version or template version', null=True)),
-                ('document_text', models.TextField(blank=True, help_text='Snapshot of text at creation for hash')),
-                ('due_date', models.DateField(blank=True, null=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='consent_requests', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "category",
+                    models.CharField(
+                        blank=True,
+                        help_text="e.g. field_trip, photo_usage, privacy_policy",
+                        max_length=80,
+                    ),
+                ),
+                ("document_type", models.CharField(blank=True, max_length=50)),
+                (
+                    "document_version_id",
+                    models.IntegerField(
+                        blank=True,
+                        help_text="LegalDocument version or template version",
+                        null=True,
+                    ),
+                ),
+                (
+                    "document_text",
+                    models.TextField(
+                        blank=True, help_text="Snapshot of text at creation for hash"
+                    ),
+                ),
+                ("due_date", models.DateField(blank=True, null=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="consent_requests",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ConsentRecord',
+            name="ConsentRecord",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('document_hash', models.CharField(help_text='SHA-256 of document text at sign time', max_length=64)),
-                ('signed_at', models.DateTimeField(auto_now_add=True)),
-                ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
-                ('withdrawn_at', models.DateTimeField(blank=True, null=True)),
-                ('document_version_at_sign', models.IntegerField(blank=True, null=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='consent_records', to='schools.school')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='consent_records', to=settings.AUTH_USER_MODEL)),
-                ('consent_request', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='records', to='compliance.consentrequest')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                (
+                    "document_hash",
+                    models.CharField(
+                        help_text="SHA-256 of document text at sign time", max_length=64
+                    ),
+                ),
+                ("signed_at", models.DateTimeField(auto_now_add=True)),
+                ("ip_address", models.GenericIPAddressField(blank=True, null=True)),
+                ("withdrawn_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "document_version_at_sign",
+                    models.IntegerField(blank=True, null=True),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="consent_records",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="consent_records",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "consent_request",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="records",
+                        to="compliance.consentrequest",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-signed_at'],
+                "ordering": ["-signed_at"],
             },
         ),
         migrations.AddIndex(
-            model_name='consentrequest',
-            index=models.Index(fields=['school', 'is_active'], name='compliance__school__0e395e_idx'),
+            model_name="consentrequest",
+            index=models.Index(
+                fields=["school", "is_active"], name="compliance__school__0e395e_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='consentrecord',
-            index=models.Index(fields=['user', 'school'], name='compliance__user_id_010794_idx'),
+            model_name="consentrecord",
+            index=models.Index(
+                fields=["user", "school"], name="compliance__user_id_010794_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='consentrecord',
-            index=models.Index(fields=['school', 'signed_at'], name='compliance__school__237a55_idx'),
+            model_name="consentrecord",
+            index=models.Index(
+                fields=["school", "signed_at"], name="compliance__school__237a55_idx"
+            ),
         ),
     ]

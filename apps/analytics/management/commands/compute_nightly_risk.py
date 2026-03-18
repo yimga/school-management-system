@@ -25,7 +25,9 @@ _COMPUTE_NIGHTLY_RISK_ERRORS = (
 
 
 class Command(BaseCommand):
-    help = "Compute and persist nightly risk scores (StudentSignals / Predictive Engine)."
+    help = (
+        "Compute and persist nightly risk scores (StudentSignals / Predictive Engine)."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -57,6 +59,7 @@ class Command(BaseCommand):
     def _process_school(self, school, dry_run):
         try:
             from apps.analytics.ml_inference import run_risk_inference_batch
+
             results = run_risk_inference_batch(school_id=str(school.id), threshold=50)
         except _COMPUTE_NIGHTLY_RISK_ERRORS as e:
             log_exception_with_context(

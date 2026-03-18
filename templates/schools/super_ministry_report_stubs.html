@@ -1,0 +1,31 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block cp_title %}{% trans "Ministry report stubs" %} — Manager{% endblock %}
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Ministry report stubs" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <h1 class="h4 text-white mb-2">{% trans "Ministry / accreditation report stubs" %}</h1>
+  <p class="text-white-50 small">{% trans "By institution type — RFP and ministry narrative." %}</p>
+  {% if learning_packs_url %}<p><a href="{{ learning_packs_url }}" class="link-light">{% trans "Learning delivery & institution types" %}</a></p>{% endif %}
+  <div class="table-responsive">
+    <table class="table table-dark table-sm">
+      <thead><tr><th>{% trans "Type" %}</th><th>{% trans "Stubs" %}</th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td><strong>{{ row.label }}</strong><br><code>{{ row.code }}</code></td>
+          <td><ul class="mb-0 small">{% for s in row.stubs %}<li>{{ s.label }} <code>{{ s.slug }}</code></li>{% endfor %}</ul></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

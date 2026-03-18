@@ -6,30 +6,47 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0156_alter_educationsystemprofile_subject_seed_and_more'),
+        ("siteconfig", "0156_alter_educationsystemprofile_subject_seed_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='educationsystemprofile',
-            name='subject_seed',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models_platform_catalog.default_education_subject_seed, help_text='Default subjects to seed when onboarding a school.'),
+            model_name="educationsystemprofile",
+            name="subject_seed",
+            field=models.JSONField(
+                blank=True,
+                default=apps.siteconfig.models_platform_catalog.default_education_subject_seed,
+                help_text="Default subjects to seed when onboarding a school.",
+            ),
         ),
         migrations.AlterField(
-            model_name='educationsystemprofile',
-            name='term_labels',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models_platform_catalog.default_education_term_labels, help_text='Ordered labels for terms/semesters (e.g. ["Term 1", "Term 2", "Term 3"]).'),
+            model_name="educationsystemprofile",
+            name="term_labels",
+            field=models.JSONField(
+                blank=True,
+                default=apps.siteconfig.models_platform_catalog.default_education_term_labels,
+                help_text='Ordered labels for terms/semesters (e.g. ["Term 1", "Term 2", "Term 3"]).',
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='finance_bank_verification_amount_tolerance',
-            field=models.DecimalField(decimal_places=2, default=Decimal('1.00'), help_text="Amount tolerance when matching by amount + date, in tenant's currency (default: 1.00).", max_digits=10),
+            model_name="sitesettings",
+            name="finance_bank_verification_amount_tolerance",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=Decimal("1.00"),
+                help_text="Amount tolerance when matching by amount + date, in tenant's currency (default: 1.00).",
+                max_digits=10,
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='finance_receipt_amount_tolerance',
-            field=models.DecimalField(decimal_places=2, default=Decimal('1.00'), help_text="Tolerance for amount matching in tenant's currency (e.g., 1.00 units difference allowed).", max_digits=10),
+            model_name="sitesettings",
+            name="finance_receipt_amount_tolerance",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=Decimal("1.00"),
+                help_text="Tolerance for amount matching in tenant's currency (e.g., 1.00 units difference allowed).",
+                max_digits=10,
+            ),
         ),
     ]

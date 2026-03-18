@@ -7,34 +7,102 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0022_backfill_schooldomain'),
-        ('siteconfig', '0109_add_school_theme_pack'),
+        ("schools", "0022_backfill_schooldomain"),
+        ("siteconfig", "0109_add_school_theme_pack"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GlobalSupportTicket',
+            name="GlobalSupportTicket",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('subject', models.CharField(max_length=255)),
-                ('body', models.TextField(blank=True)),
-                ('priority', models.CharField(choices=[('LOW', 'Low'), ('NORMAL', 'Normal'), ('HIGH', 'High'), ('URGENT', 'Urgent')], default='NORMAL', max_length=20)),
-                ('status', models.CharField(choices=[('OPEN', 'Open'), ('IN_PROGRESS', 'In Progress'), ('WAITING', 'Waiting'), ('RESOLVED', 'Resolved'), ('CLOSED', 'Closed')], default='OPEN', max_length=20)),
-                ('tags', models.JSONField(blank=True, default=list)),
-                ('metadata', models.JSONField(blank=True, default=dict, help_text='country_code, plan_slug, etc. for regional routing and filters')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='global_support_tickets', to='schools.school')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='global_support_tickets_submitted', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("subject", models.CharField(max_length=255)),
+                ("body", models.TextField(blank=True)),
+                (
+                    "priority",
+                    models.CharField(
+                        choices=[
+                            ("LOW", "Low"),
+                            ("NORMAL", "Normal"),
+                            ("HIGH", "High"),
+                            ("URGENT", "Urgent"),
+                        ],
+                        default="NORMAL",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("OPEN", "Open"),
+                            ("IN_PROGRESS", "In Progress"),
+                            ("WAITING", "Waiting"),
+                            ("RESOLVED", "Resolved"),
+                            ("CLOSED", "Closed"),
+                        ],
+                        default="OPEN",
+                        max_length=20,
+                    ),
+                ),
+                ("tags", models.JSONField(blank=True, default=list)),
+                (
+                    "metadata",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="country_code, plan_slug, etc. for regional routing and filters",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="global_support_tickets",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="global_support_tickets_submitted",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Global support ticket',
-                'verbose_name_plural': 'Global support tickets',
-                'ordering': ['-created_at', '-id'],
-                'indexes': [models.Index(fields=['status'], name='siteconfig__status_20a44b_idx'), models.Index(fields=['priority'], name='siteconfig__priorit_cb6925_idx'), models.Index(fields=['school'], name='siteconfig__school__cd8773_idx'), models.Index(fields=['-created_at'], name='siteconfig__created_704ccb_idx')],
+                "verbose_name": "Global support ticket",
+                "verbose_name_plural": "Global support tickets",
+                "ordering": ["-created_at", "-id"],
+                "indexes": [
+                    models.Index(
+                        fields=["status"], name="siteconfig__status_20a44b_idx"
+                    ),
+                    models.Index(
+                        fields=["priority"], name="siteconfig__priorit_cb6925_idx"
+                    ),
+                    models.Index(
+                        fields=["school"], name="siteconfig__school__cd8773_idx"
+                    ),
+                    models.Index(
+                        fields=["-created_at"], name="siteconfig__created_704ccb_idx"
+                    ),
+                ],
             },
         ),
     ]

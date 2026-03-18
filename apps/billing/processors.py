@@ -68,13 +68,19 @@ def _parse_response_json(raw_text: str) -> dict:
     return payload if isinstance(payload, dict) else {}
 
 
-def _default_json_post(url: str, payload: dict, headers: dict[str, str], timeout: int = 30) -> tuple[int, dict, str]:
+def _default_json_post(
+    url: str, payload: dict, headers: dict[str, str], timeout: int = 30
+) -> tuple[int, dict, str]:
     body = json.dumps(payload).encode("utf-8")
     request = Request(url, data=body, headers=headers, method="POST")
     try:
         with urlopen(request, timeout=timeout) as response:
             raw_text = response.read().decode("utf-8", errors="replace")
-            return int(response.getcode() or 200), _parse_response_json(raw_text), raw_text
+            return (
+                int(response.getcode() or 200),
+                _parse_response_json(raw_text),
+                raw_text,
+            )
     except HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         return int(exc.code or 500), _parse_response_json(detail), detail
@@ -82,13 +88,19 @@ def _default_json_post(url: str, payload: dict, headers: dict[str, str], timeout
         return 0, {}, str(exc.reason)
 
 
-def _default_form_post(url: str, data: dict[str, str], headers: dict[str, str], timeout: int = 30) -> tuple[int, dict, str]:
+def _default_form_post(
+    url: str, data: dict[str, str], headers: dict[str, str], timeout: int = 30
+) -> tuple[int, dict, str]:
     body = urlencode(data, doseq=True).encode("utf-8")
     request = Request(url, data=body, headers=headers, method="POST")
     try:
         with urlopen(request, timeout=timeout) as response:
             raw_text = response.read().decode("utf-8", errors="replace")
-            return int(response.getcode() or 200), _parse_response_json(raw_text), raw_text
+            return (
+                int(response.getcode() or 200),
+                _parse_response_json(raw_text),
+                raw_text,
+            )
     except HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         return int(exc.code or 500), _parse_response_json(detail), detail
@@ -112,9 +124,14 @@ class BasePlatformBillingProcessor:
         if not signature:
             return False, "Signature header is missing."
 
-        expected = _hexdigest(self.config.webhook_secret, raw_body, self.config.signature_algorithm)
+        expected = _hexdigest(
+            self.config.webhook_secret, raw_body, self.config.signature_algorithm
+        )
         candidate = signature
-        if self.config.signature_style == PlatformBillingProcessorConfig.SignatureStyle.PREFIXED_HMAC:
+        if (
+            self.config.signature_style
+            == PlatformBillingProcessorConfig.SignatureStyle.PREFIXED_HMAC
+        ):
             if "=" in signature:
                 _, candidate = signature.split("=", 1)
             candidate = candidate.strip()
@@ -126,7 +143,9 @@ class BasePlatformBillingProcessor:
         """Subclasses must implement; converts provider webhook payload to normalized list of billing snapshots."""
         raise NotImplementedError
 
-    def execute_payout(self, payout, *, http_post_json=None, http_post_form=None) -> dict:
+    def execute_payout(
+        self, payout, *, http_post_json=None, http_post_form=None
+    ) -> dict:
         """Subclasses must implement; executes a payout via the provider API."""
         raise NotImplementedError
 
@@ -137,29 +156,47 @@ class NoOpPlatformBillingProcessor(BasePlatformBillingProcessor):
     def normalize(self, payload: dict) -> list[dict]:
         return []
 
-    def execute_payout(self, payout, *, http_post_json=None, http_post_form=None) -> dict:
+    def execute_payout(
+        self, payout, *, http_post_json=None, http_post_form=None
+    ) -> dict:
         return {"status": "noop", "message": "Processor not implemented."}
 
 
 class GenericRelayProcessor(BasePlatformBillingProcessor):
     def normalize(self, payload: dict) -> list[dict]:
-        snapshots = payload if isinstance(payload, list) else payload.get("snapshots") or [payload]
+        snapshots = (
+            payload
+            if isinstance(payload, list)
+            else payload.get("snapshots") or [payload]
+        )
         normalized = []
         for snapshot in snapshots:
             if not isinstance(snapshot, dict):
                 continue
-            if snapshot.get("current_period_start") and isinstance(snapshot["current_period_start"], str):
-                snapshot["current_period_start"] = parse_datetime(snapshot["current_period_start"])
-            if snapshot.get("current_period_end") and isinstance(snapshot["current_period_end"], str):
-                snapshot["current_period_end"] = parse_datetime(snapshot["current_period_end"])
-            if snapshot.get("trial_end_date") and isinstance(snapshot["trial_end_date"], str):
+            if snapshot.get("current_period_start") and isinstance(
+                snapshot["current_period_start"], str
+            ):
+                snapshot["current_period_start"] = parse_datetime(
+                    snapshot["current_period_start"]
+                )
+            if snapshot.get("current_period_end") and isinstance(
+                snapshot["current_period_end"], str
+            ):
+                snapshot["current_period_end"] = parse_datetime(
+                    snapshot["current_period_end"]
+                )
+            if snapshot.get("trial_end_date") and isinstance(
+                snapshot["trial_end_date"], str
+            ):
                 snapshot["trial_end_date"] = parse_date(snapshot["trial_end_date"])
             if snapshot.get("happened_at") and isinstance(snapshot["happened_at"], str):
                 snapshot["happened_at"] = parse_datetime(snapshot["happened_at"])
             normalized.append(snapshot)
         return normalized
 
-    def execute_payout(self, payout, *, http_post_json=None, http_post_form=None) -> dict:
+    def execute_payout(
+        self, payout, *, http_post_json=None, http_post_form=None
+    ) -> dict:
         del http_post_form
         endpoint_url = str(
             self.config.metadata.get("payout_endpoint_url")
@@ -168,7 +205,9 @@ class GenericRelayProcessor(BasePlatformBillingProcessor):
         ).strip()
         if not endpoint_url:
             raise ValueError("Relay payout endpoint URL is not configured.")
-        bearer_token = str(self.config.metadata.get("payout_bearer_token") or "").strip()
+        bearer_token = str(
+            self.config.metadata.get("payout_bearer_token") or ""
+        ).strip()
         headers = {"Content-Type": "application/json"}
         if bearer_token:
             headers["Authorization"] = f"Bearer {bearer_token}"
@@ -180,14 +219,19 @@ class GenericRelayProcessor(BasePlatformBillingProcessor):
             "currency": payout.currency_code,
             "scope": payout.payout_scope,
             "external_payout_ref": payout.external_payout_ref,
-            "source_school_id": str(getattr(payout.source_school, "pk", "") or "") or None,
+            "source_school_id": str(getattr(payout.source_school, "pk", "") or "")
+            or None,
             "metadata": payout.metadata or {},
         }
         http_post_json = http_post_json or _default_json_post
-        status_code, response_payload, raw_text = http_post_json(endpoint_url, payload, headers, 30)
+        status_code, response_payload, raw_text = http_post_json(
+            endpoint_url, payload, headers, 30
+        )
         if not 200 <= int(status_code or 0) < 300:
             raise ValueError(raw_text or "Relay payout request failed.")
-        processor_status = str(response_payload.get("status") or "submitted").strip().lower()
+        processor_status = (
+            str(response_payload.get("status") or "submitted").strip().lower()
+        )
         return {
             "external_payout_ref": (
                 response_payload.get("external_payout_ref")
@@ -203,7 +247,10 @@ class GenericRelayProcessor(BasePlatformBillingProcessor):
 
 class StripeConnectProcessor(BasePlatformBillingProcessor):
     def verify_request(self, request: HttpRequest, raw_body: bytes) -> tuple[bool, str]:
-        if self.config.signature_style != PlatformBillingProcessorConfig.SignatureStyle.STRIPE_V1:
+        if (
+            self.config.signature_style
+            != PlatformBillingProcessorConfig.SignatureStyle.STRIPE_V1
+        ):
             return super().verify_request(request, raw_body)
         signature = _request_header(request, self.config.signature_header).strip()
         if not self.config.webhook_secret:
@@ -227,7 +274,9 @@ class StripeConnectProcessor(BasePlatformBillingProcessor):
             return False, "Stripe signature timestamp is invalid."
 
         now_ts = int(timezone.now().timestamp())
-        if abs(now_ts - timestamp_int) > int(self.config.timestamp_tolerance_seconds or 300):
+        if abs(now_ts - timestamp_int) > int(
+            self.config.timestamp_tolerance_seconds or 300
+        ):
             return False, "Stripe signature timestamp is outside the allowed tolerance."
 
         signed_payload = f"{timestamp}.{raw_body.decode('utf-8')}".encode("utf-8")
@@ -247,7 +296,11 @@ class StripeConnectProcessor(BasePlatformBillingProcessor):
         if not isinstance(obj, dict):
             obj = {}
         metadata = obj.get("metadata") if isinstance(obj.get("metadata"), dict) else {}
-        school_slug = metadata.get("school_slug") or metadata.get("tenant_slug") or metadata.get("school")
+        school_slug = (
+            metadata.get("school_slug")
+            or metadata.get("tenant_slug")
+            or metadata.get("school")
+        )
         school_id = metadata.get("school_id")
         external_customer_ref = obj.get("customer") or metadata.get("customer")
         external_subscription_ref = obj.get("subscription") or obj.get("id")
@@ -286,9 +339,12 @@ class StripeConnectProcessor(BasePlatformBillingProcessor):
                 "external_customer_ref": external_customer_ref,
                 "external_subscription_ref": external_subscription_ref,
                 "currency_code": str(obj.get("currency") or "").upper() or None,
-                "billed_amount": _to_decimal_minor_units(obj.get("amount_paid") or obj.get("amount_due")),
+                "billed_amount": _to_decimal_minor_units(
+                    obj.get("amount_paid") or obj.get("amount_due")
+                ),
                 "current_period_start": _to_datetime_from_unix(
-                    obj.get("current_period_start") or metadata.get("current_period_start")
+                    obj.get("current_period_start")
+                    or metadata.get("current_period_start")
                 ),
                 "current_period_end": _to_datetime_from_unix(
                     obj.get("current_period_end") or metadata.get("current_period_end")
@@ -298,7 +354,9 @@ class StripeConnectProcessor(BasePlatformBillingProcessor):
             }
         ]
 
-    def execute_payout(self, payout, *, http_post_json=None, http_post_form=None) -> dict:
+    def execute_payout(
+        self, payout, *, http_post_json=None, http_post_form=None
+    ) -> dict:
         del http_post_json
         api_key = str(
             self.config.metadata.get("api_key")
@@ -311,10 +369,18 @@ class StripeConnectProcessor(BasePlatformBillingProcessor):
         destination = str(payout.payee_ref or "").strip()
         if not destination:
             raise ValueError("Stripe payout destination reference is missing.")
-        api_base_url = str(self.config.metadata.get("api_base_url") or "https://api.stripe.com").rstrip("/")
-        endpoint_url = str(self.config.metadata.get("payout_api_url") or f"{api_base_url}/v1/transfers").strip()
-        transfer_group_prefix = str(self.config.metadata.get("transfer_group_prefix") or "runmycampus").strip()
-        descriptor = str(self.config.metadata.get("statement_descriptor") or "RunMyCampus payout").strip()
+        api_base_url = str(
+            self.config.metadata.get("api_base_url") or "https://api.stripe.com"
+        ).rstrip("/")
+        endpoint_url = str(
+            self.config.metadata.get("payout_api_url") or f"{api_base_url}/v1/transfers"
+        ).strip()
+        transfer_group_prefix = str(
+            self.config.metadata.get("transfer_group_prefix") or "runmycampus"
+        ).strip()
+        descriptor = str(
+            self.config.metadata.get("statement_descriptor") or "RunMyCampus payout"
+        ).strip()
         payload = {
             "amount": str(_to_minor_units(payout.net_amount)),
             "currency": str(payout.currency_code or "USD").lower(),
@@ -332,12 +398,20 @@ class StripeConnectProcessor(BasePlatformBillingProcessor):
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/x-www-form-urlencoded",
         }
-        status_code, response_payload, raw_text = http_post_form(endpoint_url, payload, headers, 30)
+        status_code, response_payload, raw_text = http_post_form(
+            endpoint_url, payload, headers, 30
+        )
         if not 200 <= int(status_code or 0) < 300:
             raise ValueError(
-                str(response_payload.get("error", {}).get("message") or raw_text or "Stripe payout request failed.")
+                str(
+                    response_payload.get("error", {}).get("message")
+                    or raw_text
+                    or "Stripe payout request failed."
+                )
             )
-        processor_status = "paid" if response_payload.get("status") == "paid" else "submitted"
+        processor_status = (
+            "paid" if response_payload.get("status") == "paid" else "submitted"
+        )
         return {
             "external_payout_ref": str(response_payload.get("id") or ""),
             "status": processor_status,
@@ -352,6 +426,8 @@ _PROCESSOR_REGISTRY = {
 }
 
 
-def get_platform_billing_processor(config: PlatformBillingProcessorConfig) -> BasePlatformBillingProcessor:
+def get_platform_billing_processor(
+    config: PlatformBillingProcessorConfig,
+) -> BasePlatformBillingProcessor:
     processor_class = _PROCESSOR_REGISTRY.get(config.code, GenericRelayProcessor)
     return processor_class(config)

@@ -35,7 +35,9 @@ class GeneratePaymentLinkTests(TestCase):
             is_active=True,
         )
         self.department = Department.objects.create(name="Science", code="SCI")
-        self.specialty = Specialty.objects.create(department=self.department, name="General", code="GEN")
+        self.specialty = Specialty.objects.create(
+            department=self.department, name="General", code="GEN"
+        )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
             department=self.department,

@@ -18,19 +18,27 @@ def student_to_ceds(student: Any, school: Any) -> dict[str, Any]:
         "PersonId": str(getattr(student, "user_id", "") or student.pk),
         "FirstName": getattr(student, "first_name", "") or "",
         "LastName": getattr(student, "last_name", "") or "",
-        "BirthDate": str(student.date_of_birth) if getattr(student, "date_of_birth", None) else None,
+        "BirthDate": str(student.date_of_birth)
+        if getattr(student, "date_of_birth", None)
+        else None,
         "Gender": getattr(student, "gender", "") or "",
-        "K12StudentUniqueId": getattr(student, "student_code", None) or getattr(student, "admission_number", None) or str(student.pk),
+        "K12StudentUniqueId": getattr(student, "student_code", None)
+        or getattr(student, "admission_number", None)
+        or str(student.pk),
         "OrganizationId": school.pk,
         "OrganizationName": getattr(school, "name", "") or "",
     }
 
 
-def enrollment_to_ceds(student: Any, school: Any, classroom: Any = None) -> dict[str, Any]:
+def enrollment_to_ceds(
+    student: Any, school: Any, classroom: Any = None
+) -> dict[str, Any]:
     """
     Map StudentProfile (+ optional Classroom) to CEDS K12 enrollment elements.
     """
-    entry_date = getattr(student, "joined_date", None) or getattr(school, "created_at", None)
+    entry_date = getattr(student, "joined_date", None) or getattr(
+        school, "created_at", None
+    )
     entry_date_str = str(entry_date)[:10] if entry_date else None
     if entry_date and hasattr(entry_date, "date"):
         entry_date_str = str(entry_date.date())

@@ -1,4 +1,5 @@
 """Tests for finance runtime_helpers.get_policy_for_request (runtime constitution)."""
+
 from django.test import RequestFactory, TestCase
 
 from apps.finance.runtime_helpers import get_policy_for_request
@@ -14,13 +15,18 @@ class GetPolicyForRequestTests(TestCase):
     def test_uses_tenant_runtime_policy_when_set(self):
         request = RequestFactory().get("/")
         request.school = None
-        request.tenant_runtime = type("RT", (), {"policy": {"finance": {"invoice_timing": {"grace_days": 7}}}})()
+        request.tenant_runtime = type(
+            "RT", (), {"policy": {"finance": {"invoice_timing": {"grace_days": 7}}}}
+        )()
 
         result = get_policy_for_request(request)
-        self.assertEqual(result.get("finance", {}).get("invoice_timing", {}).get("grace_days"), 7)
+        self.assertEqual(
+            result.get("finance", {}).get("invoice_timing", {}).get("grace_days"), 7
+        )
 
     def test_falls_back_to_policy_registry_when_no_runtime_but_school_set(self):
         from apps.schools.models import School
+
         school = School.objects.create(
             name="Test School Finance",
             slug="test-school-finance-runtime-helper",

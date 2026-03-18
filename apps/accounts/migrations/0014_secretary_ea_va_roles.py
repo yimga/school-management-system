@@ -41,7 +41,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0013_set_superusers_to_superadmin_role"),
     ]

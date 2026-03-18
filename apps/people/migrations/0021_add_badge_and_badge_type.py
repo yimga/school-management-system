@@ -6,48 +6,118 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0020_studentprofile_uses_transport'),
+        ("people", "0020_studentprofile_uses_transport"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BadgeType',
+            name="BadgeType",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=60, unique=True)),
-                ('label', models.CharField(max_length=120)),
-                ('audience', models.CharField(choices=[('STAFF', 'Staff'), ('STUDENT', 'Student')], default='STAFF', max_length=20)),
-                ('criteria_rule', models.JSONField(blank=True, default=dict, help_text='Optional rule config (e.g. threshold, trigger).')),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("code", models.CharField(max_length=60, unique=True)),
+                ("label", models.CharField(max_length=120)),
+                (
+                    "audience",
+                    models.CharField(
+                        choices=[("STAFF", "Staff"), ("STUDENT", "Student")],
+                        default="STAFF",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "criteria_rule",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Optional rule config (e.g. threshold, trigger).",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'verbose_name': 'Badge type',
-                'verbose_name_plural': 'Badge types',
-                'ordering': ['audience', 'code'],
+                "verbose_name": "Badge type",
+                "verbose_name_plural": "Badge types",
+                "ordering": ["audience", "code"],
             },
         ),
         migrations.CreateModel(
-            name='Badge',
+            name="Badge",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('criteria_met', models.JSONField(blank=True, default=dict)),
-                ('issued_at', models.DateTimeField(auto_now_add=True)),
-                ('expiry_at', models.DateTimeField(blank=True, help_text='When badge is automatically revoked (e.g. delegation end).', null=True)),
-                ('is_physical_printed', models.BooleanField(default=False)),
-                ('qr_data', models.CharField(blank=True, help_text='Signed token or payload for QR verification.', max_length=255)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('student', models.ForeignKey(blank=True, help_text='Student (for student badges).', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='badges', to='people.studentprofile')),
-                ('user', models.ForeignKey(blank=True, help_text='Staff member (for staff badges).', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='badges', to=settings.AUTH_USER_MODEL)),
-                ('badge_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='badges', to='people.badgetype')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("criteria_met", models.JSONField(blank=True, default=dict)),
+                ("issued_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "expiry_at",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="When badge is automatically revoked (e.g. delegation end).",
+                        null=True,
+                    ),
+                ),
+                ("is_physical_printed", models.BooleanField(default=False)),
+                (
+                    "qr_data",
+                    models.CharField(
+                        blank=True,
+                        help_text="Signed token or payload for QR verification.",
+                        max_length=255,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "student",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Student (for student badges).",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="badges",
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Staff member (for staff badges).",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="badges",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "badge_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="badges",
+                        to="people.badgetype",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Badge',
-                'verbose_name_plural': 'Badges',
-                'ordering': ['-issued_at'],
+                "verbose_name": "Badge",
+                "verbose_name_plural": "Badges",
+                "ordering": ["-issued_at"],
             },
         ),
     ]

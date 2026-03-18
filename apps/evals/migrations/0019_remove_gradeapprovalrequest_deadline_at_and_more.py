@@ -5,34 +5,45 @@ from django.db import migrations, models, connection
 
 def _column_exists(cursor, db_table, column_name):
     """Return True if column exists; works on SQLite and PostgreSQL."""
-    if connection.vendor == 'sqlite':
-        cursor.execute('PRAGMA table_info(%s)' % db_table)
+    if connection.vendor == "sqlite":
+        cursor.execute("PRAGMA table_info(%s)" % db_table)
         return any(row[1] == column_name for row in cursor.fetchall())
     # PostgreSQL / MySQL
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT column_name
         FROM information_schema.columns
         WHERE table_name=%s AND column_name=%s
-    """, [db_table, column_name])
+    """,
+        [db_table, column_name],
+    )
     return cursor.fetchone() is not None
 
 
 def remove_fields_if_exist(apps, schema_editor):
     """Remove deadline_at and validation_flags only if they exist in the database."""
-    db_table = 'evals_gradeapprovalrequest'
+    db_table = "evals_gradeapprovalrequest"
     with connection.cursor() as cursor:
-        deadline_exists = _column_exists(cursor, db_table, 'deadline_at')
-        validation_flags_exists = _column_exists(cursor, db_table, 'validation_flags')
-        if connection.vendor == 'sqlite':
+        deadline_exists = _column_exists(cursor, db_table, "deadline_at")
+        validation_flags_exists = _column_exists(cursor, db_table, "validation_flags")
+        if connection.vendor == "sqlite":
             if deadline_exists:
-                cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN deadline_at')
+                cursor.execute(
+                    "ALTER TABLE evals_gradeapprovalrequest DROP COLUMN deadline_at"
+                )
             if validation_flags_exists:
-                cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN validation_flags')
+                cursor.execute(
+                    "ALTER TABLE evals_gradeapprovalrequest DROP COLUMN validation_flags"
+                )
         else:
             if deadline_exists:
-                cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS deadline_at')
+                cursor.execute(
+                    "ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS deadline_at"
+                )
             if validation_flags_exists:
-                cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS validation_flags')
+                cursor.execute(
+                    "ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS validation_flags"
+                )
 
 
 def reverse_remove_fields(apps, schema_editor):
@@ -42,21 +53,35 @@ def reverse_remove_fields(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0018_gradeapprovalrequest_bypass_fields'),
+        ("evals", "0018_gradeapprovalrequest_bypass_fields"),
     ]
 
     operations = [
         migrations.RunPython(remove_fields_if_exist, reverse_remove_fields),
         migrations.AlterField(
-            model_name='assessmentweights',
-            name='grade_a_min',
-            field=models.DecimalField(decimal_places=2, default=18.0, help_text='Minimum score for A', max_digits=5),
+            model_name="assessmentweights",
+            name="grade_a_min",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=18.0,
+                help_text="Minimum score for A",
+                max_digits=5,
+            ),
         ),
         migrations.AlterField(
-            model_name='gradeaudit',
-            name='change_type',
-            field=models.CharField(choices=[('create', 'Grade Created'), ('update', 'Grade Updated'), ('delete', 'Grade Deleted'), ('rollback', 'Grade Rolled Back'), ('import', 'Imported from CSV'), ('offline_sync', 'Synced Offline Entry')], max_length=20),
+            model_name="gradeaudit",
+            name="change_type",
+            field=models.CharField(
+                choices=[
+                    ("create", "Grade Created"),
+                    ("update", "Grade Updated"),
+                    ("delete", "Grade Deleted"),
+                    ("rollback", "Grade Rolled Back"),
+                    ("import", "Imported from CSV"),
+                    ("offline_sync", "Synced Offline Entry"),
+                ],
+                max_length=20,
+            ),
         ),
     ]

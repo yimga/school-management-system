@@ -62,7 +62,9 @@ class AmountValidator(PaymentValidator):
             return False
 
         # Keep a practical default floor for operational payments unless explicitly overridden.
-        effective_min = Decimal(str(min_amount)) if min_amount is not None else Decimal("100")
+        effective_min = (
+            Decimal(str(min_amount)) if min_amount is not None else Decimal("100")
+        )
         if amount_decimal < effective_min:
             validator.add_error(_(f"Amount below minimum: {effective_min}"))
             return False
@@ -97,9 +99,32 @@ class CurrencyValidator(PaymentValidator):
     """Validates currency codes."""
 
     VALID_CURRENCIES = [
-        "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD",
-        "MXN", "SGD", "HKD", "NOK", "KRW", "TRY", "RUB", "INR", "BRL", "ZAR",
-        "XAF", "CFA", "NGN", "KES", "GHS", "GBP",
+        "USD",
+        "EUR",
+        "GBP",
+        "JPY",
+        "AUD",
+        "CAD",
+        "CHF",
+        "CNY",
+        "SEK",
+        "NZD",
+        "MXN",
+        "SGD",
+        "HKD",
+        "NOK",
+        "KRW",
+        "TRY",
+        "RUB",
+        "INR",
+        "BRL",
+        "ZAR",
+        "XAF",
+        "CFA",
+        "NGN",
+        "KES",
+        "GHS",
+        "GBP",
     ]
 
     def validate_currency(self, currency_code):
@@ -172,6 +197,7 @@ class RefundValidator(PaymentValidator):
     def validate_refund_amount(self, payment_amount, refund_amount):
         try:
             from decimal import InvalidOperation
+
             payment_decimal = Decimal(str(payment_amount))
             refund_decimal = Decimal(str(refund_amount))
         except (ValueError, TypeError, InvalidOperation):
@@ -189,7 +215,14 @@ class RefundValidator(PaymentValidator):
         return True
 
     def validate_refund_reason(self, reason):
-        valid_reasons = ["duplicate", "incorrect_amount", "student_request", "overpayment", "compliance", "other"]
+        valid_reasons = [
+            "duplicate",
+            "incorrect_amount",
+            "student_request",
+            "overpayment",
+            "compliance",
+            "other",
+        ]
 
         if not reason:
             self.add_error(_("Refund reason is required"))
@@ -219,7 +252,9 @@ class CompliancePaymentValidator(PaymentValidator):
                 if "max_payment_amount" in params:
                     max_amount = Decimal(str(params["max_payment_amount"]))
                     if payment.amount > max_amount:
-                        self.add_error(_(f"Payment exceeds compliance limit: {max_amount}"))
+                        self.add_error(
+                            _(f"Payment exceeds compliance limit: {max_amount}")
+                        )
 
         return self.is_valid()
 
@@ -255,11 +290,15 @@ class TransactionReconciliationValidator(PaymentValidator):
 
         missing_transactions = payment_ids - transaction_payment_ids
         if missing_transactions:
-            self.add_error(_(f"Missing transactions for {len(missing_transactions)} payments"))
+            self.add_error(
+                _(f"Missing transactions for {len(missing_transactions)} payments")
+            )
 
         orphaned_transactions = transaction_payment_ids - payment_ids
         if orphaned_transactions:
-            self.add_error(_(f"Found {len(orphaned_transactions)} orphaned transactions"))
+            self.add_error(
+                _(f"Found {len(orphaned_transactions)} orphaned transactions")
+            )
 
         return self.is_valid()
 
@@ -391,10 +430,37 @@ class MobileMoneyValidator:
             return len(normalized) == 12 and normalized[3] in {"6"}
         if normalized.startswith("234"):
             return len(normalized) == 13 and normalized[3:6] in {
-                "703", "704", "705", "706", "708", "709",
-                "803", "805", "806", "807", "808", "809",
-                "810", "811", "812", "813", "814", "815", "816", "817", "818", "819",
-                "901", "902", "903", "904", "905", "906", "907", "908", "909",
+                "703",
+                "704",
+                "705",
+                "706",
+                "708",
+                "709",
+                "803",
+                "805",
+                "806",
+                "807",
+                "808",
+                "809",
+                "810",
+                "811",
+                "812",
+                "813",
+                "814",
+                "815",
+                "816",
+                "817",
+                "818",
+                "819",
+                "901",
+                "902",
+                "903",
+                "904",
+                "905",
+                "906",
+                "907",
+                "908",
+                "909",
             }
 
         # Local-format fallback (10-11 digits).
@@ -409,7 +475,9 @@ class PaymentDataValidator:
         errors = []
         warnings = []
 
-        if not CardValidator.validate_card_number(str(payment_data.get("card_number", ""))):
+        if not CardValidator.validate_card_number(
+            str(payment_data.get("card_number", ""))
+        ):
             errors.append("Invalid card number")
 
         if not CardValidator.validate_expiry_date(
@@ -434,7 +502,9 @@ class PaymentDataValidator:
         errors = []
         warnings = []
 
-        if not BankValidator.validate_account_number(payment_data.get("account_number")):
+        if not BankValidator.validate_account_number(
+            payment_data.get("account_number")
+        ):
             errors.append("Invalid account number")
 
         if not BankValidator.validate_bank_code(payment_data.get("bank_code")):

@@ -3,6 +3,7 @@ Verify Launch Studio (§4.5) and Automation Studio (§5.7) rail views resolve an
 SOT §4.5 select plan; §5.7 dependency graph, replay/rollback, health, conflict detection, staged activation,
 visual builder, natural-language workflow, simulation engine.
 """
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -43,7 +44,9 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
         self.client.force_login(self.user)
         url = reverse("studio_os:launch_select_plan")
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 200, "launch_select_plan should return 200 for staff")
+        self.assertEqual(
+            response.status_code, 200, "launch_select_plan should return 200 for staff"
+        )
 
     def test_automation_rail_views_return_200_for_staff(self):
         """§5.7 Automation rail placeholders: all resolve and return 200 for staff."""
@@ -53,6 +56,7 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
                 url = reverse(name)
                 response = self.client.get(url)
                 self.assertEqual(
-                    response.status_code, 200,
+                    response.status_code,
+                    200,
                     f"{name} should return 200 for staff",
                 )

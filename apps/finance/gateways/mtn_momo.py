@@ -60,10 +60,16 @@ class MTNMoMoGateway(BasePaymentGateway):
             success=is_success,
             transaction_id=transaction_id,
             message=f"MTN MoMo status: {status}",
-            raw_response={"status": status, "provider": self.code, "transaction_id": transaction_id},
+            raw_response={
+                "status": status,
+                "provider": self.code,
+                "transaction_id": transaction_id,
+            },
         )
 
-    def parse_webhook(self, payload: dict, headers: Optional[dict] = None) -> Optional[GatewayResult]:
+    def parse_webhook(
+        self, payload: dict, headers: Optional[dict] = None
+    ) -> Optional[GatewayResult]:
         if not isinstance(payload, dict) or not payload:
             return None
 
@@ -71,7 +77,16 @@ class MTNMoMoGateway(BasePaymentGateway):
         if provider and provider not in {"mtn", "mtn_momo", self.code}:
             return None
 
-        status = str(payload.get("status") or payload.get("state") or payload.get("result") or "").strip().lower()
+        status = (
+            str(
+                payload.get("status")
+                or payload.get("state")
+                or payload.get("result")
+                or ""
+            )
+            .strip()
+            .lower()
+        )
         tx_id = str(
             payload.get("transaction_id")
             or payload.get("reference")

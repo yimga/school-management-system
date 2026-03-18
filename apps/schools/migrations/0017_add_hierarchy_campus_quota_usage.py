@@ -6,6 +6,7 @@ from django.db import migrations, models
 
 def add_hierarchy_path_if_missing(apps, schema_editor):
     from django.db import connection
+
     with connection.cursor() as cursor:
         if connection.vendor == "postgresql":
             cursor.execute("""
@@ -15,11 +16,15 @@ def add_hierarchy_path_if_missing(apps, schema_editor):
                 EXCEPTION WHEN duplicate_column THEN NULL;
                 END $$;
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS schools_school_hierarchy_path_idx ON schools_school (hierarchy_path)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS schools_school_hierarchy_path_idx ON schools_school (hierarchy_path)"
+            )
         else:
             cursor.execute("PRAGMA table_info(schools_school)")
             if "hierarchy_path" not in [row[1] for row in cursor.fetchall()]:
-                cursor.execute("ALTER TABLE schools_school ADD COLUMN hierarchy_path varchar(1024) NOT NULL DEFAULT ''")
+                cursor.execute(
+                    "ALTER TABLE schools_school ADD COLUMN hierarchy_path varchar(1024) NOT NULL DEFAULT ''"
+                )
 
 
 def noop_hierarchy(apps, schema_editor):
@@ -33,7 +38,9 @@ def backfill_hierarchy_path(apps, schema_editor):
             parent = School.objects.filter(pk=school.parent_school_id).first()
             if parent:
                 base = (getattr(parent, "hierarchy_path", "") or "").strip()
-                school.hierarchy_path = (base + "/" + str(parent.pk)).strip("/") if base else str(parent.pk)
+                school.hierarchy_path = (
+                    (base + "/" + str(parent.pk)).strip("/") if base else str(parent.pk)
+                )
             else:
                 school.hierarchy_path = str(school.parent_school_id)
         else:
@@ -42,73 +49,156 @@ def backfill_hierarchy_path(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0016_add_school_compliance_region'),
+        ("schools", "0016_add_school_compliance_region"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='school',
-                    name='hierarchy_path',
-                    field=models.CharField(blank=True, db_index=True, help_text='Slash-separated UUIDs from root to parent; empty for root. Used for get_descendants/get_ancestors.', max_length=1024),
+                    model_name="school",
+                    name="hierarchy_path",
+                    field=models.CharField(
+                        blank=True,
+                        db_index=True,
+                        help_text="Slash-separated UUIDs from root to parent; empty for root. Used for get_descendants/get_ancestors.",
+                        max_length=1024,
+                    ),
                 ),
             ],
-            database_operations=[migrations.RunPython(add_hierarchy_path_if_missing, noop_hierarchy)],
+            database_operations=[
+                migrations.RunPython(add_hierarchy_path_if_missing, noop_hierarchy)
+            ],
         ),
         migrations.CreateModel(
-            name='Campus',
+            name="Campus",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('code', models.CharField(blank=True, help_text='Short code e.g. MAIN, NORTH', max_length=32)),
-                ('address', models.TextField(blank=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='campuses', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "code",
+                    models.CharField(
+                        blank=True,
+                        help_text="Short code e.g. MAIN, NORTH",
+                        max_length=32,
+                    ),
+                ),
+                ("address", models.TextField(blank=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="campuses",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Campus',
-                'verbose_name_plural': 'Campuses',
-                'ordering': ['school', 'name'],
+                "verbose_name": "Campus",
+                "verbose_name_plural": "Campuses",
+                "ordering": ["school", "name"],
             },
         ),
         migrations.CreateModel(
-            name='TenantApiUsage',
+            name="TenantApiUsage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('period_date', models.DateField(help_text='Date (or first day of period) for aggregation')),
-                ('request_count', models.PositiveIntegerField(default=0)),
-                ('limit_type', models.CharField(default='api_calls', help_text='Matches TenantQuotaLimit.limit_type', max_length=64)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='api_usage_records', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "period_date",
+                    models.DateField(
+                        help_text="Date (or first day of period) for aggregation"
+                    ),
+                ),
+                ("request_count", models.PositiveIntegerField(default=0)),
+                (
+                    "limit_type",
+                    models.CharField(
+                        default="api_calls",
+                        help_text="Matches TenantQuotaLimit.limit_type",
+                        max_length=64,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="api_usage_records",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Tenant API usage',
-                'verbose_name_plural': 'Tenant API usage',
-                'ordering': ['-period_date', 'school'],
-                'unique_together': {('school', 'period_date', 'limit_type')},
+                "verbose_name": "Tenant API usage",
+                "verbose_name_plural": "Tenant API usage",
+                "ordering": ["-period_date", "school"],
+                "unique_together": {("school", "period_date", "limit_type")},
             },
         ),
         migrations.CreateModel(
-            name='TenantQuotaLimit',
+            name="TenantQuotaLimit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('limit_type', models.CharField(help_text='e.g. api_calls_per_month, api_calls_per_minute, storage_mb', max_length=64)),
-                ('limit_value', models.PositiveIntegerField(help_text='Numeric limit')),
-                ('period_days', models.PositiveSmallIntegerField(blank=True, help_text='Period length in days (e.g. 30 for monthly); null for per-minute.', null=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quota_limits', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "limit_type",
+                    models.CharField(
+                        help_text="e.g. api_calls_per_month, api_calls_per_minute, storage_mb",
+                        max_length=64,
+                    ),
+                ),
+                ("limit_value", models.PositiveIntegerField(help_text="Numeric limit")),
+                (
+                    "period_days",
+                    models.PositiveSmallIntegerField(
+                        blank=True,
+                        help_text="Period length in days (e.g. 30 for monthly); null for per-minute.",
+                        null=True,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="quota_limits",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Tenant quota limit',
-                'verbose_name_plural': 'Tenant quota limits',
-                'ordering': ['school', 'limit_type'],
-                'unique_together': {('school', 'limit_type')},
+                "verbose_name": "Tenant quota limit",
+                "verbose_name_plural": "Tenant quota limits",
+                "ordering": ["school", "limit_type"],
+                "unique_together": {("school", "limit_type")},
             },
         ),
         migrations.RunPython(backfill_hierarchy_path, migrations.RunPython.noop),

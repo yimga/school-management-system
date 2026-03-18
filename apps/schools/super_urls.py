@@ -3,6 +3,7 @@ from apps.marketplace import views as marketplace_views
 from apps.customersuccess import views_super as cs_views
 from apps.orchestration import views as orchestration_views
 from . import super_views
+from . import super_views_beyond_reach
 from .control_plane import require_super_access_with_host
 from . import super_views_config
 from .super_views_catalog import (
@@ -14,101 +15,535 @@ from .super_views_catalog import (
     super_registries_overview,
     super_workflow_packs_catalog,
 )
+from .super_views_wedge import (
+    super_curriculum_packs,
+    super_ministry_report_stubs,
+    super_learning_delivery_packs,
+    super_learning_institution_catalog_json,
+    super_education_systems,
+    super_geography,
+    super_group_campuses,
+    super_one_sis_any_lms,
+    super_advancement_hub,
+    super_advancement_phase2_placeholder,
+    super_he_pack,
+)
 from .super_views_migration import (
     sync_repair,
     super_migration_cloud,
     super_migration_profile_registry,
     super_migration_rollback,
 )
+from .super_views_provisioning import api_create_school
 
 app_name = "super"
 
 urlpatterns = [
-    path("", require_super_access_with_host(super_views.super_dashboard_v2), name="dashboard"),
-    path("schools/", require_super_access_with_host(super_views.super_schools_list), name="schools_list"),
-    path("export/schools.csv", require_super_access_with_host(super_views.export_schools_csv), name="export_schools_csv"),
-    path("export/revenue.csv", require_super_access_with_host(super_views.export_revenue_csv), name="export_revenue_csv"),
-    path("export/summary.pdf", require_super_access_with_host(super_views.export_super_dashboard_pdf), name="export_super_dashboard_pdf"),
-    path("api/dashboard-layout/", require_super_access_with_host(super_views.api_super_dashboard_layout), name="api_super_dashboard_layout"),
-    path("command-center/", require_super_access_with_host(super_views.super_command_center_v2), name="command_center"),
-    path("create/", require_super_access_with_host(super_views.create_school_wizard), name="create_school_wizard"),
-    path("api/create-school/", require_super_access_with_host(super_views.api_create_school), name="api_create_school"),
-    path("api/schools/<uuid:school_id>/timeline/", require_super_access_with_host(super_views.api_school_timeline), name="api_school_timeline"),
-    path("api/schools/<uuid:school_id>/approve/", require_super_access_with_host(super_views.api_approve_school), name="api_approve_school"),
-    path("api/schools/<uuid:school_id>/lifecycle/", require_super_access_with_host(super_views.school_lifecycle_action), name="api_school_lifecycle"),
-    path("api/schools/<uuid:school_id>/policy-bundles/", require_super_access_with_host(super_views.api_school_policy_bundles), name="api_school_policy_bundles"),
-    path("api/schools/<uuid:school_id>/policy-bundles/<int:bundle_id>/activate/", require_super_access_with_host(super_views.api_school_policy_bundle_activate), name="api_school_policy_bundle_activate"),
-    path("api/geo/cities/", require_super_access_with_host(super_views.api_geo_cities), name="api_geo_cities"),
-    path("api/geo/timezones/", require_super_access_with_host(super_views.api_geo_timezones), name="api_geo_timezones"),
-    path("api/provinces/", require_super_access_with_host(super_views.api_provinces), name="api_provinces"),
-    path("api/education-profiles/", require_super_access_with_host(super_views.api_education_profiles), name="api_education_profiles"),
-    path("api/system-blueprint/", require_super_access_with_host(super_views.api_system_blueprint), name="api_system_blueprint"),
-    path("api/plans-configurator/", require_super_access_with_host(super_views.api_plans_configurator), name="api_plans_configurator"),
-    path("usage/", require_super_access_with_host(super_views.super_usage), name="usage"),
-    path("migration/", require_super_access_with_host(super_migration_cloud), name="migration_cloud"),
-    path("migration/registry/", require_super_access_with_host(super_migration_profile_registry), name="migration_profile_registry"),
-    path("migration/rollback/<int:run_id>/", require_super_access_with_host(super_migration_rollback), name="migration_rollback"),
-    path("pulse/", require_super_access_with_host(super_views.super_pulse), name="pulse"),
-    path("tenant-health/", require_super_access_with_host(super_views.super_tenant_health), name="tenant_health"),
-    path("tenants/<uuid:school_id>/360/", require_super_access_with_host(super_views.super_tenant_360), name="tenant_360"),
-    path("health/", require_super_access_with_host(super_views.super_control_health_dashboard), name="control_health"),
-    path("registries/", require_super_access_with_host(super_registries_overview), name="registries_overview"),
-    path("metadata-catalog/", require_super_access_with_host(super_metadata_catalog), name="metadata_catalog"),
-    path("metadata-catalog/impact/<str:entity_code>/<str:field_name>/", require_super_access_with_host(super_metadata_catalog_field_impact), name="metadata_catalog_field_impact"),
-    path("blueprints/", require_super_access_with_host(super_blueprints_catalog), name="blueprints_catalog"),
-    path("policies/", require_super_access_with_host(super_policies_catalog), name="policies_catalog"),
-    path("workflow-packs/", require_super_access_with_host(super_workflow_packs_catalog), name="workflow_packs_catalog"),
-    path("dashboard-packs/", require_super_access_with_host(super_dashboard_packs_catalog), name="dashboard_packs_catalog"),
+    path(
+        "",
+        require_super_access_with_host(super_views.super_dashboard_v2),
+        name="dashboard",
+    ),
+    path(
+        "schools/",
+        require_super_access_with_host(super_views.super_schools_list),
+        name="schools_list",
+    ),
+    path(
+        "export/schools.csv",
+        require_super_access_with_host(super_views.export_schools_csv),
+        name="export_schools_csv",
+    ),
+    path(
+        "export/revenue.csv",
+        require_super_access_with_host(super_views.export_revenue_csv),
+        name="export_revenue_csv",
+    ),
+    path(
+        "export/summary.pdf",
+        require_super_access_with_host(super_views.export_super_dashboard_pdf),
+        name="export_super_dashboard_pdf",
+    ),
+    path(
+        "api/dashboard-layout/",
+        require_super_access_with_host(super_views.api_super_dashboard_layout),
+        name="api_super_dashboard_layout",
+    ),
+    path(
+        "command-center/",
+        require_super_access_with_host(super_views.super_command_center_v2),
+        name="command_center",
+    ),
+    path(
+        "create/",
+        require_super_access_with_host(super_views.create_school_wizard),
+        name="create_school_wizard",
+    ),
+    path(
+        "curriculum-packs/",
+        require_super_access_with_host(super_curriculum_packs),
+        name="curriculum_packs",
+    ),
+    path(
+        "learning-delivery-packs/",
+        require_super_access_with_host(super_learning_delivery_packs),
+        name="learning_delivery_packs",
+    ),
+    path(
+        "learning-institution-catalog.json",
+        require_super_access_with_host(super_learning_institution_catalog_json),
+        name="learning_institution_catalog_json",
+    ),
+    path(
+        "ministry-report-stubs/",
+        require_super_access_with_host(super_ministry_report_stubs),
+        name="ministry_report_stubs",
+    ),
+    path(
+        "geography/", require_super_access_with_host(super_geography), name="geography"
+    ),
+    path(
+        "education-systems/",
+        require_super_access_with_host(super_education_systems),
+        name="education_systems",
+    ),
+    path(
+        "group-campuses/",
+        require_super_access_with_host(super_group_campuses),
+        name="group_campuses",
+    ),
+    path(
+        "one-sis-any-lms/",
+        require_super_access_with_host(super_one_sis_any_lms),
+        name="one_sis_any_lms",
+    ),
+    path(
+        "advancement/",
+        require_super_access_with_host(super_advancement_hub),
+        name="advancement_hub",
+    ),
+    path(
+        "advancement/phase2/",
+        require_super_access_with_host(super_advancement_phase2_placeholder),
+        name="advancement_phase2_placeholder",
+    ),
+    path("he-pack/", require_super_access_with_host(super_he_pack), name="he_pack"),
+    path(
+        "api/create-school/",
+        require_super_access_with_host(api_create_school),
+        name="api_create_school",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/timeline/",
+        require_super_access_with_host(super_views.api_school_timeline),
+        name="api_school_timeline",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/approve/",
+        require_super_access_with_host(super_views.api_approve_school),
+        name="api_approve_school",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/lifecycle/",
+        require_super_access_with_host(super_views.school_lifecycle_action),
+        name="api_school_lifecycle",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/policy-bundles/",
+        require_super_access_with_host(super_views.api_school_policy_bundles),
+        name="api_school_policy_bundles",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/policy-bundles/<int:bundle_id>/activate/",
+        require_super_access_with_host(super_views.api_school_policy_bundle_activate),
+        name="api_school_policy_bundle_activate",
+    ),
+    path(
+        "api/geo/cities/",
+        require_super_access_with_host(super_views.api_geo_cities),
+        name="api_geo_cities",
+    ),
+    path(
+        "api/geo/timezones/",
+        require_super_access_with_host(super_views.api_geo_timezones),
+        name="api_geo_timezones",
+    ),
+    path(
+        "api/provinces/",
+        require_super_access_with_host(super_views.api_provinces),
+        name="api_provinces",
+    ),
+    path(
+        "api/education-profiles/",
+        require_super_access_with_host(super_views.api_education_profiles),
+        name="api_education_profiles",
+    ),
+    path(
+        "api/system-blueprint/",
+        require_super_access_with_host(super_views.api_system_blueprint),
+        name="api_system_blueprint",
+    ),
+    path(
+        "api/plans-configurator/",
+        require_super_access_with_host(super_views.api_plans_configurator),
+        name="api_plans_configurator",
+    ),
+    path(
+        "usage/", require_super_access_with_host(super_views.super_usage), name="usage"
+    ),
+    path(
+        "migration/",
+        require_super_access_with_host(super_migration_cloud),
+        name="migration_cloud",
+    ),
+    path(
+        "migration/registry/",
+        require_super_access_with_host(super_migration_profile_registry),
+        name="migration_profile_registry",
+    ),
+    path(
+        "migration/rollback/<int:run_id>/",
+        require_super_access_with_host(super_migration_rollback),
+        name="migration_rollback",
+    ),
+    path(
+        "pulse/", require_super_access_with_host(super_views.super_pulse), name="pulse"
+    ),
+    path(
+        "tenant-health/",
+        require_super_access_with_host(super_views.super_tenant_health),
+        name="tenant_health",
+    ),
+    path(
+        "tenants/<uuid:school_id>/360/",
+        require_super_access_with_host(super_views.super_tenant_360),
+        name="tenant_360",
+    ),
+    path(
+        "health/",
+        require_super_access_with_host(super_views.super_control_health_dashboard),
+        name="control_health",
+    ),
+    path(
+        "registries/",
+        require_super_access_with_host(super_registries_overview),
+        name="registries_overview",
+    ),
+    path(
+        "metadata-catalog/",
+        require_super_access_with_host(super_metadata_catalog),
+        name="metadata_catalog",
+    ),
+    path(
+        "metadata-catalog/impact/<str:entity_code>/<str:field_name>/",
+        require_super_access_with_host(super_metadata_catalog_field_impact),
+        name="metadata_catalog_field_impact",
+    ),
+    path(
+        "blueprints/",
+        require_super_access_with_host(super_blueprints_catalog),
+        name="blueprints_catalog",
+    ),
+    path(
+        "policies/",
+        require_super_access_with_host(super_policies_catalog),
+        name="policies_catalog",
+    ),
+    path(
+        "workflow-packs/",
+        require_super_access_with_host(super_workflow_packs_catalog),
+        name="workflow_packs_catalog",
+    ),
+    path(
+        "dashboard-packs/",
+        require_super_access_with_host(super_dashboard_packs_catalog),
+        name="dashboard_packs_catalog",
+    ),
     # Section 11: Benchmark intelligence (11.3) & Customer success (11.4)
-    path("customer-success/", require_super_access_with_host(cs_views.customer_success_dashboard), name="customer_success_dashboard"),
-    path("customer-success/api/benchmark/cohorts/", require_super_access_with_host(cs_views.api_benchmark_cohorts), name="cs_api_benchmark_cohorts"),
-    path("customer-success/api/benchmark/peer-metrics/", require_super_access_with_host(cs_views.api_benchmark_peer_metrics), name="cs_api_benchmark_peer_metrics"),
-    path("customer-success/api/maturity-scores/", require_super_access_with_host(cs_views.api_maturity_scores), name="cs_api_maturity_scores"),
-    path("customer-success/api/risk-alerts/", require_super_access_with_host(cs_views.api_risk_alerts), name="cs_api_risk_alerts"),
-    path("customer-success/api/intervention-suggestions/", require_super_access_with_host(cs_views.api_intervention_suggestions), name="cs_api_intervention_suggestions"),
-    path("customer-success/api/tenant-health/", require_super_access_with_host(cs_views.api_tenant_health), name="cs_api_tenant_health"),
-    path("customer-success/api/workflow-failures/", require_super_access_with_host(cs_views.api_workflow_failures), name="cs_api_workflow_failures"),
-    path("customer-success/api/admin-inactivity-alerts/", require_super_access_with_host(cs_views.api_admin_inactivity_alerts), name="cs_api_admin_inactivity_alerts"),
-    path("billing/", require_super_access_with_host(super_views.billing_dashboard), name="billing_dashboard"),
-    path("marketplace/", require_super_access_with_host(marketplace_views.governance_console), name="marketplace_governance"),
-    path("marketplace/reviews/<int:review_id>/action/", require_super_access_with_host(marketplace_views.marketplace_review_action), name="marketplace_review_action"),
-    path("marketplace/blueprints/", require_super_access_with_host(marketplace_views.blueprint_marketplace), name="blueprint_marketplace"),
-    path("marketplace/apps/", require_super_access_with_host(marketplace_views.app_catalog), name="app_catalog"),
-    path("marketplace/compatibility/", require_super_access_with_host(marketplace_views.compatibility_matrix), name="marketplace_compatibility"),
-    path("marketplace/sandbox/", require_super_access_with_host(marketplace_views.sandbox_inspector), name="marketplace_sandbox_inspector"),
-    path("marketplace/health/", require_super_access_with_host(marketplace_views.installation_health), name="marketplace_installation_health"),
-    path("marketplace/incidents/", require_super_access_with_host(marketplace_views.marketplace_incident_dashboard), name="marketplace_incident_dashboard"),
-    path("marketplace/activate-sandbox/", require_super_access_with_host(marketplace_views.super_activate_sandbox), name="marketplace_activate_sandbox"),
-    path("marketplace/refresh-installation/", require_super_access_with_host(marketplace_views.super_refresh_installation), name="marketplace_refresh_installation"),
-    path("marketplace/package-rollout/", require_super_access_with_host(marketplace_views.package_rollout), name="package_rollout"),
-    path("marketplace/package-promote/", require_super_access_with_host(marketplace_views.package_promote), name="package_promote"),
-    path("policy-diff/", require_super_access_with_host(super_views.super_policy_diff), name="policy_diff"),
-    path("policy-diff/apply-to-sandbox/", require_super_access_with_host(super_views.super_apply_policy_bundle_to_sandbox), name="policy_apply_to_sandbox"),
-    path("trust/", require_super_access_with_host(super_views.super_trust_center), name="trust_center"),
-    path("trust/export/", require_super_access_with_host(super_views.super_audit_export), name="audit_export"),
-    path("compliance/", require_super_access_with_host(super_views.super_compliance_overview), name="compliance_overview"),
-    path("analytics/", require_super_access_with_host(super_views.super_analytics_overview), name="analytics_overview"),
-    path("support/", require_super_access_with_host(super_views.super_support_dashboard), name="support_dashboard"),
-    path("support/queue/", require_super_access_with_host(super_views.support_queue_fragment), name="support_queue_fragment"),
-    path("support/assign/", require_super_access_with_host(super_views.support_assign_ticket), name="support_assign_ticket"),
-    path("switch-to-tenant/", require_super_access_with_host(super_views.switch_to_tenant), name="switch_to_tenant"),
-    path("sync-repair/<uuid:school_id>/", require_super_access_with_host(sync_repair), name="sync_repair"),
-    path("ai-model-hub/", require_super_access_with_host(super_views.ai_model_hub), name="ai_model_hub"),
-    path("global-ai-version/", require_super_access_with_host(super_views.global_ai_version), name="global_ai_version"),
-    path("global-ai-version/progress/<str:run_id>/", require_super_access_with_host(super_views.global_ai_version_progress), name="global_ai_version_progress"),
-    path("runtime-inspector/", require_super_access_with_host(super_views.super_runtime_inspector), name="runtime_inspector"),
-    path("workflow-simulator/", require_super_access_with_host(super_views.super_workflow_simulator), name="workflow_simulator"),
-    path("orchestration/", require_super_access_with_host(orchestration_views.operator_workbench), name="orchestration_workbench"),
-    path("orchestration/runs/<int:run_id>/retry/", require_super_access_with_host(orchestration_views.retry_run), name="orchestration_retry_run"),
+    path(
+        "customer-success/",
+        require_super_access_with_host(cs_views.customer_success_dashboard),
+        name="customer_success_dashboard",
+    ),
+    path(
+        "customer-success/api/benchmark/cohorts/",
+        require_super_access_with_host(cs_views.api_benchmark_cohorts),
+        name="cs_api_benchmark_cohorts",
+    ),
+    path(
+        "customer-success/api/benchmark/peer-metrics/",
+        require_super_access_with_host(cs_views.api_benchmark_peer_metrics),
+        name="cs_api_benchmark_peer_metrics",
+    ),
+    path(
+        "customer-success/api/maturity-scores/",
+        require_super_access_with_host(cs_views.api_maturity_scores),
+        name="cs_api_maturity_scores",
+    ),
+    path(
+        "customer-success/api/risk-alerts/",
+        require_super_access_with_host(cs_views.api_risk_alerts),
+        name="cs_api_risk_alerts",
+    ),
+    path(
+        "customer-success/api/intervention-suggestions/",
+        require_super_access_with_host(cs_views.api_intervention_suggestions),
+        name="cs_api_intervention_suggestions",
+    ),
+    path(
+        "customer-success/api/tenant-health/",
+        require_super_access_with_host(cs_views.api_tenant_health),
+        name="cs_api_tenant_health",
+    ),
+    path(
+        "customer-success/api/workflow-failures/",
+        require_super_access_with_host(cs_views.api_workflow_failures),
+        name="cs_api_workflow_failures",
+    ),
+    path(
+        "customer-success/api/admin-inactivity-alerts/",
+        require_super_access_with_host(cs_views.api_admin_inactivity_alerts),
+        name="cs_api_admin_inactivity_alerts",
+    ),
+    path(
+        "billing/",
+        require_super_access_with_host(super_views.billing_dashboard),
+        name="billing_dashboard",
+    ),
+    path(
+        "marketplace/",
+        require_super_access_with_host(marketplace_views.governance_console),
+        name="marketplace_governance",
+    ),
+    path(
+        "marketplace/reviews/<int:review_id>/action/",
+        require_super_access_with_host(marketplace_views.marketplace_review_action),
+        name="marketplace_review_action",
+    ),
+    path(
+        "marketplace/blueprints/",
+        require_super_access_with_host(marketplace_views.blueprint_marketplace),
+        name="blueprint_marketplace",
+    ),
+    path(
+        "marketplace/apps/",
+        require_super_access_with_host(marketplace_views.app_catalog),
+        name="app_catalog",
+    ),
+    path(
+        "marketplace/apps/install-impact-preview/",
+        require_super_access_with_host(marketplace_views.super_install_impact_preview),
+        name="marketplace_install_impact_preview",
+    ),
+    path(
+        "marketplace/compatibility/",
+        require_super_access_with_host(marketplace_views.compatibility_matrix),
+        name="marketplace_compatibility",
+    ),
+    path(
+        "marketplace/sandbox/",
+        require_super_access_with_host(marketplace_views.sandbox_inspector),
+        name="marketplace_sandbox_inspector",
+    ),
+    path(
+        "marketplace/health/",
+        require_super_access_with_host(marketplace_views.installation_health),
+        name="marketplace_installation_health",
+    ),
+    path(
+        "marketplace/incidents/",
+        require_super_access_with_host(
+            marketplace_views.marketplace_incident_dashboard
+        ),
+        name="marketplace_incident_dashboard",
+    ),
+    path(
+        "marketplace/activate-sandbox/",
+        require_super_access_with_host(marketplace_views.super_activate_sandbox),
+        name="marketplace_activate_sandbox",
+    ),
+    path(
+        "marketplace/refresh-installation/",
+        require_super_access_with_host(marketplace_views.super_refresh_installation),
+        name="marketplace_refresh_installation",
+    ),
+    path(
+        "marketplace/package-rollout/",
+        require_super_access_with_host(marketplace_views.package_rollout),
+        name="package_rollout",
+    ),
+    path(
+        "marketplace/package-promote/",
+        require_super_access_with_host(marketplace_views.package_promote),
+        name="package_promote",
+    ),
+    path(
+        "policy-diff/",
+        require_super_access_with_host(super_views.super_policy_diff),
+        name="policy_diff",
+    ),
+    path(
+        "policy-diff/apply-to-sandbox/",
+        require_super_access_with_host(
+            super_views.super_apply_policy_bundle_to_sandbox
+        ),
+        name="policy_apply_to_sandbox",
+    ),
+    path(
+        "trust/",
+        require_super_access_with_host(super_views.super_trust_center),
+        name="trust_center",
+    ),
+    path(
+        "trust/platform-events/",
+        require_super_access_with_host(super_views.super_platform_events),
+        name="platform_events",
+    ),
+    path(
+        "trust/export/",
+        require_super_access_with_host(super_views.super_audit_export),
+        name="audit_export",
+    ),
+    path(
+        "migration/csv-diff/",
+        require_super_access_with_host(
+            super_views_beyond_reach.super_migration_csv_diff
+        ),
+        name="migration_csv_diff",
+    ),
+    path(
+        "tools/legacy-csv-preview/",
+        require_super_access_with_host(
+            super_views_beyond_reach.super_legacy_sis_csv_preview
+        ),
+        name="legacy_csv_preview",
+    ),
+    path(
+        "tools/governed-query/",
+        require_super_access_with_host(
+            super_views_beyond_reach.super_governed_data_query
+        ),
+        name="governed_data_query",
+    ),
+    path(
+        "compliance/",
+        require_super_access_with_host(super_views.super_compliance_overview),
+        name="compliance_overview",
+    ),
+    path(
+        "analytics/",
+        require_super_access_with_host(super_views.super_analytics_overview),
+        name="analytics_overview",
+    ),
+    path(
+        "support/",
+        require_super_access_with_host(super_views.super_support_dashboard),
+        name="support_dashboard",
+    ),
+    path(
+        "support/queue/",
+        require_super_access_with_host(super_views.support_queue_fragment),
+        name="support_queue_fragment",
+    ),
+    path(
+        "support/assign/",
+        require_super_access_with_host(super_views.support_assign_ticket),
+        name="support_assign_ticket",
+    ),
+    path(
+        "switch-to-tenant/",
+        require_super_access_with_host(super_views.switch_to_tenant),
+        name="switch_to_tenant",
+    ),
+    path(
+        "sync-repair/<uuid:school_id>/",
+        require_super_access_with_host(sync_repair),
+        name="sync_repair",
+    ),
+    path(
+        "ai-model-hub/",
+        require_super_access_with_host(super_views.ai_model_hub),
+        name="ai_model_hub",
+    ),
+    path(
+        "global-ai-version/",
+        require_super_access_with_host(super_views.global_ai_version),
+        name="global_ai_version",
+    ),
+    path(
+        "global-ai-version/progress/<str:run_id>/",
+        require_super_access_with_host(super_views.global_ai_version_progress),
+        name="global_ai_version_progress",
+    ),
+    path(
+        "runtime-inspector/",
+        require_super_access_with_host(super_views.super_runtime_inspector),
+        name="runtime_inspector",
+    ),
+    path(
+        "workflow-simulator/",
+        require_super_access_with_host(super_views.super_workflow_simulator),
+        name="workflow_simulator",
+    ),
+    path(
+        "orchestration/",
+        require_super_access_with_host(orchestration_views.operator_workbench),
+        name="orchestration_workbench",
+    ),
+    path(
+        "orchestration/runs/<int:run_id>/retry/",
+        require_super_access_with_host(orchestration_views.retry_run),
+        name="orchestration_retry_run",
+    ),
     # Legacy path: /super/config/ redirects to System config (siteconfig:console_domains_hub). Single config surface.
-    path("config/", require_super_access_with_host(super_views.super_config_hub_redirect), name="config_hub"),
-    path("config/site-settings/", require_super_access_with_host(super_views_config.super_site_settings_list), name="site_settings_list"),
-    path("config/site-settings/<int:pk>/", require_super_access_with_host(super_views_config.super_site_settings_edit), name="site_settings_edit"),
-    path("config/regions/", require_super_access_with_host(super_views_config.super_regions_list), name="regions_list"),
-    path("config/grading/", require_super_access_with_host(super_views_config.super_grading_list), name="grading_list"),
-    path("config/plans/", require_super_access_with_host(super_views_config.super_plans_list), name="plans_list"),
-    path("config/feature-toggles/", require_super_access_with_host(super_views_config.super_feature_toggles_list), name="feature_toggles_list"),
-    path("incidents/", require_super_access_with_host(super_views_config.super_incidents_list), name="incidents_list"),
-    path("billing-accounts/", require_super_access_with_host(super_views_config.super_billing_accounts_list), name="billing_accounts_list"),
-    path("migration-runs/", require_super_access_with_host(super_views_config.super_migration_runs_list), name="migration_runs_list"),
+    path(
+        "config/",
+        require_super_access_with_host(super_views.super_config_hub_redirect),
+        name="config_hub",
+    ),
+    path(
+        "config/site-settings/",
+        require_super_access_with_host(super_views_config.super_site_settings_list),
+        name="site_settings_list",
+    ),
+    path(
+        "config/site-settings/<int:pk>/",
+        require_super_access_with_host(super_views_config.super_site_settings_edit),
+        name="site_settings_edit",
+    ),
+    path(
+        "config/regions/",
+        require_super_access_with_host(super_views_config.super_regions_list),
+        name="regions_list",
+    ),
+    path(
+        "config/grading/",
+        require_super_access_with_host(super_views_config.super_grading_list),
+        name="grading_list",
+    ),
+    path(
+        "config/plans/",
+        require_super_access_with_host(super_views_config.super_plans_list),
+        name="plans_list",
+    ),
+    path(
+        "config/feature-toggles/",
+        require_super_access_with_host(super_views_config.super_feature_toggles_list),
+        name="feature_toggles_list",
+    ),
+    path(
+        "incidents/",
+        require_super_access_with_host(super_views_config.super_incidents_list),
+        name="incidents_list",
+    ),
+    path(
+        "billing-accounts/",
+        require_super_access_with_host(super_views_config.super_billing_accounts_list),
+        name="billing_accounts_list",
+    ),
+    path(
+        "migration-runs/",
+        require_super_access_with_host(super_views_config.super_migration_runs_list),
+        name="migration_runs_list",
+    ),
 ]

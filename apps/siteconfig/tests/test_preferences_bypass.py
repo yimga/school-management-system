@@ -1,4 +1,5 @@
 """Test that parents/teachers can access their own preferences (middleware bypass)."""
+
 from django.test import TestCase
 from django.urls import reverse
 

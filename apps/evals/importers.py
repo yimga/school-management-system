@@ -57,7 +57,7 @@ class GradeImportRow:
     is_valid: bool = True
     errors: List[str] = None
     warnings: List[str] = None
-    
+
     def __post_init__(self):
         if self.errors is None:
             self.errors = []
@@ -142,14 +142,20 @@ def apply_import(preview: GradeImportPreview, academic_year):
 
     for row in preview.rows:
         student = StudentProfile.objects.filter(student_code=row.student_code).first()
-        assignment = SubjectAssignment.objects.filter(
-            id=row.subject_assignment_id,
-            academic_year=academic_year,
-        ).select_related("classroom").first()
+        assignment = (
+            SubjectAssignment.objects.filter(
+                id=row.subject_assignment_id,
+                academic_year=academic_year,
+            )
+            .select_related("classroom")
+            .first()
+        )
         term = Term.objects.filter(id=row.term_id).first()
         teacher = None
         if row.teacher_username:
-            teacher = TeacherProfile.objects.filter(user__username=row.teacher_username).first()
+            teacher = TeacherProfile.objects.filter(
+                user__username=row.teacher_username
+            ).first()
         if not student or not assignment or not term:
             continue
         obj, was_created = Evaluation.objects.update_or_create(
@@ -158,7 +164,9 @@ def apply_import(preview: GradeImportPreview, academic_year):
             term=term,
             defaults={
                 "academic_year": academic_year,
-                "teacher": teacher or assignment.teacher if hasattr(assignment, "teacher") else None,
+                "teacher": teacher or assignment.teacher
+                if hasattr(assignment, "teacher")
+                else None,
                 "seq1_score": row.seq1,
                 "seq2_score": row.seq2,
                 "exam_score": row.exam,
@@ -180,17 +188,19 @@ def apply_import(preview: GradeImportPreview, academic_year):
         "updated_ids": updated_ids,
     }
 
+
 # ========== ENHANCED VALIDATION & IMPORT ==========
+
 
 def preview_import_with_validation(csv_rows):
     """Enhanced preview with detailed validation."""
     from decimal import Decimal
     from apps.evals.validators import GradeValidator
     from apps.evals.models import Evaluation, AssessmentWeights
-    
+
     rows_with_validation = []
     errors = []
-    
+
     for idx, row in enumerate(csv_rows, start=2):
         try:
             # Lookup entities
@@ -198,15 +208,21 @@ def preview_import_with_validation(csv_rows):
             SubjectAssignment = django_apps.get_model("academics", "SubjectAssignment")
             Term = django_apps.get_model("academics", "Term")
             TeacherProfile = django_apps.get_model("people", "TeacherProfile")
-            
-            student = StudentProfile.objects.get(student_code=row.get('student_code'))
-            subject_assignment = SubjectAssignment.objects.get(id=row.get('subject_assignment_id'))
-            term = Term.objects.get(id=row.get('term_id'))
-            teacher = TeacherProfile.objects.get(user__username=row.get('teacher_username'))
-            
+
+            student = StudentProfile.objects.get(student_code=row.get("student_code"))
+            subject_assignment = SubjectAssignment.objects.get(
+                id=row.get("subject_assignment_id")
+            )
+            term = Term.objects.get(id=row.get("term_id"))
+            teacher = TeacherProfile.objects.get(
+                user__username=row.get("teacher_username")
+            )
+
             # Get weights
-            weights = AssessmentWeights.get_for(student.academic_year, subject_assignment.classroom, term)
-            
+            weights = AssessmentWeights.get_for(
+                student.academic_year, subject_assignment.classroom, term
+            )
+
             # Create temp evaluation
             temp_eval = Evaluation(
                 academic_year=student.academic_year,
@@ -214,44 +230,48 @@ def preview_import_with_validation(csv_rows):
                 subject_assignment=subject_assignment,
                 student=student,
                 teacher=teacher,
-                seq1_score=Decimal(str(row.get('seq1') or 0)),
-                seq2_score=Decimal(str(row.get('seq2') or 0)),
-                exam_score=Decimal(str(row.get('exam') or 0)),
-                mock_score=Decimal(str(row.get('mock') or 0)) if row.get('mock') else None,
-                practical_score=Decimal(str(row.get('practical') or 0)) if row.get('practical') else None,
-                remarks=row.get('remarks', ''),
+                seq1_score=Decimal(str(row.get("seq1") or 0)),
+                seq2_score=Decimal(str(row.get("seq2") or 0)),
+                exam_score=Decimal(str(row.get("exam") or 0)),
+                mock_score=Decimal(str(row.get("mock") or 0))
+                if row.get("mock")
+                else None,
+                practical_score=Decimal(str(row.get("practical") or 0))
+                if row.get("practical")
+                else None,
+                remarks=row.get("remarks", ""),
             )
-            
+
             # Validate
             validator = GradeValidator(score_scale=Decimal(str(weights.score_scale)))
             validation_result = validator.validate_evaluation(temp_eval, weights)
-            
+
             row_obj = GradeImportRow(
-                student_code=row.get('student_code'),
-                subject_assignment_id=row.get('subject_assignment_id'),
-                term_id=row.get('term_id'),
-                teacher_username=row.get('teacher_username'),
-                seq1=float(row.get('seq1') or 0),
-                seq2=float(row.get('seq2') or 0),
-                exam=float(row.get('exam') or 0),
-                mock=float(row.get('mock') or 0),
-                practical=float(row.get('practical') or 0),
-                remarks=row.get('remarks', ''),
+                student_code=row.get("student_code"),
+                subject_assignment_id=row.get("subject_assignment_id"),
+                term_id=row.get("term_id"),
+                teacher_username=row.get("teacher_username"),
+                seq1=float(row.get("seq1") or 0),
+                seq2=float(row.get("seq2") or 0),
+                exam=float(row.get("exam") or 0),
+                mock=float(row.get("mock") or 0),
+                practical=float(row.get("practical") or 0),
+                remarks=row.get("remarks", ""),
                 raw=row,
-                is_valid=validation_result['is_valid'],
-                errors=validation_result['errors'],
-                warnings=list(validation_result['flags'].keys()),
+                is_valid=validation_result["is_valid"],
+                errors=validation_result["errors"],
+                warnings=list(validation_result["flags"].keys()),
             )
-            
+
             rows_with_validation.append(row_obj)
-        
+
         except _EVALS_IMPORTERS_ROW_ERRORS as e:
             log_exception_with_context(
                 "evals importers preview_import_with_validation row failed",
                 extra={"row_index": idx, "student_code": row.get("student_code")},
             )
             errors.append(f"Row {idx}: {str(e)}")
-    
+
     return rows_with_validation, errors
 
 
@@ -259,58 +279,71 @@ def apply_import(csv_rows, academic_year=None):
     """Apply import with real-time DB updates."""
     import time
     from decimal import Decimal
-    
+
     start_time = time.time()
     created_count = 0
     updated_count = 0
-    
+
     Evaluation = django_apps.get_model("evals", "Evaluation")
     SubjectAssignment = django_apps.get_model("academics", "SubjectAssignment")
     Term = django_apps.get_model("academics", "Term")
     TeacherProfile = django_apps.get_model("people", "TeacherProfile")
     StudentProfile = django_apps.get_model("people", "StudentProfile")
     AcademicYear = django_apps.get_model("academics", "AcademicYear")
-    
+
     # If no academic year provided, use active
     if not academic_year:
         academic_year = AcademicYear.objects.filter(is_active=True).first()
-    
+
     for row in csv_rows:
         try:
-            student = StudentProfile.objects.get(student_code=row.get('student_code'))
-            subject_assignment = SubjectAssignment.objects.get(id=row.get('subject_assignment_id'))
-            term = Term.objects.get(id=row.get('term_id'))
-            teacher = TeacherProfile.objects.get(user__username=row.get('teacher_username'))
-            
+            student = StudentProfile.objects.get(student_code=row.get("student_code"))
+            subject_assignment = SubjectAssignment.objects.get(
+                id=row.get("subject_assignment_id")
+            )
+            term = Term.objects.get(id=row.get("term_id"))
+            teacher = TeacherProfile.objects.get(
+                user__username=row.get("teacher_username")
+            )
+
             eval_obj, created = Evaluation.objects.update_or_create(
                 academic_year=academic_year,
                 term=term,
                 subject_assignment=subject_assignment,
                 student=student,
                 defaults={
-                    'teacher': teacher,
-                    'seq1_score': Decimal(str(row.get('seq1') or 0)),
-                    'seq2_score': Decimal(str(row.get('seq2') or 0)),
-                    'exam_score': Decimal(str(row.get('exam') or 0)),
-                    'mock_score': Decimal(str(row.get('mock') or 0)) if row.get('mock') else None,
-                    'practical_score': Decimal(str(row.get('practical') or 0)) if row.get('practical') else None,
-                    'remarks': row.get('remarks', ''),
-                }
+                    "teacher": teacher,
+                    "seq1_score": Decimal(str(row.get("seq1") or 0)),
+                    "seq2_score": Decimal(str(row.get("seq2") or 0)),
+                    "exam_score": Decimal(str(row.get("exam") or 0)),
+                    "mock_score": Decimal(str(row.get("mock") or 0))
+                    if row.get("mock")
+                    else None,
+                    "practical_score": Decimal(str(row.get("practical") or 0))
+                    if row.get("practical")
+                    else None,
+                    "remarks": row.get("remarks", ""),
+                },
             )
-            
+
             if created:
                 created_count += 1
             else:
                 updated_count += 1
-        
+
         except _EVALS_IMPORTERS_ROW_ERRORS:
             log_exception_with_context(
                 "evals importers apply_import row failed",
-                school_id=getattr(academic_year, "school_id", None) if academic_year else None,
-                extra={"row": row, "academic_year_id": getattr(academic_year, "id", None)},
+                school_id=getattr(academic_year, "school_id", None)
+                if academic_year
+                else None,
+                extra={
+                    "row": row,
+                    "academic_year_id": getattr(academic_year, "id", None),
+                },
             )
             continue
-    
+
     duration = time.time() - start_time
 
     return {

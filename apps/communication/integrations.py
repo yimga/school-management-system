@@ -3,6 +3,7 @@ Phase 7 Task 8: Third-Party Integrations (WhatsApp, Zoom, Communication)
 
 §2.4: Broad except replaced with typed exception tuples and structured logging.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 # Typed exception set for external API/HTTP and token/serialization failures (§2.4)
 try:
     import requests
+
     _REQUESTS_ERRORS: tuple[type[BaseException], ...] = (requests.RequestException,)
 except ImportError:
     _REQUESTS_ERRORS = ()
@@ -62,7 +64,7 @@ class WhatsAppIntegration(IntegrationService):
     def send_message(self, recipient, message, template=None, **kwargs):
         """
         Send WhatsApp message.
-        
+
         Args:
             recipient: Phone number (e.g., "+237123456789")
             message: Message text
@@ -70,17 +72,14 @@ class WhatsAppIntegration(IntegrationService):
         """
         try:
             import requests
-            
+
             if template:
                 # Use template message
                 payload = {
                     "messaging_product": "whatsapp",
                     "to": recipient,
                     "type": "template",
-                    "template": {
-                        "name": template,
-                        "language": {"code": "en_US"}
-                    }
+                    "template": {"name": template, "language": {"code": "en_US"}},
                 }
             else:
                 # Send text message
@@ -89,7 +88,7 @@ class WhatsAppIntegration(IntegrationService):
                     "recipient_type": "individual",
                     "to": recipient,
                     "type": "text",
-                    "text": {"preview_url": True, "body": message}
+                    "text": {"preview_url": True, "body": message},
                 }
 
             headers = {
@@ -98,17 +97,17 @@ class WhatsAppIntegration(IntegrationService):
             }
 
             response = requests.post(
-                f"{self.api_url}/messages",
-                json=payload,
-                headers=headers,
-                timeout=10
+                f"{self.api_url}/messages", json=payload, headers=headers, timeout=10
             )
 
             if response.status_code in [200, 201]:
                 logger.info("WhatsApp message sent to %s", recipient)
-                return {'success': True, 'message_id': response.json().get('messages')[0]['id']}
+                return {
+                    "success": True,
+                    "message_id": response.json().get("messages")[0]["id"],
+                }
             logger.error("WhatsApp send failed: %s", response.text)
-            return {'success': False, 'error': response.text}
+            return {"success": False, "error": response.text}
 
         except _COMMUNICATION_INTEGRATION_ERRORS as e:
             logger.exception(
@@ -116,7 +115,7 @@ class WhatsAppIntegration(IntegrationService):
                 e,
                 extra={"recipient": recipient, "integration": "whatsapp"},
             )
-            return {'success': False, 'error': str(e)}
+            return {"success": False, "error": str(e)}
 
     def verify_webhook(self, request):
         """Verify WhatsApp webhook signature."""
@@ -127,6 +126,7 @@ class WhatsAppIntegration(IntegrationService):
         """Check WhatsApp API health."""
         try:
             import requests
+
             response = requests.get(
                 f"{self.api_url}/health",
                 headers={"Authorization": f"Bearer {self.api_token}"},
@@ -134,7 +134,9 @@ class WhatsAppIntegration(IntegrationService):
             )
             return response.status_code == 200
         except _COMMUNICATION_INTEGRATION_ERRORS as e:
-            logger.debug("WhatsApp health check failed: %s", e, extra={"integration": "whatsapp"})
+            logger.debug(
+                "WhatsApp health check failed: %s", e, extra={"integration": "whatsapp"}
+            )
             return False
 
 
@@ -150,11 +152,12 @@ class ZoomIntegration(IntegrationService):
         """Return a short-lived JWT for Zoom API calls (create_meeting, check_health, etc.)."""
         import jwt
         from datetime import datetime, timedelta
+
         payload = {
-            'iss': self.api_key,
-            'exp': datetime.utcnow() + timedelta(seconds=60),
+            "iss": self.api_key,
+            "exp": datetime.utcnow() + timedelta(seconds=60),
         }
-        return jwt.encode(payload, self.api_secret, algorithm='HS256')
+        return jwt.encode(payload, self.api_secret, algorithm="HS256")
 
     def create_meeting(self, host_email, topic, duration=30, **kwargs):
         """Create a Zoom meeting."""
@@ -164,42 +167,42 @@ class ZoomIntegration(IntegrationService):
             token = self.get_token()
 
             headers = {
-                'Authorization': f'Bearer {token}',
-                'Content-Type': 'application/json'
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
             }
 
             # Create meeting
             meeting_data = {
-                'topic': topic,
-                'type': 2,  # Scheduled meeting
-                'duration': duration,
-                'timezone': 'UTC',
-                'settings': {
-                    'host_video': True,
-                    'participant_video': True,
-                    'join_before_host': True,
-                    'waiting_room': True,
-                }
+                "topic": topic,
+                "type": 2,  # Scheduled meeting
+                "duration": duration,
+                "timezone": "UTC",
+                "settings": {
+                    "host_video": True,
+                    "participant_video": True,
+                    "join_before_host": True,
+                    "waiting_room": True,
+                },
             }
 
             response = requests.post(
                 f"{self.api_url}/users/{host_email}/meetings",
                 json=meeting_data,
                 headers=headers,
-                timeout=10
+                timeout=10,
             )
 
             if response.status_code == 201:
                 data = response.json()
                 logger.info(f"Zoom meeting created: {data['id']}")
                 return {
-                    'success': True,
-                    'meeting_id': data['id'],
-                    'join_url': data['join_url'],
-                    'start_time': data.get('start_time'),
+                    "success": True,
+                    "meeting_id": data["id"],
+                    "join_url": data["join_url"],
+                    "start_time": data.get("start_time"),
                 }
             logger.error("Zoom meeting creation failed: %s", response.text)
-            return {'success': False, 'error': response.text}
+            return {"success": False, "error": response.text}
 
         except _COMMUNICATION_INTEGRATION_ERRORS as e:
             logger.exception(
@@ -207,7 +210,7 @@ class ZoomIntegration(IntegrationService):
                 e,
                 extra={"host_email": host_email, "topic": topic, "integration": "zoom"},
             )
-            return {'success': False, 'error': str(e)}
+            return {"success": False, "error": str(e)}
 
     def send_message(self, recipient, message, **kwargs):
         """Zoom does not support direct messaging; use create_meeting for video. Intentional stub."""
@@ -221,6 +224,7 @@ class ZoomIntegration(IntegrationService):
         """Check Zoom API health."""
         try:
             import requests
+
             response = requests.get(
                 f"{self.api_url}/users/me",
                 headers={"Authorization": f"Bearer {self.get_token()}"},
@@ -228,7 +232,9 @@ class ZoomIntegration(IntegrationService):
             )
             return response.status_code == 200
         except _COMMUNICATION_INTEGRATION_ERRORS as e:
-            logger.debug("Zoom health check failed: %s", e, extra={"integration": "zoom"})
+            logger.debug(
+                "Zoom health check failed: %s", e, extra={"integration": "zoom"}
+            )
             return False
 
 
@@ -239,14 +245,14 @@ class CommunicationService:
         self.whatsapp = WhatsAppIntegration()
         self.zoom = ZoomIntegration()
         self.providers = {
-            'whatsapp': self.whatsapp,
-            'zoom': self.zoom,
+            "whatsapp": self.whatsapp,
+            "zoom": self.zoom,
         }
 
     def send_message(self, provider, recipient, message, **kwargs):
         """Send message through specified provider."""
         if provider not in self.providers:
-            return {'success': False, 'error': f'Unknown provider: {provider}'}
+            return {"success": False, "error": f"Unknown provider: {provider}"}
 
         return self.providers[provider].send_message(recipient, message, **kwargs)
 

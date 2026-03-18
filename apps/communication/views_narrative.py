@@ -1,6 +1,7 @@
 """
 AI narrative feedback: list draft narratives and approve (teacher-approved parent message).
 """
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -30,23 +31,39 @@ def narrative_list(request: HttpRequest):
     school = get_current_school(request)
     if not school:
         return HttpResponseForbidden("No school context.")
-    qs = NarrativeFeedback.objects.filter(school=school).select_related("student", "achievement_event").order_by("-created_at")
+    qs = (
+        NarrativeFeedback.objects.filter(school=school)
+        .select_related("student", "achievement_event")
+        .order_by("-created_at")
+    )
     drafts = list(qs.filter(status=NarrativeFeedback.Status.DRAFT)[:50])
     if request.headers.get("Accept", "").find("application/json") >= 0:
-        return JsonResponse({
-            "drafts": [
-                {
-                    "id": n.id,
-                    "student_id": n.student_id,
-                    "student_name": n.student.get_full_name() if n.student_id else "",
-                    "message_text": n.message_text,
-                    "event_type": n.achievement_event.event_type if n.achievement_event_id else "",
-                    "created_at": n.created_at.isoformat() if n.created_at else None,
-                }
-                for n in drafts
-            ],
-        })
-    return render(request, "communication/narrative_list.html", {"drafts": drafts, "school": school})
+        return JsonResponse(
+            {
+                "drafts": [
+                    {
+                        "id": n.id,
+                        "student_id": n.student_id,
+                        "student_name": n.student.get_full_name()
+                        if n.student_id
+                        else "",
+                        "message_text": n.message_text,
+                        "event_type": n.achievement_event.event_type
+                        if n.achievement_event_id
+                        else "",
+                        "created_at": n.created_at.isoformat()
+                        if n.created_at
+                        else None,
+                    }
+                    for n in drafts
+                ],
+            }
+        )
+    return render(
+        request,
+        "communication/narrative_list.html",
+        {"drafts": drafts, "school": school},
+    )
 
 
 @login_required
@@ -73,4 +90,6 @@ def narrative_approve(request: HttpRequest, narrative_id: int):
             return JsonResponse({"ok": True, "status": narrative.status})
         return redirect("communication:narrative_list")
 
-    return render(request, "communication/narrative_approve.html", {"narrative": narrative})
+    return render(
+        request, "communication/narrative_approve.html", {"narrative": narrative}
+    )

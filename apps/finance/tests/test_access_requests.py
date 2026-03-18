@@ -16,12 +16,16 @@ from apps.communication.models import Message
 class FinanceAccessRequestTests(TestCase):
     def setUp(self):
         site = get_platform_site_settings_record(create=True)
-        flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        flags = {
+            **default_backend_feature_flags(),
+            **(site.backend_feature_flags or {}),
+        }
         flags["allow_finance_access_requests"] = True
         flags["require_guardian_finance_opt_in"] = True
         SiteSettings.objects.filter(pk=site.pk).update(backend_feature_flags=flags)
         # Clear site settings cache so the view sees updated flags
         from apps.siteconfig.models import _clear_site_settings_cache
+
         _clear_site_settings_cache(SiteSettings)
 
         self.year = AcademicYear.objects.create(
@@ -30,14 +34,18 @@ class FinanceAccessRequestTests(TestCase):
             end_date=date(2026, 6, 30),
         )
         self.department = Department.objects.create(name="General", code="GEN")
-        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
+        self.specialty = Specialty.objects.create(
+            name="General", code="GEN", department=self.department
+        )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
             department=self.department,
             name="Form 1",
             code="F1",
         )
-        self.profile = ComplianceProfile.objects.create(name="Default", country_code="CM")
+        self.profile = ComplianceProfile.objects.create(
+            name="Default", country_code="CM"
+        )
         self.student = StudentProfile.objects.create(
             first_name="Jordan",
             last_name="Learner",
@@ -65,27 +73,40 @@ class FinanceAccessRequestTests(TestCase):
         )
 
     def test_parent_can_request_access_when_enabled(self):
-        StudentGuardian.objects.create(guardian_user=self.parent, student=self.student, can_view_finance=False)
+        StudentGuardian.objects.create(
+            guardian_user=self.parent, student=self.student, can_view_finance=False
+        )
 
         self.client.force_login(self.parent)
-        resp = self.client.post(reverse("finance:invoice_request_access", args=[self.invoice.id]))
+        resp = self.client.post(
+            reverse("finance:invoice_request_access", args=[self.invoice.id])
+        )
 
         self.assertEqual(resp.status_code, 302)
         self.assertTrue(
-            Message.objects.filter(recipient=self.admin, subject__icontains="Finance access request").exists()
+            Message.objects.filter(
+                recipient=self.admin, subject__icontains="Finance access request"
+            ).exists()
         )
         self.assertTrue(
-            Notification.objects.filter(recipient=self.admin, title="Finance access request").exists()
+            Notification.objects.filter(
+                recipient=self.admin, title="Finance access request"
+            ).exists()
         )
 
     def test_request_access_disabled_flag_blocks(self):
         site = get_platform_site_settings_record(create=True)
-        flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        flags = {
+            **default_backend_feature_flags(),
+            **(site.backend_feature_flags or {}),
+        }
         flags["allow_finance_access_requests"] = False
         site.backend_feature_flags = flags
         site.save()
 
-        StudentGuardian.objects.create(guardian_user=self.parent, student=self.student, can_view_finance=False)
+        StudentGuardian.objects.create(
+            guardian_user=self.parent, student=self.student, can_view_finance=False
+        )
 
         self.client.force_login(self.parent)
         resp = self.client.post(reverse("finance:finance_request_access"))

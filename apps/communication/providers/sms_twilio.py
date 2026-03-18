@@ -1,6 +1,7 @@
 """
 Twilio SMS adapter. No direct Twilio usage outside this module.
 """
+
 from __future__ import annotations
 
 import logging
@@ -37,8 +38,13 @@ class TwilioSMSProvider(SMSProvider):
             return self._client
         try:
             from twilio.rest import Client
-            sid = getattr(settings, "TWILIO_ACCOUNT_SID", None) or getattr(self.site_settings, "twilio_account_sid", None)
-            token = getattr(settings, "TWILIO_AUTH_TOKEN", None) or getattr(self.site_settings, "twilio_auth_token", None)
+
+            sid = getattr(settings, "TWILIO_ACCOUNT_SID", None) or getattr(
+                self.site_settings, "twilio_account_sid", None
+            )
+            token = getattr(settings, "TWILIO_AUTH_TOKEN", None) or getattr(
+                self.site_settings, "twilio_auth_token", None
+            )
             if not sid or not token:
                 return None
             self._client = Client(sid, token)
@@ -55,7 +61,11 @@ class TwilioSMSProvider(SMSProvider):
         sender_id: str | None = None,
         idempotency_key: str | None = None,
     ) -> SMSResult:
-        from_ = sender_id or getattr(self.site_settings, "sms_sender_id", None) or "RUNMYCAMPUS"
+        from_ = (
+            sender_id
+            or getattr(self.site_settings, "sms_sender_id", None)
+            or "RUNMYCAMPUS"
+        )
         client = self._get_client()
         if not client:
             return SMSResult(ok=False, error="Twilio not configured")

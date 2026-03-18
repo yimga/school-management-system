@@ -100,7 +100,12 @@ class DocumentLibraryLifecycleTests(TestCase):
         self.client.force_login(self.superuser)
         response = self.client.get(
             reverse("portal:document_library_manage"),
-            {"embed": "1", "pack": self.pack.code, "lifecycle": "approved", "q": "checklist"},
+            {
+                "embed": "1",
+                "pack": self.pack.code,
+                "lifecycle": "approved",
+                "q": "checklist",
+            },
         )
 
         self.assertEqual(response.status_code, 200)

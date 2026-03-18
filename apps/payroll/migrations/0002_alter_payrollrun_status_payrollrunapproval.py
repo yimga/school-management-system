@@ -6,30 +6,75 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('payroll', '0001_initial'),
+        ("payroll", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='payrollrun',
-            name='status',
-            field=models.CharField(choices=[('DRAFT', 'Draft'), ('PROCESSED', 'Processed'), ('REVIEWED', 'Reviewed'), ('APPROVED', 'Approved'), ('PAID', 'Paid')], default='DRAFT', max_length=20),
+            model_name="payrollrun",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("DRAFT", "Draft"),
+                    ("PROCESSED", "Processed"),
+                    ("REVIEWED", "Reviewed"),
+                    ("APPROVED", "Approved"),
+                    ("PAID", "Paid"),
+                ],
+                default="DRAFT",
+                max_length=20,
+            ),
         ),
         migrations.CreateModel(
-            name='PayrollRunApproval',
+            name="PayrollRunApproval",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('PROCESSED', 'Processed'), ('REVIEWED', 'Reviewed'), ('APPROVED', 'Approved'), ('PAID', 'Paid')], max_length=20)),
-                ('note', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('approved_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='approved_payroll_runs', to=settings.AUTH_USER_MODEL)),
-                ('run', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='approvals', to='payroll.payrollrun')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("PROCESSED", "Processed"),
+                            ("REVIEWED", "Reviewed"),
+                            ("APPROVED", "Approved"),
+                            ("PAID", "Paid"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("note", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "approved_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="approved_payroll_runs",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "run",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="approvals",
+                        to="payroll.payrollrun",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
     ]

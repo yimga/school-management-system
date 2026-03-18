@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0011_add_audit_logging_fields'),
+        ("people", "0011_add_audit_logging_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='studentprofile',
-            name='joined_term',
+            model_name="studentprofile",
+            name="joined_term",
             field=models.CharField(blank=True, max_length=20),
         ),
     ]

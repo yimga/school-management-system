@@ -44,7 +44,9 @@ class AiCopilotContextTests(TestCase):
             **ai_copilot_settings(request),
             "csrf_token": "test-csrf-token",
         }
-        rendered = render_to_string("components/ai_copilot.html", context=context, request=request)
+        rendered = render_to_string(
+            "components/ai_copilot.html", context=context, request=request
+        )
 
         self.assertNotIn("gemini-secret-should-not-render", rendered)
         self.assertNotIn("GEMINI_API_KEY", rendered)

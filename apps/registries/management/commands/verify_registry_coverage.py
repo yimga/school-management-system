@@ -20,5 +20,7 @@ class Command(BaseCommand):
         minimum = int(options["minimum_countries"])
         count = CountryRegistry.objects.filter(is_active=True).count()
         if count < minimum:
-            raise CommandError(f"Country registry coverage too low: {count} < {minimum}")
+            raise CommandError(
+                f"Country registry coverage too low: {count} < {minimum}"
+            )
         self.stdout.write(self.style.SUCCESS(f"Country registry coverage OK: {count}"))

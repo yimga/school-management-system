@@ -2,6 +2,7 @@
 Package engine models: InstalledPackage, PackageVersion, PackageChangeLog (metadata plan todo 5).
 Canonical package format is documented in docs/architecture/PACKAGE_FORMAT.md.
 """
+
 from django.db import models
 
 
@@ -16,8 +17,12 @@ class InstalledPackage(models.Model):
         ("theme", "Theme Pack"),
     ]
 
-    package_id = models.CharField(max_length=120, db_index=True, help_text="Stable package identifier.")
-    package_type = models.CharField(max_length=40, choices=PACKAGE_TYPES, default="blueprint")
+    package_id = models.CharField(
+        max_length=120, db_index=True, help_text="Stable package identifier."
+    )
+    package_type = models.CharField(
+        max_length=40, choices=PACKAGE_TYPES, default="blueprint"
+    )
     version = models.CharField(max_length=80, help_text="Installed version string.")
     school = models.ForeignKey(
         "schools.School",
@@ -86,10 +91,20 @@ class PackageVersion(models.Model):
 
     package_id = models.CharField(max_length=120, db_index=True)
     version = models.CharField(max_length=80)
-    dependencies = models.JSONField(default=list, blank=True, help_text="Package dependencies.")
-    compatibility = models.JSONField(default=dict, blank=True, help_text="Platform/region constraints.")
-    payload_sections = models.JSONField(default=dict, blank=True, help_text="Blueprint/workflow/dashboard/policy/theme payloads.")
-    impact_summary = models.JSONField(default=dict, blank=True, help_text="Computed impact preview snapshot.")
+    dependencies = models.JSONField(
+        default=list, blank=True, help_text="Package dependencies."
+    )
+    compatibility = models.JSONField(
+        default=dict, blank=True, help_text="Platform/region constraints."
+    )
+    payload_sections = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Blueprint/workflow/dashboard/policy/theme payloads.",
+    )
+    impact_summary = models.JSONField(
+        default=dict, blank=True, help_text="Computed impact preview snapshot."
+    )
     changelog_summary = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -112,7 +127,11 @@ class PackageChangeLog(models.Model):
     school_id = models.UUIDField(null=True, blank=True, db_index=True)
     mode = models.CharField(
         max_length=20,
-        choices=[("sandbox", "Sandbox"), ("test", "Test"), ("production", "Production")],
+        choices=[
+            ("sandbox", "Sandbox"),
+            ("test", "Test"),
+            ("production", "Production"),
+        ],
         default="production",
     )
     action = models.CharField(
@@ -153,10 +172,13 @@ class ExperiencePack(models.Model):
     Phase 10 — 10.1: Theme & Experience as packageable unit.
     Theme + layout + dashboard visual + communication style. Runtime-only theme resolution; compare/rollback.
     """
+
     code = models.SlugField(max_length=80, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    theme_pack_id = models.IntegerField(null=True, blank=True, help_text="FK to ThemePack when migrated.")
+    theme_pack_id = models.IntegerField(
+        null=True, blank=True, help_text="FK to ThemePack when migrated."
+    )
     layout_schema = models.JSONField(default=dict, blank=True)
     communication_style = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
@@ -178,6 +200,7 @@ class DocumentPack(models.Model):
     Phase 10 — 10.4: Document Library. Pack of documents with lifecycle states and retention rules.
     Lifecycle states (draft → review → approved → archived); retention_rule for auto-archival/expiry.
     """
+
     code = models.SlugField(max_length=80, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -189,7 +212,7 @@ class DocumentPack(models.Model):
     retention_rule = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Retention policy: e.g. {\"archive_after_days\": 365, \"expire_after_days\": null}.",
+        help_text='Retention policy: e.g. {"archive_after_days": 365, "expire_after_days": null}.',
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

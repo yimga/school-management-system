@@ -16,7 +16,9 @@ from .models import AcademicYear, Term
 from .models import DegreeProgram, TransferCourseEquivalency, TransferCredit
 
 
-def get_active_year_and_term(*, school=None) -> Tuple[Optional[AcademicYear], Optional[Term]]:
+def get_active_year_and_term(
+    *, school=None
+) -> Tuple[Optional[AcademicYear], Optional[Term]]:
     """Return (active_year, active_term) if configured, optionally scoped to one school."""
     years = AcademicYear.objects.filter(is_active=True)
     if school is not None and hasattr(AcademicYear, "school_id"):

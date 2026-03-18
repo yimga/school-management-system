@@ -24,7 +24,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0018_cahier_verify_permission"),
     ]

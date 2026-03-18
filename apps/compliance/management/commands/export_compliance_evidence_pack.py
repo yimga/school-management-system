@@ -87,13 +87,20 @@ class Command(BaseCommand):
         configured = dict(getattr(settings, "DATA_RETENTION", {}) or {})
         return {
             "audit_log_days": int(
-                os.getenv("AUDIT_LOG_RETENTION_DAYS", configured.get("audit_log_days", 90))
+                os.getenv(
+                    "AUDIT_LOG_RETENTION_DAYS", configured.get("audit_log_days", 90)
+                )
             ),
             "access_log_days": int(
-                os.getenv("ACCESS_LOG_RETENTION_DAYS", configured.get("access_log_days", 30))
+                os.getenv(
+                    "ACCESS_LOG_RETENTION_DAYS", configured.get("access_log_days", 30)
+                )
             ),
             "session_days": int(
-                os.getenv("ACTIVITY_SESSION_RETENTION_DAYS", configured.get("session_days", 60))
+                os.getenv(
+                    "ACTIVITY_SESSION_RETENTION_DAYS",
+                    configured.get("session_days", 60),
+                )
             ),
             "report_days": int(configured.get("report_days", 365)),
         }
@@ -133,15 +140,23 @@ class Command(BaseCommand):
 
         schools = list(schools_qs.order_by("slug"))
         if school_slug and not schools:
-            raise CommandError(f"School '{school_slug}' not found for requested filters.")
+            raise CommandError(
+                f"School '{school_slug}' not found for requested filters."
+            )
 
         selected_school_ids = {str(s.pk) for s in schools}
         selected_regions = sorted(
-            {str(s.default_region_id) for s in schools if getattr(s, "default_region_id", None)}
+            {
+                str(s.default_region_id)
+                for s in schools
+                if getattr(s, "default_region_id", None)
+            }
         )
 
         dsar_events: list[dict[str, Any]] = []
-        logs_qs = ComplianceAuditLog.objects.select_related("region").order_by("-timestamp")
+        logs_qs = ComplianceAuditLog.objects.select_related("region").order_by(
+            "-timestamp"
+        )
         if region_filter:
             logs_qs = logs_qs.filter(region_id=region_filter)
         elif selected_regions:
@@ -150,12 +165,18 @@ class Command(BaseCommand):
         for row in logs_qs.iterator():
             details = dict(row.details or {}) if isinstance(row.details, dict) else {}
             school_id = str(details.get("school_id") or "")
-            if selected_school_ids and school_id and school_id not in selected_school_ids:
+            if (
+                selected_school_ids
+                and school_id
+                and school_id not in selected_school_ids
+            ):
                 continue
             if school_slug and not school_id:
                 continue
 
-            action = _infer_gdpr_action(details=details, description=str(row.description or ""))
+            action = _infer_gdpr_action(
+                details=details, description=str(row.description or "")
+            )
             description = str(row.description or "")
             if not action and "GDPR" not in description.upper():
                 continue
@@ -177,9 +198,24 @@ class Command(BaseCommand):
         retention_windows = self._retention_windows()
         model_specs = [
             ("audit_logs", AuditLog, "timestamp", retention_windows["audit_log_days"]),
-            ("access_logs", AccessLog, "timestamp", retention_windows["access_log_days"]),
-            ("sessions", UserActivitySession, "login_timestamp", retention_windows["session_days"]),
-            ("compliance_reports", ComplianceReport, "generated_at", retention_windows["report_days"]),
+            (
+                "access_logs",
+                AccessLog,
+                "timestamp",
+                retention_windows["access_log_days"],
+            ),
+            (
+                "sessions",
+                UserActivitySession,
+                "login_timestamp",
+                retention_windows["session_days"],
+            ),
+            (
+                "compliance_reports",
+                ComplianceReport,
+                "generated_at",
+                retention_windows["report_days"],
+            ),
         ]
         retention_snapshot: dict[str, Any] = {
             "captured_at": now.isoformat(),
@@ -192,7 +228,9 @@ class Command(BaseCommand):
             cutoff = None
             if days > 0:
                 cutoff = now - timedelta(days=days)
-                overdue_count = model.objects.filter(**{f"{timestamp_field}__lt": cutoff}).count()
+                overdue_count = model.objects.filter(
+                    **{f"{timestamp_field}__lt": cutoff}
+                ).count()
             retention_snapshot["datasets"][key] = {
                 "model": model.__name__,
                 "timestamp_field": timestamp_field,
@@ -204,7 +242,10 @@ class Command(BaseCommand):
 
         policy_locks: list[dict[str, Any]] = []
         for school in schools:
-            school_settings = {**get_effective_policy(school), **dict(getattr(school, "settings", None) or {})}
+            school_settings = {
+                **get_effective_policy(school),
+                **dict(getattr(school, "settings", None) or {}),
+            }
             metadata = school_settings.get("tenant_config_metadata") or {}
             if not isinstance(metadata, dict):
                 metadata = {}
@@ -228,7 +269,8 @@ class Command(BaseCommand):
                     "school_slug": school.slug,
                     "school_name": school.name,
                     "region_code": str(getattr(school, "default_region_id", "") or ""),
-                    "tenant_policy_pack": school_settings.get("tenant_policy_pack") or {},
+                    "tenant_policy_pack": school_settings.get("tenant_policy_pack")
+                    or {},
                     "metadata_keys_count": len(metadata),
                     "compliance_locked_keys": sorted(set(locked_keys)),
                     "requires_approval_keys": sorted(set(approval_keys)),
@@ -236,7 +278,9 @@ class Command(BaseCommand):
                 }
             )
 
-        rules_qs = RegionFeatureCompliance.objects.select_related("region").order_by("region_id", "feature_code")
+        rules_qs = RegionFeatureCompliance.objects.select_related("region").order_by(
+            "region_id", "feature_code"
+        )
         if region_filter:
             rules_qs = rules_qs.filter(region_id=region_filter)
         elif selected_regions:
@@ -269,7 +313,11 @@ class Command(BaseCommand):
                 raise CommandError("--output-file must end with .zip")
             zip_path.parent.mkdir(parents=True, exist_ok=True)
         else:
-            output_dir = Path(str(options.get("output_dir") or "logs/compliance_evidence")).expanduser().resolve()
+            output_dir = (
+                Path(str(options.get("output_dir") or "logs/compliance_evidence"))
+                .expanduser()
+                .resolve()
+            )
             output_dir.mkdir(parents=True, exist_ok=True)
             timestamp = now.strftime("%Y%m%d_%H%M%S")
             zip_path = output_dir / f"compliance_evidence_pack_{timestamp}.zip"
@@ -283,7 +331,9 @@ class Command(BaseCommand):
                 "schools": len(policy_locks),
                 "dsar_events": len(dsar_events),
                 "region_feature_rules": len(region_rule_rows),
-                "locked_keys_total": sum(len(item["compliance_locked_keys"]) for item in policy_locks),
+                "locked_keys_total": sum(
+                    len(item["compliance_locked_keys"]) for item in policy_locks
+                ),
             },
             "files": [
                 "manifest.json",
@@ -304,10 +354,18 @@ class Command(BaseCommand):
             _write_json(temp_root / "policy_locks.json", policy_locks)
             _write_json(temp_root / "retention_snapshot.json", retention_snapshot)
 
-            with (temp_root / "region_feature_rules.csv").open("w", newline="", encoding="utf-8") as handle:
+            with (temp_root / "region_feature_rules.csv").open(
+                "w", newline="", encoding="utf-8"
+            ) as handle:
                 writer = csv.DictWriter(
                     handle,
-                    fieldnames=["region_code", "feature_code", "status", "notes", "updated_at"],
+                    fieldnames=[
+                        "region_code",
+                        "feature_code",
+                        "status",
+                        "notes",
+                        "updated_at",
+                    ],
                 )
                 writer.writeheader()
                 for row in region_rule_rows:
@@ -331,11 +389,15 @@ class Command(BaseCommand):
                 encoding="utf-8",
             )
 
-            with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            with zipfile.ZipFile(
+                zip_path, "w", compression=zipfile.ZIP_DEFLATED
+            ) as archive:
                 for file_name in manifest["files"]:
                     archive.write(temp_root / file_name, arcname=file_name)
 
-        self.stdout.write(self.style.SUCCESS(f"Compliance evidence pack written: {zip_path}"))
+        self.stdout.write(
+            self.style.SUCCESS(f"Compliance evidence pack written: {zip_path}")
+        )
         self.stdout.write(
             json.dumps(
                 {

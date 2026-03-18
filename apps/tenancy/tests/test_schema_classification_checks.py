@@ -10,7 +10,12 @@ class SchemaClassificationChecksTests(SimpleTestCase):
         TENANT_APPS=["apps.student360", "apps.communication"],
         MIDDLEWARE=["django_tenants.middleware.main.TenantMainMiddleware"],
         DATABASES={"default": {"ENGINE": "django_tenants.postgresql_backend"}},
-        INSTALLED_APPS=["apps.accounts", "apps.portal", "apps.student360", "apps.communication"],
+        INSTALLED_APPS=[
+            "apps.accounts",
+            "apps.portal",
+            "apps.student360",
+            "apps.communication",
+        ],
     )
     def test_tenant_only_apps_in_shared_apps_raise_error(self):
         errors = tenancy_strategy_checks(None)

@@ -1,7 +1,15 @@
 from django.test import TestCase
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Department, Classroom, Specialty, Term, Subject, SubjectAssignment
+from apps.academics.models import (
+    AcademicYear,
+    Department,
+    Classroom,
+    Specialty,
+    Term,
+    Subject,
+    SubjectAssignment,
+)
 from apps.evals.models import TeacherAssignment
 from apps.people.models import StudentProfile, StudentGuardian, TeacherProfile
 
@@ -38,7 +46,9 @@ class DashboardApiRbacTests(TestCase):
             position=1,
             is_active=True,
         )
-        self.subject = Subject.objects.create(name="Mathematics", category=Subject.Category.GENERAL)
+        self.subject = Subject.objects.create(
+            name="Mathematics", category=Subject.Category.GENERAL
+        )
 
         self.parent_user = User.objects.create_user(
             username="parent_api",

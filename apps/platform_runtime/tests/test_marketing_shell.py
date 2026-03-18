@@ -2,6 +2,7 @@
 Assert marketing base template does not load app-only stylesheets.
 Marketing surface must use only marketing shell and assets (no dashboard-*, design-system-unified, theme-everywhere-dark).
 """
+
 import unittest
 from pathlib import Path
 
@@ -58,5 +59,13 @@ class ControlPlaneShellTests(unittest.TestCase):
         if not template.is_file():
             self.skipTest("templates/control_plane_skeleton.html not found")
         text = template.read_text(encoding="utf-8", errors="replace")
-        self.assertNotIn("marketing-shell.css", text, "Control plane must not load marketing-shell.css")
-        self.assertNotIn("tokens-marketing.css", text, "Control plane must not load tokens-marketing.css")
+        self.assertNotIn(
+            "marketing-shell.css",
+            text,
+            "Control plane must not load marketing-shell.css",
+        )
+        self.assertNotIn(
+            "tokens-marketing.css",
+            text,
+            "Control plane must not load tokens-marketing.css",
+        )

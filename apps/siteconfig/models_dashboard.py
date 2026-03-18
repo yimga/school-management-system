@@ -32,17 +32,23 @@ PAGE_CHOICES = [
 class DashboardUserPreference(models.Model):
     """Store user UI/UX preferences and customizations for dashboards."""
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="dashboard_preferences")
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="dashboard_preferences"
+    )
 
     # Dashboard customization
-    dashboard_layout = models.JSONField(default=dict, help_text="Legacy widget positions (Phase 7).")
-    visible_widgets = models.JSONField(default=list, help_text="List of visible widget IDs on dashboard.")
+    dashboard_layout = models.JSONField(
+        default=dict, help_text="Legacy widget positions (Phase 7)."
+    )
+    visible_widgets = models.JSONField(
+        default=list, help_text="List of visible widget IDs on dashboard."
+    )
     role_visual_presets = models.JSONField(
         default=dict,
         blank=True,
         help_text=(
             "Per-role visual style preferences for dashboards. "
-            "Example: {\"PARENT\": \"soft-glass\", \"TEACHER\": \"crisp-professional\"}."
+            'Example: {"PARENT": "soft-glass", "TEACHER": "crisp-professional"}.'
         ),
     )
 
@@ -54,7 +60,9 @@ class DashboardUserPreference(models.Model):
         ("classic", "Classic"),
         ("high_contrast", "High Contrast"),
     ]
-    theme_preference = models.CharField(max_length=20, choices=THEME_CHOICES, default="system")
+    theme_preference = models.CharField(
+        max_length=20, choices=THEME_CHOICES, default="system"
+    )
 
     # Language & localization
     LANGUAGE_CHOICES = [
@@ -65,11 +73,17 @@ class DashboardUserPreference(models.Model):
     language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default="en")
 
     # Accessibility
-    high_contrast = models.BooleanField(default=False, help_text="Enable high contrast mode")
+    high_contrast = models.BooleanField(
+        default=False, help_text="Enable high contrast mode"
+    )
     reduced_motion = models.BooleanField(default=False, help_text="Reduce animations")
     font_size = models.CharField(
         max_length=20,
-        choices=[("normal", "Normal"), ("large", "Large"), ("extra-large", "Extra Large")],
+        choices=[
+            ("normal", "Normal"),
+            ("large", "Large"),
+            ("extra-large", "Extra Large"),
+        ],
         default="normal",
     )
 
@@ -79,12 +93,20 @@ class DashboardUserPreference(models.Model):
     push_notifications = models.BooleanField(default=True)
 
     # UI preferences
-    items_per_page = models.IntegerField(default=10, choices=[(10, "10"), (25, "25"), (50, "50")])
+    items_per_page = models.IntegerField(
+        default=10, choices=[(10, "10"), (25, "25"), (50, "50")]
+    )
     sidebar_collapsed = models.BooleanField(default=False)
     # Phase 16: Quick access / pinned sidebar (list of sidebar item ids, e.g. ["dashboard", "kb", "finance_dashboard"])
-    pinned_sidebar_items = models.JSONField(default=list, blank=True, help_text="Sidebar item IDs to show in Quick access.")
+    pinned_sidebar_items = models.JSONField(
+        default=list, blank=True, help_text="Sidebar item IDs to show in Quick access."
+    )
     # Phase 8: Control plane Quick access (list of control plane nav item ids, e.g. ["super_dashboard", "super_command_center"])
-    control_plane_pinned_items = models.JSONField(default=list, blank=True, help_text="Control plane sidebar item IDs to show in Quick access.")
+    control_plane_pinned_items = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Control plane sidebar item IDs to show in Quick access.",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -144,7 +166,11 @@ class DashboardUserPreference(models.Model):
         role_code = (role or getattr(self.user, "role", "") or "").upper()
         presets = self.role_visual_presets or {}
         valid_values = {choice[0] for choice in self.VISUAL_PRESET_CHOICES}
-        selected = presets.get(role_code) or self.VISUAL_PRESET_DEFAULTS.get(role_code) or "soft-glass"
+        selected = (
+            presets.get(role_code)
+            or self.VISUAL_PRESET_DEFAULTS.get(role_code)
+            or "soft-glass"
+        )
         return selected if selected in valid_values else "soft-glass"
 
     def set_visual_preset(self, role: str | None, preset: str) -> None:
@@ -250,11 +276,21 @@ class DashboardWidget(models.Model):
     )
 
     # Display settings
-    template_path = models.CharField(max_length=255, help_text="Path to widget template")
-    default_width = models.IntegerField(default=1, choices=[(1, "Full"), (2, "Half"), (3, "Third")])
-    refresh_interval = models.IntegerField(default=300, help_text="Seconds between refreshes")
-    default_column = models.PositiveSmallIntegerField(default=1, help_text="Column hint for drag/drop layout")
-    default_order = models.PositiveSmallIntegerField(default=1, help_text="Order hint within a column")
+    template_path = models.CharField(
+        max_length=255, help_text="Path to widget template"
+    )
+    default_width = models.IntegerField(
+        default=1, choices=[(1, "Full"), (2, "Half"), (3, "Third")]
+    )
+    refresh_interval = models.IntegerField(
+        default=300, help_text="Seconds between refreshes"
+    )
+    default_column = models.PositiveSmallIntegerField(
+        default=1, help_text="Column hint for drag/drop layout"
+    )
+    default_order = models.PositiveSmallIntegerField(
+        default=1, help_text="Order hint within a column"
+    )
 
     # Per-widget sizing/variant controls (admin-configurable)
     allowed_sizes = models.JSONField(
@@ -307,11 +343,15 @@ class DashboardWidget(models.Model):
 
     def resolved_allowed_variants(self) -> list[str]:
         if self.allowed_variants:
-            return [v for v in self.allowed_variants if v in {"default", "compact", "flat"}]
+            return [
+                v for v in self.allowed_variants if v in {"default", "compact", "flat"}
+            ]
         return ["default", "compact", "flat"]
 
 
-def get_dashboard_widget_metadata(widget_ids: list[str] | None = None) -> dict[str, dict]:
+def get_dashboard_widget_metadata(
+    widget_ids: list[str] | None = None,
+) -> dict[str, dict]:
     """Return metadata for dashboard widgets (allowed sizes/variants + defaults)."""
     qs = DashboardWidget.objects.filter(is_active=True)
     if widget_ids:
@@ -330,7 +370,9 @@ def get_dashboard_widget_metadata(widget_ids: list[str] | None = None) -> dict[s
 class WidgetData(models.Model):
     """Cache widget data for performance."""
 
-    widget = models.ForeignKey(DashboardWidget, on_delete=models.CASCADE, related_name="cached_data")
+    widget = models.ForeignKey(
+        DashboardWidget, on_delete=models.CASCADE, related_name="cached_data"
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
     data = models.JSONField(help_text="Cached widget data")
@@ -364,14 +406,20 @@ class DashboardLayout(models.Model):
         blank=True,
         help_text="Optional role-scoped default when user layout is not present.",
     )
-    layout = models.JSONField(default=dict, blank=True, help_text="Serialized positions/sizes of widgets")
-    is_default = models.BooleanField(default=False, help_text="Use as default layout for the role/page")
+    layout = models.JSONField(
+        default=dict, blank=True, help_text="Serialized positions/sizes of widgets"
+    )
+    is_default = models.BooleanField(
+        default=False, help_text="Use as default layout for the role/page"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["user", "page"], name="uniq_user_page_layout"),
+            models.UniqueConstraint(
+                fields=["user", "page"], name="uniq_user_page_layout"
+            ),
             models.UniqueConstraint(
                 fields=["role", "page"],
                 condition=Q(is_default=True),
@@ -424,7 +472,9 @@ class FeatureControlAudit(models.Model):
         related_name="feature_control_audits",
     )
     action = models.CharField(max_length=32)  # save, revert, import
-    changes = models.JSONField(default=dict, help_text="Keys that changed with before/after.")
+    changes = models.JSONField(
+        default=dict, help_text="Keys that changed with before/after."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -444,12 +494,18 @@ class DashboardPack(models.Model):
     Phase 4: Reusable dashboard pack (e.g. School Admin Executive, Teacher Command Center).
     Groups templates; assignable by role to a school.
     """
+
     code = models.CharField(max_length=80, unique=True)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     family = models.CharField(max_length=64, blank=True, db_index=True)
     version = models.CharField(max_length=32, default="1.0")
     is_active = models.BooleanField(default=True, db_index=True)
+    recommended_sectors = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Wedge 14–22 sector codes (e.g. PUBLIC, NGO) this pack is recommended for.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -464,6 +520,7 @@ class DashboardPack(models.Model):
 
 class DashboardPackAssignment(models.Model):
     """Assign a DashboardPack to a school for a given role."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -474,7 +531,9 @@ class DashboardPackAssignment(models.Model):
         on_delete=models.PROTECT,
         related_name="assignments",
     )
-    role = models.CharField(max_length=20, db_index=True, help_text="e.g. admin, teacher, parent")
+    role = models.CharField(
+        max_length=20, db_index=True, help_text="e.g. admin, teacher, parent"
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -500,7 +559,9 @@ class DashboardTemplate(models.Model):
     )
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
-    thumbnail = models.URLField(max_length=512, blank=True, help_text="Preview image URL")
+    thumbnail = models.URLField(
+        max_length=512, blank=True, help_text="Preview image URL"
+    )
     config_schema = models.JSONField(
         default=dict,
         blank=True,

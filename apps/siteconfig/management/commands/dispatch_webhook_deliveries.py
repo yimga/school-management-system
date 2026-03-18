@@ -13,7 +13,9 @@ class Command(BaseCommand):
     help = "Dispatch due outbound webhook deliveries."
 
     def add_arguments(self, parser):
-        parser.add_argument("--limit", type=int, default=100, help="Max deliveries to process")
+        parser.add_argument(
+            "--limit", type=int, default=100, help="Max deliveries to process"
+        )
 
     def handle(self, *args, **options):
         limit = max(1, int(options.get("limit") or 100))
@@ -28,7 +30,9 @@ class Command(BaseCommand):
         started = timezone.now()
         results = dispatch_due_webhooks(limit=limit, now=started)
         delivered = sum(1 for r in results if r.get("status") == "delivered")
-        retrying = sum(1 for r in results if r.get("status") == "pending" and not r.get("skipped"))
+        retrying = sum(
+            1 for r in results if r.get("status") == "pending" and not r.get("skipped")
+        )
         dead = sum(1 for r in results if r.get("status") == "failed")
 
         self.stdout.write(

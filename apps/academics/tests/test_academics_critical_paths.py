@@ -8,10 +8,16 @@ from datetime import date
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from apps.academics.models import AcademicYear, Classroom, Department, Subject, SubjectAssignment, Term
+from apps.academics.models import (
+    AcademicYear,
+    Classroom,
+    Department,
+    Subject,
+    SubjectAssignment,
+    Term,
+)
 from apps.academics.services import get_active_year_and_term
 from apps.accounts.models import User
-from apps.evals.models import TeacherAssignment
 from apps.people.models import TeacherProfile
 from apps.schools.models import School
 
@@ -88,7 +94,9 @@ class SyllabusHubCriticalPathTests(TestCase):
             name="Grade 10",
             code="G10",
         )
-        self.subject = Subject.objects.create(school=self.school, name="Algebra", code="ALG")
+        self.subject = Subject.objects.create(
+            school=self.school, name="Algebra", code="ALG"
+        )
         self.subject_assignment = SubjectAssignment.objects.create(
             classroom=self.classroom,
             subject=self.subject,

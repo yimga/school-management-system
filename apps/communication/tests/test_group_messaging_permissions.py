@@ -58,7 +58,9 @@ class GroupMessagingPermissionTests(TestCase):
 
     def test_allowed_role_can_join_then_post(self):
         self.client.force_login(self.principal)
-        join_response = self.client.get(reverse("communication:group_join", args=[self.thread.id]))
+        join_response = self.client.get(
+            reverse("communication:group_join", args=[self.thread.id])
+        )
         self.assertEqual(join_response.status_code, 302)
         self.assertTrue(self.thread.members.filter(id=self.principal.id).exists())
 

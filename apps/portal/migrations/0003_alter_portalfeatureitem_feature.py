@@ -4,15 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0002_pendingguardianinvite'),
+        ("portal", "0002_pendingguardianinvite"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='portalfeatureitem',
-            name='feature',
-            field=models.CharField(choices=[('messaging', 'Messaging'), ('forums', 'Forums'), ('video', 'Video'), ('documents', 'Documents'), ('syllabus', 'Syllabus')], max_length=20),
+            model_name="portalfeatureitem",
+            name="feature",
+            field=models.CharField(
+                choices=[
+                    ("messaging", "Messaging"),
+                    ("forums", "Forums"),
+                    ("video", "Video"),
+                    ("documents", "Documents"),
+                    ("syllabus", "Syllabus"),
+                ],
+                max_length=20,
+            ),
         ),
     ]

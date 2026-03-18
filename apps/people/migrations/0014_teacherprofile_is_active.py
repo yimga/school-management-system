@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0013_add_exam_fields'),
+        ("people", "0013_add_exam_fields"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='teacherprofile',
-            name='is_active',
+            model_name="teacherprofile",
+            name="is_active",
             field=models.BooleanField(default=True),
         ),
     ]

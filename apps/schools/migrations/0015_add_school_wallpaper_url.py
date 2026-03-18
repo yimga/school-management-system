@@ -6,6 +6,7 @@ from django.db import migrations, models
 
 def add_wallpaper_url_if_missing(apps, schema_editor):
     from django.db import connection
+
     with connection.cursor() as cursor:
         if connection.vendor == "postgresql":
             cursor.execute("""
@@ -18,7 +19,9 @@ def add_wallpaper_url_if_missing(apps, schema_editor):
         else:
             cursor.execute("PRAGMA table_info(schools_school)")
             if "wallpaper_url" not in [row[1] for row in cursor.fetchall()]:
-                cursor.execute("ALTER TABLE schools_school ADD COLUMN wallpaper_url varchar(200) NOT NULL DEFAULT ''")
+                cursor.execute(
+                    "ALTER TABLE schools_school ADD COLUMN wallpaper_url varchar(200) NOT NULL DEFAULT ''"
+                )
 
 
 def noop(apps, schema_editor):
@@ -26,20 +29,24 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0014_signup_verification'),
+        ("schools", "0014_signup_verification"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='school',
-                    name='wallpaper_url',
-                    field=models.URLField(blank=True, help_text='URL to tenant login wallpaper (split-screen left panel image)'),
+                    model_name="school",
+                    name="wallpaper_url",
+                    field=models.URLField(
+                        blank=True,
+                        help_text="URL to tenant login wallpaper (split-screen left panel image)",
+                    ),
                 ),
             ],
-            database_operations=[migrations.RunPython(add_wallpaper_url_if_missing, noop)],
+            database_operations=[
+                migrations.RunPython(add_wallpaper_url_if_missing, noop)
+            ],
         ),
     ]

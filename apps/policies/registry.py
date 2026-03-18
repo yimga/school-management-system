@@ -2,9 +2,13 @@
 Canonical entry point: get_tenant_blueprint(request), policy(name).evaluate(context).
 Modules must not read features_json / settings_json directly; use this registry.
 """
+
 from typing import Any, Dict
 
-from apps.policies.resolver import get_effective_policy, get_tenant_blueprint as _get_tenant_blueprint
+from apps.policies.resolver import (
+    get_effective_policy,
+    get_tenant_blueprint as _get_tenant_blueprint,
+)
 
 
 def get_tenant_blueprint(request) -> Dict[str, Any]:
@@ -31,6 +35,7 @@ def policy(name: str):
     Return a policy evaluator for the given policy name (e.g. 'admissions', 'gradebook').
     Usage: registry.policy('admissions').evaluate(context) -> allowed actions, required fields, etc.
     """
+
     class _PolicyEvaluator:
         def __init__(self, policy_name: str):
             self.policy_name = policy_name
@@ -39,8 +44,11 @@ def policy(name: str):
             school = context.get("school") or context.get("tenant")
             policy_dict = get_effective_policy(school, user=context.get("user"))
             # Return the slice relevant to this policy name
-            policies = policy_dict.get("workflows", {}) or policy_dict.get("policies", {})
+            policies = policy_dict.get("workflows", {}) or policy_dict.get(
+                "policies", {}
+            )
             if isinstance(policies, dict) and self.policy_name in policies:
                 return policies[self.policy_name]
             return {"enabled": True, "policy": policy_dict}
+
     return _PolicyEvaluator(name)

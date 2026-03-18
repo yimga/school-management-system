@@ -85,7 +85,14 @@ class HealthRecordAdmin(admin.ModelAdmin):
 
 @admin.register(BiometricDevice, site=tenant_admin_site)
 class BiometricDeviceAdmin(admin.ModelAdmin):
-    list_display = ("name", "school", "device_id", "location", "is_active", "created_at")
+    list_display = (
+        "name",
+        "school",
+        "device_id",
+        "location",
+        "is_active",
+        "created_at",
+    )
     list_filter = ("school", "is_active")
     search_fields = ("name", "device_id", "school__name")
     raw_id_fields = ("school",)
@@ -100,7 +107,15 @@ class BiometricAttendanceLogAdmin(admin.ModelAdmin):
 
 @admin.register(LibraryItem, site=tenant_admin_site)
 class LibraryItemAdmin(admin.ModelAdmin):
-    list_display = ("title", "author", "school", "item_type", "copies_total", "is_active", "created_at")
+    list_display = (
+        "title",
+        "author",
+        "school",
+        "item_type",
+        "copies_total",
+        "is_active",
+        "created_at",
+    )
     list_filter = ("school", "item_type", "is_active")
     search_fields = ("title", "author", "isbn", "school__name")
     raw_id_fields = ("school",)
@@ -108,7 +123,14 @@ class LibraryItemAdmin(admin.ModelAdmin):
 
 @admin.register(LibraryLoan, site=tenant_admin_site)
 class LibraryLoanAdmin(admin.ModelAdmin):
-    list_display = ("item", "borrower", "school", "checked_out_at", "due_at", "returned_at")
+    list_display = (
+        "item",
+        "borrower",
+        "school",
+        "checked_out_at",
+        "due_at",
+        "returned_at",
+    )
     list_filter = ("school",)
     raw_id_fields = ("school", "item", "borrower")
     date_hierarchy = "checked_out_at"

@@ -21,7 +21,10 @@ from django.utils.deprecation import MiddlewareMixin
 
 from apps.compliance.access_control import check_request_access
 from apps.compliance.models_audit import AccessLog, AuditLog
-from apps.platform_runtime.structured_logging import log_exception_with_context, log_view_exception
+from apps.platform_runtime.structured_logging import (
+    log_exception_with_context,
+    log_view_exception,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +55,7 @@ _ACCESS_CHECK_RUNTIME_ERRORS = (
     AttributeError,
     TypeError,
     ValueError,
+    RuntimeError,
     ObjectDoesNotExist,
     DatabaseError,
     OperationalError,
@@ -93,19 +97,19 @@ class AuditLoggingMiddleware(MiddlewareMixin):
 
     # Paths to skip from access logging (noisy, non-user actions)
     SKIP_PATHS = {
-        '/static/',
-        '/media/',
-        '/assets/',
-        '/favicon.ico',
-        '/.well-known/',
-        '/health/',
-        '/healthz/',
-        '/ready',
-        '/api/health/',
-        '/status/',
+        "/static/",
+        "/media/",
+        "/assets/",
+        "/favicon.ico",
+        "/.well-known/",
+        "/health/",
+        "/healthz/",
+        "/ready",
+        "/api/health/",
+        "/status/",
     }
     SKIP_EXACT_PATHS = {
-        '/',
+        "/",
     }
 
     def process_request(self, request):
@@ -127,7 +131,7 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 return response
 
             # Calculate response time
-            start_time = getattr(request, '_start_time', None)
+            start_time = getattr(request, "_start_time", None)
             response_time_ms = None
             if start_time:
                 response_time_ms = int((time() - start_time) * 1000)
@@ -145,9 +149,9 @@ class AuditLoggingMiddleware(MiddlewareMixin):
 
             # Get user
             user = None
-            if hasattr(request, 'user') and request.user.is_authenticated:
+            if hasattr(request, "user") and request.user.is_authenticated:
                 user = request.user
-            
+
             # Get IP address
             ip_address = self._get_ip_address(request)
 
@@ -169,8 +173,12 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             _reset_db_state()
             log_view_exception(request, "Failed to log access", extra={"error": str(e)})
             # Avoid traceback spam when table is missing (e.g. migrations not run yet)
-            if isinstance(e, OperationalError) and ("no such table" in str(e).lower() or "does not exist" in str(e).lower()):
-                logger.warning("Failed to log access (table missing? run migrate): %s", e)
+            if isinstance(e, OperationalError) and (
+                "no such table" in str(e).lower() or "does not exist" in str(e).lower()
+            ):
+                logger.warning(
+                    "Failed to log access (table missing? run migrate): %s", e
+                )
             else:
                 logger.warning("Failed to log access: %s", e, exc_info=True)
         except _AUDIT_MIDDLEWARE_LOG_ACCESS_ERRORS as e:
@@ -190,7 +198,7 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             if any(path.startswith(skip) for skip in self.SKIP_PATHS):
                 return None
             user = None
-            if hasattr(request, 'user') and request.user.is_authenticated:
+            if hasattr(request, "user") and request.user.is_authenticated:
                 user = request.user
 
             ip_address = self._get_ip_address(request)
@@ -208,13 +216,21 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             logger.debug("AccessLog exception skipped (router/relation): %s", e)
         except (DatabaseError, TransactionManagementError) as e:
             _reset_db_state()
-            log_view_exception(request, "Failed to log exception", extra={"error": str(e)})
-            if isinstance(e, OperationalError) and ("no such table" in str(e).lower() or "does not exist" in str(e).lower()):
-                logger.warning("Failed to log exception (table missing? run migrate): %s", e)
+            log_view_exception(
+                request, "Failed to log exception", extra={"error": str(e)}
+            )
+            if isinstance(e, OperationalError) and (
+                "no such table" in str(e).lower() or "does not exist" in str(e).lower()
+            ):
+                logger.warning(
+                    "Failed to log exception (table missing? run migrate): %s", e
+                )
             else:
                 logger.warning("Failed to log exception: %s", e, exc_info=True)
         except _AUDIT_MIDDLEWARE_LOG_ACCESS_ERRORS as e:
-            log_view_exception(request, "Failed to log exception", extra={"error": str(e)})
+            log_view_exception(
+                request, "Failed to log exception", extra={"error": str(e)}
+            )
 
         return None  # Re-raise the exception
 
@@ -222,12 +238,12 @@ class AuditLoggingMiddleware(MiddlewareMixin):
     def _get_access_type(request):
         """Determine access type (WEB, API, DOWNLOAD, etc.)."""
         path = request.path
-        
-        if path.startswith('/api/'):
+
+        if path.startswith("/api/"):
             return AccessLog.AccessType.API
-        elif 'download' in path or 'export' in path:
+        elif "download" in path or "export" in path:
             return AccessLog.AccessType.DOWNLOAD
-        elif path.startswith('/admin/'):
+        elif path.startswith("/admin/"):
             return AccessLog.AccessType.ADMIN
         else:
             return AccessLog.AccessType.WEB
@@ -236,21 +252,21 @@ class AuditLoggingMiddleware(MiddlewareMixin):
     def _get_ip_address(request):
         """Extract real IP address from request (handles proxies)."""
         # Check for IP through proxy headers
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
+            ip = x_forwarded_for.split(",")[0].strip()
         else:
-            ip = request.META.get('REMOTE_ADDR', '')
+            ip = request.META.get("REMOTE_ADDR", "")
         return ip[:45]
 
     @staticmethod
     def _extract_error(response):
         """Extract error message from response."""
         try:
-            if hasattr(response, 'content'):
-                content = response.content.decode('utf-8', errors='ignore')
+            if hasattr(response, "content"):
+                content = response.content.decode("utf-8", errors="ignore")
                 # Try to find error message in common patterns
-                if 'error' in content.lower():
+                if "error" in content.lower():
                     # Very basic extraction - just take first 500 chars
                     return content[:500]
         except _AUDIT_EXTRACT_ERROR_RESPONSE_ERRORS:
@@ -269,11 +285,11 @@ class AccessControlMiddleware(MiddlewareMixin):
         Attach access control context to request.
         This enriches decorators with audit information.
         """
-        getattr(request, 'user', None)
-        
+        getattr(request, "user", None)
+
         # Attach user info for decorators to use
         request.user_ip = self._get_ip_address(request)
-        request.user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+        request.user_agent = request.META.get("HTTP_USER_AGENT", "")[:500]
         request.access_timestamp = timezone.now()
 
         return None
@@ -290,11 +306,11 @@ class AccessControlMiddleware(MiddlewareMixin):
     @staticmethod
     def _get_ip_address(request):
         """Extract real IP address from request."""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
+            ip = x_forwarded_for.split(",")[0].strip()
         else:
-            ip = request.META.get('REMOTE_ADDR', '')
+            ip = request.META.get("REMOTE_ADDR", "")
         return ip[:45]
 
 
@@ -307,24 +323,24 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
     # Paths to bypass access control (e.g., health checks, auth/bootstrap routes, static files)
     # Keep this list strict: these routes either have their own auth guards or must stay probe-safe.
     BYPASS_PATH_PREFIXES = {
-        '/static/',
-        '/media/',
-        '/assets/',
-        '/favicon.ico',
-        '/.well-known/',
-        '/health/',
-        '/healthz/',
-        '/ready',
-        '/authentication/',
-        '/super/',
-        '/offline/',
-        '/api/health/',
-        '/api/weather/context/',
-        '/status/',
-        '/admin/jsi18n/',  # Django admin i18n
+        "/static/",
+        "/media/",
+        "/assets/",
+        "/favicon.ico",
+        "/.well-known/",
+        "/health/",
+        "/healthz/",
+        "/ready",
+        "/authentication/",
+        "/super/",
+        "/offline/",
+        "/api/health/",
+        "/api/weather/context/",
+        "/status/",
+        "/admin/jsi18n/",  # Django admin i18n
     }
     BYPASS_EXACT_PATHS = {
-        '/',
+        "/",
     }
 
     def process_request(self, request):
@@ -338,12 +354,16 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
             return None
 
         # Check if access control is enabled
-        if not getattr(settings, 'ENABLE_IP_COUNTRY_ACCESS_CONTROL', True):
+        if not getattr(settings, "ENABLE_IP_COUNTRY_ACCESS_CONTROL", True):
             return None
 
         # Bypass for superusers (if configured)
-        if getattr(settings, 'BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS', True):
-            if hasattr(request, 'user') and request.user.is_authenticated and request.user.is_superuser:
+        if getattr(settings, "BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS", True):
+            if (
+                hasattr(request, "user")
+                and request.user.is_authenticated
+                and request.user.is_superuser
+            ):
                 return None
 
         # Check access
@@ -357,10 +377,14 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
                 extra={"path": request.path, "error": str(exc)},
             )
             return None
-        
+
         if not is_allowed:
             # Log the blocked attempt (skip if AccessLog table missing)
-            user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+            user = (
+                request.user
+                if hasattr(request, "user") and request.user.is_authenticated
+                else None
+            )
             ip_address = self._get_ip_address(request)
             try:
                 AccessLog.objects.create(
@@ -374,11 +398,11 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
                 )
                 log_access_denial(
                     user=user,
-                    action='HTTP_REQUEST',
+                    action="HTTP_REQUEST",
                     resource=request.path,
                     reason=f"IP/Country access denied: {reason}",
                     ip_address=ip_address,
-                    severity='HIGH'
+                    severity="HIGH",
                 )
             except (DatabaseError, OperationalError, TransactionManagementError):
                 _reset_db_state()
@@ -394,21 +418,21 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
             return HttpResponseForbidden(
                 f"<h1>Access Denied</h1><p>{reason}</p><p>If you believe this is an error, contact support.</p>"
             )
-        
+
         return None
 
     @staticmethod
     def _get_ip_address(request):
         """Extract real IP address from request."""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
         if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
+            ip = x_forwarded_for.split(",")[0].strip()
         else:
-            ip = request.META.get('REMOTE_ADDR', '')
+            ip = request.META.get("REMOTE_ADDR", "")
         return ip[:45]
 
 
-def log_access_denial(user, action, resource, reason, ip_address='', severity='HIGH'):
+def log_access_denial(user, action, resource, reason, ip_address="", severity="HIGH"):
     """
     Utility function to log failed access attempts.
     Called by access control decorators when permission is denied.
@@ -416,11 +440,11 @@ def log_access_denial(user, action, resource, reason, ip_address='', severity='H
     try:
         AuditLog.objects.create(
             action=AuditLog.Action.ACCESS_DENIED,
-            model_name='ACCESS_CONTROL',
+            model_name="ACCESS_CONTROL",
             object_id=resource,
             object_repr=f"Denied: {action}",
-            app_label='compliance',
-            old_values={'requested_action': action},
+            app_label="compliance",
+            old_values={"requested_action": action},
             new_values={},
             reason=reason,
             sensitivity=severity,
@@ -469,7 +493,11 @@ class ComplianceGuardMiddleware(MiddlewareMixin):
         for prefix, feature_code in COMPLIANCE_GUARD_PATH_MAP.items():
             if not feature_code:
                 continue
-            if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path == prefix.rstrip("/"):
+            if (
+                path == prefix
+                or path.startswith(prefix.rstrip("/") + "/")
+                or path == prefix.rstrip("/")
+            ):
                 if self._is_blocked(school, feature_code):
                     return self._block_response(request, feature_code)
                 break
@@ -481,6 +509,7 @@ class ComplianceGuardMiddleware(MiddlewareMixin):
             return False
         try:
             from apps.compliance.models import RegionFeatureCompliance
+
             rule = RegionFeatureCompliance.objects.filter(
                 region_id=region_id,
                 feature_code=feature_code,
@@ -496,7 +525,10 @@ class ComplianceGuardMiddleware(MiddlewareMixin):
             return False
 
     def _block_response(self, request, feature_code):
-        if request.path.startswith("/api/") or (request.headers.get("Accept") or "").find("application/json") >= 0:
+        if (
+            request.path.startswith("/api/")
+            or (request.headers.get("Accept") or "").find("application/json") >= 0
+        ):
             return JsonResponse(
                 {
                     "error": "compliance_restricted",

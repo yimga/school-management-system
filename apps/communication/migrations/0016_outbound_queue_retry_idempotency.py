@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("communication", "0015_contact_request_tenant_upload_to"),
     ]

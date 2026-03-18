@@ -6,51 +6,115 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('schools', '0034_remove_biometricdevice_school_and_more'),
+        ("schools", "0034_remove_biometricdevice_school_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ProcessDefinition',
+            name="ProcessDefinition",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.SlugField(max_length=64, unique=True)),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('config_schema', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("code", models.SlugField(max_length=64, unique=True)),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                ("config_schema", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['code'],
+                "ordering": ["code"],
             },
         ),
         migrations.CreateModel(
-            name='OrchestrationRun',
+            name="OrchestrationRun",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('running', 'Running'), ('completed', 'Completed'), ('failed', 'Failed'), ('compensating', 'Compensating'), ('cancelled', 'Cancelled')], db_index=True, default='pending', max_length=32)),
-                ('input_payload', models.JSONField(blank=True, default=dict)),
-                ('output_payload', models.JSONField(blank=True, default=dict)),
-                ('error_message', models.TextField(blank=True)),
-                ('retry_count', models.PositiveIntegerField(default=0)),
-                ('started_at', models.DateTimeField(blank=True, null=True)),
-                ('completed_at', models.DateTimeField(blank=True, null=True)),
-                ('sla_deadline', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='orchestration_runs', to='schools.school')),
-                ('triggered_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('definition', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='runs', to='orchestration.processdefinition')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("running", "Running"),
+                            ("completed", "Completed"),
+                            ("failed", "Failed"),
+                            ("compensating", "Compensating"),
+                            ("cancelled", "Cancelled"),
+                        ],
+                        db_index=True,
+                        default="pending",
+                        max_length=32,
+                    ),
+                ),
+                ("input_payload", models.JSONField(blank=True, default=dict)),
+                ("output_payload", models.JSONField(blank=True, default=dict)),
+                ("error_message", models.TextField(blank=True)),
+                ("retry_count", models.PositiveIntegerField(default=0)),
+                ("started_at", models.DateTimeField(blank=True, null=True)),
+                ("completed_at", models.DateTimeField(blank=True, null=True)),
+                ("sla_deadline", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="orchestration_runs",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "triggered_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "definition",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="runs",
+                        to="orchestration.processdefinition",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['status', 'created_at'], name='orchestrati_status_8bcbc0_idx'), models.Index(fields=['school', 'definition', '-created_at'], name='orchestrati_school__d54542_idx')],
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["status", "created_at"],
+                        name="orchestrati_status_8bcbc0_idx",
+                    ),
+                    models.Index(
+                        fields=["school", "definition", "-created_at"],
+                        name="orchestrati_school__d54542_idx",
+                    ),
+                ],
             },
         ),
     ]

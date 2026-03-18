@@ -2,6 +2,7 @@ from django import template
 
 register = template.Library()
 
+
 @register.filter
 def get_item(d, key):
     if d is None:
@@ -27,4 +28,3 @@ def evaluation_incomplete(evaluation, required_fields):
         if value is None:
             return True
     return False
-

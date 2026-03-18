@@ -36,8 +36,8 @@ class AidDisbursementLedgerTests(TestCase):
             is_active=True,
         )
         site = get_platform_site_settings_record(create=True)
-        site.compliance_profile = self.profile
-        site.save(update_fields=["compliance_profile", "updated_at"])
+        site.compliance_profile_id = self.profile.pk
+        site.save(update_fields=["compliance_profile_id", "updated_at"])
 
         self.student_with_invoice = StudentProfile.objects.create(
             school=self.school,
@@ -74,7 +74,9 @@ class AidDisbursementLedgerTests(TestCase):
             is_active=True,
         )
 
-    def _application(self, student: StudentProfile, amount: str) -> FinancialAidApplication:
+    def _application(
+        self, student: StudentProfile, amount: str
+    ) -> FinancialAidApplication:
         return FinancialAidApplication.objects.create(
             school=self.school,
             student=student,
@@ -112,9 +114,13 @@ class AidDisbursementLedgerTests(TestCase):
         invoice.refresh_from_db()
         self.assertEqual(invoice.total_amount, Decimal("70.00"))
         self.assertEqual(invoice.balance_amount, Decimal("70.00"))
-        self.assertTrue(AidAuditLog.objects.filter(application=app, action="disbursement").exists())
+        self.assertTrue(
+            AidAuditLog.objects.filter(application=app, action="disbursement").exists()
+        )
 
-        entry = JournalEntry.objects.get(source_type="financial_aid_disbursement", source_id=app.pk)
+        entry = JournalEntry.objects.get(
+            source_type="financial_aid_disbursement", source_id=app.pk
+        )
         debit_total = sum((line.debit for line in entry.lines.all()), Decimal("0.00"))
         credit_total = sum((line.credit for line in entry.lines.all()), Decimal("0.00"))
         self.assertEqual(debit_total, Decimal("30.00"))
@@ -123,7 +129,9 @@ class AidDisbursementLedgerTests(TestCase):
         self.assertIn("658", account_codes)
         self.assertIn("411", account_codes)
         delivery = WebhookDelivery.objects.get(subscription=self.webhook)
-        self.assertEqual(delivery.domain_event.idempotency_key, f"aid-disbursed-{app.pk}")
+        self.assertEqual(
+            delivery.domain_event.idempotency_key, f"aid-disbursed-{app.pk}"
+        )
         self.assertEqual(delivery.domain_event.event_type, "finance.aid_disbursed")
         self.assertEqual(delivery.status, WebhookDelivery.Status.PENDING)
 
@@ -135,10 +143,14 @@ class AidDisbursementLedgerTests(TestCase):
         self.assertTrue(result["ok"])
         app.refresh_from_db()
         self.assertEqual(app.status, FinancialAidApplication.Status.DISBURSED)
-        payment = Payment.objects.get(student=self.student_without_invoice, amount=Decimal("25.00"))
+        payment = Payment.objects.get(
+            student=self.student_without_invoice, amount=Decimal("25.00")
+        )
         self.assertEqual(payment.status, "completed")
 
-        entry = JournalEntry.objects.get(source_type="financial_aid_disbursement", source_id=app.pk)
+        entry = JournalEntry.objects.get(
+            source_type="financial_aid_disbursement", source_id=app.pk
+        )
         debit_total = sum((line.debit for line in entry.lines.all()), Decimal("0.00"))
         credit_total = sum((line.credit for line in entry.lines.all()), Decimal("0.00"))
         self.assertEqual(debit_total, Decimal("25.00"))
@@ -147,7 +159,9 @@ class AidDisbursementLedgerTests(TestCase):
         self.source.refresh_from_db()
         self.assertEqual(self.source.remaining_funds, Decimal("4975.00"))
         delivery = WebhookDelivery.objects.get(subscription=self.webhook)
-        self.assertEqual(delivery.domain_event.idempotency_key, f"aid-disbursed-{app.pk}")
+        self.assertEqual(
+            delivery.domain_event.idempotency_key, f"aid-disbursed-{app.pk}"
+        )
         self.assertEqual(delivery.domain_event.event_type, "finance.aid_disbursed")
 
     def test_endowment_report_includes_multi_year_projections(self):

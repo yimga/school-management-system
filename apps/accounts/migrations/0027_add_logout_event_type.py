@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0026_remove_rolloverproposalitem_proposal_and_more"),
     ]
@@ -23,7 +22,10 @@ class Migration(migrations.Migration):
                     ("DATA_EXPORT", "Data export"),
                     ("LOCKDOWN_TRIGGERED", "Emergency lockdown"),
                     ("SESSION_REVOKED", "Sessions revoked"),
-                    ("IMPOSSIBLE_TRAVEL", "Impossible travel (login from distant location)"),
+                    (
+                        "IMPOSSIBLE_TRAVEL",
+                        "Impossible travel (login from distant location)",
+                    ),
                 ],
                 max_length=40,
             ),

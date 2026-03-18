@@ -7,6 +7,7 @@ Usage:
     python manage.py send_deadline_reminders
     python manage.py send_deadline_reminders --days 7,3,1
 """
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -37,7 +38,9 @@ class Command(BaseCommand):
         if broker_url:
             send_deadline_reminders_task.delay(days_str=days_str, dry_run=dry_run)
             self.stdout.write(
-                self.style.SUCCESS("Deadline reminders queued. Worker will process them.")
+                self.style.SUCCESS(
+                    "Deadline reminders queued. Worker will process them."
+                )
             )
             return
 
@@ -48,5 +51,8 @@ class Command(BaseCommand):
         sent = result.get("sent", 0)
         errors = result.get("errors", 0)
         self.stdout.write(
-            self.style.SUCCESS(f"\nCommand completed. Sent {sent} reminders." + (f" Errors: {errors}." if errors else ""))
+            self.style.SUCCESS(
+                f"\nCommand completed. Sent {sent} reminders."
+                + (f" Errors: {errors}." if errors else "")
+            )
         )

@@ -1,6 +1,7 @@
 """
 World Engine: Tests for JIT impersonation consent views, emergency_broadcast_fanout, national_syllabus_sync.
 """
+
 import json
 
 from django.test import TestCase, Client
@@ -10,7 +11,10 @@ from django.urls import reverse
 
 from apps.schools.models import School
 from apps.siteconfig.models import BroadcastCampaign, RegionConfig
-from apps.siteconfig.views_impersonation_consent import grant_impersonation_consent, revoke_impersonation_consent
+from apps.siteconfig.views_impersonation_consent import (
+    grant_impersonation_consent,
+    revoke_impersonation_consent,
+)
 from apps.siteconfig.tasks import national_syllabus_sync, emergency_broadcast_fanout
 
 User = get_user_model()
@@ -52,7 +56,9 @@ class JITImpersonationConsentTests(TestCase):
 
     def test_grant_consent_requires_school_context(self):
         """Without request.school, grant returns 400."""
-        request = self.client.post(reverse("siteconfig:grant_impersonation_consent")).wsgi_request
+        request = self.client.post(
+            reverse("siteconfig:grant_impersonation_consent")
+        ).wsgi_request
         request.user = self.user
         request.school = None
         response = grant_impersonation_consent(request)
@@ -63,7 +69,9 @@ class JITImpersonationConsentTests(TestCase):
 
     def test_grant_consent_sets_timestamp_and_granter(self):
         """With request.school, grant sets impersonation_consent_granted_at and _by."""
-        request = self.client.post(reverse("siteconfig:grant_impersonation_consent")).wsgi_request
+        request = self.client.post(
+            reverse("siteconfig:grant_impersonation_consent")
+        ).wsgi_request
         request.user = self.user
         request.school = self.school
         response = grant_impersonation_consent(request)
@@ -78,8 +86,15 @@ class JITImpersonationConsentTests(TestCase):
         """Revoke clears consent_at and consent_by."""
         self.school.impersonation_consent_granted_at = timezone.now()
         self.school.impersonation_consent_granted_by_id = self.user.id
-        self.school.save(update_fields=["impersonation_consent_granted_at", "impersonation_consent_granted_by_id"])
-        request = self.client.post(reverse("siteconfig:revoke_impersonation_consent")).wsgi_request
+        self.school.save(
+            update_fields=[
+                "impersonation_consent_granted_at",
+                "impersonation_consent_granted_by_id",
+            ]
+        )
+        request = self.client.post(
+            reverse("siteconfig:revoke_impersonation_consent")
+        ).wsgi_request
         request.user = self.user
         request.school = self.school
         response = revoke_impersonation_consent(request)

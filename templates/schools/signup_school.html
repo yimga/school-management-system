@@ -29,6 +29,14 @@
           <label for="country_code" class="form-label">{% trans "Country (optional)" %}</label>
           <input type="text" name="country_code" id="country_code" class="form-control" value="{{ country_code|default:'' }}" maxlength="2" placeholder="US">
         </div>
+        <div class="mb-3">
+          <label for="term_preset" class="form-label">{% trans "Academic calendar (optional)" %}</label>
+          <select name="term_preset" id="term_preset" class="form-select">
+            <option value="">{% trans "Default" %}</option>
+            <option value="UK" {% if term_preset == 'UK' %}selected{% endif %}>{% trans "UK / British (Michaelmas, Lent, Trinity)" %}</option>
+          </select>
+          <div class="form-text">{% trans "Choose UK for British/international school terms." %}</div>
+        </div>
         <button type="submit" class="btn btn-primary">{% trans "Create school" %}</button>
       </form>
       <p class="mt-4 small text-muted">

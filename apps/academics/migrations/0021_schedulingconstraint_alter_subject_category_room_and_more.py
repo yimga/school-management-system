@@ -6,115 +6,327 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0020_classroom_gce_eligible'),
+        ("academics", "0020_classroom_gce_eligible"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SchedulingConstraint',
+            name="SchedulingConstraint",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('constraint_type', models.CharField(choices=[('MAX_DAILY_LESSONS', 'Maximum daily lessons per teacher'), ('MIN_BREAK_TIME', 'Minimum break between lessons'), ('PREFERRED_ROOM', 'Preferred room for subject'), ('NO_BACK_TO_BACK', 'No back-to-back lessons for same class'), ('BLOCK_TIME', 'Block specific time for activity')], max_length=30)),
-                ('parameters', models.JSONField(default=dict)),
-                ('is_active', models.BooleanField(default=True)),
-                ('priority', models.IntegerField(default=5, help_text='1-10, higher is more important')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "constraint_type",
+                    models.CharField(
+                        choices=[
+                            ("MAX_DAILY_LESSONS", "Maximum daily lessons per teacher"),
+                            ("MIN_BREAK_TIME", "Minimum break between lessons"),
+                            ("PREFERRED_ROOM", "Preferred room for subject"),
+                            (
+                                "NO_BACK_TO_BACK",
+                                "No back-to-back lessons for same class",
+                            ),
+                            ("BLOCK_TIME", "Block specific time for activity"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("parameters", models.JSONField(default=dict)),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "priority",
+                    models.IntegerField(
+                        default=5, help_text="1-10, higher is more important"
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-priority', 'name'],
+                "ordering": ["-priority", "name"],
             },
         ),
         migrations.AlterField(
-            model_name='subject',
-            name='category',
-            field=models.CharField(choices=[('GENERAL', 'General'), ('PROFESSIONAL', 'Professional'), ('RELATED', 'Related'), ('OTHER', 'Other')], default='OTHER', max_length=20),
+            model_name="subject",
+            name="category",
+            field=models.CharField(
+                choices=[
+                    ("GENERAL", "General"),
+                    ("PROFESSIONAL", "Professional"),
+                    ("RELATED", "Related"),
+                    ("OTHER", "Other"),
+                ],
+                default="OTHER",
+                max_length=20,
+            ),
         ),
         migrations.CreateModel(
-            name='Room',
+            name="Room",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True)),
-                ('room_type', models.CharField(choices=[('CLASSROOM', 'Standard Classroom'), ('LAB', 'Laboratory'), ('AUDITORIUM', 'Auditorium'), ('GYM', 'Gymnasium'), ('LIBRARY', 'Library'), ('COMPUTER_LAB', 'Computer Lab')], max_length=20)),
-                ('capacity', models.IntegerField()),
-                ('floor', models.IntegerField(default=1)),
-                ('building', models.CharField(blank=True, max_length=100)),
-                ('facilities', models.JSONField(default=list)),
-                ('is_available', models.BooleanField(default=True)),
-                ('notes', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, unique=True)),
+                (
+                    "room_type",
+                    models.CharField(
+                        choices=[
+                            ("CLASSROOM", "Standard Classroom"),
+                            ("LAB", "Laboratory"),
+                            ("AUDITORIUM", "Auditorium"),
+                            ("GYM", "Gymnasium"),
+                            ("LIBRARY", "Library"),
+                            ("COMPUTER_LAB", "Computer Lab"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("capacity", models.IntegerField()),
+                ("floor", models.IntegerField(default=1)),
+                ("building", models.CharField(blank=True, max_length=100)),
+                ("facilities", models.JSONField(default=list)),
+                ("is_available", models.BooleanField(default=True)),
+                ("notes", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'ordering': ['building', 'floor', 'name'],
-                'indexes': [models.Index(fields=['room_type', 'is_available'], name='academics_r_room_ty_dc15b9_idx')],
+                "ordering": ["building", "floor", "name"],
+                "indexes": [
+                    models.Index(
+                        fields=["room_type", "is_available"],
+                        name="academics_r_room_ty_dc15b9_idx",
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='Schedule',
+            name="Schedule",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('PUBLISHED', 'Published'), ('ARCHIVED', 'Archived')], default='DRAFT', max_length=20)),
-                ('generated_at', models.DateTimeField(auto_now_add=True)),
-                ('published_at', models.DateTimeField(blank=True, null=True)),
-                ('notes', models.TextField(blank=True)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='academics.academicyear')),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('term', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='academics.term')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("PUBLISHED", "Published"),
+                            ("ARCHIVED", "Archived"),
+                        ],
+                        default="DRAFT",
+                        max_length=20,
+                    ),
+                ),
+                ("generated_at", models.DateTimeField(auto_now_add=True)),
+                ("published_at", models.DateTimeField(blank=True, null=True)),
+                ("notes", models.TextField(blank=True)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "term",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="academics.term"
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-generated_at'],
+                "ordering": ["-generated_at"],
             },
         ),
         migrations.CreateModel(
-            name='TimeSlot',
+            name="TimeSlot",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('day_of_week', models.IntegerField(choices=[(0, 'Monday'), (1, 'Tuesday'), (2, 'Wednesday'), (3, 'Thursday'), (4, 'Friday'), (5, 'Saturday'), (6, 'Sunday')])),
-                ('start_time', models.TimeField()),
-                ('end_time', models.TimeField()),
-                ('slot_name', models.CharField(max_length=50)),
-                ('is_active', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "day_of_week",
+                    models.IntegerField(
+                        choices=[
+                            (0, "Monday"),
+                            (1, "Tuesday"),
+                            (2, "Wednesday"),
+                            (3, "Thursday"),
+                            (4, "Friday"),
+                            (5, "Saturday"),
+                            (6, "Sunday"),
+                        ]
+                    ),
+                ),
+                ("start_time", models.TimeField()),
+                ("end_time", models.TimeField()),
+                ("slot_name", models.CharField(max_length=50)),
+                ("is_active", models.BooleanField(default=True)),
             ],
             options={
-                'ordering': ['day_of_week', 'start_time'],
-                'unique_together': {('day_of_week', 'start_time', 'end_time')},
+                "ordering": ["day_of_week", "start_time"],
+                "unique_together": {("day_of_week", "start_time", "end_time")},
             },
         ),
         migrations.CreateModel(
-            name='TeacherAvailability',
+            name="TeacherAvailability",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_available', models.BooleanField(default=True)),
-                ('preference_level', models.IntegerField(default=5, help_text='1-10, higher is more preferred')),
-                ('notes', models.TextField(blank=True)),
-                ('teacher', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='availability', to=settings.AUTH_USER_MODEL)),
-                ('time_slot', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='academics.timeslot')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("is_available", models.BooleanField(default=True)),
+                (
+                    "preference_level",
+                    models.IntegerField(
+                        default=5, help_text="1-10, higher is more preferred"
+                    ),
+                ),
+                ("notes", models.TextField(blank=True)),
+                (
+                    "teacher",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="availability",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "time_slot",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="academics.timeslot",
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'Teacher Availabilities',
-                'unique_together': {('teacher', 'time_slot')},
+                "verbose_name_plural": "Teacher Availabilities",
+                "unique_together": {("teacher", "time_slot")},
             },
         ),
         migrations.CreateModel(
-            name='ScheduleEntry',
+            name="ScheduleEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_cancelled', models.BooleanField(default=False)),
-                ('notes', models.TextField(blank=True)),
-                ('classroom', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='academics.classroom')),
-                ('replacement_teacher', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='replacement_slots', to=settings.AUTH_USER_MODEL)),
-                ('room', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='academics.room')),
-                ('schedule', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='entries', to='academics.schedule')),
-                ('subject', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='academics.subject')),
-                ('teacher', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='teaching_slots', to=settings.AUTH_USER_MODEL)),
-                ('time_slot', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='academics.timeslot')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("is_cancelled", models.BooleanField(default=False)),
+                ("notes", models.TextField(blank=True)),
+                (
+                    "classroom",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="academics.classroom",
+                    ),
+                ),
+                (
+                    "replacement_teacher",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="replacement_slots",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "room",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="academics.room"
+                    ),
+                ),
+                (
+                    "schedule",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="entries",
+                        to="academics.schedule",
+                    ),
+                ),
+                (
+                    "subject",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="academics.subject",
+                    ),
+                ),
+                (
+                    "teacher",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="teaching_slots",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "time_slot",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="academics.timeslot",
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'Schedule Entries',
-                'indexes': [models.Index(fields=['schedule', 'time_slot'], name='academics_s_schedul_9cffc7_idx'), models.Index(fields=['teacher', 'time_slot'], name='academics_s_teacher_8df5c8_idx'), models.Index(fields=['room', 'time_slot'], name='academics_s_room_id_73cb9b_idx')],
+                "verbose_name_plural": "Schedule Entries",
+                "indexes": [
+                    models.Index(
+                        fields=["schedule", "time_slot"],
+                        name="academics_s_schedul_9cffc7_idx",
+                    ),
+                    models.Index(
+                        fields=["teacher", "time_slot"],
+                        name="academics_s_teacher_8df5c8_idx",
+                    ),
+                    models.Index(
+                        fields=["room", "time_slot"],
+                        name="academics_s_room_id_73cb9b_idx",
+                    ),
+                ],
             },
         ),
     ]

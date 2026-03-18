@@ -96,7 +96,9 @@ class NormalizeUIConfigCommandTests(TestCase):
             is_active=True,
             applies_to_admin=True,
         )
-        site = SiteSettings.objects.create(theme_pack=site_theme, admin_theme_pack=invalid_admin)
+        site = SiteSettings.objects.create(
+            theme_pack=site_theme, admin_theme_pack=invalid_admin
+        )
 
         call_command("normalize_ui_config")
         site.refresh_from_db()

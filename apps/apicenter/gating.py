@@ -1,6 +1,7 @@
 """
 Gating: when API Center is enabled, Integration.enabled is the single kill switch.
 """
+
 from apps.platform_runtime.helpers import get_effective_flags_for_school
 
 

@@ -3,6 +3,7 @@ Plan VIII: Blockchain-backed credentials scaffold.
 CredentialVerifier abstraction for verifying transcript/diploma hashes on-chain.
 Production needs a blockchain gateway (e.g. Ethereum, Polygon, or L3).
 """
+
 from __future__ import annotations
 
 import logging
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class VerificationResult:
     """Result of on-chain credential verification."""
+
     verified: bool
     on_chain_status: Optional[str] = None  # e.g. "anchored", "pending", "revoked"
     tx_id: Optional[str] = None
@@ -41,8 +43,13 @@ def get_credential_verifier(school=None):
     Configure via ServiceIntegration (e.g. blockchain gateway URL + API key).
     """
     from apps.siteconfig.integration_registry import resolve_active_integration
+
     rec = resolve_active_integration(school, "blockchain") if school else None
-    if not rec or not getattr(rec, "is_active", True) or not getattr(rec, "config", None):
+    if (
+        not rec
+        or not getattr(rec, "is_active", True)
+        or not getattr(rec, "config", None)
+    ):
         return None
     # Stub: no concrete implementation; production would instantiate EthereumVerifier etc.
     return None
@@ -55,5 +62,7 @@ def verify_credential_hash(credential_hash: str, school=None) -> VerificationRes
     """
     verifier = get_credential_verifier(school)
     if not verifier:
-        return VerificationResult(verified=False, message="No blockchain verifier configured")
+        return VerificationResult(
+            verified=False, message="No blockchain verifier configured"
+        )
     return verifier.verify(credential_hash)

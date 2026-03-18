@@ -6,6 +6,7 @@ RUNMYCAMPUS SOT §10.5: For each layer 10.5.1–10.5.8, verify (1) the doc exist
 (2) code evidence exists (implementations, scripts, or CI). Exit 0 only if all pass.
 Used by IMPLEMENT_ALL_UNCHECKED_RUNBOOK and pre_deploy_gate (optional).
 """
+
 from __future__ import annotations
 
 import sys
@@ -26,7 +27,10 @@ def _check_10_5_1() -> tuple[bool, str]:
         text = runtime.read_text(encoding="utf-8", errors="replace")
         if "log_exception_with_context" in text:
             return True, "log_exception_with_context in platform_runtime"
-    return False, "apps/platform_runtime/structured_logging.py with log_exception_with_context"
+    return (
+        False,
+        "apps/platform_runtime/structured_logging.py with log_exception_with_context",
+    )
 
 
 def _check_10_5_2() -> tuple[bool, str]:
@@ -35,7 +39,9 @@ def _check_10_5_2() -> tuple[bool, str]:
     if not engine.is_file():
         return False, "apps/packages/engine.py"
     text = engine.read_text(encoding="utf-8", errors="replace")
-    if "rollback" in text.lower() and ("apply" in text.lower() or "preview" in text.lower()):
+    if "rollback" in text.lower() and (
+        "apply" in text.lower() or "preview" in text.lower()
+    ):
         return True, "packages/engine rollback+apply"
     return False, "packages/engine.py with rollback and apply/preview"
 
@@ -80,7 +86,11 @@ def _check_10_5_7() -> tuple[bool, str]:
     # Design system: shared CSS or shell
     for d in ("static/css", "templates"):
         for p in (ROOT / d).rglob("*"):
-            if p.suffix in (".css", ".html") and "control" in p.name.lower() or "shell" in p.name.lower():
+            if (
+                p.suffix in (".css", ".html")
+                and "control" in p.name.lower()
+                or "shell" in p.name.lower()
+            ):
                 return True, "design system shell/CSS in codebase"
     return True, "DESIGN_SYSTEM_BEHAVIOR doc; §8.0 alignment"
 
@@ -102,14 +112,42 @@ def _check_10_5_8() -> tuple[bool, str]:
 def main() -> int:
     # Build layer list with code checks
     layers = [
-        ("10.5.1 Edge-case and failure strategy", "EDGE_CASE_AND_FAILURE_STRATEGY.md", _check_10_5_1),
-        ("10.5.2 Pack versioning and compatibility", "PACK_VERSIONING_AND_COMPATIBILITY.md", _check_10_5_2),
-        ("10.5.3 Service and support operating layer", "SERVICE_AND_SUPPORT_OPERATING_LAYER.md", _check_10_5_3),
-        ("10.5.4 Trust product (visible security and trust)", "TRUST_PRODUCT_SURFACES.md", _check_10_5_4),
-        ("10.5.5 Dashboard taxonomy", "DASHBOARD_TAXONOMY_AND_REGISTRY.md", _check_10_5_5),
-        ("10.5.6 Content and terminology governance", "CONTENT_AND_TERMINOLOGY_GOVERNANCE.md", _check_10_5_6),
+        (
+            "10.5.1 Edge-case and failure strategy",
+            "EDGE_CASE_AND_FAILURE_STRATEGY.md",
+            _check_10_5_1,
+        ),
+        (
+            "10.5.2 Pack versioning and compatibility",
+            "PACK_VERSIONING_AND_COMPATIBILITY.md",
+            _check_10_5_2,
+        ),
+        (
+            "10.5.3 Service and support operating layer",
+            "SERVICE_AND_SUPPORT_OPERATING_LAYER.md",
+            _check_10_5_3,
+        ),
+        (
+            "10.5.4 Trust product (visible security and trust)",
+            "TRUST_PRODUCT_SURFACES.md",
+            _check_10_5_4,
+        ),
+        (
+            "10.5.5 Dashboard taxonomy",
+            "DASHBOARD_TAXONOMY_AND_REGISTRY.md",
+            _check_10_5_5,
+        ),
+        (
+            "10.5.6 Content and terminology governance",
+            "CONTENT_AND_TERMINOLOGY_GOVERNANCE.md",
+            _check_10_5_6,
+        ),
         ("10.5.7 Design system behavior", "DESIGN_SYSTEM_BEHAVIOR.md", _check_10_5_7),
-        ("10.5.8 Boring excellence program", "BORING_EXCELLENCE_PROGRAM.md", _check_10_5_8),
+        (
+            "10.5.8 Boring excellence program",
+            "BORING_EXCELLENCE_PROGRAM.md",
+            _check_10_5_8,
+        ),
     ]
     failures: list[str] = []
     for name, doc_rel, check_fn in layers:

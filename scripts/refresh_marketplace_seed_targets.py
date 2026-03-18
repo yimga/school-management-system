@@ -8,6 +8,7 @@ Run from repo root: python scripts/refresh_marketplace_seed_targets.py
 - Validates that counts meet MARKETPLACE_SEED_TARGETS minimums (25+ apps, 25+ blueprints, 30+ workflows, 20+ dashboards, 15+ policy).
 - Exits with code 1 if minimums are not met (so CI can enforce §7).
 """
+
 from __future__ import annotations
 
 import json
@@ -57,10 +58,16 @@ def main() -> int:
     data = json.loads(result.stdout)
     errors = validate_minimums(data)
     if errors:
-        print("Marketplace seed minimums not met (MARKETPLACE_SEED_TARGETS §1):", file=sys.stderr)
+        print(
+            "Marketplace seed minimums not met (MARKETPLACE_SEED_TARGETS §1):",
+            file=sys.stderr,
+        )
         for err in errors:
             print(f"  - {err}", file=sys.stderr)
-        print("Run: python manage.py seed_first_party_apps && python manage.py seed_blueprint_policy_packs && python manage.py seed_workflow_dashboard_packs", file=sys.stderr)
+        print(
+            "Run: python manage.py seed_first_party_apps && python manage.py seed_blueprint_policy_packs && python manage.py seed_workflow_dashboard_packs",
+            file=sys.stderr,
+        )
         return 1
     data["_refreshed_at"] = datetime.now(timezone.utc).isoformat()
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:

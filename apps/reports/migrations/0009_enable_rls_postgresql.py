@@ -28,7 +28,9 @@ def disable_rls(apps, schema_editor):
     if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
-        cursor.execute("DROP POLICY IF EXISTS reports_reportcard_tenant_isolation ON reports_reportcard;")
+        cursor.execute(
+            "DROP POLICY IF EXISTS reports_reportcard_tenant_isolation ON reports_reportcard;"
+        )
         cursor.execute("ALTER TABLE reports_reportcard DISABLE ROW LEVEL SECURITY;")
 
 

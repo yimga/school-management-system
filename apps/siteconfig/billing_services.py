@@ -2,6 +2,7 @@
 Global Powerhouse Phase E: Revenue and waiver metrics.
 calculate_monthly_stats fills RevenueSnapshot; run on schedule (e.g. Celery Beat daily).
 """
+
 from datetime import date
 from decimal import Decimal
 
@@ -32,11 +33,15 @@ def calculate_monthly_stats(snapshot_date: date | None = None) -> dict:
     schools_processed = 0
 
     with transaction.atomic():
-        for school in School.objects.filter(is_active=True).select_related("plan", "default_region"):
+        for school in School.objects.filter(is_active=True).select_related(
+            "plan", "default_region"
+        ):
             actual = Decimal("0")
             waived = Decimal("0")
             billing_model = ""
-            country_code = (school.default_region_id or "")[:3] if school.default_region_id else ""
+            country_code = (
+                (school.default_region_id or "")[:3] if school.default_region_id else ""
+            )
             student_count = getattr(school, "_student_count", None)
 
             # If school is COMPLIMENTARY or MANUAL_OVERRIDE, compute "potential revenue" as waived
@@ -49,14 +54,26 @@ def calculate_monthly_stats(snapshot_date: date | None = None) -> dict:
                     bm = plan.billing_model or ""
                     if bm == "FLAT" and plan.base_price is not None:
                         waived = plan.base_price
-                    elif bm == "PER_STUDENT" and plan.price_per_student is not None and student_count is not None:
+                    elif (
+                        bm == "PER_STUDENT"
+                        and plan.price_per_student is not None
+                        and student_count is not None
+                    ):
                         waived = plan.price_per_student * student_count
-                    elif bm == "TIERED" and plan.tier_rules and student_count is not None:
-                        bands = plan.tier_rules if isinstance(plan.tier_rules, list) else []
+                    elif (
+                        bm == "TIERED" and plan.tier_rules and student_count is not None
+                    ):
+                        bands = (
+                            plan.tier_rules if isinstance(plan.tier_rules, list) else []
+                        )
                         for band in bands:
                             max_stud = band.get("max")
                             price = band.get("price")
-                            if max_stud is not None and price is not None and student_count <= max_stud:
+                            if (
+                                max_stud is not None
+                                and price is not None
+                                and student_count <= max_stud
+                            ):
                                 waived = Decimal(str(price))
                                 break
                     billing_model = plan.billing_model or ""
@@ -70,8 +87,15 @@ def calculate_monthly_stats(snapshot_date: date | None = None) -> dict:
             if student_count is None:
                 try:
                     from apps.people.models import StudentProfile
+
                     student_count = StudentProfile.objects.filter(school=school).count()
-                except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
+                except (
+                    AttributeError,
+                    DatabaseError,
+                    ImportError,
+                    TypeError,
+                    ValueError,
+                ):
                     student_count = 0
 
             snapshot, _ = RevenueSnapshot.objects.update_or_create(

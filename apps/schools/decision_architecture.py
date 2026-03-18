@@ -3,9 +3,10 @@ GAP.15: In-code declaration of the seven answers (DECISION_ARCHITECTURE_CHECKLIS
 Key control-plane and catalog pages pass decision_architecture in context so templates
 can render data attributes and satisfy the checklist.
 """
+
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Dict
 
 DECISION_ARCHITECTURE_KEYS = (
     "who_is_this_for",

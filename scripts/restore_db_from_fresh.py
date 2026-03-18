@@ -13,6 +13,7 @@ Option B: stop the dev server (Ctrl+C), run this script, then start the server a
   python scripts/restore_db_from_fresh.py
   python manage.py runserver
 """
+
 import shutil
 import sys
 from pathlib import Path
@@ -22,9 +23,13 @@ FRESH = ROOT / "db_fresh.sqlite3"
 DB = ROOT / "db.sqlite3"
 CORRUPTED = ROOT / "db.sqlite3.corrupted"
 
+
 def main():
     if not FRESH.exists():
-        print("db_fresh.sqlite3 not found. Run migrations with config.settings_freshdb first.", file=sys.stderr)
+        print(
+            "db_fresh.sqlite3 not found. Run migrations with config.settings_freshdb first.",
+            file=sys.stderr,
+        )
         sys.exit(1)
     try:
         if DB.exists():
@@ -35,10 +40,14 @@ def main():
         print("You can now run: python manage.py runserver")
     except OSError as e:
         if "Device or resource busy" in str(e) or "Permission denied" in str(e):
-            print("Stop the dev server (Ctrl+C in the terminal running runserver), then run this script again.", file=sys.stderr)
+            print(
+                "Stop the dev server (Ctrl+C in the terminal running runserver), then run this script again.",
+                file=sys.stderr,
+            )
         else:
             print(e, file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

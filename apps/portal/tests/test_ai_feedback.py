@@ -63,4 +63,6 @@ class AIFeedbackEndpointTests(SimpleTestCase):
         self.assertTrue(payload["success"])
         self.assertEqual(payload["meta"]["cost_class"], "self_hosted")
         mock_record_feedback.assert_called_once()
-        self.assertEqual(mock_audit_create.call_args.kwargs["action"], AuditLog.Action.APPROVE)
+        self.assertEqual(
+            mock_audit_create.call_args.kwargs["action"], AuditLog.Action.APPROVE
+        )

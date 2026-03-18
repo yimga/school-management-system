@@ -3,6 +3,7 @@ Celery tasks for finance (payment reminders, fee generation, invoice status upda
 Run via: send_payment_reminders_task.delay()
 Or synchronously from management command when no broker: task.apply()
 """
+
 from __future__ import annotations
 
 import logging
@@ -28,7 +29,12 @@ from apps.finance.models import (
     FeePlan,
     PaymentProofUpload,
 )
-from apps.finance.services import generate_payment_link, create_fee_invoices, recalculate_invoice, create_payment_from_receipt
+from apps.finance.services import (
+    generate_payment_link,
+    create_fee_invoices,
+    recalculate_invoice,
+    create_payment_from_receipt,
+)
 from apps.finance.receipt_verification import ReceiptVerificationService
 from apps.finance.fraud_detection import ReceiptFraudDetector
 from apps.apicenter.gating import is_integration_allowed
@@ -37,7 +43,11 @@ from apps.integrations_marketplace.models import Integration
 from apps.people.models import StudentGuardian
 from apps.platform_runtime.helpers import get_effective_flags_for_school
 from apps.automation.models import AutomationExecutionLog, AutomationApprovalQueue
-from apps.automation.helpers import get_cached_site_settings, get_current_academic_year, get_notification_channels
+from apps.automation.helpers import (
+    get_cached_site_settings,
+    get_current_academic_year,
+    get_notification_channels,
+)
 from apps.evals.notifications import NotificationService
 from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 
@@ -85,7 +95,9 @@ def _resolve_school(*objects):
             return school
         invoice = getattr(obj, "invoice", None)
         if invoice is not None:
-            school = getattr(invoice, "school", None) or getattr(getattr(invoice, "student", None), "school", None)
+            school = getattr(invoice, "school", None) or getattr(
+                getattr(invoice, "student", None), "school", None
+            )
             if school is not None:
                 return school
         student = getattr(obj, "student", None)
@@ -104,9 +116,13 @@ def _get_finance_runtime_config(site_settings) -> dict[str, object]:
         "auto_generate_invoices_enabled": bool(
             getattr(site_settings, "finance_auto_generate_invoices_enabled", False)
         ),
-        "auto_generate_schedule": getattr(site_settings, "finance_auto_generate_schedule", {}) or {},
+        "auto_generate_schedule": getattr(
+            site_settings, "finance_auto_generate_schedule", {}
+        )
+        or {},
         "auto_generate_due_date_offset_days": int(
-            getattr(site_settings, "finance_auto_generate_due_date_offset_days", 30) or 30
+            getattr(site_settings, "finance_auto_generate_due_date_offset_days", 30)
+            or 30
         ),
         "auto_generate_require_approval": bool(
             getattr(site_settings, "finance_auto_generate_require_approval", False)
@@ -115,10 +131,15 @@ def _get_finance_runtime_config(site_settings) -> dict[str, object]:
             getattr(site_settings, "finance_fee_plan_auto_copy_enabled", False)
         ),
         "fee_plan_auto_copy_mode": str(
-            getattr(site_settings, "finance_fee_plan_auto_copy_mode", "manual") or "manual"
+            getattr(site_settings, "finance_fee_plan_auto_copy_mode", "manual")
+            or "manual"
         ).lower(),
         "fee_plan_copy_increase_percentage": Decimal(
-            str(getattr(site_settings, "finance_fee_plan_copy_increase_percentage", "0.00"))
+            str(
+                getattr(
+                    site_settings, "finance_fee_plan_copy_increase_percentage", "0.00"
+                )
+            )
         ),
         "invoice_auto_status_updates_enabled": bool(
             getattr(site_settings, "finance_invoice_auto_status_updates_enabled", True)
@@ -127,7 +148,8 @@ def _get_finance_runtime_config(site_settings) -> dict[str, object]:
             getattr(site_settings, "finance_invoice_overdue_grace_period_days", 0) or 0
         ),
         "receipt_verification_method": str(
-            getattr(site_settings, "finance_receipt_verification_method", "pattern") or "pattern"
+            getattr(site_settings, "finance_receipt_verification_method", "pattern")
+            or "pattern"
         ),
         "receipt_auto_apply_threshold": float(
             getattr(site_settings, "finance_receipt_auto_apply_threshold", 0.9) or 0.9
@@ -151,7 +173,13 @@ def _get_finance_runtime_config(site_settings) -> dict[str, object]:
             getattr(site_settings, "finance_bank_verification_tolerance_days", 7) or 7
         ),
         "bank_verification_amount_tolerance": Decimal(
-            str(getattr(site_settings, "finance_bank_verification_amount_tolerance", "100.00"))
+            str(
+                getattr(
+                    site_settings,
+                    "finance_bank_verification_amount_tolerance",
+                    "100.00",
+                )
+            )
         ),
         "payment_instructions_bank": str(
             getattr(site_settings, "finance_payment_instructions_bank", "") or ""
@@ -160,7 +188,8 @@ def _get_finance_runtime_config(site_settings) -> dict[str, object]:
             getattr(site_settings, "finance_payment_instructions_mtn_momo", "") or ""
         ),
         "payment_instructions_orange_money": str(
-            getattr(site_settings, "finance_payment_instructions_orange_money", "") or ""
+            getattr(site_settings, "finance_payment_instructions_orange_money", "")
+            or ""
         ),
         "payment_instructions_cash": str(
             getattr(site_settings, "finance_payment_instructions_cash", "") or ""
@@ -169,7 +198,8 @@ def _get_finance_runtime_config(site_settings) -> dict[str, object]:
             getattr(site_settings, "finance_receipt_upload_instructions", "") or ""
         ),
         "reminder_no_contact_action": str(
-            getattr(site_settings, "finance_reminder_no_contact_action", "warn_only") or "warn_only"
+            getattr(site_settings, "finance_reminder_no_contact_action", "warn_only")
+            or "warn_only"
         ),
         "reminder_retry_failed_hours": int(
             getattr(site_settings, "finance_reminder_retry_failed_hours", 24) or 24
@@ -185,7 +215,9 @@ def _get_marketplace_integration_settings(site_settings) -> dict[str, object]:
     if callable(getter):
         return getter()
     return {
-        "marksheet_ocr_command": str(getattr(site_settings, "marksheet_ocr_command", "") or ""),
+        "marksheet_ocr_command": str(
+            getattr(site_settings, "marksheet_ocr_command", "") or ""
+        ),
     }
 
 
@@ -195,6 +227,7 @@ def _get_payment_instructions(invoice: Invoice) -> dict:
     Returns dict with payment instruction variables for template formatting.
     """
     from apps.finance.models import BankAccount
+
     finance_settings: dict[str, object] = {}
     school = _resolve_school(invoice)
     if school is not None:
@@ -208,20 +241,30 @@ def _get_payment_instructions(invoice: Invoice) -> dict:
                 exc_info=exc,
             )
     instructions = {
-        "bank_account": str(finance_settings.get("payment_instructions_bank", "") or ""),
+        "bank_account": str(
+            finance_settings.get("payment_instructions_bank", "") or ""
+        ),
         "bank_name": "",
         "branch": "",
-        "mtn_momo_number": str(finance_settings.get("payment_instructions_mtn_momo", "") or ""),
-        "orange_money_number": str(finance_settings.get("payment_instructions_orange_money", "") or ""),
+        "mtn_momo_number": str(
+            finance_settings.get("payment_instructions_mtn_momo", "") or ""
+        ),
+        "orange_money_number": str(
+            finance_settings.get("payment_instructions_orange_money", "") or ""
+        ),
     }
-    
+
     try:
         profile = invoice.profile
         region = None
 
         if not region:
-            profile_country = str(getattr(profile, "country_code", "") or "").strip().upper()
-            profile_currency = str(getattr(profile, "currency_code", "") or "").strip().upper()
+            profile_country = (
+                str(getattr(profile, "country_code", "") or "").strip().upper()
+            )
+            profile_currency = (
+                str(getattr(profile, "currency_code", "") or "").strip().upper()
+            )
             candidate_codes = []
             if profile_country:
                 candidate_codes.append(profile_country)
@@ -232,37 +275,49 @@ def _get_payment_instructions(invoice: Invoice) -> dict:
             if candidate_codes:
                 region = RegionConfig.objects.filter(code__in=candidate_codes).first()
             if not region and profile_currency:
-                region = RegionConfig.objects.filter(default_currency__iexact=profile_currency).first()
+                region = RegionConfig.objects.filter(
+                    default_currency__iexact=profile_currency
+                ).first()
 
         if not region:
             if hasattr(RegionConfig, "is_active"):
                 region = RegionConfig.objects.filter(is_active=True).first()
             else:
                 region = RegionConfig.objects.order_by("id").first()
-        
+
         if region:
             # Get bank accounts for this region
             bank_accounts = BankAccount.objects.filter(region=region, is_active=True)
-            
+
             # Get bank account
-            bank_account = bank_accounts.filter(account_type=BankAccount.AccountType.BANK).first()
+            bank_account = bank_accounts.filter(
+                account_type=BankAccount.AccountType.BANK
+            ).first()
             if bank_account:
                 instructions["bank_account"] = bank_account.account_number
                 instructions["bank_name"] = bank_account.bank_name or ""
                 instructions["branch"] = bank_account.branch or ""
-            
+
             # Get MTN MoMo
-            mtn_account = bank_accounts.filter(account_type=BankAccount.AccountType.MTN_MOMO).first()
+            mtn_account = bank_accounts.filter(
+                account_type=BankAccount.AccountType.MTN_MOMO
+            ).first()
             if mtn_account:
                 instructions["mtn_momo_number"] = mtn_account.account_number
-            
+
             # Get Orange Money
-            orange_account = bank_accounts.filter(account_type=BankAccount.AccountType.ORANGE_MONEY).first()
+            orange_account = bank_accounts.filter(
+                account_type=BankAccount.AccountType.ORANGE_MONEY
+            ).first()
             if orange_account:
                 instructions["orange_money_number"] = orange_account.account_number
     except FINANCE_TASK_SOFT_FAILURES as exc:
-        logger.error("Error getting payment instructions for invoice %s", invoice.pk, exc_info=exc)
-    
+        logger.error(
+            "Error getting payment instructions for invoice %s",
+            invoice.pk,
+            exc_info=exc,
+        )
+
     return instructions
 
 
@@ -276,7 +331,9 @@ def _mark_proof_upload_verification_error(proof_upload_id: int, message: str) ->
         return
 
 
-def _send_payment_email(to_email: str, subject: str, body: str, integration: Integration | None) -> None:
+def _send_payment_email(
+    to_email: str, subject: str, body: str, integration: Integration | None
+) -> None:
     if not to_email:
         return
     from_email = settings.DEFAULT_FROM_EMAIL
@@ -286,7 +343,9 @@ def _send_payment_email(to_email: str, subject: str, body: str, integration: Int
     try:
         email.send(fail_silently=False)
     except (ConnectionError, OSError, RuntimeError, SMTPException, TimeoutError) as exc:
-        logger.warning("Failed to deliver finance reminder email to %s", to_email, exc_info=exc)
+        logger.warning(
+            "Failed to deliver finance reminder email to %s", to_email, exc_info=exc
+        )
         raise
 
 
@@ -297,11 +356,19 @@ def _split_late_fee_policy(*, school=None) -> dict:
     flags = get_effective_flags_for_school(school)
     return {
         "enabled": bool(flags.get("finance_split_late_fee_enabled", False)),
-        "grace_days": max(int(flags.get("finance_split_late_fee_grace_days", 3) or 0), 0),
-        "mode": str(flags.get("finance_split_late_fee_mode", "percentage") or "percentage").lower(),
+        "grace_days": max(
+            int(flags.get("finance_split_late_fee_grace_days", 3) or 0), 0
+        ),
+        "mode": str(
+            flags.get("finance_split_late_fee_mode", "percentage") or "percentage"
+        ).lower(),
         "percent": Decimal(str(flags.get("finance_split_late_fee_percent", "2.00"))),
-        "fixed_amount": Decimal(str(flags.get("finance_split_late_fee_fixed_amount", "500.00"))),
-        "cap_percent": Decimal(str(flags.get("finance_split_late_fee_cap_percent", "20.00"))),
+        "fixed_amount": Decimal(
+            str(flags.get("finance_split_late_fee_fixed_amount", "500.00"))
+        ),
+        "cap_percent": Decimal(
+            str(flags.get("finance_split_late_fee_cap_percent", "20.00"))
+        ),
     }
 
 
@@ -312,14 +379,20 @@ def _compute_split_late_fee(share: InvoicePayerShare, policy: dict) -> Decimal:
     if policy["mode"] == "fixed":
         fee = policy["fixed_amount"]
     else:
-        fee = (outstanding * policy["percent"] / Decimal("100.00")).quantize(Decimal("0.01"))
+        fee = (outstanding * policy["percent"] / Decimal("100.00")).quantize(
+            Decimal("0.01")
+        )
     if fee <= Decimal("0.00"):
         return Decimal("0.00")
 
     # Cap cumulative late fee against original allocation.
-    cap_amount = (share.allocated_amount * policy["cap_percent"] / Decimal("100.00")).quantize(Decimal("0.01"))
+    cap_amount = (
+        share.allocated_amount * policy["cap_percent"] / Decimal("100.00")
+    ).quantize(Decimal("0.01"))
     if cap_amount > Decimal("0.00"):
-        remaining_cap = max(cap_amount - (share.late_fee_amount or Decimal("0.00")), Decimal("0.00"))
+        remaining_cap = max(
+            cap_amount - (share.late_fee_amount or Decimal("0.00")), Decimal("0.00")
+        )
         fee = min(fee, remaining_cap)
     return max(fee, Decimal("0.00"))
 
@@ -337,10 +410,22 @@ def run_split_late_fees(dry_run: bool = False) -> dict:
             due_date__lt=today,
         )
         .exclude(status=InvoicePayerShare.Status.PAID)
-        .select_related("invoice", "invoice__school", "invoice__student", "guardian", "guardian__guardian_user")
+        .select_related(
+            "invoice",
+            "invoice__school",
+            "invoice__student",
+            "guardian",
+            "guardian__guardian_user",
+        )
     )
     if not shares:
-        return {"status": "ok", "applied": 0, "total_fee": Decimal("0.00"), "checked": 0, "dry_run": dry_run}
+        return {
+            "status": "ok",
+            "applied": 0,
+            "total_fee": Decimal("0.00"),
+            "checked": 0,
+            "dry_run": dry_run,
+        }
 
     applied = 0
     checked = 0
@@ -360,7 +445,10 @@ def run_split_late_fees(dry_run: bool = False) -> dict:
             share.refresh_status()
             continue
         # Compare in local timezone, not UTC date(), to keep same-day idempotency stable.
-        if share.last_late_fee_applied_at and timezone.localdate(share.last_late_fee_applied_at) == today:
+        if (
+            share.last_late_fee_applied_at
+            and timezone.localdate(share.last_late_fee_applied_at) == today
+        ):
             continue
         fee = _compute_split_late_fee(share, policy)
         if fee <= Decimal("0.00"):
@@ -374,7 +462,14 @@ def run_split_late_fees(dry_run: bool = False) -> dict:
             share.late_fee_amount = (share.late_fee_amount or Decimal("0.00")) + fee
             share.last_late_fee_applied_at = now
             share.refresh_status(save=False)
-            share.save(update_fields=["late_fee_amount", "last_late_fee_applied_at", "status", "updated_at"])
+            share.save(
+                update_fields=[
+                    "late_fee_amount",
+                    "last_late_fee_applied_at",
+                    "status",
+                    "updated_at",
+                ]
+            )
 
             InvoiceLine.objects.create(
                 invoice=share.invoice,
@@ -389,7 +484,12 @@ def run_split_late_fees(dry_run: bool = False) -> dict:
         total_fee += fee
 
     if not any_enabled:
-        return {"status": "disabled", "applied": 0, "total_fee": Decimal("0.00"), "dry_run": dry_run}
+        return {
+            "status": "disabled",
+            "applied": 0,
+            "total_fee": Decimal("0.00"),
+            "dry_run": dry_run,
+        }
     return {
         "status": "ok",
         "applied": applied,
@@ -407,7 +507,9 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
     """
     now = timezone.now()
     reminders = list(
-        PaymentReminder.objects.filter(is_active=True, next_send_at__lte=now).select_related("invoice", "invoice__student")
+        PaymentReminder.objects.filter(
+            is_active=True, next_send_at__lte=now
+        ).select_related("invoice", "invoice__student")
     )
     if not reminders:
         return {"sent": 0, "count": 0, "channels": {}, "dry_run": dry_run}
@@ -423,7 +525,10 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
     for reminder in reminders:
         lock_key = f"finance:payment-reminder:lock:{reminder.id}"
         if not cache.add(lock_key, "1", timeout=300):
-            logger.info("Skipping reminder %s because another worker is already processing it.", reminder.id)
+            logger.info(
+                "Skipping reminder %s because another worker is already processing it.",
+                reminder.id,
+            )
             continue
         try:
             invoice = reminder.invoice
@@ -432,8 +537,11 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
             finance_settings = _get_finance_runtime_config(site)
             guardian_share_map = {}
             invoice_shares = list(
-                invoice.payer_shares.filter(is_active=True)
-                .select_related("guardian", "guardian__guardian_user", "guardian__guardian_user__preferences")
+                invoice.payer_shares.filter(is_active=True).select_related(
+                    "guardian",
+                    "guardian__guardian_user",
+                    "guardian__guardian_user__preferences",
+                )
             )
             if invoice_shares:
                 guardians = []
@@ -478,9 +586,15 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                 guardian_share = guardian_share_map.get(guardian.id)
 
                 # Get user-specific channels (respects UserPreference)
-                user_channels = get_notification_channels(guardian_user, "payment_reminder")
+                user_channels = get_notification_channels(
+                    guardian_user, "payment_reminder"
+                )
                 # Use intersection: only send via channels both reminder and user support
-                active_channels = [ch for ch in channels if ch in user_channels] if user_channels else channels
+                active_channels = (
+                    [ch for ch in channels if ch in user_channels]
+                    if user_channels
+                    else channels
+                )
 
                 # No contact: prefer StudentGuardian.email/phone, then guardian_user (see docs/DATA_PARENT_CONTACT.md)
                 has_contact = bool(
@@ -501,10 +615,14 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                     if no_contact_action == "create_task":
                         from apps.finance.models import Notification
                         from apps.accounts.models import User
-                        finance_user = User.objects.filter(
-                            is_staff=True,
-                            groups__name__in=["Finance", "Bursar", "Accountant"],
-                        ).first() or User.objects.filter(is_staff=True).first()
+
+                        finance_user = (
+                            User.objects.filter(
+                                is_staff=True,
+                                groups__name__in=["Finance", "Bursar", "Accountant"],
+                            ).first()
+                            or User.objects.filter(is_staff=True).first()
+                        )
                         if finance_user:
                             Notification.objects.create(
                                 title="Payment reminder: no contact for guardian",
@@ -519,7 +637,11 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
 
                 # Get payment instructions from bank accounts
                 payment_instructions = _get_payment_instructions(invoice)
-                amount_due = guardian_share.outstanding_amount if guardian_share else invoice.balance_amount
+                amount_due = (
+                    guardian_share.outstanding_amount
+                    if guardian_share
+                    else invoice.balance_amount
+                )
                 due_for_guardian = (
                     guardian_share.due_date
                     if guardian_share and guardian_share.due_date
@@ -547,16 +669,24 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                             body = template.format(**context)
                         except KeyError as e:
                             # If template variable missing, use default value
-                            logger.warning(f"Missing template variable {e} in reminder template, using defaults")
+                            logger.warning(
+                                f"Missing template variable {e} in reminder template, using defaults"
+                            )
                             # Fill missing variables with empty strings
                             safe_context = {k: v or "" for k, v in context.items()}
                             body = template.format(**safe_context)
                         subject = f"[Reminder] Pay {invoice.reference or invoice.id}"
 
                         if channel == "email":
-                            to_email = (getattr(guardian, "email", None) or "").strip() or guardian_user.email or ""
+                            to_email = (
+                                (getattr(guardian, "email", None) or "").strip()
+                                or guardian_user.email
+                                or ""
+                            )
                             if to_email:
-                                _send_payment_email(to_email, subject, body, integration)
+                                _send_payment_email(
+                                    to_email, subject, body, integration
+                                )
                                 PaymentReminderLog.objects.create(
                                     reminder=reminder,
                                     status="SENT",
@@ -567,7 +697,9 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                                 guardian_reminded = True
 
                         elif channel == "sms":
-                            phone = getattr(guardian, "phone", None) or getattr(guardian_user, "phone", None)
+                            phone = getattr(guardian, "phone", None) or getattr(
+                                guardian_user, "phone", None
+                            )
                             if phone:
                                 notification_service.send_sms(phone, body)
                                 PaymentReminderLog.objects.create(
@@ -580,9 +712,15 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                                 guardian_reminded = True
 
                         elif channel == "whatsapp":
-                            phone = getattr(guardian, "phone", None) or getattr(guardian, "whatsapp_number", None) or getattr(guardian_user, "phone", None)
+                            phone = (
+                                getattr(guardian, "phone", None)
+                                or getattr(guardian, "whatsapp_number", None)
+                                or getattr(guardian_user, "phone", None)
+                            )
                             if phone:
-                                whatsapp_url = notification_service.send_whatsapp(guardian_user, "GENERIC", context)
+                                whatsapp_url = notification_service.send_whatsapp(
+                                    guardian_user, "GENERIC", context
+                                )
                                 PaymentReminderLog.objects.create(
                                     reminder=reminder,
                                     status="SENT",
@@ -593,7 +731,12 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                                 guardian_reminded = True
 
                     except FINANCE_TASK_SOFT_FAILURES as e:
-                        logger.error("Error sending %s reminder for invoice %s: %s", channel, invoice.reference or invoice.id, str(e))
+                        logger.error(
+                            "Error sending %s reminder for invoice %s: %s",
+                            channel,
+                            invoice.reference or invoice.id,
+                            str(e),
+                        )
                         PaymentReminderLog.objects.create(
                             reminder=reminder,
                             status="FAILED",
@@ -601,7 +744,9 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                         )
                     if guardian_reminded and guardian_share:
                         guardian_share.last_reminder_at = now
-                        guardian_share.save(update_fields=["last_reminder_at", "updated_at"])
+                        guardian_share.save(
+                            update_fields=["last_reminder_at", "updated_at"]
+                        )
 
             reminder.last_sent_at = now
             reminder.schedule_next()
@@ -621,7 +766,9 @@ def _send_payment_reminders_body(dry_run: bool) -> dict:
     """Inner body: run inside tenant context."""
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.send_payment_reminders",
-        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN
+        if dry_run
+        else AutomationExecutionLog.ExecutionType.SCHEDULED,
         status=AutomationExecutionLog.Status.PENDING,
     )
     try:
@@ -632,7 +779,11 @@ def _send_payment_reminders_body(dry_run: bool) -> dict:
             AutomationExecutionLog.Status.SUCCESS,
             records_processed=sent,
             records_failed=max(0, count - sent),
-            summary={"channels": result.get("channels", {}), "count": count, "dry_run": dry_run},
+            summary={
+                "channels": result.get("channels", {}),
+                "count": count,
+                "dry_run": dry_run,
+            },
         )
         return result
     except FINANCE_TASK_SOFT_FAILURES as e:
@@ -645,13 +796,19 @@ def _send_payment_reminders_body(dry_run: bool) -> dict:
 
 
 @shared_task(bind=True, name="finance.send_payment_reminders")
-def send_payment_reminders_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+def send_payment_reminders_task(
+    self, dry_run: bool = False, school_id: str | None = None
+) -> dict:
     """Celery task: send payment reminders for upcoming invoice due dates. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
-        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _send_payment_reminders_body(dry_run))
+        return _run_with_tenant_context(
+            school_id=school_id, runnable=lambda: _send_payment_reminders_body(dry_run)
+        )
     totals = {"sent": 0, "count": 0, "channels": {}, "dry_run": dry_run}
     for sid in get_active_school_ids():
-        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _send_payment_reminders_body(d))
+        result = _run_with_tenant_context(
+            school_id=sid, runnable=lambda d=dry_run: _send_payment_reminders_body(d)
+        )
         totals["sent"] += result.get("sent", 0)
         totals["count"] += result.get("count", 0)
         for k, v in (result.get("channels") or {}).items():
@@ -665,7 +822,9 @@ def _retry_failed_payment_reminders_body(dry_run: bool) -> dict:
 
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.retry_failed_payment_reminders",
-        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN
+        if dry_run
+        else AutomationExecutionLog.ExecutionType.SCHEDULED,
         status=AutomationExecutionLog.Status.PENDING,
     )
     try:
@@ -719,13 +878,21 @@ def _retry_failed_payment_reminders_body(dry_run: bool) -> dict:
 
 
 @shared_task(bind=True, name="finance.retry_failed_payment_reminders")
-def retry_failed_payment_reminders_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+def retry_failed_payment_reminders_task(
+    self, dry_run: bool = False, school_id: str | None = None
+) -> dict:
     """Reset next_send_at for failed reminders. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
-        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _retry_failed_payment_reminders_body(dry_run))
+        return _run_with_tenant_context(
+            school_id=school_id,
+            runnable=lambda: _retry_failed_payment_reminders_body(dry_run),
+        )
     totals = {"reset": 0, "dry_run": dry_run}
     for sid in get_active_school_ids():
-        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _retry_failed_payment_reminders_body(d))
+        result = _run_with_tenant_context(
+            school_id=sid,
+            runnable=lambda d=dry_run: _retry_failed_payment_reminders_body(d),
+        )
         totals["reset"] += result.get("reset", 0)
     return totals
 
@@ -734,7 +901,9 @@ def _apply_split_late_fees_body(dry_run: bool) -> dict:
     """Inner body: run inside tenant context."""
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.apply_split_late_fees",
-        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN
+        if dry_run
+        else AutomationExecutionLog.ExecutionType.SCHEDULED,
         status=AutomationExecutionLog.Status.PENDING,
     )
     try:
@@ -763,13 +932,19 @@ def _apply_split_late_fees_body(dry_run: bool) -> dict:
 
 
 @shared_task(bind=True, name="finance.apply_split_late_fees")
-def apply_split_late_fees_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+def apply_split_late_fees_task(
+    self, dry_run: bool = False, school_id: str | None = None
+) -> dict:
     """Apply configured late fees to overdue payer shares. Runs in tenant context."""
     if school_id:
-        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _apply_split_late_fees_body(dry_run))
+        return _run_with_tenant_context(
+            school_id=school_id, runnable=lambda: _apply_split_late_fees_body(dry_run)
+        )
     totals = {"applied": 0, "checked": 0, "status": "ok", "dry_run": dry_run}
     for sid in get_active_school_ids():
-        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _apply_split_late_fees_body(d))
+        result = _run_with_tenant_context(
+            school_id=sid, runnable=lambda d=dry_run: _apply_split_late_fees_body(d)
+        )
         totals["applied"] += int(result.get("applied", 0) or 0)
         totals["checked"] += int(result.get("checked", 0) or 0)
     return totals
@@ -781,10 +956,12 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
 
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.auto_generate_fee_invoices",
-        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN
+        if dry_run
+        else AutomationExecutionLog.ExecutionType.SCHEDULED,
         status=AutomationExecutionLog.Status.PENDING,
     )
-    
+
     try:
         site = get_cached_site_settings()
         finance_settings = _get_finance_runtime_config(site)
@@ -792,106 +969,111 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
         if not finance_settings["auto_generate_invoices_enabled"]:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
-                summary={"message": "Fee auto-generation disabled in runtime finance policy"}
+                summary={
+                    "message": "Fee auto-generation disabled in runtime finance policy"
+                },
             )
             return {"status": "disabled"}
 
         schedule = finance_settings["auto_generate_schedule"]
         mode = schedule.get("mode", "academic_year_start")
         due_date_offset = finance_settings["auto_generate_due_date_offset_days"]
-        
+
         current_year = get_current_academic_year()
         if not current_year:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.FAILED,
-                error_message="No active academic year found"
+                error_message="No active academic year found",
             )
             return {"status": "error", "message": "No active academic year"}
-        
+
         # Check if generation is due based on schedule
         now = timezone.now().date()
         should_generate = False
-        
+
         if mode == "academic_year_start":
             offset_days = schedule.get("academic_year_start_offset_days", 0)
             target_date = current_year.start_date + timedelta(days=offset_days)
             should_generate = now >= target_date
-        
+
         elif mode == "term_start":
             current_term = get_current_term(current_year)
             if current_term:
                 offset_days = schedule.get("term_start_offset_days", 0)
                 target_date = current_term.start_date + timedelta(days=offset_days)
                 should_generate = now >= target_date
-        
+
         elif mode == "custom_date":
             custom_date_str = schedule.get("custom_date")
             if custom_date_str:
                 from datetime import datetime
+
                 target_date = datetime.fromisoformat(custom_date_str).date()
                 should_generate = now >= target_date
-        
+
         if not should_generate and not dry_run:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
-                summary={"message": "Generation not due yet"}
+                summary={"message": "Generation not due yet"},
             )
             return {"status": "not_due"}
-        
+
         # Get active fee plans
         plans = FeePlan.objects.filter(
-            academic_year=current_year,
-            is_active=True
+            academic_year=current_year, is_active=True
         ).select_related("academic_year", "classroom", "specialty")
-        
+
         if not plans.exists():
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
-                summary={"message": "No active fee plans found"}
+                summary={"message": "No active fee plans found"},
             )
             return {"status": "no_plans"}
-        
+
         profile = site.compliance_profile
         if not profile:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.FAILED,
-                error_message="No compliance profile configured"
+                error_message="No compliance profile configured",
             )
             return {"status": "error", "message": "No compliance profile"}
-        
+
         issued_date = now
         due_date = now + timedelta(days=due_date_offset)
-        
+
         execution_summary = {
             "plans": [],
             "total_invoices": 0,
             "total_students": 0,
         }
-        
+
         if dry_run:
             # Calculate what would be generated
             for plan in plans:
                 from apps.finance.services import _student_for_plan
+
                 students = list(_student_for_plan(plan))
-                execution_summary["plans"].append({
-                    "plan_id": plan.id,
-                    "plan_name": plan.name,
-                    "students_count": len(students),
-                    "would_create_invoices": len(students),
-                })
+                execution_summary["plans"].append(
+                    {
+                        "plan_id": plan.id,
+                        "plan_name": plan.name,
+                        "students_count": len(students),
+                        "would_create_invoices": len(students),
+                    }
+                )
                 execution_summary["total_students"] += len(students)
                 execution_summary["total_invoices"] += len(students)
-            
+
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
                 records_processed=execution_summary["total_invoices"],
-                summary=execution_summary
+                summary=execution_summary,
             )
             return {"dry_run": True, **execution_summary}
-        
+
         # Check if approval required
         require_approval = finance_settings["auto_generate_require_approval"]
-        
+
         if require_approval:
             # Create approval queue entry
             queue_entry = AutomationApprovalQueue.objects.create(
@@ -901,14 +1083,14 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
             )
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
-                summary={"status": "pending_approval", "queue_id": queue_entry.id}
+                summary={"status": "pending_approval", "queue_id": queue_entry.id},
             )
             return {"status": "pending_approval", "queue_id": queue_entry.id}
-        
+
         # Execute generation
         total_invoices = 0
         total_failed = 0
-        
+
         for plan in plans:
             try:
                 invoices = create_fee_invoices(
@@ -918,34 +1100,39 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
                     due_date=due_date,
                 )
                 total_invoices += len(invoices)
-                execution_summary["plans"].append({
-                    "plan_id": plan.id,
-                    "plan_name": plan.name,
-                    "invoices_created": len(invoices),
-                })
+                execution_summary["plans"].append(
+                    {
+                        "plan_id": plan.id,
+                        "plan_name": plan.name,
+                        "invoices_created": len(invoices),
+                    }
+                )
             except FINANCE_TASK_SOFT_FAILURES as e:
-                logger.error("Error generating invoices for plan %s: %s", plan.name, str(e))
+                logger.error(
+                    "Error generating invoices for plan %s: %s", plan.name, str(e)
+                )
                 total_failed += 1
-        
+
         execution_log.mark_completed(
-            AutomationExecutionLog.Status.SUCCESS if total_failed == 0 else AutomationExecutionLog.Status.PARTIAL,
+            AutomationExecutionLog.Status.SUCCESS
+            if total_failed == 0
+            else AutomationExecutionLog.Status.PARTIAL,
             records_processed=total_invoices,
             records_failed=total_failed,
-            summary=execution_summary
+            summary=execution_summary,
         )
-        
+
         return {
             "status": "success",
             "invoices_created": total_invoices,
             "plans_processed": len(plans),
             "failed": total_failed,
         }
-    
+
     except FINANCE_TASK_SOFT_FAILURES as e:
         logger.error("Error in auto_generate_fee_invoices_task: %s", str(e))
         execution_log.mark_completed(
-            AutomationExecutionLog.Status.FAILED,
-            error_message=str(e)
+            AutomationExecutionLog.Status.FAILED, error_message=str(e)
         )
         raise
 
@@ -957,13 +1144,26 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
     max_retries=3,
     retry_backoff=True,
 )
-def auto_generate_fee_invoices_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+def auto_generate_fee_invoices_task(
+    self, dry_run: bool = False, school_id: str | None = None
+) -> dict:
     """Automatically generate fee invoices. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
-        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _auto_generate_fee_invoices_body(dry_run))
-    totals = {"status": "success", "invoices_created": 0, "plans_processed": 0, "failed": 0}
+        return _run_with_tenant_context(
+            school_id=school_id,
+            runnable=lambda: _auto_generate_fee_invoices_body(dry_run),
+        )
+    totals = {
+        "status": "success",
+        "invoices_created": 0,
+        "plans_processed": 0,
+        "failed": 0,
+    }
     for sid in get_active_school_ids():
-        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _auto_generate_fee_invoices_body(d))
+        result = _run_with_tenant_context(
+            school_id=sid,
+            runnable=lambda d=dry_run: _auto_generate_fee_invoices_body(d),
+        )
         totals["invoices_created"] += result.get("invoices_created", 0) or 0
         totals["plans_processed"] += result.get("plans_processed", 0) or 0
         totals["failed"] += result.get("failed", 0) or 0
@@ -977,7 +1177,9 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
 
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.auto_copy_fee_plans",
-        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN
+        if dry_run
+        else AutomationExecutionLog.ExecutionType.SCHEDULED,
         status=AutomationExecutionLog.Status.PENDING,
     )
     try:
@@ -998,16 +1200,27 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
         if mode == "year_start":
             source_year = get_current_academic_year()
         elif mode == "year_end":
-            source_year = AcademicYear.objects.filter(end_date__lt=today).order_by("-end_date").first()
+            source_year = (
+                AcademicYear.objects.filter(end_date__lt=today)
+                .order_by("-end_date")
+                .first()
+            )
 
         if not source_year:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
-                summary={"message": "No source academic year found for auto-copy.", "mode": mode},
+                summary={
+                    "message": "No source academic year found for auto-copy.",
+                    "mode": mode,
+                },
             )
             return {"status": "no_source_year", "mode": mode}
 
-        target_year = AcademicYear.objects.filter(start_date__gt=source_year.end_date).order_by("start_date").first()
+        target_year = (
+            AcademicYear.objects.filter(start_date__gt=source_year.end_date)
+            .order_by("start_date")
+            .first()
+        )
         if not target_year:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
@@ -1018,9 +1231,9 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
             )
             return {"status": "no_target_year", "source_year": source_year.name}
 
-        source_plans = FeePlan.objects.filter(academic_year=source_year, is_active=True).select_related(
-            "classroom", "specialty", "academic_year"
-        )
+        source_plans = FeePlan.objects.filter(
+            academic_year=source_year, is_active=True
+        ).select_related("classroom", "specialty", "academic_year")
         if not source_plans.exists():
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
@@ -1113,13 +1326,19 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
     max_retries=3,
     retry_backoff=True,
 )
-def auto_copy_fee_plans_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+def auto_copy_fee_plans_task(
+    self, dry_run: bool = False, school_id: str | None = None
+) -> dict:
     """Copy active fee plans to next year. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
-        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _auto_copy_fee_plans_body(dry_run))
+        return _run_with_tenant_context(
+            school_id=school_id, runnable=lambda: _auto_copy_fee_plans_body(dry_run)
+        )
     totals = {"status": "success", "copied": 0, "errors": 0}
     for sid in get_active_school_ids():
-        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _auto_copy_fee_plans_body(d))
+        result = _run_with_tenant_context(
+            school_id=sid, runnable=lambda d=dry_run: _auto_copy_fee_plans_body(d)
+        )
         totals["copied"] += result.get("copied", 0) or 0
         totals["errors"] += result.get("errors", 0) or 0
     return totals
@@ -1129,7 +1348,9 @@ def _update_invoice_statuses_body(dry_run: bool) -> dict:
     """Inner body: run inside tenant context."""
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.update_invoice_statuses",
-        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN
+        if dry_run
+        else AutomationExecutionLog.ExecutionType.SCHEDULED,
         status=AutomationExecutionLog.Status.PENDING,
     )
 
@@ -1140,7 +1361,7 @@ def _update_invoice_statuses_body(dry_run: bool) -> dict:
         if not finance_settings["invoice_auto_status_updates_enabled"]:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
-                summary={"message": "Invoice status updates disabled"}
+                summary={"message": "Invoice status updates disabled"},
             )
             return {"status": "disabled"}
 
@@ -1169,7 +1390,7 @@ def _update_invoice_statuses_body(dry_run: bool) -> dict:
                 summary={
                     "would_mark_overdue": overdue_count,
                     "would_mark_paid": paid_count,
-                }
+                },
             )
             return {
                 "dry_run": True,
@@ -1189,7 +1410,7 @@ def _update_invoice_statuses_body(dry_run: bool) -> dict:
             summary={
                 "marked_overdue": overdue_updated,
                 "marked_paid": paid_updated,
-            }
+            },
         )
 
         return {
@@ -1201,8 +1422,7 @@ def _update_invoice_statuses_body(dry_run: bool) -> dict:
     except FINANCE_TASK_SOFT_FAILURES as e:
         logger.error("Error in update_invoice_statuses_task: %s", str(e))
         execution_log.mark_completed(
-            AutomationExecutionLog.Status.FAILED,
-            error_message=str(e)
+            AutomationExecutionLog.Status.FAILED, error_message=str(e)
         )
         raise
 
@@ -1214,13 +1434,19 @@ def _update_invoice_statuses_body(dry_run: bool) -> dict:
     max_retries=3,
     retry_backoff=True,
 )
-def update_invoice_statuses_task(self, dry_run: bool = False, school_id: str | None = None) -> dict:
+def update_invoice_statuses_task(
+    self, dry_run: bool = False, school_id: str | None = None
+) -> dict:
     """Automatically update invoice statuses. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
-        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _update_invoice_statuses_body(dry_run))
+        return _run_with_tenant_context(
+            school_id=school_id, runnable=lambda: _update_invoice_statuses_body(dry_run)
+        )
     totals = {"status": "success", "marked_overdue": 0, "marked_paid": 0}
     for sid in get_active_school_ids():
-        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=dry_run: _update_invoice_statuses_body(d))
+        result = _run_with_tenant_context(
+            school_id=sid, runnable=lambda d=dry_run: _update_invoice_statuses_body(d)
+        )
         totals["marked_overdue"] += result.get("marked_overdue", 0) or 0
         totals["marked_paid"] += result.get("marked_paid", 0) or 0
     return totals
@@ -1233,12 +1459,16 @@ def update_invoice_statuses_task(self, dry_run: bool = False, school_id: str | N
     max_retries=3,
     retry_backoff=True,
 )
-def process_payment_receipt_upload_task(self, proof_upload_id: int, school_id: str | None = None) -> dict:
+def process_payment_receipt_upload_task(
+    self, proof_upload_id: int, school_id: str | None = None
+) -> dict:
     """
     Process a payment receipt upload. Runs in tenant context when school_id is provided (required in multi-tenant).
     """
+
     def _run():
         return _process_payment_receipt_upload_impl(proof_upload_id)
+
     if school_id:
         return _run_with_tenant_context(school_id=school_id, runnable=_run)
     return _process_payment_receipt_upload_impl(proof_upload_id)
@@ -1252,12 +1482,14 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
         status=AutomationExecutionLog.Status.PENDING,
     )
     try:
-        proof_upload = PaymentProofUpload.objects.select_related("invoice", "uploaded_by").get(id=proof_upload_id)
+        proof_upload = PaymentProofUpload.objects.select_related(
+            "invoice", "uploaded_by"
+        ).get(id=proof_upload_id)
 
         # Update status to VERIFYING
         proof_upload.status = PaymentProofUpload.Status.VERIFYING
         proof_upload.save(update_fields=["status"])
-        
+
         site_settings = get_cached_site_settings(school=_resolve_school(proof_upload))
         finance_settings = _get_finance_runtime_config(site_settings)
         integration_settings = _get_marketplace_integration_settings(site_settings)
@@ -1266,18 +1498,22 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
         auto_apply_enabled = finance_settings["receipt_auto_apply_enabled"]
         require_approval = finance_settings["receipt_require_admin_approval"]
         amount_tolerance = finance_settings["receipt_amount_tolerance"]
-        
+
         # Extract receipt data
         verification_service = ReceiptVerificationService(
             verification_method=verification_method,
-            marksheet_ocr_command=str(integration_settings["marksheet_ocr_command"] or ""),
+            marksheet_ocr_command=str(
+                integration_settings["marksheet_ocr_command"] or ""
+            ),
         )
-        receipt_data = verification_service.extract_receipt_data(proof_upload.receipt_file)
-        
+        receipt_data = verification_service.extract_receipt_data(
+            proof_upload.receipt_file
+        )
+
         # Update proof upload with extracted data
         proof_upload.verification_data = receipt_data
         proof_upload.verification_confidence = receipt_data.get("confidence", 0.0)
-        
+
         # Extract receipt date for fraud detection
         receipt_date_str = receipt_data.get("date")
         if receipt_date_str:
@@ -1289,13 +1525,13 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                     proof_upload.receipt_date = receipt_date
             except (AttributeError, TypeError, ValueError):
                 pass
-        
+
         # Use extracted amount if available, otherwise use uploaded amount
         if receipt_data.get("amount"):
             proof_upload.uploaded_amount = receipt_data["amount"]
         if receipt_data.get("reference") and not proof_upload.transaction_reference:
             proof_upload.transaction_reference = receipt_data["reference"]
-        
+
         # Re-run fraud detection with extracted date
         if not proof_upload.fraud_flags:  # Only if not already flagged
             fraud_detector = ReceiptFraudDetector()
@@ -1307,19 +1543,20 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                 invoice_id=proof_upload.invoice_id,
                 uploaded_amount=proof_upload.uploaded_amount,
                 ip_address=proof_upload.ip_address,
-                user_agent=proof_upload.user_agent
+                user_agent=proof_upload.user_agent,
             )
             proof_upload.fraud_risk_score = fraud_result["fraud_risk_score"]
             proof_upload.fraud_flags = fraud_result["fraud_flags"]
-            proof_upload.is_suspicious = fraud_result["recommendation"] in ["review", "reject"]
+            proof_upload.is_suspicious = fraud_result["recommendation"] in [
+                "review",
+                "reject",
+            ]
             if proof_upload.is_suspicious and not proof_upload.flagged_at:
                 proof_upload.flagged_at = timezone.now()
 
         # Verify against invoice (before bank verification so confidence can be adjusted)
         verification_result = verification_service.verify_receipt_match(
-            receipt_data,
-            proof_upload.invoice,
-            amount_tolerance=amount_tolerance
+            receipt_data, proof_upload.invoice, amount_tolerance=amount_tolerance
         )
 
         # Run bank deposit verification (if enabled)
@@ -1327,29 +1564,27 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
         finance_settings = _get_finance_runtime_config(site_settings)
         if finance_settings["bank_verification_enabled"]:
             from apps.finance.bank_verification import BankDepositVerifier
+
             verifier = BankDepositVerifier()
-            
+
             # Get relevant bank statements
             from apps.finance.models import BankAccount, BankStatementEntry
-            
+
             if proof_upload.payment_method == "BANK":
                 accounts = BankAccount.objects.filter(
-                    account_type=BankAccount.AccountType.BANK,
-                    is_active=True
+                    account_type=BankAccount.AccountType.BANK, is_active=True
                 )
             elif proof_upload.payment_method == "MTN_MOMO":
                 accounts = BankAccount.objects.filter(
-                    account_type=BankAccount.AccountType.MTN_MOMO,
-                    is_active=True
+                    account_type=BankAccount.AccountType.MTN_MOMO, is_active=True
                 )
             elif proof_upload.payment_method == "ORANGE_MOMO":
                 accounts = BankAccount.objects.filter(
-                    account_type=BankAccount.AccountType.ORANGE_MONEY,
-                    is_active=True
+                    account_type=BankAccount.AccountType.ORANGE_MONEY, is_active=True
                 )
             else:
                 accounts = BankAccount.objects.none()
-            
+
             if accounts.exists():
                 # Get bank statements
                 all_statements = []
@@ -1358,59 +1593,73 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                         bank_account=account,
                         transaction_type__in=[
                             BankStatementEntry.TransactionType.DEPOSIT,
-                            BankStatementEntry.TransactionType.TRANSFER_IN
-                        ]
+                            BankStatementEntry.TransactionType.TRANSFER_IN,
+                        ],
                     )
                     all_statements.extend(list(statements))
-                
+
                 # Verify deposit
                 tolerance_days = finance_settings["bank_verification_tolerance_days"]
-                
+
                 if proof_upload.payment_method == "MTN_MOMO":
                     bank_verification_result = verifier.verify_mtn_momo_deposit(
                         proof_upload,
-                        [s for s in all_statements if s.bank_account.account_type == BankAccount.AccountType.MTN_MOMO]
+                        [
+                            s
+                            for s in all_statements
+                            if s.bank_account.account_type
+                            == BankAccount.AccountType.MTN_MOMO
+                        ],
                     )
                 elif proof_upload.payment_method == "ORANGE_MOMO":
                     bank_verification_result = verifier.verify_orange_money_deposit(
                         proof_upload,
-                        [s for s in all_statements if s.bank_account.account_type == BankAccount.AccountType.ORANGE_MONEY]
+                        [
+                            s
+                            for s in all_statements
+                            if s.bank_account.account_type
+                            == BankAccount.AccountType.ORANGE_MONEY
+                        ],
                     )
                 else:
                     bank_verification_result = verifier.verify_deposit(
-                        proof_upload,
-                        all_statements,
-                        tolerance_days=tolerance_days
+                        proof_upload, all_statements, tolerance_days=tolerance_days
                     )
-                
+
                 # Update bank verification fields
                 proof_upload.bank_verified = bank_verification_result["verified"]
-                proof_upload.bank_verification_date = timezone.now() if bank_verification_result["verified"] else None
-                proof_upload.bank_verification_method = bank_verification_result["match_method"]
-                proof_upload.bank_statement_entry = bank_verification_result.get("matched_entry")
-                proof_upload.bank_verification_notes = "; ".join(bank_verification_result.get("discrepancies", []))
+                proof_upload.bank_verification_date = (
+                    timezone.now() if bank_verification_result["verified"] else None
+                )
+                proof_upload.bank_verification_method = bank_verification_result[
+                    "match_method"
+                ]
+                proof_upload.bank_statement_entry = bank_verification_result.get(
+                    "matched_entry"
+                )
+                proof_upload.bank_verification_notes = "; ".join(
+                    bank_verification_result.get("discrepancies", [])
+                )
                 proof_upload.last_verification_attempt = timezone.now()
-                
+
                 # If not verified, increment retry count (for delayed verification)
                 if not bank_verification_result["verified"]:
                     proof_upload.verification_retry_count += 1
-                
+
                 # If bank verified, increase confidence
                 if bank_verification_result["verified"]:
                     verification_result["confidence"] = min(
-                        verification_result["confidence"] + 0.1,
-                        1.0
+                        verification_result["confidence"] + 0.1, 1.0
                     )
                 else:
                     # If bank verification failed, reduce confidence
                     verification_result["confidence"] = max(
-                        verification_result["confidence"] - 0.2,
-                        0.0
+                        verification_result["confidence"] - 0.2, 0.0
                     )
                     if not proof_upload.verification_notes:
                         proof_upload.verification_notes = ""
                     proof_upload.verification_notes += f" Bank verification failed: {bank_verification_result.get('discrepancies', ['No match'])[0]}"
-        
+
         # This task does not support dry_run; auto-apply is controlled by site settings only.
         dry_run = False
 
@@ -1425,26 +1674,31 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
             ) + proof_upload.verification_notes
             proof_upload.is_suspicious = True
             proof_upload.flagged_at = timezone.now()
-            
+
             # Notify finance staff
-            _notify_finance_staff_suspicious_receipt(proof_upload, {
-                "fraud_risk_score": proof_upload.fraud_risk_score,
-                "fraud_flags": proof_upload.fraud_flags,
-                "recommendation": "reject"
-            })
+            _notify_finance_staff_suspicious_receipt(
+                proof_upload,
+                {
+                    "fraud_risk_score": proof_upload.fraud_risk_score,
+                    "fraud_flags": proof_upload.fraud_flags,
+                    "recommendation": "reject",
+                },
+            )
 
         # Determine if we should auto-apply (skip in dry_run)
         should_auto_apply = (
-            not dry_run and
-            auto_apply_enabled and
-            not require_approval and
-            verification_result["matches"] and
-            verification_result["confidence"] >= auto_apply_threshold
+            not dry_run
+            and auto_apply_enabled
+            and not require_approval
+            and verification_result["matches"]
+            and verification_result["confidence"] >= auto_apply_threshold
         )
-        
+
         if dry_run:
             # Report only; do not create payment or change status beyond VERIFYING
-            proof_upload.verification_notes = (proof_upload.verification_notes or "") + " [Dry run: verification only; no payment applied.]"
+            proof_upload.verification_notes = (
+                proof_upload.verification_notes or ""
+            ) + " [Dry run: verification only; no payment applied.]"
             proof_upload.status = PaymentProofUpload.Status.DISCREPANCY
             proof_upload.save(update_fields=["verification_notes", "status"])
             execution_log.mark_completed(
@@ -1453,11 +1707,11 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                 summary={
                     "dry_run": True,
                     "would_apply": (
-                        auto_apply_enabled and
-                        not require_approval and
-                        verification_result["matches"] and
-                        verification_result["confidence"] >= auto_apply_threshold and
-                        proof_upload.fraud_risk_score < 70
+                        auto_apply_enabled
+                        and not require_approval
+                        and verification_result["matches"]
+                        and verification_result["confidence"] >= auto_apply_threshold
+                        and proof_upload.fraud_risk_score < 70
                     ),
                     "confidence": verification_result["confidence"],
                     "discrepancies": verification_result.get("discrepancies", []),
@@ -1470,15 +1724,17 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                 "discrepancies": verification_result.get("discrepancies", []),
                 "dry_run": True,
             }
-        
+
         if should_auto_apply:
             # Create and apply payment
             payment = create_payment_from_receipt(proof_upload, receipt_data)
-            
+
             # Send notification to parent
             try:
                 notification_service = NotificationService()
-                channels = get_notification_channels(proof_upload.uploaded_by, "payment_verified")
+                channels = get_notification_channels(
+                    proof_upload.uploaded_by, "payment_verified"
+                )
                 message = (
                     f"Your payment receipt for invoice {proof_upload.invoice.reference or proof_upload.invoice.id} "
                     f"has been verified and payment of {payment.amount} has been applied."
@@ -1495,7 +1751,7 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                     proof_upload_id,
                     exc_info=exc,
                 )
-            
+
             logger.info(
                 "Payment receipt %s verified and payment %s applied automatically",
                 proof_upload_id,
@@ -1510,24 +1766,29 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                 "status": "verified",
                 "payment_id": payment.id,
                 "confidence": verification_result["confidence"],
-                "discrepancies": []
+                "discrepancies": [],
             }
         else:
             # Flag for review
             proof_upload.status = PaymentProofUpload.Status.DISCREPANCY
-            proof_upload.verification_notes = "; ".join(verification_result.get("discrepancies", []))
+            proof_upload.verification_notes = "; ".join(
+                verification_result.get("discrepancies", [])
+            )
             if verification_result["confidence"] < auto_apply_threshold:
                 proof_upload.verification_notes += f" (Confidence: {verification_result['confidence']:.2f} < threshold: {auto_apply_threshold})"
             proof_upload.save()
-            
+
             # Send notification to finance staff if suspicious
             if proof_upload.is_suspicious:
-                _notify_finance_staff_suspicious_receipt(proof_upload, {
-                    "fraud_risk_score": proof_upload.fraud_risk_score,
-                    "fraud_flags": proof_upload.fraud_flags,
-                    "recommendation": "review"
-                })
-            
+                _notify_finance_staff_suspicious_receipt(
+                    proof_upload,
+                    {
+                        "fraud_risk_score": proof_upload.fraud_risk_score,
+                        "fraud_flags": proof_upload.fraud_flags,
+                        "recommendation": "review",
+                    },
+                )
+
             logger.info(
                 "Payment receipt %s flagged for review: %s",
                 proof_upload_id,
@@ -1554,7 +1815,9 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
         )
         return {"status": "error", "error": "Proof upload not found"}
     except FINANCE_TASK_SOFT_FAILURES as exc:
-        logger.error("Error processing payment receipt upload %s", proof_upload_id, exc_info=exc)
+        logger.error(
+            "Error processing payment receipt upload %s", proof_upload_id, exc_info=exc
+        )
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
             error_message=str(exc),
@@ -1566,24 +1829,25 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
         raise
 
 
-def _notify_finance_staff_suspicious_receipt(proof_upload: PaymentProofUpload, fraud_result: dict) -> None:
+def _notify_finance_staff_suspicious_receipt(
+    proof_upload: PaymentProofUpload, fraud_result: dict
+) -> None:
     """Notify finance staff when suspicious receipt is detected."""
     from apps.accounts.models import User
     from apps.evals.notifications import NotificationService
-    
+
     try:
         # Get finance staff (users with finance permissions)
         finance_staff = User.objects.filter(
-            is_staff=True,
-            groups__name__in=["Finance", "Bursar", "Accountant"]
+            is_staff=True, groups__name__in=["Finance", "Bursar", "Accountant"]
         ).distinct()
-        
+
         # If no specific finance group, notify all staff
         if not finance_staff.exists():
             finance_staff = User.objects.filter(is_staff=True, is_superuser=False)
-        
+
         notification_service = NotificationService()
-        
+
         fraud_flags_str = ", ".join(fraud_result.get("fraud_flags", []))
         message = (
             f"⚠️ SUSPICIOUS RECEIPT DETECTED\n\n"
@@ -1596,7 +1860,7 @@ def _notify_finance_staff_suspicious_receipt(proof_upload: PaymentProofUpload, f
             f"Recommendation: {fraud_result.get('recommendation', 'review').upper()}\n\n"
             f"Please review immediately: /admin/finance/paymentproofupload/{proof_upload.id}/change/"
         )
-        
+
         for staff_member in finance_staff[:10]:  # Limit to 10 staff to avoid spam
             try:
                 notification_service.send_notification(
@@ -1611,9 +1875,11 @@ def _notify_finance_staff_suspicious_receipt(proof_upload: PaymentProofUpload, f
                     staff_member.id,
                     exc_info=exc,
                 )
-    
+
     except FINANCE_TASK_SOFT_FAILURES as exc:
-        logger.error("Error notifying finance staff about suspicious receipt", exc_info=exc)
+        logger.error(
+            "Error notifying finance staff about suspicious receipt", exc_info=exc
+        )
 
 
 def _retry_bank_verification_body(days_old: int) -> dict:
@@ -1626,6 +1892,7 @@ def _retry_bank_verification_body(days_old: int) -> dict:
     try:
         from apps.finance.bank_verification import BankDepositVerifier
         from apps.finance.models import BankAccount, BankStatementEntry
+
         verifier = BankDepositVerifier()
 
         # Get receipts that failed bank verification and are old enough
@@ -1636,8 +1903,8 @@ def _retry_bank_verification_body(days_old: int) -> dict:
             created_at__lte=cutoff_date,
             status__in=[
                 PaymentProofUpload.Status.PENDING,
-                PaymentProofUpload.Status.DISCREPANCY
-            ]
+                PaymentProofUpload.Status.DISCREPANCY,
+            ],
         ).select_related("invoice", "uploaded_by")
 
         retried_count = 0
@@ -1647,24 +1914,24 @@ def _retry_bank_verification_body(days_old: int) -> dict:
 
         for receipt_upload in pending_receipts:
             try:
-                site_settings = get_cached_site_settings(school=_resolve_school(receipt_upload))
+                site_settings = get_cached_site_settings(
+                    school=_resolve_school(receipt_upload)
+                )
                 finance_settings = _get_finance_runtime_config(site_settings)
                 tolerance_days = finance_settings["bank_verification_tolerance_days"]
                 # Get relevant bank accounts
                 if receipt_upload.payment_method == "BANK":
                     accounts = BankAccount.objects.filter(
-                        account_type=BankAccount.AccountType.BANK,
-                        is_active=True
+                        account_type=BankAccount.AccountType.BANK, is_active=True
                     )
                 elif receipt_upload.payment_method == "MTN_MOMO":
                     accounts = BankAccount.objects.filter(
-                        account_type=BankAccount.AccountType.MTN_MOMO,
-                        is_active=True
+                        account_type=BankAccount.AccountType.MTN_MOMO, is_active=True
                     )
                 elif receipt_upload.payment_method == "ORANGE_MOMO":
                     accounts = BankAccount.objects.filter(
                         account_type=BankAccount.AccountType.ORANGE_MONEY,
-                        is_active=True
+                        is_active=True,
                     )
                 else:
                     continue
@@ -1676,8 +1943,8 @@ def _retry_bank_verification_body(days_old: int) -> dict:
                         bank_account=account,
                         transaction_type__in=[
                             BankStatementEntry.TransactionType.DEPOSIT,
-                            BankStatementEntry.TransactionType.TRANSFER_IN
-                        ]
+                            BankStatementEntry.TransactionType.TRANSFER_IN,
+                        ],
                     )
                     all_statements.extend(list(statements))
 
@@ -1685,26 +1952,42 @@ def _retry_bank_verification_body(days_old: int) -> dict:
                 if receipt_upload.payment_method == "MTN_MOMO":
                     verification_result = verifier.verify_mtn_momo_deposit(
                         receipt_upload,
-                        [s for s in all_statements if s.bank_account.account_type == BankAccount.AccountType.MTN_MOMO]
+                        [
+                            s
+                            for s in all_statements
+                            if s.bank_account.account_type
+                            == BankAccount.AccountType.MTN_MOMO
+                        ],
                     )
                 elif receipt_upload.payment_method == "ORANGE_MOMO":
                     verification_result = verifier.verify_orange_money_deposit(
                         receipt_upload,
-                        [s for s in all_statements if s.bank_account.account_type == BankAccount.AccountType.ORANGE_MONEY]
+                        [
+                            s
+                            for s in all_statements
+                            if s.bank_account.account_type
+                            == BankAccount.AccountType.ORANGE_MONEY
+                        ],
                     )
                 else:
                     verification_result = verifier.verify_deposit(
-                        receipt_upload,
-                        all_statements,
-                        tolerance_days=tolerance_days
+                        receipt_upload, all_statements, tolerance_days=tolerance_days
                     )
 
                 # Update receipt upload
                 receipt_upload.bank_verified = verification_result["verified"]
-                receipt_upload.bank_verification_date = timezone.now() if verification_result["verified"] else None
-                receipt_upload.bank_verification_method = verification_result["match_method"]
-                receipt_upload.bank_statement_entry = verification_result.get("matched_entry")
-                receipt_upload.bank_verification_notes = "; ".join(verification_result.get("discrepancies", []))
+                receipt_upload.bank_verification_date = (
+                    timezone.now() if verification_result["verified"] else None
+                )
+                receipt_upload.bank_verification_method = verification_result[
+                    "match_method"
+                ]
+                receipt_upload.bank_statement_entry = verification_result.get(
+                    "matched_entry"
+                )
+                receipt_upload.bank_verification_notes = "; ".join(
+                    verification_result.get("discrepancies", [])
+                )
                 receipt_upload.last_verification_attempt = timezone.now()
                 receipt_upload.verification_retry_count += 1
 
@@ -1721,7 +2004,11 @@ def _retry_bank_verification_body(days_old: int) -> dict:
                 retried_count += 1
             except FINANCE_TASK_SOFT_FAILURES as e:
                 error_count += 1
-                logger.error("Error retrying bank verification for receipt %s: %s", receipt_upload.id, str(e))
+                logger.error(
+                    "Error retrying bank verification for receipt %s: %s",
+                    receipt_upload.id,
+                    str(e),
+                )
 
         task_status = (
             AutomationExecutionLog.Status.SUCCESS
@@ -1761,13 +2048,20 @@ def _retry_bank_verification_body(days_old: int) -> dict:
     max_retries=3,
     retry_backoff=True,
 )
-def retry_bank_verification_task(self, days_old: int = 30, school_id: str | None = None) -> dict:
+def retry_bank_verification_task(
+    self, days_old: int = 30, school_id: str | None = None
+) -> dict:
     """Retry bank verification for receipts. Runs in tenant context (per school_id or all active schools)."""
     if school_id:
-        return _run_with_tenant_context(school_id=school_id, runnable=lambda: _retry_bank_verification_body(days_old))
+        return _run_with_tenant_context(
+            school_id=school_id,
+            runnable=lambda: _retry_bank_verification_body(days_old),
+        )
     totals = {"retried": 0, "verified": 0, "still_pending": 0, "errors": 0}
     for sid in get_active_school_ids():
-        result = _run_with_tenant_context(school_id=sid, runnable=lambda d=days_old: _retry_bank_verification_body(d))
+        result = _run_with_tenant_context(
+            school_id=sid, runnable=lambda d=days_old: _retry_bank_verification_body(d)
+        )
         totals["retried"] += result.get("retried", 0) or 0
         totals["verified"] += result.get("verified", 0) or 0
         totals["still_pending"] += result.get("still_pending", 0) or 0

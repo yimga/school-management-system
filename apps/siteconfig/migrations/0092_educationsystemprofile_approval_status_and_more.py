@@ -10,13 +10,17 @@ def backfill_profile_governance_fields(apps, schema_editor):
     EducationSystemProfile = apps.get_model("siteconfig", "EducationSystemProfile")
     db_alias = schema_editor.connection.alias
     now = timezone.now()
-    queryset = EducationSystemProfile.objects.using(db_alias).all().only(
-        "id",
-        "code",
-        "lineage_key",
-        "version",
-        "approval_status",
-        "approved_at",
+    queryset = (
+        EducationSystemProfile.objects.using(db_alias)
+        .all()
+        .only(
+            "id",
+            "code",
+            "lineage_key",
+            "version",
+            "approval_status",
+            "approved_at",
+        )
     )
     for row in queryset:
         updates = {}
@@ -27,7 +31,9 @@ def backfill_profile_governance_fields(apps, schema_editor):
         if row.approval_status == "APPROVED" and row.approved_at is None:
             updates["approved_at"] = now
         if updates:
-            EducationSystemProfile.objects.using(db_alias).filter(pk=row.pk).update(**updates)
+            EducationSystemProfile.objects.using(db_alias).filter(pk=row.pk).update(
+                **updates
+            )
 
 
 def noop_reverse(apps, schema_editor):
@@ -35,37 +41,60 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0091_theme_experience_admin_improvements'),
+        ("siteconfig", "0091_theme_experience_admin_improvements"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='educationsystemprofile',
-            name='approval_status',
-            field=models.CharField(choices=[('DRAFT', 'Draft'), ('IN_REVIEW', 'In Review'), ('APPROVED', 'Approved'), ('DEPRECATED', 'Deprecated')], default='APPROVED', max_length=20),
+            model_name="educationsystemprofile",
+            name="approval_status",
+            field=models.CharField(
+                choices=[
+                    ("DRAFT", "Draft"),
+                    ("IN_REVIEW", "In Review"),
+                    ("APPROVED", "Approved"),
+                    ("DEPRECATED", "Deprecated"),
+                ],
+                default="APPROVED",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='educationsystemprofile',
-            name='approved_at',
+            model_name="educationsystemprofile",
+            name="approved_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='educationsystemprofile',
-            name='approved_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='approved_education_profiles', to=settings.AUTH_USER_MODEL),
+            model_name="educationsystemprofile",
+            name="approved_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="approved_education_profiles",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='educationsystemprofile',
-            name='lineage_key',
-            field=models.SlugField(blank=True, default='', help_text='Stable pack lineage key across versions (defaults to code for legacy packs).', max_length=80),
+            model_name="educationsystemprofile",
+            name="lineage_key",
+            field=models.SlugField(
+                blank=True,
+                default="",
+                help_text="Stable pack lineage key across versions (defaults to code for legacy packs).",
+                max_length=80,
+            ),
         ),
         migrations.AddField(
-            model_name='educationsystemprofile',
-            name='version',
-            field=models.CharField(default='1.0.0', help_text='Semantic version for this pack (e.g. 1.0.0).', max_length=20),
+            model_name="educationsystemprofile",
+            name="version",
+            field=models.CharField(
+                default="1.0.0",
+                help_text="Semantic version for this pack (e.g. 1.0.0).",
+                max_length=20,
+            ),
         ),
         migrations.RunPython(backfill_profile_governance_fields, noop_reverse),
     ]

@@ -4,6 +4,7 @@ SystemMorphService runs after profile is applied in provisioning to inject confi
 EducationSystemProfile (e.g. modality Hybrid → BigBlueButton; terminology from translation_map).
 §2.4: Typed exception tuple for policy cache invalidation (no broad except).
 """
+
 from __future__ import annotations
 
 import logging
@@ -32,7 +33,9 @@ def hydrate_school_from_profile(school) -> dict[str, Any]:
     """
     if school is None:
         return {}
-    profile = resolve_profile_for_school(school, requested_profile_code="", auto_create=False)
+    profile = resolve_profile_for_school(
+        school, requested_profile_code="", auto_create=False
+    )
     if not profile:
         return {}
     cfg = getattr(profile, "config", None) or {}
@@ -49,7 +52,10 @@ def hydrate_school_from_profile(school) -> dict[str, Any]:
         settings.setdefault("education_profile", {})
         if isinstance(settings["education_profile"], dict):
             existing_map = settings["education_profile"].get("labels_map") or {}
-            settings["education_profile"]["labels_map"] = {**existing_map, **cfg["labels_map"]}
+            settings["education_profile"]["labels_map"] = {
+                **existing_map,
+                **cfg["labels_map"],
+            }
             applied["labels_map"] = True
     if cfg.get("grading_logic"):
         settings.setdefault("education_profile", {})
@@ -61,6 +67,7 @@ def hydrate_school_from_profile(school) -> dict[str, Any]:
         school.save(update_fields=["settings", "updated_at"])
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
+
             invalidate_policy_cache(school)
         except _SYSTEM_MORPH_POLICY_CACHE_ERRORS as e:
             log_exception_with_context(
@@ -68,5 +75,7 @@ def hydrate_school_from_profile(school) -> dict[str, Any]:
                 school_id=getattr(school, "id", None),
                 extra={"applied_keys": list(applied.keys())},
             )
-            logger.debug("invalidate_policy_cache skip for school: %s", e, exc_info=True)
+            logger.debug(
+                "invalidate_policy_cache skip for school: %s", e, exc_info=True
+            )
     return applied

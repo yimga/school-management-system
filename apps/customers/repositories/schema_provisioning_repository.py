@@ -2,6 +2,7 @@
 Tenant schema provisioning: check existence and create schema (PostgreSQL).
 §2.4 raw_sql_replacement_targets: single place for ensure_tenant_schemas command; staff/operational only.
 """
+
 from __future__ import annotations
 
 from django.db import connection

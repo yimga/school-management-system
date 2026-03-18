@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -19,14 +18,36 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="Campus",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("name", models.CharField(max_length=255)),
-                        ("code", models.CharField(blank=True, help_text="Short code e.g. MAIN, NORTH", max_length=32)),
+                        (
+                            "code",
+                            models.CharField(
+                                blank=True,
+                                help_text="Short code e.g. MAIN, NORTH",
+                                max_length=32,
+                            ),
+                        ),
                         ("address", models.TextField(blank=True)),
                         ("is_active", models.BooleanField(default=True)),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
                         ("updated_at", models.DateTimeField(auto_now=True)),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="campuses", to="schools.school")),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="campuses",
+                                to="schools.school",
+                            ),
+                        ),
                     ],
                     options={
                         "verbose_name": "Campus",
@@ -38,13 +59,28 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="InventoryItem",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("name", models.CharField(max_length=255)),
                         ("quantity", models.PositiveIntegerField(default=1)),
                         ("location", models.CharField(blank=True, max_length=255)),
                         ("notes", models.TextField(blank=True)),
                         ("updated_at", models.DateTimeField(auto_now=True)),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="inventory_items", to="schools.school")),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="inventory_items",
+                                to="schools.school",
+                            ),
+                        ),
                     ],
                     options={
                         "verbose_name": "Inventory item",
@@ -56,11 +92,26 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="Route",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("name", models.CharField(max_length=120)),
                         ("is_active", models.BooleanField(default=True)),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="transport_routes", to="schools.school")),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="transport_routes",
+                                to="schools.school",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_route",
@@ -71,11 +122,26 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="Stop",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("name", models.CharField(max_length=120)),
                         ("sequence", models.PositiveSmallIntegerField(default=0)),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
-                        ("route", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="stops", to="schoolops.route")),
+                        (
+                            "route",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="stops",
+                                to="schoolops.route",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_stop",
@@ -86,12 +152,41 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="Bus",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                        ("identifier", models.CharField(help_text="e.g. Bus 01, Plate number", max_length=60)),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
+                        (
+                            "identifier",
+                            models.CharField(
+                                help_text="e.g. Bus 01, Plate number", max_length=60
+                            ),
+                        ),
                         ("is_active", models.BooleanField(default=True)),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="buses", to="schools.school")),
-                        ("route", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="buses", to="schoolops.route")),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="buses",
+                                to="schools.school",
+                            ),
+                        ),
+                        (
+                            "route",
+                            models.ForeignKey(
+                                blank=True,
+                                null=True,
+                                on_delete=django.db.models.deletion.SET_NULL,
+                                related_name="buses",
+                                to="schoolops.route",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_bus",
@@ -102,13 +197,33 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="Hostel",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("name", models.CharField(max_length=120)),
-                        ("capacity", models.PositiveIntegerField(default=0, help_text="Total bed capacity")),
+                        (
+                            "capacity",
+                            models.PositiveIntegerField(
+                                default=0, help_text="Total bed capacity"
+                            ),
+                        ),
                         ("is_active", models.BooleanField(default=True)),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
                         ("updated_at", models.DateTimeField(auto_now=True)),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="hostels", to="schools.school")),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="hostels",
+                                to="schools.school",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_hostel",
@@ -119,11 +234,26 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="HostelRoom",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("name", models.CharField(max_length=60)),
                         ("capacity", models.PositiveSmallIntegerField(default=1)),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
-                        ("hostel", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="rooms", to="schoolops.hostel")),
+                        (
+                            "hostel",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="rooms",
+                                to="schoolops.hostel",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_hostelroom",
@@ -134,13 +264,33 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="CanteenMeal",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("name", models.CharField(max_length=120)),
-                        ("price", models.DecimalField(decimal_places=2, default=0, max_digits=10)),
+                        (
+                            "price",
+                            models.DecimalField(
+                                decimal_places=2, default=0, max_digits=10
+                            ),
+                        ),
                         ("is_active", models.BooleanField(default=True)),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
                         ("updated_at", models.DateTimeField(auto_now=True)),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="canteen_meals", to="schools.school")),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="canteen_meals",
+                                to="schools.school",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_canteenmeal",
@@ -151,14 +301,52 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="HealthRecord",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                        ("record_type", models.CharField(help_text="e.g. allergy, medication, vaccination, visit", max_length=32)),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
+                        (
+                            "record_type",
+                            models.CharField(
+                                help_text="e.g. allergy, medication, vaccination, visit",
+                                max_length=32,
+                            ),
+                        ),
                         ("notes", models.TextField(blank=True)),
                         ("recorded_at", models.DateTimeField(auto_now_add=True)),
                         ("confidential", models.BooleanField(default=False)),
-                        ("recorded_by", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="recorded_health_records", to=settings.AUTH_USER_MODEL)),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="health_records", to="schools.school")),
-                        ("student", models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name="health_records", to="people.studentprofile")),
+                        (
+                            "recorded_by",
+                            models.ForeignKey(
+                                blank=True,
+                                null=True,
+                                on_delete=django.db.models.deletion.SET_NULL,
+                                related_name="recorded_health_records",
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="health_records",
+                                to="schools.school",
+                            ),
+                        ),
+                        (
+                            "student",
+                            models.ForeignKey(
+                                db_constraint=False,
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="health_records",
+                                to="people.studentprofile",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_healthrecord",
@@ -168,14 +356,32 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="BiometricDevice",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("name", models.CharField(max_length=120)),
                         ("location", models.CharField(blank=True, max_length=255)),
-                        ("device_id", models.CharField(blank=True, db_index=True, max_length=64)),
+                        (
+                            "device_id",
+                            models.CharField(blank=True, db_index=True, max_length=64),
+                        ),
                         ("is_active", models.BooleanField(default=True)),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
                         ("updated_at", models.DateTimeField(auto_now=True)),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="biometric_devices", to="schools.school")),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="biometric_devices",
+                                to="schools.school",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_biometricdevice",
@@ -185,13 +391,50 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="BiometricAttendanceLog",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("timestamp", models.DateTimeField(db_index=True)),
-                        ("raw_identifier", models.CharField(blank=True, db_index=True, max_length=120)),
+                        (
+                            "raw_identifier",
+                            models.CharField(blank=True, db_index=True, max_length=120),
+                        ),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
-                        ("student", models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name="biometric_logs", to="people.studentprofile")),
-                        ("user", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name="biometric_logs", to=settings.AUTH_USER_MODEL)),
-                        ("device", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="attendance_logs", to="schoolops.biometricdevice")),
+                        (
+                            "student",
+                            models.ForeignKey(
+                                blank=True,
+                                db_constraint=False,
+                                null=True,
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="biometric_logs",
+                                to="people.studentprofile",
+                            ),
+                        ),
+                        (
+                            "user",
+                            models.ForeignKey(
+                                blank=True,
+                                null=True,
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="biometric_logs",
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                        (
+                            "device",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="attendance_logs",
+                                to="schoolops.biometricdevice",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_biometricattendancelog",
@@ -201,16 +444,34 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="LibraryItem",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("title", models.CharField(max_length=255)),
                         ("author", models.CharField(blank=True, max_length=255)),
-                        ("isbn", models.CharField(blank=True, db_index=True, max_length=32)),
+                        (
+                            "isbn",
+                            models.CharField(blank=True, db_index=True, max_length=32),
+                        ),
                         ("item_type", models.CharField(default="book", max_length=32)),
                         ("copies_total", models.PositiveIntegerField(default=1)),
                         ("is_active", models.BooleanField(default=True)),
                         ("created_at", models.DateTimeField(auto_now_add=True)),
                         ("updated_at", models.DateTimeField(auto_now=True)),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="library_items", to="schools.school")),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="library_items",
+                                to="schools.school",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_libraryitem",
@@ -221,13 +482,42 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="LibraryLoan",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True,
+                                primary_key=True,
+                                serialize=False,
+                                verbose_name="ID",
+                            ),
+                        ),
                         ("checked_out_at", models.DateTimeField(auto_now_add=True)),
                         ("due_at", models.DateTimeField()),
                         ("returned_at", models.DateTimeField(blank=True, null=True)),
-                        ("borrower", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="library_loans", to=settings.AUTH_USER_MODEL)),
-                        ("item", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="loans", to="schoolops.libraryitem")),
-                        ("school", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="library_loans", to="schools.school")),
+                        (
+                            "borrower",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="library_loans",
+                                to=settings.AUTH_USER_MODEL,
+                            ),
+                        ),
+                        (
+                            "item",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="loans",
+                                to="schoolops.libraryitem",
+                            ),
+                        ),
+                        (
+                            "school",
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="library_loans",
+                                to="schools.school",
+                            ),
+                        ),
                     ],
                     options={
                         "db_table": "schools_libraryloan",

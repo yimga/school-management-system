@@ -71,6 +71,7 @@ _EVALS_IMPORT_SERVICES_IMPORT_JOB_ERRORS = (
 @dataclass
 class ImportRowData:
     """Parsed row from import file."""
+
     student_code: str
     subject_assignment_id: int
     term_id: int
@@ -88,6 +89,7 @@ class ImportRowData:
 @dataclass
 class ImportRowResult:
     """Result of processing a single row."""
+
     row_number: int
     row_data: ImportRowData
     action: str  # CREATED, UPDATED, SKIPPED, ERROR
@@ -102,7 +104,7 @@ class ImportRowResult:
 
 class GradeImportValidator:
     """Validates import file structure and content."""
-    
+
     REQUIRED_HEADERS = [
         "student_code",
         "subject_assignment_id",
@@ -112,18 +114,18 @@ class GradeImportValidator:
         "seq2",
         "exam",
     ]
-    
+
     OPTIONAL_HEADERS = [
         "teacher_username",
         "mock",
         "practical",
         "remarks",
     ]
-    
+
     def __init__(self):
         self.errors = []
         self.warnings = []
-    
+
     def validate_headers(self, headers: List[str]) -> bool:
         """Check if all required headers present."""
         missing = set(self.REQUIRED_HEADERS) - set(h.lower().strip() for h in headers)
@@ -131,26 +133,32 @@ class GradeImportValidator:
             self.errors.append(f"Missing required headers: {', '.join(missing)}")
             return False
         return True
-    
-    def validate_row(self, row_num: int, row: dict, academic_year_id: int) -> Tuple[bool, Optional[ImportRowData]]:
+
+    def validate_row(
+        self, row_num: int, row: dict, academic_year_id: int
+    ) -> Tuple[bool, Optional[ImportRowData]]:
         """Validate single row and return parsed data."""
         try:
             # Normalize headers (case-insensitive)
             normalized_row = {k.lower().strip(): v for k, v in row.items()}
-            
+
             # Parse required fields
             student_code = normalized_row.get("student_code", "").strip()
             if not student_code:
                 self.errors.append(f"Row {row_num}: Missing student_code")
                 return False, None
-            
+
             try:
-                subject_assignment_id = int(normalized_row.get("subject_assignment_id", 0))
+                subject_assignment_id = int(
+                    normalized_row.get("subject_assignment_id", 0)
+                )
                 term_id = int(normalized_row.get("term_id", 0))
             except ValueError:
-                self.errors.append(f"Row {row_num}: Invalid subject_assignment_id or term_id (must be integers)")
+                self.errors.append(
+                    f"Row {row_num}: Invalid subject_assignment_id or term_id (must be integers)"
+                )
                 return False, None
-            
+
             # Parse scores (numeric, nullable)
             def parse_score(val):
                 if val is None or val == "" or val == "NULL":
@@ -159,21 +167,21 @@ class GradeImportValidator:
                     return Decimal(str(val).strip())
                 except (ValueError, TypeError, InvalidOperation):
                     return None
-            
+
             seq1 = parse_score(normalized_row.get("seq1"))
             seq2 = parse_score(normalized_row.get("seq2"))
             exam = parse_score(normalized_row.get("exam"))
             mock = parse_score(normalized_row.get("mock"))
             practical = parse_score(normalized_row.get("practical"))
-            
+
             # At least one score required
             if all(s is None for s in [seq1, seq2, exam, mock, practical]):
                 self.errors.append(f"Row {row_num}: At least one score required")
                 return False, None
-            
+
             teacher_username = normalized_row.get("teacher_username", "").strip()
             remarks = normalized_row.get("remarks", "").strip()
-            
+
             row_data = ImportRowData(
                 student_code=student_code,
                 subject_assignment_id=subject_assignment_id,
@@ -189,7 +197,7 @@ class GradeImportValidator:
                 raw_row=row,
             )
             return True, row_data
-        
+
         except _EVALS_IMPORT_SERVICES_VALIDATE_ROW_ERRORS as e:
             log_exception_with_context(
                 "evals import_services: validate_row failed",
@@ -198,7 +206,7 @@ class GradeImportValidator:
             )
             self.errors.append(f"Row {row_num}: {str(e)}")
             return False, None
-    
+
     def is_valid(self) -> bool:
         return len(self.errors) == 0
 
@@ -211,7 +219,7 @@ class GradeImportProcessor:
     - Updates or creates evaluations
     - Logs all operations
     """
-    
+
     def __init__(self, academic_year):
         self.academic_year = academic_year
         self.StudentProfile = django_apps.get_model("people", "StudentProfile")
@@ -220,7 +228,7 @@ class GradeImportProcessor:
         self.Term = django_apps.get_model("academics", "Term")
         self.Evaluation = django_apps.get_model("evals", "Evaluation")
         self.AssessmentWeights = django_apps.get_model("evals", "AssessmentWeights")
-    
+
     def process_rows(
         self,
         rows: List[ImportRowData],
@@ -230,18 +238,15 @@ class GradeImportProcessor:
         Process list of rows. Returns results with before/after values.
         """
         results = []
-        
+
         for idx, row_data in enumerate(rows, start=1):
             result = self._process_single_row(row_data, idx, dry_run)
             results.append(result)
-        
+
         return results
-    
+
     def _process_single_row(
-        self,
-        row_data: ImportRowData,
-        row_number: int,
-        dry_run: bool
+        self, row_data: ImportRowData, row_number: int, dry_run: bool
     ) -> ImportRowResult:
         """Process single row and return result."""
         try:
@@ -255,12 +260,11 @@ class GradeImportProcessor:
                     row_data=row_data,
                     action="ERROR",
                     success=False,
-                    error_message=f"Student not found: {row_data.student_code}"
+                    error_message=f"Student not found: {row_data.student_code}",
                 )
-            
+
             subject_assignment = self.SubjectAssignment.objects.filter(
-                id=row_data.subject_assignment_id,
-                academic_year=self.academic_year
+                id=row_data.subject_assignment_id, academic_year=self.academic_year
             ).first()
             if not subject_assignment:
                 return ImportRowResult(
@@ -268,9 +272,9 @@ class GradeImportProcessor:
                     row_data=row_data,
                     action="ERROR",
                     success=False,
-                    error_message=f"Subject assignment not found: {row_data.subject_assignment_id}"
+                    error_message=f"Subject assignment not found: {row_data.subject_assignment_id}",
                 )
-            
+
             term = self.Term.objects.filter(id=row_data.term_id).first()
             if not term:
                 return ImportRowResult(
@@ -278,15 +282,15 @@ class GradeImportProcessor:
                     row_data=row_data,
                     action="ERROR",
                     success=False,
-                    error_message=f"Term not found: {row_data.term_id}"
+                    error_message=f"Term not found: {row_data.term_id}",
                 )
-            
+
             teacher = None
             if row_data.teacher_username:
                 teacher = self.TeacherProfile.objects.filter(
                     user__username=row_data.teacher_username
                 ).first()
-            
+
             # Build new values
             new_values = {
                 "seq1_score": row_data.seq1,
@@ -296,7 +300,7 @@ class GradeImportProcessor:
                 "practical_score": row_data.practical,
                 "remarks": row_data.remarks,
             }
-            
+
             # Try to get existing evaluation
             existing_eval = self.Evaluation.objects.filter(
                 student=student,
@@ -304,7 +308,7 @@ class GradeImportProcessor:
                 term=term,
                 academic_year=self.academic_year,
             ).first()
-            
+
             # Capture previous state
             previous_values = {}
             if existing_eval:
@@ -316,15 +320,14 @@ class GradeImportProcessor:
                     "practical_score": existing_eval.practical_score,
                     "remarks": existing_eval.remarks,
                 }
-            
+
             # Detect if anything changed
             has_changes = False
             if existing_eval:
                 has_changes = any(
-                    previous_values.get(k) != v
-                    for k, v in new_values.items()
+                    previous_values.get(k) != v for k, v in new_values.items()
                 )
-            
+
             # Perform update/create
             action = "SKIPPED"
             if not existing_eval:
@@ -335,7 +338,7 @@ class GradeImportProcessor:
                         subject_assignment=subject_assignment,
                         term=term,
                         teacher=teacher,
-                        **new_values
+                        **new_values,
                     )
                 action = "CREATED"
             elif has_changes:
@@ -346,7 +349,7 @@ class GradeImportProcessor:
                         existing_eval.teacher = teacher
                     existing_eval.save()
                 action = "UPDATED"
-            
+
             # Convert Decimals to float for JSON
             previous_values_json = {
                 k: float(v) if isinstance(v, Decimal) else v
@@ -356,7 +359,7 @@ class GradeImportProcessor:
                 k: float(v) if isinstance(v, Decimal) else v
                 for k, v in new_values.items()
             }
-            
+
             return ImportRowResult(
                 row_number=row_number,
                 row_data=row_data,
@@ -368,7 +371,7 @@ class GradeImportProcessor:
                 subject_assignment_obj=subject_assignment,
                 teacher_obj=teacher,
             )
-        
+
         except _EVALS_IMPORT_SERVICES_PROCESS_ROW_ERRORS as e:
             school_id = getattr(self.academic_year, "school_id", None)
             log_exception_with_context(
@@ -385,7 +388,7 @@ class GradeImportProcessor:
                 row_data=row_data,
                 action="ERROR",
                 success=False,
-                error_message=str(e)
+                error_message=str(e),
             )
 
 
@@ -398,30 +401,30 @@ class GradeImportService:
     4. Create job record
     5. Log results
     """
-    
+
     def __init__(self):
         self.GradeImportJob = django_apps.get_model("evals", "GradeImportJob")
         self.GradeImportRowLog = django_apps.get_model("evals", "GradeImportRowLog")
-    
+
     def compute_file_hash(self, file_obj: UploadedFile) -> str:
         """Compute SHA256 hash of file content."""
         sha256 = hashlib.sha256()
         for chunk in file_obj.chunks():
             sha256.update(chunk)
         return sha256.hexdigest()
-    
+
     def read_csv_file(self, file_obj: UploadedFile) -> Tuple[List[str], List[dict]]:
         """Read CSV file and return headers + rows."""
         file_obj.seek(0)
         text_file = io.TextIOWrapper(file_obj, encoding="utf-8")
         reader = csv.DictReader(text_file)
-        
+
         if not reader.fieldnames:
             raise ValueError("CSV file appears to be empty")
-        
+
         rows = list(reader)
         return list(reader.fieldnames), rows
-    
+
     @transaction.atomic
     def import_grades(
         self,
@@ -438,17 +441,17 @@ class GradeImportService:
         3. Process rows
         4. Log results
         """
-        
+
         file_hash = self.compute_file_hash(file_obj)
         filename = file_obj.name
         file_size = file_obj.size
         file_obj.seek(0)
-        
+
         # Check for duplicate uploads
         duplicate = self.GradeImportJob.objects.filter(file_hash=file_hash).first()
         if duplicate and duplicate.status == self.GradeImportJob.Status.COMPLETED:
             logger.warning(f"Duplicate file detected: {filename}")
-        
+
         # Create job record
         job = self.GradeImportJob.objects.create(
             academic_year=academic_year,
@@ -460,57 +463,55 @@ class GradeImportService:
             uploaded_file=file_obj,
             status=self.GradeImportJob.Status.VALIDATING,
         )
-        
+
         try:
             # Read and parse file
             headers, rows = self.read_csv_file(file_obj)
             job.total_rows = len(rows)
-            
+
             # Validate
             validator = GradeImportValidator()
             if not validator.validate_headers(headers):
                 job.status = self.GradeImportJob.Status.FAILED
-                job.error_summary = json.dumps({
-                    "header_errors": validator.errors
-                })
+                job.error_summary = json.dumps({"header_errors": validator.errors})
                 job.save()
                 return job
-            
+
             # Parse rows
             parsed_rows = []
             for idx, raw_row in enumerate(rows, start=1):
                 is_valid, row_data = validator.validate_row(
-                    idx,
-                    raw_row,
-                    academic_year.id
+                    idx, raw_row, academic_year.id
                 )
                 if is_valid:
                     parsed_rows.append(row_data)
-            
+
             job.valid_rows = len(parsed_rows)
-            
+
             if validator.errors:
                 job.status = self.GradeImportJob.Status.PARTIAL
-                job.error_summary = json.dumps({
-                    "validation_errors": validator.errors[:100]  # Limit to 100
-                })
+                job.error_summary = json.dumps(
+                    {
+                        "validation_errors": validator.errors[:100]  # Limit to 100
+                    }
+                )
             else:
                 job.status = self.GradeImportJob.Status.PROCESSING
-            
+
             job.save()
-            
+
             if not parsed_rows:
                 job.status = self.GradeImportJob.Status.FAILED
                 job.save()
                 return job
-            
+
             # Process rows
             job.started_processing_at = timezone.now()
             job.save()
-            
+
             processor = GradeImportProcessor(academic_year)
             results = processor.process_rows(parsed_rows, dry_run=dry_run)
-            
+
             # Log results and update job stats
             if not dry_run:
                 for result in results:
@@ -526,29 +527,33 @@ class GradeImportService:
                         previous_values=result.previous_values or {},
                         new_values=result.new_values or {},
                     )
-            
+
             # Update job stats
             job.rows_created = sum(1 for r in results if r.action == "CREATED")
             job.rows_updated = sum(1 for r in results if r.action == "UPDATED")
             job.rows_error = sum(1 for r in results if r.action == "ERROR")
-            
+
             job.completed_at = timezone.now()
             if job.rows_error > 0:
                 job.status = self.GradeImportJob.Status.PARTIAL
             else:
                 job.status = self.GradeImportJob.Status.COMPLETED
-            
+
             job.processing_notes = f"Processed {job.total_rows} rows: {job.rows_created} created, {job.rows_updated} updated, {job.rows_error} errors"
             job.save()
-            
+
             return job
-        
+
         except _EVALS_IMPORT_SERVICES_IMPORT_JOB_ERRORS as e:
             school_id = getattr(academic_year, "school_id", None)
             log_exception_with_context(
                 "evals import_services: import_grades failed",
                 school_id=school_id,
-                extra={"job_id": job.id, "academic_year_id": academic_year.id, "error": str(e)},
+                extra={
+                    "job_id": job.id,
+                    "academic_year_id": academic_year.id,
+                    "error": str(e),
+                },
             )
             job.status = self.GradeImportJob.Status.FAILED
             job.error_summary = json.dumps({"fatal_error": str(e)})

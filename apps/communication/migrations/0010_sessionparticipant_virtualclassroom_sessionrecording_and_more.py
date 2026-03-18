@@ -6,112 +6,236 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0034_graduatemilestone_committee_member_count_and_more'),
-        ('communication', '0009_alertrule_school_announcement_school_and_more'),
+        ("academics", "0034_graduatemilestone_committee_member_count_and_more"),
+        ("communication", "0009_alertrule_school_announcement_school_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SessionParticipant',
+            name="SessionParticipant",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('joined_at', models.DateTimeField(blank=True, null=True)),
-                ('left_at', models.DateTimeField(blank=True, null=True)),
-                ('duration_minutes', models.IntegerField(default=0)),
-                ('is_present', models.BooleanField(default=False)),
-                ('raised_hand_count', models.IntegerField(default=0)),
-                ('chat_message_count', models.IntegerField(default=0)),
-                ('connection_quality', models.CharField(choices=[('EXCELLENT', 'Excellent'), ('GOOD', 'Good'), ('FAIR', 'Fair'), ('POOR', 'Poor')], default='GOOD', max_length=20)),
-                ('had_technical_issues', models.BooleanField(default=False)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("joined_at", models.DateTimeField(blank=True, null=True)),
+                ("left_at", models.DateTimeField(blank=True, null=True)),
+                ("duration_minutes", models.IntegerField(default=0)),
+                ("is_present", models.BooleanField(default=False)),
+                ("raised_hand_count", models.IntegerField(default=0)),
+                ("chat_message_count", models.IntegerField(default=0)),
+                (
+                    "connection_quality",
+                    models.CharField(
+                        choices=[
+                            ("EXCELLENT", "Excellent"),
+                            ("GOOD", "Good"),
+                            ("FAIR", "Fair"),
+                            ("POOR", "Poor"),
+                        ],
+                        default="GOOD",
+                        max_length=20,
+                    ),
+                ),
+                ("had_technical_issues", models.BooleanField(default=False)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='VirtualClassroom',
+            name="VirtualClassroom",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('provider', models.CharField(choices=[('ZOOM', 'Zoom'), ('GOOGLE_MEET', 'Google Meet'), ('JITSI', 'Jitsi Meet'), ('TEAMS', 'Microsoft Teams')], default='ZOOM', max_length=20)),
-                ('scheduled_start', models.DateTimeField()),
-                ('scheduled_end', models.DateTimeField()),
-                ('actual_start', models.DateTimeField(blank=True, null=True)),
-                ('actual_end', models.DateTimeField(blank=True, null=True)),
-                ('meeting_id', models.CharField(max_length=255)),
-                ('meeting_password', models.CharField(blank=True, max_length=100)),
-                ('join_url', models.URLField(max_length=500)),
-                ('host_url', models.URLField(blank=True, max_length=500)),
-                ('is_recording_enabled', models.BooleanField(default=True)),
-                ('is_waiting_room_enabled', models.BooleanField(default=True)),
-                ('max_participants', models.IntegerField(default=100)),
-                ('status', models.CharField(choices=[('SCHEDULED', 'Scheduled'), ('LIVE', 'Live'), ('ENDED', 'Ended'), ('CANCELLED', 'Cancelled')], default='SCHEDULED', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('classroom', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='virtual_sessions', to='academics.classroom')),
-                ('host', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='hosted_sessions', to=settings.AUTH_USER_MODEL)),
-                ('participants', models.ManyToManyField(related_name='joined_sessions', through='communication.SessionParticipant', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "provider",
+                    models.CharField(
+                        choices=[
+                            ("ZOOM", "Zoom"),
+                            ("GOOGLE_MEET", "Google Meet"),
+                            ("JITSI", "Jitsi Meet"),
+                            ("TEAMS", "Microsoft Teams"),
+                        ],
+                        default="ZOOM",
+                        max_length=20,
+                    ),
+                ),
+                ("scheduled_start", models.DateTimeField()),
+                ("scheduled_end", models.DateTimeField()),
+                ("actual_start", models.DateTimeField(blank=True, null=True)),
+                ("actual_end", models.DateTimeField(blank=True, null=True)),
+                ("meeting_id", models.CharField(max_length=255)),
+                ("meeting_password", models.CharField(blank=True, max_length=100)),
+                ("join_url", models.URLField(max_length=500)),
+                ("host_url", models.URLField(blank=True, max_length=500)),
+                ("is_recording_enabled", models.BooleanField(default=True)),
+                ("is_waiting_room_enabled", models.BooleanField(default=True)),
+                ("max_participants", models.IntegerField(default=100)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("SCHEDULED", "Scheduled"),
+                            ("LIVE", "Live"),
+                            ("ENDED", "Ended"),
+                            ("CANCELLED", "Cancelled"),
+                        ],
+                        default="SCHEDULED",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "classroom",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="virtual_sessions",
+                        to="academics.classroom",
+                    ),
+                ),
+                (
+                    "host",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="hosted_sessions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "participants",
+                    models.ManyToManyField(
+                        related_name="joined_sessions",
+                        through="communication.SessionParticipant",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-scheduled_start'],
+                "ordering": ["-scheduled_start"],
             },
         ),
         migrations.CreateModel(
-            name='SessionRecording',
+            name="SessionRecording",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('recording_id', models.CharField(max_length=255, unique=True)),
-                ('file_size_mb', models.FloatField(default=0.0)),
-                ('duration_minutes', models.IntegerField()),
-                ('download_url', models.URLField(blank=True, max_length=500)),
-                ('streaming_url', models.URLField(blank=True, max_length=500)),
-                ('recorded_at', models.DateTimeField(auto_now_add=True)),
-                ('is_processed', models.BooleanField(default=False)),
-                ('is_available', models.BooleanField(default=True)),
-                ('is_public', models.BooleanField(default=False)),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recordings', to='communication.virtualclassroom')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("recording_id", models.CharField(max_length=255, unique=True)),
+                ("file_size_mb", models.FloatField(default=0.0)),
+                ("duration_minutes", models.IntegerField()),
+                ("download_url", models.URLField(blank=True, max_length=500)),
+                ("streaming_url", models.URLField(blank=True, max_length=500)),
+                ("recorded_at", models.DateTimeField(auto_now_add=True)),
+                ("is_processed", models.BooleanField(default=False)),
+                ("is_available", models.BooleanField(default=True)),
+                ("is_public", models.BooleanField(default=False)),
+                (
+                    "session",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="recordings",
+                        to="communication.virtualclassroom",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-recorded_at'],
+                "ordering": ["-recorded_at"],
             },
         ),
         migrations.AddField(
-            model_name='sessionparticipant',
-            name='session',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='communication.virtualclassroom'),
+            model_name="sessionparticipant",
+            name="session",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="communication.virtualclassroom",
+            ),
         ),
         migrations.CreateModel(
-            name='BreakoutRoom',
+            name="BreakoutRoom",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('room_number', models.IntegerField()),
-                ('max_participants', models.IntegerField(default=10)),
-                ('is_active', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('assigned_participants', models.ManyToManyField(related_name='breakout_assignments', to=settings.AUTH_USER_MODEL)),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='breakout_rooms', to='communication.virtualclassroom')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("room_number", models.IntegerField()),
+                ("max_participants", models.IntegerField(default=10)),
+                ("is_active", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "assigned_participants",
+                    models.ManyToManyField(
+                        related_name="breakout_assignments", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                (
+                    "session",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="breakout_rooms",
+                        to="communication.virtualclassroom",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['room_number'],
+                "ordering": ["room_number"],
             },
         ),
         migrations.AddIndex(
-            model_name='virtualclassroom',
-            index=models.Index(fields=['status', 'scheduled_start'], name='communicati_status_89a190_idx'),
+            model_name="virtualclassroom",
+            index=models.Index(
+                fields=["status", "scheduled_start"],
+                name="communicati_status_89a190_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='virtualclassroom',
-            index=models.Index(fields=['host', 'scheduled_start'], name='communicati_host_id_e0f5c2_idx'),
+            model_name="virtualclassroom",
+            index=models.Index(
+                fields=["host", "scheduled_start"],
+                name="communicati_host_id_e0f5c2_idx",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='sessionparticipant',
-            unique_together={('session', 'user')},
+            name="sessionparticipant",
+            unique_together={("session", "user")},
         ),
         migrations.AlterUniqueTogether(
-            name='breakoutroom',
-            unique_together={('session', 'room_number')},
+            name="breakoutroom",
+            unique_together={("session", "room_number")},
         ),
     ]

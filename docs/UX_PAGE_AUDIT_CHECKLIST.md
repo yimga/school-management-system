@@ -31,8 +31,10 @@
 - [ ] Common tasks achievable in fewer clicks (inline drawers, side panels, sticky action bars preferred over 4–6 page hops).
 - [ ] No dead-end actions (every action leads somewhere or gives clear feedback).
 
-## 5. Responsive and accessibility
+## 5. Responsive and accessibility (North star N3, N4)
 
+- [ ] **N3 WCAG 2.1 AA:** Keyboard nav, screen-reader support, focus management, color contrast, skip links; audit critical tenant/manager pages (e.g. `lint_north_star_a11y`, phase_h_audit).
+- [ ] **N4 Mobile-first and touch:** Every high-use flow works on phone/tablet; no horizontal scroll; touch targets ≥44px; responsive lint in CI.
 - [ ] Layout uses Flexbox or Grid; no fixed-width page wrappers (no `width: 1200px` on main container).
 - [ ] Typography and images scale (e.g. `clamp()`, fluid units); no horizontal scroll on small viewports.
 - [ ] Focus and keyboard: visible focus states using design tokens; no focus traps.
@@ -42,6 +44,11 @@
 - [ ] Empty states use helper content and match design system (no blank panels).
 - [ ] Tables/forms/cards use consistent anatomy (same card style, spacing, borders as shell).
 - [ ] Marketing and product feel like one company (same color system, typography, premium feel on both sides).
+
+## 7. Inclusive terminology and imagery (North star N23)
+
+- [ ] No internal jargon in user-facing copy; use terms that match "how this school works" in the region.
+- [ ] Imagery and examples reflect global diversity and multiple school types where applicable.
 
 ---
 

@@ -2,6 +2,7 @@
 Ensure a tenant admin user exists for a given school (by slug or first active).
 Platform-neutral; use --slug or DEFAULT_TENANT_SLUG to target a tenant.
 """
+
 import os
 
 from django.core.management import BaseCommand
@@ -9,8 +10,12 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-DEFAULT_TENANT_ADMIN_USERNAME = os.getenv("DEFAULT_TENANT_ADMIN_USERNAME", "tenant_admin")
-DEFAULT_TENANT_ADMIN_PASSWORD = os.getenv("DEFAULT_TENANT_ADMIN_PASSWORD", "ChangeMe_1234")
+DEFAULT_TENANT_ADMIN_USERNAME = os.getenv(
+    "DEFAULT_TENANT_ADMIN_USERNAME", "tenant_admin"
+)
+DEFAULT_TENANT_ADMIN_PASSWORD = os.getenv(
+    "DEFAULT_TENANT_ADMIN_PASSWORD", "ChangeMe_1234"
+)
 
 
 class Command(BaseCommand):
@@ -49,7 +54,9 @@ class Command(BaseCommand):
             ).SchoolMembership
         except ImportError:
             self.stdout.write(
-                self.style.WARNING("Schools app not available. Skipping tenant admin bootstrap.")
+                self.style.WARNING(
+                    "Schools app not available. Skipping tenant admin bootstrap."
+                )
             )
             return
 
@@ -57,7 +64,11 @@ class Command(BaseCommand):
         if slug:
             school = School.objects.filter(slug=slug, is_active=True).first()
         else:
-            school = School.objects.filter(is_active=True).order_by("created_at", "id").first()
+            school = (
+                School.objects.filter(is_active=True)
+                .order_by("created_at", "id")
+                .first()
+            )
         if not school:
             self.stdout.write(
                 self.style.WARNING(
@@ -67,8 +78,12 @@ class Command(BaseCommand):
             return
 
         use_admin_user = options.get("use_admin_user", False)
-        tenant_admin_username = (options.get("username") or DEFAULT_TENANT_ADMIN_USERNAME).strip()
-        tenant_admin_password = (options.get("password") or DEFAULT_TENANT_ADMIN_PASSWORD).strip()
+        tenant_admin_username = (
+            options.get("username") or DEFAULT_TENANT_ADMIN_USERNAME
+        ).strip()
+        tenant_admin_password = (
+            options.get("password") or DEFAULT_TENANT_ADMIN_PASSWORD
+        ).strip()
 
         if use_admin_user:
             user = User.objects.filter(username="admin").first()
@@ -117,7 +132,9 @@ class Command(BaseCommand):
             user.is_superuser = False
             user.is_active = True
             user.email = user.email or f"{tenant_admin_username}@example.com"
-            user.save(update_fields=["role", "is_staff", "is_superuser", "is_active", "email"])
+            user.save(
+                update_fields=["role", "is_staff", "is_superuser", "is_active", "email"]
+            )
 
         user.set_password(tenant_admin_password)
         user.save()

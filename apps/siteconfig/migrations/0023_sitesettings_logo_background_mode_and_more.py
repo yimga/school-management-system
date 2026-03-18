@@ -5,60 +5,127 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0022_sitesettings_sidebar_theme'),
+        ("siteconfig", "0022_sitesettings_sidebar_theme"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='logo_background_mode',
-            field=models.CharField(choices=[('contain', 'Contain (default)'), ('cover', 'Cover'), ('tile', 'Tile/Repeat'), ('center', 'Center (no scale)')], default='contain', help_text='How the logo background image is displayed: contain, cover, tile, or center.', max_length=16),
+            model_name="sitesettings",
+            name="logo_background_mode",
+            field=models.CharField(
+                choices=[
+                    ("contain", "Contain (default)"),
+                    ("cover", "Cover"),
+                    ("tile", "Tile/Repeat"),
+                    ("center", "Center (no scale)"),
+                ],
+                default="contain",
+                help_text="How the logo background image is displayed: contain, cover, tile, or center.",
+                max_length=16,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='logo_opacity',
-            field=models.FloatField(blank=True, default=0.3, help_text='Opacity for logo background (0.0 = fully transparent, 1.0 = fully opaque)', null=True, validators=[django.core.validators.MinValueValidator(0.0), django.core.validators.MaxValueValidator(1.0)]),
+            model_name="sitesettings",
+            name="logo_opacity",
+            field=models.FloatField(
+                blank=True,
+                default=0.3,
+                help_text="Opacity for logo background (0.0 = fully transparent, 1.0 = fully opaque)",
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(0.0),
+                    django.core.validators.MaxValueValidator(1.0),
+                ],
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='svg_background',
-            field=models.FileField(blank=True, help_text='Optional: SVG file for animated or vector background.', null=True, upload_to='branding/svg/'),
+            model_name="sitesettings",
+            name="svg_background",
+            field=models.FileField(
+                blank=True,
+                help_text="Optional: SVG file for animated or vector background.",
+                null=True,
+                upload_to="branding/svg/",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='video_background',
-            field=models.FileField(blank=True, help_text='Optional: Short looping video (mp4/webm) for animated background.', null=True, upload_to='branding/video/'),
+            model_name="sitesettings",
+            name="video_background",
+            field=models.FileField(
+                blank=True,
+                help_text="Optional: Short looping video (mp4/webm) for animated background.",
+                null=True,
+                upload_to="branding/video/",
+            ),
         ),
         migrations.AddField(
-            model_name='themepack',
-            name='background_image',
-            field=models.ImageField(blank=True, help_text='Optional: Background image for this theme pack.', null=True, upload_to='branding/themepack/bg/'),
+            model_name="themepack",
+            name="background_image",
+            field=models.ImageField(
+                blank=True,
+                help_text="Optional: Background image for this theme pack.",
+                null=True,
+                upload_to="branding/themepack/bg/",
+            ),
         ),
         migrations.AddField(
-            model_name='themepack',
-            name='logo',
-            field=models.ImageField(blank=True, help_text='Optional: Logo for this theme pack.', null=True, upload_to='branding/themepack/logo/'),
+            model_name="themepack",
+            name="logo",
+            field=models.ImageField(
+                blank=True,
+                help_text="Optional: Logo for this theme pack.",
+                null=True,
+                upload_to="branding/themepack/logo/",
+            ),
         ),
         migrations.AddField(
-            model_name='themepack',
-            name='logo_background_mode',
-            field=models.CharField(choices=[('contain', 'Contain (default)'), ('cover', 'Cover'), ('tile', 'Tile/Repeat'), ('center', 'Center (no scale)')], default='contain', help_text='How the theme logo background image is displayed.', max_length=16),
+            model_name="themepack",
+            name="logo_background_mode",
+            field=models.CharField(
+                choices=[
+                    ("contain", "Contain (default)"),
+                    ("cover", "Cover"),
+                    ("tile", "Tile/Repeat"),
+                    ("center", "Center (no scale)"),
+                ],
+                default="contain",
+                help_text="How the theme logo background image is displayed.",
+                max_length=16,
+            ),
         ),
         migrations.AddField(
-            model_name='themepack',
-            name='logo_opacity',
-            field=models.FloatField(blank=True, default=0.3, help_text='Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)', null=True, validators=[django.core.validators.MinValueValidator(0.0), django.core.validators.MaxValueValidator(1.0)]),
+            model_name="themepack",
+            name="logo_opacity",
+            field=models.FloatField(
+                blank=True,
+                default=0.3,
+                help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)",
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(0.0),
+                    django.core.validators.MaxValueValidator(1.0),
+                ],
+            ),
         ),
         migrations.AddField(
-            model_name='themepack',
-            name='svg_background',
-            field=models.FileField(blank=True, help_text='Optional: SVG background for this theme pack.', null=True, upload_to='branding/themepack/svg/'),
+            model_name="themepack",
+            name="svg_background",
+            field=models.FileField(
+                blank=True,
+                help_text="Optional: SVG background for this theme pack.",
+                null=True,
+                upload_to="branding/themepack/svg/",
+            ),
         ),
         migrations.AddField(
-            model_name='themepack',
-            name='video_background',
-            field=models.FileField(blank=True, help_text='Optional: Video background for this theme pack.', null=True, upload_to='branding/themepack/video/'),
+            model_name="themepack",
+            name="video_background",
+            field=models.FileField(
+                blank=True,
+                help_text="Optional: Video background for this theme pack.",
+                null=True,
+                upload_to="branding/themepack/video/",
+            ),
         ),
     ]

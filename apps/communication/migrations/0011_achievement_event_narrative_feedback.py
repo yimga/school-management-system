@@ -6,54 +6,145 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('communication', '0010_sessionparticipant_virtualclassroom_sessionrecording_and_more'),
-        ('people', '0032_student_passport_and_invites'),
-        ('schools', '0014_signup_verification'),
+        (
+            "communication",
+            "0010_sessionparticipant_virtualclassroom_sessionrecording_and_more",
+        ),
+        ("people", "0032_student_passport_and_invites"),
+        ("schools", "0014_signup_verification"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AchievementEvent',
+            name="AchievementEvent",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('event_type', models.CharField(help_text='e.g. perfect_attendance_3d, grade_improved_math', max_length=80)),
-                ('payload', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='achievement_events', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='achievement_events', to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "event_type",
+                    models.CharField(
+                        help_text="e.g. perfect_attendance_3d, grade_improved_math",
+                        max_length=80,
+                    ),
+                ),
+                ("payload", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="achievement_events",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="achievement_events",
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='NarrativeFeedback',
+            name="NarrativeFeedback",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('message_text', models.TextField(help_text='AI-generated or edited message for parent')),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('APPROVED', 'Approved'), ('SENT', 'Sent')], default='DRAFT', max_length=20)),
-                ('approved_at', models.DateTimeField(blank=True, null=True)),
-                ('sent_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('achievement_event', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='narrative_feedbacks', to='communication.achievementevent')),
-                ('approved_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='approved_narrative_feedbacks', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='narrative_feedbacks', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='narrative_feedbacks', to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "message_text",
+                    models.TextField(
+                        help_text="AI-generated or edited message for parent"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("APPROVED", "Approved"),
+                            ("SENT", "Sent"),
+                        ],
+                        default="DRAFT",
+                        max_length=20,
+                    ),
+                ),
+                ("approved_at", models.DateTimeField(blank=True, null=True)),
+                ("sent_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "achievement_event",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="narrative_feedbacks",
+                        to="communication.achievementevent",
+                    ),
+                ),
+                (
+                    "approved_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="approved_narrative_feedbacks",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="narrative_feedbacks",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="narrative_feedbacks",
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.AddIndex(
-            model_name='achievementevent',
-            index=models.Index(fields=['school', 'student', '-created_at'], name='communicati_school__a5bdaa_idx'),
+            model_name="achievementevent",
+            index=models.Index(
+                fields=["school", "student", "-created_at"],
+                name="communicati_school__a5bdaa_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='narrativefeedback',
-            index=models.Index(fields=['school', 'status'], name='communicati_school__652d20_idx'),
+            model_name="narrativefeedback",
+            index=models.Index(
+                fields=["school", "status"], name="communicati_school__652d20_idx"
+            ),
         ),
     ]

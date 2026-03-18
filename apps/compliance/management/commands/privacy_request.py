@@ -20,9 +20,17 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--user-id", type=int, help="User ID to process")
         parser.add_argument("--username", type=str, help="Username to process")
-        parser.add_argument("--export", action="store_true", help="Export user data to JSON")
-        parser.add_argument("--anonymize", action="store_true", help="Anonymize user PII")
-        parser.add_argument("--delete-sessions", action="store_true", help="Delete activity sessions during anonymization")
+        parser.add_argument(
+            "--export", action="store_true", help="Export user data to JSON"
+        )
+        parser.add_argument(
+            "--anonymize", action="store_true", help="Anonymize user PII"
+        )
+        parser.add_argument(
+            "--delete-sessions",
+            action="store_true",
+            help="Delete activity sessions during anonymization",
+        )
 
     def handle(self, *args, **options):
         user_id = options.get("user_id")

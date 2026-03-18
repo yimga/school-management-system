@@ -3,6 +3,7 @@ Part F Section 16.3: GraphQL gateway — full schema via graphene-django.
 POST /graphql/ with JSON body { "query": "query { health me { username } schoolCount }" }.
 Uses config.schema (Query: health, me, schoolCount, schools).
 """
+
 import json
 import logging
 
@@ -32,12 +33,14 @@ def graphql_gateway(request):
                 status=429,
                 headers={"Retry-After": str(retry_after)},
             )
-        return JsonResponse({
-            "data": {
-                "health": "ok",
-                "message": "GraphQL gateway. POST a query. Supported: health, me { username email isStaff }, schoolCount, schools { id name slug } (staff only). Introspection enabled.",
-            },
-        })
+        return JsonResponse(
+            {
+                "data": {
+                    "health": "ok",
+                    "message": "GraphQL gateway. POST a query. Supported: health, me { username email isStaff }, schoolCount, schools { id name slug } (staff only). Introspection enabled.",
+                },
+            }
+        )
     allowed, retry_after = throttle_ip_request(
         request,
         scope="graphql_gateway_post",
@@ -50,27 +53,46 @@ def graphql_gateway(request):
             status=429,
             headers={"Retry-After": str(retry_after)},
         )
-    content_type = ((request.content_type or request.META.get("CONTENT_TYPE") or "").split(";", 1)[0]).strip().lower()
+    content_type = (
+        (
+            (request.content_type or request.META.get("CONTENT_TYPE") or "").split(
+                ";", 1
+            )[0]
+        )
+        .strip()
+        .lower()
+    )
     if request.body and content_type != "application/json":
-        return JsonResponse({"errors": [{"message": "Content-Type must be application/json"}]}, status=415)
+        return JsonResponse(
+            {"errors": [{"message": "Content-Type must be application/json"}]},
+            status=415,
+        )
     try:
         body = json.loads(request.body) if request.body else {}
     except json.JSONDecodeError:
         return JsonResponse({"errors": [{"message": "Invalid JSON"}]}, status=400)
     if not isinstance(body, dict):
-        return JsonResponse({"errors": [{"message": "JSON object required"}]}, status=400)
+        return JsonResponse(
+            {"errors": [{"message": "JSON object required"}]}, status=400
+        )
     query = (body.get("query") or "").strip()
     if not query:
         return JsonResponse({"errors": [{"message": "Missing query"}]}, status=400)
     variables = body.get("variables") or {}
     if not isinstance(variables, dict):
-        return JsonResponse({"errors": [{"message": "variables must be a JSON object"}]}, status=400)
+        return JsonResponse(
+            {"errors": [{"message": "variables must be a JSON object"}]}, status=400
+        )
     operation_name = body.get("operationName")
     if operation_name is not None and not isinstance(operation_name, str):
-        return JsonResponse({"errors": [{"message": "operationName must be a string"}]}, status=400)
+        return JsonResponse(
+            {"errors": [{"message": "operationName must be a string"}]}, status=400
+        )
 
     # Audit log for public_endpoint_audit §2.4 (no PII; operation + auth only)
-    is_authenticated = getattr(request, "user", None) and getattr(request.user, "is_authenticated", False)
+    is_authenticated = getattr(request, "user", None) and getattr(
+        request.user, "is_authenticated", False
+    )
     logger.info(
         "graphql_gateway_post op=%s authenticated=%s",
         operation_name or "(anonymous)",

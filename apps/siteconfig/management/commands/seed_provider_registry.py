@@ -4,6 +4,7 @@ so Manager/API Center can show viable provider types: payment, email, SMS, docum
 identity provider, storage provider. Idempotent (update_or_create by slug).
 Run: python manage.py seed_provider_registry
 """
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -13,12 +14,42 @@ from apps.siteconfig.models import Integration
 # Official starter provider registry (audit pack: payment, email, SMS, document AI, identity, storage)
 # school=None => platform-level template; schools clone or reference these when enabling.
 PROVIDER_REGISTRY = [
-    {"slug": "provider-registry-payment", "name": "Payment provider", "provider": "payments", "category": "PAYMENT"},
-    {"slug": "provider-registry-email", "name": "Email provider", "provider": "email", "category": "MESSAGING"},
-    {"slug": "provider-registry-sms", "name": "SMS provider", "provider": "sms", "category": "MESSAGING"},
-    {"slug": "provider-registry-document-ai", "name": "Document AI provider", "provider": "analytics", "category": "AI"},
-    {"slug": "provider-registry-identity", "name": "Identity provider", "provider": "other", "category": "SIS"},
-    {"slug": "provider-registry-storage", "name": "Storage provider", "provider": "other", "category": "OTHER"},
+    {
+        "slug": "provider-registry-payment",
+        "name": "Payment provider",
+        "provider": "payments",
+        "category": "PAYMENT",
+    },
+    {
+        "slug": "provider-registry-email",
+        "name": "Email provider",
+        "provider": "email",
+        "category": "MESSAGING",
+    },
+    {
+        "slug": "provider-registry-sms",
+        "name": "SMS provider",
+        "provider": "sms",
+        "category": "MESSAGING",
+    },
+    {
+        "slug": "provider-registry-document-ai",
+        "name": "Document AI provider",
+        "provider": "analytics",
+        "category": "AI",
+    },
+    {
+        "slug": "provider-registry-identity",
+        "name": "Identity provider",
+        "provider": "other",
+        "category": "SIS",
+    },
+    {
+        "slug": "provider-registry-storage",
+        "name": "Storage provider",
+        "provider": "other",
+        "category": "OTHER",
+    },
 ]
 
 
@@ -46,7 +77,9 @@ class Command(BaseCommand):
             slug = row["slug"]
             if dry_run:
                 if not Integration.objects.filter(slug=slug).exists():
-                    self.stdout.write(f"Would create provider registry entry: {row['name']} ({slug})")
+                    self.stdout.write(
+                        f"Would create provider registry entry: {row['name']} ({slug})"
+                    )
                     created += 1
                 continue
             _, was_created = Integration.objects.update_or_create(

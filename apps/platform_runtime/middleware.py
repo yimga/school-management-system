@@ -2,6 +2,7 @@
 Attach request.tenant_runtime (TenantRuntime) after tenant_ctx is set.
 Must run after TenantContextMiddleware.
 """
+
 from django.utils.deprecation import MiddlewareMixin
 
 from .runtime_resolver import build_tenant_runtime

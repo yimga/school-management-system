@@ -1,7 +1,11 @@
 from django.test import TestCase
 
 from apps.automation.models import MigrationProfile
-from apps.registries.models import EducationLevelRegistry, FeeCategoryRegistry, GradeScaleRegistry
+from apps.registries.models import (
+    EducationLevelRegistry,
+    FeeCategoryRegistry,
+    GradeScaleRegistry,
+)
 from apps.siteconfig.migration_services import (
     dry_run_import,
     map_education_level,
@@ -59,7 +63,11 @@ class MigrationServicesTests(TestCase):
             self.profile,
             {
                 "rows": [
-                    {"first_name": "Ada", "last_name": "Lovelace", "education_level": "sec"},
+                    {
+                        "first_name": "Ada",
+                        "last_name": "Lovelace",
+                        "education_level": "sec",
+                    },
                     {"first_name": "Grace"},
                 ]
             },

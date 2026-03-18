@@ -3,6 +3,7 @@ AI Gateway productized endpoints: setup assistant, workflow draft, policy explai
 document classify, semantic search, migration suggest. All go through services.ai_gateway;
 permissions and audit applied; no direct provider access from frontend.
 """
+
 from __future__ import annotations
 
 import json
@@ -24,7 +25,13 @@ from services.ai_memory import AIMemoryService, get_embedding_for_text
 from services.inference import strip_pii_for_inference
 
 logger = logging.getLogger(__name__)
-OPTIONAL_GATEWAY_ERRORS = (AttributeError, DatabaseError, ImportError, TypeError, ValueError)
+OPTIONAL_GATEWAY_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    TypeError,
+    ValueError,
+)
 # Service/gateway failures (invoke, embedding, etc.) — used for view-level catch after json.JSONDecodeError
 GATEWAY_VIEW_ERRORS = (
     AttributeError,
@@ -37,6 +44,7 @@ GATEWAY_VIEW_ERRORS = (
     RuntimeError,
     KeyError,
 )
+
 
 # Rate limit: same as copilot (per-user sliding window)
 def _gateway_rate_limit(request):
@@ -108,10 +116,14 @@ def _redact_audit_meta(meta: dict | None) -> dict:
 
 def _gateway_permission_denied_response(meta: dict) -> JsonResponse:
     """§2.3: return 403 when get_ai_permission_for_user denied."""
-    return JsonResponse({"success": False, "error": meta.get("error", "Permission denied")}, status=403)
+    return JsonResponse(
+        {"success": False, "error": meta.get("error", "Permission denied")}, status=403
+    )
 
 
-def _log_gateway_audit(request, feature: str, task_type: str, outcome: str, meta: dict | None = None):
+def _log_gateway_audit(
+    request, feature: str, task_type: str, outcome: str, meta: dict | None = None
+):
     try:
         safe_meta = _redact_audit_meta(meta or {})
         AuditLog.objects.create(
@@ -131,17 +143,33 @@ def _log_gateway_audit(request, feature: str, task_type: str, outcome: str, meta
         logger.debug("Gateway audit log failed: %s", e)
 
 
-def _gateway_response(request, task_type: str, prompt: str, user_query: str = "", response_schema: str | None = None):
+def _gateway_response(
+    request,
+    task_type: str,
+    prompt: str,
+    user_query: str = "",
+    response_schema: str | None = None,
+):
     from services.ai_permissions import get_ai_permission_for_user
+
     school = getattr(request, "school", None)
     if not get_ai_permission_for_user(request.user, task_type, school):
-        return None, {"outcome": "permission_denied", "error": "AI permission denied for this task"}
+        return None, {
+            "outcome": "permission_denied",
+            "error": "AI permission denied for this task",
+        }
     md = {
         "request": request,
         "school_id": _school_id(request),
         "tenant_id": _school_id(request),
     }
-    result, meta = invoke(task_type, prompt, user_query=user_query, metadata=md, response_schema=response_schema)
+    result, meta = invoke(
+        task_type,
+        prompt,
+        user_query=user_query,
+        metadata=md,
+        response_schema=response_schema,
+    )
     return result, meta
 
 
@@ -171,41 +199,80 @@ def api_setup_assistant(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:2000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
         school_id = _school_id(request)
         context_parts = []
         citations = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("help", "config", "default"):
-                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=2, **_retrieval_kwargs(request)):
+                for r in AIMemoryService.search_similar(
+                    school_id, scope, emb, limit=2, **_retrieval_kwargs(request)
+                ):
                     context_parts.append(str(r.get("metadata", ""))[:400])
-                    citations.append({
-                        "id": r.get("id"),
-                        "scope": scope,
-                        "metadata": {k: v for k, v in (r.get("metadata") or {}).items() if k not in ("embedding", "raw_text")},
-                    })
+                    citations.append(
+                        {
+                            "id": r.get("id"),
+                            "scope": scope,
+                            "metadata": {
+                                k: v
+                                for k, v in (r.get("metadata") or {}).items()
+                                if k not in ("embedding", "raw_text")
+                            },
+                        }
+                    )
         context = "\n".join(context_parts)[:1200] if context_parts else ""
         try:
-            prompt = get_prompt_template("setup_assistant", {"query": query, "context_block": context})
+            prompt = get_prompt_template(
+                "setup_assistant", {"query": query, "context_block": context}
+            )
         except OPTIONAL_GATEWAY_ERRORS:
-            prompt = f"You are a Setup Studio assistant. Answer concisely and helpfully.\n\n"
+            prompt = (
+                f"You are a Setup Studio assistant. Answer concisely and helpfully.\n\n"
+            )
             if context:
                 prompt += f"Relevant context:\n{context}\n\n"
             prompt += f"User question: {query}\n\nProvide 3–5 short actionable setup tips or explain the requested config."
-        result, meta = _gateway_response(request, TaskType.SETUP_RECOMMEND, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request, TaskType.SETUP_RECOMMEND, prompt, user_query=query
+        )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "setup_assistant", "setup_recommend", "success", meta)
-        return JsonResponse({"success": True, "response": result, "citations": citations, "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded for this tenant.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "setup_assistant", "setup_recommend", "success", meta
+        )
+        return JsonResponse(
+            {"success": True, "response": result, "citations": citations, "meta": meta}
+        )
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Setup assistant failed", extra={"error": str(e)})
-        _log_gateway_audit(request, "setup_assistant", "setup_recommend", "error", {"error": str(e)[:200]})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Setup assistant failed",
+            extra={"error": str(e)},
+        )
+        _log_gateway_audit(
+            request,
+            "setup_assistant",
+            "setup_recommend",
+            "error",
+            {"error": str(e)[:200]},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Workflow draft ---
@@ -219,29 +286,66 @@ def api_workflow_draft(request):
         return rate_err
     try:
         body = json.loads(request.body) if request.body else {}
-        description = (body.get("description") or body.get("query") or "").strip()[:1500]
+        description = (body.get("description") or body.get("query") or "").strip()[
+            :1500
+        ]
         if not description:
-            return JsonResponse({"success": False, "error": "description required"}, status=400)
-        prompt = (get_prompt_template("workflow_draft", {"query": description}) or "").strip() or (
+            return JsonResponse(
+                {"success": False, "error": "description required"}, status=400
+            )
+        prompt = (
+            get_prompt_template("workflow_draft", {"query": description}) or ""
+        ).strip() or (
             f"Generate a workflow definition as JSON only. User request: {description}\n\n"
             "Respond with a single JSON object with keys: name (string), trigger_type (string), "
             "steps (array of { action, role, config }), description (string). No other text."
         )
         result, meta = _gateway_response(
-            request, TaskType.WORKFLOW_DRAFT, prompt, user_query=description, response_schema="workflow_draft"
+            request,
+            TaskType.WORKFLOW_DRAFT,
+            prompt,
+            user_query=description,
+            response_schema="workflow_draft",
         )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded for this tenant.",
+                    "meta": meta,
+                },
+                status=429,
+            )
         _log_gateway_audit(request, "workflow_draft", "workflow_draft", "success", meta)
-        return JsonResponse({"success": True, "draft": result if isinstance(result, dict) else {"description": result}, "meta": meta})
+        return JsonResponse(
+            {
+                "success": True,
+                "draft": result
+                if isinstance(result, dict)
+                else {"description": result},
+                "meta": meta,
+            }
+        )
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Workflow draft failed", extra={"error": str(e)})
-        _log_gateway_audit(request, "workflow_draft", "workflow_draft", "error", {"error": str(e)[:200]})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Workflow draft failed",
+            extra={"error": str(e)},
+        )
+        _log_gateway_audit(
+            request,
+            "workflow_draft",
+            "workflow_draft",
+            "error",
+            {"error": str(e)[:200]},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Policy explain ---
@@ -257,26 +361,50 @@ def api_policy_explain(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or body.get("policy_text") or "").strip()[:3000]
         if not query:
-            return JsonResponse({"success": False, "error": "query or policy_text required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "query or policy_text required"}, status=400
+            )
         school_id = _school_id(request)
         context_parts = []
         citations = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
-            for r in AIMemoryService.search_similar(school_id, "policy", emb, limit=5, **_retrieval_kwargs(request)):
+            for r in AIMemoryService.search_similar(
+                school_id, "policy", emb, limit=5, **_retrieval_kwargs(request)
+            ):
                 context_parts.append(str(r.get("metadata", ""))[:400])
-                citations.append({
-                    "id": r.get("id"),
-                    "scope": "policy",
-                    "metadata": {k: v for k, v in (r.get("metadata") or {}).items() if k not in ("embedding", "raw_text")},
-                })
+                citations.append(
+                    {
+                        "id": r.get("id"),
+                        "scope": "policy",
+                        "metadata": {
+                            k: v
+                            for k, v in (r.get("metadata") or {}).items()
+                            if k not in ("embedding", "raw_text")
+                        },
+                    }
+                )
         if not context_parts and emb:
-            for r in AIMemoryService.search_similar(school_id, "default", emb, limit=3, **_retrieval_kwargs(request)):
+            for r in AIMemoryService.search_similar(
+                school_id, "default", emb, limit=3, **_retrieval_kwargs(request)
+            ):
                 context_parts.append(str(r.get("metadata", ""))[:400])
-                citations.append({"id": r.get("id"), "scope": "default", "metadata": {k: v for k, v in (r.get("metadata") or {}).items() if k not in ("embedding", "raw_text")}})
+                citations.append(
+                    {
+                        "id": r.get("id"),
+                        "scope": "default",
+                        "metadata": {
+                            k: v
+                            for k, v in (r.get("metadata") or {}).items()
+                            if k not in ("embedding", "raw_text")
+                        },
+                    }
+                )
         context = "\n".join(context_parts)[:1200] if context_parts else ""
         try:
-            prompt = get_prompt_template("policy_explain", {"query": query, "context_block": context})
+            prompt = get_prompt_template(
+                "policy_explain", {"query": query, "context_block": context}
+            )
         except OPTIONAL_GATEWAY_ERRORS:
             prompt = "You are a policy explainer. Explain or compare policies in plain language.\n\n"
             if context:
@@ -287,20 +415,52 @@ def api_policy_explain(request):
                 "No other text."
             )
         result, meta = _gateway_response(
-            request, TaskType.POLICY_EXPLAIN, prompt, user_query=query, response_schema="policy_explain"
+            request,
+            TaskType.POLICY_EXPLAIN,
+            prompt,
+            user_query=query,
+            response_schema="policy_explain",
         )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded for this tenant.",
+                    "meta": meta,
+                },
+                status=429,
+            )
         _log_gateway_audit(request, "policy_explain", "policy_explain", "success", meta)
-        return JsonResponse({"success": True, "explanation": result if isinstance(result, dict) else {"summary": result}, "citations": citations, "meta": meta})
+        return JsonResponse(
+            {
+                "success": True,
+                "explanation": result
+                if isinstance(result, dict)
+                else {"summary": result},
+                "citations": citations,
+                "meta": meta,
+            }
+        )
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Policy explain failed", extra={"error": str(e)})
-        _log_gateway_audit(request, "policy_explain", "policy_explain", "error", {"error": str(e)[:200]})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Policy explain failed",
+            extra={"error": str(e)},
+        )
+        _log_gateway_audit(
+            request,
+            "policy_explain",
+            "policy_explain",
+            "error",
+            {"error": str(e)[:200]},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Document classify ---
@@ -316,26 +476,63 @@ def api_document_classify(request):
         body = json.loads(request.body) if request.body else {}
         text = (body.get("text") or "").strip()[:8000]
         if not text:
-            return JsonResponse({"success": False, "error": "text required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "text required"}, status=400
+            )
         safe_text = strip_pii_for_inference(text)
-        prompt = (get_prompt_template("document_classify", {"query": safe_text[:2000]}) or "").strip() or (
-            f"Classify this document. Respond with JSON only: {{ \"category\": \"...\", \"tags\": [\"...\"], \"confidence\": 0.0-1.0 }}.\n\nDocument excerpt: {safe_text[:2000]}\n\nNo other text."
+        prompt = (
+            get_prompt_template("document_classify", {"query": safe_text[:2000]}) or ""
+        ).strip() or (
+            f'Classify this document. Respond with JSON only: {{ "category": "...", "tags": ["..."], "confidence": 0.0-1.0 }}.\n\nDocument excerpt: {safe_text[:2000]}\n\nNo other text.'
         )
         result, meta = _gateway_response(
-            request, TaskType.DOC_CLASSIFY, prompt, user_query=text[:500], response_schema="doc_classify"
+            request,
+            TaskType.DOC_CLASSIFY,
+            prompt,
+            user_query=text[:500],
+            response_schema="doc_classify",
         )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "document_classify", "doc_classify", "success", meta)
-        return JsonResponse({"success": True, "classification": result if isinstance(result, dict) else {"category": "general"}, "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded for this tenant.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "document_classify", "doc_classify", "success", meta
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "classification": result
+                if isinstance(result, dict)
+                else {"category": "general"},
+                "meta": meta,
+            }
+        )
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Document classify failed", extra={"error": str(e)})
-        _log_gateway_audit(request, "document_classify", "doc_classify", "error", {"error": str(e)[:200]})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Document classify failed",
+            extra={"error": str(e)},
+        )
+        _log_gateway_audit(
+            request,
+            "document_classify",
+            "doc_classify",
+            "error",
+            {"error": str(e)[:200]},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Semantic search ---
@@ -356,42 +553,90 @@ def api_semantic_search(request):
             query = (body.get("query") or "").strip()[:500]
             scope = (body.get("scope") or "default").strip()[:64]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
         school_id = _school_id(request)
         embedding = get_embedding_for_text(query, max_tokens=512)
         if not embedding:
-            return JsonResponse({"success": True, "results": [], "meta": {"reason": "embedding_unavailable"}})
-        results = AIMemoryService.search_similar(school_id, scope, embedding, limit=10, **_retrieval_kwargs(request))
+            return JsonResponse(
+                {
+                    "success": True,
+                    "results": [],
+                    "meta": {"reason": "embedding_unavailable"},
+                }
+            )
+        results = AIMemoryService.search_similar(
+            school_id, scope, embedding, limit=10, **_retrieval_kwargs(request)
+        )
         # Optional: summarize top result via gateway
         if results and query:
             context = str(results[0].get("metadata", ""))[:1500]
-            prompt = (get_prompt_template("semantic_search", {"query": query, "context_block": context}) or "").strip() or (
+            prompt = (
+                get_prompt_template(
+                    "semantic_search", {"query": query, "context_block": context}
+                )
+                or ""
+            ).strip() or (
                 f"Based on this context, answer briefly: {query}\n\nContext: {context}"
             )
-            summary, meta = _gateway_response(request, TaskType.SEMANTIC_SEARCH, prompt, user_query=query)
+            summary, meta = _gateway_response(
+                request, TaskType.SEMANTIC_SEARCH, prompt, user_query=query
+            )
             if meta.get("outcome") == "permission_denied":
                 return _gateway_permission_denied_response(meta)
             if meta.get("budget_exceeded"):
-                return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
-            _log_gateway_audit(request, "semantic_search", "semantic_search", "success", meta)
-            return JsonResponse({
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "AI request budget exceeded for this tenant.",
+                        "meta": meta,
+                    },
+                    status=429,
+                )
+            _log_gateway_audit(
+                request, "semantic_search", "semantic_search", "success", meta
+            )
+            return JsonResponse(
+                {
+                    "success": True,
+                    "results": [{"metadata": r.get("metadata")} for r in results[:5]],
+                    "summary": summary if isinstance(summary, str) else None,
+                    "meta": meta,
+                }
+            )
+        _log_gateway_audit(
+            request,
+            "semantic_search",
+            "semantic_search",
+            "success",
+            {"count": len(results)},
+        )
+        return JsonResponse(
+            {
                 "success": True,
-                "results": [{"metadata": r.get("metadata")} for r in results[:5]],
-                "summary": summary if isinstance(summary, str) else None,
-                "meta": meta,
-            })
-        _log_gateway_audit(request, "semantic_search", "semantic_search", "success", {"count": len(results)})
-        return JsonResponse({
-            "success": True,
-            "results": [{"metadata": r.get("metadata")} for r in results[:10]],
-            "meta": {"count": len(results)},
-        })
+                "results": [{"metadata": r.get("metadata")} for r in results[:10]],
+                "meta": {"count": len(results)},
+            }
+        )
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Semantic search failed", extra={"error": str(e)})
-        _log_gateway_audit(request, "semantic_search", "semantic_search", "error", {"error": str(e)[:200]})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Semantic search failed",
+            extra={"error": str(e)},
+        )
+        _log_gateway_audit(
+            request,
+            "semantic_search",
+            "semantic_search",
+            "error",
+            {"error": str(e)[:200]},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Admin copilot ---
@@ -407,38 +652,72 @@ def api_admin_copilot(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:2000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
         school_id = _school_id(request)
         context_parts = []
         citations = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("help", "config", "default"):
-                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=2, **_retrieval_kwargs(request)):
+                for r in AIMemoryService.search_similar(
+                    school_id, scope, emb, limit=2, **_retrieval_kwargs(request)
+                ):
                     context_parts.append(str(r.get("metadata", ""))[:400])
-                    citations.append({
-                        "id": r.get("id"),
-                        "scope": scope,
-                        "metadata": {k: v for k, v in (r.get("metadata") or {}).items() if k not in ("embedding", "raw_text")},
-                    })
+                    citations.append(
+                        {
+                            "id": r.get("id"),
+                            "scope": scope,
+                            "metadata": {
+                                k: v
+                                for k, v in (r.get("metadata") or {}).items()
+                                if k not in ("embedding", "raw_text")
+                            },
+                        }
+                    )
         context = "\n".join(context_parts)[:2000] if context_parts else ""
-        prompt = (get_prompt_template("admin_copilot", {"query": query, "context_block": context}) or "").strip() or (
+        prompt = (
+            get_prompt_template(
+                "admin_copilot", {"query": query, "context_block": context}
+            )
+            or ""
+        ).strip() or (
             "You are an admin and configuration assistant. Use the following context to answer.\n\n"
             f"{context}\n\nQuestion: {query}\n\nAnswer concisely; include links or doc refs if relevant."
         )
-        result, meta = _gateway_response(request, TaskType.ADMIN_COPILOT, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request, TaskType.ADMIN_COPILOT, prompt, user_query=query
+        )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded for this tenant.",
+                    "meta": meta,
+                },
+                status=429,
+            )
         _log_gateway_audit(request, "admin_copilot", "admin_copilot", "success", meta)
-        return JsonResponse({"success": True, "response": result, "citations": citations, "meta": meta})
+        return JsonResponse(
+            {"success": True, "response": result, "citations": citations, "meta": meta}
+        )
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Admin copilot failed", extra={"error": str(e)})
-        _log_gateway_audit(request, "admin_copilot", "admin_copilot", "error", {"error": str(e)[:200]})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Admin copilot failed",
+            extra={"error": str(e)},
+        )
+        _log_gateway_audit(
+            request, "admin_copilot", "admin_copilot", "error", {"error": str(e)[:200]}
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Toolset 5A: Theme & Experience ---
@@ -454,10 +733,14 @@ def api_theme_recommend(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:1500]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
-        prompt = (get_prompt_template("theme_experience", {"query": query}) or "").strip() or (
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
+        prompt = (
+            get_prompt_template("theme_experience", {"query": query}) or ""
+        ).strip() or (
             f"Suggest theme or experience improvements. User request: {query}\n\n"
-            "Respond with JSON: {{ \"suggestions\": [], \"rationale\": \"...\" }}. No other text."
+            'Respond with JSON: {{ "suggestions": [], "rationale": "..." }}. No other text.'
         )
         result, meta = _gateway_response(
             request,
@@ -469,13 +752,39 @@ def api_theme_recommend(request):
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "theme_recommend", "config_explain", "success", meta)
-        out = result if isinstance(result, dict) else {"suggestions": [], "rationale": str(result)}
-        return JsonResponse({"success": True, "suggestions": out.get("suggestions", []), "rationale": out.get("rationale", ""), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "theme_recommend", "config_explain", "success", meta
+        )
+        out = (
+            result
+            if isinstance(result, dict)
+            else {"suggestions": [], "rationale": str(result)}
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "suggestions": out.get("suggestions", []),
+                "rationale": out.get("rationale", ""),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Theme recommend failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Theme recommend failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Toolset 5B: Feature Control ---
@@ -491,21 +800,48 @@ def api_feature_control_explain(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:1000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
-        prompt = (get_prompt_template("feature_control", {"query": query}) or "").strip() or (
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
+        prompt = (
+            get_prompt_template("feature_control", {"query": query}) or ""
+        ).strip() or (
             f"Explain feature flags and control. User question: {query}\n\n"
             "Respond concisely with what the feature does and when to enable/disable it."
         )
-        result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query
+        )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "feature_control_explain", "config_explain", "success", meta)
-        return JsonResponse({"success": True, "explanation": result if isinstance(result, str) else str(result), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "feature_control_explain", "config_explain", "success", meta
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "explanation": result if isinstance(result, str) else str(result),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Feature control explain failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Feature control explain failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Toolset 5C: Report Library ---
@@ -521,10 +857,14 @@ def api_report_recommend(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:1000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
-        prompt = (get_prompt_template("report_library", {"query": query}) or "").strip() or (
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
+        prompt = (
+            get_prompt_template("report_library", {"query": query}) or ""
+        ).strip() or (
             f"Recommend reports from the library. User need: {query}\n\n"
-            "Respond with JSON: {{ \"recommendations\": [{{ \"name\", \"description\", \"fit\" }}] }}. No other text."
+            'Respond with JSON: {{ "recommendations": [{{ "name", "description", "fit" }}] }}. No other text.'
         )
         result, meta = _gateway_response(
             request,
@@ -536,13 +876,28 @@ def api_report_recommend(request):
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "report_recommend", "setup_recommend", "success", meta)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "report_recommend", "setup_recommend", "success", meta
+        )
         recs = result.get("recommendations", []) if isinstance(result, dict) else []
         return JsonResponse({"success": True, "recommendations": recs, "meta": meta})
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Report recommend failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Report recommend failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Toolset 5E: Design Studio ---
@@ -558,10 +913,14 @@ def api_design_studio_draft(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:1500]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
-        prompt = (get_prompt_template("design_studio", {"query": query}) or "").strip() or (
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
+        prompt = (
+            get_prompt_template("design_studio", {"query": query}) or ""
+        ).strip() or (
             f"Suggest design or layout changes. User request: {query}\n\n"
-            "Respond with JSON: {{ \"suggestions\": [], \"components\": [] }}. No other text."
+            'Respond with JSON: {{ "suggestions": [], "components": [] }}. No other text.'
         )
         result, meta = _gateway_response(
             request,
@@ -573,13 +932,39 @@ def api_design_studio_draft(request):
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "design_studio_draft", "config_explain", "success", meta)
-        out = result if isinstance(result, dict) else {"suggestions": [], "components": []}
-        return JsonResponse({"success": True, "suggestions": out.get("suggestions", []), "components": out.get("components", []), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "design_studio_draft", "config_explain", "success", meta
+        )
+        out = (
+            result
+            if isinstance(result, dict)
+            else {"suggestions": [], "components": []}
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "suggestions": out.get("suggestions", []),
+                "components": out.get("components", []),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Design studio draft failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Design studio draft failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Toolset 5F: Live Previews (explain) ---
@@ -595,20 +980,47 @@ def api_live_preview_explain(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:1000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
-        prompt = (get_prompt_template("live_preview", {"query": query}) or "").strip() or (
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
+        prompt = (
+            get_prompt_template("live_preview", {"query": query}) or ""
+        ).strip() or (
             f"Explain live preview behaviour for setup or design. User question: {query}\n\nAnswer concisely."
         )
-        result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query
+        )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "live_preview_explain", "config_explain", "success", meta)
-        return JsonResponse({"success": True, "explanation": result if isinstance(result, str) else str(result), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "live_preview_explain", "config_explain", "success", meta
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "explanation": result if isinstance(result, str) else str(result),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Live preview explain failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Live preview explain failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Toolset 5I: System Configuration ---
@@ -624,21 +1036,48 @@ def api_system_config_explain(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:1000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
-        prompt = (get_prompt_template("system_config", {"query": query}) or "").strip() or (
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
+        prompt = (
+            get_prompt_template("system_config", {"query": query}) or ""
+        ).strip() or (
             f"Explain system configuration options. User question: {query}\n\n"
             "Answer concisely; do not include secrets or internal URLs."
         )
-        result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query
+        )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "system_config_explain", "config_explain", "success", meta)
-        return JsonResponse({"success": True, "explanation": result if isinstance(result, str) else str(result), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "system_config_explain", "config_explain", "success", meta
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "explanation": result if isinstance(result, str) else str(result),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: System config explain failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: System config explain failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Wave 2: Dashboard/pack recommendations ---
@@ -654,10 +1093,14 @@ def api_dashboard_pack_recommend(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:1000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
-        prompt = (get_prompt_template("dashboard_pack_recommend", {"query": query}) or "").strip() or (
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
+        prompt = (
+            get_prompt_template("dashboard_pack_recommend", {"query": query}) or ""
+        ).strip() or (
             f"Recommend dashboards or experience packs for: {query}\n\n"
-            "Respond with JSON: {{ \"dashboards\": [], \"packs\": [], \"rationale\": \"...\" }}. No other text."
+            'Respond with JSON: {{ "dashboards": [], "packs": [], "rationale": "..." }}. No other text.'
         )
         result, meta = _gateway_response(
             request,
@@ -669,13 +1112,40 @@ def api_dashboard_pack_recommend(request):
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "dashboard_pack_recommend", "setup_recommend", "success", meta)
-        out = result if isinstance(result, dict) else {"dashboards": [], "packs": [], "rationale": str(result)}
-        return JsonResponse({"success": True, "dashboards": out.get("dashboards", []), "packs": out.get("packs", []), "rationale": out.get("rationale", ""), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "dashboard_pack_recommend", "setup_recommend", "success", meta
+        )
+        out = (
+            result
+            if isinstance(result, dict)
+            else {"dashboards": [], "packs": [], "rationale": str(result)}
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "dashboards": out.get("dashboards", []),
+                "packs": out.get("packs", []),
+                "rationale": out.get("rationale", ""),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Dashboard pack recommend failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Dashboard pack recommend failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Wave 2: Support assistant (productized) ---
@@ -691,27 +1161,59 @@ def api_support_assistant(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:2000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
         school_id = _school_id(request)
         context_parts = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
-            for r in AIMemoryService.search_similar(school_id, "help", emb, limit=3, **_retrieval_kwargs(request)):
+            for r in AIMemoryService.search_similar(
+                school_id, "help", emb, limit=3, **_retrieval_kwargs(request)
+            ):
                 context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:1200] if context_parts else ""
-        prompt = (get_prompt_template("support_suggest", {"query": query, "context_block": context}) or "").strip() or (
+        prompt = (
+            get_prompt_template(
+                "support_suggest", {"query": query, "context_block": context}
+            )
+            or ""
+        ).strip() or (
             f"Based on the following context, suggest a support response.\n\n{context}\n\nUser message: {query}\n\nProvide a helpful, professional reply."
         )
-        result, meta = _gateway_response(request, TaskType.SUPPORT_SUGGEST, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request, TaskType.SUPPORT_SUGGEST, prompt, user_query=query
+        )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "support_assistant", "support_suggest", "success", meta)
-        return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "support_assistant", "support_suggest", "success", meta
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "response": result if isinstance(result, str) else str(result),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Support assistant failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Support assistant failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Wave 2: Tenant maturity score (backend + optional endpoint) ---
@@ -729,25 +1231,42 @@ def api_tenant_maturity(request):
         score = 0
         try:
             from apps.platform_runtime.helpers import get_effective_site_settings
+
             settings_obj = get_effective_site_settings(request=request)
             if settings_obj and getattr(settings_obj, "features", None):
-                features = settings_obj.features if isinstance(settings_obj.features, dict) else {}
+                features = (
+                    settings_obj.features
+                    if isinstance(settings_obj.features, dict)
+                    else {}
+                )
                 score = min(100, 20 + len(features) * 5)
         except (AttributeError, TypeError, ValueError):
             pass
         recommendations = []
         if score < 50:
             recommendations.append("Enable more setup features to increase maturity.")
-        return JsonResponse({
-            "success": True,
-            "score": score,
-            "tier": "starter" if score < 40 else "growth" if score < 70 else "advanced",
-            "recommendations": recommendations,
-            "meta": {},
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "score": score,
+                "tier": "starter"
+                if score < 40
+                else "growth"
+                if score < 70
+                else "advanced",
+                "recommendations": recommendations,
+                "meta": {},
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Tenant maturity failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Tenant maturity failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Wave 3: Data quality assistant ---
@@ -763,30 +1282,62 @@ def api_data_quality_assistant(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:2000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
         school_id = _school_id(request)
         context_parts = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("config", "help", "default"):
-                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=2, **_retrieval_kwargs(request)):
+                for r in AIMemoryService.search_similar(
+                    school_id, scope, emb, limit=2, **_retrieval_kwargs(request)
+                ):
                     context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:2000] if context_parts else ""
-        prompt = (get_prompt_template("data_quality", {"query": query, "context_block": context}) or "").strip() or (
+        prompt = (
+            get_prompt_template(
+                "data_quality", {"query": query, "context_block": context}
+            )
+            or ""
+        ).strip() or (
             "You are a data quality assistant. Based on the context and the user's question, suggest data quality checks, "
             "validation rules, or remediation steps. Be concise and actionable.\n\n"
             f"Context:\n{context}\n\nUser question: {query}\n\nProvide 3–5 concrete suggestions."
         )
-        result, meta = _gateway_response(request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query
+        )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "data_quality_assistant", "config_explain", "success", meta)
-        return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "data_quality_assistant", "config_explain", "success", meta
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "response": result if isinstance(result, str) else str(result),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Data quality assistant failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Data quality assistant failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Wave 3: Marketplace ranking / recommendation ---
@@ -802,10 +1353,15 @@ def api_marketplace_recommend(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or body.get("institution_type") or "").strip()[:1500]
         if not query:
-            return JsonResponse({"success": False, "error": "query or institution_type required"}, status=400)
-        prompt = (get_prompt_template("marketplace_recommend", {"query": query}) or "").strip() or (
+            return JsonResponse(
+                {"success": False, "error": "query or institution_type required"},
+                status=400,
+            )
+        prompt = (
+            get_prompt_template("marketplace_recommend", {"query": query}) or ""
+        ).strip() or (
             f"Recommend marketplace apps or experience packs for: {query}\n\n"
-            "Respond with JSON only: { \"recommendations\": [ { \"name\", \"category\", \"fit\", \"rationale\" } ], \"rationale\": \"...\" }. No other text."
+            'Respond with JSON only: { "recommendations": [ { "name", "category", "fit", "rationale" } ], "rationale": "..." }. No other text.'
         )
         result, meta = _gateway_response(
             request,
@@ -817,13 +1373,39 @@ def api_marketplace_recommend(request):
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "marketplace_recommend", "setup_recommend", "success", meta)
-        out = result if isinstance(result, dict) else {"recommendations": [], "rationale": str(result)}
-        return JsonResponse({"success": True, "recommendations": out.get("recommendations", []), "rationale": out.get("rationale", ""), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "marketplace_recommend", "setup_recommend", "success", meta
+        )
+        out = (
+            result
+            if isinstance(result, dict)
+            else {"recommendations": [], "rationale": str(result)}
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "recommendations": out.get("recommendations", []),
+                "rationale": out.get("rationale", ""),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Marketplace recommend failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Marketplace recommend failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Wave 3: Control-plane intelligence ---
@@ -839,30 +1421,62 @@ def api_control_plane_intelligence(request):
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:2000]
         if not query:
-            return JsonResponse({"success": False, "error": "query required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
         school_id = _school_id(request)
         context_parts = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("help", "config", "default"):
-                for r in AIMemoryService.search_similar(school_id, scope, emb, limit=3, **_retrieval_kwargs(request)):
+                for r in AIMemoryService.search_similar(
+                    school_id, scope, emb, limit=3, **_retrieval_kwargs(request)
+                ):
                     context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:2000] if context_parts else ""
-        prompt = (get_prompt_template("control_plane_intelligence", {"query": query, "context_block": context}) or "").strip() or (
+        prompt = (
+            get_prompt_template(
+                "control_plane_intelligence", {"query": query, "context_block": context}
+            )
+            or ""
+        ).strip() or (
             "You are a control-plane intelligence assistant for platform operators. Use the context to answer concisely. "
             "Provide runbook-style steps or config insights where relevant.\n\n"
             f"Context:\n{context}\n\nQuestion: {query}\n\nAnswer:"
         )
-        result, meta = _gateway_response(request, TaskType.ADMIN_COPILOT, prompt, user_query=query)
+        result, meta = _gateway_response(
+            request, TaskType.ADMIN_COPILOT, prompt, user_query=query
+        )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "control_plane_intelligence", "admin_copilot", "success", meta)
-        return JsonResponse({"success": True, "response": result if isinstance(result, str) else str(result), "meta": meta})
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "control_plane_intelligence", "admin_copilot", "success", meta
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "response": result if isinstance(result, str) else str(result),
+                "meta": meta,
+            }
+        )
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Control plane intelligence failed", extra={"error": str(e)})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Control plane intelligence failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 @require_http_methods(["POST"])
@@ -878,11 +1492,16 @@ def api_ai_feedback(request):
         task_type = str(body.get("task_type") or "").strip()
         tier = str(body.get("tier") or "").strip().lower()
         if not task_type or not tier:
-            return JsonResponse({"success": False, "error": "task_type and tier required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "task_type and tier required"}, status=400
+            )
         accepted = _parse_optional_bool(body.get("accepted"))
         manual_correction = _parse_optional_bool(body.get("manual_correction"))
         if accepted is None and manual_correction is None:
-            return JsonResponse({"success": False, "error": "accepted or manual_correction required"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "accepted or manual_correction required"},
+                status=400,
+            )
         feature = str(body.get("feature") or task_type).strip()[:120]
         request_id = str(body.get("request_id") or "").strip()[:64] or None
         request_date = str(body.get("request_date") or "").strip()[:32] or None
@@ -921,9 +1540,17 @@ def api_ai_feedback(request):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: AI feedback failed", extra={"error": str(e)})
-        _log_gateway_audit(request, "ai_feedback", "feedback", "error", {"error": str(e)[:200]})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: AI feedback failed",
+            extra={"error": str(e)},
+        )
+        _log_gateway_audit(
+            request, "ai_feedback", "feedback", "error", {"error": str(e)[:200]}
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
 
 
 # --- Migration suggest ---
@@ -940,34 +1567,69 @@ def api_migration_suggest(request):
         source_fields = body.get("source_fields") or body.get("source_sample")
         target_fields = body.get("target_fields") or body.get("target_schema")
         if not source_fields and not target_fields:
-            return JsonResponse({"success": False, "error": "source_fields and target_fields (or source_sample/target_schema) required"}, status=400)
-        prompt = (get_prompt_template(
-            "migration_mapping",
-            {
-                "query": "Suggest field mappings",
-                "source_fields": str(source_fields)[:1500],
-                "target_fields": str(target_fields)[:1500],
-            },
-        ) or "").strip() or (
-            "Suggest field mappings as JSON array. Each item: { \"source_field\", \"target_field\", \"confidence\" (0-1), \"notes\" }.\n\n"
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "source_fields and target_fields (or source_sample/target_schema) required",
+                },
+                status=400,
+            )
+        prompt = (
+            get_prompt_template(
+                "migration_mapping",
+                {
+                    "query": "Suggest field mappings",
+                    "source_fields": str(source_fields)[:1500],
+                    "target_fields": str(target_fields)[:1500],
+                },
+            )
+            or ""
+        ).strip() or (
+            'Suggest field mappings as JSON array. Each item: { "source_field", "target_field", "confidence" (0-1), "notes" }.\n\n'
             f"Source: {str(source_fields)[:1500]}\nTarget: {str(target_fields)[:1500]}\n\nRespond with JSON array only. No other text."
         )
         result, meta = _gateway_response(
-            request, TaskType.MIGRATION_MAPPING, prompt, response_schema="migration_mapping"
+            request,
+            TaskType.MIGRATION_MAPPING,
+            prompt,
+            response_schema="migration_mapping",
         )
         if meta.get("outcome") == "permission_denied":
             return _gateway_permission_denied_response(meta)
         if meta.get("budget_exceeded"):
-            return JsonResponse({"success": False, "error": "AI request budget exceeded for this tenant.", "meta": meta}, status=429)
-        _log_gateway_audit(request, "migration_suggest", "migration_mapping", "success", meta)
-        return JsonResponse({
-            "success": True,
-            "mappings": result if isinstance(result, list) else [],
-            "meta": meta,
-        })
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded for this tenant.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(
+            request, "migration_suggest", "migration_mapping", "success", meta
+        )
+        return JsonResponse(
+            {
+                "success": True,
+                "mappings": result if isinstance(result, list) else [],
+                "meta": meta,
+            }
+        )
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except GATEWAY_VIEW_ERRORS as e:
-        log_view_exception(request, "portal.views_ai_gateway: Migration suggest failed", extra={"error": str(e)})
-        _log_gateway_audit(request, "migration_suggest", "migration_mapping", "error", {"error": str(e)[:200]})
-        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Migration suggest failed",
+            extra={"error": str(e)},
+        )
+        _log_gateway_audit(
+            request,
+            "migration_suggest",
+            "migration_mapping",
+            "error",
+            {"error": str(e)[:200]},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )

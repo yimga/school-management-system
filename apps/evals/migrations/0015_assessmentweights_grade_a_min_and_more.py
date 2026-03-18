@@ -5,45 +5,73 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0014_grade_approval_request'),
+        ("evals", "0014_grade_approval_request"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_a_min',
-            field=models.DecimalField(decimal_places=2, default=Decimal('18.00'), max_digits=5),
+            model_name="assessmentweights",
+            name="grade_a_min",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("18.00"), max_digits=5
+            ),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_b_min',
-            field=models.DecimalField(decimal_places=2, default=Decimal('16.00'), max_digits=5),
+            model_name="assessmentweights",
+            name="grade_b_min",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("16.00"), max_digits=5
+            ),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_c_min',
-            field=models.DecimalField(decimal_places=2, default=Decimal('14.00'), max_digits=5),
+            model_name="assessmentweights",
+            name="grade_c_min",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("14.00"), max_digits=5
+            ),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_d_min',
-            field=models.DecimalField(decimal_places=2, default=Decimal('10.00'), max_digits=5),
+            model_name="assessmentweights",
+            name="grade_d_min",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("10.00"), max_digits=5
+            ),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_e_min',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=5),
+            model_name="assessmentweights",
+            name="grade_e_min",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("0.00"), max_digits=5
+            ),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='region',
-            field=models.CharField(choices=[('cameroon_anglophone', 'Cameroon Anglophone'), ('cameroon_francophone', 'Cameroon Francophone'), ('global', 'Global/Other')], default='cameroon_anglophone', max_length=50),
+            model_name="assessmentweights",
+            name="region",
+            field=models.CharField(
+                choices=[
+                    ("cameroon_anglophone", "Cameroon Anglophone"),
+                    ("cameroon_francophone", "Cameroon Francophone"),
+                    ("global", "Global/Other"),
+                ],
+                default="cameroon_anglophone",
+                max_length=50,
+            ),
         ),
         migrations.AlterField(
-            model_name='gradeaudit',
-            name='change_type',
-            field=models.CharField(choices=[('create', 'Grade Created'), ('update', 'Grade Updated'), ('delete', 'Grade Deleted'), ('rollback', 'Grade Rolled Back'), ('import', 'Imported from CSV'), ('offline_sync', 'Synced Offline Entry'), ('ocr_upload', 'OCR Upload')], max_length=20),
+            model_name="gradeaudit",
+            name="change_type",
+            field=models.CharField(
+                choices=[
+                    ("create", "Grade Created"),
+                    ("update", "Grade Updated"),
+                    ("delete", "Grade Deleted"),
+                    ("rollback", "Grade Rolled Back"),
+                    ("import", "Imported from CSV"),
+                    ("offline_sync", "Synced Offline Entry"),
+                    ("ocr_upload", "OCR Upload"),
+                ],
+                max_length=20,
+            ),
         ),
     ]

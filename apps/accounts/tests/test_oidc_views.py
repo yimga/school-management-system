@@ -47,7 +47,8 @@ class OidcViewsTests(TestCase):
 
     def test_oidc_start_redirects_to_authorization_endpoint(self):
         response = self.client.get(
-            reverse("accounts:oidc_start", args=[self.integration.pk]) + f"?school_slug={self.school.slug}"
+            reverse("accounts:oidc_start", args=[self.integration.pk])
+            + f"?school_slug={self.school.slug}"
         )
         self.assertEqual(response.status_code, 302)
         self.assertIn("https://idp.example.com/authorize", response["Location"])
@@ -56,7 +57,8 @@ class OidcViewsTests(TestCase):
 
     def test_oidc_callback_provisions_user_and_membership(self):
         start = self.client.get(
-            reverse("accounts:oidc_start", args=[self.integration.pk]) + f"?school_slug={self.school.slug}&next=/portal/"
+            reverse("accounts:oidc_start", args=[self.integration.pk])
+            + f"?school_slug={self.school.slug}&next=/portal/"
         )
         self.assertEqual(start.status_code, 302)
         state = parse_qs(urlparse(start["Location"]).query)["state"][0]
@@ -72,11 +74,14 @@ class OidcViewsTests(TestCase):
 
         user = User.objects.get(email="teacher.oidc@example.com")
         self.assertEqual(user.role, User.Role.TEACHER)
-        self.assertTrue(SchoolMembership.objects.filter(school=self.school, user=user).exists())
+        self.assertTrue(
+            SchoolMembership.objects.filter(school=self.school, user=user).exists()
+        )
 
     def test_oidc_callback_rejects_bad_nonce(self):
         start = self.client.get(
-            reverse("accounts:oidc_start", args=[self.integration.pk]) + f"?school_slug={self.school.slug}"
+            reverse("accounts:oidc_start", args=[self.integration.pk])
+            + f"?school_slug={self.school.slug}"
         )
         state = parse_qs(urlparse(start["Location"]).query)["state"][0]
         callback = self.client.get(
@@ -85,3 +90,36 @@ class OidcViewsTests(TestCase):
         )
         self.assertEqual(callback.status_code, 403)
 
+    def test_oidc_callback_stores_id_token_hint_for_logout(self):
+        start = self.client.get(
+            reverse("accounts:oidc_start", args=[self.integration.pk])
+            + f"?school_slug={self.school.slug}"
+        )
+        state = parse_qs(urlparse(start["Location"]).query)["state"][0]
+        nonce = self.client.session[f"oidc:{self.integration.pk}:{state}"]["nonce"]
+        tok = self._id_token(nonce=nonce)
+        self.client.get(
+            reverse("accounts:oidc_callback", args=[self.integration.pk])
+            + f"?state={state}&id_token={tok}"
+        )
+        self.assertEqual(
+            self.client.session.get(f"oidc_id_token_hint:{self.integration.pk}"), tok
+        )
+
+    def test_oidc_logout_clears_session_and_redirects_end_session(self):
+        self.integration.config = {
+            **(self.integration.config or {}),
+            "end_session_endpoint": "https://idp.example.com/logout",
+            "post_logout_redirect_uri": "https://app.example.com/",
+        }
+        self.integration.save()
+        session = self.client.session
+        session[f"oidc_id_token_hint:{self.integration.pk}"] = "hint.token.value"
+        session.save()
+        self.client.force_login(
+            User.objects.create_user("u1", password="x", role=User.Role.TEACHER)
+        )
+        r = self.client.get(reverse("accounts:oidc_logout", args=[self.integration.pk]))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("idp.example.com/logout", r["Location"])
+        self.assertIn("post_logout_redirect_uri", r["Location"])

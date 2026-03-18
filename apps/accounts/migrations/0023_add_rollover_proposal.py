@@ -6,52 +6,164 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0035_degree_program_transcript_track'),
-        ('accounts', '0022_alter_user_role'),
-        ('people', '0034_add_vocational_certification'),
-        ('schools', '0017_add_hierarchy_campus_quota_usage'),
+        ("academics", "0035_degree_program_transcript_track"),
+        ("accounts", "0022_alter_user_role"),
+        ("people", "0034_add_vocational_certification"),
+        ("schools", "0017_add_hierarchy_campus_quota_usage"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RolloverProposal',
+            name="RolloverProposal",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('PENDING', 'Pending review'), ('APPROVED', 'Approved'), ('APPLIED', 'Applied'), ('CANCELLED', 'Cancelled')], db_index=True, default='PENDING', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('approved_at', models.DateTimeField(blank=True, null=True)),
-                ('applied_at', models.DateTimeField(blank=True, null=True)),
-                ('approved_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='approved_rollover_proposals', to=settings.AUTH_USER_MODEL)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_rollover_proposals', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rollover_proposals', to='schools.school')),
-                ('source_year', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='rollover_proposals_as_source', to='academics.academicyear')),
-                ('target_year', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='rollover_proposals_as_target', to='academics.academicyear')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending review"),
+                            ("APPROVED", "Approved"),
+                            ("APPLIED", "Applied"),
+                            ("CANCELLED", "Cancelled"),
+                        ],
+                        db_index=True,
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("approved_at", models.DateTimeField(blank=True, null=True)),
+                ("applied_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "approved_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="approved_rollover_proposals",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="created_rollover_proposals",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rollover_proposals",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "source_year",
+                    models.ForeignKey(
+                        db_constraint=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rollover_proposals_as_source",
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "target_year",
+                    models.ForeignKey(
+                        db_constraint=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rollover_proposals_as_target",
+                        to="academics.academicyear",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Rollover proposal',
-                'verbose_name_plural': 'Rollover proposals',
-                'ordering': ['-created_at'],
+                "verbose_name": "Rollover proposal",
+                "verbose_name_plural": "Rollover proposals",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='RolloverProposalItem',
+            name="RolloverProposalItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('current_classroom_id', models.PositiveIntegerField(blank=True, null=True)),
-                ('promotion_status', models.CharField(blank=True, max_length=20)),
-                ('annual_average', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('outstanding_returns', models.PositiveIntegerField(default=0)),
-                ('approved_next_classroom', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='rollover_items_approved', to='academics.classroom')),
-                ('proposal', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='accounts.rolloverproposal')),
-                ('student', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='rollover_proposal_items', to='people.studentprofile')),
-                ('suggested_next_classroom', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='rollover_items_suggested', to='academics.classroom')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "current_classroom_id",
+                    models.PositiveIntegerField(blank=True, null=True),
+                ),
+                ("promotion_status", models.CharField(blank=True, max_length=20)),
+                (
+                    "annual_average",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                ("outstanding_returns", models.PositiveIntegerField(default=0)),
+                (
+                    "approved_next_classroom",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="rollover_items_approved",
+                        to="academics.classroom",
+                    ),
+                ),
+                (
+                    "proposal",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="accounts.rolloverproposal",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        db_constraint=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rollover_proposal_items",
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "suggested_next_classroom",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="rollover_items_suggested",
+                        to="academics.classroom",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Rollover proposal item',
-                'verbose_name_plural': 'Rollover proposal items',
-                'ordering': ['proposal', 'student'],
+                "verbose_name": "Rollover proposal item",
+                "verbose_name_plural": "Rollover proposal items",
+                "ordering": ["proposal", "student"],
             },
         ),
     ]

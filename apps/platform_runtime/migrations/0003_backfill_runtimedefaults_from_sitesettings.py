@@ -31,7 +31,9 @@ def backfill_runtime_defaults(apps, schema_editor):
         return
 
     payload = _build_payload(site)
-    obj, _created = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": payload})
+    obj, _created = RuntimeDefaults.objects.get_or_create(
+        pk=1, defaults={"payload": payload}
+    )
     if obj.payload != payload:
         obj.payload = payload
         obj.save(update_fields=["payload", "updated_at"])

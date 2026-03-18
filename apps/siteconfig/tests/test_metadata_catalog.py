@@ -1,6 +1,10 @@
 from django.test import TestCase
 
-from apps.metadata.models import EntityCatalogEntry, FieldCatalogEntry, MetadataDependency
+from apps.metadata.models import (
+    EntityCatalogEntry,
+    FieldCatalogEntry,
+    MetadataDependency,
+)
 from apps.packages.engine import apply_package, rollback
 from apps.packages.models import InstalledPackage
 from apps.policies.models import BlueprintPack, PolicyBundle
@@ -48,10 +52,26 @@ class RuntimeMetadataCatalogTests(TestCase):
         workflow_codes = [w["code"] for w in payload["workflow_packs"]]
         dashboard_codes = [d["code"] for d in payload["dashboard_packs"]]
         policy_codes = [p["code"] for p in payload["policy_bundles"]]
-        self.assertIn("core-secondary", blueprint_codes, "Created blueprint pack must appear in runtime metadata")
-        self.assertIn("workflow-admissions", workflow_codes, "Created workflow pack must appear in runtime metadata")
-        self.assertIn("dashboard-admin", dashboard_codes, "Created dashboard pack must appear in runtime metadata")
-        self.assertIn("policy-core", policy_codes, "Created policy bundle must appear in runtime metadata")
+        self.assertIn(
+            "core-secondary",
+            blueprint_codes,
+            "Created blueprint pack must appear in runtime metadata",
+        )
+        self.assertIn(
+            "workflow-admissions",
+            workflow_codes,
+            "Created workflow pack must appear in runtime metadata",
+        )
+        self.assertIn(
+            "dashboard-admin",
+            dashboard_codes,
+            "Created dashboard pack must appear in runtime metadata",
+        )
+        self.assertIn(
+            "policy-core",
+            policy_codes,
+            "Created policy bundle must appear in runtime metadata",
+        )
 
     def test_runtime_metadata_includes_lineage_registry_and_package_rollbacks(self):
         entity = EntityCatalogEntry.objects.create(code="student", name="Student")
@@ -98,9 +118,22 @@ class RuntimeMetadataCatalogTests(TestCase):
 
         payload = get_runtime_metadata()
 
-        self.assertEqual(payload["lineage_registry"]["apis"][0]["consumer_code"], "api:student-record")
-        self.assertEqual(payload["lineage_registry"]["templates"][0]["consumer_code"], "template:student-card")
-        self.assertEqual(payload["lineage_registry"]["policies"][0]["consumer_code"], "policy:student-retention")
-        package_entry = next(item for item in payload["package_registry"] if item["package_id"] == "lineage-pack")
+        self.assertEqual(
+            payload["lineage_registry"]["apis"][0]["consumer_code"],
+            "api:student-record",
+        )
+        self.assertEqual(
+            payload["lineage_registry"]["templates"][0]["consumer_code"],
+            "template:student-card",
+        )
+        self.assertEqual(
+            payload["lineage_registry"]["policies"][0]["consumer_code"],
+            "policy:student-retention",
+        )
+        package_entry = next(
+            item
+            for item in payload["package_registry"]
+            if item["package_id"] == "lineage-pack"
+        )
         self.assertEqual(package_entry["rollback_event_count"], 1)
         self.assertGreaterEqual(package_entry["blast_radius"]["consumer_count"], 1)

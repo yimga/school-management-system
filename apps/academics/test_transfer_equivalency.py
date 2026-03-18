@@ -75,7 +75,9 @@ class TransferEquivalencyWorkflowTests(TestCase):
             reviewer_notes="Equivalent syllabus verified",
         )
 
-        mapping = get_approved_transfer_equivalency_map(student=self.student, program=self.program)
+        mapping = get_approved_transfer_equivalency_map(
+            student=self.student, program=self.program
+        )
         self.assertEqual(mapping, {"PHL101": ["INTRO_LOGIC"]})
 
         result = run_degree_audit(self.enrollment)
@@ -96,7 +98,9 @@ class TransferEquivalencyWorkflowTests(TestCase):
             reviewer_notes="Insufficient overlap",
         )
 
-        mapping = get_approved_transfer_equivalency_map(student=self.student, program=self.program)
+        mapping = get_approved_transfer_equivalency_map(
+            student=self.student, program=self.program
+        )
         self.assertEqual(mapping, {})
 
         result = run_degree_audit(self.enrollment)

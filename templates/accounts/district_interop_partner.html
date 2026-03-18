@@ -1,0 +1,17 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block backend_title %}{% trans "Partner certification harness" %}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h1 class="h4">{% trans "Certified consumer checklist" %}</h1>
+  <p class="small text-muted">{% trans "Run through with your LMS or district ETL team." %}</p>
+  <form method="post">{% csrf_token %}
+    <ol class="small">
+      {% for label, _ in checklist %}
+      <li class="mb-2">{{ label }}</li>
+      {% endfor %}
+    </ol>
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Mark review complete" %}</button>
+  </form>
+</div>
+{% endblock %}

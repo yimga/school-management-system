@@ -113,14 +113,23 @@ def _ensure_step_definitions() -> None:
 
 def _school_surface_url(school, path: str = "/") -> str:
     host = ""
-    if getattr(school, "custom_domain", None) and getattr(school, "custom_domain_verified", False):
+    if getattr(school, "custom_domain", None) and getattr(
+        school, "custom_domain_verified", False
+    ):
         host = str(school.custom_domain).strip()
     if not host:
         try:
             from apps.schools.domain_sync import school_subdomain_fqdn
 
             host = school_subdomain_fqdn(school)
-        except (ImportError, AttributeError, TypeError, ValueError, OSError, ConnectionError):
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            OSError,
+            ConnectionError,
+        ):
             host = ""
     if not host:
         return "#"
@@ -143,7 +152,9 @@ def _build_role_previews(
             "description": "Role home, urgent queue, command search, and operating metrics.",
             "url": _school_surface_url(school, "/authentication/backend/"),
             "status": "ready" if has_blueprint and has_branding else "pending",
-            "status_label": "Ready to review" if has_blueprint and has_branding else "Needs blueprint and branding",
+            "status_label": "Ready to review"
+            if has_blueprint and has_branding
+            else "Needs blueprint and branding",
             "audit_points": [
                 "Role home shows one dominant next action",
                 "Command/search is visible",
@@ -156,7 +167,9 @@ def _build_role_previews(
             "description": "Grading, attendance, parent communication, and class workflow.",
             "url": _safe_reverse("portal:teacher_dashboard_alias"),
             "status": "ready" if has_students and has_branding else "pending",
-            "status_label": "Ready to review" if has_students and has_branding else "Needs roster data and branding",
+            "status_label": "Ready to review"
+            if has_students and has_branding
+            else "Needs roster data and branding",
             "audit_points": [
                 "Assigned classes load with real students",
                 "Attendance and grading actions are obvious",
@@ -169,7 +182,9 @@ def _build_role_previews(
             "description": "Attendance, grades, fees, and school communication in one view.",
             "url": _safe_reverse("portal:parent_dashboard"),
             "status": "ready" if has_students and has_branding else "pending",
-            "status_label": "Ready to review" if has_students and has_branding else "Needs roster data and branding",
+            "status_label": "Ready to review"
+            if has_students and has_branding
+            else "Needs roster data and branding",
             "audit_points": [
                 "Family trust signals are visible",
                 "Fees, grades, and messages are understandable",
@@ -182,7 +197,9 @@ def _build_role_previews(
             "description": "Collections, approvals, reconciliation, and billing health in one finance-first surface.",
             "url": _safe_reverse("finance:dashboard"),
             "status": "ready" if has_plan and has_students else "pending",
-            "status_label": "Ready to review" if has_plan and has_students else "Needs plan alignment and roster data",
+            "status_label": "Ready to review"
+            if has_plan and has_students
+            else "Needs plan alignment and roster data",
             "audit_points": [
                 "Collections health is visible at a glance",
                 "Approvals and risk queues have a clear home",
@@ -195,7 +212,9 @@ def _build_role_previews(
             "description": "Schedule, grades, assignments, and school communication for students.",
             "url": _safe_reverse("portal:student_portal_grades"),
             "status": "ready" if has_students and has_branding else "pending",
-            "status_label": "Ready to review" if has_students and has_branding else "Needs roster data and branding",
+            "status_label": "Ready to review"
+            if has_students and has_branding
+            else "Needs roster data and branding",
             "audit_points": [
                 "Schedule and assignments are visible",
                 "Grades and feedback are understandable",
@@ -265,8 +284,12 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
 
     has_year = AcademicYear.objects.filter(school=school).exists()
     has_plan = bool(getattr(school, "plan_id", None))
-    has_blueprint = TenantBlueprint.objects.filter(school=school, active_bundle__isnull=False).exists()
-    has_branding = bool(getattr(school, "theme_pack_id", None) or getattr(school, "primary_color", None))
+    has_blueprint = TenantBlueprint.objects.filter(
+        school=school, active_bundle__isnull=False
+    ).exists()
+    has_branding = bool(
+        getattr(school, "theme_pack_id", None) or getattr(school, "primary_color", None)
+    )
     has_students = StudentProfile.objects.filter(school=school, is_active=True).exists()
     has_addons = bool(getattr(school, "addons", None))
     role_previews = _build_role_previews(
@@ -279,28 +302,54 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
     definitions = _definition_by_key()
 
     evidence_map = {
-        "institution_basics": "Institution identity is set." if getattr(school, "name", "").strip() and getattr(school, "slug", "").strip() else "Institution name and slug still need confirmation.",
-        "plan_choice": "Plan attached to this school." if has_plan else "No plan is attached yet.",
-        "blueprint": "Runtime baseline has been applied." if has_blueprint else "No active blueprint is attached yet.",
-        "branding": "Brand profile is configured." if has_branding else "Logo, color system, or theme pack is still missing.",
-        "starter_stack": "Starter stack has been chosen." if has_addons else "Starter modules are not selected yet.",
-        "data_path": "Active roster exists." if has_students else "Students or staff data has not been imported yet.",
+        "institution_basics": "Institution identity is set."
+        if getattr(school, "name", "").strip() and getattr(school, "slug", "").strip()
+        else "Institution name and slug still need confirmation.",
+        "plan_choice": "Plan attached to this school."
+        if has_plan
+        else "No plan is attached yet.",
+        "blueprint": "Runtime baseline has been applied."
+        if has_blueprint
+        else "No active blueprint is attached yet.",
+        "branding": "Brand profile is configured."
+        if has_branding
+        else "Logo, color system, or theme pack is still missing.",
+        "starter_stack": "Starter stack has been chosen."
+        if has_addons
+        else "Starter modules are not selected yet.",
+        "data_path": "Active roster exists."
+        if has_students
+        else "Students or staff data has not been imported yet.",
         "role_preview": (
             "Role previews are ready for operator review."
-            if all(item.get("url") and item["url"] != "#" and item.get("status") == "ready" for item in role_previews)
+            if all(
+                item.get("url") and item["url"] != "#" and item.get("status") == "ready"
+                for item in role_previews
+            )
             else "One or more role previews still need setup work before a clean review."
         ),
-        "launch": "Launch blockers are cleared." if has_year and has_plan and has_blueprint and has_branding and has_students else "Launch readiness is incomplete.",
+        "launch": "Launch blockers are cleared."
+        if has_year and has_plan and has_blueprint and has_branding and has_students
+        else "Launch readiness is incomplete.",
     }
     done_map = {
-        "institution_basics": bool(getattr(school, "name", "").strip() and getattr(school, "slug", "").strip()),
+        "institution_basics": bool(
+            getattr(school, "name", "").strip() and getattr(school, "slug", "").strip()
+        ),
         "plan_choice": has_plan,
         "blueprint": has_blueprint,
         "branding": has_branding,
         "starter_stack": has_addons,
         "data_path": has_students,
-        "role_preview": all(item.get("url") and item["url"] != "#" and item.get("status") == "ready" for item in role_previews),
-        "launch": has_year and has_plan and has_blueprint and has_branding and has_students,
+        "role_preview": all(
+            item.get("url") and item["url"] != "#" and item.get("status") == "ready"
+            for item in role_previews
+        ),
+        "launch": has_year
+        and has_plan
+        and has_blueprint
+        and has_branding
+        and has_students,
     }
 
     state: dict[str, dict[str, Any]] = {}
@@ -323,7 +372,9 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
     return state
 
 
-def _build_recommendations(school, step_state: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+def _build_recommendations(
+    school, step_state: dict[str, dict[str, Any]]
+) -> list[dict[str, Any]]:
     recommendations: list[dict[str, Any]] = []
     if not step_state["plan_choice"]["done"]:
         recommendations.append(
@@ -389,7 +440,9 @@ def _build_recommendations(school, step_state: dict[str, dict[str, Any]]) -> lis
     return recommendations
 
 
-def _build_launch_checklist(step_state: dict[str, dict[str, Any]], school=None) -> list[dict[str, Any]]:
+def _build_launch_checklist(
+    step_state: dict[str, dict[str, Any]], school=None
+) -> list[dict[str, Any]]:
     checklist = []
     for definition in STEP_DEFINITIONS:
         state = step_state[definition["key"]]
@@ -409,23 +462,30 @@ def _build_launch_checklist(step_state: dict[str, dict[str, Any]], school=None) 
         sector = (getattr(school, "primary_sector", None) or "").strip().upper()
         if sector in ("PUBLIC", "GOVERNMENT_MINISTRY"):
             from apps.policies.resolver import get_effective_policy
+
             policy = get_effective_policy(school)
             compliance = policy.get("compliance") or {}
             statutory_ok = compliance.get("statutory_enabled") is True
-            report_library_url = _safe_reverse("siteconfig:report_library") or _safe_reverse("reports:report_list")
-            checklist.append({
-                "key": "sector_statutory",
-                "label": "Statutory report pack (public/government)",
-                "description": "For public/government schools ensure statutory report pack is installed and moe_presets configured.",
-                "done": statutory_ok,
-                "status": "Ready" if statutory_ok else "Needs action",
-                "is_blocker": False,
-                "link": report_library_url or "#",
-            })
+            report_library_url = _safe_reverse(
+                "siteconfig:report_library"
+            ) or _safe_reverse("reports:report_list")
+            checklist.append(
+                {
+                    "key": "sector_statutory",
+                    "label": "Statutory report pack (public/government)",
+                    "description": "For public/government schools ensure statutory report pack is installed and moe_presets configured.",
+                    "done": statutory_ok,
+                    "status": "Ready" if statutory_ok else "Needs action",
+                    "is_blocker": False,
+                    "link": report_library_url or "#",
+                }
+            )
     return checklist
 
 
-def _score(step_state: dict[str, dict[str, Any]]) -> tuple[int, dict[str, Any], list[dict[str, Any]]]:
+def _score(
+    step_state: dict[str, dict[str, Any]],
+) -> tuple[int, dict[str, Any], list[dict[str, Any]]]:
     total_weight = sum(item["weight"] for item in step_state.values()) or 1
     earned = sum(item["weight"] for item in step_state.values() if item["done"])
     blockers = []
@@ -491,11 +551,18 @@ def _recommended_starter_stack() -> dict[str, Any]:
     return {
         "title": "Starter stack",
         "detail": "Admissions, academics, finance, and family communication cover the most important day-one workflows.",
-        "items": ["Admissions & onboarding", "Academic structure", "Fees & collections", "Parent communication"],
+        "items": [
+            "Admissions & onboarding",
+            "Academic structure",
+            "Fees & collections",
+            "Parent communication",
+        ],
     }
 
 
-def _migration_path_flow(school, step_state: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+def _migration_path_flow(
+    school, step_state: dict[str, dict[str, Any]]
+) -> list[dict[str, Any]]:
     """
     Ordered migration path stages for schools moving from another system (RUNMYCAMPUS §6.5).
     Surfaces: assess → blueprint → data import → verify; each stage links to setup/Launch Studio.
@@ -543,7 +610,9 @@ def _migration_path_flow(school, step_state: dict[str, dict[str, Any]]) -> list[
     ]
 
 
-def _build_data_path_choices(school, step_state: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+def _build_data_path_choices(
+    school, step_state: dict[str, dict[str, Any]]
+) -> list[dict[str, Any]]:
     has_students = step_state["data_path"]["done"]
     has_plan = step_state["plan_choice"]["done"]
     return [
@@ -588,19 +657,43 @@ def _rank_blueprints(school) -> list[dict[str, Any]]:
 
     country_code = str(getattr(school, "country_code", "") or "").strip().upper()[:2]
     region_code = str(getattr(school, "default_region_id", "") or "").strip().upper()
-    level_codes = set(school.education_levels.values_list("code", flat=True)) if getattr(school, "pk", None) else set()
-    system_codes = set(school.education_system_types.values_list("code", flat=True)) if getattr(school, "pk", None) else set()
+    level_codes = (
+        set(school.education_levels.values_list("code", flat=True))
+        if getattr(school, "pk", None)
+        else set()
+    )
+    system_codes = (
+        set(school.education_system_types.values_list("code", flat=True))
+        if getattr(school, "pk", None)
+        else set()
+    )
 
     ranked: list[dict[str, Any]] = []
-    for pack in BlueprintPack.objects.filter(is_active=True).order_by("category", "name")[:24]:
+    for pack in BlueprintPack.objects.filter(is_active=True).order_by(
+        "category", "name"
+    )[:24]:
         score = 0
         reasons: list[str] = []
-        supported_countries = {str(code or "").strip().upper() for code in (pack.supported_country_scope or []) if str(code or "").strip()}
-        supported_systems = {str(code or "").strip().upper() for code in (pack.supported_education_system_types or []) if str(code or "").strip()}
-        recommended_levels = {str(code or "").strip().upper() for code in (pack.recommended_education_levels or []) if str(code or "").strip()}
+        supported_countries = {
+            str(code or "").strip().upper()
+            for code in (pack.supported_country_scope or [])
+            if str(code or "").strip()
+        }
+        supported_systems = {
+            str(code or "").strip().upper()
+            for code in (pack.supported_education_system_types or [])
+            if str(code or "").strip()
+        }
+        recommended_levels = {
+            str(code or "").strip().upper()
+            for code in (pack.recommended_education_levels or [])
+            if str(code or "").strip()
+        }
         pack_country = str(getattr(pack, "country_code", "") or "").strip().upper()
 
-        if country_code and (country_code in supported_countries or country_code == pack_country):
+        if country_code and (
+            country_code in supported_countries or country_code == pack_country
+        ):
             score += 40
             reasons.append(f"Country match: {country_code}")
         elif region_code and region_code in supported_countries:
@@ -627,11 +720,16 @@ def _rank_blueprints(school) -> list[dict[str, Any]]:
         ranked.append(
             {
                 "title": str(pack.name),
-                "detail": str(pack.description or "Blueprints align policy, workflow, and dashboard defaults before local customization."),
+                "detail": str(
+                    pack.description
+                    or "Blueprints align policy, workflow, and dashboard defaults before local customization."
+                ),
                 "cta_label": "Review blueprints",
                 "cta_url": _safe_reverse("siteconfig:get_blueprints"),
                 "fit_score": score,
-                "fit_label": "Strong fit" if score >= 55 else ("Recommended" if score >= 30 else "Baseline option"),
+                "fit_label": "Strong fit"
+                if score >= 55
+                else ("Recommended" if score >= 30 else "Baseline option"),
                 "reason_summary": ", ".join(reasons[:3]),
                 "pack_slug": str(pack.slug),
             }
@@ -641,7 +739,9 @@ def _rank_blueprints(school) -> list[dict[str, Any]]:
     return ranked[:3]
 
 
-def _build_preview_workspace(school, role_previews: list[dict[str, Any]], preview_cards: list[dict[str, Any]]) -> dict[str, Any]:
+def _build_preview_workspace(
+    school, role_previews: list[dict[str, Any]], preview_cards: list[dict[str, Any]]
+) -> dict[str, Any]:
     # Single source of truth: one surface per preview card (no duplicates).
     surfaces = []
     for card in preview_cards:
@@ -651,7 +751,9 @@ def _build_preview_workspace(school, role_previews: list[dict[str, Any]], previe
                 "status": card["status"],
                 "url": card.get("url") or "#",
                 "tone": card["tone"],
-                "audience": "public" if card["title"] == "School website" else ("student" if card["title"] == "Student portal" else "operator"),
+                "audience": "public"
+                if card["title"] == "School website"
+                else ("student" if card["title"] == "Student portal" else "operator"),
             }
         )
     ready_count = sum(1 for s in surfaces if s["tone"] == "ready")
@@ -663,15 +765,35 @@ def _build_preview_workspace(school, role_previews: list[dict[str, Any]], previe
         "website_url": _school_surface_url(school, "/"),
         "ready_count": ready_count,
         "pending_count": pending_count,
-        "preview_fidelity_level": "full" if all_ready else ("partial" if ready_count > 0 else "none"),
+        "preview_fidelity_level": "full"
+        if all_ready
+        else ("partial" if ready_count > 0 else "none"),
         "preview_note": "Previews use current tenant data. Open in new tab to validate each role experience.",
         "recommended_sequence": [
-            {"label": "Website", "detail": "Trust signals, brand polish, and public clarity."},
-            {"label": "Admin shell", "detail": "Role home, urgent queue, and setup posture."},
-            {"label": "Finance console", "detail": "Collections, approvals, and reconciliation confidence."},
-            {"label": "Teacher dashboard", "detail": "Class workflow, grading, and attendance."},
-            {"label": "Parent portal", "detail": "Family trust, fees, grades, and communication."},
-            {"label": "Student portal", "detail": "Schedule, grades, and student-facing clarity."},
+            {
+                "label": "Website",
+                "detail": "Trust signals, brand polish, and public clarity.",
+            },
+            {
+                "label": "Admin shell",
+                "detail": "Role home, urgent queue, and setup posture.",
+            },
+            {
+                "label": "Finance console",
+                "detail": "Collections, approvals, and reconciliation confidence.",
+            },
+            {
+                "label": "Teacher dashboard",
+                "detail": "Class workflow, grading, and attendance.",
+            },
+            {
+                "label": "Parent portal",
+                "detail": "Family trust, fees, grades, and communication.",
+            },
+            {
+                "label": "Student portal",
+                "detail": "Schedule, grades, and student-facing clarity.",
+            },
         ],
         "surfaces": surfaces,
     }
@@ -687,15 +809,20 @@ def _build_launch_orchestration(
             "key": "preflight",
             "label": "Preflight",
             "detail": "Lock plan, blueprint, and starter stack before opening previews.",
-            "done": all(step_state[key]["done"] for key in ("plan_choice", "blueprint", "starter_stack")),
+            "done": all(
+                step_state[key]["done"]
+                for key in ("plan_choice", "blueprint", "starter_stack")
+            ),
             "link": step_state["blueprint"]["link"],
         },
         {
             "key": "preview",
             "label": "Preview",
             "detail": "Review website, admin, teacher, and parent experiences in the live preview workspace.",
-            "done": step_state["branding"]["done"] and step_state["role_preview"]["done"],
-            "link": preview_workspace.get("website_url") or step_state["role_preview"]["link"],
+            "done": step_state["branding"]["done"]
+            and step_state["role_preview"]["done"],
+            "link": preview_workspace.get("website_url")
+            or step_state["role_preview"]["link"],
         },
         {
             "key": "launch_control",
@@ -708,7 +835,8 @@ def _build_launch_orchestration(
             "key": "post_launch",
             "label": "Post-launch",
             "detail": "Assign operators, monitor queue health, and keep role-home confidence high after go-live.",
-            "done": not launch_blockers and all(step["done"] for step in step_state.values()),
+            "done": not launch_blockers
+            and all(step["done"] for step in step_state.values()),
             "link": _safe_reverse("accounts:backend_dashboard"),
         },
     ]
@@ -725,8 +853,14 @@ def _recommended_by_sector(school) -> dict[str, Any]:
     except (ImportError, AttributeError):
         WEDGE_14_22_SECTOR_CODES = ()
     if sector not in WEDGE_14_22_SECTOR_CODES:
-        return {"current_sector": sector or None, "recommendations": [], "for_your_sector": None}
-    report_library_url = _safe_reverse("siteconfig:report_library") or _safe_reverse("reports:report_list")
+        return {
+            "current_sector": sector or None,
+            "recommendations": [],
+            "for_your_sector": None,
+        }
+    report_library_url = _safe_reverse("siteconfig:report_library") or _safe_reverse(
+        "reports:report_list"
+    )
     advancement_url = _safe_reverse("accounts:backend_alumni_list")
     geography_url = _safe_reverse("super:geography")
     curriculum_url = _safe_reverse("super:curriculum_packs")
@@ -737,40 +871,100 @@ def _recommended_by_sector(school) -> dict[str, Any]:
         "links": [],
     }
     if sector in ("PUBLIC", "GOVERNMENT_MINISTRY"):
-        for_your_sector["message"] = "For public / government schools: install statutory report pack and configure moe_presets."
-        for_your_sector["packs"] = [{"label": "Statutory report pack", "detail": "Ministry returns, Ofsted, WAEC, ministry exports.", "url": report_library_url}]
-        for_your_sector["links"] = [{"label": "Report library", "url": report_library_url}, {"label": "Blueprints", "url": blueprints_url}]
+        for_your_sector["message"] = (
+            "For public / government schools: install statutory report pack and configure moe_presets."
+        )
+        for_your_sector["packs"] = [
+            {
+                "label": "Statutory report pack",
+                "detail": "Ministry returns, Ofsted, WAEC, ministry exports.",
+                "url": report_library_url,
+            }
+        ]
+        for_your_sector["links"] = [
+            {"label": "Report library", "url": report_library_url},
+            {"label": "Blueprints", "url": blueprints_url},
+        ]
     elif sector == "NGO":
-        for_your_sector["message"] = "For NGO schools: enable Advancement (donors, campaigns, gifts) and configure reporting."
-        for_your_sector["packs"] = [{"label": "Advancement", "detail": "Donor/campaign/gift/receipt; identity graph.", "url": advancement_url}]
-        for_your_sector["links"] = [{"label": "Advancement / Alumni", "url": advancement_url}, {"label": "Blueprints", "url": blueprints_url}]
+        for_your_sector["message"] = (
+            "For NGO schools: enable Advancement (donors, campaigns, gifts) and configure reporting."
+        )
+        for_your_sector["packs"] = [
+            {
+                "label": "Advancement",
+                "detail": "Donor/campaign/gift/receipt; identity graph.",
+                "url": advancement_url,
+            }
+        ]
+        for_your_sector["links"] = [
+            {"label": "Advancement / Alumni", "url": advancement_url},
+            {"label": "Blueprints", "url": blueprints_url},
+        ]
     elif sector == "INTERNATIONAL":
-        for_your_sector["message"] = "For international schools: apply region pack, multi-language, and multi-currency."
-        for_your_sector["packs"] = [{"label": "Region pack", "detail": "REGIONAL_POLICY_PACKS, locale, currency.", "url": curriculum_url}]
-        for_your_sector["links"] = [{"label": "Geography & region packs", "url": geography_url}, {"label": "Curriculum packs", "url": curriculum_url}]
+        for_your_sector["message"] = (
+            "For international schools: apply region pack, multi-language, and multi-currency."
+        )
+        for_your_sector["packs"] = [
+            {
+                "label": "Region pack",
+                "detail": "REGIONAL_POLICY_PACKS, locale, currency.",
+                "url": curriculum_url,
+            }
+        ]
+        for_your_sector["links"] = [
+            {"label": "Geography & region packs", "url": geography_url},
+            {"label": "Curriculum packs", "url": curriculum_url},
+        ]
     elif sector == "MULTI_CAMPUS":
-        for_your_sector["message"] = "For multi-campus: configure group and campuses; use hierarchy-aware reporting."
+        for_your_sector["message"] = (
+            "For multi-campus: configure group and campuses; use hierarchy-aware reporting."
+        )
         for_your_sector["links"] = [{"label": "Blueprints", "url": blueprints_url}]
     elif sector == "PRIVATE":
         finance_url = _safe_reverse("finance:dashboard")
-        for_your_sector["message"] = "For private schools: configure tuition, fees, aid, and admissions."
+        for_your_sector["message"] = (
+            "For private schools: configure tuition, fees, aid, and admissions."
+        )
         for_your_sector["links"] = [
             {"label": "Finance dashboard", "url": finance_url},
             {"label": "Blueprints", "url": blueprints_url},
         ]
     elif sector == "CHARTER":
-        for_your_sector["message"] = "For charter schools: hybrid accountability — statutory reporting and funding templates."
-        for_your_sector["packs"] = [{"label": "Reporting", "detail": "Statutory and board reporting templates.", "url": report_library_url}]
-        for_your_sector["links"] = [{"label": "Report library", "url": report_library_url}, {"label": "Blueprints", "url": blueprints_url}]
+        for_your_sector["message"] = (
+            "For charter schools: hybrid accountability — statutory reporting and funding templates."
+        )
+        for_your_sector["packs"] = [
+            {
+                "label": "Reporting",
+                "detail": "Statutory and board reporting templates.",
+                "url": report_library_url,
+            }
+        ]
+        for_your_sector["links"] = [
+            {"label": "Report library", "url": report_library_url},
+            {"label": "Blueprints", "url": blueprints_url},
+        ]
     elif sector == "FAITH_BASED":
         exp_url = _safe_reverse("studio_os:experience")
-        for_your_sector["message"] = "For faith-based schools: branding and optional faith-specific reporting."
-        for_your_sector["links"] = [{"label": "Experience Studio", "url": exp_url}, {"label": "Blueprints", "url": blueprints_url}]
+        for_your_sector["message"] = (
+            "For faith-based schools: branding and optional faith-specific reporting."
+        )
+        for_your_sector["links"] = [
+            {"label": "Experience Studio", "url": exp_url},
+            {"label": "Blueprints", "url": blueprints_url},
+        ]
     elif sector == "HOME_SCHOOL":
-        for_your_sector["message"] = "For home-school / hybrid: flexible attendance and assessment; invite teacher and parent roles as needed."
-        for_your_sector["links"] = [{"label": "Geography & locale", "url": geography_url}, {"label": "Blueprints", "url": blueprints_url}]
+        for_your_sector["message"] = (
+            "For home-school / hybrid: flexible attendance and assessment; invite teacher and parent roles as needed."
+        )
+        for_your_sector["links"] = [
+            {"label": "Geography & locale", "url": geography_url},
+            {"label": "Blueprints", "url": blueprints_url},
+        ]
     else:
-        for_your_sector["message"] = "Apply a blueprint and complete launch checklist for your school type."
+        for_your_sector["message"] = (
+            "Apply a blueprint and complete launch checklist for your school type."
+        )
         for_your_sector["links"] = [{"label": "Blueprints", "url": blueprints_url}]
     return {
         "current_sector": sector,
@@ -815,7 +1009,9 @@ def _recommended_next_step(
         "launch": "launch",
     }
     for recommendation in recommendations:
-        step_key = recommendation_to_step.get(str(recommendation.get("type", "")).strip())
+        step_key = recommendation_to_step.get(
+            str(recommendation.get("type", "")).strip()
+        )
         if not step_key:
             continue
         state = step_state.get(step_key)
@@ -857,8 +1053,12 @@ def compile_setup_studio(school) -> dict[str, Any]:
     blueprint_rankings = _rank_blueprints(school)
     data_path_choices = _build_data_path_choices(school, step_state)
     migration_path_flow = _migration_path_flow(school, step_state)
-    launch_orchestration = _build_launch_orchestration(step_state, launch_blockers, preview_workspace)
-    current_step_key = next((key for key, state in step_state.items() if not state["done"]), "launch")
+    launch_orchestration = _build_launch_orchestration(
+        step_state, launch_blockers, preview_workspace
+    )
+    current_step_key = next(
+        (key for key, state in step_state.items() if not state["done"]), "launch"
+    )
     completed_keys = [key for key, state in step_state.items() if state["done"]]
     launch_ready = not launch_blockers
     progress_percent = round((len(completed_keys) / len(STEP_DEFINITIONS)) * 100)
@@ -892,8 +1092,12 @@ def compile_setup_studio(school) -> dict[str, Any]:
         "data_path_choices": data_path_choices,
         "recommended_next": recommended_next,
         "ai_recommended": True,  # Blueprint/stack rankings from recommendation engine (9.5 AI multiplier).
-        "recommended_by_sector": _recommended_by_sector(school),  # Wedge 14–22: sector-driven Setup/Launch recommendations.
-        "sector_staff_roles": _sector_staff_roles_panel(school),  # Wedge 14–22: suggested roles + bootstrap AccessRole note.
+        "recommended_by_sector": _recommended_by_sector(
+            school
+        ),  # Wedge 14–22: sector-driven Setup/Launch recommendations.
+        "sector_staff_roles": _sector_staff_roles_panel(
+            school
+        ),  # Wedge 14–22: suggested roles + bootstrap AccessRole note.
     }
 
     with transaction.atomic():
@@ -908,7 +1112,11 @@ def compile_setup_studio(school) -> dict[str, Any]:
         progress.health_score = health_score
         progress.health_breakdown = health_breakdown
         progress.launch_ready = launch_ready
-        progress.launched_at = timezone.now() if launch_ready and progress.launched_at is None else progress.launched_at
+        progress.launched_at = (
+            timezone.now()
+            if launch_ready and progress.launched_at is None
+            else progress.launched_at
+        )
         progress.save()
         payload["progress_id"] = progress.pk
 
@@ -941,12 +1149,20 @@ def get_setup_studio_payload(school) -> dict[str, Any]:
         if recommended_key in step_lookup:
             payload["recommended_next"] = {
                 **step_lookup[recommended_key],
-                "description": payload["recommended_next"].get("description", step_lookup[recommended_key]["description"]),
-                "cta_label": payload["recommended_next"].get("cta_label", "Complete step"),
-                "priority_tone": payload["recommended_next"].get("priority_tone", "important"),
+                "description": payload["recommended_next"].get(
+                    "description", step_lookup[recommended_key]["description"]
+                ),
+                "cta_label": payload["recommended_next"].get(
+                    "cta_label", "Complete step"
+                ),
+                "priority_tone": payload["recommended_next"].get(
+                    "priority_tone", "important"
+                ),
             }
     else:
-        payload["recommended_next"] = next((step for step in steps if not step["done"] and step["link"] != "#"), None)
+        payload["recommended_next"] = next(
+            (step for step in steps if not step["done"] and step["link"] != "#"), None
+        )
     return payload
 
 
@@ -964,7 +1180,9 @@ def execute_launch(school_id: int, actor_id: int | None = None) -> dict[str, Any
         return {"ok": False, "school_id": school_id, "errors": ["School not found."]}
     payload = get_setup_studio_payload(school)
     if not payload.get("launch_ready") or payload.get("launch_blockers"):
-        errors.append("Launch readiness not met; clear blockers and ensure launch_ready is true.")
+        errors.append(
+            "Launch readiness not met; clear blockers and ensure launch_ready is true."
+        )
     progress = None
     if not errors:
         with transaction.atomic():
@@ -981,6 +1199,8 @@ def execute_launch(school_id: int, actor_id: int | None = None) -> dict[str, Any
         "ok": len(errors) == 0,
         "school_id": school_id,
         "is_approved": getattr(school, "is_approved", False),
-        "launched_at": progress.launched_at.isoformat() if progress and progress.launched_at else None,
+        "launched_at": progress.launched_at.isoformat()
+        if progress and progress.launched_at
+        else None,
         "errors": errors,
     }

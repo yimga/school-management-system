@@ -10,7 +10,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         site = get_effective_site_settings()
-        flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        flags = {
+            **default_backend_feature_flags(),
+            **(site.backend_feature_flags or {}),
+        }
         require = bool(flags.get("require_guardian_finance_opt_in"))
 
         total_guardians = StudentGuardian.objects.count()
@@ -28,4 +31,6 @@ class Command(BaseCommand):
                 )
             )
         else:
-            self.stdout.write(self.style.SUCCESS("No gaps detected for current opt-in setting."))
+            self.stdout.write(
+                self.style.SUCCESS("No gaps detected for current opt-in setting.")
+            )

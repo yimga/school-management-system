@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0029_add_hostel_canteen_health_biometric"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -16,7 +15,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="LibraryItem",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("title", models.CharField(max_length=255)),
                 ("author", models.CharField(blank=True, max_length=255)),
                 ("isbn", models.CharField(blank=True, db_index=True, max_length=32)),
@@ -42,7 +49,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="LibraryLoan",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("checked_out_at", models.DateTimeField(auto_now_add=True)),
                 ("due_at", models.DateTimeField()),
                 ("returned_at", models.DateTimeField(blank=True, null=True)),

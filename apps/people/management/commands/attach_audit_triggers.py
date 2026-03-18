@@ -13,6 +13,7 @@ Use this command to add the same trigger to other tables without a new migration
 
 Runs in each tenant schema (or the given schema). PostgreSQL only.
 """
+
 from django.core.management.base import BaseCommand
 from django.db import connection
 from django.db import DatabaseError, OperationalError, ProgrammingError
@@ -45,7 +46,9 @@ class Command(BaseCommand):
             default=None,
             help="Single schema to run in (default: run for all tenant schemas).",
         )
-        parser.add_argument("--dry-run", action="store_true", help="Only list what would be done.")
+        parser.add_argument(
+            "--dry-run", action="store_true", help="Only list what would be done."
+        )
 
     def handle(self, *args, **options):
         if connection.vendor != "postgresql":
@@ -53,14 +56,18 @@ class Command(BaseCommand):
             return
         tables = [t.strip() for t in options["tables"] if t.strip()]
         if not tables:
-            self.stdout.write(self.style.ERROR("Provide at least one table with --tables."))
+            self.stdout.write(
+                self.style.ERROR("Provide at least one table with --tables.")
+            )
             return
         dry_run = options.get("dry_run", False)
         single_schema = options.get("schema")
 
         if single_schema:
             if dry_run:
-                self.stdout.write("Would attach in schema %s: %s" % (single_schema, tables))
+                self.stdout.write(
+                    "Would attach in schema %s: %s" % (single_schema, tables)
+                )
             else:
                 try:
                     with connection.cursor() as cursor:
@@ -69,23 +76,39 @@ class Command(BaseCommand):
                         for table in tables:
                             drop_audit_trigger(cursor, table)
                             create_audit_trigger(cursor, table)
-                    self.stdout.write(self.style.SUCCESS("OK %s: %s" % (single_schema, tables)))
+                    self.stdout.write(
+                        self.style.SUCCESS("OK %s: %s" % (single_schema, tables))
+                    )
                 except _AUDIT_TRIGGER_ERRORS as e:
                     log_exception_with_context(
                         "attach_audit_triggers failed (single schema)",
                         school_id=None,
-                        extra={"schema": single_schema, "tables": tables, "error": str(e)},
+                        extra={
+                            "schema": single_schema,
+                            "tables": tables,
+                            "error": str(e),
+                        },
                     )
-                    self.stdout.write(self.style.ERROR("FAILED %s: %s" % (single_schema, e)))
+                    self.stdout.write(
+                        self.style.ERROR("FAILED %s: %s" % (single_schema, e))
+                    )
             return
 
         try:
             from apps.customers.models import Client
             from django_tenants.utils import tenant_context
         except ImportError:
-            self.stdout.write(self.style.ERROR("django-tenants required for all-tenant run. Use --schema."))
+            self.stdout.write(
+                self.style.ERROR(
+                    "django-tenants required for all-tenant run. Use --schema."
+                )
+            )
             return
-        clients = list(Client.objects.exclude(schema_name="public").filter(schema_name__isnull=False).order_by("id"))
+        clients = list(
+            Client.objects.exclude(schema_name="public")
+            .filter(schema_name__isnull=False)
+            .order_by("id")
+        )
         if not clients:
             self.stdout.write(self.style.WARNING("No tenant schemas found."))
             return
@@ -93,7 +116,9 @@ class Command(BaseCommand):
             schema_name = getattr(client, "schema_name", "")
             label = getattr(client, "name", schema_name)
             if dry_run:
-                self.stdout.write("Would attach to %s (%s): %s" % (label, schema_name, tables))
+                self.stdout.write(
+                    "Would attach to %s (%s): %s" % (label, schema_name, tables)
+                )
                 continue
             try:
                 with tenant_context(client):
@@ -107,6 +132,11 @@ class Command(BaseCommand):
                 log_exception_with_context(
                     "attach_audit_triggers failed (tenant)",
                     school_id=getattr(client, "id", None),
-                    extra={"schema_name": schema_name, "label": label, "tables": tables, "error": str(e)},
+                    extra={
+                        "schema_name": schema_name,
+                        "label": label,
+                        "tables": tables,
+                        "error": str(e),
+                    },
                 )
                 self.stdout.write(self.style.ERROR("FAILED %s: %s" % (label, e)))

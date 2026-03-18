@@ -4,6 +4,7 @@ Moves students from source academic year to target year using ClassroomPromotion
 Run after cloning the next year (clone_academic_year) and configuring mappings.
 Usage: python manage.py run_auto_promotion --from-year=2024/2025 --to-year=2025/2026 [--school=UUID] [--dry-run]
 """
+
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand

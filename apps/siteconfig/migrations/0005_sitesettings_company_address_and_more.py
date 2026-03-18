@@ -4,40 +4,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0004_reporttemplate_themepack_alter_sitesettings_options_and_more'),
+        (
+            "siteconfig",
+            "0004_reporttemplate_themepack_alter_sitesettings_options_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='company_address',
-            field=models.TextField(blank=True, default=''),
+            model_name="sitesettings",
+            name="company_address",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='company_email',
-            field=models.EmailField(blank=True, default='', max_length=254),
+            model_name="sitesettings",
+            name="company_email",
+            field=models.EmailField(blank=True, default="", max_length=254),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='company_name',
-            field=models.CharField(blank=True, default='', max_length=160),
+            model_name="sitesettings",
+            name="company_name",
+            field=models.CharField(blank=True, default="", max_length=160),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='company_phone',
-            field=models.CharField(blank=True, default='', max_length=50),
+            model_name="sitesettings",
+            name="company_phone",
+            field=models.CharField(blank=True, default="", max_length=50),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='company_slug',
-            field=models.SlugField(blank=True, default='', max_length=120),
+            model_name="sitesettings",
+            name="company_slug",
+            field=models.SlugField(blank=True, default="", max_length=120),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='ministry_registration_code',
-            field=models.CharField(blank=True, default='', max_length=80),
+            model_name="sitesettings",
+            name="ministry_registration_code",
+            field=models.CharField(blank=True, default="", max_length=80),
         ),
     ]

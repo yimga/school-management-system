@@ -12,7 +12,9 @@ class LoginAndBackendHelperTests(SimpleTestCase):
         self.factory = RequestFactory()
 
     @override_settings(LANGUAGES=(("en", "English"), ("fr", "French")))
-    def test_get_login_page_language_uses_tenant_locale_and_normalizes_language_code(self):
+    def test_get_login_page_language_uses_tenant_locale_and_normalizes_language_code(
+        self,
+    ):
         request = self.factory.get("/authentication/login/")
         request.school = SimpleNamespace()
 

@@ -2,6 +2,7 @@
 Schema fingerprint / profile detection: suggest MigrationProfile from column headers.
 Returns profiles with confidence score so wizard can auto-load or suggest.
 """
+
 from __future__ import annotations
 
 import re

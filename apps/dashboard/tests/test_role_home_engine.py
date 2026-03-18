@@ -1,12 +1,11 @@
 """
 Tests for the role-home engine (Phase F: single source of truth for role-native dashboard config).
 """
+
 from django.test import TestCase
 
 from apps.dashboard.role_home_engine import (
     INTENT_KPI_PRIORITY,
-    ROLE_HOME_BY_ROLE,
-    ROLE_HOME_CONFIG,
     VALID_DASHBOARD_INTENTS,
     prioritize_destinations,
     resolve_role_home,
@@ -46,9 +45,13 @@ class RoleHomeEngineTests(TestCase):
     def test_prioritize_destinations_prefers_role_destinations(self):
         role_home = {"destinations": ["workflow_center", "preferences"]}
         action_chips = [{"id": "preferences", "label": "Prefs", "url": "/prefs/"}]
-        quick_links = [{"id": "workflow_center", "label": "Workflow", "url": "/workflow/"}]
+        quick_links = [
+            {"id": "workflow_center", "label": "Workflow", "url": "/workflow/"}
+        ]
         contextual = []
-        result = prioritize_destinations(role_home, action_chips, quick_links, contextual, max_items=5)
+        result = prioritize_destinations(
+            role_home, action_chips, quick_links, contextual, max_items=5
+        )
         self.assertGreaterEqual(len(result), 1)
         ids = [r.get("id") for r in result if r.get("id")]
         self.assertIn("workflow_center", ids)
@@ -58,7 +61,9 @@ class RoleHomeEngineTests(TestCase):
         next_best = [{"label": "Setup", "url": "/setup/"}]
         primary_ctas = [{"label": "Studio", "url": "/studio/"}]
         destinations = [{"label": "Workflow", "url": "/workflow/"}]
-        primary, supporting = select_role_home_actions(next_best, primary_ctas, destinations)
+        primary, supporting = select_role_home_actions(
+            next_best, primary_ctas, destinations
+        )
         self.assertIsNotNone(primary)
         self.assertEqual(primary["label"], "Setup")
         self.assertLessEqual(len(supporting), 3)

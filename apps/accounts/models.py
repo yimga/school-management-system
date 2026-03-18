@@ -5,22 +5,31 @@ from django.db.models import Q
 from django.db.transaction import TransactionManagementError
 from django.utils import timezone
 
+
 # User UI/UX preferences (background logo, opacity, etc.)
 class UserPreference(models.Model):
-    high_contrast_mode = models.BooleanField(default=False, help_text="Enable high contrast mode for accessibility.")
-    reduced_motion = models.BooleanField(default=False, help_text="Reduce background/video motion for accessibility.")
-    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='preference')
-    show_background_logo = models.BooleanField(default=True, help_text="Show the background logo image.")
+    high_contrast_mode = models.BooleanField(
+        default=False, help_text="Enable high contrast mode for accessibility."
+    )
+    reduced_motion = models.BooleanField(
+        default=False, help_text="Reduce background/video motion for accessibility."
+    )
+    user = models.OneToOneField(
+        "User", on_delete=models.CASCADE, related_name="preference"
+    )
+    show_background_logo = models.BooleanField(
+        default=True, help_text="Show the background logo image."
+    )
     background_logo_opacity = models.FloatField(
         default=0.3,
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
-        help_text="Custom opacity for background logo (0.0–1.0). Leave blank to use site default."
+        help_text="Custom opacity for background logo (0.0–1.0). Leave blank to use site default.",
     )
     updated_at = models.DateTimeField(auto_now=True)
 
-
     def __str__(self):
         return f"Preferences for {self.user.username}"
+
 
 from django.contrib.auth.models import AbstractUser
 
@@ -55,14 +64,21 @@ class TemporaryRoleGrant(models.Model):
     Time-limited role grant (e.g. auditor for one month). Permissions from this
     role are effective only while expires_at > now (and valid_from <= now if set).
     """
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="temporary_role_grants",
     )
-    role = models.ForeignKey(AccessRole, on_delete=models.CASCADE, related_name="temporary_grants")
-    valid_from = models.DateTimeField(null=True, blank=True, help_text="Optional: grant active from this time.")
-    expires_at = models.DateTimeField(help_text="Grant stops being active after this time.")
+    role = models.ForeignKey(
+        AccessRole, on_delete=models.CASCADE, related_name="temporary_grants"
+    )
+    valid_from = models.DateTimeField(
+        null=True, blank=True, help_text="Optional: grant active from this time."
+    )
+    expires_at = models.DateTimeField(
+        help_text="Grant stops being active after this time."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -119,11 +135,20 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.PARENT)
     roles = models.ManyToManyField(AccessRole, blank=True, related_name="users")
-    feature_permissions = models.ManyToManyField(Permission, blank=True, related_name="users")
+    feature_permissions = models.ManyToManyField(
+        Permission, blank=True, related_name="users"
+    )
     profile_photo = models.ImageField(upload_to="profiles/", blank=True, null=True)
     # Security Powerhouse: lockdown forces password reset; cooldown uses last_lockdown_at
-    requires_password_change = models.BooleanField(default=False, help_text="Set by Emergency Lockdown; user must set new password on next login.")
-    last_lockdown_at = models.DateTimeField(null=True, blank=True, help_text="Last time user triggered Emergency Lockdown (for 24h cooldown).")
+    requires_password_change = models.BooleanField(
+        default=False,
+        help_text="Set by Emergency Lockdown; user must set new password on next login.",
+    )
+    last_lockdown_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last time user triggered Emergency Lockdown (for 24h cooldown).",
+    )
 
     def has_feature_permission(self, code: str) -> bool:
         if self.is_superuser:
@@ -143,11 +168,12 @@ class User(AbstractUser):
             if self.roles.filter(permissions__code=code).exists():
                 return True
             now = timezone.now()
-            if TemporaryRoleGrant.objects.filter(
-                user=self, expires_at__gt=now
-            ).filter(
-                Q(valid_from__isnull=True) | Q(valid_from__lte=now)
-            ).filter(role__permissions__code=code).exists():
+            if (
+                TemporaryRoleGrant.objects.filter(user=self, expires_at__gt=now)
+                .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
+                .filter(role__permissions__code=code)
+                .exists()
+            ):
                 return True
             return False
         except (DatabaseError, TransactionManagementError):
@@ -167,6 +193,7 @@ class Delegation(models.Model):
     When end_date (or extended_end_date) is reached, proxy access is revoked (via task or on-request check).
     All behaviour is configurable from SiteSettings (max days, auto-revoke, role mapping).
     """
+
     delegator = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -180,7 +207,9 @@ class Delegation(models.Model):
         help_text="User who will act on their behalf (e.g. Vice-Principal).",
     )
     start_date = models.DateTimeField(help_text="When the delegation becomes active.")
-    end_date = models.DateTimeField(help_text="When the delegation is scheduled to end.")
+    end_date = models.DateTimeField(
+        help_text="When the delegation is scheduled to end."
+    )
     extended_end_date = models.DateTimeField(
         null=True,
         blank=True,
@@ -195,7 +224,9 @@ class Delegation(models.Model):
         blank=True,
         help_text='Which workflows this applies to: list of keys e.g. ["syllabus_approval", "grade_approval"] or empty for "all".',
     )
-    reason = models.CharField(max_length=255, blank=True, help_text="Optional: e.g. Annual leave, Training.")
+    reason = models.CharField(
+        max_length=255, blank=True, help_text="Optional: e.g. Annual leave, Training."
+    )
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -243,6 +274,7 @@ class DelegationActionLog(models.Model):
     Log of an action performed by a delegate (proxy) on behalf of the delegator.
     Used for "While You Were Away" catch-up and audit.
     """
+
     delegation = models.ForeignKey(
         Delegation,
         on_delete=models.CASCADE,
@@ -260,8 +292,14 @@ class DelegationActionLog(models.Model):
         related_name="delegation_actions_received",
         help_text="The delegator on whose behalf the action was taken.",
     )
-    action_taken = models.CharField(max_length=100, help_text="e.g. syllabus_approved, grade_approved.")
-    object_repr = models.CharField(max_length=255, blank=True, help_text="Short description of the object (e.g. Physics Form 3).")
+    action_taken = models.CharField(
+        max_length=100, help_text="e.g. syllabus_approved, grade_approved."
+    )
+    object_repr = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Short description of the object (e.g. Physics Form 3).",
+    )
     object_id = models.PositiveIntegerField(null=True, blank=True)
     content_type = models.ForeignKey(
         "contenttypes.ContentType",
@@ -288,12 +326,14 @@ class DelegationActionLog(models.Model):
 # Security & Identity Powerhouse (plan 3.13–3.23): Audit log, passkeys
 # =============================================================================
 
+
 class SecurityAuditLog(models.Model):
     """
     Tenant-scoped security event log: LOGIN, MFA_CHANGE, PWD_RESET, DATA_EXPORT, LOCKDOWN_TRIGGERED.
     django-ipware for IP; GeoIP for city/country; is_suspicious when country != school.
     Dedupe: same device/IP within 1h → update last_seen (handled in service layer).
     """
+
     class EventType(models.TextChoices):
         LOGIN = "LOGIN", "Login"
         LOGOUT = "LOGOUT", "Logout"
@@ -303,7 +343,10 @@ class SecurityAuditLog(models.Model):
         DATA_EXPORT = "DATA_EXPORT", "Data export"
         LOCKDOWN_TRIGGERED = "LOCKDOWN_TRIGGERED", "Emergency lockdown"
         SESSION_REVOKED = "SESSION_REVOKED", "Sessions revoked"
-        IMPOSSIBLE_TRAVEL = "IMPOSSIBLE_TRAVEL", "Impossible travel (login from distant location)"
+        IMPOSSIBLE_TRAVEL = (
+            "IMPOSSIBLE_TRAVEL",
+            "Impossible travel (login from distant location)",
+        )
 
     school = models.ForeignKey(
         "schools.School",
@@ -321,9 +364,13 @@ class SecurityAuditLog(models.Model):
     event_type = models.CharField(max_length=40, choices=EventType.choices)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.CharField(max_length=500, blank=True)
-    location_data = models.JSONField(default=dict, blank=True, help_text="e.g. {city, country, country_code}")
+    location_data = models.JSONField(
+        default=dict, blank=True, help_text="e.g. {city, country, country_code}"
+    )
     is_suspicious = models.BooleanField(default=False)
-    last_seen = models.DateTimeField(auto_now=True, help_text="Updated on dedupe (same IP/device within 1h).")
+    last_seen = models.DateTimeField(
+        auto_now=True, help_text="Updated on dedupe (same IP/device within 1h)."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     initiator = models.CharField(
         max_length=20,
@@ -350,6 +397,7 @@ class UserPasskey(models.Model):
     WebAuthn/Passkeys: store public key for biometric login (SimpleWebAuthn registration).
     Tenant-scoped via user → school membership.
     """
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -368,6 +416,32 @@ class UserPasskey(models.Model):
 
     def __str__(self):
         return f"{self.user_id} {self.name or self.credential_id[:16]}"
+
+
+class FederationSsoHealth(models.Model):
+    """
+    Per ServiceIntegration (SAML/OIDC IdP): last successful login vs failures.
+    Wedge 45 — operator visibility before cert expiry breaks logins.
+    """
+
+    service_integration = models.OneToOneField(
+        "siteconfig.ServiceIntegration",
+        on_delete=models.CASCADE,
+        related_name="federation_sso_health",
+    )
+    last_success_at = models.DateTimeField(null=True, blank=True)
+    last_failure_at = models.DateTimeField(null=True, blank=True)
+    last_error_summary = models.CharField(max_length=400, blank=True, default="")
+    success_count = models.PositiveIntegerField(default=0)
+    failure_count = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Federation SSO health"
+        verbose_name_plural = "Federation SSO health"
+
+    def __str__(self) -> str:
+        return f"SSO health #{self.service_integration_id}"
 
 
 from apps.academics.models import RolloverProposal, RolloverProposalItem  # noqa: E402,F401

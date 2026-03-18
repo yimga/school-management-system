@@ -4,25 +4,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0012_alter_studentprofile_joined_term'),
+        ("people", "0012_alter_studentprofile_joined_term"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='studentprofile',
-            name='exam_candidate_number',
-            field=models.CharField(blank=True, help_text='National exam candidate number (e.g., GCE, WAEC, etc.)', max_length=50),
+            model_name="studentprofile",
+            name="exam_candidate_number",
+            field=models.CharField(
+                blank=True,
+                help_text="National exam candidate number (e.g., GCE, WAEC, etc.)",
+                max_length=50,
+            ),
         ),
         migrations.AddField(
-            model_name='studentprofile',
-            name='exam_center_code',
-            field=models.CharField(blank=True, help_text='Exam center code', max_length=20),
+            model_name="studentprofile",
+            name="exam_center_code",
+            field=models.CharField(
+                blank=True, help_text="Exam center code", max_length=20
+            ),
         ),
         migrations.AddField(
-            model_name='studentprofile',
-            name='exam_system',
-            field=models.CharField(blank=True, help_text='Exam system (e.g., GCE, WAEC, IB, etc.)', max_length=50),
+            model_name="studentprofile",
+            name="exam_system",
+            field=models.CharField(
+                blank=True,
+                help_text="Exam system (e.g., GCE, WAEC, IB, etc.)",
+                max_length=50,
+            ),
         ),
     ]

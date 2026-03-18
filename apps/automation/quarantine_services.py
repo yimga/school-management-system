@@ -1,6 +1,7 @@
 """
 Repair and quarantine: add records to quarantine, mark repaired, replay repaired subset.
 """
+
 from __future__ import annotations
 
 from django.utils import timezone
@@ -37,9 +38,13 @@ def mark_repaired(record: MigrationQuarantineRecord, resolution_payload: dict) -
     record.save(update_fields=["status", "resolution_payload", "resolved_at"])
 
 
-def get_repaired_rows(school=None, domain: str = None, migration_run=None) -> list[dict]:
+def get_repaired_rows(
+    school=None, domain: str = None, migration_run=None
+) -> list[dict]:
     """Return list of repaired row payloads (resolution_payload or payload) for replay."""
-    qs = MigrationQuarantineRecord.objects.filter(status=MigrationQuarantineRecord.Status.REPAIRED)
+    qs = MigrationQuarantineRecord.objects.filter(
+        status=MigrationQuarantineRecord.Status.REPAIRED
+    )
     if school is not None:
         qs = qs.filter(school=school)
     if domain:

@@ -3,9 +3,11 @@
 Theme stress-test matrix: run theme visibility checks and fail if any ERROR.
 Use from CI or run_phase_checks. Exit 0 if all pass, 1 if any ERROR.
 """
+
 import os
 import subprocess
 import sys
+
 
 def main():
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -31,6 +33,7 @@ def main():
         sys.exit(1)
     print("Theme stress matrix: OK")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

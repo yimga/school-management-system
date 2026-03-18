@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0017_dashboardwidget_dashboarduserpreference_widgetdata'),
-        ('siteconfig', '0018_sitesettings_admin_portal_stats_config'),
+        ("siteconfig", "0017_dashboardwidget_dashboarduserpreference_widgetdata"),
+        ("siteconfig", "0018_sitesettings_admin_portal_stats_config"),
     ]
 
-    operations = [
-    ]
+    operations = []

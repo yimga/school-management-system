@@ -2,12 +2,13 @@
 Student 360: timeline feed, aggregation summary, permission-gated export pack,
 and immutable transcript + cross-year archive (Section 15.1).
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DatabaseError, IntegrityError
+from django.db import DatabaseError
 
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
@@ -46,23 +47,32 @@ def get_student_360_summary(
     }
     try:
         from django.apps import apps
+
         StudentProfile = apps.get_model("people", "StudentProfile")
-        student = StudentProfile.objects.filter(school_id=school_id, pk=student_id).first()
+        student = StudentProfile.objects.filter(
+            school_id=school_id, pk=student_id
+        ).first()
         if not student:
             return out
         # Academic: evaluations count, enrollments
         if apps.is_installed("evals"):
             Evaluation = apps.get_model("evals", "Evaluation")
-            out["academic"]["evaluations_count"] = Evaluation.objects.filter(student=student).count()
+            out["academic"]["evaluations_count"] = Evaluation.objects.filter(
+                student=student
+            ).count()
         if apps.is_installed("academics"):
             from apps.academics.models import ClassEnrollment
-            out["academic"]["enrollments_count"] = ClassEnrollment.objects.filter(student=student).count()
+
+            out["academic"]["enrollments_count"] = ClassEnrollment.objects.filter(
+                student=student
+            ).count()
         # Finance: invoices summary
         if apps.is_installed("finance"):
             Invoice = apps.get_model("finance", "Invoice")
             inv_qs = Invoice.objects.filter(student=student)
             out["finance"]["invoices_count"] = inv_qs.count()
             from django.db.models import Sum
+
             tot = inv_qs.aggregate(s=Sum("total_amount"))
             out["finance"]["invoices_total"] = float(tot["s"] or 0)
         # Attendance: placeholder (policy-driven)
@@ -71,11 +81,15 @@ def get_student_360_summary(
             try:
                 from apps.events.models import DomainEvent
                 from django.db.models import Q
-                out["timeline_events_count"] = DomainEvent.objects.filter(
-                    school_id=school_id
-                ).filter(
-                    Q(payload__student_id=student_id) | Q(payload__student_id=str(student_id))
-                ).count()
+
+                out["timeline_events_count"] = (
+                    DomainEvent.objects.filter(school_id=school_id)
+                    .filter(
+                        Q(payload__student_id=student_id)
+                        | Q(payload__student_id=str(student_id))
+                    )
+                    .count()
+                )
             except _STUDENT360_SERVICE_ERRORS:
                 out["timeline_events_count"] = 0
         if include_export_available:
@@ -107,7 +121,10 @@ def get_student_timeline_feed(
 
         qs = (
             DomainEvent.objects.filter(school_id=school_id)
-            .filter(Q(payload__student_id=student_id) | Q(payload__student_id=str(student_id)))
+            .filter(
+                Q(payload__student_id=student_id)
+                | Q(payload__student_id=str(student_id))
+            )
             .order_by("-created_at")[:limit]
         )
         if event_types:
@@ -143,6 +160,7 @@ def export_student_pack(
     """
     try:
         from apps.compliance.gdpr_services import export_student_data_portability
+
         return export_student_data_portability(school_id, student_id, format=format)
     except _STUDENT360_SERVICE_ERRORS:
         log_exception_with_context(
@@ -161,6 +179,7 @@ def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]
     """
     try:
         from django.apps import apps
+
         if not apps.is_installed("reports"):
             return None
         from apps.reports.services import annual_report_context
@@ -168,12 +187,21 @@ def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]
         ctx = annual_report_context(student, academic_year)
         # Make JSON-serializable: replace Term objects with minimal dicts
         terms = ctx.get("terms") or []
-        terms_data = [{"id": t.id, "label": getattr(t, "label", str(t)), "name": getattr(t, "name", "")} for t in terms]
+        terms_data = [
+            {
+                "id": t.id,
+                "label": getattr(t, "label", str(t)),
+                "name": getattr(t, "name", ""),
+            }
+            for t in terms
+        ]
         snapshot = {
             "academic_year_id": academic_year.id,
             "academic_year_name": getattr(academic_year, "name", ""),
             "student_id": student.id,
-            "student_name": getattr(student, "display_name", None) or f"{getattr(student, 'first_name', '')} {getattr(student, 'last_name', '')}".strip() or str(student),
+            "student_name": getattr(student, "display_name", None)
+            or f"{getattr(student, 'first_name', '')} {getattr(student, 'last_name', '')}".strip()
+            or str(student),
             "term_rows": ctx.get("term_rows") or [],
             "terms": terms_data,
             "annual_average": ctx.get("annual_average"),
@@ -196,9 +224,12 @@ def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]
         # Optional: format scores for region via TranscriptLocalizer
         try:
             from apps.reports.localization import get_transcript_localizer
+
             region_code = None
             if getattr(student, "school", None):
-                region_code = getattr(student.school, "region_code", None) or getattr(student.school, "region", None)
+                region_code = getattr(student.school, "region_code", None) or getattr(
+                    student.school, "region", None
+                )
             loc = get_transcript_localizer(region_code=region_code)
             snapshot["region"] = loc.region.name if loc.region else "Default"
             snapshot["language"] = loc.language
@@ -210,7 +241,10 @@ def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]
         log_exception_with_context(
             "build_transcript_snapshot failed",
             school_id=getattr(getattr(student, "school", None), "id", None),
-            extra={"student_id": getattr(student, "id", None), "academic_year_id": getattr(academic_year, "id", None)},
+            extra={
+                "student_id": getattr(student, "id", None),
+                "academic_year_id": getattr(academic_year, "id", None),
+            },
         )
         return None
 
@@ -223,6 +257,7 @@ def create_immutable_transcript(student, academic_year, created_by=None):
     """
     try:
         from .models import ImmutableTranscript
+
         snapshot = build_transcript_snapshot(student, academic_year)
         if not snapshot:
             return None
@@ -248,6 +283,7 @@ def get_immutable_transcripts_for_student(student):
     """Return immutable transcripts for a student, newest academic year first (cross-year archive)."""
     try:
         from .models import ImmutableTranscript
+
         return list(
             ImmutableTranscript.objects.filter(student=student)
             .select_related("academic_year", "created_by")

@@ -28,25 +28,50 @@ urlpatterns = [
     path("teacher/workflow/", teacher_workflow_center, name="teacher_workflow"),
     path("teacher/marks/entry/", teacher_marks_entry, name="teacher_marks_entry"),
     path("teacher/marks/", teacher_marks_list, name="teacher_marks_list"),
-
     # Staff/leadership dashboards
     path("rankings/class/", class_ranking_view, name="class_ranking"),
     path("rankings/school/", school_ranking_view, name="school_ranking"),
     path("admin/evaluations/", evaluation_admin, name="evaluation_admin"),
-    path("admin/evaluations/evidence/", evaluation_evidence_upload, name="evaluation_evidence_upload"),
+    path(
+        "admin/evaluations/evidence/",
+        evaluation_evidence_upload,
+        name="evaluation_evidence_upload",
+    ),
     path("grade-approvals/", grade_approval_list, name="grade_approval_list"),
-    path("grade-approvals/<uuid:request_id>/", grade_approval_detail, name="grade_approval_detail"),
+    path(
+        "grade-approvals/<uuid:request_id>/",
+        grade_approval_detail,
+        name="grade_approval_detail",
+    ),
     path("grade-import/upload/", grade_import_upload_view, name="grade_import_upload"),
-    path("grade-import-template/", grade_import_template_view, name="grade_import_template"),
-    
+    path(
+        "grade-import-template/",
+        grade_import_template_view,
+        name="grade_import_template",
+    ),
     # PHASE 2: Compliance & Advanced Import
-    path("compliance/dashboard/", compliance_dashboard_view, name="compliance_dashboard"),
-    path("compliance/deadline/<int:subject_assignment_id>/extend/", extend_deadline_view, name="extend_deadline"),
-    path("api/grade-import/preview/", grade_import_preview_api, name="grade_import_preview_api"),
-    path("api/grade-import/apply/", grade_import_apply_api, name="grade_import_apply_api"),
+    path(
+        "compliance/dashboard/", compliance_dashboard_view, name="compliance_dashboard"
+    ),
+    path(
+        "compliance/deadline/<int:subject_assignment_id>/extend/",
+        extend_deadline_view,
+        name="extend_deadline",
+    ),
+    path(
+        "api/grade-import/preview/",
+        grade_import_preview_api,
+        name="grade_import_preview_api",
+    ),
+    path(
+        "api/grade-import/apply/", grade_import_apply_api, name="grade_import_apply_api"
+    ),
     path("audit-trail/<int:evaluation_id>/", audit_trail_view, name="audit_trail"),
-    path("offline-conflict/<int:offline_entry_id>/resolve/", resolve_offline_conflict_view, name="resolve_offline_conflict"),
-    
+    path(
+        "offline-conflict/<int:offline_entry_id>/resolve/",
+        resolve_offline_conflict_view,
+        name="resolve_offline_conflict",
+    ),
     # PHASE 4: Import Monitoring & Caching
     path("import-jobs/monitor/", import_job_monitor_view, name="import_job_monitor"),
 ]

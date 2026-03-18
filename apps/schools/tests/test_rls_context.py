@@ -5,6 +5,7 @@ Ensures set_rls_school_id / reset_rls_school_id are callable and safe for middle
 - No-op on non-PostgreSQL; no raise.
 - On PostgreSQL, set then reset does not raise (middleware request/response cycle).
 """
+
 from django.test import TestCase
 
 from apps.schools.rls_context import reset_rls_school_id, set_rls_school_id

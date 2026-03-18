@@ -26,7 +26,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("csv_path", help="Path to CSV file.")
-        parser.add_argument("--dry-run", action="store_true", help="Parse only; do not write to DB.")
+        parser.add_argument(
+            "--dry-run", action="store_true", help="Parse only; do not write to DB."
+        )
 
     def handle(self, *args, **options):
         path = options["csv_path"]
@@ -41,20 +43,26 @@ class Command(BaseCommand):
         required_cols = {"student_code", "subject_assignment_id", "term_id"}
         missing = required_cols - set(reader.fieldnames or [])
         if missing:
-            raise CommandError(f"Missing required columns: {', '.join(sorted(missing))}")
+            raise CommandError(
+                f"Missing required columns: {', '.join(sorted(missing))}"
+            )
 
         created, updated = 0, 0
         for row in reader:
             try:
                 student = StudentProfile.objects.get(student_code=row["student_code"])
             except StudentProfile.DoesNotExist:
-                self.stderr.write(f"Skipping unknown student_code={row['student_code']}")
+                self.stderr.write(
+                    f"Skipping unknown student_code={row['student_code']}"
+                )
                 continue
 
             try:
                 sa = SubjectAssignment.objects.get(id=row["subject_assignment_id"])
             except SubjectAssignment.DoesNotExist:
-                self.stderr.write(f"Skipping unknown subject_assignment_id={row['subject_assignment_id']}")
+                self.stderr.write(
+                    f"Skipping unknown subject_assignment_id={row['subject_assignment_id']}"
+                )
                 continue
 
             try:
@@ -69,7 +77,9 @@ class Command(BaseCommand):
                 try:
                     teacher = TeacherProfile.objects.get(user__username=username)
                 except TeacherProfile.DoesNotExist:
-                    self.stderr.write(f"Teacher not found for username={username}; skipping row.")
+                    self.stderr.write(
+                        f"Teacher not found for username={username}; skipping row."
+                    )
                     continue
             else:
                 teacher_assignment = sa.teacher_assignments.first()
@@ -111,7 +121,9 @@ class Command(BaseCommand):
         fh.close()
         if dry_run:
             self.stdout.write(self.style.WARNING("Dry run complete; no rows written."))
-        self.stdout.write(self.style.SUCCESS(f"Import finished. created={created}, updated={updated}"))
+        self.stdout.write(
+            self.style.SUCCESS(f"Import finished. created={created}, updated={updated}")
+        )
 
 
 def _to_decimal(value):

@@ -1,6 +1,7 @@
 """
 Phase A tests: competitor-first UX, source_system, prebuilt adapters, Veracross marketing.
 """
+
 from django.test import TestCase
 
 from apps.automation.models import MigrationProfile
@@ -17,7 +18,9 @@ class MigrationProfileSourceSystemTests(TestCase):
         self.assertEqual(MigrationProfile.SourceSystem.POWERSCHOOL, "powerschool")
         self.assertEqual(MigrationProfile.SourceSystem.BLACKBAUD, "blackbaud")
         self.assertEqual(MigrationProfile.SourceSystem.VERACROSS, "veracross")
-        self.assertEqual(MigrationProfile.SourceSystem.INFINITE_CAMPUS, "infinite_campus")
+        self.assertEqual(
+            MigrationProfile.SourceSystem.INFINITE_CAMPUS, "infinite_campus"
+        )
         self.assertEqual(MigrationProfile.SourceSystem.FACTS, "facts")
         self.assertEqual(MigrationProfile.SourceSystem.SKYWARD, "skyward")
         self.assertEqual(MigrationProfile.SourceSystem.ALMA, "alma")
@@ -31,19 +34,29 @@ class MigrationProfileSourceSystemTests(TestCase):
 
     def test_competitor_profiles_have_schema_hints_after_seed(self):
         from django.core.management import call_command
+
         call_command("seed_migration_profiles")
-        ps_students = MigrationProfile.objects.filter(slug="students_from_powerschool").first()
+        ps_students = MigrationProfile.objects.filter(
+            slug="students_from_powerschool"
+        ).first()
         self.assertIsNotNone(ps_students)
-        self.assertEqual(ps_students.source_system, MigrationProfile.SourceSystem.POWERSCHOOL)
+        self.assertEqual(
+            ps_students.source_system, MigrationProfile.SourceSystem.POWERSCHOOL
+        )
         hints = (ps_students.config or {}).get("schema_hints") or {}
         self.assertIn("student_number", hints)
         self.assertEqual(hints.get("student_number"), "admission_number")
-        veracross = MigrationProfile.objects.filter(slug="students_from_veracross").first()
+        veracross = MigrationProfile.objects.filter(
+            slug="students_from_veracross"
+        ).first()
         self.assertIsNotNone(veracross)
-        self.assertEqual(veracross.source_system, MigrationProfile.SourceSystem.VERACROSS)
+        self.assertEqual(
+            veracross.source_system, MigrationProfile.SourceSystem.VERACROSS
+        )
 
     def test_generic_profiles_have_null_source_system(self):
         from django.core.management import call_command
+
         call_command("seed_migration_profiles")
         generic = MigrationProfile.objects.filter(slug="students").first()
         self.assertIsNotNone(generic)
@@ -51,18 +64,24 @@ class MigrationProfileSourceSystemTests(TestCase):
 
     def test_facts_profile_after_seed(self):
         from django.core.management import call_command
+
         call_command("seed_migration_profiles")
         facts = MigrationProfile.objects.filter(slug="students_from_facts").first()
         self.assertIsNotNone(facts)
         self.assertEqual(facts.source_system, MigrationProfile.SourceSystem.FACTS)
-        self.assertEqual(facts.profile_category, MigrationProfile.ProfileCategory.VENDOR)
+        self.assertEqual(
+            facts.profile_category, MigrationProfile.ProfileCategory.VENDOR
+        )
 
     def test_phased_migration_strategy_profile_after_seed(self):
         from django.core.management import call_command
+
         call_command("seed_migration_profiles")
         phased = MigrationProfile.objects.filter(slug="phased_migration").first()
         self.assertIsNotNone(phased)
-        self.assertEqual(phased.profile_category, MigrationProfile.ProfileCategory.STRATEGY)
+        self.assertEqual(
+            phased.profile_category, MigrationProfile.ProfileCategory.STRATEGY
+        )
 
 
 class SchemaInferenceTests(TestCase):
@@ -70,6 +89,7 @@ class SchemaInferenceTests(TestCase):
 
     def test_infer_exact_match(self):
         from apps.accounts.migration_services import infer_schema_mapping
+
         headers = ["first_name", "last_name", "admission_number"]
         target_fields = ["first_name", "last_name", "admission_number", "classroom"]
         out = infer_schema_mapping(headers, target_fields)
@@ -79,6 +99,7 @@ class SchemaInferenceTests(TestCase):
 
     def test_infer_normalized_match(self):
         from apps.accounts.migration_services import infer_schema_mapping
+
         headers = ["FirstName", "LastName", "Student_ID"]
         target_fields = ["first_name", "last_name", "admission_number"]
         out = infer_schema_mapping(headers, target_fields)
@@ -88,6 +109,7 @@ class SchemaInferenceTests(TestCase):
 
     def test_infer_alias_student_id_to_admission_number(self):
         from apps.accounts.migration_services import infer_schema_mapping
+
         headers = ["student_id", "student_number"]
         target_fields = ["first_name", "last_name", "admission_number"]
         out = infer_schema_mapping(headers, target_fields)
@@ -172,7 +194,13 @@ class SchemaFingerprintTests(TestCase):
         from apps.automation.schema_fingerprint import suggest_profiles_from_headers
 
         call_command("seed_migration_profiles")
-        headers = ["student_number", "first_name", "last_name", "grade_level", "homeroom"]
+        headers = [
+            "student_number",
+            "first_name",
+            "last_name",
+            "grade_level",
+            "homeroom",
+        ]
         scored = suggest_profiles_from_headers(headers)
         self.assertGreater(len(scored), 0)
         top_profile, confidence = scored[0]
@@ -180,7 +208,10 @@ class SchemaFingerprintTests(TestCase):
         self.assertLessEqual(confidence, 1.0)
         # PowerSchool hints include student_number, first_name, last_name, grade_level, homeroom
         ps = next((p for p, _ in scored if p.slug == "students_from_powerschool"), None)
-        self.assertIsNotNone(ps, "students_from_powerschool should be suggested for PowerSchool-like headers")
+        self.assertIsNotNone(
+            ps,
+            "students_from_powerschool should be suggested for PowerSchool-like headers",
+        )
 
     def test_suggest_profiles_empty_headers_returns_empty(self):
         from apps.automation.schema_fingerprint import suggest_profiles_from_headers
@@ -192,7 +223,11 @@ class QuarantineTests(TestCase):
     """Repair and quarantine: add_to_quarantine, mark_repaired, get_repaired_rows."""
 
     def test_add_to_quarantine_and_mark_repaired(self):
-        from apps.automation.quarantine_services import add_to_quarantine, mark_repaired, get_repaired_rows
+        from apps.automation.quarantine_services import (
+            add_to_quarantine,
+            mark_repaired,
+            get_repaired_rows,
+        )
         from apps.automation.models import MigrationQuarantineRecord
 
         rec = add_to_quarantine(
@@ -202,7 +237,9 @@ class QuarantineTests(TestCase):
             issue_class="missing_required",
         )
         self.assertEqual(rec.status, MigrationQuarantineRecord.Status.PENDING)
-        mark_repaired(rec, {"first_name": "A", "last_name": "B", "admission_number": "123"})
+        mark_repaired(
+            rec, {"first_name": "A", "last_name": "B", "admission_number": "123"}
+        )
         rec.refresh_from_db()
         self.assertEqual(rec.status, MigrationQuarantineRecord.Status.REPAIRED)
         self.assertIn("admission_number", rec.resolution_payload)
@@ -230,7 +267,9 @@ class PlaybookExecutorTests(TestCase):
             name="Exec test",
             profile_slugs=["students_from_powerschool", "grades_from_powerschool"],
         )
-        result = execute_playbook(playbook, school=None, user=None, dry_run=True, steps_payload=None)
+        result = execute_playbook(
+            playbook, school=None, user=None, dry_run=True, steps_payload=None
+        )
         self.assertIn("runs", result)
         self.assertIn("status", result)
         self.assertEqual(len(result["runs"]), 2)

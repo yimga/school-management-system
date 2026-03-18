@@ -4,35 +4,52 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0033_transfercourseequivalency'),
+        ("academics", "0033_transfercourseequivalency"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='graduatemilestone',
-            name='committee_member_count',
-            field=models.PositiveSmallIntegerField(default=0, help_text='Total committee members on the milestone review panel.'),
+            model_name="graduatemilestone",
+            name="committee_member_count",
+            field=models.PositiveSmallIntegerField(
+                default=0,
+                help_text="Total committee members on the milestone review panel.",
+            ),
         ),
         migrations.AddField(
-            model_name='graduatemilestone',
-            name='embargo_reason',
-            field=models.CharField(blank=True, help_text='Reason for embargo (e.g. patent filing in progress).', max_length=255),
+            model_name="graduatemilestone",
+            name="embargo_reason",
+            field=models.CharField(
+                blank=True,
+                help_text="Reason for embargo (e.g. patent filing in progress).",
+                max_length=255,
+            ),
         ),
         migrations.AddField(
-            model_name='graduatemilestone',
-            name='embargo_until',
-            field=models.DateField(blank=True, help_text='Optional thesis/dissertation embargo end date for submission milestones.', null=True),
+            model_name="graduatemilestone",
+            name="embargo_until",
+            field=models.DateField(
+                blank=True,
+                help_text="Optional thesis/dissertation embargo end date for submission milestones.",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='graduatemilestone',
-            name='external_member_count',
-            field=models.PositiveSmallIntegerField(default=0, help_text='Number of external (non-department/non-internal) committee members.'),
+            model_name="graduatemilestone",
+            name="external_member_count",
+            field=models.PositiveSmallIntegerField(
+                default=0,
+                help_text="Number of external (non-department/non-internal) committee members.",
+            ),
         ),
         migrations.AddField(
-            model_name='graduatemilestone',
-            name='metadata',
-            field=models.JSONField(blank=True, default=dict, help_text='Extensible milestone metadata for institution-specific research requirements.'),
+            model_name="graduatemilestone",
+            name="metadata",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="Extensible milestone metadata for institution-specific research requirements.",
+            ),
         ),
     ]

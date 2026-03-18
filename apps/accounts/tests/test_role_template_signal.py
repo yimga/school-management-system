@@ -1,4 +1,5 @@
 """Tests for the role-template signal: User.role -> user.roles (AccessRole) on create/update."""
+
 from django.test import TestCase
 
 from apps.accounts.models import User
@@ -14,7 +15,11 @@ class RoleTemplateSignalTests(TestCase):
             role=User.Role.PRINCIPAL,
         )
         role_codes = list(user.roles.values_list("code", flat=True))
-        self.assertEqual(role_codes, ["PRINCIPAL"], msg="Principal user should have PRINCIPAL AccessRole")
+        self.assertEqual(
+            role_codes,
+            ["PRINCIPAL"],
+            msg="Principal user should have PRINCIPAL AccessRole",
+        )
 
     def test_create_user_teacher_gets_teacher_access_role(self):
         user = User.objects.create_user(

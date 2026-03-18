@@ -4,6 +4,7 @@ Dashboard Configuration Hub (Part 2b): list templates, assign by role.
 Phase 4: Workflow hub and Dashboard hub — single tenant-facing entry points; all composition via resolvers.
 §2.4 Broad except: workflow_hub/get_blueprints use NoReverseMatch and _OPTIONAL_HUB_ERRORS for optional imports/query.
 """
+
 import logging
 
 from django.contrib import messages
@@ -21,7 +22,13 @@ from apps.siteconfig.models_workflow import WorkflowTemplate, TenantWorkflow
 logger = logging.getLogger(__name__)
 
 # §2.4 Typed exceptions for optional hub URLs/imports (reverse, BlueprintPack, build_manager_absolute_url); allowlist 0.
-_OPTIONAL_HUB_ERRORS = (ImportError, AttributeError, TypeError, ValueError, DatabaseError)
+_OPTIONAL_HUB_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    DatabaseError,
+)
 
 
 @never_cache
@@ -37,7 +44,9 @@ def dashboard_hub(request):
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(request, "No school context. Switch to a school to manage dashboards.")
+        messages.warning(
+            request, "No school context. Switch to a school to manage dashboards."
+        )
         return redirect(reverse("accounts:backend_dashboard"))
     config_url = reverse("siteconfig:dashboard_configuration_hub")
     backend_url = reverse("accounts:backend_dashboard")
@@ -52,7 +61,10 @@ def dashboard_hub(request):
             "backend_url": backend_url,
             "assignment_count": assignment_count,
             "page_title": _("Dashboard Hub"),
-            "page_subtitle": _("Dashboards are composed by role via the platform resolver. Assign a template per role to control default layout and widgets for %(school_name)s.") % {"school_name": school.name},
+            "page_subtitle": _(
+                "Dashboards are composed by role via the platform resolver. Assign a template per role to control default layout and widgets for %(school_name)s."
+            )
+            % {"school_name": school.name},
             "action_url": backend_url,
             "action_text": _("Back to backend"),
         },
@@ -79,16 +91,32 @@ def get_blueprints(request):
     pack_update_available = False
     try:
         from apps.policies.models import BlueprintPack, TenantBlueprint
-        packs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name")[:50])
-        tb = TenantBlueprint.objects.filter(school=school).select_related("applied_pack").first()
+
+        packs = list(
+            BlueprintPack.objects.filter(is_active=True).order_by("category", "name")[
+                :50
+            ]
+        )
+        tb = (
+            TenantBlueprint.objects.filter(school=school)
+            .select_related("applied_pack")
+            .first()
+        )
         applied_pack = tb.applied_pack if tb else None
         if applied_pack:
-            pack_update_available = applied_pack.schools_with_outdated_bundle().filter(pk=school.pk).exists()
+            pack_update_available = (
+                applied_pack.schools_with_outdated_bundle()
+                .filter(pk=school.pk)
+                .exists()
+            )
     except _OPTIONAL_HUB_ERRORS as e:
         logger.debug("get_blueprints optional packs/query: %s", e)
     try:
         from apps.schools.tenant_url import build_manager_absolute_url
-        manager_blueprints_url = build_manager_absolute_url(request, "/super/marketplace/blueprints/")
+
+        manager_blueprints_url = build_manager_absolute_url(
+            request, "/super/marketplace/blueprints/"
+        )
     except _OPTIONAL_HUB_ERRORS as e:
         logger.debug("get_blueprints optional manager_blueprints_url: %s", e)
         manager_blueprints_url = None
@@ -113,7 +141,10 @@ def get_blueprints(request):
             "pack_update_available": pack_update_available,
             "manager_blueprints_url": manager_blueprints_url,
             "page_title": _("Blueprints"),
-            "page_subtitle": _("Policy blueprint packs for %(school)s. Packs are applied by your platform administrator.") % {"school": school.name},
+            "page_subtitle": _(
+                "Policy blueprint packs for %(school)s. Packs are applied by your platform administrator."
+            )
+            % {"school": school.name},
             "action_url": action_url,
             "action_text": action_text,
         },
@@ -132,18 +163,28 @@ def dashboard_configuration_hub(request):
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(request, "No school context. Switch to a school to manage dashboard layouts.")
+        messages.warning(
+            request,
+            "No school context. Switch to a school to manage dashboard layouts.",
+        )
         return redirect(reverse("accounts:backend_dashboard"))
 
     templates = list(DashboardTemplate.objects.filter(is_active=True).order_by("name"))
-    assignments = {a.role: a for a in TenantLayoutAssignment.objects.filter(school=school).select_related("template")}
+    assignments = {
+        a.role: a
+        for a in TenantLayoutAssignment.objects.filter(school=school).select_related(
+            "template"
+        )
+    }
 
     if request.method == "POST":
         role = (request.POST.get("role") or "").strip().upper()
         template_id = request.POST.get("template_id")
         if role in dict(TenantLayoutAssignment.ROLE_CHOICES) and template_id:
             try:
-                template = DashboardTemplate.objects.get(pk=int(template_id), is_active=True)
+                template = DashboardTemplate.objects.get(
+                    pk=int(template_id), is_active=True
+                )
             except (ValueError, DashboardTemplate.DoesNotExist):
                 messages.error(request, "Invalid template.")
             else:
@@ -178,7 +219,10 @@ def dashboard_configuration_hub(request):
             "role_choices": role_choices,
             "school": school,
             "page_title": _("Dashboard Configuration Hub"),
-            "page_subtitle": _("Assign a dashboard template per role for %(school_name)s. Runtime resolves layout and theme from the assigned template.") % {"school_name": school.name},
+            "page_subtitle": _(
+                "Assign a dashboard template per role for %(school_name)s. Runtime resolves layout and theme from the assigned template."
+            )
+            % {"school_name": school.name},
             "action_url": dashboard_hub_url,
             "action_text": _("Back to Dashboard hub"),
         },
@@ -206,7 +250,9 @@ def workflow_flow_gallery(request):
         template_id = request.POST.get("template_id")
         if action and template_id:
             try:
-                template = WorkflowTemplate.objects.get(pk=int(template_id), is_active=True)
+                template = WorkflowTemplate.objects.get(
+                    pk=int(template_id), is_active=True
+                )
             except (ValueError, WorkflowTemplate.DoesNotExist):
                 messages.error(request, "Invalid template.")
             else:
@@ -226,7 +272,9 @@ def workflow_flow_gallery(request):
                 elif action == "rollback":
                     tw.overrides = {}
                     tw.save(update_fields=["overrides", "updated_at"])
-                    messages.success(request, f"Rolled back overrides for: {template.name}.")
+                    messages.success(
+                        request, f"Rolled back overrides for: {template.name}."
+                    )
                 else:
                     messages.error(request, "Unknown action.")
                 return redirect(reverse("siteconfig:workflow_flow_gallery"))
@@ -258,7 +306,10 @@ def workflow_flow_gallery(request):
             "template_rows": template_rows,
             "school": school,
             "page_title": _("Workflow Flow Gallery"),
-            "page_subtitle": _("Pre-built workflows and assignments for %(school)s. Activate, deactivate, or rollback within guardrails.") % {"school": school.name},
+            "page_subtitle": _(
+                "Pre-built workflows and assignments for %(school)s. Activate, deactivate, or rollback within guardrails."
+            )
+            % {"school": school.name},
             "action_url": action_url,
             "action_text": action_text,
         },

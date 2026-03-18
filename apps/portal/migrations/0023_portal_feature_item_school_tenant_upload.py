@@ -38,19 +38,28 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0022_tenant_upload_to_lesson_training_justification_photo_signature'),
-        ('schools', '0027_school_country_code_school_education_levels_and_more'),
+        (
+            "portal",
+            "0022_tenant_upload_to_lesson_training_justification_photo_signature",
+        ),
+        ("schools", "0027_school_country_code_school_education_levels_and_more"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='portalfeatureitem',
-                    name='school',
-                    field=models.ForeignKey(blank=True, help_text='Tenant scope for document library (Section 25.3); set from request.school on save.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='portal_feature_items', to='schools.school'),
+                    model_name="portalfeatureitem",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        help_text="Tenant scope for document library (Section 25.3); set from request.school on save.",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="portal_feature_items",
+                        to="schools.school",
+                    ),
                 ),
             ],
             database_operations=[
@@ -58,8 +67,37 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AlterField(
-            model_name='portalfeatureitem',
-            name='file',
-            field=models.FileField(blank=True, help_text='Upload a document (PDF, Word, Excel, or LibreOffice ODT/ODS) - max 10MB', null=True, upload_to=apps.portal.models._portal_feature_item_file_upload_to, validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.odt', '.ods'], allowed_types=['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet'], message='Only document files (PDF, Word, Excel, or LibreOffice ODT/ODS) are allowed.'), apps.accounts.validators.FileSizeValidator(max_size_mb=10)]),
+            model_name="portalfeatureitem",
+            name="file",
+            field=models.FileField(
+                blank=True,
+                help_text="Upload a document (PDF, Word, Excel, or LibreOffice ODT/ODS) - max 10MB",
+                null=True,
+                upload_to=apps.portal.models._portal_feature_item_file_upload_to,
+                validators=[
+                    apps.accounts.validators.FileTypeValidator(
+                        allowed_extensions=[
+                            ".pdf",
+                            ".doc",
+                            ".docx",
+                            ".xls",
+                            ".xlsx",
+                            ".odt",
+                            ".ods",
+                        ],
+                        allowed_types=[
+                            "application/pdf",
+                            "application/msword",
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            "application/vnd.ms-excel",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "application/vnd.oasis.opendocument.text",
+                            "application/vnd.oasis.opendocument.spreadsheet",
+                        ],
+                        message="Only document files (PDF, Word, Excel, or LibreOffice ODT/ODS) are allowed.",
+                    ),
+                    apps.accounts.validators.FileSizeValidator(max_size_mb=10),
+                ],
+            ),
         ),
     ]

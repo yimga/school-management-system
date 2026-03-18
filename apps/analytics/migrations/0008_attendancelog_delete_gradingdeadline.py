@@ -4,21 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('analytics', '0007_delete_performancemetrics'),
+        ("analytics", "0007_delete_performancemetrics"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AttendanceLog',
+            name="AttendanceLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('status', models.CharField(max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("status", models.CharField(max_length=20)),
             ],
         ),
         migrations.DeleteModel(
-            name='GradingDeadline',
+            name="GradingDeadline",
         ),
     ]

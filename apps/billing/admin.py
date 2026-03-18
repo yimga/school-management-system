@@ -27,7 +27,12 @@ class BillingAccountAdmin(admin.ModelAdmin):
         "updated_at",
     )
     list_filter = ("status", "currency_code", "processor_code")
-    search_fields = ("school__name", "billing_email", "external_customer_ref", "processor_code")
+    search_fields = (
+        "school__name",
+        "billing_email",
+        "external_customer_ref",
+        "processor_code",
+    )
 
 
 @admin.register(TenantSubscription, site=platform_admin_site)
@@ -48,14 +53,29 @@ class TenantSubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(UsageMeter, site=platform_admin_site)
 class UsageMeterAdmin(admin.ModelAdmin):
-    list_display = ("school", "metric_code", "period_start", "period_end", "quantity", "updated_at")
+    list_display = (
+        "school",
+        "metric_code",
+        "period_start",
+        "period_end",
+        "quantity",
+        "updated_at",
+    )
     list_filter = ("metric_code",)
     search_fields = ("school__name", "metric_code")
 
 
 @admin.register(PlatformLedgerEntry, site=platform_admin_site)
 class PlatformLedgerEntryAdmin(admin.ModelAdmin):
-    list_display = ("school", "entry_type", "status", "amount", "currency_code", "reference", "happened_at")
+    list_display = (
+        "school",
+        "entry_type",
+        "status",
+        "amount",
+        "currency_code",
+        "reference",
+        "happened_at",
+    )
     list_filter = ("entry_type", "status", "currency_code")
     search_fields = ("school__name", "reference", "description", "source_ref")
 
@@ -72,7 +92,12 @@ class BillingProcessorSyncEventAdmin(admin.ModelAdmin):
         "happened_at",
     )
     list_filter = ("processor_code", "event_type", "status")
-    search_fields = ("school__name", "external_customer_ref", "external_subscription_ref", "message")
+    search_fields = (
+        "school__name",
+        "external_customer_ref",
+        "external_subscription_ref",
+        "message",
+    )
 
 
 @admin.register(PlatformBillingProcessorConfig, site=platform_admin_site)
@@ -92,7 +117,16 @@ class PlatformBillingProcessorConfigAdmin(admin.ModelAdmin):
 
 @admin.register(Quote, site=platform_admin_site)
 class QuoteAdmin(admin.ModelAdmin):
-    list_display = ("id", "school", "plan", "status", "amount", "currency_code", "valid_until", "created_at")
+    list_display = (
+        "id",
+        "school",
+        "plan",
+        "status",
+        "amount",
+        "currency_code",
+        "valid_until",
+        "created_at",
+    )
     list_filter = ("status", "currency_code")
     search_fields = ("school__name", "plan__name")
     actions = ["accept_quote_convert_to_contract"]
@@ -100,19 +134,32 @@ class QuoteAdmin(admin.ModelAdmin):
     @admin.action(description="Accept quote (convert to contract)")
     def accept_quote_convert_to_contract(self, request, queryset):
         from apps.billing.services import convert_quote_to_contract
+
         done, errors = 0, []
         from django.core.exceptions import ValidationError
         from django.db import DatabaseError
+
         for quote in queryset:
             try:
                 convert_quote_to_contract(quote)
                 done += 1
-            except (ValidationError, ValueError, TypeError, DatabaseError, KeyError, AttributeError) as e:
+            except (
+                ValidationError,
+                ValueError,
+                TypeError,
+                DatabaseError,
+                KeyError,
+                AttributeError,
+            ) as e:
                 errors.append(f"Quote #{quote.id}: {e}")
         if done:
             self.message_user(request, f"Converted {done} quote(s) to contract.")
         if errors:
-            self.message_user(request, "; ".join(errors[:5]) + ("..." if len(errors) > 5 else ""), level=40)
+            self.message_user(
+                request,
+                "; ".join(errors[:5]) + ("..." if len(errors) > 5 else ""),
+                level=40,
+            )
 
 
 @admin.register(RevenueSharePayout, site=platform_admin_site)

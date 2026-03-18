@@ -4,7 +4,7 @@
 {% block title %}{% trans "System config" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4" data-page-archetype="decision-console" style="max-width: 960px;">
+<div class="container-fluid py-4 content-max-960" data-page-archetype="decision-console">
   <header class="mb-4 pb-3 border-bottom">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>
@@ -16,6 +16,18 @@
       {% endif %}
     </div>
   </header>
+
+  <div class="alert alert-info border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4" role="region" aria-label="{% trans 'Outcome-driven configuration' %}">
+    <div class="small mb-0">
+      {% blocktrans %}Preview and rollback visual changes in <strong>Studio Experience</strong>. New tenants: guided <strong>Setup Studio</strong>. Theme and branding: Theme &amp; colors or Experience hub.{% endblocktrans %}
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% if studio_shell_url %}<a href="{{ studio_shell_url }}" class="btn btn-sm btn-outline-primary">{% trans "Studio OS" %}</a>{% endif %}
+      {% if studio_experience_url %}<a href="{{ studio_experience_url }}" class="btn btn-sm btn-outline-primary">{% trans "Studio Experience" %}</a>{% endif %}
+      {% if guided_onboarding_url %}<a href="{{ guided_onboarding_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Setup Studio" %}</a>{% endif %}
+      {% if theme_colors_hub_url %}<a href="{{ theme_colors_hub_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Theme & colors" %}</a>{% endif %}
+    </div>
+  </div>
 
   {% if operational_hubs %}
   <section class="mb-4">

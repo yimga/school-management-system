@@ -5,48 +5,109 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0025_add_school_type'),
-        ('siteconfig', '0123_enable_pgvector_extension'),
+        ("schools", "0025_add_school_type"),
+        ("siteconfig", "0123_enable_pgvector_extension"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DashboardTemplate',
+            name="DashboardTemplate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('description', models.TextField(blank=True)),
-                ('thumbnail', models.URLField(blank=True, help_text='Preview image URL', max_length=512)),
-                ('config_schema', models.JSONField(blank=True, default=dict, help_text='JSON schema for layout/widgets/theme that admins can customize (e.g. widgets, positions, theme keys).')),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "thumbnail",
+                    models.URLField(
+                        blank=True, help_text="Preview image URL", max_length=512
+                    ),
+                ),
+                (
+                    "config_schema",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="JSON schema for layout/widgets/theme that admins can customize (e.g. widgets, positions, theme keys).",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Dashboard Template',
-                'verbose_name_plural': 'Dashboard Templates',
-                'ordering': ['name'],
+                "verbose_name": "Dashboard Template",
+                "verbose_name_plural": "Dashboard Templates",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='TenantLayoutAssignment',
+            name="TenantLayoutAssignment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('role', models.CharField(choices=[('STUDENT', 'Student'), ('TEACHER', 'Teacher'), ('PARENT', 'Parent'), ('ADMIN', 'Administrator'), ('LEADERSHIP', 'Leadership'), ('IT_ADMIN', 'IT Admin')], max_length=20)),
-                ('styling_overrides', models.JSONField(blank=True, default=dict, help_text='Optional theme/layout overrides (e.g. primaryColor, compactMode) for this school/role.')),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='dashboard_layout_assignments', to='schools.school')),
-                ('template', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='tenant_assignments', to='siteconfig.dashboardtemplate')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[
+                            ("STUDENT", "Student"),
+                            ("TEACHER", "Teacher"),
+                            ("PARENT", "Parent"),
+                            ("ADMIN", "Administrator"),
+                            ("LEADERSHIP", "Leadership"),
+                            ("IT_ADMIN", "IT Admin"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "styling_overrides",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Optional theme/layout overrides (e.g. primaryColor, compactMode) for this school/role.",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="dashboard_layout_assignments",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "template",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="tenant_assignments",
+                        to="siteconfig.dashboardtemplate",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Tenant Layout Assignment',
-                'verbose_name_plural': 'Tenant Layout Assignments',
-                'ordering': ['school', 'role'],
-                'unique_together': {('school', 'role')},
+                "verbose_name": "Tenant Layout Assignment",
+                "verbose_name_plural": "Tenant Layout Assignments",
+                "ordering": ["school", "role"],
+                "unique_together": {("school", "role")},
             },
         ),
     ]

@@ -5,16 +5,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('apicenter', '0001_add_api_center_models'),
-        ('siteconfig', '0083_enable_rls_postgresql'),
+        ("apicenter", "0001_add_api_center_models"),
+        ("siteconfig", "0083_enable_rls_postgresql"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='apiservice',
-            name='integration',
-            field=models.OneToOneField(blank=True, help_text='When set, this API Service gates the linked Integration (kill switch + audit).', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='api_service', to='siteconfig.integration'),
+            model_name="apiservice",
+            name="integration",
+            field=models.OneToOneField(
+                blank=True,
+                help_text="When set, this API Service gates the linked Integration (kill switch + audit).",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="api_service",
+                to="siteconfig.integration",
+            ),
         ),
     ]

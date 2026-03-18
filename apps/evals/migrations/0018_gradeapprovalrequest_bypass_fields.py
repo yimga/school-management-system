@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("evals", "0017_alter_gradeapprovalrequest_id"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -41,4 +40,3 @@ class Migration(migrations.Migration):
             ),
         ),
     ]
-

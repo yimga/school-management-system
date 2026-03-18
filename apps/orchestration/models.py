@@ -2,6 +2,7 @@
 Orchestration layer (Phase 10 — 4.1): long-running process support.
 State, retries, compensation, SLA visibility. Operator workbench consumes these.
 """
+
 from __future__ import annotations
 
 from django.conf import settings
@@ -10,6 +11,7 @@ from django.db import models
 
 class ProcessDefinition(models.Model):
     """Definition of a long-running process type (admissions, re-enrollment, fee follow-up, etc.)."""
+
     code = models.SlugField(max_length=64, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -28,6 +30,7 @@ class ProcessDefinition(models.Model):
 
 class OrchestrationRun(models.Model):
     """A single run of a long-running process. Tracks state, retries, compensation."""
+
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
         RUNNING = "running", "Running"
@@ -86,6 +89,7 @@ class OrchestrationRun(models.Model):
     def sla_overdue(self) -> bool:
         """True if SLA deadline has passed and run is still pending or running (Phase 10 — 4.1)."""
         from django.utils import timezone
+
         if not self.sla_deadline:
             return False
         if self.status not in (self.Status.PENDING, self.Status.RUNNING):

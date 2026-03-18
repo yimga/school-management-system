@@ -29,7 +29,9 @@ class ManagerUrlconfBoundaryTests(TestCase):
 
     def test_manager_host_rejects_tenant_surface_prefixes(self):
         self.client.force_login(self.user)
-        response = self.client.get("/portal/teacher/", HTTP_HOST="manager.runmycampus.com")
+        response = self.client.get(
+            "/portal/teacher/", HTTP_HOST="manager.runmycampus.com"
+        )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/")
 
@@ -39,7 +41,9 @@ class ManagerUrlconfBoundaryTests(TestCase):
 
     def test_manager_search_api_returns_control_plane_results(self):
         self.client.force_login(self.user)
-        response = self.client.get("/api/search/?q=billing", HTTP_HOST="manager.runmycampus.com")
+        response = self.client.get(
+            "/api/search/?q=billing", HTTP_HOST="manager.runmycampus.com"
+        )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertIn("results", payload)
@@ -50,5 +54,7 @@ class ManagerUrlconfBoundaryTests(TestCase):
 
     def test_manager_search_api_denies_tenant_staff(self):
         self.client.force_login(self.tenant_staff)
-        response = self.client.get("/api/search/?q=billing", HTTP_HOST="manager.runmycampus.com")
+        response = self.client.get(
+            "/api/search/?q=billing", HTTP_HOST="manager.runmycampus.com"
+        )
         self.assertEqual(response.status_code, 403)

@@ -86,4 +86,3 @@ class StudioExperienceRollbackTests(TestCase):
         site.refresh_from_db()
         self.assertEqual(site.primary_color, original_primary)
         self.assertNotIn("theme_previous_state", self.client.session)
-

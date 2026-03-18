@@ -6,90 +6,206 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('billing', '0001_initial'),
-        ('schools', '0027_school_country_code_school_education_levels_and_more'),
+        ("billing", "0001_initial"),
+        ("schools", "0027_school_country_code_school_education_levels_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='billingaccount',
-            name='delinquent_since',
+            model_name="billingaccount",
+            name="delinquent_since",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='billingaccount',
-            name='last_processor_sync_at',
+            model_name="billingaccount",
+            name="last_processor_sync_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='billingaccount',
-            name='processor_code',
+            model_name="billingaccount",
+            name="processor_code",
             field=models.CharField(blank=True, db_index=True, max_length=32),
         ),
         migrations.AddField(
-            model_name='tenantsubscription',
-            name='external_subscription_ref',
+            model_name="tenantsubscription",
+            name="external_subscription_ref",
             field=models.CharField(blank=True, db_index=True, max_length=120),
         ),
         migrations.AddField(
-            model_name='tenantsubscription',
-            name='last_invoiced_at',
+            model_name="tenantsubscription",
+            name="last_invoiced_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.CreateModel(
-            name='BillingProcessorSyncEvent',
+            name="BillingProcessorSyncEvent",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('processor_code', models.CharField(db_index=True, max_length=32)),
-                ('event_type', models.CharField(db_index=True, max_length=64)),
-                ('status', models.CharField(choices=[('APPLIED', 'Applied'), ('IGNORED', 'Ignored'), ('FAILED', 'Failed')], db_index=True, default='APPLIED', max_length=12)),
-                ('external_customer_ref', models.CharField(blank=True, db_index=True, max_length=120)),
-                ('external_subscription_ref', models.CharField(blank=True, db_index=True, max_length=120)),
-                ('payload', models.JSONField(blank=True, default=dict)),
-                ('message', models.CharField(blank=True, max_length=255)),
-                ('happened_at', models.DateTimeField(db_index=True)),
-                ('applied_at', models.DateTimeField(auto_now_add=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('billing_account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='processor_events', to='billing.billingaccount')),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='billing_processor_events', to='schools.school')),
-                ('subscription', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='processor_events', to='billing.tenantsubscription')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("processor_code", models.CharField(db_index=True, max_length=32)),
+                ("event_type", models.CharField(db_index=True, max_length=64)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("APPLIED", "Applied"),
+                            ("IGNORED", "Ignored"),
+                            ("FAILED", "Failed"),
+                        ],
+                        db_index=True,
+                        default="APPLIED",
+                        max_length=12,
+                    ),
+                ),
+                (
+                    "external_customer_ref",
+                    models.CharField(blank=True, db_index=True, max_length=120),
+                ),
+                (
+                    "external_subscription_ref",
+                    models.CharField(blank=True, db_index=True, max_length=120),
+                ),
+                ("payload", models.JSONField(blank=True, default=dict)),
+                ("message", models.CharField(blank=True, max_length=255)),
+                ("happened_at", models.DateTimeField(db_index=True)),
+                ("applied_at", models.DateTimeField(auto_now_add=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "billing_account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="processor_events",
+                        to="billing.billingaccount",
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="billing_processor_events",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "subscription",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="processor_events",
+                        to="billing.tenantsubscription",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Billing processor sync event',
-                'verbose_name_plural': 'Billing processor sync events',
-                'ordering': ['-happened_at', '-created_at'],
+                "verbose_name": "Billing processor sync event",
+                "verbose_name_plural": "Billing processor sync events",
+                "ordering": ["-happened_at", "-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='RevenueSharePayout',
+            name="RevenueSharePayout",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('payout_scope', models.CharField(choices=[('APP_PUBLISHER', 'App publisher'), ('CHANNEL_PARTNER', 'Channel partner'), ('AFFILIATE', 'Affiliate')], db_index=True, default='APP_PUBLISHER', max_length=32)),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('SCHEDULED', 'Scheduled'), ('IN_TRANSIT', 'In transit'), ('PAID', 'Paid'), ('FAILED', 'Failed'), ('VOIDED', 'Voided')], db_index=True, default='DRAFT', max_length=16)),
-                ('payee_name', models.CharField(max_length=160)),
-                ('payee_ref', models.CharField(blank=True, db_index=True, max_length=120)),
-                ('processor_code', models.CharField(blank=True, db_index=True, max_length=32)),
-                ('external_payout_ref', models.CharField(blank=True, db_index=True, max_length=120)),
-                ('period_start', models.DateField(blank=True, null=True)),
-                ('period_end', models.DateField(blank=True, null=True)),
-                ('gross_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('fee_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('net_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('currency_code', models.CharField(default='USD', max_length=3)),
-                ('scheduled_for', models.DateTimeField(blank=True, null=True)),
-                ('paid_at', models.DateTimeField(blank=True, null=True)),
-                ('metadata', models.JSONField(blank=True, default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('source_school', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='revenue_share_payouts', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "payout_scope",
+                    models.CharField(
+                        choices=[
+                            ("APP_PUBLISHER", "App publisher"),
+                            ("CHANNEL_PARTNER", "Channel partner"),
+                            ("AFFILIATE", "Affiliate"),
+                        ],
+                        db_index=True,
+                        default="APP_PUBLISHER",
+                        max_length=32,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("SCHEDULED", "Scheduled"),
+                            ("IN_TRANSIT", "In transit"),
+                            ("PAID", "Paid"),
+                            ("FAILED", "Failed"),
+                            ("VOIDED", "Voided"),
+                        ],
+                        db_index=True,
+                        default="DRAFT",
+                        max_length=16,
+                    ),
+                ),
+                ("payee_name", models.CharField(max_length=160)),
+                (
+                    "payee_ref",
+                    models.CharField(blank=True, db_index=True, max_length=120),
+                ),
+                (
+                    "processor_code",
+                    models.CharField(blank=True, db_index=True, max_length=32),
+                ),
+                (
+                    "external_payout_ref",
+                    models.CharField(blank=True, db_index=True, max_length=120),
+                ),
+                ("period_start", models.DateField(blank=True, null=True)),
+                ("period_end", models.DateField(blank=True, null=True)),
+                (
+                    "gross_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "fee_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "net_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                ("currency_code", models.CharField(default="USD", max_length=3)),
+                ("scheduled_for", models.DateTimeField(blank=True, null=True)),
+                ("paid_at", models.DateTimeField(blank=True, null=True)),
+                ("metadata", models.JSONField(blank=True, default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "source_school",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="revenue_share_payouts",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Revenue share payout',
-                'verbose_name_plural': 'Revenue share payouts',
-                'ordering': ['-created_at'],
+                "verbose_name": "Revenue share payout",
+                "verbose_name_plural": "Revenue share payouts",
+                "ordering": ["-created_at"],
             },
         ),
     ]

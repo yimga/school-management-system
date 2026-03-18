@@ -34,3 +34,14 @@ Integration (plugin config) and API Center (governance, audit) are **one module*
 
 - **Feature:** `enable_api_center` (backend). When off, API Center UI is hidden and gating is not applied (all enabled Integrations are allowed).
 - **Permission:** `api_center.manage` (or roles ADMIN, IT_ADMIN, SUPERADMIN) to access the API Center page and toggle integrations.
+
+## API v1: School list and primary_sector (Wedges 14–22)
+
+External systems and analytics can filter and read school sector (education system type).
+
+- **GET /api/v1/super/schools** — List active schools. Query: `?primary_sector=PUBLIC` (or any wedge 14–22 sector code). Response: `{ "schools": [ { "school_id", "name", "slug", "subdomain", "country_code", "primary_sector", "created_at" }, ... ], "total": N }`. Every school object includes `primary_sector`.
+- **GET /api/v1/super/tenant-health** — Tenant health; query `?primary_sector=PUBLIC` filters; each tenant includes `primary_sector`.
+- **GET /api/v1/super/usage** — Per-tenant usage; query `?primary_sector=PUBLIC` filters; each school includes `primary_sector`.
+- **GET /api/v1/me/schools** — Schools the current user belongs to; each school includes `primary_sector`.
+
+Sector codes (e.g. PUBLIC, GOVERNMENT_MINISTRY, NGO, INTERNATIONAL, MULTI_CAMPUS) are defined in `apps.registries.services.WEDGE_14_22_SECTOR_CODES`.

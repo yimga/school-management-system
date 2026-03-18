@@ -32,7 +32,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0020_security_powerhouse_audit_passkey"),
     ]

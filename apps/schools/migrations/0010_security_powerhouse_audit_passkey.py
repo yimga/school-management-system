@@ -4,20 +4,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0009_school_last_activity'),
+        ("schools", "0009_school_last_activity"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='school',
-            name='is_approved',
-            field=models.BooleanField(default=True, help_text='When False, school is pending approval. Default True for backward compatibility.'),
+            model_name="school",
+            name="is_approved",
+            field=models.BooleanField(
+                default=True,
+                help_text="When False, school is pending approval. Default True for backward compatibility.",
+            ),
         ),
         migrations.AlterField(
-            model_name='school',
-            name='waiver_note',
-            field=models.TextField(blank=True, help_text='Required when billing_type is COMPLIMENTARY or MANUAL_OVERRIDE (e.g. partnership with NGO).'),
+            model_name="school",
+            name="waiver_note",
+            field=models.TextField(
+                blank=True,
+                help_text="Required when billing_type is COMPLIMENTARY or MANUAL_OVERRIDE (e.g. partnership with NGO).",
+            ),
         ),
     ]

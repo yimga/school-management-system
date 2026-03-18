@@ -3,7 +3,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DatabaseError, IntegrityError
+from django.db import DatabaseError
 from django.db.models import Count, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -20,6 +20,7 @@ from apps.marketplace.models import (
     PublisherOrganization,
     ScopeGrant,
 )
+from apps.marketplace.install_impact import build_tenant_install_impact
 from apps.marketplace.services import (
     activate_sandbox_installation,
     approve_sensitive_scope,
@@ -59,7 +60,9 @@ def _tenant_marketplace_allowed(user):
     return role in ("ADMIN", "IT_ADMIN", "LEADERSHIP")
 
 
-def _control_plane_school_options(request, *, default_limit: int = 200) -> tuple[list, str, int]:
+def _control_plane_school_options(
+    request, *, default_limit: int = 200
+) -> tuple[list, str, int]:
     from apps.schools.models import School
 
     school_query = str(request.GET.get("school_q") or "").strip()
@@ -69,7 +72,9 @@ def _control_plane_school_options(request, *, default_limit: int = 200) -> tuple
         limit = default_limit
     qs = School.objects.filter(is_active=True)
     if school_query:
-        qs = qs.filter(Q(name__icontains=school_query) | Q(slug__icontains=school_query))
+        qs = qs.filter(
+            Q(name__icontains=school_query) | Q(slug__icontains=school_query)
+        )
     return list(qs.order_by("name")[:limit]), school_query, limit
 
 
@@ -79,19 +84,35 @@ def governance_console(request):
     listings = (
         MarketplaceListing.objects.select_related("app", "publisher", "approved_by")
         .annotate(
-            installation_count=Count("app__installations", filter=Q(app__installations__status="active"), distinct=True),
-            open_review_count=Count("reviews", filter=Q(reviews__status__in=["pending", "in_review"]), distinct=True),
+            installation_count=Count(
+                "app__installations",
+                filter=Q(app__installations__status="active"),
+                distinct=True,
+            ),
+            open_review_count=Count(
+                "reviews",
+                filter=Q(reviews__status__in=["pending", "in_review"]),
+                distinct=True,
+            ),
         )
         .order_by("-kill_switch_active", "status", "app__name")
     )
     pending_reviews = list(
-        MarketplaceReview.objects.select_related("listing", "listing__app", "listing__publisher")
-        .filter(status__in=[MarketplaceReview.Status.PENDING, MarketplaceReview.Status.IN_REVIEW])
+        MarketplaceReview.objects.select_related(
+            "listing", "listing__app", "listing__publisher"
+        )
+        .filter(
+            status__in=[
+                MarketplaceReview.Status.PENDING,
+                MarketplaceReview.Status.IN_REVIEW,
+            ]
+        )
         .order_by("requested_at")[:20]
     )
     scheduled_payouts = list(
-        RevenueSharePayout.objects.filter(payout_scope=RevenueSharePayout.Scope.APP_PUBLISHER)
-        .order_by("scheduled_for", "-created_at")[:20]
+        RevenueSharePayout.objects.filter(
+            payout_scope=RevenueSharePayout.Scope.APP_PUBLISHER
+        ).order_by("scheduled_for", "-created_at")[:20]
     )
     metrics = {
         "publishers_total": PublisherOrganization.objects.count(),
@@ -99,22 +120,37 @@ def governance_console(request):
             verification_status=PublisherOrganization.VerificationStatus.VERIFIED
         ).count(),
         "apps_total": MarketplaceApp.objects.count(),
-        "third_party_apps": MarketplaceApp.objects.filter(kind=MarketplaceApp.AppKind.THIRD_PARTY).count(),
-        "approved_listings": MarketplaceListing.objects.filter(status=MarketplaceListing.Status.APPROVED).count(),
-        "pending_listings": MarketplaceListing.objects.filter(status=MarketplaceListing.Status.PENDING_REVIEW).count(),
-        "kill_switch_apps": MarketplaceListing.objects.filter(kill_switch_active=True).count(),
+        "third_party_apps": MarketplaceApp.objects.filter(
+            kind=MarketplaceApp.AppKind.THIRD_PARTY
+        ).count(),
+        "approved_listings": MarketplaceListing.objects.filter(
+            status=MarketplaceListing.Status.APPROVED
+        ).count(),
+        "pending_listings": MarketplaceListing.objects.filter(
+            status=MarketplaceListing.Status.PENDING_REVIEW
+        ).count(),
+        "kill_switch_apps": MarketplaceListing.objects.filter(
+            kill_switch_active=True
+        ).count(),
         "pending_security_reviews": MarketplaceListing.objects.filter(
             security_review_status=MarketplaceListing.ReviewStatus.PENDING
         ).count(),
         "scheduled_payout_total": (
             RevenueSharePayout.objects.filter(
                 payout_scope=RevenueSharePayout.Scope.APP_PUBLISHER,
-                status__in=[RevenueSharePayout.Status.SCHEDULED, RevenueSharePayout.Status.IN_TRANSIT],
-            ).aggregate(total=Sum("net_amount")).get("total")
+                status__in=[
+                    RevenueSharePayout.Status.SCHEDULED,
+                    RevenueSharePayout.Status.IN_TRANSIT,
+                ],
+            )
+            .aggregate(total=Sum("net_amount"))
+            .get("total")
             or 0
         ),
     }
-    dashboard_url = reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
+    dashboard_url = (
+        reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
+    )
     catalog_counts = get_platform_catalog_counts()
     context = {
         "metrics": metrics,
@@ -132,7 +168,9 @@ def governance_console(request):
 @require_POST
 def marketplace_review_action(request, review_id):
     review = get_object_or_404(
-        MarketplaceReview.objects.select_related("listing", "listing__app", "listing__publisher"),
+        MarketplaceReview.objects.select_related(
+            "listing", "listing__app", "listing__publisher"
+        ),
         pk=review_id,
     )
     action = str(request.POST.get("action") or "").strip().lower()
@@ -191,7 +229,9 @@ def marketplace_review_action(request, review_id):
             }
         )
     else:
-        return JsonResponse({"status": "error", "error": "Unsupported review action."}, status=400)
+        return JsonResponse(
+            {"status": "error", "error": "Unsupported review action."}, status=400
+        )
 
     return JsonResponse(
         {
@@ -217,25 +257,50 @@ def blueprint_marketplace(request):
     Preview (24.15): action=preview → store preview in session, redirect.
     Rollback: action=rollback + school_id + bundle_id → set TenantBlueprint.active_bundle to bundle (or clear).
     """
-    from apps.policies.blueprint_services import apply_blueprint_pack, preview_blueprint_pack
+    from apps.policies.blueprint_services import (
+        apply_blueprint_pack,
+        preview_blueprint_pack,
+    )
     from apps.policies.models import BlueprintPack, PolicyBundle, TenantBlueprint
     from apps.policies.policy_registry import invalidate_policy_cache
     from apps.schools.models import School
 
-    packs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name"))
+    packs = list(
+        BlueprintPack.objects.filter(is_active=True).order_by("category", "name")
+    )
     schools, school_query, school_limit = _control_plane_school_options(request)
 
     # For rollback: schools with PolicyBundles or TenantBlueprint (so we can revert or clear)
     school_bundles = {}
-    for b in PolicyBundle.objects.filter(school__is_active=True).select_related("school").order_by("school__name", "-created_at")[:500]:
+    for b in (
+        PolicyBundle.objects.filter(school__is_active=True)
+        .select_related("school")
+        .order_by("school__name", "-created_at")[:500]
+    ):
         sid = str(b.school_id)
         if sid not in school_bundles:
-            school_bundles[sid] = {"school_name": b.school.name, "bundles": [], "current_active_id": None}
-        school_bundles[sid]["bundles"].append({"id": b.id, "name": b.name or f"Bundle #{b.id}", "created_at": b.created_at})
-    for tb in TenantBlueprint.objects.filter(school__is_active=True).select_related("school"):
+            school_bundles[sid] = {
+                "school_name": b.school.name,
+                "bundles": [],
+                "current_active_id": None,
+            }
+        school_bundles[sid]["bundles"].append(
+            {
+                "id": b.id,
+                "name": b.name or f"Bundle #{b.id}",
+                "created_at": b.created_at,
+            }
+        )
+    for tb in TenantBlueprint.objects.filter(school__is_active=True).select_related(
+        "school"
+    ):
         sid = str(tb.school_id)
         if sid not in school_bundles:
-            school_bundles[sid] = {"school_name": tb.school.name, "bundles": [], "current_active_id": None}
+            school_bundles[sid] = {
+                "school_name": tb.school.name,
+                "bundles": [],
+                "current_active_id": None,
+            }
         school_bundles[sid]["current_active_id"] = tb.active_bundle_id
 
     if request.method == "POST":
@@ -251,19 +316,29 @@ def blueprint_marketplace(request):
             if not tb:
                 messages.info(request, f"“{school.name}” has no blueprint to revert.")
                 return redirect("super:blueprint_marketplace")
-            new_bundle_id = int(bundle_id) if bundle_id and bundle_id.isdigit() else None
+            new_bundle_id = (
+                int(bundle_id) if bundle_id and bundle_id.isdigit() else None
+            )
             if new_bundle_id:
-                bundle = PolicyBundle.objects.filter(pk=new_bundle_id, school=school).first()
+                bundle = PolicyBundle.objects.filter(
+                    pk=new_bundle_id, school=school
+                ).first()
                 if not bundle:
-                    messages.error(request, "Selected bundle does not belong to this school.")
+                    messages.error(
+                        request, "Selected bundle does not belong to this school."
+                    )
                     return redirect("super:blueprint_marketplace")
             tb.active_bundle_id = new_bundle_id
             tb.save(update_fields=["active_bundle", "updated_at"])
             invalidate_policy_cache(school)
             if new_bundle_id:
-                messages.success(request, f"“{school.name}” reverted to selected bundle.")
+                messages.success(
+                    request, f"“{school.name}” reverted to selected bundle."
+                )
             else:
-                messages.success(request, f"“{school.name}” blueprint cleared (no bundle).")
+                messages.success(
+                    request, f"“{school.name}” blueprint cleared (no bundle)."
+                )
             return redirect("super:blueprint_marketplace")
 
         if action == "preview":
@@ -290,22 +365,28 @@ def blueprint_marketplace(request):
         school = get_object_or_404(School, pk=school_id, is_active=True)
         try:
             apply_blueprint_pack(school, pack, applied_by=request.user)
-            messages.success(request, f"Blueprint “{pack.name}” applied to “{school.name}”.")
+            messages.success(
+                request, f"Blueprint “{pack.name}” applied to “{school.name}”."
+            )
         except ValueError as e:
             messages.error(request, str(e))
         return redirect("super:blueprint_marketplace")
 
     preview = request.session.pop("blueprint_preview", None)
     catalog_counts = get_platform_catalog_counts()
-    return render(request, "marketplace/blueprint_marketplace.html", {
-        "packs": packs,
-        "schools": schools,
-        "school_query": school_query,
-        "school_limit": school_limit,
-        "school_bundles": school_bundles,
-        "preview": preview,
-        "catalog_counts": catalog_counts,
-    })
+    return render(
+        request,
+        "marketplace/blueprint_marketplace.html",
+        {
+            "packs": packs,
+            "schools": schools,
+            "school_query": school_query,
+            "school_limit": school_limit,
+            "school_bundles": school_bundles,
+            "preview": preview,
+            "catalog_counts": catalog_counts,
+        },
+    )
 
 
 @login_required
@@ -339,12 +420,16 @@ def app_catalog(request):
                 distinct=True,
             ),
             scope_count=Count("app__scopes", distinct=True),
-            sensitive_scope_count=Count("app__scopes", filter=Q(app__scopes__sensitive=True), distinct=True),
+            sensitive_scope_count=Count(
+                "app__scopes", filter=Q(app__scopes__sensitive=True), distinct=True
+            ),
         )
         .filter(app__is_active=True)
         .order_by("app__name")
     )
-    installable_listings = [lst for lst in listings if getattr(lst, "installable", False)]
+    installable_listings = [
+        lst for lst in listings if getattr(lst, "installable", False)
+    ]
     schools, school_query, school_limit = _control_plane_school_options(request)
     installed = set()
     if schools:
@@ -369,7 +454,10 @@ def app_catalog(request):
                 installed_by=request.user,
                 install_phase=AppInstallation.InstallPhase.SANDBOX,
             )
-            messages.success(request, f"App “{app.name}” installed for “{school.name}” in sandbox mode.")
+            messages.success(
+                request,
+                f"App “{app.name}” installed for “{school.name}” in sandbox mode.",
+            )
         except ValueError as e:
             messages.error(request, str(e))
         return redirect("super:app_catalog")
@@ -379,21 +467,33 @@ def app_catalog(request):
         "verified_publishers": PublisherOrganization.objects.filter(
             verification_status=PublisherOrganization.VerificationStatus.VERIFIED
         ).count(),
-        "sandbox_ready": sum(1 for listing in installable_listings if getattr(listing, "sensitive_scope_count", 0) == 0),
+        "sandbox_ready": sum(
+            1
+            for listing in installable_listings
+            if getattr(listing, "sensitive_scope_count", 0) == 0
+        ),
         "installed_pairs": len(installed),
     }
     catalog_counts = get_platform_catalog_counts()
     from apps.schools.decision_architecture import get_decision_architecture_for_page
-    return render(request, "marketplace/app_catalog.html", {
-        "listings": installable_listings,
-        "schools": schools,
-        "school_query": school_query,
-        "school_limit": school_limit,
-        "installed": installed,
-        "catalog_stats": catalog_stats,
-        "catalog_counts": catalog_counts,
-        "decision_architecture": get_decision_architecture_for_page("app_catalog"),
-    })
+
+    return render(
+        request,
+        "marketplace/app_catalog.html",
+        {
+            "listings": installable_listings,
+            "schools": schools,
+            "school_query": school_query,
+            "school_limit": school_limit,
+            "installed": installed,
+            "catalog_stats": catalog_stats,
+            "catalog_counts": catalog_counts,
+            "decision_architecture": get_decision_architecture_for_page("app_catalog"),
+            "install_impact_preview_url": reverse(
+                "super:marketplace_install_impact_preview"
+            ),
+        },
+    )
 
 
 @login_required
@@ -409,13 +509,17 @@ def compatibility_matrix(request):
     rows = []
     for lst in listings:
         compat = getattr(lst, "compatibility", None) or {}
-        rows.append({
-            "listing": lst,
-            "app": lst.app,
-            "countries": compat.get("countries") or compat.get("country_codes") or [],
-            "blueprint_families": compat.get("blueprint_families") or [],
-            "plan_tiers": compat.get("plan_tiers") or [],
-        })
+        rows.append(
+            {
+                "listing": lst,
+                "app": lst.app,
+                "countries": compat.get("countries")
+                or compat.get("country_codes")
+                or [],
+                "blueprint_families": compat.get("blueprint_families") or [],
+                "plan_tiers": compat.get("plan_tiers") or [],
+            }
+        )
     return render(request, "marketplace/compatibility_matrix.html", {"rows": rows})
 
 
@@ -425,7 +529,10 @@ def compatibility_matrix(request):
 def sandbox_inspector(request):
     """Control plane: list installations with install_phase=sandbox."""
     from django.urls import reverse
-    dashboard_url = reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
+
+    dashboard_url = (
+        reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
+    )
     installations = (
         AppInstallation.objects.filter(
             status=AppInstallation.Status.ACTIVE,
@@ -434,10 +541,14 @@ def sandbox_inspector(request):
         .select_related("app", "school", "installed_by")
         .order_by("-installed_at")
     )
-    return render(request, "marketplace/sandbox_inspector.html", {
-        "installations": installations,
-        "dashboard_url": dashboard_url,
-    })
+    return render(
+        request,
+        "marketplace/sandbox_inspector.html",
+        {
+            "installations": installations,
+            "dashboard_url": dashboard_url,
+        },
+    )
 
 
 @login_required
@@ -446,16 +557,23 @@ def sandbox_inspector(request):
 def installation_health(request):
     """Control plane: list installations with last_health_at / health_status."""
     from django.urls import reverse
-    dashboard_url = reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
+
+    dashboard_url = (
+        reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
+    )
     installations = (
         AppInstallation.objects.filter(status=AppInstallation.Status.ACTIVE)
         .select_related("app", "school")
         .order_by("-last_health_at")
     )
-    return render(request, "marketplace/installation_health.html", {
-        "installations": installations,
-        "dashboard_url": dashboard_url,
-    })
+    return render(
+        request,
+        "marketplace/installation_health.html",
+        {
+            "installations": installations,
+            "dashboard_url": dashboard_url,
+        },
+    )
 
 
 @login_required
@@ -466,20 +584,37 @@ def marketplace_incident_dashboard(request):
     from django.urls import reverse
     from apps.marketplace.models import AppAuditLog
 
-    support_url = reverse("super:support_dashboard") if hasattr(request, "resolver_match") else "/super/support/"
-    dashboard_url = reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
+    support_url = (
+        reverse("super:support_dashboard")
+        if hasattr(request, "resolver_match")
+        else "/super/support/"
+    )
+    dashboard_url = (
+        reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
+    )
     recent_events = list(
         AppAuditLog.objects.filter(
-            action__in=("install", "uninstall", "activate_sandbox", "schema_patch", "suspend", "unsuspend"),
+            action__in=(
+                "install",
+                "uninstall",
+                "activate_sandbox",
+                "schema_patch",
+                "suspend",
+                "unsuspend",
+            ),
         )
         .select_related("school", "app", "actor")
         .order_by("-created_at")[:50]
     )
-    return render(request, "marketplace/incident_dashboard.html", {
-        "support_url": support_url,
-        "dashboard_url": dashboard_url,
-        "recent_events": recent_events,
-    })
+    return render(
+        request,
+        "marketplace/incident_dashboard.html",
+        {
+            "support_url": support_url,
+            "dashboard_url": dashboard_url,
+            "recent_events": recent_events,
+        },
+    )
 
 
 @login_required
@@ -491,9 +626,13 @@ def super_refresh_installation(request):
     if not installation_id:
         messages.error(request, "Select an installation.")
         return redirect("super:marketplace_installation_health")
-    inst = get_object_or_404(AppInstallation, pk=installation_id, status=AppInstallation.Status.ACTIVE)
+    inst = get_object_or_404(
+        AppInstallation, pk=installation_id, status=AppInstallation.Status.ACTIVE
+    )
     refresh_installation(inst)
-    messages.success(request, f"“{inst.app.name}” at “{inst.school.name}” refreshed from manifest.")
+    messages.success(
+        request, f"“{inst.app.name}” at “{inst.school.name}” refreshed from manifest."
+    )
     return redirect("super:marketplace_installation_health")
 
 
@@ -513,7 +652,9 @@ def super_activate_sandbox(request):
         status=AppInstallation.Status.ACTIVE,
     )
     activate_sandbox_installation(inst, activated_by=request.user)
-    messages.success(request, f"“{inst.app.name}” at “{inst.school.name}” is now active.")
+    messages.success(
+        request, f"“{inst.app.name}” at “{inst.school.name}” is now active."
+    )
     return redirect("super:marketplace_sandbox_inspector")
 
 
@@ -539,7 +680,9 @@ def package_rollout(request):
     except ProgrammingError:
         # Table packages_installedpackage may not exist yet (migrations not run or wrong schema).
         sandbox_packages = []
-    return render(request, "marketplace/package_rollout.html", {"packages": sandbox_packages})
+    return render(
+        request, "marketplace/package_rollout.html", {"packages": sandbox_packages}
+    )
 
 
 @login_required
@@ -565,10 +708,17 @@ def package_promote(request):
             school_id__isnull=False,
         )
     except ProgrammingError:
-        messages.error(request, "Packages table is not available. Run migrations (e.g. migrate_schemas --shared).")
+        messages.error(
+            request,
+            "Packages table is not available. Run migrations (e.g. migrate_schemas --shared).",
+        )
         return redirect("super:package_rollout")
-    promote_package(inst, actor_id=getattr(request.user, "id", None), target_mode="production")
-    messages.success(request, f"“{inst.package_id}” at “{inst.school.name}” promoted to production.")
+    promote_package(
+        inst, actor_id=getattr(request.user, "id", None), target_mode="production"
+    )
+    messages.success(
+        request, f"“{inst.package_id}” at “{inst.school.name}” promoted to production."
+    )
     return redirect("super:package_rollout")
 
 
@@ -582,14 +732,18 @@ def tenant_installed_apps(request):
     """
     school = getattr(request, "school", None)
     if not school:
-        return render(request, "marketplace/tenant_installed_apps.html", {
-            "installations": [],
-            "school": None,
-            "pending_scope_grants_count": 0,
-            "page_title": "Installed apps",
-            "page_subtitle": "No school context.",
-            "action_url": reverse("tenant_app_catalog"),
-        })
+        return render(
+            request,
+            "marketplace/tenant_installed_apps.html",
+            {
+                "installations": [],
+                "school": None,
+                "pending_scope_grants_count": 0,
+                "page_title": "Installed apps",
+                "page_subtitle": "No school context.",
+                "action_url": reverse("tenant_app_catalog"),
+            },
+        )
     installations = list(
         AppInstallation.objects.filter(
             school=school,
@@ -624,7 +778,11 @@ def tenant_app_catalog(request):
     """Tenant: browse installable apps for current school and install with scope consent."""
     school = getattr(request, "school", None)
     if not school:
-        return render(request, "marketplace/tenant_app_catalog.html", {"listings": [], "school": None, "installed_slugs": set()})
+        return render(
+            request,
+            "marketplace/tenant_app_catalog.html",
+            {"listings": [], "school": None, "installed_slugs": set()},
+        )
     listings = (
         MarketplaceListing.objects.select_related("app", "publisher")
         .prefetch_related("app__scopes")
@@ -638,7 +796,9 @@ def tenant_app_catalog(request):
                 distinct=True,
             ),
             scope_count=Count("app__scopes", distinct=True),
-            sensitive_scope_count=Count("app__scopes", filter=Q(app__scopes__sensitive=True), distinct=True),
+            sensitive_scope_count=Count(
+                "app__scopes", filter=Q(app__scopes__sensitive=True), distinct=True
+            ),
         )
         .filter(app__is_active=True, status=MarketplaceListing.Status.APPROVED)
         .order_by("app__name")
@@ -658,21 +818,64 @@ def tenant_app_catalog(request):
     catalog_stats = {
         "apps": len(installable),
         "installed": len(installed_slugs),
-        "sandbox_ready": sum(1 for listing in installable if getattr(listing, "sensitive_scope_count", 0) == 0),
+        "sandbox_ready": sum(
+            1
+            for listing in installable
+            if getattr(listing, "sensitive_scope_count", 0) == 0
+        ),
         "verified_publishers": sum(
             1
             for listing in installable
-            if getattr(getattr(listing, "publisher", None), "verification_status", "") == PublisherOrganization.VerificationStatus.VERIFIED
+            if getattr(getattr(listing, "publisher", None), "verification_status", "")
+            == PublisherOrganization.VerificationStatus.VERIFIED
         ),
     }
     catalog_counts = get_platform_catalog_counts()
-    return render(request, "marketplace/tenant_app_catalog.html", {
-        "listings": installable,
-        "school": school,
-        "installed_slugs": installed_slugs,
-        "catalog_stats": catalog_stats,
-        "catalog_counts": catalog_counts,
-    })
+    return render(
+        request,
+        "marketplace/tenant_app_catalog.html",
+        {
+            "listings": installable,
+            "school": school,
+            "installed_slugs": installed_slugs,
+            "catalog_stats": catalog_stats,
+            "catalog_counts": catalog_counts,
+            "install_impact_preview_url": reverse("tenant_install_impact_preview"),
+        },
+    )
+
+
+@login_required
+@user_passes_test(_tenant_marketplace_allowed)
+@require_GET
+def tenant_install_impact_preview(request):
+    """N17: JSON impact preview before sandbox install (tenant school context)."""
+    school = getattr(request, "school", None)
+    if not school:
+        return JsonResponse({"error": "No school context."}, status=400)
+    app_id = request.GET.get("app_id")
+    if not app_id:
+        return JsonResponse({"error": "app_id required"}, status=400)
+    app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
+    return JsonResponse(build_tenant_install_impact(school, app))
+
+
+@login_required
+@user_passes_test(_control_plane_access)
+@require_GET
+def super_install_impact_preview(request):
+    """N17: JSON for control-plane catalog (requires school_id)."""
+    app_id = request.GET.get("app_id")
+    school_id = request.GET.get("school_id")
+    if not app_id or not school_id:
+        return JsonResponse({"error": "app_id and school_id required"}, status=400)
+    from apps.schools.models import School
+
+    school = School.objects.filter(pk=school_id, is_active=True).first()
+    if not school:
+        return JsonResponse({"error": "School not found."}, status=404)
+    app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
+    return JsonResponse(build_tenant_install_impact(school, app))
 
 
 @login_required
@@ -697,7 +900,10 @@ def tenant_install_app(request):
             install_phase=AppInstallation.InstallPhase.SANDBOX,
             skip_compatibility=False,
         )
-        messages.success(request, f"App “{app.name}” has been installed in sandbox mode. Review it, then activate.")
+        messages.success(
+            request,
+            f"App “{app.name}” has been installed in sandbox mode. Review it, then activate.",
+        )
     except ValueError as e:
         messages.error(request, str(e))
     return redirect("tenant_installed_apps")
@@ -716,7 +922,9 @@ def tenant_uninstall_app(request):
     if not installation_id:
         messages.error(request, "Select an installation.")
         return redirect("tenant_installed_apps")
-    inst = get_object_or_404(AppInstallation, pk=installation_id, school=school, uninstalled_at__isnull=True)
+    inst = get_object_or_404(
+        AppInstallation, pk=installation_id, school=school, uninstalled_at__isnull=True
+    )
     try:
         uninstall_app(school, inst.app, uninstalled_by=request.user)
         messages.success(request, f"App “{inst.app.name}” has been uninstalled.")
@@ -732,7 +940,11 @@ def tenant_scope_consent(request):
     """Tenant: list pending scope grants and approve (elevated approval for sensitive scopes)."""
     school = getattr(request, "school", None)
     if not school:
-        return render(request, "marketplace/tenant_scope_consent.html", {"pending_grants": [], "school": None})
+        return render(
+            request,
+            "marketplace/tenant_scope_consent.html",
+            {"pending_grants": [], "school": None},
+        )
     pending_grants = list(
         ScopeGrant.objects.filter(
             installation__school=school,
@@ -741,10 +953,14 @@ def tenant_scope_consent(request):
         .select_related("installation", "installation__app", "scope")
         .order_by("installation__app__name", "scope__scope_code")
     )
-    return render(request, "marketplace/tenant_scope_consent.html", {
-        "pending_grants": pending_grants,
-        "school": school,
-    })
+    return render(
+        request,
+        "marketplace/tenant_scope_consent.html",
+        {
+            "pending_grants": pending_grants,
+            "school": school,
+        },
+    )
 
 
 @login_required
@@ -838,8 +1054,11 @@ def sandbox_embed(request):
         iframe_src = ""
     frame_ancestors = "'self'"
     _embed_parse_errors = (ValueError, TypeError, AttributeError, KeyError)
-    if iframe_src and (iframe_src.startswith("http://") or iframe_src.startswith("https://")):
+    if iframe_src and (
+        iframe_src.startswith("http://") or iframe_src.startswith("https://")
+    ):
         from urllib.parse import urlparse
+
         try:
             parsed = urlparse(iframe_src)
             origin = f"{parsed.scheme}://{parsed.netloc}"
@@ -847,15 +1066,29 @@ def sandbox_embed(request):
         except _embed_parse_errors:
             pass
     # Origin check: only allow embed to be loaded from our own origins (Referer/Origin)
-    request_origin = request.META.get("HTTP_ORIGIN") or request.META.get("HTTP_REFERER", "")
+    request_origin = request.META.get("HTTP_ORIGIN") or request.META.get(
+        "HTTP_REFERER", ""
+    )
     if request_origin:
         from urllib.parse import urlparse
         from django.conf import settings
+
         try:
             parsed = urlparse(request_origin)
             host = (parsed.netloc or "").split(":")[0]
-            allowed = list(getattr(settings, "ALLOWED_HOSTS", [])) or ["localhost", "127.0.0.1"]
-            if host and host not in allowed and not any(host == h.lstrip(".") or host.endswith("." + h.lstrip(".")) for h in allowed if isinstance(h, str) and h.startswith(".")):
+            allowed = list(getattr(settings, "ALLOWED_HOSTS", [])) or [
+                "localhost",
+                "127.0.0.1",
+            ]
+            if (
+                host
+                and host not in allowed
+                and not any(
+                    host == h.lstrip(".") or host.endswith("." + h.lstrip("."))
+                    for h in allowed
+                    if isinstance(h, str) and h.startswith(".")
+                )
+            ):
                 return HttpResponse(
                     "<p>Embed not allowed from this origin.</p>",
                     content_type="text/html",
@@ -863,7 +1096,12 @@ def sandbox_embed(request):
                 )
         except _embed_parse_errors:
             pass
-    safe_src = (iframe_src or "about:blank").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+    safe_src = (
+        (iframe_src or "about:blank")
+        .replace('"', "&quot;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
     sandbox_attr = "sandbox allow-scripts allow-same-origin"
     html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>App Sandbox</title></head>
 <body>
@@ -872,6 +1110,8 @@ def sandbox_embed(request):
 </div>
 </body></html>"""
     response = HttpResponse(html, content_type="text/html; charset=utf-8")
-    response["Content-Security-Policy"] = f"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-src 'self' https:; frame-ancestors {frame_ancestors}"
+    response["Content-Security-Policy"] = (
+        f"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-src 'self' https:; frame-ancestors {frame_ancestors}"
+    )
     response["X-Frame-Options"] = "SAMEORIGIN"
     return response

@@ -57,7 +57,9 @@ class FakeLinkList(list):
 class DashboardCustomLayoutTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.create_user("parentbro", "parent@example.com", "testpass123")
+        self.user = User.objects.create_user(
+            "parentbro", "parent@example.com", "testpass123"
+        )
         self.user.role = User.Role.PARENT
         self.user.save()
         self.student_stub = SimpleNamespace(id=1)
@@ -76,11 +78,25 @@ class DashboardCustomLayoutTests(TestCase):
             "grade_trend": [],
             "subject_performance": [],
             "performance": {"per_student": []},
-            "finance": {"total_due": Decimal("0.00"), "paid": Decimal("0.00"), "balance": Decimal("0.00")},
+            "finance": {
+                "total_due": Decimal("0.00"),
+                "paid": Decimal("0.00"),
+                "balance": Decimal("0.00"),
+            },
             "tasks": {"pending_evaluations": 0},
             "analytics": {"label": "N/A", "highlights": [], "lowlights": []},
-            "fees_breakdown": {"percent": 0, "paid": "0.00", "due": "0.00", "overdue": 0},
-            "assignment_completion": {"percent": 0, "complete": 0, "pending": 0, "total": 0},
+            "fees_breakdown": {
+                "percent": 0,
+                "paid": "0.00",
+                "due": "0.00",
+                "overdue": 0,
+            },
+            "assignment_completion": {
+                "percent": 0,
+                "complete": 0,
+                "pending": 0,
+                "total": 0,
+            },
             "events": [],
         }
 
@@ -101,16 +117,33 @@ class DashboardCustomLayoutTests(TestCase):
         url = reverse("portal:parent_dashboard")
         self.client.force_login(self.user)
 
-        with patch("apps.portal.views.guardian_student_links", side_effect=self._fake_guardian_links), patch(
-            "apps.portal.views.parent_dashboard_widget_data", return_value=widget_data
-        ), patch("apps.portal.views.class_announcements_for_parent", return_value=[]), patch(
-            "apps.portal.views.class_threads_for_parent", return_value=[]
-        ), patch("apps.portal.views._portal_features_status", return_value=[]), patch(
-            "apps.portal.views.default_portal_features", return_value={}
-        ), patch("apps.portal.views.filter_portal_items", return_value=[]), patch(
-            "apps.portal.views.get_effective_site_settings", return_value=site_payload
-        ), patch("apps.portal.views.default_backend_feature_flags", return_value={}), patch(
-            "apps.siteconfig.models_dashboard.get_dashboard_widget_metadata", return_value={}):
+        with (
+            patch(
+                "apps.portal.services.guardian_student_links",
+                side_effect=self._fake_guardian_links,
+            ),
+            patch(
+                "apps.portal.services.parent_dashboard_widget_data",
+                return_value=widget_data,
+            ),
+            patch(
+                "apps.portal.services.class_announcements_for_parent", return_value=[]
+            ),
+            patch("apps.portal.services.class_threads_for_parent", return_value=[]),
+            patch("apps.portal.views_common._portal_features_status", return_value=[]),
+            patch(
+                "apps.platform_runtime.helpers.get_effective_site_settings",
+                return_value=site_payload,
+            ),
+            patch(
+                "apps.siteconfig.models_support.filter_portal_items",
+                side_effect=lambda items, role: items or [],
+            ),
+            patch(
+                "apps.runtime_blueprints.models.get_dashboard_widget_metadata",
+                return_value={},
+            ),
+        ):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)

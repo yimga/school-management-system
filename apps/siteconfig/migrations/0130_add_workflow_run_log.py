@@ -5,26 +5,52 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0129_rls_policy_default_deny'),
+        ("siteconfig", "0129_rls_policy_default_deny"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='WorkflowRunLog',
+            name="WorkflowRunLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('conditions_passed', models.BooleanField(default=False)),
-                ('actions_run', models.JSONField(default=list, help_text='List of {type, params, run_at} per action.')),
-                ('context_keys', models.JSONField(default=list, help_text='Keys present in context (no values for privacy).')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('tenant_workflow', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='run_logs', to='siteconfig.tenantworkflow')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("conditions_passed", models.BooleanField(default=False)),
+                (
+                    "actions_run",
+                    models.JSONField(
+                        default=list,
+                        help_text="List of {type, params, run_at} per action.",
+                    ),
+                ),
+                (
+                    "context_keys",
+                    models.JSONField(
+                        default=list,
+                        help_text="Keys present in context (no values for privacy).",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "tenant_workflow",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="run_logs",
+                        to="siteconfig.tenantworkflow",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Workflow Run Log',
-                'verbose_name_plural': 'Workflow Run Logs',
-                'ordering': ['-created_at'],
+                "verbose_name": "Workflow Run Log",
+                "verbose_name_plural": "Workflow Run Logs",
+                "ordering": ["-created_at"],
             },
         ),
     ]

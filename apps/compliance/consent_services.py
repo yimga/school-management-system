@@ -2,6 +2,7 @@
 Parental Permission & Consent Hub (plan 3.18).
 Versioned documents; hash at sign; mark outdated and re-request; withdrawal in audit.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -21,11 +22,15 @@ def get_pending_consents_for_user(user, school):
     if not school:
         return []
     signed_ids = set(
-        ConsentRecord.objects.filter(user=user, school=school, withdrawn_at__isnull=True)
+        ConsentRecord.objects.filter(
+            user=user, school=school, withdrawn_at__isnull=True
+        )
         .values_list("consent_request_id", flat=True)
         .filter(consent_request_id__isnull=False)
     )
-    qs = ConsentRequest.objects.filter(school=school, is_active=True).order_by("due_date", "-created_at")
+    qs = ConsentRequest.objects.filter(school=school, is_active=True).order_by(
+        "due_date", "-created_at"
+    )
     return [r for r in qs if r.id not in signed_ids]
 
 
@@ -53,13 +58,16 @@ def mark_consents_outdated_for_request(consent_request):
     pass
 
 
-def create_consent_record(user, school, title: str, document_text: str, request=None, consent_request=None):
+def create_consent_record(
+    user, school, title: str, document_text: str, request=None, consent_request=None
+):
     """Record signature with SHA-256 hash; IP from request."""
     doc_hash = get_document_hash(document_text)
     ip = None
     if request:
         try:
             from ipware import get_client_ip
+
             ip, _ = get_client_ip(request)
         except ImportError:
             ip = request.META.get("REMOTE_ADDR")
@@ -70,7 +78,9 @@ def create_consent_record(user, school, title: str, document_text: str, request=
         title=title,
         document_hash=doc_hash,
         ip_address=ip,
-        document_version_at_sign=consent_request.document_version_id if consent_request else None,
+        document_version_at_sign=consent_request.document_version_id
+        if consent_request
+        else None,
     )
 
 

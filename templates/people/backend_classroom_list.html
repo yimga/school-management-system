@@ -56,16 +56,18 @@
                   <th scope="col">{% trans "Academic year" %}</th>
                   <th scope="col">{% trans "Department" %}</th>
                   <th scope="col">{% trans "Third term" %}</th>
+                  <th scope="col">{% trans "Actions" %}</th>
                 </tr>
               </thead>
               <tbody>
                 {% for c in classrooms %}
                 <tr>
-                  <td>{{ c.name }}</td>
+                  <td><a href="{% url 'accounts:backend_classroom_detail' c.pk %}">{{ c.name }}</a></td>
                   <td>{{ c.code|default:"—" }}</td>
                   <td>{{ c.academic_year.name|default:"—" }}</td>
                   <td>{{ c.department.name|default:"—" }}</td>
                   <td>{% if c.allows_third_term %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+                  <td><a href="{% url 'accounts:backend_classroom_detail' c.pk %}" class="btn btn-sm btn-outline-primary">{% trans "View" %}</a></td>
                 </tr>
                 {% endfor %}
               </tbody>

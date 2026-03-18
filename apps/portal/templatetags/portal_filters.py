@@ -7,7 +7,7 @@ register = template.Library()
 def status_color(value, threshold="80"):
     """
     Return status color (danger, warning, success) based on numeric value and threshold.
-    
+
     Usage: {{ score|status_color:"70" }}
     - Danger (red): < threshold - 10
     - Warning (yellow): threshold - 10 to threshold
@@ -16,7 +16,7 @@ def status_color(value, threshold="80"):
     try:
         score = float(value)
         threshold = float(threshold)
-        
+
         if score >= threshold:
             return "success"
         elif score >= threshold - 10:
@@ -31,13 +31,13 @@ def status_color(value, threshold="80"):
 def status_icon(value, threshold="80"):
     """
     Return icon for status badge based on numeric value.
-    
+
     Usage: {{ score|status_icon:"85" }}
     """
     try:
         score = float(value)
         threshold = float(threshold)
-        
+
         if score >= threshold:
             return "bi-check-circle"
         elif score >= threshold - 10:
@@ -50,6 +50,7 @@ def status_icon(value, threshold="80"):
 
 # Currency display: use {% load region_format %} and |format_currency in templates
 # (region-aware; no duplicate filter here).
+
 
 @register.filter
 def is_positive(value):

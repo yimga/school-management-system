@@ -3,6 +3,7 @@
 Studio OS shared services: preview, publish/rollback, activity, recommendations.
 One model for all modes. Unified preview URL is the single entry point for embed/preview per mode.
 """
+
 from __future__ import annotations
 
 import logging
@@ -60,6 +61,7 @@ def get_studio_preview_url(mode: str, request: Any = None) -> str:
     single-sourced (e.g. ?embed=1 for iframe, no redirect back to Studio).
     """
     from django.urls import NoReverseMatch, reverse
+
     target = STUDIO_MODE_EMBED_TARGETS.get((mode or "").strip().lower())
     if not target:
         return ""
@@ -98,6 +100,7 @@ def get_studio_preview_context(mode: str, request: Any = None) -> dict[str, Any]
         return out
     try:
         from apps.setup_studio.services import get_setup_studio_payload
+
         payload = get_setup_studio_payload(school)
         out["health_summary"] = payload.get("health_summary")
         out["recommended_next"] = payload.get("recommended_next")
@@ -108,15 +111,24 @@ def get_studio_preview_context(mode: str, request: Any = None) -> dict[str, Any]
         if launch_ready:
             impact_parts.append("Launch ready; run final previews before go-live.")
         elif launch_blockers:
-            impact_parts.append(f"{len(launch_blockers)} blocker(s) must be cleared before launch.")
+            impact_parts.append(
+                f"{len(launch_blockers)} blocker(s) must be cleared before launch."
+            )
         if impact_parts:
             out["impact_summary"] = " ".join(impact_parts)
         else:
-            out["impact_summary"] = payload.get("health_summary", {}).get("detail") or "Review setup steps."
+            out["impact_summary"] = (
+                payload.get("health_summary", {}).get("detail") or "Review setup steps."
+            )
         # §5.6: dependency warnings (blockers as dependency-style warnings)
         out["dependency_warnings"] = [
-            {"key": b.get("key"), "label": b.get("label"), "detail": b.get("detail") or b.get("label")}
-            for b in launch_blockers if isinstance(b, dict)
+            {
+                "key": b.get("key"),
+                "label": b.get("label"),
+                "detail": b.get("detail") or b.get("label"),
+            }
+            for b in launch_blockers
+            if isinstance(b, dict)
         ][:10]
     except _STUDIO_SOFT_FAILURES as e:
         ctx = request_context_for_log(request) if request else {}
@@ -152,48 +164,65 @@ def get_studio_activity_feed(request, limit: int = 15) -> list[dict[str, Any]]:
         url = _safe("studio_os:experience")
         if not url:
             return feed[:limit]
-        feed.append({
-            "kind": "theme_publish",
-            "label": "Theme & experience published",
-            "timestamp": theme_meta.get("timestamp", ""),
-            "actor": theme_meta.get("actor", ""),
-            "detail": f"{theme_meta.get('changed_count', 0)} fields",
-            "url": url,
-        })
+        feed.append(
+            {
+                "kind": "theme_publish",
+                "label": "Theme & experience published",
+                "timestamp": theme_meta.get("timestamp", ""),
+                "actor": theme_meta.get("actor", ""),
+                "detail": f"{theme_meta.get('changed_count', 0)} fields",
+                "url": url,
+            }
+        )
 
     # Feature control audit (last N)
     try:
         from apps.siteconfig.models_dashboard import FeatureControlAudit
+
         control_url = _safe("studio_os:control")
-        for entry in FeatureControlAudit.objects.select_related("user").order_by("-created_at")[:limit]:
+        for entry in FeatureControlAudit.objects.select_related("user").order_by(
+            "-created_at"
+        )[:limit]:
             if not control_url:
                 break
-            feed.append({
-                "kind": "feature_control",
-                "label": "Feature control" + (" reverted" if entry.action == "revert" else " saved"),
-                "timestamp": entry.created_at.strftime("%Y-%m-%d %H:%M") if entry.created_at else "",
-                "actor": entry.user.get_username() if entry.user else "system",
-                "detail": entry.action or "save",
-                "url": control_url,
-            })
+            feed.append(
+                {
+                    "kind": "feature_control",
+                    "label": "Feature control"
+                    + (" reverted" if entry.action == "revert" else " saved"),
+                    "timestamp": entry.created_at.strftime("%Y-%m-%d %H:%M")
+                    if entry.created_at
+                    else "",
+                    "actor": entry.user.get_username() if entry.user else "system",
+                    "detail": entry.action or "save",
+                    "url": control_url,
+                }
+            )
     except _STUDIO_SOFT_FAILURES as e:
         logger.debug("Studio activity: feature control audit unavailable: %s", e)
 
     # §4.1 Extend to package/workflow: recent InstalledPackage apply (if any)
     try:
         from apps.packages.models import InstalledPackage
+
         pkg_url = _safe("studio_os:control")
-        for pkg in InstalledPackage.objects.filter(is_active=True).order_by("-applied_at")[:5]:
+        for pkg in InstalledPackage.objects.filter(is_active=True).order_by(
+            "-applied_at"
+        )[:5]:
             if not pkg_url:
                 break
-            feed.append({
-                "kind": "package_apply",
-                "label": f"Package {pkg.package_id}@{pkg.version} applied",
-                "timestamp": pkg.applied_at.strftime("%Y-%m-%d %H:%M") if pkg.applied_at else "",
-                "actor": str(pkg.applied_by_id) if pkg.applied_by_id else "system",
-                "detail": pkg.apply_stage or "production",
-                "url": pkg_url,
-            })
+            feed.append(
+                {
+                    "kind": "package_apply",
+                    "label": f"Package {pkg.package_id}@{pkg.version} applied",
+                    "timestamp": pkg.applied_at.strftime("%Y-%m-%d %H:%M")
+                    if pkg.applied_at
+                    else "",
+                    "actor": str(pkg.applied_by_id) if pkg.applied_by_id else "system",
+                    "detail": pkg.apply_stage or "production",
+                    "url": pkg_url,
+                }
+            )
     except _STUDIO_SOFT_FAILURES as e:
         logger.debug("Studio activity: package feed unavailable: %s", e)
 
@@ -207,30 +236,51 @@ def get_studio_role_preview_entries(request: Any) -> list[dict[str, Any]]:
     Uses Launch payload when available; otherwise minimal role list with preview links.
     """
     from django.urls import NoReverseMatch, reverse
+
     school = getattr(request, "school", None)
     if not school:
         return []
     try:
         from apps.setup_studio.services import get_setup_studio_payload
+
         payload = get_setup_studio_payload(school)
         role_previews = payload.get("role_previews") or []
         if isinstance(role_previews, list) and role_previews:
             return [
-                {"role": r.get("role", ""), "label": r.get("label", r.get("role", "")), "url": r.get("url", "")}
-                for r in role_previews if isinstance(r, dict)
+                {
+                    "role": r.get("role", ""),
+                    "label": r.get("label", r.get("role", "")),
+                    "url": r.get("url", ""),
+                }
+                for r in role_previews
+                if isinstance(r, dict)
             ][:8]
     except _STUDIO_SOFT_FAILURES as e:
         logger.debug("Studio role preview entries: %s", e)
+
     # Fallback: minimal role list
     def _safe(name: str) -> str:
         try:
             return reverse(name)
         except NoReverseMatch:
             return ""
+
     return [
-        {"role": "principal", "label": "Principal", "url": _safe("accounts:backend_dashboard") or "#"},
-        {"role": "teacher", "label": "Teacher", "url": _safe("accounts:backend_dashboard") or "#"},
-        {"role": "parent", "label": "Parent", "url": _safe("portal:parent_dashboard") or "#"},
+        {
+            "role": "principal",
+            "label": "Principal",
+            "url": _safe("accounts:backend_dashboard") or "#",
+        },
+        {
+            "role": "teacher",
+            "label": "Teacher",
+            "url": _safe("accounts:backend_dashboard") or "#",
+        },
+        {
+            "role": "parent",
+            "label": "Parent",
+            "url": _safe("portal:parent_dashboard") or "#",
+        },
     ]
 
 
@@ -254,63 +304,81 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
     if mode == "launch":
         try:
             from apps.setup_studio.services import get_setup_studio_payload
+
             payload = get_setup_studio_payload(school)
             rec = payload.get("recommended_next") or payload.get("health_summary")
             if rec:
                 if isinstance(rec, dict):
                     url = _safe("studio_os:launch")
                     if url:
-                        recs.append({
-                            "label": rec.get("label", "Launch"),
-                            "detail": rec.get("detail", ""),
-                            "url": url,
-                            "tone": rec.get("tone", "neutral"),
-                        })
+                        recs.append(
+                            {
+                                "label": rec.get("label", "Launch"),
+                                "detail": rec.get("detail", ""),
+                                "url": url,
+                                "tone": rec.get("tone", "neutral"),
+                            }
+                        )
                 else:
                     url = _safe("studio_os:launch")
                     if url:
-                        recs.append({"label": "Launch", "detail": str(rec), "url": url, "tone": "neutral"})
+                        recs.append(
+                            {
+                                "label": "Launch",
+                                "detail": str(rec),
+                                "url": url,
+                                "tone": "neutral",
+                            }
+                        )
             if payload.get("launch_blockers"):
                 url = _safe("studio_os:launch")
                 if url:
-                    recs.append({
-                        "label": "Resolve launch blockers",
-                        "detail": f"{len(payload['launch_blockers'])} blocker(s)",
-                        "url": url,
-                        "tone": "risk",
-                    })
+                    recs.append(
+                        {
+                            "label": "Resolve launch blockers",
+                            "detail": f"{len(payload['launch_blockers'])} blocker(s)",
+                            "url": url,
+                            "tone": "risk",
+                        }
+                    )
         except _STUDIO_SOFT_FAILURES as e:
             logger.debug("Studio recommendations: launch payload unavailable: %s", e)
 
     if mode == "experience":
         url = _safe("studio_os:experience")
         if url:
-            recs.append({
-                "label": "Check contrast",
-                "detail": "Use Live preview and confirm accessibility before publishing.",
-                "url": url,
-                "tone": "neutral",
-            })
+            recs.append(
+                {
+                    "label": "Check contrast",
+                    "detail": "Use Live preview and confirm accessibility before publishing.",
+                    "url": url,
+                    "tone": "neutral",
+                }
+            )
 
     if mode == "control":
         url = _safe("siteconfig:feature_control_audit")
         if url:
-            recs.append({
-                "label": "Review audit",
-                "detail": "Check feature control audit before rolling back.",
-                "url": url,
-                "tone": "neutral",
-            })
+            recs.append(
+                {
+                    "label": "Review audit",
+                    "detail": "Check feature control audit before rolling back.",
+                    "url": url,
+                    "tone": "neutral",
+                }
+            )
 
     if not mode or mode == "overview":
         url = _safe("studio_os:shell")
         if url:
-            recs.append({
-                "label": "Open Studio",
-                "detail": "Choose a mode to shape experience, automate, publish, launch, or govern.",
-                "url": url,
-                "tone": "neutral",
-            })
+            recs.append(
+                {
+                    "label": "Open Studio",
+                    "detail": "Choose a mode to shape experience, automate, publish, launch, or govern.",
+                    "url": url,
+                    "tone": "neutral",
+                }
+            )
 
     return recs[:5]
 
@@ -331,27 +399,63 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
         url = _safe(url_name)
         if not url:
             return
-        entries.append({
-            "label": label,
-            "url": url,
-            "keywords": keywords,
-        })
+        entries.append(
+            {
+                "label": label,
+                "url": url,
+                "keywords": keywords,
+            }
+        )
 
-    _add("Change school branding", "studio_os:experience", keywords="brand theme colors experience")
-    _add("Preview parent portal", "portal:parent_dashboard", keywords="preview parent portal")
-    _add("Install attendance workflow", "studio_os:automation", keywords="install attendance workflow automation")
-    _add("Open fee reminder automation", "studio_os:automation", keywords="fee reminder automation workflow")
-    _add("Configure grade reports", "studio_os:output", keywords="grade reports configure output reports")
+    _add(
+        "Change school branding",
+        "studio_os:experience",
+        keywords="brand theme colors experience",
+    )
+    _add(
+        "Preview parent portal",
+        "portal:parent_dashboard",
+        keywords="preview parent portal",
+    )
+    _add(
+        "Install attendance workflow",
+        "studio_os:automation",
+        keywords="install attendance workflow automation",
+    )
+    _add(
+        "Open fee reminder automation",
+        "studio_os:automation",
+        keywords="fee reminder automation workflow",
+    )
+    _add(
+        "Configure grade reports",
+        "studio_os:output",
+        keywords="grade reports configure output reports",
+    )
     _add("Set up grade reports", "studio_os:output", keywords="reports output")
-    _add("Workflows & approvals", "studio_os:automation", keywords="workflow automation approval")
+    _add(
+        "Workflows & approvals",
+        "studio_os:automation",
+        keywords="workflow automation approval",
+    )
     _add("Launch & setup", "studio_os:launch", keywords="launch setup onboarding")
-    _add("Feature control & capabilities", "studio_os:control", keywords="feature control capabilities")
+    _add(
+        "Feature control & capabilities",
+        "studio_os:control",
+        keywords="feature control capabilities",
+    )
     _add("Studio overview", "studio_os:shell", keywords="studio home")
-    _add("Go to district analytics", "super:analytics_overview", keywords="district analytics overview")
+    _add(
+        "Go to district analytics",
+        "super:analytics_overview",
+        keywords="district analytics overview",
+    )
     return entries
 
 
-def get_studio_global_search(request: Any, q: str, limit: int = 20) -> list[dict[str, Any]]:
+def get_studio_global_search(
+    request: Any, q: str, limit: int = 20
+) -> list[dict[str, Any]]:
     """
     §4.1 global search: search across Studio entities (modes, actions, commands).
     Returns list of {label, url, kind}. Uses command palette entries; extend with
@@ -363,12 +467,17 @@ def get_studio_global_search(request: Any, q: str, limit: int = 20) -> list[dict
     entries = get_studio_command_palette_entries(request)
     results = []
     for e in entries:
-        if q_lower in (e.get("label") or "").lower() or q_lower in (e.get("keywords") or "").lower():
-            results.append({
-                "label": e.get("label", ""),
-                "url": e.get("url", ""),
-                "kind": "command",
-            })
+        if (
+            q_lower in (e.get("label") or "").lower()
+            or q_lower in (e.get("keywords") or "").lower()
+        ):
+            results.append(
+                {
+                    "label": e.get("label", ""),
+                    "url": e.get("url", ""),
+                    "kind": "command",
+                }
+            )
         if len(results) >= limit:
             break
     return results
@@ -394,6 +503,7 @@ def studio_rollback_available(mode: str, request) -> bool:
 
 # ---- Shared publish/rollback service (one model for all modes) ----
 
+
 def studio_save_draft(mode: str, request, payload: dict[str, Any]) -> dict[str, Any]:
     """
     Save draft state for the given mode. Experience: stash theme payload in session for preview.
@@ -404,10 +514,19 @@ def studio_save_draft(mode: str, request, payload: dict[str, Any]) -> dict[str, 
         return {"ok": False, "errors": errors}
     if mode == "experience":
         request.session["site_preview_settings"] = {
-            k: payload.get(k) for k in (
-                "primary_color", "accent_color", "header_bg_color", "footer_bg_color",
-                "success_color", "warning_color", "danger_color", "theme_pack", "admin_theme_pack",
-            ) if payload.get(k) is not None
+            k: payload.get(k)
+            for k in (
+                "primary_color",
+                "accent_color",
+                "header_bg_color",
+                "footer_bg_color",
+                "success_color",
+                "warning_color",
+                "danger_color",
+                "theme_pack",
+                "admin_theme_pack",
+            )
+            if payload.get(k) is not None
         }
         request.session["preview_mode_enabled"] = True
         request.session.modified = True
@@ -425,6 +544,7 @@ def studio_publish(mode: str, request, payload: dict[str, Any]) -> dict[str, Any
         return {"ok": False, "errors": errors}
     try:
         from django.urls import reverse
+
         if mode == "experience":
             return {"ok": True, "redirect_url": reverse("studio_os:experience")}
         if mode == "control":
@@ -434,23 +554,29 @@ def studio_publish(mode: str, request, payload: dict[str, Any]) -> dict[str, Any
     return {"ok": True}
 
 
-def get_studio_publish_audit(request, mode: str | None, limit: int = 20) -> list[dict[str, Any]]:
+def get_studio_publish_audit(
+    request, mode: str | None, limit: int = 20
+) -> list[dict[str, Any]]:
     """Recent publish/rollback events for the mode (or all). Uses activity feed + feature control audit."""
     feed = get_studio_activity_feed(request, limit=limit)
     return feed
 
 
-def get_studio_version_history(request, mode: str, limit: int = 10) -> list[dict[str, Any]]:
+def get_studio_version_history(
+    request, mode: str, limit: int = 10
+) -> list[dict[str, Any]]:
     """Version history for the mode. Stub: returns last session-backed state or empty."""
     history = []
     if mode == "experience" and request.session.get("theme_recent_change_meta"):
         meta = request.session["theme_recent_change_meta"]
-        history.append({
-            "version": "current",
-            "timestamp": meta.get("timestamp", ""),
-            "actor": meta.get("actor", ""),
-            "label": "Last published",
-        })
+        history.append(
+            {
+                "version": "current",
+                "timestamp": meta.get("timestamp", ""),
+                "actor": meta.get("actor", ""),
+                "label": "Last published",
+            }
+        )
     return history[:limit]
 
 
@@ -491,12 +617,15 @@ def get_studio_compare_context(request: Any, mode: str) -> dict[str, Any]:
         return result
     try:
         from apps.platform_runtime.helpers import get_effective_site_settings
+
         # After: current saved theme, or session preview if set
         preview = request.session.get("site_preview_settings") or {}
         site = get_effective_site_settings(request=request)
         after_snapshot: dict[str, Any] = {}
         for name, _ in _EXPERIENCE_COMPARE_THEME_KEYS:
-            after_snapshot[name] = preview.get(name) if preview else getattr(site, name, None)
+            after_snapshot[name] = (
+                preview.get(name) if preview else getattr(site, name, None)
+            )
             if after_snapshot[name] is None:
                 after_snapshot[name] = getattr(site, name, None)
         result["after_entries"] = _theme_snapshot_to_entries(after_snapshot)
@@ -516,7 +645,11 @@ def get_output_dependency_graph() -> list[dict[str, Any]]:
     normalized dependencies (from dependency_schema). Used by output_dependency_graph view.
     """
     try:
-        from apps.reports.report_packs import list_active_report_packs, normalize_report_pack_dependencies
+        from apps.reports.report_packs import (
+            list_active_report_packs,
+            normalize_report_pack_dependencies,
+        )
+
         packs = list_active_report_packs()
         return [
             {
@@ -539,19 +672,33 @@ def get_automation_dependency_graph() -> list[dict[str, Any]]:
     """
     try:
         from apps.runtime_blueprints.models import WorkflowPack
-        packs = WorkflowPack.objects.filter(is_active=True).prefetch_related("templates").order_by("family", "name")
+
+        packs = (
+            WorkflowPack.objects.filter(is_active=True)
+            .prefetch_related("templates")
+            .order_by("family", "name")
+        )
         out: list[dict[str, Any]] = []
         for p in packs:
             rel = getattr(p, "templates", None)
             templates = list(rel.all()[:50]) if rel is not None else []
-            out.append({
-                "pack_code": getattr(p, "code", "") or "",
-                "pack_name": getattr(p, "name", "") or getattr(p, "code", "") or "—",
-                "templates": [
-                    {"code": getattr(t, "code", "") or "", "name": getattr(t, "name", "") or getattr(t, "code", "") or "—"}
-                    for t in templates
-                ],
-            })
+            out.append(
+                {
+                    "pack_code": getattr(p, "code", "") or "",
+                    "pack_name": getattr(p, "name", "")
+                    or getattr(p, "code", "")
+                    or "—",
+                    "templates": [
+                        {
+                            "code": getattr(t, "code", "") or "",
+                            "name": getattr(t, "name", "")
+                            or getattr(t, "code", "")
+                            or "—",
+                        }
+                        for t in templates
+                    ],
+                }
+            )
         return out
     except _STUDIO_SOFT_FAILURES as e:
         logger.warning("get_automation_dependency_graph: %s", e)

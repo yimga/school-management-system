@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0084_integration_unified_governance_fields'),
+        ("siteconfig", "0084_integration_unified_governance_fields"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userpreference',
-            name='last_portal_role',
-            field=models.CharField(blank=True, default='', help_text='For users with both Teacher and Parent roles: last selected portal view (TEACHER or PARENT). Restored on login.', max_length=20),
+            model_name="userpreference",
+            name="last_portal_role",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="For users with both Teacher and Parent roles: last selected portal view (TEACHER or PARENT). Restored on login.",
+                max_length=20,
+            ),
         ),
     ]

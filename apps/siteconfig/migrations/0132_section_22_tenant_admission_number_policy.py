@@ -5,31 +5,88 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0027_school_country_code_school_education_levels_and_more'),
-        ('siteconfig', '0131_brandprofile'),
+        ("schools", "0027_school_country_code_school_education_levels_and_more"),
+        ("siteconfig", "0131_brandprofile"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TenantAdmissionNumberPolicy',
+            name="TenantAdmissionNumberPolicy",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('strategy', models.CharField(choices=[('FULL', 'Full (YY+School+Seq+Spec+Class)'), ('YEAR_SEQ', 'Year + sequence only'), ('SEQ_ONLY', 'Sequence only'), ('TEMPLATE', 'Custom template')], default='FULL', max_length=20)),
-                ('template', models.CharField(blank=True, help_text='Placeholders: {year_2digit}, {school_code}, {seq_4digit}, {spec_code}, {class_segment}. Overrides strategy when set.', max_length=255)),
-                ('pattern', models.CharField(blank=True, help_text='Regex to validate admission numbers. Leave blank for default.', max_length=255)),
-                ('school_code', models.CharField(default='GIL', max_length=20)),
-                ('seq_width', models.PositiveSmallIntegerField(default=4, help_text='Padding width for sequence (e.g. 4 → 0001).')),
-                ('reset_frequency', models.CharField(choices=[('NEVER', 'Never (global sequence)'), ('YEARLY', 'Per academic year'), ('TERM', 'Per term')], default='YEARLY', max_length=20)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='admission_number_policy', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "strategy",
+                    models.CharField(
+                        choices=[
+                            ("FULL", "Full (YY+School+Seq+Spec+Class)"),
+                            ("YEAR_SEQ", "Year + sequence only"),
+                            ("SEQ_ONLY", "Sequence only"),
+                            ("TEMPLATE", "Custom template"),
+                        ],
+                        default="FULL",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "template",
+                    models.CharField(
+                        blank=True,
+                        help_text="Placeholders: {year_2digit}, {school_code}, {seq_4digit}, {spec_code}, {class_segment}. Overrides strategy when set.",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "pattern",
+                    models.CharField(
+                        blank=True,
+                        help_text="Regex to validate admission numbers. Leave blank for default.",
+                        max_length=255,
+                    ),
+                ),
+                ("school_code", models.CharField(default="GIL", max_length=20)),
+                (
+                    "seq_width",
+                    models.PositiveSmallIntegerField(
+                        default=4,
+                        help_text="Padding width for sequence (e.g. 4 → 0001).",
+                    ),
+                ),
+                (
+                    "reset_frequency",
+                    models.CharField(
+                        choices=[
+                            ("NEVER", "Never (global sequence)"),
+                            ("YEARLY", "Per academic year"),
+                            ("TERM", "Per term"),
+                        ],
+                        default="YEARLY",
+                        max_length=20,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="admission_number_policy",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Tenant admission number policy',
-                'verbose_name_plural': 'Tenant admission number policies',
+                "verbose_name": "Tenant admission number policy",
+                "verbose_name_plural": "Tenant admission number policies",
             },
         ),
     ]

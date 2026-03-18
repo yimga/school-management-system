@@ -38,7 +38,9 @@ class PreviewFromFormTestCase(TestCase):
         """GET when authenticated must return 400 (POST required)."""
         self.client.login(username="previewtest", password="password")
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 400, "GET must return 400 when POST is required")
+        self.assertEqual(
+            response.status_code, 400, "GET must return 400 when POST is required"
+        )
 
     def test_redirect_url_contains_preview_section_footer(self):
         self.client.login(username="previewtest", password="password")

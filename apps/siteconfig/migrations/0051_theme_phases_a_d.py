@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0050_sitesettings_backend_console_theme"),
     ]
@@ -33,33 +32,50 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="sitesettings",
             name="show_header_search",
-            field=models.BooleanField(default=True, help_text="Show search in the portal/backend header."),
+            field=models.BooleanField(
+                default=True, help_text="Show search in the portal/backend header."
+            ),
         ),
         migrations.AddField(
             model_name="sitesettings",
             name="show_header_notifications",
-            field=models.BooleanField(default=True, help_text="Show notifications bell in the header."),
+            field=models.BooleanField(
+                default=True, help_text="Show notifications bell in the header."
+            ),
         ),
         migrations.AddField(
             model_name="sitesettings",
             name="show_header_profile_menu",
-            field=models.BooleanField(default=True, help_text="Show user profile / quick links in the header."),
+            field=models.BooleanField(
+                default=True, help_text="Show user profile / quick links in the header."
+            ),
         ),
         migrations.AddField(
             model_name="sitesettings",
             name="show_header_theme_toggle",
-            field=models.BooleanField(default=True, help_text="Show theme (light/dark) toggle in the header when applicable."),
+            field=models.BooleanField(
+                default=True,
+                help_text="Show theme (light/dark) toggle in the header when applicable.",
+            ),
         ),
         migrations.AddField(
             model_name="sitesettings",
             name="favicon",
-            field=models.ImageField(blank=True, help_text="Favicon for browser tabs. Shown across portal, backend, and admin.", null=True, upload_to="branding/"),
+            field=models.ImageField(
+                blank=True,
+                help_text="Favicon for browser tabs. Shown across portal, backend, and admin.",
+                null=True,
+                upload_to="branding/",
+            ),
         ),
         migrations.AddField(
             model_name="sitesettings",
             name="layout_style",
             field=models.CharField(
-                choices=[("fluid", "Fluid (full width)"), ("boxed", "Boxed (max-width container)")],
+                choices=[
+                    ("fluid", "Fluid (full width)"),
+                    ("boxed", "Boxed (max-width container)"),
+                ],
                 default="fluid",
                 help_text="Page layout: fluid (full width) or boxed (centered max-width).",
                 max_length=10,
@@ -136,7 +152,7 @@ class Migration(migrations.Migration):
             field=models.JSONField(
                 blank=True,
                 default=dict,
-                help_text="Optional: role code -> list of widget IDs for default dashboard (e.g. {\"TEACHER\": [\"widget-a\", \"widget-b\"]}).",
+                help_text='Optional: role code -> list of widget IDs for default dashboard (e.g. {"TEACHER": ["widget-a", "widget-b"]}).',
             ),
         ),
         migrations.AddField(

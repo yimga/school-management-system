@@ -4,18 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0007_backfill_term_position'),
+        ("academics", "0007_backfill_term_position"),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='term',
-            constraint=models.UniqueConstraint(condition=models.Q(('position__isnull', False)), fields=('academic_year', 'position'), name='unique_term_position_per_year'),
+            model_name="term",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("position__isnull", False)),
+                fields=("academic_year", "position"),
+                name="unique_term_position_per_year",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='term',
-            constraint=models.CheckConstraint(condition=models.Q(('position__isnull', True), models.Q(('position__gte', 1), ('position__lte', 4)), _connector='OR'), name='term_position_range_1_4_or_null'),
+            model_name="term",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    ("position__isnull", True),
+                    models.Q(("position__gte", 1), ("position__lte", 4)),
+                    _connector="OR",
+                ),
+                name="term_position_range_1_4_or_null",
+            ),
         ),
     ]

@@ -2,6 +2,7 @@
 Phase E: Run calculate_monthly_stats to fill RevenueSnapshot.
 Use for manual run or cron; Celery Beat also runs this daily.
 """
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -24,9 +25,13 @@ class Command(BaseCommand):
         snapshot_date = None
         if date_str:
             try:
-                snapshot_date = timezone.datetime.strptime(date_str + "-01", "%Y-%m-%d").date()
+                snapshot_date = timezone.datetime.strptime(
+                    date_str + "-01", "%Y-%m-%d"
+                ).date()
             except ValueError:
-                self.stdout.write(self.style.ERROR(f"Invalid --date: {date_str} (use YYYY-MM)"))
+                self.stdout.write(
+                    self.style.ERROR(f"Invalid --date: {date_str} (use YYYY-MM)")
+                )
                 return
         result = calculate_monthly_stats(snapshot_date=snapshot_date)
         self.stdout.write(

@@ -13,7 +13,9 @@ from apps.siteconfig.models import RegionConfig
 
 class AdHocTenantScopeTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="adhoc_runner", password="pass12345")
+        self.user = User.objects.create_user(
+            username="adhoc_runner", password="pass12345"
+        )
         self.region = RegionConfig.get_default()
         self.school = School.objects.create(
             slug="adhoc-tenant",
@@ -29,7 +31,9 @@ class AdHocTenantScopeTests(TestCase):
             is_active=True,
             school=self.school,
         )
-        self.department = Department.objects.create(name="Science", code="SCI", school=self.school)
+        self.department = Department.objects.create(
+            name="Science", code="SCI", school=self.school
+        )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
             department=self.department,
@@ -57,7 +61,9 @@ class AdHocTenantScopeTests(TestCase):
             output_format="JSON",
         )
 
-        csv_bytes, json_rows, row_count, error = run_adhoc_report(definition, self.user, output_format="JSON")
+        csv_bytes, json_rows, row_count, error = run_adhoc_report(
+            definition, self.user, output_format="JSON"
+        )
 
         self.assertIsNone(csv_bytes)
         self.assertIsNone(json_rows)
@@ -74,7 +80,9 @@ class AdHocTenantScopeTests(TestCase):
             output_format="JSON",
         )
 
-        csv_bytes, json_rows, row_count, error = run_adhoc_report(definition, self.user, output_format="JSON")
+        csv_bytes, json_rows, row_count, error = run_adhoc_report(
+            definition, self.user, output_format="JSON"
+        )
 
         self.assertIsNone(csv_bytes)
         self.assertIsNone(error)

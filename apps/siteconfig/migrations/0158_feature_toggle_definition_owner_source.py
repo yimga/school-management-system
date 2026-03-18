@@ -4,20 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0157_alter_educationsystemprofile_subject_seed_and_more'),
+        ("siteconfig", "0157_alter_educationsystemprofile_subject_seed_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='featuretoggledefinition',
-            name='owner',
-            field=models.CharField(blank=True, help_text='Team or person responsible for this toggle (e.g. platform, product).', max_length=120),
+            model_name="featuretoggledefinition",
+            name="owner",
+            field=models.CharField(
+                blank=True,
+                help_text="Team or person responsible for this toggle (e.g. platform, product).",
+                max_length=120,
+            ),
         ),
         migrations.AddField(
-            model_name='featuretoggledefinition',
-            name='source',
-            field=models.CharField(blank=True, help_text='Origin of the flag (e.g. capability_registry, legacy_backend_flags).', max_length=80),
+            model_name="featuretoggledefinition",
+            name="source",
+            field=models.CharField(
+                blank=True,
+                help_text="Origin of the flag (e.g. capability_registry, legacy_backend_flags).",
+                max_length=80,
+            ),
         ),
     ]

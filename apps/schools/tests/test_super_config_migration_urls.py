@@ -2,6 +2,7 @@
 Final verification: all Admin→Super migration URLs resolve and return 200 (no 500).
 RUNBOOK_ADMIN_TO_SUPER_MIGRATION final checklist. Requires superuser on manager host.
 """
+
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -34,9 +35,15 @@ class SuperConfigMigrationUrlTests(TestCase):
 
     def test_config_hub_redirects_to_system_config(self):
         response = self._get("super:config_hub")
-        self.assertIn(response.status_code, (200, 302), "Config hub must redirect or render")
+        self.assertIn(
+            response.status_code, (200, 302), "Config hub must redirect or render"
+        )
         if response.status_code == 302:
-            self.assertIn("console/", response.get("Location", ""), "Config hub must redirect to System config")
+            self.assertIn(
+                "console/",
+                response.get("Location", ""),
+                "Config hub must redirect to System config",
+            )
             follow = self.client.get(response["Location"], HTTP_HOST=self.host)
             self.assertEqual(follow.status_code, 200, "System config must return 200")
         else:
@@ -44,7 +51,9 @@ class SuperConfigMigrationUrlTests(TestCase):
 
     def test_site_settings_list_200(self):
         response = self._get("super:site_settings_list")
-        self.assertEqual(response.status_code, 200, "Site settings list must return 200")
+        self.assertEqual(
+            response.status_code, 200, "Site settings list must return 200"
+        )
 
     def test_regions_list_200(self):
         response = self._get("super:regions_list")
@@ -60,26 +69,41 @@ class SuperConfigMigrationUrlTests(TestCase):
 
     def test_feature_toggles_list_200(self):
         response = self._get("super:feature_toggles_list")
-        self.assertEqual(response.status_code, 200, "Feature toggles list must return 200")
+        self.assertEqual(
+            response.status_code, 200, "Feature toggles list must return 200"
+        )
 
     def test_schools_list_200(self):
         response = self._get("super:schools_list")
         self.assertEqual(response.status_code, 200, "Schools list must return 200")
 
     def test_schools_list_pagination_and_filters(self):
-        response = self._get("super:schools_list", query="page=1&is_active=1&q=test&country_code=US")
-        self.assertEqual(response.status_code, 200, "Schools list with filters must return 200")
+        response = self._get(
+            "super:schools_list", query="page=1&is_active=1&q=test&country_code=US"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Schools list with filters must return 200"
+        )
 
     def test_site_settings_edit_200_or_404(self):
         # Edit requires existing pk; 404 if no SiteSettings
         from apps.siteconfig.models import SiteSettings
+
         first = SiteSettings.objects.first()
         if first:
             response = self._get("super:site_settings_edit", kwargs={"pk": first.pk})
-            self.assertEqual(response.status_code, 200, "Site settings edit must return 200 when pk exists")
+            self.assertEqual(
+                response.status_code,
+                200,
+                "Site settings edit must return 200 when pk exists",
+            )
         else:
             response = self._get("super:site_settings_edit", kwargs={"pk": 1})
-            self.assertEqual(response.status_code, 404, "Site settings edit must return 404 when pk missing")
+            self.assertEqual(
+                response.status_code,
+                404,
+                "Site settings edit must return 404 when pk missing",
+            )
 
     def test_ai_model_hub_200(self):
         response = self._get("super:ai_model_hub")
@@ -91,8 +115,12 @@ class SuperConfigMigrationUrlTests(TestCase):
 
     def test_billing_accounts_list_200(self):
         response = self._get("super:billing_accounts_list")
-        self.assertEqual(response.status_code, 200, "Billing accounts list must return 200")
+        self.assertEqual(
+            response.status_code, 200, "Billing accounts list must return 200"
+        )
 
     def test_migration_runs_list_200(self):
         response = self._get("super:migration_runs_list")
-        self.assertEqual(response.status_code, 200, "Migration runs list must return 200")
+        self.assertEqual(
+            response.status_code, 200, "Migration runs list must return 200"
+        )

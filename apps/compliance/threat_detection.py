@@ -74,14 +74,16 @@ def detect_threats(window_minutes: int | None = None, school=None) -> List[Dict]
         .filter(count__gte=failed_per_user_threshold)
     )
     for row in user_failures:
-        findings.append({
-            "type": "BRUTE_FORCE_USER",
-            "user": row["user__username"] or "Unknown",
-            "count": row["count"],
-            "window": f"{window}m",
-            "severity": "HIGH",
-            "description": f"{row['count']} failed accesses for user in {window} minutes",
-        })
+        findings.append(
+            {
+                "type": "BRUTE_FORCE_USER",
+                "user": row["user__username"] or "Unknown",
+                "count": row["count"],
+                "window": f"{window}m",
+                "severity": "HIGH",
+                "description": f"{row['count']} failed accesses for user in {window} minutes",
+            }
+        )
 
     # Brute-force per IP
     ip_failures = (
@@ -91,14 +93,16 @@ def detect_threats(window_minutes: int | None = None, school=None) -> List[Dict]
         .filter(count__gte=failed_per_ip_threshold)
     )
     for row in ip_failures:
-        findings.append({
-            "type": "BRUTE_FORCE_IP",
-            "ip_address": row["ip_address"] or "Unknown",
-            "count": row["count"],
-            "window": f"{window}m",
-            "severity": "HIGH",
-            "description": f"{row['count']} failed accesses from IP in {window} minutes",
-        })
+        findings.append(
+            {
+                "type": "BRUTE_FORCE_IP",
+                "ip_address": row["ip_address"] or "Unknown",
+                "count": row["count"],
+                "window": f"{window}m",
+                "severity": "HIGH",
+                "description": f"{row['count']} failed accesses from IP in {window} minutes",
+            }
+        )
 
     # After-hours access
     after_hours = (
@@ -109,14 +113,16 @@ def detect_threats(window_minutes: int | None = None, school=None) -> List[Dict]
         .filter(count__gte=after_hours_threshold)
     )
     for row in after_hours:
-        findings.append({
-            "type": "AFTER_HOURS_ACCESS",
-            "user": row["user__username"] or "Unknown",
-            "count": row["count"],
-            "window": f"{window}m",
-            "severity": "MEDIUM",
-            "description": f"{row['count']} accesses outside business hours",
-        })
+        findings.append(
+            {
+                "type": "AFTER_HOURS_ACCESS",
+                "user": row["user__username"] or "Unknown",
+                "count": row["count"],
+                "window": f"{window}m",
+                "severity": "MEDIUM",
+                "description": f"{row['count']} accesses outside business hours",
+            }
+        )
 
     return findings
 

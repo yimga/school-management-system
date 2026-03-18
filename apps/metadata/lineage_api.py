@@ -4,6 +4,7 @@
 Answers "what uses this?" and "what does this use?" for entities, fields, packages, and consumers.
 Used by governance UI and operator tooling. Staff-only.
 """
+
 from __future__ import annotations
 
 import logging
@@ -72,7 +73,11 @@ def get_unified_lineage(
     result: dict[str, Any] = {
         "object": {},
         "downstream": [],
-        "downstream_summary": {"consumer_count": 0, "consumer_type_counts": {}, "consumers": []},
+        "downstream_summary": {
+            "consumer_count": 0,
+            "consumer_type_counts": {},
+            "consumers": [],
+        },
         "packages": [],
         "blast_radius": None,
     }
@@ -107,11 +112,16 @@ def get_unified_lineage(
         # Packages that reference this entity
         try:
             from apps.packages.models import PackageVersion
+
             for pkg in PackageVersion.objects.all().order_by("-created_at")[:50]:
                 impact = pkg.impact_summary or {}
-                codes = [c for c in (impact.get("entity_codes") or []) if c == entity_code]
+                codes = [
+                    c for c in (impact.get("entity_codes") or []) if c == entity_code
+                ]
                 if codes:
-                    reg = get_package_lineage_registry(package_id=pkg.package_id, limit=1)
+                    reg = get_package_lineage_registry(
+                        package_id=pkg.package_id, limit=1
+                    )
                     if reg:
                         result["packages"].append(reg[0])
         except _LINEAGE_SOFT_FAILURES:
@@ -134,7 +144,11 @@ def get_unified_lineage(
                     "lineage_api field lookup failed",
                     extra={"entity_code": entity_code, "field_name": field_name},
                 )
-            result["object"] = {"type": "field", "entity_code": entity_code, "field_name": field_name}
+            result["object"] = {
+                "type": "field",
+                "entity_code": entity_code,
+                "field_name": field_name,
+            }
             return result
         result["object"] = {
             "type": "field",
@@ -169,8 +183,14 @@ def get_unified_lineage(
         consumer_code = (consumer_code or "").strip()
         if not consumer_type and not consumer_code:
             return result
-        result["object"] = {"type": "consumer", "consumer_type": consumer_type, "consumer_code": consumer_code}
-        rows = summarize_dependency_consumers(consumer_type=consumer_type or None, limit=limit)
+        result["object"] = {
+            "type": "consumer",
+            "consumer_type": consumer_type,
+            "consumer_code": consumer_code,
+        }
+        rows = summarize_dependency_consumers(
+            consumer_type=consumer_type or None, limit=limit
+        )
         if consumer_code:
             rows = [r for r in rows if r.get("consumer_code") == consumer_code]
         result["downstream"] = []
@@ -193,11 +213,3 @@ def get_unified_lineage(
     return result
 
     return result
-
-
-
-
-
-
-
-

@@ -27,9 +27,15 @@ class CountryRegistry(models.Model):
         blank=True,
         help_text="Registry-driven configuration such as academic/compliance defaults.",
     )
-    default_calendar_family = models.CharField(max_length=48, blank=True, help_text="Default calendar system code.")
-    default_terminology_pack = models.CharField(max_length=48, blank=True, help_text="Default terminology pack code.")
-    writing_direction = models.CharField(max_length=8, default="ltr", blank=True, help_text="ltr or rtl.")
+    default_calendar_family = models.CharField(
+        max_length=48, blank=True, help_text="Default calendar system code."
+    )
+    default_terminology_pack = models.CharField(
+        max_length=48, blank=True, help_text="Default terminology pack code."
+    )
+    writing_direction = models.CharField(
+        max_length=8, default="ltr", blank=True, help_text="ltr or rtl."
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -133,7 +139,12 @@ class EducationSystemTypeRegistry(models.Model):
 
 class TimeZoneRegistry(models.Model):
     """Section 20.1/20.6: Canonical timezone list for school/region selection."""
-    code = models.CharField(max_length=64, primary_key=True, help_text="IANA timezone identifier (e.g. Africa/Douala).")
+
+    code = models.CharField(
+        max_length=64,
+        primary_key=True,
+        help_text="IANA timezone identifier (e.g. Africa/Douala).",
+    )
     name = models.CharField(max_length=120)
     utc_offset = models.CharField(max_length=16, blank=True, help_text="e.g. +01:00")
     metadata = models.JSONField(default=dict, blank=True)
@@ -153,11 +164,16 @@ class TimeZoneRegistry(models.Model):
 
 class CurrencyRegistry(models.Model):
     """Section 20.1/20.6: Canonical currency list for billing and display."""
-    code = models.CharField(max_length=3, primary_key=True, help_text="ISO 4217 alpha-3 (e.g. USD, XAF).")
+
+    code = models.CharField(
+        max_length=3, primary_key=True, help_text="ISO 4217 alpha-3 (e.g. USD, XAF)."
+    )
     name = models.CharField(max_length=80)
     symbol = models.CharField(max_length=16, blank=True)
     decimal_places = models.PositiveSmallIntegerField(default=2)
-    thousands_separator_style = models.CharField(max_length=16, blank=True, help_text="e.g. comma, space, none.")
+    thousands_separator_style = models.CharField(
+        max_length=16, blank=True, help_text="e.g. comma, space, none."
+    )
     metadata = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
@@ -175,12 +191,19 @@ class CurrencyRegistry(models.Model):
 
 class LocaleRegistry(models.Model):
     """Section 20.1/20.6: Locale for number/date formatting and RTL."""
-    code = models.CharField(max_length=24, primary_key=True, help_text="e.g. en_US, fr_CM.")
+
+    code = models.CharField(
+        max_length=24, primary_key=True, help_text="e.g. en_US, fr_CM."
+    )
     name = models.CharField(max_length=80)
     date_format = models.CharField(max_length=32, default="%Y-%m-%d", blank=True)
     time_format = models.CharField(max_length=32, default="%H:%M", blank=True)
-    number_format = models.CharField(max_length=32, blank=True, help_text="Decimal/thousand separators.")
-    first_day_of_week = models.PositiveSmallIntegerField(default=0, help_text="0=Monday, 6=Sunday.")
+    number_format = models.CharField(
+        max_length=32, blank=True, help_text="Decimal/thousand separators."
+    )
+    first_day_of_week = models.PositiveSmallIntegerField(
+        default=0, help_text="0=Monday, 6=Sunday."
+    )
     is_rtl = models.BooleanField(default=False)
     metadata = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
@@ -199,12 +222,17 @@ class LocaleRegistry(models.Model):
 
 class CalendarSystemRegistry(models.Model):
     """Section 20.1/20.6: Academic calendar presets (term count, start month, etc.)."""
+
     code = models.CharField(max_length=48, primary_key=True)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     country_code = models.CharField(max_length=2, blank=True, db_index=True)
     term_count_per_year = models.PositiveSmallIntegerField(default=3)
-    metadata = models.JSONField(default=dict, blank=True, help_text="e.g. default_start_month, holiday_strategy.")
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="e.g. default_start_month, holiday_strategy.",
+    )
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -221,6 +249,7 @@ class CalendarSystemRegistry(models.Model):
 
 class InstitutionTypeRegistry(models.Model):
     """Section 20.2/20.4/20.6: Institution types (general, trade, technical, STEM, religious, international, etc.)."""
+
     code = models.CharField(max_length=48, primary_key=True)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
@@ -242,6 +271,7 @@ class InstitutionTypeRegistry(models.Model):
 
 class AcademicTerminologyRegistry(models.Model):
     """Section 20.2/20.6: Terminology packs (e.g. Principal vs Proviseur, Grade vs Class)."""
+
     code = models.CharField(max_length=48, primary_key=True)
     name = models.CharField(max_length=120)
     terminology = models.JSONField(
@@ -267,10 +297,13 @@ class AcademicTerminologyRegistry(models.Model):
 
 class DocumentTypeRegistry(models.Model):
     """Admission/compliance document categories (e.g. Birth Certificate, National ID, Passport)."""
+
     code = models.CharField(max_length=48, primary_key=True)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
-    category = models.CharField(max_length=48, blank=True, help_text="e.g. identity, academic, health.")
+    category = models.CharField(
+        max_length=48, blank=True, help_text="e.g. identity, academic, health."
+    )
     country_code = models.CharField(max_length=2, blank=True, db_index=True)
     metadata = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
@@ -289,6 +322,7 @@ class DocumentTypeRegistry(models.Model):
 
 class FeeCategoryRegistry(models.Model):
     """Finance billing categories (e.g. Tuition, Application Fee, Transport, Lab Fee)."""
+
     code = models.CharField(max_length=48, primary_key=True)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
@@ -311,10 +345,13 @@ class FeeCategoryRegistry(models.Model):
 
 class GradeScaleRegistry(models.Model):
     """Grading families and scale templates (e.g. 0-20, 0-100, 4.0 GPA, letter grades)."""
+
     code = models.CharField(max_length=48, primary_key=True)
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
-    family = models.CharField(max_length=48, blank=True, help_text="e.g. numeric, letter, gpa, competency.")
+    family = models.CharField(
+        max_length=48, blank=True, help_text="e.g. numeric, letter, gpa, competency."
+    )
     range_definition = models.JSONField(
         default=dict,
         blank=True,
@@ -334,3 +371,6 @@ class GradeScaleRegistry(models.Model):
 
     def __str__(self):
         return self.name
+
+
+from .tenant_registry_models import TenantAttendanceCode, TenantFeeTypeEntry  # noqa: E402,F401

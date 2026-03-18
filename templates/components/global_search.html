@@ -359,6 +359,25 @@
   gap: 0.5rem;
 }
 
+.search-item-story {
+  flex-direction: column;
+  align-items: stretch;
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.06), rgba(255, 255, 255, 0.95));
+  border: 1px solid rgba(13, 110, 253, 0.12);
+}
+.search-item-story .search-story-rows {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--admin-content-text-muted, #64748b);
+}
+.search-item-story .search-story-rows span strong {
+  color: var(--admin-content-text, #334155);
+  font-weight: 600;
+  margin-right: 0.35rem;
+}
+
 .search-item {
   display: flex;
   gap: 0.75rem;
@@ -577,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchError) searchError.style.display = 'none';
 
     try {
-      const response = await fetch(`/api/search/?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`/api/search/?q=${encodeURIComponent(query)}&story=1`);
       const data = response.ok ? await response.json().catch(() => ({})) : {};
 
       searchLoading.style.display = 'none';
@@ -612,24 +631,44 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  function escHtml(s) {
+    if (s == null || s === '') return '';
+    const d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
+  }
+
   // Render search results
   function renderResults(results) {
     searchResultItems.innerHTML = results.map(result => {
       const icon = getIconForType(result.type);
       const color = getColorForType(result.type);
+      const story = result.story;
+      const storyBlock = story ? `
+        <div class="search-story-rows" aria-label="Cross-module summary">
+          <div><strong>Academic</strong>${escHtml(story.academic_line)}</div>
+          <div><strong>Finance</strong>${escHtml(story.finance_line)}</div>
+          <div><strong>Messages</strong>${escHtml(story.communication_line)}</div>
+          <div><strong>Attendance</strong>${escHtml(story.attendance_line)}</div>
+        </div>
+      ` : '';
+      const itemClass = story ? 'search-item search-item-story' : 'search-item';
       return `
-        <a href="${result.url}" class="search-item">
-          <div class="search-item-icon ${color}">
-            <i class="bi ${icon}"></i>
-          </div>
-          <div class="search-item-content">
-            <div class="search-item-title">${highlightQuery(result.title, searchInput.value)}</div>
-            <div class="search-item-desc">${result.description || ''}</div>
-            ${result.meta ? `
-              <div class="search-item-meta">
-                ${result.meta.map(m => `<span class="search-item-badge">${m}</span>`).join('')}
-              </div>
-            ` : ''}
+        <a href="${String(result.url || '#').replace(/"/g, '&quot;')}" class="${itemClass}">
+          <div class="d-flex gap-2 w-100 align-items-start">
+            <div class="search-item-icon ${color}">
+              <i class="bi ${icon}"></i>
+            </div>
+            <div class="search-item-content flex-grow-1 min-w-0">
+              <div class="search-item-title">${highlightQuery(result.title, searchInput.value)}</div>
+              <div class="search-item-desc">${escHtml(result.description || '')}</div>
+              ${result.meta ? `
+                <div class="search-item-meta">
+                  ${result.meta.map(m => `<span class="search-item-badge">${escHtml(m)}</span>`).join('')}
+                </div>
+              ` : ''}
+              ${storyBlock}
+            </div>
           </div>
         </a>
       `;

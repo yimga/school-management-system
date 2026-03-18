@@ -23,7 +23,9 @@ def _column_exists_pg(cursor):
 def _is_duplicate_column_error(e):
     """True if exception indicates column already exists."""
     msg = str(e).lower()
-    return "already exists" in msg or "duplicatecolumn" in msg or "duplicate column" in msg
+    return (
+        "already exists" in msg or "duplicatecolumn" in msg or "duplicate column" in msg
+    )
 
 
 def add_control_plane_pinned_items_if_missing(apps, schema_editor):
@@ -73,7 +75,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0139_phase4_workflow_dashboard_packs"),
     ]
@@ -85,7 +86,11 @@ class Migration(migrations.Migration):
                 migrations.AddField(
                     model_name="dashboarduserpreference",
                     name="control_plane_pinned_items",
-                    field=models.JSONField(blank=True, default=list, help_text="Control plane sidebar item IDs to show in Quick access."),
+                    field=models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="Control plane sidebar item IDs to show in Quick access.",
+                    ),
                 ),
             ],
             database_operations=[],  # already applied above

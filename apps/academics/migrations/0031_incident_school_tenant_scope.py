@@ -23,7 +23,9 @@ def backfill_incident_school(apps, schema_editor):
         elif incident.teacher_id and getattr(incident.teacher, "school_id", None):
             school_id = incident.teacher.school_id
         if school_id:
-            Incident.objects.using(db_alias).filter(pk=incident.pk).update(school_id=school_id)
+            Incident.objects.using(db_alias).filter(pk=incident.pk).update(
+                school_id=school_id
+            )
 
 
 def enable_incident_rls(apps, schema_editor):

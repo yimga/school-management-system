@@ -4,6 +4,7 @@ Domain synchronization helpers.
 Goal: keep SchoolDomain, legacy School.custom_domain fields, and django-tenants
 customers.Domain records consistent so verification implies routability.
 """
+
 import logging
 from typing import Optional
 
@@ -28,6 +29,7 @@ def get_base_domain() -> str:
     provide wildcard SSL for service subdomains).
     """
     from apps.schools.host_routing import get_canonical_base_domain
+
     return get_canonical_base_domain()
 
 
@@ -41,7 +43,11 @@ def normalize_domain(hostname: str) -> str:
 
 def school_subdomain_fqdn(school) -> str:
     """Return `<school-subdomain>.<base-domain>` if both are available."""
-    subdomain = (getattr(school, "subdomain", "") or getattr(school, "slug", "") or "").strip().lower()
+    subdomain = (
+        (getattr(school, "subdomain", "") or getattr(school, "slug", "") or "")
+        .strip()
+        .lower()
+    )
     base = get_base_domain()
     if not subdomain or not base:
         return ""
@@ -79,7 +85,7 @@ def _schema_name_for_school(school) -> str:
         return f"s_{sid_hex}"[:63].lower()
     # Safe fallback for unusual cases
     slug = (getattr(school, "slug", "") or "school").replace("-", "_").strip().lower()
-    return (f"s_{slug}"[:63] or "s_school")
+    return f"s_{slug}"[:63] or "s_school"
 
 
 def ensure_tenant_client_for_school(school):
@@ -91,6 +97,7 @@ def ensure_tenant_client_for_school(school):
         return None
     try:
         from django.db import connection
+
         if connection.vendor != "postgresql":
             return None
         from apps.customers.models import Client
@@ -110,7 +117,9 @@ def ensure_tenant_client_for_school(school):
         return client
 
     # Legacy fallback: slug schema names from earlier versions.
-    legacy_schema = ((getattr(school, "slug", "") or "school").strip().lower().replace("-", "_"))[:63]
+    legacy_schema = (
+        (getattr(school, "slug", "") or "school").strip().lower().replace("-", "_")
+    )[:63]
     if legacy_schema:
         legacy = Client.objects.filter(schema_name=legacy_schema).first()
         if legacy:
@@ -139,7 +148,9 @@ def _upsert_runtime_domain(*, client, domain: str, is_primary: bool):
 
     existing = Domain.objects.select_related("tenant").filter(domain=domain).first()
     if existing and existing.tenant_id != client.id:
-        raise ValueError(f"Domain '{domain}' is already attached to a different tenant.")
+        raise ValueError(
+            f"Domain '{domain}' is already attached to a different tenant."
+        )
 
     if existing:
         updates = []
@@ -261,10 +272,19 @@ def sync_school_domains_to_runtime(school):
 
     with transaction.atomic():
         ensure_schooldomain_records_for_school(school)
-        for row in SchoolDomain.objects.filter(school=school, is_verified=True).order_by("kind", "domain"):
+        for row in SchoolDomain.objects.filter(
+            school=school, is_verified=True
+        ).order_by("kind", "domain"):
             try:
                 sync_verified_schooldomain(row)
-            except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError):
+            except (
+                OSError,
+                ConnectionError,
+                DatabaseError,
+                AttributeError,
+                TypeError,
+                ValueError,
+            ):
                 log_exception_with_context(
                     "domain_sync.sync_verified_schooldomain: failed to sync verified domain for school",
                     school_id=school.id,

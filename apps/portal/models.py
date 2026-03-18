@@ -51,9 +51,9 @@ def _justification_upload_to(instance, filename):
 
 
 def _photo_upload_token_upload_to(instance, filename):
-    school_id = getattr(getattr(instance, "student", None), "school_id", None) or getattr(
-        getattr(instance, "teacher", None), "school_id", None
-    )
+    school_id = getattr(
+        getattr(instance, "student", None), "school_id", None
+    ) or getattr(getattr(instance, "teacher", None), "school_id", None)
     return _portal_upload_to(instance, filename, "photo_upload", school_id)
 
 
@@ -70,6 +70,7 @@ def _portal_feature_item_file_upload_to(instance, filename):
 
 class DocumentCategory(models.Model):
     """Configurable folder/category for Document Library (e.g. Essential Student Records, Administrative, Pedagogical)."""
+
     name = models.CharField(max_length=120)
     slug = models.SlugField(max_length=80, unique=True)
     parent = models.ForeignKey(
@@ -79,7 +80,9 @@ class DocumentCategory(models.Model):
         blank=True,
         related_name="children",
     )
-    order = models.PositiveSmallIntegerField(default=0, help_text="Display order within same level.")
+    order = models.PositiveSmallIntegerField(
+        default=0, help_text="Display order within same level."
+    )
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -111,7 +114,9 @@ class PortalFeatureItem(models.Model):
     feature = models.CharField(max_length=20, choices=Feature.choices)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    link = models.URLField(blank=True, help_text="External link (if document is hosted elsewhere)")
+    link = models.URLField(
+        blank=True, help_text="External link (if document is hosted elsewhere)"
+    )
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -126,17 +131,17 @@ class PortalFeatureItem(models.Model):
         blank=True,
         null=True,
         validators=[validate_document_file, validate_file_size_10mb],
-        help_text="Upload a document (PDF, Word, Excel, or LibreOffice ODT/ODS) - max 10MB"
+        help_text="Upload a document (PDF, Word, Excel, or LibreOffice ODT/ODS) - max 10MB",
     )
     document_type = models.CharField(
         max_length=20,
         choices=DocumentType.choices,
         default=DocumentType.GENERAL,
-        help_text="Type of document (forms require signature)"
+        help_text="Type of document (forms require signature)",
     )
     requires_signature = models.BooleanField(
         default=False,
-        help_text="If checked, this form requires electronic signature from parents/students"
+        help_text="If checked, this form requires electronic signature from parents/students",
     )
     is_active = models.BooleanField(default=True)
     category = models.ForeignKey(
@@ -178,7 +183,7 @@ class PortalFeatureItem(models.Model):
     visible_to_roles = models.JSONField(
         default=list,
         blank=True,
-        help_text="List of roles that can see this document (empty = all authenticated users)"
+        help_text="List of roles that can see this document (empty = all authenticated users)",
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -214,12 +219,27 @@ class PortalFeatureItem(models.Model):
         allowed_states = set(normalize_document_pack_states(self.document_pack))
         allowed_states.add(DOCUMENT_LIFECYCLE_RETRACTED)
         if self.lifecycle_state not in allowed_states:
-            raise ValidationError({"lifecycle_state": "Lifecycle state is not allowed for the selected document pack."})
+            raise ValidationError(
+                {
+                    "lifecycle_state": "Lifecycle state is not allowed for the selected document pack."
+                }
+            )
         previous_state = None
         if self.pk:
-            previous_state = type(self).objects.filter(pk=self.pk).values_list("lifecycle_state", flat=True).first()
-        if previous_state and not is_valid_document_transition(previous_state, self.lifecycle_state, self.document_pack):
-            raise ValidationError({"lifecycle_state": f"Invalid transition from {previous_state} to {self.lifecycle_state}."})
+            previous_state = (
+                type(self)
+                .objects.filter(pk=self.pk)
+                .values_list("lifecycle_state", flat=True)
+                .first()
+            )
+        if previous_state and not is_valid_document_transition(
+            previous_state, self.lifecycle_state, self.document_pack
+        ):
+            raise ValidationError(
+                {
+                    "lifecycle_state": f"Invalid transition from {previous_state} to {self.lifecycle_state}."
+                }
+            )
 
     @property
     def has_file(self) -> bool:
@@ -247,9 +267,15 @@ class PortalFeatureItem(models.Model):
         if not user.is_authenticated:
             return False
         lifecycle_state = str(self.lifecycle_state or "").strip().lower()
-        if lifecycle_state in {DOCUMENT_LIFECYCLE_DRAFT, DOCUMENT_LIFECYCLE_REVIEW, DOCUMENT_LIFECYCLE_RETRACTED}:
+        if lifecycle_state in {
+            DOCUMENT_LIFECYCLE_DRAFT,
+            DOCUMENT_LIFECYCLE_REVIEW,
+            DOCUMENT_LIFECYCLE_RETRACTED,
+        }:
             return bool(user.is_staff or user.is_superuser)
-        if lifecycle_state == DOCUMENT_LIFECYCLE_ARCHIVED and not (user.is_staff or user.is_superuser):
+        if lifecycle_state == DOCUMENT_LIFECYCLE_ARCHIVED and not (
+            user.is_staff or user.is_superuser
+        ):
             return False
         # If no role restrictions, all authenticated users can view
         if not self.visible_to_roles:
@@ -264,14 +290,28 @@ class PortalFeatureItem(models.Model):
     def save(self, *args, **kwargs):
         previous_state = None
         if self.pk:
-            previous_state = type(self).objects.filter(pk=self.pk).values_list("lifecycle_state", flat=True).first()
+            previous_state = (
+                type(self)
+                .objects.filter(pk=self.pk)
+                .values_list("lifecycle_state", flat=True)
+                .first()
+            )
         if not self.lifecycle_state:
             self.lifecycle_state = DOCUMENT_LIFECYCLE_DRAFT
-        if self.lifecycle_state == DOCUMENT_LIFECYCLE_APPROVED and self.published_at is None:
+        if (
+            self.lifecycle_state == DOCUMENT_LIFECYCLE_APPROVED
+            and self.published_at is None
+        ):
             self.published_at = timezone.now()
-        if self.lifecycle_state == DOCUMENT_LIFECYCLE_ARCHIVED and self.archived_at is None:
+        if (
+            self.lifecycle_state == DOCUMENT_LIFECYCLE_ARCHIVED
+            and self.archived_at is None
+        ):
             self.archived_at = timezone.now()
-        elif previous_state == DOCUMENT_LIFECYCLE_ARCHIVED and self.lifecycle_state != DOCUMENT_LIFECYCLE_ARCHIVED:
+        elif (
+            previous_state == DOCUMENT_LIFECYCLE_ARCHIVED
+            and self.lifecycle_state != DOCUMENT_LIFECYCLE_ARCHIVED
+        ):
             self.archived_at = None
         self.retention_review_at = calculate_document_retention_review_at(self)
         self.search_index = build_document_search_index(self)
@@ -297,7 +337,11 @@ class PendingGuardianInvite(models.Model):
         PHONE = "PHONE", "Phone Call"
 
     token = models.CharField(max_length=64, unique=True)
-    student = models.ForeignKey("people.StudentProfile", on_delete=models.CASCADE, related_name="pending_invites")
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="pending_invites",
+    )
     invited_email = models.EmailField(blank=True)
     invited_phone = models.CharField(max_length=50, blank=True)
     relationship = models.CharField(
@@ -308,10 +352,18 @@ class PendingGuardianInvite(models.Model):
     )
     referral_code = models.CharField(max_length=80, blank=True)
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="guardian_invites"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="guardian_invites",
     )
     guardian_user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="claimed_invites"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="claimed_invites",
     )
     claimed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -337,24 +389,23 @@ class Announcement(models.Model):
     Global announcement banner that can be displayed on all pages.
     Admins can control announcements with different types and colors.
     """
-    
+
     class BannerType(models.TextChoices):
         INFO = "info", "Information (Blue)"
         SUCCESS = "success", "Success (Green)"
         WARNING = "warning", "Warning (Yellow)"
         DANGER = "danger", "Danger (Red)"
-    
+
     title = models.CharField(max_length=200, help_text="Announcement title (short)")
     message = models.TextField(help_text="Detailed announcement message")
     banner_type = models.CharField(
         max_length=20,
         choices=BannerType.choices,
         default=BannerType.INFO,
-        help_text="Choose the banner color/type"
+        help_text="Choose the banner color/type",
     )
     is_active = models.BooleanField(
-        default=True,
-        help_text="Display this announcement on all pages"
+        default=True, help_text="Display this announcement on all pages"
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -368,37 +419,38 @@ class Announcement(models.Model):
     start_date = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="When to start showing this announcement (leave blank for immediate)"
+        help_text="When to start showing this announcement (leave blank for immediate)",
     )
     end_date = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="When to stop showing this announcement (leave blank for indefinite)"
+        help_text="When to stop showing this announcement (leave blank for indefinite)",
     )
-    
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Announcement"
         verbose_name_plural = "Announcements"
-    
+
     def __str__(self) -> str:
         return f"{self.title} ({self.get_banner_type_display()})"
-    
+
     @property
     def is_currently_active(self) -> bool:
         """Check if announcement should be displayed based on date range"""
         from django.utils import timezone
+
         now = timezone.now()
-        
+
         if not self.is_active:
             return False
-        
+
         if self.start_date and now < self.start_date:
             return False
-        
+
         if self.end_date and now > self.end_date:
             return False
-        
+
         return True
 
 
@@ -407,7 +459,7 @@ class FormSignature(models.Model):
     Electronic signature for school forms (registration, consent, extra fees, etc.)
     Tracks who signed what form and when.
     """
-    
+
     class SignatureStatus(models.TextChoices):
         PENDING = "PENDING", "Pending Signature"
         SIGNED = "SIGNED", "Signed"
@@ -420,9 +472,9 @@ class FormSignature(models.Model):
         on_delete=models.CASCADE,
         related_name="signatures",
         limit_choices_to={"requires_signature": True, "document_type": "FORM"},
-        help_text="The form that requires signature"
+        help_text="The form that requires signature",
     )
-    
+
     # Who needs to sign
     student = models.ForeignKey(
         "people.StudentProfile",
@@ -430,9 +482,9 @@ class FormSignature(models.Model):
         related_name="form_signatures",
         null=True,
         blank=True,
-        help_text="Student this form is for (if applicable)"
+        help_text="Student this form is for (if applicable)",
     )
-    
+
     parent = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -440,52 +492,44 @@ class FormSignature(models.Model):
         limit_choices_to={"role": "PARENT"},
         null=True,
         blank=True,
-        help_text="Parent/guardian signing the form"
+        help_text="Parent/guardian signing the form",
     )
-    
+
     # Signature details
     status = models.CharField(
-        max_length=20,
-        choices=SignatureStatus.choices,
-        default=SignatureStatus.PENDING
+        max_length=20, choices=SignatureStatus.choices, default=SignatureStatus.PENDING
     )
-    
+
     signed_at = models.DateTimeField(null=True, blank=True)
     signature_ip = models.GenericIPAddressField(null=True, blank=True)
     signature_user_agent = models.CharField(max_length=500, blank=True)
-    
+
     # Signature data (stored securely)
     signature_data = models.TextField(
-        blank=True,
-        help_text="Base64-encoded signature image or signature hash"
+        blank=True, help_text="Base64-encoded signature image or signature hash"
     )
     signature_hash = models.CharField(
         max_length=256,
         blank=True,
-        help_text="SHA-256 hash of signature for verification"
+        help_text="SHA-256 hash of signature for verification",
     )
-    
+
     # Additional data
     signed_pdf = models.FileField(
         upload_to=_form_signature_upload_to,
         blank=True,
         null=True,
-        help_text="Final signed PDF document"
+        help_text="Final signed PDF document",
     )
-    
-    notes = models.TextField(
-        blank=True,
-        help_text="Any additional notes or comments"
-    )
-    
+
+    notes = models.TextField(blank=True, help_text="Any additional notes or comments")
+
     # Expiry and reminders
     expires_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When this signature request expires"
+        null=True, blank=True, help_text="When this signature request expires"
     )
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
-    
+
     # Audit trail
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -493,7 +537,7 @@ class FormSignature(models.Model):
         null=True,
         blank=True,
         related_name="created_signature_requests",
-        help_text="Admin who created this signature request"
+        help_text="Admin who created this signature request",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -521,6 +565,7 @@ class FormSignature(models.Model):
     def is_expired(self) -> bool:
         """Check if signature request has expired"""
         from django.utils import timezone
+
         if self.expires_at:
             return timezone.now() > self.expires_at
         return False
@@ -529,23 +574,22 @@ class FormSignature(models.Model):
     def can_sign(self) -> bool:
         """Check if form can still be signed"""
         return (
-            self.status == FormSignature.SignatureStatus.PENDING
-            and not self.is_expired
+            self.status == FormSignature.SignatureStatus.PENDING and not self.is_expired
         )
 
     def mark_as_signed(self, signature_data: str, signature_hash: str, request=None):
         """Mark form as signed with signature data"""
         from django.utils import timezone
-        
+
         self.status = FormSignature.SignatureStatus.SIGNED
         self.signed_at = timezone.now()
         self.signature_data = signature_data
         self.signature_hash = signature_hash
-        
+
         if request:
             self.signature_ip = self._get_client_ip(request)
             self.signature_user_agent = request.META.get("HTTP_USER_AGENT", "")[:500]
-        
+
         self.save()
 
     def _get_client_ip(self, request):
@@ -560,6 +604,7 @@ class FormSignature(models.Model):
 
 class LessonPlan(models.Model):
     """Teacher weekly lesson notes (PDF upload). RBAC: teacher sees only their own."""
+
     teacher = models.ForeignKey(
         "people.TeacherProfile",
         on_delete=models.CASCADE,
@@ -586,6 +631,7 @@ class LessonPlan(models.Model):
 
 class LessonPlanAttachment(models.Model):
     """Extra resource attachments for a lesson plan (Wave 6). One plan can have multiple files."""
+
     lesson_plan = models.ForeignKey(
         LessonPlan,
         on_delete=models.CASCADE,
@@ -595,7 +641,11 @@ class LessonPlanAttachment(models.Model):
         upload_to=_lesson_plan_attachment_upload_to,
         validators=[validate_document_file, validate_file_size_10mb],
     )
-    label = models.CharField(max_length=120, blank=True, help_text="Optional short label (e.g. Worksheet, Slides)")
+    label = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Optional short label (e.g. Worksheet, Slides)",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -609,6 +659,7 @@ class LessonPlanAttachment(models.Model):
 
 class CahierDeTexteEntry(models.Model):
     """Structured lesson diary entry (Cahier de Texte). Linked to syllabus; supervisor visa workflow."""
+
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"
         SUBMITTED = "SUBMITTED", "Submitted"
@@ -629,7 +680,11 @@ class CahierDeTexteEntry(models.Model):
         help_text="Class and subject (from schedule).",
     )
     entry_date = models.DateField(help_text="Date of the lesson")
-    lesson_topic_code = models.CharField(max_length=80, blank=True, help_text="Topic code from syllabus or national progression")
+    lesson_topic_code = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="Topic code from syllabus or national progression",
+    )
     title = models.CharField(max_length=300)
     objectives = models.TextField(blank=True)
     duration_minutes = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -668,6 +723,7 @@ class CahierDeTexteEntry(models.Model):
 
 class Event(models.Model):
     """School event calendar (configurable)."""
+
     title = models.CharField(max_length=200)
     start_at = models.DateTimeField()
     end_at = models.DateTimeField(null=True, blank=True)
@@ -688,6 +744,7 @@ class Event(models.Model):
 
 class TeacherTrainingEntry(models.Model):
     """In-service training / professional development log. RBAC: teacher sees only their own."""
+
     teacher = models.ForeignKey(
         "people.TeacherProfile",
         on_delete=models.CASCADE,
@@ -716,6 +773,7 @@ class TeacherTrainingEntry(models.Model):
 
 class AttendanceJustification(models.Model):
     """Parent-submitted justification for a student absence (excuse/medical)."""
+
     guardian = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -751,14 +809,19 @@ class AttendanceJustification(models.Model):
 
 class PhotoUploadToken(models.Model):
     """Temporary token for uploading a profile photo from another device (e.g. phone)."""
+
     class Purpose(models.TextChoices):
         REGISTRATION = "registration", "Registration (new student/teacher)"
         PROFILE_UPDATE = "profile_update", "Profile update (existing)"
 
     token = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    photo = models.ImageField(upload_to=_photo_upload_token_upload_to, blank=True, null=True)
+    photo = models.ImageField(
+        upload_to=_photo_upload_token_upload_to, blank=True, null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    purpose = models.CharField(max_length=20, choices=Purpose.choices, default=Purpose.REGISTRATION)
+    purpose = models.CharField(
+        max_length=20, choices=Purpose.choices, default=Purpose.REGISTRATION
+    )
     student = models.ForeignKey(
         "people.StudentProfile",
         on_delete=models.CASCADE,

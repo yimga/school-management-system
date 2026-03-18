@@ -9,7 +9,9 @@ from apps.platform_runtime.structured_logging import log_exception_with_context
 def reportcard_pdf_upload_to(instance, filename):
     """Tenant-scoped path for ReportCard.pdf_file (Section 25.3, media_tenant_scope.md)."""
     school_id = getattr(instance, "school_id", None) or (
-        getattr(getattr(instance, "school", None), "pk", None) if getattr(instance, "school", None) else None
+        getattr(getattr(instance, "school", None), "pk", None)
+        if getattr(instance, "school", None)
+        else None
     )
     if school_id is None:
         return f"tenant_uploads/reports/reportcards/{filename}"
@@ -21,13 +23,26 @@ class TermPublishStatus(models.Model):
     If classroom is NULL, it means published for the entire school for that term.
     If classroom is set, publish applies only to that class.
     """
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="publish_statuses")
-    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="publish_statuses")
-    classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.CASCADE, related_name="publish_statuses")
+
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="publish_statuses"
+    )
+    term = models.ForeignKey(
+        Term, on_delete=models.CASCADE, related_name="publish_statuses"
+    )
+    classroom = models.ForeignKey(
+        Classroom,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="publish_statuses",
+    )
 
     is_published = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True, blank=True)
-    published_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="publishes")
+    published_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="publishes"
+    )
 
     class Meta:
         unique_together = ("academic_year", "term", "classroom")
@@ -49,24 +64,43 @@ class ReportCard(models.Model):
         blank=True,
         related_name="report_cards",
     )
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="report_cards")
-    term = models.ForeignKey(Term, null=True, blank=True, on_delete=models.CASCADE, related_name="report_cards")
-    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="report_cards")
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="report_cards"
+    )
+    term = models.ForeignKey(
+        Term,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="report_cards",
+    )
+    student = models.ForeignKey(
+        StudentProfile, on_delete=models.CASCADE, related_name="report_cards"
+    )
 
     type = models.CharField(max_length=10, choices=Type.choices)
-    pdf_file = models.FileField(upload_to=reportcard_pdf_upload_to, null=True, blank=True)
+    pdf_file = models.FileField(
+        upload_to=reportcard_pdf_upload_to, null=True, blank=True
+    )
     generated_at = models.DateTimeField(auto_now=True)
-    
+
     # Localization fields
-    language = models.CharField(max_length=10, default='en', help_text='Language for certificate generation')
-    region_code = models.CharField(max_length=10, null=True, blank=True, help_text='Region code for score conversion')
+    language = models.CharField(
+        max_length=10, default="en", help_text="Language for certificate generation"
+    )
+    region_code = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        help_text="Region code for score conversion",
+    )
 
     class Meta:
         ordering = ["-generated_at"]
 
     def __str__(self):
         return f"{self.student} - {self.type} - {self.academic_year}"
-    
+
     def get_language(self):
         """Get language for this report card."""
         if self.language:
@@ -76,34 +110,57 @@ class ReportCard(models.Model):
             try:
                 from apps.global_registries.models import RegionConfig
 
-                region = RegionConfig.objects.filter(code=self.region_code).only("default_language").first()
+                region = (
+                    RegionConfig.objects.filter(code=self.region_code)
+                    .only("default_language")
+                    .first()
+                )
                 if region and region.default_language:
                     return region.default_language
-            except (ObjectDoesNotExist, DatabaseError, TypeError, ValueError, AttributeError):
+            except (
+                ObjectDoesNotExist,
+                DatabaseError,
+                TypeError,
+                ValueError,
+                AttributeError,
+            ):
                 log_exception_with_context(
                     "reports.ReportCard.get_language: region default_language lookup failed",
-                    school_id=getattr(self.student, "school_id", None) if getattr(self, "student", None) else None,
-                    extra={"region_code": self.region_code, "report_card_id": getattr(self, "id", None)},
+                    school_id=getattr(self.student, "school_id", None)
+                    if getattr(self, "student", None)
+                    else None,
+                    extra={
+                        "region_code": self.region_code,
+                        "report_card_id": getattr(self, "id", None),
+                    },
                 )
-        return 'en'
-    
+        return "en"
+
     def get_region(self):
         """Get region for this report card."""
         from apps.global_registries.models import RegionConfig
-        
+
         if self.region_code:
             try:
                 return RegionConfig.objects.get(code=self.region_code)
             except RegionConfig.DoesNotExist:
                 pass
-        
+
         # Placeholder: future school region mapping (student.current_classroom → region)
         return None
 
 
 class ReportCardAudit(models.Model):
-    report_card = models.ForeignKey(ReportCard, on_delete=models.CASCADE, related_name="audits")
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="report_card_audits")
+    report_card = models.ForeignKey(
+        ReportCard, on_delete=models.CASCADE, related_name="audits"
+    )
+    user = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="report_card_audits",
+    )
     action = models.CharField(max_length=40)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -160,8 +217,13 @@ class ReportDocumentHash(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["sha256_hash", "created_at"], name="reports_rep_sha256_9bb6cb_idx"),
-            models.Index(fields=["school", "created_at"], name="reports_rep_school__6d1cfb_idx"),
+            models.Index(
+                fields=["sha256_hash", "created_at"],
+                name="reports_rep_sha256_9bb6cb_idx",
+            ),
+            models.Index(
+                fields=["school", "created_at"], name="reports_rep_school__6d1cfb_idx"
+            ),
         ]
 
     def __str__(self):
@@ -170,8 +232,17 @@ class ReportDocumentHash(models.Model):
 
 class PromotionRule(models.Model):
     """Promotion thresholds per academic year with optional classroom overrides."""
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="promotion_rules")
-    classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.CASCADE, related_name="promotion_rules")
+
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="promotion_rules"
+    )
+    classroom = models.ForeignKey(
+        Classroom,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="promotion_rules",
+    )
     promotion_average = models.DecimalField(max_digits=5, decimal_places=2, default=10)
     demotion_average = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     use_technical_promotion_rule = models.BooleanField(
@@ -184,7 +255,9 @@ class PromotionRule(models.Model):
 
     def clean(self):
         if self.demotion_average > self.promotion_average:
-            raise ValidationError("Demotion average cannot be higher than promotion average.")
+            raise ValidationError(
+                "Demotion average cannot be higher than promotion average."
+            )
 
     def __str__(self):
         scope = self.classroom.name if self.classroom else "School default"
@@ -196,6 +269,7 @@ class EMISSubmission(models.Model):
     Government/District EMIS: track report preparation and submission per school/period.
     Platform 5Y: full ministry reporting and submission flow.
     """
+
     class ReportType(models.TextChoices):
         ENROLLMENT = "ENROLLMENT", "Enrollment"
         ATTENDANCE = "ATTENDANCE", "Attendance"
@@ -215,7 +289,9 @@ class EMISSubmission(models.Model):
         on_delete=models.CASCADE,
         related_name="emis_submissions",
     )
-    report_type = models.CharField(max_length=32, choices=ReportType.choices, db_index=True)
+    report_type = models.CharField(
+        max_length=32, choices=ReportType.choices, db_index=True
+    )
     period_label = models.CharField(
         max_length=80,
         help_text="e.g. 2024-Q1, 2024/2025 Term 1",
@@ -234,10 +310,20 @@ class EMISSubmission(models.Model):
         blank=True,
         related_name="emis_submissions",
     )
-    preset_id = models.CharField(max_length=80, blank=True, help_text="MoE preset id when report_type=MOE_PRESET")
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT, db_index=True)
-    file_path = models.CharField(max_length=500, blank=True, help_text="Generated report file (PDF/CSV)")
-    submission_url = models.URLField(max_length=500, blank=True, help_text="Ministry/district submission URL if applicable")
+    preset_id = models.CharField(
+        max_length=80, blank=True, help_text="MoE preset id when report_type=MOE_PRESET"
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT, db_index=True
+    )
+    file_path = models.CharField(
+        max_length=500, blank=True, help_text="Generated report file (PDF/CSV)"
+    )
+    submission_url = models.URLField(
+        max_length=500,
+        blank=True,
+        help_text="Ministry/district submission URL if applicable",
+    )
     submitted_at = models.DateTimeField(null=True, blank=True)
     submitted_by = models.ForeignKey(
         User,
@@ -246,7 +332,9 @@ class EMISSubmission(models.Model):
         blank=True,
         related_name="emis_submissions",
     )
-    external_id = models.CharField(max_length=120, blank=True, help_text="Reference from ministry/district")
+    external_id = models.CharField(
+        max_length=120, blank=True, help_text="Reference from ministry/district"
+    )
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -268,11 +356,16 @@ class ReportPack(models.Model):
     """
     Phase 10 — 10.3: Report library. Pack of report definitions; preview with seeded sample data; dependency mapping.
     """
+
     code = models.SlugField(max_length=80, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    dependency_schema = models.JSONField(default=dict, blank=True, help_text="Fields, policies, templates dependencies.")
-    sample_data_config = models.JSONField(default=dict, blank=True, help_text="Seeded sample data for preview.")
+    dependency_schema = models.JSONField(
+        default=dict, blank=True, help_text="Fields, policies, templates dependencies."
+    )
+    sample_data_config = models.JSONField(
+        default=dict, blank=True, help_text="Seeded sample data for preview."
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -3,6 +3,7 @@
 Fail on unclassified csrf_exempt usage.
 Usage: python scripts/lint_csrf_exempt_usage.py [--exit-zero] [--base DIR] [--allowlist FILE]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -30,14 +31,18 @@ def _load_allowlist(path: Path) -> dict[str, dict[str, object]]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Lint csrf_exempt usage against an allowlist.")
+    parser = argparse.ArgumentParser(
+        description="Lint csrf_exempt usage against an allowlist."
+    )
     parser.add_argument("--base", default=".", help="Repo root (default: .)")
     parser.add_argument(
         "--allowlist",
         default="scripts/allowlists/csrf_exempt_allowlist.json",
         help="Allowlist JSON path",
     )
-    parser.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
+    parser.add_argument(
+        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
+    )
     args = parser.parse_args()
 
     base = Path(args.base).resolve()

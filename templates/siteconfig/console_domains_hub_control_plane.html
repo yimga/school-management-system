@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="decision-console" style="max-width: 960px;" aria-labelledby="system-config-heading" aria-describedby="system-config-desc">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console" aria-labelledby="system-config-heading" aria-describedby="system-config-desc">
   <h1 id="system-config-heading" class="visually-hidden">{% trans "System config" %}</h1>
   <p id="system-config-desc" class="visually-hidden">{% trans "Operational hubs, configuration domains, and platform settings in one place." %}</p>
 
@@ -33,6 +33,16 @@
       </div>
     </div>
   </header>
+
+  {% if studio_experience_url or guided_onboarding_url %}
+  <div class="alert alert-dark border border-secondary mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3" role="region">
+    <span class="small text-white-50 mb-0">{% blocktrans %}Outcome-first: preview in Studio Experience; new schools via Setup Studio.{% endblocktrans %}</span>
+    <div class="d-flex flex-wrap gap-2">
+      {% if studio_experience_url %}<a href="{{ studio_experience_url }}" class="btn btn-sm btn-outline-light">{% trans "Studio Experience" %}</a>{% endif %}
+      {% if guided_onboarding_url %}<a href="{{ guided_onboarding_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Setup Studio" %}</a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
 
   {% if operational_hubs %}
   <section class="mb-4" aria-labelledby="hubs-heading">

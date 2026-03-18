@@ -5,6 +5,7 @@ Single entry point for tenant schema migrations: ensure_tenant_schemas then
 migrate_schemas --tenant. See docs/MASTER_TABLE_LIST.md.
 Uses SimpleTestCase + mocks; no database or real tenant required.
 """
+
 from io import StringIO
 from unittest.mock import patch
 
@@ -16,7 +17,9 @@ class RunTenantMigrationsCommandTests(SimpleTestCase):
     """Regression tests for run_tenant_migrations deploy flow."""
 
     def test_skips_when_not_postgresql(self):
-        with patch("apps.schools.management.commands.run_tenant_migrations.connection") as conn:
+        with patch(
+            "apps.schools.management.commands.run_tenant_migrations.connection"
+        ) as conn:
             conn.vendor = "sqlite"
             out = StringIO()
             call_command("run_tenant_migrations", stdout=out, no_input=True)
@@ -26,8 +29,12 @@ class RunTenantMigrationsCommandTests(SimpleTestCase):
 
     def test_skips_when_use_django_tenants_false(self):
         with (
-            patch("apps.schools.management.commands.run_tenant_migrations.connection") as conn,
-            patch("apps.schools.management.commands.run_tenant_migrations.settings") as settings,
+            patch(
+                "apps.schools.management.commands.run_tenant_migrations.connection"
+            ) as conn,
+            patch(
+                "apps.schools.management.commands.run_tenant_migrations.settings"
+            ) as settings,
         ):
             conn.vendor = "postgresql"
             settings.USE_DJANGO_TENANTS = False
@@ -37,9 +44,15 @@ class RunTenantMigrationsCommandTests(SimpleTestCase):
 
     def test_calls_ensure_then_migrate_schemas_when_enabled(self):
         with (
-            patch("apps.schools.management.commands.run_tenant_migrations.connection") as conn,
-            patch("apps.schools.management.commands.run_tenant_migrations.settings") as settings,
-            patch("apps.schools.management.commands.run_tenant_migrations.call_command") as mock_call,
+            patch(
+                "apps.schools.management.commands.run_tenant_migrations.connection"
+            ) as conn,
+            patch(
+                "apps.schools.management.commands.run_tenant_migrations.settings"
+            ) as settings,
+            patch(
+                "apps.schools.management.commands.run_tenant_migrations.call_command"
+            ) as mock_call,
         ):
             conn.vendor = "postgresql"
             settings.USE_DJANGO_TENANTS = True
@@ -51,14 +64,22 @@ class RunTenantMigrationsCommandTests(SimpleTestCase):
             calls = [c[0][0] for c in mock_call.call_args_list]
             self.assertIn("ensure_tenant_schemas", calls)
             self.assertIn("migrate_schemas", calls)
-            migrate_call = next(c for c in mock_call.call_args_list if c[0][0] == "migrate_schemas")
-            self.assertIn("--tenant", migrate_call[1] or migrate_call[0])
+            migrate_call = next(
+                c for c in mock_call.call_args_list if c[0][0] == "migrate_schemas"
+            )
+            self.assertIn("--tenant", migrate_call[0])
 
     def test_skip_ensure_schemas_only_runs_migrate_schemas(self):
         with (
-            patch("apps.schools.management.commands.run_tenant_migrations.connection") as conn,
-            patch("apps.schools.management.commands.run_tenant_migrations.settings") as settings,
-            patch("apps.schools.management.commands.run_tenant_migrations.call_command") as mock_call,
+            patch(
+                "apps.schools.management.commands.run_tenant_migrations.connection"
+            ) as conn,
+            patch(
+                "apps.schools.management.commands.run_tenant_migrations.settings"
+            ) as settings,
+            patch(
+                "apps.schools.management.commands.run_tenant_migrations.call_command"
+            ) as mock_call,
         ):
             conn.vendor = "postgresql"
             settings.USE_DJANGO_TENANTS = True

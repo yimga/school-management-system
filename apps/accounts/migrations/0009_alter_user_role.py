@@ -4,15 +4,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0008_extended_roles_permissions'),
+        ("accounts", "0008_extended_roles_permissions"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='role',
-            field=models.CharField(choices=[('SUPERADMIN', 'Super Administrator'), ('ADMIN', 'Administrator'), ('LEADERSHIP', 'Leadership'), ('PRINCIPAL', 'Principal'), ('VICE_PRINCIPAL', 'Vice Principal'), ('DEAN', 'Dean'), ('CENSOR', 'Censor'), ('BURSAR', 'Bursar'), ('HOD', 'Head of Department'), ('DEPT_LEAD', 'Department Lead'), ('FINANCE_STAFF', 'Finance Staff'), ('ACADEMICS_STAFF', 'Academics Staff'), ('COMMS_STAFF', 'Communications Staff'), ('TEACHER', 'Teacher'), ('IT_ADMIN', 'IT Administrator'), ('BOARDING_MANAGER', 'Boarding Manager'), ('PARENT', 'Parent'), ('STUDENT', 'Student')], default='PARENT', max_length=20),
+            model_name="user",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("SUPERADMIN", "Super Administrator"),
+                    ("ADMIN", "Administrator"),
+                    ("LEADERSHIP", "Leadership"),
+                    ("PRINCIPAL", "Principal"),
+                    ("VICE_PRINCIPAL", "Vice Principal"),
+                    ("DEAN", "Dean"),
+                    ("CENSOR", "Censor"),
+                    ("BURSAR", "Bursar"),
+                    ("HOD", "Head of Department"),
+                    ("DEPT_LEAD", "Department Lead"),
+                    ("FINANCE_STAFF", "Finance Staff"),
+                    ("ACADEMICS_STAFF", "Academics Staff"),
+                    ("COMMS_STAFF", "Communications Staff"),
+                    ("TEACHER", "Teacher"),
+                    ("IT_ADMIN", "IT Administrator"),
+                    ("BOARDING_MANAGER", "Boarding Manager"),
+                    ("PARENT", "Parent"),
+                    ("STUDENT", "Student"),
+                ],
+                default="PARENT",
+                max_length=20,
+            ),
         ),
     ]

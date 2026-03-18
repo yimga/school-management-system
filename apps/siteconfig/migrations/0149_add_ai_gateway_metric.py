@@ -4,31 +4,38 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0148_add_ai_prompt_registry'),
+        ("siteconfig", "0148_add_ai_prompt_registry"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AIGatewayMetric',
+            name="AIGatewayMetric",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField(db_index=True)),
-                ('tenant_id', models.UUIDField(blank=True, db_index=True, null=True)),
-                ('task_type', models.CharField(db_index=True, max_length=64)),
-                ('tier', models.CharField(db_index=True, max_length=32)),
-                ('request_count', models.PositiveIntegerField(default=0)),
-                ('total_latency_ms', models.FloatField(default=0)),
-                ('failure_count', models.PositiveIntegerField(default=0)),
-                ('schema_validation_failures', models.PositiveIntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField(db_index=True)),
+                ("tenant_id", models.UUIDField(blank=True, db_index=True, null=True)),
+                ("task_type", models.CharField(db_index=True, max_length=64)),
+                ("tier", models.CharField(db_index=True, max_length=32)),
+                ("request_count", models.PositiveIntegerField(default=0)),
+                ("total_latency_ms", models.FloatField(default=0)),
+                ("failure_count", models.PositiveIntegerField(default=0)),
+                ("schema_validation_failures", models.PositiveIntegerField(default=0)),
             ],
             options={
-                'verbose_name': 'AI gateway metric',
-                'verbose_name_plural': 'AI gateway metrics',
-                'db_table': 'siteconfig_aigatewaymetric',
-                'ordering': ['-date', 'tenant_id', 'task_type'],
-                'unique_together': {('date', 'tenant_id', 'task_type', 'tier')},
+                "verbose_name": "AI gateway metric",
+                "verbose_name_plural": "AI gateway metrics",
+                "db_table": "siteconfig_aigatewaymetric",
+                "ordering": ["-date", "tenant_id", "task_type"],
+                "unique_together": {("date", "tenant_id", "task_type", "tier")},
             },
         ),
     ]

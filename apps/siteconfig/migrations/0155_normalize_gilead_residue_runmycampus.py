@@ -10,9 +10,10 @@ def normalize_gilead_residue(apps, schema_editor):
 
     # Rename Gilead Gradient theme to RunMyCampus Gradient (slug and display name)
     # Only if gilead-gradient exists and runmycampus-gradient does not (avoid unique slug conflict)
-    if ThemePack.objects.filter(slug="gilead-gradient").exists() and not ThemePack.objects.filter(
-        slug="runmycampus-gradient"
-    ).exists():
+    if (
+        ThemePack.objects.filter(slug="gilead-gradient").exists()
+        and not ThemePack.objects.filter(slug="runmycampus-gradient").exists()
+    ):
         ThemePack.objects.filter(slug="gilead-gradient").update(
             slug="runmycampus-gradient",
             name="RunMyCampus Gradient",
@@ -25,11 +26,15 @@ def normalize_gilead_residue(apps, schema_editor):
         if getattr(obj, "report_preview_footer_note", "") and "Gilead" in str(
             getattr(obj, "report_preview_footer_note", "")
         ):
-            obj.report_preview_footer_note = "Official report card preview from RunMyCampus."
+            obj.report_preview_footer_note = (
+                "Official report card preview from RunMyCampus."
+            )
             updated = True
-        if getattr(obj, "report_preview_contact_email", "") and "gileadtech" in str(
+        if (
             getattr(obj, "report_preview_contact_email", "")
-        ).lower():
+            and "gileadtech"
+            in str(getattr(obj, "report_preview_contact_email", "")).lower()
+        ):
             obj.report_preview_contact_email = ""
             updated = True
         if updated:
@@ -47,7 +52,6 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0154_sitesettings_theme_harmony"),
     ]

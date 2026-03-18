@@ -2,6 +2,7 @@
 First-login checklist and Setup Studio entry.
 Dashboard assembly and recommendation logic live in apps.dashboard.context and recommendation_service.
 """
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.db import DatabaseError
@@ -21,14 +22,21 @@ def dismiss_first_login_checklist(request):
     """W1-6: Dismiss the first-login checklist for this user (persisted in DashboardUserPreference)."""
     try:
         from apps.runtime_blueprints.models import DashboardUserPreference
-        pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
+
+        pref, _ = DashboardUserPreference.objects.get_or_create(
+            user=request.user, defaults={"dashboard_layout": {}}
+        )
         layout = dict(pref.dashboard_layout or {})
         layout["first_login_checklist_dismissed"] = True
         pref.dashboard_layout = layout
         pref.save(update_fields=["dashboard_layout"])
     except (AttributeError, TypeError, ValueError, DatabaseError):
         pass
-    next_url = request.POST.get("next") or request.GET.get("next") or reverse("accounts:backend_dashboard")
+    next_url = (
+        request.POST.get("next")
+        or request.GET.get("next")
+        or reverse("accounts:backend_dashboard")
+    )
     return redirect(next_url)
 
 
@@ -38,7 +46,10 @@ def mark_tour_complete(request):
     """Mark backend dashboard tour as completed for this user (persisted in DashboardUserPreference)."""
     try:
         from apps.runtime_blueprints.models import DashboardUserPreference
-        pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
+
+        pref, _ = DashboardUserPreference.objects.get_or_create(
+            user=request.user, defaults={"dashboard_layout": {}}
+        )
         layout = dict(pref.dashboard_layout or {})
         layout["tour_backend_dashboard_completed"] = True
         pref.dashboard_layout = layout

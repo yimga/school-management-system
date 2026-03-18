@@ -1,4 +1,5 @@
 """Tests for Feature Control Panel."""
+
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -17,7 +18,10 @@ class FeatureControlPanelTest(TestCase):
             username="super", email="super@test.com", password="testpass123"
         )
         self.staff_user = User.objects.create_user(
-            username="staff", email="staff@test.com", password="testpass123", is_staff=True
+            username="staff",
+            email="staff@test.com",
+            password="testpass123",
+            is_staff=True,
         )
         self.client = Client()
 
@@ -66,7 +70,9 @@ class FeatureControlPanelTest(TestCase):
     def test_offline_feature_flags_rendered(self):
         """New offline/PWA toggles are visible in Feature Control."""
         self.client.login(username="super", password="testpass123")
-        response = self.client.get(reverse("siteconfig:feature_control_panel") + "?embed=1")
+        response = self.client.get(
+            reverse("siteconfig:feature_control_panel") + "?embed=1"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Portal PWA", response.content)
         self.assertIn(b"Offline Attendance Sync", response.content)
@@ -108,7 +114,9 @@ class FeatureControlPanelTest(TestCase):
     def test_ministry_feature_flags_render_and_persist(self):
         """Ministry integrations should be togglable from Feature Control."""
         self.client.login(username="super", password="testpass123")
-        response = self.client.get(reverse("siteconfig:feature_control_panel") + "?embed=1")
+        response = self.client.get(
+            reverse("siteconfig:feature_control_panel") + "?embed=1"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Ministry API (Cartescolaire)", response.content)
         self.assertIn(b"Ministry API (DGI)", response.content)
@@ -120,7 +128,11 @@ class FeatureControlPanelTest(TestCase):
             "feature_backend_flags.enable_ministry_api_dgi": "on",
             "feature_backend_flags.enable_ministry_live_sync": "on",
         }
-        response = self.client.post(reverse("siteconfig:feature_control_panel") + "?embed=1", data=payload, follow=True)
+        response = self.client.post(
+            reverse("siteconfig:feature_control_panel") + "?embed=1",
+            data=payload,
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)
 
         site = get_platform_site_settings_record(create=True)
@@ -132,7 +144,9 @@ class FeatureControlPanelTest(TestCase):
     def test_backend_experience_flags_and_list_density(self):
         """Backend dashboard module/viz toggles and list density are configurable."""
         self.client.login(username="super", password="testpass123")
-        response = self.client.get(reverse("siteconfig:feature_control_panel") + "?embed=1")
+        response = self.client.get(
+            reverse("siteconfig:feature_control_panel") + "?embed=1"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Backend Warm Palette", response.content)
         self.assertIn(b"Backend Module: Overview", response.content)
@@ -150,7 +164,11 @@ class FeatureControlPanelTest(TestCase):
             "feature_backend_flags.backend_module_planner": "on",
             "backend_layout_max_items_per_list": "7",
         }
-        response = self.client.post(reverse("siteconfig:feature_control_panel") + "?embed=1", data=payload, follow=True)
+        response = self.client.post(
+            reverse("siteconfig:feature_control_panel") + "?embed=1",
+            data=payload,
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)
 
         site = get_platform_site_settings_record(create=True)
@@ -180,12 +198,16 @@ class FeatureControlPanelTest(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         payload = response.json()
         self.assertEqual(payload.get("country_code"), "JPN")
-        city_names = [str(item.get("city", "")).lower() for item in payload.get("cities", [])]
+        city_names = [
+            str(item.get("city", "")).lower() for item in payload.get("cities", [])
+        ]
         self.assertIn("tokyo", city_names)
 
     def test_feature_control_save_accepts_global_city_ids(self):
         self.client.login(username="super", password="testpass123")
-        cities = GlobalGeoCatalog.search_cities(country_code="JPN", query="Tokyo", limit=5)
+        cities = GlobalGeoCatalog.search_cities(
+            country_code="JPN", query="Tokyo", limit=5
+        )
         self.assertTrue(cities)
         city = cities[0]
         payload = {
@@ -193,11 +215,17 @@ class FeatureControlPanelTest(TestCase):
             "weather_country_code": "JPN",
             "weather_city_id": str(city["id"]),
         }
-        response = self.client.post(reverse("siteconfig:feature_control_panel") + "?embed=1", data=payload, follow=True)
+        response = self.client.post(
+            reverse("siteconfig:feature_control_panel") + "?embed=1",
+            data=payload,
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)
 
         site = get_platform_site_settings_record(create=True)
         flags = site.backend_feature_flags or {}
         self.assertEqual(str(flags.get("header_weather_country_code")), "JPN")
         self.assertEqual(str(flags.get("header_weather_city")), str(city["city"]))
-        self.assertEqual(str(flags.get("header_weather_timezone")), str(city["timezone"]))
+        self.assertEqual(
+            str(flags.get("header_weather_timezone")), str(city["timezone"])
+        )

@@ -9,11 +9,15 @@ PostgreSQL only. Use --dry-run to print SQL without executing.
   python manage.py revoke_audit_log_permissions
   python manage.py revoke_audit_log_permissions --schema my_tenant_schema
 """
+
 from django.core.management.base import BaseCommand
 from django.db import connection
 from django.db.utils import DatabaseError, OperationalError, ProgrammingError
 
-from apps.people.repositories.audit_repository import revoke_audit_log_mutations, set_search_path
+from apps.people.repositories.audit_repository import (
+    revoke_audit_log_mutations,
+    set_search_path,
+)
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
 # Typed exceptions for revoke_audit_log DDL (per-schema loop).
@@ -34,7 +38,9 @@ class Command(BaseCommand):
             default=None,
             help="Single schema to run in (default: all tenant schemas).",
         )
-        parser.add_argument("--dry-run", action="store_true", help="Print SQL only, do not execute.")
+        parser.add_argument(
+            "--dry-run", action="store_true", help="Print SQL only, do not execute."
+        )
 
     def handle(self, *args, **options):
         if connection.vendor != "postgresql":
@@ -49,11 +55,15 @@ class Command(BaseCommand):
             try:
                 from apps.customers.models import Client
             except ImportError:
-                self.stdout.write(self.style.ERROR("django-tenants required. Use --schema."))
+                self.stdout.write(
+                    self.style.ERROR("django-tenants required. Use --schema.")
+                )
                 return
             schemas = [
                 (getattr(c, "schema_name", ""), getattr(c, "name", c.schema_name))
-                for c in Client.objects.exclude(schema_name="public").filter(schema_name__isnull=False).order_by("id")
+                for c in Client.objects.exclude(schema_name="public")
+                .filter(schema_name__isnull=False)
+                .order_by("id")
             ]
             schemas = [(s, n) for s, n in schemas if s]
 
@@ -63,13 +73,17 @@ class Command(BaseCommand):
 
         for schema_name, label in schemas:
             if dry_run:
-                self.stdout.write(f"Would run: SET search_path TO {schema_name}; REVOKE UPDATE, DELETE ON audit_log FROM CURRENT_USER;")
+                self.stdout.write(
+                    f"Would run: SET search_path TO {schema_name}; REVOKE UPDATE, DELETE ON audit_log FROM CURRENT_USER;"
+                )
                 continue
             try:
                 with connection.cursor() as cursor:
                     set_search_path(cursor, schema_name)
                     revoke_audit_log_mutations(cursor)
-                self.stdout.write(self.style.SUCCESS("OK %s (%s)" % (label, schema_name)))
+                self.stdout.write(
+                    self.style.SUCCESS("OK %s (%s)" % (label, schema_name))
+                )
             except _REVOKE_AUDIT_LOG_PERMISSIONS_ERRORS as e:
                 log_exception_with_context(
                     "revoke_audit_log_permissions: failed for schema",

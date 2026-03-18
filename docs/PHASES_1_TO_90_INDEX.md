@@ -1,5 +1,7 @@
 # Phases 1–90 — Master Index
 
+> **Non-authoritative index.** Batches below are archival navigation. **Single execution truth:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11; do not treat phase batches as competing roadmaps.
+
 **Purpose:** Single entry point for all "next 15 logical phases" batches (1–90) so execution progress is easy to find. Authority: [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md).
 
 ---

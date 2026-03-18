@@ -18,9 +18,13 @@ def _schema_app_lists() -> tuple[set[str], set[str]]:
         if not isinstance(node, ast.If):
             continue
         for stmt in node.body:
-            if not isinstance(stmt, ast.Assign) or not isinstance(stmt.value, (ast.List, ast.Tuple)):
+            if not isinstance(stmt, ast.Assign) or not isinstance(
+                stmt.value, (ast.List, ast.Tuple)
+            ):
                 continue
-            target_names = [target.id for target in stmt.targets if isinstance(target, ast.Name)]
+            target_names = [
+                target.id for target in stmt.targets if isinstance(target, ast.Name)
+            ]
             values = [
                 elt.value
                 for elt in stmt.value.elts
@@ -37,9 +41,7 @@ def _schema_app_lists() -> tuple[set[str], set[str]]:
         if app == "emis" or app.startswith("apps.")
     }
     tenant_labels = {
-        app.split(".")[-1]
-        for app in tenant_apps
-        if app.startswith("apps.")
+        app.split(".")[-1] for app in tenant_apps if app.startswith("apps.")
     }
     return shared_labels, tenant_labels
 
@@ -59,18 +61,28 @@ class SharedMigrationDependencyBoundaryTests(SimpleTestCase):
                 if not isinstance(node, ast.ClassDef) or node.name != "Migration":
                     continue
                 for stmt in node.body:
-                    if not isinstance(stmt, ast.Assign) or not isinstance(stmt.value, (ast.List, ast.Tuple)):
+                    if not isinstance(stmt, ast.Assign) or not isinstance(
+                        stmt.value, (ast.List, ast.Tuple)
+                    ):
                         continue
-                    if not any(isinstance(target, ast.Name) and target.id == "dependencies" for target in stmt.targets):
+                    if not any(
+                        isinstance(target, ast.Name) and target.id == "dependencies"
+                        for target in stmt.targets
+                    ):
                         continue
                     for elt in stmt.value.elts:
                         if not isinstance(elt, ast.Tuple) or not elt.elts:
                             continue
                         first = elt.elts[0]
-                        if not isinstance(first, ast.Constant) or not isinstance(first.value, str):
+                        if not isinstance(first, ast.Constant) or not isinstance(
+                            first.value, str
+                        ):
                             continue
                         dep_label = first.value.split(".")[-1]
-                        if dep_label in tenant_apps and app_label not in LEGACY_MIXED_SHARED_APPS:
+                        if (
+                            dep_label in tenant_apps
+                            and app_label not in LEGACY_MIXED_SHARED_APPS
+                        ):
                             violations.append((app_label, path.name, dep_label))
 
         self.assertEqual(

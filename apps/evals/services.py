@@ -40,23 +40,19 @@ def evaluations_for_term(term: Term) -> QuerySet[Evaluation]:
 
 
 def student_term_subject_scores(student: StudentProfile, term: Term) -> List[float]:
-    qs = (
-        Evaluation.objects.filter(student=student, term=term)
-        .select_related(
-            "academic_year",
-            "term",
-            "subject_assignment",
-            "subject_assignment__subject",
-            "subject_assignment__classroom",
-        )
+    qs = Evaluation.objects.filter(student=student, term=term).select_related(
+        "academic_year",
+        "term",
+        "subject_assignment",
+        "subject_assignment__subject",
+        "subject_assignment__classroom",
     )
     return [float(e.total_score) for e in qs]
 
 
 def student_term_average(student: StudentProfile, term: Term) -> float:
-    evals = (
-        Evaluation.objects.filter(student=student, term=term)
-        .select_related("subject_assignment")
+    evals = Evaluation.objects.filter(student=student, term=term).select_related(
+        "subject_assignment"
     )
 
     total_weighted = 0.0
@@ -71,11 +67,17 @@ def student_term_average(student: StudentProfile, term: Term) -> float:
 
 
 def classroom_term_rankings(classroom: Classroom, term: Term) -> List[StudentAggregate]:
-    students = StudentProfile.objects.filter(classroom=classroom, is_active=True).select_related("classroom")
+    students = StudentProfile.objects.filter(
+        classroom=classroom, is_active=True
+    ).select_related("classroom")
     aggregates: List[StudentAggregate] = []
 
     for s in students:
-        aggregates.append(StudentAggregate(student=s, term=term, scores=[student_term_average(s, term)]))
+        aggregates.append(
+            StudentAggregate(
+                student=s, term=term, scores=[student_term_average(s, term)]
+            )
+        )
 
     aggregates.sort(key=lambda a: a.average, reverse=True)
     return aggregates
@@ -85,7 +87,11 @@ def school_term_rankings(term: Term) -> List[StudentAggregate]:
     students = StudentProfile.objects.filter(is_active=True).select_related("classroom")
     aggregates: List[StudentAggregate] = []
     for s in students:
-        aggregates.append(StudentAggregate(student=s, term=term, scores=[student_term_average(s, term)]))
+        aggregates.append(
+            StudentAggregate(
+                student=s, term=term, scores=[student_term_average(s, term)]
+            )
+        )
 
     aggregates.sort(key=lambda a: a.average, reverse=True)
     return aggregates
@@ -101,7 +107,9 @@ def classroom_stats(classroom: Classroom, term: Term) -> dict:
     }
 
 
-def get_class_ranking(classroom: Classroom, year: Optional[object], term: Term) -> List[StudentAggregate]:
+def get_class_ranking(
+    classroom: Classroom, year: Optional[object], term: Term
+) -> List[StudentAggregate]:
     return classroom_term_rankings(classroom, term)
 
 
@@ -156,7 +164,14 @@ def completion_for_assignment(subject_assignment, term) -> CompletionStats:
     )
 
 
-def ews_students_needing_attention(teacher_profile, year, term, assignments, scale: float = 20.0, drop_threshold_pct: float = 10.0):
+def ews_students_needing_attention(
+    teacher_profile,
+    year,
+    term,
+    assignments,
+    scale: float = 20.0,
+    drop_threshold_pct: float = 10.0,
+):
     """
     Early warning: students with grade drop > threshold (e.g. 10% of scale) vs previous term.
     Returns list of dicts: {student_name, subject, classroom, drop_points}.
@@ -178,17 +193,18 @@ def ews_students_needing_attention(teacher_profile, year, term, assignments, sca
 
     for ta in assignments:
         sa = getattr(ta, "subject_assignment", None)
-        if not sa or not getattr(sa, "classroom", None) or not getattr(sa, "subject", None):
+        if (
+            not sa
+            or not getattr(sa, "classroom", None)
+            or not getattr(sa, "subject", None)
+        ):
             continue
-        prev_sa = (
-            SubjectAssignment.objects.filter(
-                academic_year=year,
-                term=prev_term,
-                classroom=sa.classroom,
-                subject=sa.subject,
-            )
-            .first()
-        )
+        prev_sa = SubjectAssignment.objects.filter(
+            academic_year=year,
+            term=prev_term,
+            classroom=sa.classroom,
+            subject=sa.subject,
+        ).first()
         if not prev_sa:
             continue
         curr_evals = {
@@ -221,12 +237,22 @@ def ews_students_needing_attention(teacher_profile, year, term, assignments, sca
             if key in seen:
                 continue
             seen.add(key)
-            ev = Evaluation.objects.filter(subject_assignment=sa, term=term, student_id=sid).select_related("student").first()
-            student_name = ev.student.get_full_name() if ev and ev.student else f"Student {sid}"
-            result.append({
-                "student_name": student_name,
-                "subject": sa.subject.name,
-                "classroom": sa.classroom.name,
-                "drop_points": round(drop, 1),
-            })
+            ev = (
+                Evaluation.objects.filter(
+                    subject_assignment=sa, term=term, student_id=sid
+                )
+                .select_related("student")
+                .first()
+            )
+            student_name = (
+                ev.student.get_full_name() if ev and ev.student else f"Student {sid}"
+            )
+            result.append(
+                {
+                    "student_name": student_name,
+                    "subject": sa.subject.name,
+                    "classroom": sa.classroom.name,
+                    "drop_points": round(drop, 1),
+                }
+            )
     return result[:20]  # cap for dashboard

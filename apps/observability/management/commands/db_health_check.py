@@ -9,6 +9,7 @@ so the orchestrator only routes traffic when the DB is ready.
 Usage: python manage.py db_health_check
 Exit: 0 on success, 1 on failure.
 """
+
 from django.core.management.base import BaseCommand
 
 from apps.observability.db_liveness import check_db_liveness

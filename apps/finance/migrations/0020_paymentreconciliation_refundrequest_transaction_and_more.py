@@ -6,12 +6,11 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0019_add_finance_request_audit'),
-        ('finance', '0020_payment_reconciliation_and_more'),
-        ('people', '0016_alter_studentprofile_specialty'),
-        ('siteconfig', '0037_admin_theme_pack_options'),
+        ("finance", "0019_add_finance_request_audit"),
+        ("finance", "0020_payment_reconciliation_and_more"),
+        ("people", "0016_alter_studentprofile_specialty"),
+        ("siteconfig", "0037_admin_theme_pack_options"),
     ]
 
     operations = []

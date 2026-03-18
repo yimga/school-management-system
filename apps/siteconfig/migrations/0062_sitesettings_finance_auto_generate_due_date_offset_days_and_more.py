@@ -5,70 +5,115 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0061_delete_geoiplocation_and_more'),
+        ("siteconfig", "0061_delete_geoiplocation_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_auto_generate_due_date_offset_days',
-            field=models.PositiveIntegerField(default=30, help_text='Days after issue date to set invoice due date.'),
+            model_name="sitesettings",
+            name="finance_auto_generate_due_date_offset_days",
+            field=models.PositiveIntegerField(
+                default=30, help_text="Days after issue date to set invoice due date."
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_auto_generate_invoices_enabled',
-            field=models.BooleanField(default=False, help_text='Enable automatic fee invoice generation based on schedule.'),
+            model_name="sitesettings",
+            name="finance_auto_generate_invoices_enabled",
+            field=models.BooleanField(
+                default=False,
+                help_text="Enable automatic fee invoice generation based on schedule.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_auto_generate_require_approval',
-            field=models.BooleanField(default=False, help_text='Require admin approval before generating invoices automatically.'),
+            model_name="sitesettings",
+            name="finance_auto_generate_require_approval",
+            field=models.BooleanField(
+                default=False,
+                help_text="Require admin approval before generating invoices automatically.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_auto_generate_schedule',
-            field=models.JSONField(blank=True, default=dict, help_text='Schedule configuration: {"mode": "academic_year_start", "days_before": 7, "academic_year_start_offset_days": 0, "term_start_offset_days": 0, "custom_date": null}'),
+            model_name="sitesettings",
+            name="finance_auto_generate_schedule",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text='Schedule configuration: {"mode": "academic_year_start", "days_before": 7, "academic_year_start_offset_days": 0, "term_start_offset_days": 0, "custom_date": null}',
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_fee_plan_auto_copy_enabled',
-            field=models.BooleanField(default=False, help_text='Enable automatic fee plan copying on academic year transition.'),
+            model_name="sitesettings",
+            name="finance_fee_plan_auto_copy_enabled",
+            field=models.BooleanField(
+                default=False,
+                help_text="Enable automatic fee plan copying on academic year transition.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_fee_plan_auto_copy_mode',
-            field=models.CharField(choices=[('manual', 'Manual (admin action only)'), ('year_start', 'Auto-copy on academic year start'), ('year_end', 'Auto-copy on previous year end')], default='manual', help_text='When to automatically copy fee plans.', max_length=20),
+            model_name="sitesettings",
+            name="finance_fee_plan_auto_copy_mode",
+            field=models.CharField(
+                choices=[
+                    ("manual", "Manual (admin action only)"),
+                    ("year_start", "Auto-copy on academic year start"),
+                    ("year_end", "Auto-copy on previous year end"),
+                ],
+                default="manual",
+                help_text="When to automatically copy fee plans.",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_fee_plan_copy_increase_percentage',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), help_text='Percentage increase to apply when copying fee plans (e.g., 5.00 for 5% increase).', max_digits=5),
+            model_name="sitesettings",
+            name="finance_fee_plan_copy_increase_percentage",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=Decimal("0.00"),
+                help_text="Percentage increase to apply when copying fee plans (e.g., 5.00 for 5% increase).",
+                max_digits=5,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_invoice_auto_status_updates_enabled',
-            field=models.BooleanField(default=True, help_text='Enable automatic invoice status updates (overdue, paid detection).'),
+            model_name="sitesettings",
+            name="finance_invoice_auto_status_updates_enabled",
+            field=models.BooleanField(
+                default=True,
+                help_text="Enable automatic invoice status updates (overdue, paid detection).",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_invoice_overdue_grace_period_days',
-            field=models.PositiveIntegerField(default=0, help_text='Grace period in days before marking invoice as overdue.'),
+            model_name="sitesettings",
+            name="finance_invoice_overdue_grace_period_days",
+            field=models.PositiveIntegerField(
+                default=0,
+                help_text="Grace period in days before marking invoice as overdue.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_payment_reminder_default_channels',
-            field=models.JSONField(blank=True, default=list, help_text="Default notification channels for payment reminders: ['email'], ['whatsapp'], ['email', 'sms'], etc."),
+            model_name="sitesettings",
+            name="finance_payment_reminder_default_channels",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Default notification channels for payment reminders: ['email'], ['whatsapp'], ['email', 'sms'], etc.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_payment_reminder_default_days',
-            field=models.JSONField(blank=True, default=list, help_text='Default reminder days before due date: [7, 3, 1]'),
+            model_name="sitesettings",
+            name="finance_payment_reminder_default_days",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Default reminder days before due date: [7, 3, 1]",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_payment_reminder_enable_whatsapp',
-            field=models.BooleanField(default=False, help_text='Enable WhatsApp as a payment reminder channel.'),
+            model_name="sitesettings",
+            name="finance_payment_reminder_enable_whatsapp",
+            field=models.BooleanField(
+                default=False,
+                help_text="Enable WhatsApp as a payment reminder channel.",
+            ),
         ),
     ]

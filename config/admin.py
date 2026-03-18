@@ -4,6 +4,7 @@ Custom admin site configuration.
 The platform control plane and tenant admin now run on separate admin site
 instances so manager-host routes no longer behave like a tenant surface.
 """
+
 import logging
 
 from apps.dashboard.admin_context import build_admin_dashboard_context
@@ -84,7 +85,9 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             context["show_mfa_banner"] = False
             context["mfa_setup_url"] = ""
         try:
-            context["integrations_changelist_url"] = reverse("admin:integrations_marketplace_integration_changelist")
+            context["integrations_changelist_url"] = reverse(
+                "admin:integrations_marketplace_integration_changelist"
+            )
         except NoReverseMatch:
             context["integrations_changelist_url"] = None
         return context
@@ -95,7 +98,9 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             extra_context["password_reset_url"] = reverse("admin:password_reset")
         except NoReverseMatch:
             try:
-                extra_context["password_reset_url"] = reverse("admin:admin_password_reset")
+                extra_context["password_reset_url"] = reverse(
+                    "admin:admin_password_reset"
+                )
             except NoReverseMatch:
                 extra_context["password_reset_url"] = None
         try:
@@ -153,7 +158,9 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path("dashboard/", self.admin_view(self.dashboard_redirect), name="dashboard"),
+            path(
+                "dashboard/", self.admin_view(self.dashboard_redirect), name="dashboard"
+            ),
             path("home/", self.home_redirect, name="home"),
             path("activity-logs/", self.activity_logs_redirect, name="activity_logs"),
             path("system-health/", self.system_health_redirect, name="system_health"),
@@ -164,14 +171,15 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         try:
             app_dict = self._build_app_dict(request, app_label)
         except LookupError as e:
-            logging.getLogger(__name__).warning("Admin app list skip missing app: %s", e)
+            logging.getLogger(__name__).warning(
+                "Admin app list skip missing app: %s", e
+            )
             app_dict = {}
 
         # Drop models whose changelist URL could not be resolved (avoids NoReverseMatch in any template using app list)
         for app_name in list(app_dict.keys()):
             app_dict[app_name]["models"] = [
-                m for m in app_dict[app_name].get("models", [])
-                if m.get("admin_url")
+                m for m in app_dict[app_name].get("models", []) if m.get("admin_url")
             ]
 
         app_order = {
@@ -324,7 +332,12 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             )
 
         app_list = [app_info for app_info in app_list if app_info.get("models")]
-        app_list.sort(key=lambda app_info: (app_info.get("app_order", 999), app_info["name"].lower()))
+        app_list.sort(
+            key=lambda app_info: (
+                app_info.get("app_order", 999),
+                app_info["name"].lower(),
+            )
+        )
 
         if self.is_platform_site():
             siteconfig = next(
@@ -355,6 +368,7 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
 
 class PlatformAdminSite(BaseRunMyCampusAdminSite):
     """Platform Backoffice: raw CRUD only. Single config surface is System config (siteconfig:console_domains_hub)."""
+
     site_header = "Platform Backoffice"
     site_title = "Platform Backoffice"
     index_title = "Platform Backoffice"
@@ -384,14 +398,42 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
         "Advanced System Objects",
     )
     PLATFORM_APP_ORDER = {
-        "siteconfig": {"order": 1, "name": "System Configuration", "section": "Platform Configuration"},
-        "schools": {"order": 2, "name": "Schools & Tenants", "section": "Platform Configuration"},
-        "registries": {"order": 3, "name": "Registries", "section": "Platform Configuration"},
-        "policies": {"order": 10, "name": "Policies & Blueprints", "section": "Catalog Records"},
+        "siteconfig": {
+            "order": 1,
+            "name": "System Configuration",
+            "section": "Platform Configuration",
+        },
+        "schools": {
+            "order": 2,
+            "name": "Schools & Tenants",
+            "section": "Platform Configuration",
+        },
+        "registries": {
+            "order": 3,
+            "name": "Registries",
+            "section": "Platform Configuration",
+        },
+        "policies": {
+            "order": 10,
+            "name": "Policies & Blueprints",
+            "section": "Catalog Records",
+        },
         "billing": {"order": 20, "name": "Billing", "section": "Catalog Records"},
-        "automation": {"order": 40, "name": "Automation & Migration", "section": "Migration Records"},
-        "marketplace": {"order": 50, "name": "Marketplace", "section": "Marketplace Records"},
-        "observability": {"order": 60, "name": "Observability", "section": "Maintenance & Repair"},
+        "automation": {
+            "order": 40,
+            "name": "Automation & Migration",
+            "section": "Migration Records",
+        },
+        "marketplace": {
+            "order": 50,
+            "name": "Marketplace",
+            "section": "Marketplace Records",
+        },
+        "observability": {
+            "order": 60,
+            "name": "Observability",
+            "section": "Maintenance & Repair",
+        },
     }
 
     def is_platform_site(self) -> bool:
@@ -412,13 +454,14 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
             app_dict = self._build_app_dict(request, app_label)
         except LookupError as e:
             # Missing app (e.g. brand_experience not in INSTALLED_APPS on some envs) — skip so admin index still loads
-            logging.getLogger(__name__).warning("Admin app list skip missing app: %s", e)
+            logging.getLogger(__name__).warning(
+                "Admin app list skip missing app: %s", e
+            )
             app_dict = {}
         # Drop models whose changelist URL could not be resolved (avoids NoReverseMatch in any template using app list)
         for app_name in list(app_dict.keys()):
             app_dict[app_name]["models"] = [
-                m for m in app_dict[app_name].get("models", [])
-                if m.get("admin_url")
+                m for m in app_dict[app_name].get("models", []) if m.get("admin_url")
             ]
         section_order = {s: i for i, s in enumerate(self.PLATFORM_APP_SECTIONS)}
         # Map app_label to section (one app can only be in one section; use primary section)

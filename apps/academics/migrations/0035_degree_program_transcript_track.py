@@ -4,15 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0034_graduatemilestone_committee_member_count_and_more'),
+        ("academics", "0034_graduatemilestone_committee_member_count_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='degreeprogram',
-            name='transcript_track',
-            field=models.CharField(choices=[('ACADEMIC', 'Academic (degree)'), ('VOCATIONAL', 'Vocational (certificate)')], default='ACADEMIC', help_text='Used for dual transcript: export by track (academic vs vocational).', max_length=20),
+            model_name="degreeprogram",
+            name="transcript_track",
+            field=models.CharField(
+                choices=[
+                    ("ACADEMIC", "Academic (degree)"),
+                    ("VOCATIONAL", "Vocational (certificate)"),
+                ],
+                default="ACADEMIC",
+                help_text="Used for dual transcript: export by track (academic vs vocational).",
+                max_length=20,
+            ),
         ),
     ]

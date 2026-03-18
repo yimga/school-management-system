@@ -5,15 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0039_syllabus_tenant_upload_to'),
+        ("academics", "0039_syllabus_tenant_upload_to"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='certificationfeetemplate',
-            name='currency',
-            field=models.CharField(default=apps.academics.models._default_currency, max_length=10),
+            model_name="certificationfeetemplate",
+            name="currency",
+            field=models.CharField(
+                default=apps.academics.models._default_currency, max_length=10
+            ),
         ),
     ]

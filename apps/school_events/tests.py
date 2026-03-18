@@ -8,7 +8,12 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import User
-from apps.school_events.models import EventRegistration, EventTicketTier, EventVenue, SchoolEvent
+from apps.school_events.models import (
+    EventRegistration,
+    EventTicketTier,
+    EventVenue,
+    SchoolEvent,
+)
 from apps.school_events.services import upcoming_public_events_for_school
 from apps.schools.models import School
 
@@ -100,7 +105,11 @@ class SchoolEventsTests(TestCase):
             HTTP_HOST="riverfront-academy.runmycampus.com",
         )
         detail = self.client.get(
-            reverse("school_events:event_detail", kwargs={"slug": self.event.slug}, urlconf="config.tenant_urls"),
+            reverse(
+                "school_events:event_detail",
+                kwargs={"slug": self.event.slug},
+                urlconf="config.tenant_urls",
+            ),
             HTTP_HOST="riverfront-academy.runmycampus.com",
         )
 
@@ -124,7 +133,9 @@ class SchoolEventsTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.tier.refresh_from_db()
-        registration = EventRegistration.objects.get(event=self.event, purchaser=self.user)
+        registration = EventRegistration.objects.get(
+            event=self.event, purchaser=self.user
+        )
         self.assertEqual(self.tier.sold_quantity, 2)
         self.assertEqual(registration.quantity, 2)
         self.assertEqual(registration.amount_due, Decimal("50.00"))

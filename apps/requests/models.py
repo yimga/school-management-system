@@ -31,9 +31,13 @@ class AccessRequest(models.Model):
         CANCELLED = "CANCELLED", "Cancelled"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reference = models.CharField(max_length=32, unique=True, default=_generate_request_reference, editable=False)
+    reference = models.CharField(
+        max_length=32, unique=True, default=_generate_request_reference, editable=False
+    )
     request_type = models.CharField(max_length=40, choices=RequestType.choices)
-    status = models.CharField(max_length=32, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=32, choices=Status.choices, default=Status.PENDING
+    )
     title = models.CharField(max_length=200, blank=True)
     summary = models.TextField(blank=True)
     details = models.JSONField(default=dict, blank=True)
@@ -61,7 +65,9 @@ class AccessRequest(models.Model):
         related_name="access_requests_assigned",
     )
 
-    target_content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
+    target_content_type = models.ForeignKey(
+        ContentType, on_delete=models.SET_NULL, null=True, blank=True
+    )
     target_object_id = models.CharField(max_length=64, blank=True, null=True)
     target = GenericForeignKey("target_content_type", "target_object_id")
 
@@ -91,7 +97,9 @@ class RequestDecision(models.Model):
         CLARIFY = "CLARIFY", "Clarification requested"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    request = models.ForeignKey(AccessRequest, on_delete=models.CASCADE, related_name="decisions")
+    request = models.ForeignKey(
+        AccessRequest, on_delete=models.CASCADE, related_name="decisions"
+    )
     decision = models.CharField(max_length=20, choices=Decision.choices)
     reason = models.TextField(blank=True)
     decided_by = models.ForeignKey(
@@ -112,7 +120,9 @@ class RequestDecision(models.Model):
 
 class RequestAudit(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    request = models.ForeignKey(AccessRequest, on_delete=models.CASCADE, related_name="audits")
+    request = models.ForeignKey(
+        AccessRequest, on_delete=models.CASCADE, related_name="audits"
+    )
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

@@ -37,7 +37,13 @@ class PerformanceTraceAdmin(admin.ModelAdmin):
 
 @admin.register(AnomalyDetection, site=platform_admin_site)
 class AnomalyDetectionAdmin(admin.ModelAdmin):
-    list_display = ("metric_type", "anomaly_type", "current_value", "deviation_percent", "detected_at")
+    list_display = (
+        "metric_type",
+        "anomaly_type",
+        "current_value",
+        "deviation_percent",
+        "detected_at",
+    )
     list_filter = ("metric_type", "anomaly_type")
     search_fields = ("metric_type", "anomaly_type")
     readonly_fields = ("detected_at",)
@@ -55,6 +61,17 @@ class PlatformIncidentAdmin(admin.ModelAdmin):
         "detected_at",
     )
     list_filter = ("severity", "status", "incident_type", "source_system")
-    search_fields = ("title", "summary", "affected_schema_name", "affected_school__name")
-    readonly_fields = ("detected_at", "created_at", "updated_at", "acknowledged_at", "resolved_at")
+    search_fields = (
+        "title",
+        "summary",
+        "affected_schema_name",
+        "affected_school__name",
+    )
+    readonly_fields = (
+        "detected_at",
+        "created_at",
+        "updated_at",
+        "acknowledged_at",
+        "resolved_at",
+    )
     raw_id_fields = ("affected_school",)

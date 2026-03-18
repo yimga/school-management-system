@@ -7,157 +7,614 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0028_payment_reminder_multiple_days'),
-        ('siteconfig', '0063_sitesettings_finance_bank_verification_amount_tolerance_and_more'),
+        ("finance", "0028_payment_reminder_multiple_days"),
+        (
+            "siteconfig",
+            "0063_sitesettings_finance_bank_verification_amount_tolerance_and_more",
+        ),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BankAccount',
+            name="BankAccount",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(help_text="Account name/nickname (e.g., 'Main School Account', 'MTN MoMo Merchant')", max_length=200)),
-                ('account_type', models.CharField(choices=[('BANK', 'Bank Account'), ('MTN_MOMO', 'MTN Mobile Money'), ('ORANGE_MONEY', 'Orange Money'), ('OTHER', 'Other')], default='BANK', max_length=20)),
-                ('account_number', models.CharField(help_text='Account number (bank account, MoMo merchant number, etc.)', max_length=50)),
-                ('bank_name', models.CharField(blank=True, help_text='Bank name (for bank accounts)', max_length=100)),
-                ('branch', models.CharField(blank=True, help_text='Branch name/location', max_length=100)),
-                ('currency', models.CharField(default='XAF', help_text='Currency code (XAF for Cameroon)', max_length=3)),
-                ('is_active', models.BooleanField(default=True, help_text='Whether this account is currently active')),
-                ('notes', models.TextField(blank=True, help_text='Additional notes about this account')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('region', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='bank_accounts', to='siteconfig.regionconfig')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        help_text="Account name/nickname (e.g., 'Main School Account', 'MTN MoMo Merchant')",
+                        max_length=200,
+                    ),
+                ),
+                (
+                    "account_type",
+                    models.CharField(
+                        choices=[
+                            ("BANK", "Bank Account"),
+                            ("MTN_MOMO", "MTN Mobile Money"),
+                            ("ORANGE_MONEY", "Orange Money"),
+                            ("OTHER", "Other"),
+                        ],
+                        default="BANK",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "account_number",
+                    models.CharField(
+                        help_text="Account number (bank account, MoMo merchant number, etc.)",
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "bank_name",
+                    models.CharField(
+                        blank=True,
+                        help_text="Bank name (for bank accounts)",
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "branch",
+                    models.CharField(
+                        blank=True, help_text="Branch name/location", max_length=100
+                    ),
+                ),
+                (
+                    "currency",
+                    models.CharField(
+                        default="XAF",
+                        help_text="Currency code (XAF for Cameroon)",
+                        max_length=3,
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Whether this account is currently active",
+                    ),
+                ),
+                (
+                    "notes",
+                    models.TextField(
+                        blank=True, help_text="Additional notes about this account"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "region",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="bank_accounts",
+                        to="siteconfig.regionconfig",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Bank Account',
-                'verbose_name_plural': 'Bank Accounts',
-                'ordering': ['name'],
+                "verbose_name": "Bank Account",
+                "verbose_name_plural": "Bank Accounts",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='BankStatementEntry',
+            name="BankStatementEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('transaction_date', models.DateField(help_text='Date of transaction')),
-                ('amount', models.DecimalField(decimal_places=2, help_text='Transaction amount (positive for deposits, negative for withdrawals)', max_digits=12)),
-                ('transaction_type', models.CharField(choices=[('DEPOSIT', 'Deposit'), ('WITHDRAWAL', 'Withdrawal'), ('TRANSFER_IN', 'Transfer In'), ('TRANSFER_OUT', 'Transfer Out'), ('FEE', 'Fee'), ('OTHER', 'Other')], default='DEPOSIT', max_length=20)),
-                ('transaction_reference', models.CharField(blank=True, help_text='Transaction reference/ID from bank', max_length=100)),
-                ('description', models.TextField(blank=True, help_text='Transaction description/details')),
-                ('balance_after', models.DecimalField(blank=True, decimal_places=2, help_text='Account balance after this transaction', max_digits=12, null=True)),
-                ('is_verified', models.BooleanField(default=False, help_text='Whether this entry has been verified/matched')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('imported_from', models.CharField(blank=True, help_text="Source of this entry (e.g., 'Bank Statement Upload', 'Manual Entry')", max_length=200)),
-                ('bank_account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='statement_entries', to='finance.bankaccount')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("transaction_date", models.DateField(help_text="Date of transaction")),
+                (
+                    "amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Transaction amount (positive for deposits, negative for withdrawals)",
+                        max_digits=12,
+                    ),
+                ),
+                (
+                    "transaction_type",
+                    models.CharField(
+                        choices=[
+                            ("DEPOSIT", "Deposit"),
+                            ("WITHDRAWAL", "Withdrawal"),
+                            ("TRANSFER_IN", "Transfer In"),
+                            ("TRANSFER_OUT", "Transfer Out"),
+                            ("FEE", "Fee"),
+                            ("OTHER", "Other"),
+                        ],
+                        default="DEPOSIT",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "transaction_reference",
+                    models.CharField(
+                        blank=True,
+                        help_text="Transaction reference/ID from bank",
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(
+                        blank=True, help_text="Transaction description/details"
+                    ),
+                ),
+                (
+                    "balance_after",
+                    models.DecimalField(
+                        blank=True,
+                        decimal_places=2,
+                        help_text="Account balance after this transaction",
+                        max_digits=12,
+                        null=True,
+                    ),
+                ),
+                (
+                    "is_verified",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Whether this entry has been verified/matched",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "imported_from",
+                    models.CharField(
+                        blank=True,
+                        help_text="Source of this entry (e.g., 'Bank Statement Upload', 'Manual Entry')",
+                        max_length=200,
+                    ),
+                ),
+                (
+                    "bank_account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="statement_entries",
+                        to="finance.bankaccount",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Bank Statement Entry',
-                'verbose_name_plural': 'Bank Statement Entries',
-                'ordering': ['-transaction_date', '-id'],
+                "verbose_name": "Bank Statement Entry",
+                "verbose_name_plural": "Bank Statement Entries",
+                "ordering": ["-transaction_date", "-id"],
             },
         ),
         migrations.CreateModel(
-            name='BankStatementUpload',
+            name="BankStatementUpload",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('statement_file', models.FileField(help_text='Bank statement file (CSV, PDF, Excel)', upload_to='finance/bank_statements/')),
-                ('statement_period_start', models.DateField(help_text='Start date of statement period')),
-                ('statement_period_end', models.DateField(help_text='End date of statement period')),
-                ('status', models.CharField(choices=[('PENDING', 'Pending Import'), ('PROCESSING', 'Processing'), ('COMPLETED', 'Completed'), ('FAILED', 'Failed')], default='PENDING', max_length=20)),
-                ('entries_imported', models.IntegerField(default=0, help_text='Number of entries imported')),
-                ('errors', models.JSONField(blank=True, default=list, help_text='Import errors (if any)')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('processed_at', models.DateTimeField(blank=True, null=True)),
-                ('bank_account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='statement_uploads', to='finance.bankaccount')),
-                ('uploaded_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='bank_statement_uploads', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "statement_file",
+                    models.FileField(
+                        help_text="Bank statement file (CSV, PDF, Excel)",
+                        upload_to="finance/bank_statements/",
+                    ),
+                ),
+                (
+                    "statement_period_start",
+                    models.DateField(help_text="Start date of statement period"),
+                ),
+                (
+                    "statement_period_end",
+                    models.DateField(help_text="End date of statement period"),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending Import"),
+                            ("PROCESSING", "Processing"),
+                            ("COMPLETED", "Completed"),
+                            ("FAILED", "Failed"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "entries_imported",
+                    models.IntegerField(
+                        default=0, help_text="Number of entries imported"
+                    ),
+                ),
+                (
+                    "errors",
+                    models.JSONField(
+                        blank=True, default=list, help_text="Import errors (if any)"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("processed_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "bank_account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="statement_uploads",
+                        to="finance.bankaccount",
+                    ),
+                ),
+                (
+                    "uploaded_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="bank_statement_uploads",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Bank Statement Upload',
-                'verbose_name_plural': 'Bank Statement Uploads',
-                'ordering': ['-created_at'],
+                "verbose_name": "Bank Statement Upload",
+                "verbose_name_plural": "Bank Statement Uploads",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='PaymentProofUpload',
+            name="PaymentProofUpload",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('receipt_file', models.FileField(help_text='Uploaded receipt file (PDF/image, max 2MB)', upload_to='finance/payment_proofs/', validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.jpg', '.jpeg', '.png'], allowed_types=['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'], message='Only PDF or image files are allowed for receipts.'), apps.accounts.validators.FileSizeValidator(max_size_mb=2)])),
-                ('payment_method', models.CharField(choices=[('CASH', 'Cash'), ('BANK', 'Bank Transfer'), ('MTN_MOMO', 'MTN MoMo'), ('ORANGE_MOMO', 'Orange Money'), ('CHECK', 'Check'), ('OTHER', 'Other')], help_text='Payment method used (CASH, BANK, etc.)', max_length=20)),
-                ('transaction_reference', models.CharField(blank=True, help_text='Transaction reference/ID from receipt (optional, can be extracted)', max_length=100)),
-                ('uploaded_amount', models.DecimalField(blank=True, decimal_places=2, help_text='Amount from receipt (optional, can be extracted via OCR)', max_digits=12, null=True)),
-                ('verification_data', models.JSONField(blank=True, default=dict, help_text='Extracted data from receipt (amount, reference, date, confidence)')),
-                ('verification_confidence', models.FloatField(default=0.0, help_text='Confidence score (0.0-1.0) for verification')),
-                ('status', models.CharField(choices=[('PENDING', 'Pending Verification'), ('VERIFYING', 'Verifying'), ('VERIFIED', 'Verified - Payment Applied'), ('DISCREPANCY', 'Discrepancy - Needs Review'), ('REJECTED', 'Rejected')], default='PENDING', max_length=20)),
-                ('verification_notes', models.TextField(blank=True, help_text='Notes about verification (discrepancies, reasons for rejection, etc.)')),
-                ('fraud_risk_score', models.IntegerField(default=0, help_text='Fraud risk score (0-100). Higher = more suspicious.')),
-                ('fraud_flags', models.JSONField(blank=True, default=list, help_text="List of fraud flags: ['old_receipt', 'duplicate_reference', 'date_mismatch', etc.]")),
-                ('file_hash', models.CharField(blank=True, help_text='SHA-256 hash of receipt file for duplicate detection', max_length=64)),
-                ('receipt_date', models.DateField(blank=True, help_text='Date extracted from receipt (for date validation)', null=True)),
-                ('is_suspicious', models.BooleanField(default=False, help_text='Flagged as suspicious - requires manual review')),
-                ('flagged_at', models.DateTimeField(blank=True, help_text='When this receipt was flagged as suspicious', null=True)),
-                ('bank_verified', models.BooleanField(default=False, help_text='Whether deposit was verified in bank statements')),
-                ('bank_verification_date', models.DateTimeField(blank=True, help_text='When bank verification was performed', null=True)),
-                ('bank_verification_method', models.CharField(blank=True, help_text="How deposit was verified: 'transaction_reference', 'amount_and_date', 'manual', etc.", max_length=50)),
-                ('bank_verification_notes', models.TextField(blank=True, help_text='Notes about bank verification')),
-                ('ip_address', models.GenericIPAddressField(blank=True, help_text='IP address of uploader (for fraud detection)', null=True)),
-                ('user_agent', models.CharField(blank=True, help_text='User agent/browser info (for fraud detection)', max_length=500)),
-                ('device_fingerprint', models.CharField(blank=True, help_text='Device fingerprint hash (for fraud detection)', max_length=100)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('verified_at', models.DateTimeField(blank=True, null=True)),
-                ('bank_statement_entry', models.ForeignKey(blank=True, help_text='Matched bank statement entry', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='receipt_uploads', to='finance.bankstatemententry')),
-                ('flagged_by', models.ForeignKey(blank=True, help_text='Admin who flagged this receipt (if manual flag)', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='flagged_receipts', to=settings.AUTH_USER_MODEL)),
-                ('invoice', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payment_proof_uploads', to='finance.invoice')),
-                ('payment', models.ForeignKey(blank=True, help_text='Created payment record (if verified and applied)', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='proof_uploads', to='finance.payment')),
-                ('uploaded_by', models.ForeignKey(help_text='Parent/guardian who uploaded the receipt', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='payment_proof_uploads', to=settings.AUTH_USER_MODEL)),
-                ('verified_by', models.ForeignKey(blank=True, help_text='Admin who verified (if manual verification)', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verified_payment_proofs', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "receipt_file",
+                    models.FileField(
+                        help_text="Uploaded receipt file (PDF/image, max 2MB)",
+                        upload_to="finance/payment_proofs/",
+                        validators=[
+                            apps.accounts.validators.FileTypeValidator(
+                                allowed_extensions=[".pdf", ".jpg", ".jpeg", ".png"],
+                                allowed_types=[
+                                    "application/pdf",
+                                    "image/jpeg",
+                                    "image/png",
+                                    "image/jpg",
+                                ],
+                                message="Only PDF or image files are allowed for receipts.",
+                            ),
+                            apps.accounts.validators.FileSizeValidator(max_size_mb=2),
+                        ],
+                    ),
+                ),
+                (
+                    "payment_method",
+                    models.CharField(
+                        choices=[
+                            ("CASH", "Cash"),
+                            ("BANK", "Bank Transfer"),
+                            ("MTN_MOMO", "MTN MoMo"),
+                            ("ORANGE_MOMO", "Orange Money"),
+                            ("CHECK", "Check"),
+                            ("OTHER", "Other"),
+                        ],
+                        help_text="Payment method used (CASH, BANK, etc.)",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "transaction_reference",
+                    models.CharField(
+                        blank=True,
+                        help_text="Transaction reference/ID from receipt (optional, can be extracted)",
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "uploaded_amount",
+                    models.DecimalField(
+                        blank=True,
+                        decimal_places=2,
+                        help_text="Amount from receipt (optional, can be extracted via OCR)",
+                        max_digits=12,
+                        null=True,
+                    ),
+                ),
+                (
+                    "verification_data",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Extracted data from receipt (amount, reference, date, confidence)",
+                    ),
+                ),
+                (
+                    "verification_confidence",
+                    models.FloatField(
+                        default=0.0,
+                        help_text="Confidence score (0.0-1.0) for verification",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending Verification"),
+                            ("VERIFYING", "Verifying"),
+                            ("VERIFIED", "Verified - Payment Applied"),
+                            ("DISCREPANCY", "Discrepancy - Needs Review"),
+                            ("REJECTED", "Rejected"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "verification_notes",
+                    models.TextField(
+                        blank=True,
+                        help_text="Notes about verification (discrepancies, reasons for rejection, etc.)",
+                    ),
+                ),
+                (
+                    "fraud_risk_score",
+                    models.IntegerField(
+                        default=0,
+                        help_text="Fraud risk score (0-100). Higher = more suspicious.",
+                    ),
+                ),
+                (
+                    "fraud_flags",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="List of fraud flags: ['old_receipt', 'duplicate_reference', 'date_mismatch', etc.]",
+                    ),
+                ),
+                (
+                    "file_hash",
+                    models.CharField(
+                        blank=True,
+                        help_text="SHA-256 hash of receipt file for duplicate detection",
+                        max_length=64,
+                    ),
+                ),
+                (
+                    "receipt_date",
+                    models.DateField(
+                        blank=True,
+                        help_text="Date extracted from receipt (for date validation)",
+                        null=True,
+                    ),
+                ),
+                (
+                    "is_suspicious",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Flagged as suspicious - requires manual review",
+                    ),
+                ),
+                (
+                    "flagged_at",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="When this receipt was flagged as suspicious",
+                        null=True,
+                    ),
+                ),
+                (
+                    "bank_verified",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Whether deposit was verified in bank statements",
+                    ),
+                ),
+                (
+                    "bank_verification_date",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="When bank verification was performed",
+                        null=True,
+                    ),
+                ),
+                (
+                    "bank_verification_method",
+                    models.CharField(
+                        blank=True,
+                        help_text="How deposit was verified: 'transaction_reference', 'amount_and_date', 'manual', etc.",
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "bank_verification_notes",
+                    models.TextField(
+                        blank=True, help_text="Notes about bank verification"
+                    ),
+                ),
+                (
+                    "ip_address",
+                    models.GenericIPAddressField(
+                        blank=True,
+                        help_text="IP address of uploader (for fraud detection)",
+                        null=True,
+                    ),
+                ),
+                (
+                    "user_agent",
+                    models.CharField(
+                        blank=True,
+                        help_text="User agent/browser info (for fraud detection)",
+                        max_length=500,
+                    ),
+                ),
+                (
+                    "device_fingerprint",
+                    models.CharField(
+                        blank=True,
+                        help_text="Device fingerprint hash (for fraud detection)",
+                        max_length=100,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("verified_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "bank_statement_entry",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Matched bank statement entry",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="receipt_uploads",
+                        to="finance.bankstatemententry",
+                    ),
+                ),
+                (
+                    "flagged_by",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Admin who flagged this receipt (if manual flag)",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="flagged_receipts",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "invoice",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payment_proof_uploads",
+                        to="finance.invoice",
+                    ),
+                ),
+                (
+                    "payment",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Created payment record (if verified and applied)",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="proof_uploads",
+                        to="finance.payment",
+                    ),
+                ),
+                (
+                    "uploaded_by",
+                    models.ForeignKey(
+                        help_text="Parent/guardian who uploaded the receipt",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="payment_proof_uploads",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "verified_by",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Admin who verified (if manual verification)",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="verified_payment_proofs",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Payment Proof Upload',
-                'verbose_name_plural': 'Payment Proof Uploads',
-                'ordering': ['-created_at'],
+                "verbose_name": "Payment Proof Upload",
+                "verbose_name_plural": "Payment Proof Uploads",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.AddField(
-            model_name='bankstatemententry',
-            name='matched_receipt_upload',
-            field=models.ForeignKey(blank=True, help_text='Receipt upload that matches this statement entry', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='matched_statements', to='finance.paymentproofupload'),
+            model_name="bankstatemententry",
+            name="matched_receipt_upload",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Receipt upload that matches this statement entry",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="matched_statements",
+                to="finance.paymentproofupload",
+            ),
         ),
         migrations.AddIndex(
-            model_name='paymentproofupload',
-            index=models.Index(fields=['status', '-created_at'], name='finance_pay_status_02f265_idx'),
+            model_name="paymentproofupload",
+            index=models.Index(
+                fields=["status", "-created_at"], name="finance_pay_status_02f265_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='paymentproofupload',
-            index=models.Index(fields=['invoice', '-created_at'], name='finance_pay_invoice_ff468c_idx'),
+            model_name="paymentproofupload",
+            index=models.Index(
+                fields=["invoice", "-created_at"], name="finance_pay_invoice_ff468c_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='paymentproofupload',
-            index=models.Index(fields=['uploaded_by', '-created_at'], name='finance_pay_uploade_49cea4_idx'),
+            model_name="paymentproofupload",
+            index=models.Index(
+                fields=["uploaded_by", "-created_at"],
+                name="finance_pay_uploade_49cea4_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='paymentproofupload',
-            index=models.Index(fields=['is_suspicious', '-created_at'], name='finance_pay_is_susp_4445e7_idx'),
+            model_name="paymentproofupload",
+            index=models.Index(
+                fields=["is_suspicious", "-created_at"],
+                name="finance_pay_is_susp_4445e7_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='paymentproofupload',
-            index=models.Index(fields=['file_hash'], name='finance_pay_file_ha_6d4629_idx'),
+            model_name="paymentproofupload",
+            index=models.Index(
+                fields=["file_hash"], name="finance_pay_file_ha_6d4629_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='paymentproofupload',
-            index=models.Index(fields=['transaction_reference'], name='finance_pay_transac_ba816d_idx'),
+            model_name="paymentproofupload",
+            index=models.Index(
+                fields=["transaction_reference"], name="finance_pay_transac_ba816d_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='bankstatemententry',
-            index=models.Index(fields=['bank_account', 'transaction_date'], name='finance_ban_bank_ac_2e3de3_idx'),
+            model_name="bankstatemententry",
+            index=models.Index(
+                fields=["bank_account", "transaction_date"],
+                name="finance_ban_bank_ac_2e3de3_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='bankstatemententry',
-            index=models.Index(fields=['transaction_reference'], name='finance_ban_transac_71b023_idx'),
+            model_name="bankstatemententry",
+            index=models.Index(
+                fields=["transaction_reference"], name="finance_ban_transac_71b023_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='bankstatemententry',
-            index=models.Index(fields=['is_verified'], name='finance_ban_is_veri_44c7bb_idx'),
+            model_name="bankstatemententry",
+            index=models.Index(
+                fields=["is_verified"], name="finance_ban_is_veri_44c7bb_idx"
+            ),
         ),
     ]

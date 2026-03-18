@@ -2,6 +2,7 @@
 Phase 7: Gradebook/Evals runtime — resolve grading and publish config from request.tenant_runtime.
 Use these instead of SiteSettings or school.settings for pass_mark, scale, workflow.
 """
+
 from __future__ import annotations
 
 import logging
@@ -36,7 +37,9 @@ def get_pass_mark(runtime: Any, default: Optional[Decimal] = None) -> Decimal:
         try:
             return Decimal(str(val))
         except _EVALS_GRADEBOOK_PASS_MARK_PARSE_ERRORS as e:
-            logger.debug("evals.runtime_gradebook: pass_mark parse failed, using default: %s", e)
+            logger.debug(
+                "evals.runtime_gradebook: pass_mark parse failed, using default: %s", e
+            )
     if default is not None:
         return default
     return Decimal("10.00")

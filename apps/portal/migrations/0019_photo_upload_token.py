@@ -6,27 +6,67 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0024_studentprofile_updated_at'),
-        ('portal', '0018_add_cahier_de_texte_entry'),
+        ("people", "0024_studentprofile_updated_at"),
+        ("portal", "0018_add_cahier_de_texte_entry"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PhotoUploadToken',
+            name="PhotoUploadToken",
             fields=[
-                ('token', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('photo', models.ImageField(blank=True, null=True, upload_to='portal/photo_upload/%Y/%m/')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('purpose', models.CharField(choices=[('registration', 'Registration (new student/teacher)'), ('profile_update', 'Profile update (existing)')], default='registration', max_length=20)),
-                ('student', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='people.studentprofile')),
-                ('teacher', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='people.teacherprofile')),
+                (
+                    "token",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "photo",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="portal/photo_upload/%Y/%m/"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "purpose",
+                    models.CharField(
+                        choices=[
+                            ("registration", "Registration (new student/teacher)"),
+                            ("profile_update", "Profile update (existing)"),
+                        ],
+                        default="registration",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="+",
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "teacher",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="+",
+                        to="people.teacherprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
-                'verbose_name': 'Photo upload token',
-                'verbose_name_plural': 'Photo upload tokens',
+                "ordering": ["-created_at"],
+                "verbose_name": "Photo upload token",
+                "verbose_name_plural": "Photo upload tokens",
             },
         ),
     ]

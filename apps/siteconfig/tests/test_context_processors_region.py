@@ -1,6 +1,7 @@
 """
 Tests for region_settings and language_context when user has preferred_region / preferred_language.
 """
+
 from unittest.mock import MagicMock
 
 from django.test import TestCase

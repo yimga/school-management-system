@@ -7,6 +7,7 @@ from .views import (
     strategic_report,
     forecaster_api,
     at_risk_dashboard,
+    at_risk_intervention_action,
     executive_dashboard,
 )
 
@@ -19,5 +20,10 @@ urlpatterns = [
     path("strategic/", strategic_report, name="strategic_report"),
     path("api/forecaster/", forecaster_api, name="forecaster_api"),
     path("at-risk/", at_risk_dashboard, name="at_risk_dashboard"),
+    path(
+        "at-risk/intervention/",
+        at_risk_intervention_action,
+        name="at_risk_intervention_action",
+    ),
     path("executive/", executive_dashboard, name="executive_dashboard"),
 ]

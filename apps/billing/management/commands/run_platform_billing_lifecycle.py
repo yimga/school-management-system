@@ -8,7 +8,9 @@ class Command(BaseCommand):
     help = "Run the platform billing lifecycle automation."
 
     def add_arguments(self, parser):
-        parser.add_argument("--as-of", help="Optional ISO datetime to run the lifecycle against.")
+        parser.add_argument(
+            "--as-of", help="Optional ISO datetime to run the lifecycle against."
+        )
         parser.add_argument("--grace-days", type=int, default=7)
         parser.add_argument("--suspension-days", type=int, default=30)
 

@@ -12,7 +12,11 @@ from apps.accounts.decorators import parent_portal_required, role_required
 from apps.accounts.models import User
 from apps.communication.models import ContactRequest
 
-from .forms_contact_requests import ContactRequestAssignForm, ContactRequestCreateForm, ContactRequestUpdateStatusForm
+from .forms_contact_requests import (
+    ContactRequestAssignForm,
+    ContactRequestCreateForm,
+    ContactRequestUpdateStatusForm,
+)
 from .services import guardian_student_links
 
 
@@ -24,20 +28,35 @@ TRIAGE_ROLES = {
 
 
 def _pick_triage_owner() -> User | None:
-    triager = User.objects.filter(Q(role__in=TRIAGE_ROLES) | Q(roles__code__in=TRIAGE_ROLES)).distinct().first()
+    triager = (
+        User.objects.filter(Q(role__in=TRIAGE_ROLES) | Q(roles__code__in=TRIAGE_ROLES))
+        .distinct()
+        .first()
+    )
     if triager:
         return triager
     # fallback: any admin/staff
-    return User.objects.filter(Q(is_superuser=True) | Q(role=User.Role.ADMIN)).distinct().first()
+    return (
+        User.objects.filter(Q(is_superuser=True) | Q(role=User.Role.ADMIN))
+        .distinct()
+        .first()
+    )
 
 
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_contact_school(request: HttpRequest):
-    links = guardian_student_links(request.user, results_only=False).select_related("student")
+    links = guardian_student_links(request.user, results_only=False).select_related(
+        "student"
+    )
     students = [link.student for link in links]
 
-    form = ContactRequestCreateForm(request.POST or None, request.FILES or None, parent=request.user, students=students)
+    form = ContactRequestCreateForm(
+        request.POST or None,
+        request.FILES or None,
+        parent=request.user,
+        students=students,
+    )
     if request.method == "POST" and form.is_valid():
         triage_owner = _pick_triage_owner()
         desired_staff = form.cleaned_data.get("desired_staff")
@@ -62,16 +81,24 @@ def parent_contact_school(request: HttpRequest):
         for f in request.FILES.getlist("attachments"):
             contact.attachments.create(file=f, uploaded_by=request.user)
 
-        messages.success(request, "Your request has been submitted. The school team will contact you soon.")
+        messages.success(
+            request,
+            "Your request has been submitted. The school team will contact you soon.",
+        )
         return redirect("portal:parent_dashboard")
 
-    return render(request, "parent/contact_school.html", {"form": form, "students": students})
+    return render(
+        request, "parent/contact_school.html", {"form": form, "students": students}
+    )
 
 
 def _can_triage(user: User) -> bool:
     if user.is_superuser:
         return True
-    if getattr(user, "role", None) in TRIAGE_ROLES or getattr(user, "role", None) == User.Role.ADMIN:
+    if (
+        getattr(user, "role", None) in TRIAGE_ROLES
+        or getattr(user, "role", None) == User.Role.ADMIN
+    ):
         return True
     return user.roles.filter(code__in=list(TRIAGE_ROLES)).exists()
 
@@ -79,12 +106,16 @@ def _can_triage(user: User) -> bool:
 @staff_member_required
 def staff_contact_request_list(request: HttpRequest):
     if not _can_triage(request.user):
-        return HttpResponseForbidden("You are not authorized to manage contact requests.")
+        return HttpResponseForbidden(
+            "You are not authorized to manage contact requests."
+        )
 
     status_filter = request.GET.get("status", "")
     mine = request.GET.get("mine", "")
 
-    qs = ContactRequest.objects.select_related("parent", "student", "desired_staff", "assigned_to", "triage_owner")
+    qs = ContactRequest.objects.select_related(
+        "parent", "student", "desired_staff", "assigned_to", "triage_owner"
+    )
     if status_filter:
         qs = qs.filter(status=status_filter)
     if mine == "1":
@@ -105,9 +136,16 @@ def staff_contact_request_list(request: HttpRequest):
 @staff_member_required
 def staff_contact_request_detail(request: HttpRequest, request_id):
     if not _can_triage(request.user):
-        return HttpResponseForbidden("You are not authorized to manage contact requests.")
+        return HttpResponseForbidden(
+            "You are not authorized to manage contact requests."
+        )
 
-    ticket = get_object_or_404(ContactRequest.objects.select_related("parent", "student", "desired_staff", "assigned_to", "triage_owner"), id=request_id)
+    ticket = get_object_or_404(
+        ContactRequest.objects.select_related(
+            "parent", "student", "desired_staff", "assigned_to", "triage_owner"
+        ),
+        id=request_id,
+    )
 
     assign_form = ContactRequestAssignForm(request.POST or None, instance=ticket)
     status_form = ContactRequestUpdateStatusForm(request.POST or None, instance=ticket)
@@ -117,20 +155,44 @@ def staff_contact_request_detail(request: HttpRequest, request_id):
         if action == "assign" and assign_form.is_valid():
             ticket.assigned_to = assign_form.cleaned_data["assigned_to"]
             ticket.triage_notes = assign_form.cleaned_data.get("triage_notes", "")
-            ticket.status = ContactRequest.Status.ASSIGNED if ticket.assigned_to_id else ticket.status
+            ticket.status = (
+                ContactRequest.Status.ASSIGNED
+                if ticket.assigned_to_id
+                else ticket.status
+            )
             ticket.triage_owner = ticket.triage_owner or request.user
-            ticket.save(update_fields=["assigned_to", "triage_notes", "status", "triage_owner", "updated_at"])
+            ticket.save(
+                update_fields=[
+                    "assigned_to",
+                    "triage_notes",
+                    "status",
+                    "triage_owner",
+                    "updated_at",
+                ]
+            )
             messages.success(request, "Assignment saved.")
-            return redirect("portal:staff_contact_request_detail", request_id=str(ticket.id))
+            return redirect(
+                "portal:staff_contact_request_detail", request_id=str(ticket.id)
+            )
 
         if action == "status" and status_form.is_valid():
             ticket.status = status_form.cleaned_data["status"]
-            ticket.resolution_notes = status_form.cleaned_data.get("resolution_notes", "")
-            if ticket.status in (ContactRequest.Status.RESOLVED, ContactRequest.Status.CLOSED) and not ticket.closed_at:
+            ticket.resolution_notes = status_form.cleaned_data.get(
+                "resolution_notes", ""
+            )
+            if (
+                ticket.status
+                in (ContactRequest.Status.RESOLVED, ContactRequest.Status.CLOSED)
+                and not ticket.closed_at
+            ):
                 ticket.closed_at = timezone.now()
-            ticket.save(update_fields=["status", "resolution_notes", "closed_at", "updated_at"])
+            ticket.save(
+                update_fields=["status", "resolution_notes", "closed_at", "updated_at"]
+            )
             messages.success(request, "Status updated.")
-            return redirect("portal:staff_contact_request_detail", request_id=str(ticket.id))
+            return redirect(
+                "portal:staff_contact_request_detail", request_id=str(ticket.id)
+            )
 
     return render(
         request,
@@ -142,4 +204,3 @@ def staff_contact_request_detail(request: HttpRequest, request_id):
             "back_url": reverse("portal:staff_contact_request_list"),
         },
     )
-

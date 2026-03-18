@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0105_webhookdelivery'),
+        ("siteconfig", "0105_webhookdelivery"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='regionconfig',
-            name='is_rtl',
-            field=models.BooleanField(default=False, help_text='Right-to-left script (Arabic, Hebrew, Urdu). When True, set <html dir="rtl"> from tenant locale.'),
+            model_name="regionconfig",
+            name="is_rtl",
+            field=models.BooleanField(
+                default=False,
+                help_text='Right-to-left script (Arabic, Hebrew, Urdu). When True, set <html dir="rtl"> from tenant locale.',
+            ),
         ),
     ]

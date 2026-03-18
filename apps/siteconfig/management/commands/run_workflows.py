@@ -3,6 +3,7 @@ Run workflow execution engine for a given trigger (Section 5 full execution).
 Use from cron: python manage.py run_workflows --trigger=scheduled
 Or: --trigger=event --context='{"event_name":"student.enrolled"}'
 """
+
 from django.core.management.base import BaseCommand
 
 from apps.siteconfig.workflow_engine import run_workflows_for_trigger
@@ -23,7 +24,7 @@ class Command(BaseCommand):
             "--context",
             type=str,
             default="{}",
-            help="JSON context dict for condition evaluation (e.g. {\"event_name\": \"student.enrolled\"}).",
+            help='JSON context dict for condition evaluation (e.g. {"event_name": "student.enrolled"}).',
         )
         parser.add_argument(
             "--school-id",
@@ -34,6 +35,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         import json
+
         trigger = (options.get("trigger") or "scheduled").strip()
         context_str = options.get("context") or "{}"
         try:
@@ -68,6 +70,10 @@ class Command(BaseCommand):
                     )
                 else:
                     self.stderr.write(
-                        self.style.WARNING(f"  {school.slug} {r.get('template_code', '')} error={r.get('error')}")
+                        self.style.WARNING(
+                            f"  {school.slug} {r.get('template_code', '')} error={r.get('error')}"
+                        )
                     )
-        self.stdout.write(self.style.SUCCESS(f"Run {total_runs} workflow(s) for trigger={trigger}"))
+        self.stdout.write(
+            self.style.SUCCESS(f"Run {total_runs} workflow(s) for trigger={trigger}")
+        )

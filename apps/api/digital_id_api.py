@@ -3,6 +3,7 @@
 Phase 5: Read-only API for digital ID (wallet / Apple Wallet / Google Pay / partner apps).
 Returns photo, name, role/grade, QR payload for authenticated staff or parent (children).
 """
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
@@ -54,7 +55,9 @@ def _child_digital_id_payload(request, student):
         classroom.name
         if classroom
         else (
-            getattr(student, "academic_year", None) and str(student.academic_year) or "—"
+            getattr(student, "academic_year", None)
+            and str(student.academic_year)
+            or "—"
         )
     )
     photo_url = None
@@ -90,7 +93,14 @@ class DigitalIDAPI(View):
         try:
             payload = _staff_digital_id_payload(request)
             return JsonResponse(payload)
-        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            ObjectDoesNotExist,
+            DatabaseError,
+        ) as e:
             logger.exception("Digital ID API error: %s", e)
             return JsonResponse({"error": "Failed to build digital ID."}, status=500)
 
@@ -105,7 +115,9 @@ class DigitalIDChildrenAPI(View):
     def get(self, request):
         role_value = (getattr(request.user, "role", "") or "").upper()
         if role_value != User.Role.PARENT:
-            return JsonResponse({"error": "Permission denied. Parent only."}, status=403)
+            return JsonResponse(
+                {"error": "Permission denied. Parent only."}, status=403
+            )
         try:
             links = StudentGuardian.objects.filter(
                 guardian_user=request.user,
@@ -115,6 +127,13 @@ class DigitalIDChildrenAPI(View):
             for link in links:
                 children.append(_child_digital_id_payload(request, link.student))
             return JsonResponse({"children": children})
-        except (ImportError, AttributeError, TypeError, ValueError, ObjectDoesNotExist, DatabaseError) as e:
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            ObjectDoesNotExist,
+            DatabaseError,
+        ) as e:
             logger.exception("Digital ID children API error: %s", e)
             return JsonResponse({"error": "Failed to build children IDs."}, status=500)

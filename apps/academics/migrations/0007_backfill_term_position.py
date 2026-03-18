@@ -2,19 +2,19 @@ from django.db import migrations
 
 
 def backfill_positions(apps, schema_editor):
-    Term = apps.get_model('academics', 'Term')
+    Term = apps.get_model("academics", "Term")
     for term in Term.objects.all():
-        name = (term.name or '').upper()
-        if name == 'FIRST':
+        name = (term.name or "").upper()
+        if name == "FIRST":
             term.position = 1
-        elif name == 'SECOND':
+        elif name == "SECOND":
             term.position = 2
-        elif name == 'THIRD':
+        elif name == "THIRD":
             term.position = 3
         else:
             # leave as is (None) if unknown; admin can set manually
             continue
-        term.save(update_fields=['position'])
+        term.save(update_fields=["position"])
 
 
 def noop(apps, schema_editor):
@@ -22,9 +22,8 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0006_term_position_alter_term_name'),
+        ("academics", "0006_term_position_alter_term_name"),
     ]
 
     operations = [

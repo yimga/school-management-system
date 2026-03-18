@@ -11,15 +11,15 @@ Phase 7 Task 4: URL/SEO Cleanup and semantic URL patterns
 
 # Old → New URL mappings:
 URL_MIGRATIONS = {
-    '/evals/marks/': '/academics/evaluations/',  # More descriptive
-    '/reports/cards/': '/academics/report-cards/',  # Hyphenated
-    '/portal/dashboard/': '/student-portal/dashboard/',  # More explicit
-    '/finance/inv/': '/finance/invoices/',  # Full word
-    '/payroll/slip/': '/payroll/pay-slip/',  # Consistent style
-    '/attendance/mark/': '/academics/attendance/',  # Clearer
-    '/auth/login/': '/authentication/login/',  # Full path
-    '/auth/logout/': '/authentication/logout/',  # Full path
-    '/admin/settings/': '/administration/settings/',  # Explicit
+    "/evals/marks/": "/academics/evaluations/",  # More descriptive
+    "/reports/cards/": "/academics/report-cards/",  # Hyphenated
+    "/portal/dashboard/": "/student-portal/dashboard/",  # More explicit
+    "/finance/inv/": "/finance/invoices/",  # Full word
+    "/payroll/slip/": "/payroll/pay-slip/",  # Consistent style
+    "/attendance/mark/": "/academics/attendance/",  # Clearer
+    "/auth/login/": "/authentication/login/",  # Full path
+    "/auth/logout/": "/authentication/logout/",  # Full path
+    "/admin/settings/": "/administration/settings/",  # Explicit
 }
 
 # URL Structure Guidelines:
@@ -32,38 +32,38 @@ URL_MIGRATIONS = {
 # ✓ RESTful hierarchy when applicable
 
 SEMANTIC_URLS = {
-    'Academics': {
-        '/academics/evaluations/': 'List all evaluations',
-        '/academics/evaluations/<id>/': 'View evaluation details',
-        '/academics/report-cards/': 'Student report cards',
-        '/academics/attendance/': 'Attendance records',
-        '/academics/class-ranking/': 'Class performance ranking',
+    "Academics": {
+        "/academics/evaluations/": "List all evaluations",
+        "/academics/evaluations/<id>/": "View evaluation details",
+        "/academics/report-cards/": "Student report cards",
+        "/academics/attendance/": "Attendance records",
+        "/academics/class-ranking/": "Class performance ranking",
     },
-    'Finance': {
-        '/finance/invoices/': 'List invoices',
-        '/finance/invoices/<id>/': 'Invoice details',
-        '/finance/pay-reminders/': 'Payment reminders',
-        '/finance/payment-history/': 'Payment history',
+    "Finance": {
+        "/finance/invoices/": "List invoices",
+        "/finance/invoices/<id>/": "Invoice details",
+        "/finance/pay-reminders/": "Payment reminders",
+        "/finance/payment-history/": "Payment history",
     },
-    'Payroll': {
-        '/payroll/pay-slips/': 'List pay slips',
-        '/payroll/pay-slip/<id>/': 'View pay slip',
-        '/payroll/salary-structure/': 'Salary configuration',
+    "Payroll": {
+        "/payroll/pay-slips/": "List pay slips",
+        "/payroll/pay-slip/<id>/": "View pay slip",
+        "/payroll/salary-structure/": "Salary configuration",
     },
-    'Portal': {
-        '/student-portal/dashboard/': 'Student dashboard',
-        '/student-portal/grades/': 'My grades',
-        '/student-portal/attendance/': 'My attendance',
-        '/teacher-portal/dashboard/': 'Teacher dashboard',
-        '/teacher-portal/class-management/': 'Manage classes',
-        '/parent-portal/dashboard/': 'Parent dashboard',
-        '/parent-portal/child-progress/': 'Child academic progress',
+    "Portal": {
+        "/student-portal/dashboard/": "Student dashboard",
+        "/student-portal/grades/": "My grades",
+        "/student-portal/attendance/": "My attendance",
+        "/teacher-portal/dashboard/": "Teacher dashboard",
+        "/teacher-portal/class-management/": "Manage classes",
+        "/parent-portal/dashboard/": "Parent dashboard",
+        "/parent-portal/child-progress/": "Child academic progress",
     },
-    'Administration': {
-        '/administration/settings/': 'System settings',
-        '/administration/users/': 'Manage users',
-        '/administration/roles/': 'Role management',
-        '/administration/audit-log/': 'Audit logs',
+    "Administration": {
+        "/administration/settings/": "System settings",
+        "/administration/users/": "Manage users",
+        "/administration/roles/": "Role management",
+        "/administration/audit-log/": "Audit logs",
     },
 }
 

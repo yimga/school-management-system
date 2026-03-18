@@ -4,6 +4,7 @@ Finance access request views (§6.15 app-by-app split — subdomain: access).
 Guardian finance access requests and staff bulk-grant. Single place for
 finance visibility request flows and notifications.
 """
+
 from __future__ import annotations
 
 import logging
@@ -35,9 +36,7 @@ logger = logging.getLogger(__name__)
 
 @login_required
 @require_POST
-def request_finance_access(
-    request: HttpRequest, invoice_id: int | None = None
-):
+def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
     """
     Allow guardians to request finance visibility from admins/finance.
     Sends internal messages and finance notifications to admin-aligned roles.
@@ -74,9 +73,9 @@ def request_finance_access(
                 request.META.get("HTTP_REFERER", reverse("finance:invoices"))
             )
 
-        guardians = StudentGuardian.objects.filter(
-            student=student
-        ).select_related("guardian_user")
+        guardians = StudentGuardian.objects.filter(student=student).select_related(
+            "guardian_user"
+        )
         to_grant = guardians.filter(can_view_finance=False)
         updated = to_grant.update(can_view_finance=True)
 
@@ -140,9 +139,7 @@ def request_finance_access(
                             phone, f"Finance access granted for {student}."
                         )
                     except FINANCE_SOFT_FAILURES:
-                        logger.exception(
-                            "Failed to send finance access SMS."
-                        )
+                        logger.exception("Failed to send finance access SMS.")
             if "email" in channels and from_email and user.email:
                 try:
                     send_mail(
@@ -152,19 +149,13 @@ def request_finance_access(
                         recipient_list=[user.email],
                     )
                 except FINANCE_SOFT_FAILURES:
-                    logger.exception(
-                        "Failed to send finance access email."
-                    )
+                    logger.exception("Failed to send finance access email.")
 
         if messages_out:
             Message.objects.bulk_create(messages_out)
 
-        messages.success(
-            request, f"Updated {updated} guardian link(s) for {student}."
-        )
-        return redirect(
-            request.META.get("HTTP_REFERER", reverse("finance:invoices"))
-        )
+        messages.success(request, f"Updated {updated} guardian link(s) for {student}.")
+        return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
 
     guardian_links = StudentGuardian.objects.filter(
         guardian_user=request.user
@@ -178,48 +169,43 @@ def request_finance_access(
             guardian_links = guardian_links.filter(student_id=student_id)
     if not guardian_links.exists():
         messages.error(request, "Link a student first to route your request.")
-        return redirect(
-            request.META.get("HTTP_REFERER", reverse("finance:invoices"))
-        )
+        return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
 
     invoice_ref = None
     if invoice_id:
-        invoice = Invoice.objects.filter(
-            id=invoice_id
-        ).select_related("student").first()
+        invoice = (
+            Invoice.objects.filter(id=invoice_id).select_related("student").first()
+        )
         if not invoice:
             return HttpResponseForbidden("Invoice not found.")
-        if invoice.student_id and not guardian_links.filter(
-            student_id=invoice.student_id
-        ).exists():
+        if (
+            invoice.student_id
+            and not guardian_links.filter(student_id=invoice.student_id).exists()
+        ):
             return HttpResponseForbidden(
                 "You can only request access for your linked students."
             )
         invoice_ref = invoice.reference or str(invoice.id)
 
-    recipients = (
-        User.objects.filter(
-            models.Q(
-                role__in=[
-                    User.Role.ADMIN,
-                    User.Role.BURSAR,
-                    User.Role.LEADERSHIP,
-                    User.Role.IT_ADMIN,
-                    User.Role.SUPERADMIN,
-                ]
-            )
-            | models.Q(is_superuser=True)
-        ).distinct()
-    )
+    recipients = User.objects.filter(
+        models.Q(
+            role__in=[
+                User.Role.ADMIN,
+                User.Role.BURSAR,
+                User.Role.LEADERSHIP,
+                User.Role.IT_ADMIN,
+                User.Role.SUPERADMIN,
+            ]
+        )
+        | models.Q(is_superuser=True)
+    ).distinct()
 
     if not recipients.exists():
         messages.warning(
             request,
             "No admin recipients were found to notify. Please contact the school directly.",
         )
-        return redirect(
-            request.META.get("HTTP_REFERER", reverse("finance:invoices"))
-        )
+        return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
 
     student_names = ", ".join(str(link.student) for link in guardian_links)
     subject = "Finance access request"
@@ -296,9 +282,7 @@ def request_finance_access(
                     recipient_list=recipient_emails,
                 )
             except FINANCE_SOFT_FAILURES:
-                logger.exception(
-                    "Failed to send finance access email notification."
-                )
+                logger.exception("Failed to send finance access email notification.")
 
     if "sms" in channels:
         notifier = NotificationService()
@@ -306,9 +290,7 @@ def request_finance_access(
             phone = (
                 getattr(recipient, "phone", None)
                 or getattr(recipient, "phone_number", None)
-                or getattr(
-                    getattr(recipient, "profile", None), "phone", None
-                )
+                or getattr(getattr(recipient, "profile", None), "phone", None)
             )
             if phone:
                 try:
@@ -317,9 +299,7 @@ def request_finance_access(
                         f"Finance access request from {request.user.get_full_name() or request.user.username}.",
                     )
                 except FINANCE_SOFT_FAILURES:
-                    logger.exception(
-                        "Failed to send finance access SMS notification."
-                    )
+                    logger.exception("Failed to send finance access SMS notification.")
 
     if guardian_links.filter(can_view_finance=True).exists():
         _create_finance_request_notification(
@@ -331,17 +311,18 @@ def request_finance_access(
             action="info_already_enabled",
             details=f"Existing access for {student_names or 'linked students'}.",
         )
+        from apps.communication.comms_locale import locale_target_for_user
+
         Message.objects.create(
             sender=request.user,
             recipient=request.user,
             subject="Finance access confirmation",
             body="Finance access is already enabled for your linked students. You can view invoices now.",
+            locale_target=locale_target_for_user(request.user),
         )
 
     messages.success(request, "Request sent to the admin/finance team.")
-    return redirect(
-        request.META.get("HTTP_REFERER", reverse("finance:invoices"))
-    )
+    return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
 
 
 @staff_member_required
@@ -354,24 +335,14 @@ def finance_access_bulk(request: HttpRequest):
     from apps.people.models import StudentGuardian
 
     years = AcademicYear.objects.order_by("-start_date")
-    classrooms = Classroom.objects.select_related("academic_year").order_by(
-        "name"
-    )
+    classrooms = Classroom.objects.select_related("academic_year").order_by("name")
 
-    selected_year = (
-        request.POST.get("year") or request.GET.get("year") or ""
-    )
-    selected_class = (
-        request.POST.get("classroom") or request.GET.get("classroom") or ""
-    )
+    selected_year = request.POST.get("year") or request.GET.get("year") or ""
+    selected_class = request.POST.get("classroom") or request.GET.get("classroom") or ""
 
-    guardians = StudentGuardian.objects.select_related(
-        "guardian_user", "student"
-    )
+    guardians = StudentGuardian.objects.select_related("guardian_user", "student")
     if selected_year:
-        guardians = guardians.filter(
-            student__academic_year_id=selected_year
-        )
+        guardians = guardians.filter(student__academic_year_id=selected_year)
     if selected_class:
         guardians = guardians.filter(student__classroom_id=selected_class)
 
@@ -381,15 +352,11 @@ def finance_access_bulk(request: HttpRequest):
 
     flags = _backend_flags(request)
     site = get_effective_site_settings(request=request)
-    channels, from_email = _notification_delivery_settings(
-        request, site=site
-    )
+    channels, from_email = _notification_delivery_settings(request, site=site)
     notifier = NotificationService()
 
     if request.method == "POST":
-        pending_list = list(
-            pending_qs.select_related("guardian_user", "student")
-        )
+        pending_list = list(pending_qs.select_related("guardian_user", "student"))
         with transaction.atomic():
             granted = pending_qs.update(can_view_finance=True)
 
@@ -420,9 +387,7 @@ def finance_access_bulk(request: HttpRequest):
                     phone = (
                         getattr(user, "phone", None)
                         or getattr(user, "phone_number", None)
-                        or getattr(
-                            getattr(user, "profile", None), "phone", None
-                        )
+                        or getattr(getattr(user, "profile", None), "phone", None)
                     )
                     if phone:
                         try:
@@ -431,9 +396,7 @@ def finance_access_bulk(request: HttpRequest):
                                 f"Finance access granted for {link.student}.",
                             )
                         except FINANCE_SOFT_FAILURES:
-                            logger.exception(
-                                "Failed to send finance access SMS."
-                            )
+                            logger.exception("Failed to send finance access SMS.")
                 if "email" in channels and from_email and user.email:
                     try:
                         send_mail(
@@ -443,9 +406,7 @@ def finance_access_bulk(request: HttpRequest):
                             recipient_list=[user.email],
                         )
                     except FINANCE_SOFT_FAILURES:
-                        logger.exception(
-                            "Failed to send finance access email."
-                        )
+                        logger.exception("Failed to send finance access email.")
 
         if messages_out:
             Message.objects.bulk_create(messages_out)
@@ -463,8 +424,7 @@ def finance_access_bulk(request: HttpRequest):
             f"Granted finance access to {granted} guardian link(s).",
         )
         return redirect(
-            request.path
-            + f"?year={selected_year}&classroom={selected_class}"
+            request.path + f"?year={selected_year}&classroom={selected_class}"
         )
 
     context = {

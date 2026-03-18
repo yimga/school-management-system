@@ -1,4 +1,5 @@
 """Abstract payment gateway interface (Phase 3)."""
+
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Optional
@@ -9,6 +10,7 @@ from apps.schools.models import School
 @dataclass
 class GatewayResult:
     """Result of initiate or webhook callback."""
+
     success: bool
     transaction_id: Optional[str] = None
     message: Optional[str] = None
@@ -41,7 +43,9 @@ class BasePaymentGateway:
         """Poll payment status. Subclasses must implement."""
         raise NotImplementedError
 
-    def parse_webhook(self, payload: dict, headers: Optional[dict] = None) -> Optional[GatewayResult]:
+    def parse_webhook(
+        self, payload: dict, headers: Optional[dict] = None
+    ) -> Optional[GatewayResult]:
         """Parse webhook payload from provider; return GatewayResult or None if not for us. Subclasses must implement."""
         raise NotImplementedError
 
@@ -66,5 +70,7 @@ class NoOpPaymentGateway(BasePaymentGateway):
     def check_status(self, transaction_id: str) -> GatewayResult:
         return GatewayResult(success=False, message="Payment gateway not configured.")
 
-    def parse_webhook(self, payload: dict, headers: Optional[dict] = None) -> Optional[GatewayResult]:
+    def parse_webhook(
+        self, payload: dict, headers: Optional[dict] = None
+    ) -> Optional[GatewayResult]:
         return None

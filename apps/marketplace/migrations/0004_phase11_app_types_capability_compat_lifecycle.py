@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("marketplace", "0003_publisherorganization_marketplacelisting_and_more"),
     ]
@@ -17,7 +16,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="appscope",
             name="sensitive",
-            field=models.BooleanField(default=False, help_text="If True, scope requires elevated approval before grant."),
+            field=models.BooleanField(
+                default=False,
+                help_text="If True, scope requires elevated approval before grant.",
+            ),
         ),
         # ScopeGrant status + elevated approval
         migrations.AddField(
@@ -87,7 +89,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="CapabilityRegistry",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("code", models.CharField(db_index=True, max_length=80, unique=True)),
                 ("name", models.CharField(max_length=120)),
                 (

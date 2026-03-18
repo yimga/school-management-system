@@ -5,50 +5,121 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0025_add_school_type'),
-        ('siteconfig', '0125_add_admission_number_strategy_and_template'),
+        ("schools", "0025_add_school_type"),
+        ("siteconfig", "0125_add_admission_number_strategy_and_template"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='WorkflowTemplate',
+            name="WorkflowTemplate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(help_text='Unique code (e.g. safety_net_absent_3d)', max_length=80, unique=True)),
-                ('name', models.CharField(max_length=120)),
-                ('description', models.TextField(blank=True)),
-                ('trigger', models.CharField(blank=True, help_text='Trigger type: scheduled, event, manual, webhook, etc.', max_length=80)),
-                ('trigger_config', models.JSONField(blank=True, default=dict, help_text='Trigger configuration (e.g. cron, event name).')),
-                ('conditions', models.JSONField(blank=True, default=list, help_text='List of conditions: [{"field": "...", "op": "eq", "value": "..."}].')),
-                ('actions', models.JSONField(blank=True, default=list, help_text='List of actions: [{"type": "notify", "params": {...}}].')),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "code",
+                    models.CharField(
+                        help_text="Unique code (e.g. safety_net_absent_3d)",
+                        max_length=80,
+                        unique=True,
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "trigger",
+                    models.CharField(
+                        blank=True,
+                        help_text="Trigger type: scheduled, event, manual, webhook, etc.",
+                        max_length=80,
+                    ),
+                ),
+                (
+                    "trigger_config",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Trigger configuration (e.g. cron, event name).",
+                    ),
+                ),
+                (
+                    "conditions",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text='List of conditions: [{"field": "...", "op": "eq", "value": "..."}].',
+                    ),
+                ),
+                (
+                    "actions",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text='List of actions: [{"type": "notify", "params": {...}}].',
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Workflow Template',
-                'verbose_name_plural': 'Workflow Templates',
-                'ordering': ['code'],
+                "verbose_name": "Workflow Template",
+                "verbose_name_plural": "Workflow Templates",
+                "ordering": ["code"],
             },
         ),
         migrations.CreateModel(
-            name='TenantWorkflow',
+            name="TenantWorkflow",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('overrides', models.JSONField(blank=True, default=dict, help_text='Override trigger_config, conditions, or action params for this school.')),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='workflow_assignments', to='schools.school')),
-                ('template', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='tenant_assignments', to='siteconfig.workflowtemplate')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "overrides",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Override trigger_config, conditions, or action params for this school.",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="workflow_assignments",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "template",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="tenant_assignments",
+                        to="siteconfig.workflowtemplate",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Tenant Workflow',
-                'verbose_name_plural': 'Tenant Workflows',
-                'ordering': ['school', 'template'],
-                'unique_together': {('school', 'template')},
+                "verbose_name": "Tenant Workflow",
+                "verbose_name_plural": "Tenant Workflows",
+                "ordering": ["school", "template"],
+                "unique_together": {("school", "template")},
             },
         ),
     ]

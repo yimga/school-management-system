@@ -5,6 +5,7 @@ Checks that either (1) primary nav items <= 7, or (2) template/context uses
 overflow handling (e.g. More dropdown + marketing_navbar_has_more).
 Exit 0 if OK; 1 if nav would overflow without handling.
 """
+
 from pathlib import Path
 import re
 import sys
@@ -43,12 +44,19 @@ def has_overflow_handling() -> bool:
 def main() -> int:
     n = count_primary_items()
     if n <= MAX_TOP_LEVEL:
-        print(f"[lint_marketing_nav_no_overflow] OK: {n} primary items (<= {MAX_TOP_LEVEL})")
+        print(
+            f"[lint_marketing_nav_no_overflow] OK: {n} primary items (<= {MAX_TOP_LEVEL})"
+        )
         return 0
     if has_overflow_handling():
-        print(f"[lint_marketing_nav_no_overflow] OK: {n} items but overflow handled (More dropdown)")
+        print(
+            f"[lint_marketing_nav_no_overflow] OK: {n} items but overflow handled (More dropdown)"
+        )
         return 0
-    print(f"[lint_marketing_nav_no_overflow] FAIL: {n} primary items > {MAX_TOP_LEVEL} and no overflow handling", file=sys.stderr)
+    print(
+        f"[lint_marketing_nav_no_overflow] FAIL: {n} primary items > {MAX_TOP_LEVEL} and no overflow handling",
+        file=sys.stderr,
+    )
     return 1
 
 

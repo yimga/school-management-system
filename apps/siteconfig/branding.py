@@ -41,8 +41,12 @@ def _theme_tokens(pack) -> dict[str, Any]:
         "accent_color": getattr(pack, "accent_color", "") or "",
         "background_color": getattr(pack, "background_color", "") or "",
         "font_family": getattr(pack, "font_family", "") or "",
-        "logo_url": getattr(getattr(pack, "logo", None), "url", "") if getattr(pack, "logo", None) else "",
-        "login_background_url": getattr(getattr(pack, "background_image", None), "url", "")
+        "logo_url": getattr(getattr(pack, "logo", None), "url", "")
+        if getattr(pack, "logo", None)
+        else "",
+        "login_background_url": getattr(
+            getattr(pack, "background_image", None), "url", ""
+        )
         if getattr(pack, "background_image", None)
         else "",
     }
@@ -68,11 +72,17 @@ def resolve_brand_profile(*, school=None, site=None) -> dict[str, Any]:
     legacy = None
     if school is not None:
         try:
-            profile = getattr(school, "brand_profile", None) or BrandProfile.objects.filter(school=school).first()
+            profile = (
+                getattr(school, "brand_profile", None)
+                or BrandProfile.objects.filter(school=school).first()
+            )
         except OPTIONAL_BRANDING_ERRORS:
             profile = None
         try:
-            legacy = getattr(school, "brand_settings", None) or BrandSettings.objects.filter(school=school).first()
+            legacy = (
+                getattr(school, "brand_settings", None)
+                or BrandSettings.objects.filter(school=school).first()
+            )
         except OPTIONAL_BRANDING_ERRORS:
             legacy = None
 
@@ -117,7 +127,9 @@ def resolve_brand_profile(*, school=None, site=None) -> dict[str, Any]:
         "logo_url": logo_url or "",
         "logo_dark_url": getattr(profile, "logo_dark_url", None) or "",
         "favicon_url": favicon_url,
-        "tagline": getattr(profile, "tagline", None) or getattr(site, "tagline", None) or "",
+        "tagline": getattr(profile, "tagline", None)
+        or getattr(site, "tagline", None)
+        or "",
         "primary_color": primary_color or "#0d6efd",
         "secondary_color": getattr(profile, "secondary_color", None) or "",
         "accent_color": accent_color or "#198754",
@@ -127,15 +139,21 @@ def resolve_brand_profile(*, school=None, site=None) -> dict[str, Any]:
         "email_template": getattr(profile, "email_template", None) or "",
         "pdf_template": getattr(profile, "pdf_template", None) or "",
         "certificate_template": getattr(profile, "certificate_template", None) or "",
-        "custom_css": getattr(profile, "custom_css", None) or getattr(legacy, "custom_css", None) or "",
+        "custom_css": getattr(profile, "custom_css", None)
+        or getattr(legacy, "custom_css", None)
+        or "",
         "tokens": {},
         "assets": getattr(profile, "assets", None) or {},
         "templates": getattr(profile, "templates", None) or {},
         "theme_pack_id": getattr(theme_pack, "id", None),
         "theme_pack_slug": getattr(theme_pack, "slug", "") if theme_pack else "",
-        "source": "brand_profile" if profile else ("brand_settings" if legacy else "school"),
+        "source": "brand_profile"
+        if profile
+        else ("brand_settings" if legacy else "school"),
         "country_code": getattr(school, "canonical_country_code", "") if school else "",
-        "labels_map": (global_brand.get("labels_map") or {}) if isinstance(global_brand, dict) else {},
+        "labels_map": (global_brand.get("labels_map") or {})
+        if isinstance(global_brand, dict)
+        else {},
     }
     tokens = {}
     tokens.update(theme_tokens)
@@ -155,9 +173,17 @@ def resolve_brand_profile(*, school=None, site=None) -> dict[str, Any]:
 def brand_css_vars(brand: dict[str, Any]) -> str:
     tokens = dict(brand.get("tokens") or {})
     parts = []
-    primary = tokens.get("primary") or tokens.get("primary_color") or brand.get("primary_color")
-    accent = tokens.get("accent") or tokens.get("accent_color") or brand.get("accent_color")
-    font_family = tokens.get("font") or tokens.get("font_family") or brand.get("font_family")
+    primary = (
+        tokens.get("primary")
+        or tokens.get("primary_color")
+        or brand.get("primary_color")
+    )
+    accent = (
+        tokens.get("accent") or tokens.get("accent_color") or brand.get("accent_color")
+    )
+    font_family = (
+        tokens.get("font") or tokens.get("font_family") or brand.get("font_family")
+    )
     if primary:
         parts.append(f"--primary: {str(primary).strip()};")
     if accent:

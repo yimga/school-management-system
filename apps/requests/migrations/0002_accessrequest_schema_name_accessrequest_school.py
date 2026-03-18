@@ -7,6 +7,7 @@ from django.db import migrations, models
 
 def add_columns_if_missing(apps, schema_editor):
     from django.db import connection
+
     with connection.cursor() as cursor:
         if connection.vendor == "postgresql":
             cursor.execute("""
@@ -23,15 +24,23 @@ def add_columns_if_missing(apps, schema_editor):
                 EXCEPTION WHEN duplicate_column THEN NULL;
                 END $$;
             """)
-            cursor.execute("CREATE INDEX IF NOT EXISTS requests_accessrequest_schema_name_idx ON requests_accessrequest (schema_name)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS requests_accessrequest_school_id_idx ON requests_accessrequest (school_id)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS requests_accessrequest_schema_name_idx ON requests_accessrequest (schema_name)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS requests_accessrequest_school_id_idx ON requests_accessrequest (school_id)"
+            )
         else:
             cursor.execute("PRAGMA table_info(requests_accessrequest)")
             cols = [row[1] for row in cursor.fetchall()]
             if "schema_name" not in cols:
-                cursor.execute("ALTER TABLE requests_accessrequest ADD COLUMN schema_name varchar(63) NOT NULL DEFAULT ''")
+                cursor.execute(
+                    "ALTER TABLE requests_accessrequest ADD COLUMN schema_name varchar(63) NOT NULL DEFAULT ''"
+                )
             if "school_id" not in cols:
-                cursor.execute("ALTER TABLE requests_accessrequest ADD COLUMN school_id integer NULL REFERENCES schools_school(id) ON DELETE CASCADE")
+                cursor.execute(
+                    "ALTER TABLE requests_accessrequest ADD COLUMN school_id integer NULL REFERENCES schools_school(id) ON DELETE CASCADE"
+                )
 
 
 def noop(apps, schema_editor):
@@ -39,24 +48,29 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('requests', '0001_initial'),
-        ('schools', '0027_school_country_code_school_education_levels_and_more'),
+        ("requests", "0001_initial"),
+        ("schools", "0027_school_country_code_school_education_levels_and_more"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
-                    model_name='accessrequest',
-                    name='schema_name',
+                    model_name="accessrequest",
+                    name="schema_name",
                     field=models.CharField(blank=True, db_index=True, max_length=63),
                 ),
                 migrations.AddField(
-                    model_name='accessrequest',
-                    name='school',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='access_requests', to='schools.school'),
+                    model_name="accessrequest",
+                    name="school",
+                    field=models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="access_requests",
+                        to="schools.school",
+                    ),
                 ),
             ],
             database_operations=[migrations.RunPython(add_columns_if_missing, noop)],

@@ -2,6 +2,7 @@
 Security & Identity Powerhouse: log security events, dedupe, GeoIP, lockdown.
 Plan 3.15–3.16, improvements 3.23.
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,13 +26,13 @@ def _get_client_ip(request):
     """Use django-ipware if available, else request.META."""
     try:
         from ipware import get_client_ip
+
         ip, _ = get_client_ip(request)
         return ip
     except ImportError:
-        return (
-            request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-            or request.META.get("REMOTE_ADDR")
-        )
+        return request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[
+            0
+        ].strip() or request.META.get("REMOTE_ADDR")
 
 
 def _get_location_data(ip):
@@ -53,7 +54,9 @@ def _get_location_data(ip):
             out = {
                 "city": getattr(rec, "city", None) and rec.city.name or "",
                 "country": getattr(rec, "country", None) and rec.country.name or "",
-                "country_code": getattr(rec, "country", None) and rec.country.iso_code or "",
+                "country_code": getattr(rec, "country", None)
+                and rec.country.iso_code
+                or "",
             }
             loc = getattr(rec, "location", None)
             if loc is not None:
@@ -101,7 +104,9 @@ def log_security_event(
 
     if is_suspicious is None and school and location_data.get("country_code"):
         try:
-            region_code = getattr(school.default_region, "code", None) or getattr(school.default_region, "country_code", None)
+            region_code = getattr(school.default_region, "code", None) or getattr(
+                school.default_region, "country_code", None
+            )
             if region_code and location_data.get("country_code") != region_code:
                 is_suspicious = True
         except (AttributeError, ObjectDoesNotExist):
@@ -126,7 +131,9 @@ def log_security_event(
         existing.location_data = location_data
         existing.is_suspicious = is_suspicious
         existing.last_seen = timezone.now()
-        existing.save(update_fields=["user_agent", "location_data", "is_suspicious", "last_seen"])
+        existing.save(
+            update_fields=["user_agent", "location_data", "is_suspicious", "last_seen"]
+        )
         return existing
 
     return SecurityAuditLog.objects.create(
@@ -171,7 +178,14 @@ def lockdown_user_account(user, request=None, initiator: str = "self", school=No
             data = session.get_decoded()
             if data.get("_auth_user_id") == uid:
                 session.delete()
-    except (AttributeError, BadSignature, DatabaseError, KeyError, TypeError, ValueError) as e:
+    except (
+        AttributeError,
+        BadSignature,
+        DatabaseError,
+        KeyError,
+        TypeError,
+        ValueError,
+    ) as e:
         logger.exception("Session purge failed: %s", e)
     if request and request.session.session_key:
         request.session.flush()
@@ -197,11 +211,15 @@ IMPOSSIBLE_TRAVEL_SPEED_KMH = 1000
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Approximate distance in km between two (lat, lon) points."""
     import math
+
     R = 6371  # Earth radius km
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
     dlam = math.radians(lon2 - lon1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    a = (
+        math.sin(dphi / 2) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    )
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
 
@@ -248,7 +266,10 @@ def check_impossible_travel(request, user):
         if speed_kmh >= IMPOSSIBLE_TRAVEL_SPEED_KMH:
             logger.warning(
                 "Impossible travel: user_id=%s distance_km=%.0f time_h=%.2f speed_kmh=%.0f",
-                user.pk, distance_km, delta, speed_kmh,
+                user.pk,
+                distance_km,
+                delta,
+                speed_kmh,
             )
             log_security_event(
                 user,
@@ -258,16 +279,30 @@ def check_impossible_travel(request, user):
                 is_suspicious=True,
                 initiator="self",
             )
-            lockdown_user_account(user, request=request, initiator="self", school=getattr(request, "school", None))
+            lockdown_user_account(
+                user,
+                request=request,
+                initiator="self",
+                school=getattr(request, "school", None),
+            )
     except (AttributeError, DatabaseError, TypeError, ValueError) as e:
         log_exception_with_context(
             "security_audit: check_impossible_travel failed",
             school_id=getattr(getattr(request, "school", None), "id", None),
-            extra={"section": "check_impossible_travel", "user_id": getattr(user, "pk", None), "error": str(e)},
+            extra={
+                "section": "check_impossible_travel",
+                "user_id": getattr(user, "pk", None),
+                "error": str(e),
+            },
         )
         logger.exception("check_impossible_travel: %s", e)
 
 
 def _notify_admin_lockdown(user, school, initiator):
     """Notify school admin of lockdown (placeholder: extend with email/sms)."""
-    logger.info("Lockdown: user_id=%s school_id=%s initiator=%s", user.pk, getattr(school, "pk", None), initiator)
+    logger.info(
+        "Lockdown: user_id=%s school_id=%s initiator=%s",
+        user.pk,
+        getattr(school, "pk", None),
+        initiator,
+    )

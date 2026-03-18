@@ -57,6 +57,8 @@ class ReferralRewardTests(TestCase):
         )
 
         self.assertEqual(reward.status, ReferralReward.Status.PENDING)
-        self.assertEqual(str(reward), f"{self.student} referral reward ({reward.amount})")
+        self.assertEqual(
+            str(reward), f"{self.student} referral reward ({reward.amount})"
+        )
         reward.mark_paid()
         self.assertEqual(reward.status, ReferralReward.Status.PAID)

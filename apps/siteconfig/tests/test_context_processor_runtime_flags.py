@@ -22,7 +22,9 @@ class ContextProcessorRuntimeFlagsTests(SimpleTestCase):
 
         self.assertEqual(flags, {"runtime_flag": True})
 
-    def test_resolve_backend_feature_flags_falls_back_to_site_when_runtime_helper_fails(self):
+    def test_resolve_backend_feature_flags_falls_back_to_site_when_runtime_helper_fails(
+        self,
+    ):
         request = self.factory.get("/")
         site = SimpleNamespace(backend_feature_flags={"legacy_flag": True})
 
@@ -34,7 +36,9 @@ class ContextProcessorRuntimeFlagsTests(SimpleTestCase):
 
         self.assertEqual(flags, {"legacy_flag": True})
 
-    def test_resolve_backend_feature_flags_uses_owner_aware_site_accessor_when_available(self):
+    def test_resolve_backend_feature_flags_uses_owner_aware_site_accessor_when_available(
+        self,
+    ):
         request = self.factory.get("/")
 
         class _Site:

@@ -6,32 +6,88 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0006_teacherprofile_dashboard_finance_flags'),
-        ('portal', '0001_initial'),
+        ("people", "0006_teacherprofile_dashboard_finance_flags"),
+        ("portal", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PendingGuardianInvite',
+            name="PendingGuardianInvite",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('token', models.CharField(max_length=64, unique=True)),
-                ('invited_email', models.EmailField(blank=True, max_length=254)),
-                ('invited_phone', models.CharField(blank=True, max_length=50)),
-                ('relationship', models.CharField(choices=[('MOTHER', 'Mother'), ('FATHER', 'Father'), ('GUARDIAN', 'Guardian'), ('OTHER', 'Other')], default='GUARDIAN', max_length=20)),
-                ('preferred_contact', models.CharField(choices=[('EMAIL', 'Email'), ('SMS', 'SMS'), ('WHATSAPP', 'WhatsApp'), ('PHONE', 'Phone Call')], default='EMAIL', max_length=20)),
-                ('referral_code', models.CharField(blank=True, max_length=80)),
-                ('claimed_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='guardian_invites', to=settings.AUTH_USER_MODEL)),
-                ('guardian_user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='claimed_invites', to=settings.AUTH_USER_MODEL)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pending_invites', to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("token", models.CharField(max_length=64, unique=True)),
+                ("invited_email", models.EmailField(blank=True, max_length=254)),
+                ("invited_phone", models.CharField(blank=True, max_length=50)),
+                (
+                    "relationship",
+                    models.CharField(
+                        choices=[
+                            ("MOTHER", "Mother"),
+                            ("FATHER", "Father"),
+                            ("GUARDIAN", "Guardian"),
+                            ("OTHER", "Other"),
+                        ],
+                        default="GUARDIAN",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "preferred_contact",
+                    models.CharField(
+                        choices=[
+                            ("EMAIL", "Email"),
+                            ("SMS", "SMS"),
+                            ("WHATSAPP", "WhatsApp"),
+                            ("PHONE", "Phone Call"),
+                        ],
+                        default="EMAIL",
+                        max_length=20,
+                    ),
+                ),
+                ("referral_code", models.CharField(blank=True, max_length=80)),
+                ("claimed_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="guardian_invites",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "guardian_user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="claimed_invites",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="pending_invites",
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
     ]

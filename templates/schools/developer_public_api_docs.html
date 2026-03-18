@@ -1,0 +1,15 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}Developer public API — RunMyCampus{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <h1 class="h3">{% trans "Developer public API" %}</h1>
+  <p class="text-secondary">{% trans "Versioned discovery, OneRoster, OpenAPI (staff), sandbox." %}</p>
+  <ul>
+    <li><strong>GET</strong> <a href="{{ manifest_url }}">{{ manifest_url }}</a> — {% trans "manifest (JSON)" %}</li>
+    <li><strong>OpenAPI</strong> — {{ schema_note }}</li>
+    <li><strong>{% trans "Sandbox" %}</strong> — {% trans "Site config → App sandbox after login." %}</li>
+  </ul>
+  <p class="small text-muted">{% trans "Repository: docs/DEVELOPER_PUBLIC_API.md" %}</p>
+</div>
+{% endblock %}

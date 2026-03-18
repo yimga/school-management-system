@@ -11,7 +11,10 @@ def site_settings_platform_neutral(apps, schema_editor):
         if obj.site_name and "gilead" in (obj.site_name or "").lower():
             obj.site_name = "RunMyCampus"
             updated = True
-        if obj.report_preview_footer_note and "gilead" in (obj.report_preview_footer_note or "").lower():
+        if (
+            obj.report_preview_footer_note
+            and "gilead" in (obj.report_preview_footer_note or "").lower()
+        ):
             obj.report_preview_footer_note = "Powered by RunMyCampus."
             updated = True
         if updated:
@@ -20,9 +23,9 @@ def site_settings_platform_neutral(apps, schema_editor):
 
 def reportcard_style_watermark_neutral(apps, schema_editor):
     ReportCardStyle = apps.get_model("siteconfig", "ReportCardStyle")
-    ReportCardStyle.objects.filter(
-        watermark_text__icontains="gilead"
-    ).update(watermark_text="RunMyCampus")
+    ReportCardStyle.objects.filter(watermark_text__icontains="gilead").update(
+        watermark_text="RunMyCampus"
+    )
 
 
 def noop(apps, schema_editor):

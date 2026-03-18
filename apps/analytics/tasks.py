@@ -4,6 +4,7 @@ Celery tasks for analytics (deadline reminders, etc.).
 Run via: send_deadline_reminders_task.delay(days_str="7,3,1,0.5", dry_run=False)
 Or synchronously from management command when no broker: task.apply(kwargs={...})
 """
+
 from __future__ import annotations
 
 import logging
@@ -57,14 +58,21 @@ _ANALYTICS_DEADLINE_RUN_ERRORS = (
 )
 
 
-def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False, school=None) -> dict:
+def run_deadline_reminders(
+    days_str: str = "7,3,1,0.5", dry_run: bool = False, school=None
+) -> dict:
     """
     Send grading deadline reminders to teachers. Returns summary for logging/CLI.
     """
     try:
         reminder_days = [float(d.strip()) for d in days_str.split(",")]
     except ValueError:
-        return {"sent": 0, "errors": 0, "dry_run": dry_run, "error": "Invalid days format"}
+        return {
+            "sent": 0,
+            "errors": 0,
+            "dry_run": dry_run,
+            "error": "Invalid days format",
+        }
 
     site_settings = get_cached_site_settings(school=school)
     notification_service = NotificationService()
@@ -118,12 +126,22 @@ def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False, s
                     error_count += 1
                     log_exception_with_context(
                         "Failed to send deadline reminder email",
-                        school_id=getattr(sa, "school_id", None) or (getattr(school, "id", None) if school else None),
-                        extra={"teacher_email": getattr(teacher.user, "email", ""), "subject_assignment_id": sa.id},
+                        school_id=getattr(sa, "school_id", None)
+                        or (getattr(school, "id", None) if school else None),
+                        extra={
+                            "teacher_email": getattr(teacher.user, "email", ""),
+                            "subject_assignment_id": sa.id,
+                        },
                     )
-                    logger.exception("Failed to send reminder to %s: %s", teacher.user.email, e)
+                    logger.exception(
+                        "Failed to send reminder to %s: %s", teacher.user.email, e
+                    )
 
-                if not dry_run and getattr(site_settings, "sms_provider", None) and site_settings.sms_provider != "console":
+                if (
+                    not dry_run
+                    and getattr(site_settings, "sms_provider", None)
+                    and site_settings.sms_provider != "console"
+                ):
                     try:
                         sms_body = (
                             f"Hi {teacher.user.first_name}, your grading deadline for "
@@ -131,16 +149,22 @@ def run_deadline_reminders(days_str: str = "7,3,1,0.5", dry_run: bool = False, s
                             f"Please submit your marks."
                         )
                         notification_service.send_sms(
-                            phone_number=getattr(teacher.user, "phone_number", "") or "",
+                            phone_number=getattr(teacher.user, "phone_number", "")
+                            or "",
                             body=sms_body,
                         )
                     except _ANALYTICS_DEADLINE_SMS_ERRORS as e:
                         log_exception_with_context(
                             "Deadline reminder SMS failed",
-                            school_id=getattr(sa, "school_id", None) or (getattr(school, "id", None) if school else None),
+                            school_id=getattr(sa, "school_id", None)
+                            or (getattr(school, "id", None) if school else None),
                             extra={"phone": getattr(teacher.user, "phone_number", "")},
                         )
-                        logger.warning("SMS failed for %s: %s", getattr(teacher.user, "phone_number", ""), e)
+                        logger.warning(
+                            "SMS failed for %s: %s",
+                            getattr(teacher.user, "phone_number", ""),
+                            e,
+                        )
 
     return {"sent": reminder_count, "errors": error_count, "dry_run": dry_run}
 
@@ -155,8 +179,14 @@ def _deadline_reminder_days_str(*, school=None) -> str:
 
 
 @shared_task(bind=True, name="analytics.send_deadline_reminders")
-def send_deadline_reminders_task(self, days_str: str | None = None, dry_run: bool = False, school_id: str | None = None) -> dict:
+def send_deadline_reminders_task(
+    self,
+    days_str: str | None = None,
+    dry_run: bool = False,
+    school_id: str | None = None,
+) -> dict:
     """Celery task: send grading deadline reminders to teachers. Uses SiteSettings.teacher_deadline_reminder_days when days_str not provided."""
+
     def _run_for_school(current_school_id: str) -> dict:
         from apps.schools.models import School
 
@@ -166,18 +196,26 @@ def send_deadline_reminders_task(self, days_str: str | None = None, dry_run: boo
             resolved_days = _deadline_reminder_days_str(school=school)
         execution_log = AutomationExecutionLog.objects.create(
             task_name="analytics.send_deadline_reminders",
-            execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+            execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN
+            if dry_run
+            else AutomationExecutionLog.ExecutionType.SCHEDULED,
             status=AutomationExecutionLog.Status.PENDING,
         )
         try:
-            result = run_deadline_reminders(days_str=resolved_days, dry_run=dry_run, school=school)
+            result = run_deadline_reminders(
+                days_str=resolved_days, dry_run=dry_run, school=school
+            )
             sent = result.get("sent", 0)
             errors = result.get("errors", 0)
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
                 records_processed=sent,
                 records_failed=errors,
-                summary={"dry_run": dry_run, "days_str": resolved_days, "school_id": str(current_school_id)},
+                summary={
+                    "dry_run": dry_run,
+                    "days_str": resolved_days,
+                    "school_id": str(current_school_id),
+                },
             )
             return {**result, "school_id": str(current_school_id)}
         except _ANALYTICS_DEADLINE_RUN_ERRORS as e:
@@ -186,7 +224,9 @@ def send_deadline_reminders_task(self, days_str: str | None = None, dry_run: boo
                 school_id=current_school_id,
                 extra={"days_str": resolved_days, "dry_run": dry_run},
             )
-            logger.exception("send_deadline_reminders_task failed for school=%s", current_school_id)
+            logger.exception(
+                "send_deadline_reminders_task failed for school=%s", current_school_id
+            )
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.FAILED,
                 error_message=str(e),
@@ -222,7 +262,9 @@ def _write_student_signals_for_school(school, today, last_30):
     from apps.academics.models import Attendance
 
     written = 0
-    for student in StudentProfile.objects.filter(school=school).values_list("id", flat=True):
+    for student in StudentProfile.objects.filter(school=school).values_list(
+        "id", flat=True
+    ):
         att = Attendance.objects.filter(
             school=school, student_id=student, date__gte=last_30
         ).aggregate(
@@ -250,6 +292,7 @@ def compute_risk_factors_task(self, school_id: str) -> dict:
     Writes StudentSignals (attendance_ratio_30d) then creates/updates RiskFactor rows.
     Used by nightly_risk_factors and POST /api/v1/intervention/calculate-risk.
     """
+
     def _run_for_school(current_school_id: str) -> dict:
         from decimal import Decimal
         from django.utils import timezone
@@ -266,11 +309,15 @@ def compute_risk_factors_task(self, school_id: str) -> dict:
         today = timezone.now().date()
         last_30 = today - timedelta(days=30)
         signals_written = _write_student_signals_for_school(school, today, last_30)
-        students = StudentProfile.objects.filter(school=school).values_list("id", flat=True)
+        students = StudentProfile.objects.filter(school=school).values_list(
+            "id", flat=True
+        )
         created = 0
         RiskFactor.objects.filter(school=school).delete()
         for sid in students:
-            att = Attendance.objects.filter(school=school, student_id=sid, date__gte=last_30).aggregate(
+            att = Attendance.objects.filter(
+                school=school, student_id=sid, date__gte=last_30
+            ).aggregate(
                 total=Count("id"),
                 absent=Count("id", filter=Q(status="absent")),
             )

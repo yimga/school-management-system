@@ -2,6 +2,7 @@
 Student 360 models (Section 15.1).
 Immutable transcript: once frozen, the snapshot is never updated — cross-year archive is read-only.
 """
+
 from django.conf import settings
 from django.db import models
 
@@ -12,6 +13,7 @@ class ImmutableTranscript(models.Model):
     Created by an explicit "freeze" action; never updated in place.
     Used for cross-year archive view and audit/compliance.
     """
+
     student = models.ForeignKey(
         "people.StudentProfile",
         on_delete=models.CASCADE,

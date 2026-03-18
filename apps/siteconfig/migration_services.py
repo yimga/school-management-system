@@ -4,6 +4,7 @@ Phase 10: Migration Cloud services.
 These helpers power registry-aware validation for control-plane migration
 governance and tenant import readiness.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -42,7 +43,13 @@ def _school_country(school) -> str:
     )
 
 
-def _find_registry_match(model, source_code: str, *, country_code: str = "", name_fields: tuple[str, ...] = ()) -> str | None:
+def _find_registry_match(
+    model,
+    source_code: str,
+    *,
+    country_code: str = "",
+    name_fields: tuple[str, ...] = (),
+) -> str | None:
     token = _normalize_token(source_code)
     if not token:
         return None
@@ -52,7 +59,11 @@ def _find_registry_match(model, source_code: str, *, country_code: str = "", nam
     qs = model.objects.filter(is_active=True)
     if country_code and hasattr(model, "country_code"):
         scoped = qs.filter(country_code__in=[country_code, ""])
-        exact = scoped.filter(code__iexact=normalized_upper).order_by("-country_code").first()
+        exact = (
+            scoped.filter(code__iexact=normalized_upper)
+            .order_by("-country_code")
+            .first()
+        )
         if exact:
             return str(exact.code)
     exact = qs.filter(code__iexact=normalized_upper).first()
@@ -70,16 +81,23 @@ def _find_registry_match(model, source_code: str, *, country_code: str = "", nam
         aliases = metadata.get("aliases") or metadata.get("legacy_codes") or []
         if isinstance(aliases, str):
             aliases = [aliases]
-        if any(_normalize_token(alias).lower() == normalized_lower for alias in aliases):
+        if any(
+            _normalize_token(alias).lower() == normalized_lower for alias in aliases
+        ):
             return str(row.code)
         if hasattr(row, "country_labels"):
             labels = getattr(row, "country_labels", {}) or {}
-            if any(_normalize_token(label).lower() == normalized_lower for label in labels.values()):
+            if any(
+                _normalize_token(label).lower() == normalized_lower
+                for label in labels.values()
+            ):
                 return str(row.code)
     return None
 
 
-def map_education_level(source_code: str, target_country: str, runtime: Any = None) -> str | None:
+def map_education_level(
+    source_code: str, target_country: str, runtime: Any = None
+) -> str | None:
     del runtime
     country_code = _normalize_country_alpha2(target_country)
     return _find_registry_match(
@@ -90,7 +108,9 @@ def map_education_level(source_code: str, target_country: str, runtime: Any = No
     )
 
 
-def map_grade_scale(source_scale: str, target_country: str, runtime: Any = None) -> str | None:
+def map_grade_scale(
+    source_scale: str, target_country: str, runtime: Any = None
+) -> str | None:
     del runtime
     country_code = _normalize_country_alpha2(target_country)
     return _find_registry_match(
@@ -101,7 +121,9 @@ def map_grade_scale(source_scale: str, target_country: str, runtime: Any = None)
     )
 
 
-def map_fee_category(source_code: str, target_country: str, runtime: Any = None) -> str | None:
+def map_fee_category(
+    source_code: str, target_country: str, runtime: Any = None
+) -> str | None:
     del runtime
     country_code = _normalize_country_alpha2(target_country)
     return _find_registry_match(
@@ -112,7 +134,9 @@ def map_fee_category(source_code: str, target_country: str, runtime: Any = None)
     )
 
 
-def validate_migration_mapping(mapping: dict[str, Any], school: Any = None) -> list[str]:
+def validate_migration_mapping(
+    mapping: dict[str, Any], school: Any = None
+) -> list[str]:
     """
     Validate migration metadata against registries.
 
@@ -126,17 +150,29 @@ def validate_migration_mapping(mapping: dict[str, Any], school: Any = None) -> l
         return ["Migration mapping must be a dictionary."]
 
     warnings: list[str] = []
-    country_code = _school_country(school) or _normalize_country_alpha2(mapping.get("country_code"))
+    country_code = _school_country(school) or _normalize_country_alpha2(
+        mapping.get("country_code")
+    )
 
     target_fields = mapping.get("target_fields") or []
     required_fields = mapping.get("required") or []
     if required_fields and not target_fields:
-        warnings.append("Migration profile declares required fields without target_fields.")
+        warnings.append(
+            "Migration profile declares required fields without target_fields."
+        )
     if target_fields and required_fields:
-        target_set = {str(field).strip() for field in target_fields if str(field).strip()}
-        missing_required = [str(field).strip() for field in required_fields if str(field).strip() and str(field).strip() not in target_set]
+        target_set = {
+            str(field).strip() for field in target_fields if str(field).strip()
+        }
+        missing_required = [
+            str(field).strip()
+            for field in required_fields
+            if str(field).strip() and str(field).strip() not in target_set
+        ]
         if missing_required:
-            warnings.append(f"Required fields missing from target_fields: {', '.join(sorted(missing_required))}.")
+            warnings.append(
+                f"Required fields missing from target_fields: {', '.join(sorted(missing_required))}."
+            )
 
     def _validate_many(key_single: str, key_plural: str, resolver, label: str):
         raw_values = mapping.get(key_plural)
@@ -144,7 +180,9 @@ def validate_migration_mapping(mapping: dict[str, Any], school: Any = None) -> l
             raw_single = mapping.get(key_single)
             raw_values = [] if raw_single in (None, "") else [raw_single]
         if isinstance(raw_values, str):
-            raw_values = [part.strip() for part in raw_values.split(",") if part.strip()]
+            raw_values = [
+                part.strip() for part in raw_values.split(",") if part.strip()
+            ]
         if not isinstance(raw_values, (list, tuple)):
             raw_values = [raw_values]
         for raw in raw_values:
@@ -153,14 +191,18 @@ def validate_migration_mapping(mapping: dict[str, Any], school: Any = None) -> l
                 scope = f" for {country_code}" if country_code else ""
                 warnings.append(f"Unknown {label} '{token}'{scope}.")
 
-    _validate_many("education_level", "education_levels", map_education_level, "education level")
+    _validate_many(
+        "education_level", "education_levels", map_education_level, "education level"
+    )
     _validate_many("grade_scale", "grade_scales", map_grade_scale, "grade scale")
     _validate_many("fee_category", "fee_categories", map_fee_category, "fee category")
 
     return warnings
 
 
-def dry_run_import(source_profile: str, payload: dict[str, Any], school: Any = None) -> dict[str, Any]:
+def dry_run_import(
+    source_profile: str, payload: dict[str, Any], school: Any = None
+) -> dict[str, Any]:
     """
     Registry-aware dry run for Migration Cloud governance.
 
@@ -173,7 +215,9 @@ def dry_run_import(source_profile: str, payload: dict[str, Any], school: Any = N
     if isinstance(source_profile, MigrationProfile):
         profile = source_profile
     else:
-        profile = MigrationProfile.objects.filter(slug=str(source_profile or "").strip()).first()
+        profile = MigrationProfile.objects.filter(
+            slug=str(source_profile or "").strip()
+        ).first()
 
     rows = payload.get("rows") if isinstance(payload, dict) else None
     if not isinstance(rows, list):
@@ -192,8 +236,16 @@ def dry_run_import(source_profile: str, payload: dict[str, Any], school: Any = N
         errors.append(f"Unknown migration profile: {source_profile}.")
     else:
         config = profile.config or {}
-        target_fields = [str(field).strip() for field in config.get("target_fields", []) if str(field).strip()]
-        required_fields = [str(field).strip() for field in config.get("required", []) if str(field).strip()]
+        target_fields = [
+            str(field).strip()
+            for field in config.get("target_fields", [])
+            if str(field).strip()
+        ]
+        required_fields = [
+            str(field).strip()
+            for field in config.get("required", [])
+            if str(field).strip()
+        ]
         warnings.extend(validate_migration_mapping(config, school=school))
 
     target_field_set = set(target_fields)
@@ -201,13 +253,21 @@ def dry_run_import(source_profile: str, payload: dict[str, Any], school: Any = N
         if not isinstance(row, dict):
             errors.append(f"Row {idx}: expected an object/dictionary.")
             continue
-        missing = [field for field in required_fields if not _normalize_token(row.get(field))]
+        missing = [
+            field for field in required_fields if not _normalize_token(row.get(field))
+        ]
         if missing:
             errors.append(f"Row {idx}: missing required fields {', '.join(missing)}.")
             continue
-        unknown_fields = [key for key in row.keys() if target_field_set and str(key).strip() not in target_field_set]
+        unknown_fields = [
+            key
+            for key in row.keys()
+            if target_field_set and str(key).strip() not in target_field_set
+        ]
         if unknown_fields and profile is not None:
-            warnings.append(f"Row {idx}: unmapped fields {', '.join(sorted(str(field) for field in unknown_fields[:10]))}.")
+            warnings.append(
+                f"Row {idx}: unmapped fields {', '.join(sorted(str(field) for field in unknown_fields[:10]))}."
+            )
         matched_rows += 1
 
         row_mapping = {

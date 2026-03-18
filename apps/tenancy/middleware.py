@@ -3,6 +3,7 @@ Attach request.tenant_ctx (TenantContext) after tenant/school is resolved.
 Must run after TenantMiddleware (RLS) or TenantSchemaSchoolBridgeMiddleware (schema).
 §2.4: Typed exception tuples and log_exception_with_context for get_tenant_locale paths.
 """
+
 import logging
 
 from django.utils.deprecation import MiddlewareMixin
@@ -59,9 +60,12 @@ def build_tenant_context_from_request(request) -> TenantContext:
         timezone = None
         try:
             from apps.siteconfig.tenant_config import get_tenant_locale
+
             if school:
                 locale = get_tenant_locale(school=school)
-                timezone = (locale.get("timezone") or locale.get("default_timezone") or "").strip() or None
+                timezone = (
+                    locale.get("timezone") or locale.get("default_timezone") or ""
+                ).strip() or None
         except _TENANT_CONTEXT_LOCALE_ERRORS as e:
             log_exception_with_context(
                 "get_tenant_locale failed (schema tenant context)",
@@ -72,7 +76,9 @@ def build_tenant_context_from_request(request) -> TenantContext:
         feature_flags = _school_json_payload(school, "features", "features_json")
         policy_overrides = _school_json_payload(school, "settings", "settings_json")
         return TenantContext(
-            tenant_id=str(tenant.id) if hasattr(tenant, "id") else getattr(tenant, "schema_name", "") or "",
+            tenant_id=str(tenant.id)
+            if hasattr(tenant, "id")
+            else getattr(tenant, "schema_name", "") or "",
             schema_name=getattr(tenant, "schema_name", None),
             school_id=school_id,
             country=str(country) if country else None,
@@ -87,8 +93,11 @@ def build_tenant_context_from_request(request) -> TenantContext:
         timezone = None
         try:
             from apps.siteconfig.tenant_config import get_tenant_locale
+
             locale = get_tenant_locale(school=school)
-            timezone = (locale.get("timezone") or locale.get("default_timezone") or "").strip() or None
+            timezone = (
+                locale.get("timezone") or locale.get("default_timezone") or ""
+            ).strip() or None
         except _TENANT_CONTEXT_LOCALE_ERRORS as e:
             log_exception_with_context(
                 "get_tenant_locale failed (school context)",

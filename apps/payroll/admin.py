@@ -37,29 +37,44 @@ class LeaveRequestInline(admin.TabularInline):
 
 
 class PayScaleAdmin(ModelAdmin):
-    list_display = ("name", "code", "min_salary", "max_salary", "default_salary", "department", "is_active")
+    list_display = (
+        "name",
+        "code",
+        "min_salary",
+        "max_salary",
+        "default_salary",
+        "department",
+        "is_active",
+    )
     list_filter = ("is_active", "department")
     search_fields = ("name", "code", "description")
     fieldsets = (
-        ("Basic Information", {
-            "fields": ("name", "code", "description", "is_active")
-        }),
-        ("Salary Range", {
-            "fields": ("min_salary", "max_salary", "default_salary"),
-            "description": "Define the salary range for this pay scale. Default salary is optional and will be applied when assigning this scale to employees."
-        }),
-        ("Department (Optional)", {
-            "fields": ("department",),
-            "description": "If specified, this scale will be restricted to the selected department. Leave blank for general use.",
-            "classes": ("collapse",)
-        }),
-        ("Metadata", {
-            "fields": ("created_by", "created_at", "updated_at"),
-            "classes": ("collapse",)
-        }),
+        ("Basic Information", {"fields": ("name", "code", "description", "is_active")}),
+        (
+            "Salary Range",
+            {
+                "fields": ("min_salary", "max_salary", "default_salary"),
+                "description": "Define the salary range for this pay scale. Default salary is optional and will be applied when assigning this scale to employees.",
+            },
+        ),
+        (
+            "Department (Optional)",
+            {
+                "fields": ("department",),
+                "description": "If specified, this scale will be restricted to the selected department. Leave blank for general use.",
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Metadata",
+            {
+                "fields": ("created_by", "created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
     )
     readonly_fields = ("created_at", "updated_at")
-    
+
     def save_model(self, request, obj, form, change):
         if not change:  # Only set on creation
             obj.created_by = request.user
@@ -67,40 +82,97 @@ class PayScaleAdmin(ModelAdmin):
 
 
 class PayrollEmployeeAdmin(ModelAdmin):
-    list_display = ("user", "department", "pay_scale", "pay_type", "base_salary", "is_active")
-    list_filter = ("department", "pay_type", "pay_scale", "is_active")
-    search_fields = ("user__username", "user__first_name", "user__last_name", "employee_code")
-    inlines = [EmploymentContractInline, SalaryAdjustmentInline, TimeEntryInline, LeaveRequestInline]
-    fieldsets = (
-        ("Employee Information", {
-            "fields": ("user", "employee_code", "department", "hire_date", "is_active")
-        }),
-        ("Pay Scale & Compensation", {
-            "fields": ("pay_scale", "pay_type", "base_salary", "hourly_rate", "salary_cap"),
-            "description": "Assign a pay scale or set salary directly. Pay scale will suggest salary ranges."
-        }),
-        ("Payment Details", {
-            "fields": ("payment_method", "bank_account", "mobile_money_number", "tax_id", "cnps_number")
-        }),
+    list_display = (
+        "user",
+        "department",
+        "pay_scale",
+        "pay_type",
+        "base_salary",
+        "is_active",
     )
-    
+    list_filter = ("department", "pay_type", "pay_scale", "is_active")
+    search_fields = (
+        "user__username",
+        "user__first_name",
+        "user__last_name",
+        "employee_code",
+    )
+    inlines = [
+        EmploymentContractInline,
+        SalaryAdjustmentInline,
+        TimeEntryInline,
+        LeaveRequestInline,
+    ]
+    fieldsets = (
+        (
+            "Employee Information",
+            {
+                "fields": (
+                    "user",
+                    "employee_code",
+                    "department",
+                    "hire_date",
+                    "is_active",
+                )
+            },
+        ),
+        (
+            "Pay Scale & Compensation",
+            {
+                "fields": (
+                    "pay_scale",
+                    "pay_type",
+                    "base_salary",
+                    "hourly_rate",
+                    "salary_cap",
+                ),
+                "description": "Assign a pay scale or set salary directly. Pay scale will suggest salary ranges.",
+            },
+        ),
+        (
+            "Payment Details",
+            {
+                "fields": (
+                    "payment_method",
+                    "bank_account",
+                    "mobile_money_number",
+                    "tax_id",
+                    "cnps_number",
+                )
+            },
+        ),
+    )
+
     actions = ["apply_pay_scale_defaults"]
-    
+
     def apply_pay_scale_defaults(self, request, queryset):
         """Apply default salary from pay scale to selected employees"""
         updated = 0
         for employee in queryset:
             if employee.pay_scale and employee.pay_scale.default_salary:
-                if not employee.base_salary or request.POST.get('force_update') == 'yes':
+                if (
+                    not employee.base_salary
+                    or request.POST.get("force_update") == "yes"
+                ):
                     employee.base_salary = employee.pay_scale.default_salary
-                    employee.save(update_fields=['base_salary'])
+                    employee.save(update_fields=["base_salary"])
                     updated += 1
-        self.message_user(request, f"Updated {updated} employee(s) with pay scale default salaries.")
+        self.message_user(
+            request, f"Updated {updated} employee(s) with pay scale default salaries."
+        )
+
     apply_pay_scale_defaults.short_description = "Apply default salary from pay scale"
 
 
 class EmploymentContractAdmin(ModelAdmin):
-    list_display = ("employee", "contract_type", "start_date", "end_date", "pay_type", "is_active")
+    list_display = (
+        "employee",
+        "contract_type",
+        "start_date",
+        "end_date",
+        "pay_type",
+        "is_active",
+    )
     list_filter = ("contract_type", "pay_type", "is_active")
 
 
@@ -115,7 +187,14 @@ class TimeEntryAdmin(ModelAdmin):
 
 
 class LeaveRequestAdmin(ModelAdmin):
-    list_display = ("employee", "leave_type", "start_date", "end_date", "status", "is_paid")
+    list_display = (
+        "employee",
+        "leave_type",
+        "start_date",
+        "end_date",
+        "status",
+        "is_paid",
+    )
     list_filter = ("leave_type", "status", "is_paid")
 
 
@@ -127,7 +206,11 @@ class PayslipLineInline(admin.TabularInline):
 class PayslipAdmin(ModelAdmin):
     list_display = ("employee", "payroll_run", "gross_pay", "net_pay", "status")
     list_filter = ("status",)
-    search_fields = ("employee__user__username", "employee__user__last_name", "reference")
+    search_fields = (
+        "employee__user__username",
+        "employee__user__last_name",
+        "reference",
+    )
     inlines = [PayslipLineInline]
 
 

@@ -3,6 +3,7 @@ Runtime inspector (Phase 9): operator tooling to see effective blueprint, active
 active policies, entitlements, localization, integrations, and override sources.
 Use for debugging and control-plane visibility; not for tenant-facing UI.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict
@@ -33,7 +34,11 @@ def _serialize_policy(policy: Any) -> Dict[str, Any]:
     if policy is None:
         return {}
     if hasattr(policy, "raw"):
-        return getattr(policy, "raw", {}) if isinstance(getattr(policy, "raw"), dict) else {}
+        return (
+            getattr(policy, "raw", {})
+            if isinstance(getattr(policy, "raw"), dict)
+            else {}
+        )
     return policy if isinstance(policy, dict) else {}
 
 
@@ -75,8 +80,14 @@ def inspect_runtime(runtime: TenantRuntime) -> Dict[str, Any]:
         "effective_blueprint": _serialize_blueprint(runtime.blueprint),
         "active_packs": {
             "workflow": getattr(getattr(runtime, "workflows", None), "pack_code", None),
-            "dashboard": getattr(getattr(runtime, "dashboards", None), "pack_code", None),
-            "policy": getattr(getattr(runtime, "policy_typed", None), "bundle_code", None) if runtime.policy_typed else None,
+            "dashboard": getattr(
+                getattr(runtime, "dashboards", None), "pack_code", None
+            ),
+            "policy": getattr(
+                getattr(runtime, "policy_typed", None), "bundle_code", None
+            )
+            if runtime.policy_typed
+            else None,
         },
         "active_policies": _serialize_policy(runtime.policy_typed or runtime.policy),
         "entitlements": _serialize_entitlements(runtime.entitlements),
@@ -92,8 +103,12 @@ def inspect_runtime(runtime: TenantRuntime) -> Dict[str, Any]:
         "source_summary": {
             "blueprint_id": getattr(debug, "source_blueprint_id", None),
             "policy_bundle_id": getattr(debug, "source_policy_bundle_id", None),
-            "preview_mode": getattr(getattr(runtime, "route", None), "is_preview", False),
-            "sandbox_mode": getattr(getattr(runtime, "route", None), "is_sandbox", False),
+            "preview_mode": getattr(
+                getattr(runtime, "route", None), "is_preview", False
+            ),
+            "sandbox_mode": getattr(
+                getattr(runtime, "route", None), "is_sandbox", False
+            ),
         },
         "route": {
             "surface": getattr(getattr(runtime, "route", None), "surface", None),
@@ -102,6 +117,9 @@ def inspect_runtime(runtime: TenantRuntime) -> Dict[str, Any]:
         },
         "tenant_id": runtime.tenant_ctx.tenant_id if runtime.tenant_ctx else None,
         "school_id": runtime.tenant_ctx.school_id if runtime.tenant_ctx else None,
+        "primary_sector": getattr(
+            getattr(runtime, "tenant", None), "primary_sector", None
+        ),
     }
 
 
@@ -115,14 +133,35 @@ def get_runtime_inspection(request: Any) -> Dict[str, Any]:
         tenant_ctx = getattr(request, "tenant_ctx", None)
         if tenant_ctx is None:
             from apps.tenancy.middleware import build_tenant_context_from_request
+
             tenant_ctx = build_tenant_context_from_request(request)
         if tenant_ctx is None:
-            return {"error": "no_tenant_context", "effective_blueprint": {}, "override_sources": {}, "governor_limits": get_governor_usage_for_tenant(), "feature_toggles": []}
-        school = getattr(request, "school", None) or getattr(getattr(request, "tenant", None), "school", None)
+            return {
+                "error": "no_tenant_context",
+                "effective_blueprint": {},
+                "override_sources": {},
+                "governor_limits": get_governor_usage_for_tenant(),
+                "feature_toggles": [],
+            }
+        school = getattr(request, "school", None) or getattr(
+            getattr(request, "tenant", None), "school", None
+        )
         try:
             rt = build_tenant_runtime(tenant_ctx, request=request, school=school)
-        except (AttributeError, DatabaseError, RuntimeResolutionError, TypeError, ValueError) as e:
-            return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None, "feature_toggles": []}
+        except (
+            AttributeError,
+            DatabaseError,
+            RuntimeResolutionError,
+            TypeError,
+            ValueError,
+        ) as e:
+            return {
+                "error": str(e),
+                "effective_blueprint": {},
+                "override_sources": {},
+                "governor_limits": None,
+                "feature_toggles": [],
+            }
     out = inspect_runtime(rt)
     tid = rt.tenant_ctx.tenant_id if rt.tenant_ctx else None
     sid = rt.tenant_ctx.school_id if rt.tenant_ctx else None
@@ -139,26 +178,40 @@ def get_feature_toggle_inspection(school: Any) -> list:
     import logging
     from django.db import DatabaseError
     from django.utils import timezone
+
     logger = logging.getLogger(__name__)
     out = []
     try:
         from apps.policies_rules.models import FeatureToggleState
+
         now = timezone.now()
-        q = FeatureToggleState.objects.filter(
-            Q(expires_at__isnull=True) | Q(expires_at__gt=now)
-        ).select_related("definition").order_by("definition__key")
+        q = (
+            FeatureToggleState.objects.filter(
+                Q(expires_at__isnull=True) | Q(expires_at__gt=now)
+            )
+            .select_related("definition")
+            .order_by("definition__key")
+        )
+
         def _row(state, override_source: str) -> Dict[str, Any]:
             defin = getattr(state, "definition", None)
-            key = getattr(defin, "key", None) if defin else (str(state.definition_id) if state.definition_id else "—")
+            key = (
+                getattr(defin, "key", None)
+                if defin
+                else (str(state.definition_id) if state.definition_id else "—")
+            )
             return {
                 "key": key,
                 "is_enabled": state.is_enabled,
-                "expires_at": state.expires_at.strftime("%Y-%m-%d %H:%M") if state.expires_at else None,
+                "expires_at": state.expires_at.strftime("%Y-%m-%d %H:%M")
+                if state.expires_at
+                else None,
                 "source": override_source,
                 "owner": getattr(defin, "owner", None) or "",
                 "definition_source": getattr(defin, "source", None) or "",
                 "scope": getattr(defin, "scope", None) or "",
             }
+
         for state in q.filter(school=school):
             out.append(_row(state, "school"))
         for state in q.filter(school__isnull=True):
@@ -187,7 +240,9 @@ def _get_entitlements_why(school: Any, out: Dict[str, Any]) -> Dict[str, Any]:
     if school:
         plan = getattr(school, "plan", None)
         if plan is not None:
-            why["plan_name"] = getattr(plan, "name", None) or getattr(plan, "label", None)
+            why["plan_name"] = getattr(plan, "name", None) or getattr(
+                plan, "label", None
+            )
             why["plan_code"] = getattr(plan, "code", None)
     return why
 
@@ -198,12 +253,18 @@ def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
     without a request; use for background or super views.
     """
     if school is None:
-        return {"error": "no_school", "effective_blueprint": {}, "override_sources": {}, "governor_limits": get_governor_usage_for_tenant()}
+        return {
+            "error": "no_school",
+            "effective_blueprint": {},
+            "override_sources": {},
+            "governor_limits": get_governor_usage_for_tenant(),
+        }
     tenant_ctx = TenantContext(
         tenant_id=str(getattr(school, "id", "")),
         schema_name=getattr(school, "schema_name", None),
         school_id=getattr(school, "id", None),
-        country=getattr(school, "default_region_id", None) or getattr(school, "country", None),
+        country=getattr(school, "default_region_id", None)
+        or getattr(school, "country", None),
         timezone=getattr(school, "timezone", None),
         feature_flags={},
         policy_overrides={},
@@ -221,5 +282,17 @@ def get_runtime_inspection_for_school(school: Any) -> Dict[str, Any]:
         # GAP.6: why these entitlements (which plan/rule/policy enabled them)
         out["entitlements_why"] = _get_entitlements_why(school, out)
         return out
-    except (AttributeError, DatabaseError, RuntimeResolutionError, TypeError, ValueError) as e:
-        return {"error": str(e), "effective_blueprint": {}, "override_sources": {}, "governor_limits": None, "feature_toggles": []}
+    except (
+        AttributeError,
+        DatabaseError,
+        RuntimeResolutionError,
+        TypeError,
+        ValueError,
+    ) as e:
+        return {
+            "error": str(e),
+            "effective_blueprint": {},
+            "override_sources": {},
+            "governor_limits": None,
+            "feature_toggles": [],
+        }

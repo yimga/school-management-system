@@ -4,20 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0115_runmycampus_platform_neutral_data'),
+        ("siteconfig", "0115_runmycampus_platform_neutral_data"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sitesettings',
-            name='report_preview_footer_note',
-            field=models.CharField(blank=True, default='Powered by RunMyCampus.', help_text='Footer note text shown on report previews.', max_length=160),
+            model_name="sitesettings",
+            name="report_preview_footer_note",
+            field=models.CharField(
+                blank=True,
+                default="Powered by RunMyCampus.",
+                help_text="Footer note text shown on report previews.",
+                max_length=160,
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='site_name',
-            field=models.CharField(default='School System', max_length=120),
+            model_name="sitesettings",
+            name="site_name",
+            field=models.CharField(default="School System", max_length=120),
         ),
     ]

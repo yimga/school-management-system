@@ -5,25 +5,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0040_marksheet_ocr_command'),
+        ("siteconfig", "0040_marksheet_ocr_command"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='grade_approval_enabled',
-            field=models.BooleanField(default=True, help_text='Require staff approval before publishing teacher-submitted marks.'),
+            model_name="sitesettings",
+            name="grade_approval_enabled",
+            field=models.BooleanField(
+                default=True,
+                help_text="Require staff approval before publishing teacher-submitted marks.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='grade_approval_roles',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models.default_grade_approval_roles, help_text='List of role codes allowed to review/approve teacher grade submissions.'),
+            model_name="sitesettings",
+            name="grade_approval_roles",
+            field=models.JSONField(
+                blank=True,
+                default=apps.siteconfig.models.default_grade_approval_roles,
+                help_text="List of role codes allowed to review/approve teacher grade submissions.",
+            ),
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='default_report_preview_type',
-            field=models.CharField(choices=[('term', 'Term Report'), ('annual', 'Annual Report')], default='term', help_text='Template shown to admins when opening a report preview from the builder.', max_length=12),
+            model_name="sitesettings",
+            name="default_report_preview_type",
+            field=models.CharField(
+                choices=[("term", "Term Report"), ("annual", "Annual Report")],
+                default="term",
+                help_text="Template shown to admins when opening a report preview from the builder.",
+                max_length=12,
+            ),
         ),
     ]

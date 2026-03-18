@@ -7,30 +7,71 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0022_backfill_schooldomain'),
-        ('siteconfig', '0110_add_global_support_ticket'),
+        ("schools", "0022_backfill_schooldomain"),
+        ("siteconfig", "0110_add_global_support_ticket"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ImpersonationLog',
+            name="ImpersonationLog",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('action', models.CharField(choices=[('SWITCH', 'Switch to tenant'), ('END', 'End impersonation')], max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
-                ('user_agent', models.CharField(blank=True, max_length=500)),
-                ('actor', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='impersonation_logs', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='impersonation_logs', to='schools.school')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[
+                            ("SWITCH", "Switch to tenant"),
+                            ("END", "End impersonation"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("ip_address", models.GenericIPAddressField(blank=True, null=True)),
+                ("user_agent", models.CharField(blank=True, max_length=500)),
+                (
+                    "actor",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="impersonation_logs",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="impersonation_logs",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Impersonation log',
-                'verbose_name_plural': 'Impersonation logs',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['actor'], name='siteconfig__actor_i_5bacf6_idx'), models.Index(fields=['school'], name='siteconfig__school__6f6d08_idx'), models.Index(fields=['-created_at'], name='siteconfig__created_f99e91_idx')],
+                "verbose_name": "Impersonation log",
+                "verbose_name_plural": "Impersonation logs",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["actor"], name="siteconfig__actor_i_5bacf6_idx"
+                    ),
+                    models.Index(
+                        fields=["school"], name="siteconfig__school__6f6d08_idx"
+                    ),
+                    models.Index(
+                        fields=["-created_at"], name="siteconfig__created_f99e91_idx"
+                    ),
+                ],
             },
         ),
     ]

@@ -5,45 +5,126 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('analytics', '0009_add_benchmark_aggregate'),
-        ('people', '0033_apprentice_placement'),
-        ('schools', '0014_signup_verification'),
+        ("analytics", "0009_add_benchmark_aggregate"),
+        ("people", "0033_apprentice_placement"),
+        ("schools", "0014_signup_verification"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='InterventionLog',
+            name="InterventionLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('trigger_reason', models.CharField(max_length=255)),
-                ('action_taken', models.CharField(help_text='e.g. Email, Meeting, Resource', max_length=100)),
-                ('status', models.CharField(choices=[('ONGOING', 'Ongoing'), ('RESOLVED', 'Resolved')], default='ONGOING', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('resolved_at', models.DateTimeField(blank=True, null=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='intervention_logs', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='intervention_logs', to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("trigger_reason", models.CharField(max_length=255)),
+                (
+                    "action_taken",
+                    models.CharField(
+                        help_text="e.g. Email, Meeting, Resource", max_length=100
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("ONGOING", "Ongoing"), ("RESOLVED", "Resolved")],
+                        default="ONGOING",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("resolved_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="intervention_logs",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="intervention_logs",
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['school', 'status'], name='analytics_i_school__d6f2cb_idx')],
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["school", "status"],
+                        name="analytics_i_school__d6f2cb_idx",
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='RiskFactor',
+            name="RiskFactor",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('score', models.DecimalField(decimal_places=2, help_text='0–100 risk score', max_digits=5)),
-                ('reason_summary', models.CharField(blank=True, help_text="AI-generated short summary for 'Why' column.", max_length=500)),
-                ('computed_at', models.DateTimeField(auto_now_add=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='risk_factors', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='risk_factors', to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "score",
+                    models.DecimalField(
+                        decimal_places=2, help_text="0–100 risk score", max_digits=5
+                    ),
+                ),
+                (
+                    "reason_summary",
+                    models.CharField(
+                        blank=True,
+                        help_text="AI-generated short summary for 'Why' column.",
+                        max_length=500,
+                    ),
+                ),
+                ("computed_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="risk_factors",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="risk_factors",
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-score', '-computed_at'],
-                'get_latest_by': 'computed_at',
-                'indexes': [models.Index(fields=['school', '-computed_at'], name='analytics_r_school__7bf513_idx'), models.Index(fields=['school', 'student'], name='analytics_r_school__6bba29_idx')],
+                "ordering": ["-score", "-computed_at"],
+                "get_latest_by": "computed_at",
+                "indexes": [
+                    models.Index(
+                        fields=["school", "-computed_at"],
+                        name="analytics_r_school__7bf513_idx",
+                    ),
+                    models.Index(
+                        fields=["school", "student"],
+                        name="analytics_r_school__6bba29_idx",
+                    ),
+                ],
             },
         ),
     ]

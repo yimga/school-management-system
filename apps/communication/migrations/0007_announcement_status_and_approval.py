@@ -6,30 +6,44 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('communication', '0006_alter_contactrequestattachment_file'),
+        ("communication", "0006_alter_contactrequestattachment_file"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='announcement',
-            name='approved_at',
+            model_name="announcement",
+            name="approved_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='announcement',
-            name='approved_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='approved_announcements', to=settings.AUTH_USER_MODEL),
+            model_name="announcement",
+            name="approved_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="approved_announcements",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='announcement',
-            name='status',
-            field=models.CharField(choices=[('draft', 'Draft'), ('pending_approval', 'Pending Approval'), ('published', 'Published')], default='published', help_text='Only published announcements are visible to the audience.', max_length=20),
+            model_name="announcement",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("draft", "Draft"),
+                    ("pending_approval", "Pending Approval"),
+                    ("published", "Published"),
+                ],
+                default="published",
+                help_text="Only published announcements are visible to the audience.",
+                max_length=20,
+            ),
         ),
         migrations.AddIndex(
-            model_name='announcement',
-            index=models.Index(fields=['status'], name='communicati_status_7f1691_idx'),
+            model_name="announcement",
+            index=models.Index(fields=["status"], name="communicati_status_7f1691_idx"),
         ),
     ]

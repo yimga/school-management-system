@@ -3,15 +3,17 @@ import os
 import sys
 
 _script_dir = os.path.dirname(os.path.abspath(__file__))
-_project_root = os.path.abspath(os.path.join(_script_dir, '..', '..'))
+_project_root = os.path.abspath(os.path.join(_script_dir, "..", ".."))
 sys.path.insert(0, _project_root)
 os.chdir(_project_root)
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 import django
+
 django.setup()
 
 from django.template import engines
-engine = engines['django']
-tpl = engine.from_string('{% load breadcrumb_extras %}{{ \'/a/b/\'|split:\'/\' }}')
+
+engine = engines["django"]
+tpl = engine.from_string("{% load breadcrumb_extras %}{{ '/a/b/'|split:'/' }}")
 print(tpl.render({}))

@@ -2,6 +2,7 @@
 Phase 10 — 2.1: Giant-file decomposition. AI-related models extracted from siteconfig.models.
 Same db_table so existing migrations apply. Re-exported from siteconfig.models for backward compatibility.
 """
+
 from django.db import models
 
 
@@ -10,6 +11,7 @@ class RegionalAIConfig(models.Model):
     World Engine / Sovereign AI: per-region Ollama endpoint and model (public schema).
     Single source of truth for regional AI; fallback to OLLAMA_ENDPOINT/OLLAMA_MODEL in settings when no row exists.
     """
+
     regional_cluster = models.CharField(
         max_length=32,
         unique=True,
@@ -55,6 +57,7 @@ class AIModelRegistry(models.Model):
     World Engine: which model version runs per region/hardware (public schema).
     Single source of truth for model versions; used by OllamaInferenceService and sync_regional_models.
     """
+
     regional_cluster = models.CharField(max_length=32, db_index=True)
     hardware_tier = models.CharField(
         max_length=32,
@@ -92,11 +95,14 @@ class AIEmbeddingStore(models.Model):
     Stores embeddings for similarity search. Use PGVector in production (vector column);
     embedding as JSONField (list of floats) works without pgvector extension.
     """
+
     school_id = models.UUIDField(db_index=True, null=True, blank=True)
     conversation_id = models.CharField(max_length=64, blank=True, db_index=True)
     scope = models.CharField(max_length=32, default="chat", db_index=True)
     text_hash = models.CharField(max_length=64, db_index=True)
-    embedding = models.JSONField(default=list, help_text="List of floats from Ollama embeddings API")
+    embedding = models.JSONField(
+        default=list, help_text="List of floats from Ollama embeddings API"
+    )
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -127,6 +133,7 @@ class AIPromptRegistry(models.Model):
     Registry of prompts for gateway and productized AI: owner, purpose, allowed data sources,
     expected output shape, model/backend policy, review status.
     """
+
     prompt_key = models.CharField(max_length=64, unique=True, db_index=True)
     prompt_class = models.CharField(
         max_length=32,
@@ -180,6 +187,7 @@ class AIGatewayMetric(models.Model):
     Aggregated observability metrics for AI Gateway: volume, latency, backend, failure rate,
     schema-validation failure rate, cost class, and operator review loops.
     """
+
     date = models.DateField(db_index=True)
     tenant_id = models.UUIDField(db_index=True, null=True, blank=True)
     task_type = models.CharField(max_length=64, db_index=True)

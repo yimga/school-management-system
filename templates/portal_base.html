@@ -53,12 +53,14 @@
     </script>
     <title>{% block title %}Portal{% endblock %}</title>
     <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+    {% if "/portal/parent" in request.path %}<link rel="manifest" href="{% static 'manifest-portal.json' %}"><meta name="theme-color" content="#2563eb">{% endif %}
     <!-- Self-hosted fonts and vendor CSS (no CDN dependency) -->
     <link rel="stylesheet" href="{% static 'css/vendor/inter.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
+    <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
     <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
     <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
@@ -92,6 +94,7 @@
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
     <link rel="stylesheet" href="{% static 'css/tooltips.css' %}">
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
+    <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
     {% block extrastyle %}{% endblock %}
 
     <style>
@@ -1176,7 +1179,7 @@
     <div class="container-fluid px-3 py-2 portal-layout-wrap">
       <div class="row g-3 portal-layout-row">
         <!-- Sidebar (desktop) - Resizable, collapsible to icon strip -->
-        <div class="portal-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="portal-sidebar-col" data-collapsible="true">
+        <div class="portal-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block rmc-glass-sidebar-shell" id="portal-sidebar-col" data-collapsible="true">
           <div class="sidebar p-3">
             {% include "partials/portal_sidebar.html" %}
           </div>
@@ -1440,13 +1443,22 @@
         function setSidebarCollapsed(collapsed) {
           if (!sidebarCol) return;
           sidebarCol.classList.toggle('portal-sidebar-collapsed', collapsed);
-          localStorage.setItem(collapseKey, collapsed ? 'true' : 'false');
+          collapseKeys.forEach(function (k) {
+            localStorage.setItem(k, collapsed ? 'true' : 'false');
+          });
           updateCollapseButtons(collapsed);
         }
 
         function loadCollapsed() {
           if (!sidebarCol) return;
-          setSidebarCollapsed(localStorage.getItem(collapseKey) === 'true');
+          var collapsed = false;
+          for (var i = 0; i < collapseKeys.length; i++) {
+            if (localStorage.getItem(collapseKeys[i]) === 'true') {
+              collapsed = true;
+              break;
+            }
+          }
+          setSidebarCollapsed(collapsed);
         }
         loadCollapsed();
         collapseButtons.forEach(function(btn) {
@@ -1504,7 +1516,8 @@
         requestsSyncEnabled: {% if SITE.backend_feature_flags.offline_requests_sync == False %}false{% else %}true{% endif %},
         deltaEndpointUrl: '',
         hubBaseUrl: '{{ SITE.backend_feature_flags.hub_base_url|default:"" }}',
-        prefetchAtHour: {% if SITE.backend_feature_flags.prefetch_at_hour != None %}{{ SITE.backend_feature_flags.prefetch_at_hour }}{% else %}null{% endif %}
+        prefetchAtHour: {% if SITE.backend_feature_flags.prefetch_at_hour != None %}{{ SITE.backend_feature_flags.prefetch_at_hour }}{% else %}null{% endif %},
+        parentPortalShell: {% if "/portal/parent" in request.path or "/parent/dashboard" in request.path %}true{% else %}false{% endif %}
       };
     </script>
 
@@ -1517,11 +1530,12 @@
     <script src="{% static 'js/offline-status-bar.js' %}"></script>
     <script src="{% static 'js/auto-pilot.js' %}"></script>
     {% endif %}
-    <!-- PWA Service Worker Registration -->
+    <!-- PWA Service Worker Registration (full offline bar when enabled; parent portal shell when PWA + parent path) -->
     <script>
       (function() {
         var cfg = window.SMS_OFFLINE_CONFIG || {};
-        if (!('serviceWorker' in navigator) || !cfg.enabled || !cfg.pwaEnabled) {
+        var swEligible = cfg.pwaEnabled && (cfg.enabled || cfg.parentPortalShell);
+        if (!('serviceWorker' in navigator) || !swEligible) {
           return;
         }
 

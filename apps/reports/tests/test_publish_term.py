@@ -1,6 +1,7 @@
 """
 Tests for report publish term view: RBAC and approved-grades settings.
 """
+
 from datetime import date
 
 from django.test import TestCase
@@ -49,7 +50,9 @@ class PublishTermRBACTestCase(TestCase):
             is_active=True,
         )
         self.department = Department.objects.create(name="Science", code="SCI")
-        self.specialty = Specialty.objects.create(department=self.department, name="Physics", code="PHY")
+        self.specialty = Specialty.objects.create(
+            department=self.department, name="Physics", code="PHY"
+        )
         self.classroom = Classroom.objects.create(
             academic_year=self.year,
             department=self.department,
@@ -105,7 +108,12 @@ class PublishTermRBACTestCase(TestCase):
             academic_year=self.year,
             term=self.term,
             subject_assignment=self.subject_assignment,
-            entries=[{"student_id": self.student.id, "scores": {"seq1": "15", "seq2": "14", "exam": "16"}}],
+            entries=[
+                {
+                    "student_id": self.student.id,
+                    "scores": {"seq1": "15", "seq2": "14", "exam": "16"},
+                }
+            ],
             summary={"total_students": 1, "submitted_rows": 1},
             status=status,
             requested_by=self.teacher_user,

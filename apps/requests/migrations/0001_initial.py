@@ -9,7 +9,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -21,19 +20,93 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="AccessRequest",
             fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("reference", models.CharField(default=apps.requests.models._generate_request_reference, editable=False, max_length=32, unique=True)),
-                ("request_type", models.CharField(choices=[("FINANCE_ACCESS", "Finance access"), ("PORTAL_FEATURE_ACCESS", "Portal feature access"), ("MODULE_ACCESS", "Module access"), ("GRADE_APPROVAL", "Grade approval"), ("LEAVE_APPROVAL", "Leave approval"), ("DOCUMENT_REQUEST", "Document request"), ("REPORT_REQUEST", "Report request"), ("REFUND_REQUEST", "Refund request"), ("OTHER", "Other")], max_length=40)),
-                ("status", models.CharField(choices=[("PENDING", "Pending"), ("APPROVED", "Approved"), ("DENIED", "Denied"), ("CLARIFICATION_REQUESTED", "Clarification requested"), ("CANCELLED", "Cancelled")], default="PENDING", max_length=32)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "reference",
+                    models.CharField(
+                        default=apps.requests.models._generate_request_reference,
+                        editable=False,
+                        max_length=32,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "request_type",
+                    models.CharField(
+                        choices=[
+                            ("FINANCE_ACCESS", "Finance access"),
+                            ("PORTAL_FEATURE_ACCESS", "Portal feature access"),
+                            ("MODULE_ACCESS", "Module access"),
+                            ("GRADE_APPROVAL", "Grade approval"),
+                            ("LEAVE_APPROVAL", "Leave approval"),
+                            ("DOCUMENT_REQUEST", "Document request"),
+                            ("REPORT_REQUEST", "Report request"),
+                            ("REFUND_REQUEST", "Refund request"),
+                            ("OTHER", "Other"),
+                        ],
+                        max_length=40,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("APPROVED", "Approved"),
+                            ("DENIED", "Denied"),
+                            ("CLARIFICATION_REQUESTED", "Clarification requested"),
+                            ("CANCELLED", "Cancelled"),
+                        ],
+                        default="PENDING",
+                        max_length=32,
+                    ),
+                ),
                 ("title", models.CharField(blank=True, max_length=200)),
                 ("summary", models.TextField(blank=True)),
                 ("details", models.JSONField(blank=True, default=dict)),
-                ("target_object_id", models.CharField(blank=True, max_length=64, null=True)),
+                (
+                    "target_object_id",
+                    models.CharField(blank=True, max_length=64, null=True),
+                ),
                 ("requested_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
-                ("assigned_to", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="access_requests_assigned", to=settings.AUTH_USER_MODEL)),
-                ("requester", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="access_requests", to=settings.AUTH_USER_MODEL)),
-                ("target_content_type", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to="contenttypes.contenttype")),
+                (
+                    "assigned_to",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="access_requests_assigned",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "requester",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="access_requests",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "target_content_type",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="contenttypes.contenttype",
+                    ),
+                ),
             ],
             options={
                 "ordering": ["-requested_at"],
@@ -42,12 +115,46 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="RequestDecision",
             fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("decision", models.CharField(choices=[("APPROVED", "Approved"), ("DENIED", "Denied"), ("CLARIFY", "Clarification requested")], max_length=20)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "decision",
+                    models.CharField(
+                        choices=[
+                            ("APPROVED", "Approved"),
+                            ("DENIED", "Denied"),
+                            ("CLARIFY", "Clarification requested"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
                 ("reason", models.TextField(blank=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
-                ("decided_by", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="access_request_decisions", to=settings.AUTH_USER_MODEL)),
-                ("request", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="decisions", to="requests.accessrequest")),
+                (
+                    "decided_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="access_request_decisions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "request",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="decisions",
+                        to="requests.accessrequest",
+                    ),
+                ),
             ],
             options={
                 "ordering": ["-created_at"],
@@ -56,13 +163,37 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="RequestAudit",
             fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
                 ("action", models.CharField(max_length=64)),
                 ("message", models.TextField(blank=True)),
                 ("details", models.JSONField(blank=True, default=dict)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
-                ("actor", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="access_request_audits", to=settings.AUTH_USER_MODEL)),
-                ("request", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="audits", to="requests.accessrequest")),
+                (
+                    "actor",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="access_request_audits",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "request",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="audits",
+                        to="requests.accessrequest",
+                    ),
+                ),
             ],
             options={
                 "ordering": ["-created_at"],

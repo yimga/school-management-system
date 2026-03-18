@@ -6,6 +6,7 @@ Global Powerhouse Phase A: getTenantModules and useLocalSettings.
 - useLocalSettings(request) / get_tenant_locale(request): merged locale/config from
   selected systems + School.settings (timezone, locale, currency, date_format, grading_scale).
 """
+
 from __future__ import annotations
 
 import logging
@@ -43,16 +44,21 @@ def get_tenant_modules(school) -> list[str]:
     # (1) Module manifest: required_apps for school_type (World Engine E.2)
     try:
         from apps.siteconfig.module_manifest import get_school_type_config
+
         school_type = getattr(school, "school_type", None) or "BASE_SCHOOL"
         cfg = get_school_type_config(school_type)
-        for app in (cfg.get("required_apps") or []):
+        for app in cfg.get("required_apps") or []:
             if app and isinstance(app, str):
                 keys.add(app.strip().lower())
     except SOFT_TENANT_CONFIG_ERRORS:
         pass
 
     try:
-        from apps.siteconfig.models import TenantSystem, SystemFeature, EducationSystemProfile
+        from apps.siteconfig.models import (
+            TenantSystem,
+            SystemFeature,
+            EducationSystemProfile,
+        )
     except ImportError:
         return sorted(keys)
 
@@ -100,7 +106,11 @@ def get_compliance_region(school) -> str | None:
         return str(settings["compliance_region"]).upper()[:10]
     try:
         from apps.siteconfig.models import RegionConfig
-        region = getattr(school, "default_region_id", None) and RegionConfig.objects.filter(pk=school.default_region_id).first()
+
+        region = (
+            getattr(school, "default_region_id", None)
+            and RegionConfig.objects.filter(pk=school.default_region_id).first()
+        )
         if region and getattr(region, "code", None):
             code = (region.code or "").upper()
             if code in ("DE", "FR", "IT", "ES", "NL", "BE", "AT", "PL", "EU"):
@@ -140,12 +150,15 @@ def get_tenant_enum_choices(school, key: str) -> list[tuple[str, str]]:
     # Defaults from models
     if key == "relationship_choices":
         from apps.portal.models import PendingGuardianInvite
+
         return list(PendingGuardianInvite.Relationship.choices)
     if key == "student_status_choices":
         from apps.people.models import StudentProfile
+
         return list(StudentProfile.Status.choices)
     if key == "dashboard_view_choices":
         from apps.people.models import TeacherProfile
+
         return list(TeacherProfile.DashboardView.choices)
     return []
 
@@ -163,7 +176,8 @@ def get_tenant_validation_rules(school) -> dict[str, Any]:
     return {
         "admission_pattern": settings.get("admission_pattern") or r"^[A-Z0-9\-]+$",
         "file_max_size_mb": settings.get("file_max_size_mb", 10),
-        "allowed_file_types": settings.get("allowed_file_types") or ["pdf", "jpg", "jpeg", "png"],
+        "allowed_file_types": settings.get("allowed_file_types")
+        or ["pdf", "jpg", "jpeg", "png"],
         "phone_regex": settings.get("phone_regex") or r"^\+?[\d\s\-()]{8,20}$",
         "refund_reasons": settings.get("refund_reasons") or [],
     }
@@ -203,7 +217,9 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
 
         brand_context = resolve_global_brand_context(school=school)
         out["locale"] = brand_context.get("primary_language") or out["locale"]
-        out["default_language"] = brand_context.get("primary_language") or out["default_language"]
+        out["default_language"] = (
+            brand_context.get("primary_language") or out["default_language"]
+        )
         out["currency"] = brand_context.get("currency_code") or out["currency"]
         out["labels_map"] = brand_context.get("labels_map") or {}
         ui_cfg = brand_context.get("ui_config") or {}
@@ -233,13 +249,19 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
                 continue
             # First system wins for unset keys
             if not out.get("default_timezone") or out.get("default_timezone") == "UTC":
-                out["default_timezone"] = getattr(profile, "default_timezone", None) or "UTC"
+                out["default_timezone"] = (
+                    getattr(profile, "default_timezone", None) or "UTC"
+                )
             if not out.get("default_language"):
-                out["default_language"] = getattr(profile, "default_language", None) or "en"
+                out["default_language"] = (
+                    getattr(profile, "default_language", None) or "en"
+                )
             if not out.get("currency") or out.get("currency") == "USD":
                 out["currency"] = getattr(profile, "default_currency", None) or "USD"
             if not out.get("grading_scale"):
-                out["grading_scale"] = getattr(profile, "grading_scale", None) or "0-100"
+                out["grading_scale"] = (
+                    getattr(profile, "grading_scale", None) or "0-100"
+                )
             config = getattr(profile, "config", None) or {}
             if isinstance(config, dict):
                 if config.get("date_format") and not out.get("date_format"):
@@ -256,15 +278,22 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
         if settings.get("timezone"):
             out["timezone"] = settings["timezone"]
         if settings.get("default_language") or settings.get("locale"):
-            out["locale"] = settings.get("default_language") or settings.get("locale", "en")
+            out["locale"] = settings.get("default_language") or settings.get(
+                "locale", "en"
+            )
         if settings.get("default_currency") or settings.get("currency"):
-            out["currency"] = settings.get("default_currency") or settings.get("currency", "USD")
+            out["currency"] = settings.get("default_currency") or settings.get(
+                "currency", "USD"
+            )
         if settings.get("date_format"):
             out["date_format"] = settings["date_format"]
         if settings.get("grading_scale"):
             out["grading_scale"] = settings["grading_scale"]
         if isinstance(settings.get("labels_map"), dict):
-            out["labels_map"] = {**(out.get("labels_map") or {}), **settings["labels_map"]}
+            out["labels_map"] = {
+                **(out.get("labels_map") or {}),
+                **settings["labels_map"],
+            }
         edu = settings.get("education_profile") or {}
         if isinstance(edu, dict) and edu.get("default_timezone"):
             out["timezone"] = edu["default_timezone"]
@@ -279,18 +308,27 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
     if getattr(school, "default_region_id", None):
         try:
             from apps.siteconfig.models import RegionConfig
+
             region = RegionConfig.objects.filter(pk=school.default_region_id).first()
             if region:
                 if not out.get("currency") or out.get("currency") == "USD":
-                    out["currency"] = getattr(region, "default_currency", None) or out["currency"]
+                    out["currency"] = (
+                        getattr(region, "default_currency", None) or out["currency"]
+                    )
                 if not out.get("date_format"):
-                    out["date_format"] = getattr(region, "date_format", None) or out["date_format"]
+                    out["date_format"] = (
+                        getattr(region, "date_format", None) or out["date_format"]
+                    )
                 if not out.get("grading_scale"):
-                    out["grading_scale"] = getattr(region, "grading_scale", None) or out["grading_scale"]
+                    out["grading_scale"] = (
+                        getattr(region, "grading_scale", None) or out["grading_scale"]
+                    )
         except SOFT_TENANT_CONFIG_ERRORS:
             pass
 
-    out["default_timezone"] = out.get("timezone") or out.get("default_timezone") or "UTC"
+    out["default_timezone"] = (
+        out.get("timezone") or out.get("default_timezone") or "UTC"
+    )
     out["default_language"] = out.get("locale") or out.get("default_language") or "en"
     return out
 
@@ -300,7 +338,9 @@ def use_local_settings(request=None, school=None) -> dict[str, Any]:
     return get_tenant_locale(request=request, school=school)
 
 
-def get_custom_field_definitions(school, entity: str = "students") -> list[dict[str, Any]]:
+def get_custom_field_definitions(
+    school, entity: str = "students"
+) -> list[dict[str, Any]]:
     """
     Phase C: Return custom field definitions for Student or Staff from School.settings.
     entity is 'students' or 'staff'. Returns list of dicts with key, label, type (e.g. text, number).
@@ -324,6 +364,7 @@ def get_report_template_family_for_school(school) -> str:
         return ""
     try:
         from apps.siteconfig.models import TenantSystem, EducationSystemProfile
+
         system_ids = list(
             TenantSystem.objects.filter(school=school)
             .order_by("system__name")
@@ -333,7 +374,11 @@ def get_report_template_family_for_school(school) -> str:
         if system_ids:
             profile = EducationSystemProfile.objects.filter(id=system_ids[0]).first()
             if profile and isinstance(getattr(profile, "config", None), dict):
-                return (profile.config.get("report_template_family") or profile.config.get("report_template") or "").strip()
+                return (
+                    profile.config.get("report_template_family")
+                    or profile.config.get("report_template")
+                    or ""
+                ).strip()
     except SOFT_TENANT_CONFIG_ERRORS:
         pass
     return ""
@@ -352,6 +397,7 @@ def get_grading_schema_for_school(school) -> dict[str, Any]:
     out = {"scale": scale, "grade_bands": None, "pass_mark": None}
     try:
         from apps.siteconfig.models import TenantSystem, EducationSystemProfile
+
         system_ids = list(
             TenantSystem.objects.filter(school=school)
             .order_by("system__name")
@@ -398,6 +444,7 @@ def format_date_tenant(dt, request=None, school=None) -> str:
     locale = get_tenant_locale(request=request, school=school)
     pattern = (locale.get("date_format") or "DD/MM/YYYY").strip()
     from django.utils import dateformat
+
     fmt = pattern.replace("YYYY", "Y").replace("DD", "d").replace("MM", "m")
     try:
         return dateformat.format(dt, fmt)
@@ -415,16 +462,25 @@ def format_currency_tenant(amount, request=None, school=None) -> str:
     except (TypeError, ValueError):
         return str(amount)
     locale = get_tenant_locale(request=request, school=school)
-    currency = (locale.get("currency") or locale.get("default_currency") or "USD").strip()
+    currency = (
+        locale.get("currency") or locale.get("default_currency") or "USD"
+    ).strip()
     from apps.siteconfig.currency import get_currency_symbol
+
     symbol = get_currency_symbol(currency)
     dec_sep = locale.get("decimal_separator") or "."
     thousands_sep = locale.get("thousands_separator") or ","
-    s = f"{amt:,.2f}".replace(",", "\x01").replace(".", dec_sep).replace("\x01", thousands_sep)
+    s = (
+        f"{amt:,.2f}".replace(",", "\x01")
+        .replace(".", dec_sep)
+        .replace("\x01", thousands_sep)
+    )
     return f"{symbol}{s}" if symbol else s
 
 
-def sync_tenant_modules_to_school_features(school, *, persist: bool = True) -> dict[str, bool]:
+def sync_tenant_modules_to_school_features(
+    school, *, persist: bool = True
+) -> dict[str, bool]:
     """
     Optional Phase A: sync get_tenant_modules(school) result into School.features
     so existing has_feature() works without changing every call site.
@@ -445,6 +501,7 @@ def sync_tenant_modules_to_school_features(school, *, persist: bool = True) -> d
         school.save(update_fields=["features", "updated_at"])
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
+
             invalidate_policy_cache(school)
         except SOFT_TENANT_CONFIG_ERRORS:
             pass
@@ -473,8 +530,16 @@ REGIONAL_POLICY_PACKS: dict[str, dict[str, Any]] = {
             "consent_mode": "guardian_opt_in",
         },
         "locks": {
-            "privacy_framework": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
-            "data_residency_region": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+            "privacy_framework": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+            "data_residency_region": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
         },
     },
     "EU": {
@@ -492,9 +557,21 @@ REGIONAL_POLICY_PACKS: dict[str, dict[str, Any]] = {
             "consent_mode": "explicit_consent",
         },
         "locks": {
-            "privacy_framework": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
-            "data_residency_region": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
-            "consent_mode": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+            "privacy_framework": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+            "data_residency_region": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+            "consent_mode": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
         },
     },
     "BRA": {
@@ -512,8 +589,16 @@ REGIONAL_POLICY_PACKS: dict[str, dict[str, Any]] = {
             "consent_mode": "explicit_consent",
         },
         "locks": {
-            "privacy_framework": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
-            "data_residency_region": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+            "privacy_framework": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+            "data_residency_region": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
         },
     },
     "LCA": {
@@ -532,8 +617,205 @@ REGIONAL_POLICY_PACKS: dict[str, dict[str, Any]] = {
             "mobile_money_default": True,
         },
         "locks": {
-            "offline_mode_default": {"compliance_locked": False, "tenant_editable": False, "requires_approval": True},
+            "offline_mode_default": {
+                "compliance_locked": False,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
         },
+    },
+    "WAEC": {
+        "code": "WAEC",
+        "version": "2026.1",
+        "name": "West Africa (WAEC / Anglophone) Pack",
+        "defaults": {
+            "privacy_framework": "regional_default",
+            "data_residency_region": "af-west-1",
+            "default_language": "en",
+            "currency": "NGN",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-100",
+            "term_preset": "WAEC",
+            "offline_mode_default": False,
+            "consent_mode": "standard",
+        },
+        "locks": {},
+    },
+    "AFR_FR": {
+        "code": "AFR_FR",
+        "version": "2026.1",
+        "name": "Francophone Africa Pack",
+        "defaults": {
+            "privacy_framework": "regional_default",
+            "data_residency_region": "af-west-1",
+            "default_language": "fr",
+            "currency": "XAF",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-20",
+            "offline_mode_default": False,
+            "consent_mode": "standard",
+        },
+        "locks": {},
+    },
+    "GBR": {
+        "code": "GBR",
+        "version": "2026.1",
+        "name": "UK / British Education Pack",
+        "defaults": {
+            "privacy_framework": "GDPR",
+            "data_residency_region": "eu-west-2",
+            "default_language": "en",
+            "currency": "GBP",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "A*-G",
+            "term_preset": "UK",
+            "offline_mode_default": False,
+            "consent_mode": "explicit_consent",
+        },
+        "locks": {
+            "privacy_framework": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+            "data_residency_region": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+        },
+    },
+    "AUS": {
+        "code": "AUS",
+        "version": "2026.1",
+        "name": "Australia Education Pack",
+        "defaults": {
+            "privacy_framework": "APPA",
+            "data_residency_region": "ap-southeast-2",
+            "default_language": "en",
+            "currency": "AUD",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-100",
+            "term_preset": "AU",
+            "offline_mode_default": False,
+            "consent_mode": "explicit_consent",
+        },
+        "locks": {
+            "privacy_framework": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+            "data_residency_region": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+        },
+    },
+    "NZL": {
+        "code": "NZL",
+        "version": "2026.1",
+        "name": "New Zealand Education Pack",
+        "defaults": {
+            "privacy_framework": "PRIVACY_ACT_NZ",
+            "data_residency_region": "ap-southeast-2",
+            "default_language": "en",
+            "currency": "NZD",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-100",
+            "term_preset": "NZ",
+            "offline_mode_default": False,
+            "consent_mode": "explicit_consent",
+        },
+        "locks": {
+            "privacy_framework": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+            "data_residency_region": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+        },
+    },
+    "ASIA": {
+        "code": "ASIA",
+        "version": "2026.1",
+        "name": "Asia Education Pack",
+        "defaults": {
+            "privacy_framework": "regional_default",
+            "data_residency_region": "ap-southeast-1",
+            "default_language": "en",
+            "currency": "USD",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-100",
+            "offline_mode_default": False,
+            "consent_mode": "standard",
+        },
+        "locks": {},
+    },
+    "CAN": {
+        "code": "CAN",
+        "version": "2026.1",
+        "name": "Canada Education Pack",
+        "defaults": {
+            "privacy_framework": "PIPEDA",
+            "data_residency_region": "ca-central-1",
+            "default_language": "en",
+            "currency": "CAD",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-100",
+            "offline_mode_default": False,
+            "consent_mode": "guardian_opt_in",
+        },
+        "locks": {
+            "privacy_framework": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+            "data_residency_region": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+        },
+    },
+    "LATAM_ES": {
+        "code": "LATAM_ES",
+        "version": "2026.1",
+        "name": "Spanish South America Pack",
+        "defaults": {
+            "privacy_framework": "regional_default",
+            "data_residency_region": "sa-east-1",
+            "default_language": "es",
+            "currency": "USD",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-100",
+            "offline_mode_default": False,
+            "consent_mode": "explicit_consent",
+        },
+        "locks": {},
+    },
+    "MENA": {
+        "code": "MENA",
+        "version": "2026.1",
+        "name": "Middle East & North Africa Pack",
+        "defaults": {
+            "privacy_framework": "regional_default",
+            "data_residency_region": "me-south-1",
+            "default_language": "ar",
+            "currency": "USD",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-100",
+            "offline_mode_default": False,
+            "consent_mode": "standard",
+            "rtl": True,
+        },
+        "locks": {},
     },
 }
 
@@ -566,10 +848,14 @@ def get_regional_policy_pack(region_code: str | None) -> dict[str, Any]:
     """
     Resolve policy pack by region code.
     Known aliases:
-    - USA -> US
-    - GBR/FRA/DEU/ESP/ITA/... -> EU
-    - BRA -> BRA
-    - CMR/UGA/KEN/NGA/... -> LCA
+    - USA -> US; CAN/CA -> CAN
+    - GBR; FRA/DEU/ESP/ITA/... -> EU
+    - BRA; ARG/COL/CHL/PER/... -> LATAM_ES
+    - WAEC (Anglophone West Africa): NGA, GHA, GMB, SLE, LBR
+    - AFR_FR (Francophone Africa): CMR, SEN, CIV, BEN, TGO, BFA, MLI, NER
+    - LCA (Africa low-connectivity): UGA, KEN, RWA, ETH, TZA, ZAF
+    - ASIA: IND, SGP, CHN, JPN, KOR, MYS, THA, IDN, PHL, VNM
+    - MENA: ARE, SAU, EGY, JOR, LBN, KWT, BHR, QAT, OMN
     """
     code = (region_code or "").strip().upper()
     if not code:
@@ -578,12 +864,100 @@ def get_regional_policy_pack(region_code: str | None) -> dict[str, Any]:
         return deepcopy(REGIONAL_POLICY_PACKS[code])
     if code in {"USA", "US"}:
         return deepcopy(REGIONAL_POLICY_PACKS["US"])
-    if code in {"EU", "GBR", "FRA", "DEU", "ESP", "ITA", "NLD", "BEL", "SWE", "DNK", "FIN"}:
+    if code in {"CAN", "CA"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["CAN"])
+    if code == "GBR":
+        return deepcopy(REGIONAL_POLICY_PACKS["GBR"])
+    if code in {
+        "EU",
+        "FRA",
+        "DEU",
+        "ESP",
+        "ITA",
+        "NLD",
+        "BEL",
+        "SWE",
+        "DNK",
+        "FIN",
+        "NOR",
+        "IRL",
+        "AUT",
+        "PRT",
+        "GRC",
+        "POL",
+        "CZE",
+        "ROU",
+        "HUN",
+    }:
         return deepcopy(REGIONAL_POLICY_PACKS["EU"])
     if code == "BRA":
         return deepcopy(REGIONAL_POLICY_PACKS["BRA"])
-    if code in {"CMR", "UGA", "KEN", "NGA", "RWA", "ETH", "GHA", "TZA", "ZAF"}:
+    if code in {"NGA", "GHA", "GMB", "SLE", "LBR"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["WAEC"])
+    if code in {"CMR", "SEN", "CIV", "BEN", "TGO", "BFA", "MLI", "NER", "TCD", "CAF"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["AFR_FR"])
+    if code in {
+        "UGA",
+        "KEN",
+        "RWA",
+        "ETH",
+        "TZA",
+        "ZAF",
+        "ZWE",
+        "ZMB",
+        "MWI",
+        "MOZ",
+        "AGO",
+        "SDN",
+    }:
         return deepcopy(REGIONAL_POLICY_PACKS["LCA"])
+    if code in {
+        "IND",
+        "SGP",
+        "CHN",
+        "JPN",
+        "KOR",
+        "MYS",
+        "THA",
+        "IDN",
+        "PHL",
+        "VNM",
+        "PAK",
+        "BGD",
+        "LKA",
+        "NPL",
+        "MMR",
+        "KHM",
+        "LAO",
+    }:
+        return deepcopy(REGIONAL_POLICY_PACKS["ASIA"])
+    if code in {"ARG", "COL", "CHL", "PER", "ECU", "BOL", "PRY", "URY", "VEN"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["LATAM_ES"])
+    if code in {
+        "ARE",
+        "SAU",
+        "EGY",
+        "JOR",
+        "LBN",
+        "KWT",
+        "BHR",
+        "QAT",
+        "OMN",
+        "IRQ",
+        "IRN",
+        "SYR",
+        "YEM",
+        "PSE",
+        "DZA",
+        "TUN",
+        "MAR",
+        "LBY",
+    }:
+        return deepcopy(REGIONAL_POLICY_PACKS["MENA"])
+    if code in {"AUS", "AU"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["AUS"])
+    if code in {"NZL", "NZ"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["NZL"])
     return {}
 
 
@@ -626,7 +1000,13 @@ def compile_effective_tenant_config(
     metadata: dict[str, dict[str, Any]] = {}
     layers = ["global"]
 
-    def apply_layer(values: dict[str, Any], source: str, *, auto_applied: bool, default_editable: bool = True):
+    def apply_layer(
+        values: dict[str, Any],
+        source: str,
+        *,
+        auto_applied: bool,
+        default_editable: bool = True,
+    ):
         if not isinstance(values, dict):
             return
         for key, value in values.items():
@@ -635,16 +1015,25 @@ def compile_effective_tenant_config(
             metadata[key] = {
                 "source": source,
                 "auto_applied": bool(auto_applied),
-                "tenant_editable": bool(current.get("tenant_editable", default_editable)),
+                "tenant_editable": bool(
+                    current.get("tenant_editable", default_editable)
+                ),
                 "compliance_locked": bool(current.get("compliance_locked", False)),
                 "requires_approval": bool(current.get("requires_approval", False)),
             }
 
     # Layer 2: regional policy pack
-    region_code = getattr(getattr(school, "default_region", None), "code", None) or getattr(school, "default_region_id", None)
+    region_code = getattr(
+        getattr(school, "default_region", None), "code", None
+    ) or getattr(school, "default_region_id", None)
     pack = get_regional_policy_pack(region_code)
     if pack:
-        apply_layer(pack.get("defaults") or {}, f"region_pack:{pack.get('code')}", auto_applied=True, default_editable=True)
+        apply_layer(
+            pack.get("defaults") or {},
+            f"region_pack:{pack.get('code')}",
+            auto_applied=True,
+            default_editable=True,
+        )
         for key, lock in (pack.get("locks") or {}).items():
             if key not in metadata:
                 metadata[key] = {
@@ -655,37 +1044,62 @@ def compile_effective_tenant_config(
                     "requires_approval": False,
                 }
             if isinstance(lock, dict):
-                metadata[key]["tenant_editable"] = bool(lock.get("tenant_editable", metadata[key]["tenant_editable"]))
-                metadata[key]["compliance_locked"] = bool(lock.get("compliance_locked", False))
-                metadata[key]["requires_approval"] = bool(lock.get("requires_approval", False))
+                metadata[key]["tenant_editable"] = bool(
+                    lock.get("tenant_editable", metadata[key]["tenant_editable"])
+                )
+                metadata[key]["compliance_locked"] = bool(
+                    lock.get("compliance_locked", False)
+                )
+                metadata[key]["requires_approval"] = bool(
+                    lock.get("requires_approval", False)
+                )
         layers.append("region_pack")
 
     # Layer 3: education profile (if available)
     try:
         from apps.siteconfig.education_profile_engine import resolve_profile_for_school
+
         profile = resolve_profile_for_school(school, auto_create=True)
     except SOFT_TENANT_CONFIG_ERRORS:
         profile = None
     if profile:
         profile_values = {
-            "default_language": getattr(profile, "default_language", "") or effective.get("default_language"),
-            "currency": getattr(profile, "default_currency", "") or effective.get("currency"),
-            "grading_scale": getattr(profile, "grading_scale", "") or effective.get("grading_scale"),
-            "date_format": (getattr(profile, "config", {}) or {}).get("date_format") or effective.get("date_format"),
+            "default_language": getattr(profile, "default_language", "")
+            or effective.get("default_language"),
+            "currency": getattr(profile, "default_currency", "")
+            or effective.get("currency"),
+            "grading_scale": getattr(profile, "grading_scale", "")
+            or effective.get("grading_scale"),
+            "date_format": (getattr(profile, "config", {}) or {}).get("date_format")
+            or effective.get("date_format"),
             "education_profile_code": getattr(profile, "code", ""),
             "education_profile_version": getattr(profile, "version", ""),
-            "term_labels": profile.normalized_term_labels() if hasattr(profile, "normalized_term_labels") else [],
+            "term_labels": profile.normalized_term_labels()
+            if hasattr(profile, "normalized_term_labels")
+            else [],
         }
-        apply_layer(profile_values, "education_profile", auto_applied=True, default_editable=True)
+        apply_layer(
+            profile_values,
+            "education_profile",
+            auto_applied=True,
+            default_editable=True,
+        )
         if isinstance(getattr(profile, "config", None), dict):
-            apply_layer(profile.config, "education_profile_config", auto_applied=True, default_editable=True)
+            apply_layer(
+                profile.config,
+                "education_profile_config",
+                auto_applied=True,
+                default_editable=True,
+            )
         layers.append("education_profile")
 
     # Layer 4: plan/add-ons to feature_modules
     modules = []
     plan = getattr(school, "plan", None)
     if plan and isinstance(getattr(plan, "included_features", None), list):
-        modules.extend([str(x).strip().lower() for x in plan.included_features if str(x).strip()])
+        modules.extend(
+            [str(x).strip().lower() for x in plan.included_features if str(x).strip()]
+        )
     addons = getattr(school, "addons", None) or []
     if isinstance(addons, list):
         modules.extend([str(x).strip().lower() for x in addons if str(x).strip()])
@@ -693,7 +1107,12 @@ def compile_effective_tenant_config(
     modules.extend([str(x).strip().lower() for x in tenant_modules if str(x).strip()])
     if modules:
         uniq_modules = sorted(set(modules))
-        apply_layer({"feature_modules": uniq_modules}, "plan_addons", auto_applied=True, default_editable=True)
+        apply_layer(
+            {"feature_modules": uniq_modules},
+            "plan_addons",
+            auto_applied=True,
+            default_editable=True,
+        )
         layers.append("plan_addons")
 
     # Layer 5: tenant overrides
@@ -704,17 +1123,29 @@ def compile_effective_tenant_config(
             for key, value in tenant_overrides.items()
             if key not in INTERNAL_TENANT_SETTINGS_KEYS
         }
-        apply_layer(filtered_tenant_overrides, "tenant_override", auto_applied=False, default_editable=True)
+        apply_layer(
+            filtered_tenant_overrides,
+            "tenant_override",
+            auto_applied=False,
+            default_editable=True,
+        )
         layers.append("tenant_override")
 
     # Layer 6: campus overrides
     if isinstance(campus_overrides, dict) and campus_overrides:
-        apply_layer(campus_overrides, "campus_override", auto_applied=False, default_editable=True)
+        apply_layer(
+            campus_overrides,
+            "campus_override",
+            auto_applied=False,
+            default_editable=True,
+        )
         layers.append("campus_override")
 
     # Layer 7: user overrides
     if isinstance(user_overrides, dict) and user_overrides:
-        apply_layer(user_overrides, "user_override", auto_applied=False, default_editable=True)
+        apply_layer(
+            user_overrides, "user_override", auto_applied=False, default_editable=True
+        )
         layers.append("user_override")
 
     # Fill metadata defaults for keys without explicit lock metadata.
@@ -731,7 +1162,9 @@ def compile_effective_tenant_config(
     return {
         "effective": effective,
         "metadata": metadata,
-        "pack": {"code": pack.get("code"), "version": pack.get("version")} if pack else {},
+        "pack": {"code": pack.get("code"), "version": pack.get("version")}
+        if pack
+        else {},
         "layers": layers,
     }
 
@@ -739,7 +1172,9 @@ def compile_effective_tenant_config(
 def is_tenant_setting_editable(compiled: dict[str, Any], key: str) -> bool:
     """Helper for governance flows: can tenant edit this key directly?"""
     info = (compiled.get("metadata") or {}).get(key) or {}
-    return bool(info.get("tenant_editable", True)) and not bool(info.get("compliance_locked", False))
+    return bool(info.get("tenant_editable", True)) and not bool(
+        info.get("compliance_locked", False)
+    )
 
 
 def persist_compiled_tenant_config(
@@ -780,6 +1215,7 @@ def persist_compiled_tenant_config(
     school.save(update_fields=["settings", "updated_at"])
     try:
         from apps.policies.policy_registry import invalidate_policy_cache
+
         invalidate_policy_cache(school)
     except SOFT_TENANT_CONFIG_ERRORS:
         pass
@@ -827,7 +1263,9 @@ def apply_tenant_settings_overrides(
         compliance_locked = bool(info.get("compliance_locked", False))
         approval_needed = bool(info.get("requires_approval", False))
 
-        if (compliance_locked or not tenant_editable) and not (actor_is_superadmin and force_override):
+        if (compliance_locked or not tenant_editable) and not (
+            actor_is_superadmin and force_override
+        ):
             reason = "compliance_locked" if compliance_locked else "tenant_not_editable"
             blocked[key] = reason
             if approval_needed:
@@ -843,6 +1281,7 @@ def apply_tenant_settings_overrides(
         school.save(update_fields=["settings", "updated_at"])
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
+
             invalidate_policy_cache(school)
         except SOFT_TENANT_CONFIG_ERRORS:
             pass

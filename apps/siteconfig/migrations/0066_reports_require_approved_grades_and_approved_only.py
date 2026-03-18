@@ -4,24 +4,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0065_sitesettings_finance_on_student_withdrawal_and_more'),
+        ("siteconfig", "0065_sitesettings_finance_on_student_withdrawal_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='sitesettings',
-            options={'verbose_name': 'Site Settings', 'verbose_name_plural': 'Site Settings'},
+            name="sitesettings",
+            options={
+                "verbose_name": "Site Settings",
+                "verbose_name_plural": "Site Settings",
+            },
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='reports_require_approved_grades_before_publish',
-            field=models.BooleanField(default=False, help_text='When enabled (and grade approval is on), block or warn when publishing term results if there are pending grade approvals.'),
+            model_name="sitesettings",
+            name="reports_require_approved_grades_before_publish",
+            field=models.BooleanField(
+                default=False,
+                help_text="When enabled (and grade approval is on), block or warn when publishing term results if there are pending grade approvals.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='reports_use_approved_grades_only',
-            field=models.BooleanField(default=False, help_text='When enabled, term/annual report context only includes evaluations whose subject has been approved (or has no approval request).'),
+            model_name="sitesettings",
+            name="reports_use_approved_grades_only",
+            field=models.BooleanField(
+                default=False,
+                help_text="When enabled, term/annual report context only includes evaluations whose subject has been approved (or has no approval request).",
+            ),
         ),
     ]

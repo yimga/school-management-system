@@ -6,32 +6,78 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0126_add_workflow_template_and_tenant_workflow'),
+        ("siteconfig", "0126_add_workflow_template_and_tenant_workflow"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ProductFeedback',
+            name="ProductFeedback",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('region', models.CharField(blank=True, db_index=True, help_text='e.g. country code or regional cluster.', max_length=32)),
-                ('module', models.CharField(blank=True, db_index=True, help_text='e.g. admissions, finance, portal.', max_length=64)),
-                ('status', models.CharField(choices=[('SUBMITTED', 'Submitted'), ('PLANNED', 'Planned'), ('IN_DEVELOPMENT', 'In Development'), ('RELEASED', 'Released'), ('WONT_DO', "Won't Do")], db_index=True, default='SUBMITTED', max_length=24)),
-                ('upvotes', models.PositiveIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('submitted_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "region",
+                    models.CharField(
+                        blank=True,
+                        db_index=True,
+                        help_text="e.g. country code or regional cluster.",
+                        max_length=32,
+                    ),
+                ),
+                (
+                    "module",
+                    models.CharField(
+                        blank=True,
+                        db_index=True,
+                        help_text="e.g. admissions, finance, portal.",
+                        max_length=64,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("SUBMITTED", "Submitted"),
+                            ("PLANNED", "Planned"),
+                            ("IN_DEVELOPMENT", "In Development"),
+                            ("RELEASED", "Released"),
+                            ("WONT_DO", "Won't Do"),
+                        ],
+                        db_index=True,
+                        default="SUBMITTED",
+                        max_length=24,
+                    ),
+                ),
+                ("upvotes", models.PositiveIntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "submitted_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Product feedback',
-                'verbose_name_plural': 'Product feedback',
-                'db_table': 'siteconfig_productfeedback',
-                'ordering': ['-upvotes', '-created_at'],
+                "verbose_name": "Product feedback",
+                "verbose_name_plural": "Product feedback",
+                "db_table": "siteconfig_productfeedback",
+                "ordering": ["-upvotes", "-created_at"],
             },
         ),
     ]

@@ -17,6 +17,7 @@ Compilation order (single source of truth):
   12. module configs
   13. freeze runtime for request (treat as immutable)
 """
+
 from __future__ import annotations
 
 import logging
@@ -80,7 +81,9 @@ def _step1_route_context(request: Any, tenant_ctx: TenantContext) -> RouteContex
         surface = "marketing"
     else:
         # Control plane host check (e.g. manager.runmycampus.com)
-        if "manager." in host or (request and getattr(request, "path", "").startswith("/super/")):
+        if "manager." in host or (
+            request and getattr(request, "path", "").startswith("/super/")
+        ):
             surface = "control_plane"
     is_preview = bool(getattr(tenant_ctx, "policy_overrides", {}).get("preview"))
     is_sandbox = bool(getattr(tenant_ctx, "policy_overrides", {}).get("sandbox"))
@@ -105,10 +108,12 @@ def _step2_tenant_identity(school: Any, tenant_ctx: TenantContext) -> TenantIden
             plan=None,
             status=None,
             campus_mode=None,
+            primary_sector=None,
         )
     plan = getattr(school, "plan_id", None) or getattr(school, "plan", None)
     if hasattr(plan, "slug"):
         plan = getattr(plan, "slug", None)
+    primary_sector = (getattr(school, "primary_sector", None) or "").strip() or None
     return TenantIdentity(
         id=getattr(school, "id", None),
         slug=getattr(school, "slug", None),
@@ -117,12 +122,15 @@ def _step2_tenant_identity(school: Any, tenant_ctx: TenantContext) -> TenantIden
         plan=plan,
         status=getattr(school, "status", None),
         campus_mode=getattr(school, "campus_mode", None),
+        primary_sector=primary_sector,
     )
 
 
 def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryContext:
     """Step 3: Load registry context (country, subdivision, currency, etc.). Filled from registries when installed. Cached 5min to avoid 7+ registry queries per request."""
-    country_code = tenant_ctx.country or (getattr(school, "country", None) if school else None)
+    country_code = tenant_ctx.country or (
+        getattr(school, "country", None) if school else None
+    )
     if isinstance(country_code, str) and len(country_code) > 2:
         country_code = country_code[:2].upper()
     cache_key = f"platform_runtime:registry_context:{country_code or 'default'}"
@@ -140,6 +148,7 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
     grade_scale_families: List[Dict[str, Any]] = []
     try:
         from django.apps import apps
+
         if apps.is_installed("apps.registries"):
             from apps.registries.models import (
                 CountryRegistry,
@@ -151,19 +160,33 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
                 FeeCategoryRegistry,
                 GradeScaleRegistry,
             )
+
             if country_code:
                 c = CountryRegistry.objects.filter(code=country_code).first()
                 if c:
-                    country_dict = {"code": c.code, "name": c.name, "default_currency": c.default_currency, "default_timezone": c.default_timezone}
+                    country_dict = {
+                        "code": c.code,
+                        "name": c.name,
+                        "default_currency": c.default_currency,
+                        "default_timezone": c.default_timezone,
+                    }
                     currency_code = c.default_currency or "USD"
                     cr = CurrencyRegistry.objects.filter(code=currency_code).first()
                     if cr:
-                        currency_dict = {"code": cr.code, "name": cr.name, "symbol": getattr(cr, "symbol", cr.code)}
+                        currency_dict = {
+                            "code": cr.code,
+                            "name": cr.name,
+                            "symbol": getattr(cr, "symbol", cr.code),
+                        }
             if not currency_dict:
                 try:
                     cr = CurrencyRegistry.objects.first()
                     if cr:
-                        currency_dict = {"code": cr.code, "name": cr.name, "symbol": getattr(cr, "symbol", cr.code)}
+                        currency_dict = {
+                            "code": cr.code,
+                            "name": cr.name,
+                            "symbol": getattr(cr, "symbol", cr.code),
+                        }
                 except (AttributeError, DatabaseError, TypeError, ValueError) as e:
                     logger.warning(
                         "Registry currency fallback failed (%s): %s",
@@ -171,17 +194,34 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
                         e,
                     )
             for e in EducationLevelRegistry.objects.filter(is_active=True)[:50]:
-                education_levels.append({"code": e.code, "global_name": e.global_name, "country_labels": getattr(e, "country_labels", {})})
+                education_levels.append(
+                    {
+                        "code": e.code,
+                        "global_name": e.global_name,
+                        "country_labels": getattr(e, "country_labels", {}),
+                    }
+                )
             for s in EducationSystemTypeRegistry.objects.filter(is_active=True)[:30]:
                 education_system_types.append({"code": s.code, "name": s.name})
             for i in InstitutionTypeRegistry.objects.filter(is_active=True)[:30]:
                 institution_types.append({"code": i.code, "name": i.name})
             for d in DocumentTypeRegistry.objects.filter(is_active=True)[:60]:
-                document_types.append({"code": d.code, "name": d.name, "category": d.category})
+                document_types.append(
+                    {"code": d.code, "name": d.name, "category": d.category}
+                )
             for f in FeeCategoryRegistry.objects.filter(is_active=True)[:60]:
-                fee_categories.append({"code": f.code, "name": f.name, "category": f.category})
+                fee_categories.append(
+                    {"code": f.code, "name": f.name, "category": f.category}
+                )
             for g in GradeScaleRegistry.objects.filter(is_active=True)[:40]:
-                grade_scale_families.append({"code": g.code, "name": g.name, "family": g.family, "range_definition": g.range_definition or {}})
+                grade_scale_families.append(
+                    {
+                        "code": g.code,
+                        "name": g.name,
+                        "family": g.family,
+                        "range_definition": g.range_definition or {},
+                    }
+                )
     except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
         logger.warning(
             "Registry context load failed (optional) (%s): %s",
@@ -221,8 +261,12 @@ def _step4_blueprint(school: Any, policy: Dict[str, Any]) -> BlueprintContext:
                         family=getattr(pack, "category", None),
                         education_structure=None,
                         default_systems=[],
-                        default_dashboard_pack=getattr(pack, "default_dashboard_pack_id", None),
-                        default_workflow_pack=getattr(pack, "default_workflow_pack_id", None),
+                        default_dashboard_pack=getattr(
+                            pack, "default_dashboard_pack_id", None
+                        ),
+                        default_workflow_pack=getattr(
+                            pack, "default_workflow_pack_id", None
+                        ),
                         institution_type=getattr(pack, "country_code", None),
                     )
     except (AttributeError, DatabaseError, TypeError, ValueError) as e:
@@ -234,8 +278,11 @@ def _step4_blueprint(school: Any, policy: Dict[str, Any]) -> BlueprintContext:
     return BlueprintContext()
 
 
-def _step5_policy_bundle(school: Any, request: Any, policy: Dict[str, Any]) -> PolicyContext:
+def _step5_policy_bundle(
+    school: Any, request: Any, policy: Dict[str, Any]
+) -> PolicyContext:
     """Step 5: Resolve policy bundle (typed sections from merged policy)."""
+
     def section(name: str) -> Dict[str, Any]:
         return policy.get(name, {}) if isinstance(policy.get(name), dict) else {}
 
@@ -253,7 +300,9 @@ def _step5_policy_bundle(school: Any, request: Any, policy: Dict[str, Any]) -> P
     )
 
 
-def _step6_flags_entitlements(tenant_ctx: TenantContext, policy: Dict[str, Any], school: Any) -> tuple:
+def _step6_flags_entitlements(
+    tenant_ctx: TenantContext, policy: Dict[str, Any], school: Any
+) -> tuple:
     """Step 6: Resolve feature flags and entitlements."""
     flags = dict(getattr(tenant_ctx, "feature_flags", {}))
     for k, v in (policy.get("features") or {}).items():
@@ -291,7 +340,9 @@ def _step7_branding(school: Any) -> BrandingContext:
         site = get_effective_site_settings(school=school)
         brand = resolve_brand_profile(school=school, site=site)
     except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
-        logger.debug("_step7_branding: resolve_brand_profile fallback to school fields: %s", e)
+        logger.debug(
+            "_step7_branding: resolve_brand_profile fallback to school fields: %s", e
+        )
         brand = {}
     colors = {}
     if brand:
@@ -305,7 +356,9 @@ def _step7_branding(school: Any) -> BrandingContext:
             favicon_url=brand.get("favicon_url") or "",
             tagline=brand.get("tagline") or "",
             colors=colors,
-            portal_theme=getattr(school, "theme_choice", None) or getattr(school, "portal_theme", None) or brand.get("theme_pack_slug"),
+            portal_theme=getattr(school, "theme_choice", None)
+            or getattr(school, "portal_theme", None)
+            or brand.get("theme_pack_slug"),
             report_theme=None,
             email_theme=None,
             login_theme=None,
@@ -321,7 +374,8 @@ def _step7_branding(school: Any) -> BrandingContext:
         favicon_url=getattr(school, "favicon_url", None),
         tagline=getattr(school, "tagline", None),
         colors=colors,
-        portal_theme=getattr(school, "theme_choice", None) or getattr(school, "portal_theme", None),
+        portal_theme=getattr(school, "theme_choice", None)
+        or getattr(school, "portal_theme", None),
         report_theme=None,
         email_theme=None,
         login_theme=None,
@@ -336,9 +390,12 @@ def _step8_workflows(school: Any) -> WorkflowsContext:
     try:
         from apps.siteconfig.workflow_resolver import for_action
         from apps.runtime_blueprints.models import WorkflowPackAssignment
+
         assigned = {
             a.module_slug: a
-            for a in WorkflowPackAssignment.objects.filter(school=school, is_active=True).select_related("workflow_pack")
+            for a in WorkflowPackAssignment.objects.filter(
+                school=school, is_active=True
+            ).select_related("workflow_pack")
         }
         for slug in ("admissions", "fee_approval", "grade_publish", "grade_approval"):
             w = for_action(school, slug)
@@ -346,12 +403,24 @@ def _step8_workflows(school: Any) -> WorkflowsContext:
                 w = {}
             if slug in assigned:
                 pack = assigned[slug].workflow_pack
-                w = dict(w, workflow_pack_id=getattr(pack, "id", None), workflow_pack_code=getattr(pack, "code", None))
+                w = dict(
+                    w,
+                    workflow_pack_id=getattr(pack, "id", None),
+                    workflow_pack_code=getattr(pack, "code", None),
+                )
                 try:
                     from apps.metadata.usage_registry import register_usage
+
                     code = getattr(pack, "code", None) or slug
-                    register_usage("workflow", f"workflow:{code}", "application", "admission_number")
-                    register_usage("workflow", f"workflow:{code}", "attendance", "status")
+                    register_usage(
+                        "workflow",
+                        f"workflow:{code}",
+                        "application",
+                        "admission_number",
+                    )
+                    register_usage(
+                        "workflow", f"workflow:{code}", "attendance", "status"
+                    )
                 except (AttributeError, ImportError, TypeError, ValueError):
                     pass
             if w:
@@ -374,9 +443,12 @@ def _step9_dashboards(school: Any) -> DashboardsContext:
     try:
         from apps.siteconfig.dashboard_resolver import for_role
         from apps.runtime_blueprints.models import DashboardPackAssignment
+
         assigned = {
             a.role.lower(): a
-            for a in DashboardPackAssignment.objects.filter(school=school, is_active=True).select_related("dashboard_pack")
+            for a in DashboardPackAssignment.objects.filter(
+                school=school, is_active=True
+            ).select_related("dashboard_pack")
         }
         for role in ("admin", "teacher", "parent", "finance", "admissions"):
             d = for_role(school, role)
@@ -385,11 +457,21 @@ def _step9_dashboards(school: Any) -> DashboardsContext:
             rk = role.lower()
             if rk in assigned:
                 pack = assigned[rk].dashboard_pack
-                d = dict(d, dashboard_pack_id=getattr(pack, "id", None), dashboard_pack_code=getattr(pack, "code", None))
+                d = dict(
+                    d,
+                    dashboard_pack_id=getattr(pack, "id", None),
+                    dashboard_pack_code=getattr(pack, "code", None),
+                )
                 try:
                     from apps.metadata.usage_registry import register_usage
+
                     code = getattr(pack, "code", None) or rk
-                    register_usage("dashboard", f"dashboard_pack:{code}", "student", "admission_number")
+                    register_usage(
+                        "dashboard",
+                        f"dashboard_pack:{code}",
+                        "student",
+                        "admission_number",
+                    )
                 except (AttributeError, ImportError, TypeError, ValueError):
                     pass
             if d:
@@ -438,14 +520,18 @@ def _step10_marketplace(school: Any) -> MarketplaceContext:
             if isinstance(widgets, dict):
                 for w_id, w_cfg in widgets.items():
                     if isinstance(w_cfg, dict):
-                        widget_registry.append({"app_slug": app.slug, "widget_id": w_id, "config": w_cfg})
-            installed_apps.append({
-                "app_slug": app.slug,
-                "app_id": getattr(app, "id", None),
-                "name": getattr(app, "name", ""),
-                "version": getattr(app, "version", ""),
-                "widget_config": inst.widget_config or {},
-            })
+                        widget_registry.append(
+                            {"app_slug": app.slug, "widget_id": w_id, "config": w_cfg}
+                        )
+            installed_apps.append(
+                {
+                    "app_slug": app.slug,
+                    "app_id": getattr(app, "id", None),
+                    "name": getattr(app, "name", ""),
+                    "version": getattr(app, "version", ""),
+                    "widget_config": inst.widget_config or {},
+                }
+            )
             for sg in getattr(inst, "scope_grants", []) or []:
                 if getattr(sg, "status", "granted") != "granted":
                     continue
@@ -486,12 +572,17 @@ def _step10_integrations_marketplace(school: Any) -> tuple:
     if school:
         try:
             from apps.integrations_marketplace.models import ServiceIntegration
+
             qs = ServiceIntegration.objects.filter(school=school, is_active=True)
             for si in qs:
                 name = getattr(si, "service_name", None) or ""
                 st = getattr(si, "service_type", None)
                 st_str = str(st).lower() if st else ""
-                if st and ("payment" in st_str or "stripe" in st_str or "stripe" in name.lower()):
+                if st and (
+                    "payment" in st_str
+                    or "stripe" in st_str
+                    or "stripe" in name.lower()
+                ):
                     payment_provider = payment_provider or name
                 if st and ("whatsapp" in st_str or "sms" in st_str or "push" in st_str):
                     messaging_channels.append(name)
@@ -529,9 +620,18 @@ def _step11_compliance_security(policy: Dict[str, Any], request: Any) -> tuple:
     actor_id = None
     actor_role = None
     impersonation = False
-    if request and hasattr(request, "user") and request.user and getattr(request.user, "is_authenticated", False):
+    if (
+        request
+        and hasattr(request, "user")
+        and request.user
+        and getattr(request.user, "is_authenticated", False)
+    ):
         actor_id = getattr(request.user, "id", None)
-        actor_role = getattr(request.user, "role", None) or (request.user.groups.first().name if hasattr(request.user, "groups") and request.user.groups.exists() else None)
+        actor_role = getattr(request.user, "role", None) or (
+            request.user.groups.first().name
+            if hasattr(request.user, "groups") and request.user.groups.exists()
+            else None
+        )
         impersonation = bool(getattr(request, "impersonation", None))
     security = SecurityContext(
         actor_id=actor_id,
@@ -554,24 +654,42 @@ def _step12_module_configs(
 ) -> ModuleConfigContext:
     """Step 12: Compile module-specific configs (admissions, gradebook, finance, etc.)."""
     admissions = {
-        "numbering_strategy": (policy_typed.admissions or {}).get("numbering_strategy") or (policy_typed.raw.get("admissions") or {}).get("numbering_strategy"),
-        "required_documents": (policy_typed.admissions or {}).get("required_documents", []),
+        "numbering_strategy": (policy_typed.admissions or {}).get("numbering_strategy")
+        or (policy_typed.raw.get("admissions") or {}).get("numbering_strategy"),
+        "required_documents": (policy_typed.admissions or {}).get(
+            "required_documents", []
+        ),
         "workflow": workflows.by_module.get("admissions"),
         "dashboard": list(dashboards.by_role.keys()) or [],
     }
     gradebook = {
-        "grading_family": (policy_typed.gradebook or policy_typed.evals or {}).get("grading_family") or (policy_typed.raw.get("grading") or {}).get("scale"),
-        "pass_mark": (policy_typed.gradebook or policy_typed.evals or {}).get("pass_mark") or (policy_typed.raw.get("grading") or {}).get("pass_mark"),
-        "publish_workflow": workflows.by_module.get("grade_publish") or workflows.by_module.get("grade_approval"),
+        "grading_family": (policy_typed.gradebook or policy_typed.evals or {}).get(
+            "grading_family"
+        )
+        or (policy_typed.raw.get("grading") or {}).get("scale"),
+        "pass_mark": (policy_typed.gradebook or policy_typed.evals or {}).get(
+            "pass_mark"
+        )
+        or (policy_typed.raw.get("grading") or {}).get("pass_mark"),
+        "publish_workflow": workflows.by_module.get("grade_publish")
+        or workflows.by_module.get("grade_approval"),
         "dashboard": list(dashboards.by_role.keys()) or [],
     }
     finance = {
-        "currency": (registry.currency.get("code") if registry and registry.currency else None),
+        "currency": (
+            registry.currency.get("code") if registry and registry.currency else None
+        ),
         "tax_family": (policy_typed.finance or {}).get("tax_family"),
         "late_fee_rules": (policy_typed.finance or {}).get("late_fee_rules", []),
         "approval_workflow": workflows.by_module.get("fee_approval"),
     }
-    raw = {"admissions": admissions, "gradebook": gradebook, "finance": finance, "portal": {}, "communication": policy_typed.communication or {}}
+    raw = {
+        "admissions": admissions,
+        "gradebook": gradebook,
+        "finance": finance,
+        "portal": {},
+        "communication": policy_typed.communication or {},
+    }
     return ModuleConfigContext(
         admissions=admissions,
         gradebook=gradebook,
@@ -606,6 +724,7 @@ def build_tenant_runtime(
     if policy is None and school is not None and request is not None:
         try:
             from apps.policies.policy_registry import get_effective_policy
+
             user = getattr(request, "user", None)
             policy = get_effective_policy(school, user=user)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
@@ -666,7 +785,9 @@ def build_tenant_runtime(
     trace.append("11:compliance_security")
 
     # Step 12
-    modules = _step12_module_configs(policy, registry, blueprint, policy_typed, branding, workflows, dashboards)
+    modules = _step12_module_configs(
+        policy, registry, blueprint, policy_typed, branding, workflows, dashboards
+    )
     trace.append("12:module_configs")
 
     # Step 13: debug and freeze
@@ -674,7 +795,9 @@ def build_tenant_runtime(
         runtime_version="v1",
         source_blueprint_id=getattr(blueprint, "id", None),
         source_policy_bundle_id=None,
-        applied_overrides=list(tenant_ctx.policy_overrides.keys()) if tenant_ctx.policy_overrides else [],
+        applied_overrides=list(tenant_ctx.policy_overrides.keys())
+        if tenant_ctx.policy_overrides
+        else [],
         warnings=[],
         compilation_trace=trace,
         compilation_timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t0)),

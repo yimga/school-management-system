@@ -45,7 +45,9 @@ def get_lifecycle_snapshot(school) -> dict:
     elif not getattr(school, "is_approved", True):
         state = "pending_approval"
         tone = "warning"
-    elif getattr(school, "billing_type", "") == getattr(school.BillingType, "FREE_TRIAL", "FREE_TRIAL"):
+    elif getattr(school, "billing_type", "") == getattr(
+        school.BillingType, "FREE_TRIAL", "FREE_TRIAL"
+    ):
         state = "trialing"
         tone = "warning"
     elif subscription and getattr(subscription, "status", "") in {
@@ -61,10 +63,16 @@ def get_lifecycle_snapshot(school) -> dict:
     available_actions: list[str] = []
     if not getattr(school, "is_approved", True):
         available_actions.append("approve")
-    available_actions.append("deactivate" if getattr(school, "is_active", False) else "activate")
-    available_actions.append("unfreeze" if getattr(school, "is_frozen", False) else "freeze")
+    available_actions.append(
+        "deactivate" if getattr(school, "is_active", False) else "activate"
+    )
+    available_actions.append(
+        "unfreeze" if getattr(school, "is_frozen", False) else "freeze"
+    )
 
-    if getattr(school, "billing_type", "") == getattr(school.BillingType, "FREE_TRIAL", "FREE_TRIAL"):
+    if getattr(school, "billing_type", "") == getattr(
+        school.BillingType, "FREE_TRIAL", "FREE_TRIAL"
+    ):
         available_actions.append("clear_trial")
 
     return {
@@ -91,7 +99,9 @@ def _normalized_action(action: str) -> str:
 
 
 def _target_subscription_status_for_school(school) -> str:
-    if getattr(school, "billing_type", "") == getattr(school.BillingType, "FREE_TRIAL", "FREE_TRIAL"):
+    if getattr(school, "billing_type", "") == getattr(
+        school.BillingType, "FREE_TRIAL", "FREE_TRIAL"
+    ):
         return TenantSubscription.Status.TRIALING
     if getattr(school, "is_frozen", False):
         return TenantSubscription.Status.SUSPENDED
@@ -111,7 +121,9 @@ def _coerce_trial_end_date(raw_value) -> date:
 
 
 @transaction.atomic
-def apply_school_lifecycle_action(school, *, action: str, reason: str = "", trial_end_date=None) -> dict:
+def apply_school_lifecycle_action(
+    school, *, action: str, reason: str = "", trial_end_date=None
+) -> dict:
     action = _normalized_action(action)
     if not action:
         raise ValueError("action is required.")
@@ -153,8 +165,13 @@ def apply_school_lifecycle_action(school, *, action: str, reason: str = "", tria
     elif action == "unfreeze":
         if school.frozen_reason == "BILLING":
             subscription = get_current_subscription(school)
-            if subscription and subscription.status == TenantSubscription.Status.SUSPENDED:
-                raise ValueError("Billing suspension must be cleared from the subscription before unfreezing the tenant.")
+            if (
+                subscription
+                and subscription.status == TenantSubscription.Status.SUSPENDED
+            ):
+                raise ValueError(
+                    "Billing suspension must be cleared from the subscription before unfreezing the tenant."
+                )
         if school.is_frozen:
             school.is_frozen = False
             changed_fields.append("is_frozen")
@@ -164,7 +181,9 @@ def apply_school_lifecycle_action(school, *, action: str, reason: str = "", tria
         message = "School unfrozen."
     elif action == "set_trial_end":
         target_date = _coerce_trial_end_date(trial_end_date)
-        if getattr(school, "billing_type", "") != getattr(school.BillingType, "FREE_TRIAL", "FREE_TRIAL"):
+        if getattr(school, "billing_type", "") != getattr(
+            school.BillingType, "FREE_TRIAL", "FREE_TRIAL"
+        ):
             school.billing_type = school.BillingType.FREE_TRIAL
             changed_fields.append("billing_type")
         if school.trial_end_date != target_date:

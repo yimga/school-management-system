@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0013_set_default_available_payment_methods'),
+        ("finance", "0013_set_default_available_payment_methods"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='complianceprofile',
-            name='timezone',
-            field=models.CharField(default='UTC', max_length=64),
+            model_name="complianceprofile",
+            name="timezone",
+            field=models.CharField(default="UTC", max_length=64),
         ),
     ]

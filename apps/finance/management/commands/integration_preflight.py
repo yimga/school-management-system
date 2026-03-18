@@ -22,9 +22,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         site = get_effective_site_settings()
-        flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        flags = {
+            **default_backend_feature_flags(),
+            **(site.backend_feature_flags or {}),
+        }
 
-        ocr_method = getattr(site, "finance_receipt_verification_method", "pattern") or "pattern"
+        ocr_method = (
+            getattr(site, "finance_receipt_verification_method", "pattern") or "pattern"
+        )
         ocr_status = get_ocr_runtime_status(
             verification_method=ocr_method,
             marksheet_ocr_command=getattr(site, "marksheet_ocr_command", ""),
@@ -38,9 +43,13 @@ class Command(BaseCommand):
                 "status": ocr_status,
             },
             "ministry": {
-                "cartescolaire_feature_enabled": bool(flags.get("enable_ministry_api_cartescolaire")),
+                "cartescolaire_feature_enabled": bool(
+                    flags.get("enable_ministry_api_cartescolaire")
+                ),
                 "dgi_feature_enabled": bool(flags.get("enable_ministry_api_dgi")),
-                "live_sync_feature_enabled": bool(flags.get("enable_ministry_live_sync")),
+                "live_sync_feature_enabled": bool(
+                    flags.get("enable_ministry_live_sync")
+                ),
                 "status": ministry_status,
             },
         }
@@ -78,12 +87,21 @@ class Command(BaseCommand):
         if result["ocr"]["feature_enabled"] and not bool(ocr_status.get("ready")):
             has_blocker = True
         if result["ministry"]["live_sync_feature_enabled"]:
-            if result["ministry"]["cartescolaire_feature_enabled"] and not ministry_status["cartescolaire"]["ready"]:
+            if (
+                result["ministry"]["cartescolaire_feature_enabled"]
+                and not ministry_status["cartescolaire"]["ready"]
+            ):
                 has_blocker = True
-            if result["ministry"]["dgi_feature_enabled"] and not ministry_status["dgi"]["ready"]:
+            if (
+                result["ministry"]["dgi_feature_enabled"]
+                and not ministry_status["dgi"]["ready"]
+            ):
                 has_blocker = True
 
         if has_blocker:
-            self.stderr.write(self.style.ERROR("Integration preflight failed: runtime blockers found."))
+            self.stderr.write(
+                self.style.ERROR(
+                    "Integration preflight failed: runtime blockers found."
+                )
+            )
             raise SystemExit(2)
-

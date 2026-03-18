@@ -2,6 +2,7 @@
 Public verify page for Digital ID (plan 3.17). QR points to /verify/<token>/.
 Rate-limit by IP; JWT short expiry; return JSON or HTML with name, photo, status only.
 """
+
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.cache import never_cache
@@ -12,13 +13,13 @@ from apps.siteconfig.student_id_service import verify_student_token, rate_limit_
 def _get_client_ip(request):
     try:
         from ipware import get_client_ip
+
         ip, _ = get_client_ip(request)
         return ip or ""
     except ImportError:
-        return (
-            request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-            or request.META.get("REMOTE_ADDR", "")
-        )
+        return request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[
+            0
+        ].strip() or request.META.get("REMOTE_ADDR", "")
 
 
 @require_GET
@@ -35,9 +36,11 @@ def verify_student_id(request, token: str):
     if not payload:
         return HttpResponse(status=401)
     # Expose only name, photo, status (no address, grades)
-    return JsonResponse({
-        "name": payload.get("name", ""),
-        "photo": payload.get("photo", ""),
-        "status": payload.get("status", "active"),
-        "grade": payload.get("grade", ""),
-    })
+    return JsonResponse(
+        {
+            "name": payload.get("name", ""),
+            "photo": payload.get("photo", ""),
+            "status": payload.get("status", "active"),
+            "grade": payload.get("grade", ""),
+        }
+    )

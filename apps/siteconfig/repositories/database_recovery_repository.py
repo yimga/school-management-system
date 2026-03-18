@@ -2,6 +2,7 @@
 SQLite database recovery: integrity check (PRAGMA).
 §2.4 raw_sql_replacement_targets: single place for recover_database command; staff/operational only.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

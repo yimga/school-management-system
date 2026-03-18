@@ -5,8 +5,12 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.academics.models import AcademicYear, Term
 from apps.analytics.models import GradeImportJob
-from apps.evals.views import _deserialize_pending_entries, _extract_corrected_ocr_entries
+from apps.evals.views import (
+    _deserialize_pending_entries,
+    _extract_corrected_ocr_entries,
+)
 
 
 class OCRPendingEntryHelperTests(TestCase):
@@ -30,7 +34,7 @@ class OCRPendingEntryHelperTests(TestCase):
         original_entries = [
             {
                 "student_code": "STD-1",
-                "scores": {"seq1": 10, "seq2": 11},
+                "scores": {"seq1_score": 10, "seq2_score": 11},
                 "line_text": "STD-1 line",
                 "field_confidences": {},
             }
@@ -38,15 +42,15 @@ class OCRPendingEntryHelperTests(TestCase):
 
         corrected = _extract_corrected_ocr_entries(
             {
-                "ocr_correct_STD-1_seq1": "15.5",
-                "ocr_correct_STD-1_seq2": "not-a-number",
+                "ocr_correct_STD-1_seq1_score": "15.5",
+                "ocr_correct_STD-1_seq2_score": "not-a-number",
             },
             original_entries,
         )
 
         self.assertIsNotNone(corrected)
-        self.assertEqual(str(corrected[0]["scores"]["seq1"]), "15.5")
-        self.assertNotIn("seq2", corrected[0]["scores"])
+        self.assertEqual(str(corrected[0]["scores"]["seq1_score"]), "15.5")
+        self.assertNotIn("seq2_score", corrected[0]["scores"])
 
 
 class GradeImportAPIViewHardeningTests(TestCase):
@@ -58,9 +62,26 @@ class GradeImportAPIViewHardeningTests(TestCase):
             is_staff=True,
         )
         self.client.force_login(self.user)
+        self.ay = AcademicYear.objects.create(
+            name="GI-Y1",
+            start_date="2024-09-01",
+            end_date="2025-06-30",
+            is_active=True,
+        )
+        self.term = Term.objects.create(
+            academic_year=self.ay,
+            name="T1",
+            start_date="2024-09-01",
+            end_date="2024-12-31",
+            is_active=True,
+        )
 
-    def _csv_upload(self, content: str = "student_code,subject_assignment_id,term_id\nSTD1,1,1\n"):
-        return SimpleUploadedFile("grades.csv", content.encode("utf-8"), content_type="text/csv")
+    def _csv_upload(
+        self, content: str = "student_code,subject_assignment_id,term_id\nSTD1,1,1\n"
+    ):
+        return SimpleUploadedFile(
+            "grades.csv", content.encode("utf-8"), content_type="text/csv"
+        )
 
     def test_grade_import_preview_api_returns_safe_error_when_importer_fails(self):
         with patch(
@@ -84,7 +105,11 @@ class GradeImportAPIViewHardeningTests(TestCase):
         ):
             response = self.client.post(
                 reverse("evals:grade_import_apply_api"),
-                {"file": self._csv_upload()},
+                {
+                    "file": self._csv_upload(),
+                    "academic_year_id": str(self.ay.pk),
+                    "term_id": str(self.term.pk),
+                },
             )
 
         self.assertEqual(response.status_code, 400)

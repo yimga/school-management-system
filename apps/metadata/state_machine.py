@@ -1,6 +1,7 @@
 """
 Minimal state machine engine: get current state and transition by event.
 """
+
 from typing import Optional
 
 from .models import StateMachineDefinition, EntityState
@@ -21,7 +22,9 @@ def _get_definition(school, definition_code):
     )
 
 
-def get_state(school, entity_type: str, entity_id: str, definition_code: str) -> Optional[str]:
+def get_state(
+    school, entity_type: str, entity_id: str, definition_code: str
+) -> Optional[str]:
     """Return current state for entity, or None if not set."""
     definition = _get_definition(school, definition_code)
     if not definition:

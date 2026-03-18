@@ -1,6 +1,7 @@
 """
 Utility functions for user and account management.
 """
+
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -9,10 +10,10 @@ User = get_user_model()
 def get_user_role(user) -> str:
     """
     Get normalized user role string.
-    
+
     Args:
         user: User instance or None
-        
+
     Returns:
         Uppercase role string, or empty string if no user/role
     """
@@ -24,11 +25,11 @@ def get_user_role(user) -> str:
 def get_dashboard_context(user, page: str) -> dict:
     """
     Get standardized dashboard context for views.
-    
+
     Args:
         user: User instance
         page: Dashboard page name (e.g., 'parent', 'teacher', 'backend')
-        
+
     Returns:
         Dictionary with dashboard settings, layout URL, widget metadata, etc.
     """
@@ -36,11 +37,17 @@ def get_dashboard_context(user, page: str) -> dict:
     from django.utils.safestring import mark_safe
     import json
     from apps.runtime_blueprints.models import get_dashboard_widget_metadata
-    from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize, _can_light_customize
+    from apps.siteconfig.dashboard_views import (
+        load_dashboard_layout_settings,
+        _can_customize,
+        _can_light_customize,
+    )
 
     can_customize = _can_customize(user)
     can_light_customize = _can_light_customize(user)
-    effective_customize = can_customize or (str(page).strip().lower() == "parent" and can_light_customize)
+    effective_customize = can_customize or (
+        str(page).strip().lower() == "parent" and can_light_customize
+    )
 
     return {
         "dashboard_settings": load_dashboard_layout_settings(user, page),

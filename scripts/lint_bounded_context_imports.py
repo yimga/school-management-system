@@ -5,6 +5,7 @@ Matches apps.tenancy.tests.test_control_plane_boundary. Run in CI to fail on vio
 Usage: python scripts/lint_bounded_context_imports.py [--strict] [--exit-zero]
 With BOUNDED_CONTEXT_STRICT=1 or --strict: exit 1 on any violation. Otherwise exit 0 (report only).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -34,7 +35,10 @@ TENANT_APPS = (
 EXCLUDE_DIRS = ("migrations", "management", "tests", "__pycache__")
 FORBIDDEN_PATTERNS = (
     (re.compile(r"from\s+apps\.customers\.models\s+import"), "apps.customers.models"),
-    (re.compile(r"from\s+apps\.marketplace\.models\s+import"), "apps.marketplace.models"),
+    (
+        re.compile(r"from\s+apps\.marketplace\.models\s+import"),
+        "apps.marketplace.models",
+    ),
     (re.compile(r"from\s+apps\.policies\.models\s+import"), "apps.policies.models"),
 )
 
@@ -78,9 +82,15 @@ def check_file(path: Path) -> list[tuple[str, str]]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Lint bounded context imports (tenant vs control-plane).")
-    parser.add_argument("--strict", action="store_true", help="Exit 1 on any violation (CI gate).")
-    parser.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
+    parser = argparse.ArgumentParser(
+        description="Lint bounded context imports (tenant vs control-plane)."
+    )
+    parser.add_argument(
+        "--strict", action="store_true", help="Exit 1 on any violation (CI gate)."
+    )
+    parser.add_argument(
+        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
+    )
     args = parser.parse_args()
     strict = args.strict or os.environ.get("BOUNDED_CONTEXT_STRICT") == "1"
     if args.exit_zero:
@@ -99,7 +109,10 @@ def main() -> int:
                 all_violations.append((str(rel), label, line))
 
     if all_violations:
-        print("Bounded context violations (tenant apps must not import control-plane models):", file=sys.stderr)
+        print(
+            "Bounded context violations (tenant apps must not import control-plane models):",
+            file=sys.stderr,
+        )
         for path, label, line in all_violations:
             print(f"  {path}: {label}", file=sys.stderr)
             print(f"    {line}", file=sys.stderr)

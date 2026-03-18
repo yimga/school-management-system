@@ -3,7 +3,15 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Term, Department, Specialty, Classroom, Subject, SubjectAssignment
+from apps.academics.models import (
+    AcademicYear,
+    Term,
+    Department,
+    Specialty,
+    Classroom,
+    Subject,
+    SubjectAssignment,
+)
 from apps.evals.models import GradeApprovalRequest, TeacherAssignment
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
@@ -17,11 +25,27 @@ class GradeApprovalWorkflowTestCase(TestCase):
         self.site_settings.grade_post_roles = ["DEAN"]
         self.site_settings.save()
 
-        self.year = AcademicYear.objects.create(name="2025/2026", start_date="2025-09-01", end_date="2026-08-31", is_active=True)
-        self.term = Term.objects.create(academic_year=self.year, name="FIRST", position=1, start_date="2025-09-01", end_date="2025-11-30", is_active=True)
+        self.year = AcademicYear.objects.create(
+            name="2025/2026",
+            start_date="2025-09-01",
+            end_date="2026-08-31",
+            is_active=True,
+        )
+        self.term = Term.objects.create(
+            academic_year=self.year,
+            name="FIRST",
+            position=1,
+            start_date="2025-09-01",
+            end_date="2025-11-30",
+            is_active=True,
+        )
         dept = Department.objects.create(name="Science", code="SCI")
-        self.specialty = Specialty.objects.create(department=dept, name="Physics", code="PHY")
-        self.classroom = Classroom.objects.create(academic_year=self.year, department=dept, name="SS3A", code="SS3A")
+        self.specialty = Specialty.objects.create(
+            department=dept, name="Physics", code="PHY"
+        )
+        self.classroom = Classroom.objects.create(
+            academic_year=self.year, department=dept, name="SS3A", code="SS3A"
+        )
         self.subject = Subject.objects.create(name="Physics")
         self.subject_assignment = SubjectAssignment.objects.create(
             academic_year=self.year,
@@ -32,7 +56,9 @@ class GradeApprovalWorkflowTestCase(TestCase):
             coefficient=1.0,
         )
 
-        self.teacher_user = User.objects.create_user("teacher", "teacher@example.com", "pass", role=User.Role.TEACHER)
+        self.teacher_user = User.objects.create_user(
+            "teacher", "teacher@example.com", "pass", role=User.Role.TEACHER
+        )
         self.teacher_profile = TeacherProfile.objects.create(user=self.teacher_user)
         TeacherAssignment.objects.create(
             teacher=self.teacher_profile,
@@ -50,7 +76,9 @@ class GradeApprovalWorkflowTestCase(TestCase):
             is_active=True,
         )
 
-        self.dean_user = User.objects.create_user("dean", "dean@example.com", "secret", role=User.Role.DEAN)
+        self.dean_user = User.objects.create_user(
+            "dean", "dean@example.com", "secret", role=User.Role.DEAN
+        )
         self.dean_user.is_staff = True
         self.dean_user.save()
 
@@ -113,6 +141,7 @@ class GradeApprovalWorkflowTestCase(TestCase):
         self.site_settings.save()
         # Clear site-settings cache so the view sees updated grade_post_roles (not stale cached copy)
         from django.core.cache import cache
+
         cache.delete("platform_runtime:effective_site_settings:platform")
         request_obj = GradeApprovalRequest.objects.create(
             teacher=self.teacher_profile,
@@ -125,14 +154,21 @@ class GradeApprovalWorkflowTestCase(TestCase):
             requested_by=self.teacher_user,
         )
         self.client.login(username="dean", password="secret")
-        response = self.client.get(reverse("evals:grade_approval_detail", args=[request_obj.id]))
+        response = self.client.get(
+            reverse("evals:grade_approval_detail", args=[request_obj.id])
+        )
         choices = response.context["form"].fields["status"].choices
-        self.assertNotIn(GradeApprovalRequest.Status.APPROVED, [choice[0] for choice in choices])
+        self.assertNotIn(
+            GradeApprovalRequest.Status.APPROVED, [choice[0] for choice in choices]
+        )
         # POST with APPROVED (e.g. forged) — form has no APPROVED choice so invalid; view must not finalize
-        post_response = self.client.post(reverse("evals:grade_approval_detail", args=[request_obj.id]), {
-            "status": GradeApprovalRequest.Status.APPROVED,
-            "reviewer_notes": "Finalizing",
-        })
+        post_response = self.client.post(
+            reverse("evals:grade_approval_detail", args=[request_obj.id]),
+            {
+                "status": GradeApprovalRequest.Status.APPROVED,
+                "reviewer_notes": "Finalizing",
+            },
+        )
         self.assertEqual(post_response.status_code, 200)
         # Approval must still be PENDING (not finalized)
         request_obj.refresh_from_db()
@@ -140,4 +176,7 @@ class GradeApprovalWorkflowTestCase(TestCase):
         # Form should show an error on status (invalid choice or custom message)
         self.assertIn("form", post_response.context)
         form = post_response.context["form"]
-        self.assertTrue(form.errors.get("status"), msg="Expected form error on status when non-final role submits APPROVED")
+        self.assertTrue(
+            form.errors.get("status"),
+            msg="Expected form error on status when non-final role submits APPROVED",
+        )

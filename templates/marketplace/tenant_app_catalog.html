@@ -22,7 +22,7 @@
         <div class="proof-kicker"><i class="bi bi-box-seam"></i> {{ school.name }}</div>
         <h1 class="proof-hero-title">{% trans "Install with confidence." %}</h1>
         <p class="proof-hero-copy">
-          This app catalog is sandbox-first. Every install is staged so your team can preview impact, review scopes, and activate deliberately.
+          {% trans "Sandbox-first catalog: every install is staged so your team can preview impact, review scopes, and activate deliberately." %}
         </p>
         <div class="proof-hero-actions">
           <a href="{% url 'tenant_installed_apps' %}" class="btn btn-light btn-sm">{% trans "Installed apps" %}</a>
@@ -71,13 +71,13 @@
       <article class="proof-app-card">
         {% if listing.preview_image_url %}
         <div class="proof-app-preview-img mb-2">
-          <img src="{{ listing.preview_image_url }}" alt="" class="img-fluid rounded" style="max-height: 140px; object-fit: cover; width: 100%;" loading="lazy">
+          <img src="{{ listing.preview_image_url }}" alt="{% trans 'App listing preview image' %}" class="img-fluid rounded" style="max-height: 140px; object-fit: cover; width: 100%;" loading="lazy">
         </div>
         {% endif %}
         {% if listing.screenshot_urls %}
         <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap">
           {% for url in listing.screenshot_urls|slice:":5" %}
-          <img src="{{ url }}" alt="" class="rounded" style="height: 56px; width: 80px; object-fit: cover;" loading="lazy">
+          <img src="{{ url }}" alt="{% trans 'App screenshot' %}" class="rounded" style="height: 56px; width: 80px; object-fit: cover;" loading="lazy">
           {% endfor %}
         </div>
         {% endif %}
@@ -144,11 +144,9 @@
           <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-secondary btn-sm">{% trans "Manage install" %}</a>
         </div>
         {% else %}
-        <form method="post" action="{% url 'tenant_install_app' %}" class="proof-app-actions">
-          {% csrf_token %}
-          <input type="hidden" name="app_id" value="{{ listing.app.pk }}">
-          <button type="submit" class="btn btn-primary">{% trans "Install to sandbox" %}</button>
-        </form>
+        <div class="proof-app-actions d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-primary" data-rmc-open-install-impact data-app-id="{{ listing.app.pk }}">{% trans "Review impact & install" %}</button>
+        </div>
         {% endif %}
       </article>
       {% empty %}
@@ -191,6 +189,9 @@
       </ul>
     </div>
   </section>
+  {% if school and install_impact_preview_url %}
+  {% url 'tenant_install_app' as tenant_install_app_url %}
+  {% include "marketplace/partials/install_impact_modal.html" with install_post_url=tenant_install_app_url super_requires_school=False %}
   {% endif %}
 </div>
 {% endblock %}

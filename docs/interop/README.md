@@ -11,10 +11,14 @@ This document describes the **interop layer**: canonical domain models ⇄ stand
 
 | Aspect | Location |
 |--------|----------|
-| **Views (API)** | `apps.api.oneroster_views` — tenant-scoped, Bearer token auth; schools, students, teachers, classes, enrollments. |
+| **Views (API)** | `apps.api.oneroster_views` — tenant-scoped, Bearer token auth; **manifest**, **academicSessions** (terms), classes, students, teachers, enrollments. |
+| **Auth** | Any active `ServiceIntegration` whose name matches OneRoster (incl. **`OneRoster district API`** from Backend → District & LMS interop) may supply `config.bearer_token` (or `client_secret`). **All configured tokens** for that school are accepted so district rotation and legacy sync credentials can coexist. |
+| **Tenant ops** | `accounts.views_district_interop` — rotate district Bearer, CSV roster exports, copy-paste discovery URLs. |
 | **Discovery / readiness** | `apps.api.interop_stubs.oneroster_readiness` — discovery and configuration status. |
-| **Canonical ⇄ OneRoster** | Adapter logic lives in `oneroster_views`: reads School, StudentProfile, TeacherProfile, Classroom, etc., and builds OneRoster JSON. No separate adapter package yet; can be extracted to `apps.interop.oneroster` when needed. |
-| **URLs** | Mounted under `api/` (see `apps.api.urls` or config URL includes). |
+| **Canonical ⇄ OneRoster** | `apps.interop.oneroster.adapter` (e.g. `term_to_academic_session`); views map School, StudentProfile, TeacherProfile, Classroom, Term → OneRoster JSON. |
+| **URLs** | `manifest`, `academicSessions`, `classes`, `students`, `teachers`, `enrollments`, **`orgs`**, **`courses`**, **`users`** (+ `school_slug`). |
+| **Webhooks** | Student/teacher/class changes POST to district `roster_webhook_url` with optional HMAC. |
+| **Audit** | `TenantInteropAccessLog` per successful call (disable via integration config). |
 
 ## LTI (1.3 / AGS / NRPS / Deep Linking)
 

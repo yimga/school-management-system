@@ -11,6 +11,7 @@ This test fails if any module in a tenant app contains:
 Tenant apps: portal, academics, people, finance, evals, reports, communication.
 Excluded: management/commands (infrastructure), tests (can mock), migrations.
 """
+
 import os
 from pathlib import Path
 
@@ -18,7 +19,16 @@ from django.test import TestCase
 
 
 # Apps that serve tenant UI/API; they must not import control-plane ORM directly.
-TENANT_APPS = ("portal", "student360", "academics", "people", "finance", "evals", "reports", "communication")
+TENANT_APPS = (
+    "portal",
+    "student360",
+    "academics",
+    "people",
+    "finance",
+    "evals",
+    "reports",
+    "communication",
+)
 
 # Forbidden import patterns (tenant code must use resolver/registry/services, not ORM).
 FORBIDDEN_PATTERNS = (
@@ -30,6 +40,7 @@ FORBIDDEN_PATTERNS = (
 
 def _get_app_path(app_label: str) -> Path | None:
     from django.apps import apps
+
     try:
         app_config = apps.get_app_config(app_label)
         return Path(app_config.path)
@@ -37,7 +48,14 @@ def _get_app_path(app_label: str) -> Path | None:
         return None
 
 
-def _collect_py_files(app_path: Path, exclude_dirs: tuple = ("migrations", "management", "tests",)) -> list[Path]:
+def _collect_py_files(
+    app_path: Path,
+    exclude_dirs: tuple = (
+        "migrations",
+        "management",
+        "tests",
+    ),
+) -> list[Path]:
     files = []
     for root, _dirs, filenames in os.walk(app_path):
         rel = Path(root)
@@ -71,6 +89,7 @@ class ControlPlaneBoundaryTestCase(TestCase):
 
     def test_tenant_apps_do_not_import_control_plane_models(self):
         from django.apps import apps
+
         base = Path(apps.get_app_config("tenancy").path).parent
         violations = []
         for app_label in TENANT_APPS:

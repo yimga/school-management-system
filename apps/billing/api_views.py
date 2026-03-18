@@ -5,7 +5,11 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from apps.billing.models import BillingAccount, BillingProcessorSyncEvent, PlatformBillingProcessorConfig
+from apps.billing.models import (
+    BillingAccount,
+    BillingProcessorSyncEvent,
+    PlatformBillingProcessorConfig,
+)
 from apps.billing.processors import get_platform_billing_processor
 from apps.billing.services import apply_processor_snapshot
 from apps.observability.incident_services import upsert_platform_incident
@@ -16,7 +20,9 @@ _WEBHOOK_SOURCE = "billing.processor_webhook"
 _JSON_CONTENT_TYPES = {"application/json"}
 
 
-def _record_failed_event(*, processor_code: str, event_type: str, payload: dict, message: str):
+def _record_failed_event(
+    *, processor_code: str, event_type: str, payload: dict, message: str
+):
     return BillingProcessorSyncEvent.objects.create(
         processor_code=processor_code,
         event_type=event_type,
@@ -37,15 +43,27 @@ def _resolve_school(snapshot: dict):
         if school is None:
             school = School.objects.filter(subdomain=slug, is_active=True).first()
     if school is None and snapshot.get("external_customer_ref"):
-        account = BillingAccount.objects.select_related("school").filter(
-            external_customer_ref=str(snapshot["external_customer_ref"]).strip()
-        ).first()
+        account = (
+            BillingAccount.objects.select_related("school")
+            .filter(
+                external_customer_ref=str(snapshot["external_customer_ref"]).strip()
+            )
+            .first()
+        )
         if account is not None:
             school = account.school
     return school
 
 
-def _upsert_webhook_incident(*, incident_key: str, processor_code: str, title: str, summary: str, severity: str, details: dict):
+def _upsert_webhook_incident(
+    *,
+    incident_key: str,
+    processor_code: str,
+    title: str,
+    summary: str,
+    severity: str,
+    details: dict,
+):
     upsert_platform_incident(
         incident_key=incident_key,
         title=title,
@@ -73,7 +91,9 @@ def _request_uses_supported_json_content_type(request) -> bool:
 @require_POST
 def platform_billing_processor_webhook(request, processor_code: str):
     processor_code = str(processor_code or "").strip().lower()
-    config = PlatformBillingProcessorConfig.objects.filter(code=processor_code, is_active=True).first()
+    config = PlatformBillingProcessorConfig.objects.filter(
+        code=processor_code, is_active=True
+    ).first()
     if config is None:
         _upsert_webhook_incident(
             incident_key=f"billing-webhook-config:{processor_code}",
@@ -83,7 +103,9 @@ def platform_billing_processor_webhook(request, processor_code: str):
             severity=PlatformIncident.Severity.HIGH,
             details={"reason": "unknown_processor"},
         )
-        return JsonResponse({"status": "error", "error": "Unknown processor."}, status=404)
+        return JsonResponse(
+            {"status": "error", "error": "Unknown processor."}, status=404
+        )
     if not _request_uses_supported_json_content_type(request):
         _record_failed_event(
             processor_code=processor_code,
@@ -128,7 +150,9 @@ def platform_billing_processor_webhook(request, processor_code: str):
     config.last_webhook_at = timezone.now()
     config.save(update_fields=["last_webhook_at", "updated_at"])
 
-    raw_event_type = str(payload.get("type") or payload.get("event_type") or "processor.webhook")
+    raw_event_type = str(
+        payload.get("type") or payload.get("event_type") or "processor.webhook"
+    )
     if config.event_allowlist and raw_event_type not in set(config.event_allowlist):
         BillingProcessorSyncEvent.objects.create(
             processor_code=processor_code,
@@ -138,7 +162,9 @@ def platform_billing_processor_webhook(request, processor_code: str):
             message="Event ignored because it is not on the configured allowlist.",
             happened_at=timezone.now(),
         )
-        return JsonResponse({"status": "ignored", "event_type": raw_event_type}, status=202)
+        return JsonResponse(
+            {"status": "ignored", "event_type": raw_event_type}, status=202
+        )
 
     normalized_snapshots = processor.normalize(payload)
     if not normalized_snapshots:
@@ -156,13 +182,18 @@ def platform_billing_processor_webhook(request, processor_code: str):
             severity=PlatformIncident.Severity.HIGH,
             details={"event_type": raw_event_type},
         )
-        return JsonResponse({"status": "error", "error": "No billing snapshots were produced."}, status=400)
+        return JsonResponse(
+            {"status": "error", "error": "No billing snapshots were produced."},
+            status=400,
+        )
 
     processed = 0
     unresolved = 0
     for snapshot in normalized_snapshots:
         school = _resolve_school(snapshot)
-        event_type = str(snapshot.get("event_type") or raw_event_type).strip() or raw_event_type
+        event_type = (
+            str(snapshot.get("event_type") or raw_event_type).strip() or raw_event_type
+        )
         if school is None:
             unresolved += 1
             _record_failed_event(
@@ -177,7 +208,10 @@ def platform_billing_processor_webhook(request, processor_code: str):
                 title=f"Billing webhook school resolution failed: {processor_code}",
                 summary="Webhook payload could not be mapped to a tenant school.",
                 severity=PlatformIncident.Severity.HIGH,
-                details={"event_type": event_type, "external_customer_ref": snapshot.get("external_customer_ref")},
+                details={
+                    "event_type": event_type,
+                    "external_customer_ref": snapshot.get("external_customer_ref"),
+                },
             )
             continue
 
@@ -187,8 +221,12 @@ def platform_billing_processor_webhook(request, processor_code: str):
             event_type=event_type,
             account_status=snapshot.get("account_status"),
             subscription_status=snapshot.get("subscription_status"),
-            external_customer_ref=str(snapshot.get("external_customer_ref") or "").strip(),
-            external_subscription_ref=str(snapshot.get("external_subscription_ref") or "").strip(),
+            external_customer_ref=str(
+                snapshot.get("external_customer_ref") or ""
+            ).strip(),
+            external_subscription_ref=str(
+                snapshot.get("external_subscription_ref") or ""
+            ).strip(),
             currency_code=snapshot.get("currency_code"),
             billed_amount=snapshot.get("billed_amount"),
             current_period_start=snapshot.get("current_period_start"),
@@ -201,7 +239,10 @@ def platform_billing_processor_webhook(request, processor_code: str):
         processed += 1
 
     if processed == 0:
-        return JsonResponse({"status": "error", "error": "No billing snapshots were applied."}, status=422)
+        return JsonResponse(
+            {"status": "error", "error": "No billing snapshots were applied."},
+            status=422,
+        )
 
     return JsonResponse(
         {

@@ -1,9 +1,18 @@
 """Tests for admin return-to-origin (add_view redirect to next, safe URL)."""
-from django.http import HttpResponseRedirect
-from django.test import RequestFactory, SimpleTestCase, TestCase
+
+import uuid
+
+from django.contrib.auth import get_user_model
+from django.test import TestCase
 from django.urls import reverse
 
-from django.contrib.auth.models import User
+from apps.policies.models import CountryProfile
+
+User = get_user_model()
+
+# auth.User is not registered on platform_admin_site; use a platform-admin model.
+_ADD = "admin:policies_countryprofile_add"
+_LIST = "admin:policies_countryprofile_changelist"
 
 
 class AdminAddViewReturnToOriginTests(TestCase):
@@ -17,40 +26,41 @@ class AdminAddViewReturnToOriginTests(TestCase):
 
     def test_add_page_with_next_includes_hidden_input(self):
         """GET add page with ?next= should render hidden input next in submit row."""
-        changelist_url = reverse("admin:auth_user_changelist")
-        url = reverse("admin:auth_user_add") + "?next=" + changelist_url
+        changelist_url = reverse(_LIST)
+        url = reverse(_ADD) + "?next=" + changelist_url
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'name="next"', response.content)
-        self.assertIn(b'form="user_form"', response.content)
+        self.assertIn(b"countryprofile_form", response.content)
+
+    def _countryprofile_post_data(self, next_url: str) -> dict:
+        code = f"z{uuid.uuid4().hex[:8]}"
+        return {
+            "country_code": code,
+            "name": "Admin Return Test",
+            "timezone": "UTC",
+            "default_language": "en",
+            "grading_scale": "default",
+            "extra": "{}",
+            "next": next_url,
+            "_save": "Save",
+        }, code
 
     def test_post_add_redirects_to_safe_next(self):
         """POST to add with valid data and next= same-origin URL redirects to next."""
-        changelist_url = reverse("admin:auth_user_changelist")
-        add_url = reverse("admin:auth_user_add")
-        data = {
-            "username": "newuser_return",
-            "password1": "ComplexPass123!",
-            "password2": "ComplexPass123!",
-            "next": changelist_url,
-            "_save": "Save",
-        }
+        changelist_url = reverse(_LIST)
+        add_url = reverse(_ADD)
+        data, code = self._countryprofile_post_data(changelist_url)
         response = self.client.post(add_url, data, follow=False)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], changelist_url)
-        User.objects.filter(username="newuser_return").delete()
+        CountryProfile.objects.filter(country_code=code).delete()
 
     def test_post_add_ignores_external_next(self):
         """POST with next= external URL must not redirect to it (security)."""
-        add_url = reverse("admin:auth_user_add")
-        data = {
-            "username": "newuser_ext",
-            "password1": "ComplexPass123!",
-            "password2": "ComplexPass123!",
-            "next": "https://evil.example/phish",
-            "_save": "Save",
-        }
+        add_url = reverse(_ADD)
+        data, code = self._countryprofile_post_data("https://evil.example/phish")
         response = self.client.post(add_url, data, follow=False)
         self.assertEqual(response.status_code, 302)
         self.assertNotIn("evil.example", response["Location"])
-        User.objects.filter(username="newuser_ext").delete()
+        CountryProfile.objects.filter(country_code=code).delete()

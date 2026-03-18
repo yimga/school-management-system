@@ -1,5 +1,6 @@
 # apps/api/serializers.py
 """Shared serializers for API endpoints (CRUD + dashboard DTOs)."""
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from rest_framework import serializers
@@ -14,28 +15,39 @@ User = get_user_model()
 
 # ==================== AUTH SERIALIZERS ====================
 
+
 class UserSerializer(serializers.ModelSerializer):
     """User profile serializer"""
+
     profile_photo_url = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'first_name', 'last_name',
-            'role', 'profile_photo', 'profile_photo_url', 'is_staff',
-            'date_joined', 'last_login'
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "profile_photo",
+            "profile_photo_url",
+            "is_staff",
+            "date_joined",
+            "last_login",
         ]
-        read_only_fields = ['id', 'date_joined', 'last_login']
-    
+        read_only_fields = ["id", "date_joined", "last_login"]
+
     def get_profile_photo_url(self, obj):
         if obj.profile_photo:
-            request = self.context.get('request')
+            request = self.context.get("request")
             if request:
                 return request.build_absolute_uri(obj.profile_photo.url)
         return None
 
 
 # ==================== STUDENT SERIALIZERS ====================
+
 
 class StudentProfileSerializer(serializers.ModelSerializer):
     """CRUD serializer for student profiles (frontend DTO)."""
@@ -70,9 +82,13 @@ class StudentProfileSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         # Business rule example: if classroom provided, academic_year must be set.
         classroom = attrs.get("classroom") or getattr(self.instance, "classroom", None)
-        year = attrs.get("academic_year") or getattr(self.instance, "academic_year", None)
+        year = attrs.get("academic_year") or getattr(
+            self.instance, "academic_year", None
+        )
         if classroom and not year:
-            raise serializers.ValidationError("academic_year is required when classroom is set.")
+            raise serializers.ValidationError(
+                "academic_year is required when classroom is set."
+            )
         return attrs
 
 
@@ -101,14 +117,17 @@ class StudentGuardianSerializer(serializers.ModelSerializer):
     def validate_guardian_user(self, user):
         role = (getattr(user, "role", "") or "").upper()
         if role not in ("PARENT", "TEACHER"):
-            raise serializers.ValidationError("guardian_user must have role PARENT or TEACHER.")
+            raise serializers.ValidationError(
+                "guardian_user must have role PARENT or TEACHER."
+            )
         return user
 
 
 class StudentSimpleSerializer(serializers.ModelSerializer):
     """Simplified student info"""
+
     full_name = serializers.SerializerMethodField(read_only=True)
-    
+
     class Meta:
         model = StudentProfile
         fields = ["id", "student_code", "full_name", "classroom", "specialty"]
@@ -118,6 +137,7 @@ class StudentSimpleSerializer(serializers.ModelSerializer):
 
 
 # ==================== TEACHER SERIALIZERS ====================
+
 
 class TeacherProfileSerializer(serializers.ModelSerializer):
     """CRUD serializer for teachers (links to user)."""
@@ -148,52 +168,83 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
 
 # ==================== FINANCE SERIALIZERS ====================
 
+
 class InvoiceSerializer(serializers.ModelSerializer):
     """Invoice serializer aligned to current finance models."""
+
     student_name = serializers.SerializerMethodField()
-    student_id = serializers.CharField(source='student.student_code', read_only=True)
+    student_id = serializers.CharField(source="student.student_code", read_only=True)
     paid_amount = serializers.SerializerMethodField()
     balance = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Invoice
         fields = [
-            'id', 'student', 'student_name', 'student_id',
-            'invoice_type', 'status', 'issued_date', 'due_date',
-            'reference', 'payment_code', 'total_amount',
-            'balance_amount', 'paid_amount', 'balance', 'notes'
+            "id",
+            "student",
+            "student_name",
+            "student_id",
+            "invoice_type",
+            "status",
+            "issued_date",
+            "due_date",
+            "reference",
+            "payment_code",
+            "total_amount",
+            "balance_amount",
+            "paid_amount",
+            "balance",
+            "notes",
         ]
 
     def get_student_name(self, obj):
         if not obj.student:
             return ""
         return obj.student.get_full_name()
-    
+
     def get_paid_amount(self, obj):
-        return obj.payments.filter(status='completed').aggregate(
-            total=models.Sum('amount')
-        )['total'] or 0
-    
+        return (
+            obj.payments.filter(status="completed").aggregate(
+                total=models.Sum("amount")
+            )["total"]
+            or 0
+        )
+
     def get_balance(self, obj):
-        paid = obj.payments.filter(status='completed').aggregate(
-            total=models.Sum('amount')
-        )['total'] or 0
+        paid = (
+            obj.payments.filter(status="completed").aggregate(
+                total=models.Sum("amount")
+            )["total"]
+            or 0
+        )
         return obj.total_amount - paid
 
 
 class PaymentSerializer(serializers.ModelSerializer):
     """Payment recording serializer aligned to current finance models."""
+
     class Meta:
         model = Payment
         fields = [
-            'id', 'invoice', 'student', 'amount', 'method', 'payment_method',
-            'status', 'paid_at', 'reference', 'reference_number',
-            'external_reference', 'receipt_number',
-            'physical_receipt_book_serial', 'physical_receipt_number',
+            "id",
+            "invoice",
+            "student",
+            "amount",
+            "method",
+            "payment_method",
+            "status",
+            "paid_at",
+            "reference",
+            "reference_number",
+            "external_reference",
+            "receipt_number",
+            "physical_receipt_book_serial",
+            "physical_receipt_number",
         ]
 
 
 # ==================== ACADEMIC SERIALIZERS ====================
+
 
 class AttendanceSerializer(serializers.Serializer):
     """Lightweight serializer for attendance records (model-agnostic)."""
@@ -209,8 +260,12 @@ class AttendanceSerializer(serializers.Serializer):
 
     def get_student_name(self, obj):
         student = getattr(obj, "student", None)
-        first = getattr(student, "first_name", "") or getattr(getattr(student, "user", None), "first_name", "")
-        last = getattr(student, "last_name", "") or getattr(getattr(student, "user", None), "last_name", "")
+        first = getattr(student, "first_name", "") or getattr(
+            getattr(student, "user", None), "first_name", ""
+        )
+        last = getattr(student, "last_name", "") or getattr(
+            getattr(student, "user", None), "last_name", ""
+        )
         return f"{first} {last}".strip()
 
     def get_class_name(self, obj):
@@ -225,7 +280,15 @@ class ClassroomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Classroom
-        fields = ["id", "academic_year", "department", "name", "code", "allows_third_term", "student_count"]
+        fields = [
+            "id",
+            "academic_year",
+            "department",
+            "name",
+            "code",
+            "allows_third_term",
+            "student_count",
+        ]
 
     def get_student_count(self, obj):
         # Classroom uses related_name="students"; avoid evaluating obj.student_set as default
@@ -235,18 +298,30 @@ class ClassroomSerializer(serializers.ModelSerializer):
 
 # ==================== COMMUNICATION SERIALIZERS ====================
 
+
 class AnnouncementSerializer(serializers.ModelSerializer):
     """School-wide announcements (communication app)."""
+
     created_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Announcement
         fields = [
-            'id', 'title', 'content', 'announcement_type', 'audience',
-            'status', 'is_active', 'is_urgent', 'created_by', 'created_by_name',
-            'created_at', 'updated_at', 'expiry_date',
+            "id",
+            "title",
+            "content",
+            "announcement_type",
+            "audience",
+            "status",
+            "is_active",
+            "is_urgent",
+            "created_by",
+            "created_by_name",
+            "created_at",
+            "updated_at",
+            "expiry_date",
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'status', 'created_by']
+        read_only_fields = ["id", "created_at", "updated_at", "status", "created_by"]
 
     def get_created_by_name(self, obj):
         return obj.created_by.get_full_name() if obj.created_by else None
@@ -254,6 +329,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(serializers.ModelSerializer):
     """Notification with user context"""
+
     class Meta:
         model = Notification
         fields = [
@@ -271,22 +347,34 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     """Message between users"""
-    sender_name = serializers.CharField(source='sender.get_full_name', read_only=True)
-    recipient_name = serializers.CharField(source='recipient.get_full_name', read_only=True)
-    
+
+    sender_name = serializers.CharField(source="sender.get_full_name", read_only=True)
+    recipient_name = serializers.CharField(
+        source="recipient.get_full_name", read_only=True
+    )
+
     class Meta:
         model = Message
         fields = [
-            'id', 'sender', 'sender_name', 'recipient',
-            'recipient_name', 'subject', 'body', 'is_read',
-            'is_archived', 'created_at'
+            "id",
+            "sender",
+            "sender_name",
+            "recipient",
+            "recipient_name",
+            "subject",
+            "body",
+            "is_read",
+            "is_archived",
+            "created_at",
         ]
 
 
 # ==================== DASHBOARD SERIALIZERS ====================
 
+
 class DashboardStatSerializer(serializers.Serializer):
     """Generic dashboard stat"""
+
     label = serializers.CharField()
     value = serializers.IntegerField()
     change_percent = serializers.FloatField(required=False)
@@ -295,6 +383,7 @@ class DashboardStatSerializer(serializers.Serializer):
 
 class AdminDashboardOverviewSerializer(serializers.Serializer):
     """Admin dashboard overview"""
+
     total_students = serializers.IntegerField()
     total_teachers = serializers.IntegerField()
     total_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
@@ -307,6 +396,7 @@ class AdminDashboardOverviewSerializer(serializers.Serializer):
 
 class TeacherDashboardSerializer(serializers.Serializer):
     """Teacher dashboard summary"""
+
     my_students = serializers.IntegerField()
     my_classes = serializers.IntegerField()
     pending_grades = serializers.IntegerField()
@@ -316,6 +406,7 @@ class TeacherDashboardSerializer(serializers.Serializer):
 
 class ParentDashboardSerializer(serializers.Serializer):
     """Parent dashboard summary"""
+
     children_count = serializers.IntegerField()
     total_pending_fees = serializers.DecimalField(max_digits=12, decimal_places=2)
     messages_unread = serializers.IntegerField()
@@ -324,6 +415,7 @@ class ParentDashboardSerializer(serializers.Serializer):
 
 class StudentDashboardSerializer(serializers.Serializer):
     """Student dashboard summary"""
+
     attendance_percentage = serializers.FloatField()
     average_grade = serializers.FloatField()
     pending_assignments = serializers.IntegerField()

@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load static region_format %}
+{% load static region_format i18n %}
 {% block backend_title %}Teachers - Backend{% endblock %}
 
 {% block content %}
@@ -55,7 +55,7 @@
                   <td>{{ teacher.user.email|default:"-" }}</td>
                   <td>{{ teacher.department.name|default:"-" }}</td>
                   <td>
-                    <span class="text-muted small">—</span>
+                    <a href="{% url 'accounts:backend_teacher_detail' teacher.pk %}" class="btn btn-sm btn-outline-primary">{% trans "View" %}</a>
                   </td>
                 </tr>
                 {% endfor %}

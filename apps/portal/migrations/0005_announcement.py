@@ -6,31 +6,90 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('portal', '0004_faqcategory_kbarticle_kbarticleattachment_kbcategory_and_more'),
+        (
+            "portal",
+            "0004_faqcategory_kbarticle_kbarticleattachment_kbcategory_and_more",
+        ),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Announcement',
+            name="Announcement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(help_text='Announcement title (short)', max_length=200)),
-                ('message', models.TextField(help_text='Detailed announcement message')),
-                ('banner_type', models.CharField(choices=[('info', 'Information (Blue)'), ('success', 'Success (Green)'), ('warning', 'Warning (Yellow)'), ('danger', 'Danger (Red)')], default='info', help_text='Choose the banner color/type', max_length=20)),
-                ('is_active', models.BooleanField(default=True, help_text='Display this announcement on all pages')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('start_date', models.DateTimeField(blank=True, help_text='When to start showing this announcement (leave blank for immediate)', null=True)),
-                ('end_date', models.DateTimeField(blank=True, help_text='When to stop showing this announcement (leave blank for indefinite)', null=True)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_announcements', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(
+                        help_text="Announcement title (short)", max_length=200
+                    ),
+                ),
+                (
+                    "message",
+                    models.TextField(help_text="Detailed announcement message"),
+                ),
+                (
+                    "banner_type",
+                    models.CharField(
+                        choices=[
+                            ("info", "Information (Blue)"),
+                            ("success", "Success (Green)"),
+                            ("warning", "Warning (Yellow)"),
+                            ("danger", "Danger (Red)"),
+                        ],
+                        default="info",
+                        help_text="Choose the banner color/type",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True, help_text="Display this announcement on all pages"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "start_date",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="When to start showing this announcement (leave blank for immediate)",
+                        null=True,
+                    ),
+                ),
+                (
+                    "end_date",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="When to stop showing this announcement (leave blank for indefinite)",
+                        null=True,
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="created_announcements",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Announcement',
-                'verbose_name_plural': 'Announcements',
-                'ordering': ['-created_at'],
+                "verbose_name": "Announcement",
+                "verbose_name_plural": "Announcements",
+                "ordering": ["-created_at"],
             },
         ),
     ]

@@ -18,7 +18,11 @@ class OcrRuntimeStatusTests(SimpleTestCase):
         self.assertFalse(status["ready"])
         self.assertIn("GOOGLE_CLOUD_VISION_API_KEY", " ".join(status["missing"]))
 
-    @patch.dict("os.environ", {"AWS_ACCESS_KEY_ID": "k", "AWS_SECRET_ACCESS_KEY": "s"}, clear=True)
+    @patch.dict(
+        "os.environ",
+        {"AWS_ACCESS_KEY_ID": "k", "AWS_SECRET_ACCESS_KEY": "s"},
+        clear=True,
+    )
     def test_aws_mode_requires_region(self):
         status = get_ocr_runtime_status("ocr_cloud_aws")
         self.assertFalse(status["ready"])

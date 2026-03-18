@@ -41,7 +41,9 @@ class ReportHashLedgerTests(TestCase):
             is_active=True,
         )
         self.department = Department.objects.create(name="Science", code="SCI-HASH")
-        self.specialty = Specialty.objects.create(department=self.department, name="Biology", code="BIO-HASH")
+        self.specialty = Specialty.objects.create(
+            department=self.department, name="Biology", code="BIO-HASH"
+        )
         self.classroom = Classroom.objects.create(
             school=self.school,
             academic_year=self.year,
@@ -76,7 +78,9 @@ class ReportHashLedgerTests(TestCase):
     def test_verify_report_hash_endpoint_by_hash(self):
         _record_report_hash(self.user, self.report_card, b"pdf-one")
         row = ReportDocumentHash.objects.get(report_card=self.report_card)
-        response = self.client.get(reverse("reports:verify_report_hash"), {"hash": row.sha256_hash})
+        response = self.client.get(
+            reverse("reports:verify_report_hash"), {"hash": row.sha256_hash}
+        )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertTrue(payload.get("verified"))
@@ -84,7 +88,10 @@ class ReportHashLedgerTests(TestCase):
 
     def test_verify_report_hash_endpoint_by_report_card_id(self):
         _record_report_hash(self.user, self.report_card, b"pdf-two")
-        response = self.client.get(reverse("reports:verify_report_hash"), {"report_card_id": self.report_card.pk})
+        response = self.client.get(
+            reverse("reports:verify_report_hash"),
+            {"report_card_id": self.report_card.pk},
+        )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertTrue(payload.get("verified"))
@@ -92,6 +99,9 @@ class ReportHashLedgerTests(TestCase):
 
     def test_verify_report_hash_rate_limited_returns_429(self):
         with patch("apps.reports.views.throttle_ip_request", return_value=(False, 60)):
-            response = self.client.get(reverse("reports:verify_report_hash"), {"report_card_id": self.report_card.pk})
+            response = self.client.get(
+                reverse("reports:verify_report_hash"),
+                {"report_card_id": self.report_card.pk},
+            )
         self.assertEqual(response.status_code, 429)
         self.assertEqual(response["Retry-After"], "60")

@@ -61,7 +61,9 @@ def create_access_request(
         target_object_id=object_id,
         status=status or AccessRequest.Status.PENDING,
     )
-    req.add_audit("created", actor=requester, message="Request created.", details=details)
+    req.add_audit(
+        "created", actor=requester, message="Request created.", details=details
+    )
     return req
 
 
@@ -117,7 +119,13 @@ def sync_request_for_target(
     return req
 
 
-def notify_requester(request: AccessRequest, title: str, message: str, created_by=None, severity: str = "INFO"):
+def notify_requester(
+    request: AccessRequest,
+    title: str,
+    message: str,
+    created_by=None,
+    severity: str = "INFO",
+):
     if not request.requester:
         return None
     Notification.objects.create(
@@ -128,11 +136,14 @@ def notify_requester(request: AccessRequest, title: str, message: str, created_b
         severity=severity,
         link=f"/requests/{request.id}/",
     )
+    from apps.communication.comms_locale import locale_target_for_user
+
     Message.objects.create(
         sender=created_by,
         recipient=request.requester,
         subject=title,
         body=message,
+        locale_target=locale_target_for_user(request.requester),
     )
 
 
@@ -157,7 +168,9 @@ def _apply_grade_approval(request: AccessRequest, decision: str, reason: str, ac
     if not request.target_object_id:
         return
     try:
-        target = GradeApprovalRequest.objects.filter(id=request.target_object_id).first()
+        target = GradeApprovalRequest.objects.filter(
+            id=request.target_object_id
+        ).first()
     except (DatabaseError, IntegrityError):
         target = None
     if not target:
@@ -172,7 +185,9 @@ def _apply_grade_approval(request: AccessRequest, decision: str, reason: str, ac
     target.reviewed_at = timezone.now()
     if reason:
         target.reviewer_notes = reason
-    target.save(update_fields=["status", "reviewed_by", "reviewed_at", "reviewer_notes"])
+    target.save(
+        update_fields=["status", "reviewed_by", "reviewed_at", "reviewer_notes"]
+    )
 
 
 def _apply_leave_approval(request: AccessRequest, decision: str, reason: str, actor):
@@ -278,7 +293,8 @@ def apply_request_decision(
     notify_requester(
         request,
         title=f"Request {new_status.replace('_', ' ').title()}",
-        message=reason or f"Your request {request.reference} is now {new_status.lower().replace('_', ' ')}.",
+        message=reason
+        or f"Your request {request.reference} is now {new_status.lower().replace('_', ' ')}.",
         created_by=actor,
         severity="INFO" if new_status == AccessRequest.Status.APPROVED else "WARNING",
     )

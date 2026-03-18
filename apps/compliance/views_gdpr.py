@@ -29,6 +29,7 @@ def _mfa_verified(request):
     if request.session.get("mfa_verified"):
         return True
     from django.utils import timezone
+
     until_raw = request.session.get("mfa_verified_until")
     if not until_raw:
         return False
@@ -50,10 +51,14 @@ def data_portability_export(request):
     if not school:
         return HttpResponseForbidden("School context required.")
     from django_otp import user_has_device
+
     if user_has_device(request.user) and not _mfa_verified(request):
         messages.warning(request, "Verify MFA to export student data.")
         from django.urls import reverse
-        return redirect(reverse("accounts:mfa_verify") + "?next=" + request.get_full_path())
+
+        return redirect(
+            reverse("accounts:mfa_verify") + "?next=" + request.get_full_path()
+        )
     student_id = request.GET.get("student_id") or request.POST.get("student_id")
     if student_id:
         try:
@@ -63,25 +68,35 @@ def data_portability_export(request):
     if not student_id:
         return JsonResponse({"error": "student_id required"}, status=400)
     from apps.people.models import StudentProfile
+
     student = StudentProfile.objects.filter(school=school, pk=student_id).first()
     if not student:
         return JsonResponse({"error": "Student not found"}, status=404)
     from .gdpr_services import export_student_data_portability
-    export_format = (request.GET.get("format") or request.POST.get("format") or "json").strip().lower()
+
+    export_format = (
+        (request.GET.get("format") or request.POST.get("format") or "json")
+        .strip()
+        .lower()
+    )
     if export_format not in {"json", "csv"}:
         return JsonResponse({"error": "format must be json or csv"}, status=400)
-    result = export_student_data_portability(school.id, student_id, format=export_format)
+    result = export_student_data_portability(
+        school.id, student_id, format=export_format
+    )
     if not result:
         return JsonResponse({"error": "Export not available"}, status=404)
     # Log successful portability action for regional compliance traceability.
     try:
         from .models import ComplianceAuditLog
+
         region = getattr(school, "default_region", None)
         if region:
             ComplianceAuditLog.objects.create(
                 region=region,
                 action_type="policy_enforced",
-                description="GDPR Art. 20 portability export generated for student_id=%s" % student_id,
+                description="GDPR Art. 20 portability export generated for student_id=%s"
+                % student_id,
                 details={
                     "student_id": student_id,
                     "school_id": school.id,
@@ -119,18 +134,30 @@ def erasure_request_view(request):
             messages.error(request, "Invalid student ID.")
             return redirect("compliance:erasure_request")
         from apps.people.models import StudentProfile
+
         student = StudentProfile.objects.filter(school=school, pk=sid).first()
         if not student:
             messages.error(request, "Student not found.")
             return redirect("compliance:erasure_request")
-        execute_now = (request.POST.get("execute_now") or "").strip() in {"1", "true", "on", "yes"}
-        dry_run = (request.POST.get("dry_run") or "").strip() in {"1", "true", "on", "yes"}
+        execute_now = (request.POST.get("execute_now") or "").strip() in {
+            "1",
+            "true",
+            "on",
+            "yes",
+        }
+        dry_run = (request.POST.get("dry_run") or "").strip() in {
+            "1",
+            "true",
+            "on",
+            "yes",
+        }
 
         if execute_now:
             if not (request.user.is_staff or request.user.is_superuser):
                 messages.error(request, "Only staff users can execute erasure now.")
                 return redirect("compliance:erasure_request")
             from .gdpr_services import gdpr_scrub_student
+
             result = gdpr_scrub_student(
                 school.id,
                 sid,
@@ -141,23 +168,32 @@ def erasure_request_view(request):
                 if dry_run:
                     messages.success(
                         request,
-                        "GDPR erasure dry-run completed: %s" % result.get("would_anonymize", {}),
+                        "GDPR erasure dry-run completed: %s"
+                        % result.get("would_anonymize", {}),
                     )
                 else:
                     messages.success(request, "GDPR erasure/anonymization completed.")
             else:
-                messages.error(request, result.get("error") or "Failed to process erasure.")
+                messages.error(
+                    request, result.get("error") or "Failed to process erasure."
+                )
             return redirect("compliance:erasure_request")
 
         try:
             from .models import ComplianceAuditLog
+
             region = getattr(school, "default_region", None)
             if region:
                 ComplianceAuditLog.objects.create(
                     region=region,
                     action_type="policy_enforced",
-                    description="Erasure request submitted for student_id=%s (GDPR Art. 17)" % sid,
-                    details={"student_id": sid, "school_id": school.id, "requested_by": request.user.id},
+                    description="Erasure request submitted for student_id=%s (GDPR Art. 17)"
+                    % sid,
+                    details={
+                        "student_id": sid,
+                        "school_id": school.id,
+                        "requested_by": request.user.id,
+                    },
                     user=request.user,
                     severity="high",
                 )
@@ -167,6 +203,8 @@ def erasure_request_view(request):
                 "GDPR erasure request audit log create failed",
                 extra={"student_id": sid},
             )
-        messages.success(request, "Erasure request logged. An administrator will process it.")
+        messages.success(
+            request, "Erasure request logged. An administrator will process it."
+        )
         return redirect("compliance:erasure_request")
     return render(request, "compliance/erasure_request.html", {"school": school})

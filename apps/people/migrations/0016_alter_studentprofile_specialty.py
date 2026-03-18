@@ -5,16 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0011_remove_scheduleentry_room_and_more'),
-        ('people', '0015_alter_studentprofile_academic_year_and_more'),
+        ("academics", "0011_remove_scheduleentry_room_and_more"),
+        ("people", "0015_alter_studentprofile_academic_year_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='studentprofile',
-            name='specialty',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='students', to='academics.specialty'),
+            model_name="studentprofile",
+            name="specialty",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="students",
+                to="academics.specialty",
+            ),
         ),
     ]

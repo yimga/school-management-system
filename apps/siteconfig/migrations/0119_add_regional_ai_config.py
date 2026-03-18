@@ -4,29 +4,64 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0118_world_engine_phase2'),
+        ("siteconfig", "0118_world_engine_phase2"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RegionalAIConfig',
+            name="RegionalAIConfig",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('regional_cluster', models.CharField(db_index=True, help_text='Region identifier (e.g. country code CM, KE, or cluster name cm-west).', max_length=32, unique=True)),
-                ('ollama_base_url', models.URLField(help_text='Base URL for Ollama API (e.g. http://ollama-region:11434).', max_length=512)),
-                ('default_model', models.CharField(default='llama3', help_text='Default model tag (e.g. llama3.1:8b-q4).', max_length=128)),
-                ('fallback_model', models.CharField(blank=True, help_text='Fallback model on timeout/5xx (e.g. smaller quantized model).', max_length=128)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "regional_cluster",
+                    models.CharField(
+                        db_index=True,
+                        help_text="Region identifier (e.g. country code CM, KE, or cluster name cm-west).",
+                        max_length=32,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "ollama_base_url",
+                    models.URLField(
+                        help_text="Base URL for Ollama API (e.g. http://ollama-region:11434).",
+                        max_length=512,
+                    ),
+                ),
+                (
+                    "default_model",
+                    models.CharField(
+                        default="llama3",
+                        help_text="Default model tag (e.g. llama3.1:8b-q4).",
+                        max_length=128,
+                    ),
+                ),
+                (
+                    "fallback_model",
+                    models.CharField(
+                        blank=True,
+                        help_text="Fallback model on timeout/5xx (e.g. smaller quantized model).",
+                        max_length=128,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Regional AI config',
-                'verbose_name_plural': 'Regional AI configs',
-                'db_table': 'siteconfig_regionalaiconfig',
-                'ordering': ['regional_cluster'],
+                "verbose_name": "Regional AI config",
+                "verbose_name_plural": "Regional AI configs",
+                "db_table": "siteconfig_regionalaiconfig",
+                "ordering": ["regional_cluster"],
             },
         ),
     ]

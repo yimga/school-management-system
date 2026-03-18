@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}Grading Compliance Dashboard{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/micro-feedback.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'evals-compliance';
@@ -95,7 +96,10 @@
                             {% for teacher in compliance_data %}
                             <tr>
                                 <td>
-                                    <strong>{{ teacher.teacher_name }}</strong>
+                                    <span class="teacher-crossmodule-hover" data-teacher-id="{{ teacher.teacher_id }}">
+                                      <strong>{{ teacher.teacher_name }}</strong>
+                                      <span class="teacher-hover-bubble glass-tooltip" role="tooltip">{% trans "Hover for workload" %}</span>
+                                    </span>
                                     <br>
                                     <small class="text-muted">{{ teacher.classroom_count }} subjects</small>
                                 </td>
@@ -212,6 +216,7 @@ function showTeacherDetails(teacherId, teacherName, deadlines) {
     });
 }
 </script>
+<script src="{% static 'js/teacher-crossmodule-hover.js' %}" defer></script>
 
 {# AI Copilot Assistant #}
 {% include 'components/ai_copilot.html' %}

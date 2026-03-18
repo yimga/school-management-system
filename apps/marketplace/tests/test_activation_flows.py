@@ -1,7 +1,11 @@
 """Integration tests for blueprint and app activation flows."""
+
 from django.test import TestCase
 
-from apps.policies.blueprint_services import apply_blueprint_pack, preview_blueprint_pack
+from apps.policies.blueprint_services import (
+    apply_blueprint_pack,
+    preview_blueprint_pack,
+)
 from apps.policies.models import BlueprintPack, PolicyBundle, TenantBlueprint
 from apps.schools.models import School
 
@@ -20,7 +24,10 @@ class BlueprintActivationTests(TestCase):
         pack = BlueprintPack.objects.create(
             slug="test-activation-pack",
             name="Test Activation Pack",
-            policy_snapshot={"admissions": {"numbering_strategy": "annual"}, "grading": {}},
+            policy_snapshot={
+                "admissions": {"numbering_strategy": "annual"},
+                "grading": {},
+            },
             is_active=True,
         )
         try:
@@ -45,7 +52,10 @@ class BlueprintActivationTests(TestCase):
         pack = BlueprintPack.objects.create(
             slug="test-apply-pack",
             name="Test Apply Pack",
-            policy_snapshot={"admissions": {"numbering_strategy": "full"}, "grading": {"pass_mark": 50}},
+            policy_snapshot={
+                "admissions": {"numbering_strategy": "full"},
+                "grading": {"pass_mark": 50},
+            },
             is_active=True,
         )
         try:

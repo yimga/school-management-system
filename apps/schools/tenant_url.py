@@ -1,6 +1,7 @@
 """
 Tenant URL helpers: base-domain detection and building tenant URLs.
 """
+
 from django.conf import settings
 from django.db import DatabaseError
 from django.urls import reverse
@@ -13,16 +14,30 @@ from apps.schools.host_routing import (
 
 def get_single_tenant_slug() -> str | None:
     """Legacy helper gated behind explicit single-tenant compatibility settings."""
-    allow_legacy = str(getattr(settings, "SINGLE_TENANT", "") or "").strip().lower() in {"1", "true", "yes"}
+    allow_legacy = str(
+        getattr(settings, "SINGLE_TENANT", "") or ""
+    ).strip().lower() in {"1", "true", "yes"}
     if not allow_legacy:
-        allow_legacy = str(getattr(settings, "ALLOW_LEGACY_SINGLE_TENANT_REDIRECTS", "") or "").strip().lower() in {"1", "true", "yes"}
+        allow_legacy = str(
+            getattr(settings, "ALLOW_LEGACY_SINGLE_TENANT_REDIRECTS", "") or ""
+        ).strip().lower() in {"1", "true", "yes"}
     if not allow_legacy:
         return None
     try:
         from apps.schools.models import School
-        schools = list(School.objects.filter(is_active=True).values_list("slug", flat=True)[:2])
+
+        schools = list(
+            School.objects.filter(is_active=True).values_list("slug", flat=True)[:2]
+        )
         return schools[0] if len(schools) == 1 else None
-    except (AttributeError, DatabaseError, ImportError, LookupError, TypeError, ValueError):
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        LookupError,
+        TypeError,
+        ValueError,
+    ):
         return None
 
 
@@ -51,7 +66,9 @@ def get_tenant_prefix(request) -> str:
     return getattr(request, "tenant_path_prefix", "") or ""
 
 
-def build_tenant_backend_url(request, school, path: str = "/authentication/backend/") -> str:
+def build_tenant_backend_url(
+    request, school, path: str = "/authentication/backend/"
+) -> str:
     """
     Build the full URL for a tenant's Backend (subdomain or verified custom domain).
     Use after login when user is on the base domain but has a school membership.
@@ -61,16 +78,27 @@ def build_tenant_backend_url(request, school, path: str = "/authentication/backe
         path = path if path.startswith("/") else f"/{path}"
         return request.build_absolute_uri(prefix.rstrip("/") + path)
 
-    scheme = "https" if getattr(request, "is_secure", lambda: False)() or not getattr(settings, "DEBUG", False) else "http"
+    scheme = (
+        "https"
+        if getattr(request, "is_secure", lambda: False)()
+        or not getattr(settings, "DEBUG", False)
+        else "http"
+    )
     host = (request.get_host() or "").strip()
     host_no_port = host.split(":")[0].lower()
     port = host.split(":")[-1] if ":" in host else None
     base_domain = get_base_domain() or host_no_port
 
-    if getattr(school, "custom_domain", None) and getattr(school, "custom_domain_verified", False):
+    if getattr(school, "custom_domain", None) and getattr(
+        school, "custom_domain_verified", False
+    ):
         tenant_host = school.custom_domain.strip().lower()
     else:
-        sub = (getattr(school, "subdomain", None) or getattr(school, "slug", None) or "").strip().lower()
+        sub = (
+            (getattr(school, "subdomain", None) or getattr(school, "slug", None) or "")
+            .strip()
+            .lower()
+        )
         tenant_host = f"{sub}.{base_domain}" if sub else base_domain
 
     if port and port not in ("80", "443"):
@@ -80,7 +108,12 @@ def build_tenant_backend_url(request, school, path: str = "/authentication/backe
 
 
 def build_manager_absolute_url(request, path: str = "/super/") -> str:
-    scheme = "https" if getattr(request, "is_secure", lambda: False)() or not getattr(settings, "DEBUG", False) else "http"
+    scheme = (
+        "https"
+        if getattr(request, "is_secure", lambda: False)()
+        or not getattr(settings, "DEBUG", False)
+        else "http"
+    )
     host = (request.get_host() or "").strip()
     host_no_port = host.split(":")[0].lower()
     port = host.split(":")[-1] if ":" in host else None
@@ -95,7 +128,12 @@ def build_manager_absolute_url(request, path: str = "/super/") -> str:
 
 
 def build_public_absolute_url(request, path: str = "/") -> str:
-    scheme = "https" if getattr(request, "is_secure", lambda: False)() or not getattr(settings, "DEBUG", False) else "http"
+    scheme = (
+        "https"
+        if getattr(request, "is_secure", lambda: False)()
+        or not getattr(settings, "DEBUG", False)
+        else "http"
+    )
     host = (request.get_host() or "").strip()
     host_no_port = host.split(":")[0].lower()
     port = host.split(":")[-1] if ":" in host else None

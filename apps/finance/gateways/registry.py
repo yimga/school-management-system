@@ -1,4 +1,5 @@
 """Gateway registry: resolve gateway by school and method (Phase 3). Prefer policy from request.tenant_runtime when in request context."""
+
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
@@ -14,7 +15,9 @@ def register_gateway(code: str, gateway_class: type[BasePaymentGateway]) -> None
     _REGISTRY[code.lower()] = gateway_class
 
 
-def _policy_for_gateway(school: Optional[School], policy: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def _policy_for_gateway(
+    school: Optional[School], policy: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """Resolve policy: use provided policy (e.g. request.tenant_runtime.policy) or get_effective_policy(school)."""
     if policy is not None:
         return policy

@@ -1,4 +1,5 @@
 """Tests for Pay with wallet checkout (ParentWallet / WalletTransaction)."""
+
 from decimal import Decimal
 
 from django.test import TestCase

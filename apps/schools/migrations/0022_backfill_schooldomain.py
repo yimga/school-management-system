@@ -7,12 +7,16 @@ from django.db import migrations
 def backfill_schooldomain(apps, schema_editor):
     School = apps.get_model("schools", "School")
     SchoolDomain = apps.get_model("schools", "SchoolDomain")
-    base_domain = (os.getenv("MULTI_TENANT_BASE_DOMAIN") or "runmycampus.com").strip().lower()
+    base_domain = (
+        (os.getenv("MULTI_TENANT_BASE_DOMAIN") or "runmycampus.com").strip().lower()
+    )
     for school in School.objects.filter(is_active=True):
         # Subdomain: subdomain.runmycampus.com
         if school.subdomain:
             domain_str = f"{school.subdomain}.{base_domain}".lower()
-            if not SchoolDomain.objects.filter(school=school, domain=domain_str).exists():
+            if not SchoolDomain.objects.filter(
+                school=school, domain=domain_str
+            ).exists():
                 SchoolDomain.objects.create(
                     school=school,
                     domain=domain_str,
@@ -22,7 +26,9 @@ def backfill_schooldomain(apps, schema_editor):
         # Custom domain (verified only)
         if school.custom_domain and school.custom_domain_verified:
             domain_str = school.custom_domain.strip().lower()
-            if not SchoolDomain.objects.filter(school=school, domain=domain_str).exists():
+            if not SchoolDomain.objects.filter(
+                school=school, domain=domain_str
+            ).exists():
                 SchoolDomain.objects.create(
                     school=school,
                     domain=domain_str,
@@ -36,7 +42,6 @@ def noop_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0021_add_schooldomain"),
     ]

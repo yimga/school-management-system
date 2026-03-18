@@ -6,70 +6,141 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('schools', '0026_rls_policy_default_deny'),
+        ("schools", "0026_rls_policy_default_deny"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CountryProfile',
+            name="CountryProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('country_code', models.CharField(db_index=True, max_length=10, unique=True)),
-                ('name', models.CharField(blank=True, max_length=255)),
-                ('currency_code', models.CharField(blank=True, max_length=6)),
-                ('timezone', models.CharField(default='UTC', max_length=63)),
-                ('default_language', models.CharField(default='en', max_length=10)),
-                ('grading_scale', models.CharField(default='default', max_length=64)),
-                ('is_rtl', models.BooleanField(default=False)),
-                ('extra', models.JSONField(blank=True, default=dict)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "country_code",
+                    models.CharField(db_index=True, max_length=10, unique=True),
+                ),
+                ("name", models.CharField(blank=True, max_length=255)),
+                ("currency_code", models.CharField(blank=True, max_length=6)),
+                ("timezone", models.CharField(default="UTC", max_length=63)),
+                ("default_language", models.CharField(default="en", max_length=10)),
+                ("grading_scale", models.CharField(default="default", max_length=64)),
+                ("is_rtl", models.BooleanField(default=False)),
+                ("extra", models.JSONField(blank=True, default=dict)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Country profile (policy defaults)',
-                'verbose_name_plural': 'Country profiles',
-                'ordering': ['country_code'],
+                "verbose_name": "Country profile (policy defaults)",
+                "verbose_name_plural": "Country profiles",
+                "ordering": ["country_code"],
             },
         ),
         migrations.CreateModel(
-            name='PolicyBundle',
+            name="PolicyBundle",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(blank=True, max_length=255)),
-                ('policy_snapshot', models.JSONField(default=dict, help_text='Merged policy dict (terminology, grading, features, etc.).')),
-                ('version', models.PositiveIntegerField(default=1)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(blank=True, help_text='Null = platform/country-level bundle.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='policy_bundles', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(blank=True, max_length=255)),
+                (
+                    "policy_snapshot",
+                    models.JSONField(
+                        default=dict,
+                        help_text="Merged policy dict (terminology, grading, features, etc.).",
+                    ),
+                ),
+                ("version", models.PositiveIntegerField(default=1)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Null = platform/country-level bundle.",
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="policy_bundles",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Policy bundle',
-                'verbose_name_plural': 'Policy bundles',
-                'ordering': ['-created_at'],
+                "verbose_name": "Policy bundle",
+                "verbose_name_plural": "Policy bundles",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='TenantBlueprint',
+            name="TenantBlueprint",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('active_bundle', models.ForeignKey(blank=True, help_text='When set and POLICY_USE_BUNDLES=True, resolver uses this bundle.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='policies.policybundle')),
-                ('school', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='tenant_blueprint', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "active_bundle",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="When set and POLICY_USE_BUNDLES=True, resolver uses this bundle.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to="policies.policybundle",
+                    ),
+                ),
+                (
+                    "school",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tenant_blueprint",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Tenant blueprint',
-                'verbose_name_plural': 'Tenant blueprints',
+                "verbose_name": "Tenant blueprint",
+                "verbose_name_plural": "Tenant blueprints",
             },
         ),
         migrations.AddIndex(
-            model_name='policybundle',
-            index=models.Index(fields=['school', 'is_active', '-created_at'], name='policies_po_school__900744_idx'),
+            model_name="policybundle",
+            index=models.Index(
+                fields=["school", "is_active", "-created_at"],
+                name="policies_po_school__900744_idx",
+            ),
         ),
     ]

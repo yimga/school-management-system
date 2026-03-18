@@ -15,6 +15,7 @@ Submodules:
 - views_access: request_finance_access, finance_access_bulk
 - views_reports: finance_reports, submit_report_request
 """
+
 from __future__ import annotations
 
 from .views_dashboard import dashboard

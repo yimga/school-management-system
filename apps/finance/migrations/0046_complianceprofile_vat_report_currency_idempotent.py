@@ -46,7 +46,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("finance", "0045_remove_recurringpaymentsubscription_plan_and_more"),
     ]

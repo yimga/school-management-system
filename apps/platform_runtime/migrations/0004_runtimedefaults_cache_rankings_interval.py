@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("platform_runtime", "0003_backfill_runtimedefaults_from_sitesettings"),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0002_invoice_preferred_payment_method_and_more'),
+        ("finance", "0002_invoice_preferred_payment_method_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='payment',
-            name='external_reference',
+            model_name="payment",
+            name="external_reference",
             field=models.CharField(blank=True, max_length=128),
         ),
     ]

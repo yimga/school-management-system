@@ -5,15 +5,44 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('evals', '0010_add_audit_logging_fields'),
+        ("evals", "0010_add_audit_logging_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='evaluationevidence',
-            name='file',
-            field=models.FileField(upload_to='evaluations/evidence/', validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.mov', '.webm'], allowed_types=['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm'], message='Only PDF, image, or video files are allowed for evidence.'), apps.accounts.validators.FileSizeValidator(max_size_mb=20)]),
+            model_name="evaluationevidence",
+            name="file",
+            field=models.FileField(
+                upload_to="evaluations/evidence/",
+                validators=[
+                    apps.accounts.validators.FileTypeValidator(
+                        allowed_extensions=[
+                            ".pdf",
+                            ".jpg",
+                            ".jpeg",
+                            ".png",
+                            ".gif",
+                            ".webp",
+                            ".mp4",
+                            ".mov",
+                            ".webm",
+                        ],
+                        allowed_types=[
+                            "application/pdf",
+                            "image/jpeg",
+                            "image/png",
+                            "image/jpg",
+                            "image/gif",
+                            "image/webp",
+                            "video/mp4",
+                            "video/quicktime",
+                            "video/webm",
+                        ],
+                        message="Only PDF, image, or video files are allowed for evidence.",
+                    ),
+                    apps.accounts.validators.FileSizeValidator(max_size_mb=20),
+                ],
+            ),
         ),
     ]

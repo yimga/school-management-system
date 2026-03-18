@@ -7,6 +7,7 @@ Deploy: set REDIS_URL, then run:
   celery -A config worker -l info
   celery -A config beat -l info   # optional, for scheduled tasks
 """
+
 import logging
 from celery import Celery
 import os
@@ -18,8 +19,19 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 logger = logging.getLogger(__name__)
 
+try:
+    from apps.platform_runtime.celery_task_events import (
+        connect_celery_platform_task_signals,
+    )
+
+    connect_celery_platform_task_signals()
+except Exception as exc:
+    logger.warning("Celery platform task signals not connected: %s", exc)
+
 
 @app.task(bind=True)
 def debug_task(self):
     """Simple task for testing Celery is working."""
-    logger.info("Celery debug task invoked", extra={"celery_request": repr(self.request)})
+    logger.info(
+        "Celery debug task invoked", extra={"celery_request": repr(self.request)}
+    )

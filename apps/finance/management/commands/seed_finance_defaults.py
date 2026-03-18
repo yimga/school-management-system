@@ -31,15 +31,25 @@ OHADA_ACCOUNTS = [
 
 
 class Command(BaseCommand):
-    help = "Seed finance defaults (Cameroon OHADA compliance profile + chart of accounts)."
+    help = (
+        "Seed finance defaults (Cameroon OHADA compliance profile + chart of accounts)."
+    )
 
     def add_arguments(self, parser):
-        parser.add_argument("--dry-run", action="store_true", help="Show what would be created without writing.")
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Show what would be created without writing.",
+        )
 
     @transaction.atomic
     def handle(self, *args, **options):
         if options.get("dry_run"):
-            self.stdout.write(self.style.SUCCESS("Dry run: would ensure Cameroon OHADA, Generic Global, tax brackets, contributions, chart of accounts."))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Dry run: would ensure Cameroon OHADA, Generic Global, tax brackets, contributions, chart of accounts."
+                )
+            )
             return
         cameroon, _ = ComplianceProfile.objects.get_or_create(
             name="Cameroon OHADA",

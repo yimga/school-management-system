@@ -23,7 +23,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0012_seed_default_gilead_school"),
         ("accounts", "0021_ensure_default_admin_user"),

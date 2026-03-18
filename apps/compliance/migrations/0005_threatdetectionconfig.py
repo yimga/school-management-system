@@ -7,31 +7,100 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compliance', '0004_alter_accesslog_access_type_alter_auditlog_action'),
+        ("compliance", "0004_alter_accesslog_access_type_alter_auditlog_action"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ThreatDetectionConfig',
+            name="ThreatDetectionConfig",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_active', models.BooleanField(default=True, help_text='Only one config can be active', unique=True)),
-                ('window_minutes', models.PositiveIntegerField(default=60, help_text='Lookback window in minutes')),
-                ('failed_per_user', models.PositiveIntegerField(default=10, help_text='Failed logins per user before alert')),
-                ('failed_per_ip', models.PositiveIntegerField(default=20, help_text='Failed attempts per IP before alert')),
-                ('after_hours_start', models.PositiveIntegerField(default=22, help_text='After-hours start (hour, 24h format)', validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(23)])),
-                ('after_hours_end', models.PositiveIntegerField(default=6, help_text='After-hours end (hour, 24h format)', validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(23)])),
-                ('after_hours_threshold', models.PositiveIntegerField(default=5, help_text='Accesses during after-hours before alert')),
-                ('mute_until', models.DateTimeField(blank=True, help_text='Suppress alerts until this time (leave empty to disable mute)', null=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('updated_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='threat_config_updates', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Only one config can be active",
+                        unique=True,
+                    ),
+                ),
+                (
+                    "window_minutes",
+                    models.PositiveIntegerField(
+                        default=60, help_text="Lookback window in minutes"
+                    ),
+                ),
+                (
+                    "failed_per_user",
+                    models.PositiveIntegerField(
+                        default=10, help_text="Failed logins per user before alert"
+                    ),
+                ),
+                (
+                    "failed_per_ip",
+                    models.PositiveIntegerField(
+                        default=20, help_text="Failed attempts per IP before alert"
+                    ),
+                ),
+                (
+                    "after_hours_start",
+                    models.PositiveIntegerField(
+                        default=22,
+                        help_text="After-hours start (hour, 24h format)",
+                        validators=[
+                            django.core.validators.MinValueValidator(0),
+                            django.core.validators.MaxValueValidator(23),
+                        ],
+                    ),
+                ),
+                (
+                    "after_hours_end",
+                    models.PositiveIntegerField(
+                        default=6,
+                        help_text="After-hours end (hour, 24h format)",
+                        validators=[
+                            django.core.validators.MinValueValidator(0),
+                            django.core.validators.MaxValueValidator(23),
+                        ],
+                    ),
+                ),
+                (
+                    "after_hours_threshold",
+                    models.PositiveIntegerField(
+                        default=5, help_text="Accesses during after-hours before alert"
+                    ),
+                ),
+                (
+                    "mute_until",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="Suppress alerts until this time (leave empty to disable mute)",
+                        null=True,
+                    ),
+                ),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "updated_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="threat_config_updates",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Threat Detection Configuration',
-                'verbose_name_plural': 'Threat Detection Configuration',
+                "verbose_name": "Threat Detection Configuration",
+                "verbose_name_plural": "Threat Detection Configuration",
             },
         ),
     ]

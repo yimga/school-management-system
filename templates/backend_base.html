@@ -61,6 +61,7 @@
 <link rel="stylesheet" href="{% static 'css/backend-spacing-readability.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-shell-parity.css' %}">
 <link rel="stylesheet" href="{% static 'css/portal-premium-shell.css' %}">
+<link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
 {% with backend_theme=RESOLVED_BACKEND_CONSOLE_THEME|default:'dark' %}
 {% if backend_theme == 'light' or backend_theme == 'sand' or backend_theme == 'snow' or backend_theme == 'cream' or backend_theme == 'lavender' %}
 <link rel="stylesheet" href="{% static 'css/backend-light-theme.css' %}">
@@ -70,7 +71,9 @@
 <link rel="stylesheet" href="{% static 'css/backend-themes.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
+<link rel="stylesheet" href="{% static 'css/micro-feedback.css' %}">
 {% endwith %}
+<script src="{% static 'js/runmycampus-toast.js' %}" defer></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     var theme = '{{ RESOLVED_BACKEND_CONSOLE_THEME|default:"dark" }}';

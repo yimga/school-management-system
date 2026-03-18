@@ -1,5 +1,7 @@
 # Module-by-Module Audit & Improvement Plan
 
+> **Non-authoritative.** Historical module audit. Execution order, BR status, and “what’s left” are defined only in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4 and §0.3.3. Use this file for ideas, not for contradicting single-execution direction.
+
 **Purpose:** Thorough review of all modules for gaps, redundancy, integration quality, free automation, and seamless end-user experience.  
 **Scope:** All apps (accounts, academics, people, evals, finance, payroll, reports, portal, analytics, siteconfig, compliance, communication, requests, observability, api, automation, emis).
 
@@ -7,10 +9,12 @@
 
 ## Executive Summary
 
+- **`payment_processors_temp` / `payment_validators_temp`:** Not present in codebase — legacy audit line **stale**; finance processors are production models/integrations.
+- **MFA:** Zero-cost (`django_otp`); no change required.
+- **Active year/term:** Use `apps.academics.services.get_active_year_and_term` in new code.
 - **Evals ↔ Reports** are correctly tied: report cards use `Evaluation`, `AssessmentWeights`, and `GradeApprovalRequest`; publish is gated by `TermPublishStatus` and optional `reports_require_approved_grades_before_publish`. Strengthen with explicit “report ready” signals and scheduled report generation where needed.
-- **MFA** is already **zero-cost** (django_otp TOTP + otp_static backup codes); no change required for cost.
 - **Automation** is partially unified: finance and analytics tasks log to `AutomationExecutionLog`; requests reminder does not. Celery Beat is configured; automation hub exists but could drive more workflows from one place.
-- **Redundancy:** Finance has `payment_processors_temp` / `payment_validators_temp` used in production; consolidate or rename. Some dashboard/context logic is duplicated between portal and accounts.
+- **Redundancy:** Some dashboard/context logic is duplicated between portal and accounts.
 - **Gaps:** Requests task not in execution log; no evals→report “ready” notification; EMIS/API test coverage thin; communication (WhatsApp) integration not audited; observability not wired to compliance alerts.
 
 ---

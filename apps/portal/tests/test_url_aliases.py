@@ -22,7 +22,6 @@ class UrlAliasTests(TestCase):
         self.assertTrue(any("/portal/parent/" in url for url in urls))
         self.assertTrue(any("authentication/login" in url for url in urls))
 
-
     def test_alias_renders_parent_dashboard_when_authenticated(self):
         year = AcademicYear.objects.create(
             name="2025/2026",

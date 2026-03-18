@@ -5,26 +5,87 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0008_studentguardian_email_and_more'),
+        ("people", "0008_studentguardian_email_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='NotificationPreference',
+            name="NotificationPreference",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('grade_publication_method', models.CharField(choices=[('email', 'Email'), ('sms', 'SMS'), ('both', 'Email & SMS'), ('none', 'Opt Out')], default='both', max_length=20)),
-                ('grade_publication_frequency', models.CharField(choices=[('immediate', 'Immediately'), ('daily', 'Daily Digest at 6 PM'), ('weekly', 'Weekly Digest (Fri 6 PM)')], default='immediate', max_length=20)),
-                ('deadline_reminder_method', models.CharField(choices=[('email', 'Email'), ('sms', 'SMS'), ('both', 'Email & SMS'), ('none', 'Opt Out')], default='email', max_length=20)),
-                ('deadline_reminder_enabled', models.BooleanField(default=True)),
-                ('teacher_reminder_times', models.JSONField(blank=True, default=list)),
-                ('teacher_reminder_method', models.CharField(choices=[('email', 'Email'), ('sms', 'SMS'), ('both', 'Email & SMS'), ('none', 'Opt Out')], default='email', max_length=20)),
-                ('guardian', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='notification_preference', to='people.studentguardian')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "grade_publication_method",
+                    models.CharField(
+                        choices=[
+                            ("email", "Email"),
+                            ("sms", "SMS"),
+                            ("both", "Email & SMS"),
+                            ("none", "Opt Out"),
+                        ],
+                        default="both",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "grade_publication_frequency",
+                    models.CharField(
+                        choices=[
+                            ("immediate", "Immediately"),
+                            ("daily", "Daily Digest at 6 PM"),
+                            ("weekly", "Weekly Digest (Fri 6 PM)"),
+                        ],
+                        default="immediate",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "deadline_reminder_method",
+                    models.CharField(
+                        choices=[
+                            ("email", "Email"),
+                            ("sms", "SMS"),
+                            ("both", "Email & SMS"),
+                            ("none", "Opt Out"),
+                        ],
+                        default="email",
+                        max_length=20,
+                    ),
+                ),
+                ("deadline_reminder_enabled", models.BooleanField(default=True)),
+                ("teacher_reminder_times", models.JSONField(blank=True, default=list)),
+                (
+                    "teacher_reminder_method",
+                    models.CharField(
+                        choices=[
+                            ("email", "Email"),
+                            ("sms", "SMS"),
+                            ("both", "Email & SMS"),
+                            ("none", "Opt Out"),
+                        ],
+                        default="email",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "guardian",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="notification_preference",
+                        to="people.studentguardian",
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'Notification Preferences',
+                "verbose_name_plural": "Notification Preferences",
             },
         ),
     ]

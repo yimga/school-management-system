@@ -2,6 +2,7 @@
 Celery tasks for communication (e.g. Plan XIII: 3 days perfect attendance → Kudos).
 §2.4: broad except replaced with typed exception tuples and structured logging.
 """
+
 from __future__ import annotations
 
 import logging
@@ -28,7 +29,13 @@ _COMMUNICATION_TASK_NARRATIVE_ERRORS: tuple[type[BaseException], ...] = (
 )
 try:
     from django.db.utils import DatabaseError, IntegrityError, OperationalError
-    _COMMUNICATION_TASK_NARRATIVE_ERRORS = (*_COMMUNICATION_TASK_NARRATIVE_ERRORS, DatabaseError, IntegrityError, OperationalError)
+
+    _COMMUNICATION_TASK_NARRATIVE_ERRORS = (
+        *_COMMUNICATION_TASK_NARRATIVE_ERRORS,
+        DatabaseError,
+        IntegrityError,
+        OperationalError,
+    )
 except ImportError:
     pass
 _COMMUNICATION_TASK_OUTBOUND_SEND_ERRORS: tuple[type[BaseException], ...] = (
@@ -64,11 +71,15 @@ def _students_with_three_consecutive_present(school, end_date):
         .filter(days=3)
         .values_list("student_id", flat=True)
     )
-    return list(StudentProfile.objects.filter(id__in=student_ids).select_related("school"))
+    return list(
+        StudentProfile.objects.filter(id__in=student_ids).select_related("school")
+    )
 
 
 @shared_task(bind=True, name="communication.kudos_perfect_attendance_3d")
-def kudos_perfect_attendance_3d_task(self, as_of_date_str: str | None = None, school_id=None) -> dict:
+def kudos_perfect_attendance_3d_task(
+    self, as_of_date_str: str | None = None, school_id=None
+) -> dict:
     """
     Plan XIII: Find students with 3 consecutive days of perfect attendance and create
     AchievementEvent (perfect_attendance_3d) + optional AI narrative draft.
@@ -83,12 +94,19 @@ def kudos_perfect_attendance_3d_task(self, as_of_date_str: str | None = None, sc
 
     def _run_for_school(current_school_id):
         from apps.communication.models import AchievementEvent
-        from apps.communication.narrative_feedback import create_achievement_and_narrative
+        from apps.communication.narrative_feedback import (
+            create_achievement_and_narrative,
+        )
         from apps.schools.models import School
 
         school = School.objects.filter(id=current_school_id, is_active=True).first()
         if not school:
-            return {"created": 0, "skipped": 0, "school_id": str(current_school_id), "status": "missing_school"}
+            return {
+                "created": 0,
+                "skipped": 0,
+                "school_id": str(current_school_id),
+                "status": "missing_school",
+            }
 
         created = 0
         skipped = 0
@@ -113,11 +131,18 @@ def kudos_perfect_attendance_3d_task(self, as_of_date_str: str | None = None, sc
                 )
                 created += 1
             except _COMMUNICATION_TASK_NARRATIVE_ERRORS as e:
-                from apps.platform_runtime.structured_logging import log_exception_with_context
+                from apps.platform_runtime.structured_logging import (
+                    log_exception_with_context,
+                )
+
                 log_exception_with_context(
                     "communication.tasks.kudos_perfect_attendance_3d: skip student (narrative/create)",
                     school_id=getattr(school, "id", None),
-                    extra={"student_id": getattr(student, "id", None), "event_type": PERFECT_ATTENDANCE_3D_EVENT, "error": str(e)},
+                    extra={
+                        "student_id": getattr(student, "id", None),
+                        "event_type": PERFECT_ATTENDANCE_3D_EVENT,
+                        "error": str(e),
+                    },
                 )
                 skipped += 1
         logger.info(
@@ -126,7 +151,12 @@ def kudos_perfect_attendance_3d_task(self, as_of_date_str: str | None = None, sc
             created,
             skipped,
         )
-        return {"created": created, "skipped": skipped, "school_id": str(school.id), "status": "ok"}
+        return {
+            "created": created,
+            "skipped": skipped,
+            "school_id": str(school.id),
+            "status": "ok",
+        }
 
     if school_id:
         return _run_with_tenant_context(
@@ -159,7 +189,9 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
     """
     Plan VI: Process pending OutboundMessageQueue rows; send via WhatsApp/Push.
     Configure WhatsApp/Push in API Center (ServiceIntegration: whatsapp, push).
+    Tier 4: celery_task_* via global Celery signals.
     """
+
     def _process_for_school(current_school_id):
         from apps.communication.models import OutboundMessageQueue
         from apps.communication.channels import send_whatsapp, send_push
@@ -185,9 +217,12 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
                 continue
             try:
                 if item.channel == OutboundMessageQueue.Channel.WHATSAPP:
-                    ok = send_whatsapp(school, item.recipient_identifier, body=item.body)
+                    ok = send_whatsapp(
+                        school, item.recipient_identifier, body=item.body
+                    )
                 elif item.channel == OutboundMessageQueue.Channel.SMS:
                     from apps.communication.notification_service import send_sms
+
                     ok = send_sms(
                         item.recipient_identifier,
                         item.body,
@@ -195,7 +230,9 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
                         idempotency_key=item.idempotency_key or f"outbound-{item.id}",
                     )
                 else:
-                    ok = send_push(school, item.recipient_identifier, title="", body=item.body)
+                    ok = send_push(
+                        school, item.recipient_identifier, title="", body=item.body
+                    )
                 if ok:
                     item.status = "sent"
                     item.sent_at = timezone.now()
@@ -205,7 +242,9 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
                     item.retry_count = (item.retry_count or 0) + 1
                     if item.retry_count >= max_retries:
                         item.status = "failed"
-                        item.error_message = "Provider returned false or no integration (max retries)"
+                        item.error_message = (
+                            "Provider returned false or no integration (max retries)"
+                        )
                     else:
                         item.status = "retrying"
                         item.error_message = "Provider returned false or no integration"
@@ -221,8 +260,18 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
                     item.error_message = str(e)[:500]
                 item.save(update_fields=["status", "error_message", "retry_count"])
                 failed += 1
-                logger.warning("Outbound queue send failed id=%s (retry %s): %s", item.id, item.retry_count, e)
-        return {"sent": sent, "failed": failed, "processed": len(items), "school_id": str(current_school_id)}
+                logger.warning(
+                    "Outbound queue send failed id=%s (retry %s): %s",
+                    item.id,
+                    item.retry_count,
+                    e,
+                )
+        return {
+            "sent": sent,
+            "failed": failed,
+            "processed": len(items),
+            "school_id": str(current_school_id),
+        }
 
     from apps.communication.models import OutboundMessageQueue
 
@@ -233,7 +282,9 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
         )
 
     orphaned = list(
-        OutboundMessageQueue.objects.filter(status="pending", school__isnull=True).order_by("created_at")[:limit]
+        OutboundMessageQueue.objects.filter(
+            status="pending", school__isnull=True
+        ).order_by("created_at")[:limit]
     )
     orphaned_failed = 0
     for item in orphaned:
@@ -242,7 +293,12 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
         item.save(update_fields=["status", "error_message"])
         orphaned_failed += 1
 
-    totals = {"sent": 0, "failed": orphaned_failed, "processed": orphaned_failed, "schools_processed": 0}
+    totals = {
+        "sent": 0,
+        "failed": orphaned_failed,
+        "processed": orphaned_failed,
+        "schools_processed": 0,
+    }
     school_ids = list(
         OutboundMessageQueue.objects.filter(status="pending", school__isnull=False)
         .values_list("school_id", flat=True)

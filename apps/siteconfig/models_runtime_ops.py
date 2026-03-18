@@ -11,7 +11,9 @@ class BreakGlassOverride(models.Model):
     """
 
     scope = models.CharField(max_length=80, db_index=True)
-    target_id = models.CharField(max_length=255, blank=True, help_text="e.g. user_id, school_id.")
+    target_id = models.CharField(
+        max_length=255, blank=True, help_text="e.g. user_id, school_id."
+    )
     reason = models.TextField()
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -51,8 +53,12 @@ class BroadcastCampaign(models.Model):
     )
     subject = models.CharField(max_length=255)
     body = models.TextField()
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
-    slide_confirm_required = models.BooleanField(default=True, help_text="Recipient must slide-to-confirm.")
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
+    slide_confirm_required = models.BooleanField(
+        default=True, help_text="Recipient must slide-to-confirm."
+    )
     target_count = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

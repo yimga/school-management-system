@@ -3,6 +3,7 @@ Seed "Synthetic Buea" dataset: dual-curriculum (General + Technical), Buea local
 staff, parents, students, academics, finance, evals, GCE. All user passwords: Test1234.
 Run: python manage.py seed_buea_synthetic [--scale full]
 """
+
 from __future__ import annotations
 
 import random
@@ -25,7 +26,12 @@ from apps.academics.models import (
     SubjectAssignment,
     Term,
 )
-from apps.evals.models import AssessmentWeights, Evaluation, MockExamSetting, TeacherAssignment
+from apps.evals.models import (
+    AssessmentWeights,
+    Evaluation,
+    MockExamSetting,
+    TeacherAssignment,
+)
 from apps.finance.models import ComplianceProfile, FeeItem, FeePlan, Invoice, Payment
 from apps.people.models import (
     StudentGuardian,
@@ -41,8 +47,30 @@ DEMO_PASSWORD = "Test1234"  # All Buea seed users (teachers, parents, admins, bu
 YEAR_2425 = "2024/2025"
 YEAR_2526 = "2025/2026"
 BUEA_LOCALITIES = ["Molyko", "Great Soppo", "Mile 17", "Bonduma"]
-FIRST_NAMES = ["Ndi", "Manyi", "Tabi", "Efua", "Ngwane", "Ako", "Mbi", "Fon", "Tanyi", "Nkeng"]
-LAST_NAMES = ["Enow", "Tambe", "Mola", "Nkeng", "Ayuk", "Bessem", "Fru", "Ndam", "Mbu", "Kong"]
+FIRST_NAMES = [
+    "Ndi",
+    "Manyi",
+    "Tabi",
+    "Efua",
+    "Ngwane",
+    "Ako",
+    "Mbi",
+    "Fon",
+    "Tanyi",
+    "Nkeng",
+]
+LAST_NAMES = [
+    "Enow",
+    "Tambe",
+    "Mola",
+    "Nkeng",
+    "Ayuk",
+    "Bessem",
+    "Fru",
+    "Ndam",
+    "Mbu",
+    "Kong",
+]
 
 
 def _random_buea_phone():
@@ -50,7 +78,9 @@ def _random_buea_phone():
 
 
 class Command(BaseCommand):
-    help = "Seed Synthetic Buea dataset (General + Technical, Buea). Passwords: Test1234."
+    help = (
+        "Seed Synthetic Buea dataset (General + Technical, Buea). Passwords: Test1234."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -70,6 +100,7 @@ class Command(BaseCommand):
         if not slug_or_id:
             return None
         from apps.schools.models import School
+
         s = str(slug_or_id).strip()
         if s.isdigit():
             return School.objects.filter(pk=int(s)).first()
@@ -80,10 +111,17 @@ class Command(BaseCommand):
         scale = options.get("scale", "small")
         self.school = self._resolve_school(options.get("school"))
         if options.get("school") and not self.school:
-            self.stdout.write(self.style.ERROR("School not found for --school=%s" % options.get("school")))
+            self.stdout.write(
+                self.style.ERROR(
+                    "School not found for --school=%s" % options.get("school")
+                )
+            )
             return
         if self.school:
-            self.stdout.write("Seeding for school: %s (slug=%s)" % (self.school.name, self.school.slug))
+            self.stdout.write(
+                "Seeding for school: %s (slug=%s)"
+                % (self.school.name, self.school.slug)
+            )
         n_students = 500 if scale == "full" else 200
         n_parents = 450 if scale == "full" else 150
         n_teachers = 20 if scale == "full" else 10
@@ -93,8 +131,12 @@ class Command(BaseCommand):
         self.stdout.write("Seeding Synthetic Buea dataset (scale=%s)..." % scale)
 
         profile = self._ensure_compliance_profile()
-        year_2425 = self._ensure_academic_year(YEAR_2425, date(2024, 9, 1), date(2025, 7, 31), active=False)
-        year_2526 = self._ensure_academic_year(YEAR_2526, date(2025, 9, 1), date(2026, 7, 31), active=True)
+        year_2425 = self._ensure_academic_year(
+            YEAR_2425, date(2024, 9, 1), date(2025, 7, 31), active=False
+        )
+        year_2526 = self._ensure_academic_year(
+            YEAR_2526, date(2025, 9, 1), date(2026, 7, 31), active=True
+        )
         year_2526.enable_gce_registration = True
         year_2526.save(update_fields=["enable_gce_registration"])
 
@@ -104,7 +146,9 @@ class Command(BaseCommand):
         dept_gen = self._ensure_department("GEN", "General Education")
         dept_tech = self._ensure_department("TECH", "Technical Education")
         specialties = self._ensure_specialties(dept_gen, dept_tech)
-        classrooms_gen, classrooms_tech = self._ensure_classrooms(year_2526, dept_gen, dept_tech, specialties)
+        classrooms_gen, classrooms_tech = self._ensure_classrooms(
+            year_2526, dept_gen, dept_tech, specialties
+        )
         subject_map = self._ensure_subjects()
         self._ensure_access_roles()
 
@@ -115,7 +159,12 @@ class Command(BaseCommand):
         teacher_profiles = self._ensure_teacher_profiles(teacher_users)
 
         students = self._ensure_students(
-            year_2526, classrooms_gen, classrooms_tech, specialties, parent_users, n_students
+            year_2526,
+            classrooms_gen,
+            classrooms_tech,
+            specialties,
+            parent_users,
+            n_students,
         )
         self._ensure_assessment_weights(year_2526)
         self._ensure_promotion_rules(year_2526, classrooms_gen, classrooms_tech)
@@ -125,10 +174,17 @@ class Command(BaseCommand):
         for idx, term in enumerate(terms_2526):
             self.stdout.write(f"  Seeding Term {idx + 1} ({term.name})...")
             assignments = self._ensure_subject_assignments(
-                year_2526, term, classrooms_gen, classrooms_tech, specialties, subject_map
+                year_2526,
+                term,
+                classrooms_gen,
+                classrooms_tech,
+                specialties,
+                subject_map,
             )
             self._ensure_teacher_assignments(year_2526, assignments, teacher_profiles)
-            self._ensure_evaluations(term, idx, assignments, students, teacher_profiles, subject_map)
+            self._ensure_evaluations(
+                term, idx, assignments, students, teacher_profiles, subject_map
+            )
             self._ensure_evals_extras(year_2526, term, classrooms_gen)
             self._ensure_analytics_data(year_2526, term, teacher_users)
             all_assignments.extend(assignments)
@@ -137,7 +193,9 @@ class Command(BaseCommand):
         for term in terms_2526[:2]:
             self._ensure_reports_publish_status(year_2526, term)
 
-        self._ensure_fee_plans_and_invoices(year_2526, profile, students, classrooms_gen, classrooms_tech, specialties)
+        self._ensure_fee_plans_and_invoices(
+            year_2526, profile, students, classrooms_gen, classrooms_tech, specialties
+        )
         self._ensure_gce_session_and_candidates(year_2526, students, terms_2526[0])
 
         # ---- Engage every app/module for full test environment ----
@@ -151,14 +209,21 @@ class Command(BaseCommand):
         self._ensure_compliance_data(admin_users)
         self._ensure_automation_data()
 
-        last_teacher = teacher_users[-1].username.replace("teacher_buea_", "") if teacher_users else "00"
-        self.stdout.write(self.style.SUCCESS(
-            "\nSynthetic Buea seed complete. All data remains in the system.\n"
-            "Superuser: admin (password from ensure_superuser / ADMIN_PASSWORD)\n"
-            "Teachers: teacher_buea_01 .. %s (password Test1234)\n"
-            "Parents: parent_buea_01 .. (password Test1234)\n"
-            "Students: BUEA/2025/001 .. (Matricule)"
-        ) % last_teacher)
+        last_teacher = (
+            teacher_users[-1].username.replace("teacher_buea_", "")
+            if teacher_users
+            else "00"
+        )
+        self.stdout.write(
+            self.style.SUCCESS(
+                "\nSynthetic Buea seed complete. All data remains in the system.\n"
+                "Superuser: admin (password from ensure_superuser / ADMIN_PASSWORD)\n"
+                "Teachers: teacher_buea_01 .. %s (password Test1234)\n"
+                "Parents: parent_buea_01 .. (password Test1234)\n"
+                "Students: BUEA/2025/001 .. (Matricule)"
+            )
+            % last_teacher
+        )
 
     def _ensure_compliance_profile(self):
         profile, _ = ComplianceProfile.objects.get_or_create(
@@ -173,7 +238,9 @@ class Command(BaseCommand):
         )
         return profile
 
-    def _ensure_academic_year(self, name: str, start: date, end: date, *, active: bool) -> AcademicYear:
+    def _ensure_academic_year(
+        self, name: str, start: date, end: date, *, active: bool
+    ) -> AcademicYear:
         year, _ = AcademicYear.objects.get_or_create(
             school=self.school,
             name=name,
@@ -227,7 +294,9 @@ class Command(BaseCommand):
             specs[code] = s
         return specs
 
-    def _ensure_classrooms(self, year, dept_gen, dept_tech, specialties) -> tuple[list, list]:
+    def _ensure_classrooms(
+        self, year, dept_gen, dept_tech, specialties
+    ) -> tuple[list, list]:
         gen = []
         for i in range(1, 6):
             c, _ = Classroom.objects.get_or_create(
@@ -269,15 +338,26 @@ class Command(BaseCommand):
     def _ensure_subjects(self) -> dict:
         out = {}
         for name, coef in [
-            ("English", 2), ("Mathematics", 5), ("French", 2),
-            ("Physics", 3), ("Chemistry", 3), ("Biology", 2),
+            ("English", 2),
+            ("Mathematics", 5),
+            ("French", 2),
+            ("Physics", 3),
+            ("Chemistry", 3),
+            ("Biology", 2),
         ]:
-            s, _ = Subject.objects.get_or_create(school=self.school, name=name, defaults={})
+            s, _ = Subject.objects.get_or_create(
+                school=self.school, name=name, defaults={}
+            )
             out[name] = (s, coef)
         return out
 
     def _ensure_access_roles(self):
-        for code, name in [("TEACHER", "Teacher"), ("PARENT", "Parent"), ("ADMIN", "Admin"), ("BURSAR", "Bursar")]:
+        for code, name in [
+            ("TEACHER", "Teacher"),
+            ("PARENT", "Parent"),
+            ("ADMIN", "Admin"),
+            ("BURSAR", "Bursar"),
+        ]:
             AccessRole.objects.get_or_create(code=code, defaults={"name": name})
 
     def _ensure_teachers(self, n: int) -> list:
@@ -380,7 +460,13 @@ class Command(BaseCommand):
         return profiles
 
     def _ensure_students(
-        self, year, classrooms_gen, classrooms_tech, specialties, parent_users, n_students
+        self,
+        year,
+        classrooms_gen,
+        classrooms_tech,
+        specialties,
+        parent_users,
+        n_students,
     ) -> list:
         n_gen = int(n_students * 0.6)
         n_tech = n_students - n_gen
@@ -404,7 +490,9 @@ class Command(BaseCommand):
                     "specialty": spec,
                     "is_active": True,
                     "status": StudentProfile.Status.RETURNING,
-                    "gender": random.choice([StudentProfile.Gender.MALE, StudentProfile.Gender.FEMALE]),
+                    "gender": random.choice(
+                        [StudentProfile.Gender.MALE, StudentProfile.Gender.FEMALE]
+                    ),
                     "parent_phone": _random_buea_phone(),
                 },
             )
@@ -427,7 +515,14 @@ class Command(BaseCommand):
             idx += 1
             code = f"BUEA/2025/{idx:03d}"
             classroom = random.choice(classrooms_tech)
-            spec = random.choice([specialties["BESP"], specialties["ELEC"], specialties["HOME"], specialties["ACC"]])
+            spec = random.choice(
+                [
+                    specialties["BESP"],
+                    specialties["ELEC"],
+                    specialties["HOME"],
+                    specialties["ACC"],
+                ]
+            )
             first = random.choice(FIRST_NAMES)
             last = random.choice(LAST_NAMES)
             student, _ = StudentProfile.objects.get_or_create(
@@ -440,7 +535,9 @@ class Command(BaseCommand):
                     "specialty": spec,
                     "is_active": True,
                     "status": StudentProfile.Status.RETURNING,
-                    "gender": random.choice([StudentProfile.Gender.MALE, StudentProfile.Gender.FEMALE]),
+                    "gender": random.choice(
+                        [StudentProfile.Gender.MALE, StudentProfile.Gender.FEMALE]
+                    ),
                     "parent_phone": _random_buea_phone(),
                 },
             )
@@ -466,8 +563,17 @@ class Command(BaseCommand):
     ) -> list:
         assignments = []
         for classroom in classrooms_gen[:3] + classrooms_tech[:3]:
-            spec = specialties["GEN"] if classroom in classrooms_gen else random.choice(
-                [specialties["BESP"], specialties["ELEC"], specialties["HOME"], specialties["ACC"]]
+            spec = (
+                specialties["GEN"]
+                if classroom in classrooms_gen
+                else random.choice(
+                    [
+                        specialties["BESP"],
+                        specialties["ELEC"],
+                        specialties["HOME"],
+                        specialties["ACC"],
+                    ]
+                )
             )
             for name, (subject, coef) in subject_map.items():
                 sa, _ = SubjectAssignment.objects.get_or_create(
@@ -511,17 +617,25 @@ class Command(BaseCommand):
             PromotionRule.objects.get_or_create(
                 academic_year=year,
                 classroom=c,
-                defaults={"promotion_average": Decimal("10"), "demotion_average": Decimal("0")},
+                defaults={
+                    "promotion_average": Decimal("10"),
+                    "demotion_average": Decimal("0"),
+                },
             )
 
-    def _ensure_evaluations(self, term, term_index, assignments, students, teacher_profiles, subject_map):
+    def _ensure_evaluations(
+        self, term, term_index, assignments, students, teacher_profiles, subject_map
+    ):
         """Create evaluations for this term. Use slightly different score ranges per term for realism."""
         # Term 1: scores 8-18, Term 2: scores 7-17, Term 3: scores 6-19 (wider spread)
         lo = max(4, 8 - term_index)
         hi = min(20, 18 + term_index)
         for student in students[: min(50, len(students))]:
             for sa in assignments[:6]:
-                if sa.classroom_id != student.classroom_id or sa.specialty_id != student.specialty_id:
+                if (
+                    sa.classroom_id != student.classroom_id
+                    or sa.specialty_id != student.specialty_id
+                ):
                     continue
                 teacher = teacher_profiles[hash(sa.id) % len(teacher_profiles)]
                 Evaluation.objects.get_or_create(
@@ -542,7 +656,11 @@ class Command(BaseCommand):
     ):
         _term = Term.objects.filter(academic_year=year).order_by("position").first()
         for classroom in list(classrooms_gen[:2]) + list(classrooms_tech[:2]):
-            spec = specialties["GEN"] if classroom in classrooms_gen else specialties["BESP"]
+            spec = (
+                specialties["GEN"]
+                if classroom in classrooms_gen
+                else specialties["BESP"]
+            )
             plan, _ = FeePlan.objects.get_or_create(
                 academic_year=year,
                 classroom=classroom,
@@ -553,23 +671,35 @@ class Command(BaseCommand):
             FeeItem.objects.get_or_create(
                 plan=plan,
                 name="Tuition",
-                defaults={"amount": Decimal("150000"), "item_type": FeeItem.ItemType.TUITION},
+                defaults={
+                    "amount": Decimal("150000"),
+                    "item_type": FeeItem.ItemType.TUITION,
+                },
             )
             FeeItem.objects.get_or_create(
                 plan=plan,
                 name="PTA",
-                defaults={"amount": Decimal("15000"), "item_type": FeeItem.ItemType.PTA},
+                defaults={
+                    "amount": Decimal("15000"),
+                    "item_type": FeeItem.ItemType.PTA,
+                },
             )
             if classroom in classrooms_tech:
                 FeeItem.objects.get_or_create(
                     plan=plan,
                     name="Workshop Fee",
-                    defaults={"amount": Decimal("25000"), "item_type": FeeItem.ItemType.WORKSHOP},
+                    defaults={
+                        "amount": Decimal("25000"),
+                        "item_type": FeeItem.ItemType.WORKSHOP,
+                    },
                 )
             FeeItem.objects.get_or_create(
                 plan=plan,
                 name="MTA (Mock)",
-                defaults={"amount": Decimal("5000"), "item_type": FeeItem.ItemType.CUSTOM},
+                defaults={
+                    "amount": Decimal("5000"),
+                    "item_type": FeeItem.ItemType.CUSTOM,
+                },
             )
         for i, student in enumerate(students):
             total = Decimal("165000")
@@ -582,7 +712,9 @@ class Command(BaseCommand):
                 student=student,
                 defaults={
                     "invoice_type": Invoice.InvoiceType.AR,
-                    "status": Invoice.Status.ISSUED if balance == 0 else Invoice.Status.PARTIAL,
+                    "status": Invoice.Status.ISSUED
+                    if balance == 0
+                    else Invoice.Status.PARTIAL,
                     "issued_date": timezone.now().date(),
                     "due_date": (timezone.now() + timedelta(days=30)).date(),
                     "total_amount": total,
@@ -604,7 +736,9 @@ class Command(BaseCommand):
                 "is_active": True,
             },
         )
-        form5_class = Classroom.objects.filter(academic_year=year, code="F5-GEN").first()
+        form5_class = Classroom.objects.filter(
+            academic_year=year, code="F5-GEN"
+        ).first()
         upper6_class = Classroom.objects.filter(academic_year=year, code="U6").first()
         form5_id = form5_class.id if form5_class else None
         upper6_id = upper6_class.id if upper6_class else None
@@ -623,13 +757,18 @@ class Command(BaseCommand):
 
     def _ensure_reports_publish_status(self, year, term):
         TermPublishStatus.objects.get_or_create(
-            academic_year=year, term=term, classroom=None,
+            academic_year=year,
+            term=term,
+            classroom=None,
             defaults={"is_published": True, "published_at": timezone.now()},
         )
 
     def _ensure_portal_data(self, admin_users):
         from apps.portal.models import Announcement, PortalFeatureItem
-        for i, title in enumerate(["Welcome to Buea Technical School", "Term 1 Report Cards Available"], 1):
+
+        for i, title in enumerate(
+            ["Welcome to Buea Technical School", "Term 1 Report Cards Available"], 1
+        ):
             Announcement.objects.get_or_create(
                 title=title,
                 defaults={
@@ -639,13 +778,22 @@ class Command(BaseCommand):
                 },
             )
         for title, feat, link in [
-            ("Syllabus Form 5", PortalFeatureItem.Feature.SYLLABUS, "https://example.com/syllabus-f5"),
-            ("Parent Handbook", PortalFeatureItem.Feature.DOCUMENTS, "https://example.com/handbook"),
+            (
+                "Syllabus Form 5",
+                PortalFeatureItem.Feature.SYLLABUS,
+                "https://example.com/syllabus-f5",
+            ),
+            (
+                "Parent Handbook",
+                PortalFeatureItem.Feature.DOCUMENTS,
+                "https://example.com/handbook",
+            ),
         ]:
             PortalFeatureItem.objects.get_or_create(
                 title=title,
                 defaults={
-                    "feature": feat, "link": link,
+                    "feature": feat,
+                    "link": link,
                     "document_type": PortalFeatureItem.DocumentType.GENERAL,
                     "is_active": True,
                     "created_by": admin_users[0] if admin_users else None,
@@ -654,16 +802,24 @@ class Command(BaseCommand):
 
     def _ensure_communication_data(self, admin_users, parent_users, teacher_users):
         from apps.communication.models import ContactRequest, Message
+
         if admin_users and parent_users:
             Message.objects.get_or_create(
-                subject="Welcome from Buea School", recipient=parent_users[0],
-                defaults={"sender": admin_users[0], "body": "Thank you for registering.", "is_read": False},
+                subject="Welcome from Buea School",
+                recipient=parent_users[0],
+                defaults={
+                    "sender": admin_users[0],
+                    "body": "Thank you for registering.",
+                    "is_read": False,
+                },
             )
         if parent_users and admin_users:
             ContactRequest.objects.get_or_create(
-                parent=parent_users[0], subject="Query about fees",
+                parent=parent_users[0],
+                subject="Query about fees",
                 defaults={
-                    "contact_name": parent_users[0].get_full_name() or parent_users[0].username,
+                    "contact_name": parent_users[0].get_full_name()
+                    or parent_users[0].username,
                     "message": "When is the deadline?",
                     "status": ContactRequest.Status.OPEN,
                     "assigned_to": admin_users[0],
@@ -672,31 +828,54 @@ class Command(BaseCommand):
 
     def _ensure_requests_data(self, admin_users, teacher_users):
         from apps.requests.models import AccessRequest, RequestDecision
+
         if not teacher_users:
             return
         for req_type, title in [
-            (AccessRequest.RequestType.MODULE_ACCESS, "Edit access to Mathematics marks"),
+            (
+                AccessRequest.RequestType.MODULE_ACCESS,
+                "Edit access to Mathematics marks",
+            ),
             (AccessRequest.RequestType.LEAVE_APPROVAL, "Leave request 15–20 Jan"),
         ]:
             AccessRequest.objects.get_or_create(
-                request_type=req_type, title=title or "", requester=teacher_users[0],
-                defaults={"status": AccessRequest.Status.PENDING, "summary": title, "assigned_to": admin_users[0] if admin_users else None},
+                request_type=req_type,
+                title=title or "",
+                requester=teacher_users[0],
+                defaults={
+                    "status": AccessRequest.Status.PENDING,
+                    "summary": title,
+                    "assigned_to": admin_users[0] if admin_users else None,
+                },
             )
         req = AccessRequest.objects.filter(requester=teacher_users[0]).first()
         if req and admin_users and not req.decisions.exists():
             RequestDecision.objects.get_or_create(
                 request=req,
-                defaults={"decision": RequestDecision.Decision.APPROVED, "reason": "Approved.", "decided_by": admin_users[0]},
+                defaults={
+                    "decision": RequestDecision.Decision.APPROVED,
+                    "reason": "Approved.",
+                    "decided_by": admin_users[0],
+                },
             )
 
     def _ensure_analytics_data(self, year, term, teacher_users):
         from apps.analytics.models import AttendanceLog, GradeImportJob
+
         for i in range(3):
             d = (timezone.now() - timedelta(days=i)).date()
             AttendanceLog.objects.get_or_create(date=d, defaults={"status": "present"})
         GradeImportJob.objects.get_or_create(
-            academic_year=year, term=term, uploaded_by=teacher_users[0] if teacher_users else None,
-            defaults={"status": "completed", "total_rows": 10, "created_count": 8, "updated_count": 2, "failed_count": 0},
+            academic_year=year,
+            term=term,
+            uploaded_by=teacher_users[0] if teacher_users else None,
+            defaults={
+                "status": "completed",
+                "total_rows": 10,
+                "created_count": 8,
+                "updated_count": 2,
+                "failed_count": 0,
+            },
         )
 
     def _ensure_people_extras(self, year, students, teacher_profiles):
@@ -705,32 +884,46 @@ class Command(BaseCommand):
         for i in range(3):
             d = (timezone.now() - timedelta(days=i)).date()
             t = teacher_profiles[i % len(teacher_profiles)]
-            TeacherAttendance.objects.get_or_create(teacher=t, date=d, defaults={"status": TeacherAttendance.Status.PRESENT})
+            TeacherAttendance.objects.get_or_create(
+                teacher=t, date=d, defaults={"status": TeacherAttendance.Status.PRESENT}
+            )
         TeacherLeaveRequest.objects.get_or_create(
             teacher=teacher_profiles[0],
             start_date=timezone.now().date() + timedelta(days=7),
             end_date=timezone.now().date() + timedelta(days=10),
-            defaults={"reason": "Family event", "status": TeacherLeaveRequest.Status.PENDING},
+            defaults={
+                "reason": "Family event",
+                "status": TeacherLeaveRequest.Status.PENDING,
+            },
         )
         for student in students[:2]:
             StudentResourceReturn.objects.get_or_create(
-                student=student, academic_year=year, item_label="Textbook Set", defaults={"notes": "Issued Term 1"},
+                student=student,
+                academic_year=year,
+                item_label="Textbook Set",
+                defaults={"notes": "Issued Term 1"},
             )
 
     def _ensure_evals_extras(self, year, term, classrooms_gen):
         form5 = next((c for c in classrooms_gen if c.code == "F5-GEN"), None)
         if form5:
             MockExamSetting.objects.get_or_create(
-                academic_year=year, classroom=form5, term=term,
+                academic_year=year,
+                classroom=form5,
+                term=term,
                 defaults={"final_weight": 70, "mock_weight": 30, "is_active": True},
             )
 
     def _ensure_finance_extras(self, profile, students):
         from apps.finance.models import PaymentReminder
-        for inv in Invoice.objects.filter(profile=profile, balance_amount=Decimal("0"), total_amount__gt=0)[:2]:
+
+        for inv in Invoice.objects.filter(
+            profile=profile, balance_amount=Decimal("0"), total_amount__gt=0
+        )[:2]:
             if not inv.payments.exists():
                 Payment.objects.get_or_create(
-                    invoice=inv, reference_number=f"PAY-{inv.reference}-001",
+                    invoice=inv,
+                    reference_number=f"PAY-{inv.reference}-001",
                     defaults={
                         "student": getattr(inv, "student", None),
                         "amount": inv.total_amount,
@@ -740,16 +933,28 @@ class Command(BaseCommand):
                         "purpose": "tuition",
                     },
                 )
-        inv_with_balance = Invoice.objects.filter(profile=profile, balance_amount__gt=0).first()
+        inv_with_balance = Invoice.objects.filter(
+            profile=profile, balance_amount__gt=0
+        ).first()
         if inv_with_balance and getattr(inv_with_balance, "student_id", None):
             PaymentReminder.objects.get_or_create(
                 invoice=inv_with_balance,
-                defaults={"next_send_at": timezone.now() + timedelta(days=3), "reminder_days_before": [7, 3, 1]},
+                defaults={
+                    "next_send_at": timezone.now() + timedelta(days=3),
+                    "reminder_days_before": [7, 3, 1],
+                },
             )
 
     def _ensure_payroll_data(self, profile, teacher_users, admin_users):
         from apps.academics.models import Department
-        from apps.payroll.models import EmploymentContract, PayrollEmployee, PayrollRun, PayScale, Payslip
+        from apps.payroll.models import (
+            EmploymentContract,
+            PayrollEmployee,
+            PayrollRun,
+            PayScale,
+            Payslip,
+        )
+
         dept = Department.objects.filter(code="GEN").first()
         scale, _ = PayScale.objects.get_or_create(
             code="T1",
@@ -766,37 +971,61 @@ class Command(BaseCommand):
             emp, created = PayrollEmployee.objects.get_or_create(
                 user=user,
                 defaults={
-                    "employee_code": f"EMP-{user.id}", "department": dept, "hire_date": date(2024, 9, 1),
-                    "pay_type": PayrollEmployee.PayType.MONTHLY, "base_salary": Decimal("150000"),
-                    "pay_scale": scale, "is_active": True,
+                    "employee_code": f"EMP-{user.id}",
+                    "department": dept,
+                    "hire_date": date(2024, 9, 1),
+                    "pay_type": PayrollEmployee.PayType.MONTHLY,
+                    "base_salary": Decimal("150000"),
+                    "pay_scale": scale,
+                    "is_active": True,
                 },
             )
             if created:
                 EmploymentContract.objects.get_or_create(
-                    employee=emp, start_date=date(2024, 9, 1),
+                    employee=emp,
+                    start_date=date(2024, 9, 1),
                     defaults={
                         "contract_type": EmploymentContract.ContractType.INDEFINITE,
                         "pay_type": PayrollEmployee.PayType.MONTHLY,
-                        "base_salary": Decimal("150000"), "is_active": True,
+                        "base_salary": Decimal("150000"),
+                        "is_active": True,
                     },
                 )
         period_start = timezone.now().date().replace(day=1)
         period_end = period_start + timedelta(days=28)
         run, _ = PayrollRun.objects.get_or_create(
-            profile=profile, period_start=period_start, period_end=period_end,
-            defaults={"status": PayrollRun.Status.DRAFT, "created_by": admin_users[0] if admin_users else None},
+            profile=profile,
+            period_start=period_start,
+            period_end=period_end,
+            defaults={
+                "status": PayrollRun.Status.DRAFT,
+                "created_by": admin_users[0] if admin_users else None,
+            },
         )
         for emp in PayrollEmployee.objects.all()[:2]:
             Payslip.objects.get_or_create(
-                payroll_run=run, employee=emp,
-                defaults={"gross_pay": emp.base_salary or Decimal("150000"), "net_pay": (emp.base_salary or Decimal("150000")) - Decimal("10000"), "status": Payslip.Status.DRAFT},
+                payroll_run=run,
+                employee=emp,
+                defaults={
+                    "gross_pay": emp.base_salary or Decimal("150000"),
+                    "net_pay": (emp.base_salary or Decimal("150000"))
+                    - Decimal("10000"),
+                    "status": Payslip.Status.DRAFT,
+                },
             )
 
     def _ensure_siteconfig_extras(self):
         from apps.global_registries.models import HolidayCalendar, RegionConfig
+
         reg, _ = RegionConfig.objects.get_or_create(
             code="CM-BUE",
-            defaults={"name": "Buea (Cameroon)", "timezone": "Africa/Douala", "grading_scale": "0-20", "default_currency": "XAF", "academic_year_start_month": 9},
+            defaults={
+                "name": "Buea (Cameroon)",
+                "timezone": "Africa/Douala",
+                "grading_scale": "0-20",
+                "default_currency": "XAF",
+                "academic_year_start_month": 9,
+            },
         )
         year = AcademicYear.objects.filter(name=YEAR_2526).first()
         if year:
@@ -813,13 +1042,21 @@ class Command(BaseCommand):
 
     def _ensure_compliance_data(self, admin_users):
         from apps.compliance.models import ComplianceRule
+
         ComplianceRule.objects.get_or_create(
             name="Buea data retention",
-            defaults={"rule_type": "data_retention", "description": "Retain student records for 10 years.", "applies_globally": False, "is_mandatory": True, "created_by": admin_users[0] if admin_users else None},
+            defaults={
+                "rule_type": "data_retention",
+                "description": "Retain student records for 10 years.",
+                "applies_globally": False,
+                "is_mandatory": True,
+                "created_by": admin_users[0] if admin_users else None,
+            },
         )
 
     def _ensure_automation_data(self):
         from apps.automation.models import AutomationExecutionLog
+
         AutomationExecutionLog.objects.get_or_create(
             task_name="seed_verification",
             defaults={

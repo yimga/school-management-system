@@ -113,9 +113,13 @@ class AdminUiSmokeTests(TestCase):
         request.user = manager
         request.session = {}
         ctx = site_settings(request)
-        html = render_to_string("admin/app_list.html", {"app_list": [], **ctx}, request=request)
+        html = render_to_string(
+            "admin/app_list.html", {"app_list": [], **ctx}, request=request
+        )
         # Settings manager should see Site settings link (change or changelist depending on SITE in context)
-        change_url = reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk])
+        change_url = reverse(
+            "admin:siteconfig_sitesettings_change", args=[self.site.pk]
+        )
         changelist_url = reverse("admin:siteconfig_sitesettings_changelist")
         self.assertTrue(
             change_url in html or changelist_url in html,

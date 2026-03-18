@@ -6,65 +6,115 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0062_sitesettings_finance_auto_generate_due_date_offset_days_and_more'),
+        (
+            "siteconfig",
+            "0062_sitesettings_finance_auto_generate_due_date_offset_days_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_bank_verification_amount_tolerance',
-            field=models.DecimalField(decimal_places=2, default=Decimal('1.00'), help_text='Amount tolerance when matching by amount + date (default: 1.00 XAF).', max_digits=10),
+            model_name="sitesettings",
+            name="finance_bank_verification_amount_tolerance",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=Decimal("1.00"),
+                help_text="Amount tolerance when matching by amount + date (default: 1.00 XAF).",
+                max_digits=10,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_bank_verification_auto_approve',
-            field=models.BooleanField(default=False, help_text='Automatically approve receipts that are verified in bank statements.'),
+            model_name="sitesettings",
+            name="finance_bank_verification_auto_approve",
+            field=models.BooleanField(
+                default=False,
+                help_text="Automatically approve receipts that are verified in bank statements.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_bank_verification_enabled',
-            field=models.BooleanField(default=True, help_text='Enable bank deposit verification against bank statements.'),
+            model_name="sitesettings",
+            name="finance_bank_verification_enabled",
+            field=models.BooleanField(
+                default=True,
+                help_text="Enable bank deposit verification against bank statements.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_bank_verification_tolerance_days',
-            field=models.PositiveIntegerField(default=7, help_text='Days to search before/after receipt date when matching bank statements.'),
+            model_name="sitesettings",
+            name="finance_bank_verification_tolerance_days",
+            field=models.PositiveIntegerField(
+                default=7,
+                help_text="Days to search before/after receipt date when matching bank statements.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_receipt_amount_tolerance',
-            field=models.DecimalField(decimal_places=2, default=Decimal('1.00'), help_text='Tolerance for amount matching (e.g., 1.00 XAF difference allowed).', max_digits=10),
+            model_name="sitesettings",
+            name="finance_receipt_amount_tolerance",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=Decimal("1.00"),
+                help_text="Tolerance for amount matching (e.g., 1.00 XAF difference allowed).",
+                max_digits=10,
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_receipt_auto_apply_enabled',
-            field=models.BooleanField(default=True, help_text='Automatically apply payments when verification confidence exceeds threshold.'),
+            model_name="sitesettings",
+            name="finance_receipt_auto_apply_enabled",
+            field=models.BooleanField(
+                default=True,
+                help_text="Automatically apply payments when verification confidence exceeds threshold.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_receipt_auto_apply_threshold',
-            field=models.FloatField(default=0.9, help_text='Confidence threshold (0.0-1.0) for auto-applying payments. Lower = more automatic, Higher = more manual review.', validators=[django.core.validators.MinValueValidator(0.0), django.core.validators.MaxValueValidator(1.0)]),
+            model_name="sitesettings",
+            name="finance_receipt_auto_apply_threshold",
+            field=models.FloatField(
+                default=0.9,
+                help_text="Confidence threshold (0.0-1.0) for auto-applying payments. Lower = more automatic, Higher = more manual review.",
+                validators=[
+                    django.core.validators.MinValueValidator(0.0),
+                    django.core.validators.MaxValueValidator(1.0),
+                ],
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_receipt_auto_verify_enabled',
-            field=models.BooleanField(default=True, help_text='Automatically verify uploaded receipts using pattern matching or OCR.'),
+            model_name="sitesettings",
+            name="finance_receipt_auto_verify_enabled",
+            field=models.BooleanField(
+                default=True,
+                help_text="Automatically verify uploaded receipts using pattern matching or OCR.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_receipt_require_admin_approval',
-            field=models.BooleanField(default=False, help_text='Require admin approval even if verification passes (for extra security).'),
+            model_name="sitesettings",
+            name="finance_receipt_require_admin_approval",
+            field=models.BooleanField(
+                default=False,
+                help_text="Require admin approval even if verification passes (for extra security).",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_receipt_upload_enabled',
-            field=models.BooleanField(default=True, help_text='Enable receipt upload in parent portal for cash/bank payments.'),
+            model_name="sitesettings",
+            name="finance_receipt_upload_enabled",
+            field=models.BooleanField(
+                default=True,
+                help_text="Enable receipt upload in parent portal for cash/bank payments.",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_receipt_verification_method',
-            field=models.CharField(choices=[('pattern', 'Pattern Matching (Free)'), ('ocr_tesseract', 'Tesseract OCR (Free, requires installation)'), ('ocr_cloud_google', 'Google Vision API (Paid)'), ('ocr_cloud_aws', 'AWS Textract (Paid)')], default='pattern', help_text='Method used to extract data from receipts.', max_length=30),
+            model_name="sitesettings",
+            name="finance_receipt_verification_method",
+            field=models.CharField(
+                choices=[
+                    ("pattern", "Pattern Matching (Free)"),
+                    ("ocr_tesseract", "Tesseract OCR (Free, requires installation)"),
+                    ("ocr_cloud_google", "Google Vision API (Paid)"),
+                    ("ocr_cloud_aws", "AWS Textract (Paid)"),
+                ],
+                default="pattern",
+                help_text="Method used to extract data from receipts.",
+                max_length=30,
+            ),
         ),
     ]

@@ -1,6 +1,7 @@
 """
 Context processors for portal app.
 """
+
 from django.db import DatabaseError, connection, transaction
 from django.db.transaction import TransactionManagementError
 from django.db.models import Q

@@ -3,6 +3,7 @@ Provisioning task: after School row is created, create admin user, school_member
 Can be run as Celery task or synchronously.
 When USE_DJANGO_TENANTS is True, ensures Client and Domain exist and runs tenant-scoped creation in tenant_context.
 """
+
 import logging
 import secrets
 from contextlib import contextmanager
@@ -12,13 +13,17 @@ from django.db import transaction
 from django.db.utils import DatabaseError, IntegrityError
 
 from apps.platform_runtime.structured_logging import log_exception_with_context
-from apps.schools.domain_sync import ensure_tenant_client_for_school, sync_school_domains_to_runtime
+from apps.schools.domain_sync import (
+    ensure_tenant_client_for_school,
+    sync_school_domains_to_runtime,
+)
 
 logger = logging.getLogger(__name__)
 
 try:
     from kombu.exceptions import OperationalError as KombuOperationalError
 except ImportError:  # pragma: no cover - kombu is installed in production/test envs
+
     class KombuOperationalError(Exception):
         """Fallback exception type when kombu is unavailable."""
 
@@ -41,7 +46,14 @@ def _ensure_tenant_client(school):
     if client:
         try:
             sync_school_domains_to_runtime(school)
-        except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError):
+        except (
+            OSError,
+            ConnectionError,
+            DatabaseError,
+            AttributeError,
+            TypeError,
+            ValueError,
+        ):
             log_exception_with_context(
                 "schools.tasks._ensure_tenant_client: failed syncing domains for school",
                 school_id=getattr(school, "id", None),
@@ -57,6 +69,7 @@ def _optional_tenant_context(client):
         return
     try:
         from django_tenants.utils import tenant_context
+
         with tenant_context(client):
             yield
     except ImportError:
@@ -150,13 +163,17 @@ def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
         raise
 
 
-def dispatch_provision_school(school_id: str, contact_email: str = "", **kwargs) -> dict:
+def dispatch_provision_school(
+    school_id: str, contact_email: str = "", **kwargs
+) -> dict:
     """
     Queue provisioning when Celery is available; otherwise fall back to synchronous provisioning.
     Returns a stable payload for request-layer audit logging.
     """
     try:
-        result = provision_school_task.delay(str(school_id), contact_email=contact_email, **kwargs)
+        result = provision_school_task.delay(
+            str(school_id), contact_email=contact_email, **kwargs
+        )
         return {
             "queued": True,
             "fallback": False,
@@ -173,7 +190,11 @@ def dispatch_provision_school(school_id: str, contact_email: str = "", **kwargs)
         TypeError,
         ValueError,
     ) as exc:
-        logger.warning("Provisioning queue unavailable for school %s; falling back to sync: %s", school_id, exc)
+        logger.warning(
+            "Provisioning queue unavailable for school %s; falling back to sync: %s",
+            school_id,
+            exc,
+        )
         provision_school_sync(str(school_id), contact_email=contact_email, **kwargs)
         return {
             "queued": False,
@@ -198,8 +219,17 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     if school.is_active:
         try:
             sync_school_domains_to_runtime(school)
-        except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError):
-            logger.exception("Failed syncing domains for already active school %s", school_id)
+        except (
+            OSError,
+            ConnectionError,
+            DatabaseError,
+            AttributeError,
+            TypeError,
+            ValueError,
+        ):
+            logger.exception(
+                "Failed syncing domains for already active school %s", school_id
+            )
         logger.info("School %s already active, skip provisioning", school_id)
         return
     _record_school_event(
@@ -208,6 +238,18 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         status="INFO",
         message="Provisioning job started.",
     )
+    try:
+        from apps.platform_runtime.events import emit_platform_event
+
+        emit_platform_event(
+            "provisioning_started",
+            {"school_id": str(school.id), "slug": getattr(school, "slug", "") or ""},
+            tenant_id=str(getattr(school, "id", "") or ""),
+            school_id=None,
+            idempotency_key=f"provision-start:{school.id}",
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
 
     # Create default admin user if contact_email provided and no user exists
     admin_user = None
@@ -226,17 +268,25 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             )
             admin_user.set_unusable_password()
             admin_user.save()
-            logger.info("Created admin user %s for school %s", admin_user.username, school_id)
+            logger.info(
+                "Created admin user %s for school %s", admin_user.username, school_id
+            )
         SchoolMembership.objects.get_or_create(
             user=admin_user,
             school=school,
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
         try:
-            from apps.registries.services import apply_wedge_14_22_sector_access_roles_to_user
+            from apps.registries.services import (
+                apply_wedge_14_22_sector_access_roles_to_user,
+            )
 
-            role_payload = apply_wedge_14_22_sector_access_roles_to_user(school, admin_user)
-            if role_payload.get("applied") or role_payload.get("admin_access_role_attached"):
+            role_payload = apply_wedge_14_22_sector_access_roles_to_user(
+                school, admin_user
+            )
+            if role_payload.get("applied") or role_payload.get(
+                "admin_access_role_attached"
+            ):
                 _record_school_event(
                     school,
                     event_type="SECTOR_ROLES_APPLIED",
@@ -245,7 +295,9 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                     payload={
                         "sector": role_payload.get("sector"),
                         "applied_access_roles": role_payload.get("applied"),
-                        "admin_access_role_attached": role_payload.get("admin_access_role_attached"),
+                        "admin_access_role_attached": role_payload.get(
+                            "admin_access_role_attached"
+                        ),
                     },
                 )
         except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError):
@@ -259,6 +311,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     # (from country_code at create) and returns one approved profile per country via for_school() + ensure_country_profile().
     region = school.default_region
     from apps.policies.policy_registry import get_effective_policy
+
     _policy = get_effective_policy(school)
     requested_profile_code = str(_policy.get("education_profile_code") or "").strip()
     profile = resolve_profile_for_school(
@@ -274,8 +327,12 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     if region:
         start_month = getattr(region, "academic_year_start_month", 9) or 9
     if profile:
-        term_count = int(getattr(profile, "term_count_per_year", term_count) or term_count)
-        start_month = int(getattr(profile, "academic_year_start_month", start_month) or start_month)
+        term_count = int(
+            getattr(profile, "term_count_per_year", term_count) or term_count
+        )
+        start_month = int(
+            getattr(profile, "academic_year_start_month", start_month) or start_month
+        )
         term_labels = profile.normalized_term_labels()
     # UK/British term preset at signup (RUNMYCAMPUS_ROADMAP_TASKS); override term labels for GB
     term_preset = (_policy.get("term_preset") or "").strip()
@@ -292,8 +349,12 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             "default_currency": profile.default_currency,
             "term_labels": term_labels,
         }
-        if isinstance(getattr(profile, "config", None), dict) and profile.config.get("report_template_family"):
-            profile_config["report_template_family"] = profile.config.get("report_template_family")
+        if isinstance(getattr(profile, "config", None), dict) and profile.config.get(
+            "report_template_family"
+        ):
+            profile_config["report_template_family"] = profile.config.get(
+                "report_template_family"
+            )
         # Read current settings for merge; profile defaults from policy/resolver flow
         merged_settings = dict(school.settings or {})
         # Respect explicit tenant-entered values while applying profile defaults.
@@ -322,6 +383,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         # Phase Global: deep hydration (modality, terminology from profile)
         try:
             from apps.siteconfig.system_morph import hydrate_school_from_profile
+
             applied = hydrate_school_from_profile(school)
             if applied:
                 _record_school_event(
@@ -347,7 +409,14 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     if tenant_client is None:
         try:
             sync_school_domains_to_runtime(school)
-        except (OSError, ConnectionError, DatabaseError, AttributeError, TypeError, ValueError):
+        except (
+            OSError,
+            ConnectionError,
+            DatabaseError,
+            AttributeError,
+            TypeError,
+            ValueError,
+        ):
             logger.exception("Failed syncing domains for school %s", school.id)
 
     # Tenant-scoped creation: run inside tenant_context when using schema-per-tenant
@@ -362,18 +431,33 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         if not profile_codes and profile and getattr(profile, "code", None):
             profile_codes = [profile.code]
         if profile_codes:
-            from apps.global_registries.models import EducationSystemProfile, TenantSystem
+            from apps.global_registries.models import (
+                EducationSystemProfile,
+                TenantSystem,
+            )
+
             approved = EducationSystemProfile.objects.filter(
                 code__in=profile_codes,
                 is_active=True,
                 approval_status=EducationSystemProfile.ApprovalStatus.APPROVED,
             )
             for prof in approved:
-                TenantSystem.objects.get_or_create(school=school, system=prof, defaults={})
+                TenantSystem.objects.get_or_create(
+                    school=school, system=prof, defaults={}
+                )
             try:
-                from apps.siteconfig.tenant_config import sync_tenant_modules_to_school_features
+                from apps.siteconfig.tenant_config import (
+                    sync_tenant_modules_to_school_features,
+                )
+
                 sync_tenant_modules_to_school_features(school)
-            except (ImportError, AttributeError, TypeError, ValueError, DatabaseError) as e:
+            except (
+                ImportError,
+                AttributeError,
+                TypeError,
+                ValueError,
+                DatabaseError,
+            ) as e:
                 logger.debug("Optional sync_tenant_modules_to_school_features: %s", e)
 
         # Compile and persist tenant config snapshot (region pack + locks + effective config).
@@ -392,7 +476,9 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                 },
             )
         except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
-            logger.exception("Failed to compile tenant config snapshot for school %s", school_id)
+            logger.exception(
+                "Failed to compile tenant config snapshot for school %s", school_id
+            )
 
         now = timezone.now().date()
         year_start = date(now.year, start_month, 1)
@@ -423,7 +509,9 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                 if i == term_count - 1:
                     t_end = year_end
                 else:
-                    next_term_start = _month_start_add(year_start, (i + 1) * months_per_term)
+                    next_term_start = _month_start_add(
+                        year_start, (i + 1) * months_per_term
+                    )
                     t_end = next_term_start - timedelta(days=1)
                 term_name = (
                     term_labels[i]
@@ -441,7 +529,9 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                         "is_active": i == 0,
                     },
                 )
-        logger.info("Seeded academic year and %s terms for school %s", term_count, school_id)
+        logger.info(
+            "Seeded academic year and %s terms for school %s", term_count, school_id
+        )
         _record_school_event(
             school,
             event_type="ACADEMIC_YEAR_READY",
@@ -472,8 +562,16 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                 name = str(item.get("name") if isinstance(item, dict) else "").strip()
                 if not name:
                     continue
-                raw_category = str(item.get("category", Subject.Category.GENERAL) if isinstance(item, dict) else Subject.Category.GENERAL).upper()
-                category = raw_category if raw_category in valid_categories else Subject.Category.GENERAL
+                raw_category = str(
+                    item.get("category", Subject.Category.GENERAL)
+                    if isinstance(item, dict)
+                    else Subject.Category.GENERAL
+                ).upper()
+                category = (
+                    raw_category
+                    if raw_category in valid_categories
+                    else Subject.Category.GENERAL
+                )
                 _, created_subject = Subject.objects.get_or_create(
                     school=school,
                     name=name,
@@ -494,7 +592,9 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         from apps.academics.models import Classroom, Department
 
         classroom_seed_names = []
-        seed_fn = getattr(profile, "normalized_classroom_seed", None) if profile else None
+        seed_fn = (
+            getattr(profile, "normalized_classroom_seed", None) if profile else None
+        )
         if callable(seed_fn):
             try:
                 classroom_seed_names = list(seed_fn())[:3]
@@ -527,7 +627,11 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             )
             classroom_created += 1
         if classroom_created:
-            logger.info("Seeded %s default classrooms for school %s", classroom_created, school_id)
+            logger.info(
+                "Seeded %s default classrooms for school %s",
+                classroom_created,
+                school_id,
+            )
             _record_school_event(
                 school,
                 event_type="CLASSROOMS_READY",
@@ -540,6 +644,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         school.save(update_fields=["is_active", "settings", "updated_at"])
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
+
             invalidate_policy_cache(school)
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
@@ -549,15 +654,40 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             status="SUCCESS",
             message="Provisioning completed successfully.",
         )
+        try:
+            from apps.platform_runtime.events import emit_platform_event
+
+            emit_platform_event(
+                "provisioning_completed",
+                {
+                    "school_id": str(school.id),
+                    "slug": getattr(school, "slug", "") or "",
+                },
+                tenant_id=str(getattr(school, "id", "") or ""),
+                school_id=None,
+                idempotency_key=f"provision-done:{school.id}",
+            )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
     logger.info("School %s provisioning complete", school_id)
 
     # Phase Welcome: send welcome email (async if Celery available)
     if (contact_email or "").strip():
         try:
             from apps.schools.welcome_email import send_welcome_email_task
+
             send_welcome_email_task.delay(str(school.id), contact_email=contact_email)
-        except (ImportError, AttributeError, ConnectionError, OSError, RuntimeError, TypeError, ValueError):
+        except (
+            ImportError,
+            AttributeError,
+            ConnectionError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             from apps.schools.welcome_email import send_welcome_email
+
             send_welcome_email(str(school.id), contact_email)
 
 
@@ -581,5 +711,6 @@ try:
             )
             raise self.retry(exc=exc)
 except ImportError:
+
     def provision_school_task(*args, **kwargs):
         provision_school_sync(*args, **kwargs)

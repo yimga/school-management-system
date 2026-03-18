@@ -1,4 +1,5 @@
 """Tests for EWS (early warning system) dashboard helper."""
+
 from django.test import TestCase
 
 from apps.evals.services import ews_students_needing_attention

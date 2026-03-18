@@ -48,7 +48,9 @@ def ministry_runtime_status() -> dict[str, Any]:
     }
 
 
-def _post_json(url: str, payload: dict[str, Any], headers: dict[str, str], timeout: int = 12) -> tuple[bool, int, dict]:
+def _post_json(
+    url: str, payload: dict[str, Any], headers: dict[str, str], timeout: int = 12
+) -> tuple[bool, int, dict]:
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url=url, data=body, headers=headers, method="POST")
     try:

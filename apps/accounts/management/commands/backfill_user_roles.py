@@ -1,4 +1,5 @@
 """Backfill user.roles from user.role using ROLE_TEMPLATES (run once after extending ROLE_TEMPLATES)."""
+
 from django.db.models import Count
 from django.core.management import BaseCommand
 
@@ -27,13 +28,27 @@ class Command(BaseCommand):
             roles = AccessRole.objects.filter(code__in=role_codes)
             if not roles.exists():
                 self.stdout.write(
-                    self.style.WARNING(f"User '{user.username}' (role={user.role}): no AccessRole found for {role_codes}; skip.")
+                    self.style.WARNING(
+                        f"User '{user.username}' (role={user.role}): no AccessRole found for {role_codes}; skip."
+                    )
                 )
                 continue
             if dry_run:
-                self.stdout.write(self.style.NOTICE(f"Would set {user.username} (role={user.role}) -> {list(roles.values_list('code', flat=True))}"))
+                self.stdout.write(
+                    self.style.NOTICE(
+                        f"Would set {user.username} (role={user.role}) -> {list(roles.values_list('code', flat=True))}"
+                    )
+                )
             else:
                 user.roles.set(roles)
-                self.stdout.write(self.style.SUCCESS(f"Updated {user.username} (role={user.role}) -> {list(roles.values_list('code', flat=True))}"))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"Updated {user.username} (role={user.role}) -> {list(roles.values_list('code', flat=True))}"
+                    )
+                )
             updated += 1
-        self.stdout.write(self.style.MIGRATE_HEADING(f"Backfill complete: {updated} user(s) {'would be ' if dry_run else ''}updated."))
+        self.stdout.write(
+            self.style.MIGRATE_HEADING(
+                f"Backfill complete: {updated} user(s) {'would be ' if dry_run else ''}updated."
+            )
+        )

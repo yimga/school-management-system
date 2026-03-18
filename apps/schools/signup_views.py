@@ -4,6 +4,7 @@ email verification → activate and provision. No super-admin required.
 
 W1-2: POST /api/trial/ or /start-trial — self-service trial (minimal name, email, country).
 """
+
 from datetime import timedelta
 import json
 
@@ -25,15 +26,18 @@ from apps.siteconfig.global_catalog import GlobalGeoCatalog
 try:
     from django_ratelimit.decorators import ratelimit
 except ImportError:
+
     def ratelimit(*args, **kwargs):
         def dec(f):
             return f
+
         return dec
 
 
 def _slug_from_name(name: str) -> str:
     """Generate a URL-safe slug from school name."""
     import re
+
     s = (name or "").strip().lower()
     s = re.sub(r"[^a-z0-9]+", "-", s)
     s = s.strip("-")
@@ -54,7 +58,9 @@ def signup_school(request: HttpRequest):
     slug = (request.POST.get("slug") or "").strip() or _slug_from_name(name)
     email = (request.POST.get("email") or "").strip()
     country_code = (request.POST.get("country_code") or "").strip()[:2].upper()
-    term_preset = (request.POST.get("term_preset") or "").strip()  # e.g. "UK" for British terms at signup
+    term_preset = (
+        request.POST.get("term_preset") or ""
+    ).strip()  # e.g. "UK" for British terms at signup
 
     errors = []
     if not name:
@@ -64,6 +70,7 @@ def signup_school(request: HttpRequest):
     else:
         try:
             from django.core.validators import validate_email
+
             validate_email(email)
         except ValidationError:
             errors.append("Enter a valid email address.")
@@ -73,17 +80,41 @@ def signup_school(request: HttpRequest):
             return JsonResponse({"ok": False, "errors": errors}, status=400)
         for e in errors:
             messages.error(request, e)
-        return render(request, "schools/signup_school.html", {"name": name, "slug": slug, "email": email, "country_code": country_code})
+        return render(
+            request,
+            "schools/signup_school.html",
+            {
+                "name": name,
+                "slug": slug,
+                "email": email,
+                "country_code": country_code,
+                "term_preset": term_preset,
+            },
+        )
 
     slug = slug or _slug_from_name(name)
-    if School.objects.filter(slug=slug).exists() or School.objects.filter(subdomain=slug).exists():
+    if (
+        School.objects.filter(slug=slug).exists()
+        or School.objects.filter(subdomain=slug).exists()
+    ):
         errors.append("This school URL is already taken. Choose another.")
         if request.headers.get("Accept", "").find("application/json") >= 0:
             return JsonResponse({"ok": False, "errors": errors}, status=400)
         messages.error(request, errors[0])
-        return render(request, "schools/signup_school.html", {"name": name, "slug": slug, "email": email, "country_code": country_code})
+        return render(
+            request,
+            "schools/signup_school.html",
+            {
+                "name": name,
+                "slug": slug,
+                "email": email,
+                "country_code": country_code,
+                "term_preset": term_preset,
+            },
+        )
 
     from django.utils.text import slugify
+
     slug = slugify(slug) or "school"
     if not slug:
         slug = "school"
@@ -100,10 +131,14 @@ def signup_school(request: HttpRequest):
         is_active=False,
         is_approved=True,
         country_code=country_code,
-        timezone=str(country_defaults.get("timezone") or getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "UTC")),
+        timezone=str(
+            country_defaults.get("timezone")
+            or getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "UTC")
+        ),
         settings=school_settings,
     )
     from datetime import timedelta
+
     expires_at = timezone.now() + timedelta(days=2)
     verification = SignupVerification.objects.create(
         school=school,
@@ -112,6 +147,7 @@ def signup_school(request: HttpRequest):
     )
     try:
         from apps.schools.funnel_events import record_marketing_funnel_event
+
         record_marketing_funnel_event("signup", request)
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
@@ -139,11 +175,14 @@ def signup_school(request: HttpRequest):
         pass
 
     if request.headers.get("Accept", "").find("application/json") >= 0:
-        return JsonResponse({
-            "ok": True,
-            "school_id": str(school.id),
-            "message": "Check your email to verify and activate your school.",
-        }, status=201)
+        return JsonResponse(
+            {
+                "ok": True,
+                "school_id": str(school.id),
+                "message": "Check your email to verify and activate your school.",
+            },
+            status=201,
+        )
     messages.success(request, "Check your email to verify and activate your school.")
     return render(request, "schools/signup_school_done.html", {"email": email})
 
@@ -152,6 +191,7 @@ def _get_plans_for_onboarding():
     """Return active plans for public onboarding (platform/public schema). Empty list if unavailable."""
     try:
         from apps.plans_entitlements.models import Plan
+
         return list(Plan.objects.filter(is_active=True).order_by("name")[:20])
     except (ImportError, AttributeError, TypeError, ValueError):
         return []
@@ -161,7 +201,12 @@ def _get_templates_for_onboarding():
     """Return active theme packs as templates for public onboarding. Empty list if unavailable."""
     try:
         from apps.brand_experience.models import ThemePack
-        return list(ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")[:30])
+
+        return list(
+            ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")[
+                :30
+            ]
+        )
     except (ImportError, AttributeError, TypeError, ValueError):
         return []
 
@@ -173,7 +218,11 @@ def onboarding_wizard(request: HttpRequest):
     Session holds: onboarding_step, country_code, school_flavor, plan_slug, template_slug.
     """
     session = request.session
-    step = request.GET.get("step") or request.POST.get("step") or str(session.get("onboarding_step", 1))
+    step = (
+        request.GET.get("step")
+        or request.POST.get("step")
+        or str(session.get("onboarding_step", 1))
+    )
     try:
         step = max(1, min(4, int(step)))
     except (TypeError, ValueError):
@@ -181,14 +230,24 @@ def onboarding_wizard(request: HttpRequest):
 
     if request.method == "POST":
         if step == 1:
-            session["onboarding_country_code"] = (request.POST.get("country_code") or "").strip()[:2].upper()
-            session["onboarding_school_flavor"] = (request.POST.get("school_flavor") or "general").strip()
+            session["onboarding_country_code"] = (
+                (request.POST.get("country_code") or "").strip()[:2].upper()
+            )
+            session["onboarding_school_flavor"] = (
+                request.POST.get("school_flavor") or "general"
+            ).strip()
             session["onboarding_step"] = 2
             session.modified = True
             return redirect(reverse("onboard_wizard") + "?step=2")
         if step == 2:
-            session["onboarding_plan_slug"] = (request.POST.get("plan_slug") or "").strip() or None
-            session["onboarding_trial"] = request.POST.get("trial") in ("1", "true", "on")
+            session["onboarding_plan_slug"] = (
+                request.POST.get("plan_slug") or ""
+            ).strip() or None
+            session["onboarding_trial"] = request.POST.get("trial") in (
+                "1",
+                "true",
+                "on",
+            )
             session["onboarding_step"] = 3
             session.modified = True
             return redirect(reverse("onboard_wizard") + "?step=3")
@@ -197,14 +256,19 @@ def onboarding_wizard(request: HttpRequest):
                 url = (request.POST.get("import_url") or "").strip()
                 if url and request.POST.get("consent") in ("1", "true", "on"):
                     from apps.siteconfig.brand_import import fetch_and_parse_brand_url
+
                     result = fetch_and_parse_brand_url(url)
                     if not result.get("error"):
-                        session["onboarding_import_primary_color"] = result.get("primary_color")
+                        session["onboarding_import_primary_color"] = result.get(
+                            "primary_color"
+                        )
                         session["onboarding_import_logo_url"] = result.get("logo_url")
                         session["onboarding_import_site_name"] = result.get("site_name")
                         session.modified = True
                 return redirect(reverse("onboard_wizard") + "?step=3")
-            session["onboarding_template_slug"] = (request.POST.get("template_slug") or "").strip() or None
+            session["onboarding_template_slug"] = (
+                request.POST.get("template_slug") or ""
+            ).strip() or None
             session["onboarding_step"] = 4
             session.modified = True
             return redirect(reverse("onboard_wizard") + "?step=4")
@@ -219,7 +283,11 @@ def onboarding_wizard(request: HttpRequest):
             return redirect(reverse("signup_school"))
 
     countries = GlobalGeoCatalog.list_countries()
-    default_country = GlobalGeoCatalog.normalize_country_code(request.GET.get("country_code")) or session.get("onboarding_country_code") or "USA"
+    default_country = (
+        GlobalGeoCatalog.normalize_country_code(request.GET.get("country_code"))
+        or session.get("onboarding_country_code")
+        or "USA"
+    )
     plans = _get_plans_for_onboarding()
     templates = _get_templates_for_onboarding()
 
@@ -235,12 +303,16 @@ def onboarding_wizard(request: HttpRequest):
             "plans": plans,
             "templates": templates,
             "onboarding_country_code": session.get("onboarding_country_code"),
-            "onboarding_school_flavor": session.get("onboarding_school_flavor", "general"),
+            "onboarding_school_flavor": session.get(
+                "onboarding_school_flavor", "general"
+            ),
             "onboarding_plan_slug": session.get("onboarding_plan_slug"),
             "onboarding_trial": session.get("onboarding_trial", False),
             "onboarding_template_slug": session.get("onboarding_template_slug"),
             "website_import_doc_url": "#",
-            "onboarding_import_primary_color": session.get("onboarding_import_primary_color"),
+            "onboarding_import_primary_color": session.get(
+                "onboarding_import_primary_color"
+            ),
             "onboarding_import_logo_url": session.get("onboarding_import_logo_url"),
             "onboarding_import_site_name": session.get("onboarding_import_site_name"),
         },
@@ -255,22 +327,42 @@ def verify_signup(request: HttpRequest):
     """
     token_str = (request.GET.get("token") or "").strip()
     if not token_str:
-        return render(request, "schools/verify_signup.html", {"error": "Missing verification token."}, status=400)
+        return render(
+            request,
+            "schools/verify_signup.html",
+            {"error": "Missing verification token."},
+            status=400,
+        )
 
     try:
         import uuid
+
         token_uuid = uuid.UUID(token_str)
     except (ValueError, TypeError):
-        return render(request, "schools/verify_signup.html", {"error": "Invalid token."}, status=400)
+        return render(
+            request,
+            "schools/verify_signup.html",
+            {"error": "Invalid token."},
+            status=400,
+        )
 
-    verification = SignupVerification.objects.filter(
-        token=token_uuid,
-        verified_at__isnull=True,
-        expires_at__gt=timezone.now(),
-    ).select_related("school").first()
+    verification = (
+        SignupVerification.objects.filter(
+            token=token_uuid,
+            verified_at__isnull=True,
+            expires_at__gt=timezone.now(),
+        )
+        .select_related("school")
+        .first()
+    )
 
     if not verification:
-        return render(request, "schools/verify_signup.html", {"error": "Link expired or already used."}, status=400)
+        return render(
+            request,
+            "schools/verify_signup.html",
+            {"error": "Link expired or already used."},
+            status=400,
+        )
 
     school = verification.school
     school.is_active = True
@@ -279,12 +371,14 @@ def verify_signup(request: HttpRequest):
     verification.save(update_fields=["verified_at"])
     try:
         from apps.schools.funnel_events import record_marketing_funnel_event
+
         record_marketing_funnel_event("activation", request)
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
 
     try:
         from apps.schools.tasks import provision_school_sync
+
         provision_school_sync(str(school.id), contact_email=verification.email)
     except (ImportError, AttributeError, TypeError, ValueError, OSError):
         pass
@@ -325,23 +419,33 @@ def api_trial_school(request: HttpRequest):
 
     try:
         from django.core.validators import validate_email
+
         validate_email(contact_email)
     except ValidationError:
         errors.append("Enter a valid email address.")
         return JsonResponse({"errors": errors}, status=400)
 
     slug = _slug_from_name(name)
-    if School.objects.filter(slug=slug).exists() or School.objects.filter(subdomain=slug).exists():
-        return JsonResponse({"errors": ["This school URL is already taken. Choose another name."]}, status=400)
+    if (
+        School.objects.filter(slug=slug).exists()
+        or School.objects.filter(subdomain=slug).exists()
+    ):
+        return JsonResponse(
+            {"errors": ["This school URL is already taken. Choose another name."]},
+            status=400,
+        )
 
     subdomain = slug[:120]
     default_region = None
     if country_code:
         from apps.siteconfig.education_profile_engine import ensure_region_for_country
         from apps.global_registries.models import RegionConfig
+
         default_region = RegionConfig.objects.filter(code=region_code).first()
         if not default_region:
-            default_region = ensure_region_for_country(region_code or country_code, timezone_hint="UTC")
+            default_region = ensure_region_for_country(
+                region_code or country_code, timezone_hint="UTC"
+            )
 
     trial_end = (timezone.now() + timedelta(days=14)).date()
     school = School.objects.create(
@@ -354,14 +458,16 @@ def api_trial_school(request: HttpRequest):
         trial_end_date=trial_end,
         default_region=default_region,
         country_code=country_code,
-        timezone=getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", None) or get_platform_defaults(use_db=False)["timezone"],
+        timezone=getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", None)
+        or get_platform_defaults(use_db=False)["timezone"],
     )
     if default_region:
-        school.settings = (school.settings or {})
+        school.settings = school.settings or {}
         school.settings["country_code"] = country_code
         school.save(update_fields=["settings"])
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
+
             invalidate_policy_cache(school)
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
@@ -375,7 +481,9 @@ def api_trial_school(request: HttpRequest):
         status=SchoolProvisioningEvent.Status.INFO,
         message="Trial signup received.",
         payload={"contact_email": contact_email, "country_code": country_code or ""},
-        created_by=request.user if getattr(request, "user", None) and request.user.is_authenticated else None,
+        created_by=request.user
+        if getattr(request, "user", None) and request.user.is_authenticated
+        else None,
     )
     dispatch = dispatch_provision_school(str(school.id), contact_email=contact_email)
     job_id = dispatch.get("job_id")
@@ -422,13 +530,17 @@ def brand_import_api(request: HttpRequest):
     Used by onboarding and Theme & Experience. Consent required; rate limited by IP.
     """
     consent = request.POST.get("consent") in ("1", "true", "on")
-    if not consent and (request.content_type or "").strip().startswith("application/json"):
+    if not consent and (request.content_type or "").strip().startswith(
+        "application/json"
+    ):
         try:
             consent = json.loads(request.body or "{}").get("consent")
         except (json.JSONDecodeError, TypeError, AttributeError):
             pass
     if not consent:
-        return JsonResponse({"error": "Consent required to fetch external URL."}, status=400)
+        return JsonResponse(
+            {"error": "Consent required to fetch external URL."}, status=400
+        )
     url = (request.POST.get("url") or "").strip()
     if not url and request.content_type and "application/json" in request.content_type:
         try:
@@ -439,7 +551,10 @@ def brand_import_api(request: HttpRequest):
     if not url:
         return JsonResponse({"error": "URL is required."}, status=400)
     from apps.siteconfig.brand_import import fetch_and_parse_brand_url
+
     result = fetch_and_parse_brand_url(url)
     if result.get("error"):
         return JsonResponse({"error": result["error"]}, status=400)
-    return JsonResponse({k: v for k, v in result.items() if k != "error" and v is not None})
+    return JsonResponse(
+        {k: v for k, v in result.items() if k != "error" and v is not None}
+    )

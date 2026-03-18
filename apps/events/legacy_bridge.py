@@ -12,7 +12,9 @@ def _normalize_event_types(raw) -> list[str]:
 
 
 def _legacy_groups() -> list[dict]:
-    from apps.siteconfig.models_platform_catalog import WebhookSubscription as LegacyWebhookSubscription
+    from apps.siteconfig.models_platform_catalog import (
+        WebhookSubscription as LegacyWebhookSubscription,
+    )
 
     grouped: dict[tuple[str, str, str], dict] = {}
     try:
@@ -64,7 +66,9 @@ def _canonical_groups() -> dict[tuple[str, str, str], dict]:
 
     grouped: dict[tuple[str, str, str], dict] = {}
     try:
-        for subscription in WebhookSubscription.objects.all().order_by("school_id", "url", "secret"):
+        for subscription in WebhookSubscription.objects.all().order_by(
+            "school_id", "url", "secret"
+        ):
             key = (
                 str(subscription.school_id or ""),
                 str(subscription.url or "").strip(),
@@ -111,7 +115,9 @@ def legacy_webhook_sync_snapshot() -> dict:
         "legacy_groups": len(legacy_groups),
         "legacy_active_groups": sum(1 for group in legacy_groups if group["is_active"]),
         "canonical_groups": len(canonical_groups),
-        "canonical_active_groups": sum(1 for group in canonical_groups.values() if group["is_active"]),
+        "canonical_active_groups": sum(
+            1 for group in canonical_groups.values() if group["is_active"]
+        ),
         "unsynced_legacy_groups": unsynced_groups,
         "sample_unsynced_urls": sample_unsynced_urls,
     }
@@ -154,7 +160,9 @@ def sync_legacy_webhook_subscriptions(*, dry_run: bool = False) -> dict:
             existing.is_active = bool(group["is_active"])
             changed_fields.append("is_active")
         if not str(existing.description or "").strip():
-            existing.description = "Synced from legacy siteconfig webhook subscriptions."
+            existing.description = (
+                "Synced from legacy siteconfig webhook subscriptions."
+            )
             changed_fields.append("description")
 
         if changed_fields:
@@ -175,7 +183,9 @@ def sync_legacy_webhook_subscriptions(*, dry_run: bool = False) -> dict:
 
 
 def retire_legacy_webhook_subscriptions(*, dry_run: bool = False) -> dict:
-    from apps.siteconfig.models_platform_catalog import WebhookSubscription as LegacyWebhookSubscription
+    from apps.siteconfig.models_platform_catalog import (
+        WebhookSubscription as LegacyWebhookSubscription,
+    )
 
     sync_summary = sync_legacy_webhook_subscriptions(dry_run=dry_run)
     active_qs = LegacyWebhookSubscription.objects.filter(is_active=True)
@@ -186,5 +196,7 @@ def retire_legacy_webhook_subscriptions(*, dry_run: bool = False) -> dict:
     return {
         **sync_summary,
         "retired_active_subscriptions": int(active_count),
-        "remaining_active_legacy_groups": int(snapshot.get("legacy_active_groups", 0) if dry_run else 0),
+        "remaining_active_legacy_groups": int(
+            snapshot.get("legacy_active_groups", 0) if dry_run else 0
+        ),
     }

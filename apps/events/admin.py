@@ -29,16 +29,30 @@ class WebhookDeliveryAdmin(admin.ModelAdmin):
 
 @admin.register(DomainEvent)
 class DomainEventAdmin(admin.ModelAdmin):
-    list_display = ("event_type", "status", "school_id", "created_at", "processed_at", "retry_count")
+    list_display = (
+        "event_type",
+        "status",
+        "school_id",
+        "created_at",
+        "processed_at",
+        "retry_count",
+    )
     list_filter = ("status", "event_type")
     search_fields = ("event_type", "idempotency_key")
-    readonly_fields = ("id", "created_at", "processed_at", "retry_count", "payload_preview")
+    readonly_fields = (
+        "id",
+        "created_at",
+        "processed_at",
+        "retry_count",
+        "payload_preview",
+    )
     ordering = ("-created_at",)
 
     def payload_preview(self, obj):
         if not obj.payload:
             return "-"
         import json
+
         try:
             s = json.dumps(obj.payload)[:500]
             return format_html("<pre>{}</pre>", s)

@@ -3,6 +3,7 @@ Phase Global: Seed global registry from open data (regions, country profiles, br
 Orchestrates seed_global_regions, seed_country_profiles, and seed_global_brand_registry
 so one command hydrates the global catalog.
 """
+
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
@@ -38,7 +39,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        with_profiles = options.get("with_profiles", True) and not options.get("skip_profiles")
+        with_profiles = options.get("with_profiles", True) and not options.get(
+            "skip_profiles"
+        )
         update_existing = options.get("update_existing", False)
 
         self.stdout.write("Seeding global regions...")

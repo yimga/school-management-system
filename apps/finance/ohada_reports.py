@@ -36,7 +36,9 @@ def _to_decimal(value) -> Decimal:
         return Decimal("0.00")
 
 
-def build_dsf_report(profile, start_date: date | None = None, end_date: date | None = None) -> DsfReportContext:
+def build_dsf_report(
+    profile, start_date: date | None = None, end_date: date | None = None
+) -> DsfReportContext:
     line_filter = Q(entry__profile=profile, entry__posted_at__isnull=False)
     if start_date:
         line_filter &= Q(entry__entry_date__gte=start_date)
@@ -98,7 +100,9 @@ def build_dsf_report(profile, start_date: date | None = None, end_date: date | N
 
     cash_in = _to_decimal(payments_qs.aggregate(total=Sum("amount")).get("total"))
     cash_out = _to_decimal(
-        payments_qs.filter(invoice__invoice_type=Invoice.InvoiceType.AP).aggregate(total=Sum("amount")).get("total")
+        payments_qs.filter(invoice__invoice_type=Invoice.InvoiceType.AP)
+        .aggregate(total=Sum("amount"))
+        .get("total")
     )
     closing_cash = cash_net_movement
 
@@ -107,15 +111,25 @@ def build_dsf_report(profile, start_date: date | None = None, end_date: date | N
         status__in=[SuspensePayment.Status.OPEN, SuspensePayment.Status.PARTIAL]
     )
     if start_date:
-        unresolved_suspense_qs = unresolved_suspense_qs.filter(created_at__date__gte=start_date)
+        unresolved_suspense_qs = unresolved_suspense_qs.filter(
+            created_at__date__gte=start_date
+        )
     if end_date:
-        unresolved_suspense_qs = unresolved_suspense_qs.filter(created_at__date__lte=end_date)
+        unresolved_suspense_qs = unresolved_suspense_qs.filter(
+            created_at__date__lte=end_date
+        )
 
     outstanding_ar = _to_decimal(
         invoices_qs.filter(
             invoice_type=Invoice.InvoiceType.AR,
-            status__in=[Invoice.Status.ISSUED, Invoice.Status.PARTIAL, Invoice.Status.OVERDUE],
-        ).aggregate(total=Sum("balance_amount")).get("total")
+            status__in=[
+                Invoice.Status.ISSUED,
+                Invoice.Status.PARTIAL,
+                Invoice.Status.OVERDUE,
+            ],
+        )
+        .aggregate(total=Sum("balance_amount"))
+        .get("total")
     )
 
     balance_sheet = {
@@ -140,13 +154,16 @@ def build_dsf_report(profile, start_date: date | None = None, end_date: date | N
         "invoice_count": invoices_qs.count(),
         "payment_count": payments_qs.count(),
         "outstanding_ar": outstanding_ar,
-        "estimated_stamp_duty_xaf": Decimal("1000.00") * Decimal(str(paid_receipt_count)),
+        "estimated_stamp_duty_xaf": Decimal("1000.00")
+        * Decimal(str(paid_receipt_count)),
         "unresolved_suspense_count": unresolved_suspense_qs.count(),
         "unresolved_suspense_amount": _to_decimal(
             unresolved_suspense_qs.aggregate(total=Sum("amount")).get("total")
         ),
         "payment_methods": list(
-            payments_qs.values("method").annotate(total=Sum("amount")).order_by("method")
+            payments_qs.values("method")
+            .annotate(total=Sum("amount"))
+            .order_by("method")
         ),
     }
 
@@ -158,4 +175,3 @@ def build_dsf_report(profile, start_date: date | None = None, end_date: date | N
         cash_flow=cash_flow,
         annexes=annexes,
     )
-

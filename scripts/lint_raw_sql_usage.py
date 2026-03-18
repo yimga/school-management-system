@@ -3,6 +3,7 @@
 Fail on unclassified non-migration cursor.execute usage.
 Usage: python scripts/lint_raw_sql_usage.py [--exit-zero] [--base DIR] [--allowlist FILE]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -19,14 +20,18 @@ def _load_allowlist(path: Path) -> dict[str, dict[str, object]]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Lint cursor.execute usage against an allowlist.")
+    parser = argparse.ArgumentParser(
+        description="Lint cursor.execute usage against an allowlist."
+    )
     parser.add_argument("--base", default=".", help="Repo root (default: .)")
     parser.add_argument(
         "--allowlist",
         default="scripts/allowlists/raw_sql_allowlist.json",
         help="Allowlist JSON path",
     )
-    parser.add_argument("--exit-zero", action="store_true", help="Always exit 0 (report only).")
+    parser.add_argument(
+        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
+    )
     args = parser.parse_args()
 
     base = Path(args.base).resolve()
@@ -55,7 +60,9 @@ def main() -> int:
             continue
         expected_count = int(entry.get("expected_count", 0))
         if count != expected_count:
-            violations.append(f"Raw SQL count changed in {rel}: expected {expected_count}, found {count}")
+            violations.append(
+                f"Raw SQL count changed in {rel}: expected {expected_count}, found {count}"
+            )
 
     for rel in sorted(set(allowlist) - set(counts)):
         expected_count = int(allowlist[rel].get("expected_count", 0))
@@ -68,7 +75,9 @@ def main() -> int:
             print(f"  {msg}", file=sys.stderr)
         return 0 if args.exit_zero else 1
 
-    print("lint_raw_sql_usage: All non-migration raw SQL usage is classified and unchanged.")
+    print(
+        "lint_raw_sql_usage: All non-migration raw SQL usage is classified and unchanged."
+    )
     return 0
 
 

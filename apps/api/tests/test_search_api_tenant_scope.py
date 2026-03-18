@@ -26,8 +26,12 @@ class SearchApiTenantScopeTests(TestCase):
             role=User.Role.ADMIN,
         )
         self.search_api = GlobalSearchAPI()
-        Subject.objects.create(school=self.school_a, name="Mathematics", category=Subject.Category.GENERAL)
-        Subject.objects.create(school=self.school_b, name="Mathematics", category=Subject.Category.GENERAL)
+        Subject.objects.create(
+            school=self.school_a, name="Mathematics", category=Subject.Category.GENERAL
+        )
+        Subject.objects.create(
+            school=self.school_b, name="Mathematics", category=Subject.Category.GENERAL
+        )
 
     def test_subject_search_is_tenant_scoped(self):
         results = self.search_api._search_type(

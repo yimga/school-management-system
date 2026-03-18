@@ -17,10 +17,9 @@ def _resolve_school(request):
     school = getattr(request, "school", None)
     if school:
         return school
-    slug = (
-        (request.GET.get("school_slug") or "").strip()
-        or (request.headers.get("X-School-Slug") or "").strip()
-    )
+    slug = (request.GET.get("school_slug") or "").strip() or (
+        request.headers.get("X-School-Slug") or ""
+    ).strip()
     if not slug:
         return None
     return School.objects.filter(slug=slug, is_active=True).first()
@@ -32,7 +31,9 @@ def _auth_guard(request):
         return None, JsonResponse({"error": "School context required"}, status=400)
     if not request.user.is_authenticated:
         return None, JsonResponse({"error": "Authentication required"}, status=401)
-    if not getattr(request.user, "is_staff", False) and school != getattr(request, "school", None):
+    if not getattr(request.user, "is_staff", False) and school != getattr(
+        request, "school", None
+    ):
         return None, JsonResponse({"error": "Forbidden"}, status=403)
     return school, None
 
@@ -75,11 +76,16 @@ def ceds_students(request):
         return err
     offset, limit = _pagination(request)
     rows = []
-    qs = StudentProfile.objects.filter(school=school).order_by("pk")[offset : offset + limit]
+    qs = StudentProfile.objects.filter(school=school).order_by("pk")[
+        offset : offset + limit
+    ]
     for student in qs:
         rows.append(student_to_ceds(student, school))
     return JsonResponse(
-        {"students": rows, "pagination": {"offset": offset, "limit": limit, "count": len(rows)}},
+        {
+            "students": rows,
+            "pagination": {"offset": offset, "limit": limit, "count": len(rows)},
+        },
         status=200,
     )
 
@@ -95,12 +101,19 @@ def ceds_enrollments(request):
         return err
     offset, limit = _pagination(request)
     rows = []
-    qs = StudentProfile.objects.filter(school=school).select_related("classroom").order_by("pk")[offset : offset + limit]
+    qs = (
+        StudentProfile.objects.filter(school=school)
+        .select_related("classroom")
+        .order_by("pk")[offset : offset + limit]
+    )
     for student in qs:
         classroom = getattr(student, "classroom", None)
         rows.append(enrollment_to_ceds(student, school, classroom))
     return JsonResponse(
-        {"enrollments": rows, "pagination": {"offset": offset, "limit": limit, "count": len(rows)}},
+        {
+            "enrollments": rows,
+            "pagination": {"offset": offset, "limit": limit, "count": len(rows)},
+        },
         status=200,
     )
 
@@ -126,6 +139,9 @@ def ceds_grades(request):
         if obj:
             rows.append(obj)
     return JsonResponse(
-        {"grades": rows, "pagination": {"offset": offset, "limit": limit, "count": len(rows)}},
+        {
+            "grades": rows,
+            "pagination": {"offset": offset, "limit": limit, "count": len(rows)},
+        },
         status=200,
     )

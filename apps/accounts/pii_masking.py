@@ -2,6 +2,7 @@
 PII masking (plan 3.21): full address/DOB masked until user re-authenticates.
 Helper for profile views: show masked value unless session has recent re-auth.
 """
+
 from __future__ import annotations
 
 
@@ -24,6 +25,7 @@ def mask_date(date_obj) -> str:
         return ""
     try:
         from datetime import date
+
         if isinstance(date_obj, date):
             return f"**/**/{date_obj.year}"
     except (TypeError, AttributeError, ValueError):
@@ -38,7 +40,9 @@ def is_shadow_or_impersonation(request) -> bool:
     """
     if not getattr(request, "session", None):
         return False
-    return bool(request.session.get("impersonation") or request.session.get("shadow_session"))
+    return bool(
+        request.session.get("impersonation") or request.session.get("shadow_session")
+    )
 
 
 def can_show_pii(request) -> bool:
@@ -51,11 +55,13 @@ def can_show_pii(request) -> bool:
         return False
     from django.utils import timezone
     from datetime import timedelta
+
     reauth_at = request.session.get(PII_REAUTH_SESSION_KEY)
     if not reauth_at:
         return False
     try:
         from datetime import datetime
+
         dt = datetime.fromisoformat(reauth_at.replace("Z", "+00:00"))
         if timezone.is_naive(dt):
             dt = timezone.make_aware(dt)
@@ -69,5 +75,6 @@ def can_show_pii(request) -> bool:
 def set_pii_reauth(request) -> None:
     """Call after user re-authenticates; allows PII to be shown for a short window."""
     from django.utils import timezone
+
     request.session[PII_REAUTH_SESSION_KEY] = timezone.now().isoformat()
     request.session.modified = True

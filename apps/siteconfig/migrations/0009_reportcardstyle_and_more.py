@@ -5,54 +5,122 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0004_classroom_academic_year_repair'),
-        ('siteconfig', '0008_sitesettings_country_sitesettings_ministry_and_more'),
+        ("academics", "0004_classroom_academic_year_repair"),
+        ("siteconfig", "0008_sitesettings_country_sitesettings_ministry_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ReportCardStyle',
+            name="ReportCardStyle",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('slug', models.SlugField(max_length=80, unique=True)),
-                ('name', models.CharField(max_length=120)),
-                ('description', models.TextField(blank=True)),
-                ('term_template', models.CharField(choices=[('reports/term_report.html', 'Standard term template'), ('reports/term_report_cameroon.html', 'Cameroon term template')], default='reports/term_report.html', max_length=120)),
-                ('annual_template', models.CharField(choices=[('reports/annual_report.html', 'Standard annual template'), ('reports/annual_report_cameroon.html', 'Cameroon annual template')], default='reports/annual_report.html', max_length=120)),
-                ('primary_color', models.CharField(default='#0d6efd', max_length=20)),
-                ('accent_color', models.CharField(default='#198754', max_length=20)),
-                ('watermark_text', models.CharField(blank=True, max_length=150)),
-                ('header_tagline', models.CharField(blank=True, max_length=200)),
-                ('css_snippet', models.TextField(blank=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("slug", models.SlugField(max_length=80, unique=True)),
+                ("name", models.CharField(max_length=120)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "term_template",
+                    models.CharField(
+                        choices=[
+                            ("reports/term_report.html", "Standard term template"),
+                            (
+                                "reports/term_report_cameroon.html",
+                                "Cameroon term template",
+                            ),
+                        ],
+                        default="reports/term_report.html",
+                        max_length=120,
+                    ),
+                ),
+                (
+                    "annual_template",
+                    models.CharField(
+                        choices=[
+                            ("reports/annual_report.html", "Standard annual template"),
+                            (
+                                "reports/annual_report_cameroon.html",
+                                "Cameroon annual template",
+                            ),
+                        ],
+                        default="reports/annual_report.html",
+                        max_length=120,
+                    ),
+                ),
+                ("primary_color", models.CharField(default="#0d6efd", max_length=20)),
+                ("accent_color", models.CharField(default="#198754", max_length=20)),
+                ("watermark_text", models.CharField(blank=True, max_length=150)),
+                ("header_tagline", models.CharField(blank=True, max_length=200)),
+                ("css_snippet", models.TextField(blank=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='default_annual_report_style',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='annual_default_for', to='siteconfig.reportcardstyle'),
+            model_name="sitesettings",
+            name="default_annual_report_style",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="annual_default_for",
+                to="siteconfig.reportcardstyle",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='default_term_report_style',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='term_default_for', to='siteconfig.reportcardstyle'),
+            model_name="sitesettings",
+            name="default_term_report_style",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="term_default_for",
+                to="siteconfig.reportcardstyle",
+            ),
         ),
         migrations.CreateModel(
-            name='ReportCardStyleAssignment',
+            name="ReportCardStyleAssignment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('classroom', models.OneToOneField(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='report_card_style_assignment', to='academics.classroom')),
-                ('style', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='assignments', to='siteconfig.reportcardstyle')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "classroom",
+                    models.OneToOneField(
+                        db_constraint=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="report_card_style_assignment",
+                        to="academics.classroom",
+                    ),
+                ),
+                (
+                    "style",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="assignments",
+                        to="siteconfig.reportcardstyle",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['classroom__name'],
+                "ordering": ["classroom__name"],
             },
         ),
     ]

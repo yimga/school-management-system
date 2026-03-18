@@ -38,7 +38,9 @@ class DesignTemplate(models.Model):
         blank=True,
         help_text="Layout blueprint: widgets, positions, placeholders e.g. {{student_name}}",
     )
-    is_default = models.BooleanField(default=False, help_text="Use as default for this document type")
+    is_default = models.BooleanField(
+        default=False, help_text="Use as default for this document type"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -64,7 +66,9 @@ class BrandProfile(models.Model):
         related_name="brand_profile",
     )
     logo_url = models.URLField(blank=True, help_text="Primary tenant logo URL.")
-    logo_dark_url = models.URLField(blank=True, help_text="Optional dark-surface logo URL.")
+    logo_dark_url = models.URLField(
+        blank=True, help_text="Optional dark-surface logo URL."
+    )
     favicon_url = models.URLField(blank=True, help_text="Optional tenant favicon URL.")
     tagline = models.CharField(max_length=255, blank=True)
     primary_color = models.CharField(max_length=20, default="#0d6efd")
@@ -117,7 +121,9 @@ class BrandSettings(models.Model):
     logo_url = models.URLField(blank=True, help_text="URL to tenant logo")
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
-    custom_css = models.TextField(blank=True, help_text="Optional custom CSS for tenant")
+    custom_css = models.TextField(
+        blank=True, help_text="Optional custom CSS for tenant"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -326,9 +332,14 @@ class WeatherLocation(models.Model):
                 code=row["country_code"],
                 defaults={
                     "name": row["country_name"],
-                    "default_language": country_defaults.get("default_language") or "en",
-                    "timezone": row["timezone"] or country_defaults.get("timezone") or "UTC",
-                    "date_format": "YYYY-MM-DD" if row["country_code"] == "GLOBAL" else "DD/MM/YYYY",
+                    "default_language": country_defaults.get("default_language")
+                    or "en",
+                    "timezone": row["timezone"]
+                    or country_defaults.get("timezone")
+                    or "UTC",
+                    "date_format": "YYYY-MM-DD"
+                    if row["country_code"] == "GLOBAL"
+                    else "DD/MM/YYYY",
                     "grading_scale": "0-100",
                     "default_currency": country_defaults.get("currency") or "USD",
                     "academic_year_start_month": 9,
@@ -359,7 +370,12 @@ class WeatherLocation(models.Model):
         )
         if location:
             return location
-        return cls.objects.select_related("region").filter(is_active=True).order_by("sort_order", "city").first()
+        return (
+            cls.objects.select_related("region")
+            .filter(is_active=True)
+            .order_by("sort_order", "city")
+            .first()
+        )
 
 
 class RegionalPitch(models.Model):
@@ -502,7 +518,9 @@ class ImpersonationLog(models.Model):
 class GlobalSyllabus(models.Model):
     """World Engine global syllabus/standards nodes for semantic mapping."""
 
-    code = models.CharField(max_length=120, unique=True, help_text="Unique code (e.g. subject-grade-topic).")
+    code = models.CharField(
+        max_length=120, unique=True, help_text="Unique code (e.g. subject-grade-topic)."
+    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     parent = models.ForeignKey(
@@ -541,7 +559,11 @@ class LearningPassport(models.Model):
         related_name="learning_passports",
     )
     external_id = models.CharField(max_length=255, blank=True, db_index=True)
-    credentials = models.JSONField(default=dict, blank=True, help_text="Achievements, badges, mapped syllabus nodes.")
+    credentials = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Achievements, badges, mapped syllabus nodes.",
+    )
     country_code = models.CharField(max_length=10, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

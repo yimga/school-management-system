@@ -4,70 +4,151 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0032_seed_admin_security_widgets'),
+        ("siteconfig", "0032_seed_admin_security_widgets"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dashboardwidget',
-            name='allowed_sizes',
-            field=models.JSONField(blank=True, default=list, help_text='Allowed size options for this widget (sm/md/lg). Empty means all.'),
+            model_name="dashboardwidget",
+            name="allowed_sizes",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Allowed size options for this widget (sm/md/lg). Empty means all.",
+            ),
         ),
         migrations.AddField(
-            model_name='dashboardwidget',
-            name='allowed_variants',
-            field=models.JSONField(blank=True, default=list, help_text='Allowed style variants for this widget. Empty means all.'),
+            model_name="dashboardwidget",
+            name="allowed_variants",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Allowed style variants for this widget. Empty means all.",
+            ),
         ),
         migrations.AddField(
-            model_name='dashboardwidget',
-            name='default_size',
-            field=models.CharField(choices=[('sm', 'Small'), ('md', 'Medium'), ('lg', 'Large')], default='md', help_text='Default size to apply when user has not customized.', max_length=8),
+            model_name="dashboardwidget",
+            name="default_size",
+            field=models.CharField(
+                choices=[("sm", "Small"), ("md", "Medium"), ("lg", "Large")],
+                default="md",
+                help_text="Default size to apply when user has not customized.",
+                max_length=8,
+            ),
         ),
         migrations.AddField(
-            model_name='dashboardwidget',
-            name='default_variant',
-            field=models.CharField(choices=[('default', 'Default'), ('compact', 'Compact'), ('flat', 'Flat')], default='default', help_text='Default style variant to apply when user has not customized.', max_length=16),
+            model_name="dashboardwidget",
+            name="default_variant",
+            field=models.CharField(
+                choices=[
+                    ("default", "Default"),
+                    ("compact", "Compact"),
+                    ("flat", "Flat"),
+                ],
+                default="default",
+                help_text="Default style variant to apply when user has not customized.",
+                max_length=16,
+            ),
         ),
         migrations.AlterField(
-            model_name='dashboardlayout',
-            name='page',
-            field=models.CharField(choices=[('parent', 'Parent Portal'), ('teacher', 'Teacher Portal'), ('backend', 'Backend Dashboard'), ('backend-dashboard', 'Backend Dashboard (alias)'), ('backend_console', 'Backend Console'), ('admin', 'Admin Portal'), ('admin-security', 'Admin Security'), ('student', 'Student Portal'), ('finance', 'Finance Dashboard'), ('analytics', 'Analytics Dashboard'), ('portal-kb', 'Portal Knowledge Base'), ('entity-console', 'Entity Console')], max_length=20),
+            model_name="dashboardlayout",
+            name="page",
+            field=models.CharField(
+                choices=[
+                    ("parent", "Parent Portal"),
+                    ("teacher", "Teacher Portal"),
+                    ("backend", "Backend Dashboard"),
+                    ("backend-dashboard", "Backend Dashboard (alias)"),
+                    ("backend_console", "Backend Console"),
+                    ("admin", "Admin Portal"),
+                    ("admin-security", "Admin Security"),
+                    ("student", "Student Portal"),
+                    ("finance", "Finance Dashboard"),
+                    ("analytics", "Analytics Dashboard"),
+                    ("portal-kb", "Portal Knowledge Base"),
+                    ("entity-console", "Entity Console"),
+                ],
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='dashboardlayout',
-            name='role',
-            field=models.CharField(blank=True, help_text='Optional role-scoped default when user layout is not present.', max_length=20),
+            model_name="dashboardlayout",
+            name="role",
+            field=models.CharField(
+                blank=True,
+                help_text="Optional role-scoped default when user layout is not present.",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='dashboarduserpreference',
-            name='dashboard_layout',
-            field=models.JSONField(default=dict, help_text='Legacy widget positions (Phase 7).'),
+            model_name="dashboarduserpreference",
+            name="dashboard_layout",
+            field=models.JSONField(
+                default=dict, help_text="Legacy widget positions (Phase 7)."
+            ),
         ),
         migrations.AlterField(
-            model_name='dashboarduserpreference',
-            name='language',
-            field=models.CharField(choices=[('en', 'English'), ('fr', 'Francais'), ('es', 'Espanol')], default='en', max_length=5),
+            model_name="dashboarduserpreference",
+            name="language",
+            field=models.CharField(
+                choices=[("en", "English"), ("fr", "Francais"), ("es", "Espanol")],
+                default="en",
+                max_length=5,
+            ),
         ),
         migrations.AlterField(
-            model_name='dashboarduserpreference',
-            name='theme_preference',
-            field=models.CharField(choices=[('system', 'System'), ('light', 'Light'), ('dark', 'Dark'), ('classic', 'Classic'), ('high_contrast', 'High Contrast')], default='system', max_length=20),
+            model_name="dashboarduserpreference",
+            name="theme_preference",
+            field=models.CharField(
+                choices=[
+                    ("system", "System"),
+                    ("light", "Light"),
+                    ("dark", "Dark"),
+                    ("classic", "Classic"),
+                    ("high_contrast", "High Contrast"),
+                ],
+                default="system",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='dashboarduserpreference',
-            name='visible_widgets',
-            field=models.JSONField(default=list, help_text='List of visible widget IDs on dashboard.'),
+            model_name="dashboarduserpreference",
+            name="visible_widgets",
+            field=models.JSONField(
+                default=list, help_text="List of visible widget IDs on dashboard."
+            ),
         ),
         migrations.AlterField(
-            model_name='dashboardwidget',
-            name='allowed_roles',
-            field=models.JSONField(blank=True, default=list, help_text='Optional: additional roles permitted to view this widget.'),
+            model_name="dashboardwidget",
+            name="allowed_roles",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Optional: additional roles permitted to view this widget.",
+            ),
         ),
         migrations.AlterField(
-            model_name='dashboardwidget',
-            name='page',
-            field=models.CharField(choices=[('parent', 'Parent Portal'), ('teacher', 'Teacher Portal'), ('backend', 'Backend Dashboard'), ('backend-dashboard', 'Backend Dashboard (alias)'), ('backend_console', 'Backend Console'), ('admin', 'Admin Portal'), ('admin-security', 'Admin Security'), ('student', 'Student Portal'), ('finance', 'Finance Dashboard'), ('analytics', 'Analytics Dashboard'), ('portal-kb', 'Portal Knowledge Base'), ('entity-console', 'Entity Console')], default='backend', help_text='Where this widget can be placed (parent/teacher/backend/etc.).', max_length=20),
+            model_name="dashboardwidget",
+            name="page",
+            field=models.CharField(
+                choices=[
+                    ("parent", "Parent Portal"),
+                    ("teacher", "Teacher Portal"),
+                    ("backend", "Backend Dashboard"),
+                    ("backend-dashboard", "Backend Dashboard (alias)"),
+                    ("backend_console", "Backend Console"),
+                    ("admin", "Admin Portal"),
+                    ("admin-security", "Admin Security"),
+                    ("student", "Student Portal"),
+                    ("finance", "Finance Dashboard"),
+                    ("analytics", "Analytics Dashboard"),
+                    ("portal-kb", "Portal Knowledge Base"),
+                    ("entity-console", "Entity Console"),
+                ],
+                default="backend",
+                help_text="Where this widget can be placed (parent/teacher/backend/etc.).",
+                max_length=20,
+            ),
         ),
     ]

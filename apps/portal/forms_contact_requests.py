@@ -33,14 +33,26 @@ class ContactRequestCreateForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select"}),
         help_text="Optional: choose the student this request is about.",
     )
-    contact_name = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control"}))
-    contact_phone = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    contact_whatsapp = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    contact_email = forms.EmailField(required=False, widget=forms.EmailInput(attrs={"class": "form-control"}))
+    contact_name = forms.CharField(
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    contact_phone = forms.CharField(
+        required=False, widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    contact_whatsapp = forms.CharField(
+        required=False, widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    contact_email = forms.EmailField(
+        required=False, widget=forms.EmailInput(attrs={"class": "form-control"})
+    )
 
-    audience = forms.ChoiceField(choices=ContactRequest.Audience.choices, widget=forms.Select(attrs={"class": "form-select"}))
+    audience = forms.ChoiceField(
+        choices=ContactRequest.Audience.choices,
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
     preferred_channel = forms.ChoiceField(
-        choices=ContactRequest.Channel.choices, widget=forms.Select(attrs={"class": "form-select"})
+        choices=ContactRequest.Channel.choices,
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     desired_staff = forms.ModelChoiceField(
         queryset=User.objects.none(),
@@ -49,16 +61,24 @@ class ContactRequestCreateForm(forms.Form):
         help_text="Optional: pick a specific staff member (if you know them).",
     )
     subject = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control"}))
-    message = forms.CharField(widget=forms.Textarea(attrs={"class": "form-control", "rows": 5}))
-    attachments = MultiFileField(help_text="Optional: attach screenshots, documents, or images (max 10MB each).")
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 5})
+    )
+    attachments = MultiFileField(
+        help_text="Optional: attach screenshots, documents, or images (max 10MB each)."
+    )
 
     def __init__(self, *args, parent: User | None = None, students=None, **kwargs):
         super().__init__(*args, **kwargs)
         students = students or []
-        self.fields["student"].queryset = StudentProfile.objects.filter(id__in=[s.id for s in students])
+        self.fields["student"].queryset = StudentProfile.objects.filter(
+            id__in=[s.id for s in students]
+        )
 
         # Keep this broad: any staff/superuser can be chosen if parent knows them.
-        self.fields["desired_staff"].queryset = User.objects.filter(is_staff=True).order_by("first_name", "last_name", "username")
+        self.fields["desired_staff"].queryset = User.objects.filter(
+            is_staff=True
+        ).order_by("first_name", "last_name", "username")
 
         if parent:
             full = (parent.get_full_name() or "").strip()
@@ -77,7 +97,9 @@ class ContactRequestAssignForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["assigned_to"].queryset = User.objects.filter(is_staff=True).order_by("first_name", "last_name", "username")
+        self.fields["assigned_to"].queryset = User.objects.filter(
+            is_staff=True
+        ).order_by("first_name", "last_name", "username")
 
 
 class ContactRequestUpdateStatusForm(forms.ModelForm):
@@ -86,6 +108,7 @@ class ContactRequestUpdateStatusForm(forms.ModelForm):
         fields = ["status", "resolution_notes"]
         widgets = {
             "status": forms.Select(attrs={"class": "form-select"}),
-            "resolution_notes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "resolution_notes": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
         }
-

@@ -10,10 +10,12 @@
 
 | Field | Value |
 |-------|--------|
-| Date | |
-| Environment | local / staging / production |
-| Completed by | |
-| Branch/commit | |
+| Date | 2026-03-18 |
+| Environment | CI / dev (automated slice) |
+| Completed by | Engineering (UI/UX closure sprint) |
+| Branch/commit | (current) |
+
+**2026-03-18 automated + productization slice (done):** `phase_h_audit.py` static **passed**; new **control-plane Page tour** (trust / migration CSV diff / governed query); **GLOBAL_NAV_INFORMATION_ARCHITECTURE.md**; **System config outcome banner** (Studio Experience, Setup Studio, Theme & colors); **test_tour_steps_control_plane**; SOT §6 pillar **MET**. Full manual §2–8 still required **per release** on staging (tick boxes below).
 
 ---
 
@@ -21,7 +23,7 @@
 
 | Section | Done | Notes |
 |---------|------|--------|
-| 1. How to use (automated URL check) | ☐ | phase_h_audit.py, phase_h_url_check.py |
+| 1. How to use (automated URL check) | ☑ slice | phase_h_audit static OK; URL hit pass on release |
 | 2. Links, buttons, shortcuts | ☐ | Control plane, tenant backend, portal, marketing, Studio OS, auth |
 | 3. Pages and dashboards (no 404/500) | ☐ | Control, tenant backend, portal, marketing, error pages |
 | 4. UI/UX — responsive (§8.0.6) | ☐ | Fluid, Flexbox/Grid, clamp(), mobile 375px, tablet/desktop |

@@ -22,7 +22,6 @@ def set_report_preview_defaults(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0038_report_preview_contacts"),
     ]

@@ -3,6 +3,7 @@ Import CurriculumNode from CSV.
 Columns: code, title, parent_code, order, level_type, standard_id (or standard_name).
 Header row optional; if missing, first row is data.
 """
+
 import csv
 import io
 
@@ -16,7 +17,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("csv_file", help="Path to CSV")
-        parser.add_argument("--standard", type=int, help="CurriculumStandard PK (if not in CSV)")
+        parser.add_argument(
+            "--standard", type=int, help="CurriculumStandard PK (if not in CSV)"
+        )
         parser.add_argument("--dry-run", action="store_true", help="Do not write to DB")
 
     def handle(self, *args, **options):
@@ -40,7 +43,12 @@ class Command(BaseCommand):
         # Normalize row keys
         data = []
         for row in rows:
-            data.append({keys[i]: row.get(f, "").strip() for i, f in enumerate(reader.fieldnames)})
+            data.append(
+                {
+                    keys[i]: row.get(f, "").strip()
+                    for i, f in enumerate(reader.fieldnames)
+                }
+            )
         # Resolve standard
         first = data[0]
         sid = standard_id or first.get("standard_id") or first.get("standard")
@@ -54,7 +62,11 @@ class Command(BaseCommand):
         if not standard and sname:
             standard = CurriculumStandard.objects.filter(name__iexact=sname).first()
         if not standard:
-            self.stderr.write(self.style.ERROR("Provide --standard=<id> or include standard_id/standard_name in CSV"))
+            self.stderr.write(
+                self.style.ERROR(
+                    "Provide --standard=<id> or include standard_id/standard_name in CSV"
+                )
+            )
             return
         # Pass 1: create all nodes with parent=None
         created = 0
@@ -77,7 +89,12 @@ class Command(BaseCommand):
             node, is_new = CurriculumNode.objects.update_or_create(
                 standard=standard,
                 code=code,
-                defaults={"title": title, "parent": None, "order": order, "level_type": level_type},
+                defaults={
+                    "title": title,
+                    "parent": None,
+                    "order": order,
+                    "level_type": level_type,
+                },
             )
             code_to_node[code] = node
             if is_new:
@@ -93,4 +110,6 @@ class Command(BaseCommand):
                 if node.parent_id != code_to_node[parent_code].pk:
                     node.parent = code_to_node[parent_code]
                     node.save(update_fields=["parent"])
-        self.stdout.write(self.style.SUCCESS(f"Processed {len(data)} rows; new/updated: {created}"))
+        self.stdout.write(
+            self.style.SUCCESS(f"Processed {len(data)} rows; new/updated: {created}")
+        )

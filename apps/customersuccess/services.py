@@ -1,6 +1,7 @@
 """
 Section 11: Services for benchmark intelligence (11.3) and customer success (11.4).
 """
+
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
@@ -38,7 +39,11 @@ def get_peer_school_ids(school, cohort=None):
     country = getattr(school, "country_code", "") or ""
     # Infer size band from student count if available
     try:
-        cnt = school.student_profiles.count() if hasattr(school, "student_profiles") else 0
+        cnt = (
+            school.student_profiles.count()
+            if hasattr(school, "student_profiles")
+            else 0
+        )
     except CUSTOMER_SUCCESS_SOFT_FAILURES:
         cnt = 0
     if cnt < 100:
@@ -98,8 +103,11 @@ def compute_tenant_health_score(school):
 
     # Workflow failures in last 14 days
     from datetime import timedelta
+
     since = timezone.now() - timedelta(days=14)
-    fail_count = WorkflowFailureEvent.objects.filter(school=school, created_at__gte=since).count()
+    fail_count = WorkflowFailureEvent.objects.filter(
+        school=school, created_at__gte=since
+    ).count()
     if fail_count == 0:
         dimensions["workflows"] = 100
     elif fail_count <= 3:
@@ -121,8 +129,14 @@ def ensure_health_score_record(school):
     from .models import TenantHealthScore
 
     today = timezone.now().date()
-    if TenantHealthScore.objects.filter(school=school, computed_at__date=today).exists():
-        return TenantHealthScore.objects.filter(school=school).order_by("-computed_at").first()
+    if TenantHealthScore.objects.filter(
+        school=school, computed_at__date=today
+    ).exists():
+        return (
+            TenantHealthScore.objects.filter(school=school)
+            .order_by("-computed_at")
+            .first()
+        )
     score, dimensions = compute_tenant_health_score(school)
     return TenantHealthScore.objects.create(
         school=school,
@@ -153,7 +167,9 @@ def get_peer_benchmark_metrics(school, metric_key="maturity"):
     return float(agg["avg"]) if agg.get("avg") is not None else None
 
 
-def record_workflow_failure(school, workflow_name, workflow_run_id="", error_summary="", payload=None):
+def record_workflow_failure(
+    school, workflow_name, workflow_run_id="", error_summary="", payload=None
+):
     """Record a workflow failure event for health and optional auto-ticket."""
     from .models import WorkflowFailureEvent, AutoTicketRule
 
@@ -164,9 +180,18 @@ def record_workflow_failure(school, workflow_name, workflow_run_id="", error_sum
         error_summary=error_summary[:500],
         payload=payload or {},
     )
-    rule = AutoTicketRule.objects.filter(trigger=AutoTicketRule.Trigger.WORKFLOW_FAILURE, is_active=True).first()
+    rule = AutoTicketRule.objects.filter(
+        trigger=AutoTicketRule.Trigger.WORKFLOW_FAILURE, is_active=True
+    ).first()
     if rule:
-        create_auto_ticket(school, rule, trigger_context={"workflow_failure_event_id": event.pk, "error_summary": error_summary})
+        create_auto_ticket(
+            school,
+            rule,
+            trigger_context={
+                "workflow_failure_event_id": event.pk,
+                "error_summary": error_summary,
+            },
+        )
     return event
 
 
@@ -180,7 +205,9 @@ def create_auto_ticket(school, rule, trigger_context=None):
     except ImportError:
         return None
     trigger_context = trigger_context or {}
-    title = f"[Auto] {rule.name}: {trigger_context.get('error_summary', rule.get_trigger_display())}"[:255]
+    title = f"[Auto] {rule.name}: {trigger_context.get('error_summary', rule.get_trigger_display())}"[
+        :255
+    ]
     ticket = GlobalSupportTicket.objects.create(
         school=school,
         user=None,
@@ -188,7 +215,12 @@ def create_auto_ticket(school, rule, trigger_context=None):
         body=trigger_context.get("message", "Auto-created by customer success rule."),
         status=GlobalSupportTicket.Status.OPEN,
         priority=GlobalSupportTicket.Priority.NORMAL,
-        metadata={"source": "auto_ticket_rule", "rule_id": rule.pk, "trigger": rule.trigger, **trigger_context},
+        metadata={
+            "source": "auto_ticket_rule",
+            "rule_id": rule.pk,
+            "trigger": rule.trigger,
+            **trigger_context,
+        },
     )
     return ticket
 
@@ -204,27 +236,37 @@ def get_support_copilot_suggestions(school):
     for s in TenantInterventionSuggestion.objects.filter(
         school=school, dismissed_at__isnull=True
     ).order_by("priority", "-created_at")[:10]:
-        suggestions.append({
-            "title": s.title,
-            "description": s.description[:200] if s.description else "",
-            "link": "",
-            "priority": s.priority,
-        })
-    for a in TenantRiskAlert.objects.filter(school=school, acknowledged_at__isnull=True).order_by("-created_at")[:5]:
-        suggestions.append({
-            "title": f"Risk: {a.reason}",
-            "description": (a.suggested_action or "")[:200],
-            "link": "",
-            "priority": 1 if a.severity == "red" else 2,
-        })
-    latest = TenantHealthScore.objects.filter(school=school).order_by("-computed_at").first()
+        suggestions.append(
+            {
+                "title": s.title,
+                "description": s.description[:200] if s.description else "",
+                "link": "",
+                "priority": s.priority,
+            }
+        )
+    for a in TenantRiskAlert.objects.filter(
+        school=school, acknowledged_at__isnull=True
+    ).order_by("-created_at")[:5]:
+        suggestions.append(
+            {
+                "title": f"Risk: {a.reason}",
+                "description": (a.suggested_action or "")[:200],
+                "link": "",
+                "priority": 1 if a.severity == "red" else 2,
+            }
+        )
+    latest = (
+        TenantHealthScore.objects.filter(school=school).order_by("-computed_at").first()
+    )
     if latest and float(latest.score) < 50:
-        suggestions.append({
-            "title": "Health score below 50",
-            "description": "Consider checking workflow failures and recent activity.",
-            "link": "/siteconfig/",
-            "priority": 2,
-        })
+        suggestions.append(
+            {
+                "title": "Health score below 50",
+                "description": "Consider checking workflow failures and recent activity.",
+                "link": "/siteconfig/",
+                "priority": 2,
+            }
+        )
     return sorted(suggestions, key=lambda x: x["priority"])[:15]
 
 
@@ -236,53 +278,71 @@ def get_guided_onboarding_steps(school):
     steps = []
     try:
         from apps.academics.models import AcademicYear
+
         has_year = AcademicYear.objects.filter(school=school).exists()
-        steps.append({
-            "key": "academic_year",
-            "label": "Create academic year",
-            "done": has_year,
-            "link": "/admin/academics/academicyear/add/" if not has_year else "",
-        })
+        steps.append(
+            {
+                "key": "academic_year",
+                "label": "Create academic year",
+                "done": has_year,
+                "link": "/admin/academics/academicyear/add/" if not has_year else "",
+            }
+        )
     except OPTIONAL_ONBOARDING_STEP_FAILURES:
         pass
     try:
         from apps.people.models import StudentProfile
-        has_students = StudentProfile.objects.filter(school=school, is_active=True).exists()
-        steps.append({
-            "key": "students",
-            "label": "Add students",
-            "done": has_students,
-            "link": "/authentication/backend/students/" if not has_students else "",
-        })
+
+        has_students = StudentProfile.objects.filter(
+            school=school, is_active=True
+        ).exists()
+        steps.append(
+            {
+                "key": "students",
+                "label": "Add students",
+                "done": has_students,
+                "link": "/authentication/backend/students/" if not has_students else "",
+            }
+        )
     except OPTIONAL_ONBOARDING_STEP_FAILURES:
         pass
     try:
         from apps.platform_runtime.helpers import get_effective_site_settings
+
         site = get_effective_site_settings(school=school)
-        has_grading = bool(getattr(site, "grading_scale", None) or getattr(site, "default_grading_scale", None))
-        steps.append({
-            "key": "grading",
-            "label": "Configure grading",
-            "done": has_grading,
-            "link": "/siteconfig/grading-settings/" if not has_grading else "",
-        })
+        has_grading = bool(
+            getattr(site, "grading_scale", None)
+            or getattr(site, "default_grading_scale", None)
+        )
+        steps.append(
+            {
+                "key": "grading",
+                "label": "Configure grading",
+                "done": has_grading,
+                "link": "/siteconfig/grading-settings/" if not has_grading else "",
+            }
+        )
         has_branding = bool(
             (getattr(site, "site_name", None) or "").strip()
             or getattr(site, "logo", None)
             or (getattr(site, "school_name", None) or "").strip()
         )
-        steps.append({
-            "key": "branding",
-            "label": "Set school branding",
-            "done": has_branding,
-            "link": "/studio/experience/" if not has_branding else "",
-        })
+        steps.append(
+            {
+                "key": "branding",
+                "label": "Set school branding",
+                "done": has_branding,
+                "link": "/studio/experience/" if not has_branding else "",
+            }
+        )
     except OPTIONAL_ONBOARDING_STEP_FAILURES:
         pass
-    steps.append({
-        "key": "dashboard",
-        "label": "Review dashboard",
-        "done": True,
-        "link": "/authentication/backend/",
-    })
+    steps.append(
+        {
+            "key": "dashboard",
+            "label": "Review dashboard",
+            "done": True,
+            "link": "/authentication/backend/",
+        }
+    )
     return steps

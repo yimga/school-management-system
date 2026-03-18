@@ -6,35 +6,69 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0034_add_vocational_certification'),
-        ('schools', '0017_add_hierarchy_campus_quota_usage'),
+        ("people", "0034_add_vocational_certification"),
+        ("schools", "0017_add_hierarchy_campus_quota_usage"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='studentprofile',
-            name='transcript_track',
-            field=models.CharField(blank=True, choices=[('ACADEMIC', 'Academic'), ('VOCATIONAL', 'Vocational'), ('DUAL', 'Dual (academic + vocational)')], default='ACADEMIC', help_text='Used by report templates for dual transcript (academic + vocational sections).', max_length=20),
+            model_name="studentprofile",
+            name="transcript_track",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("ACADEMIC", "Academic"),
+                    ("VOCATIONAL", "Vocational"),
+                    ("DUAL", "Dual (academic + vocational)"),
+                ],
+                default="ACADEMIC",
+                help_text="Used by report templates for dual transcript (academic + vocational sections).",
+                max_length=20,
+            ),
         ),
         migrations.CreateModel(
-            name='EmployerProfile',
+            name="EmployerProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('company_name', models.CharField(blank=True, max_length=255)),
-                ('contact_email', models.EmailField(blank=True, max_length=254)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='employer_profiles', to='schools.school')),
-                ('user', models.OneToOneField(help_text='User with role EMPLOYER.', on_delete=django.db.models.deletion.CASCADE, related_name='employer_profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("company_name", models.CharField(blank=True, max_length=255)),
+                ("contact_email", models.EmailField(blank=True, max_length=254)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="employer_profiles",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        help_text="User with role EMPLOYER.",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="employer_profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Employer profile',
-                'verbose_name_plural': 'Employer profiles',
-                'ordering': ['company_name'],
+                "verbose_name": "Employer profile",
+                "verbose_name_plural": "Employer profiles",
+                "ordering": ["company_name"],
             },
         ),
     ]

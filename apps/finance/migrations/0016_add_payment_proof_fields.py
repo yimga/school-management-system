@@ -5,25 +5,48 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0015_add_notification_recipient'),
+        ("finance", "0015_add_notification_recipient"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='invoice',
-            name='payment_notes',
-            field=models.TextField(blank=True, help_text='Additional notes about the payment'),
+            model_name="invoice",
+            name="payment_notes",
+            field=models.TextField(
+                blank=True, help_text="Additional notes about the payment"
+            ),
         ),
         migrations.AddField(
-            model_name='invoice',
-            name='payment_proof',
-            field=models.FileField(blank=True, help_text='Upload proof of payment (receipt, screenshot, etc.) - max 2MB', null=True, upload_to='finance/payment_proofs/', validators=[apps.accounts.validators.FileTypeValidator(allowed_extensions=['.pdf', '.jpg', '.jpeg', '.png'], allowed_types=['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'], message='Only PDF or image files are allowed for receipts.'), apps.accounts.validators.FileSizeValidator(max_size_mb=2)]),
+            model_name="invoice",
+            name="payment_proof",
+            field=models.FileField(
+                blank=True,
+                help_text="Upload proof of payment (receipt, screenshot, etc.) - max 2MB",
+                null=True,
+                upload_to="finance/payment_proofs/",
+                validators=[
+                    apps.accounts.validators.FileTypeValidator(
+                        allowed_extensions=[".pdf", ".jpg", ".jpeg", ".png"],
+                        allowed_types=[
+                            "application/pdf",
+                            "image/jpeg",
+                            "image/png",
+                            "image/jpg",
+                        ],
+                        message="Only PDF or image files are allowed for receipts.",
+                    ),
+                    apps.accounts.validators.FileSizeValidator(max_size_mb=2),
+                ],
+            ),
         ),
         migrations.AddField(
-            model_name='invoice',
-            name='transaction_reference',
-            field=models.CharField(blank=True, help_text='Transaction ID or reference number from payment provider', max_length=100),
+            model_name="invoice",
+            name="transaction_reference",
+            field=models.CharField(
+                blank=True,
+                help_text="Transaction ID or reference number from payment provider",
+                max_length=100,
+            ),
         ),
     ]

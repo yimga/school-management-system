@@ -2,6 +2,7 @@
 Document extraction provider abstraction (non-negotiable). All OCR/text extraction goes through this interface.
 No view or service imports pytesseract or cloud OCR SDKs directly; use get_document_extraction_provider().
 """
+
 from __future__ import annotations
 
 import logging
@@ -9,7 +10,13 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
-OPTIONAL_EXTRACTION_ERRORS = (AttributeError, OSError, RuntimeError, TypeError, ValueError)
+OPTIONAL_EXTRACTION_ERRORS = (
+    AttributeError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 class DocumentExtractionProvider(ABC):
@@ -37,30 +44,55 @@ class TesseractDocumentExtractionProvider(DocumentExtractionProvider):
             return
         try:
             import pytesseract  # noqa: F401
+
             if self._cmd:
                 pytesseract.pytesseract.tesseract_cmd = self._cmd
             self._configured = True
-        except (ImportError, AttributeError, OSError, RuntimeError, TypeError, ValueError):
+        except (
+            ImportError,
+            AttributeError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             pass
 
     def is_available(self) -> bool:
         try:
             import pytesseract
+
             self._configure()
             pytesseract.get_tesseract_version()
             return True
-        except (ImportError, AttributeError, OSError, RuntimeError, TypeError, ValueError):
+        except (
+            ImportError,
+            AttributeError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
             return False
 
     def extract_text(self, image: Any) -> str:
         self._configure()
         try:
             import pytesseract
+
             if hasattr(image, "read"):
                 from PIL import Image
+
                 image = Image.open(image)
             return pytesseract.image_to_string(image, lang="eng") or ""
-        except (ImportError, AttributeError, OSError, RuntimeError, TypeError, ValueError) as e:
+        except (
+            ImportError,
+            AttributeError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as e:
             logger.warning("Tesseract extract_text failed: %s", e)
             return ""
 
@@ -77,6 +109,7 @@ class GoogleVisionDocumentExtractionProvider(DocumentExtractionProvider):
 
     def is_available(self) -> bool:
         import os
+
         return bool((os.getenv("GOOGLE_CLOUD_VISION_API_KEY") or "").strip()) or bool(
             (os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or "").strip()
         )
@@ -86,6 +119,7 @@ class GoogleVisionDocumentExtractionProvider(DocumentExtractionProvider):
             return ""
         try:
             from google.cloud import vision
+
             client = vision.ImageAnnotatorClient()
             if hasattr(image, "read"):
                 content = image.read()
@@ -93,7 +127,9 @@ class GoogleVisionDocumentExtractionProvider(DocumentExtractionProvider):
                 content = image.tobytes()
             else:
                 content = image
-            response = client.document_text_detection(image=vision.Image(content=content))
+            response = client.document_text_detection(
+                image=vision.Image(content=content)
+            )
             if response.full_text_annotation:
                 return response.full_text_annotation.text or ""
             return ""
@@ -110,15 +146,19 @@ class AWSTextractDocumentExtractionProvider(DocumentExtractionProvider):
 
     def is_available(self) -> bool:
         import os
-        return bool((os.getenv("AWS_ACCESS_KEY_ID") or "").strip()) and bool(
-            (os.getenv("AWS_SECRET_ACCESS_KEY") or "").strip()
-        ) and bool((os.getenv("AWS_DEFAULT_REGION") or "").strip())
+
+        return (
+            bool((os.getenv("AWS_ACCESS_KEY_ID") or "").strip())
+            and bool((os.getenv("AWS_SECRET_ACCESS_KEY") or "").strip())
+            and bool((os.getenv("AWS_DEFAULT_REGION") or "").strip())
+        )
 
     def extract_text(self, image: Any) -> str:
         if not self.is_available():
             return ""
         try:
             import boto3
+
             client = boto3.client("textract")
             if hasattr(image, "read"):
                 content = image.read()

@@ -2,6 +2,7 @@
 Django system checks: enforce TENANCY_MODE / USE_DJANGO_TENANTS vs middleware and DB engine.
 Never run both schema and RLS tenant resolution in the same request path.
 """
+
 from django.apps import apps as django_apps
 from django.conf import settings
 from django.core.checks import Error, Warning, register
@@ -28,6 +29,7 @@ SCHEMA_TENANT_ONLY_APPS = {
     "apps.schoolops",
 }
 
+
 @register()
 def tenancy_strategy_checks(app_configs, **kwargs):
     errors = []
@@ -53,19 +55,26 @@ def tenancy_strategy_checks(app_configs, **kwargs):
                 )
             )
         installed_apps = set(getattr(settings, "INSTALLED_APPS", []) or [])
-        missing_apps = sorted(app for app in SCHEMA_REQUIRED_APPS if app not in installed_apps)
+        missing_apps = sorted(
+            app for app in SCHEMA_REQUIRED_APPS if app not in installed_apps
+        )
         if missing_apps:
             errors.append(
                 Error(
                     "Schema mode is missing required shared apps.",
-                    hint="Add the missing platform apps to SHARED_APPS/INSTALLED_APPS: %s" % ", ".join(missing_apps),
+                    hint="Add the missing platform apps to SHARED_APPS/INSTALLED_APPS: %s"
+                    % ", ".join(missing_apps),
                     id="tenancy.E004",
                 )
             )
         shared_apps = set(getattr(settings, "SHARED_APPS", []) or [])
         tenant_apps = set(getattr(settings, "TENANT_APPS", []) or [])
-        leaked_shared_apps = sorted(app for app in SCHEMA_TENANT_ONLY_APPS if app in shared_apps)
-        missing_tenant_apps = sorted(app for app in SCHEMA_TENANT_ONLY_APPS if app not in tenant_apps)
+        leaked_shared_apps = sorted(
+            app for app in SCHEMA_TENANT_ONLY_APPS if app in shared_apps
+        )
+        missing_tenant_apps = sorted(
+            app for app in SCHEMA_TENANT_ONLY_APPS if app not in tenant_apps
+        )
         if leaked_shared_apps:
             errors.append(
                 Error(
@@ -79,7 +88,8 @@ def tenancy_strategy_checks(app_configs, **kwargs):
             errors.append(
                 Error(
                     "Schema mode is missing tenant-only apps from TENANT_APPS.",
-                    hint="Add these apps to TENANT_APPS: %s" % ", ".join(missing_tenant_apps),
+                    hint="Add these apps to TENANT_APPS: %s"
+                    % ", ".join(missing_tenant_apps),
                     id="tenancy.E006",
                 )
             )
@@ -136,11 +146,15 @@ def shared_model_tenant_constraint_checks(app_configs, **kwargs):
     for model in django_apps.get_models():
         if model._meta.app_label not in shared_apps:
             continue
-        for field in list(model._meta.local_fields) + list(model._meta.local_many_to_many):
+        for field in list(model._meta.local_fields) + list(
+            model._meta.local_many_to_many
+        ):
             if not getattr(field, "is_relation", False):
                 continue
             remote_field = getattr(field, "remote_field", None)
-            related_model = getattr(remote_field, "model", None) if remote_field else None
+            related_model = (
+                getattr(remote_field, "model", None) if remote_field else None
+            )
             if not getattr(related_model, "_meta", None):
                 continue
             if related_model._meta.app_label not in tenant_apps:

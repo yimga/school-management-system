@@ -35,7 +35,9 @@ def ensure_gilead_tenant_domain(apps, schema_editor):
     if not school:
         return
     schema_name = _normalize_schema_name(DEFAULT_SLUG)
-    subdomain = (getattr(school, "subdomain", None) or DEFAULT_SUBDOMAIN).strip().lower()
+    subdomain = (
+        (getattr(school, "subdomain", None) or DEFAULT_SUBDOMAIN).strip().lower()
+    )
     base_domain = _get_base_domain()
     domain_fqdn = f"{subdomain}.{base_domain}".lower()
 
@@ -67,7 +69,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("customers", "0002_alter_client_schema_name"),
         ("schools", "0012_seed_default_gilead_school"),

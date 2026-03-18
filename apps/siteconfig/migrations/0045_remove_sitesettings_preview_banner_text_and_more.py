@@ -6,30 +6,34 @@ from django.db import migrations, models, connection
 
 def remove_preview_fields_if_exist(apps, schema_editor):
     """Remove preview banner fields only if they exist in the database."""
-    db_table = 'siteconfig_sitesettings'
+    db_table = "siteconfig_sitesettings"
     fields_to_remove = [
-        'preview_banner_text',
-        'preview_toggle_enabled',
-        'preview_toggle_label',
+        "preview_banner_text",
+        "preview_toggle_enabled",
+        "preview_toggle_label",
     ]
     vendor = connection.vendor
-    
+
     with connection.cursor() as cursor:
         for field_name in fields_to_remove:
             col_exists = False
-            if vendor == 'sqlite':
+            if vendor == "sqlite":
                 cursor.execute("PRAGMA table_info(%s)" % db_table)
                 col_exists = any(row[1] == field_name for row in cursor.fetchall())
             else:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT column_name FROM information_schema.columns
                     WHERE table_name=%s AND column_name=%s
-                """, [db_table, field_name])
+                """,
+                    [db_table, field_name],
+                )
                 col_exists = cursor.fetchone() is not None
             if col_exists:
-                cursor.execute('ALTER TABLE %s DROP COLUMN %s' % (
-                    db_table, schema_editor.quote_name(field_name)
-                ))
+                cursor.execute(
+                    "ALTER TABLE %s DROP COLUMN %s"
+                    % (db_table, schema_editor.quote_name(field_name))
+                )
 
 
 def reverse_remove_preview_fields(apps, schema_editor):
@@ -38,21 +42,33 @@ def reverse_remove_preview_fields(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0044_reportcardstyle_labels_and_layout_config'),
+        ("siteconfig", "0044_reportcardstyle_labels_and_layout_config"),
     ]
 
     operations = [
-        migrations.RunPython(remove_preview_fields_if_exist, reverse_remove_preview_fields),
-        migrations.AlterField(
-            model_name='gradingscaleconfig',
-            name='region',
-            field=models.ForeignKey(help_text='Region this scale applies to', on_delete=django.db.models.deletion.CASCADE, related_name='grading_scales', related_query_name='gradingscaleconfig', to='siteconfig.regionconfig'),
+        migrations.RunPython(
+            remove_preview_fields_if_exist, reverse_remove_preview_fields
         ),
         migrations.AlterField(
-            model_name='sitesettings',
-            name='admission_number_pattern',
-            field=models.CharField(blank=True, default='(\\\\d{2}[A-Z0-9]{2,10}\\\\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4})|(\\\\d{2}-[A-Z0-9]{2,10}-\\\\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4})', help_text='Regex used to validate admission numbers. Defaults to YY + SCHOOL + #### + SPEC + CLASS (no dashes) or the legacy dashed format.', max_length=255),
+            model_name="gradingscaleconfig",
+            name="region",
+            field=models.ForeignKey(
+                help_text="Region this scale applies to",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="grading_scales",
+                related_query_name="gradingscaleconfig",
+                to="siteconfig.regionconfig",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="sitesettings",
+            name="admission_number_pattern",
+            field=models.CharField(
+                blank=True,
+                default="(\\\\d{2}[A-Z0-9]{2,10}\\\\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4})|(\\\\d{2}-[A-Z0-9]{2,10}-\\\\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4})",
+                help_text="Regex used to validate admission numbers. Defaults to YY + SCHOOL + #### + SPEC + CLASS (no dashes) or the legacy dashed format.",
+                max_length=255,
+            ),
         ),
     ]

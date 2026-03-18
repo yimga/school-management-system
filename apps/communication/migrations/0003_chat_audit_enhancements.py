@@ -6,77 +6,135 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0011_remove_scheduleentry_room_and_more'),
-        ('communication', '0002_classannouncement'),
+        ("academics", "0011_remove_scheduleentry_room_and_more"),
+        ("communication", "0002_classannouncement"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='messagethread',
-            name='audience_role',
-            field=models.CharField(blank=True, help_text='Optional: limit by role (e.g., PARENT, TEACHER)', max_length=30),
+            model_name="messagethread",
+            name="audience_role",
+            field=models.CharField(
+                blank=True,
+                help_text="Optional: limit by role (e.g., PARENT, TEACHER)",
+                max_length=30,
+            ),
         ),
         migrations.AddField(
-            model_name='messagethread',
-            name='classroom',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='message_threads', to='academics.classroom'),
+            model_name="messagethread",
+            name="classroom",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="message_threads",
+                to="academics.classroom",
+            ),
         ),
         migrations.AddField(
-            model_name='messagethread',
-            name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='message_threads', to='academics.department'),
+            model_name="messagethread",
+            name="department",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="message_threads",
+                to="academics.department",
+            ),
         ),
         migrations.AddField(
-            model_name='messagethread',
-            name='last_message_at',
+            model_name="messagethread",
+            name="last_message_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='messagethread',
-            name='scope',
-            field=models.CharField(choices=[('CLASSROOM', 'Classroom'), ('DEPARTMENT', 'Department'), ('ROLE', 'Role-based'), ('GLOBAL', 'Global')], default='CLASSROOM', max_length=20),
+            model_name="messagethread",
+            name="scope",
+            field=models.CharField(
+                choices=[
+                    ("CLASSROOM", "Classroom"),
+                    ("DEPARTMENT", "Department"),
+                    ("ROLE", "Role-based"),
+                    ("GLOBAL", "Global"),
+                ],
+                default="CLASSROOM",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='threadmessage',
-            name='deleted_at',
+            model_name="threadmessage",
+            name="deleted_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='threadmessage',
-            name='deleted_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='deleted_thread_messages', to=settings.AUTH_USER_MODEL),
+            model_name="threadmessage",
+            name="deleted_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="deleted_thread_messages",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='threadmessage',
-            name='edited_at',
+            model_name="threadmessage",
+            name="edited_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='threadmessage',
-            name='edited_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='edited_thread_messages', to=settings.AUTH_USER_MODEL),
+            model_name="threadmessage",
+            name="edited_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="edited_thread_messages",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='threadmessage',
-            name='is_deleted',
+            model_name="threadmessage",
+            name="is_deleted",
             field=models.BooleanField(default=False),
         ),
         migrations.CreateModel(
-            name='ThreadReadState',
+            name="ThreadReadState",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('last_read_at', models.DateTimeField(blank=True, null=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('thread', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='read_states', to='communication.messagethread')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='thread_read_states', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("last_read_at", models.DateTimeField(blank=True, null=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "thread",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="read_states",
+                        to="communication.messagethread",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="thread_read_states",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-updated_at'],
-                'unique_together': {('thread', 'user')},
+                "ordering": ["-updated_at"],
+                "unique_together": {("thread", "user")},
             },
         ),
     ]

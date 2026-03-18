@@ -11,6 +11,7 @@ Usage:
   python manage.py synthetic_probe --db
   python manage.py synthetic_probe --db --ready
 """
+
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse

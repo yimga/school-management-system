@@ -65,7 +65,15 @@ class OperationalSLODashboardAPITests(TestCase):
             is_staff=True,
         )
 
-    def _create_delivery(self, *, subscription, event_id: str, status: str, created_delta_seconds: int, completed_delta_seconds: int | None):
+    def _create_delivery(
+        self,
+        *,
+        subscription,
+        event_id: str,
+        status: str,
+        created_delta_seconds: int,
+        completed_delta_seconds: int | None,
+    ):
         now = timezone.now()
         delivery = LegacyWebhookDelivery.objects.create(
             subscription=subscription,
@@ -74,7 +82,9 @@ class OperationalSLODashboardAPITests(TestCase):
             status=status,
             attempts=1,
             max_attempts=4,
-            delivered_at=now if status == LegacyWebhookDelivery.Status.DELIVERED else None,
+            delivered_at=now
+            if status == LegacyWebhookDelivery.Status.DELIVERED
+            else None,
             last_attempt_at=now if completed_delta_seconds is not None else None,
         )
         created_at = now - timedelta(seconds=created_delta_seconds)
@@ -85,7 +95,9 @@ class OperationalSLODashboardAPITests(TestCase):
         )
         LegacyWebhookDelivery.objects.filter(pk=delivery.pk).update(
             created_at=created_at,
-            delivered_at=delivered_at if status == LegacyWebhookDelivery.Status.DELIVERED else None,
+            delivered_at=delivered_at
+            if status == LegacyWebhookDelivery.Status.DELIVERED
+            else None,
             last_attempt_at=delivered_at,
         )
         return delivery

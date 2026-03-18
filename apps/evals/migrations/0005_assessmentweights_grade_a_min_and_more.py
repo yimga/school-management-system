@@ -6,134 +6,373 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0004_classroom_academic_year_repair'),
-        ('evals', '0004_ensure_evaluation_component_columns'),
-        ('people', '0009_notificationpreference'),
+        ("academics", "0004_classroom_academic_year_repair"),
+        ("evals", "0004_ensure_evaluation_component_columns"),
+        ("people", "0009_notificationpreference"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_a_min',
-            field=models.DecimalField(decimal_places=2, default=18.0, help_text='Minimum score for A', max_digits=5),
+            model_name="assessmentweights",
+            name="grade_a_min",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=18.0,
+                help_text="Minimum score for A",
+                max_digits=5,
+            ),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_b_min',
+            model_name="assessmentweights",
+            name="grade_b_min",
             field=models.DecimalField(decimal_places=2, default=16.0, max_digits=5),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_c_min',
+            model_name="assessmentweights",
+            name="grade_c_min",
             field=models.DecimalField(decimal_places=2, default=14.0, max_digits=5),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_d_min',
+            model_name="assessmentweights",
+            name="grade_d_min",
             field=models.DecimalField(decimal_places=2, default=10.0, max_digits=5),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grade_e_min',
+            model_name="assessmentweights",
+            name="grade_e_min",
             field=models.DecimalField(decimal_places=2, default=0.0, max_digits=5),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='grading_scale',
-            field=models.CharField(choices=[('numeric_0_20', 'Numeric 0–20 (Cameroon Francophone)'), ('letter_a_e', 'Letters A–E (Cameroon Anglophone)'), ('gpa_4_0', 'GPA 4.0 Scale'), ('percentage', 'Percentage 0–100')], default='numeric_0_20', max_length=50),
+            model_name="assessmentweights",
+            name="grading_scale",
+            field=models.CharField(
+                choices=[
+                    ("numeric_0_20", "Numeric 0–20 (Cameroon Francophone)"),
+                    ("letter_a_e", "Letters A–E (Cameroon Anglophone)"),
+                    ("gpa_4_0", "GPA 4.0 Scale"),
+                    ("percentage", "Percentage 0–100"),
+                ],
+                default="numeric_0_20",
+                max_length=50,
+            ),
         ),
         migrations.AddField(
-            model_name='assessmentweights',
-            name='region',
-            field=models.CharField(choices=[('cameroon_anglophone', 'Cameroon Anglophone'), ('cameroon_francophone', 'Cameroon Francophone'), ('global', 'Global/Other')], default='cameroon_anglophone', max_length=50),
+            model_name="assessmentweights",
+            name="region",
+            field=models.CharField(
+                choices=[
+                    ("cameroon_anglophone", "Cameroon Anglophone"),
+                    ("cameroon_francophone", "Cameroon Francophone"),
+                    ("global", "Global/Other"),
+                ],
+                default="cameroon_anglophone",
+                max_length=50,
+            ),
         ),
         migrations.AddField(
-            model_name='evaluation',
-            name='assessment_date',
+            model_name="evaluation",
+            name="assessment_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='evaluation',
-            name='clock_hours',
+            model_name="evaluation",
+            name="clock_hours",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='evaluation',
-            name='last_validated_at',
+            model_name="evaluation",
+            name="last_validated_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='evaluation',
-            name='letter_grade',
-            field=models.CharField(blank=True, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D'), ('E', 'E'), ('', 'Not Graded')], default='', max_length=1),
+            model_name="evaluation",
+            name="letter_grade",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("A", "A"),
+                    ("B", "B"),
+                    ("C", "C"),
+                    ("D", "D"),
+                    ("E", "E"),
+                    ("", "Not Graded"),
+                ],
+                default="",
+                max_length=1,
+            ),
         ),
         migrations.AddField(
-            model_name='evaluation',
-            name='practical_status',
-            field=models.CharField(choices=[('not_started', 'Not Started'), ('in_progress', 'In Progress'), ('completed', 'Completed')], default='not_started', max_length=20),
+            model_name="evaluation",
+            name="practical_status",
+            field=models.CharField(
+                choices=[
+                    ("not_started", "Not Started"),
+                    ("in_progress", "In Progress"),
+                    ("completed", "Completed"),
+                ],
+                default="not_started",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='evaluation',
-            name='validation_flags',
+            model_name="evaluation",
+            name="validation_flags",
             field=models.JSONField(blank=True, default=dict),
         ),
         migrations.CreateModel(
-            name='GradeAudit',
+            name="GradeAudit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('changed_at', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('change_type', models.CharField(choices=[('create', 'Grade Created'), ('update', 'Grade Updated'), ('delete', 'Grade Deleted'), ('rollback', 'Grade Rolled Back'), ('import', 'Imported from CSV'), ('offline_sync', 'Synced Offline Entry')], max_length=20)),
-                ('seq1_before', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('seq1_after', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('seq2_before', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('seq2_after', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('exam_before', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('exam_after', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('mock_before', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('mock_after', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('practical_before', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('practical_after', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('remarks_before', models.TextField(blank=True, null=True)),
-                ('remarks_after', models.TextField(blank=True, null=True)),
-                ('validation_errors', models.JSONField(blank=True, default=list)),
-                ('offline_conflict_resolved', models.BooleanField(default=False)),
-                ('conflict_resolution_note', models.TextField(blank=True, null=True)),
-                ('changed_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
-                ('evaluation', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='audit_trail', to='evals.evaluation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("changed_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                (
+                    "change_type",
+                    models.CharField(
+                        choices=[
+                            ("create", "Grade Created"),
+                            ("update", "Grade Updated"),
+                            ("delete", "Grade Deleted"),
+                            ("rollback", "Grade Rolled Back"),
+                            ("import", "Imported from CSV"),
+                            ("offline_sync", "Synced Offline Entry"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "seq1_before",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "seq1_after",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "seq2_before",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "seq2_after",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "exam_before",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "exam_after",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "mock_before",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "mock_after",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "practical_before",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "practical_after",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                ("remarks_before", models.TextField(blank=True, null=True)),
+                ("remarks_after", models.TextField(blank=True, null=True)),
+                ("validation_errors", models.JSONField(blank=True, default=list)),
+                ("offline_conflict_resolved", models.BooleanField(default=False)),
+                ("conflict_resolution_note", models.TextField(blank=True, null=True)),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "evaluation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="audit_trail",
+                        to="evals.evaluation",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-changed_at'],
-                'indexes': [models.Index(fields=['evaluation', '-changed_at'], name='evals_grade_evaluat_16d982_idx'), models.Index(fields=['changed_by', '-changed_at'], name='evals_grade_changed_9df34d_idx'), models.Index(fields=['change_type', '-changed_at'], name='evals_grade_change__8bfd5f_idx')],
+                "ordering": ["-changed_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["evaluation", "-changed_at"],
+                        name="evals_grade_evaluat_16d982_idx",
+                    ),
+                    models.Index(
+                        fields=["changed_by", "-changed_at"],
+                        name="evals_grade_changed_9df34d_idx",
+                    ),
+                    models.Index(
+                        fields=["change_type", "-changed_at"],
+                        name="evals_grade_change__8bfd5f_idx",
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='OfflineMarkEntry',
+            name="OfflineMarkEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('seq1_score', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('seq2_score', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('exam_score', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('mock_score', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('practical_score', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
-                ('remarks', models.TextField(blank=True)),
-                ('status', models.CharField(choices=[('pending', 'Pending Sync'), ('synced', 'Successfully Synced'), ('conflict', 'Sync Conflict'), ('rejected', 'Rejected')], default='pending', max_length=20)),
-                ('created_offline_at', models.DateTimeField()),
-                ('synced_at', models.DateTimeField(blank=True, null=True)),
-                ('teacher_conflict_choice', models.JSONField(blank=True, default=dict)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='academics.academicyear')),
-                ('conflict_with_evaluation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='evals.evaluation')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='people.studentprofile')),
-                ('subject_assignment', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='academics.subjectassignment')),
-                ('synced_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
-                ('teacher', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='people.teacherprofile')),
-                ('term', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='academics.term')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "seq1_score",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "seq2_score",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "exam_score",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "mock_score",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                (
+                    "practical_score",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=5, null=True
+                    ),
+                ),
+                ("remarks", models.TextField(blank=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending Sync"),
+                            ("synced", "Successfully Synced"),
+                            ("conflict", "Sync Conflict"),
+                            ("rejected", "Rejected"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                ("created_offline_at", models.DateTimeField()),
+                ("synced_at", models.DateTimeField(blank=True, null=True)),
+                ("teacher_conflict_choice", models.JSONField(blank=True, default=dict)),
+                (
+                    "academic_year",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="academics.academicyear",
+                    ),
+                ),
+                (
+                    "conflict_with_evaluation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="evals.evaluation",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "subject_assignment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="academics.subjectassignment",
+                    ),
+                ),
+                (
+                    "synced_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "teacher",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to="people.teacherprofile",
+                    ),
+                ),
+                (
+                    "term",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT, to="academics.term"
+                    ),
+                ),
             ],
             options={
-                'ordering': ['status', 'created_offline_at'],
-                'indexes': [models.Index(fields=['teacher', 'status'], name='evals_offli_teacher_552f10_idx'), models.Index(fields=['created_offline_at'], name='evals_offli_created_b5de3f_idx')],
+                "ordering": ["status", "created_offline_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["teacher", "status"],
+                        name="evals_offli_teacher_552f10_idx",
+                    ),
+                    models.Index(
+                        fields=["created_offline_at"],
+                        name="evals_offli_created_b5de3f_idx",
+                    ),
+                ],
             },
         ),
     ]

@@ -5,6 +5,7 @@ Apps should call dashboard_resolver.for_role(school, role, user=None) instead of
 calling resolve_dashboard_widgets / get_tenant_dashboard_registry directly, so
 all dashboard logic stays in one place and can be extended (e.g. TenantDashboardAssignment).
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -30,7 +31,9 @@ def for_role(
     """
     role = (role or "").strip().upper() or None
     if preference is None and user is not None:
-        preference = getattr(user, "preferences", None) or getattr(user, "user_preference", None)
+        preference = getattr(user, "preferences", None) or getattr(
+            user, "user_preference", None
+        )
 
     widget_keys = resolve_dashboard_widgets(role, preference)
 
@@ -41,12 +44,17 @@ def for_role(
     }
 
     if include_registry or page:
-        result["registry"] = get_tenant_dashboard_registry(school, role=role, page=page or "backend")
+        result["registry"] = get_tenant_dashboard_registry(
+            school, role=role, page=page or "backend"
+        )
 
     # Phase 3 lineage: register dashboard resolution for this role (consumer_type=dashboard, consumer_code=role).
     try:
         from apps.metadata.usage_registry import register_usage
-        register_usage("dashboard", (role or "unknown").lower(), "dashboard", "widget_keys")
+
+        register_usage(
+            "dashboard", (role or "unknown").lower(), "dashboard", "widget_keys"
+        )
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
 

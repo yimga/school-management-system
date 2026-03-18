@@ -36,4 +36,6 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING(msg))
 
         end = timezone.now()
-        self.stdout.write(self.style.SUCCESS(f"Phase 7 checks completed in {end-start}."))
+        self.stdout.write(
+            self.style.SUCCESS(f"Phase 7 checks completed in {end - start}.")
+        )

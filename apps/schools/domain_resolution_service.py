@@ -14,6 +14,7 @@ All implementations live in host_routing and tenant_url; this module re-exports 
 so callers can import from one place. New host/domain logic should be added there
 and re-exported here.
 """
+
 from __future__ import annotations
 
 from apps.schools.host_routing import (

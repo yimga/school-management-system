@@ -4,6 +4,7 @@ Studio OS — single shell with five work modes.
 Replaces fragmented customizer / theme / feature control / report library / workflow hub with one workspace.
 Shared preview (2.1) and publish/rollback (2.2) via studio_preview, studio_publish_api, studio_save_draft_api.
 """
+
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -21,7 +22,6 @@ from .services import (
     get_studio_activity_feed,
     get_studio_compare_context,
     get_automation_dependency_graph,
-    get_automation_workflow_health_summary,
     get_studio_global_search,
     get_studio_preview_context,
     get_studio_preview_url,
@@ -58,35 +58,69 @@ def studio_system_config_console(request):
         return redirect(reverse("accounts:backend_dashboard"))
     links = []
     try:
-        links.append({"label": _("Capabilities"), "url": reverse("siteconfig:feature_control_panel") + "?embed=1"})
+        links.append(
+            {
+                "label": _("Capabilities"),
+                "url": reverse("siteconfig:feature_control_panel") + "?embed=1",
+            }
+        )
     except NoReverseMatch:
         pass
     try:
-        links.append({"label": _("Blueprints & policy packs"), "url": reverse("siteconfig:get_blueprints") + "?embed=1"})
+        links.append(
+            {
+                "label": _("Blueprints & policy packs"),
+                "url": reverse("siteconfig:get_blueprints") + "?embed=1",
+            }
+        )
     except NoReverseMatch:
         pass
     try:
-        links.append({"label": _("Runtime inspector"), "url": reverse("super:runtime_inspector")})
+        links.append(
+            {"label": _("Runtime inspector"), "url": reverse("super:runtime_inspector")}
+        )
     except NoReverseMatch:
         pass
     try:
-        links.append({"label": _("Metadata governance"), "url": reverse("metadata:metadata_governance")})
+        links.append(
+            {
+                "label": _("Metadata governance"),
+                "url": reverse("metadata:metadata_governance"),
+            }
+        )
     except NoReverseMatch:
         pass
     try:
-        links.append({"label": _("Lineage & registry"), "url": reverse("metadata:metadata_lineage_graph") + "?embed=1"})
+        links.append(
+            {
+                "label": _("Lineage & registry"),
+                "url": reverse("metadata:metadata_lineage_graph") + "?embed=1",
+            }
+        )
     except NoReverseMatch:
         pass
     try:
-        links.append({"label": _("Integrations"), "url": reverse("apicenter:dashboard")})
+        links.append(
+            {"label": _("Integrations"), "url": reverse("apicenter:dashboard")}
+        )
     except NoReverseMatch:
         pass
     try:
-        links.append({"label": _("Plans & entitlements"), "url": reverse("super:billing_dashboard") + "?embed=1"})
+        links.append(
+            {
+                "label": _("Plans & entitlements"),
+                "url": reverse("super:billing_dashboard") + "?embed=1",
+            }
+        )
     except NoReverseMatch:
         pass
     try:
-        links.append({"label": _("Diff / impact summary"), "url": reverse("studio_os:control_impact") + "?embed=1"})
+        links.append(
+            {
+                "label": _("Diff / impact summary"),
+                "url": reverse("studio_os:control_impact") + "?embed=1",
+            }
+        )
     except NoReverseMatch:
         pass
     return render(
@@ -94,7 +128,9 @@ def studio_system_config_console(request):
         "studio_os/system_config_console.html",
         {
             "page_title": _("System config"),
-            "page_subtitle": _("Bounded console for configuration surfaces. Use the links below or the Control Studio rail."),
+            "page_subtitle": _(
+                "Bounded console for configuration surfaces. Use the links below or the Control Studio rail."
+            ),
             "config_links": links,
             "action_url": reverse("studio_os:control"),
             "action_text": _("Back to Control"),
@@ -117,7 +153,9 @@ def studio_control_impact(request):
             "impact_summary": preview_ctx.get("impact_summary") or "",
             "dependency_warnings": preview_ctx.get("dependency_warnings") or [],
             "page_title": _("Diff / impact summary"),
-            "page_subtitle": _("Review feature toggles and runtime state before publishing. Use Runtime inspector for impact and source tracing."),
+            "page_subtitle": _(
+                "Review feature toggles and runtime state before publishing. Use Runtime inspector for impact and source tracing."
+            ),
             "action_url": reverse("studio_os:control"),
             "action_text": _("Back to Control"),
         },
@@ -138,7 +176,9 @@ def studio_ai_cleanup(request):
         {
             "recommendations": recs,
             "page_title": _("AI cleanup suggestions"),
-            "page_subtitle": _("Capabilities and audit log suggestions for feature state."),
+            "page_subtitle": _(
+                "Capabilities and audit log suggestions for feature state."
+            ),
             "action_url": reverse("studio_os:control"),
             "action_text": _("Back to Control"),
         },
@@ -206,7 +246,9 @@ def studio_experience_theme_tokens(request):
         {
             "theme_colors_url": theme_url,
             "page_title": _("Theme tokens"),
-            "page_subtitle": _("Design tokens (CSS variables) drive theme and in-shell form; configure in Theme & colors."),
+            "page_subtitle": _(
+                "Design tokens (CSS variables) drive theme and in-shell form; configure in Theme & colors."
+            ),
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
@@ -231,7 +273,9 @@ def studio_experience_portal_shell_layouts(request):
         {
             "customizer_url": customizer_url,
             "page_title": _("Portal shell layouts"),
-            "page_subtitle": _("Portal shell structure (sidebar, header, content areas); configure in Customizer and School theme."),
+            "page_subtitle": _(
+                "Portal shell structure (sidebar, header, content areas); configure in Customizer and School theme."
+            ),
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
@@ -262,7 +306,9 @@ def studio_experience_dashboard_visual_packs(request):
             "dashboard_url": dashboard_url,
             "customizer_url": customizer_url,
             "page_title": _("Dashboard visual packs"),
-            "page_subtitle": _("Widgets, charts, and layout presets for role-based dashboards; configure in Backend dashboard and Customizer."),
+            "page_subtitle": _(
+                "Widgets, charts, and layout presets for role-based dashboards; configure in Backend dashboard and Customizer."
+            ),
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
@@ -293,7 +339,9 @@ def studio_experience_school_website_blocks(request):
             "marketing_url": marketing_url,
             "customizer_url": customizer_url,
             "page_title": _("School website blocks"),
-            "page_subtitle": _("Landing page sections, hero, and content blocks for your school website; configure in Customizer and marketing pages."),
+            "page_subtitle": _(
+                "Landing page sections, hero, and content blocks for your school website; configure in Customizer and marketing pages."
+            ),
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
@@ -318,7 +366,9 @@ def studio_experience_communication_style_packs(request):
         {
             "customizer_url": customizer_url,
             "page_title": _("Communication style packs"),
-            "page_subtitle": _("Tone, templates, and notification styles for parent and staff communications; configure in Customizer and communication settings."),
+            "page_subtitle": _(
+                "Tone, templates, and notification styles for parent and staff communications; configure in Customizer and communication settings."
+            ),
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
@@ -338,6 +388,7 @@ def studio_experience_packs(request):
     try:
         from apps.brand_experience.experience_packs import get_effective_experience_pack
         from apps.packages.models import ExperiencePack
+
         effective_pack = get_effective_experience_pack(school) if school else None
         pack_count = ExperiencePack.objects.filter(is_active=True).count()
     except (ImportError, AttributeError):
@@ -361,7 +412,9 @@ def studio_experience_packs(request):
             "theme_colors_url": theme_colors_url,
             "admin_packs_url": admin_packs_url,
             "page_title": _("Experience packs"),
-            "page_subtitle": _("Packageable theme, layout, dashboard visual, and communication style. Assign per school; compare and rollback from Experience Studio."),
+            "page_subtitle": _(
+                "Packageable theme, layout, dashboard visual, and communication style. Assign per school; compare and rollback from Experience Studio."
+            ),
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
@@ -406,7 +459,9 @@ def studio_output_branding_inheritance(request):
         {
             "theme_colors_url": theme_url,
             "page_title": _("Branding inheritance"),
-            "page_subtitle": _("Reports and documents inherit school and theme branding. Configure theme and colors to control outputs."),
+            "page_subtitle": _(
+                "Reports and documents inherit school and theme branding. Configure theme and colors to control outputs."
+            ),
             "action_url": reverse("studio_os:output"),
             "action_text": _("Back to Outputs"),
         },
@@ -440,7 +495,9 @@ def studio_output_policy_registry(request):
         "studio_os/output_policy_registry.html",
         {
             "page_title": _("Policy & registry"),
-            "page_subtitle": _("Reports and report packs align with policy (blueprints, grading, terms) and metadata registry (lineage, fields). Use Report library to build; Control for policy and lineage."),
+            "page_subtitle": _(
+                "Reports and report packs align with policy (blueprints, grading, terms) and metadata registry (lineage, fields). Use Report library to build; Control for policy and lineage."
+            ),
             "action_url": reverse("studio_os:output"),
             "action_text": _("Back to Outputs"),
             "blueprints_url": blueprints_url,
@@ -462,7 +519,9 @@ def studio_launch_select_plan(request):
         "studio_os/launch_select_plan.html",
         {
             "page_title": _("Select plan"),
-            "page_subtitle": _("Choose your school's plan and entitlements. Full plan picker when productized."),
+            "page_subtitle": _(
+                "Choose your school's plan and entitlements. Full plan picker when productized."
+            ),
             "action_url": reverse("studio_os:launch"),
             "action_text": _("Back to Launch"),
         },
@@ -487,7 +546,9 @@ def studio_automation_conflict_detection(request):
         {
             "workflow_hub_url": workflow_hub_url,
             "page_title": _("Conflict detection"),
-            "page_subtitle": _("Detect and resolve conflicts before activating workflows."),
+            "page_subtitle": _(
+                "Detect and resolve conflicts before activating workflows."
+            ),
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
         },
@@ -512,7 +573,9 @@ def studio_automation_staged_activation(request):
         {
             "workflow_hub_url": workflow_hub_url,
             "page_title": _("Staged activation"),
-            "page_subtitle": _("Activate workflows in stages; run simulations before going live."),
+            "page_subtitle": _(
+                "Activate workflows in stages; run simulations before going live."
+            ),
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
         },
@@ -543,14 +606,18 @@ def studio_automation_replay_rollback(request):
             "workflow_hub_url": workflow_hub_url,
             "rollback_url": rollback_url,
             "page_title": _("Replay / rollback"),
-            "page_subtitle": _("Re-run workflow instances and roll back workflow or config changes."),
+            "page_subtitle": _(
+                "Re-run workflow instances and roll back workflow or config changes."
+            ),
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
         },
     )
 
 
-def _automation_explainer_view(request, template_name: str, page_title: str, page_subtitle: str):
+def _automation_explainer_view(
+    request, template_name: str, page_title: str, page_subtitle: str
+):
     """Shared helper for Automation Studio explainer pages (staff-only, workflow_hub_url, action back to automation)."""
     if not getattr(request.user, "is_staff", False):
         return redirect(reverse("accounts:backend_dashboard"))
@@ -581,7 +648,9 @@ def studio_automation_visual_builder(request):
         request,
         "studio_os/automation_visual_builder.html",
         _("Visual builder"),
-        _("Build workflows visually with drag-and-drop; connect steps and conditions. Manage flows from the Workflow hub."),
+        _(
+            "Build workflows visually with drag-and-drop; connect steps and conditions. Manage flows from the Workflow hub."
+        ),
     )
 
 
@@ -594,7 +663,9 @@ def studio_automation_natural_language_workflow(request):
         request,
         "studio_os/automation_natural_language_workflow.html",
         _("Natural-language workflow"),
-        _("Describe workflows in plain language; the system suggests or generates flow steps. Refine and activate from the Workflow hub."),
+        _(
+            "Describe workflows in plain language; the system suggests or generates flow steps. Refine and activate from the Workflow hub."
+        ),
     )
 
 
@@ -607,7 +678,9 @@ def studio_automation_simulation_engine(request):
         request,
         "studio_os/automation_simulation_engine.html",
         _("Simulation engine"),
-        _("Run workflow simulations before going live. Verify behavior and impact from the Workflow hub, then activate when ready."),
+        _(
+            "Run workflow simulations before going live. Verify behavior and impact from the Workflow hub, then activate when ready."
+        ),
     )
 
 
@@ -639,6 +712,7 @@ def studio_automation_workflow_health(request):
     if not getattr(request.user, "is_staff", False):
         return redirect(reverse("accounts:backend_dashboard"))
     from apps.studio_os.services import get_automation_workflow_health_summary
+
     summary = get_automation_workflow_health_summary()
     workflow_hub_url = ""
     try:
@@ -653,7 +727,9 @@ def studio_automation_workflow_health(request):
             "template_count": summary.get("template_count", 0),
             "workflow_hub_url": workflow_hub_url,
             "page_title": _("Workflow health metrics"),
-            "page_subtitle": _("Active workflow packs and templates; run simulations from Workflow hub."),
+            "page_subtitle": _(
+                "Active workflow packs and templates; run simulations from Workflow hub."
+            ),
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
         },
@@ -661,11 +737,27 @@ def studio_automation_workflow_health(request):
 
 
 STUDIO_MODES = [
-    {"id": "experience", "label": "Experience", "description": "Shape branding, theme, and portals"},
-    {"id": "automation", "label": "Automation", "description": "Workflows, approvals, and automation"},
-    {"id": "output", "label": "Outputs", "description": "Reports, documents, and exports"},
+    {
+        "id": "experience",
+        "label": "Experience",
+        "description": "Shape branding, theme, and portals",
+    },
+    {
+        "id": "automation",
+        "label": "Automation",
+        "description": "Workflows, approvals, and automation",
+    },
+    {
+        "id": "output",
+        "label": "Outputs",
+        "description": "Reports, documents, and exports",
+    },
     {"id": "launch", "label": "Launch", "description": "Setup and go live"},
-    {"id": "control", "label": "Control", "description": "Capabilities, policies, and runtime"},
+    {
+        "id": "control",
+        "label": "Control",
+        "description": "Capabilities, policies, and runtime",
+    },
 ]
 
 
@@ -721,6 +813,7 @@ def studio_shell(request, mode=None):
     if not getattr(request.user, "is_staff", False):
         from django.shortcuts import redirect
         from django.contrib import messages
+
         messages.info(request, "Studio OS is available to staff.")
         return redirect(reverse("accounts:backend_dashboard"))
 
@@ -733,7 +826,11 @@ def studio_shell(request, mode=None):
     embed_url = embed_urls.get(mode) if mode else None
     # On manager host without a tenant/school, embedded views (theme_colors, guided_onboarding, etc.)
     # often redirect or fail; avoid iframe so we show the fallback with direct links instead of "connection refused".
-    if use_control_plane_shell(request) and not getattr(request, "school", None) and embed_url:
+    if (
+        use_control_plane_shell(request)
+        and not getattr(request, "school", None)
+        and embed_url
+    ):
         embed_url = None
 
     activity_feed = get_studio_activity_feed(request)
@@ -777,12 +874,23 @@ def studio_shell(request, mode=None):
     if mode == "experience":
         try:
             from apps.siteconfig.views import get_theme_colors_context
+
             context.update(get_theme_colors_context(request))
             context["use_experience_in_page"] = True
             context["back_url"] = reverse("studio_os:experience")
-            context["studio_version_history"] = get_studio_version_history(request, "experience", limit=5)
-            context["studio_audit"] = get_studio_publish_audit(request, "experience", limit=8)
-        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError) as e:
+            context["studio_version_history"] = get_studio_version_history(
+                request, "experience", limit=5
+            )
+            context["studio_audit"] = get_studio_publish_audit(
+                request, "experience", limit=8
+            )
+        except (
+            NoReverseMatch,
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+        ) as e:
             if not isinstance(e, NoReverseMatch):
                 log_exception_with_context(
                     "studio_shell experience mode: get_theme_colors_context or version/audit failed",
@@ -794,99 +902,127 @@ def studio_shell(request, mode=None):
             context["studio_audit"] = []
         experience_rail = []
         try:
-            experience_rail.append({
-                "label": "Theme & colors",
-                "url": reverse("siteconfig:theme_colors") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "Theme & colors",
+                    "url": reverse("siteconfig:theme_colors") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "Customizer",
-                "url": reverse("studio_os:experience") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "Customizer",
+                    "url": reverse("studio_os:experience") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "School theme",
-                "url": reverse("siteconfig:school_theme_settings") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "School theme",
+                    "url": reverse("siteconfig:school_theme_settings") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "Experience packs",
-                "url": reverse("studio_os:experience_packs") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "Experience packs",
+                    "url": reverse("studio_os:experience_packs") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "Import from website",
-                "url": reverse("siteconfig:brand_import_from_url") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "Import from website",
+                    "url": reverse("siteconfig:brand_import_from_url") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "Compare",
-                "url": reverse("studio_os:experience_compare") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "Compare",
+                    "url": reverse("studio_os:experience_compare") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "AI recommendations",
-                "url": reverse("studio_os:experience_recommendations") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "AI recommendations",
+                    "url": reverse("studio_os:experience_recommendations") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "Theme tokens",
-                "url": reverse("studio_os:experience_theme_tokens") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "Theme tokens",
+                    "url": reverse("studio_os:experience_theme_tokens") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "Portal shell layouts",
-                "url": reverse("studio_os:experience_portal_shell_layouts") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "Portal shell layouts",
+                    "url": reverse("studio_os:experience_portal_shell_layouts")
+                    + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "Dashboard visual packs",
-                "url": reverse("studio_os:experience_dashboard_visual_packs") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "Dashboard visual packs",
+                    "url": reverse("studio_os:experience_dashboard_visual_packs")
+                    + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "School website blocks",
-                "url": reverse("studio_os:experience_school_website_blocks") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "School website blocks",
+                    "url": reverse("studio_os:experience_school_website_blocks")
+                    + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            experience_rail.append({
-                "label": "Communication style packs",
-                "url": reverse("studio_os:experience_communication_style_packs") + "?embed=1",
-                "embed": True,
-            })
+            experience_rail.append(
+                {
+                    "label": "Communication style packs",
+                    "url": reverse("studio_os:experience_communication_style_packs")
+                    + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         context["experience_left_rail"] = experience_rail
@@ -894,12 +1030,19 @@ def studio_shell(request, mode=None):
     if mode == "launch" and school:
         try:
             from apps.setup_studio.services import get_setup_studio_payload
+
             payload = get_setup_studio_payload(school)
             context["launch_payload"] = payload
             context["launch_role_previews"] = payload.get("role_previews") or []
             context["launch_health_summary"] = payload.get("health_summary") or ""
             context["launch_ready"] = payload.get("launch_ready", False)
-        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError) as e:
+        except (
+            NoReverseMatch,
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+        ) as e:
             if not isinstance(e, NoReverseMatch):
                 log_exception_with_context(
                     "studio_shell launch mode: get_setup_studio_payload failed",
@@ -919,51 +1062,63 @@ def studio_shell(request, mode=None):
     if mode == "launch":
         launch_rail = []
         try:
-            launch_rail.append({
-                "label": "Guided onboarding",
-                "url": reverse("siteconfig:guided_onboarding") + "?embed=1",
-                "embed": True,
-            })
+            launch_rail.append(
+                {
+                    "label": "Guided onboarding",
+                    "url": reverse("siteconfig:guided_onboarding") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            launch_rail.append({
-                "label": "Create school",
-                "url": reverse("super:create_school_wizard"),
-                "embed": True,
-            })
+            launch_rail.append(
+                {
+                    "label": "Create school",
+                    "url": reverse("super:create_school_wizard"),
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            launch_rail.append({
-                "label": "Select plan",
-                "url": reverse("studio_os:launch_select_plan") + "?embed=1",
-                "embed": True,
-            })
+            launch_rail.append(
+                {
+                    "label": "Select plan",
+                    "url": reverse("studio_os:launch_select_plan") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            launch_rail.append({
-                "label": "Blueprint gallery",
-                "url": reverse("siteconfig:get_blueprints") + "?embed=1",
-                "embed": True,
-            })
+            launch_rail.append(
+                {
+                    "label": "Blueprint gallery",
+                    "url": reverse("siteconfig:get_blueprints") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            launch_rail.append({
-                "label": "Import branding",
-                "url": reverse("studio_os:experience") + "?embed=1",
-                "embed": True,
-            })
+            launch_rail.append(
+                {
+                    "label": "Import branding",
+                    "url": reverse("studio_os:experience") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            launch_rail.append({
-                "label": "Launch checklist",
-                "url": reverse("siteconfig:guided_onboarding") + "?embed=1",
-                "embed": True,
-            })
+            launch_rail.append(
+                {
+                    "label": "Launch checklist",
+                    "url": reverse("siteconfig:guided_onboarding") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         context["launch_left_rail"] = launch_rail
@@ -972,44 +1127,84 @@ def studio_shell(request, mode=None):
         workflow_entries = []
         automation_rail = []
         try:
-            workflow_entries.append({"label": "Outcomes", "url": reverse("automation:outcomes_console") + "?embed=1"})
-            workflow_entries.append({"label": "Workflow hub", "url": reverse("studio_os:automation") + "?embed=1"})
-            workflow_entries.append({"label": "Flow gallery", "url": reverse("siteconfig:workflow_flow_gallery")})
-            workflow_entries.append({"label": "Approval hub", "url": reverse("studio_os:approval_hub")})
-            workflow_entries.append({
-                "label": "Dependency graph",
-                "url": reverse("studio_os:automation_dependency_graph") + "?embed=1",
-            })
-            workflow_entries.append({
-                "label": "Workflow health metrics",
-                "url": reverse("studio_os:automation_workflow_health") + "?embed=1",
-            })
-            workflow_entries.append({
-                "label": "Conflict detection",
-                "url": reverse("studio_os:automation_conflict_detection") + "?embed=1",
-            })
-            workflow_entries.append({
-                "label": "Staged activation",
-                "url": reverse("studio_os:automation_staged_activation") + "?embed=1",
-            })
-            workflow_entries.append({
-                "label": "Replay / rollback",
-                "url": reverse("studio_os:automation_replay_rollback") + "?embed=1",
-            })
-            workflow_entries.append({
-                "label": "Visual builder",
-                "url": reverse("studio_os:automation_visual_builder") + "?embed=1",
-            })
-            workflow_entries.append({
-                "label": "Natural-language workflow",
-                "url": reverse("studio_os:automation_natural_language_workflow") + "?embed=1",
-            })
-            workflow_entries.append({
-                "label": "Simulation engine",
-                "url": reverse("studio_os:automation_simulation_engine") + "?embed=1",
-            })
+            workflow_entries.append(
+                {
+                    "label": "Outcomes",
+                    "url": reverse("automation:outcomes_console") + "?embed=1",
+                }
+            )
+            workflow_entries.append(
+                {
+                    "label": "Workflow hub",
+                    "url": reverse("studio_os:automation") + "?embed=1",
+                }
+            )
+            workflow_entries.append(
+                {
+                    "label": "Flow gallery",
+                    "url": reverse("siteconfig:workflow_flow_gallery"),
+                }
+            )
+            workflow_entries.append(
+                {"label": "Approval hub", "url": reverse("studio_os:approval_hub")}
+            )
+            workflow_entries.append(
+                {
+                    "label": "Dependency graph",
+                    "url": reverse("studio_os:automation_dependency_graph")
+                    + "?embed=1",
+                }
+            )
+            workflow_entries.append(
+                {
+                    "label": "Workflow health metrics",
+                    "url": reverse("studio_os:automation_workflow_health") + "?embed=1",
+                }
+            )
+            workflow_entries.append(
+                {
+                    "label": "Conflict detection",
+                    "url": reverse("studio_os:automation_conflict_detection")
+                    + "?embed=1",
+                }
+            )
+            workflow_entries.append(
+                {
+                    "label": "Staged activation",
+                    "url": reverse("studio_os:automation_staged_activation")
+                    + "?embed=1",
+                }
+            )
+            workflow_entries.append(
+                {
+                    "label": "Replay / rollback",
+                    "url": reverse("studio_os:automation_replay_rollback") + "?embed=1",
+                }
+            )
+            workflow_entries.append(
+                {
+                    "label": "Visual builder",
+                    "url": reverse("studio_os:automation_visual_builder") + "?embed=1",
+                }
+            )
+            workflow_entries.append(
+                {
+                    "label": "Natural-language workflow",
+                    "url": reverse("studio_os:automation_natural_language_workflow")
+                    + "?embed=1",
+                }
+            )
+            workflow_entries.append(
+                {
+                    "label": "Simulation engine",
+                    "url": reverse("studio_os:automation_simulation_engine")
+                    + "?embed=1",
+                }
+            )
             for entry in workflow_entries:
-                automation_rail.append({"label": entry["label"], "url": entry["url"], "embed": True})
+                automation_rail.append(
+                    {"label": entry["label"], "url": entry["url"], "embed": True}
+                )
         except NoReverseMatch:
             pass
         context["workflow_entries"] = workflow_entries
@@ -1021,60 +1216,84 @@ def studio_shell(request, mode=None):
     if mode == "output":
         output_rail = []
         try:
-            output_rail.append({
-                "label": "Report library",
-                "url": reverse("studio_os:output") + "?embed=1",
-                "embed": True,
-            })
+            output_rail.append(
+                {
+                    "label": "Report library",
+                    "url": reverse("studio_os:output") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            output_rail.append({
-                "label": "Document library",
-                "url": reverse("portal:document_library_manage") + "?embed=1",
-                "embed": True,
-            })
+            output_rail.append(
+                {
+                    "label": "Document library",
+                    "url": reverse("portal:document_library_manage") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            output_rail.append({
-                "label": "Report card builder",
-                "url": reverse("siteconfig:reportcard_builder") + "?embed=1",
-                "embed": True,
-            })
+            output_rail.append(
+                {
+                    "label": "Report card builder",
+                    "url": reverse("siteconfig:reportcard_builder") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            output_rail.append({
-                "label": "Dependency graph",
-                "url": reverse("studio_os:output_dependency_graph") + "?embed=1",
-                "embed": True,
-            })
+            output_rail.append(
+                {
+                    "label": "Dependency graph",
+                    "url": reverse("studio_os:output_dependency_graph") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            output_rail.append({
-                "label": "Branding inheritance",
-                "url": reverse("studio_os:output_branding_inheritance") + "?embed=1",
-                "embed": True,
-            })
+            output_rail.append(
+                {
+                    "label": "Branding inheritance",
+                    "url": reverse("studio_os:output_branding_inheritance")
+                    + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            output_rail.append({
-                "label": "Policy & registry",
-                "url": reverse("studio_os:output_policy_registry") + "?embed=1",
-                "embed": True,
-            })
+            output_rail.append(
+                {
+                    "label": "Policy & registry",
+                    "url": reverse("studio_os:output_policy_registry") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         context["output_left_rail"] = output_rail
 
     if mode == "control":
         try:
-            from apps.siteconfig.views_feature_control import get_feature_control_audit_entries
-            context["control_audit_entries"] = get_feature_control_audit_entries(request, limit=15)
-        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError) as e:
+            from apps.siteconfig.views_feature_control import (
+                get_feature_control_audit_entries,
+            )
+
+            context["control_audit_entries"] = get_feature_control_audit_entries(
+                request, limit=15
+            )
+        except (
+            NoReverseMatch,
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+        ) as e:
             if not isinstance(e, NoReverseMatch):
                 log_exception_with_context(
                     "studio_shell control mode: get_feature_control_audit_entries failed",
@@ -1084,96 +1303,120 @@ def studio_shell(request, mode=None):
             context["control_audit_entries"] = []
         control_rail = []
         try:
-            control_rail.append({
-                "label": "System config",
-                "url": reverse("studio_os:system_config_console") + "?embed=1",
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "System config",
+                    "url": reverse("studio_os:system_config_console") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "Capabilities",
-                "url": reverse("siteconfig:feature_control_panel") + "?embed=1",
-                "embed": True,
-            })
-            control_rail.append({
-                "label": "Audit log",
-                "url": reverse("siteconfig:feature_control_audit"),
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "Capabilities",
+                    "url": reverse("siteconfig:feature_control_panel") + "?embed=1",
+                    "embed": True,
+                }
+            )
+            control_rail.append(
+                {
+                    "label": "Audit log",
+                    "url": reverse("siteconfig:feature_control_audit"),
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "Runtime inspector",
-                "url": reverse("super:runtime_inspector"),
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "Runtime inspector",
+                    "url": reverse("super:runtime_inspector"),
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "Metadata governance",
-                "url": reverse("metadata:metadata_governance"),
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "Metadata governance",
+                    "url": reverse("metadata:metadata_governance"),
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "Lineage & registry",
-                "url": reverse("metadata:metadata_lineage_graph") + "?embed=1",
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "Lineage & registry",
+                    "url": reverse("metadata:metadata_lineage_graph") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "Integrations",
-                "url": reverse("apicenter:dashboard"),
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "Integrations",
+                    "url": reverse("apicenter:dashboard"),
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "Blueprints & policy packs",
-                "url": reverse("siteconfig:get_blueprints") + "?embed=1",
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "Blueprints & policy packs",
+                    "url": reverse("siteconfig:get_blueprints") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "Policy diff",
-                "url": reverse("super:policy_diff") + "?embed=1",
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "Policy diff",
+                    "url": reverse("super:policy_diff") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "Plans & entitlements",
-                "url": reverse("super:billing_dashboard") + "?embed=1",
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "Plans & entitlements",
+                    "url": reverse("super:billing_dashboard") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "Diff / impact summary",
-                "url": reverse("studio_os:control_impact") + "?embed=1",
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "Diff / impact summary",
+                    "url": reverse("studio_os:control_impact") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         try:
-            control_rail.append({
-                "label": "AI cleanup suggestions",
-                "url": reverse("studio_os:ai_cleanup") + "?embed=1",
-                "embed": True,
-            })
+            control_rail.append(
+                {
+                    "label": "AI cleanup suggestions",
+                    "url": reverse("studio_os:ai_cleanup") + "?embed=1",
+                    "embed": True,
+                }
+            )
         except NoReverseMatch:
             pass
         context["control_left_rail"] = control_rail
@@ -1181,7 +1424,10 @@ def studio_shell(request, mode=None):
         if request.user.has_perm("settings.feature_control"):
             try:
                 from django.template.loader import render_to_string
-                from apps.siteconfig.views_feature_control import get_feature_control_panel_context
+                from apps.siteconfig.views_feature_control import (
+                    get_feature_control_panel_context,
+                )
+
                 ctrl_ctx = get_feature_control_panel_context(request)
                 ctrl_ctx["control_next_url"] = reverse("studio_os:control")
                 context["control_panel_html"] = render_to_string(
@@ -1190,7 +1436,13 @@ def studio_shell(request, mode=None):
                     request=request,
                 )
                 context["embed_url"] = None  # prefer in-page over iframe
-            except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError) as e:
+            except (
+                NoReverseMatch,
+                ImportError,
+                AttributeError,
+                TypeError,
+                ValueError,
+            ) as e:
                 if not isinstance(e, NoReverseMatch):
                     log_exception_with_context(
                         "studio_shell control mode: feature_control_panel render failed",
@@ -1201,7 +1453,9 @@ def studio_shell(request, mode=None):
         else:
             context["control_panel_html"] = None
 
-    show_bottom_bar = bool(mode == "experience" and context.get("use_experience_in_page"))
+    show_bottom_bar = bool(
+        mode == "experience" and context.get("use_experience_in_page")
+    )
     bottom_bar_actions = []
     if show_bottom_bar:
         bottom_bar_actions = [
@@ -1209,9 +1463,13 @@ def studio_shell(request, mode=None):
             {"id": "publish", "label": "Publish", "primary": True},
         ]
         if rollback_available:
-            bottom_bar_actions.append({"id": "rollback", "label": "Rollback", "primary": False})
+            bottom_bar_actions.append(
+                {"id": "rollback", "label": "Rollback", "primary": False}
+            )
             try:
-                context["studio_rollback_url"] = reverse("studio_os:rollback") + "?mode=" + mode
+                context["studio_rollback_url"] = (
+                    reverse("studio_os:rollback") + "?mode=" + mode
+                )
             except NoReverseMatch:
                 context["studio_rollback_url"] = ""
 
@@ -1243,7 +1501,9 @@ def studio_rollback(request):
     if mode == "experience":
         if request.method != "POST":
             if _wants_json():
-                return JsonResponse({"ok": False, "errors": ["POST required"]}, status=405)
+                return JsonResponse(
+                    {"ok": False, "errors": ["POST required"]}, status=405
+                )
             return redirect(reverse("studio_os:experience"))
 
         prev = request.session.get("theme_previous_state")
@@ -1255,7 +1515,10 @@ def studio_rollback(request):
 
         if not isinstance(values, dict) or not values:
             if _wants_json():
-                return JsonResponse({"ok": False, "errors": ["No rollback state available."]}, status=400)
+                return JsonResponse(
+                    {"ok": False, "errors": ["No rollback state available."]},
+                    status=400,
+                )
             return redirect(reverse("studio_os:experience"))
 
         from django.utils import timezone
@@ -1264,7 +1527,13 @@ def studio_rollback(request):
         site = get_effective_site_settings(request=request)
         if site is None:
             if _wants_json():
-                return JsonResponse({"ok": False, "errors": ["Unable to resolve SiteSettings for rollback."]}, status=400)
+                return JsonResponse(
+                    {
+                        "ok": False,
+                        "errors": ["Unable to resolve SiteSettings for rollback."],
+                    },
+                    status=400,
+                )
             return redirect(reverse("studio_os:experience"))
 
         updated_fields = []
@@ -1277,14 +1546,20 @@ def studio_rollback(request):
                 setattr(site, field_name, previous_value)
                 updated_fields.append(field_name)
 
-        theme_fields = list(dict.fromkeys([f for f in updated_fields if isinstance(f, str) and f.strip()]))
+        theme_fields = list(
+            dict.fromkeys(
+                [f for f in updated_fields if isinstance(f, str) and f.strip()]
+            )
+        )
         save_fields = list(theme_fields)
         if hasattr(site, "updated_at"):
             save_fields.append("updated_at")
         if save_fields:
             site.save(update_fields=save_fields)
 
-        actor_label = request.user.get_username() if request.user.is_authenticated else "system"
+        actor_label = (
+            request.user.get_username() if request.user.is_authenticated else "system"
+        )
         now_label = timezone.localtime().strftime("%Y-%m-%d %H:%M")
         request.session.pop("theme_previous_state", None)
         request.session.pop("site_preview_settings", None)
@@ -1301,7 +1576,9 @@ def studio_rollback(request):
         try:
             from django.contrib import messages
 
-            messages.success(request, "Rolled back theme & experience to the previous saved state.")
+            messages.success(
+                request, "Rolled back theme & experience to the previous saved state."
+            )
         except (TypeError, AttributeError, ValueError):
             pass
 
@@ -1316,6 +1593,7 @@ def studio_rollback(request):
 
 # ---- Shared preview engine (2.1): single entry point per mode ----
 
+
 @never_cache
 @require_http_methods(["POST"])
 @login_required
@@ -1329,6 +1607,7 @@ def studio_preview(request):
     mode = (request.POST.get("mode") or "").strip().lower()
     if mode == "experience":
         from apps.siteconfig.views import preview_from_form
+
         return preview_from_form(request)
     if mode in ("automation", "output", "launch", "control"):
         redirect_url = get_studio_preview_url(mode, request)
@@ -1338,13 +1617,17 @@ def studio_preview(request):
             preview_ctx = get_studio_preview_context(mode, request)
             if preview_ctx:
                 payload["impact_summary"] = preview_ctx.get("impact_summary")
-                payload["dependency_warnings"] = preview_ctx.get("dependency_warnings", [])
+                payload["dependency_warnings"] = preview_ctx.get(
+                    "dependency_warnings", []
+                )
                 if preview_ctx.get("health_summary"):
                     payload["health_summary"] = preview_ctx["health_summary"]
                 if preview_ctx.get("recommended_next"):
                     payload["recommended_next"] = preview_ctx["recommended_next"]
             return JsonResponse(payload)
-        return JsonResponse({"errors": ["Preview URL not available for this mode."]}, status=400)
+        return JsonResponse(
+            {"errors": ["Preview URL not available for this mode."]}, status=400
+        )
     return JsonResponse({"errors": ["Missing or invalid mode."]}, status=400)
 
 
@@ -1361,6 +1644,7 @@ def studio_publish_api(request):
     mode = (request.POST.get("mode") or "").strip().lower()
     if mode == "experience":
         from apps.siteconfig.views import perform_theme_experience_publish
+
         result = perform_theme_experience_publish(request)
         status = 200 if result.get("ok") else 400
         return JsonResponse(result, status=status)

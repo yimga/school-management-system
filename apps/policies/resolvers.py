@@ -12,6 +12,7 @@ All nine resolvers must be used by apps; no tenant behavior from any other sourc
 - BrandingResolver: brand context (logo, colors, labels, UI config)
 - ChannelResolver: communication channel order and fallback
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -39,6 +40,7 @@ def CapabilityResolver(school, capability: str) -> dict[str, Any]:
     if isinstance(result, dict) and "enabled" in result:
         return result
     from apps.schools.models import is_feature_enabled
+
     return {
         "enabled": is_feature_enabled(school, capability) if school else False,
         "policy": result,
@@ -58,6 +60,7 @@ def TerminologyResolver(school, request=None) -> dict[str, Any]:
         out["labels_map"] = labels
     try:
         from apps.siteconfig.brand_registry import resolve_global_brand_context
+
         ctx = resolve_global_brand_context(school=school)
         if isinstance(ctx.get("labels_map"), dict):
             out.setdefault("labels_map", {})
@@ -85,6 +88,7 @@ def ComplianceResolver(school) -> dict[str, Any]:
     }
     try:
         from apps.siteconfig.brand_registry import resolve_global_brand_context
+
         ctx = resolve_global_brand_context(school=school)
         comp = ctx.get("compliance_config")
         if isinstance(comp, dict):
@@ -108,6 +112,7 @@ def BrandingResolver(school, country_code=None, language_code=None) -> dict[str,
     """
     try:
         from apps.siteconfig.brand_registry import resolve_global_brand_context
+
         return resolve_global_brand_context(
             school=school,
             country_code=country_code,
@@ -145,26 +150,46 @@ def ChannelResolver(school) -> dict[str, Any]:
 
 
 # --- Dashboard hub (siteconfig) ---
-def DashboardResolver(school, role: str | None, user=None, preference=None, page: str | None = None, *, include_registry: bool = False) -> dict[str, Any]:
+def DashboardResolver(
+    school,
+    role: str | None,
+    user=None,
+    preference=None,
+    page: str | None = None,
+    *,
+    include_registry: bool = False,
+) -> dict[str, Any]:
     """Role-based dashboard composition. Single entry point for dashboard hub."""
     from apps.siteconfig.dashboard_resolver import for_role
-    return for_role(school, role, user=user, preference=preference, page=page, include_registry=include_registry)
+
+    return for_role(
+        school,
+        role,
+        user=user,
+        preference=preference,
+        page=page,
+        include_registry=include_registry,
+    )
 
 
 # --- Workflow hub (siteconfig) ---
 def WorkflowResolver_for_action(school, action_slug: str) -> dict[str, Any]:
     """Workflow definition for a given action (e.g. grade_approval, syllabus_approval)."""
     from apps.siteconfig.workflow_resolver import for_action
+
     return for_action(school, action_slug)
 
 
 def WorkflowResolver_get_approval(school, workflow_key: str) -> dict[str, Any]:
     """Approval workflow definition: roles and approvers for the given key."""
     from apps.siteconfig.workflow_resolver import get_approval_workflow
+
     return get_approval_workflow(school, workflow_key)
 
 
-def WorkflowResolver(school, action_slug: str | None = None, workflow_key: str | None = None) -> dict[str, Any]:
+def WorkflowResolver(
+    school, action_slug: str | None = None, workflow_key: str | None = None
+) -> dict[str, Any]:
     """
     Single entry point for workflow hub. Pass action_slug (e.g. grade_approval) or
     workflow_key (e.g. syllabus_approval) to get the workflow definition.

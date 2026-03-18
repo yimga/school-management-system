@@ -4,19 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("academics", "0029_enable_rls_postgresql"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='subject',
-            name='name',
+            model_name="subject",
+            name="name",
             field=models.CharField(max_length=120),
         ),
         migrations.AddConstraint(
-            model_name='subject',
-            constraint=models.UniqueConstraint(fields=('school', 'name'), name='academics_subject_school_name_uniq'),
+            model_name="subject",
+            constraint=models.UniqueConstraint(
+                fields=("school", "name"), name="academics_subject_school_name_uniq"
+            ),
         ),
     ]

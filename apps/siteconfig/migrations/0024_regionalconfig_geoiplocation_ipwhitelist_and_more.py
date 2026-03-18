@@ -5,77 +5,153 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0023_sitesettings_logo_background_mode_and_more'),
+        ("siteconfig", "0023_sitesettings_logo_background_mode_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RegionalConfig',
+            name="RegionalConfig",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('region', models.CharField(choices=[('WEST_AFRICA', 'West Africa'), ('EAST_AFRICA', 'East Africa'), ('SOUTHERN_AFRICA', 'Southern Africa'), ('CENTRAL_AFRICA', 'Central Africa'), ('NORTH_AFRICA', 'North Africa')], max_length=20, unique=True)),
-                ('currency', models.CharField(default='USD', max_length=3)),
-                ('language', models.CharField(default='en', max_length=10)),
-                ('timezone', models.CharField(default='UTC', max_length=50)),
-                ('countries', models.JSONField(default=list)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "region",
+                    models.CharField(
+                        choices=[
+                            ("WEST_AFRICA", "West Africa"),
+                            ("EAST_AFRICA", "East Africa"),
+                            ("SOUTHERN_AFRICA", "Southern Africa"),
+                            ("CENTRAL_AFRICA", "Central Africa"),
+                            ("NORTH_AFRICA", "North Africa"),
+                        ],
+                        max_length=20,
+                        unique=True,
+                    ),
+                ),
+                ("currency", models.CharField(default="USD", max_length=3)),
+                ("language", models.CharField(default="en", max_length=10)),
+                ("timezone", models.CharField(default="UTC", max_length=50)),
+                ("countries", models.JSONField(default=list)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name_plural': 'Regional Configs',
+                "verbose_name_plural": "Regional Configs",
             },
         ),
         migrations.CreateModel(
-            name='GeoIPLocation',
+            name="GeoIPLocation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ip_address', models.GenericIPAddressField(db_index=True, unique=True)),
-                ('country_code', models.CharField(max_length=2)),
-                ('country_name', models.CharField(max_length=100)),
-                ('city', models.CharField(blank=True, max_length=100)),
-                ('latitude', models.FloatField()),
-                ('longitude', models.FloatField()),
-                ('location', models.JSONField(null=True)),
-                ('timezone', models.CharField(blank=True, max_length=50)),
-                ('isp', models.CharField(blank=True, max_length=100)),
-                ('is_vpn', models.BooleanField(default=False)),
-                ('is_proxy', models.BooleanField(default=False)),
-                ('last_checked', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "ip_address",
+                    models.GenericIPAddressField(db_index=True, unique=True),
+                ),
+                ("country_code", models.CharField(max_length=2)),
+                ("country_name", models.CharField(max_length=100)),
+                ("city", models.CharField(blank=True, max_length=100)),
+                ("latitude", models.FloatField()),
+                ("longitude", models.FloatField()),
+                ("location", models.JSONField(null=True)),
+                ("timezone", models.CharField(blank=True, max_length=50)),
+                ("isp", models.CharField(blank=True, max_length=100)),
+                ("is_vpn", models.BooleanField(default=False)),
+                ("is_proxy", models.BooleanField(default=False)),
+                ("last_checked", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'indexes': [models.Index(fields=['country_code'], name='siteconfig__country_c5f8b4_idx'), models.Index(fields=['ip_address'], name='siteconfig__ip_addr_b868a0_idx')],
+                "indexes": [
+                    models.Index(
+                        fields=["country_code"], name="siteconfig__country_c5f8b4_idx"
+                    ),
+                    models.Index(
+                        fields=["ip_address"], name="siteconfig__ip_addr_b868a0_idx"
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='IPWhitelist',
+            name="IPWhitelist",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ip_address', models.GenericIPAddressField(unique=True)),
-                ('description', models.TextField(blank=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('region', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='siteconfig.regionalconfig')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("ip_address", models.GenericIPAddressField(unique=True)),
+                ("description", models.TextField(blank=True)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "region",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="siteconfig.regionalconfig",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='RegionalAccessPolicy',
+            name="RegionalAccessPolicy",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('access_type', models.CharField(choices=[('ALLOW', 'Allow'), ('DENY', 'Deny'), ('RESTRICT', 'Restrict')], max_length=10)),
-                ('require_vpn', models.BooleanField(default=False)),
-                ('data_residency_required', models.BooleanField(default=False)),
-                ('user_groups', models.JSONField(default=list)),
-                ('ip_ranges', models.JSONField(default=list)),
-                ('rate_limit_per_hour', models.IntegerField(default=1000)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('region', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='siteconfig.regionalconfig')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "access_type",
+                    models.CharField(
+                        choices=[
+                            ("ALLOW", "Allow"),
+                            ("DENY", "Deny"),
+                            ("RESTRICT", "Restrict"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                ("require_vpn", models.BooleanField(default=False)),
+                ("data_residency_required", models.BooleanField(default=False)),
+                ("user_groups", models.JSONField(default=list)),
+                ("ip_ranges", models.JSONField(default=list)),
+                ("rate_limit_per_hour", models.IntegerField(default=1000)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "region",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="siteconfig.regionalconfig",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('region', 'access_type')},
+                "unique_together": {("region", "access_type")},
             },
         ),
     ]

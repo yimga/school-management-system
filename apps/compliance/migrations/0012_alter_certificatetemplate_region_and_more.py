@@ -5,46 +5,73 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compliance', '0011_add_retention_export_erase'),
-        ('global_registries', '0001_proxy_owner_models'),
+        ("compliance", "0011_add_retention_export_erase"),
+        ("global_registries", "0001_proxy_owner_models"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='certificatetemplate',
-            name='region',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='certificate_templates', to='global_registries.regionconfig'),
+            model_name="certificatetemplate",
+            name="region",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="certificate_templates",
+                to="global_registries.regionconfig",
+            ),
         ),
         migrations.AlterField(
-            model_name='complianceauditlog',
-            name='region',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='audit_logs', to='global_registries.regionconfig'),
+            model_name="complianceauditlog",
+            name="region",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="audit_logs",
+                to="global_registries.regionconfig",
+            ),
         ),
         migrations.AlterField(
-            model_name='compliancecheck',
-            name='region',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='compliance_checks', to='global_registries.regionconfig'),
+            model_name="compliancecheck",
+            name="region",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="compliance_checks",
+                to="global_registries.regionconfig",
+            ),
         ),
         migrations.AlterField(
-            model_name='legaldocument',
-            name='region',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='legal_documents', to='global_registries.regionconfig'),
+            model_name="legaldocument",
+            name="region",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="legal_documents",
+                to="global_registries.regionconfig",
+            ),
         ),
         migrations.AlterField(
-            model_name='regionalcompliancerequirement',
-            name='region',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='compliance_requirements', to='global_registries.regionconfig'),
+            model_name="regionalcompliancerequirement",
+            name="region",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="compliance_requirements",
+                to="global_registries.regionconfig",
+            ),
         ),
         migrations.AlterField(
-            model_name='regionfeaturecompliance',
-            name='region',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='feature_compliance_rules', to='global_registries.regionconfig'),
+            model_name="regionfeaturecompliance",
+            name="region",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="feature_compliance_rules",
+                to="global_registries.regionconfig",
+            ),
         ),
         migrations.AlterField(
-            model_name='studentidformat',
-            name='region',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='compliance_student_id_format', to='global_registries.regionconfig'),
+            model_name="studentidformat",
+            name="region",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="compliance_student_id_format",
+                to="global_registries.regionconfig",
+            ),
         ),
     ]

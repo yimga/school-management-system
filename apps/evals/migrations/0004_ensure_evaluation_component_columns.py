@@ -32,11 +32,12 @@ def ensure_evaluation_component_columns(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("evals", "0003_alter_assessmentweights_unique_together_and_more"),
     ]
 
     operations = [
-        migrations.RunPython(ensure_evaluation_component_columns, migrations.RunPython.noop),
+        migrations.RunPython(
+            ensure_evaluation_component_columns, migrations.RunPython.noop
+        ),
     ]

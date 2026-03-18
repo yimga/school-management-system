@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("people", "0021_add_badge_and_badge_type"),
     ]
@@ -18,7 +17,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="badgetype",
             name="icon",
-            field=models.CharField(blank=True, help_text="Icon name/code (e.g. Bootstrap icon class).", max_length=60),
+            field=models.CharField(
+                blank=True,
+                help_text="Icon name/code (e.g. Bootstrap icon class).",
+                max_length=60,
+            ),
         ),
         migrations.AddField(
             model_name="badgetype",
@@ -27,6 +30,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name="badgetype",
-            options={"ordering": ["audience", "sort_order", "code"], "verbose_name": "Badge type", "verbose_name_plural": "Badge types"},
+            options={
+                "ordering": ["audience", "sort_order", "code"],
+                "verbose_name": "Badge type",
+                "verbose_name_plural": "Badge types",
+            },
         ),
     ]

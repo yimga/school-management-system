@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0003_schoolprovisioningevent"),
         ("siteconfig", "0094_plan_model_phase_d"),

@@ -39,7 +39,10 @@ from apps.communication.models import ClassAnnouncement, MessageThread, ThreadRe
 
 # --- RBAC-aware scoping helpers ---
 
-def guardian_student_links(user: User, finance_only: bool = False, results_only: bool = False):
+
+def guardian_student_links(
+    user: User, finance_only: bool = False, results_only: bool = False
+):
     """
     Return StudentGuardian links scoped to the authenticated guardian.
     Ensures we never leak referred students outside the guardianship table.
@@ -58,9 +61,14 @@ def guardian_student_links(user: User, finance_only: bool = False, results_only:
     )
 
 
-def guardian_students(user: User, finance_only: bool = False, results_only: bool = False):
+def guardian_students(
+    user: User, finance_only: bool = False, results_only: bool = False
+):
     """Convenience wrapper returning student instances for the guardian."""
-    return [link.student for link in guardian_student_links(user, finance_only, results_only)]
+    return [
+        link.student
+        for link in guardian_student_links(user, finance_only, results_only)
+    ]
 
 
 def _school_request_shim(school):
@@ -84,13 +92,17 @@ def teacher_scope(user: User, academic_year=None):
     Scope teacher data to their own assignments and classrooms.
     Returns (teacher_profile, assignments_qs, students_qs, classrooms)
     """
-    teacher = TeacherProfile.objects.filter(user=user).select_related("department").first()
+    teacher = (
+        TeacherProfile.objects.filter(user=user).select_related("department").first()
+    )
     if not teacher:
         return None, TeacherAssignment.objects.none(), StudentProfile.objects.none(), []
 
     assignments = TeacherAssignment.objects.filter(teacher=teacher, is_active=True)
     if academic_year:
-        assignments = assignments.filter(subject_assignment__academic_year=academic_year)
+        assignments = assignments.filter(
+            subject_assignment__academic_year=academic_year
+        )
     assignments = assignments.select_related(
         "subject_assignment__classroom",
         "subject_assignment__subject",
@@ -98,14 +110,24 @@ def teacher_scope(user: User, academic_year=None):
         "subject_assignment__term",
         "subject_assignment__academic_year",
     )
-    classrooms = [a.subject_assignment.classroom for a in assignments if a.subject_assignment and a.subject_assignment.classroom]
+    classrooms = [
+        a.subject_assignment.classroom
+        for a in assignments
+        if a.subject_assignment and a.subject_assignment.classroom
+    ]
     students = StudentProfile.objects.filter(classroom__in=classrooms).distinct()
     return teacher, assignments, students, classrooms
 
 
-def class_announcements_for_parent(user: User, students: Iterable[StudentProfile], limit: int = 8):
+def class_announcements_for_parent(
+    user: User, students: Iterable[StudentProfile], limit: int = 8
+):
     classroom_ids = {s.classroom_id for s in students if s.classroom_id}
-    dept_ids = {getattr(s.classroom, "department_id", None) for s in students if getattr(s, "classroom", None)}
+    dept_ids = {
+        getattr(s.classroom, "department_id", None)
+        for s in students
+        if getattr(s, "classroom", None)
+    }
     dept_ids.discard(None)
     filters = Q(is_active=True) & (
         Q(classroom_id__in=classroom_ids)
@@ -113,11 +135,15 @@ def class_announcements_for_parent(user: User, students: Iterable[StudentProfile
         | Q(audience=ClassAnnouncement.Audience.ALL)
         | Q(audience=ClassAnnouncement.Audience.PARENTS)
     )
-    qs = ClassAnnouncement.objects.filter(filters).select_related("classroom", "department")
+    qs = ClassAnnouncement.objects.filter(filters).select_related(
+        "classroom", "department"
+    )
     return list(qs.order_by("-is_pinned", "-created_at")[:limit])
 
 
-def class_announcements_for_teacher(user: User, classrooms, department_id=None, limit: int = 8):
+def class_announcements_for_teacher(
+    user: User, classrooms, department_id=None, limit: int = 8
+):
     classroom_ids = {c.id for c in classrooms if c}
     filters = Q(is_active=True) & (
         Q(classroom_id__in=classroom_ids)
@@ -126,19 +152,29 @@ def class_announcements_for_teacher(user: User, classrooms, department_id=None, 
         | Q(audience=ClassAnnouncement.Audience.TEACHERS)
         | Q(audience=ClassAnnouncement.Audience.STAFF)
     )
-    qs = ClassAnnouncement.objects.filter(filters).select_related("classroom", "department")
+    qs = ClassAnnouncement.objects.filter(filters).select_related(
+        "classroom", "department"
+    )
     return list(qs.order_by("-is_pinned", "-created_at")[:limit])
 
 
 def _serialize_thread(thread: MessageThread, user: User):
     last_read = ThreadReadState.objects.filter(thread=thread, user=user).first()
     last_read_at = last_read.last_read_at if last_read else None
-    recent_msgs = list(thread.messages.filter(is_deleted=False).order_by("-created_at")[:5])
+    recent_msgs = list(
+        thread.messages.filter(is_deleted=False).order_by("-created_at")[:5]
+    )
     latest = recent_msgs[0] if recent_msgs else None
     annotated_latest = getattr(thread, "latest_msg_at", None)
-    effective_latest = annotated_latest or thread.last_message_at or (latest.created_at if latest else thread.updated_at)
+    effective_latest = (
+        annotated_latest
+        or thread.last_message_at
+        or (latest.created_at if latest else thread.updated_at)
+    )
     if last_read_at:
-        unread_count = thread.messages.filter(is_deleted=False, created_at__gt=last_read_at).count()
+        unread_count = thread.messages.filter(
+            is_deleted=False, created_at__gt=last_read_at
+        ).count()
     else:
         unread_count = thread.messages.filter(is_deleted=False).count()
     return {
@@ -167,19 +203,27 @@ def class_threads_for_parent(user: User, limit: int = 4):
     return [_serialize_thread(t, user) for t in threads]
 
 
-def class_threads_for_teacher(user: User, limit: int = 6, include_department: bool = True):
+def class_threads_for_teacher(
+    user: User, limit: int = 6, include_department: bool = True
+):
     """
     Recent message threads the teacher belongs to (membership scoped).
     Includes department threads if teacher has a department.
     """
     threads_qs = MessageThread.objects.filter(members=user, is_archived=False)
     # Use filter().first() to avoid DoesNotExist when user has no TeacherProfile
-    teacher_profile = TeacherProfile.objects.filter(user=user).select_related("department").first()
-    if include_department and teacher_profile and getattr(teacher_profile, "department", None):
+    teacher_profile = (
+        TeacherProfile.objects.filter(user=user).select_related("department").first()
+    )
+    if (
+        include_department
+        and teacher_profile
+        and getattr(teacher_profile, "department", None)
+    ):
         dept_threads = MessageThread.objects.filter(
             scope=MessageThread.Scope.DEPARTMENT,
             department=teacher_profile.department,
-            is_archived=False
+            is_archived=False,
         )
         threads_qs = threads_qs | dept_threads
 
@@ -204,7 +248,9 @@ def threads_for_user(user: User, limit: int = 12) -> List[dict]:
         return class_threads_for_teacher(user, limit=limit)
     # Admin, staff, other: threads they are members of (or department if applicable)
     threads_qs = MessageThread.objects.filter(members=user, is_archived=False)
-    teacher_profile = TeacherProfile.objects.filter(user=user).select_related("department").first()
+    teacher_profile = (
+        TeacherProfile.objects.filter(user=user).select_related("department").first()
+    )
     if teacher_profile and getattr(teacher_profile, "department", None):
         dept = teacher_profile.department
         if dept:
@@ -230,30 +276,32 @@ def parent_dashboard_widget_data(
 ) -> dict[str, dict]:
     """
     Generate dashboard widget data with query optimization and caching.
-    
+
     Optimization:
     - Cache entire result for 5 minutes per student set
     - Batch-load all required data
     - Use select_related/prefetch_related where needed
     - Aggregate queries instead of iterating
-    
+
     Cache key includes student IDs to differentiate parent/child combinations.
     """
     students = list(students)
     school = school or (students[0].school if students else None)
     if not students:
         return _empty_widget_data(school=school)
-    
+
     # Create cache key from sorted student IDs (tenant-scoped)
     prefix = _cache_prefix_for_school(school)
     student_ids = sorted(s.id for s in students)
-    cache_key = f"{prefix}:parent_dashboard_widgets:{':'.join(str(id) for id in student_ids)}"
-    
+    cache_key = (
+        f"{prefix}:parent_dashboard_widgets:{':'.join(str(id) for id in student_ids)}"
+    )
+
     # Check cache first (5 minute TTL)
     cached_data = cache.get(cache_key)
     if cached_data is not None:
         return cached_data
-    
+
     year, term = get_active_year_and_term()
 
     widget_data = {
@@ -273,7 +321,7 @@ def parent_dashboard_widget_data(
         "analytics": _analytics_insights(students, year, term, school=school),
         "referral": _referral_overview(students),
     }
-    
+
     # Cache result for 5 minutes
     cache.set(cache_key, widget_data, 300)
     return widget_data
@@ -282,20 +330,49 @@ def parent_dashboard_widget_data(
 def _empty_widget_data(*, school=None) -> dict[str, dict]:
     """Return empty widget data structure when no students."""
     return {
-        "attendance": {"today": 0, "overall": 0, "missing": 0, "late": 0, "label": "No students linked"},
-        "performance": {"average": None, "top_student": None, "pass_mark": None, "trend": "Pending", "label": "No data"},
-        "finance": {"total_due": Decimal("0.00"), "paid": Decimal("0.00"), "balance": Decimal("0.00"), "overdue": 0, "label": "No invoices"},
+        "attendance": {
+            "today": 0,
+            "overall": 0,
+            "missing": 0,
+            "late": 0,
+            "label": "No students linked",
+        },
+        "performance": {
+            "average": None,
+            "top_student": None,
+            "pass_mark": None,
+            "trend": "Pending",
+            "label": "No data",
+        },
+        "finance": {
+            "total_due": Decimal("0.00"),
+            "paid": Decimal("0.00"),
+            "balance": Decimal("0.00"),
+            "overdue": 0,
+            "label": "No invoices",
+        },
         "events": [],
-        "tasks": {"description": "No tasks", "pending_evaluations": 0, "pending_payments": 0},
+        "tasks": {
+            "description": "No tasks",
+            "pending_evaluations": 0,
+            "pending_payments": 0,
+        },
         "access": _portal_access_links(),
         "timetable": [],
         "communication": _communication_center(school=school),
         "analytics": {"highlights": [], "lowlights": [], "label": "No data"},
-        "referral": {"code": None, "total_codes": 0, "completeness_avg": 0, "note": "No referral data"},
+        "referral": {
+            "code": None,
+            "total_codes": 0,
+            "completeness_avg": 0,
+            "note": "No referral data",
+        },
     }
 
 
-def parent_onboarding_score(user: User, students: Iterable[StudentProfile]) -> dict[str, object]:
+def parent_onboarding_score(
+    user: User, students: Iterable[StudentProfile]
+) -> dict[str, object]:
     """
     Lightweight onboarding score for the parent portal.
 
@@ -312,10 +389,14 @@ def parent_onboarding_score(user: User, students: Iterable[StudentProfile]) -> d
         }
 
     # Average parent completeness across children (0–100, already normalized)
-    completeness_values = [int(getattr(s, "parent_completeness", 0) or 0) for s in students]
-    avg_student_completeness = int(
-        round(sum(completeness_values) / len(completeness_values))
-    ) if completeness_values else 0
+    completeness_values = [
+        int(getattr(s, "parent_completeness", 0) or 0) for s in students
+    ]
+    avg_student_completeness = (
+        int(round(sum(completeness_values) / len(completeness_values)))
+        if completeness_values
+        else 0
+    )
 
     # Simple guardian profile completeness: name + email
     profile_points = 0
@@ -343,10 +424,11 @@ def parent_onboarding_score(user: User, students: Iterable[StudentProfile]) -> d
         "label": label,
     }
 
+
 def _referral_overview(students: list[StudentProfile]):
     """
     Get referral code and parent completeness without N+1 queries.
-    
+
     Optimization:
     - Assumes students are already prefetched from parent_dashboard view
     - Accesses only fields already loaded
@@ -363,25 +445,30 @@ def _referral_overview(students: list[StudentProfile]):
     # Collect codes and completeness values from already-loaded students
     codes = []
     completeness_vals = []
-    
+
     for student in students:
-        if hasattr(student, 'referral_code') and student.referral_code:
+        if hasattr(student, "referral_code") and student.referral_code:
             codes.append(student.referral_code)
-        
+
         # Try to get completeness from cache or attribute
         try:
-            completeness = getattr(student, 'parent_completeness', 0)
+            completeness = getattr(student, "parent_completeness", 0)
             if isinstance(completeness, (int, float)):
                 completeness_vals.append(completeness)
         except (AttributeError, TypeError) as e:
-            logger.debug("parent_completeness skip for student %s: %s", getattr(student, "pk", None), e)
-    
+            logger.debug(
+                "parent_completeness skip for student %s: %s",
+                getattr(student, "pk", None),
+                e,
+            )
+
     code = codes[0] if codes else None
     completeness_avg = (
-        int(round(sum(completeness_vals) / len(completeness_vals))) 
-        if completeness_vals else 0
+        int(round(sum(completeness_vals) / len(completeness_vals)))
+        if completeness_vals
+        else 0
     )
-    
+
     return {
         "code": code,
         "total_codes": len(codes),
@@ -409,7 +496,7 @@ def _evaluation_complete_for_snapshot(evaluation) -> bool:
 def _attendance_snapshot(students, year, term):
     """
     Get attendance snapshot with optimized query.
-    
+
     Optimization:
     - Count completion in single aggregation query
     - Batch-load evaluations once
@@ -426,11 +513,13 @@ def _attendance_snapshot(students, year, term):
         }
 
     # Load evaluations once and derive totals in memory.
-    evals = list(Evaluation.objects.filter(
-        student__in=students,
-        academic_year=year,
-        term=term,
-    ))
+    evals = list(
+        Evaluation.objects.filter(
+            student__in=students,
+            academic_year=year,
+            term=term,
+        )
+    )
     total = len(evals)
     if total == 0:
         return {
@@ -448,7 +537,7 @@ def _attendance_snapshot(students, year, term):
         bucket["total"] += 1
         if _evaluation_complete_for_snapshot(e):
             bucket["complete"] += 1
-    
+
     complete = sum(1 for e in evals if _evaluation_complete_for_snapshot(e))
     overall_pct = int(round((complete / total) * 100)) if total > 0 else 0
 
@@ -458,13 +547,15 @@ def _attendance_snapshot(students, year, term):
         total_s = stats["total"]
         complete_s = stats["complete"]
         pct = int(round((complete_s / total_s) * 100)) if total_s else 0
-        per_student.append({
-            "student_id": student.id,
-            "student_name": f"{student.last_name} {student.first_name}",
-            "overall": pct,
-            "missing": max(0, total_s - complete_s),
-        })
-    
+        per_student.append(
+            {
+                "student_id": student.id,
+                "student_name": f"{student.last_name} {student.first_name}",
+                "overall": pct,
+                "missing": max(0, total_s - complete_s),
+            }
+        )
+
     return {
         "today": min(100, overall_pct + 2),
         "overall": overall_pct,
@@ -504,7 +595,15 @@ def _evaluation_score_fast(eval_obj) -> float:
         return float(final_score)
 
     values = []
-    for attr in ("seq1_score", "seq2_score", "exam_score", "mock_score", "practical_score", "test1", "test2"):
+    for attr in (
+        "seq1_score",
+        "seq2_score",
+        "exam_score",
+        "mock_score",
+        "practical_score",
+        "test1",
+        "test2",
+    ):
         val = getattr(eval_obj, attr, None)
         if val is not None:
             values.append(float(val))
@@ -518,14 +617,11 @@ def _grade_trend(students, year, term):
     if not students or not year or not term:
         return [{"label": "Week", "value": 0} for _ in range(4)]
 
-    evaluations = (
-        Evaluation.objects.filter(
-            student__in=students,
-            academic_year=year,
-            term=term,
-        )
-        .order_by("-updated_at")[:20]
-    )
+    evaluations = Evaluation.objects.filter(
+        student__in=students,
+        academic_year=year,
+        term=term,
+    ).order_by("-updated_at")[:20]
 
     buckets = []
     for idx, eval_obj in enumerate(reversed(evaluations)):
@@ -551,7 +647,11 @@ def _subject_performance(students, year, term):
 
     stats = {}
     for eval_obj in evals:
-        subject = eval_obj.subject_assignment.subject.name if eval_obj.subject_assignment_id else "General"
+        subject = (
+            eval_obj.subject_assignment.subject.name
+            if eval_obj.subject_assignment_id
+            else "General"
+        )
         entry = stats.setdefault(subject, {"total": 0.0, "count": 0})
         entry["total"] += _evaluation_score_fast(eval_obj)
         entry["count"] += 1
@@ -569,7 +669,9 @@ def _fees_breakdown(students):
     if not students:
         return {"paid": 0, "due": 0, "overdue": 0}
 
-    qs = Invoice.objects.filter(student__in=students).exclude(status=Invoice.Status.DRAFT)
+    qs = Invoice.objects.filter(student__in=students).exclude(
+        status=Invoice.Status.DRAFT
+    )
     stats = qs.aggregate(
         paid=Sum("total_amount", filter=Q(status=Invoice.Status.PAID)),
         due=Sum("total_amount"),
@@ -608,15 +710,15 @@ def _assignment_completion(students, year, term):
 def _performance_overview(students, year, term, *, school=None):
     """
     Get performance overview without N+1 queries.
-    
+
     CRITICAL OPTIMIZATION: This was making N × 3+ database queries.
     Now uses batch loading with caching.
-    
+
     Old approach:
     - Loop through students
     - Call term_report_context(student, year, term) inside loop = N queries
     - Total: 1 + N×3 queries
-    
+
     New approach:
     - Check cache first
     - Batch-load evaluations for all students
@@ -625,55 +727,59 @@ def _performance_overview(students, year, term, *, school=None):
     """
     if not students or not year or not term:
         return _empty_performance_data(school=school)
-    
+
     # Create cache key for this student cohort and term (tenant-scoped)
     school = school or (students[0].school if students else None)
     prefix = _cache_prefix_for_school(school)
     student_ids = sorted(s.id for s in students)
     cache_key = f"{prefix}:performance_overview:{':'.join(str(id) for id in student_ids)}:{year.id}:{term.id}"
-    
+
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         return cached_result
-    
+
     pass_mark = cache.get_or_set(
         f"{prefix}:site_settings:pass_mark",
         _site_settings_for_school(school).pass_mark,
-        3600  # Cache site settings for 1 hour
+        3600,  # Cache site settings for 1 hour
     )
-    
+
     # Batch-load all evaluations for these students in one query
-    evals = list(Evaluation.objects.filter(
-        student__in=students,
-        academic_year=year,
-        term=term,
-    ).select_related("subject_assignment__subject"))
-    
+    evals = list(
+        Evaluation.objects.filter(
+            student__in=students,
+            academic_year=year,
+            term=term,
+        ).select_related("subject_assignment__subject")
+    )
+
     if not evals:
         return _empty_performance_data(school=school)
-    
+
     # Compute summaries without additional queries
     summaries = []
     for student in students:
         student_evals = [e for e in evals if e.student_id == student.id]
         if not student_evals:
             continue
-        
+
         # Compute average from already-loaded evaluations
         total = sum(_evaluation_score_fast(e) for e in student_evals)
         count = len(student_evals)
         avg = round(total / count, 2) if count > 0 else None
-        
+
         if avg is None:
             continue
-        
-        summaries.append({
-            "student": f"{student.last_name} {student.first_name}",
-            "student_id": student.id,
-            "average": avg,
-            "promotion": None,  # Could be added if needed with additional logic
-        })
-    
+
+        summaries.append(
+            {
+                "student": f"{student.last_name} {student.first_name}",
+                "student_id": student.id,
+                "average": avg,
+                "promotion": None,  # Could be added if needed with additional logic
+            }
+        )
+
     if not summaries:
         result = _empty_performance_data(school=school)
     else:
@@ -681,7 +787,7 @@ def _performance_overview(students, year, term, *, school=None):
         top = max(summaries, key=lambda item: item["average"])
         overall_avg = sum(avg_scores) / len(avg_scores)
         trend = "On track" if overall_avg >= float(pass_mark) else "Needs attention"
-        
+
         ranked = sorted(summaries, key=lambda item: item["average"], reverse=True)
         for idx, item in enumerate(ranked, start=1):
             item["rank"] = idx
@@ -694,7 +800,7 @@ def _performance_overview(students, year, term, *, school=None):
             "label": "Shows live term averages for linked students.",
             "per_student": ranked,
         }
-    
+
     # Cache result for 10 minutes
     cache.set(cache_key, result, 600)
     return result
@@ -706,7 +812,7 @@ def _empty_performance_data(*, school=None) -> dict:
     pass_mark = cache.get_or_set(
         f"{prefix}:site_settings:pass_mark",
         _site_settings_for_school(school).pass_mark,
-        3600
+        3600,
     )
     return {
         "average": None,
@@ -721,7 +827,7 @@ def _empty_performance_data(*, school=None) -> dict:
 def _finance_summary(students):
     """
     Get financial summary with optimized aggregation.
-    
+
     Optimization:
     - Single query with aggregate() instead of multiple filters
     - Use Q objects for complex conditions
@@ -737,7 +843,9 @@ def _finance_summary(students):
         }
 
     # Single aggregation query grouped by student
-    qs = Invoice.objects.filter(student__in=students).exclude(status=Invoice.Status.DRAFT)
+    qs = Invoice.objects.filter(student__in=students).exclude(
+        status=Invoice.Status.DRAFT
+    )
 
     per_student_qs = qs.values("student_id").annotate(
         total_due=Sum("total_amount"),
@@ -745,8 +853,12 @@ def _finance_summary(students):
         overdue=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
     )
     rows = list(per_student_qs)
-    total_due = sum((row.get("total_due") or Decimal("0.00")) for row in rows) or Decimal("0.00")
-    balance = sum((row.get("balance_amount") or Decimal("0.00")) for row in rows) or Decimal("0.00")
+    total_due = sum(
+        (row.get("total_due") or Decimal("0.00")) for row in rows
+    ) or Decimal("0.00")
+    balance = sum(
+        (row.get("balance_amount") or Decimal("0.00")) for row in rows
+    ) or Decimal("0.00")
     paid = total_due - balance
     overdue_count = sum((row.get("overdue") or 0) for row in rows)
 
@@ -755,13 +867,15 @@ def _finance_summary(students):
         student_id = row.get("student_id")
         total_s = row.get("total_due") or Decimal("0.00")
         bal_s = row.get("balance_amount") or Decimal("0.00")
-        per_student.append({
-            "student_id": student_id,
-            "total_due": total_s,
-            "paid": total_s - bal_s,
-            "balance": bal_s,
-            "overdue": row.get("overdue") or 0,
-        })
+        per_student.append(
+            {
+                "student_id": student_id,
+                "total_due": total_s,
+                "paid": total_s - bal_s,
+                "balance": bal_s,
+                "overdue": row.get("overdue") or 0,
+            }
+        )
 
     return {
         "total_due": total_due,
@@ -790,12 +904,17 @@ def _upcoming_deadlines(year):
     if not year:
         return []
     from django.utils import timezone
+
     now = timezone.now()
-    qs = SubjectAssignment.objects.filter(
-        academic_year=year,
-        grading_deadline_at__isnull=False,
-        grading_deadline_at__gte=now,
-    ).select_related("term", "classroom", "subject").order_by("grading_deadline_at")[:20]
+    qs = (
+        SubjectAssignment.objects.filter(
+            academic_year=year,
+            grading_deadline_at__isnull=False,
+            grading_deadline_at__gte=now,
+        )
+        .select_related("term", "classroom", "subject")
+        .order_by("grading_deadline_at")[:20]
+    )
     return [
         {
             "title": f"Grading: {sa.subject.name} — {sa.classroom.name}",
@@ -809,6 +928,7 @@ def _upcoming_deadlines(year):
 def _upcoming_school_events(limit=15, *, school=None):
     """Phase 8: Upcoming public school calendar events for School Feed / Unified Calendar."""
     from django.utils import timezone
+
     now = timezone.now()
     if school is not None:
         try:
@@ -816,7 +936,11 @@ def _upcoming_school_events(limit=15, *, school=None):
 
             return upcoming_public_events_for_school(school, limit=limit)
         except (ImportError, AttributeError, TypeError, ValueError, DatabaseError) as e:
-            logger.debug("upcoming_public_events_for_school fallback for school %s: %s", school, e)
+            logger.debug(
+                "upcoming_public_events_for_school fallback for school %s: %s",
+                school,
+                e,
+            )
     from apps.portal.models import Event
 
     qs = Event.objects.filter(
@@ -837,7 +961,7 @@ def _upcoming_school_events(limit=15, *, school=None):
 def _task_tracker(students, year, term):
     """
     Track pending tasks with optimized aggregation.
-    
+
     Optimization:
     - Combine evaluation status into single query
     - Use Count with filter instead of iterating
@@ -853,14 +977,16 @@ def _task_tracker(students, year, term):
     # Get evaluation stats in one query
     # Note: This assumes is_complete_for_ranking is evaluated in Python
     # For better performance, we'd need to convert this to a database annotation
-    all_evals = list(Evaluation.objects.filter(
-        student__in=students,
-        academic_year=year,
-        term=term,
-    ))
-    
+    all_evals = list(
+        Evaluation.objects.filter(
+            student__in=students,
+            academic_year=year,
+            term=term,
+        )
+    )
+
     pending_evaluations = sum(1 for e in all_evals if not e.is_complete_for_ranking)
-    
+
     # Get payment reminders in single query
     now = timezone.now()
     pending_payments = PaymentReminder.objects.filter(
@@ -880,7 +1006,10 @@ def _task_tracker(students, year, term):
 
 def _portal_access_links():
     links = [
-        {"label": "View results", "url": reverse("portal:parent_dashboard") + "#children"},
+        {
+            "label": "View results",
+            "url": reverse("portal:parent_dashboard") + "#children",
+        },
         {"label": "Portal stats", "url": reverse("portal:portal_stats")},
         {"label": "Pay fees", "url": reverse("portal:parent_finance")},
         {"label": "Finance reports", "url": reverse("finance:reports")},
@@ -908,6 +1037,7 @@ def _timetable_overview(students, year, term):
     slot_by_class_subject = {}
     try:
         from apps.academics.scheduling import Schedule, ScheduleEntry
+
         pub = Schedule.objects.filter(
             academic_year=year, term=term, status="PUBLISHED"
         ).first()
@@ -928,7 +1058,11 @@ def _timetable_overview(students, year, term):
             "subject": assignment.subject.name,
             "classroom": assignment.classroom.name,
             "coefficient": float(assignment.coefficient),
-            **(slot_by_class_subject.get((assignment.classroom_id, assignment.subject_id), {})),
+            **(
+                slot_by_class_subject.get(
+                    (assignment.classroom_id, assignment.subject_id), {}
+                )
+            ),
         }
         for assignment in assignments
     ]
@@ -954,10 +1088,18 @@ def _communication_center(*, school=None):
     items = []
     links: list[dict[str, str]] = []
 
-    company_phone = contact_settings.get("company_phone") or getattr(site, "company_phone", "")
-    company_email = contact_settings.get("company_email") or getattr(site, "company_email", "")
-    footer_whatsapp_url = contact_settings.get("footer_whatsapp_url") or getattr(site, "footer_whatsapp_url", "")
-    whatsapp_support_number = contact_settings.get("whatsapp_support_number") or getattr(site, "whatsapp_support_number", "")
+    company_phone = contact_settings.get("company_phone") or getattr(
+        site, "company_phone", ""
+    )
+    company_email = contact_settings.get("company_email") or getattr(
+        site, "company_email", ""
+    )
+    footer_whatsapp_url = contact_settings.get("footer_whatsapp_url") or getattr(
+        site, "footer_whatsapp_url", ""
+    )
+    whatsapp_support_number = contact_settings.get(
+        "whatsapp_support_number"
+    ) or getattr(site, "whatsapp_support_number", "")
 
     if company_phone:
         items.append(
@@ -974,7 +1116,9 @@ def _communication_center(*, school=None):
             )
 
     if company_email:
-        items.append({"type": "email", "label": "Email support", "value": company_email})
+        items.append(
+            {"type": "email", "label": "Email support", "value": company_email}
+        )
         links.append(
             {
                 "label": "Email customer service",
@@ -984,7 +1128,9 @@ def _communication_center(*, school=None):
         )
 
     whatsapp = None
-    record = resolve_active_integration(school, "whatsapp") if school is not None else None
+    record = (
+        resolve_active_integration(school, "whatsapp") if school is not None else None
+    )
     wa_digits = None
     wa_label = "WhatsApp"
     if record and record.is_active:
@@ -995,25 +1141,44 @@ def _communication_center(*, school=None):
         )
         wa_digits = _normalize_phone(wa_number)
         if wa_number:
-            items.append({"type": "whatsapp", "label": record.service_name or "WhatsApp", "value": wa_number})
+            items.append(
+                {
+                    "type": "whatsapp",
+                    "label": record.service_name or "WhatsApp",
+                    "value": wa_number,
+                }
+            )
         wa_label = record.service_name or wa_label
     if not wa_digits:
         whatsapp = Integration.objects.filter(enabled=True)
         if school is not None:
             whatsapp = whatsapp.filter(Q(school__isnull=True) | Q(school=school))
-        whatsapp = whatsapp.filter(name__icontains="whatsapp").order_by("updated_at").first()
+        whatsapp = (
+            whatsapp.filter(name__icontains="whatsapp").order_by("updated_at").first()
+        )
         if whatsapp and is_integration_allowed(whatsapp):
-            wa_number = whatsapp.config.get("phone") or whatsapp.config.get("whatsapp_number")
+            wa_number = whatsapp.config.get("phone") or whatsapp.config.get(
+                "whatsapp_number"
+            )
             wa_digits = _normalize_phone(wa_number)
             if wa_number:
-                items.append({"type": "whatsapp", "label": whatsapp.name, "value": wa_number})
+                items.append(
+                    {"type": "whatsapp", "label": whatsapp.name, "value": wa_number}
+                )
             wa_label = whatsapp.name
     if not wa_digits and whatsapp_support_number:
         wa_digits = _normalize_phone(whatsapp_support_number)
         if wa_digits:
-            items.append({"type": "whatsapp", "label": "WhatsApp", "value": whatsapp_support_number})
+            items.append(
+                {
+                    "type": "whatsapp",
+                    "label": "WhatsApp",
+                    "value": whatsapp_support_number,
+                }
+            )
     if not wa_digits and footer_whatsapp_url:
         import urllib.parse
+
         try:
             parsed = urllib.parse.urlparse(footer_whatsapp_url)
             path = (parsed.path or "").strip("/")
@@ -1022,7 +1187,13 @@ def _communication_center(*, school=None):
             if not wa_digits and parsed.netloc == "wa.me":
                 wa_digits = path.split("?")[0] if path else None
             if wa_digits and not any(i.get("type") == "whatsapp" for i in items):
-                items.append({"type": "whatsapp", "label": "WhatsApp", "value": footer_whatsapp_url})
+                items.append(
+                    {
+                        "type": "whatsapp",
+                        "label": "WhatsApp",
+                        "value": footer_whatsapp_url,
+                    }
+                )
         except (AttributeError, TypeError, ValueError):
             pass
     if wa_digits:
@@ -1038,8 +1209,12 @@ def _communication_center(*, school=None):
 
     other_integrations = Integration.objects.filter(enabled=True)
     if school is not None:
-        other_integrations = other_integrations.filter(Q(school__isnull=True) | Q(school=school))
-    other_integrations = other_integrations.exclude(pk=whatsapp.pk if whatsapp else None).order_by("-updated_at")
+        other_integrations = other_integrations.filter(
+            Q(school__isnull=True) | Q(school=school)
+        )
+    other_integrations = other_integrations.exclude(
+        pk=whatsapp.pk if whatsapp else None
+    ).order_by("-updated_at")
     for integration in other_integrations:
         if not is_integration_allowed(integration):
             continue
@@ -1068,7 +1243,7 @@ def _communication_center(*, school=None):
 def _analytics_insights(students, year, term, *, school=None):
     """
     Get analytics insights with optimized batch loading.
-    
+
     Optimization:
     - Single query with select_related (already present)
     - Batch process in Python (evaluations already loaded)
@@ -1096,7 +1271,9 @@ def _analytics_insights(students, year, term, *, school=None):
 
     subject_totals: dict[str, dict[str, float]] = {}
     for e in evals:
-        subj = e.subject_assignment.subject.name if e.subject_assignment_id else "General"
+        subj = (
+            e.subject_assignment.subject.name if e.subject_assignment_id else "General"
+        )
         subject_totals.setdefault(subj, {"total": 0.0, "count": 0})
         score = e.final_score
         if score is None:
@@ -1109,7 +1286,9 @@ def _analytics_insights(students, year, term, *, school=None):
     for subject, data in subject_totals.items():
         if data["count"] == 0:
             continue
-        averages.append({"subject": subject, "average": round(data["total"] / data["count"], 2)})
+        averages.append(
+            {"subject": subject, "average": round(data["total"] / data["count"], 2)}
+        )
 
     averages.sort(key=lambda x: x["average"], reverse=True)
 
@@ -1118,7 +1297,7 @@ def _analytics_insights(students, year, term, *, school=None):
         "lowlights": averages[-3:],
         "label": "Top/bottom subjects based on published evaluations.",
     }
-    
+
     cache.set(cache_key, result, 600)  # Cache 10 minutes
     return result
 
@@ -1128,13 +1307,16 @@ def _assignment_completion_spotlight(assignments, term) -> List[dict]:
     for assignment in assignments:
         sa = assignment.subject_assignment
         stats = completion_for_assignment(sa, term)
-        spotlight.append({
-            "label": f"{sa.subject.name} \u2013 {sa.classroom.name}",
-            "pct": stats.completion_pct,
-            "pending": stats.pending,
-            "total": stats.total,
-            "url": reverse("evals:teacher_marks_entry") + f"?subject_assignment_id={sa.id}",
-        })
+        spotlight.append(
+            {
+                "label": f"{sa.subject.name} \u2013 {sa.classroom.name}",
+                "pct": stats.completion_pct,
+                "pending": stats.pending,
+                "total": stats.total,
+                "url": reverse("evals:teacher_marks_entry")
+                + f"?subject_assignment_id={sa.id}",
+            }
+        )
     spotlight.sort(key=lambda x: x["pct"])
     return spotlight[:4]
 
@@ -1148,13 +1330,16 @@ def _teacher_finance_block(teacher):
         return {"label": "No payroll profile yet."}
 
     latest_payslip = payroll_profile.payslips.select_related("payroll_run").first()
-    pending_leaves = payroll_profile.leave_requests.filter(status=LeaveRequest.Status.PENDING).count()
+    pending_leaves = payroll_profile.leave_requests.filter(
+        status=LeaveRequest.Status.PENDING
+    ).count()
 
     return {
         "net_pay": latest_payslip.net_pay if latest_payslip else None,
         "status": latest_payslip.status if latest_payslip else "N/A",
         "period": f"{latest_payslip.payroll_run.period_start} \u2192 {latest_payslip.payroll_run.period_end}"
-        if latest_payslip else "",
+        if latest_payslip
+        else "",
         "next_pay": getattr(teacher, "next_pay_date", None),
         "notes": getattr(teacher, "paystub_notes", ""),
         "pending_leaves": pending_leaves,
@@ -1170,11 +1355,13 @@ def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=Non
     upcoming = []
     for assignment in assignments[:3]:
         sa = assignment.subject_assignment
-        upcoming.append({
-            "subject": sa.subject.name,
-            "classroom": sa.classroom.name,
-            "term": sa.term.label,
-        })
+        upcoming.append(
+            {
+                "subject": sa.subject.name,
+                "classroom": sa.classroom.name,
+                "term": sa.term.label,
+            }
+        )
 
     links = [
         {"label": "Enter marks", "url": reverse("evals:teacher_marks_entry")},
@@ -1192,9 +1379,17 @@ def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=Non
 
     attendance = None
     if assignments:
-        classroom_ids = {a.subject_assignment.classroom_id for a in assignments if getattr(a, "subject_assignment", None)}
+        classroom_ids = {
+            a.subject_assignment.classroom_id
+            for a in assignments
+            if getattr(a, "subject_assignment", None)
+        }
         if classroom_ids and year:
-            students = list(StudentProfile.objects.filter(classroom_id__in=classroom_ids, academic_year=year))
+            students = list(
+                StudentProfile.objects.filter(
+                    classroom_id__in=classroom_ids, academic_year=year
+                )
+            )
             attendance = _attendance_snapshot(students, year, term)
 
     return {
@@ -1205,8 +1400,8 @@ def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=Non
         "links": links,
         "upcoming": upcoming,
         "tasks": {
-          "pending_evaluations": missing,
-          "description": "Missing marks show what still needs entry.",
+            "pending_evaluations": missing,
+            "description": "Missing marks show what still needs entry.",
         },
         "communication": _communication_center(school=getattr(teacher, "school", None)),
         "finance": _teacher_finance_block(teacher) if teacher else {},
@@ -1223,7 +1418,15 @@ def award_referral_reward(
         return None
     school = getattr(getattr(guardian_link, "student", None), "school", None)
     site = _site_settings_for_school(school)
-    amount = site.referral_bonus_amount or Decimal("0.00")
+    raw_amount = site.referral_bonus_amount
+    try:
+        amount = (
+            Decimal(str(raw_amount))
+            if raw_amount not in (None, "")
+            else Decimal("0.00")
+        )
+    except (TypeError, ValueError, ArithmeticError):
+        amount = Decimal("0.00")
     if amount <= Decimal("0.00"):
         return None
     invoice = (
@@ -1248,7 +1451,9 @@ def award_referral_reward(
         reward.awarded_by = awarded_by
         reward.invoice = invoice
         reward.status = ReferralReward.Status.PENDING
-        reward.save(update_fields=["amount", "description", "awarded_by", "invoice", "status"])
+        reward.save(
+            update_fields=["amount", "description", "awarded_by", "invoice", "status"]
+        )
     return reward
 
 

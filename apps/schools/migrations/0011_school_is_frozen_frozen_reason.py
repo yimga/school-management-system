@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schools", "0010_security_powerhouse_audit_passkey"),
     ]

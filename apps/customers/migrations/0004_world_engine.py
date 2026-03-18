@@ -27,7 +27,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("customers", "0003_ensure_gilead_tenant_domain"),
     ]

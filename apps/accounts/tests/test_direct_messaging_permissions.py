@@ -60,7 +60,9 @@ class DirectMessagingPermissionTests(TestCase):
 
     def test_parent_cannot_open_direct_thread_with_non_staff(self):
         self.client.force_login(self.parent)
-        response = self.client.get(reverse("accounts:direct_thread", args=[self.student.id]))
+        response = self.client.get(
+            reverse("accounts:direct_thread", args=[self.student.id])
+        )
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("portal:parent_contact_school"), response.url)
 

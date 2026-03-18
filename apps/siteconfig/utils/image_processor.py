@@ -33,21 +33,21 @@ class ImageProcessor:
 
     # Maximum dimensions for different image types
     MAX_SIZES = {
-        'profile': (400, 400),      # Profile photos
-        'document': (1200, 1600),   # Document scans
-        'logo': (300, 300),         # Logos and icons
-        'general': (800, 600),      # General images
+        "profile": (400, 400),  # Profile photos
+        "document": (1200, 1600),  # Document scans
+        "logo": (300, 300),  # Logos and icons
+        "general": (800, 600),  # General images
     }
 
     # Quality settings for different formats
     QUALITY_SETTINGS = {
-        'JPEG': 85,
-        'PNG': 95,  # PNG is lossless, but we can optimize
-        'WEBP': 80,
+        "JPEG": 85,
+        "PNG": 95,  # PNG is lossless, but we can optimize
+        "WEBP": 80,
     }
 
     @staticmethod
-    def compress_image(image_file, image_type='general', max_size_mb=2):
+    def compress_image(image_file, image_type="general", max_size_mb=2):
         """
         Compress and optimize an uploaded image.
 
@@ -59,10 +59,14 @@ class ImageProcessor:
         Returns:
             ContentFile: Optimized image as Django ContentFile
         """
-        original_name = getattr(image_file, "name", None) or (os.path.basename(image_file) if isinstance(image_file, (str, os.PathLike)) else "image.jpg")
+        original_name = getattr(image_file, "name", None) or (
+            os.path.basename(image_file)
+            if isinstance(image_file, (str, os.PathLike))
+            else "image.jpg"
+        )
         try:
             # Open image
-            if hasattr(image_file, 'read'):
+            if hasattr(image_file, "read"):
                 # Django file object
                 image = Image.open(image_file)
             else:
@@ -70,15 +74,17 @@ class ImageProcessor:
                 image = Image.open(image_file)
 
             # Convert to RGB if necessary (for JPEG compatibility)
-            if image.mode in ('RGBA', 'LA', 'P'):
+            if image.mode in ("RGBA", "LA", "P"):
                 # Create white background for transparent images
-                background = Image.new('RGB', image.size, (255, 255, 255))
-                if image.mode == 'P':
-                    image = image.convert('RGBA')
-                background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+                background = Image.new("RGB", image.size, (255, 255, 255))
+                if image.mode == "P":
+                    image = image.convert("RGBA")
+                background.paste(
+                    image, mask=image.split()[-1] if image.mode == "RGBA" else None
+                )
                 image = background
-            elif image.mode != 'RGB':
-                image = image.convert('RGB')
+            elif image.mode != "RGB":
+                image = image.convert("RGB")
 
             # Get max dimensions for this image type
             max_width, max_height = ImageProcessor.MAX_SIZES.get(image_type, (800, 600))
@@ -89,37 +95,44 @@ class ImageProcessor:
 
             # Determine output format
             original_ext = os.path.splitext(original_name)[1].lower()
-            if original_ext in ['.jpg', '.jpeg']:
-                output_format = 'JPEG'
-                file_extension = 'jpg'
-            elif original_ext == '.png':
-                output_format = 'PNG'
-                file_extension = 'png'
+            if original_ext in [".jpg", ".jpeg"]:
+                output_format = "JPEG"
+                file_extension = "jpg"
+            elif original_ext == ".png":
+                output_format = "PNG"
+                file_extension = "png"
             else:
                 # Default to WebP for better compression
-                output_format = 'WEBP'
-                file_extension = 'webp'
+                output_format = "WEBP"
+                file_extension = "webp"
 
             # Compress and save to BytesIO
             output_buffer = BytesIO()
             quality = ImageProcessor.QUALITY_SETTINGS.get(output_format, 85)
 
             # For PNG, we can try to optimize without quality loss
-            if output_format == 'PNG':
+            if output_format == "PNG":
                 # Try PNG optimization
                 image.save(output_buffer, format=output_format, optimize=True)
             else:
-                image.save(output_buffer, format=output_format, quality=quality, optimize=True)
+                image.save(
+                    output_buffer, format=output_format, quality=quality, optimize=True
+                )
 
             # Check file size
             file_size = output_buffer.tell()
             max_size_bytes = max_size_mb * 1024 * 1024
 
             # If still too large, reduce quality further
-            if file_size > max_size_bytes and output_format != 'PNG':
+            if file_size > max_size_bytes and output_format != "PNG":
                 output_buffer = BytesIO()
                 reduced_quality = max(quality - 20, 50)  # Minimum quality of 50
-                image.save(output_buffer, format=output_format, quality=reduced_quality, optimize=True)
+                image.save(
+                    output_buffer,
+                    format=output_format,
+                    quality=reduced_quality,
+                    optimize=True,
+                )
 
             # Create new filename
             base_name = os.path.splitext(original_name)[0]
@@ -133,14 +146,20 @@ class ImageProcessor:
             log_exception_with_context(
                 "image_processor.compress_image failed",
                 school_id=None,
-                extra={"original_name": original_name, "image_type": image_type, "operation": "compress_image"},
+                extra={
+                    "original_name": original_name,
+                    "image_type": image_type,
+                    "operation": "compress_image",
+                },
             )
             # Return original file if compression fails
-            if hasattr(image_file, 'read'):
+            if hasattr(image_file, "read"):
                 image_file.seek(0)
-                return ContentFile(image_file.read(), name=getattr(image_file, 'name', 'image.jpg'))
+                return ContentFile(
+                    image_file.read(), name=getattr(image_file, "name", "image.jpg")
+                )
             else:
-                with open(image_file, 'rb') as f:
+                with open(image_file, "rb") as f:
                     return ContentFile(f.read(), name=os.path.basename(image_file))
 
     @staticmethod
@@ -157,23 +176,23 @@ class ImageProcessor:
         """
         try:
             # Open image
-            if hasattr(image_file, 'read'):
+            if hasattr(image_file, "read"):
                 image = Image.open(image_file)
-                original_name = getattr(image_file, 'name', 'image.jpg')
+                original_name = getattr(image_file, "name", "image.jpg")
             else:
                 image = Image.open(image_file)
                 original_name = os.path.basename(image_file)
 
             # Convert to RGB
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
+            if image.mode != "RGB":
+                image = image.convert("RGB")
 
             # Create thumbnail
             image.thumbnail(size, Image.LANCZOS)
 
             # Save to BytesIO
             thumb_buffer = BytesIO()
-            image.save(thumb_buffer, format='JPEG', quality=80, optimize=True)
+            image.save(thumb_buffer, format="JPEG", quality=80, optimize=True)
 
             # Create filename
             base_name = os.path.splitext(original_name)[0]
@@ -202,22 +221,29 @@ class ImageProcessor:
             dict: Image information
         """
         try:
-            if hasattr(image_file, 'read'):
+            if hasattr(image_file, "read"):
                 image = Image.open(image_file)
             else:
                 image = Image.open(image_file)
 
             return {
-                'width': image.width,
-                'height': image.height,
-                'format': image.format,
-                'mode': image.mode,
-                'size_bytes': image_file.size if hasattr(image_file, 'size') else 0,
+                "width": image.width,
+                "height": image.height,
+                "format": image.format,
+                "mode": image.mode,
+                "size_bytes": image_file.size if hasattr(image_file, "size") else 0,
             }
         except _IMAGE_PROCESSOR_ERRORS:
             log_exception_with_context(
                 "ImageProcessor.get_image_info failed",
-                extra={"original_name": getattr(image_file, "name", None) or (os.path.basename(image_file) if isinstance(image_file, (str, os.PathLike)) else "image")},
+                extra={
+                    "original_name": getattr(image_file, "name", None)
+                    or (
+                        os.path.basename(image_file)
+                        if isinstance(image_file, (str, os.PathLike))
+                        else "image"
+                    )
+                },
             )
             return {}
 

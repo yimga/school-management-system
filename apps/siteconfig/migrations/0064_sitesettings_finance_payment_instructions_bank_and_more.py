@@ -4,35 +4,57 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0063_sitesettings_finance_bank_verification_amount_tolerance_and_more'),
+        (
+            "siteconfig",
+            "0063_sitesettings_finance_bank_verification_amount_tolerance_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_payment_instructions_bank',
-            field=models.TextField(blank=True, default='🏦 BANK TRANSFER:\nAccount: {bank_account}\nBank: {bank_name}\nBranch: {branch}\nReference: {payment_code}', help_text='Bank transfer payment instructions template. Variables: {bank_account}, {bank_name}, {branch}, {payment_code}'),
+            model_name="sitesettings",
+            name="finance_payment_instructions_bank",
+            field=models.TextField(
+                blank=True,
+                default="🏦 BANK TRANSFER:\nAccount: {bank_account}\nBank: {bank_name}\nBranch: {branch}\nReference: {payment_code}",
+                help_text="Bank transfer payment instructions template. Variables: {bank_account}, {bank_name}, {branch}, {payment_code}",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_payment_instructions_cash',
-            field=models.TextField(blank=True, default='💵 CASH: Pay at school office during business hours.', help_text='Cash payment instructions template'),
+            model_name="sitesettings",
+            name="finance_payment_instructions_cash",
+            field=models.TextField(
+                blank=True,
+                default="💵 CASH: Pay at school office during business hours.",
+                help_text="Cash payment instructions template",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_payment_instructions_mtn_momo',
-            field=models.TextField(blank=True, default='📱 MTN MOBILE MONEY:\nMerchant: {mtn_momo_number}\nPayment Code: {payment_code}\nAmount: {amount} XAF', help_text='MTN MoMo payment instructions template. Variables: {mtn_momo_number}, {payment_code}, {amount}'),
+            model_name="sitesettings",
+            name="finance_payment_instructions_mtn_momo",
+            field=models.TextField(
+                blank=True,
+                default="📱 MTN MOBILE MONEY:\nMerchant: {mtn_momo_number}\nPayment Code: {payment_code}\nAmount: {amount} XAF",
+                help_text="MTN MoMo payment instructions template. Variables: {mtn_momo_number}, {payment_code}, {amount}",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_payment_instructions_orange_money',
-            field=models.TextField(blank=True, default='📱 ORANGE MONEY:\nMerchant: {orange_money_number}\nPayment Code: {payment_code}\nAmount: {amount} XAF', help_text='Orange Money payment instructions template. Variables: {orange_money_number}, {payment_code}, {amount}'),
+            model_name="sitesettings",
+            name="finance_payment_instructions_orange_money",
+            field=models.TextField(
+                blank=True,
+                default="📱 ORANGE MONEY:\nMerchant: {orange_money_number}\nPayment Code: {payment_code}\nAmount: {amount} XAF",
+                help_text="Orange Money payment instructions template. Variables: {orange_money_number}, {payment_code}, {amount}",
+            ),
         ),
         migrations.AddField(
-            model_name='sitesettings',
-            name='finance_receipt_upload_instructions',
-            field=models.TextField(blank=True, default='After payment, upload your receipt here: {receipt_upload_link}', help_text='Receipt upload instructions. Variables: {receipt_upload_link}'),
+            model_name="sitesettings",
+            name="finance_receipt_upload_instructions",
+            field=models.TextField(
+                blank=True,
+                default="After payment, upload your receipt here: {receipt_upload_link}",
+                help_text="Receipt upload instructions. Variables: {receipt_upload_link}",
+            ),
         ),
     ]

@@ -2,6 +2,7 @@
 Feature registry: module codes that can be enabled per school (Phase 3).
 School.features is JSONB {"library": true, "transport": false}; sidebar/API filter by has_feature(code).
 """
+
 from __future__ import annotations
 
 from typing import TypedDict
@@ -18,16 +19,61 @@ class ModuleSpec(TypedDict, total=False):
 
 # Registry of available modules (code -> ModuleSpec). Extend as needed.
 FEATURE_REGISTRY: list[ModuleSpec] = [
-    {"code": "library", "name": "Library", "description": "Library management and book lending.", "price": "Free"},
-    {"code": "transport", "name": "Transport", "description": "School bus and transport fee management.", "price": "Free"},
-    {"code": "canteen", "name": "Canteen", "description": "Canteen and meal plans.", "price": "Free"},
-    {"code": "parent_chat", "name": "Parent Chat", "description": "Direct messaging with parents.", "price": "Free"},
-    {"code": "cahier_de_texte", "name": "Cahier de Texte", "description": "Homework and class diary.", "price": "Free"},
-    {"code": "offline_mode", "name": "Offline Mode", "description": "Offline sync for marks and attendance (requires Offline Mode enabled globally in Feature Control).", "price": "Free"},
-    {"code": "canary_tenant", "name": "Canary Tenant", "description": "Mark this tenant as canary for staged rollouts (29.4).", "price": "Free"},
+    {
+        "code": "library",
+        "name": "Library",
+        "description": "Library management and book lending.",
+        "price": "Free",
+    },
+    {
+        "code": "transport",
+        "name": "Transport",
+        "description": "School bus and transport fee management.",
+        "price": "Free",
+    },
+    {
+        "code": "canteen",
+        "name": "Canteen",
+        "description": "Canteen and meal plans.",
+        "price": "Free",
+    },
+    {
+        "code": "parent_chat",
+        "name": "Parent Chat",
+        "description": "Direct messaging with parents.",
+        "price": "Free",
+    },
+    {
+        "code": "cahier_de_texte",
+        "name": "Cahier de Texte",
+        "description": "Homework and class diary.",
+        "price": "Free",
+    },
+    {
+        "code": "offline_mode",
+        "name": "Offline Mode",
+        "description": "Offline sync for marks and attendance (requires Offline Mode enabled globally in Feature Control).",
+        "price": "Free",
+    },
+    {
+        "code": "canary_tenant",
+        "name": "Canary Tenant",
+        "description": "Mark this tenant as canary for staged rollouts (29.4).",
+        "price": "Free",
+    },
     # Plan XVI: Blueprint extras
-    {"code": "alumni", "name": "Alumni", "description": "Alumni network and post-graduation tracking.", "price": "Free"},
-    {"code": "dormitory", "name": "Dormitory", "description": "Boarding and dorm management.", "price": "Free"},
+    {
+        "code": "alumni",
+        "name": "Alumni",
+        "description": "Alumni network and post-graduation tracking.",
+        "price": "Free",
+    },
+    {
+        "code": "dormitory",
+        "name": "Dormitory",
+        "description": "Boarding and dorm management.",
+        "price": "Free",
+    },
 ]
 
 
@@ -50,7 +96,9 @@ def ensure_module_registry_seeded() -> None:
             "is_active": True,
             "metadata": {"price": str(module.get("price") or "Free")},
         }
-        definition, created = FeatureToggleDefinition.objects.get_or_create(key=key, defaults=defaults)
+        definition, created = FeatureToggleDefinition.objects.get_or_create(
+            key=key, defaults=defaults
+        )
         if created:
             continue
         changed = False
@@ -69,20 +117,25 @@ def ensure_module_registry_seeded() -> None:
             definition.metadata = metadata
             changed = True
         if changed:
-            definition.save(update_fields=["category", "label", "description", "metadata", "updated_at"])
+            definition.save(
+                update_fields=[
+                    "category",
+                    "label",
+                    "description",
+                    "metadata",
+                    "updated_at",
+                ]
+            )
 
 
 def get_available_modules():
     """Return list of module specs for module market UI."""
     ensure_module_registry_seeded()
-    rows = (
-        FeatureToggleDefinition.objects.filter(
-            category="modules",
-            scope=FeatureToggleDefinition.Scope.SCHOOL,
-            is_active=True,
-        )
-        .order_by("label", "key")
-    )
+    rows = FeatureToggleDefinition.objects.filter(
+        category="modules",
+        scope=FeatureToggleDefinition.Scope.SCHOOL,
+        is_active=True,
+    ).order_by("label", "key")
     modules: list[ModuleSpec] = []
     for row in rows:
         key = str(row.key or "")

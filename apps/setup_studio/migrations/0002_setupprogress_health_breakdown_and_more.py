@@ -4,55 +4,78 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('setup_studio', '0001_initial'),
+        ("setup_studio", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='setupprogress',
-            name='health_breakdown',
-            field=models.JSONField(blank=True, default=dict, help_text='Weighted readiness scoring breakdown.'),
+            model_name="setupprogress",
+            name="health_breakdown",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="Weighted readiness scoring breakdown.",
+            ),
         ),
         migrations.AddField(
-            model_name='setupprogress',
-            name='health_score',
+            model_name="setupprogress",
+            name="health_score",
             field=models.PositiveSmallIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='setupprogress',
-            name='launch_blockers',
-            field=models.JSONField(blank=True, default=list, help_text='Current blocker keys preventing launch.'),
+            model_name="setupprogress",
+            name="launch_blockers",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Current blocker keys preventing launch.",
+            ),
         ),
         migrations.AddField(
-            model_name='setupprogress',
-            name='launch_checklist',
-            field=models.JSONField(blank=True, default=list, help_text='Launch readiness checklist with blocker flags.'),
+            model_name="setupprogress",
+            name="launch_checklist",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Launch readiness checklist with blocker flags.",
+            ),
         ),
         migrations.AddField(
-            model_name='setupprogress',
-            name='launch_ready',
+            model_name="setupprogress",
+            name="launch_ready",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='setupprogress',
-            name='launched_at',
+            model_name="setupprogress",
+            name="launched_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='setupprogress',
-            name='recommendations',
-            field=models.JSONField(blank=True, default=list, help_text='Recommended actions and blueprint/starter-stack suggestions.'),
+            model_name="setupprogress",
+            name="recommendations",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Recommended actions and blueprint/starter-stack suggestions.",
+            ),
         ),
         migrations.AddField(
-            model_name='setupprogress',
-            name='role_previews',
-            field=models.JSONField(blank=True, default=list, help_text='Role-specific preview destinations and summary cards.'),
+            model_name="setupprogress",
+            name="role_previews",
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text="Role-specific preview destinations and summary cards.",
+            ),
         ),
         migrations.AddField(
-            model_name='setupprogress',
-            name='step_state',
-            field=models.JSONField(blank=True, default=dict, help_text='Structured state for each setup step.'),
+            model_name="setupprogress",
+            name="step_state",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="Structured state for each setup step.",
+            ),
         ),
     ]

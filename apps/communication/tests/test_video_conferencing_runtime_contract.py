@@ -6,7 +6,10 @@ from django.test import TestCase
 from django.utils import timezone
 
 from apps.accounts.models import User
-from apps.communication.video_conferencing import VideoConferenceProvider, VideoConferenceService
+from apps.communication.video_conferencing import (
+    VideoConferenceProvider,
+    VideoConferenceService,
+)
 
 
 class VideoConferencingRuntimeContractTests(TestCase):
@@ -43,4 +46,3 @@ class VideoConferencingRuntimeContractTests(TestCase):
         self.assertIn("meeting_id", payload)
         self.assertIn("join_url", payload)
         self.assertIn("host_url", payload)
-

@@ -10,7 +10,7 @@ DEFAULT_METHODS = [
 
 
 def populate_available_methods(apps, schema_editor):
-    ComplianceProfile = apps.get_model('finance', 'ComplianceProfile')
+    ComplianceProfile = apps.get_model("finance", "ComplianceProfile")
     for profile in ComplianceProfile.objects.all():
         methods = profile.available_payment_methods or []
         if not methods:
@@ -24,9 +24,8 @@ def reverse_noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0012_add_available_payment_methods'),
+        ("finance", "0012_add_available_payment_methods"),
     ]
 
     operations = [

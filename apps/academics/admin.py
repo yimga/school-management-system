@@ -3,11 +3,23 @@ from config.admin import register_tenant_admin
 
 from unfold.admin import ModelAdmin
 from .models import (
-    AcademicYear, Term, Department, Specialty, Classroom, ClassroomPromotionMapping, Subject, SubjectAssignment,
-    CourseSyllabus, ClassBooklist, Incident,
-    CurriculumStandard, CurriculumNode,
+    AcademicYear,
+    Term,
+    Department,
+    Specialty,
+    Classroom,
+    ClassroomPromotionMapping,
+    Subject,
+    SubjectAssignment,
+    CourseSyllabus,
+    ClassBooklist,
+    Incident,
+    CurriculumStandard,
+    CurriculumNode,
     WorkflowConfig,
-    CertificationExamSession, CertificationCandidate, CertificationAuditLog,
+    CertificationExamSession,
+    CertificationCandidate,
+    CertificationAuditLog,
     CertificationExamPreset,
     CertificationFeeTemplate,
     CertificationFeeLine,
@@ -15,17 +27,39 @@ from .models import (
     CertificationDocumentItem,
     CertificationCandidateDocumentStatus,
 )
-from .scheduling import Room, TimeSlot, Schedule, ScheduleEntry, TeacherAvailability, SchedulingConstraint
+from .scheduling import (
+    Room,
+    TimeSlot,
+    Schedule,
+    ScheduleEntry,
+    TeacherAvailability,
+    SchedulingConstraint,
+)
 
 
 class AcademicYearAdmin(ModelAdmin):
-    list_display = ("name", "start_date", "end_date", "is_active", "is_locked", "enable_gce_registration")
+    list_display = (
+        "name",
+        "start_date",
+        "end_date",
+        "is_active",
+        "is_locked",
+        "enable_gce_registration",
+    )
     list_filter = ("is_active", "is_locked", "enable_gce_registration")
     search_fields = ("name",)
 
 
 class TermAdmin(ModelAdmin):
-    list_display = ("academic_year", "position", "name", "custom_label", "start_date", "end_date", "is_active")
+    list_display = (
+        "academic_year",
+        "position",
+        "name",
+        "custom_label",
+        "start_date",
+        "end_date",
+        "is_active",
+    )
     list_filter = ("academic_year", "is_active")
     search_fields = ("academic_year__name", "name", "custom_label")
 
@@ -48,7 +82,12 @@ class ClassroomAdmin(ModelAdmin):
 
 
 class ClassroomPromotionMappingAdmin(ModelAdmin):
-    list_display = ("source_year", "source_classroom", "target_year", "target_classroom")
+    list_display = (
+        "source_year",
+        "source_classroom",
+        "target_year",
+        "target_classroom",
+    )
     list_filter = ("source_year", "target_year")
     search_fields = ("source_classroom__name", "target_classroom__name")
     autocomplete_fields = ("source_classroom", "target_classroom")
@@ -61,15 +100,37 @@ class SubjectAdmin(ModelAdmin):
 
 
 class SubjectAssignmentAdmin(ModelAdmin):
-    list_display = ("academic_year", "term", "classroom", "specialty", "subject", "coefficient")
+    list_display = (
+        "academic_year",
+        "term",
+        "classroom",
+        "specialty",
+        "subject",
+        "coefficient",
+    )
     list_filter = ("academic_year", "term", "classroom", "specialty", "subject")
-    search_fields = ("classroom__name", "specialty__name", "subject__name", "academic_year__name")
+    search_fields = (
+        "classroom__name",
+        "specialty__name",
+        "subject__name",
+        "academic_year__name",
+    )
 
 
 class CourseSyllabusAdmin(ModelAdmin):
-    list_display = ("subject_assignment", "status", "submitted_at", "reviewed_by", "reviewed_at", "updated_at")
+    list_display = (
+        "subject_assignment",
+        "status",
+        "submitted_at",
+        "reviewed_by",
+        "reviewed_at",
+        "updated_at",
+    )
     list_filter = ("status",)
-    search_fields = ("subject_assignment__subject__name", "subject_assignment__classroom__name")
+    search_fields = (
+        "subject_assignment__subject__name",
+        "subject_assignment__classroom__name",
+    )
     raw_id_fields = ("reviewed_by", "created_by")
     readonly_fields = ("created_at", "updated_at", "submitted_at", "reviewed_at")
     filter_horizontal = ("curriculum_nodes",)
@@ -82,15 +143,41 @@ class ClassBooklistAdmin(ModelAdmin):
 
 
 class CertificationExamSessionAdmin(ModelAdmin):
-    list_display = ("name", "academic_year", "board", "level", "is_active", "registration_opens_at", "registration_closes_at")
+    list_display = (
+        "name",
+        "academic_year",
+        "board",
+        "level",
+        "is_active",
+        "registration_opens_at",
+        "registration_closes_at",
+    )
     list_filter = ("academic_year", "board", "level", "is_active")
     search_fields = ("name", "academic_year__name")
 
 
 class CertificationCandidateAdmin(ModelAdmin):
-    list_display = ("student", "session", "status", "candidate_number", "ca_uploaded_at", "updated_at")
-    list_filter = ("session", "status", "session__academic_year", "session__board", "session__level")
-    search_fields = ("student__first_name", "student__last_name", "candidate_number", "session__name")
+    list_display = (
+        "student",
+        "session",
+        "status",
+        "candidate_number",
+        "ca_uploaded_at",
+        "updated_at",
+    )
+    list_filter = (
+        "session",
+        "status",
+        "session__academic_year",
+        "session__board",
+        "session__level",
+    )
+    search_fields = (
+        "student__first_name",
+        "student__last_name",
+        "candidate_number",
+        "session__name",
+    )
 
 
 class CertificationAuditLogAdmin(ModelAdmin):
@@ -111,8 +198,21 @@ class CertificationFeeLineInline(admin.TabularInline):
 
 
 class CertificationFeeTemplateAdmin(ModelAdmin):
-    list_display = ("name", "preset", "currency", "is_default_for_preset", "is_active", "updated_at")
-    list_filter = ("currency", "is_default_for_preset", "is_active", "preset__board", "preset__level")
+    list_display = (
+        "name",
+        "preset",
+        "currency",
+        "is_default_for_preset",
+        "is_active",
+        "updated_at",
+    )
+    list_filter = (
+        "currency",
+        "is_default_for_preset",
+        "is_active",
+        "preset__board",
+        "preset__level",
+    )
     search_fields = ("name", "preset__name", "preset__code")
     inlines = [CertificationFeeLineInline]
 
@@ -123,8 +223,19 @@ class CertificationDocumentItemInline(admin.TabularInline):
 
 
 class CertificationDocumentChecklistAdmin(ModelAdmin):
-    list_display = ("name", "preset", "is_default_for_preset", "is_active", "updated_at")
-    list_filter = ("is_default_for_preset", "is_active", "preset__board", "preset__level")
+    list_display = (
+        "name",
+        "preset",
+        "is_default_for_preset",
+        "is_active",
+        "updated_at",
+    )
+    list_filter = (
+        "is_default_for_preset",
+        "is_active",
+        "preset__board",
+        "preset__level",
+    )
     search_fields = ("name", "preset__name", "preset__code")
     inlines = [CertificationDocumentItemInline]
 
@@ -132,7 +243,12 @@ class CertificationDocumentChecklistAdmin(ModelAdmin):
 class CertificationCandidateDocumentStatusAdmin(ModelAdmin):
     list_display = ("candidate", "item", "status", "received_at", "verified_at")
     list_filter = ("status", "item__checklist", "candidate__session")
-    search_fields = ("candidate__student__first_name", "candidate__student__last_name", "item__label", "item__code")
+    search_fields = (
+        "candidate__student__first_name",
+        "candidate__student__last_name",
+        "item__label",
+        "item__code",
+    )
 
 
 from django import forms
@@ -163,14 +279,18 @@ def assign_positions_to_year(modeladmin, request, queryset):
     """Admin action to auto-assign positions 1–4 per year based on start_date order."""
     from django.contrib import messages
     from django.db import transaction
-    
+
     years = set(queryset.values_list("academic_year_id", flat=True))
     total_assigned = 0
-    
+
     for year_id in years:
-        terms = Term.objects.filter(academic_year_id=year_id).order_by("start_date", "id")
-        used_positions = set(terms.exclude(position__isnull=True).values_list("position", flat=True))
-        
+        terms = Term.objects.filter(academic_year_id=year_id).order_by(
+            "start_date", "id"
+        )
+        used_positions = set(
+            terms.exclude(position__isnull=True).values_list("position", flat=True)
+        )
+
         updates = []
         next_pos = 1
         for term in terms:
@@ -183,7 +303,7 @@ def assign_positions_to_year(modeladmin, request, queryset):
             updates.append(term)
             used_positions.add(next_pos)
             next_pos += 1
-        
+
         with transaction.atomic():
             for idx, term in enumerate(updates, start=1):
                 # Find next free position
@@ -197,14 +317,16 @@ def assign_positions_to_year(modeladmin, request, queryset):
                     term.position = pos
                     term.save(update_fields=["position"])
                     total_assigned += 1
-    
+
     messages.success(
         request,
-        f"Assigned positions to {total_assigned} terms across {len(years)} academic year(s)."
+        f"Assigned positions to {total_assigned} terms across {len(years)} academic year(s).",
     )
 
 
-assign_positions_to_year.short_description = "Assign positions 1–4 per year (start_date order)"
+assign_positions_to_year.short_description = (
+    "Assign positions 1–4 per year (start_date order)"
+)
 TermAdmin.actions = [assign_positions_to_year]
 
 
@@ -219,7 +341,17 @@ register_tenant_admin(Subject, SubjectAdmin)
 
 
 class IncidentAdmin(ModelAdmin):
-    list_display = ("date", "school", "incident_type", "student", "teacher", "severity", "status", "notify_parent", "created_at")
+    list_display = (
+        "date",
+        "school",
+        "incident_type",
+        "student",
+        "teacher",
+        "severity",
+        "status",
+        "notify_parent",
+        "created_at",
+    )
     list_filter = ("school", "incident_type", "severity", "status", "notify_parent")
     search_fields = (
         "description",
@@ -268,13 +400,24 @@ register_tenant_admin(CertificationCandidate, CertificationCandidateAdmin)
 register_tenant_admin(CertificationAuditLog, CertificationAuditLogAdmin)
 register_tenant_admin(CertificationExamPreset, CertificationExamPresetAdmin)
 register_tenant_admin(CertificationFeeTemplate, CertificationFeeTemplateAdmin)
-register_tenant_admin(CertificationDocumentChecklist, CertificationDocumentChecklistAdmin)
-register_tenant_admin(CertificationCandidateDocumentStatus, CertificationCandidateDocumentStatusAdmin)
+register_tenant_admin(
+    CertificationDocumentChecklist, CertificationDocumentChecklistAdmin
+)
+register_tenant_admin(
+    CertificationCandidateDocumentStatus, CertificationCandidateDocumentStatusAdmin
+)
 
 
 # --- Scheduling (timetable) ---
 class RoomAdmin(ModelAdmin):
-    list_display = ("name", "room_type", "building", "floor", "capacity", "is_available")
+    list_display = (
+        "name",
+        "room_type",
+        "building",
+        "floor",
+        "capacity",
+        "is_available",
+    )
     list_filter = ("room_type", "is_available")
     search_fields = ("name", "building")
 
@@ -294,7 +437,14 @@ class ScheduleEntryInline(admin.TabularInline):
 
 
 class ScheduleAdmin(ModelAdmin):
-    list_display = ("name", "academic_year", "term", "status", "generated_at", "published_at")
+    list_display = (
+        "name",
+        "academic_year",
+        "term",
+        "status",
+        "generated_at",
+        "published_at",
+    )
     list_filter = ("status", "academic_year", "term")
     search_fields = ("name",)
     inlines = [ScheduleEntryInline]
@@ -302,10 +452,25 @@ class ScheduleAdmin(ModelAdmin):
 
 
 class ScheduleEntryAdmin(ModelAdmin):
-    list_display = ("schedule", "classroom", "subject", "teacher", "room", "time_slot", "is_cancelled")
+    list_display = (
+        "schedule",
+        "classroom",
+        "subject",
+        "teacher",
+        "room",
+        "time_slot",
+        "is_cancelled",
+    )
     list_filter = ("schedule__term", "schedule__academic_year", "is_cancelled")
     search_fields = ("classroom__name", "subject__name", "teacher__username")
-    autocomplete_fields = ("schedule", "classroom", "subject", "teacher", "room", "time_slot")
+    autocomplete_fields = (
+        "schedule",
+        "classroom",
+        "subject",
+        "teacher",
+        "room",
+        "time_slot",
+    )
 
 
 class TeacherAvailabilityAdmin(ModelAdmin):
@@ -334,6 +499,7 @@ class WorkflowConfigAdmin(ModelAdmin):
 
     def step_count_display(self, obj):
         return len(obj.steps) if obj.steps else 0
+
     step_count_display.short_description = "Steps"
 
 

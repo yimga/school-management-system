@@ -8,6 +8,7 @@ Use when the current DB is corrupted (database disk image is malformed).
 2. Uses db_clean.sqlite3 (new file; nothing has it open).
 3. Run this script, then set DB_FILE=db_clean.sqlite3 in .env.local and start runserver.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -33,6 +34,7 @@ if db_path.exists():
         sys.exit(1)
 
 import django
+
 django.setup()
 
 from django.core.management import call_command

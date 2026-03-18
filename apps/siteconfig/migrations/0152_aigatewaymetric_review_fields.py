@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0151_alter_featuretogglestate_expires_at"),
     ]
@@ -18,7 +17,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="aigatewaymetric",
             name="cost_class",
-            field=models.CharField(db_index=True, default="unclassified", max_length=32),
+            field=models.CharField(
+                db_index=True, default="unclassified", max_length=32
+            ),
         ),
         migrations.AddField(
             model_name="aigatewaymetric",

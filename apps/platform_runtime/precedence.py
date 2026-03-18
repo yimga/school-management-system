@@ -5,6 +5,7 @@ Canonical order:
 platform default -> registry default -> blueprint default -> policy bundle ->
 entitlement/plan gate -> tenant override -> sandbox/preview override
 """
+
 from __future__ import annotations
 
 PRECEDENCE_ORDER = [

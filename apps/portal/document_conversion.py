@@ -10,6 +10,7 @@ Usage:
     pdf_bytes = convert_to_pdf("/path/to/file.odt")
     docx_bytes = convert_to_docx("/path/to/file.odt")
 """
+
 import logging
 import os
 import shutil
@@ -87,14 +88,26 @@ def _convert_with_libreoffice(source_path: str, target_ext: str) -> bytes:
     try:
         # --headless --convert-to <ext> --outdir <dir> <file>
         result = subprocess.run(
-            [soffice, "--headless", "--convert-to", target_ext, "--outdir", out_dir, source_path],
+            [
+                soffice,
+                "--headless",
+                "--convert-to",
+                target_ext,
+                "--outdir",
+                out_dir,
+                source_path,
+            ],
             capture_output=True,
             text=True,
             timeout=120,
         )
         if result.returncode != 0:
             err = result.stderr or result.stdout or "unknown error"
-            logger.warning("LibreOffice conversion failed: returncode=%s stderr=%s", result.returncode, err[:300])
+            logger.warning(
+                "LibreOffice conversion failed: returncode=%s stderr=%s",
+                result.returncode,
+                err[:300],
+            )
             raise RuntimeError(f"LibreOffice conversion failed: {err}")
 
         base = Path(source_path).stem

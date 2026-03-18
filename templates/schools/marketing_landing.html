@@ -5,9 +5,13 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/marketing-home.css' %}">
   <link rel="stylesheet" href="{% static 'css/marketing-home-scroll.css' %}">
+  {# CWV: below-fold live-flow CSS loads non-blocking #}
+  <link rel="preload" href="{% static 'css/mkt-live-flow.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="{% static 'css/mkt-live-flow.css' %}"></noscript>
 {% endblock %}
-{% block extrahead %}
+  {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'One platform for admissions, academics, finance, communication, and compliance. Run your campus with clarity and scale.' }}">
+  {% if hero_dashboard_image_url %}<link rel="preload" as="image" href="{{ hero_dashboard_image_url }}"{% if hero_dashboard_image_srcset %} imagesrcset="{{ hero_dashboard_image_srcset }}" imagesizes="{{ hero_dashboard_image_sizes|default:'(max-width: 768px) 100vw, 800px' }}"{% endif %}>{% endif %}
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   {% for alt in hreflang_entries %}
     <link rel="alternate" hreflang="{{ alt.hreflang }}" href="{{ alt.href }}">
@@ -15,7 +19,6 @@
   {% if marketing_analytics_preconnect_origin %}<link rel="preconnect" href="{{ marketing_analytics_preconnect_origin }}" crossorigin>{% endif %}
   <script type="application/ld+json">{{ structured_data_json|safe }}</script>
   {% if organization_schema_json %}<script type="application/ld+json">{{ organization_schema_json|safe }}</script>{% endif %}
-  {% if marketing_analytics_script_url %}<script src="{{ marketing_analytics_script_url }}" async></script>{% endif %}
 {% endblock %}
 {% block content %}
 <noscript><style>.marketing-home .mkt-reveal,.marketing-home .mkt-reveal-stagger>*{opacity:1;transform:none;}</style></noscript>
@@ -35,6 +38,7 @@
     <a href="#for-your-role" class="mkt-chapter-dot" data-chapter="8" aria-label="{% trans 'Roles' %}"></a>
     <a href="#security-compliance" class="mkt-chapter-dot" data-chapter="9" aria-label="{% trans 'Security' %}"></a>
     <a href="#final-cta" class="mkt-chapter-dot" data-chapter="10" aria-label="{% trans 'Get started' %}"></a>
+    <a href="#live-flow-preview" class="mkt-chapter-dot" data-chapter="11" aria-label="{% trans 'Product flow demo' %}"></a>
   </nav>
   <div id="mkt-sticky-cta-bar" class="mkt-sticky-cta-bar" aria-hidden="true">
     <div class="container d-flex align-items-center justify-content-between gap-2 flex-wrap py-2">
@@ -92,7 +96,7 @@
       <div class="row g-3 g-md-4 text-center mkt-reveal-stagger">
         {% for pillar in platform_pillar_grid %}
         <div class="col-md-6 col-lg-3">
-          <div class="mkt-pillar-card">
+          <div class="mkt-pillar-card rmc-glass-surface">
             <strong class="mkt-pillar-label">{{ pillar.label }}</strong>
             <span class="mkt-pillar-sub">{{ pillar.sub }}</span>
           </div>
@@ -118,6 +122,58 @@
     </div>
   </section>
   {% endif %}
+
+  {# Hero's journey + linkage proof (Hybrid Narrative Architecture) #}
+  {% if marketing_story_journey %}
+  <section id="day-in-the-life" class="mkt-section mkt-reveal mkt-hero-journey" aria-label="{% trans 'Day in the life' %}">
+    <div class="container">
+      <h2 class="mkt-section-heading">{% trans "From overwhelmed admin to calm operator" %}</h2>
+      <p class="mkt-section-lead">{% trans "A short story your team will recognize — then the shift RunMyCampus enables." %}</p>
+      <ol class="mkt-journey-steps">
+        {% for step in marketing_story_journey %}
+        <li>
+          <strong>{{ step.phase }}</strong>
+          <span>{{ step.copy }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+  </section>
+  {% endif %}
+  {% if marketing_data_flow_chain %}
+  <section id="data-flow-linkage" class="mkt-section mkt-reveal" aria-label="{% trans 'Data flow' %}">
+    <div class="container text-center">
+      <h2 class="mkt-section-heading">{% trans "One thread: admission → roster → invoice" %}</h2>
+      <p class="mkt-section-lead">{% trans "Scroll to see how records stay linked — no duplicate entry across modules." %}</p>
+      <div class="mkt-data-flow-chain" role="list">
+        {% for node in marketing_data_flow_chain %}
+        <div class="mkt-flow-node" role="listitem">
+          <strong>{{ node.label }}</strong>
+          <small>{{ node.detail }}</small>
+        </div>
+        {% if not forloop.last %}<span class="mkt-flow-arrow" aria-hidden="true">→</span>{% endif %}
+        {% endfor %}
+      </div>
+      {% if marketing_admin_efficiency_note %}
+      <p class="small text-muted mt-4 mb-0" style="max-width:40rem;margin-left:auto;margin-right:auto;">{{ marketing_admin_efficiency_note }}</p>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+  {% if marketing_apac_story %}
+  <section id="apac-growth" class="mkt-section mkt-reveal" aria-label="{% trans 'Asia-Pacific' %}">
+    <div class="container">
+      <div class="mkt-apac-panel">
+        <h2 class="mkt-section-heading">{{ marketing_apac_story.headline }}</h2>
+        <p class="mkt-section-lead mb-2">{{ marketing_apac_story.body }}</p>
+        <p class="mkt-citation-note text-muted">{{ marketing_apac_story.citations_note }}</p>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% include "marketing/partials/live_flow_preview.html" %}
+
   {% if setup_studio_flow_image_url %}
   <section id="setup-studio-flow" class="mkt-section mkt-reveal" aria-label="{% trans 'Setup flow' %}" data-chapter="3">
     <h2 class="mkt-section-heading">{% trans "Guided setup" %}</h2>
@@ -134,7 +190,7 @@
     <p class="mkt-section-lead">{% trans "One platform for every stage." %}</p>
     <div class="mkt-platform-grid">
       {% for item in from_single_to_enterprise %}
-      <article class="mkt-platform-card">
+      <article class="mkt-platform-card rmc-glass-surface">
         <h3>{{ item.stage }}</h3>
         <p>{{ item.summary }}</p>
       </article>
@@ -355,7 +411,7 @@
     </div>
     <div class="mkt-platform-grid">
       {% for item in workflow_automation %}
-        <article class="mkt-platform-card">
+        <article class="mkt-platform-card rmc-glass-surface">
           <h3>{{ item.title }}</h3>
           <p>{{ item.body }}</p>
         </article>
@@ -556,7 +612,7 @@
     <p class="mkt-section-lead">{% trans "From single-campus to enterprise white-label." %}</p>
     <div class="mkt-platform-grid">
       {% for plan in pricing_snapshot %}
-        <article class="mkt-platform-card">
+        <article class="mkt-platform-card rmc-glass-surface">
           <h3>{{ plan.plan }}</h3>
           <p class="text-muted small mb-2">{{ plan.tagline }}</p>
           <ul class="small mb-2">
@@ -697,6 +753,8 @@
     </div>
   </section>
 </div>
+{% if marketing_analytics_script_url %}<script src="{{ marketing_analytics_script_url }}" defer></script>{% endif %}
+<script src="{% static 'marketing/js/mkt-live-flow.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-scroll-core.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-landing-scroll.js' %}" defer></script>
 <script>

@@ -11,6 +11,7 @@ Usage:
   python scripts/phase_h_audit.py --live       # static + URL reverse checks (requires Django)
   python scripts/phase_h_audit.py --verbose    # print each check performed
 """
+
 from __future__ import annotations
 
 import argparse
@@ -35,7 +36,9 @@ def check_viewport_and_frame(failures: list[str], verbose: bool = False) -> None
     if "viewport" not in text and "width=device-width" not in text:
         failures.append("base.html: missing viewport meta (required for responsive)")
     if "overflow" not in text and "app-container" not in text:
-        failures.append("base.html: missing overflow containment or .app-container (frame check)")
+        failures.append(
+            "base.html: missing overflow containment or .app-container (frame check)"
+        )
 
     # Control plane shell (manager / super / admin)
     cp = TEMPLATES / "control_plane_skeleton.html"
@@ -79,16 +82,26 @@ def check_error_templates(failures: list[str], verbose: bool = False) -> None:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         if "extends" not in text:
-            failures.append(f"errors/{name}: should extend base or control-plane template")
+            failures.append(
+                f"errors/{name}: should extend base or control-plane template"
+            )
     # Control-plane error pages (manager host: config.urls uses these when public_host_kind == 'manager')
-    for name in ("403_control_plane.html", "404_control_plane.html", "500_control_plane.html"):
+    for name in (
+        "403_control_plane.html",
+        "404_control_plane.html",
+        "500_control_plane.html",
+    ):
         path = errors_dir / name
         if not path.exists():
-            failures.append(f"templates/errors/{name} missing (required for manager host)")
+            failures.append(
+                f"templates/errors/{name} missing (required for manager host)"
+            )
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         if "extends" not in text:
-            failures.append(f"errors/{name}: should extend control_plane_skeleton or base")
+            failures.append(
+                f"errors/{name}: should extend control_plane_skeleton or base"
+            )
 
 
 def check_responsive_css(
@@ -114,10 +127,12 @@ def run_url_reverse_checks(failures: list[str], verbose: bool = False) -> None:
     if verbose:
         print("  check: URL reverse for critical names")
     import os
+
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
+
     django.setup()
     from django.urls import reverse, NoReverseMatch
 

@@ -33,7 +33,9 @@ class EvaluationScoreTests(TestCase):
             is_active=True,
         )
         self.department = Department.objects.create(name="Science", code="SCI")
-        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
+        self.specialty = Specialty.objects.create(
+            name="General", code="GEN", department=self.department
+        )
         self.classroom = Classroom.objects.create(
             name="Form 1",
             code="F1",
@@ -57,7 +59,9 @@ class EvaluationScoreTests(TestCase):
             classroom=self.classroom,
             specialty=self.specialty,
         )
-        self.teacher_user = User.objects.create_user(username="teacher", password="pass")
+        self.teacher_user = User.objects.create_user(
+            username="teacher", password="pass"
+        )
         self.teacher_user.role = User.Role.TEACHER
         self.teacher_user.save(update_fields=["role"])
         self.teacher = TeacherProfile.objects.create(user=self.teacher_user)

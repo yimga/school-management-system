@@ -53,6 +53,18 @@
 - After each deletion: update this inventory, add a row to SUBTRACTIVE_CLEANUP_RELEASE_NOTES, and run CI (lint_tenant_settings, manage.py check).
 - New legacy paths (e.g. from future migrations) must be added here with status CANDIDATE until removed or redirected.
 
+**Single pane completion (Phase I.5 world-class):** High-use admin lives in super_* / Control Studio (RUNBOOK_ADMIN_TO_SUPER_MIGRATION). "Open in backoffice" is only for rare/legacy flows; document any such link here or in the runbook.
+
+---
+
+## 5. Structural split (BR-12)
+
+| Module | Status | Notes |
+|--------|--------|-------|
+| `apps/schools/super_views_helpers.py` | **KEEP** | Shared geo/registry helpers |
+| `apps/schools/super_views_provisioning.py` | **KEEP** | `api_create_school` |
+| `apps/schools/super_views.py` | **REDUCED** | Imports provisioning + helpers |
+
 ---
 
 *Source: RUNMYCAMPUS §1.7 (delete as aggressively as you add); BACKLOG §2d.*

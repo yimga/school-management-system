@@ -22,7 +22,9 @@ def canonical_json_bytes(payload: dict[str, Any]) -> bytes:
 
 
 def sign_payload(secret: str, payload_bytes: bytes) -> str:
-    digest = hmac.new((secret or "").encode("utf-8"), payload_bytes, hashlib.sha256).hexdigest()
+    digest = hmac.new(
+        (secret or "").encode("utf-8"), payload_bytes, hashlib.sha256
+    ).hexdigest()
     return f"sha256={digest}"
 
 
@@ -54,11 +56,15 @@ def build_webhook_body(event) -> bytes:
     return canonical_json_bytes(webhook_envelope_for_event(event))
 
 
-def _default_http_post(url: str, body: bytes, headers: dict[str, str], timeout: int = 30) -> tuple[int, str]:
+def _default_http_post(
+    url: str, body: bytes, headers: dict[str, str], timeout: int = 30
+) -> tuple[int, str]:
     request = Request(url, data=body, headers=headers, method="POST")
     try:
         with urlopen(request, timeout=timeout) as response:
-            return int(response.getcode() or 200), response.read().decode("utf-8", errors="replace")
+            return int(response.getcode() or 200), response.read().decode(
+                "utf-8", errors="replace"
+            )
     except HTTPError as exc:
         try:
             detail = exc.read().decode("utf-8", errors="replace")
@@ -90,11 +96,17 @@ def matching_subscriptions_for_event(event):
     subscriptions = WebhookSubscription.objects.filter(is_active=True)
     school_id = getattr(event, "school_id", None)
     if school_id:
-        subscriptions = subscriptions.filter(Q(school_id__isnull=True) | Q(school_id=school_id))
+        subscriptions = subscriptions.filter(
+            Q(school_id__isnull=True) | Q(school_id=school_id)
+        )
     else:
         subscriptions = subscriptions.filter(school_id__isnull=True)
     event_type = str(getattr(event, "event_type", "") or "")
-    return [item for item in subscriptions.order_by("created_at", "id") if _subscription_matches_event(item, event_type)]
+    return [
+        item
+        for item in subscriptions.order_by("created_at", "id")
+        if _subscription_matches_event(item, event_type)
+    ]
 
 
 def queue_deliveries_for_event(event, *, scheduled_for=None) -> list:
@@ -104,7 +116,9 @@ def queue_deliveries_for_event(event, *, scheduled_for=None) -> list:
     deliveries = []
     for subscription in matching_subscriptions_for_event(event):
         delivery = (
-            WebhookDelivery.objects.filter(subscription=subscription, domain_event=event)
+            WebhookDelivery.objects.filter(
+                subscription=subscription, domain_event=event
+            )
             .order_by("id")
             .first()
         )
@@ -116,7 +130,10 @@ def queue_deliveries_for_event(event, *, scheduled_for=None) -> list:
                 scheduled_for=due_at,
                 max_attempts=4,
             )
-        elif delivery.status == WebhookDelivery.Status.PENDING and delivery.scheduled_for is None:
+        elif (
+            delivery.status == WebhookDelivery.Status.PENDING
+            and delivery.scheduled_for is None
+        ):
             delivery.scheduled_for = due_at
             delivery.save(update_fields=["scheduled_for"])
         deliveries.append(delivery)
@@ -127,7 +144,9 @@ def mark_event_processed(event, *, processed_at=None):
     from apps.events.models import DomainEvent
 
     finished_at = processed_at or timezone.now()
-    if getattr(event, "status", None) == DomainEvent.Status.PROCESSED and getattr(event, "processed_at", None):
+    if getattr(event, "status", None) == DomainEvent.Status.PROCESSED and getattr(
+        event, "processed_at", None
+    ):
         return event
     event.status = DomainEvent.Status.PROCESSED
     event.processed_at = finished_at
@@ -153,7 +172,11 @@ def enqueue_webhook_event(
     payload = data or {}
     idempotency_key = str(event_id or uuid4().hex)
     school_id = getattr(school, "pk", None) or getattr(school, "id", None)
-    schema_name = schema_name or getattr(getattr(school, "client", None), "schema_name", None) or getattr(school, "schema_name", None)
+    schema_name = (
+        schema_name
+        or getattr(getattr(school, "client", None), "schema_name", None)
+        or getattr(school, "schema_name", None)
+    )
     now = timezone.now()
     event, created = DomainEvent.objects.get_or_create(
         idempotency_key=idempotency_key,
@@ -170,7 +193,11 @@ def enqueue_webhook_event(
         existing = list(event.webhook_deliveries.select_related("subscription").all())
         if existing:
             return existing
-    deliveries = queue_deliveries_for_event(event, scheduled_for=now) if process_immediately else []
+    deliveries = (
+        queue_deliveries_for_event(event, scheduled_for=now)
+        if process_immediately
+        else []
+    )
     if process_immediately:
         mark_event_processed(event, processed_at=now)
     return deliveries
@@ -179,7 +206,8 @@ def enqueue_webhook_event(
 def deliver_webhook_delivery(
     delivery,
     *,
-    http_post: Callable[[str, bytes, dict[str, str], int], tuple[int, str]] | None = None,
+    http_post: Callable[[str, bytes, dict[str, str], int], tuple[int, str]]
+    | None = None,
     now=None,
 ) -> dict[str, Any]:
     from apps.events.models import WebhookDelivery
@@ -205,7 +233,13 @@ def deliver_webhook_delivery(
     try:
         status_code, detail = http_post(delivery.subscription.url, body, headers, 30)
         if not (200 <= int(status_code) < 300):
-            raise HTTPError(delivery.subscription.url, int(status_code or 500), str(status_code), hdrs=None, fp=None)
+            raise HTTPError(
+                delivery.subscription.url,
+                int(status_code or 500),
+                str(status_code),
+                hdrs=None,
+                fp=None,
+            )
         delivery.status = WebhookDelivery.Status.DELIVERED
         delivery.http_status = int(status_code or 200)
         delivery.attempted_at = now
@@ -267,7 +301,8 @@ def dispatch_due_webhooks(
     *,
     limit: int = 100,
     now=None,
-    http_post: Callable[[str, bytes, dict[str, str], int], tuple[int, str]] | None = None,
+    http_post: Callable[[str, bytes, dict[str, str], int], tuple[int, str]]
+    | None = None,
 ) -> list[dict[str, Any]]:
     from apps.events.models import WebhookDelivery
 
@@ -278,7 +313,9 @@ def dispatch_due_webhooks(
         .select_related("subscription", "domain_event")
         .order_by("scheduled_for", "created_at")[: max(1, int(limit))]
     )
-    return [deliver_webhook_delivery(item, http_post=http_post, now=now) for item in due]
+    return [
+        deliver_webhook_delivery(item, http_post=http_post, now=now) for item in due
+    ]
 
 
 def replay_webhook_delivery(delivery, *, new_event_id: str | None = None):
@@ -291,7 +328,9 @@ def replay_webhook_delivery(delivery, *, new_event_id: str | None = None):
         schema_name=delivery.domain_event.schema_name,
         status=DomainEvent.Status.PROCESSED,
         processed_at=timezone.now(),
-        idempotency_key=str(new_event_id or f"{delivery.domain_event.id}-replay-{uuid4().hex[:8]}"),
+        idempotency_key=str(
+            new_event_id or f"{delivery.domain_event.id}-replay-{uuid4().hex[:8]}"
+        ),
     )
     return WebhookDelivery.objects.create(
         subscription=delivery.subscription,

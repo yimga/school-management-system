@@ -2,6 +2,7 @@
 B4 (Design System Blueprint): One grammar, three surface themes.
 Single source of truth for surface identity: marketing, superadmin, tenant.
 """
+
 from __future__ import annotations
 
 # Surface identifiers (one design system, three expressions)
@@ -23,7 +24,7 @@ def get_surface_for_request(request) -> str:
     """
     if request is None:
         return SURFACE_TENANT
-    path = (getattr(request, "path", "") or "")
+    path = getattr(request, "path", "") or ""
     if path.startswith("/super/") or getattr(request, "is_super_request", False):
         return SURFACE_SUPERADMIN
     school = getattr(request, "school", None)

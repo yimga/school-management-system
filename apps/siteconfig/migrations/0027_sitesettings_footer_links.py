@@ -5,15 +5,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0026_theme_brightness_choice'),
+        ("siteconfig", "0026_theme_brightness_choice"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='footer_links',
-            field=models.JSONField(blank=True, default=apps.siteconfig.models.default_footer_links, help_text='Footer links list (JSON). Each item: label, url, roles, enabled.'),
+            model_name="sitesettings",
+            name="footer_links",
+            field=models.JSONField(
+                blank=True,
+                default=apps.siteconfig.models.default_footer_links,
+                help_text="Footer links list (JSON). Each item: label, url, roles, enabled.",
+            ),
         ),
     ]

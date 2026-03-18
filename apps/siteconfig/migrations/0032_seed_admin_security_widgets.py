@@ -20,12 +20,40 @@ def seed_widgets(apps, schema_editor):
 
     widgets = [
         ("admin-total-users", "Total Users", "admin-security", "main", role_admin, 0),
-        ("admin-db-app-stats", "Database & App Stats", "admin-security", "main", role_admin, 1),
-        ("admin-system-health", "System Health", "admin-security", "main", role_admin, 2),
-        ("admin-active-users-security", "Active Users / Security", "admin-security", "main", role_admin, 3),
+        (
+            "admin-db-app-stats",
+            "Database & App Stats",
+            "admin-security",
+            "main",
+            role_admin,
+            1,
+        ),
+        (
+            "admin-system-health",
+            "System Health",
+            "admin-security",
+            "main",
+            role_admin,
+            2,
+        ),
+        (
+            "admin-active-users-security",
+            "Active Users / Security",
+            "admin-security",
+            "main",
+            role_admin,
+            3,
+        ),
         ("admin-calendar-widget", "Calendar", "admin-security", "side", role_admin, 0),
         ("admin-controls", "Admin Controls", "admin-security", "lower", role_admin, 0),
-        ("admin-system-information", "System Information", "admin-security", "lower", role_admin, 1),
+        (
+            "admin-system-information",
+            "System Information",
+            "admin-security",
+            "lower",
+            role_admin,
+            1,
+        ),
     ]
 
     for slug, title, page, column, roles, order in widgets:
@@ -67,4 +95,3 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(seed_widgets, reverse_code=remove_widgets),
     ]
-

@@ -5,15 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('academics', '0038_rls_policy_default_deny'),
+        ("academics", "0038_rls_policy_default_deny"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='coursesyllabus',
-            name='uploaded_file',
-            field=models.FileField(blank=True, help_text='Optional uploaded PDF/Word instead of or in addition to builder data.', null=True, upload_to=apps.academics.models._syllabus_upload_to),
+            model_name="coursesyllabus",
+            name="uploaded_file",
+            field=models.FileField(
+                blank=True,
+                help_text="Optional uploaded PDF/Word instead of or in addition to builder data.",
+                null=True,
+                upload_to=apps.academics.models._syllabus_upload_to,
+            ),
         ),
     ]

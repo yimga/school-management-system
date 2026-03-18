@@ -5,6 +5,7 @@ Supports:
 - HTML -> ODT/DOCX via Pandoc
 - Markdown -> ODT/DOCX via Pandoc or LibreOffice fallback
 """
+
 import os
 import re
 import shutil
@@ -20,6 +21,7 @@ from .document_conversion import (
 
 try:
     import markdown
+
     MARKDOWN_AVAILABLE = True
 except ImportError:
     MARKDOWN_AVAILABLE = False
@@ -78,7 +80,12 @@ def _simple_markdown_to_html(content: str) -> str:
 
     html = re.sub(r"\\*\\*(.+?)\\*\\*", r"<strong>\\1</strong>", html)
     html = re.sub(r"\\*(.+?)\\*", r"<em>\\1</em>", html)
-    html = re.sub(r"```(\\w+)?\\n(.*?)```", r"<pre><code class=\"language-\\1\">\\2</code></pre>", html, flags=re.DOTALL)
+    html = re.sub(
+        r"```(\\w+)?\\n(.*?)```",
+        r"<pre><code class=\"language-\\1\">\\2</code></pre>",
+        html,
+        flags=re.DOTALL,
+    )
     html = re.sub(r"`(.+?)`", r"<code>\\1</code>", html)
     html = re.sub(r"\\[(.+?)\\]\\((.+?)\\)", r"<a href=\"\\2\">\\1</a>", html)
 
@@ -94,18 +101,29 @@ def _simple_markdown_to_html(content: str) -> str:
 
 
 # §2.4: Typed exceptions for markdown conversion fallback (broad_exception_audit)
-_MARKDOWN_CONVERT_ERRORS = (TypeError, ValueError, KeyError, AttributeError, LookupError)
+_MARKDOWN_CONVERT_ERRORS = (
+    TypeError,
+    ValueError,
+    KeyError,
+    AttributeError,
+    LookupError,
+)
 
 
 def markdown_to_html(content: str) -> str:
     if MARKDOWN_AVAILABLE:
         try:
-            md = markdown.Markdown(extensions=["fenced_code", "tables", "nl2br", "sane_lists"])
+            md = markdown.Markdown(
+                extensions=["fenced_code", "tables", "nl2br", "sane_lists"]
+            )
             return md.convert(content)
         except _MARKDOWN_CONVERT_ERRORS:
             log_exception_with_context(
                 "portal.document_generation: markdown convert failed, using simple fallback",
-                extra={"module": "document_generation", "fallback": "_simple_markdown_to_html"},
+                extra={
+                    "module": "document_generation",
+                    "fallback": "_simple_markdown_to_html",
+                },
             )
     return _simple_markdown_to_html(content)
 

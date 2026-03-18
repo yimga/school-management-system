@@ -24,7 +24,9 @@ class LinkChildTests(TestCase):
             is_active=True,
         )
         self.department = Department.objects.create(name="Science", code="SCI")
-        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
+        self.specialty = Specialty.objects.create(
+            name="General", code="GEN", department=self.department
+        )
         self.classroom = Classroom.objects.create(
             name="Form 1",
             code="F1",
@@ -75,7 +77,9 @@ class LinkChildTests(TestCase):
         self.assertEqual(student.status, StudentProfile.Status.NEW)
         self.assertEqual(student.joined_term, Term.Name.FIRST)
 
-        guardian = StudentGuardian.objects.get(guardian_user=self.parent_user, student=student)
+        guardian = StudentGuardian.objects.get(
+            guardian_user=self.parent_user, student=student
+        )
         self.assertEqual(guardian.email, "jane@example.com")
         self.assertEqual(guardian.whatsapp_number, "+237699999999")
 

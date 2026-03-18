@@ -6,47 +6,118 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0040_index_renames'),
-        ('people', '0031_index_renames'),
+        ("finance", "0040_index_renames"),
+        ("people", "0031_index_renames"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='InvoicePayerShare',
+            name="InvoicePayerShare",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('allocated_amount', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('paid_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('late_fee_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('due_date', models.DateField(blank=True, null=True)),
-                ('status', models.CharField(choices=[('OPEN', 'Open'), ('PARTIAL', 'Partially Paid'), ('PAID', 'Paid'), ('OVERDUE', 'Overdue')], default='OPEN', max_length=10)),
-                ('is_active', models.BooleanField(default=True)),
-                ('last_reminder_at', models.DateTimeField(blank=True, null=True)),
-                ('last_late_fee_applied_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('guardian', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='invoice_payer_shares', to='people.studentguardian')),
-                ('invoice', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payer_shares', to='finance.invoice')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "allocated_amount",
+                    models.DecimalField(decimal_places=2, max_digits=12),
+                ),
+                (
+                    "paid_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "late_fee_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                ("due_date", models.DateField(blank=True, null=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("OPEN", "Open"),
+                            ("PARTIAL", "Partially Paid"),
+                            ("PAID", "Paid"),
+                            ("OVERDUE", "Overdue"),
+                        ],
+                        default="OPEN",
+                        max_length=10,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("last_reminder_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "last_late_fee_applied_at",
+                    models.DateTimeField(blank=True, null=True),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "guardian",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="invoice_payer_shares",
+                        to="people.studentguardian",
+                    ),
+                ),
+                (
+                    "invoice",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payer_shares",
+                        to="finance.invoice",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['invoice_id', 'guardian_id'],
-                'unique_together': {('invoice', 'guardian')},
+                "ordering": ["invoice_id", "guardian_id"],
+                "unique_together": {("invoice", "guardian")},
             },
         ),
         migrations.CreateModel(
-            name='InvoicePayerSharePaymentAllocation',
+            name="InvoicePayerSharePaymentAllocation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('payer_share', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payment_allocations', to='finance.invoicepayershare')),
-                ('payment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payer_share_allocations', to='finance.payment')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "payer_share",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payment_allocations",
+                        to="finance.invoicepayershare",
+                    ),
+                ),
+                (
+                    "payment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payer_share_allocations",
+                        to="finance.payment",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['created_at', 'id'],
-                'unique_together': {('payer_share', 'payment')},
+                "ordering": ["created_at", "id"],
+                "unique_together": {("payer_share", "payment")},
             },
         ),
     ]

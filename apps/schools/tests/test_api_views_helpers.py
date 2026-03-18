@@ -12,12 +12,15 @@ class SchoolApiViewHelperTests(SimpleTestCase):
         request.school = SimpleNamespace(id=1)
         request.user = None
 
-        with patch(
-            "apps.schools.api_views.get_effective_offline_runtime_settings",
-            return_value={"enable_offline_mode": True},
-        ), patch(
-            "apps.policies.policy_registry.get_effective_policy",
-            side_effect=RuntimeError("policy unavailable"),
+        with (
+            patch(
+                "apps.schools.api_views.get_effective_offline_runtime_settings",
+                return_value={"enable_offline_mode": True},
+            ),
+            patch(
+                "apps.policies.policy_registry.get_effective_policy",
+                side_effect=RuntimeError("policy unavailable"),
+            ),
         ):
             self.assertFalse(_offline_enabled_for_request(request))
 
@@ -26,11 +29,14 @@ class SchoolApiViewHelperTests(SimpleTestCase):
         request.school = SimpleNamespace(id=1)
         request.user = None
 
-        with patch(
-            "apps.schools.api_views.get_effective_offline_runtime_settings",
-            return_value={"enable_offline_mode": True},
-        ), patch(
-            "apps.policies.policy_registry.get_effective_policy",
-            return_value={"enabled": True},
+        with (
+            patch(
+                "apps.schools.api_views.get_effective_offline_runtime_settings",
+                return_value={"enable_offline_mode": True},
+            ),
+            patch(
+                "apps.policies.policy_registry.get_effective_policy",
+                return_value={"enabled": True},
+            ),
         ):
             self.assertTrue(_offline_enabled_for_request(request))

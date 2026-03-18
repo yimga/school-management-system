@@ -9,7 +9,9 @@ def enable_rls(apps, schema_editor):
     if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
-        cursor.execute("ALTER TABLE siteconfig_officialreporttemplate ENABLE ROW LEVEL SECURITY;")
+        cursor.execute(
+            "ALTER TABLE siteconfig_officialreporttemplate ENABLE ROW LEVEL SECURITY;"
+        )
         cursor.execute("""
             CREATE POLICY siteconfig_officialreporttemplate_tenant_isolation ON siteconfig_officialreporttemplate
             FOR ALL
@@ -31,7 +33,9 @@ def disable_rls(apps, schema_editor):
         cursor.execute(
             "DROP POLICY IF EXISTS siteconfig_officialreporttemplate_tenant_isolation ON siteconfig_officialreporttemplate;"
         )
-        cursor.execute("ALTER TABLE siteconfig_officialreporttemplate DISABLE ROW LEVEL SECURITY;")
+        cursor.execute(
+            "ALTER TABLE siteconfig_officialreporttemplate DISABLE ROW LEVEL SECURITY;"
+        )
 
 
 class Migration(migrations.Migration):

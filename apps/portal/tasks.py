@@ -1,8 +1,8 @@
 """
 Portal Celery tasks: heavy AI (async) for bulk or long-running inference.
-Single-turn copilot uses sync generate_ai_response; bulk support suggestion, syllabus sync, report-card remarks use async.
-§2.4 Structured logging: async AI failures logged with school_id/task_id for audit.
+Tier 4: celery_task_* via global Celery signals (config.celery).
 """
+
 from typing import Any
 
 from celery import shared_task
@@ -10,7 +10,6 @@ from django.core.cache import cache
 
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
-# TTL for async AI result in cache (seconds)
 AI_ASYNC_RESULT_TTL = 600
 
 
@@ -26,7 +25,6 @@ def generate_ai_response_async(
 ) -> dict[str, Any]:
     """
     Heavy AI: run inference via OllamaInferenceService and store result in cache for UI poll.
-    Call from bulk support suggestion, report-card remarks, or long-running flows.
     Result key: ai:async_result:{task_id}. Poll with task_id from AsyncResult.id.
     """
     from services.ai_gateway import invoke
@@ -36,7 +34,12 @@ def generate_ai_response_async(
     task_id = self.request.id
     result_key = f"ai:async_result:{task_id}"
 
-    def store_result(status: str, text: str | None = None, meta: dict | None = None, error: str | None = None):
+    def store_result(
+        status: str,
+        text: str | None = None,
+        meta: dict | None = None,
+        error: str | None = None,
+    ):
         cache.set(
             result_key,
             {"status": status, "text": text, "meta": meta or {}, "error": error},
@@ -50,15 +53,33 @@ def generate_ai_response_async(
             "narrative",
             prompt,
             user_query=user_prompt,
-            metadata={"school": school, "school_id": school_id, "country_code": country_code},
+            metadata={
+                "school": school,
+                "school_id": school_id,
+                "country_code": country_code,
+            },
         )
-        text = result if isinstance(result, str) else (str(result) if result is not None else None)
+        text = (
+            result
+            if isinstance(result, str)
+            else (str(result) if result is not None else None)
+        )
         if text is not None:
             store_result("done", text=text, meta=meta)
             return {"status": "done", "task_id": task_id, "text": text, "meta": meta}
         store_result("error", meta=meta, error=meta.get("error", "unavailable"))
         return {"status": "error", "task_id": task_id, "meta": meta}
-    except (OSError, ConnectionError, TimeoutError, ValueError, TypeError, ImportError, AttributeError, KeyError, RuntimeError) as e:
+    except (
+        OSError,
+        ConnectionError,
+        TimeoutError,
+        ValueError,
+        TypeError,
+        ImportError,
+        AttributeError,
+        KeyError,
+        RuntimeError,
+    ) as e:
         log_exception_with_context(
             "portal.generate_ai_response_async failed",
             school_id=school_id,

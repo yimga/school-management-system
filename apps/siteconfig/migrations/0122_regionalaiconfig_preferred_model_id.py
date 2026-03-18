@@ -29,7 +29,6 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("siteconfig", "0121_add_ai_embedding_store"),
     ]

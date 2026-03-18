@@ -15,21 +15,36 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from apps.academics.models import CertificationExamSession, CertificationCandidate, CertificationAuditLog
+from apps.academics.models import (
+    CertificationExamSession,
+    CertificationCandidate,
+    CertificationAuditLog,
+)
 
 
 class Command(BaseCommand):
     help = "Export a certification registration/CA upload CSV pack."
 
     def add_arguments(self, parser):
-        parser.add_argument("--session-id", type=int, required=True, help="CertificationExamSession ID")
-        parser.add_argument("--out", type=str, default="", help="Output CSV path (default: ./certification_pack_<id>.csv)")
+        parser.add_argument(
+            "--session-id", type=int, required=True, help="CertificationExamSession ID"
+        )
+        parser.add_argument(
+            "--out",
+            type=str,
+            default="",
+            help="Output CSV path (default: ./certification_pack_<id>.csv)",
+        )
 
     def handle(self, *args, **options):
         session_id = options["session_id"]
         out_path = (options.get("out") or "").strip()
 
-        session = CertificationExamSession.objects.filter(id=session_id).select_related("academic_year").first()
+        session = (
+            CertificationExamSession.objects.filter(id=session_id)
+            .select_related("academic_year")
+            .first()
+        )
         if not session:
             raise CommandError(f"Session not found: id={session_id}")
 
@@ -76,7 +91,9 @@ class Command(BaseCommand):
                         getattr(student, "get_full_name", lambda: str(student))(),
                         getattr(getattr(student, "classroom", None), "name", "") or "",
                         getattr(getattr(student, "specialty", None), "name", "") or "",
-                        getattr(student, "admission_number", "") or getattr(student, "student_code", "") or "",
+                        getattr(student, "admission_number", "")
+                        or getattr(student, "student_code", "")
+                        or "",
                         c.candidate_number or "",
                         c.status,
                         c.ca_uploaded_at.isoformat() if c.ca_uploaded_at else "",
@@ -94,5 +111,8 @@ class Command(BaseCommand):
             detail=f"Exported certification pack to {path.as_posix()} ({candidates.count()} candidates) at {timezone.now().isoformat()}",
         )
 
-        self.stdout.write(self.style.SUCCESS(f"Exported {candidates.count()} candidates to {path.as_posix()}"))
-
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Exported {candidates.count()} candidates to {path.as_posix()}"
+            )
+        )

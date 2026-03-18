@@ -22,7 +22,13 @@ def upcoming_public_events_for_school(school, *, limit: int = 15) -> list[dict]:
         {
             "title": event.title,
             "when": event.start_at,
-            "detail": (event.summary or (event.venue.name if event.venue_id else "") or event.organizer_name or "").strip() or None,
+            "detail": (
+                event.summary
+                or (event.venue.name if event.venue_id else "")
+                or event.organizer_name
+                or ""
+            ).strip()
+            or None,
             "kind": "event",
             "slug": event.slug,
         }
@@ -41,7 +47,9 @@ def event_operations_snapshot(school) -> dict:
         }
     totals = SchoolEvent.objects.filter(school=school).aggregate(
         events_total=Count("id"),
-        published_events=Count("id", filter=models.Q(status=SchoolEvent.Status.PUBLISHED)),
+        published_events=Count(
+            "id", filter=models.Q(status=SchoolEvent.Status.PUBLISHED)
+        ),
         open_registrations=Count("registrations", distinct=True),
         sponsor_commitment_count=Count("sponsor_commitments", distinct=True),
         sponsorship_total=Sum("sponsor_commitments__pledged_amount"),

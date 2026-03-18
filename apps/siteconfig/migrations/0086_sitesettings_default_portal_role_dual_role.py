@@ -4,19 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0085_add_user_preference_last_portal_role'),
+        ("siteconfig", "0085_add_user_preference_last_portal_role"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='default_portal_role_dual_role',
+            model_name="sitesettings",
+            name="default_portal_role_dual_role",
             field=models.CharField(
                 blank=True,
-                choices=[('', 'Use primary role (user.role)'), ('TEACHER', 'Teacher'), ('PARENT', 'Parent')],
-                default='',
+                choices=[
+                    ("", "Use primary role (user.role)"),
+                    ("TEACHER", "Teacher"),
+                    ("PARENT", "Parent"),
+                ],
+                default="",
                 help_text="For users who have both Teacher and Parent roles: default portal view when they have not yet chosen. Leave blank to use the user's primary role.",
                 max_length=20,
             ),

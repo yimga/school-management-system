@@ -1,0 +1,46 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+{% block backend_title %}{% trans "Classroom" %} — {{ classroom.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4" data-page-archetype="record-detail">
+  <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_classroom_list' %}">{% trans "Classrooms" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ classroom.name }}</li>
+    </ol>
+  </nav>
+  {% include "studio_os/components/page_header.html" with title=classroom.name subtitle=_("Roster and class shortcuts") %}
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-4">
+      <div class="card border-0 shadow-sm rmc-glass-surface h-100">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Class" %}</p>
+          <p class="mb-1 small"><strong>{% trans "Code" %}:</strong> {{ classroom.code|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Academic year" %}:</strong> {{ classroom.academic_year.name|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Department" %}:</strong> {{ classroom.department.name|default:"—" }}</p>
+          <p class="mb-0 small"><strong>{% trans "Students" %}:</strong> {{ student_count }}</p>
+        </div>
+        <div class="card-footer bg-transparent border-0 d-flex flex-wrap gap-2">
+          <a href="{% url 'accounts:backend_student_list' %}?classroom={{ classroom.pk }}" class="btn btn-sm btn-primary">{% trans "View roster" %}</a>
+          <a href="{% url 'admin:academics_classroom_change' classroom.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Admin" %}</a>
+        </div>
+      </div>
+    </div>
+    {% if sample_students %}
+    <div class="col-12 col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent"><strong>{% trans "Sample roster" %}</strong></div>
+        <ul class="list-group list-group-flush">
+          {% for s in sample_students %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ s.first_name }} {{ s.last_name }}</span>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:backend_student_detail' s.pk %}">{% trans "360" %}</a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

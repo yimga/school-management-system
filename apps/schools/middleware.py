@@ -2,10 +2,15 @@
 Multi-tenant middleware: resolve request host (subdomain or custom domain) to School,
 set request.school and session school_id, and set PostgreSQL app.current_school_id for RLS.
 """
+
 import logging
 from django.conf import settings
 from django.db import DatabaseError
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, JsonResponse
+from django.http import (
+    HttpResponseRedirect,
+    HttpResponsePermanentRedirect,
+    JsonResponse,
+)
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 
@@ -136,7 +141,14 @@ def _cache_get_optional(key, default=None):
         from django.core.cache import cache
 
         return cache.get(key, default)
-    except (ImportError, AttributeError, TypeError, ConnectionError, ValueError, RuntimeError):
+    except (
+        ImportError,
+        AttributeError,
+        TypeError,
+        ConnectionError,
+        ValueError,
+        RuntimeError,
+    ):
         return default
 
 
@@ -146,8 +158,17 @@ def _cache_set_optional(key, value, timeout=None) -> bool:
 
         cache.set(key, value, timeout)
         return True
-    except (ImportError, AttributeError, TypeError, ConnectionError, ValueError, RuntimeError):
+    except (
+        ImportError,
+        AttributeError,
+        TypeError,
+        ConnectionError,
+        ValueError,
+        RuntimeError,
+    ):
         return False
+
+
 SUPPORT_HOST_ALLOWED_PREFIXES = (
     "/support/",
     "/discover/",
@@ -173,7 +194,9 @@ def _request_host_raw(request) -> str:
     if forwarded:
         candidate = forwarded.split(",")[0].strip()
     else:
-        candidate = (request.META.get("HTTP_HOST") or request.META.get("SERVER_NAME") or "").strip()
+        candidate = (
+            request.META.get("HTTP_HOST") or request.META.get("SERVER_NAME") or ""
+        ).strip()
     if ":" in candidate:
         candidate = candidate.split(":", 1)[0].strip()
     return candidate.lower()
@@ -214,20 +237,40 @@ def _strip_tenant_path_prefix(path: str, slug: str) -> str:
 
 def _is_public_only_path(path: str) -> bool:
     path = (path or "").strip()
-    if path in ("/cm", "/ca", "/onboard", "/discover", "/find", "/marketing", "/signup", "/support", "/verify"):
+    if path in (
+        "/cm",
+        "/ca",
+        "/onboard",
+        "/discover",
+        "/find",
+        "/marketing",
+        "/signup",
+        "/support",
+        "/verify",
+    ):
         return True
     for prefix in PUBLIC_ONLY_PREFIXES:
-        if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path.startswith(prefix):
+        if (
+            path == prefix
+            or path.startswith(prefix.rstrip("/") + "/")
+            or path.startswith(prefix)
+        ):
             return True
     return False
 
 
-def _path_allowed_for_reserved_host(path: str, *, allowed_prefixes: tuple[str, ...]) -> bool:
+def _path_allowed_for_reserved_host(
+    path: str, *, allowed_prefixes: tuple[str, ...]
+) -> bool:
     path = (path or "").strip()
     if path in ("", "/"):
         return True
     for prefix in allowed_prefixes:
-        if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path.startswith(prefix):
+        if (
+            path == prefix
+            or path.startswith(prefix.rstrip("/") + "/")
+            or path.startswith(prefix)
+        ):
             return True
     return False
 
@@ -235,7 +278,11 @@ def _path_allowed_for_reserved_host(path: str, *, allowed_prefixes: tuple[str, .
 def _is_manager_only_path(path: str) -> bool:
     path = (path or "").strip()
     for prefix in MANAGER_ONLY_PREFIXES:
-        if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path.startswith(prefix):
+        if (
+            path == prefix
+            or path.startswith(prefix.rstrip("/") + "/")
+            or path.startswith(prefix)
+        ):
             return True
     return False
 
@@ -271,6 +318,7 @@ def _redirect_unknown_school_slug(request, slug: str | None = None):
     base_domain = _get_base_domain()
     if not base_domain:
         from apps.schools.error_views import school_not_found
+
         return school_not_found(request)
     safe_slug = (slug or "").strip().lower()
     query = f"?slug={safe_slug}" if safe_slug else ""
@@ -367,7 +415,9 @@ class LegacyBaseDomainRedirectMiddleware(MiddlewareMixin):
         if not target_host:
             return None
         scheme = "https" if request.is_secure() or not settings.DEBUG else "http"
-        return HttpResponsePermanentRedirect(f"{scheme}://{target_host}{request.get_full_path()}")
+        return HttpResponsePermanentRedirect(
+            f"{scheme}://{target_host}{request.get_full_path()}"
+        )
 
 
 class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
@@ -394,13 +444,19 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
             slug = _extract_slug_from_tenant_path(path)
             school = None
             if slug:
-                school = School.objects.filter(slug__iexact=slug, is_active=True).first()
+                school = School.objects.filter(
+                    slug__iexact=slug, is_active=True
+                ).first()
                 if not school:
-                    school = School.objects.filter(subdomain__iexact=slug, is_active=True).first()
+                    school = School.objects.filter(
+                        subdomain__iexact=slug, is_active=True
+                    ).first()
             if not school:
                 return _redirect_unknown_school_slug(request, slug)
             inner = _strip_tenant_path_prefix(path, slug or "")
-            return HttpResponsePermanentRedirect(build_tenant_backend_url(request, school, path=inner))
+            return HttpResponsePermanentRedirect(
+                build_tenant_backend_url(request, school, path=inner)
+            )
 
         # Root/base domain is marketing-first: move manager/auth/admin paths to manager host.
         if kind == "base" and _is_manager_only_path(path):
@@ -412,21 +468,27 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
         if kind == "verify":
             if path in ("", "/"):
                 return redirect("public_verify_hub")
-            if not _path_allowed_for_reserved_host(path, allowed_prefixes=VERIFY_HOST_ALLOWED_PREFIXES):
+            if not _path_allowed_for_reserved_host(
+                path, allowed_prefixes=VERIFY_HOST_ALLOWED_PREFIXES
+            ):
                 return redirect("public_verify_hub")
             return None
 
         if kind == "support":
             if path in ("", "/"):
                 return redirect("public_support_hub")
-            if not _path_allowed_for_reserved_host(path, allowed_prefixes=SUPPORT_HOST_ALLOWED_PREFIXES):
+            if not _path_allowed_for_reserved_host(
+                path, allowed_prefixes=SUPPORT_HOST_ALLOWED_PREFIXES
+            ):
                 return redirect("public_support_hub")
             return None
 
         if kind == "manager":
             if path in ("", "/"):
                 return None
-            if not _path_allowed_for_reserved_host(path, allowed_prefixes=MANAGER_HOST_ALLOWED_PREFIXES):
+            if not _path_allowed_for_reserved_host(
+                path, allowed_prefixes=MANAGER_HOST_ALLOWED_PREFIXES
+            ):
                 return HttpResponseRedirect("/")
             return None
 
@@ -449,12 +511,15 @@ class PublicPathRedirectMiddleware(MiddlewareMixin):
         if not base_domain:
             return None
         scheme = "https" if request.is_secure() or not settings.DEBUG else "http"
-        return HttpResponseRedirect(f"{scheme}://{base_domain}{request.get_full_path()}")
+        return HttpResponseRedirect(
+            f"{scheme}://{base_domain}{request.get_full_path()}"
+        )
 
 
 def _resolve_school_from_request(request) -> "School | None":
     from apps.schools.models import School, SchoolDomain
     from django.conf import settings as django_settings
+
     cache_ttl = getattr(django_settings, "TENANT_CACHE_TTL", 300)
 
     host = _request_host_raw(request)
@@ -504,7 +569,9 @@ def _resolve_school_from_request(request) -> "School | None":
             is_active=True,
         ).first()
         if school:
-            _cache_set_optional(_tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl)
+            _cache_set_optional(
+                _tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl
+            )
             return school
         # Also match by slug
         school = School.objects.filter(
@@ -512,7 +579,9 @@ def _resolve_school_from_request(request) -> "School | None":
             is_active=True,
         ).first()
         if school:
-            _cache_set_optional(_tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl)
+            _cache_set_optional(
+                _tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl
+            )
             return school
 
     # Base/public hosts never resolve to tenant context.
@@ -527,13 +596,17 @@ def _get_single_tenant_school():
     Backward-compatible helper used by older single-tenant tests.
     Returns the only active school when SINGLE_TENANT is enabled.
     """
-    single_tenant_flag = str(getattr(settings, "SINGLE_TENANT", "") or "").strip().lower()
+    single_tenant_flag = (
+        str(getattr(settings, "SINGLE_TENANT", "") or "").strip().lower()
+    )
     if single_tenant_flag not in {"1", "true", "yes"}:
         return None
 
     from apps.schools.models import School
 
-    schools = list(School.objects.filter(is_active=True).order_by("created_at", "id")[:2])
+    schools = list(
+        School.objects.filter(is_active=True).order_by("created_at", "id")[:2]
+    )
     if len(schools) == 1:
         return schools[0]
     return None
@@ -565,14 +638,19 @@ class TenantSchoolNotFoundMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         path = (request.path or "").strip()
-        for prefix in SUPER_PREFIXES + STATIC_PREFIXES + HEALTH_PREFIXES + (
-            "/discover/",
-            "/marketing/",
-            "/signup/",
-            "/verify-signup/",
-            "/api/caddy-check/",
-            "/api/v1/auth/check-domain/",
-            "/api/trial/",
+        for prefix in (
+            SUPER_PREFIXES
+            + STATIC_PREFIXES
+            + HEALTH_PREFIXES
+            + (
+                "/discover/",
+                "/marketing/",
+                "/signup/",
+                "/verify-signup/",
+                "/api/caddy-check/",
+                "/api/v1/auth/check-domain/",
+                "/api/trial/",
+            )
         ):
             if path.startswith(prefix) or path == prefix.rstrip("/"):
                 return None
@@ -611,20 +689,29 @@ class TenantMiddleware(MiddlewareMixin):
             slug = _extract_slug_from_tenant_path(path)
             school = None
             if slug:
-                school = School.objects.filter(slug__iexact=slug, is_active=True).first()
+                school = School.objects.filter(
+                    slug__iexact=slug, is_active=True
+                ).first()
                 if not school:
-                    school = School.objects.filter(subdomain__iexact=slug, is_active=True).first()
+                    school = School.objects.filter(
+                        subdomain__iexact=slug, is_active=True
+                    ).first()
             if not school:
                 return _redirect_unknown_school_slug(request, slug)
             from apps.schools.tenant_url import build_tenant_backend_url
+
             inner_path = _strip_tenant_path_prefix(path, slug or "")
-            return HttpResponsePermanentRedirect(build_tenant_backend_url(request, school, path=inner_path))
+            return HttpResponsePermanentRedirect(
+                build_tenant_backend_url(request, school, path=inner_path)
+            )
 
         # Resolve school from host (subdomain/custom domain) or from session when not on base domain
         try:
             school = _resolve_school_from_request(request)
-            if school is None and request.session.get("school_id") and (
-                not _is_base_domain(host, base_domain) or is_local_dev_host(host)
+            if (
+                school is None
+                and request.session.get("school_id")
+                and (not _is_base_domain(host, base_domain) or is_local_dev_host(host))
             ):
                 school = School.objects.filter(
                     id=request.session["school_id"],
@@ -644,7 +731,12 @@ class TenantMiddleware(MiddlewareMixin):
         if school and path.startswith("/admin/"):
             try:
                 from apps.schools.tenant_url import build_tenant_backend_url
-                return HttpResponseRedirect(build_tenant_backend_url(request, school, path="/authentication/backend/"))
+
+                return HttpResponseRedirect(
+                    build_tenant_backend_url(
+                        request, school, path="/authentication/backend/"
+                    )
+                )
             except (AttributeError, ImportError, TypeError, ValueError):
                 pass
         if school:
@@ -652,13 +744,17 @@ class TenantMiddleware(MiddlewareMixin):
             try:
                 from django.utils import timezone as tz
                 from apps.siteconfig.tenant_config import get_tenant_locale
+
                 locale = get_tenant_locale(school=school)
-                tz.activate(locale.get("timezone") or locale.get("default_timezone") or "UTC")
+                tz.activate(
+                    locale.get("timezone") or locale.get("default_timezone") or "UTC"
+                )
             except (AttributeError, ImportError, TypeError, ValueError) as e:
                 logger.debug("Could not activate school timezone: %s", e)
             try:
                 if not getattr(settings, "USE_DJANGO_TENANTS", False):
                     from apps.schools.rls_context import set_rls_school_id
+
                     set_rls_school_id(school.id)
                     request._rls_school_id_set = True
             except DatabaseError as e:
@@ -673,6 +769,7 @@ class TenantMiddleware(MiddlewareMixin):
         if getattr(request, "_rls_school_id_set", False):
             try:
                 from apps.schools.rls_context import reset_rls_school_id
+
                 reset_rls_school_id()
             except DatabaseError as e:
                 logger.debug("Could not reset app.current_school_id: %s", e)
@@ -686,6 +783,7 @@ def _reset_rls_school_id_if_set(request):
         return
     try:
         from apps.schools.rls_context import reset_rls_school_id
+
         reset_rls_school_id()
     except DatabaseError as e:
         logger.debug("Could not reset app.current_school_id (finally): %s", e)
@@ -736,12 +834,15 @@ class TenantFreezeMiddleware(MiddlewareMixin):
                 return None
         # Allow staff/superuser to bypass freeze (e.g. to access billing or super admin)
         if getattr(request, "user", None) and request.user.is_authenticated:
-            if getattr(request.user, "is_staff", False) or getattr(request.user, "is_superuser", False):
+            if getattr(request.user, "is_staff", False) or getattr(
+                request.user, "is_superuser", False
+            ):
                 return None
         school = getattr(request, "school", None)
         if not school or not getattr(school, "is_frozen", False):
             return None
         from django.shortcuts import redirect
+
         return redirect("account_frozen")
 
 
@@ -750,6 +851,7 @@ class ModuleActivationMiddleware(MiddlewareMixin):
     World Engine E.2: Set request.active_modules from get_tenant_modules(school).
     Single source for active modules; sidebar and feature gates use this or is_feature_enabled.
     """
+
     def process_request(self, request):
         school = getattr(request, "school", None)
         if school is None:
@@ -757,6 +859,7 @@ class ModuleActivationMiddleware(MiddlewareMixin):
             return None
         try:
             from apps.siteconfig.tenant_config import get_tenant_modules
+
             request.active_modules = get_tenant_modules(school)
         except (AttributeError, ImportError, TypeError, ValueError):
             request.active_modules = []
@@ -769,6 +872,7 @@ class TenantApiQuotaMiddleware(MiddlewareMixin):
     When request.school is set and path is under /api/, enforces throttle_tenant_request.
     Set API_TENANT_MAX_REQUESTS_PER_MINUTE in settings (default 600). Disable with DISABLE_TENANT_API_QUOTA=1.
     """
+
     def process_request(self, request):
         if getattr(settings, "DISABLE_TENANT_API_QUOTA", False):
             return None
@@ -780,11 +884,16 @@ class TenantApiQuotaMiddleware(MiddlewareMixin):
             return None
         try:
             from apps.api.rate_limit import throttle_tenant_request
+
             allowed, retry_after = throttle_tenant_request(request)
             if not allowed:
                 from django.http import JsonResponse
+
                 return JsonResponse(
-                    {"detail": "Request limit exceeded for this school. Retry later.", "retry_after": retry_after},
+                    {
+                        "detail": "Request limit exceeded for this school. Retry later.",
+                        "retry_after": retry_after,
+                    },
                     status=429,
                     headers={"Retry-After": str(retry_after)} if retry_after else None,
                 )
@@ -795,11 +904,13 @@ class TenantApiQuotaMiddleware(MiddlewareMixin):
 
 class SentryTenantTagMiddleware(MiddlewareMixin):
     """Phase H optional: tag Sentry events with school_id when request.school is set."""
+
     def process_request(self, request):
         school = getattr(request, "school", None)
         if school:
             try:
                 import sentry_sdk
+
                 sentry_sdk.set_tag("school_id", str(school.id))
                 sentry_sdk.set_tag("school_slug", getattr(school, "slug", "") or "")
             except (AttributeError, ImportError):
@@ -809,6 +920,7 @@ class SentryTenantTagMiddleware(MiddlewareMixin):
 
 class TenantLastActivityMiddleware(MiddlewareMixin):
     """Phase H optional: update School.last_activity when request.school is set (throttled ~1/hour per school)."""
+
     def process_response(self, request, response):
         school = getattr(request, "school", None)
         if not school or not getattr(school, "id", None):
@@ -816,11 +928,13 @@ class TenantLastActivityMiddleware(MiddlewareMixin):
         try:
             from django.core.cache import cache
             from django.utils import timezone
+
             cache_key = f"school_last_activity:{school.id}"
             if cache.get(cache_key):
                 return response
             cache.set(cache_key, True, timeout=3600)
             from apps.schools.models import School
+
             School.objects.filter(pk=school.id).update(last_activity=timezone.now())
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             pass
@@ -841,19 +955,24 @@ class TenantSuperAdminRequiredMiddleware(MiddlewareMixin):
             flags = get_effective_flags(request)
             if not flags.get("enable_super_admin_ui", True):
                 from django.http import HttpResponseForbidden
+
                 return HttpResponseForbidden("Super Admin is disabled.")
         except (AttributeError, TypeError, ValueError):
             pass
         if not request.user.is_authenticated:
             from django.contrib.auth.views import redirect_to_login
+
             return redirect_to_login(request.get_full_path())
         try:
             from apps.schools.control_plane import user_has_control_plane_access
         except ImportError:
             user_has_control_plane_access = None
-        if callable(user_has_control_plane_access) and user_has_control_plane_access(request.user):
+        if callable(user_has_control_plane_access) and user_has_control_plane_access(
+            request.user
+        ):
             return None
         from django.http import HttpResponseForbidden
+
         return HttpResponseForbidden("Super Admin access required.")
 
 
@@ -874,13 +993,16 @@ class ManagerHostControlPlaneRequiredMiddleware(MiddlewareMixin):
         if path in ("", "/"):
             if not getattr(request.user, "is_authenticated", False):
                 return None
-        elif _path_allowed_for_reserved_host(path, allowed_prefixes=MANAGER_HOST_PUBLIC_ACCESS_PREFIXES):
+        elif _path_allowed_for_reserved_host(
+            path, allowed_prefixes=MANAGER_HOST_PUBLIC_ACCESS_PREFIXES
+        ):
             return None
 
         if not getattr(request.user, "is_authenticated", False):
             # Single entry (Salesforce/Shopify model): unauthenticated /admin/ → /super/ so one sign-in URL.
             if path.startswith("/admin"):
                 from django.urls import reverse
+
                 return redirect(reverse("super:dashboard"))
             from django.contrib.auth.views import redirect_to_login
 
@@ -891,7 +1013,9 @@ class ManagerHostControlPlaneRequiredMiddleware(MiddlewareMixin):
         except ImportError:
             user_has_control_plane_access = None
 
-        if callable(user_has_control_plane_access) and user_has_control_plane_access(request.user):
+        if callable(user_has_control_plane_access) and user_has_control_plane_access(
+            request.user
+        ):
             return None
 
         from django.http import HttpResponseForbidden
@@ -905,6 +1029,7 @@ class SuperAdminRateLimitMiddleware(MiddlewareMixin):
     Runs after TenantSuperAdminRequiredMiddleware; only applied when path starts with /super/.
     Returns 429 Too Many Requests with Retry-After: 60 when exceeded.
     """
+
     MINUTE_LIMIT = 120
 
     def process_request(self, request):
@@ -915,6 +1040,7 @@ class SuperAdminRateLimitMiddleware(MiddlewareMixin):
         from django.core.cache import cache
         from django.utils import timezone
         from django.http import HttpResponse
+
         key = "super_rl:{}:{}".format(
             request.user.pk,
             timezone.now().strftime("%Y%m%d%H%M"),
@@ -952,9 +1078,17 @@ FEATURE_GATE_PATH_MAP = {
 def _feature_gate_403(request, feature_code: str):
     """Return 403 response (JSON for API, HTML for browser)."""
     from django.http import HttpResponseForbidden, JsonResponse
-    if request.path.startswith("/api/") or (request.headers.get("Accept") or "").find("application/json") >= 0:
+
+    if (
+        request.path.startswith("/api/")
+        or (request.headers.get("Accept") or "").find("application/json") >= 0
+    ):
         return JsonResponse(
-            {"error": "feature_not_available", "feature": feature_code, "detail": "This feature is not enabled for your plan."},
+            {
+                "error": "feature_not_available",
+                "feature": feature_code,
+                "detail": "This feature is not enabled for your plan.",
+            },
             status=403,
         )
     return HttpResponseForbidden(
@@ -977,17 +1111,27 @@ class FeatureGatekeeperMiddleware(MiddlewareMixin):
         for prefix, code in FEATURE_GATE_PATH_MAP.items():
             if not code:
                 continue
-            if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path == prefix.rstrip("/"):
+            if (
+                path == prefix
+                or path.startswith(prefix.rstrip("/") + "/")
+                or path == prefix.rstrip("/")
+            ):
                 try:
                     from apps.policies.policy_registry import get_effective_policy
+
                     policy_result = get_effective_policy(
                         school,
                         user=getattr(request, "user", None),
                         capability=code,
                     )
-                    enabled = policy_result.get("enabled", False) if isinstance(policy_result, dict) else False
+                    enabled = (
+                        policy_result.get("enabled", False)
+                        if isinstance(policy_result, dict)
+                        else False
+                    )
                 except (AttributeError, ImportError, TypeError, ValueError):
                     from apps.schools.models import is_feature_enabled
+
                     enabled = is_feature_enabled(school, code)
                 if not enabled:
                     return _feature_gate_403(request, code)
@@ -1000,6 +1144,7 @@ class DynamicThemeMiddleware(MiddlewareMixin):
     Phase B: Set request.admin_theme_choice from school.theme_choice so admin/base
     can serve Unfold/Jazzmin/Sneat per tenant. Run after TenantMiddleware.
     """
+
     def process_request(self, request):
         school = getattr(request, "school", None)
         if school and getattr(school, "theme_choice", None):
@@ -1007,7 +1152,9 @@ class DynamicThemeMiddleware(MiddlewareMixin):
             if request.admin_theme_choice not in ("UNFOLD", "JAZZMIN", "SNEAT"):
                 request.admin_theme_choice = "UNFOLD"
         else:
-            request.admin_theme_choice = getattr(request, "admin_theme_choice", "UNFOLD")
+            request.admin_theme_choice = getattr(
+                request, "admin_theme_choice", "UNFOLD"
+            )
         return None
 
 
@@ -1019,36 +1166,67 @@ class UsageLimitMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         import os
-        if os.getenv("DISABLE_USAGE_LIMIT_MIDDLEWARE", "").strip().lower() in ("1", "true", "yes"):
+
+        if os.getenv("DISABLE_USAGE_LIMIT_MIDDLEWARE", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+        ):
             return None
         school = getattr(request, "school", None)
         if not school:
             return None
         # Phase E: Skip usage limits for waived schools (full access)
-        if getattr(school, "billing_type", None) in ("COMPLIMENTARY", "MANUAL_OVERRIDE"):
+        if getattr(school, "billing_type", None) in (
+            "COMPLIMENTARY",
+            "MANUAL_OVERRIDE",
+        ):
             return None
         plan = getattr(school, "plan", None)
         if not plan:
             return None
         from django.http import JsonResponse, HttpResponseForbidden
+
         if getattr(plan, "max_students", None) is not None:
             from apps.people.models import StudentProfile
+
             count = StudentProfile.objects.filter(school=school).count()
             if count >= plan.max_students:
-                if request.path.startswith("/api/") or (request.headers.get("Accept") or "").find("application/json") >= 0:
+                if (
+                    request.path.startswith("/api/")
+                    or (request.headers.get("Accept") or "").find("application/json")
+                    >= 0
+                ):
                     return JsonResponse(
-                        {"error": "usage_limit", "limit": "max_students", "detail": "Student limit reached for your plan."},
+                        {
+                            "error": "usage_limit",
+                            "limit": "max_students",
+                            "detail": "Student limit reached for your plan.",
+                        },
                         status=403,
                     )
-                return HttpResponseForbidden("<h1>403</h1><p>Student limit reached for your plan. Please upgrade.</p>")
+                return HttpResponseForbidden(
+                    "<h1>403</h1><p>Student limit reached for your plan. Please upgrade.</p>"
+                )
         if getattr(plan, "max_staff", None) is not None:
             from apps.people.models import TeacherProfile
+
             count = TeacherProfile.objects.filter(school=school).count()
             if count >= plan.max_staff:
-                if request.path.startswith("/api/") or (request.headers.get("Accept") or "").find("application/json") >= 0:
+                if (
+                    request.path.startswith("/api/")
+                    or (request.headers.get("Accept") or "").find("application/json")
+                    >= 0
+                ):
                     return JsonResponse(
-                        {"error": "usage_limit", "limit": "max_staff", "detail": "Staff limit reached for your plan."},
+                        {
+                            "error": "usage_limit",
+                            "limit": "max_staff",
+                            "detail": "Staff limit reached for your plan.",
+                        },
                         status=403,
                     )
-                return HttpResponseForbidden("<h1>403</h1><p>Staff limit reached for your plan. Please upgrade.</p>")
+                return HttpResponseForbidden(
+                    "<h1>403</h1><p>Staff limit reached for your plan. Please upgrade.</p>"
+                )
         return None

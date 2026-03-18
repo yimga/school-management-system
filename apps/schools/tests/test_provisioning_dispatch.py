@@ -15,7 +15,10 @@ class ProvisioningDispatchTests(TestCase):
             is_active=False,
         )
 
-        with patch("apps.schools.tasks.provision_school_task.delay", side_effect=RuntimeError("broker offline")):
+        with patch(
+            "apps.schools.tasks.provision_school_task.delay",
+            side_effect=RuntimeError("broker offline"),
+        ):
             result = dispatch_provision_school(str(school.id), contact_email="")
 
         school.refresh_from_db()

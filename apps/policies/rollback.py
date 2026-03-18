@@ -2,6 +2,7 @@
 Policy version rollback (RunMyCampus blueprint B3).
 TenantBlueprint.active_bundle points to the active PolicyBundle; rollback = point to a previous bundle.
 """
+
 from __future__ import annotations
 
 import logging
@@ -20,6 +21,7 @@ def set_active_policy_bundle(school, bundle) -> bool:
     """
     try:
         from apps.policies.models import TenantBlueprint, PolicyBundle
+
         if bundle is None:
             tb = TenantBlueprint.objects.filter(school=school).first()
             if tb:
@@ -29,14 +31,24 @@ def set_active_policy_bundle(school, bundle) -> bool:
             return False
         if not isinstance(bundle, PolicyBundle):
             bundle = PolicyBundle.objects.get(pk=bundle, school=school)
-        if getattr(bundle, "school_id", None) and bundle.school_id != getattr(school, "pk", None):
+        if getattr(bundle, "school_id", None) and bundle.school_id != getattr(
+            school, "pk", None
+        ):
             return False
-        tb, _ = TenantBlueprint.objects.get_or_create(school=school, defaults={"active_bundle": bundle})
+        tb, _ = TenantBlueprint.objects.get_or_create(
+            school=school, defaults={"active_bundle": bundle}
+        )
         if tb.active_bundle_id != bundle.pk:
             tb.active_bundle = bundle
             tb.save(update_fields=["active_bundle"])
         return True
-    except (ObjectDoesNotExist, DatabaseError, IntegrityError, ValueError, TypeError) as e:
+    except (
+        ObjectDoesNotExist,
+        DatabaseError,
+        IntegrityError,
+        ValueError,
+        TypeError,
+    ) as e:
         logger.debug("set_active_policy_bundle failed: %s", e)
         return False
 
@@ -44,4 +56,7 @@ def set_active_policy_bundle(school, bundle) -> bool:
 def list_policy_bundles_for_school(school):
     """Return queryset of PolicyBundle for this school (for rollback UI)."""
     from apps.policies.models import PolicyBundle
-    return PolicyBundle.objects.filter(school=school).order_by("-version", "-created_at")
+
+    return PolicyBundle.objects.filter(school=school).order_by(
+        "-version", "-created_at"
+    )

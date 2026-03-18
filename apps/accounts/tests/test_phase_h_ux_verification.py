@@ -8,6 +8,7 @@ CI / no-DB slice: bash scripts/run_phase_h_verification.sh
   (runs smoke_urls + PhaseHUrlReverseTests + phase_h_audit static + --live)
 Full module (requires DB): python manage.py test apps.accounts.tests.test_phase_h_ux_verification
 """
+
 from django.test import SimpleTestCase, TestCase, Client, override_settings
 from django.urls import reverse
 from django.http import HttpRequest
@@ -192,6 +193,11 @@ class PhaseHUrlReverseTests(SimpleTestCase):
         """Evals app teacher dashboard (tenant) must resolve for Phase H link verification."""
         url = reverse("evals:teacher_dashboard")
         self.assertIn("/evals/", url)
+
+    def test_backend_student_detail_reverse(self):
+        """Student 360 (linkage-first) URL must reverse."""
+        url = reverse("accounts:backend_student_detail", kwargs={"student_id": 1})
+        self.assertIn("/backend/students/1/", url)
 
     def test_payroll_dashboard_resolves(self):
         """Payroll app dashboard (tenant) must resolve for Phase H link verification."""

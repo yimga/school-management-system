@@ -4,6 +4,7 @@ GET: return draft data for form_key (JSON).
 POST: save draft (body: JSON { "data": { ... } }).
 DELETE: clear draft for form_key.
 """
+
 import json
 import logging
 
@@ -39,10 +40,14 @@ def form_draft_api(request, form_key: str):
         ).first()
         if not draft:
             return JsonResponse({"error": "No draft"}, status=404)
-        return JsonResponse({
-            "data": draft.data,
-            "updated_at": draft.updated_at.isoformat() if draft.updated_at else None,
-        })
+        return JsonResponse(
+            {
+                "data": draft.data,
+                "updated_at": draft.updated_at.isoformat()
+                if draft.updated_at
+                else None,
+            }
+        )
 
     if request.method == "DELETE":
         FormDraft.objects.filter(
@@ -69,7 +74,9 @@ def form_draft_api(request, form_key: str):
         form_key=form_key,
         defaults={"data": data},
     )
-    return JsonResponse({
-        "ok": True,
-        "updated_at": draft.updated_at.isoformat() if draft.updated_at else None,
-    })
+    return JsonResponse(
+        {
+            "ok": True,
+            "updated_at": draft.updated_at.isoformat() if draft.updated_at else None,
+        }
+    )

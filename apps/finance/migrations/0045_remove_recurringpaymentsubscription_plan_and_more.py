@@ -4,24 +4,23 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0044_recurringpaymentsubscription_default_manual'),
+        ("finance", "0044_recurringpaymentsubscription_default_manual"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='recurringpaymentsubscription',
-            name='plan',
+            model_name="recurringpaymentsubscription",
+            name="plan",
         ),
         migrations.RemoveField(
-            model_name='recurringpaymentsubscription',
-            name='user',
+            model_name="recurringpaymentsubscription",
+            name="user",
         ),
         migrations.DeleteModel(
-            name='PaymentPlan',
+            name="PaymentPlan",
         ),
         migrations.DeleteModel(
-            name='RecurringPaymentSubscription',
+            name="RecurringPaymentSubscription",
         ),
     ]

@@ -1,6 +1,7 @@
 """
 Communication app models. §2.4: broad except in _primary_school_id_for_user replaced with typed tuple.
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,7 +14,10 @@ from django.db.models import Max
 from django.utils import timezone
 
 from apps.academics.models import Classroom, Department
-from apps.accounts.validators import validate_kb_attachment_file, validate_file_size_10mb
+from apps.accounts.validators import (
+    validate_kb_attachment_file,
+    validate_file_size_10mb,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +30,12 @@ _COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS: tuple[type[BaseException], ...] = (
 )
 try:
     from django.db.utils import DatabaseError, OperationalError
-    _COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS = (*_COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS, DatabaseError, OperationalError)
+
+    _COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS = (
+        *_COMMUNICATION_USER_SCHOOL_RESOLVE_ERRORS,
+        DatabaseError,
+        OperationalError,
+    )
 except ImportError:
     pass
 
@@ -34,7 +43,9 @@ except ImportError:
 def contact_request_attachment_upload_to(instance, filename):
     """Tenant-scoped path for ContactRequestAttachment (Section 25.3)."""
     school_id = getattr(instance, "school_id", None) or (
-        getattr(getattr(instance, "request", None), "school_id", None) if getattr(instance, "request", None) else None
+        getattr(getattr(instance, "request", None), "school_id", None)
+        if getattr(instance, "request", None)
+        else None
     )
     if school_id is None:
         return f"tenant_uploads/communication/contact-requests/{filename}"
@@ -83,15 +94,14 @@ class Message(models.Model):
     Internal messaging between users
     Support for threads, archiving, and priority
     """
+
     sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='sent_messages'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sent_messages"
     )
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='received_messages'
+        related_name="received_messages",
     )
     school = models.ForeignKey(
         "schools.School",
@@ -102,38 +112,40 @@ class Message(models.Model):
     )
     subject = models.CharField(max_length=255)
     body = models.TextField()
-    
+    locale_target = models.CharField(
+        max_length=10,
+        blank=True,
+        default="",
+        help_text="BR-08: intended reader locale (recipient context) for i18n/audit.",
+    )
+
     is_read = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)
-    
+
     parent_message = models.ForeignKey(
-        'self',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='replies'
+        "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="replies"
     )
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['recipient', '-created_at']),
-            models.Index(fields=['sender', '-created_at']),
-            models.Index(fields=['is_read']),
+            models.Index(fields=["recipient", "-created_at"]),
+            models.Index(fields=["sender", "-created_at"]),
+            models.Index(fields=["is_read"]),
         ]
-        verbose_name = 'Message'
-        verbose_name_plural = 'Messages'
-    
+        verbose_name = "Message"
+        verbose_name_plural = "Messages"
+
     def __str__(self):
         return f"{self.subject} - {self.sender.get_full_name()} to {self.recipient.get_full_name()}"
-    
+
     @property
     def summary(self):
         """Short preview of message body"""
-        return self.body[:100] + '...' if len(self.body) > 100 else self.body
+        return self.body[:100] + "..." if len(self.body) > 100 else self.body
 
     def save(self, *args, **kwargs):
         if not self.school_id:
@@ -149,6 +161,7 @@ class DirectConversation(models.Model):
     Staff–parent conversation; only staff can open. When staff close it, the loop closes
     and the parent can no longer reply. Parents contact school via Contact School form only.
     """
+
     user1 = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -212,26 +225,27 @@ class Announcement(models.Model):
     School-wide announcements. Creation is restricted to admins/leadership.
     Optional approval workflow: submissions can be PENDING_APPROVAL until approved.
     """
+
     class AnnouncementType(models.TextChoices):
-        GENERAL = 'general', 'General'
-        ACADEMIC = 'academic', 'Academic'
-        EVENT = 'event', 'Event'
-        ALERT = 'alert', 'Alert'
-        HOLIDAY = 'holiday', 'Holiday'
-        MAINTENANCE = 'maintenance', 'Maintenance'
+        GENERAL = "general", "General"
+        ACADEMIC = "academic", "Academic"
+        EVENT = "event", "Event"
+        ALERT = "alert", "Alert"
+        HOLIDAY = "holiday", "Holiday"
+        MAINTENANCE = "maintenance", "Maintenance"
 
     class Status(models.TextChoices):
-        DRAFT = 'draft', 'Draft'
-        PENDING_APPROVAL = 'pending_approval', 'Pending Approval'
-        PUBLISHED = 'published', 'Published'
+        DRAFT = "draft", "Draft"
+        PENDING_APPROVAL = "pending_approval", "Pending Approval"
+        PUBLISHED = "published", "Published"
 
     class Audience(models.TextChoices):
-        ALL = 'all', 'All Users'
-        STUDENTS = 'students', 'Students Only'
-        TEACHERS = 'teachers', 'Teachers Only'
-        PARENTS = 'all_parents', 'All Parents'
-        STAFF = 'staff', 'Staff Only'
-        SPECIFIC = 'specific', 'Specific Group'
+        ALL = "all", "All Users"
+        STUDENTS = "students", "Students Only"
+        TEACHERS = "teachers", "Teachers Only"
+        PARENTS = "all_parents", "All Parents"
+        STAFF = "staff", "Staff Only"
+        SPECIFIC = "specific", "Specific Group"
 
     title = models.CharField(max_length=255)
     content = models.TextField()
@@ -245,18 +259,16 @@ class Announcement(models.Model):
     announcement_type = models.CharField(
         max_length=20,
         choices=AnnouncementType.choices,
-        default=AnnouncementType.GENERAL
+        default=AnnouncementType.GENERAL,
     )
     audience = models.CharField(
-        max_length=20,
-        choices=Audience.choices,
-        default=Audience.ALL
+        max_length=20, choices=Audience.choices, default=Audience.ALL
     )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.PUBLISHED,
-        help_text='Only published announcements are visible to the audience.'
+        help_text="Only published announcements are visible to the audience.",
     )
 
     is_active = models.BooleanField(default=True)
@@ -267,39 +279,39 @@ class Announcement(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='announcements'
+        related_name="announcements",
     )
     approved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='approved_announcements'
+        related_name="approved_announcements",
     )
     approved_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     expiry_date = models.DateTimeField(default=get_default_expiry)
-    
+
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['-created_at']),
-            models.Index(fields=['is_active', 'expiry_date']),
-            models.Index(fields=['status']),
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["is_active", "expiry_date"]),
+            models.Index(fields=["status"]),
         ]
-        verbose_name = 'Announcement'
-        verbose_name_plural = 'Announcements'
-    
+        verbose_name = "Announcement"
+        verbose_name_plural = "Announcements"
+
     def __str__(self):
         return f"{self.title} ({self.get_announcement_type_display()})"
-    
+
     @property
     def is_expired(self):
         """Check if announcement has expired"""
         return timezone.now() > self.expiry_date
-    
+
     @property
     def time_to_expiry(self):
         """Days until announcement expires"""
@@ -310,7 +322,9 @@ class Announcement(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.school_id:
-            self.school_id = _primary_school_id_for_user(getattr(self, "created_by", None))
+            self.school_id = _primary_school_id_for_user(
+                getattr(self, "created_by", None)
+            )
         super().save(*args, **kwargs)
 
 
@@ -319,18 +333,19 @@ class AnnouncementAuditLog(models.Model):
     Audit log for school-wide announcements: who created, updated, approved,
     or deactivated. Supports accountability and compliance.
     """
+
     class Action(models.TextChoices):
-        CREATED = 'created', 'Created'
-        UPDATED = 'updated', 'Updated'
-        SUBMITTED_FOR_APPROVAL = 'submitted_for_approval', 'Submitted for approval'
-        APPROVED = 'approved', 'Approved'
-        PUBLISHED = 'published', 'Published'
-        DEACTIVATED = 'deactivated', 'Deactivated'
+        CREATED = "created", "Created"
+        UPDATED = "updated", "Updated"
+        SUBMITTED_FOR_APPROVAL = "submitted_for_approval", "Submitted for approval"
+        APPROVED = "approved", "Approved"
+        PUBLISHED = "published", "Published"
+        DEACTIVATED = "deactivated", "Deactivated"
 
     announcement = models.ForeignKey(
         Announcement,
         on_delete=models.CASCADE,
-        related_name='audit_logs',
+        related_name="audit_logs",
     )
     school = models.ForeignKey(
         "schools.School",
@@ -344,20 +359,20 @@ class AnnouncementAuditLog(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='announcement_audit_entries',
+        related_name="announcement_audit_entries",
     )
     action = models.CharField(max_length=32, choices=Action.choices)
     notes = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['announcement', '-created_at']),
-            models.Index(fields=['action']),
+            models.Index(fields=["announcement", "-created_at"]),
+            models.Index(fields=["action"]),
         ]
-        verbose_name = 'Announcement audit log'
-        verbose_name_plural = 'Announcement audit logs'
+        verbose_name = "Announcement audit log"
+        verbose_name_plural = "Announcement audit logs"
 
     def __str__(self):
         return f"{self.get_action_display()} by {self.user} on {self.announcement_id}"
@@ -365,7 +380,9 @@ class AnnouncementAuditLog(models.Model):
     def save(self, *args, **kwargs):
         if not self.school_id:
             self.school_id = _pick_school_id(
-                getattr(self.announcement, "school_id", None) if getattr(self, "announcement", None) else None,
+                getattr(self.announcement, "school_id", None)
+                if getattr(self, "announcement", None)
+                else None,
                 _primary_school_id_for_user(getattr(self, "user", None)),
             )
         super().save(*args, **kwargs)
@@ -392,6 +409,7 @@ class ClassAnnouncement(models.Model):
     """
     Scoped announcements/comments for a class or department with RBAC-aware visibility.
     """
+
     class Audience(models.TextChoices):
         PARENTS = "parents", "Parents"
         TEACHERS = "teachers", "Teachers"
@@ -407,12 +425,28 @@ class ClassAnnouncement(models.Model):
         blank=True,
         related_name="class_announcements",
     )
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True, related_name="announcements")
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True, related_name="announcements")
-    audience = models.CharField(max_length=20, choices=Audience.choices, default=Audience.ALL)
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="announcements",
+    )
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="announcements",
+    )
+    audience = models.CharField(
+        max_length=20, choices=Audience.choices, default=Audience.ALL
+    )
     is_active = models.BooleanField(default=True)
     is_pinned = models.BooleanField(default=False)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -430,8 +464,12 @@ class ClassAnnouncement(models.Model):
     def save(self, *args, **kwargs):
         if not self.school_id:
             self.school_id = _pick_school_id(
-                getattr(self.classroom, "school_id", None) if getattr(self, "classroom", None) else None,
-                getattr(self.department, "school_id", None) if getattr(self, "department", None) else None,
+                getattr(self.classroom, "school_id", None)
+                if getattr(self, "classroom", None)
+                else None,
+                getattr(self.department, "school_id", None)
+                if getattr(self, "department", None)
+                else None,
                 _primary_school_id_for_user(getattr(self, "created_by", None)),
             )
         super().save(*args, **kwargs)
@@ -457,33 +495,50 @@ class MessageThread(models.Model):
         blank=True,
         related_name="message_threads",
     )
-    scope = models.CharField(max_length=20, choices=Scope.choices, default=Scope.CLASSROOM)
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True, related_name="message_threads")
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True, related_name="message_threads")
-    audience_role = models.CharField(max_length=30, blank=True, help_text="Optional: limit by role (e.g., PARENT, TEACHER)")
+    scope = models.CharField(
+        max_length=20, choices=Scope.choices, default=Scope.CLASSROOM
+    )
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="message_threads",
+    )
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="message_threads",
+    )
+    audience_role = models.CharField(
+        max_length=30,
+        blank=True,
+        help_text="Optional: limit by role (e.g., PARENT, TEACHER)",
+    )
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='created_threads'
+        related_name="created_threads",
     )
-    
+
     members = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        related_name='message_threads'
+        settings.AUTH_USER_MODEL, related_name="message_threads"
     )
-    
+
     is_archived = models.BooleanField(default=False)
     last_message_at = models.DateTimeField(null=True, blank=True)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
-        ordering = ['-updated_at']
-        verbose_name = 'Message Thread'
-        verbose_name_plural = 'Message Threads'
-    
+        ordering = ["-updated_at"]
+        verbose_name = "Message Thread"
+        verbose_name_plural = "Message Threads"
+
     def __str__(self):
         return self.title
 
@@ -495,8 +550,12 @@ class MessageThread(models.Model):
     def save(self, *args, **kwargs):
         if not self.school_id:
             self.school_id = _pick_school_id(
-                getattr(self.classroom, "school_id", None) if getattr(self, "classroom", None) else None,
-                getattr(self.department, "school_id", None) if getattr(self, "department", None) else None,
+                getattr(self.classroom, "school_id", None)
+                if getattr(self, "classroom", None)
+                else None,
+                getattr(self.department, "school_id", None)
+                if getattr(self, "department", None)
+                else None,
                 _primary_school_id_for_user(getattr(self, "created_by", None)),
             )
         super().save(*args, **kwargs)
@@ -506,10 +565,9 @@ class ThreadMessage(models.Model):
     """
     Messages within a thread with audit-friendly soft delete/edit.
     """
+
     thread = models.ForeignKey(
-        MessageThread,
-        on_delete=models.CASCADE,
-        related_name='messages'
+        MessageThread, on_delete=models.CASCADE, related_name="messages"
     )
     school = models.ForeignKey(
         "schools.School",
@@ -518,14 +576,20 @@ class ThreadMessage(models.Model):
         blank=True,
         related_name="thread_messages",
     )
-    
+
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='thread_messages'
+        related_name="thread_messages",
     )
-    
+
     content = models.TextField()
+    locale_target = models.CharField(
+        max_length=10,
+        blank=True,
+        default="",
+        help_text="BR-08: intended reader locale (e.g. parent UI language) for translation/audit.",
+    )
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(
@@ -543,21 +607,23 @@ class ThreadMessage(models.Model):
         blank=True,
         related_name="edited_thread_messages",
     )
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Thread Message'
-        verbose_name_plural = 'Thread Messages'
-    
+        ordering = ["-created_at"]
+        verbose_name = "Thread Message"
+        verbose_name_plural = "Thread Messages"
+
     def __str__(self):
         return f"Message in {self.thread.title} by {self.author.get_full_name()}"
 
     def save(self, *args, **kwargs):
         self.school_id = _pick_school_id(
-            getattr(self.thread, "school_id", None) if getattr(self, "thread", None) else None,
+            getattr(self.thread, "school_id", None)
+            if getattr(self, "thread", None)
+            else None,
             self.school_id,
             _primary_school_id_for_user(getattr(self, "author", None)),
         )
@@ -574,6 +640,7 @@ class ThreadReadState(models.Model):
     """
     Tracks last read per user/thread for unread counts.
     """
+
     thread = models.ForeignKey(
         MessageThread,
         on_delete=models.CASCADE,
@@ -602,7 +669,9 @@ class ThreadReadState(models.Model):
     def save(self, *args, **kwargs):
         if not self.school_id:
             self.school_id = _pick_school_id(
-                getattr(self.thread, "school_id", None) if getattr(self, "thread", None) else None,
+                getattr(self.thread, "school_id", None)
+                if getattr(self, "thread", None)
+                else None,
                 _primary_school_id_for_user(getattr(self, "user", None)),
             )
         super().save(*args, **kwargs)
@@ -612,16 +681,15 @@ class AlertRule(models.Model):
     """
     User-defined alert rules for notifications
     """
+
     class Frequency(models.TextChoices):
-        IMMEDIATE = 'immediate', 'Immediate'
-        DAILY = 'daily', 'Daily'
-        WEEKLY = 'weekly', 'Weekly'
-        NEVER = 'never', 'Never'
-    
+        IMMEDIATE = "immediate", "Immediate"
+        DAILY = "daily", "Daily"
+        WEEKLY = "weekly", "Weekly"
+        NEVER = "never", "Never"
+
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='alert_rules'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="alert_rules"
     )
     school = models.ForeignKey(
         "schools.School",
@@ -630,27 +698,25 @@ class AlertRule(models.Model):
         blank=True,
         related_name="alert_rules",
     )
-    
+
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     condition = models.CharField(max_length=255)
     frequency = models.CharField(
-        max_length=20,
-        choices=Frequency.choices,
-        default=Frequency.DAILY
+        max_length=20, choices=Frequency.choices, default=Frequency.DAILY
     )
-    
+
     is_active = models.BooleanField(default=True)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Alert Rule'
-        verbose_name_plural = 'Alert Rules'
-        unique_together = ('user', 'name')
-    
+        ordering = ["-created_at"]
+        verbose_name = "Alert Rule"
+        verbose_name_plural = "Alert Rules"
+        unique_together = ("user", "name")
+
     def __str__(self):
         return f"{self.name} ({self.user.get_full_name()})"
 
@@ -718,8 +784,12 @@ class ContactRequest(models.Model):
     contact_whatsapp = models.CharField(max_length=60, blank=True)
     contact_email = models.EmailField(blank=True)
 
-    audience = models.CharField(max_length=30, choices=Audience.choices, default=Audience.TEACHER)
-    preferred_channel = models.CharField(max_length=20, choices=Channel.choices, default=Channel.WHATSAPP)
+    audience = models.CharField(
+        max_length=30, choices=Audience.choices, default=Audience.TEACHER
+    )
+    preferred_channel = models.CharField(
+        max_length=20, choices=Channel.choices, default=Channel.WHATSAPP
+    )
     subject = models.CharField(max_length=200)
     message = models.TextField()
 
@@ -748,7 +818,9 @@ class ContactRequest(models.Model):
         related_name="contact_requests_assigned",
         help_text="Staff member responsible for contacting the parent.",
     )
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.OPEN
+    )
 
     triage_notes = models.TextField(blank=True)
     resolution_notes = models.TextField(blank=True)
@@ -771,7 +843,9 @@ class ContactRequest(models.Model):
     def save(self, *args, **kwargs):
         if not self.school_id:
             self.school_id = _pick_school_id(
-                getattr(self.student, "school_id", None) if getattr(self, "student", None) else None,
+                getattr(self.student, "school_id", None)
+                if getattr(self, "student", None)
+                else None,
                 _primary_school_id_for_user(getattr(self, "parent", None)),
                 _primary_school_id_for_user(getattr(self, "assigned_to", None)),
                 _primary_school_id_for_user(getattr(self, "triage_owner", None)),
@@ -780,7 +854,9 @@ class ContactRequest(models.Model):
 
 
 class ContactRequestAttachment(models.Model):
-    request = models.ForeignKey(ContactRequest, on_delete=models.CASCADE, related_name="attachments")
+    request = models.ForeignKey(
+        ContactRequest, on_delete=models.CASCADE, related_name="attachments"
+    )
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -807,7 +883,9 @@ class ContactRequestAttachment(models.Model):
     def save(self, *args, **kwargs):
         if not self.school_id:
             self.school_id = _pick_school_id(
-                getattr(self.request, "school_id", None) if getattr(self, "request", None) else None,
+                getattr(self.request, "school_id", None)
+                if getattr(self, "request", None)
+                else None,
                 _primary_school_id_for_user(getattr(self, "uploaded_by", None)),
             )
         super().save(*args, **kwargs)
@@ -820,6 +898,7 @@ class ContactRequestAttachment(models.Model):
 
 class AchievementEvent(models.Model):
     """Trigger for AI narrative: e.g. 3 days perfect attendance, grade improved in Math."""
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -830,7 +909,9 @@ class AchievementEvent(models.Model):
         on_delete=models.CASCADE,
         related_name="achievement_events",
     )
-    event_type = models.CharField(max_length=80, help_text="e.g. perfect_attendance_3d, grade_improved_math")
+    event_type = models.CharField(
+        max_length=80, help_text="e.g. perfect_attendance_3d, grade_improved_math"
+    )
     payload = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -844,6 +925,7 @@ class AchievementEvent(models.Model):
 
 class NarrativeFeedback(models.Model):
     """AI-generated narrative for parents; teacher approves before sending."""
+
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"
         APPROVED = "APPROVED", "Approved"
@@ -866,8 +948,12 @@ class NarrativeFeedback(models.Model):
         blank=True,
         related_name="narrative_feedbacks",
     )
-    message_text = models.TextField(help_text="AI-generated or edited message for parent")
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    message_text = models.TextField(
+        help_text="AI-generated or edited message for parent"
+    )
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
     approved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -891,6 +977,7 @@ class NarrativeFeedback(models.Model):
 # Plan VI: Social feed (parent/teacher loop) — announcements, achievements, interventions
 class FeedItem(models.Model):
     """Single item in the parent/teacher feed (announcements, achievements, risk/interventions)."""
+
     class ItemType(models.TextChoices):
         ANNOUNCEMENT = "announcement", "Announcement"
         ACHIEVEMENT = "achievement", "Achievement"
@@ -925,7 +1012,10 @@ class FeedItem(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["school", "-created_at"]), models.Index(fields=["student", "-created_at"])]
+        indexes = [
+            models.Index(fields=["school", "-created_at"]),
+            models.Index(fields=["student", "-created_at"]),
+        ]
 
     def __str__(self):
         return f"{self.get_item_type_display()}: {self.title}"
@@ -934,6 +1024,7 @@ class FeedItem(models.Model):
 # Plan VI: WhatsApp / outbound message queue (scaffold; needs Meta credentials in prod)
 class OutboundMessageQueue(models.Model):
     """Queue for outbound WhatsApp/SMS messages; provider sends when configured."""
+
     class Channel(models.TextChoices):
         WHATSAPP = "whatsapp", "WhatsApp"
         SMS = "sms", "SMS"
@@ -945,8 +1036,12 @@ class OutboundMessageQueue(models.Model):
         null=True,
         blank=True,
     )
-    channel = models.CharField(max_length=20, choices=Channel.choices, default=Channel.WHATSAPP)
-    recipient_identifier = models.CharField(max_length=255, help_text="Phone or WhatsApp ID")
+    channel = models.CharField(
+        max_length=20, choices=Channel.choices, default=Channel.WHATSAPP
+    )
+    recipient_identifier = models.CharField(
+        max_length=255, help_text="Phone or WhatsApp ID"
+    )
     body = models.TextField()
     status = models.CharField(
         max_length=20,

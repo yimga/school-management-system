@@ -26,7 +26,13 @@ class ProxyOwnerAdmin(admin.ModelAdmin):
         return str(obj)
 
 
-for model in (RegionConfig, EducationSystemProfile, Province, SystemFeature, TenantSystem):
+for model in (
+    RegionConfig,
+    EducationSystemProfile,
+    Province,
+    SystemFeature,
+    TenantSystem,
+):
     register_platform_admin(model, ProxyOwnerAdmin)
 
 for model in (GradingScaleConfig, WeatherLocation):

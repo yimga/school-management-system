@@ -8,6 +8,7 @@ from .adapter import (
     enrollment_to_oneroster,
     student_to_oneroster,
     teacher_to_oneroster,
+    term_to_academic_session,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "enrollment_to_oneroster",
     "student_to_oneroster",
     "teacher_to_oneroster",
+    "term_to_academic_session",
 ]

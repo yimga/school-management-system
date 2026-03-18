@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0004_teacherprofile_pay_scale'),
+        ("people", "0004_teacherprofile_pay_scale"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='teacherprofile',
-            name='pay_grade',
-            field=models.CharField(blank=True, help_text='Legacy pay grade field (text). Consider using pay_scale instead.', max_length=50),
+            model_name="teacherprofile",
+            name="pay_grade",
+            field=models.CharField(
+                blank=True,
+                help_text="Legacy pay grade field (text). Consider using pay_scale instead.",
+                max_length=50,
+            ),
         ),
     ]

@@ -4,28 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0068_add_requests_reminder_interval'),
+        ("siteconfig", "0068_add_requests_reminder_interval"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userpreference',
-            name='preferred_language',
+            model_name="userpreference",
+            name="preferred_language",
             field=models.CharField(
                 blank=True,
-                default='',
+                default="",
                 help_text="User's preferred UI language (e.g. en, fr). When set, overrides region default.",
                 max_length=10,
             ),
         ),
         migrations.AddField(
-            model_name='userpreference',
-            name='preferred_region',
+            model_name="userpreference",
+            name="preferred_region",
             field=models.CharField(
                 blank=True,
-                default='',
+                default="",
                 help_text="User's preferred region code (e.g. CMR, USA). When set, drives currency, date format, grading.",
                 max_length=10,
             ),

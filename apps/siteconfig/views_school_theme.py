@@ -32,10 +32,16 @@ def school_theme_settings(request):
             choice = "UNFOLD"
         school.theme_choice = choice
         school.save(update_fields=["theme_choice", "updated_at"])
-        messages.success(request, f"Theme set to {choice}. Refresh admin/backend to see the change.")
+        messages.success(
+            request, f"Theme set to {choice}. Refresh admin/backend to see the change."
+        )
         return redirect("siteconfig:school_theme_settings")
-    return render(request, "siteconfig/school_theme_settings.html", {
-        "school": school,
-        "current_theme": current,
-        "theme_choices": THEME_CHOICES,
-    })
+    return render(
+        request,
+        "siteconfig/school_theme_settings.html",
+        {
+            "school": school,
+            "current_theme": current,
+            "theme_choices": THEME_CHOICES,
+        },
+    )

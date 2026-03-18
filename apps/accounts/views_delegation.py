@@ -2,6 +2,7 @@
 Out of Office / Delegation: profile views for listing, creating, editing, revoking
 delegations and viewing the "While You Were Away" catch-up log.
 """
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, get_object_or_404
@@ -58,7 +59,10 @@ def delegation_add(request):
             )
             if d.start_date <= timezone.now():
                 try:
-                    from apps.people.badge_services import create_acting_badge_for_delegation
+                    from apps.people.badge_services import (
+                        create_acting_badge_for_delegation,
+                    )
+
                     create_acting_badge_for_delegation(d)
                 except (ImportError, AttributeError, TypeError, ValueError):
                     pass
@@ -68,21 +72,37 @@ def delegation_add(request):
                     if notify in ("email", "both") and d.delegate.email:
                         from django.core.mail import send_mail
                         from django.conf import settings as django_settings
+
                         send_mail(
-                            subject="Delegation started: you are acting on behalf of %s" % d.delegator.get_full_name() or d.delegator.username,
-                            message="You have been assigned to act on behalf of %s until %s." % (d.delegator.get_full_name() or d.delegator.username, d.effective_end_date.date()),
-                            from_email=getattr(django_settings, "DEFAULT_FROM_EMAIL", "noreply@school.local"),
+                            subject="Delegation started: you are acting on behalf of %s"
+                            % d.delegator.get_full_name()
+                            or d.delegator.username,
+                            message="You have been assigned to act on behalf of %s until %s."
+                            % (
+                                d.delegator.get_full_name() or d.delegator.username,
+                                d.effective_end_date.date(),
+                            ),
+                            from_email=getattr(
+                                django_settings,
+                                "DEFAULT_FROM_EMAIL",
+                                "noreply@school.local",
+                            ),
                             recipient_list=[d.delegate.email],
                             fail_silently=True,
                         )
                 except (OSError, ConnectionError, AttributeError, TypeError):
                     pass
-            messages.success(request, "Delegation created. Your delegate can now act on your behalf for the selected scope.")
+            messages.success(
+                request,
+                "Delegation created. Your delegate can now act on your behalf for the selected scope.",
+            )
             return redirect("accounts:my_delegations")
     else:
         form = DelegationForm(request.user)
 
-    return render(request, "accounts/delegation_form.html", {"form": form, "is_edit": False})
+    return render(
+        request, "accounts/delegation_form.html", {"form": form, "is_edit": False}
+    )
 
 
 @login_required
@@ -122,7 +142,11 @@ def delegation_edit(request, pk):
         form.fields["delegate"].disabled = True
         form.fields["start_date"].disabled = True
 
-    return render(request, "accounts/delegation_form.html", {"form": form, "delegation": delegation, "is_edit": True})
+    return render(
+        request,
+        "accounts/delegation_form.html",
+        {"form": form, "delegation": delegation, "is_edit": True},
+    )
 
 
 @login_required
@@ -134,10 +158,13 @@ def delegation_revoke(request, pk):
         delegation.save()
         try:
             from apps.people.badge_services import revoke_acting_badges_for_delegation
+
             revoke_acting_badges_for_delegation(delegation)
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
-        messages.success(request, "Delegation ended. Your delegate can no longer act on your behalf.")
+        messages.success(
+            request, "Delegation ended. Your delegate can no longer act on your behalf."
+        )
         return redirect("accounts:my_delegations")
     return redirect("accounts:my_delegations")
 

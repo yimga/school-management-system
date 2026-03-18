@@ -1,0 +1,13 @@
+{
+  "label": "Compare & replacement",
+  "seo_title": "RunMyCampus — replace PowerSchool / legacy SIS (env copy)",
+  "seo_description": "Marketing-owned comparison: set MARKETING_REGION or edit this JSON per campaign.",
+  "headline": "One platform. Fewer silos.",
+  "subheadline": "This file overrides inline defaults. Deploy different JSON per environment for A/B or regional messaging.",
+  "schema_type": "WebPage",
+  "segments": [
+    {"title": "Rosters & grade passback", "body": "OneRoster + LTI 1.3 with signed launches when JWKS is configured — district-ready."},
+    {"title": "Finance + admissions", "body": "Invoices, payments, and enrollment in one tenant model — not three portals."},
+    {"title": "Your copy here", "body": "Replace via CI/CD or env-specific config/marketing_content/compare-replacement.json."}
+  ]
+}

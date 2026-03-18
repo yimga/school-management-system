@@ -2,6 +2,7 @@
 Orchestration operator workbench (Phase 10 — 4.1 stub).
 Long-running process list, status, retry, compensation. Full UI in future sprints.
 """
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.utils import ProgrammingError
 from django.shortcuts import get_object_or_404, redirect, render
@@ -16,7 +17,9 @@ def operator_workbench(request):
     runs = []
     runs_overdue = []
     try:
-        qs = OrchestrationRun.objects.select_related("definition", "school").order_by("-created_at")[:100]
+        qs = OrchestrationRun.objects.select_related("definition", "school").order_by(
+            "-created_at"
+        )[:100]
         runs = list(qs)
         runs_overdue = [r for r in runs if getattr(r, "sla_overdue", False)]
     except ProgrammingError:

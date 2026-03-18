@@ -35,7 +35,9 @@ class VerifyKbExportsCommandTests(TestCase):
     @override_settings(MEDIA_ROOT="")
     def test_verify_passes_when_odt_and_docx_exist(self):
         with override_settings(MEDIA_ROOT=str(self.tmp_media)):
-            self.article.odt_file.save("operations-manual.odt", ContentFile(b"odt-bytes"), save=True)
+            self.article.odt_file.save(
+                "operations-manual.odt", ContentFile(b"odt-bytes"), save=True
+            )
             export_dir = self.tmp_media / "kb" / "generated"
             export_dir.mkdir(parents=True, exist_ok=True)
             (export_dir / "operations-manual.docx").write_bytes(b"docx-bytes")
@@ -47,7 +49,9 @@ class VerifyKbExportsCommandTests(TestCase):
     @override_settings(MEDIA_ROOT="")
     def test_verify_strict_fails_when_docx_missing(self):
         with override_settings(MEDIA_ROOT=str(self.tmp_media)):
-            self.article.odt_file.save("operations-manual.odt", ContentFile(b"odt-bytes"), save=True)
+            self.article.odt_file.save(
+                "operations-manual.odt", ContentFile(b"odt-bytes"), save=True
+            )
 
             with self.assertRaises(CommandError):
                 call_command("verify_kb_exports", "--strict")

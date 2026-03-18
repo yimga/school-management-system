@@ -2,15 +2,23 @@
 Schema-per-tenant isolation: in tenant A context, only A data is visible.
 Requires PostgreSQL and USE_DJANGO_TENANTS=True. Tag: tenants_schema.
 """
+
 import unittest
 
 from django.db import connection
-from django.db.utils import DatabaseError, IntegrityError, OperationalError, ProgrammingError
+from django.db.utils import (
+    DatabaseError,
+    IntegrityError,
+    OperationalError,
+    ProgrammingError,
+)
 from django.test import TestCase, override_settings, tag
 
 
 @tag("tenants_schema")
-@unittest.skipIf(connection.vendor != "postgresql", "Schema-mode isolation tests require PostgreSQL")
+@unittest.skipIf(
+    connection.vendor != "postgresql", "Schema-mode isolation tests require PostgreSQL"
+)
 @override_settings(USE_DJANGO_TENANTS=True)
 class TenantIsolationSchemaModeTests(TestCase):
     """With schema-per-tenant, queries in tenant A must not see tenant B data."""
@@ -24,8 +32,12 @@ class TenantIsolationSchemaModeTests(TestCase):
         self.Domain = Domain
         self.client_a = Client.objects.create(schema_name="tenant_a", name="Tenant A")
         self.client_b = Client.objects.create(schema_name="tenant_b", name="Tenant B")
-        Domain.objects.create(domain="tenant-a.test.com", tenant=self.client_a, is_primary=True)
-        Domain.objects.create(domain="tenant-b.test.com", tenant=self.client_b, is_primary=True)
+        Domain.objects.create(
+            domain="tenant-a.test.com", tenant=self.client_a, is_primary=True
+        )
+        Domain.objects.create(
+            domain="tenant-b.test.com", tenant=self.client_b, is_primary=True
+        )
 
     def tearDown(self):
         _teardown_delete_errors = (
@@ -45,10 +57,15 @@ class TenantIsolationSchemaModeTests(TestCase):
     def test_tenant_context_isolates_data(self):
         from django_tenants.utils import tenant_context
         from apps.schools.models import School
+
         with tenant_context(self.client_a):
-            school_a = School.objects.create(name="School A", slug="school-a", subdomain="school-a", is_active=True)
+            school_a = School.objects.create(
+                name="School A", slug="school-a", subdomain="school-a", is_active=True
+            )
         with tenant_context(self.client_b):
-            school_b = School.objects.create(name="School B", slug="school-b", subdomain="school-b", is_active=True)
+            school_b = School.objects.create(
+                name="School B", slug="school-b", subdomain="school-b", is_active=True
+            )
         with tenant_context(self.client_a):
             current_ids = list(School.objects.values_list("id", flat=True))
             self.assertIn(school_a.id, current_ids)

@@ -37,7 +37,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         root = Path(__file__).resolve().parent.parent.parent.parent
-        out = (Path(options["output"]) if options["output"] else root / "docs" / "architecture" / "models.png").resolve()
+        out = (
+            Path(options["output"])
+            if options["output"]
+            else root / "docs" / "architecture" / "models.png"
+        ).resolve()
         out.parent.mkdir(parents=True, exist_ok=True)
 
         try:
@@ -51,21 +55,32 @@ class Command(BaseCommand):
             if result.returncode == 0:
                 self.stdout.write(self.style.SUCCESS(f"Generated {out}"))
                 return
-            if "graph_models" in (result.stderr or result.stdout or "").lower() or "unknown command" in (result.stderr or "").lower():
+            if (
+                "graph_models" in (result.stderr or result.stdout or "").lower()
+                or "unknown command" in (result.stderr or "").lower()
+            ):
                 self.stdout.write(
-                    self.style.WARNING("Install django-extensions and graphviz: pip install django-extensions pygraphviz")
+                    self.style.WARNING(
+                        "Install django-extensions and graphviz: pip install django-extensions pygraphviz"
+                    )
                 )
                 self.stdout.write("Alternatively run: python scripts/gen_models_png.py")
                 return
             self.stderr.write(result.stderr or result.stdout or "graph_models failed")
         except FileNotFoundError:
-            self.stdout.write(self.style.WARNING("manage.py not found; run from repo root"))
+            self.stdout.write(
+                self.style.WARNING("manage.py not found; run from repo root")
+            )
         except subprocess.TimeoutExpired:
             self.stderr.write(self.style.ERROR("graph_models timed out"))
         except _GENERATE_MODELS_DIAGRAM_ERRORS as e:
             log_exception_with_context(
                 "generate_models_diagram: graph_models subprocess failed",
                 school_id=None,
-                extra={"command": "generate_models_diagram", "output": str(out), "error": str(e)},
+                extra={
+                    "command": "generate_models_diagram",
+                    "output": str(out),
+                    "error": str(e),
+                },
             )
             self.stderr.write(self.style.ERROR(f"Failed: {e}"))

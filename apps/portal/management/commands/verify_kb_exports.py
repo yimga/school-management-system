@@ -64,9 +64,13 @@ class Command(BaseCommand):
             if "odt" in formats:
                 odt_file = getattr(article, "odt_file", None)
                 if not odt_file or not odt_file.name:
-                    missing.append(f"{article.slug}: missing ODT attachment on KBArticle")
+                    missing.append(
+                        f"{article.slug}: missing ODT attachment on KBArticle"
+                    )
                 elif not odt_file.storage.exists(odt_file.name):
-                    missing.append(f"{article.slug}: ODT file missing in storage ({odt_file.name})")
+                    missing.append(
+                        f"{article.slug}: ODT file missing in storage ({odt_file.name})"
+                    )
 
             if "docx" in formats:
                 docx_path = export_dir / f"{article.slug}.docx"
@@ -74,11 +78,15 @@ class Command(BaseCommand):
                     missing.append(f"{article.slug}: missing DOCX export ({docx_path})")
 
         if missing:
-            self.stdout.write(self.style.WARNING("KB export verification found missing artifacts:"))
+            self.stdout.write(
+                self.style.WARNING("KB export verification found missing artifacts:")
+            )
             for line in missing:
                 self.stdout.write(f"- {line}")
             if options.get("strict"):
-                raise CommandError(f"KB export verification failed with {len(missing)} issue(s).")
+                raise CommandError(
+                    f"KB export verification failed with {len(missing)} issue(s)."
+                )
             return
 
         self.stdout.write(
@@ -98,5 +106,7 @@ class Command(BaseCommand):
     def _resolve_export_dir(self, raw_export_dir: str | None) -> Path:
         if raw_export_dir:
             return Path(raw_export_dir).expanduser().resolve()
-        media_root = Path(getattr(settings, "MEDIA_ROOT", "") or settings.BASE_DIR / "media")
+        media_root = Path(
+            getattr(settings, "MEDIA_ROOT", "") or settings.BASE_DIR / "media"
+        )
         return media_root / "kb" / "generated"

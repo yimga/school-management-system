@@ -4,31 +4,60 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('siteconfig', '0111_add_impersonation_log'),
+        ("siteconfig", "0111_add_impersonation_log"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RegionalPitch',
+            name="RegionalPitch",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('country_code', models.CharField(db_index=True, help_text='ISO 3166-1 alpha-2 (e.g. CM, CA).', max_length=2, unique=True)),
-                ('headline', models.CharField(max_length=200)),
-                ('subheadline', models.CharField(blank=True, max_length=400)),
-                ('features', models.JSONField(blank=True, default=list, help_text='List of feature strings or {title, description} dicts.')),
-                ('visual_variant', models.CharField(blank=True, help_text='Optional: hero image or layout variant key.', max_length=40)),
-                ('seo_title', models.CharField(blank=True, max_length=120)),
-                ('seo_description', models.CharField(blank=True, max_length=320)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "country_code",
+                    models.CharField(
+                        db_index=True,
+                        help_text="ISO 3166-1 alpha-2 (e.g. CM, CA).",
+                        max_length=2,
+                        unique=True,
+                    ),
+                ),
+                ("headline", models.CharField(max_length=200)),
+                ("subheadline", models.CharField(blank=True, max_length=400)),
+                (
+                    "features",
+                    models.JSONField(
+                        blank=True,
+                        default=list,
+                        help_text="List of feature strings or {title, description} dicts.",
+                    ),
+                ),
+                (
+                    "visual_variant",
+                    models.CharField(
+                        blank=True,
+                        help_text="Optional: hero image or layout variant key.",
+                        max_length=40,
+                    ),
+                ),
+                ("seo_title", models.CharField(blank=True, max_length=120)),
+                ("seo_description", models.CharField(blank=True, max_length=320)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Regional pitch',
-                'verbose_name_plural': 'Regional pitches',
-                'ordering': ['country_code'],
+                "verbose_name": "Regional pitch",
+                "verbose_name_plural": "Regional pitches",
+                "ordering": ["country_code"],
             },
         ),
     ]

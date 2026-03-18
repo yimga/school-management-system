@@ -53,6 +53,11 @@ img[width][height] {
   object-fit: contain;
 }
 
+/* §8.0.11 Content max-widths — use class instead of inline px (token-aligned) */
+.content-max-960 { max-width: min(960px, 100%); }
+.content-max-640 { max-width: min(640px, 100%); }
+.content-max-520 { max-width: min(520px, 100%); }
+
 /* Grid/Flex children: prevent overflow */
 .row,
 .d-flex,

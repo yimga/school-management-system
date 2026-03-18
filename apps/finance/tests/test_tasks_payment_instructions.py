@@ -34,7 +34,9 @@ class PaymentInstructionsResolutionTests(TestCase):
             is_active=True,
         )
         department = Department.objects.create(name="General", code="GEN")
-        specialty = Specialty.objects.create(department=department, name="General", code="GEN")
+        specialty = Specialty.objects.create(
+            department=department, name="General", code="GEN"
+        )
         classroom = Classroom.objects.create(
             academic_year=self.year,
             department=department,
@@ -106,7 +108,10 @@ class PaymentInstructionsResolutionTests(TestCase):
         self.assertEqual(instructions["orange_money_number"], "237690000000")
 
     def test_returns_blank_instruction_defaults_when_region_lookup_fails(self):
-        with patch("apps.finance.tasks.RegionConfig.objects.filter", side_effect=RuntimeError("registry unavailable")):
+        with patch(
+            "apps.finance.tasks.RegionConfig.objects.filter",
+            side_effect=RuntimeError("registry unavailable"),
+        ):
             instructions = _get_payment_instructions(self.invoice)
 
         self.assertEqual(
@@ -120,7 +125,9 @@ class PaymentInstructionsResolutionTests(TestCase):
             },
         )
 
-    def test_uses_owner_scoped_finance_instruction_defaults_when_registry_lookup_fails(self):
+    def test_uses_owner_scoped_finance_instruction_defaults_when_registry_lookup_fails(
+        self,
+    ):
         settings_stub = type(
             "SettingsStub",
             (),
@@ -134,8 +141,14 @@ class PaymentInstructionsResolutionTests(TestCase):
         )()
 
         with patch("apps.finance.tasks._resolve_school", return_value=object()):
-            with patch("apps.finance.tasks.get_cached_site_settings", return_value=settings_stub):
-                with patch("apps.finance.tasks.RegionConfig.objects.filter", side_effect=RuntimeError("registry unavailable")):
+            with patch(
+                "apps.finance.tasks.get_cached_site_settings",
+                return_value=settings_stub,
+            ):
+                with patch(
+                    "apps.finance.tasks.RegionConfig.objects.filter",
+                    side_effect=RuntimeError("registry unavailable"),
+                ):
                     instructions = _get_payment_instructions(self.invoice)
 
         self.assertEqual(instructions["bank_account"], "BANK-123")

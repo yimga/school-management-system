@@ -2,6 +2,7 @@
 Emit domain events into the outbox. Call from service layer only (no model signals chaos).
 Consumer processes outbox (see tasks.py) for webhooks, notifications, automation.
 """
+
 from django.db import transaction
 
 

@@ -38,7 +38,11 @@ def _ensure_model_table(apps, schema_editor, model_name):
 
 def _current_school_id(apps, schema_editor):
     Client = apps.get_model("customers", "Client")
-    client = Client.objects.filter(schema_name=_schema_name(schema_editor.connection)).only("school_id").first()
+    client = (
+        Client.objects.filter(schema_name=_schema_name(schema_editor.connection))
+        .only("school_id")
+        .first()
+    )
     return getattr(client, "school_id", None)
 
 
@@ -50,7 +54,9 @@ def _copy_rows(schema_editor, model, where_sql="", params=None):
     if not _table_exists(schema_editor, current_schema, model._meta.db_table):
         return
     columns = _column_names(model)
-    quoted_columns = ", ".join(schema_editor.connection.ops.quote_name(column) for column in columns)
+    quoted_columns = ", ".join(
+        schema_editor.connection.ops.quote_name(column) for column in columns
+    )
     sql = (
         f"INSERT INTO {_qualified(schema_editor, current_schema, model._meta.db_table)} ({quoted_columns}) "
         f"SELECT {quoted_columns} FROM {_qualified(schema_editor, 'public', model._meta.db_table)}"
@@ -105,7 +111,9 @@ def materialize_schoolops_tables(apps, schema_editor):
         "LibraryLoan",
     ]
     for model_name in direct_school_models:
-        _copy_rows(schema_editor, models_by_name[model_name], "school_id = %s", [school_id])
+        _copy_rows(
+            schema_editor, models_by_name[model_name], "school_id = %s", [school_id]
+        )
 
     public_route = _qualified(schema_editor, "public", "schools_route")
     _copy_rows(
@@ -123,7 +131,9 @@ def materialize_schoolops_tables(apps, schema_editor):
         [school_id],
     )
 
-    public_biometric_device = _qualified(schema_editor, "public", "schools_biometricdevice")
+    public_biometric_device = _qualified(
+        schema_editor, "public", "schools_biometricdevice"
+    )
     _copy_rows(
         schema_editor,
         models_by_name["BiometricAttendanceLog"],
@@ -133,7 +143,6 @@ def materialize_schoolops_tables(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("schoolops", "0001_initial"),
     ]

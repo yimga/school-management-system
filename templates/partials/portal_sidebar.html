@@ -8,6 +8,15 @@
     <i class="bi bi-chevron-right" aria-hidden="true"></i>
   </button>
 </div>
+{% if sidebar_record_context %}
+<div class="sidebar-record-context rmc-glass-surface mb-3 p-2 small" role="region" aria-label="{% trans 'Record quick links' %}">
+  <div class="text-uppercase text-muted fw-semibold" style="font-size:0.65rem;letter-spacing:0.04em;">{{ sidebar_record_context.title }}</div>
+  <div class="fw-semibold mb-2 text-truncate" title="{{ sidebar_record_context.subtitle }}">{{ sidebar_record_context.subtitle }}</div>
+  {% for link in sidebar_record_context.links %}
+  <a class="d-block py-1 text-decoration-none small" href="{{ link.url }}"><i class="bi bi-chevron-right me-1 small"></i>{{ link.label }}</a>
+  {% endfor %}
+</div>
+{% endif %}
 <!-- User Header -->
 <div class="sidebar-header" id="preview-sidebar-header" data-preview-label="{% trans 'Sidebar user block' %}" data-preview-changes="{% trans 'User name, role from account' %}">
   <div class="sidebar-header-content">

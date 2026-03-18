@@ -2,6 +2,7 @@
 Marketing URL resolution and smoke tests aligned with validate_marketing_urls and MARKETING_NON_NEGOTIABLES.
 Ensures all key marketing routes resolve and return 200 on canonical host; landing context has required visual keys.
 """
+
 import os
 from unittest.mock import patch
 
@@ -128,7 +129,9 @@ class MarketingLandingContextTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         for key in LANDING_VISUAL_CONTEXT_KEYS:
             with self.subTest(context_key=key):
-                self.assertIn(key, resp.context, f"Landing context must include '{key}'")
+                self.assertIn(
+                    key, resp.context, f"Landing context must include '{key}'"
+                )
         self.assertTrue(
             resp.context.get("migration_studio_image_url"),
             "migration_studio_image_url must be non-empty (fallback in view)",
@@ -173,7 +176,9 @@ class MarketingPageExtrasTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("page_extras", resp.context)
         extras = resp.context["page_extras"]
-        self.assertIn("data_viz_path", extras, "products-analytics must have data_viz_path")
+        self.assertIn(
+            "data_viz_path", extras, "products-analytics must have data_viz_path"
+        )
         self.assertTrue(extras.get("data_viz_path"), "data_viz_path must be set")
 
     def test_onboard_wizard_returns_200(self):

@@ -6,19 +6,19 @@ Moved from siteconfig as part of platform decomposition; siteconfig.currency re-
 
 # Canonical map: ISO 4217 currency code -> display symbol
 CURRENCY_SYMBOLS = {
-    "XAF": "FCFA",   # Cameroon / CEMAC
-    "XOF": "CFA",    # West Africa / UEMOA
+    "XAF": "FCFA",  # Cameroon / CEMAC
+    "XOF": "CFA",  # West Africa / UEMOA
     "USD": "$",
     "EUR": "€",
     "GBP": "£",
-    "KES": "Ksh",    # Kenya
-    "NGN": "₦",      # Nigeria
-    "ZAR": "R",      # South Africa
-    "GHS": "GH₵",    # Ghana
-    "TZS": "TSh",    # Tanzania
-    "UGX": "USh",    # Uganda
-    "RWF": "FRw",    # Rwanda
-    "EGP": "E£",     # Egypt
+    "KES": "Ksh",  # Kenya
+    "NGN": "₦",  # Nigeria
+    "ZAR": "R",  # South Africa
+    "GHS": "GH₵",  # Ghana
+    "TZS": "TSh",  # Tanzania
+    "UGX": "USh",  # Uganda
+    "RWF": "FRw",  # Rwanda
+    "EGP": "E£",  # Egypt
 }
 
 

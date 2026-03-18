@@ -5,15 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0032_marketing_funnel_event_utm'),
+        ("schools", "0032_marketing_funnel_event_utm"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='school',
-            name='timezone',
-            field=models.CharField(default=apps.schools.models._default_timezone, max_length=50),
+            model_name="school",
+            name="timezone",
+            field=models.CharField(
+                default=apps.schools.models._default_timezone, max_length=50
+            ),
         ),
     ]

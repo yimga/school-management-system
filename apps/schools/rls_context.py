@@ -5,6 +5,7 @@ Use in management commands or Celery tasks when tenant context is not set by mid
 Single place for app.current_school_id SET/RESET so middleware and other callers
 do not duplicate raw SQL (see RUNMYCAMPUS §2.4 raw SQL wrap).
 """
+
 import logging
 from contextlib import contextmanager
 

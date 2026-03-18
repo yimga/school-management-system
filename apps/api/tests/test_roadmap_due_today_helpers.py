@@ -12,8 +12,12 @@ class RoadmapDueTodayHelperTests(SimpleTestCase):
 
     def test_canary_status_defaults_false_when_school_flag_reader_fails(self):
         request = self.factory.get("/api/roadmap/canary-status/")
-        request.user = SimpleNamespace(is_authenticated=True, is_staff=True, is_superuser=False)
-        request.school = SimpleNamespace(has_feature=lambda _code: (_ for _ in ()).throw(TypeError("bad flag")))
+        request.user = SimpleNamespace(
+            is_authenticated=True, is_staff=True, is_superuser=False
+        )
+        request.school = SimpleNamespace(
+            has_feature=lambda _code: (_ for _ in ()).throw(TypeError("bad flag"))
+        )
 
         response = CanaryStatusAPI.as_view()(request)
         payload = json.loads(response.content)

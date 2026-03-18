@@ -3,6 +3,7 @@ Section 11.1 — Legacy data cleaner for migration cloud.
 Detects and optionally cleans legacy/invalid data: duplicate admission numbers,
 empty required fields, malformed dates, orphaned references.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -48,7 +49,11 @@ def detect_legacy_issues(school) -> dict[str, Any]:
         ).count()
         if missing:
             issues["missing_required"].append(
-                {"entity": "StudentProfile", "field": "admission_number", "count": missing}
+                {
+                    "entity": "StudentProfile",
+                    "field": "admission_number",
+                    "count": missing,
+                }
             )
     except (ImportError, AttributeError, TypeError):
         pass
@@ -57,16 +62,24 @@ def detect_legacy_issues(school) -> dict[str, Any]:
     try:
         from apps.evals.models import Evaluation
 
-        orphan_evals = Evaluation.objects.filter(student__school=school, student__is_active=False).count()
+        orphan_evals = Evaluation.objects.filter(
+            student__school=school, student__is_active=False
+        ).count()
         if orphan_evals:
             issues["orphans"].append(
-                {"entity": "Evaluation", "description": "evaluation for inactive student", "count": orphan_evals}
+                {
+                    "entity": "Evaluation",
+                    "description": "evaluation for inactive student",
+                    "count": orphan_evals,
+                }
             )
     except (ImportError, AttributeError, TypeError):
         pass
 
     issues["summary"] = {
-        "duplicate_count": sum(x["count"] for x in issues["duplicate_admission_numbers"]),
+        "duplicate_count": sum(
+            x["count"] for x in issues["duplicate_admission_numbers"]
+        ),
         "missing_required_count": sum(x["count"] for x in issues["missing_required"]),
         "orphan_count": sum(x["count"] for x in issues["orphans"]),
     }
@@ -86,7 +99,9 @@ def clean_legacy_data(school, dry_run: bool = True) -> dict[str, Any]:
 
     issues = detect_legacy_issues(school)
     if not any(issues["summary"].values()):
-        result["actions"].append({"action": "none", "message": "No legacy issues detected."})
+        result["actions"].append(
+            {"action": "none", "message": "No legacy issues detected."}
+        )
         return result
 
     # Safe cleanup: normalize empty admission_number to null for consistency (optional)
@@ -100,9 +115,17 @@ def clean_legacy_data(school, dry_run: bool = True) -> dict[str, Any]:
         count = empty_admission.count()
         if count and not dry_run:
             empty_admission.update(admission_number=None)
-            result["actions"].append({"action": "normalize_empty_admission", "count": count})
+            result["actions"].append(
+                {"action": "normalize_empty_admission", "count": count}
+            )
         elif count:
-            result["actions"].append({"action": "normalize_empty_admission", "would_update": count, "dry_run": True})
+            result["actions"].append(
+                {
+                    "action": "normalize_empty_admission",
+                    "would_update": count,
+                    "dry_run": True,
+                }
+            )
     except (ImportError, AttributeError, TypeError, ValueError) as e:
         result["errors"].append(str(e))
 

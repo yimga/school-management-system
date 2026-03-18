@@ -3,6 +3,7 @@ Tenant-scoped health metrics: PG catalog queries for table sizes and schema stat
 §2.4 raw_sql_replacement_targets: all health raw SQL lives here; health_utils delegates.
 Staff/control-plane only; tenant scoping via schema_name.
 """
+
 import logging
 
 from django.db import connection
@@ -11,7 +12,9 @@ from django.db.utils import DatabaseError, OperationalError, ProgrammingError
 logger = logging.getLogger(__name__)
 
 
-def get_top_tables_by_size(limit: int = 10, schema_name: str | None = None) -> list[dict]:
+def get_top_tables_by_size(
+    limit: int = 10, schema_name: str | None = None
+) -> list[dict]:
     """
     Return largest tables by total size (data + indexes). Single-schema: schema_name ignored or 'public'.
     Returns list of dicts: schema_name, table_name, total_pretty, raw_size, row_count (if available).
@@ -72,7 +75,9 @@ def count_table_rows(schema: str, table: str) -> int:
             row = cursor.fetchone()
             return int(row[0]) if row and row[0] is not None else 0
     except (OperationalError, ProgrammingError, DatabaseError) as e:
-        logger.debug("health_repository.count_table_rows failed for %s.%s: %s", schema, table, e)
+        logger.debug(
+            "health_repository.count_table_rows failed for %s.%s: %s", schema, table, e
+        )
         return -1
 
 

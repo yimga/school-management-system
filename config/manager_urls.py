@@ -2,6 +2,7 @@
 Manager host URL configuration (manager.runmycampus.com).
 Dedicated for super-admin and operations access.
 """
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.db.models import Q
@@ -16,7 +17,10 @@ from apps.observability import views as obs_views
 from apps.observability.models import PlatformIncident
 from apps.schools.models import School
 from apps.schools.marketing_views import marketing_page
-from apps.schools.control_plane import require_control_plane_access, user_has_control_plane_access
+from apps.schools.control_plane import (
+    require_control_plane_access,
+    user_has_control_plane_access,
+)
 from apps.schools.tenant_url import build_public_absolute_url
 from config.admin import platform_admin_site
 
@@ -65,7 +69,9 @@ def manager_notifications(request):
 
 def manager_legacy_surface_redirect(request, surface: str, remaining: str = ""):
     del remaining
-    destination = "super:billing_dashboard" if surface == "finance" else "super:dashboard"
+    destination = (
+        "super:billing_dashboard" if surface == "finance" else "super:dashboard"
+    )
     return redirect(destination)
 
 
@@ -97,11 +103,15 @@ def manager_search_api(request):
 
     static_catalog = _manager_search_static_catalog()
     for item in static_catalog:
-        haystack = f"{item['title']} {item['description']} {' '.join(item['meta'])}".lower()
+        haystack = (
+            f"{item['title']} {item['description']} {' '.join(item['meta'])}".lower()
+        )
         if query_lower in haystack:
             results.append(item)
 
-    school_matches = School.objects.filter(Q(name__icontains=query) | Q(slug__icontains=query)).order_by("name")[:6]
+    school_matches = School.objects.filter(
+        Q(name__icontains=query) | Q(slug__icontains=query)
+    ).order_by("name")[:6]
     for school in school_matches:
         results.append(
             {
@@ -113,20 +123,19 @@ def manager_search_api(request):
             }
         )
 
-    incident_matches = (
-        PlatformIncident.objects.filter(
-            Q(title__icontains=query)
-            | Q(summary__icontains=query)
-            | Q(source_system__icontains=query)
-            | Q(incident_type__icontains=query)
-        )
-        .order_by("-created_at")[:5]
-    )
+    incident_matches = PlatformIncident.objects.filter(
+        Q(title__icontains=query)
+        | Q(summary__icontains=query)
+        | Q(source_system__icontains=query)
+        | Q(incident_type__icontains=query)
+    ).order_by("-created_at")[:5]
     for incident in incident_matches:
         results.append(
             {
                 "title": incident.title,
-                "description": incident.summary or incident.source_system or "Platform incident",
+                "description": incident.summary
+                or incident.source_system
+                or "Platform incident",
                 "url": reverse("platform_incidents_console"),
                 "type": "alert",
                 "meta": [incident.status, incident.severity],
@@ -258,59 +267,181 @@ urlpatterns = [
     path("feedback/", manager_feedback, name="manager_feedback"),
     path("notifications/", manager_notifications, name="manager_notifications"),
     path("admin/", platform_admin_site.urls),
-    path("authentication/", include(("apps.accounts.urls", "accounts"), namespace="accounts")),
+    path(
+        "authentication/",
+        include(("apps.accounts.urls", "accounts"), namespace="accounts"),
+    ),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
     path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
     path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
     path("siteconfig/report-library/", legacy_report_library_redirect),
     path("siteconfig/reports/", legacy_report_library_redirect),
-    path("siteconfig/", include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig")),
-    path("studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")),
-    path("api-center/", include(("apps.apicenter.urls", "apicenter"), namespace="apicenter")),
-    path("ops/incidents/", obs_views.platform_incidents_console, name="platform_incidents_console"),
+    path(
+        "siteconfig/",
+        include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig"),
+    ),
+    path(
+        "studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")
+    ),
+    path(
+        "api-center/",
+        include(("apps.apicenter.urls", "apicenter"), namespace="apicenter"),
+    ),
+    path(
+        "ops/incidents/",
+        obs_views.platform_incidents_console,
+        name="platform_incidents_console",
+    ),
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_health, name="status"),
     path("api/health/", obs_views.api_health, name="api_health"),
-    path("api/control-plane-preferences/", ControlPlanePreferencesAPI.as_view(), name="api_control_plane_preferences"),
+    path(
+        "api/control-plane-preferences/",
+        ControlPlanePreferencesAPI.as_view(),
+        name="api_control_plane_preferences",
+    ),
     path("api/search/", manager_search_api, name="manager_search_api"),
     path(
         "api/billing/processors/<str:processor_code>/webhook/",
         billing_api_views.platform_billing_processor_webhook,
         name="platform_billing_processor_webhook",
     ),
-    path("api/observability/incidents/", obs_views.api_platform_incidents, name="api_platform_incidents"),
+    path(
+        "api/observability/incidents/",
+        obs_views.api_platform_incidents,
+        name="api_platform_incidents",
+    ),
     path(
         "api/observability/incidents/<uuid:incident_id>/status/",
         obs_views.api_platform_incident_status,
         name="api_platform_incident_status",
     ),
-    path("api/observability/slo-dashboard/", obs_views.api_operational_slo_dashboard, name="api_operational_slo_dashboard"),
-    path("api/weather/context/", obs_views.api_weather_context, name="api_weather_context"),
-    path("portal/", manager_legacy_surface_redirect, {"surface": "portal"}, name="manager_legacy_portal"),
-    path("portal/<path:remaining>", manager_legacy_surface_redirect, {"surface": "portal"}),
-    path("academics/", manager_legacy_surface_redirect, {"surface": "academics"}, name="manager_legacy_academics"),
-    path("academics/<path:remaining>", manager_legacy_surface_redirect, {"surface": "academics"}),
-    path("evals/", manager_legacy_surface_redirect, {"surface": "evals"}, name="manager_legacy_evals"),
-    path("evals/<path:remaining>", manager_legacy_surface_redirect, {"surface": "evals"}),
-    path("reports/", manager_legacy_surface_redirect, {"surface": "reports"}, name="manager_legacy_reports"),
-    path("reports/<path:remaining>", manager_legacy_surface_redirect, {"surface": "reports"}),
-    path("finance/", manager_legacy_surface_redirect, {"surface": "finance"}, name="manager_legacy_finance"),
-    path("finance/<path:remaining>", manager_legacy_surface_redirect, {"surface": "finance"}),
-    path("communication/", manager_legacy_surface_redirect, {"surface": "communication"}, name="manager_legacy_communication"),
-    path("communication/<path:remaining>", manager_legacy_surface_redirect, {"surface": "communication"}),
-    path("kb/", manager_legacy_surface_redirect, {"surface": "kb"}, name="manager_legacy_kb"),
+    path(
+        "api/observability/slo-dashboard/",
+        obs_views.api_operational_slo_dashboard,
+        name="api_operational_slo_dashboard",
+    ),
+    path(
+        "api/weather/context/",
+        obs_views.api_weather_context,
+        name="api_weather_context",
+    ),
+    path(
+        "portal/",
+        manager_legacy_surface_redirect,
+        {"surface": "portal"},
+        name="manager_legacy_portal",
+    ),
+    path(
+        "portal/<path:remaining>",
+        manager_legacy_surface_redirect,
+        {"surface": "portal"},
+    ),
+    path(
+        "academics/",
+        manager_legacy_surface_redirect,
+        {"surface": "academics"},
+        name="manager_legacy_academics",
+    ),
+    path(
+        "academics/<path:remaining>",
+        manager_legacy_surface_redirect,
+        {"surface": "academics"},
+    ),
+    path(
+        "evals/",
+        manager_legacy_surface_redirect,
+        {"surface": "evals"},
+        name="manager_legacy_evals",
+    ),
+    path(
+        "evals/<path:remaining>", manager_legacy_surface_redirect, {"surface": "evals"}
+    ),
+    path(
+        "reports/",
+        manager_legacy_surface_redirect,
+        {"surface": "reports"},
+        name="manager_legacy_reports",
+    ),
+    path(
+        "reports/<path:remaining>",
+        manager_legacy_surface_redirect,
+        {"surface": "reports"},
+    ),
+    path(
+        "finance/",
+        manager_legacy_surface_redirect,
+        {"surface": "finance"},
+        name="manager_legacy_finance",
+    ),
+    path(
+        "finance/<path:remaining>",
+        manager_legacy_surface_redirect,
+        {"surface": "finance"},
+    ),
+    path(
+        "communication/",
+        manager_legacy_surface_redirect,
+        {"surface": "communication"},
+        name="manager_legacy_communication",
+    ),
+    path(
+        "communication/<path:remaining>",
+        manager_legacy_surface_redirect,
+        {"surface": "communication"},
+    ),
+    path(
+        "kb/",
+        manager_legacy_surface_redirect,
+        {"surface": "kb"},
+        name="manager_legacy_kb",
+    ),
     path("kb/<path:remaining>", manager_legacy_surface_redirect, {"surface": "kb"}),
-    path("analytics/", manager_legacy_surface_redirect, {"surface": "analytics"}, name="manager_legacy_analytics"),
-    path("analytics/<path:remaining>", manager_legacy_surface_redirect, {"surface": "analytics"}),
-    path("compliance/", manager_legacy_surface_redirect, {"surface": "compliance"}, name="manager_legacy_compliance"),
-    path("compliance/<path:remaining>", manager_legacy_surface_redirect, {"surface": "compliance"}),
-    path("payroll/", manager_legacy_surface_redirect, {"surface": "payroll"}, name="manager_legacy_payroll"),
-    path("payroll/<path:remaining>", manager_legacy_surface_redirect, {"surface": "payroll"}),
-    path("privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"),
+    path(
+        "analytics/",
+        manager_legacy_surface_redirect,
+        {"surface": "analytics"},
+        name="manager_legacy_analytics",
+    ),
+    path(
+        "analytics/<path:remaining>",
+        manager_legacy_surface_redirect,
+        {"surface": "analytics"},
+    ),
+    path(
+        "compliance/",
+        manager_legacy_surface_redirect,
+        {"surface": "compliance"},
+        name="manager_legacy_compliance",
+    ),
+    path(
+        "compliance/<path:remaining>",
+        manager_legacy_surface_redirect,
+        {"surface": "compliance"},
+    ),
+    path(
+        "payroll/",
+        manager_legacy_surface_redirect,
+        {"surface": "payroll"},
+        name="manager_legacy_payroll",
+    ),
+    path(
+        "payroll/<path:remaining>",
+        manager_legacy_surface_redirect,
+        {"surface": "payroll"},
+    ),
+    path(
+        "privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"
+    ),
     path("terms/", marketing_page, {"page_slug": "terms"}, name="marketing_terms"),
-    path("cookie-policy/", marketing_page, {"page_slug": "cookie-policy"}, name="marketing_cookie_policy"),
+    path(
+        "cookie-policy/",
+        marketing_page,
+        {"page_slug": "cookie-policy"},
+        name="marketing_cookie_policy",
+    ),
 ]
 
 if settings.DEBUG:

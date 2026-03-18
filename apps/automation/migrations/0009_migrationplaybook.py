@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("automation", "0008_migrationprofile_profile_category_and_sources"),
     ]
@@ -13,13 +12,23 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="MigrationPlaybook",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
                 ("slug", models.SlugField(db_index=True, max_length=64, unique=True)),
                 ("name", models.CharField(max_length=120)),
                 ("description", models.TextField(blank=True)),
                 (
                     "profile_slugs",
-                    models.JSONField(help_text="Ordered list of MigrationProfile slugs to run in sequence."),
+                    models.JSONField(
+                        help_text="Ordered list of MigrationProfile slugs to run in sequence."
+                    ),
                 ),
                 (
                     "validation_repair_defaults",

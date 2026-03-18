@@ -2,6 +2,7 @@
 Celery tasks for siteconfig (Phase E: revenue stats; Phase Welcome: welcome email).
 §2.4: Typed exception tuples and log_exception_with_context for send_welcome_email and check_regional_ollama_health.
 """
+
 from smtplib import SMTPException
 from urllib.error import URLError
 
@@ -38,6 +39,7 @@ def calculate_monthly_revenue_stats(snapshot_date=None):
     """
     from .billing_services import calculate_monthly_stats
     from datetime import date
+
     if snapshot_date:
         if isinstance(snapshot_date, str):
             snapshot_date = date.fromisoformat(snapshot_date)
@@ -54,6 +56,7 @@ def send_welcome_email(school_id: int, contact_email: str = ""):
     from django.core.mail import send_mail
     from django.conf import settings
     from apps.schools.models import School
+
     school = School.objects.filter(pk=school_id).first()
     if not school:
         return {"ok": False, "reason": "school_not_found"}
@@ -66,7 +69,7 @@ def send_welcome_email(school_id: int, contact_email: str = ""):
         send_mail(
             subject,
             body,
-            getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@example.com'),
+            getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
             [email],
             fail_silently=True,
             html_message=body.replace("\n", "<br>\n"),
@@ -93,6 +96,7 @@ def national_syllabus_sync(country_code: str, payload=None):
     payload can include ocr_text or ministry_api_response. Extend with actual integration.
     """
     from .models import GlobalSyllabus
+
     count = GlobalSyllabus.objects.filter(country_code=country_code).count()
     return {"country_code": country_code, "syllabus_nodes": count, "status": "stub"}
 
@@ -104,6 +108,7 @@ def emergency_broadcast_fanout(self, campaign_id, recipient_ids=None):
     slide_confirm_required is on BroadcastCampaign. Chunk recipient_ids (or load from campaign) in batches of BROADCAST_BATCH_SIZE.
     """
     from .models import BroadcastCampaign
+
     try:
         _campaign = BroadcastCampaign.objects.get(pk=campaign_id)
     except BroadcastCampaign.DoesNotExist:
@@ -114,7 +119,11 @@ def emergency_broadcast_fanout(self, campaign_id, recipient_ids=None):
         _batch = ids[i : i + BROADCAST_BATCH_SIZE]
         # Stub: actual delivery via WebSocket/Redis Pub/Sub; slide-to-confirm UI on client
         pass
-    return {"ok": True, "campaign_id": campaign_id, "batches": (total + BROADCAST_BATCH_SIZE - 1) // BROADCAST_BATCH_SIZE}
+    return {
+        "ok": True,
+        "campaign_id": campaign_id,
+        "batches": (total + BROADCAST_BATCH_SIZE - 1) // BROADCAST_BATCH_SIZE,
+    }
 
 
 # Sovereign AI: health check and global upgrade
@@ -135,7 +144,9 @@ def check_regional_ollama_health(cluster: str = None):
 
     now = timezone.now().isoformat()
     if cluster:
-        configs = RegionalAIConfig.objects.filter(regional_cluster=cluster, is_active=True)
+        configs = RegionalAIConfig.objects.filter(
+            regional_cluster=cluster, is_active=True
+        )
     else:
         configs = RegionalAIConfig.objects.filter(is_active=True)
 
@@ -144,23 +155,48 @@ def check_regional_ollama_health(cluster: str = None):
         key = f"{AI_HEALTH_CACHE_PREFIX}{config.regional_cluster}"
         base = (config.ollama_base_url or "").rstrip("/")
         if not base:
-            cache.set(key, {"status": "unavailable", "last_check_at": now, "error": "no_url"}, timeout=AI_HEALTH_CACHE_TTL)
+            cache.set(
+                key,
+                {"status": "unavailable", "last_check_at": now, "error": "no_url"},
+                timeout=AI_HEALTH_CACHE_TTL,
+            )
             continue
         url = f"{base}/api/tags"
         try:
             import urllib.request
+
             req = urllib.request.Request(url, method="GET")
             with urllib.request.urlopen(req, timeout=5) as resp:
                 if resp.status == 200:
-                    cache.set(key, {"status": "ok", "last_check_at": now}, timeout=AI_HEALTH_CACHE_TTL)
+                    cache.set(
+                        key,
+                        {"status": "ok", "last_check_at": now},
+                        timeout=AI_HEALTH_CACHE_TTL,
+                    )
                 else:
-                    cache.set(key, {"status": "unavailable", "last_check_at": now, "code": resp.status}, timeout=AI_HEALTH_CACHE_TTL)
+                    cache.set(
+                        key,
+                        {
+                            "status": "unavailable",
+                            "last_check_at": now,
+                            "code": resp.status,
+                        },
+                        timeout=AI_HEALTH_CACHE_TTL,
+                    )
         except _SITECONFIG_TASK_OLLAMA_ERRORS as e:
             log_exception_with_context(
                 "siteconfig.check_regional_ollama_health: ollama check failed",
-                extra={"cluster": config.regional_cluster, "url": base, "error": str(e)},
+                extra={
+                    "cluster": config.regional_cluster,
+                    "url": base,
+                    "error": str(e),
+                },
             )
-            cache.set(key, {"status": "unavailable", "last_check_at": now, "error": str(e)}, timeout=AI_HEALTH_CACHE_TTL)
+            cache.set(
+                key,
+                {"status": "unavailable", "last_check_at": now, "error": str(e)},
+                timeout=AI_HEALTH_CACHE_TTL,
+            )
     return {"checked": len(config_list)}
 
 
@@ -169,10 +205,12 @@ def sync_regional_models_for_cluster(cluster: str, run_id: str = None):
     """Run sync_regional_models for one cluster (used by global upgrade). If run_id set, update progress cache."""
     from django.core.management import call_command
     from io import StringIO
+
     out = StringIO()
     call_command("sync_regional_models", "--cluster", cluster, stdout=out)
     if run_id:
         from django.core.cache import cache
+
         key = f"{AI_UPGRADE_PROGRESS_PREFIX}{run_id}"
         data = cache.get(key) or {}
         data["regions_done"] = data.get("regions_done", 0) + 1
@@ -195,7 +233,9 @@ def global_ai_upgrade_run(self, run_id: str, model_id: str):
     from .models import RegionalAIConfig
 
     clusters = list(
-        RegionalAIConfig.objects.filter(is_active=True).values_list("regional_cluster", flat=True).distinct()
+        RegionalAIConfig.objects.filter(is_active=True)
+        .values_list("regional_cluster", flat=True)
+        .distinct()
     )
     if not clusters:
         cache.set(
@@ -207,7 +247,12 @@ def global_ai_upgrade_run(self, run_id: str, model_id: str):
 
     cache.set(
         f"{AI_UPGRADE_PROGRESS_PREFIX}{run_id}",
-        {"status": "queued", "regions_total": len(clusters), "regions_done": 0, "clusters": clusters},
+        {
+            "status": "queued",
+            "regions_total": len(clusters),
+            "regions_done": 0,
+            "clusters": clusters,
+        },
         timeout=AI_UPGRADE_PROGRESS_TTL,
     )
     for c in clusters:

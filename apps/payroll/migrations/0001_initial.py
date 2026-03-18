@@ -7,166 +7,516 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('academics', '0004_classroom_academic_year_repair'),
-        ('finance', '0001_initial'),
+        ("academics", "0004_classroom_academic_year_repair"),
+        ("finance", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PayrollEmployee',
+            name="PayrollEmployee",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('employee_code', models.CharField(blank=True, max_length=50)),
-                ('hire_date', models.DateField(blank=True, null=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('pay_type', models.CharField(choices=[('MONTHLY', 'Monthly'), ('HOURLY', 'Hourly')], default='MONTHLY', max_length=20)),
-                ('base_salary', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
-                ('hourly_rate', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
-                ('salary_cap', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
-                ('payment_method', models.CharField(choices=[('MTN_MOMO', 'MTN Mobile Money'), ('ORANGE_MOMO', 'Orange Money'), ('BANK_TRANSFER', 'Bank Transfer'), ('CHECK', 'Check'), ('CASH', 'Cash')], default='BANK_TRANSFER', max_length=20)),
-                ('bank_account', models.CharField(blank=True, max_length=120)),
-                ('mobile_money_number', models.CharField(blank=True, max_length=50)),
-                ('tax_id', models.CharField(blank=True, max_length=50)),
-                ('cnps_number', models.CharField(blank=True, max_length=50)),
-                ('department', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='academics.department')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='payroll_profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("employee_code", models.CharField(blank=True, max_length=50)),
+                ("hire_date", models.DateField(blank=True, null=True)),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "pay_type",
+                    models.CharField(
+                        choices=[("MONTHLY", "Monthly"), ("HOURLY", "Hourly")],
+                        default="MONTHLY",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "base_salary",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "hourly_rate",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "salary_cap",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "payment_method",
+                    models.CharField(
+                        choices=[
+                            ("MTN_MOMO", "MTN Mobile Money"),
+                            ("ORANGE_MOMO", "Orange Money"),
+                            ("BANK_TRANSFER", "Bank Transfer"),
+                            ("CHECK", "Check"),
+                            ("CASH", "Cash"),
+                        ],
+                        default="BANK_TRANSFER",
+                        max_length=20,
+                    ),
+                ),
+                ("bank_account", models.CharField(blank=True, max_length=120)),
+                ("mobile_money_number", models.CharField(blank=True, max_length=50)),
+                ("tax_id", models.CharField(blank=True, max_length=50)),
+                ("cnps_number", models.CharField(blank=True, max_length=50)),
+                (
+                    "department",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="academics.department",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payroll_profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['user__last_name', 'user__first_name'],
+                "ordering": ["user__last_name", "user__first_name"],
             },
         ),
         migrations.CreateModel(
-            name='LeaveRequest',
+            name="LeaveRequest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('leave_type', models.CharField(choices=[('ANNUAL', 'Annual'), ('SICK', 'Sick'), ('MATERNITY', 'Maternity'), ('UNPAID', 'Unpaid'), ('OTHER', 'Other')], default='ANNUAL', max_length=20)),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField()),
-                ('days', models.PositiveSmallIntegerField(default=0)),
-                ('is_paid', models.BooleanField(default=True)),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('APPROVED', 'Approved'), ('REJECTED', 'Rejected'), ('CANCELLED', 'Cancelled')], default='PENDING', max_length=20)),
-                ('reason', models.TextField(blank=True)),
-                ('requested_at', models.DateTimeField(auto_now_add=True)),
-                ('decided_at', models.DateTimeField(blank=True, null=True)),
-                ('approved_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='approved_leaves', to=settings.AUTH_USER_MODEL)),
-                ('employee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='leave_requests', to='payroll.payrollemployee')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "leave_type",
+                    models.CharField(
+                        choices=[
+                            ("ANNUAL", "Annual"),
+                            ("SICK", "Sick"),
+                            ("MATERNITY", "Maternity"),
+                            ("UNPAID", "Unpaid"),
+                            ("OTHER", "Other"),
+                        ],
+                        default="ANNUAL",
+                        max_length=20,
+                    ),
+                ),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField()),
+                ("days", models.PositiveSmallIntegerField(default=0)),
+                ("is_paid", models.BooleanField(default=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("APPROVED", "Approved"),
+                            ("REJECTED", "Rejected"),
+                            ("CANCELLED", "Cancelled"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("reason", models.TextField(blank=True)),
+                ("requested_at", models.DateTimeField(auto_now_add=True)),
+                ("decided_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "approved_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="approved_leaves",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "employee",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="leave_requests",
+                        to="payroll.payrollemployee",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-start_date'],
+                "ordering": ["-start_date"],
             },
         ),
         migrations.CreateModel(
-            name='EmploymentContract',
+            name="EmploymentContract",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('contract_type', models.CharField(choices=[('FIXED', 'Fixed-term'), ('INDEFINITE', 'Indefinite')], default='INDEFINITE', max_length=20)),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField(blank=True, null=True)),
-                ('pay_type', models.CharField(choices=[('MONTHLY', 'Monthly'), ('HOURLY', 'Hourly')], max_length=20)),
-                ('base_salary', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
-                ('hourly_rate', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
-                ('salary_cap', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
-                ('hours_per_week', models.DecimalField(blank=True, decimal_places=2, max_digits=6, null=True)),
-                ('overtime_multiplier', models.DecimalField(blank=True, decimal_places=2, max_digits=6, null=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('employee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contracts', to='payroll.payrollemployee')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "contract_type",
+                    models.CharField(
+                        choices=[("FIXED", "Fixed-term"), ("INDEFINITE", "Indefinite")],
+                        default="INDEFINITE",
+                        max_length=20,
+                    ),
+                ),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField(blank=True, null=True)),
+                (
+                    "pay_type",
+                    models.CharField(
+                        choices=[("MONTHLY", "Monthly"), ("HOURLY", "Hourly")],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "base_salary",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "hourly_rate",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "salary_cap",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "hours_per_week",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=6, null=True
+                    ),
+                ),
+                (
+                    "overtime_multiplier",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=6, null=True
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "employee",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="contracts",
+                        to="payroll.payrollemployee",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-start_date'],
+                "ordering": ["-start_date"],
             },
         ),
         migrations.CreateModel(
-            name='PayrollRun',
+            name="PayrollRun",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('period_start', models.DateField()),
-                ('period_end', models.DateField()),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('PROCESSED', 'Processed'), ('PAID', 'Paid')], default='DRAFT', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('processed_at', models.DateTimeField(blank=True, null=True)),
-                ('paid_at', models.DateTimeField(blank=True, null=True)),
-                ('notes', models.TextField(blank=True)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='payroll_runs', to=settings.AUTH_USER_MODEL)),
-                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='payroll_runs', to='finance.complianceprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("period_start", models.DateField()),
+                ("period_end", models.DateField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("PROCESSED", "Processed"),
+                            ("PAID", "Paid"),
+                        ],
+                        default="DRAFT",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("processed_at", models.DateTimeField(blank=True, null=True)),
+                ("paid_at", models.DateTimeField(blank=True, null=True)),
+                ("notes", models.TextField(blank=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="payroll_runs",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="payroll_runs",
+                        to="finance.complianceprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-period_start', '-id'],
+                "ordering": ["-period_start", "-id"],
             },
         ),
         migrations.CreateModel(
-            name='Payslip',
+            name="Payslip",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('reference', models.CharField(blank=True, max_length=64)),
-                ('gross_pay', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('net_pay', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('tax_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('employee_contributions', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('employer_contributions', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('overtime_pay', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('other_deductions', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('total_hours', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=8)),
-                ('payment_method', models.CharField(choices=[('MTN_MOMO', 'MTN Mobile Money'), ('ORANGE_MOMO', 'Orange Money'), ('BANK_TRANSFER', 'Bank Transfer'), ('CHECK', 'Check'), ('CASH', 'Cash')], default='BANK_TRANSFER', max_length=20)),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft'), ('ISSUED', 'Issued'), ('PAID', 'Paid')], default='DRAFT', max_length=20)),
-                ('paid_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('details', models.JSONField(blank=True, default=dict)),
-                ('employee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payslips', to='payroll.payrollemployee')),
-                ('payroll_run', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payslips', to='payroll.payrollrun')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("reference", models.CharField(blank=True, max_length=64)),
+                (
+                    "gross_pay",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "net_pay",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "tax_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "employee_contributions",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "employer_contributions",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "overtime_pay",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "other_deductions",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "total_hours",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=8
+                    ),
+                ),
+                (
+                    "payment_method",
+                    models.CharField(
+                        choices=[
+                            ("MTN_MOMO", "MTN Mobile Money"),
+                            ("ORANGE_MOMO", "Orange Money"),
+                            ("BANK_TRANSFER", "Bank Transfer"),
+                            ("CHECK", "Check"),
+                            ("CASH", "Cash"),
+                        ],
+                        default="BANK_TRANSFER",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft"),
+                            ("ISSUED", "Issued"),
+                            ("PAID", "Paid"),
+                        ],
+                        default="DRAFT",
+                        max_length=20,
+                    ),
+                ),
+                ("paid_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("details", models.JSONField(blank=True, default=dict)),
+                (
+                    "employee",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payslips",
+                        to="payroll.payrollemployee",
+                    ),
+                ),
+                (
+                    "payroll_run",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payslips",
+                        to="payroll.payrollrun",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-payroll_run__period_start', 'employee__user__last_name'],
-                'unique_together': {('payroll_run', 'employee')},
+                "ordering": ["-payroll_run__period_start", "employee__user__last_name"],
+                "unique_together": {("payroll_run", "employee")},
             },
         ),
         migrations.CreateModel(
-            name='PayslipLine',
+            name="PayslipLine",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('line_type', models.CharField(choices=[('EARNING', 'Earning'), ('DEDUCTION', 'Deduction'), ('CONTRIBUTION', 'Contribution')], max_length=20)),
-                ('code', models.CharField(blank=True, max_length=40)),
-                ('label', models.CharField(max_length=120)),
-                ('amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('employer_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12)),
-                ('payslip', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lines', to='payroll.payslip')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "line_type",
+                    models.CharField(
+                        choices=[
+                            ("EARNING", "Earning"),
+                            ("DEDUCTION", "Deduction"),
+                            ("CONTRIBUTION", "Contribution"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("code", models.CharField(blank=True, max_length=40)),
+                ("label", models.CharField(max_length=120)),
+                (
+                    "amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "employer_amount",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=12
+                    ),
+                ),
+                (
+                    "payslip",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="lines",
+                        to="payroll.payslip",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['id'],
+                "ordering": ["id"],
             },
         ),
         migrations.CreateModel(
-            name='SalaryAdjustment',
+            name="SalaryAdjustment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
-                ('effective_date', models.DateField()),
-                ('description', models.CharField(blank=True, max_length=200)),
-                ('is_recurring', models.BooleanField(default=True)),
-                ('employee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='adjustments', to='payroll.payrollemployee')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("effective_date", models.DateField()),
+                ("description", models.CharField(blank=True, max_length=200)),
+                ("is_recurring", models.BooleanField(default=True)),
+                (
+                    "employee",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="adjustments",
+                        to="payroll.payrollemployee",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-effective_date'],
+                "ordering": ["-effective_date"],
             },
         ),
         migrations.CreateModel(
-            name='TimeEntry',
+            name="TimeEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('entry_date', models.DateField()),
-                ('hours_worked', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=6)),
-                ('is_approved', models.BooleanField(default=False)),
-                ('notes', models.CharField(blank=True, max_length=200)),
-                ('employee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='time_entries', to='payroll.payrollemployee')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("entry_date", models.DateField()),
+                (
+                    "hours_worked",
+                    models.DecimalField(
+                        decimal_places=2, default=Decimal("0.00"), max_digits=6
+                    ),
+                ),
+                ("is_approved", models.BooleanField(default=False)),
+                ("notes", models.CharField(blank=True, max_length=200)),
+                (
+                    "employee",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="time_entries",
+                        to="payroll.payrollemployee",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-entry_date'],
-                'unique_together': {('employee', 'entry_date')},
+                "ordering": ["-entry_date"],
+                "unique_together": {("employee", "entry_date")},
             },
         ),
     ]

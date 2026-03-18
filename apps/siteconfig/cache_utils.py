@@ -4,13 +4,21 @@ Prepend this to any cache key that stores tenant-specific data when using shared
 Redis-backed tenant resolution: when cache backend is Redis, tenant resolution
 (schema/domain -> school id) can be cached to avoid DB on every request.
 """
+
 from typing import Any, Optional
 
 from django.core.cache import cache
 from django.db import DatabaseError, connection
 
 
-OPTIONAL_CACHE_ERRORS = (AttributeError, DatabaseError, OSError, RuntimeError, TypeError, ValueError)
+OPTIONAL_CACHE_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
 
 
 def _current_rls_school_id() -> str | None:
@@ -41,6 +49,7 @@ def get_tenant_cache_prefix(request=None) -> str:
     """
     try:
         from django.db import connection
+
         tenant = getattr(connection, "tenant", None)
         if tenant is not None:
             schema = getattr(tenant, "schema_name", None)
@@ -82,7 +91,9 @@ def get_tenant_cached(lookup_key: str) -> Optional[Any]:
         return None
 
 
-def set_tenant_cached(lookup_key: str, payload: Any, timeout: int = TENANT_RESOLUTION_TIMEOUT) -> None:
+def set_tenant_cached(
+    lookup_key: str, payload: Any, timeout: int = TENANT_RESOLUTION_TIMEOUT
+) -> None:
     """
     Cache tenant payload for lookup_key. Use after resolving tenant from DB
     so subsequent requests can use get_tenant_cached(lookup_key) without DB.

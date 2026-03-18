@@ -28,6 +28,7 @@ def _resolve_school(slug_or_id):
     if not slug_or_id:
         return None
     from apps.schools.models import School
+
     s = str(slug_or_id).strip()
     if s.isdigit():
         return School.objects.filter(pk=int(s)).first()
@@ -61,20 +62,32 @@ class Command(BaseCommand):
         reset = options.get("reset")
         school = _resolve_school(options.get("school"))
         if options.get("school") and not school:
-            self.stdout.write(self.style.ERROR("School not found for --school=%s" % options.get("school")))
+            self.stdout.write(
+                self.style.ERROR(
+                    "School not found for --school=%s" % options.get("school")
+                )
+            )
             return
         if school:
-            self.stdout.write("Seeding for school: %s (slug=%s)" % (school.name, school.slug))
+            self.stdout.write(
+                "Seeding for school: %s (slug=%s)" % (school.name, school.slug)
+            )
 
         if reset:
             self._reset_domain_data()
-            self.stdout.write(self.style.WARNING("🧹 Reset domain data (kept superusers)."))
+            self.stdout.write(
+                self.style.WARNING("🧹 Reset domain data (kept superusers).")
+            )
 
         # ---- Academic setup ----
         year, _ = AcademicYear.objects.get_or_create(
             school=school,
             name="2025/2026",
-            defaults={"start_date": date(2025, 9, 1), "end_date": date(2026, 7, 31), "is_active": True},
+            defaults={
+                "start_date": date(2025, 9, 1),
+                "end_date": date(2026, 7, 31),
+                "is_active": True,
+            },
         )
         if not year.is_active:
             year.is_active = True
@@ -83,17 +96,32 @@ class Command(BaseCommand):
         term1, _ = Term.objects.get_or_create(
             academic_year=year,
             name=Term.Name.FIRST,
-            defaults={"start_date": date(2025, 9, 1), "end_date": date(2025, 12, 15), "is_active": True, "position": 1},
+            defaults={
+                "start_date": date(2025, 9, 1),
+                "end_date": date(2025, 12, 15),
+                "is_active": True,
+                "position": 1,
+            },
         )
         term2, _ = Term.objects.get_or_create(
             academic_year=year,
             name=Term.Name.SECOND,
-            defaults={"start_date": date(2026, 1, 5), "end_date": date(2026, 3, 20), "is_active": False, "position": 2},
+            defaults={
+                "start_date": date(2026, 1, 5),
+                "end_date": date(2026, 3, 20),
+                "is_active": False,
+                "position": 2,
+            },
         )
         term3, _ = Term.objects.get_or_create(
             academic_year=year,
             name=Term.Name.THIRD,
-            defaults={"start_date": date(2026, 4, 6), "end_date": date(2026, 7, 10), "is_active": False, "position": 3},
+            defaults={
+                "start_date": date(2026, 4, 6),
+                "end_date": date(2026, 7, 10),
+                "is_active": False,
+                "position": 3,
+            },
         )
         # Make Term 1 active for demo
         Term.objects.filter(academic_year=year).update(is_active=False)
@@ -119,11 +147,19 @@ class Command(BaseCommand):
             defaults={"code": "F4"},
         )
 
-        general, _ = Specialty.objects.get_or_create(department=department, name="General", defaults={"code": "GEN"})
+        general, _ = Specialty.objects.get_or_create(
+            department=department, name="General", defaults={"code": "GEN"}
+        )
 
-        english, _ = Subject.objects.get_or_create(school=school, name="English", defaults={})
-        math, _ = Subject.objects.get_or_create(school=school, name="Mathematics", defaults={})
-        physics, _ = Subject.objects.get_or_create(school=school, name="Physics", defaults={})
+        english, _ = Subject.objects.get_or_create(
+            school=school, name="English", defaults={}
+        )
+        math, _ = Subject.objects.get_or_create(
+            school=school, name="Mathematics", defaults={}
+        )
+        physics, _ = Subject.objects.get_or_create(
+            school=school, name="Physics", defaults={}
+        )
 
         # ---- Users ----
         parent1 = self._get_or_create_user(
@@ -269,7 +305,9 @@ class Command(BaseCommand):
         self.stdout.write("  Parents: parent1, parent2")
         self.stdout.write("  Teachers: teacher1, teacher2\n")
 
-    def _get_or_create_user(self, username: str, email: str, role: str, first_name: str, last_name: str) -> User:
+    def _get_or_create_user(
+        self, username: str, email: str, role: str, first_name: str, last_name: str
+    ) -> User:
         user, created = User.objects.get_or_create(
             username=username,
             defaults={

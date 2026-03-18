@@ -7,22 +7,63 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0006_update_user_role_default'),
+        ("accounts", "0006_update_user_role_default"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='UserPreference',
+            name="UserPreference",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('high_contrast_mode', models.BooleanField(default=False, help_text='Enable high contrast mode for accessibility.')),
-                ('reduced_motion', models.BooleanField(default=False, help_text='Reduce background/video motion for accessibility.')),
-                ('show_background_logo', models.BooleanField(default=True, help_text='Show the background logo image.')),
-                ('background_logo_opacity', models.FloatField(default=0.3, help_text='Custom opacity for background logo (0.0–1.0). Leave blank to use site default.', validators=[django.core.validators.MinValueValidator(0.0), django.core.validators.MaxValueValidator(1.0)])),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='preference', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "high_contrast_mode",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Enable high contrast mode for accessibility.",
+                    ),
+                ),
+                (
+                    "reduced_motion",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Reduce background/video motion for accessibility.",
+                    ),
+                ),
+                (
+                    "show_background_logo",
+                    models.BooleanField(
+                        default=True, help_text="Show the background logo image."
+                    ),
+                ),
+                (
+                    "background_logo_opacity",
+                    models.FloatField(
+                        default=0.3,
+                        help_text="Custom opacity for background logo (0.0–1.0). Leave blank to use site default.",
+                        validators=[
+                            django.core.validators.MinValueValidator(0.0),
+                            django.core.validators.MaxValueValidator(1.0),
+                        ],
+                    ),
+                ),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="preference",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

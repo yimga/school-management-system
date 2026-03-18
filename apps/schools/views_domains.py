@@ -2,6 +2,7 @@
 Tenant-side custom domain API and wizard: list/add/verify domains.
 Requires request.school; used in School Settings.
 """
+
 import json
 from json import JSONDecodeError
 import re
@@ -25,10 +26,17 @@ def _require_school_admin(request):
     if not school:
         return False
     from apps.schools.models import SchoolMembership
+
     role = (getattr(request.user, "role", "") or "").upper()
-    if role in ("ADMIN", "IT_ADMIN", "LEADERSHIP") or request.user.is_staff or request.user.is_superuser:
+    if (
+        role in ("ADMIN", "IT_ADMIN", "LEADERSHIP")
+        or request.user.is_staff
+        or request.user.is_superuser
+    ):
         return True
-    return SchoolMembership.objects.filter(user=request.user, school=school, role__in=("ADMIN", "IT_ADMIN", "LEADERSHIP")).exists()
+    return SchoolMembership.objects.filter(
+        user=request.user, school=school, role__in=("ADMIN", "IT_ADMIN", "LEADERSHIP")
+    ).exists()
 
 
 @require_http_methods(["GET", "POST"])
@@ -41,13 +49,25 @@ def api_domains_list_or_create(request):
     school = request.school
     if request.method == "GET":
         domains = list(
-            SchoolDomain.objects.filter(school=school).order_by("kind", "domain").values(
-                "id", "domain", "kind", "is_verified", "dns_token", "verified_at", "created_at"
+            SchoolDomain.objects.filter(school=school)
+            .order_by("kind", "domain")
+            .values(
+                "id",
+                "domain",
+                "kind",
+                "is_verified",
+                "dns_token",
+                "verified_at",
+                "created_at",
             )
         )
         for d in domains:
-            d["verified_at"] = d["verified_at"].isoformat() if d.get("verified_at") else None
-            d["created_at"] = d["created_at"].isoformat() if d.get("created_at") else None
+            d["verified_at"] = (
+                d["verified_at"].isoformat() if d.get("verified_at") else None
+            )
+            d["created_at"] = (
+                d["created_at"].isoformat() if d.get("created_at") else None
+            )
         return JsonResponse({"domains": domains})
     try:
         body = json.loads(request.body) if request.body else {}
@@ -62,28 +82,40 @@ def api_domains_list_or_create(request):
         return JsonResponse({"error": "Invalid domain format"}, status=400)
     base = get_base_domain()
     if base and domain.endswith("." + base):
-        return JsonResponse({"error": "Use a custom domain (e.g. portal.yourschool.edu), not a subdomain of the platform"}, status=400)
+        return JsonResponse(
+            {
+                "error": "Use a custom domain (e.g. portal.yourschool.edu), not a subdomain of the platform"
+            },
+            status=400,
+        )
     if SchoolDomain.objects.filter(school=school, domain=domain).exists():
         return JsonResponse({"error": "This domain is already added"}, status=409)
     if SchoolDomain.objects.filter(domain=domain).exclude(school=school).exists():
-        return JsonResponse({"error": "This domain is already used by another school"}, status=409)
+        return JsonResponse(
+            {"error": "This domain is already used by another school"}, status=409
+        )
     if is_runtime_domain_in_use(domain, school=school):
-        return JsonResponse({"error": "This domain is already used by another school"}, status=409)
+        return JsonResponse(
+            {"error": "This domain is already used by another school"}, status=409
+        )
     obj = SchoolDomain.objects.create(
         school=school,
         domain=domain,
         kind=SchoolDomain.Kind.CUSTOM,
         is_verified=False,
     )
-    return JsonResponse({
-        "id": str(obj.id),
-        "domain": obj.domain,
-        "kind": obj.kind,
-        "is_verified": obj.is_verified,
-        "dns_token": str(obj.dns_token),
-        "verified_at": None,
-        "created_at": obj.created_at.isoformat(),
-    }, status=201)
+    return JsonResponse(
+        {
+            "id": str(obj.id),
+            "domain": obj.domain,
+            "kind": obj.kind,
+            "is_verified": obj.is_verified,
+            "dns_token": str(obj.dns_token),
+            "verified_at": None,
+            "created_at": obj.created_at.isoformat(),
+        },
+        status=201,
+    )
 
 
 @require_POST
@@ -96,20 +128,28 @@ def api_domains_verify(request, school_domain_id):
     school = request.school
     domain_entry = get_object_or_404(SchoolDomain, pk=school_domain_id, school=school)
     if domain_entry.is_verified:
-        return JsonResponse({
-            "id": str(domain_entry.id),
-            "domain": domain_entry.domain,
-            "is_verified": True,
-            "verified_at": domain_entry.verified_at.isoformat() if domain_entry.verified_at else None,
-        })
+        return JsonResponse(
+            {
+                "id": str(domain_entry.id),
+                "domain": domain_entry.domain,
+                "is_verified": True,
+                "verified_at": domain_entry.verified_at.isoformat()
+                if domain_entry.verified_at
+                else None,
+            }
+        )
     _ok = verify_and_activate_schooldomain(domain_entry)
     domain_entry.refresh_from_db()
-    return JsonResponse({
-        "id": str(domain_entry.id),
-        "domain": domain_entry.domain,
-        "is_verified": domain_entry.is_verified,
-        "verified_at": domain_entry.verified_at.isoformat() if domain_entry.verified_at else None,
-    })
+    return JsonResponse(
+        {
+            "id": str(domain_entry.id),
+            "domain": domain_entry.domain,
+            "is_verified": domain_entry.is_verified,
+            "verified_at": domain_entry.verified_at.isoformat()
+            if domain_entry.verified_at
+            else None,
+        }
+    )
 
 
 @require_GET
@@ -118,14 +158,21 @@ def custom_domain_wizard(request):
     """Custom Domain Wizard page (tenant settings)."""
     if not _require_school_admin(request):
         from django.shortcuts import redirect
+
         return redirect("accounts:login")
     school = request.school
     cname_target = school.get_cname_target()
-    domains = list(SchoolDomain.objects.filter(school=school).order_by("-is_verified", "domain"))
+    domains = list(
+        SchoolDomain.objects.filter(school=school).order_by("-is_verified", "domain")
+    )
     prefix = getattr(request, "tenant_path_prefix", "") or ""
-    return render(request, "schools/custom_domain_wizard.html", {
-        "school": school,
-        "cname_target": cname_target,
-        "domains": domains,
-        "api_domains_url": prefix.rstrip("/") + "/api/tenant/domains/",
-    })
+    return render(
+        request,
+        "schools/custom_domain_wizard.html",
+        {
+            "school": school,
+            "cname_target": cname_target,
+            "domains": domains,
+            "api_domains_url": prefix.rstrip("/") + "/api/tenant/domains/",
+        },
+    )

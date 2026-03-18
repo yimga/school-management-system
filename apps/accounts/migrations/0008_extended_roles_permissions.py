@@ -17,17 +17,32 @@ def create_extended_roles(apps, schema_editor):
         "DEPT_LEAD": {
             "name": "Department Lead",
             "description": "Oversees department academics and reporting.",
-            "permissions": ["reports.manage", "attendance.manage", "portal.manage", "data.access"],
+            "permissions": [
+                "reports.manage",
+                "attendance.manage",
+                "portal.manage",
+                "data.access",
+            ],
         },
         "FINANCE_STAFF": {
             "name": "Finance Staff",
             "description": "Handles finance dashboards, invoices, and payments.",
-            "permissions": ["finance.view", "finance.manage", "reports.manage", "data.access"],
+            "permissions": [
+                "finance.view",
+                "finance.manage",
+                "reports.manage",
+                "data.access",
+            ],
         },
         "ACADEMICS_STAFF": {
             "name": "Academics Staff",
             "description": "Supports academics, attendance, and reporting.",
-            "permissions": ["reports.manage", "attendance.manage", "portal.manage", "data.access"],
+            "permissions": [
+                "reports.manage",
+                "attendance.manage",
+                "portal.manage",
+                "data.access",
+            ],
         },
         "COMMS_STAFF": {
             "name": "Communications Staff",
@@ -47,7 +62,6 @@ def create_extended_roles(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0007_userpreference"),
     ]

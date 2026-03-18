@@ -22,17 +22,25 @@ class DeltaSyncAPI(APIView):
     When a conflict is detected (server newer than client), a SyncConflict is created and
     the item is included in "conflicts" for Sync Center resolution.
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         offline_settings = get_effective_offline_runtime_settings(request=request)
         if not bool(offline_settings.get("enable_offline_mode", False)):
-            return Response({"error": "Offline sync is disabled."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"error": "Offline sync is disabled."}, status=status.HTTP_403_FORBIDDEN
+            )
         items = request.data.get("items") or []
         if not isinstance(items, list):
-            return Response({"error": "items must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "items must be a list"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if len(items) > 50:
-            return Response({"error": "Maximum 50 items per delta batch"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Maximum 50 items per delta batch"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         school = getattr(request, "school", None)
         school_id = str(school.id) if school else None
@@ -51,16 +59,28 @@ class DeltaSyncAPI(APIView):
                 removed_ids.append(item_id)
             elif res and res.get("status") >= 400:
                 data = res.get("data") or {}
-                msg = data.get("error") or data.get("message") or f"HTTP {res.get('status')}"
+                msg = (
+                    data.get("error")
+                    or data.get("message")
+                    or f"HTTP {res.get('status')}"
+                )
                 entity_type = (item.get("entity_type") or "").strip().lower()
                 pk = item.get("id")
-                failed_items.append({"url": f"{entity_type}/{pk}", "status": res.get("status"), "message": str(msg)})
+                failed_items.append(
+                    {
+                        "url": f"{entity_type}/{pk}",
+                        "status": res.get("status"),
+                        "message": str(msg),
+                    }
+                )
 
-        return Response({
-            "results": results,
-            "removed_ids": removed_ids,
-            "failed_count": len(failed_items),
-            "failed_items": failed_items,
-            "conflicts": conflicts,
-            "success_count": out["success_count"],
-        })
+        return Response(
+            {
+                "results": results,
+                "removed_ids": removed_ids,
+                "failed_count": len(failed_items),
+                "failed_items": failed_items,
+                "conflicts": conflicts,
+                "success_count": out["success_count"],
+            }
+        )

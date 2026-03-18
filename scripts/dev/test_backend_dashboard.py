@@ -2,6 +2,7 @@
 """Backend dashboard validation helper.
 Run from project root: python scripts/dev/test_backend_dashboard.py
 """
+
 import os
 import re
 import sys
@@ -41,7 +42,9 @@ except Exception as exc:
     sys.exit(1)
 
 print("\n2) Core structure markers")
-template_path = os.path.join(project_root, "templates", "accounts", "backend_dashboard.html")
+template_path = os.path.join(
+    project_root, "templates", "accounts", "backend_dashboard.html"
+)
 with open(template_path, "r", encoding="utf-8") as fh:
     content = fh.read()
 

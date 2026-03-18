@@ -4,7 +4,7 @@
 
 **Authority:** Status and "what's left" live **only** in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4. This doc is a **derived snapshot** — do not use it as the source of truth. When reconciling, update SOT §11.4 first, then refresh this snapshot. Sources: SOT, [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md).
 
-**Last updated:** 2026-03-16.
+**Last updated:** 2026-03-18 — §6 premium/IA **MET**: GLOBAL_NAV_INFORMATION_ARCHITECTURE.md; control-plane Page tours (trust, migration diff, governed query); System config outcome banners; `control_plane_default_tour_steps` + tests; SOT/Phase H log/stock take updated. Per-release: full Phase H manual + BR-13 sign-off.
 
 ---
 
@@ -19,7 +19,7 @@
 | **Phase E — Ecosystem productization** | **DONE** | Package engine (validate/preview/apply/rollback/promote); seed apps/packs (catalog minimums met); marketplace UX (Install/Apply/Preview/Rollback); ReportPack/DocumentPack in use. |
 | **Phase F — UX and marketing authority** | **DONE** | Role-home engine; contextual actions; page archetypes; proof-rich marketing (proof_hero, why_switch, product_visualization_slides, fallbacks). |
 | **Phase G — Docs truth** | **DONE** | Docs aligned with reality; ledgers; single completion ledger (docs_truth_ledger); SOT is execution plan. |
-| **Phase H — Full codebase/UX verification** | **PARTIAL** | Automated: test_phase_h_ux_verification, phase_h_audit, phase_h_url_check, run_phase_h_verification.sh, pre_deploy_gate. Manual full pass and deploy visibility: N/A when prioritized (product 2026-03-12); PHASE_H_MANUAL_CHECKLIST + PHASE_H_EXECUTION_LOG. |
+| **Phase H — Full codebase/UX verification** | **PARTIAL → process MET** | Automated: phase_h_audit static pass; tour API tests; Phase H tests in gate. **§6 premium/IA MET** (SOT): GLOBAL_NAV doc, control-plane tours, System config outcome banner. **Per release:** full manual PHASE_H_MANUAL_CHECKLIST + deploy visibility + BR-13 sign-off. |
 
 ---
 

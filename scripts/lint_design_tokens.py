@@ -5,6 +5,7 @@ Allowed: var(--...), comments, default fallbacks inside var() e.g. #0f172a in va
 Run from project root: python scripts/lint_design_tokens.py
 Exit 0 if no violations or --allow-violations; exit 1 and print violations otherwise.
 """
+
 import os
 import re
 import sys
@@ -18,15 +19,14 @@ TEMPLATE_DIRS = [
 # Patterns that are allowed (we skip lines matching these)
 ALLOWED_PATTERNS = [
     r"var\s*\(\s*--[^)]+\)",  # var(--token) or var(--token, fallback)
-    r"\{\{.*\}\}",            # Django template vars
-    r"{%\s*",                 # Django template tags
-    r"^\s*#",                 # comment
-    r"url\s*\(\s*['\"]",     # url()
+    r"\{\{.*\}\}",  # Django template vars
+    r"{%\s*",  # Django template tags
+    r"^\s*#",  # comment
+    r"url\s*\(\s*['\"]",  # url()
 ]
 # Pattern that indicates a potential violation: hex color or rgb( in style/code (we allow if line has var( already)
 HEX_OR_RGB = re.compile(
-    r"#[0-9a-fA-F]{3}\b|#[0-9a-fA-F]{6}\b|rgb\s*\(|rgba\s*\(",
-    re.IGNORECASE
+    r"#[0-9a-fA-F]{3}\b|#[0-9a-fA-F]{6}\b|rgb\s*\(|rgba\s*\(", re.IGNORECASE
 )
 
 
@@ -72,7 +72,9 @@ def main():
             if v:
                 violations_by_file[single] = v
     if violations_by_file:
-        print("Design token lint: potential hardcoded colors (use var(--token) or semantic tokens)")
+        print(
+            "Design token lint: potential hardcoded colors (use var(--token) or semantic tokens)"
+        )
         for path, vlist in sorted(violations_by_file.items()):
             print(f"  {path}")
             for line_no, snippet in vlist[:10]:

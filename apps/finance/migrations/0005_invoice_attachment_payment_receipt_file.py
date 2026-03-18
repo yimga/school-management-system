@@ -4,20 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0004_notification_reportrequest'),
+        ("finance", "0004_notification_reportrequest"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='invoice',
-            name='attachment',
-            field=models.FileField(blank=True, help_text='Optional PDF or image attachment for this invoice.', null=True, upload_to='finance/invoices/'),
+            model_name="invoice",
+            name="attachment",
+            field=models.FileField(
+                blank=True,
+                help_text="Optional PDF or image attachment for this invoice.",
+                null=True,
+                upload_to="finance/invoices/",
+            ),
         ),
         migrations.AddField(
-            model_name='payment',
-            name='receipt_file',
-            field=models.FileField(blank=True, help_text='Optional uploaded receipt or slip.', null=True, upload_to='finance/receipts/'),
+            model_name="payment",
+            name="receipt_file",
+            field=models.FileField(
+                blank=True,
+                help_text="Optional uploaded receipt or slip.",
+                null=True,
+                upload_to="finance/receipts/",
+            ),
         ),
     ]

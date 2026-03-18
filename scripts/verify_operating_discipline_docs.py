@@ -6,6 +6,7 @@ Ensures every *_DOC constant in apps/dashboard/role_home_engine.py points to a
 docs/ file that exists. Used in pre_deploy_gate so Phase I in-code doc refs
 are enforced in CI.
 """
+
 from __future__ import annotations
 
 import re
@@ -25,7 +26,10 @@ def main() -> int:
     pattern = re.compile(r'[A-Z][A-Z0-9_]*_DOC\s*=\s*"(docs/[^"]+)"')
     refs = pattern.findall(text)
     if not refs:
-        print("[verify_operating_discipline_docs] No *_DOC constants found in role_home_engine.py", file=sys.stderr)
+        print(
+            "[verify_operating_discipline_docs] No *_DOC constants found in role_home_engine.py",
+            file=sys.stderr,
+        )
         return 1
 
     missing: list[str] = []
@@ -36,7 +40,9 @@ def main() -> int:
 
     if missing:
         for p in missing:
-            print(f"[verify_operating_discipline_docs] Missing doc: {p}", file=sys.stderr)
+            print(
+                f"[verify_operating_discipline_docs] Missing doc: {p}", file=sys.stderr
+            )
         return 1
     return 0
 

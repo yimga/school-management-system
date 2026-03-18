@@ -52,7 +52,10 @@ class IntegrationRegistryTests(TestCase):
             provider="payments",
             category="PAYMENT",
             enabled=True,
-            config={"endpoint_url": "https://legacy-payments.example.org", "enabled_scopes": ["charge"]},
+            config={
+                "endpoint_url": "https://legacy-payments.example.org",
+                "enabled_scopes": ["charge"],
+            },
         )
 
         resolved = resolve_active_integration(self.school, "payments-core")
@@ -73,15 +76,21 @@ class IntegrationRegistryTests(TestCase):
             config={"endpoint_url": "https://sms.example.org"},
         )
 
-        preview = backfill_service_integrations_from_legacy(school=self.school, dry_run=True)
+        preview = backfill_service_integrations_from_legacy(
+            school=self.school, dry_run=True
+        )
         self.assertEqual(len(preview), 1)
         self.assertEqual(preview[0]["action"], "would_upsert")
         self.assertEqual(ServiceIntegration.objects.count(), 0)
 
-        result = backfill_service_integrations_from_legacy(school=self.school, dry_run=False)
+        result = backfill_service_integrations_from_legacy(
+            school=self.school, dry_run=False
+        )
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["action"], "created")
-        service = ServiceIntegration.objects.get(school=self.school, service_name="sms-gateway")
+        service = ServiceIntegration.objects.get(
+            school=self.school, service_name="sms-gateway"
+        )
         self.assertEqual(service.service_type, ServiceIntegration.ServiceType.WEBHOOK)
         self.assertEqual(service.endpoint_url, "https://sms.example.org")
         self.assertEqual(service.config.get("_legacy_provider"), "sms")
@@ -106,13 +115,17 @@ class IntegrationRegistryTests(TestCase):
             is_active=True,
         )
 
-        result = backfill_service_integrations_from_legacy(school=self.school, dry_run=False)
+        result = backfill_service_integrations_from_legacy(
+            school=self.school, dry_run=False
+        )
         self.assertEqual(result[0]["action"], "updated")
 
         service.refresh_from_db()
         self.assertEqual(service.service_type, ServiceIntegration.ServiceType.OAUTH)
         self.assertEqual(service.endpoint_url, "https://legacy-analytics.example.org")
-        self.assertEqual(service.config.get("_legacy_integration_id"), result[0]["legacy_id"])
+        self.assertEqual(
+            service.config.get("_legacy_integration_id"), result[0]["legacy_id"]
+        )
 
     def test_resolve_service_integration_autobackfills_from_legacy(self):
         Integration.objects.create(
@@ -156,7 +169,10 @@ class IntegrationRegistryTests(TestCase):
             provider="analytics",
             category="OTHER",
             enabled=True,
-            config={"service_hint": "oidc", "endpoint_url": "https://legacy.example.org/oidc"},
+            config={
+                "service_hint": "oidc",
+                "endpoint_url": "https://legacy.example.org/oidc",
+            },
         )
         resolved = resolve_service_integration(
             self.school,

@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,100 +15,270 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='MessageThread',
+            name="MessageThread",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('is_archived', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='created_threads', to=settings.AUTH_USER_MODEL)),
-                ('members', models.ManyToManyField(related_name='message_threads', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                ("is_archived", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="created_threads",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "members",
+                    models.ManyToManyField(
+                        related_name="message_threads", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Message Thread',
-                'verbose_name_plural': 'Message Threads',
-                'ordering': ['-updated_at'],
+                "verbose_name": "Message Thread",
+                "verbose_name_plural": "Message Threads",
+                "ordering": ["-updated_at"],
             },
         ),
         migrations.CreateModel(
-            name='ThreadMessage',
+            name="ThreadMessage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('content', models.TextField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='thread_messages', to=settings.AUTH_USER_MODEL)),
-                ('thread', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='messages', to='communication.messagethread')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("content", models.TextField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "author",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="thread_messages",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "thread",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="messages",
+                        to="communication.messagethread",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Thread Message',
-                'verbose_name_plural': 'Thread Messages',
-                'ordering': ['-created_at'],
+                "verbose_name": "Thread Message",
+                "verbose_name_plural": "Thread Messages",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='AlertRule',
+            name="AlertRule",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('condition', models.CharField(max_length=255)),
-                ('frequency', models.CharField(choices=[('immediate', 'Immediate'), ('daily', 'Daily'), ('weekly', 'Weekly'), ('never', 'Never')], default='daily', max_length=20)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='alert_rules', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                ("condition", models.CharField(max_length=255)),
+                (
+                    "frequency",
+                    models.CharField(
+                        choices=[
+                            ("immediate", "Immediate"),
+                            ("daily", "Daily"),
+                            ("weekly", "Weekly"),
+                            ("never", "Never"),
+                        ],
+                        default="daily",
+                        max_length=20,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="alert_rules",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Alert Rule',
-                'verbose_name_plural': 'Alert Rules',
-                'ordering': ['-created_at'],
-                'unique_together': {('user', 'name')},
+                "verbose_name": "Alert Rule",
+                "verbose_name_plural": "Alert Rules",
+                "ordering": ["-created_at"],
+                "unique_together": {("user", "name")},
             },
         ),
         migrations.CreateModel(
-            name='Announcement',
+            name="Announcement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('content', models.TextField()),
-                ('announcement_type', models.CharField(choices=[('general', 'General'), ('academic', 'Academic'), ('event', 'Event'), ('alert', 'Alert'), ('holiday', 'Holiday'), ('maintenance', 'Maintenance')], default='general', max_length=20)),
-                ('audience', models.CharField(choices=[('all', 'All Users'), ('students', 'Students Only'), ('teachers', 'Teachers Only'), ('all_parents', 'All Parents'), ('staff', 'Staff Only'), ('specific', 'Specific Group')], default='all', max_length=20)),
-                ('is_active', models.BooleanField(default=True)),
-                ('is_urgent', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('expiry_date', models.DateTimeField(default=apps.communication.models.get_default_expiry)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='announcements', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("content", models.TextField()),
+                (
+                    "announcement_type",
+                    models.CharField(
+                        choices=[
+                            ("general", "General"),
+                            ("academic", "Academic"),
+                            ("event", "Event"),
+                            ("alert", "Alert"),
+                            ("holiday", "Holiday"),
+                            ("maintenance", "Maintenance"),
+                        ],
+                        default="general",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "audience",
+                    models.CharField(
+                        choices=[
+                            ("all", "All Users"),
+                            ("students", "Students Only"),
+                            ("teachers", "Teachers Only"),
+                            ("all_parents", "All Parents"),
+                            ("staff", "Staff Only"),
+                            ("specific", "Specific Group"),
+                        ],
+                        default="all",
+                        max_length=20,
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("is_urgent", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "expiry_date",
+                    models.DateTimeField(
+                        default=apps.communication.models.get_default_expiry
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="announcements",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Announcement',
-                'verbose_name_plural': 'Announcements',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['-created_at'], name='communicati_created_0fcf37_idx'), models.Index(fields=['is_active', 'expiry_date'], name='communicati_is_acti_1b0850_idx')],
+                "verbose_name": "Announcement",
+                "verbose_name_plural": "Announcements",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["-created_at"], name="communicati_created_0fcf37_idx"
+                    ),
+                    models.Index(
+                        fields=["is_active", "expiry_date"],
+                        name="communicati_is_acti_1b0850_idx",
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='Message',
+            name="Message",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('subject', models.CharField(max_length=255)),
-                ('body', models.TextField()),
-                ('is_read', models.BooleanField(default=False)),
-                ('is_archived', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('parent_message', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='replies', to='communication.message')),
-                ('recipient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='received_messages', to=settings.AUTH_USER_MODEL)),
-                ('sender', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sent_messages', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("subject", models.CharField(max_length=255)),
+                ("body", models.TextField()),
+                ("is_read", models.BooleanField(default=False)),
+                ("is_archived", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "parent_message",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="replies",
+                        to="communication.message",
+                    ),
+                ),
+                (
+                    "recipient",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="received_messages",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "sender",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sent_messages",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Message',
-                'verbose_name_plural': 'Messages',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['recipient', '-created_at'], name='communicati_recipie_19fbc8_idx'), models.Index(fields=['sender', '-created_at'], name='communicati_sender__feb3d4_idx'), models.Index(fields=['is_read'], name='communicati_is_read_d3b61c_idx')],
+                "verbose_name": "Message",
+                "verbose_name_plural": "Messages",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["recipient", "-created_at"],
+                        name="communicati_recipie_19fbc8_idx",
+                    ),
+                    models.Index(
+                        fields=["sender", "-created_at"],
+                        name="communicati_sender__feb3d4_idx",
+                    ),
+                    models.Index(
+                        fields=["is_read"], name="communicati_is_read_d3b61c_idx"
+                    ),
+                ],
             },
         ),
     ]

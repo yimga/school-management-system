@@ -61,7 +61,9 @@ def throttle_ip_request(
     return _throttle(key, max_count, window_seconds)
 
 
-def _check_tenant_quota_limit(school, limit_type: str = "api_calls") -> tuple[bool, int]:
+def _check_tenant_quota_limit(
+    school, limit_type: str = "api_calls"
+) -> tuple[bool, int]:
     """
     If school has TenantQuotaLimit for limit_type, check TenantApiUsage for current period.
     Returns (allowed, retry_after_seconds). Caches result 60s per school to avoid DB on every request.
@@ -81,7 +83,9 @@ def _check_tenant_quota_limit(school, limit_type: str = "api_calls") -> tuple[bo
         from apps.schools.models import TenantQuotaLimit, TenantApiUsage
 
         limit_row = (
-            TenantQuotaLimit.objects.filter(school_id=school.pk, limit_type=limit_type, is_active=True)
+            TenantQuotaLimit.objects.filter(
+                school_id=school.pk, limit_type=limit_type, is_active=True
+            )
             .values("limit_value", "period_days")
             .first()
         )
@@ -93,25 +97,20 @@ def _check_tenant_quota_limit(school, limit_type: str = "api_calls") -> tuple[bo
         today = timezone.now().date()
         if period_days:
             from datetime import timedelta
+
             period_start = today - timedelta(days=period_days)
-            usage = (
-                TenantApiUsage.objects.filter(
-                    school_id=school.pk,
-                    limit_type=limit_type,
-                    period_date__gte=period_start,
-                    period_date__lte=today,
-                )
-                .aggregate(total=Sum("request_count"))
-            )
+            usage = TenantApiUsage.objects.filter(
+                school_id=school.pk,
+                limit_type=limit_type,
+                period_date__gte=period_start,
+                period_date__lte=today,
+            ).aggregate(total=Sum("request_count"))
         else:
-            usage = (
-                TenantApiUsage.objects.filter(
-                    school_id=school.pk,
-                    limit_type=limit_type,
-                    period_date=today,
-                )
-                .aggregate(total=Sum("request_count"))
-            )
+            usage = TenantApiUsage.objects.filter(
+                school_id=school.pk,
+                limit_type=limit_type,
+                period_date=today,
+            ).aggregate(total=Sum("request_count"))
         total = int(usage.get("total") or 0)
         allowed = total < limit_value
         retry = 60 if period_days else 60
@@ -122,20 +121,29 @@ def _check_tenant_quota_limit(school, limit_type: str = "api_calls") -> tuple[bo
         return True, 0
 
 
-def _get_apicenter_quota_for_school(school, quota_type: str = "requests_per_minute") -> tuple[int | None, int | None]:
+def _get_apicenter_quota_for_school(
+    school, quota_type: str = "requests_per_minute"
+) -> tuple[int | None, int | None]:
     """
     8.1: If APIQuota exists for this school (or platform-wide) for quota_type, return (limit_value, window_seconds).
     Otherwise (None, None).
     """
     try:
         from apps.apicenter.models import APIQuota
+
         if school and getattr(school, "pk", None):
             row = (
-                APIQuota.objects.filter(quota_type=quota_type, school_id=school.pk).first()
-                or APIQuota.objects.filter(quota_type=quota_type, school__isnull=True).first()
+                APIQuota.objects.filter(
+                    quota_type=quota_type, school_id=school.pk
+                ).first()
+                or APIQuota.objects.filter(
+                    quota_type=quota_type, school__isnull=True
+                ).first()
             )
         else:
-            row = APIQuota.objects.filter(quota_type=quota_type, school__isnull=True).first()
+            row = APIQuota.objects.filter(
+                quota_type=quota_type, school__isnull=True
+            ).first()
         if not row:
             return None, None
         limit = int(row.limit_value) if row.limit_value else None
@@ -171,17 +179,27 @@ def throttle_tenant_request(
     if not tenant_id:
         return True, 0
     # Optional: enforce stored quota limit (api_calls or api_calls_per_month)
-    quota_allowed, quota_retry = _check_tenant_quota_limit(school, limit_type="api_calls")
+    quota_allowed, quota_retry = _check_tenant_quota_limit(
+        school, limit_type="api_calls"
+    )
     if not quota_allowed:
         return False, quota_retry
     # 8.1: Prefer APIQuota (apicenter) when set for this school
-    apicenter_limit, apicenter_window = _get_apicenter_quota_for_school(school, "requests_per_minute")
+    apicenter_limit, apicenter_window = _get_apicenter_quota_for_school(
+        school, "requests_per_minute"
+    )
     if apicenter_limit is not None and apicenter_window is not None:
         max_count = apicenter_limit
         window_seconds = apicenter_window
     else:
-        max_count = max_count if max_count is not None else DEFAULT_TENANT_MAX_PER_MINUTE
-        window_seconds = window_seconds if window_seconds is not None else DEFAULT_TENANT_WINDOW_SECONDS
+        max_count = (
+            max_count if max_count is not None else DEFAULT_TENANT_MAX_PER_MINUTE
+        )
+        window_seconds = (
+            window_seconds
+            if window_seconds is not None
+            else DEFAULT_TENANT_WINDOW_SECONDS
+        )
     key = f"rate_limit:{scope}:tenant:{tenant_id}"
     allowed, retry = _throttle(key, max_count, window_seconds)
     if allowed:
@@ -219,6 +237,7 @@ def record_tenant_api_usage(school, limit_type: str = "api_calls"):
         from django.utils import timezone
         from django.db.models import F
         from apps.schools.models import TenantApiUsage
+
         today = timezone.now().date()
         obj, _ = TenantApiUsage.objects.get_or_create(
             school_id=school.pk,
@@ -226,6 +245,8 @@ def record_tenant_api_usage(school, limit_type: str = "api_calls"):
             limit_type=limit_type,
             defaults={"request_count": 0},
         )
-        TenantApiUsage.objects.filter(pk=obj.pk).update(request_count=F("request_count") + 1)
+        TenantApiUsage.objects.filter(pk=obj.pk).update(
+            request_count=F("request_count") + 1
+        )
     except (ImportError, AttributeError, TypeError, ValueError, DatabaseError) as e:
         logger.debug("record_tenant_api_usage failed: %s", e, exc_info=True)

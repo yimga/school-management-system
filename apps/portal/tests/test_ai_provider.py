@@ -7,7 +7,10 @@ from apps.portal.ai_provider import generate_ai_response
 
 class AiProviderTests(SimpleTestCase):
     @override_settings(AI_GATEWAY_ENABLED=True)
-    @patch("services.ai_gateway.invoke", return_value=("gateway-answer", {"provider": "ollama"}))
+    @patch(
+        "services.ai_gateway.invoke",
+        return_value=("gateway-answer", {"provider": "ollama"}),
+    )
     def test_uses_gateway_when_enabled(self, mock_invoke):
         text, meta = generate_ai_response("prompt", user_query="How many students?")
         self.assertEqual(text, "gateway-answer")
@@ -30,7 +33,7 @@ class AiProviderTests(SimpleTestCase):
         self.assertEqual(meta.get("errors", {}).get("gateway"), "disabled")
 
     @override_settings(AI_GATEWAY_ENABLED=True, AI_ALLOW_RULES_FALLBACK=True)
-    @patch("services.ai_gateway.invoke", side_effect=Exception("boom"))
+    @patch("services.ai_gateway.invoke", side_effect=ConnectionError("boom"))
     def test_rules_fallback_when_gateway_unavailable(self, _mock_invoke):
         text, meta = generate_ai_response("prompt", user_query="Need fee summary")
         self.assertIn("Need fee summary", text)
@@ -50,7 +53,7 @@ class AiProviderTests(SimpleTestCase):
         self.assertTrue(meta.get("denied"))
 
     @override_settings(AI_GATEWAY_ENABLED=True, AI_ALLOW_RULES_FALLBACK=False)
-    @patch("services.ai_gateway.invoke", side_effect=Exception("boom"))
+    @patch("services.ai_gateway.invoke", side_effect=ConnectionError("boom"))
     def test_returns_unavailable_when_rules_fallback_disabled(self, _mock_invoke):
         text, meta = generate_ai_response("prompt", user_query="Need summary")
         self.assertIn("rules fallback is disabled", text.lower())

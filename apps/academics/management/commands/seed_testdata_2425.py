@@ -76,6 +76,7 @@ def _resolve_school(slug_or_id):
     if not slug_or_id:
         return None
     from apps.schools.models import School
+
     s = str(slug_or_id).strip()
     if s.isdigit():
         return School.objects.filter(pk=int(s)).first()
@@ -103,10 +104,17 @@ class Command(BaseCommand):
         force_active = options.get("force_active", False)
         self.school = _resolve_school(options.get("school"))
         if options.get("school") and not self.school:
-            self.stdout.write(self.style.ERROR("School not found for --school=%s" % options.get("school")))
+            self.stdout.write(
+                self.style.ERROR(
+                    "School not found for --school=%s" % options.get("school")
+                )
+            )
             return
         if self.school:
-            self.stdout.write("Seeding for school: %s (slug=%s)" % (self.school.name, self.school.slug))
+            self.stdout.write(
+                "Seeding for school: %s (slug=%s)"
+                % (self.school.name, self.school.slug)
+            )
 
         year = self._ensure_academic_year(force_active=force_active)
         terms = self._ensure_terms(year, force_active=force_active)
@@ -119,13 +127,19 @@ class Command(BaseCommand):
         parent_users = self._ensure_parents()
         teacher_users = self._ensure_teachers()
         teacher_profiles = self._ensure_teacher_profiles(teacher_users)
-        student_profiles = self._ensure_students(year, classroom, specialty, parent_users)
+        student_profiles = self._ensure_students(
+            year, classroom, specialty, parent_users
+        )
 
-        assignments = self._ensure_subject_assignments(year, terms, classroom, specialty, subject_map)
+        assignments = self._ensure_subject_assignments(
+            year, terms, classroom, specialty, subject_map
+        )
         self._ensure_teacher_assignments(year, assignments, teacher_profiles)
         self._ensure_assessment_weights(year, terms)
         self._ensure_promotion_rule(year, classroom)
-        self._ensure_evaluations(terms, assignments, student_profiles, teacher_profiles, subject_map)
+        self._ensure_evaluations(
+            terms, assignments, student_profiles, teacher_profiles, subject_map
+        )
         self._ensure_publish_statuses(year, terms)
 
         self.stdout.write(self.style.SUCCESS("\nTest data ready for 2024/2025."))
@@ -243,13 +257,22 @@ class Command(BaseCommand):
             classroom.allows_third_term = True
             changed = True
         if changed:
-            classroom.save(update_fields=["name", "department", "academic_year", "allows_third_term"])
+            classroom.save(
+                update_fields=[
+                    "name",
+                    "department",
+                    "academic_year",
+                    "allows_third_term",
+                ]
+            )
         return classroom
 
     def _ensure_subjects(self) -> dict[str, Subject]:
         subject_map: dict[str, Subject] = {}
         for name, _coef in SUBJECTS:
-            subject, _ = Subject.objects.get_or_create(school=self.school, name=name, defaults={})
+            subject, _ = Subject.objects.get_or_create(
+                school=self.school, name=name, defaults={}
+            )
             subject_map[name] = subject
         return subject_map
 
@@ -308,7 +331,9 @@ class Command(BaseCommand):
             user.save()
         return user
 
-    def _ensure_teacher_profiles(self, teacher_users: dict[str, User]) -> dict[str, TeacherProfile]:
+    def _ensure_teacher_profiles(
+        self, teacher_users: dict[str, User]
+    ) -> dict[str, TeacherProfile]:
         profiles: dict[str, TeacherProfile] = {}
         for idx, (username, user) in enumerate(teacher_users.items(), start=1):
             profile, _ = TeacherProfile.objects.get_or_create(

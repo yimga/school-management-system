@@ -20,81 +20,111 @@ def noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('schools', '0002_enable_rls_postgresql'),
-        ('siteconfig', '0083_enable_rls_postgresql'),
+        ("schools", "0002_enable_rls_postgresql"),
+        ("siteconfig", "0083_enable_rls_postgresql"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='integration',
-            options={'ordering': ['provider', 'name']},
+            name="integration",
+            options={"ordering": ["provider", "name"]},
         ),
         migrations.AddField(
-            model_name='integration',
-            name='allowed_scopes',
+            model_name="integration",
+            name="allowed_scopes",
             field=models.JSONField(blank=True, default=dict),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='category',
-            field=models.CharField(blank=True, choices=[('LMS', 'LMS'), ('PAYMENT', 'Payment'), ('ATTENDANCE', 'Attendance'), ('LIBRARY', 'Library'), ('AI', 'AI'), ('SIS', 'SIS'), ('OTHER', 'Other')], default='OTHER', max_length=20),
+            model_name="integration",
+            name="category",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("LMS", "LMS"),
+                    ("PAYMENT", "Payment"),
+                    ("ATTENDANCE", "Attendance"),
+                    ("LIBRARY", "Library"),
+                    ("AI", "AI"),
+                    ("SIS", "SIS"),
+                    ("OTHER", "Other"),
+                ],
+                default="OTHER",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='created_at',
+            model_name="integration",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, null=True),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='health_status',
-            field=models.CharField(blank=True, choices=[('healthy', 'Healthy'), ('degraded', 'Degraded'), ('down', 'Down')], default='healthy', max_length=20),
+            model_name="integration",
+            name="health_status",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("healthy", "Healthy"),
+                    ("degraded", "Degraded"),
+                    ("down", "Down"),
+                ],
+                default="healthy",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='ip_whitelist',
+            model_name="integration",
+            name="ip_whitelist",
             field=models.JSONField(blank=True, default=list),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='last_call_at',
+            model_name="integration",
+            name="last_call_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='pii_masking',
+            model_name="integration",
+            name="pii_masking",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='rate_limit_per_min',
+            model_name="integration",
+            name="rate_limit_per_min",
             field=models.PositiveIntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='integrations', to='schools.school'),
+            model_name="integration",
+            name="school",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="integrations",
+                to="schools.school",
+            ),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='secret_key_hash',
+            model_name="integration",
+            name="secret_key_hash",
             field=models.TextField(blank=True),
         ),
         migrations.AddField(
-            model_name='integration',
-            name='slug',
+            model_name="integration",
+            name="slug",
             field=models.SlugField(blank=True, null=True, unique=True),
         ),
         migrations.AlterField(
-            model_name='integration',
-            name='enabled',
-            field=models.BooleanField(default=False, help_text='Master kill switch: when False, this integration is not used (payments, email, portal links).'),
+            model_name="integration",
+            name="enabled",
+            field=models.BooleanField(
+                default=False,
+                help_text="Master kill switch: when False, this integration is not used (payments, email, portal links).",
+            ),
         ),
         migrations.RunPython(backfill_integration_slug_and_created, noop),
         migrations.AlterField(
-            model_name='integration',
-            name='slug',
+            model_name="integration",
+            name="slug",
             field=models.SlugField(max_length=50, unique=True),
         ),
     ]

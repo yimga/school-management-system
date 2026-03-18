@@ -6,105 +6,250 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('people', '0039_tenant_upload_to_profiles_passport'),
-        ('schools', '0028_add_default_workflow_dashboard_slugs'),
+        ("people", "0039_tenant_upload_to_profiles_passport"),
+        ("schools", "0028_add_default_workflow_dashboard_slugs"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='BiometricDevice',
+            name="BiometricDevice",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('location', models.CharField(blank=True, max_length=255)),
-                ('device_id', models.CharField(blank=True, db_index=True, max_length=64)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='biometric_devices', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                ("location", models.CharField(blank=True, max_length=255)),
+                (
+                    "device_id",
+                    models.CharField(blank=True, db_index=True, max_length=64),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="biometric_devices",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='BiometricAttendanceLog',
+            name="BiometricAttendanceLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('timestamp', models.DateTimeField(db_index=True)),
-                ('raw_identifier', models.CharField(blank=True, db_index=True, max_length=120)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('student', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='biometric_logs', to='people.studentprofile')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='biometric_logs', to=settings.AUTH_USER_MODEL)),
-                ('device', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance_logs', to='schools.biometricdevice')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("timestamp", models.DateTimeField(db_index=True)),
+                (
+                    "raw_identifier",
+                    models.CharField(blank=True, db_index=True, max_length=120),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "student",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="biometric_logs",
+                        to="people.studentprofile",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="biometric_logs",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "device",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="attendance_logs",
+                        to="schools.biometricdevice",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-timestamp'],
+                "ordering": ["-timestamp"],
             },
         ),
         migrations.CreateModel(
-            name='HealthRecord',
+            name="HealthRecord",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('record_type', models.CharField(help_text='e.g. allergy, medication, vaccination, visit', max_length=32)),
-                ('notes', models.TextField(blank=True)),
-                ('recorded_at', models.DateTimeField(auto_now_add=True)),
-                ('confidential', models.BooleanField(default=False)),
-                ('recorded_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='recorded_health_records', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='health_records', to='schools.school')),
-                ('student', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='health_records', to='people.studentprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "record_type",
+                    models.CharField(
+                        help_text="e.g. allergy, medication, vaccination, visit",
+                        max_length=32,
+                    ),
+                ),
+                ("notes", models.TextField(blank=True)),
+                ("recorded_at", models.DateTimeField(auto_now_add=True)),
+                ("confidential", models.BooleanField(default=False)),
+                (
+                    "recorded_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="recorded_health_records",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="health_records",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        db_constraint=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="health_records",
+                        to="people.studentprofile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-recorded_at'],
+                "ordering": ["-recorded_at"],
             },
         ),
         migrations.CreateModel(
-            name='Hostel',
+            name="Hostel",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('capacity', models.PositiveIntegerField(default=0, help_text='Total bed capacity')),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='hostels', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                (
+                    "capacity",
+                    models.PositiveIntegerField(
+                        default=0, help_text="Total bed capacity"
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="hostels",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['name'],
-                'unique_together': {('school', 'name')},
+                "ordering": ["name"],
+                "unique_together": {("school", "name")},
             },
         ),
         migrations.CreateModel(
-            name='CanteenMeal',
+            name="CanteenMeal",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
-                ('price', models.DecimalField(decimal_places=2, default=0, max_digits=10)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='canteen_meals', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
+                (
+                    "price",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="canteen_meals",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['name'],
-                'unique_together': {('school', 'name')},
+                "ordering": ["name"],
+                "unique_together": {("school", "name")},
             },
         ),
         migrations.CreateModel(
-            name='HostelRoom',
+            name="HostelRoom",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=60)),
-                ('capacity', models.PositiveSmallIntegerField(default=1)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('hostel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rooms', to='schools.hostel')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=60)),
+                ("capacity", models.PositiveSmallIntegerField(default=1)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "hostel",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rooms",
+                        to="schools.hostel",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['hostel', 'name'],
-                'unique_together': {('hostel', 'name')},
+                "ordering": ["hostel", "name"],
+                "unique_together": {("hostel", "name")},
             },
         ),
     ]

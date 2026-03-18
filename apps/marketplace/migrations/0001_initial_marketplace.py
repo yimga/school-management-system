@@ -6,107 +6,251 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('schools', '0026_rls_policy_default_deny'),
+        ("schools", "0026_rls_policy_default_deny"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='MarketplaceApp',
+            name="MarketplaceApp",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('slug', models.SlugField(max_length=80, unique=True)),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('kind', models.CharField(choices=[('first_party', 'First-party'), ('third_party', 'Third-party')], default='first_party', max_length=20)),
-                ('version', models.CharField(max_length=32)),
-                ('manifest', models.JSONField(default=dict, help_text='scopes, widgets, events_consumed, events_emitted, migration_ref')),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("slug", models.SlugField(max_length=80, unique=True)),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "kind",
+                    models.CharField(
+                        choices=[
+                            ("first_party", "First-party"),
+                            ("third_party", "Third-party"),
+                        ],
+                        default="first_party",
+                        max_length=20,
+                    ),
+                ),
+                ("version", models.CharField(max_length=32)),
+                (
+                    "manifest",
+                    models.JSONField(
+                        default=dict,
+                        help_text="scopes, widgets, events_consumed, events_emitted, migration_ref",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Marketplace App',
-                'verbose_name_plural': 'Marketplace Apps',
-                'ordering': ['name'],
+                "verbose_name": "Marketplace App",
+                "verbose_name_plural": "Marketplace Apps",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='AppInstallation',
+            name="AppInstallation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('active', 'Active'), ('suspended', 'Suspended'), ('uninstalled', 'Uninstalled')], db_index=True, default='active', max_length=20)),
-                ('installed_at', models.DateTimeField(auto_now_add=True)),
-                ('config', models.JSONField(default=dict, help_text='Tenant-specific app config')),
-                ('widget_config', models.JSONField(blank=True, default=dict)),
-                ('installed_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='app_installations', to='schools.school')),
-                ('app', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='installations', to='marketplace.marketplaceapp')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("active", "Active"),
+                            ("suspended", "Suspended"),
+                            ("uninstalled", "Uninstalled"),
+                        ],
+                        db_index=True,
+                        default="active",
+                        max_length=20,
+                    ),
+                ),
+                ("installed_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "config",
+                    models.JSONField(
+                        default=dict, help_text="Tenant-specific app config"
+                    ),
+                ),
+                ("widget_config", models.JSONField(blank=True, default=dict)),
+                (
+                    "installed_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="app_installations",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "app",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="installations",
+                        to="marketplace.marketplaceapp",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'App Installation',
-                'verbose_name_plural': 'App Installations',
-                'ordering': ['-installed_at'],
+                "verbose_name": "App Installation",
+                "verbose_name_plural": "App Installations",
+                "ordering": ["-installed_at"],
             },
         ),
         migrations.CreateModel(
-            name='AppVersionCompat',
+            name="AppVersionCompat",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('platform_min_version', models.CharField(blank=True, max_length=32)),
-                ('app_version_min', models.CharField(blank=True, max_length=32)),
-                ('app_version_max', models.CharField(blank=True, max_length=32)),
-                ('notes', models.CharField(blank=True, max_length=255)),
-                ('app', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='version_compat', to='marketplace.marketplaceapp')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("platform_min_version", models.CharField(blank=True, max_length=32)),
+                ("app_version_min", models.CharField(blank=True, max_length=32)),
+                ("app_version_max", models.CharField(blank=True, max_length=32)),
+                ("notes", models.CharField(blank=True, max_length=255)),
+                (
+                    "app",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="version_compat",
+                        to="marketplace.marketplaceapp",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'App Version Compatibility',
-                'verbose_name_plural': 'App Version Compatibility',
+                "verbose_name": "App Version Compatibility",
+                "verbose_name_plural": "App Version Compatibility",
             },
         ),
         migrations.CreateModel(
-            name='AppAuditLog',
+            name="AppAuditLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('action', models.CharField(db_index=True, max_length=64)),
-                ('payload', models.JSONField(default=dict)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('actor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='marketplace_audit_logs', to='schools.school')),
-                ('installation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='audit_logs', to='marketplace.appinstallation')),
-                ('app', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='audit_logs', to='marketplace.marketplaceapp')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("action", models.CharField(db_index=True, max_length=64)),
+                ("payload", models.JSONField(default=dict)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "actor",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="marketplace_audit_logs",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "installation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="audit_logs",
+                        to="marketplace.appinstallation",
+                    ),
+                ),
+                (
+                    "app",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="audit_logs",
+                        to="marketplace.marketplaceapp",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'App Audit Log',
-                'verbose_name_plural': 'App Audit Logs',
-                'ordering': ['-created_at'],
+                "verbose_name": "App Audit Log",
+                "verbose_name_plural": "App Audit Logs",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='AppScope',
+            name="AppScope",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('scope_code', models.CharField(max_length=80)),
-                ('description', models.CharField(blank=True, max_length=255)),
-                ('app', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='scopes', to='marketplace.marketplaceapp')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("scope_code", models.CharField(max_length=80)),
+                ("description", models.CharField(blank=True, max_length=255)),
+                (
+                    "app",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="scopes",
+                        to="marketplace.marketplaceapp",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'App Scope',
-                'verbose_name_plural': 'App Scopes',
-                'ordering': ['app', 'scope_code'],
-                'unique_together': {('app', 'scope_code')},
+                "verbose_name": "App Scope",
+                "verbose_name_plural": "App Scopes",
+                "ordering": ["app", "scope_code"],
+                "unique_together": {("app", "scope_code")},
             },
         ),
         migrations.AddIndex(
-            model_name='appinstallation',
-            index=models.Index(fields=['school', 'status'], name='mkt_inst_school_status'),
+            model_name="appinstallation",
+            index=models.Index(
+                fields=["school", "status"], name="mkt_inst_school_status"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='appinstallation',
-            unique_together={('school', 'app')},
+            name="appinstallation",
+            unique_together={("school", "app")},
         ),
     ]

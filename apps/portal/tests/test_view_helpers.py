@@ -2,7 +2,8 @@ from unittest.mock import patch
 
 from django.test import RequestFactory, TestCase
 
-from apps.portal.views import _parent_workflow_link, _portal_features_status, _whatsapp_invite_link
+from apps.portal.views_common import _portal_features_status
+from apps.portal.views_parent import _parent_workflow_link, _whatsapp_invite_link
 
 
 class PortalViewHelperTests(TestCase):
@@ -10,21 +11,29 @@ class PortalViewHelperTests(TestCase):
         self.factory = RequestFactory()
 
     def test_parent_workflow_link_returns_none_when_reverse_fails(self):
-        with patch("apps.portal.views.reverse", side_effect=RuntimeError("reverse unavailable")):
+        with patch(
+            "apps.portal.views_parent.reverse",
+            side_effect=RuntimeError("reverse unavailable"),
+        ):
             link = _parent_workflow_link("Finance", "portal:parent_finance")
 
         self.assertIsNone(link)
 
-    def test_whatsapp_invite_link_falls_back_to_none_when_integration_lookup_fails(self):
+    def test_whatsapp_invite_link_falls_back_to_none_when_integration_lookup_fails(
+        self,
+    ):
         request = self.factory.get("/")
         request.school = object()
 
-        with patch(
-            "apps.siteconfig.integration_registry.resolve_active_integration",
-            side_effect=RuntimeError("integration lookup failed"),
-        ), patch(
-            "apps.portal.views.get_effective_support_contact_settings",
-            return_value={},
+        with (
+            patch(
+                "apps.siteconfig.integration_registry.resolve_active_integration",
+                side_effect=RuntimeError("integration lookup failed"),
+            ),
+            patch(
+                "apps.portal.views_parent.get_effective_support_contact_settings",
+                return_value={},
+            ),
         ):
             link = _whatsapp_invite_link(request)
 
@@ -34,23 +43,30 @@ class PortalViewHelperTests(TestCase):
         request = self.factory.get("/")
         request.school = object()
 
-        with patch(
-            "apps.siteconfig.integration_registry.resolve_active_integration",
-            side_effect=RuntimeError("integration lookup failed"),
-        ), patch(
-            "apps.portal.views.get_effective_support_contact_settings",
-            return_value={
-                "whatsapp_admissions_number": "+15551234567",
-                "whatsapp_support_number": "",
-            },
-        ), patch("apps.portal.views.get_site_display_name", return_value="North Star Academy"):
+        with (
+            patch(
+                "apps.siteconfig.integration_registry.resolve_active_integration",
+                side_effect=RuntimeError("integration lookup failed"),
+            ),
+            patch(
+                "apps.portal.views_parent.get_effective_support_contact_settings",
+                return_value={
+                    "whatsapp_admissions_number": "+15551234567",
+                    "whatsapp_support_number": "",
+                },
+            ),
+            patch(
+                "apps.portal.views_parent.get_site_display_name",
+                return_value="North Star Academy",
+            ),
+        ):
             link = _whatsapp_invite_link(request)
 
         self.assertIn("wa.me/15551234567", link)
 
     def test_portal_features_status_prefers_owner_scoped_feature_control_settings(self):
         with patch(
-            "apps.portal.views.get_effective_feature_control_settings",
+            "apps.portal.views_common.get_effective_feature_control_settings",
             return_value={
                 "portal_features": {
                     "documents": False,

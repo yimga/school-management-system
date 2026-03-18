@@ -3,6 +3,7 @@ Multi-tenant School and SchoolMembership models (Option B+C).
 School is the tenant; SchoolMembership links users to schools with a role.
 Phase D: Plan + addons; is_feature_enabled(tenant, code) for feature gate.
 """
+
 import logging
 import uuid
 
@@ -39,9 +40,17 @@ def limits(school) -> dict:
         return {}
     try:
         from apps.schools.models import TenantQuotaLimit
+
         qs = TenantQuotaLimit.objects.filter(school=school, is_active=True)
         return {q.limit_type: q.limit_value for q in qs}
-    except (ImportError, DatabaseError, OperationalError, AttributeError, TypeError, KeyError):
+    except (
+        ImportError,
+        DatabaseError,
+        OperationalError,
+        AttributeError,
+        TypeError,
+        KeyError,
+    ):
         return {}
 
 
@@ -70,13 +79,25 @@ def is_feature_enabled(school, code: str) -> bool:
         addon_set = [str(x).strip().lower() for x in addons if x]
         if normalized in addon_set:
             return True
+    # Wedges 23–43: School.features JSON (learning institution packs + one-click installs)
+    raw_feats = getattr(school, "features", None) or {}
+    if isinstance(raw_feats, dict):
+        for fk, fv in raw_feats.items():
+            if fv and str(fk).strip().lower() == normalized:
+                return True
     # Phase A: getTenantModules — union of feature keys from TenantSystem + SystemFeature
     try:
         from apps.siteconfig.tenant_config import get_tenant_modules
+
         if normalized in (get_tenant_modules(school) or []):
             return True
     except (ImportError, AttributeError, TypeError) as e:
-        logger.debug("schools.is_feature_enabled get_tenant_modules for school=%s code=%s: %s", school, code, e)
+        logger.debug(
+            "schools.is_feature_enabled get_tenant_modules for school=%s code=%s: %s",
+            school,
+            code,
+            e,
+        )
     return _has_feature_fallback(school, code)
 
 
@@ -86,18 +107,33 @@ def _has_feature_fallback(school, code: str) -> bool:
     if not normalized:
         return False
     from apps.policies.policy_registry import get_effective_policy
+
     policy = get_effective_policy(school)
     fallback = bool(policy.get("features", {}).get(normalized))
     try:
         from apps.siteconfig.feature_toggles import resolve_module_enabled
+
         return resolve_module_enabled(normalized, school=school, fallback=fallback)
-    except (ImportError, AttributeError, TypeError, ValueError, KeyError, DatabaseError) as e:
-        logger.debug("schools._has_feature_fallback for school=%s code=%s: %s", getattr(school, "id", None), code, e)
+    except (
+        ImportError,
+        AttributeError,
+        TypeError,
+        ValueError,
+        KeyError,
+        DatabaseError,
+    ) as e:
+        logger.debug(
+            "schools._has_feature_fallback for school=%s code=%s: %s",
+            getattr(school, "id", None),
+            code,
+            e,
+        )
         return fallback
 
 
 def _get_role_choices():
     from apps.accounts.models import User
+
     return User.Role.choices
 
 
@@ -118,7 +154,9 @@ class School(models.Model):
         INT = "INT", "International"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    slug = models.SlugField(max_length=120, unique=True, help_text="URL slug e.g. ghs-limbe")
+    slug = models.SlugField(
+        max_length=120, unique=True, help_text="URL slug e.g. ghs-limbe"
+    )
     name = models.CharField(max_length=255)
     subdomain = models.CharField(
         max_length=120,
@@ -163,9 +201,11 @@ class School(models.Model):
     features = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Enabled modules: {\"library\": true, \"transport\": false}",
+        help_text='Enabled modules: {"library": true, "transport": false}',
     )
-    logo_url = models.URLField(blank=True, help_text="URL to school logo (e.g. from tenants/{id}/logo.png)")
+    logo_url = models.URLField(
+        blank=True, help_text="URL to school logo (e.g. from tenants/{id}/logo.png)"
+    )
     wallpaper_url = models.URLField(
         blank=True,
         help_text="URL to tenant login wallpaper (split-screen left panel image)",
@@ -248,6 +288,7 @@ class School(models.Model):
         db_index=True,
         help_text="School type from module manifest (BASE_SCHOOL, TECHNICAL_COLLEGE, STEM_ACADEMY). Determines required_apps and UI skin.",
     )
+
     class BillingType(models.TextChoices):
         REGULAR = "REGULAR", "Regular (paying)"
         FREE_TRIAL = "FREE_TRIAL", "Free trial"
@@ -296,6 +337,7 @@ class School(models.Model):
         ],
         help_text="Reason for freeze; required when is_frozen is True.",
     )
+
     # Plan XXI: Compliance Region — GDPR (EU), FERPA (US), NDPR (Nigeria). Enables data masking, retention, consent flows.
     class ComplianceRegion(models.TextChoices):
         NONE = "", "None (default)"
@@ -314,7 +356,7 @@ class School(models.Model):
     branding_metadata = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Optional: {\"primary\": \"#hex\", \"accent\": \"#hex\", \"font\": \"Family, sans-serif\"}. Maps to --primary, --accent in tenant CSS.",
+        help_text='Optional: {"primary": "#hex", "accent": "#hex", "font": "Family, sans-serif"}. Maps to --primary, --accent in tenant CSS.',
     )
     education_levels = models.ManyToManyField(
         "registries.EducationLevelRegistry",
@@ -327,6 +369,13 @@ class School(models.Model):
         blank=True,
         related_name="schools",
         help_text="Canonical education system types served by this school.",
+    )
+    # SOT §0.2.1 wedge 14–22: primary sector (Public, Private, Charter, International, etc.) for RBAC/reporting.
+    primary_sector = models.CharField(
+        max_length=48,
+        blank=True,
+        db_index=True,
+        help_text="Primary education system sector (wedge 14–22): PUBLIC, PRIVATE, CHARTER, INTERNATIONAL, FAITH_BASED, HOME_SCHOOL, GOVERNMENT_MINISTRY, NGO, MULTI_CAMPUS.",
     )
     # World Engine: data sovereignty / scaling — region cluster and optional dedicated DB.
     regional_cluster = models.CharField(
@@ -368,7 +417,10 @@ class School(models.Model):
             return str(self.country_code).upper()
         try:
             from apps.siteconfig.global_catalog import GlobalGeoCatalog
-            return GlobalGeoCatalog.alpha2_for_country(getattr(self, "default_region_id", "") or "")
+
+            return GlobalGeoCatalog.alpha2_for_country(
+                getattr(self, "default_region_id", "") or ""
+            )
         except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
             logger.debug("schools.Region.canonical_country_code failed: %s", e)
             return ""
@@ -377,6 +429,7 @@ class School(models.Model):
     def resolved_country_alpha3(self) -> str:
         try:
             from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
             return GlobalGeoCatalog.normalize_country_code(
                 self.country_code or getattr(self, "default_region_id", "") or ""
             )
@@ -390,7 +443,9 @@ class School(models.Model):
             parent = School.objects.filter(pk=self.parent_school_id).first()
             if parent:
                 base = (getattr(parent, "hierarchy_path", "") or "").strip()
-                self.hierarchy_path = (base + "/" + str(parent.pk)).strip("/") if base else str(parent.pk)
+                self.hierarchy_path = (
+                    (base + "/" + str(parent.pk)).strip("/") if base else str(parent.pk)
+                )
             else:
                 self.hierarchy_path = str(self.parent_school_id)
         else:
@@ -404,6 +459,7 @@ class School(models.Model):
     def get_cname_target(self) -> str:
         """Return the hostname schools should CNAME their custom_domain to (whitelabel Phase 4)."""
         from apps.schools.host_routing import get_canonical_base_domain
+
         return get_canonical_base_domain() or "runmycampus.com"
 
     def get_ancestor_chain(self) -> list:
@@ -428,6 +484,7 @@ class School(models.Model):
     def get_descendants(self, include_self=False):
         """Return all schools in the subtree (children, grandchildren, ...). Uses hierarchy_path when set."""
         from django.db.models import Q
+
         # Path format: root has ""; child has "/root_id"; grandchild has "/root_id/parent_id"
         if self.hierarchy_path:
             prefix = (self.hierarchy_path + "/" + str(self.pk)).strip("/")
@@ -438,7 +495,10 @@ class School(models.Model):
         else:
             qs = School.objects.filter(parent_school_id=self.pk, is_active=True)
         if include_self:
-            qs = School.objects.filter(Q(pk=self.pk) | Q(pk__in=qs.values_list("id", flat=True)), is_active=True)
+            qs = School.objects.filter(
+                Q(pk=self.pk) | Q(pk__in=qs.values_list("id", flat=True)),
+                is_active=True,
+            )
         return qs
 
     def get_ancestors(self):
@@ -448,7 +508,9 @@ class School(models.Model):
             if not uuids:
                 return School.objects.none()
             return School.objects.filter(pk__in=uuids, is_active=True)
-        return type(self).objects.filter(pk__in=[p.pk for p in self.get_ancestor_chain()])
+        return type(self).objects.filter(
+            pk__in=[p.pk for p in self.get_ancestor_chain()]
+        )
 
 
 class SchoolProvisioningEvent(models.Model):
@@ -479,7 +541,9 @@ class SchoolProvisioningEvent(models.Model):
         related_name="provisioning_events",
     )
     event_type = models.CharField(max_length=40, choices=EventType.choices)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.INFO)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.INFO
+    )
     message = models.CharField(max_length=255, blank=True)
     payload = models.JSONField(default=dict, blank=True)
     created_by = models.ForeignKey(
@@ -622,13 +686,16 @@ class SignupVerification(models.Model):
     with is_active=False; when user clicks link with valid token, school is
     activated and provisioning runs.
     """
+
     school = models.OneToOneField(
         School,
         on_delete=models.CASCADE,
         related_name="signup_verification",
     )
     email = models.EmailField()
-    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    token = models.UUIDField(
+        default=uuid.uuid4, editable=False, unique=True, db_index=True
+    )
     expires_at = models.DateTimeField()
     verified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -644,6 +711,7 @@ class SignupVerification(models.Model):
 
 class TenantQuotaLimit(models.Model):
     """Per-tenant API/quota limits for SaaS billing and fairness (Plan I)."""
+
     school = models.ForeignKey(
         School,
         on_delete=models.CASCADE,
@@ -675,12 +743,15 @@ class TenantQuotaLimit(models.Model):
 
 class TenantApiUsage(models.Model):
     """Per-tenant API usage for billing and super-admin dashboard (Plan I)."""
+
     school = models.ForeignKey(
         School,
         on_delete=models.CASCADE,
         related_name="api_usage_records",
     )
-    period_date = models.DateField(help_text="Date (or first day of period) for aggregation")
+    period_date = models.DateField(
+        help_text="Date (or first day of period) for aggregation"
+    )
     request_count = models.PositiveIntegerField(default=0)
     limit_type = models.CharField(
         max_length=64,
@@ -696,6 +767,34 @@ class TenantApiUsage(models.Model):
 
     def __str__(self):
         return f"{self.school.name} {self.period_date}: {self.request_count}"
+
+
+class TenantInteropAccessLog(models.Model):
+    """
+    OneRoster / interop API access audit (which token, which endpoint, from where).
+    Phase J+: procurement and security review trail.
+    """
+
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="interop_access_logs",
+    )
+    service = models.CharField(max_length=32, db_index=True, default="oneroster")
+    endpoint = models.CharField(max_length=64, db_index=True)
+    integration_id = models.IntegerField(null=True, blank=True)
+    client_ip = models.CharField(max_length=64, blank=True)
+    token_prefix = models.CharField(max_length=16, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "created_at"]),
+        ]
+        verbose_name = "Tenant interop access log"
+        verbose_name_plural = "Tenant interop access logs"
+
 
 from apps.schoolops.models import (  # noqa: E402,F401
     Bus,
@@ -714,12 +813,62 @@ from apps.schoolops.models import (  # noqa: E402,F401
 )
 
 
+class AdvancementDonor(models.Model):
+    """
+    Wedge 5 Phase 2: per-school donor CRM (minimal v1 — gifts and receipts).
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="advancement_donors",
+    )
+    display_name = models.CharField(max_length=200)
+    email = models.EmailField(blank=True)
+    external_ref = models.CharField(
+        max_length=120, blank=True, help_text="External CRM id"
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name = "Advancement donor"
+        verbose_name_plural = "Advancement donors"
+
+    def __str__(self) -> str:
+        return f"{self.display_name} ({self.school.slug})"
+
+
+class AdvancementGift(models.Model):
+    """Gift / receipt line tied to a donor."""
+
+    donor = models.ForeignKey(
+        AdvancementDonor,
+        on_delete=models.CASCADE,
+        related_name="gifts",
+    )
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    currency = models.CharField(max_length=3, default="USD")
+    received_at = models.DateField()
+    receipt_sent = models.BooleanField(default=False)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-received_at", "-pk"]
+        verbose_name = "Advancement gift"
+        verbose_name_plural = "Advancement gifts"
+
+
 class MarketingFunnelEvent(models.Model):
     """
     Wave 4: Conversion funnel events for marketing dashboard.
     visit -> discovery -> signup -> activation.
     utm_source / utm_medium support funnel breakdown by channel.
     """
+
     EVENT_TYPES = (
         ("visit", "Visit (landing)"),
         ("discovery", "Discovery (find school / discover)"),

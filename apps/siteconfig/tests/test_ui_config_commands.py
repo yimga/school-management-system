@@ -10,7 +10,9 @@ from django.test import TestCase, override_settings
 
 from apps.brand_experience.models import ThemePack
 from apps.finance.models import ComplianceProfile
-from apps.siteconfig.management.commands.import_ui_config import Command as ImportUIConfigCommand
+from apps.siteconfig.management.commands.import_ui_config import (
+    Command as ImportUIConfigCommand,
+)
 from apps.siteconfig.models import SiteSettings
 
 
@@ -56,7 +58,9 @@ class UIConfigCommandTests(TestCase):
             output = tmp / "ui_export.json"
             call_command("export_ui_config", "--output", str(output))
             payload = json.loads(output.read_text(encoding="utf-8"))
-            site_row = next(row for row in payload if row.get("model") == "siteconfig.sitesettings")
+            site_row = next(
+                row for row in payload if row.get("model") == "siteconfig.sitesettings"
+            )
             fields = site_row.get("fields") or {}
             self.assertEqual(fields.get("compliance_profile"), profile.pk)
             self.assertNotIn("compliance_profile_id", fields)
@@ -72,7 +76,12 @@ class UIConfigCommandTests(TestCase):
         ComplianceProfile.objects.all().delete()
         cmd = ImportUIConfigCommand()
         cmd._ensure_dependencies(
-            [{"model": "siteconfig.sitesettings", "fields": {"compliance_profile": 321}}]
+            [
+                {
+                    "model": "siteconfig.sitesettings",
+                    "fields": {"compliance_profile": 321},
+                }
+            ]
         )
         self.assertTrue(ComplianceProfile.objects.filter(pk=321).exists())
 
@@ -81,7 +90,13 @@ class UIConfigCommandTests(TestCase):
             output = tmp / "ui_export.json"
             call_command("export_ui_config", "--output", str(output))
             stdout = StringIO()
-            call_command("check_ui_parity", "--input-file", str(output), "--strict", stdout=stdout)
+            call_command(
+                "check_ui_parity",
+                "--input-file",
+                str(output),
+                "--strict",
+                stdout=stdout,
+            )
             self.assertIn("UI parity check passed", stdout.getvalue())
 
     def test_check_ui_parity_strict_detects_drift(self):
@@ -104,7 +119,13 @@ class UIConfigCommandTests(TestCase):
                     row.setdefault("fields", {}).pop("backend_console_theme", None)
             output.write_text(json.dumps(data, indent=2), encoding="utf-8")
             stdout = StringIO()
-            call_command("check_ui_parity", "--input-file", str(output), "--strict", stdout=stdout)
+            call_command(
+                "check_ui_parity",
+                "--input-file",
+                str(output),
+                "--strict",
+                stdout=stdout,
+            )
             self.assertIn("UI parity check passed", stdout.getvalue())
 
     @override_settings(USE_DJANGO_TENANTS=True)
@@ -121,4 +142,6 @@ class UIConfigCommandTests(TestCase):
             self.assertEqual(ThemePack.objects.count(), 1)
             site = SiteSettings.objects.order_by("pk").first()
             self.assertIsNotNone(site)
-            self.assertEqual(site.theme_pack_id, ThemePack.objects.order_by("pk").first().pk)
+            self.assertEqual(
+                site.theme_pack_id, ThemePack.objects.order_by("pk").first().pk
+            )

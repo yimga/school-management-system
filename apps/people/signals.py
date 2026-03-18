@@ -2,6 +2,7 @@
 Signal handlers for people models.
 §2.4: Typed exception tuples and log_exception_with_context for event/leadership/AccessRequest paths.
 """
+
 import logging
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -10,7 +11,12 @@ from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
 from apps.communication.models import MessageThread
-from apps.people.models import TeacherProfile, StudentGuardian, StudentProfile, TeacherAttendance
+from apps.people.models import (
+    TeacherProfile,
+    StudentGuardian,
+    StudentProfile,
+    TeacherAttendance,
+)
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
 logger = logging.getLogger(__name__)
@@ -51,6 +57,7 @@ def emit_attendance_recorded_teacher(sender, instance, created, **kwargs):
         return
     try:
         from apps.events.services import emit_event
+
         school_id = getattr(instance.teacher, "school_id", None)
         emit_event(
             "attendance.recorded",
@@ -80,6 +87,7 @@ def emit_student_created_event(sender, instance, created, **kwargs):
     school_id = getattr(instance, "school_id", None)
     try:
         from apps.events.services import emit_event
+
         emit_event(
             "student.created",
             {
@@ -98,6 +106,7 @@ def emit_student_created_event(sender, instance, created, **kwargs):
         logger.debug("emit student.created skipped: %s", e)
     try:
         from apps.platform_runtime.events import emit_platform_event
+
         emit_platform_event(
             "student_created",
             {"student_id": instance.id, "school_id": school_id},
@@ -119,7 +128,11 @@ def sync_student_parent_phone_from_guardian(sender, instance, **kwargs):
     set student.parent_phone so fallback contact (StudentProfile.parent_phone) stays in sync.
     See docs/DATA_PARENT_CONTACT.md.
     """
-    if instance.phone and instance.student_id and not (instance.student.parent_phone or "").strip():
+    if (
+        instance.phone
+        and instance.student_id
+        and not (instance.student.parent_phone or "").strip()
+    ):
         instance.student.parent_phone = instance.phone
         instance.student.save(update_fields=["parent_phone"])
 
@@ -129,6 +142,7 @@ def award_onboarding_staff_badge(sender, instance, created, **kwargs):
     """Phase 3: Award 'Active Member' staff badge when a teacher profile is first created."""
     if created and instance.user_id:
         from apps.people.badge_services import create_staff_badge_for_onboarding
+
         create_staff_badge_for_onboarding(instance)
 
 
@@ -143,17 +157,17 @@ def sync_teacher_department_thread(sender, instance, created, **kwargs):
             scope=MessageThread.Scope.DEPARTMENT,
             department=instance.department,
             defaults={
-                'title': f"{instance.department.name} Department",
-                'description': f"Group chat for {instance.department.name} department members",
-                'created_by': instance.user,
-            }
+                "title": f"{instance.department.name} Department",
+                "description": f"Group chat for {instance.department.name} department members",
+                "created_by": instance.user,
+            },
         )
         # Add teacher to thread if not already a member
         if instance.user not in thread.members.all():
             thread.members.add(instance.user)
-        
+
         # Remove from old department thread if department changed
-        if not created and 'department' in kwargs.get('update_fields', []):
+        if not created and "department" in kwargs.get("update_fields", []):
             # Get old department from previous state (if available)
             # For now, we'll just ensure they're in the current department thread
             pass
@@ -165,6 +179,7 @@ def _get_school_leadership_for_assignment(school):
         return None
     try:
         from apps.schools.models import SchoolMembership
+
         membership = (
             SchoolMembership.objects.filter(school=school)
             .filter(role__in=["LEADERSHIP", "ADMIN", "PRINCIPAL", "IT_ADMIN"])
@@ -187,7 +202,11 @@ def on_student_critical_tag_added(sender, instance, action, pk_set, **kwargs):
     from apps.people.models import InformationTag
     from django.contrib.contenttypes.models import ContentType
 
-    critical_tags = list(InformationTag.objects.filter(pk__in=pk_set, is_critical=True).values_list("name", flat=True))
+    critical_tags = list(
+        InformationTag.objects.filter(pk__in=pk_set, is_critical=True).values_list(
+            "name", flat=True
+        )
+    )
     if not critical_tags:
         return
     student = instance
@@ -202,6 +221,7 @@ def on_student_critical_tag_added(sender, instance, action, pk_set, **kwargs):
     )
     try:
         from apps.requests.models import AccessRequest
+
         student_ct = ContentType.objects.get_for_model(StudentProfile)
         title = f"Critical tag(s) added: {tags_str}"
         summary = (
@@ -226,11 +246,59 @@ def on_student_critical_tag_added(sender, instance, action, pk_set, **kwargs):
             target_content_type=student_ct,
             target_object_id=str(student.pk),
         )
-        logger.info("Created AccessRequest for critical tag(s); assigned_to=%s", assigned_to)
+        logger.info(
+            "Created AccessRequest for critical tag(s); assigned_to=%s", assigned_to
+        )
     except _ACCESS_REQUEST_CREATE_ERRORS as e:
         log_exception_with_context(
             "Could not create AccessRequest for critical tag",
             school_id=school_id,
             extra={"student_id": student.pk, "tags": critical_tags},
         )
-        logger.warning("Could not create AccessRequest for critical tag: %s", e, exc_info=True)
+        logger.warning(
+            "Could not create AccessRequest for critical tag: %s", e, exc_info=True
+        )
+
+
+@receiver(post_save, sender=StudentProfile)
+def roster_webhook_on_student_save(sender, instance, created, **kwargs):
+    """Phase J+: signed roster webhook for district/LMS freshness."""
+    try:
+        from apps.interop.oneroster.webhook_dispatch import emit_roster_webhook
+
+        school = getattr(instance, "school", None)
+        if not school:
+            return
+        emit_roster_webhook(
+            school,
+            event="student.created" if created else "student.updated",
+            entity="student",
+            sourced_id=str(instance.pk),
+            payload={
+                "student_code": getattr(instance, "student_code", "") or "",
+                "classroom_id": str(instance.classroom_id)
+                if instance.classroom_id
+                else None,
+            },
+        )
+    except (ImportError, AttributeError, TypeError, ValueError) as e:
+        logger.debug("roster_webhook student: %s", e)
+
+
+@receiver(post_save, sender=TeacherProfile)
+def roster_webhook_on_teacher_save(sender, instance, created, **kwargs):
+    try:
+        from apps.interop.oneroster.webhook_dispatch import emit_roster_webhook
+
+        school = getattr(instance, "school", None)
+        if not school:
+            return
+        emit_roster_webhook(
+            school,
+            event="teacher.created" if created else "teacher.updated",
+            entity="teacher",
+            sourced_id=str(instance.pk),
+            payload={},
+        )
+    except (ImportError, AttributeError, TypeError, ValueError) as e:
+        logger.debug("roster_webhook teacher: %s", e)

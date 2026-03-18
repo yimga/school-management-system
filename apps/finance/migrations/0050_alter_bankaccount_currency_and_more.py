@@ -5,35 +5,46 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('finance', '0049_add_payment_dispute'),
+        ("finance", "0049_add_payment_dispute"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='bankaccount',
-            name='currency',
-            field=models.CharField(default=apps.finance.models._default_currency, help_text='Currency code (ISO 4217, e.g. USD, XAF, EUR)', max_length=3),
+            model_name="bankaccount",
+            name="currency",
+            field=models.CharField(
+                default=apps.finance.models._default_currency,
+                help_text="Currency code (ISO 4217, e.g. USD, XAF, EUR)",
+                max_length=3,
+            ),
         ),
         migrations.AlterField(
-            model_name='complianceprofile',
-            name='currency_code',
-            field=models.CharField(default=apps.finance.models._default_currency, max_length=3),
+            model_name="complianceprofile",
+            name="currency_code",
+            field=models.CharField(
+                default=apps.finance.models._default_currency, max_length=3
+            ),
         ),
         migrations.AlterField(
-            model_name='complianceprofile',
-            name='currency_symbol',
-            field=models.CharField(default=apps.finance.models._default_currency, max_length=8),
+            model_name="complianceprofile",
+            name="currency_symbol",
+            field=models.CharField(
+                default=apps.finance.models._default_currency, max_length=8
+            ),
         ),
         migrations.AlterField(
-            model_name='parentwallet',
-            name='currency_code',
-            field=models.CharField(default=apps.finance.models._default_currency, max_length=3),
+            model_name="parentwallet",
+            name="currency_code",
+            field=models.CharField(
+                default=apps.finance.models._default_currency, max_length=3
+            ),
         ),
         migrations.AlterField(
-            model_name='suspensepayment',
-            name='currency',
-            field=models.CharField(default=apps.finance.models._default_currency, max_length=3),
+            model_name="suspensepayment",
+            name="currency",
+            field=models.CharField(
+                default=apps.finance.models._default_currency, max_length=3
+            ),
         ),
     ]

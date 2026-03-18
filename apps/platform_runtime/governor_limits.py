@@ -4,6 +4,7 @@ Define and expose limits for workflow volume, API throughput, dashboard refresh,
 migration concurrency, dynamic field count, and pack complexity.
 Enforcement can be phased; inspection always exposes current limits and usage.
 """
+
 from __future__ import annotations
 
 import logging
@@ -44,7 +45,9 @@ def _tenant_dashboard_refreshes_key(tenant_id: str, hour_str: str) -> str:
     return f"platform_runtime:governor:dashboard_refreshes:{tenant_id}:{hour_str}"
 
 
-def record_workflow_run(tenant_id: Optional[str] = None, school_id: Optional[int] = None) -> None:
+def record_workflow_run(
+    tenant_id: Optional[str] = None, school_id: Optional[int] = None
+) -> None:
     """Increment workflow run count for governor limits. Call from workflow_engine.run_workflow."""
     if not tenant_id and school_id is not None:
         tenant_id = str(school_id)
@@ -61,7 +64,9 @@ def record_workflow_run(tenant_id: Optional[str] = None, school_id: Optional[int
         logger.debug("governor record_workflow_run skip: %s", e)
 
 
-def record_dashboard_refresh(tenant_id: Optional[str] = None, school_id: Optional[int] = None) -> None:
+def record_dashboard_refresh(
+    tenant_id: Optional[str] = None, school_id: Optional[int] = None
+) -> None:
     """Increment dashboard refresh count for governor limits. Call from dashboard refresh endpoint or view."""
     if not tenant_id and school_id is not None:
         tenant_id = str(school_id)
@@ -110,6 +115,7 @@ def get_governor_usage_for_tenant(
     if tenant_id or school_id:
         try:
             from apps.api.rate_limit import get_tenant_api_request_count
+
             tid = tenant_id or (str(school_id) if school_id else None)
             if tid:
                 api_requests_last_minute = get_tenant_api_request_count(tid)
@@ -121,12 +127,16 @@ def get_governor_usage_for_tenant(
     if tid:
         try:
             date_str = timezone.now().strftime("%Y-%m-%d")
-            workflow_runs_today = cache.get(_tenant_workflow_runs_key(tid, date_str), 0) or 0
+            workflow_runs_today = (
+                cache.get(_tenant_workflow_runs_key(tid, date_str), 0) or 0
+            )
         except (TypeError, AttributeError, ConnectionError, OSError) as e:
             logger.debug("governor workflow_runs_today cache skip: %s", e)
         try:
             hour_str = timezone.now().strftime("%Y-%m-%d-%H")
-            dashboard_refreshes_last_hour = cache.get(_tenant_dashboard_refreshes_key(tid, hour_str), 0) or 0
+            dashboard_refreshes_last_hour = (
+                cache.get(_tenant_dashboard_refreshes_key(tid, hour_str), 0) or 0
+            )
         except (TypeError, AttributeError, ConnectionError, OSError) as e:
             logger.debug("governor dashboard_refreshes cache skip: %s", e)
     usage = {
@@ -138,12 +148,36 @@ def get_governor_usage_for_tenant(
         "ai_invocations_today": 0,
     }
     status = {
-        "workflow_runs_per_day": {"limit": limits["workflow_runs_per_day"], "used": usage["workflow_runs_today"], "enforced": False},
-        "api_requests_per_minute": {"limit": limits["api_requests_per_minute"], "used": usage["api_requests_last_minute"], "enforced": True},
-        "dashboard_refresh_per_hour": {"limit": limits["dashboard_refresh_per_hour"], "used": usage["dashboard_refreshes_last_hour"], "enforced": False},
-        "migration_concurrency": {"limit": limits["migration_concurrency"], "used": usage["active_migrations"], "enforced": False},
-        "dynamic_field_count_max": {"limit": limits["dynamic_field_count_max"], "used": usage["dynamic_field_count"], "enforced": False},
-        "ai_invocations_per_day": {"limit": limits["ai_invocations_per_day"], "used": usage["ai_invocations_today"], "enforced": False},
+        "workflow_runs_per_day": {
+            "limit": limits["workflow_runs_per_day"],
+            "used": usage["workflow_runs_today"],
+            "enforced": False,
+        },
+        "api_requests_per_minute": {
+            "limit": limits["api_requests_per_minute"],
+            "used": usage["api_requests_last_minute"],
+            "enforced": True,
+        },
+        "dashboard_refresh_per_hour": {
+            "limit": limits["dashboard_refresh_per_hour"],
+            "used": usage["dashboard_refreshes_last_hour"],
+            "enforced": False,
+        },
+        "migration_concurrency": {
+            "limit": limits["migration_concurrency"],
+            "used": usage["active_migrations"],
+            "enforced": False,
+        },
+        "dynamic_field_count_max": {
+            "limit": limits["dynamic_field_count_max"],
+            "used": usage["dynamic_field_count"],
+            "enforced": False,
+        },
+        "ai_invocations_per_day": {
+            "limit": limits["ai_invocations_per_day"],
+            "used": usage["ai_invocations_today"],
+            "enforced": False,
+        },
     }
     note = "API requests from throttle; workflow/dashboard from governor cache (record_workflow_run/record_dashboard_refresh)."
     return {
