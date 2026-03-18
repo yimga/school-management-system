@@ -53,20 +53,25 @@ def create_audit_trigger_function(cursor) -> None:
           action := TG_OP;
           IF TG_OP = 'DELETE' THEN
             old_json := to_jsonb(OLD) - redact_keys;
-            new_json := NULL;
+            new_json := '{}'::jsonb;
             rec_id := (OLD).id::text;
           ELSIF TG_OP = 'UPDATE' THEN
             old_json := to_jsonb(OLD) - redact_keys;
             new_json := to_jsonb(NEW) - redact_keys;
             rec_id := (NEW).id::text;
           ELSE
-            -- INSERT: audit_log.old_values is NOT NULL; empty object = no prior row
             old_json := '{}'::jsonb;
             new_json := to_jsonb(NEW) - redact_keys;
             rec_id := (NEW).id::text;
           END IF;
-          INSERT INTO audit_log (table_name, record_id, action, old_values, new_values, changed_at)
-          VALUES (tbl, rec_id, action, old_json, new_json, now());
+          INSERT INTO audit_log (
+            table_name, record_id, action, old_values, new_values, changed_at,
+            correlation_id, request_meta, changed_by
+          )
+          VALUES (
+            tbl, rec_id, action, old_json, new_json, now(),
+            '', '{}'::jsonb, NULL
+          );
           IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
         END;
         $$ LANGUAGE plpgsql;
