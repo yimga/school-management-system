@@ -6,11 +6,11 @@
 - Markdown files: `953`
 - Migration files: `616`
 - Management commands: `140` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1132`
+- `SiteSettings` refs: `1135`
 - `get_solo()` refs: `181`
-- `except Exception`: `205`
-- `cursor.execute()`: `351`
-- `csrf_exempt`: `124`
+- `except Exception`: `207`
+- `cursor.execute()`: `352`
+- `csrf_exempt`: `126`
 - `AllowAny`: `63`
 - `print()`: `530`
 - `gilead` matches: `687` across `134` files

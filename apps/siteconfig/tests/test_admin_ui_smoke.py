@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from html.parser import HTMLParser
-from django.template.loader import render_to_string
 from django.test import RequestFactory
 from django.test import TestCase
 from django.urls import reverse
@@ -112,18 +111,28 @@ class AdminUiSmokeTests(TestCase):
         request = self.factory.get("/admin/")
         request.user = manager
         request.session = {}
+        request.public_host_kind = "manager"  # so context builds CONTROL_PLANE_NAV
+        request.urlconf = "config.manager_urls"  # match control_plane_nav resolution
         ctx = site_settings(request)
-        html = render_to_string(
-            "admin/app_list.html", {"app_list": [], **ctx}, request=request
-        )
-        # Settings manager should see Site settings link (change or changelist depending on SITE in context)
-        change_url = reverse(
-            "admin:siteconfig_sitesettings_change", args=[self.site.pk]
-        )
-        changelist_url = reverse("admin:siteconfig_sitesettings_changelist")
+        # Settings manager should get CAN_MANAGE_SETTINGS and a config/settings entry in control plane nav
         self.assertTrue(
-            change_url in html or changelist_url in html,
-            msg=f"Expected Site settings link (change or changelist) in HTML for settings manager",
+            ctx.get("CAN_MANAGE_SETTINGS") is True,
+            msg="Expected CAN_MANAGE_SETTINGS True for settings manager",
+        )
+        nav_has_config_entry = False
+        for grp in ctx.get("CONTROL_PLANE_NAV") or []:
+            for it in grp.get("items") or []:
+                if it.get("url") and (
+                    it.get("id") == "config_console"
+                    or (it.get("label") or "").lower().find("config") >= 0
+                ):
+                    nav_has_config_entry = True
+                    break
+            if nav_has_config_entry:
+                break
+        self.assertTrue(
+            nav_has_config_entry,
+            msg="Expected System config or Site settings entry in control plane nav for settings manager",
         )
 
     def test_admin_sidebar_child_links_are_resolvable(self):

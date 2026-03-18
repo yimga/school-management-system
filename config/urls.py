@@ -31,6 +31,9 @@ from apps.schools.marketing_views import (
     marketing_robots_txt,
     marketing_sitemap_xml,
     developer_public_api_docs,
+    migrate_marketing_page,
+    institution_marketing_page,
+    role_marketing_page,
 )
 from apps.schools.signup_views import (
     signup_school,
@@ -452,6 +455,72 @@ urlpatterns = [
         name="marketing_solutions",
     ),
     path(
+        "solutions/k12/",
+        institution_marketing_page,
+        {"institution_slug": "k12"},
+        name="institution_k12",
+    ),
+    path(
+        "solutions/universities/",
+        institution_marketing_page,
+        {"institution_slug": "universities"},
+        name="institution_universities",
+    ),
+    path(
+        "solutions/technical-schools/",
+        institution_marketing_page,
+        {"institution_slug": "technical-schools"},
+        name="institution_technical_schools",
+    ),
+    path(
+        "solutions/private-schools/",
+        institution_marketing_page,
+        {"institution_slug": "private-schools"},
+        name="institution_private_schools",
+    ),
+    path(
+        "solutions/government-education/",
+        institution_marketing_page,
+        {"institution_slug": "government-education"},
+        name="institution_government_education",
+    ),
+    path(
+        "roles/school-admin/",
+        role_marketing_page,
+        {"role_slug": "school-admin"},
+        name="role_school_admin",
+    ),
+    path(
+        "roles/teachers/",
+        role_marketing_page,
+        {"role_slug": "teachers"},
+        name="role_teachers",
+    ),
+    path(
+        "roles/parents/",
+        role_marketing_page,
+        {"role_slug": "parents"},
+        name="role_parents",
+    ),
+    path(
+        "roles/students/",
+        role_marketing_page,
+        {"role_slug": "students"},
+        name="role_students",
+    ),
+    path(
+        "roles/it-directors/",
+        role_marketing_page,
+        {"role_slug": "it-directors"},
+        name="role_it_directors",
+    ),
+    path(
+        "roles/government/",
+        role_marketing_page,
+        {"role_slug": "government"},
+        name="role_government",
+    ),
+    path(
         "pricing/", marketing_page, {"page_slug": "pricing"}, name="marketing_pricing"
     ),
     path(
@@ -639,6 +708,12 @@ urlpatterns = [
         "developers/api-docs/",
         developer_public_api_docs,
         name="developer_public_api_docs",
+    ),
+    path("migrate/", migrate_marketing_page, name="migrate_marketing_page"),
+    path(
+        "migrate/<str:source_slug>/",
+        migrate_marketing_page,
+        name="migrate_marketing_page_source",
     ),
     path(
         "app-marketplace/",

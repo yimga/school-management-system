@@ -9,6 +9,7 @@
     "CONTRIBUTING.md",
     "deploy.sh",
     "lighthouserc.js",
+    "lighthouserc.cjs",
     "manage.py",
     "package-lock.json",
     "package.json",

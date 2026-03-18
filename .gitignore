@@ -52,6 +52,8 @@ htmlcov/
 .django_test_dbs/
 full_test_run.txt
 test_output.txt
+gate_log.txt
+gate_log2.txt
 
 # Backups and temp
 *.bak

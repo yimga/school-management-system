@@ -39,6 +39,10 @@
     "apps/siteconfig/repositories/database_recovery_repository.py": {
       "expected_count": 1,
       "reason": "§2.4 SQLite PRAGMA integrity_check for recover_database command; staff-only."
+    },
+    "apps/accounts/management/commands/seed_render_users.py": {
+      "expected_count": 1,
+      "reason": "§2.4 Render predeploy: ALTER TABLE people_teacherprofile ADD COLUMN IF NOT EXISTS updated_at per tenant schema; defensive fix when migration state is out of sync."
     }
   }
 }

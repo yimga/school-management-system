@@ -3,6 +3,8 @@
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase
 
 from apps.analytics.models import InterventionLog, RiskFactor
@@ -11,6 +13,13 @@ from apps.people.models import StudentProfile
 from apps.schools.models import School, SchoolMembership
 
 User = get_user_model()
+
+
+def _request_with_messages(request):
+    """Attach session and messages storage so views can call messages.success() etc."""
+    SessionMiddleware(lambda r: None).process_request(request)
+    setattr(request, "_messages", FallbackStorage(request))
+    return request
 
 
 class AtRiskInterventionActionTests(TestCase):
@@ -48,13 +57,15 @@ class AtRiskInterventionActionTests(TestCase):
         )
 
     def test_start_intervention_creates_log(self):
-        req = self.factory.post(
-            "/analytics/at-risk/intervention/",
-            {
-                "action": "start",
-                "student_id": str(self.student.pk),
-                "action_taken": "Counselor scheduled",
-            },
+        req = _request_with_messages(
+            self.factory.post(
+                "/analytics/at-risk/intervention/",
+                {
+                    "action": "start",
+                    "student_id": str(self.student.pk),
+                    "action_taken": "Counselor scheduled",
+                },
+            )
         )
         req.user = self.user
         req.school = self.school
@@ -75,9 +86,11 @@ class AtRiskInterventionActionTests(TestCase):
             action_taken="call",
             status=InterventionLog.Status.ONGOING,
         )
-        req = self.factory.post(
-            "/analytics/at-risk/intervention/",
-            {"action": "resolve", "intervention_id": str(log.pk)},
+        req = _request_with_messages(
+            self.factory.post(
+                "/analytics/at-risk/intervention/",
+                {"action": "resolve", "intervention_id": str(log.pk)},
+            )
         )
         req.user = self.user
         req.school = self.school
