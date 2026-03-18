@@ -26,8 +26,11 @@ from apps.registries.models import (
 )
 from apps.registries.services import (
     ensure_registry_baseline,
+    get_sector_role_suggestions,
     list_country_choices,
     list_subdivision_choices,
+    list_sector_system_types_14_22,
+    WEDGE_14_22_SECTOR_CODES,
 )
 from apps.siteconfig.education_profile_engine import (
     ensure_region_for_country as ensure_region_for_country_record,
@@ -1333,7 +1336,9 @@ def super_pulse(request):
 
 
 def super_tenant_health(request):
-    """S13: Tenant Health Monitor — HTML view for super dashboard link. Same data as API v1 super/tenant-health."""
+    """S13: Tenant Health Monitor — HTML view for super dashboard link. Wedge 14–22: missing statutory for PUBLIC/GOVERNMENT_MINISTRY."""
+    from apps.policies.resolver import get_effective_policy
+
     schools = list(
         School.objects.all()
         .annotate(student_count=Count("student_profiles", distinct=True))
@@ -1341,6 +1346,13 @@ def super_tenant_health(request):
     )
     for school in schools:
         school.lifecycle = get_lifecycle_snapshot(school)
+        sector = (getattr(school, "primary_sector", None) or "").strip().upper()
+        if sector in ("PUBLIC", "GOVERNMENT_MINISTRY"):
+            policy = get_effective_policy(school)
+            compliance = policy.get("compliance") or {}
+            school.missing_statutory = compliance.get("statutory_enabled") is not True
+        else:
+            school.missing_statutory = False
     return render(
         request,
         "schools/super_tenant_health.html",
@@ -1408,7 +1420,10 @@ def super_tenant_360(request, school_id):
 
 @require_GET
 def super_schools_list(request):
-    """Phase 7: Paginated list of all schools; optional filters and link to tenant 360 / backoffice."""
+    """Phase 7: Paginated list of all schools; optional filters and link to tenant 360 / backoffice. Wedge 14–22: segment by primary_sector."""
+    from apps.registries.services import WEDGE_14_22_SECTOR_CODES
+    from django.db.models import Count
+
     qs = School.objects.all().order_by("name")
     # Optional filters
     is_active = request.GET.get("is_active")
@@ -1420,9 +1435,23 @@ def super_schools_list(request):
     country_code = request.GET.get("country_code", "").strip()
     if country_code:
         qs = qs.filter(country_code=country_code)
+    primary_sector = request.GET.get("primary_sector", "").strip().upper()
+    if primary_sector and primary_sector in WEDGE_14_22_SECTOR_CODES:
+        qs = qs.filter(primary_sector=primary_sector)
     search = request.GET.get("q", "").strip()
     if search:
         qs = qs.filter(Q(name__icontains=search) | Q(slug__icontains=search) | Q(subdomain__icontains=search))
+    # Sector cohort counts (for segment-by-sector links)
+    sector_counts = dict(
+        School.objects.filter(primary_sector__in=WEDGE_14_22_SECTOR_CODES)
+        .values("primary_sector")
+        .annotate(count=Count("id"))
+        .values_list("primary_sector", "count")
+    )
+    sector_choices = [
+        {"code": c, "name": c.replace("_", " ").title(), "count": sector_counts.get(c, 0)}
+        for c in WEDGE_14_22_SECTOR_CODES
+    ]
     paginator = Paginator(qs, 25)
     page_number = request.GET.get("page", 1)
     page = paginator.get_page(page_number)
@@ -1436,6 +1465,8 @@ def super_schools_list(request):
             "admin_schools_url": admin_schools_url,
             "is_active_filter": is_active if is_active is not None else "",
             "country_code_filter": country_code,
+            "primary_sector_filter": primary_sector,
+            "sector_choices": sector_choices,
             "search_query": search,
         },
     )
@@ -1713,11 +1744,20 @@ def billing_dashboard(request):
     )
 
 
+# Pack code (from Geography / REGIONAL_POLICY_PACKS) -> default country alpha-2 for Create School wizard pre-select
+_CREATE_SCHOOL_PACK_TO_COUNTRY = {
+    "US": "US", "CAN": "CA", "GBR": "GB", "EU": "FR", "BRA": "BR",
+    "WAEC": "NG", "AFR_FR": "CM", "LCA": "UG", "ASIA": "SG", "LATAM_ES": "CO",
+    "MENA": "AE", "AUS": "AU", "NZL": "NZ",
+}
+
+
 @require_http_methods(["GET", "POST"])
 def create_school_wizard(request):
     """Multi-step wizard: Step 1 identity, Step 2 region, Step 3 branding. POST submits to API."""
     from apps.global_registries.models import RegionConfig, WeatherLocation
     from apps.siteconfig.models import default_header_weather_config
+    from apps.siteconfig.tenant_config import REGIONAL_POLICY_PACKS
 
     if request.method == "POST":
         # Wizard form submitted via JS to api_create_school; this is fallback or redirect
@@ -1729,6 +1769,15 @@ def create_school_wizard(request):
     default_country_code = _canonical_country_alpha2(
         defaults.get("header_weather_country_code") or get_platform_defaults(use_db=False)["region_code"]
     )
+    initial_pack = None
+    initial_pack_name = None
+    pack_param = request.GET.get("pack") or request.GET.get("region")
+    if pack_param and pack_param in REGIONAL_POLICY_PACKS:
+        override = _CREATE_SCHOOL_PACK_TO_COUNTRY.get(pack_param)
+        if override:
+            default_country_code = override
+        initial_pack = pack_param
+        initial_pack_name = REGIONAL_POLICY_PACKS[pack_param].get("name", pack_param)
     countries = list_country_choices()
     known_codes = {row["code"] for row in countries}
     if default_country_code not in known_codes and countries:
@@ -1745,12 +1794,14 @@ def create_school_wizard(request):
     )
     education_levels = EducationLevelRegistry.objects.filter(is_active=True).order_by("sort_order", "global_name")
     education_system_types = EducationSystemTypeRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
+    sector_types_14_22 = list_sector_system_types_14_22()
     # S2: One-click education templates (British/WAEC/Vocational) — same as API config/education-templates
     education_templates_standard = [
         {"code": "BRITISH_IGCSE", "name": "British / IGCSE", "description": "Michaelmas, Lent, Trinity; A*–G or 9–1."},
         {"code": "WAEC", "name": "West African (WAEC)", "description": "First, Second, Third term; A1–F9; CA 30% + Exam 70%."},
         {"code": "FRANCOPHONE_BAC", "name": "Francophone (Bac)", "description": "Trimestre 1–3; 20-point scale."},
         {"code": "VOCATIONAL", "name": "Vocational / Trade", "description": "Competency checklists; clock hours; skill badges."},
+        {"code": "IB", "name": "International Baccalaureate", "description": "IB DP/MYP; 1–7 scale; summative weighting."},
     ]
     catalog_templates = list_template_catalog(
         country_code=default_country_alpha3,
@@ -1759,6 +1810,14 @@ def create_school_wizard(request):
     )
     if catalog_templates:
         education_templates_standard = catalog_templates
+    parent_school_id = (request.GET.get("parent_school_id") or "").strip()
+    parent_school_name = None
+    if parent_school_id:
+        parent_school_obj = School.objects.filter(pk=parent_school_id, is_active=True).first()
+        if parent_school_obj:
+            parent_school_name = parent_school_obj.name
+        else:
+            parent_school_id = ""
     if not countries or not cities:
         # Backward-compatible fallback when optional catalog dependencies are unavailable.
         WeatherLocation.ensure_seed_data()
@@ -1808,9 +1867,14 @@ def create_school_wizard(request):
             "education_profiles": education_profiles,
             "education_levels": education_levels,
             "education_system_types": education_system_types,
+            "sector_types_14_22": sector_types_14_22,
             "education_templates_standard": education_templates_standard,
             "school_admin_edit_template": "",
             "geo_city_search_min_chars": 1,
+            "initial_pack": initial_pack,
+            "initial_pack_name": initial_pack_name,
+            "parent_school_id": parent_school_id,
+            "parent_school_name": parent_school_name,
         },
     )
 
@@ -2176,7 +2240,21 @@ def api_create_school(request):
     # W1-3: Contact email required for provisioning and welcome email.
     if not contact_email:
         errors.append("contact_email is required")
-
+    # Wedge 14–22: at least one sector (primary_sector / education_system_type_codes) required.
+    if not education_system_type_codes:
+        errors.append("At least one sector (education_system_type_codes or primary sector) is required")
+    parent_school_id = (data.get("parent_school_id") or "").strip()
+    parent_school = None
+    if parent_school_id:
+        try:
+            parent_school = School.objects.filter(pk=parent_school_id, is_active=True).first()
+            if not parent_school:
+                errors.append("parent_school_id must be an active school")
+            else:
+                parent_school_id = str(parent_school.pk)
+        except (TypeError, ValueError):
+            parent_school_id = ""
+            errors.append("parent_school_id must be a valid UUID")
     if errors:
         return JsonResponse({"errors": errors}, status=400)
 
@@ -2311,6 +2389,14 @@ def api_create_school(request):
         },
     }
 
+    primary_sector = ""
+    for code in education_system_type_codes:
+        if code in WEDGE_14_22_SECTOR_CODES:
+            primary_sector = code
+            break
+    _sug = get_sector_role_suggestions(primary_sector)
+    school_settings_overrides["provisioning"]["sector_suggested_roles"] = list(_sug.get("suggested_roles") or [])
+    school_settings_overrides["provisioning"]["sector_role_description"] = str(_sug.get("description") or "")
     create_kw = dict(
         name=name,
         slug=slug,
@@ -2326,7 +2412,10 @@ def api_create_school(request):
         is_active=False,
         is_approved=not (__import__("os").getenv("ENABLE_SCHOOL_APPROVAL_WORKFLOW", "").strip().lower() in ("1", "true", "yes")),
         settings={},
+        primary_sector=primary_sector,
     )
+    if parent_school_id and parent_school:
+        create_kw["parent_school_id"] = parent_school.pk
     if hasattr(School, "theme_choice"):
         create_kw["theme_choice"] = theme_choice
     if plan_id and hasattr(School, "plan_id"):
@@ -2571,6 +2660,17 @@ def super_compliance_overview(request):
 
 def super_trust_center(request):
     """§10.5.4 Trust product: Security & Trust hub — Compliance, API Center, Sessions, Audit export (TRUST_PRODUCT_SURFACES.md)."""
+    from django.urls import NoReverseMatch
+    workflow_center_url = ""
+    setup_studio_url = ""
+    try:
+        workflow_center_url = reverse("studio_os:workflow_center")
+    except NoReverseMatch:
+        pass
+    try:
+        setup_studio_url = reverse("siteconfig:guided_onboarding")
+    except NoReverseMatch:
+        pass
     return render(
         request,
         "schools/super_trust_center.html",
@@ -2578,6 +2678,8 @@ def super_trust_center(request):
             "dashboard_url": reverse("super:dashboard"),
             "compliance_url": reverse("super:compliance_overview"),
             "apicenter_url": reverse("apicenter:dashboard"),
+            "workflow_center_url": workflow_center_url,
+            "setup_studio_url": setup_studio_url,
         },
     )
 
@@ -2594,7 +2696,6 @@ def super_audit_export(request):
     from django.core.cache import cache
     from django.http import HttpResponse
     from django.utils.dateparse import parse_date
-    from datetime import timedelta
 
     dashboard_url = reverse("super:dashboard")
     from_date_str = request.GET.get("from_date", "").strip()

@@ -389,7 +389,7 @@ def _build_recommendations(school, step_state: dict[str, dict[str, Any]]) -> lis
     return recommendations
 
 
-def _build_launch_checklist(step_state: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+def _build_launch_checklist(step_state: dict[str, dict[str, Any]], school=None) -> list[dict[str, Any]]:
     checklist = []
     for definition in STEP_DEFINITIONS:
         state = step_state[definition["key"]]
@@ -404,6 +404,24 @@ def _build_launch_checklist(step_state: dict[str, dict[str, Any]]) -> list[dict[
                 "link": state["link"],
             }
         )
+    # Wedge 14–22: sector health warning — PUBLIC/GOVERNMENT_MINISTRY should have statutory pack
+    if school:
+        sector = (getattr(school, "primary_sector", None) or "").strip().upper()
+        if sector in ("PUBLIC", "GOVERNMENT_MINISTRY"):
+            from apps.policies.resolver import get_effective_policy
+            policy = get_effective_policy(school)
+            compliance = policy.get("compliance") or {}
+            statutory_ok = compliance.get("statutory_enabled") is True
+            report_library_url = _safe_reverse("siteconfig:report_library") or _safe_reverse("reports:report_list")
+            checklist.append({
+                "key": "sector_statutory",
+                "label": "Statutory report pack (public/government)",
+                "description": "For public/government schools ensure statutory report pack is installed and moe_presets configured.",
+                "done": statutory_ok,
+                "status": "Ready" if statutory_ok else "Needs action",
+                "is_blocker": False,
+                "link": report_library_url or "#",
+            })
     return checklist
 
 
@@ -699,6 +717,92 @@ def _build_launch_orchestration(
     return stages
 
 
+def _recommended_by_sector(school) -> dict[str, Any]:
+    """SOT wedge 14–22: Sector-driven Setup/Launch recommendations. Keyed by primary_sector with packs, links, message."""
+    sector = (getattr(school, "primary_sector", None) or "").strip().upper()
+    try:
+        from apps.registries.services import WEDGE_14_22_SECTOR_CODES
+    except (ImportError, AttributeError):
+        WEDGE_14_22_SECTOR_CODES = ()
+    if sector not in WEDGE_14_22_SECTOR_CODES:
+        return {"current_sector": sector or None, "recommendations": [], "for_your_sector": None}
+    report_library_url = _safe_reverse("siteconfig:report_library") or _safe_reverse("reports:report_list")
+    advancement_url = _safe_reverse("accounts:backend_alumni_list")
+    geography_url = _safe_reverse("super:geography")
+    curriculum_url = _safe_reverse("super:curriculum_packs")
+    blueprints_url = _safe_reverse("siteconfig:get_blueprints")
+    for_your_sector: dict[str, Any] = {
+        "message": "Recommended for your sector:",
+        "packs": [],
+        "links": [],
+    }
+    if sector in ("PUBLIC", "GOVERNMENT_MINISTRY"):
+        for_your_sector["message"] = "For public / government schools: install statutory report pack and configure moe_presets."
+        for_your_sector["packs"] = [{"label": "Statutory report pack", "detail": "Ministry returns, Ofsted, WAEC, ministry exports.", "url": report_library_url}]
+        for_your_sector["links"] = [{"label": "Report library", "url": report_library_url}, {"label": "Blueprints", "url": blueprints_url}]
+    elif sector == "NGO":
+        for_your_sector["message"] = "For NGO schools: enable Advancement (donors, campaigns, gifts) and configure reporting."
+        for_your_sector["packs"] = [{"label": "Advancement", "detail": "Donor/campaign/gift/receipt; identity graph.", "url": advancement_url}]
+        for_your_sector["links"] = [{"label": "Advancement / Alumni", "url": advancement_url}, {"label": "Blueprints", "url": blueprints_url}]
+    elif sector == "INTERNATIONAL":
+        for_your_sector["message"] = "For international schools: apply region pack, multi-language, and multi-currency."
+        for_your_sector["packs"] = [{"label": "Region pack", "detail": "REGIONAL_POLICY_PACKS, locale, currency.", "url": curriculum_url}]
+        for_your_sector["links"] = [{"label": "Geography & region packs", "url": geography_url}, {"label": "Curriculum packs", "url": curriculum_url}]
+    elif sector == "MULTI_CAMPUS":
+        for_your_sector["message"] = "For multi-campus: configure group and campuses; use hierarchy-aware reporting."
+        for_your_sector["links"] = [{"label": "Blueprints", "url": blueprints_url}]
+    elif sector == "PRIVATE":
+        finance_url = _safe_reverse("finance:dashboard")
+        for_your_sector["message"] = "For private schools: configure tuition, fees, aid, and admissions."
+        for_your_sector["links"] = [
+            {"label": "Finance dashboard", "url": finance_url},
+            {"label": "Blueprints", "url": blueprints_url},
+        ]
+    elif sector == "CHARTER":
+        for_your_sector["message"] = "For charter schools: hybrid accountability — statutory reporting and funding templates."
+        for_your_sector["packs"] = [{"label": "Reporting", "detail": "Statutory and board reporting templates.", "url": report_library_url}]
+        for_your_sector["links"] = [{"label": "Report library", "url": report_library_url}, {"label": "Blueprints", "url": blueprints_url}]
+    elif sector == "FAITH_BASED":
+        exp_url = _safe_reverse("studio_os:experience")
+        for_your_sector["message"] = "For faith-based schools: branding and optional faith-specific reporting."
+        for_your_sector["links"] = [{"label": "Experience Studio", "url": exp_url}, {"label": "Blueprints", "url": blueprints_url}]
+    elif sector == "HOME_SCHOOL":
+        for_your_sector["message"] = "For home-school / hybrid: flexible attendance and assessment; invite teacher and parent roles as needed."
+        for_your_sector["links"] = [{"label": "Geography & locale", "url": geography_url}, {"label": "Blueprints", "url": blueprints_url}]
+    else:
+        for_your_sector["message"] = "Apply a blueprint and complete launch checklist for your school type."
+        for_your_sector["links"] = [{"label": "Blueprints", "url": blueprints_url}]
+    return {
+        "current_sector": sector,
+        "recommendations": [for_your_sector],
+        "for_your_sector": for_your_sector,
+    }
+
+
+def _sector_staff_roles_panel(school) -> dict[str, Any]:
+    """Wedge 14–22: suggested staff AccessRole codes + provision note for Setup/Launch Studio API."""
+    prov = (getattr(school, "settings", None) or {}).get("provisioning") or {}
+    roles = list(prov.get("sector_suggested_roles") or [])
+    desc = str(prov.get("sector_role_description") or "")
+    if not roles:
+        try:
+            from apps.registries.services import get_sector_role_suggestions
+
+            s = get_sector_role_suggestions(getattr(school, "primary_sector", None))
+            roles = list(s.get("suggested_roles") or [])
+            desc = str(s.get("description") or "")
+        except (ImportError, AttributeError, TypeError, ValueError):
+            roles, desc = [], ""
+    return {
+        "suggested_staff_roles": roles,
+        "description": desc,
+        "bootstrap_note": (
+            "At provisioning, the bootstrap contact user receives AccessRoles for these codes "
+            "(except STUDENT/PARENT/EMPLOYER) plus ADMIN. Invite additional users to split duties."
+        ),
+    }
+
+
 def _recommended_next_step(
     step_state: dict[str, dict[str, Any]],
     recommendations: list[dict[str, Any]],
@@ -747,7 +851,7 @@ def compile_setup_studio(school) -> dict[str, Any]:
         has_students=step_state["data_path"]["done"],
     )
     preview_cards = _build_preview_cards(school, step_state, role_previews)
-    launch_checklist = _build_launch_checklist(step_state)
+    launch_checklist = _build_launch_checklist(step_state, school)
     health_score, health_breakdown, launch_blockers = _score(step_state)
     preview_workspace = _build_preview_workspace(school, role_previews, preview_cards)
     blueprint_rankings = _rank_blueprints(school)
@@ -788,6 +892,8 @@ def compile_setup_studio(school) -> dict[str, Any]:
         "data_path_choices": data_path_choices,
         "recommended_next": recommended_next,
         "ai_recommended": True,  # Blueprint/stack rankings from recommendation engine (9.5 AI multiplier).
+        "recommended_by_sector": _recommended_by_sector(school),  # Wedge 14–22: sector-driven Setup/Launch recommendations.
+        "sector_staff_roles": _sector_staff_roles_panel(school),  # Wedge 14–22: suggested roles + bootstrap AccessRole note.
     }
 
     with transaction.atomic():

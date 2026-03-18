@@ -232,6 +232,27 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             school=school,
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
+        try:
+            from apps.registries.services import apply_wedge_14_22_sector_access_roles_to_user
+
+            role_payload = apply_wedge_14_22_sector_access_roles_to_user(school, admin_user)
+            if role_payload.get("applied") or role_payload.get("admin_access_role_attached"):
+                _record_school_event(
+                    school,
+                    event_type="SECTOR_ROLES_APPLIED",
+                    status="SUCCESS",
+                    message="Wedge 14–22: sector AccessRoles attached to bootstrap user.",
+                    payload={
+                        "sector": role_payload.get("sector"),
+                        "applied_access_roles": role_payload.get("applied"),
+                        "admin_access_role_attached": role_payload.get("admin_access_role_attached"),
+                    },
+                )
+        except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError):
+            log_exception_with_context(
+                "schools.tasks: apply_wedge_14_22_sector_access_roles_to_user failed",
+                school_id=getattr(school, "id", None),
+            )
 
     # Seed academic year and terms from education profile + region defaults.
     # W1-9: When no education_profile_code is set, resolve_profile_for_school uses school.default_region_id

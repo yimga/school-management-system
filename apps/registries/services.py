@@ -49,16 +49,39 @@ DEFAULT_EDUCATION_LEVELS = (
 
 
 DEFAULT_EDUCATION_SYSTEM_TYPES = (
+    # Curriculum / delivery / pedagogy (pre-wedge)
     {"code": "GENERAL", "name": "General", "category": "mainstream", "sort_order": 10},
     {"code": "TECHNICAL", "name": "Technical", "category": "career", "sort_order": 20},
     {"code": "STEM", "name": "STEM", "category": "specialist", "sort_order": 30},
     {"code": "TRADE", "name": "Trade", "category": "career", "sort_order": 40},
-    {"code": "FAITH_BASED", "name": "Faith-based", "category": "governance", "sort_order": 50},
     {"code": "IB", "name": "IB", "category": "curriculum", "sort_order": 60},
     {"code": "CAMBRIDGE", "name": "Cambridge", "category": "curriculum", "sort_order": 70},
     {"code": "HYBRID", "name": "Hybrid", "category": "delivery", "sort_order": 80},
     {"code": "MONTESSORI", "name": "Montessori", "category": "pedagogy", "sort_order": 90},
     {"code": "ONLINE", "name": "Online", "category": "delivery", "sort_order": 100},
+    # SOT Wedges 14–22: Education systems (sector) — non-negotiable; seed all nine.
+    {"code": "PUBLIC", "name": "Public / state", "category": "sector", "sort_order": 140, "description": "Funding and compliance; district/ministry reporting; statutory returns; role model (state, district, school)."},
+    {"code": "PRIVATE", "name": "Private / independent", "category": "sector", "sort_order": 150, "description": "Tuition, fees, aid; admissions; same platform as public."},
+    {"code": "CHARTER", "name": "Charter", "category": "sector", "sort_order": 160, "description": "Hybrid public accountability and school autonomy; reporting and funding rules."},
+    {"code": "INTERNATIONAL", "name": "International", "category": "sector", "sort_order": 170, "description": "Multi-country, multi-curriculum (IB, UK, US, national); one school, many systems; language and currency."},
+    {"code": "FAITH_BASED", "name": "Faith-based", "category": "sector", "sort_order": 180, "description": "Same as private plus optional faith-specific reporting or branding."},
+    {"code": "HOME_SCHOOL", "name": "Home-school / hybrid", "category": "sector", "sort_order": 190, "description": "Part-time, external, or home-school students; attendance and assessment flexibility."},
+    {"code": "GOVERNMENT_MINISTRY", "name": "Government / ministry", "category": "sector", "sort_order": 200, "description": "Ministry or regional authority as tenant or aggregator; district control plane; national reporting."},
+    {"code": "NGO", "name": "NGO / non-profit", "category": "sector", "sort_order": 210, "description": "Donor and program reporting; grants; often private + advancement."},
+    {"code": "MULTI_CAMPUS", "name": "Multi-campus / group", "category": "sector", "sort_order": 220, "description": "One tenant or hierarchy (group → campuses); shared reporting and governance."},
+)
+
+# SOT §0.2.1: Wedge 14–22 education system sector codes (single source for validation and UI).
+WEDGE_14_22_SECTOR_CODES = (
+    "PUBLIC",
+    "PRIVATE",
+    "CHARTER",
+    "INTERNATIONAL",
+    "FAITH_BASED",
+    "HOME_SCHOOL",
+    "GOVERNMENT_MINISTRY",
+    "NGO",
+    "MULTI_CAMPUS",
 )
 
 
@@ -315,6 +338,203 @@ def get_education_system_types_for_country(country_code: str | None) -> list[dic
         }
         for row in qs[:50]
     ]
+
+
+def list_sector_system_types_14_22() -> list[dict]:
+    """SOT §0.2.1: All nine wedge 14–22 education system (sector) types for control-plane and Create School."""
+    ensure_taxonomy_seed()
+    qs = EducationSystemTypeRegistry.objects.filter(
+        code__in=WEDGE_14_22_SECTOR_CODES,
+        is_active=True,
+    ).order_by("sort_order", "name")
+    return [
+        {
+            "code": row.code,
+            "name": row.name,
+            "description": (row.description or "").strip(),
+            "wedge": 14 + list(WEDGE_14_22_SECTOR_CODES).index(row.code) if row.code in WEDGE_14_22_SECTOR_CODES else None,
+        }
+        for row in qs
+    ]
+
+
+# Wedge 14–22: Suggested role/permission templates by sector (RBAC by system type).
+# Use when assigning default roles or showing "suggested roles for your sector".
+SECTOR_ROLE_SUGGESTIONS: dict[str, dict] = {
+    "PUBLIC": {
+        "suggested_roles": ["PRINCIPAL", "VICE_PRINCIPAL", "BURSAR", "CENSOR", "DEAN", "ACADEMICS_STAFF"],
+        "description": "Ministry reporting; statutory returns; state/district/school role model.",
+    },
+    "GOVERNMENT_MINISTRY": {
+        "suggested_roles": ["ADMIN", "PRINCIPAL", "BURSAR", "ACCOUNTANT", "SECRETARY", "IT_ADMIN"],
+        "description": "District control plane; national reporting; statutory.",
+    },
+    "PRIVATE": {
+        "suggested_roles": ["PROPRIETOR", "PRINCIPAL", "BURSAR", "ACCOUNTANT", "TEACHER", "ADMIN"],
+        "description": "Tuition, fees, aid; admissions.",
+    },
+    "NGO": {
+        "suggested_roles": ["ADMIN", "PRINCIPAL", "BURSAR", "ACCOUNTANT", "COMMS_STAFF", "SECRETARY"],
+        "description": "Donor/campaign reporting; advancement hub.",
+    },
+    "INTERNATIONAL": {
+        "suggested_roles": ["ADMIN", "PRINCIPAL", "DEAN", "HOD", "IT_ADMIN", "ACADEMICS_STAFF"],
+        "description": "Multi-curriculum; multi-language/currency.",
+    },
+    "MULTI_CAMPUS": {
+        "suggested_roles": ["ADMIN", "PRINCIPAL", "VICE_PRINCIPAL", "BURSAR", "DEAN", "IT_ADMIN"],
+        "description": "Hierarchy; shared reporting and governance.",
+    },
+    "CHARTER": {
+        "suggested_roles": ["PRINCIPAL", "BURSAR", "DEAN", "ACADEMICS_STAFF", "ACCOUNTANT"],
+        "description": "Hybrid accountability; funding rules.",
+    },
+    "FAITH_BASED": {
+        "suggested_roles": ["PROPRIETOR", "PRINCIPAL", "BURSAR", "DEAN", "DISCIPLINE_MASTER"],
+        "description": "As private; optional faith reporting/branding.",
+    },
+    "HOME_SCHOOL": {
+        "suggested_roles": ["ADMIN", "TEACHER", "PARENT", "ACADEMICS_STAFF"],
+        "description": "Flexible attendance/assessment.",
+    },
+}
+
+
+def get_sector_role_suggestions(primary_sector: str | None) -> dict:
+    """Return suggested role codes and description for a sector (Wedge 14–22 RBAC by system type)."""
+    sector = (primary_sector or "").strip().upper()
+    return SECTOR_ROLE_SUGGESTIONS.get(sector, {"suggested_roles": [], "description": ""})
+
+
+# Bootstrap contact user must not receive portal-only AccessRoles
+_SECTOR_BOOTSTRAP_SKIP_ACCESS_ROLES = frozenset({"STUDENT", "PARENT", "EMPLOYER"})
+
+
+def apply_wedge_14_22_sector_access_roles_to_user(school, user) -> dict:
+    """
+    On school provisioning: attach AccessRole rows for sector suggested_roles to the bootstrap user.
+    Ensures ADMIN AccessRole is included when present. Idempotent (M2M add).
+    Skips STUDENT/PARENT/EMPLOYER for the ops contact account.
+    """
+    if school is None or user is None or not getattr(user, "pk", None):
+        return {"applied": [], "skipped": "missing_user_or_school"}
+    try:
+        from apps.accounts.models import AccessRole
+    except ImportError:
+        return {"applied": [], "skipped": "accounts_import"}
+
+    sector = (getattr(school, "primary_sector", None) or "").strip().upper()
+    if sector not in WEDGE_14_22_SECTOR_CODES:
+        try:
+            for st in school.education_system_types.all()[:32]:
+                c = (getattr(st, "code", None) or "").strip().upper()
+                if c in WEDGE_14_22_SECTOR_CODES:
+                    sector = c
+                    break
+        except (AttributeError, TypeError, ValueError):
+            pass
+    if not sector:
+        return {"applied": [], "skipped": "no_primary_sector"}
+
+    data = get_sector_role_suggestions(sector)
+    codes = [str(c).strip().upper() for c in (data.get("suggested_roles") or []) if c]
+    applied: list[str] = []
+    for code in codes:
+        if code in _SECTOR_BOOTSTRAP_SKIP_ACCESS_ROLES:
+            continue
+        ar = AccessRole.objects.filter(code=code).first()
+        if ar:
+            user.roles.add(ar)
+            applied.append(code)
+    admin_attached = False
+    admin_ar = AccessRole.objects.filter(code="ADMIN").first()
+    if admin_ar:
+        user.roles.add(admin_ar)
+        admin_attached = True
+    return {
+        "applied": applied,
+        "admin_access_role_attached": admin_attached,
+        "sector": sector,
+        "description": (data.get("description") or "").strip(),
+    }
+
+
+def build_education_system_support_accordion(safe_reverse) -> list[dict]:
+    """
+    Full accordion data for all nine Wedge 14–22 sectors (Education systems page).
+    safe_reverse: callable taking url name, returns str|None (e.g. super_views_wedge._safe_reverse).
+    """
+    from apps.registries.models import EducationSystemTypeRegistry
+
+    def u(*names: str) -> str | None:
+        for n in names:
+            if not n:
+                continue
+            out = safe_reverse(n)
+            if out:
+                return out
+        return None
+
+    report_library = u("siteconfig:report_library", "reports:report_list")
+
+    def actions_for(sector: str) -> list[dict]:
+        seen: set[str] = set()
+        out: list[dict] = []
+
+        def add(label: str, url: str | None) -> None:
+            if url and url not in seen:
+                seen.add(url)
+                out.append({"label": label, "url": url})
+
+        add("Setup Studio", u("siteconfig:guided_onboarding"))
+        add("Create school", u("super:create_school_wizard"))
+        add("Curriculum & region packs", u("super:curriculum_packs"))
+        add("Blueprints catalog", u("super:blueprints_catalog"))
+        add("Runtime inspector (RBAC/config)", u("super:runtime_inspector"))
+        add("Registries", u("super:registries_overview"))
+        if sector in ("PUBLIC", "GOVERNMENT_MINISTRY", "CHARTER"):
+            add("Report library", report_library)
+        if sector == "NGO":
+            add("Advancement hub", u("super:advancement_hub"))
+        if sector == "INTERNATIONAL":
+            add("Geography (region packs)", u("super:geography"))
+        if sector == "MULTI_CAMPUS":
+            add("Group & campuses", u("super:group_campuses"))
+            add("Schools list", u("super:schools_list"))
+        if sector == "PRIVATE":
+            add("Finance dashboard", u("finance:dashboard"))
+            add("Fee / billing setup", u("super:blueprints_catalog"))
+        if sector == "FAITH_BASED":
+            add("Experience Studio (branding)", u("studio_os:experience"))
+            add("Report library", report_library)
+        if sector == "HOME_SCHOOL":
+            add("Geography / locale", u("super:geography"))
+            add("Academics (teacher hub)", u("academics:teacher_syllabus_hub"))
+        if sector == "PUBLIC":
+            add("Geography (statutory context)", u("super:geography"))
+        if sector == "GOVERNMENT_MINISTRY":
+            add("District / schools list", u("super:schools_list"))
+        return out
+
+    rows: list[dict] = []
+    for code in WEDGE_14_22_SECTOR_CODES:
+        reg = EducationSystemTypeRegistry.objects.filter(code=code, is_active=True).first()
+        name = reg.name if reg else code.replace("_", " ").title()
+        sug = get_sector_role_suggestions(code)
+        desc = (sug.get("description") or "").strip()
+        reg_desc = (reg.description or "").strip() if reg else ""
+        sr = ", ".join(sug.get("suggested_roles") or [])
+        parts = [p for p in (desc, reg_desc) if p]
+        message = " ".join(parts)
+        if sr:
+            message = f"{message} Suggested staff roles (also applied to bootstrap user on provision): {sr}."
+        rows.append({
+            "code": code,
+            "name": name,
+            "message": message.strip() or "—",
+            "next_actions": actions_for(code),
+        })
+    return rows
 
 
 def get_institution_types_for_country(country_code: str | None) -> list[dict]:

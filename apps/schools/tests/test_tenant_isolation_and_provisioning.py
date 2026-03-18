@@ -15,6 +15,7 @@ from apps.registries.models import (
     EducationSystemTypeRegistry,
     SubdivisionRegistry,
 )
+from apps.registries.services import ensure_taxonomy_seed
 from apps.schools.models import School, SchoolMembership, SchoolProvisioningEvent
 from apps.schools.tasks import provision_school_sync
 from apps.people.models import StudentProfile
@@ -130,6 +131,34 @@ class ProvisioningJobTests(TestCase):
         self.assertEqual(SchoolMembership.objects.filter(school=school).count(), 1)
         self.assertTrue(AcademicYear.objects.filter(school=school).exists())
         self.assertTrue(Term.objects.filter(school=school).exists())
+
+    def test_provision_applies_wedge_14_22_sector_access_roles(self):
+        """Bootstrap user receives AccessRoles for sector suggested_roles + ADMIN (Wedges 14–22)."""
+        ensure_taxonomy_seed()
+        school = School.objects.create(
+            name="Public District School",
+            slug="public-district-w1422",
+            subdomain="public-district-w1422",
+            is_active=False,
+            primary_sector="PUBLIC",
+        )
+        pub = EducationSystemTypeRegistry.objects.filter(code="PUBLIC").first()
+        if pub:
+            school.education_system_types.add(pub)
+        provision_school_sync(str(school.id), contact_email="ops_w1422@publicdistrict.test")
+        user = User.objects.get(email="ops_w1422@publicdistrict.test")
+        role_codes = set(user.roles.values_list("code", flat=True))
+        self.assertIn("ADMIN", role_codes)
+        public_suggested = {"PRINCIPAL", "VICE_PRINCIPAL", "BURSAR", "CENSOR", "DEAN", "ACADEMICS_STAFF"}
+        self.assertTrue(
+            role_codes & public_suggested,
+            f"Expected at least one PUBLIC sector AccessRole; got {role_codes}",
+        )
+        ev = SchoolProvisioningEvent.objects.filter(
+            school=school, event_type="SECTOR_ROLES_APPLIED"
+        ).first()
+        self.assertIsNotNone(ev)
+        self.assertEqual((ev.payload or {}).get("sector"), "PUBLIC")
 
     def test_provision_school_applies_education_profile_defaults(self):
         uganda, _ = RegionConfig.objects.get_or_create(
@@ -530,6 +559,53 @@ class SuperProvisioningWizardTests(TestCase):
             ["GENERAL", "STEM"],
         )
         self.assertEqual(((school.settings or {}).get("location") or {}).get("country_code_alpha2"), "US")
+
+    def test_api_create_school_persists_primary_sector(self):
+        """Wedges 14–22: primary_sector set from first sector code in education_system_type_codes."""
+        from apps.registries.services import ensure_registry_baseline
+
+        ensure_registry_baseline()
+        self.client.force_login(self.superuser)
+        country = CountryRegistry.objects.filter(code="US").first()
+        if not country:
+            country = CountryRegistry.objects.create(
+                code="US",
+                alpha3_code="USA",
+                name="United States",
+                default_language="en",
+                default_currency="USD",
+                default_timezone="America/New_York",
+            )
+        EducationLevelRegistry.objects.update_or_create(code="PRIMARY", defaults={"global_name": "Primary", "sort_order": 10})
+        EducationSystemTypeRegistry.objects.update_or_create(code="PUBLIC", defaults={"name": "Public / state", "category": "sector", "sort_order": 140})
+        EducationSystemTypeRegistry.objects.update_or_create(code="GENERAL", defaults={"name": "General", "category": "mainstream", "sort_order": 10})
+        cities = GlobalGeoCatalog.search_cities(country_code="USA", query="New York", limit=10)
+        self.assertTrue(cities, "Global city catalog should include New York")
+        city = cities[0]
+        payload = {
+            "name": "Public Sector School",
+            "slug": "public-sector-school",
+            "subdomain": "public-sector-school",
+            "contact_email": "public-admin@test.com",
+            "country_code": "US",
+            "city_id": str(city["id"]),
+            "region_code": city["country_code"],
+            "sub_system": "EN",
+            "education_level_codes": ["PRIMARY"],
+            "education_system_type_codes": ["PUBLIC", "GENERAL"],
+        }
+        response = self.client.post(
+            reverse("super:api_create_school"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202, response.content)
+        school = School.objects.get(slug="public-sector-school")
+        self.assertEqual(school.primary_sector, "PUBLIC")
+        self.assertEqual(
+            list(school.education_system_types.order_by("code").values_list("code", flat=True)),
+            ["GENERAL", "PUBLIC"],
+        )
 
     def test_api_create_school_rejects_non_approved_explicit_profile(self):
         self.client.force_login(self.superuser)

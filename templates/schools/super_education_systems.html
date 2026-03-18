@@ -1,0 +1,118 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Education systems (Wedges 14–22)" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ curriculum_packs_url }}">{% trans "Curriculum & region packs" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Education systems (14–22)" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960" role="main" aria-label="{% trans 'Education systems by sector' %}">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Education systems (Wedges 14–22)" %}</h1>
+    <p class="text-white-50 small mb-0">{% trans "Every school is tagged with at least one system type. Create School and Setup Studio use the sector registry; RBAC and reporting defaults can be driven by system type." %}</p>
+  </header>
+  <div class="row g-3">
+    {% for item in sector_list %}
+    <div class="col-12">
+      <div class="card border-secondary">
+        <div class="card-header text-white d-flex justify-content-between align-items-center flex-wrap gap-1">
+          <span>{% trans "Wedge" %} {{ item.wedge|default:item.code }}: {{ item.name }}</span>
+          <span class="badge bg-secondary">{{ item.code }}</span>
+        </div>
+        <div class="card-body">
+          <p class="small text-white-50 mb-0">{{ item.description|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="mt-4">
+    <h2 class="h6 text-white mb-2">{% trans "Links" %}</h2>
+    <ul class="list-unstyled d-flex flex-wrap gap-2">
+      {% if create_school_url %}<li><a href="{{ create_school_url }}" class="btn btn-primary btn-sm">{% trans "Create school" %}</a></li>{% endif %}
+      {% if setup_studio_url %}<li><a href="{{ setup_studio_url }}" class="btn btn-outline-light btn-sm">{% trans "Setup Studio" %}</a></li>{% endif %}
+      {% if geography_url %}<li><a href="{{ geography_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Geography (region + system type)" %}</a></li>{% endif %}
+      {% if curriculum_packs_url %}<li><a href="{{ curriculum_packs_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Curriculum & region packs" %}</a></li>{% endif %}
+      {% if runtime_inspector_url %}<li><a href="{{ runtime_inspector_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Runtime inspector (RBAC/config)" %}</a></li>{% endif %}
+      {% if registries_url %}<li><a href="{{ registries_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Registries" %}</a></li>{% endif %}
+    </ul>
+  </div>
+  <div class="mt-4">
+    <h2 class="h6 text-white mb-2">{% trans "What support means (by sector)" %}</h2>
+    <p class="small text-white-50 mb-2">{% trans "Expand for what to do next and links per sector." %}</p>
+    <div class="accordion accordion-flush" id="supportBySectorAccordion">
+      {% for s in support_by_sector %}
+      <div class="accordion-item border-secondary">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed bg-dark text-white border-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#sector-{{ s.code }}" aria-expanded="false" aria-controls="sector-{{ s.code }}">
+            {{ s.name }}
+          </button>
+        </h3>
+        <div id="sector-{{ s.code }}" class="accordion-collapse collapse" data-bs-parent="#supportBySectorAccordion">
+          <div class="accordion-body text-white-50 small">
+            <p class="mb-2">{{ s.message }}</p>
+            <p class="mb-1 fw-bold">{% trans "What to do next:" %}</p>
+            <ul class="list-unstyled">
+              {% for a in s.next_actions %}
+              <li><a href="{{ a.url }}" class="text-info">{{ a.label }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="mt-3">
+    <h2 class="h6 text-white mb-2">{% trans "By system type" %}</h2>
+    <ul class="list-unstyled small text-white-50">
+      <li><strong>{% trans "Public / Government (14, 20):" %}</strong> {% trans "Ministry and statutory reporting" %} — {% if report_library_url %}<a href="{{ report_library_url }}" class="text-info">{% trans "Report library" %}</a>{% else %}{% trans "Report library (reports app)" %}{% endif %}. {% trans "moe_presets and statutory returns (e.g. Ofsted, WAEC, ministry exports) apply." %}</li>
+      <li><strong>{% trans "NGO (21):" %}</strong> {% trans "Donor and campaign reporting" %} — {% if advancement_hub_url %}<a href="{{ advancement_hub_url }}" class="text-info">{% trans "Advancement hub" %}</a>{% else %}{% trans "Advancement hub" %}{% endif %}. {% trans "Phase 2: donors, campaigns, gifts, receipts." %}</li>
+      <li><strong>{% trans "International (17):" %}</strong> {% trans "Multi-country, multi-curriculum" %} — {% if geography_url %}<a href="{{ geography_url }}" class="text-info">{% trans "Geography" %}</a>{% endif %}{% if curriculum_packs_url %} / <a href="{{ curriculum_packs_url }}" class="text-info">{% trans "Curriculum & region packs" %}</a>{% endif %}. {% trans "REGIONAL_POLICY_PACKS, multi-language, multi-currency." %}</li>
+      <li><strong>{% trans "Multi-campus / group (22):" %}</strong> {% trans "Hierarchy (parent_school_id, hierarchy_path)." %} {% trans "Create/link group and campuses in school admin; shared reporting and governance." %} {% if group_campuses_url %}<a href="{{ group_campuses_url }}" class="text-info">{% trans "Group & campuses" %}</a>{% endif %}{% if schools_list_url %} — <a href="{{ schools_list_url }}" class="text-info">{% trans "Schools list" %}</a>{% endif %}.</li>
+    </ul>
+    <p class="small text-white-50 mt-2 mb-0">{% trans "RBAC by sector:" %} {% trans "On school provisioning, the bootstrap user receives AccessRoles for sector suggested roles (see registries.services.apply_wedge_14_22_sector_access_roles_to_user). Setup Studio payload includes sector_staff_roles." %}</p>
+    <ul class="list-unstyled small text-white-50 mt-2">
+      <li><strong>{% trans "Private (15):" %}</strong> {% trans "Tuition, fees, aid — Finance dashboard and admissions workflows." %}</li>
+      <li><strong>{% trans "Charter (16):" %}</strong> {% trans "Hybrid accountability — statutory reporting templates and funding visibility." %}</li>
+      <li><strong>{% trans "Faith-based (18):" %}</strong> {% trans "Experience Studio for branding; optional faith-specific reporting." %}</li>
+      <li><strong>{% trans "Home-school (19):" %}</strong> {% trans "Flexible attendance/assessment; academics hub and locale from Geography." %}</li>
+    </ul>
+  </div>
+  {% if sector_filtered_links %}
+  <div class="mt-3">
+    <h2 class="h6 text-white mb-2">{% trans "Schools by sector (Customer Success)" %}</h2>
+    <p class="small text-white-50 mb-1">{% trans "Filter the schools list by primary sector:" %}</p>
+    <ul class="list-unstyled d-flex flex-wrap gap-2">
+      {% if schools_list_url %}<li><a href="{{ schools_list_url }}" class="btn btn-outline-secondary btn-sm">{% trans "All schools" %}</a></li>{% endif %}
+      {% for link in sector_filtered_links %}<li><a href="{{ link.url }}" class="btn btn-outline-secondary btn-sm">{{ link.name }}</a></li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  {% if blueprints_catalog_url and sector_filtered_links %}
+  <div class="mt-3">
+    <h2 class="h6 text-white mb-2">{% trans "Packs by sector" %}</h2>
+    <p class="small text-white-50 mb-1">{% trans "Blueprint packs recommended or filtered by sector:" %}</p>
+    <ul class="list-unstyled d-flex flex-wrap gap-2">
+      <li><a href="{{ blueprints_catalog_url }}" class="btn btn-outline-secondary btn-sm">{% trans "All blueprints" %}</a></li>
+      {% for link in sector_filtered_links %}<li><a href="{{ blueprints_catalog_url }}?primary_sector={{ link.code }}" class="btn btn-outline-secondary btn-sm">{{ link.name }}</a></li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  {% if playbook_url %}
+  <div class="mt-3">
+    <h2 class="h6 text-white mb-2">{% trans "Operator playbooks" %}</h2>
+    <p class="small text-white-50 mb-1">{% trans "For PUBLIC / government schools ensure statutory report pack is installed; runbooks and health checks by sector." %}</p>
+    <a href="{{ playbook_url }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">{% trans "Open playbooks" %}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
