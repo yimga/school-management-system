@@ -333,14 +333,46 @@ def build_control_plane_nav(request):
             },
         ],
     )
+    # Parity with templates/admin/app_list.html quick links on manager host:
+    # operators who live on /super/ can reach the same surfaces without hunting /admin/.
     add_group(
-        "Platform Settings",
+        "Platform settings & admin",
         [
             {
                 "id": "config_console",
                 "label": "System config",
                 "url_name": "siteconfig:console_domains_hub",
                 "icon": "bi-gear-wide-connected",
+            },
+            {
+                "id": "cp_theme_experience",
+                "label": "Theme & Experience",
+                "url_name": "siteconfig:theme_colors",
+                "icon": "bi-palette",
+            },
+            {
+                "id": "cp_feature_control",
+                "label": "Feature Control",
+                "url_name": "siteconfig:feature_control_panel",
+                "icon": "bi-toggle2-on",
+            },
+            {
+                "id": "cp_platform_backoffice",
+                "label": "Platform backoffice (model CRUD)",
+                "url_name": "admin:index",
+                "icon": "bi-database",
+            },
+            {
+                "id": "cp_integrations_admin",
+                "label": "Integrations (admin)",
+                "url_name": "admin:integrations_marketplace_integration_changelist",
+                "icon": "bi-plug",
+            },
+            {
+                "id": "cp_report_library",
+                "label": "Report Library",
+                "url_name": "studio_os:output",
+                "icon": "bi-journal-text",
             },
         ],
     )
