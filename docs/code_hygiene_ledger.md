@@ -45,7 +45,7 @@
 
 - **pre_deploy_gate.sh** runs: check_no_committed_env, check_repo_hygiene, check_root_clutter, lint_bounded_context_imports, lint_siteconfig_legacy_imports, lint_secret_exposure, lint_gilead_residue, lint_no_print_in_apps, **ruff check apps --select F401,F841**, lint_tenant_settings, lint_csrf_exempt_usage, lint_allow_any_usage, lint_raw_sql_usage, lint_broad_except, lint_mega_files (optional strict), makemigrations --check, audit_tenant_models, smoke tests, targeted hardening tests, theme matrix, phase checks, visual QA, multi-tenant tests.
 - **Release UX bar:** `scripts/full_ux_assurance.sh` → Playwright (`run_visual_qa.sh`) then gate with `SKIP_VISUAL_QA=1`. See [VISUAL_AND_DASHBOARD_UX_BAR.md](VISUAL_AND_DASHBOARD_UX_BAR.md).
-- **Render seed:** `seed_render_users` never seeds teacher/parent into public schema on multi-tenant PG; refreshes `audit_trigger_fn()` per tenant (INSERT must use non-null `old_values`). People migration `0041` aligns DB with repository DDL.
+- **Render seed / audit_log:** `seed_render_users` refreshes `audit_trigger_fn()` per tenant. Trigger INSERT must match `TenantAuditLog` NOT NULL columns — see [people/AUDIT_LOG_TRIGGER_CONTRACT.md](people/AUDIT_LOG_TRIGGER_CONTRACT.md). Repository is source of truth; migrations 0041+ re-apply the function.
 
 ---
 

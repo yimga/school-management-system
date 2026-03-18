@@ -32,37 +32,13 @@ Part 4.6 / Part 3.4. Design for world-class audit: **PostgreSQL triggers → ten
 
 Example trigger function and trigger for one audited table. Run per tenant schema (e.g. via RunPython that executes in tenant_context, or a RunSQL migration in people app applied per schema).
 
+**Canonical implementation:** `apps/people/repositories/audit_repository.py` → `create_audit_trigger_function()`.  
+Do not copy stale SQL here; see [people/AUDIT_LOG_TRIGGER_CONTRACT.md](people/AUDIT_LOG_TRIGGER_CONTRACT.md) for required columns (`correlation_id`, `request_meta`, `changed_by_id`, non-null JSON defaults).
+
 ```sql
--- Run in each tenant schema after audit_log table exists (e.g. people.TenantAuditLog → audit_log).
-CREATE OR REPLACE FUNCTION audit_trigger_fn()
-RETURNS TRIGGER AS $$
-DECLARE
-  old_json jsonb;
-  new_json jsonb;
-  action text;
-  tbl text;
-  rec_id bigint;
-BEGIN
-  tbl := TG_TABLE_NAME;
-  action := TG_OP;
-  IF TG_OP = 'DELETE' THEN
-    old_json := to_jsonb(OLD);
-    new_json := NULL;
-    rec_id := (OLD).id;
-  ELSIF TG_OP = 'UPDATE' THEN
-    old_json := to_jsonb(OLD);
-    new_json := to_jsonb(NEW);
-    rec_id := (NEW).id;
-  ELSE
-    old_json := NULL;
-    new_json := to_jsonb(NEW);
-    rec_id := (NEW).id;
-  END IF;
-  INSERT INTO audit_log (table_name, record_id, action, old_values, new_values, changed_at)
-  VALUES (tbl, rec_id::text, action, old_json, new_json, now());
-  IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
-END;
-$$ LANGUAGE plpgsql;
+-- Illustrative only — use Python helper above on deploy/seed.
+-- INSERT must include correlation_id, request_meta, changed_by_id; old_values '{}' on INSERT; new_values '{}' on DELETE.
+```
 
 -- Example: attach to people_studentprofile (run per tenant schema).
 -- CREATE TRIGGER audit_studentprofile

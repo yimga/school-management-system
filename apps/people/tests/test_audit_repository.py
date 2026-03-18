@@ -39,3 +39,19 @@ class TestAuditRepository(unittest.TestCase):
             cursor = MagicMock()
             revoke_audit_log_mutations(cursor)
             cursor.execute.assert_not_called()
+
+    def test_audit_trigger_sql_matches_tenant_audit_log_contract(self):
+        """Regression: trigger INSERT must use real PG column names and NOT NULL-safe values."""
+        from apps.people.repositories.audit_repository import create_audit_trigger_function
+
+        cursor = MagicMock()
+        with patch.object(connection, "vendor", "postgresql"):
+            create_audit_trigger_function(cursor)
+        assert cursor.execute.called
+        sql = cursor.execute.call_args[0][0]
+        self.assertIn("changed_by_id", sql)
+        self.assertNotIn("changed_by)", sql)
+        self.assertNotIn(", changed_by\n", sql)
+        self.assertIn("correlation_id", sql)
+        self.assertIn("request_meta", sql)
+        self.assertIn("'{}'::jsonb", sql)

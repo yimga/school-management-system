@@ -31,7 +31,14 @@ def set_search_path(cursor, schema_name: str) -> None:
 
 
 def create_audit_trigger_function(cursor) -> None:
-    """Create or replace audit_trigger_fn() in the current search_path."""
+    """
+    Create or replace audit_trigger_fn() in the current search_path.
+
+    **Contract:** INSERT must populate every non-auto column on ``TenantAuditLog``
+    (``audit_log``): Django uses NOT NULL + no DB default for several fields.
+    If you add a non-null field to TenantAuditLog, update this INSERT list.
+    See docs/people/AUDIT_LOG_TRIGGER_CONTRACT.md.
+    """
     if connection.vendor != "postgresql":
         return
     redact_keys_sql = "ARRAY[" + ", ".join(repr(k) for k in REDACT_KEYS) + "]::text[]"
@@ -66,7 +73,7 @@ def create_audit_trigger_function(cursor) -> None:
           END IF;
           INSERT INTO audit_log (
             table_name, record_id, action, old_values, new_values, changed_at,
-            correlation_id, request_meta, changed_by
+            correlation_id, request_meta, changed_by_id
           )
           VALUES (
             tbl, rec_id, action, old_json, new_json, now(),
