@@ -55,61 +55,98 @@ def _ensure_teacherprofile_updated_at_in_tenant_schemas(stdout, style):
             )
 
 
-def _run_create_teacher_parent_accounts(stdout, style, tenant_password, tenant_slug, verbosity):
-    """Run create_teacher_parent_accounts in default tenant context when using django-tenants."""
-    from django.conf import settings
-
-    if getattr(settings, "USE_DJANGO_TENANTS", False):
+def _ensure_audit_trigger_fn_per_tenant(stdout, style):
+    """
+    INSERT on people_teacherprofile must not write NULL into audit_log.old_values (NOT NULL).
+    Refresh audit_trigger_fn() every seed so Render predeploy succeeds even if a migration
+    was skipped or an old function body remains.
+    """
+    if connection.vendor != "postgresql":
+        return
+    try:
+        from apps.customers.models import Client
+        from apps.people.repositories.audit_repository import (
+            create_audit_trigger_function,
+            set_search_path,
+        )
+    except ImportError:
+        return
+    tenants = list(
+        Client.objects.exclude(schema_name="public")
+        .filter(schema_name__isnull=False)
+        .values_list("schema_name", flat=True)
+    )
+    for schema_name in tenants:
+        if not schema_name:
+            continue
         try:
-            from apps.customers.models import Client
-
-            slug = (tenant_slug or "").strip().lower()
-            if slug:
-                client = Client.objects.filter(schema_name=slug).first() or Client.objects.filter(
-                    school__slug=slug
-                ).first()
-            else:
-                client = (
-                    Client.objects.exclude(schema_name="public")
-                    .filter(schema_name__isnull=False)
-                    .order_by("id")
-                    .first()
-                )
-            if client:
-                from django_tenants.utils import tenant_context
-
-                with tenant_context(client):
-                    call_command(
-                        "create_teacher_parent_accounts",
-                        "--teacher-username",
-                        "teacher1",
-                        "--parent-username",
-                        "Parent1",
-                        "--principal-username",
-                        "principal1",
-                        "--password",
-                        tenant_password,
-                        verbosity=verbosity,
-                    )
-                return
+            with connection.cursor() as cursor:
+                set_search_path(cursor, schema_name)
+                create_audit_trigger_function(cursor)
+            stdout.write(
+                style.SUCCESS("  %s: audit_trigger_fn() refreshed (INSERT old_values fix).")
+                % schema_name
+            )
         except Exception as e:
             stdout.write(
-                style.WARNING(
-                    "Tenant context unavailable, running without tenant: %s" % e
-                )
+                style.WARNING("  %s: skip audit_trigger refresh: %s") % (schema_name, e)
             )
-    call_command(
-        "create_teacher_parent_accounts",
-        "--teacher-username",
-        "teacher1",
-        "--parent-username",
-        "Parent1",
-        "--principal-username",
-        "principal1",
-        "--password",
-        tenant_password,
-        verbosity=verbosity,
-    )
+
+
+def _run_create_teacher_parent_accounts(stdout, style, tenant_password, tenant_slug, verbosity):
+    """Run create_teacher_parent_accounts in tenant context only (never public schema on PG tenants)."""
+    from django.conf import settings
+    from django.core.management import CommandError
+
+    if not getattr(settings, "USE_DJANGO_TENANTS", False):
+        call_command(
+            "create_teacher_parent_accounts",
+            "--teacher-username",
+            "teacher1",
+            "--parent-username",
+            "Parent1",
+            "--principal-username",
+            "principal1",
+            "--password",
+            tenant_password,
+            verbosity=verbosity,
+        )
+        return
+
+    from apps.customers.models import Client
+
+    slug = (tenant_slug or "").strip().lower()
+    if slug:
+        client = Client.objects.filter(schema_name=slug).first() or Client.objects.filter(
+            school__slug=slug
+        ).first()
+    else:
+        client = (
+            Client.objects.exclude(schema_name="public")
+            .filter(schema_name__isnull=False)
+            .order_by("id")
+            .first()
+        )
+    if not client:
+        raise CommandError(
+            "ADMIN_PASSWORD is set but no tenant Client found to seed teacher1/Parent1. "
+            "Create a tenant or set DEFAULT_TENANT_SLUG."
+        )
+    from django_tenants.utils import tenant_context
+
+    with tenant_context(client):
+        call_command(
+            "create_teacher_parent_accounts",
+            "--teacher-username",
+            "teacher1",
+            "--parent-username",
+            "Parent1",
+            "--principal-username",
+            "principal1",
+            "--password",
+            tenant_password,
+            verbosity=verbosity,
+        )
 
 
 class Command(BaseCommand):
@@ -131,6 +168,8 @@ class Command(BaseCommand):
             _ensure_teacherprofile_updated_at_in_tenant_schemas(
                 self.stdout, self.style
             )
+            self.stdout.write("Refreshing audit_trigger_fn() in tenant schemas...")
+            _ensure_audit_trigger_fn_per_tenant(self.stdout, self.style)
 
         tenant_slug = (os.environ.get("DEFAULT_TENANT_SLUG") or "").strip()
         tenant_admin_username = (

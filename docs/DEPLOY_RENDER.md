@@ -1,6 +1,6 @@
 # Deploying on Render.com
 
-For a full map of dashboards and links, see [DASHBOARDS_AND_LINKS.md](./DASHBOARDS_AND_LINKS.md). For migration/seed/UI assurance scope (what is automated vs manual), see [DEPLOY_AND_UX_ASSURANCE.md](./DEPLOY_AND_UX_ASSURANCE.md).
+For a full map of dashboards and links, see [DASHBOARDS_AND_LINKS.md](./DASHBOARDS_AND_LINKS.md). For migration/seed/UI assurance, see [DEPLOY_AND_UX_ASSURANCE.md](./DEPLOY_AND_UX_ASSURANCE.md) and [VISUAL_AND_DASHBOARD_UX_BAR.md](./VISUAL_AND_DASHBOARD_UX_BAR.md) (`bash scripts/full_ux_assurance.sh`).
 
 **Tenant ORM:** Resolve tenants with `from apps.customers.models import Client` (not `django_tenants.models.Client`).
 

@@ -60,7 +60,8 @@ def create_audit_trigger_function(cursor) -> None:
             new_json := to_jsonb(NEW) - redact_keys;
             rec_id := (NEW).id::text;
           ELSE
-            old_json := NULL;
+            -- INSERT: audit_log.old_values is NOT NULL; empty object = no prior row
+            old_json := '{}'::jsonb;
             new_json := to_jsonb(NEW) - redact_keys;
             rec_id := (NEW).id::text;
           END IF;

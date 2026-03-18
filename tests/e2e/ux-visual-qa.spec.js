@@ -16,6 +16,39 @@ const DEFAULT_USERNAME = process.env.TEST_USERNAME || 'visualqa_admin';
 const DEFAULT_PASSWORD = process.env.TEST_PASSWORD || 'VisualQaPass123!';
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://runmycampus.com:8000';
 const MANAGER_BASE_URL = process.env.MANAGER_BASE_URL || 'http://manager.runmycampus.com:8000';
+/** Set by run_visual_qa.sh when DATABASE_URL is Postgres and a Client+Domain exists */
+const TENANT_BASE_URL = (process.env.TENANT_BASE_URL || '').trim();
+
+/** Align with seed_render_users / create_teacher_parent_accounts (ADMIN_PASSWORD or Test1234). */
+function tenantPasswordCandidates() {
+  const primary =
+    process.env.VISUAL_QA_TENANT_PASSWORD || process.env.ADMIN_PASSWORD || '';
+  if (primary) return [primary];
+  return ['Test1234', 'changeme'];
+}
+
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {string} baseUrl
+ * @param {'staff'|'parent'} role
+ * @param {string} username
+ * @param {string[]} passwords
+ */
+async function tryTenantLogin(page, baseUrl, role, username, passwords) {
+  for (const pw of passwords) {
+    await page.goto(`${baseUrl}/authentication/login/`, { waitUntil: 'networkidle' });
+    const roleSelect = page.locator('select[name="role"]');
+    if (await roleSelect.count()) {
+      await roleSelect.selectOption(role);
+    }
+    await page.locator('input[name="username"]').fill(username);
+    await page.locator('input[name="password"]').fill(pw);
+    await page.getByRole('button', { name: /log in/i }).click();
+    await page.waitForLoadState('networkidle');
+    if (!/\/authentication\/login\/?$/i.test(page.url())) return true;
+  }
+  return false;
+}
 
 const SERVER_REQUIRED_MSG =
   'Visual QA requires a running server. Run: bash scripts/run_visual_qa.sh (or start the server and set PUBLIC_BASE_URL and MANAGER_BASE_URL).';
@@ -296,6 +329,78 @@ test.describe('UX visual QA', () => {
       }
 
       await context.close();
+    });
+  }
+
+  const tenantUserTeacher = process.env.VISUAL_QA_TENANT_TEACHER || 'teacher1';
+  const tenantUserParent = process.env.VISUAL_QA_TENANT_PARENT || 'Parent1';
+
+  for (const view of VIEWPORTS) {
+    test(`${view.name}: tenant host — teacher + parent portals (DASHBOARDS_AND_LINKS)`, async ({
+      browser,
+    }) => {
+      test.skip(
+        process.env.VISUAL_QA_SKIP_TENANT_PORTALS === '1',
+        'VISUAL_QA_SKIP_TENANT_PORTALS=1 (no seeded teacher1/parent on this host)'
+      );
+      test.skip(
+        !TENANT_BASE_URL,
+        'No tenant host: Postgres + Client/Domain required; SQLite skips tenant portals'
+      );
+
+      const passwords = tenantPasswordCandidates();
+
+      const context = await newContext(browser, view);
+      const page = await context.newPage();
+
+      const teacherOk = await tryTenantLogin(
+        page,
+        TENANT_BASE_URL,
+        'staff',
+        tenantUserTeacher,
+        passwords
+      );
+      expect(
+        teacherOk,
+        `Tenant login failed for ${tenantUserTeacher}@${TENANT_BASE_URL}. Seed: seed_render_users / create_teacher_parent_accounts; align ADMIN_PASSWORD.`
+      ).toBe(true);
+
+      await page.goto(`${TENANT_BASE_URL}/portal/teacher/`, { waitUntil: 'networkidle' });
+      await expect(page.locator('body')).not.toContainText('Server Error (500)');
+      await expect(page.getByText(/workflow|teacher|dashboard|portal/i).first()).toBeVisible({
+        timeout: 10000,
+      });
+      await assertNoHorizontalOverflow(page, `${view.name}:tenant-teacher-portal`);
+
+      const folder = path.join(OUTPUT_ROOT, 'tenant', view.name);
+      ensureDir(folder);
+      await page.screenshot({ path: path.join(folder, 'teacher-portal.png'), fullPage: true });
+
+      await context.close();
+
+      const ctx2 = await newContext(browser, view);
+      const page2 = await ctx2.newPage();
+      const parentOk = await tryTenantLogin(
+        page2,
+        TENANT_BASE_URL,
+        'parent',
+        tenantUserParent,
+        passwords
+      );
+      expect(
+        parentOk,
+        `Tenant parent login failed for ${tenantUserParent}. Seed parent demo user; same password as ADMIN_PASSWORD when using seed_render_users.`
+      ).toBe(true);
+
+      await page2.goto(`${TENANT_BASE_URL}/portal/parent/`, { waitUntil: 'networkidle' });
+      await expect(page2.locator('body')).not.toContainText('Server Error (500)');
+      await expect(page2.getByText(/parent|home|dashboard|portal|child/i).first()).toBeVisible({
+        timeout: 10000,
+      });
+      await assertNoHorizontalOverflow(page2, `${view.name}:tenant-parent-portal`);
+      ensureDir(folder);
+      await page2.screenshot({ path: path.join(folder, 'parent-portal.png'), fullPage: true });
+      await ctx2.close();
     });
   }
 });

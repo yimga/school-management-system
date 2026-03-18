@@ -17,7 +17,7 @@ Use this for each release (tag or deploy to production). Expand steps as needed 
 
 - [x] **Migrate:** `python manage.py migrate` (or predeploy). *(Approved 2026-03-17.)*
 - [x] **Static:** `python manage.py collectstatic --noinput` (or equivalent). *(Approved 2026-03-17.)*
-- [x] **Tests:** Full test suite or `scripts/pre_deploy_gate.sh`; SKIP_VISUAL_QA=1 when needed. *(Approved 2026-03-17; gate run recorded.)*
+- [x] **Tests / UX bar:** `bash scripts/full_ux_assurance.sh` (Playwright + gate) before major releases on Postgres; or `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` when no browser. See [VISUAL_AND_DASHBOARD_UX_BAR.md](VISUAL_AND_DASHBOARD_UX_BAR.md). *(Approved 2026-03-17; gate run recorded.)*
 - [x] **Record gate output (RUNMYCAMPUS §12.1; required, nothing deferred):** Run `bash scripts/record_pre_deploy_gate_output.sh` (or `bash scripts/pre_deploy_gate.sh 2>&1 | tee docs/generated/pre_deploy_gate_run.txt`). Commit or attach `docs/generated/pre_deploy_gate_run.txt` for this release so gate results are recorded. *(Run 2026-03-16/17 with SKIP_VISUAL_QA=1; output in docs/generated/pre_deploy_gate_run.txt.)*
 
 ## Deploy

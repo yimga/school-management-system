@@ -14,6 +14,8 @@ RUNSERVER_LOG="${ARTIFACT_DIR}/runserver.log"
 
 export VISUAL_QA_USERNAME="$VISUAL_USERNAME"
 export VISUAL_QA_PASSWORD="$VISUAL_PASSWORD"
+# Tenant portal Playwright logins (teacher1 / Parent1) use same password as seed_render_users when set
+export VISUAL_QA_TENANT_PASSWORD="${VISUAL_QA_TENANT_PASSWORD:-${ADMIN_PASSWORD:-}}"
 
 mkdir -p "$ARTIFACT_DIR"
 
@@ -112,5 +114,45 @@ export TEST_PASSWORD="$VISUAL_PASSWORD"
 export BASE_URL="http://127.0.0.1:${PORT}"
 export PUBLIC_BASE_URL="http://${PUBLIC_HOST}:${PORT}"
 export MANAGER_BASE_URL="http://${MANAGER_HOST}:${PORT}"
+
+# Postgres + django-tenants: map first tenant domain for portal spot checks (SQLite skips in spec)
+export TENANT_DOMAIN_FILE="${ARTIFACT_DIR}/tenant_domain_for_qa.txt"
+python - <<PY
+import os
+import sys
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+import django
+django.setup()
+from django.db import connection
+path = (os.environ.get("TENANT_DOMAIN_FILE") or "").strip()
+if not path:
+    sys.exit(0)
+if connection.vendor != "postgresql":
+    open(path, "w", encoding="utf-8").write("")
+    sys.exit(0)
+try:
+    from apps.customers.models import Client, Domain
+except Exception:
+    open(path, "w", encoding="utf-8").write("")
+    sys.exit(0)
+c = Client.objects.exclude(schema_name="public").order_by("id").first()
+if not c:
+    open(path, "w", encoding="utf-8").write("")
+    sys.exit(0)
+d = Domain.objects.filter(tenant=c).order_by("id").values_list("domain", flat=True).first()
+open(path, "w", encoding="utf-8").write((d or "").strip())
+PY
+
+TENANT_DOMAIN="$(tr -d '\r\n' <"$TENANT_DOMAIN_FILE" 2>/dev/null || true)"
+RULES="MAP ${PUBLIC_HOST} 127.0.0.1,MAP ${MANAGER_HOST} 127.0.0.1"
+if [[ -n "$TENANT_DOMAIN" ]]; then
+  export TENANT_BASE_URL="http://${TENANT_DOMAIN}:${PORT}"
+  RULES="${RULES},MAP ${TENANT_DOMAIN} 127.0.0.1"
+  echo "[run_visual_qa] Tenant host for portal QA: ${TENANT_DOMAIN}"
+else
+  export TENANT_BASE_URL=""
+  echo "[run_visual_qa] No Postgres tenant domain — tenant portal tests will skip (SQLite/local)."
+fi
+export PLAYWRIGHT_HOST_RULES="$RULES"
 
 node node_modules/playwright/cli.js test tests/e2e/ux-visual-qa.spec.js --reporter=line

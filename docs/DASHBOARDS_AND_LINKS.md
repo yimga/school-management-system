@@ -30,3 +30,19 @@ accounts:login, accounts:redirect, accounts:backend_dashboard, studio_os:workflo
 ## Login Form
 
 POST to current URL. On success redirect to accounts:redirect or safe next. Page links: accounts:claim_invite, portal:parent_dashboard, portal:link_child, siteconfig:user_preferences, siteconfig:customizer.
+
+## Automated UX bar (Playwright)
+
+Manager + marketing + (Postgres) tenant teacher/parent portals are covered by **`bash scripts/run_visual_qa.sh`**, documented in [VISUAL_AND_DASHBOARD_UX_BAR.md](./VISUAL_AND_DASHBOARD_UX_BAR.md). Full release bar: **`bash scripts/full_ux_assurance.sh`**.
+
+## Manual spot checklist (staging / post-deploy)
+
+| # | Host | Path / action | Expect |
+|---|------|----------------|--------|
+| 1 | Tenant | `/authentication/login/` → staff → tenant admin | Backend or redirect OK, no 500 |
+| 2 | Tenant | `/portal/parent/` (as parent) | Dashboard loads |
+| 3 | Tenant | `/portal/teacher/` (as teacher) | Teacher surface loads |
+| 4 | Manager | `/super/` (superuser) | Control plane loads |
+| 5 | Public | `/migrate/` | Marketing fragment visible |
+
+Tick after `full_ux_assurance.sh` passes locally or on a Postgres preview.
