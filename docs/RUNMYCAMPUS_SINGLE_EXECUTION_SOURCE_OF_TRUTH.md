@@ -132,6 +132,337 @@ RunMyCampus is the **one ecosystem for education**: the Shopify, Google, Salesfo
 
 We do **not** chase the full vision by building every segment in parallel. We **stack**: (1) solidify the **foundation** (§0.3), then (2) execute the **competitive obliteration roadmap** (§0.2) in sequence, so the platform becomes the one-stop shop step by step.
 
+## 0.1.1 Go-to-market focus (global presence; primary sales regions)
+
+**Global presence:** The platform remains **global-first** (§0 Current truth; §0.2.1 geography—all continents in scope for product behavior).
+
+**Sales and GTM priority (initial commercial focus):** Africa; **North America and South America**; **Europe**; **Australia** (Oceania, including NZ where aligned); **Asia**. These regions are the **primary** commercial focus for selling and pack/statutory depth while the codebase and positioning stay worldwide-capable. Execution still maps to wedges 1–6 and region packs per continent; this subsection only **sequences commercial energy**, not product exclusion.
+
+## 0.1.2 One-stop shop beyond wedges: gaps, competitor migration, paper → digital
+
+**Additive to §0.4 and wedge validation:** Implemented wedges give **breadth** and category-killer surfaces. To become the **north star** of the niche—*everything* school and education management—requires **module depth**, **jurisdiction proof**, **migration velocity**, **paper→digital clarity**, and **productized services**. This section is the execution lens for that gap.
+
+### A. Still missing for “north star / everything school” (on top of wedge list)
+
+Migration alone does not make a one-stop shop. Buyers still ask for **depth** where wedges touch but do not yet fully replace every incumbent module.
+
+| Area | Why it matters for “everything” |
+|------|----------------------------------|
+| **Operational modules** | Transport, library, inventory, clinic/nurse, timetabling at scale, substitute management, etc.—often separate products today. |
+| **HR / payroll / contracts** | Many schools run payroll elsewhere; “one stop” implies credible payroll or **certified integrations per country**. |
+| **Statutory & audit trails** | Per country/state transcripts, exam boards, tax/payroll filings—not only packs/stubs. |
+| **Change management in-product** | Pack apply/preview/rollback exists; **full org change** (year rollover, mass re-enroll) as guided, tested flows. |
+| **Partner + services layer** | Data migration, training, go-live war rooms—**productized** (packages, SLAs), not ad hoc. |
+
+**Summary:** Wedges give breadth; one-stop + north star needs **module depth + jurisdiction proof + services**.
+
+### B. Migrating from any competitor — options vs what exists in code
+
+**Reality:** No product migrates from “any” SIS **instantly** without (1) **export shape** and (2) **mapping + validation**. Speed is mostly **connectors + templates + runbooks + parallel run**, not a single button.
+
+**Already in codebase / docs (non-exhaustive):**
+
+| Capability | Where / what |
+|------------|----------------|
+| **CSV diff / shadow (BR-04)** | Super UI `/super/migration/csv-diff/`; baseline vs candidate CSV, row/key diffs — [MIGRATION_CSV_DIFF_RUNBOOK.md](MIGRATION_CSV_DIFF_RUNBOOK.md). API `POST /api/internal/br/migration-diff-preview/` — [MIGRATION_SHADOW_RUNBOOK.md](MIGRATION_SHADOW_RUNBOOK.md). Process: export legacy → export RunMyCampus → diff until stable (shadow period). |
+| **Migration profiles registry** | `apps/automation/models.py` — `MigrationProfile` with source systems (PowerSchool, Blackbaud, Veracross, Infinite Campus, FACTS, Skyward, Alma, SQL dump, API SIS, etc.): **taxonomy** for connectors; not necessarily full automated pull per vendor yet. |
+| **Tenant migration wizard** | `apps/accounts/views_migration.py`, `migration_services` — CSV upload → column mapping → preview → dry run / run; `run_migration_start` / `run_migration_finish`, `MigrationRun` scorecard/parity. Student path wired; grades tie to evals importers per [phase8_migration_cloud_and_marketplaces.md](architecture/phase8_migration_cloud_and_marketplaces.md). |
+| **Land-and-expand legacy SIS (BR-09)** | Lawful CSV/API read-only pattern — [BR_LAND_AND_EXPAND_LEGACY_SIS.md](BR_LAND_AND_EXPAND_LEGACY_SIS.md). |
+| **Honest gaps (architecture)** | [phase8_migration_cloud_and_marketplaces.md](architecture/phase8_migration_cloud_and_marketplaces.md): full rollback UI, legacy data cleaner, rollback-safe cutover / exception queue—required per plan; not all marked done there. |
+
+**Product options to perfect migration speed:**
+
+| Option | Role | Fit |
+|--------|------|-----|
+| **1. Vendor export templates + pre-built maps** | Fastest repeatable path (e.g. PowerSchool export recipe → RMC import profile per object). | Matches `MigrationProfile` + wizard; invest in **templates + validation reports** per top competitors **per region** (§0.1.1). |
+| **2. Parallel run (shadow)** | Legacy + RMC side-by-side; diff until thresholds met. | CSV diff + runbooks exist; **productize** (scheduled diff, alerts, dashboard). |
+| **3. API connectors** | OneRoster, district APIs where allowed. | OneRoster spine; **Clever/ClassLink-native** = partnership (BR-11 class)—critical for US K–12 speed. |
+| **4. Phased cutover** | Students/classes/fees first; grades/attendance later. | Aligns with wizard + modules; sell as **90-day cutover playbook**. |
+| **5. Migration-as-a-service** | Partner/your team runs exports, map, validate. | Fastest wall-clock for customer; formalize **SKUs + runbooks**. |
+
+**Missing to be best-in-niche on speed:** Pre-built **competitor packs** (not enum-only), **automated diff scheduling**, **full rollback + exception queue UI**, **API connectors beyond CSV**, **proven timeboxed playbooks** (e.g. “PowerSchool → RMC students+enrollments in N business days with these exports”).
+
+### C. Paper / hard-copy → digital — options vs code today
+
+| Approach | Stress for school | In codebase today |
+|----------|-------------------|-------------------|
+| **Structured bulk capture** | Low if they can use Excel once | Migration wizard = spreadsheet path for **students** (and related flows). |
+| **Minimum digital core first** | Low | Guided onboarding / Studio / packs — roster + classes + fees live fast; history later. |
+| **OCR / scan** | Medium–high | Evals: marksheet import/OCR narrative ([BUEA_SEED_FEATURE_CONFIRMATION.md](BUEA_SEED_FEATURE_CONFIRMATION.md)). Finance: receipt OCR optional (Tesseract/cloud) per [PAYMENT_RECEIPT_AUTOMATION_IMPLEMENTATION.md](PAYMENT_RECEIPT_AUTOMATION_IMPLEMENTATION.md)—not guaranteed all tenants. |
+| **Third-party digitization** | Lowest cognitive load | **Not a code feature**—partner scans registers → CSV → wizard. |
+| **Mobile-first data entry** | Medium | Parent/student/admissions flows—reduces paper **going forward**; does not alone digitize old ledgers. |
+
+**Gap:** No single named **“paper school digitization”** product path in-repo that walks: inventory assets → photograph/scan → extract → validate → import. **Pieces exist**; packaged journey = **process + services SKU**.
+
+**Recommended phased offer:** **Phase 0** — Digital day-1 (minimum fields + guardian portal). **Phase 1** — Bulk CSV. **Phase 2** — OCR (marksheets/receipts) + partner archive scanning. **Phase 3** — Historical grades/attendance optional second wave.
+
+### D. North star bar for migration (one paragraph)
+
+To be the **reference** for migration in this niche, ship **three proofs:** (1) **timeboxed playbooks per competitor + region** (§0.1.1), (2) **tooling** that runs shadow diffs and rollback safely (extend super + BR APIs + wizard per §B), and (3) **paper path as a clear SKU** (bootstrap + optional OCR + partner scanning), not only “upload CSV.” This sits **on top of** jurisdiction depth, Clever/ClassLink strategy, premium UX, trust, support-as-product, and marketplace depth (§0.4, §0.3.3 BR queue).
+
+## 0.1.3 Forward-looking one-stop depth and 100-year readiness
+
+**Additive to §0.1.2 A–D:** Below are **additional** one-stop expectations and **long-horizon** design principles so the platform is forward-thinking—not just "great today" but built for institutional time scales (decades; 100-year framing as strategic lens).
+
+### E. Additional one-stop gaps buyers expect (over time)
+
+Beyond the depth areas in §0.1.2 A, buyers increasingly expect or will expect:
+
+| Area | Why it matters for "everything" |
+|------|----------------------------------|
+| **Full operations spine** | Transport, library, inventory/asset tracking, clinic/nurse, **visitor/safety**, facilities/work orders, catering/POS—often separate vendors today; one-stop implies credible coverage or certified integrations. |
+| **HR end-to-end** | Contracts, substitutes, performance, time & attendance, payroll (or certified in-country connectors)—§0.1.2 A already flags payroll; full HR lifecycle completes the story. |
+| **Teaching depth beyond SIS + LMS** | Curriculum mapping, intervention/MTSS, IEP/504-style workflows (where we play), assessment banks, professional learning—depth varies by market but "one stop" implies we are the spine. |
+| **Research & grants (HE / large K–12)** | Sponsored programs, effort reporting, funder compliance—not always in "school SIS" but required for true HE one-stop. |
+| **Community & extended ecosystem** | Alumni/lifelong engagement, employer partnerships, apprenticeships/TVET placement—ties to identity graph over decades. |
+
+### F. Forward-looking (10–30 year horizon)
+
+| Theme | What "forward-looking" implies |
+|-------|-------------------------------|
+| **Credential portability** | Learner-owned records; standards that outlive any one SIS (e.g. W3C Verifiable Credentials, national learner wallets)—we are either native or integrate deeply. |
+| **AI as infrastructure** | Not bolt-on chat—embedded in grading risk, scheduling, compliance checks, support deflection—with **auditability, human override, and regional AI regulation** baked in. |
+| **Interoperability by default** | APIs + event streams + **privacy-preserving synthetic/cohort analytics** so ministries and networks don't rebuild data warehouses. |
+| **Resilience & exit** | Multi-region, BCP, clear RTO/RPO, and **export/exit** so schools can leave cleanly—increases trust and pairs with migration story (§0.1.2 B). |
+
+### G. 100-year framing (strategic lens)
+
+Institutions think in **generations**. A north-star platform implies design choices that compound over decades:
+
+| Lens | What "100-year" readiness suggests |
+|------|------------------------------------|
+| **Data** | Long retention, legal hold, mergers/splits, **format migration**—not "we'll figure it out in SQL" ad hoc. |
+| **Governance** | Survive regime, curriculum, and privacy-law changes without re-platforming; config and packs, not hard-coded assumptions. |
+| **Trust** | Transparency, least privilege, provable audit trails—**reputation compounds over decades**. |
+| **Open core vs lock-in** | Ecosystem and standards so we are the **spine**, not a dead end; schools and ministries can extend or migrate. |
+| **Society** | Demographics, migration, climate/sustainability reporting, inclusion—schools will be asked to report and prove outcomes differently over time; platform must support evolution. |
+
+**Bottom line:** The missing pieces are not a single "secret feature"—they are **depth in adjacent ops + full HR**, **portable credentials and AI governance**, and **institutional-time-scale trust** (data lifecycle, exit, standards). The wedge + §0.1.2 direction is correct; the 100-year story is **architecture, standards, and governance** layered on the same one-stop depth.
+
+## 0.1.4 Open source, internal-first API, and risk lens
+
+**References:** [open_source_spine.md](architecture/open_source_spine.md), [INTERNAL_API_STANDARDS.md](INTERNAL_API_STANDARDS.md), [REDUCE_APIS_SCALE_WORKFLOWS.md](REDUCE_APIS_SCALE_WORKFLOWS.md), [RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md](architecture/RUNMYCAMPUS_CONSOLIDATED_ARCHITECTURE_AND_REFACTOR.md) Part C2, [provider_abstraction_audit.md](architecture/provider_abstraction_audit.md), [COMPATIBILITY.md](COMPATIBILITY.md), [OPERATING_DISCIPLINE_LAYERS.md](OPERATING_DISCIPLINE_LAYERS.md), [PRODUCTION_READINESS_GAPS_DETAILED.md](PRODUCTION_READINESS_GAPS_DETAILED.md).
+
+### H. Open source approach (best practice)
+
+| Principle | What it means |
+|-----------|----------------|
+| **Spine = open source** | Core infrastructure: Postgres, Redis/Valkey, Celery, OpenSearch (when used); targets Kong, Keycloak, Temporal. No critical path *depends* on a commercial SaaS for core behavior. Prefer license-clarity (e.g. Valkey) where it matters. |
+| **Edges = adapters** | Every external capability (payments, SMS, email, AI, OCR, storage) sits behind an **adapter interface**. App code calls platform services (`send_notification`, `get_gateway`, `get_document_extraction_provider`); no vendor SDKs in domain code. One internal contract, many backends (including OSS). |
+| **Supply-chain hygiene** | SBOM, version pinning, vulnerability scanning (e.g. pip-audit) in CI; no bare `*` in production. Document in SECURITY_POLICY and COMPATIBILITY. |
+
+### I. Prioritization: internal APIs over external APIs
+
+| Priority | Focus | Action |
+|----------|--------|--------|
+| **1** | Internal API consistency | All service-to-service and admin-to-service under `/api/internal/` per [INTERNAL_API_STANDARDS.md](INTERNAL_API_STANDARDS.md); new routes cite standards. Every new "service" capability exposed via internal API or events first. |
+| **2** | Reduce external API dependency | Apply [REDUCE_APIS_SCALE_WORKFLOWS.md](REDUCE_APIS_SCALE_WORKFLOWS.md): one email channel; SMS optional with fallback to email + in-app; payments manual-first, provider optional; weather/GeoIP/AI optional or feature-flagged. No critical path depends on a single external API without documented fallback. |
+| **3** | External developer API | Developer portal, webhooks, public API versioning—after internal APIs and external-API reduction are solid. |
+
+### J. Filling the gap when reducing external APIs
+
+When an external API is removed or made optional, the gap is filled as follows (non-negotiable pattern):
+
+| Gap | How to fill it |
+|-----|----------------|
+| **Notifications** | In-app + email as default. Single entry point (`communication.notification_service`); if SMS unconfigured or fails → email + in-app. No second external API required. |
+| **Payments** | Manual recording first-class; staff record payments in Finance. Provider webhooks optional for automation. Go-live with zero payment APIs; add adapters when needed. |
+| **Data entry / migration** | Wizard + CSV; no dependency on enrichment APIs for go-live. |
+| **Optional features (AI, OCR, widgets)** | Feature off when no provider configured; no 500, no broken critical path. Add provider (internal or external) when chosen. |
+| **Scale** | Postgres + Redis/Valkey + Celery (per REDUCE_APIS Part 2). Object storage when media scales. Not more external API calls. |
+| **Swapping providers** | One internal API, many backends. Replace SendGrid with SMTP, Twilio with another adapter or "email only"; replace Gemini with Ollama—adapter change only, not core logic. |
+
+### K. Risk register (critical → easy; may cost us if not addressed)
+
+**Critical / grave (can kill go-live or trust):**
+
+| Risk | Mitigation / reference |
+|------|------------------------|
+| Payment webhook 403 in prod (CSRF blocks provider callbacks) | Exempt webhook view; enforce signature/whitelist/rate limit. [PRODUCTION_READINESS_GAPS_DETAILED.md](PRODUCTION_READINESS_GAPS_DETAILED.md) A1. |
+| Secrets in template/context (e.g. GEMINI_API_KEY) | Never expose provider secrets to templates or client. Audit; lint_secret_exposure. SOT §12 / MASTER_PLATFORM_CHECKLIST. |
+| Tenant isolation / RLS bypass | Every tenant-scoped query uses request.tenant_ctx / RLS; no raw SQL or ORM path that bypasses. [TENANT_ISOLATION_SECURITY_REPORT.md](TENANT_ISOLATION_SECURITY_REPORT.md). |
+| Migration without rollback / exception queue | Full rollback UI and exception queue per phase8_migration_cloud; §0.1.2 B. Bad migration with no rollback destroys trust. |
+| Critical path depends on single external API with no fallback | Document fallback or degradation for every such path. Part C2; OPERATING_DISCIPLINE_LAYERS "broken integration." |
+
+**Serious (major incidents or long-term debt):**
+
+| Risk | Mitigation / reference |
+|------|------------------------|
+| Uncaught DoesNotExist → 500 (e.g. Message.objects.get) | get_object_or_404 or explicit 404; PRODUCTION_READINESS A2. |
+| No custom 404/500 handlers | Branded handlers and templates; B1. |
+| Schema/OpenAPI public when it should be restricted | Restrict or document; B2. |
+| SiteSettings/siteconfig as "business truth" | Move ownership to bounded domains (policy, runtime). SOT "six biggest blockers." |
+| Doc/completion drift (multiple "done" sources) | Single execution SOT; all other docs reference it. No duplicate strategy docs. |
+
+**Not so simple (easy to underestimate):**
+
+| Risk | Mitigation / reference |
+|------|------------------------|
+| Year rollover / mass re-enroll / org change untested | Guided, tested flows per §0.1.2 A; test rollover and re-enroll. |
+| Long/critical forms without draft or offline | Draft/offline for finance, compliance, request forms; RESILIENT_EDGE_WHATS_LEFT. |
+| No SLO/observability definition | Runbooks, health checks, SLO targets; open_source_spine; SLO_OBSERVABILITY_TARGETS. |
+| Unpinned or un-audited dependencies | Pin in prod; pip-audit (or equivalent) in CI; triage or waive with ticket. |
+| Provider down with no documented behavior | Per-adapter: queue/retry, fallback channel, or "feature unavailable"; document. |
+
+**Simple (low effort, high value):** Remove unused csrf_exempt imports (B3); use role helpers everywhere (B4); health check for LB; `manage.py check --deploy` in CI.
+
+**Easy (process):** Single place for "what's done" (SOT + BACKLOG + NEXT_50); runbooks when applicable; keep provider/contract inventory updated (provider_abstraction_audit).
+
+## 0.1.5 Prioritized execution: one-stop, migration, open source, risk (scoped for work)
+
+**Rule:** **Only Clever/ClassLink-style native** is in **backlog** (partnership-only; see BACKLOG_AND_DEFERRED_CLOSURE and BR-11). **Everything else** from §0.1.1–§0.1.4 and **all beyond-reach / "optional" items below are non-negotiable:** each must be **DONE** to world-class standard—no permanent deferral. Execute in wave order; each wave ties into §11 phases and foundation §0.3. Reference: [BEYOND_REACH_IMPROVEMENTS.md](BEYOND_REACH_IMPROVEMENTS.md) (N1–N29 and sections 1–10).
+
+**Backlog only (not in execution sequence):**
+- **Clever/ClassLink-style native APIs** — BLOCKED (partnership); substitute = OneRoster Bearer + district hub + INTEGRATION_PARTNER_TRUST_SIGNALS. Track in BACKLOG; do not scope as implementation work until partnership is in place.
+
+---
+
+### Wave 1 — Critical/grave risk remediation (§0.1.4 K; ties to §11 Phase A / PRODUCTION_READINESS)
+
+- [ ] Payment webhook CSRF: exempt webhook view; enforce signature/whitelist/rate limit (PRODUCTION_READINESS_GAPS_DETAILED A1).
+- [ ] Secrets audit: ensure no provider secrets (e.g. GEMINI_API_KEY) in template/context; lint_secret_exposure; MASTER_PLATFORM_CHECKLIST.
+- [ ] Tenant isolation: verify every tenant-scoped path uses request.tenant_ctx/RLS; no bypass; TENANT_ISOLATION_SECURITY_REPORT.
+- [ ] Migration rollback: implement full rollback UI and exception queue per phase8_migration_cloud (§0.1.2 B).
+- [ ] External API fallback: document fallback or degradation for every critical path that calls a single external API (Part C2; OPERATING_DISCIPLINE_LAYERS).
+- [ ] **Beyond reach — security posture:** Least-privilege support access; audit trail of all operator/support data access; trust-center-grade transparency (§0.4.1; N15 depth).
+- [ ] **Beyond reach — resilience:** RPO/RTO documented and **restore tested** per control_plane runbooks; incident response and breach-notification playbook linked from trust center (N11, N13).
+- [ ] **Beyond reach — edge:** Rate limit / bot guard / WAF for public and webhook surfaces documented and enforced where applicable (N12).
+
+### Wave 2 — Internal API consistency + reduce external API (§0.1.4 I, J)
+
+- [ ] Internal API: all new service-to-service/admin-to-service under `/api/internal/` per INTERNAL_API_STANDARDS; new routes documented in that file.
+- [ ] Apply REDUCE_APIS_SCALE_WORKFLOWS: one email channel; SMS optional with fallback to email + in-app; payments manual-first, provider optional; weather/GeoIP/AI optional or feature-flagged.
+- [ ] Notification path: single entry point (communication.notification_service); SMS unconfigured or fail → email + in-app; no critical path depends on SMS.
+- [ ] Provider inventory: keep provider_abstraction_audit and contract inventory updated; per-adapter "when down" behavior documented.
+- [ ] **Beyond reach — events (N19):** Expand platform event coverage + **event catalog** kept current; webhook retry/idempotency verified end-to-end; schema or manifest for integrators.
+- [ ] **Beyond reach — internal API quality:** Smoke or contract tests for critical `/api/internal/*` routes in CI (non-regression).
+- [ ] **Beyond reach — gateway path:** Kong (or documented alternative) for external API when production scale demands—plan + env in open_source_spine target.
+
+### Wave 3 — Open source spine and supply-chain (§0.1.4 H)
+
+- [ ] Spine: confirm critical path does not depend on commercial SaaS for core behavior; Postgres, Redis/Valkey, Celery, OpenSearch (when used); document targets (Kong, Keycloak, Temporal) in open_source_spine.
+- [ ] Adapters: every external capability behind adapter interface; no vendor SDK in domain code; COMPATIBILITY + provider_abstraction_audit.
+- [ ] Supply-chain: SBOM in CI; version pinning; pip-audit (or equivalent) in CI; no bare `*` in prod; SECURITY_POLICY + COMPATIBILITY.
+- [ ] **Beyond reach — durable workflows:** Temporal (or Celery chains with idempotency) for long-running migration/pack jobs where reliability gap exists (open_source_spine).
+- [ ] **Beyond reach — search scale:** OpenSearch read layer operational where tenant/search scale requires it; index lifecycle documented (architecture/storage_and_search).
+- [ ] **Beyond reach — degradation testing:** Load or chaos exercises for queue/DB partial failure; user-visible "try again" and queue depth signals (N12).
+
+### Wave 4 — One-stop depth: operational and jurisdiction (§0.1.2 A, §0.1.3 E)
+
+- [ ] Operational modules: transport, library, inventory, clinic/nurse, timetabling at scale, substitute management—either first-party scope or certified integration path documented.
+- [ ] HR/payroll: credible payroll or certified in-country integrations documented; contracts, substitutes, time & attendance in scope or roadmap.
+- [ ] Statutory & audit: per country/state transcripts, exam boards, tax/payroll filings—beyond packs/stubs; roadmap or pack plan.
+- [ ] Change management in-product: full org change (year rollover, mass re-enroll) as guided, tested flows; extend pack apply/preview/rollback.
+- [ ] Partner + services layer: productized migration/training/go-live (packages, SLAs); runbooks and checklists formalized.
+- [ ] Full operations spine (visitor/safety, facilities, catering/POS): scope or integration path per §0.1.3 E.
+- [ ] Teaching depth (curriculum mapping, MTSS, IEP/504, assessment banks, prof learning): depth plan per market.
+- [ ] Research & grants (HE): sponsored programs, effort reporting, funder compliance—when HE one-stop is in scope.
+- [ ] Community & extended ecosystem: alumni/lifelong, employer partnerships, apprenticeships/TVET—tied to identity graph.
+- [ ] **Beyond reach — geography packs (§0.1.1):** Country/region presets as installable products: India CBSE, Singapore, Canada provincial, MENA extensions, AU statutory beyond UK template, Brazil/LATAM where GTM—each with moe_presets/education_dna + statutory path (BEYOND_REACH §9).
+- [ ] **Beyond reach — statutory product:** UK (and priority regions) statutory/report pack as **sellable installable product**, not stub-only where market requires (wedge 3 beyond reach).
+- [ ] **Beyond reach — advancement (wedge 5):** Full Phase 2 CRUD: donor/campaign/gift/receipt list/detail/edit flows; one identity graph visible in UX (BEYOND_REACH §6).
+- [ ] **Beyond reach — HE (wedge 6):** HE go-live **months not years**—measured path and at least one reference implementation documented.
+- [ ] **Beyond reach — ministry/district:** Multi-school/ministry aggregator reporting and drill-down where wedge 4 demands; ERP handoff patterns documented.
+
+### Wave 5 — Migration north star (§0.1.2 B, D)
+
+- [ ] Competitor playbooks: timeboxed playbooks per top competitor + region (§0.1.1); e.g. "PowerSchool → RMC students+enrollments in N business days" with export recipe.
+- [ ] Pre-built competitor packs: not enum-only; templates + validation reports per top competitors per region.
+- [ ] Automated diff scheduling: productize CSV diff (scheduled diff, alerts, dashboard); extend super + BR APIs + wizard.
+- [ ] Rollback + exception queue UI: full rollback and exception queue in migration cloud (phase8).
+- [ ] API connectors beyond CSV: OneRoster spine; document path for district APIs where allowed.
+- [ ] Migration-as-a-service: formalize SKUs + runbooks for partner/team-run exports, map, validate.
+- [ ] Paper path as SKU: bootstrap + optional OCR + partner scanning as clear product path (§0.1.2 D proof 3).
+- [ ] **Beyond reach — migration UX:** In-product **migration scorecard dashboard** for operators; parity thresholds and alerts (N25 depth).
+- [ ] **Beyond reach — phase8 gaps:** Legacy data cleaner tool; rollback-safe cutover checklist automated where possible (phase8 doc).
+- [ ] **Beyond reach — roster integration:** Signed roster webhooks; scopes/IP allowlist/audit for district roster flows (WORLD_CLASS_TRIPLE_WEDGE §44 optionals)—**not** Clever/ClassLink native (backlog).
+
+### Wave 6 — Paper → digital (§0.1.2 C)
+
+- [ ] Phase 0–3 offer documented and productized: Digital day-1 → bulk CSV → OCR/partner scanning → historical grades/attendance optional.
+- [ ] Single named "paper school digitization" journey: inventory → photograph/scan → extract → validate → import (process + services SKU).
+- [ ] **Beyond reach — mobile capture:** Mobile-optimized bulk/staff data capture for paper schools (forms + validation) where productized.
+- [ ] **Beyond reach — partner SLAs:** Digitization partner intake checklist + SLA template in services SKU.
+
+### Wave 7 — Forward-looking and 100-year (§0.1.3 F, G)
+
+- [ ] Credential portability: learner-owned records; W3C VCs or national learner wallets—native or deep integration path documented.
+- [ ] AI as infrastructure: auditability, human override, regional AI regulation baked in; not bolt-on only.
+- [ ] Interoperability by default: APIs + event streams + privacy-preserving cohort analytics; document for ministries/networks.
+- [ ] Resilience & exit: multi-region, BCP, RTO/RPO; export/exit so schools can leave cleanly; document.
+- [ ] 100-year data: long retention, legal hold, mergers/splits, format migration—design doc or runbook.
+- [ ] 100-year governance/trust: config and packs survive regime/curriculum/privacy changes; audit trails; open spine not lock-in; society/demographics/climate reporting path.
+- [ ] **Beyond reach — climate/sustainability:** Reporting hooks or pack for school sustainability/carbon reporting where jurisdictions require (§0.1.3 G Society).
+- [ ] **Beyond reach — demographic foresight:** Long-horizon enrollment/demographic analytics for planning (ministry/network tier).
+
+### Wave 8 — Beyond reach: experience, performance, trust, ecosystem, global, innovation, support (N1–N29; all non-negotiable)
+
+**Experience (zero learning curve, delight, clarity):**
+- [ ] **N1** Zero learning curve: first meaningful task &lt;5 min for teacher/parent/admin; guided "what next" everywhere.
+- [ ] **N2** Delight/polish: no placeholder copy; micro-interactions, loading/empty states on-brand (§8.0.11).
+- [ ] **N3** Accessibility WCAG 2.1 AA on critical paths; keyboard, SR, contrast, skip links.
+- [ ] **N4** Mobile-first/touch: high-use flows on phone; touch targets ≥44px; responsive lint in CI.
+- [ ] **N5** Offline/resilience: critical reads (timetable, contacts) degraded/offline path + sync status (RESILIENT_EDGE depth).
+- [ ] **N6** Role-native personalization: dashboards/nav by role, school type, region terminology.
+- [ ] **N7** Progressive disclosure; one primary action per surface (§0.4.4 clarity).
+- [ ] **N8** Command palette as primary: Ctrl+K + intents for heaviest flows (§8.0.4).
+- [ ] **Measured click reduction:** CLICK_REDUCTION_BASELINE.md filled with measured before/after; target ~50% on benchmark flows.
+
+**Performance and reliability:**
+- [ ] **N9** Sub-second core: dashboard, list first page, save, search—p50 &lt;1s, p99 &lt;2s where feasible.
+- [ ] **N10** Performance budgets in CI: LCP/FID/CLS + key API latency gates; fail on regression.
+- [ ] **N11** SLO/SLA story published; "designed against Bromcom-style outage" narrative in trust center.
+- [ ] **N12** Graceful degradation: rate limits, queue depth, user-visible retry; no silent white screens under load.
+
+**Trust, compliance, security:**
+- [ ] **N13** Trust center as **living product**: security, compliance, retention, breach response—auditable updates.
+- [ ] **N14** Data residency/sovereignty: controls and docs per region (GDPR, FERPA, etc.).
+- [ ] **N15** Sensitive-action audit log + **auditor export**; retention/access documented.
+- [ ] **N16** SOC 2 / ISO (or equivalent) **roadmap executed**; marketplace/partner security review signals (N16; MARKETPLACE_REGION_AND_CERT_MINIMUMS depth).
+
+**Ecosystem and extensibility:**
+- [ ] **N17** Marketplace: certification, scopes, **dependency graph + impact preview** on every apply path (deepen to north-star bar).
+- [ ] **N18** Developer experience: versioned API docs, sandbox, auth, webhooks—third party builds without guesswork.
+- [ ] **N19** Webhooks/events: reliable delivery, retry, idempotency; event catalog (ties Wave 2).
+- [ ] **N20** Pack versioning: every pack type versioned; preview + one-click rollback universally.
+
+**International and inclusion:**
+- [ ] **N21** Full i18n: user-facing strings translatable; locale from tenant/region; date/number/currency by region.
+- [ ] **N22** RTL and regional UX where required; regional packs installable (MENA and beyond).
+- [ ] **N23** Inclusive terminology and imagery; global diversity in examples.
+
+**Innovation and differentiation:**
+- [ ] **N27** AI-native workflows: context-aware setup and "what should I do next?"—no dead ends (governed).
+- [ ] **N28** Predictive/proactive: EWS, deadlines, suggested actions—platform feels anticipatory (analytics depth).
+- [ ] **N29** Setup in minutes **measured**: Launch Studio path proven with metrics (real-school or staging benchmark).
+- [ ] **Choose region → Create school:** From geography/curriculum marketing or packs, deep link signup with region/pack pre-selected (BEYOND_REACH §6).
+
+**Operational and support excellence:**
+- [ ] **N24** Observability: metrics/traces/logs; runbooks; on-call/escalation (ties SLO_OBSERVABILITY).
+- [ ] **N25** Rollout/migration playbooks: phased rollout, validation, rollback—customer-facing and internal (ties Wave 5).
+- [ ] **N26** Support and onboarding as product: training, post-go-live, day-two success (§0.4.1).
+
+**Foundation (enables all above):**
+- [ ] Structural tech debt: giant files/side roads cleared per §6 and lint gates; velocity does not stall.
+- [ ] Raw SQL and broad `except`: allowlisted only; repositories where required; signature/replay for sensitive paths (§11 Phase A).
+- [ ] SiteSettings decomposition: bounded domains own behavior; runtime-first tenant config (SOT six blockers).
+
+### Serious and not-so-simple (continuous; tie to Waves 1–2 and §11)
+
+- [ ] Uncaught DoesNotExist → 500: get_object_or_404 or explicit 404 on all relevant API/list views (PRODUCTION_READINESS A2).
+- [ ] Custom 404/500 handlers and templates (B1).
+- [ ] Schema/OpenAPI access: restrict or document (B2).
+- [ ] SiteSettings/siteconfig: continue moving ownership to bounded domains (SOT six blockers).
+- [ ] Year rollover / mass re-enroll: guided, tested flows; test rollover and re-enroll.
+- [ ] Long/critical forms: draft/offline for finance, compliance, request forms (RESILIENT_EDGE).
+- [ ] SLO/observability: runbooks, health checks, SLO targets (open_source_spine; SLO_OBSERVABILITY_TARGETS).
+- [ ] Dependencies: pin in prod; pip-audit in CI; triage or waive with ticket.
+- [ ] Simple: remove unused csrf_exempt; role helpers everywhere; health check for LB; `manage.py check --deploy` in CI.
+- [ ] **Beyond reach — LMS spine (wedge 2):** Documented or enforced SLAs for SSO, roster sync, grade passback with top LMSs (BEYOND_REACH §9).
+- [ ] **Beyond reach — go-live proof (wedge 1):** Real-school or benchmark proof of go-live &lt;2 weeks from signup to first meaningful use (measured).
+
+**Completion:** When a wave item is done, mark [x] in this section and sync BACKLOG_AND_DEFERRED_CLOSURE / NEXT_50 as needed. **Clever/ClassLink native remains backlog until partnership.** All other items—including every N1–N29 and beyond-reach line—are **non-negotiable** until DONE.
+
 ---
 
 # 0.2 Competitive obliteration roadmap
@@ -619,6 +950,8 @@ All strategy and competitive context lives here so we have one place for trackin
 | **LMS integration as a product** | Schools want "SIS + their LMS" with no double entry. Gaps: SSO, roster sync, grade passback, documented "one SIS, any LMS" flows so we're the spine. |
 | **International and UK readiness** | Veracross/iSAMS win on "one database, one record"; UK schools care about SIMS/Arbor/Bromcom resilience and statutory needs. We need: UK/IB/regional packs, single-record story, resilience/BCP we can point to. |
 | **Advancement without a second vendor** | Real pain: "we need Blackbaud and our SIS." We need: one identity graph (student/family/alumni/donor), simple campaigns/gifts/receipts, "no second CRM" story for small/mid schools. |
+
+**Execution lens:** Wedge implementation vs true one-stop depth, **fast competitor migration**, and **paper→digital**—including what exists in code and what to productize—is consolidated in **§0.1.2** (non-duplicative; extends this table).
 
 ## 0.4.2 What they do well — emulate and surpass
 

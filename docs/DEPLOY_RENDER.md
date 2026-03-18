@@ -1,6 +1,8 @@
 # Deploying on Render.com
 
-For a full map of dashboards and links, see [DASHBOARDS_AND_LINKS.md](./DASHBOARDS_AND_LINKS.md).
+For a full map of dashboards and links, see [DASHBOARDS_AND_LINKS.md](./DASHBOARDS_AND_LINKS.md). For migration/seed/UI assurance scope (what is automated vs manual), see [DEPLOY_AND_UX_ASSURANCE.md](./DEPLOY_AND_UX_ASSURANCE.md).
+
+**Tenant ORM:** Resolve tenants with `from apps.customers.models import Client` (not `django_tenants.models.Client`).
 
 ## Host and CSRF (required for login to work)
 

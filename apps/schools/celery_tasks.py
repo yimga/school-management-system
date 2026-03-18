@@ -41,7 +41,7 @@ def _resolve_client(schema_name=None, client_id=None, school_id=None):
     if not getattr(settings, "USE_DJANGO_TENANTS", False):
         return None
     try:
-        from django_tenants.models import Client
+        from apps.customers.models import Client
 
         if schema_name:
             return Client.objects.get(schema_name=schema_name)
@@ -99,7 +99,7 @@ def _run_with_tenant_context(
 
         if client_id is not None:
             try:
-                from django_tenants.models import Client
+                from apps.customers.models import Client
 
                 c = Client.objects.get(pk=client_id)
                 school = (

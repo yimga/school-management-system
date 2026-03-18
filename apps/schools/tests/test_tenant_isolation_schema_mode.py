@@ -25,9 +25,9 @@ class TenantIsolationSchemaModeTests(TestCase):
 
     def setUp(self):
         try:
-            from django_tenants.models import Client, Domain
+            from apps.customers.models import Client, Domain
         except ImportError:
-            self.skipTest("django-tenants not installed")
+            self.skipTest("customers tenant models not available")
         self.Client = Client
         self.Domain = Domain
         self.client_a = Client.objects.create(schema_name="tenant_a", name="Tenant A")

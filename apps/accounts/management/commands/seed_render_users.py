@@ -12,6 +12,7 @@ Example Release Command:
 """
 
 import os
+
 from django.core.management import BaseCommand, call_command
 from django.db import connection
 
@@ -24,8 +25,10 @@ def _ensure_teacherprofile_updated_at_in_tenant_schemas(stdout, style):
     if connection.vendor != "postgresql":
         return
     try:
-        from django_tenants.models import Client
-
+        from apps.customers.models import Client
+    except ImportError:
+        return
+    try:
         from apps.people.repositories.audit_repository import set_search_path
     except ImportError:
         return
@@ -58,11 +61,12 @@ def _run_create_teacher_parent_accounts(stdout, style, tenant_password, tenant_s
 
     if getattr(settings, "USE_DJANGO_TENANTS", False):
         try:
-            from django_tenants.models import Client
+            from apps.customers.models import Client
 
-            if (tenant_slug or "").strip():
-                client = Client.objects.filter(
-                    schema_name=(tenant_slug or "").strip().lower()
+            slug = (tenant_slug or "").strip().lower()
+            if slug:
+                client = Client.objects.filter(schema_name=slug).first() or Client.objects.filter(
+                    school__slug=slug
                 ).first()
             else:
                 client = (
