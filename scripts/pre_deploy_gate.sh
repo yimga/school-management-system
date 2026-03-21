@@ -32,6 +32,9 @@ python scripts/lint_siteconfig_legacy_imports.py
 echo "[pre_deploy_gate] Provider secret exposure"
 python scripts/lint_secret_exposure.py
 
+echo "[pre_deploy_gate] Repo secret-pattern scan (high-risk)"
+python scripts/scan_repo_secrets.py
+
 echo "[pre_deploy_gate] Runtime-visible branding residue"
 python scripts/lint_gilead_residue.py
 
@@ -81,6 +84,9 @@ python scripts/verify_sot_pillar_evidence.py
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
 python manage.py makemigrations --check --dry-run
 
+echo "[pre_deploy_gate] Ensure gate test DB has migrations (for --keepdb and verify_ux_completion)"
+python scripts/migrate_gate_test_db.py
+
 echo "[pre_deploy_gate] Tenant model audit"
 python manage.py audit_tenant_models --strict
 
@@ -101,6 +107,8 @@ python scripts/lint_north_star_i18n.py || true
 echo "[pre_deploy_gate] Targeted hardening regressions"
 TARGETED_HARDENING_TESTS=(
   services.tests.test_ai_gateway
+  apps.schools.tests.test_impersonation_dual_control
+  apps.schools.tests.test_manager_studio_tenant_boundary
   services.tests.test_ai_memory
   apps.siteconfig.tests.test_ai_copilot_context
   apps.siteconfig.tests.test_ai_admin_surfaces
@@ -110,10 +118,14 @@ TARGETED_HARDENING_TESTS=(
   apps.siteconfig.tests.test_metadata_catalog
   apps.packages.tests.test_engine
   apps.platform_runtime.tests.test_precedence
+  apps.platform_runtime.tests.test_learning_institution_beyond
   apps.platform_runtime.tests.test_runtime_contract
   apps.platform_runtime.tests.test_structured_logging
   apps.platform_runtime.tests.test_public_api_lints
   apps.platform_runtime.tests.test_marketplace_catalog_minimums
+  apps.marketplace.tests.test_install_impact
+  apps.marketplace.tests.test_blueprint_rollback_ack
+  apps.marketplace.tests.test_governance
   apps.portal.tests.test_ai_copilot_config
   apps.portal.tests.test_ai_feedback
   apps.portal.tests.test_ai_gateway_smoke
@@ -123,11 +135,24 @@ TARGETED_HARDENING_TESTS=(
   apps.api.tests.test_api_v1_route_contract
   apps.api.tests.test_api_v1_manifest
   apps.api.tests.test_api_v1_contract_smoke
+  apps.api.tests.test_dashboard_api_profile_404
   apps.schools.tests.test_school_data_residency_contract
   apps.platform_runtime.tests.test_platform_event_log
+  apps.platform_runtime.tests.test_rum_ingest
+  apps.platform_runtime.tests.test_rum_aggregate
   apps.schools.tests.test_super_beyond_reach
+  apps.schools.tests.test_advancement_tenant_crud
+  apps.schoolops.tests.test_tenant_ops_wave4
+  apps.schoolops.tests.test_tenant_ops_wave15_substitutes
+  apps.schoolops.tests.test_tenant_ops_wave16_visitor
+  apps.schoolops.tests.test_tenant_ops_wave17_facilities
+  apps.schoolops.tests.test_tenant_ops_wave18_pos
+  apps.siteconfig.tests.test_tenant_package_rollback_ui
+  apps.portal.tests.test_bulk_capture_hub
+  apps.accounts.tests.test_tenant_activity_log_view
   apps.compliance.tests.test_attendance_region_br05
   apps.analytics.tests.test_at_risk_intervention_br06
+  apps.analytics.tests.test_ews_signal_sync
   apps.communication.tests.test_thread_locale_retention_br08
   apps.communication.tests.test_message_locale_wiring
 )
@@ -184,6 +209,12 @@ python scripts/check_performance_budgets.py 2>/dev/null || true
 if [[ "${PERF_BUDGET_STRICT:-0}" == "1" ]]; then
   python scripts/check_performance_budgets.py
 fi
+
+# §7 / release hygiene: earlier steps (seeds, tests, ensure_*) can change inventory inputs;
+# refresh so verify_section7_gate.py --check passes immediately after a green gate.
+echo "[pre_deploy_gate] Platform inventory refresh (post-steps, §7 alignment)"
+python scripts/generate_platform_inventory.py --write
+python scripts/generate_platform_inventory.py --check
 
 echo "[pre_deploy_gate] PASSED"
 exit 0

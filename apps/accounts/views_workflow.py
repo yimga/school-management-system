@@ -6,7 +6,7 @@ Extracted from accounts/views.py to reduce file size and group workflow/approval
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import DatabaseError, OperationalError, ProgrammingError
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse, NoReverseMatch
 
 from apps.academics.models import Classroom
@@ -14,6 +14,7 @@ from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
+from apps.siteconfig.staff_navigation import site_settings_change_url
 
 from .decorators import permission_required
 from .models import User
@@ -42,6 +43,29 @@ def _is_admin_user(user):
             or getattr(user, "role", None) == User.Role.ADMIN
         )
     )
+
+
+def _manager_host_without_school_workflow_redirect(request):
+    """
+    School workflow / import / approval hubs are tenant-primary. The manager host
+    mounts the same URLconf for shared libraries, but must not present school-shaped
+    workflow surfaces without tenant context (use impersonation on the tenant host).
+    """
+    if (getattr(request, "public_host_kind", None) or "").lower() != "manager":
+        return None
+    if getattr(request, "school", None):
+        return None
+    from django.contrib import messages
+    from django.urls import reverse
+    from django.utils.translation import gettext as _
+
+    messages.warning(
+        request,
+        _(
+            "School workflows run on the tenant host. Use “Open as school” from the super dashboard."
+        ),
+    )
+    return redirect(reverse("super:dashboard"))
 
 
 def _workflow_progress(year):
@@ -115,18 +139,60 @@ def _can_access_approval_hub(user):
     }
 
 
+def _approval_hub_urls(request):
+    """
+    Manager host has no evals/requests/portal namespaces — use tenant base for deep links.
+    """
+    from django.conf import settings
+
+    base = (
+        getattr(settings, "STUDIO_APPROVAL_HUB_TENANT_BASE_URL", None) or ""
+    ).strip().rstrip("/")
+    specs = [
+        (
+            "grade_approvals",
+            "evals:grade_approval_list",
+            "/evals/grade-approvals/",
+        ),
+        ("access_requests", "requests:dashboard", "/requests/"),
+        (
+            "contact_requests",
+            "portal:staff_contact_request_list",
+            "/portal/staff/contact-requests/",
+        ),
+    ]
+    out = {}
+    for key, url_name, path in specs:
+        try:
+            out[key] = reverse(url_name)
+        except NoReverseMatch:
+            out[key] = f"{base}{path}" if base else ""
+    return out
+
+
 @login_required
 @user_passes_test(_can_access_approval_hub)
 def approval_workflow_hub(request):
     """Hub linking to Grade Approvals, Access Requests, Contact Requests. Served under Studio OS (/studio/hubs/approvals/)."""
+    early = _manager_host_without_school_workflow_redirect(request)
+    if early is not None:
+        return early
+    urls = _approval_hub_urls(request)
+    try:
+        bc_backend = reverse("accounts:backend_dashboard")
+    except NoReverseMatch:
+        bc_backend = "/"
     return render(
         request,
         "accounts/approval_workflow_hub.html",
         {
             "BREADCRUMBS": [
-                {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
+                {"label": "Backend", "url": bc_backend},
                 {"label": "Approval Hub", "url": "", "active": True},
             ],
+            "grade_approvals_url": urls["grade_approvals"],
+            "access_requests_url": urls["access_requests"],
+            "contact_requests_url": urls["contact_requests"],
         },
     )
 
@@ -150,9 +216,7 @@ def automation_hub(request):
         pass
     try:
         site = get_effective_site_settings(request=request)
-        site_settings_url = reverse(
-            "admin:siteconfig_sitesettings_change", args=[site.pk]
-        )
+        site_settings_url = site_settings_change_url(request, site.pk)
     except ACCOUNTS_SOFT_FAILURES as e:
         log_exception_with_context(
             "accounts automation_hub: get_effective_site_settings or site_settings_url failed",
@@ -182,6 +246,9 @@ def automation_hub(request):
 @user_passes_test(_is_admin_user)
 def import_hub(request):
     """Hub linking to Entity Import, Grade Import, Migration Wizard, templates. Served under Studio OS (/studio/hubs/import/)."""
+    early = _manager_host_without_school_workflow_redirect(request)
+    if early is not None:
+        return early
     return render(
         request,
         "accounts/import_hub.html",
@@ -205,6 +272,9 @@ def workflow_center(request):
     Operator-friendly entry point to the end-to-end school workflow.
     Served under Studio OS (/studio/hubs/workflow/).
     """
+    early = _manager_host_without_school_workflow_redirect(request)
+    if early is not None:
+        return early
     site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()
     progress = _workflow_progress(year)
@@ -273,12 +343,12 @@ def workflow_center(request):
         _workflow_link("Message groups", "communication:group_list"),
         _workflow_link("Create announcement", "communication:announcement_create"),
         _workflow_link("Parent contact requests", "portal:staff_contact_request_list"),
-        _workflow_link(
-            "Absence alert (Site settings)",
-            "admin:siteconfig_sitesettings_change",
-            args=(site.pk,),
-        ),
     ]
+    _comm_ss = site_settings_change_url(request, site.pk)
+    if _comm_ss:
+        communication_links.append(
+            {"label": "Absence alert (Site settings)", "url": _comm_ss}
+        )
     documents_links = [
         _workflow_link("Document library", "portal:document_library_manage"),
         _workflow_link("Signature requests", "portal:signature_requests_manage"),
@@ -312,14 +382,18 @@ def workflow_center(request):
     )
     settings_links = [
         _workflow_link("Academic rules", "accounts:academic_rules"),
-        _workflow_link(
-            "Site settings (admin)",
-            "admin:siteconfig_sitesettings_change",
-            args=(site.pk,),
-        ),
-        _workflow_link("Preferences (operator UI)", "siteconfig:user_preferences"),
-        _workflow_link("RBAC & access control", "accounts:rbac"),
     ]
+    _sett_ss = site_settings_change_url(request, site.pk)
+    if _sett_ss:
+        settings_links.append({"label": "Site settings", "url": _sett_ss})
+    settings_links.extend(
+        lnk
+        for lnk in (
+            _workflow_link("Preferences (operator UI)", "siteconfig:user_preferences"),
+            _workflow_link("RBAC & access control", "accounts:rbac"),
+        )
+        if lnk
+    )
 
     def _filter_links(links):
         return [lnk for lnk in links if lnk is not None and lnk.get("url")]

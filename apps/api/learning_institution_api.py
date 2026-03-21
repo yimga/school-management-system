@@ -72,6 +72,60 @@ class LearningPackInstallView(LoginRequiredMixin, View):
         return JsonResponse(out, status=200)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
+class LearningPackRollbackView(LoginRequiredMixin, View):
+    """
+    POST JSON {
+      "pack_slug": "evals_rubrics",
+      "confirm_learning_wedge_rollback": "ROLLBACK",
+      "sync_marketplace": true
+    }
+    N20: parity with blueprint rollback keyword; reverses apply_single_wedge_pack_slug safely.
+    """
+
+    def post(self, request):
+        school = _school(request)
+        if not school:
+            return JsonResponse({"error": "School context required"}, status=400)
+        if not _can_learning_institution_admin(request.user):
+            return JsonResponse({"error": "Forbidden"}, status=403)
+        try:
+            body = json.loads(request.body.decode() or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+        ack = (body.get("confirm_learning_wedge_rollback") or "").strip()
+        if ack != "ROLLBACK":
+            return JsonResponse(
+                {
+                    "error": "Type ROLLBACK in confirm_learning_wedge_rollback "
+                    "to acknowledge removing this wedge pack from the tenant."
+                },
+                status=400,
+            )
+        pack_slug = (body.get("pack_slug") or "").strip()
+        if not pack_slug:
+            return JsonResponse({"error": "pack_slug required"}, status=400)
+        sync_marketplace = bool(body.get("sync_marketplace", True))
+        try:
+            from apps.platform_runtime.learning_institution_runtime import (
+                rollback_single_wedge_pack_slug,
+            )
+
+            out = rollback_single_wedge_pack_slug(
+                school,
+                pack_slug,
+                sync_marketplace=sync_marketplace,
+                uninstalled_by=request.user,
+                actor_id=getattr(request.user, "pk", None),
+            )
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            logger.exception("learning_pack_rollback")
+            return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse(out, status=200)
+
+
 class InstitutionProfileSuggestView(LoginRequiredMixin, View):
     """GET — heuristic (and optional gateway) suggestion for delivery + institution type."""
 

@@ -61,7 +61,7 @@ This document classifies every model registered in Django admin as **platform-on
 | policies | TenantBlueprint | tenant | Per-school |
 | policies | TenantPolicyOverride | tenant | Per-school |
 | policies | ScheduledPolicyOverride | tenant | Per-school |
-| **siteconfig** | SiteSettings | both | Tenant config; platform can have defaults |
+| **siteconfig** | SiteSettings | tenant admin + **super** | **Platform:** `register_tenant_admin` only; manager uses `super:site_settings_list` / `super:site_settings_edit`. **Tenant:** Django admin unchanged. Resolvers: `apps/siteconfig/staff_navigation.py`. |
 | siteconfig | ThemePack | both | Catalog (platform) / usage (tenant) |
 | siteconfig | ReportTemplate, OfficialReportTemplate | both | |
 | siteconfig | ReportCardStyle, ReportCardStyleAssignment | both | |

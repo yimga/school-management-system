@@ -987,6 +987,9 @@ class VocationalVerifySkillView(View):
             teacher = getattr(request.user, "teacher_profile", None)
             if not teacher:
                 return JsonResponse({"error": "Teacher profile required"}, status=403)
+            from apps.people.models import StudentProfile
+
+            StudentProfile.objects.get(pk=student_id, school=school)
             CompetencyItem.objects.get(pk=competency_item_id)
             valid_levels = [c[0] for c in CompetencyRubric.CompetencyLevel.choices]
             if level not in valid_levels:
@@ -1001,6 +1004,8 @@ class VocationalVerifySkillView(View):
             return JsonResponse({"ok": True, "id": rec.id, "level": rec.level})
         except CompetencyItem.DoesNotExist:
             return JsonResponse({"error": "Competency item not found"}, status=404)
+        except StudentProfile.DoesNotExist:
+            return JsonResponse({"error": "Student not found"}, status=404)
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
             log_view_exception(
                 request,

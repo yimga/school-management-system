@@ -10,6 +10,8 @@
 
 **Step 47 (no overlapping roadmaps):** Roadmap and strategy updates go only to [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md), this backlog, [docs_truth_ledger.md](docs_truth_ledger.md), and [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md). Do not create new overlapping strategy or roadmap files.
 
+**SOT open checkboxes (indexed):** Every remaining `- [ ]` in RUNMYCAMPUS §0.1.5+ is categorized in [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) (NEXT_CODE / PRODUCT / OPS / COMPLIANCE / BLOCKED). Reconcile that file when flipping a SOT checkbox to `[x]`.
+
 ---
 
 ## Where we stand (snapshot)

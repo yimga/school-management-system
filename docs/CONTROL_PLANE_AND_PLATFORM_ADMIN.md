@@ -33,7 +33,7 @@ Tenant **`/admin/`** (`TenantAdminSite`) is a **different** site: tenant models 
 
 ## Gaps that remain (by product choice)
 
-- **Per-model CRUD** under **Apps** in admin is **not** reproduced** as individual `/super/` routes** (dozens of models). Use **Platform backoffice (model CRUD)** in the control-plane sidebar → `/admin/`.
+- **Per-model CRUD** under **Apps** in admin is **not** reproduced as individual `/super/` routes (dozens of models). Use **Platform backoffice (model CRUD)** in the control-plane sidebar → `/admin/`.
 - **Some `/super/` URLs** exist only in `super_urls.py` (e.g. group campuses, advancement, AI hub) and may not appear in the sidebar; they are linked from dashboards or bookmarks.
 
 ## Single source for `/super/` nav

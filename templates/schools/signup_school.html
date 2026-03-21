@@ -7,6 +7,12 @@
     <div class="col-md-6">
       <h1 class="h3 mb-4">{% trans "Sign up your school" %}</h1>
       <p class="text-muted">Create your school on RunMyCampus. We'll send a verification link to your email.</p>
+      {% if signup_region_hint %}
+      <div class="alert alert-info small mb-3" role="status">
+        {% trans "Region preset" %}: <strong>{{ signup_region_hint }}</strong>{% if curriculum_hint %} — {{ curriculum_hint }}{% endif %}
+        <span class="d-block text-muted mt-1">{% trans "Deep link" %}: <code>?region=…&amp;country_code=…&amp;term_preset=UK&amp;curriculum=…</code></span>
+      </div>
+      {% endif %}
       {% for message in messages %}
       <div class="alert alert-{{ message.tags }}">{{ message }}</div>
       {% endfor %}

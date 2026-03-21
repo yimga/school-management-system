@@ -58,6 +58,7 @@ from .cache import (
     get_cached_runtime_for_request,
     set_cached_runtime_for_request,
 )
+from .tracing import set_runtime_trace_context
 
 
 def _school_from_request(request: Optional[Any]) -> Any:
@@ -717,6 +718,8 @@ def build_tenant_runtime(
         school = _school_from_request(request)
     # Request-scope cache: avoid rebuilding in same request
     if request is not None:
+        # GAP.5: same trace id for full runtime build as for get_effective_site_settings
+        set_runtime_trace_context(request)
         cached = get_cached_runtime_for_request(request, tenant_ctx, school)
         if cached is not None:
             return cached

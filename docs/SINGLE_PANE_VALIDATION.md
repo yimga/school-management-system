@@ -11,8 +11,9 @@
 | **Sign-in** | `/super/` → redirect to login; after login → control plane dashboard | Single entry; no separate "admin" login label in nav |
 | **Control plane** | `super:dashboard` (`/super/`) | Single shell: one top bar, one sidebar |
 | **System config** | `siteconfig:console_domains_hub` (`/siteconfig/console/`) | Single config surface: platform config + domains + operational links |
+| **Platform operator hub** | `super:platform_operator_hub` (`/super/platform-operator-hub/`) | Super-first curated links + full platform-admin changelist registry (verified `get_app_list`); primary path before raw `/admin/` |
 | **Legacy path** | `/super/config/` | Redirects to System config (no separate hub page) |
-| **Backoffice (raw CRUD)** | `admin:index` (`/admin/`) | Not in main nav or header; only "Open in backoffice" links from list pages when needed |
+| **Backoffice (raw CRUD)** | `admin:index` (`/admin/`) | Secondary/advanced; operator hub and System config link here for extremes only |
 
 **Validated:** Nav, header, sidebar, quick actions, and dashboard action registry point "System config" → `siteconfig:console_domains_hub`. No primary link to Django admin in manager nav/header.
 

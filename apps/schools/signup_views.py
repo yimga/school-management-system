@@ -52,7 +52,20 @@ def signup_school(request: HttpRequest):
     send email with verification link, return success or errors.
     """
     if request.method == "GET":
-        return render(request, "schools/signup_school.html", {})
+        cc = (request.GET.get("country_code") or "").strip()[:2].upper()
+        tp = (request.GET.get("term_preset") or "").strip()[:8].upper()
+        if tp not in ("", "UK"):
+            tp = ""
+        return render(
+            request,
+            "schools/signup_school.html",
+            {
+                "country_code": cc,
+                "term_preset": tp,
+                "signup_region_hint": (request.GET.get("region") or "").strip()[:64],
+                "curriculum_hint": (request.GET.get("curriculum") or "").strip()[:128],
+            },
+        )
 
     name = (request.POST.get("name") or "").strip()
     slug = (request.POST.get("slug") or "").strip() or _slug_from_name(name)

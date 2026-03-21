@@ -26,7 +26,9 @@ nav.cp-navbar.statement-header {
 nav.cp-navbar .container-fluid {
   max-width: 100%;
   min-width: 0;
-  overflow-x: hidden;
+  /* overflow-x: hidden made overflow-y compute to auto and clipped Bootstrap dropdowns */
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 /* Portal / tenant: #portalHeader (portal_base.html) */
@@ -35,13 +37,15 @@ nav#portalHeader.statement-header {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
 }
 #portalHeader .container-fluid,
 #portalHeader .navbar-collapse {
   max-width: 100%;
   min-width: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 /* Marketing: .mkt-navbar (marketing_header.html) */

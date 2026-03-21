@@ -203,6 +203,14 @@ def _build_platform_config_context(request: HttpRequest) -> list[dict[str, Any]]
     cards = []
     entries = [
         (
+            "operator_hub",
+            "Platform operator hub",
+            "Super-first operations plus every platform admin changelist in one place.",
+            "super:platform_operator_hub",
+            "bi-grid-3x3-gap",
+            None,
+        ),
+        (
             "site_settings",
             "Site settings",
             "Platform-level site name, theme, and defaults.",
@@ -276,6 +284,7 @@ def _build_operational_links_context(request: HttpRequest) -> list[dict[str, str
     """Operational quick links for manager: schools, incidents, billing, migration."""
     out = []
     for label, url_name in [
+        ("Platform operator hub", "super:platform_operator_hub"),
         ("Schools list", "super:schools_list"),
         ("Incidents", "super:incidents_list"),
         ("Billing", "super:billing_dashboard"),
@@ -336,6 +345,12 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
             context["super_dashboard_url"] = reverse("super:dashboard")
         except NoReverseMatch:
             context["super_dashboard_url"] = None
+        try:
+            context["platform_operator_hub_url"] = reverse(
+                "super:platform_operator_hub"
+            )
+        except NoReverseMatch:
+            context["platform_operator_hub_url"] = None
         context["platform_config"] = _build_platform_config_context(request)
         context["operational_links"] = _build_operational_links_context(request)
         try:

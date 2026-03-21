@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
     "allow_any": 63,
-    "csrf_exempt": 126,
+    "csrf_exempt": 140,
     "cursor_execute": 352,
-    "except_exception": 207,
-    "get_solo": 181,
-    "gilead": 687,
-    "gilead_files": 134,
-    "html_files": 536,
-    "management_commands": 140,
-    "markdown_files": 953,
-    "migration_files": 616,
-    "print_calls": 530,
-    "python_files": 1946,
-    "site_settings": 1135
+    "except_exception": 219,
+    "get_solo": 182,
+    "gilead": 713,
+    "gilead_files": 138,
+    "html_files": 559,
+    "management_commands": 143,
+    "markdown_files": 992,
+    "migration_files": 636,
+    "print_calls": 539,
+    "python_files": 2066,
+    "site_settings": 1153
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -23,19 +23,24 @@
   },
   "largest_python_files": [
     {
-      "bytes": 248104,
-      "lines": 5775,
+      "bytes": 135837,
+      "lines": 2861,
+      "path": "apps/schools/marketing_page_definitions.py"
+    },
+    {
+      "bytes": 120110,
+      "lines": 3034,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 128290,
-      "lines": 3444,
-      "path": "apps/schools/super_views.py"
+      "bytes": 116827,
+      "lines": 3277,
+      "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 116292,
-      "lines": 3269,
-      "path": "apps/siteconfig/admin.py"
+      "bytes": 114809,
+      "lines": 3013,
+      "path": "apps/accounts/views.py"
     },
     {
       "bytes": 114435,
@@ -43,13 +48,8 @@
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 113808,
-      "lines": 2990,
-      "path": "apps/accounts/views.py"
-    },
-    {
-      "bytes": 103010,
-      "lines": 2463,
+      "bytes": 103258,
+      "lines": 2468,
       "path": "apps/api/views_v1.py"
     },
     {
@@ -68,8 +68,8 @@
       "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 86367,
-      "lines": 2339,
+      "bytes": 88300,
+      "lines": 2377,
       "path": "apps/siteconfig/views.py"
     },
     {
@@ -178,6 +178,11 @@
       "app": "analytics",
       "command": "send_deadline_reminders",
       "path": "apps/analytics/management/commands/send_deadline_reminders.py"
+    },
+    {
+      "app": "automation",
+      "command": "migration_legacy_data_audit",
+      "path": "apps/automation/management/commands/migration_legacy_data_audit.py"
     },
     {
       "app": "automation",
@@ -566,6 +571,11 @@
     },
     {
       "app": "schools",
+      "command": "seed_gilead_demo_users",
+      "path": "apps/schools/management/commands/seed_gilead_demo_users.py"
+    },
+    {
+      "app": "schools",
       "command": "tenant_health_check",
       "path": "apps/schools/management/commands/tenant_health_check.py"
     },
@@ -746,6 +756,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "seed_marketing_cms",
+      "path": "apps/siteconfig/management/commands/seed_marketing_cms.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "seed_preview_fixtures",
       "path": "apps/siteconfig/management/commands/seed_preview_fixtures.py"
     },
@@ -802,12 +817,14 @@
         "identity_access",
         "identity_provisioning",
         "interop_lti",
+        "interop_webhook",
         "learning_institution",
         "marketing_leads",
-        "north_star_api"
+        "north_star_api",
+        "platform_observability"
       ],
-      "reviewed_endpoints": 27,
-      "reviewed_files": 10
+      "reviewed_endpoints": 34,
+      "reviewed_files": 12
     }
   },
   "site_settings_fields": [

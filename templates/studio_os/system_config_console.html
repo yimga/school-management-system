@@ -3,18 +3,50 @@
 
 {% block title %}{% trans "System config" %} · {% trans "Control" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .sysconf-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #312e81 100%);
+    color: #f8fafc;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .sysconf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+  .sysconf-card {
+    border: 1px solid var(--bs-border-color, #e2e8f0);
+    border-radius: 10px;
+    padding: 1rem;
+    background: var(--bs-body-bg, #fff);
+    transition: box-shadow .15s ease, border-color .15s ease;
+  }
+  .sysconf-card:hover { box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08); border-color: #6366f155; }
+  .sysconf-card a { font-weight: 600; text-decoration: none; }
+  .sysconf-card .hint { font-size: 0.8rem; color: var(--bs-secondary-color); margin-top: 0.35rem; }
+  .sysconf-badge { font-size: 0.65rem; text-transform: uppercase; letter-spacing: .04em; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-3" data-page-archetype="operational-workbench">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
-  <div class="studio-os__card py-3 px-3">
-    <p class="mb-3 text-muted">{{ page_subtitle }}</p>
-    <ul class="list-unstyled mb-0">
-      {% for item in config_links %}
-      <li class="mb-2"><a href="{{ item.url }}">{{ item.label }}</a></li>
-      {% empty %}
-      <li class="text-muted">{% trans "No config surfaces available." %}</li>
-      {% endfor %}
-    </ul>
+  <div class="sysconf-hero">
+    <h2 class="h5 mb-1">{% trans "Configuration surfaces" %}</h2>
+    <p class="mb-0 small opacity-90">{{ page_subtitle }}</p>
+  </div>
+  <div class="sysconf-grid">
+    {% for item in config_links %}
+    <div class="sysconf-card">
+      {% if item.external %}
+      <span class="badge bg-warning text-dark sysconf-badge mb-2">{% trans "External" %}</span>
+      {% endif %}
+      <a href="{{ item.url }}" {% if item.external %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ item.label }}</a>
+      {% if item.hint %}<div class="hint">{{ item.hint }}</div>{% endif %}
+    </div>
+    {% empty %}
+    <p class="text-muted">{% trans "No config surfaces resolved for this host. Set MANAGER_PLATFORM_BASE_URL for manager links." %}</p>
+    {% endfor %}
   </div>
 </div>
 {% endblock %}

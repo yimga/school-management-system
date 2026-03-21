@@ -13,14 +13,23 @@ Steps:
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# Align with scripts/pre_deploy_gate.sh: use the same dedicated SQLite test DB so
+# `manage.py test` in step 2 does not hit a locked/default DB or wrong engine on Windows/CI.
+_DEFAULT_GATE_DB = ROOT / ".django_test_dbs" / "pre_deploy_gate.sqlite3"
+if not os.environ.get("DJANGO_TEST_DB_FILE"):
+    os.environ["DJANGO_TEST_DB_FILE"] = str(_DEFAULT_GATE_DB)
 
-def run(cmd: list[str], label: str) -> tuple[bool, str]:
+
+def run(
+    cmd: list[str], label: str, *, timeout: int = 120
+) -> tuple[bool, str]:
     """Run command; return (success, message)."""
     try:
         result = subprocess.run(
@@ -28,7 +37,7 @@ def run(cmd: list[str], label: str) -> tuple[bool, str]:
             cwd=ROOT,
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=timeout,
         )
         if result.returncode == 0:
             return True, "PASS"
@@ -97,8 +106,11 @@ def main() -> int:
             "--noinput",
             "-v",
             "0",
+            # Avoid WinError 32 when another process holds the test DB file.
+            "--keepdb",
         ],
         "§7 step 2: test_marketplace_catalog_minimums",
+        timeout=300,
     )
     if ok:
         print(f"  [{n}] test_marketplace_catalog_minimums: PASS")

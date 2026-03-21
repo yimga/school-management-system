@@ -265,6 +265,7 @@ def cash_office_closure(request: HttpRequest):
         "finance/cash_office_closure.html",
         {
             "form": form,
+            "closure_profile_id": profile.pk,
             "cash_collected": cash_collected,
             "expected_cash": expected_cash,
             "discrepancy_preview": discrepancy_preview,

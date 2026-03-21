@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% trans "Template gallery" %} | RunMyCampus{% endblock %}
 {% block content %}
 <div class="container-fluid py-4">
@@ -7,7 +7,65 @@
     <h1 class="h4 mb-0">{% trans "Template gallery" %}</h1>
     <a href="{{ theme_colors_url }}" class="btn btn-outline-primary btn-sm">{% trans "Theme & Experience" %}</a>
   </div>
-  <p class="text-muted small mb-4">{% trans "Choose a template to apply to your school. Preview in Theme & Experience, then save." %}</p>
+  <p class="text-muted small mb-4">{% trans "Choose a template to apply to your school. Review package impact and dependencies, then confirm apply." %}</p>
+  {% if impact_bundle %}
+  <div class="alert alert-info border mb-4" role="region" aria-label="{% trans 'Package impact preview' %}">
+    <h2 class="h6">{% trans "Impact preview" %} — {{ impact_bundle.package_id }} @ {{ impact_bundle.version }}</h2>
+    <p class="small mb-2 text-muted">{% trans "Declared dependency edges (advisory; not a full solver)." %}</p>
+    <div class="row small">
+      <div class="col-md-6">
+        <strong>{% trans "Upstream (depends on)" %}</strong>
+        <ul class="mb-0">
+          {% for u in impact_bundle.dependency_graph.upstream_package_ids %}
+          <li><code>{{ u }}</code></li>
+          {% empty %}
+          <li class="text-muted">{% trans "None declared" %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <strong>{% trans "Downstream (other packages may depend on this id)" %}</strong>
+        <ul class="mb-0">
+          {% for d in impact_bundle.dependency_graph.downstream_package_ids %}
+          <li><code>{{ d }}</code></li>
+          {% empty %}
+          <li class="text-muted">{% trans "None found in recent registry scan" %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% if impact_graph_json %}
+    <h3 class="h6 mt-3">{% trans "Interactive graph" %}</h3>
+    <p class="small text-muted mb-2">{% trans "Pan by dragging; zoom with the mouse wheel." %}</p>
+    <div id="rmc-gallery-graph-mount" class="border rounded bg-white" style="min-height:200px;"></div>
+    {{ impact_graph_json|json_script:"rmc-gallery-graph-json" }}
+    {% endif %}
+    {% if impact_bundle.preview %}
+    <hr class="my-3">
+    <p class="small mb-1"><strong>{% trans "Metadata preview" %}</strong></p>
+    {% if impact_bundle.preview.ok %}
+    <p class="small text-success mb-0">{% trans "Compatibility check passed for this tenant context." %}</p>
+    {% else %}
+    <p class="small text-danger mb-1">{% trans "Issues detected — resolve before applying if possible." %}</p>
+    <ul class="small mb-0">
+      {% for e in impact_bundle.preview.errors %}
+      <li>{{ e }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if impact_bundle.preview.warnings %}
+    <ul class="small text-warning mb-0 mt-2">
+      {% for w in impact_bundle.preview.warnings %}
+      <li>{{ w }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% elif not impact_bundle.has_registered_version %}
+    <hr class="my-3">
+    <p class="small text-muted mb-0">{% trans "No matching PackageVersion in registry — graph above uses theme slug only; full metadata diff unavailable." %}</p>
+    {% endif %}
+  </div>
+  {% endif %}
   <div class="row g-3">
     {% for t in templates %}
     <div class="col-md-4 col-lg-3">
@@ -15,12 +73,17 @@
         <div class="card-body d-flex flex-column">
           <h5 class="card-title h6">{{ t.name }}</h5>
           {% if t.description %}<p class="card-text small text-muted flex-grow-1">{{ t.description|truncatewords:15 }}</p>{% endif %}
-          <div class="d-flex gap-2 mt-2">
+          <div class="d-flex flex-wrap gap-2 mt-2">
             <a href="{{ theme_colors_url }}?preview={{ t.slug }}" class="btn btn-outline-secondary btn-sm">{% trans "Preview" %}</a>
-            <form method="post" action="{% url 'siteconfig:template_gallery' %}" class="d-inline">
+            <a href="{% url 'siteconfig:template_gallery' %}?preview_slug={{ t.slug }}" class="btn btn-outline-primary btn-sm">{% trans "Review impact" %}</a>
+            <form method="post" action="{% url 'siteconfig:template_gallery' %}" class="d-inline flex-grow-1">
               {% csrf_token %}
               <input type="hidden" name="template_slug" value="{{ t.slug }}">
-              <button type="submit" class="btn btn-primary btn-sm">{% trans "Use this template" %}</button>
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="confirm_metadata_apply" value="1" id="confirm-{{ t.slug }}">
+                <label class="form-check-label small" for="confirm-{{ t.slug }}">{% trans "I reviewed dependency / impact (use Review impact first)" %}</label>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm w-100">{% trans "Use this template" %}</button>
             </form>
           </div>
         </div>
@@ -36,4 +99,20 @@
     {% endfor %}
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+{{ block.super }}
+{% if impact_graph_json %}
+<script src="{% static 'js/package-dependency-graph.js' %}"></script>
+<script>
+(function () {
+  var mount = document.getElementById("rmc-gallery-graph-mount");
+  var el = document.getElementById("rmc-gallery-graph-json");
+  if (!mount || !el || !window.RmcPackageDependencyGraph) return;
+  try {
+    window.RmcPackageDependencyGraph.render(mount, JSON.parse(el.textContent));
+  } catch (e) {}
+})();
+</script>
+{% endif %}
 {% endblock %}

@@ -117,7 +117,13 @@ class TeacherDashboardAPI(View):
             from apps.evals.models import TeacherAssignment
             from apps.academics.services import get_active_year_and_term
 
-            teacher = TeacherProfile.objects.get(user=request.user)
+            try:
+                teacher = TeacherProfile.objects.get(user=request.user)
+            except TeacherProfile.DoesNotExist:
+                return JsonResponse(
+                    {"error": "Teacher profile not found for this account."},
+                    status=404,
+                )
 
             active_year, _active_term = get_active_year_and_term()
             assignments = TeacherAssignment.objects.filter(
@@ -280,7 +286,13 @@ class StudentDashboardAPI(View):
             from apps.people.models import StudentProfile
             from apps.academics.models import Attendance, Classroom
 
-            student = StudentProfile.objects.get(user=request.user)
+            try:
+                student = StudentProfile.objects.get(user=request.user)
+            except StudentProfile.DoesNotExist:
+                return JsonResponse(
+                    {"error": "Student profile not found for this account."},
+                    status=404,
+                )
 
             # Current classes
             current_classes = Classroom.objects.filter(

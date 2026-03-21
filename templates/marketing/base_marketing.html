@@ -60,6 +60,7 @@
 
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
   <script src="{% static 'marketing/js/marketing-shell.js' %}" defer></script>
+  {% include 'components/rum_beacon.html' %}
   {% block extrajs %}{% endblock %}
 </body>
 </html>

@@ -51,7 +51,14 @@ def _edfi_rate_limited(request, scope: str):
     )
     if allowed:
         return None
-    r = JsonResponse({"error": "Too many requests"}, status=429)
+    r = JsonResponse(
+        {
+            "error": "Too many requests",
+            "retry_after": retry_after,
+            "message": "Rate limited. Wait before retrying (see Retry-After header).",
+        },
+        status=429,
+    )
     r["Retry-After"] = str(retry_after)
     return r
 

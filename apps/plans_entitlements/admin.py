@@ -1,25 +1,7 @@
-from django.contrib import admin
+"""
+Plans & entitlements bounded context.
 
-from config.admin import register_platform_admin
-
-from .models import (
-    CountryMultiplier,
-    Plan,
-    PlanAddon,
-)
-
-
-class ProxyOwnerAdmin(admin.ModelAdmin):
-    list_display = ("record_key", "proxy_owner_label")
-
-    @admin.display(description="PK")
-    def record_key(self, obj):
-        return obj.pk
-
-    @admin.display(description="Record")
-    def proxy_owner_label(self, obj):
-        return str(obj)
-
-
-for model in (Plan, PlanAddon, CountryMultiplier):
-    register_platform_admin(model, ProxyOwnerAdmin)
+Platform catalog CRUD (plans, add-ons, country multipliers) lives on the super
+control plane (`super:plans_list`, `super:country_multipliers_list`, etc.), not
+on platform `/admin/`. This module intentionally registers nothing by default.
+"""

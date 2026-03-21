@@ -21,4 +21,9 @@ jobs:
       - name: Run Lighthouse CI
         env:
           LHCI_URL: ${{ vars.LHCI_URL }}
-        run: LHCI_URL="$LHCI_URL" npx lhci autorun --config=./lighthouserc.cjs
+          # Optional comma-separated absolute URLs (e.g. /marketing/,/portal/parent/) — same origin as LHCI_URL
+          LHCI_URLS_EXTRA: ${{ vars.LHCI_URLS_EXTRA }}
+          # Set to 1 to append recommended same-origin paths (see lighthouserc.cjs + LHCI_STAGING_GITHUB_VARS.md)
+          LHCI_AUTO_EXTRAS: ${{ vars.LHCI_AUTO_EXTRAS }}
+          LHCI_STRICT_N10: ${{ vars.LHCI_STRICT_N10 }}
+        run: npx lhci autorun --config=./lighthouserc.cjs

@@ -19,7 +19,7 @@ from apps.siteconfig.context_processors import site_settings
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.forms import THEME_PUBLISH_GUARDED_FIELDS, ThemeColorsForm
 from apps.siteconfig.models import SiteSettings
-from apps.siteconfig.admin import ThemePackAdmin
+from apps.brand_experience.admin import ThemePackAdmin
 
 
 User = get_user_model()
@@ -484,7 +484,11 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         model_admin = tenant_admin_site._registry[SiteSettings]
         site = get_platform_site_settings_record(create=True)
         html = model_admin.theme_color_tools_link_block(site)
-        self.assertIn("stay_theme%3D1", html)
+        # Encoded inside ?next= or plain query on theme-colors URL
+        self.assertTrue(
+            "stay_theme%3D1" in html or "stay_theme=1" in html,
+            msg=html,
+        )
 
     def test_themepack_admin_hidden_from_system_configuration_menu(self):
         model_admin = tenant_admin_site._registry[ThemePack]

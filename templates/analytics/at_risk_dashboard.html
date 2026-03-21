@@ -60,6 +60,29 @@
       </div>
     </div>
   </div>
+  {% if ews_signals %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h6 class="mb-2">{% trans "EWS signals (portal-linked students)" %}</h6>
+      <p class="small text-muted mb-2">{% trans "Synced from nightly risk scores for students with portal accounts. Status updates when you log or resolve interventions." %}</p>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead><tr><th>{% trans "Student user" %}</th><th>{% trans "Score" %}</th><th>{% trans "Status" %}</th><th>{% trans "Factors" %}</th></tr></thead>
+          <tbody>
+            {% for s in ews_signals %}
+            <tr>
+              <td>{{ s.student_user.get_full_name|default:s.student_user.username }}</td>
+              <td>{{ s.score|floatformat:1 }}</td>
+              <td><span class="badge bg-secondary">{{ s.get_status_display }}</span></td>
+              <td class="small text-muted">{% if s.factors.reason %}{{ s.factors.reason|truncatechars:120 }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
   {% if interventions %}
   <div class="card shadow-sm">
     <div class="card-body">

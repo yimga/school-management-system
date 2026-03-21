@@ -582,6 +582,44 @@ def api_user_has_any_role(user, roles: set[str] | tuple[str, ...]) -> bool:
         return False
 
 
+# Wave 4 extended ops (schoolops): use with @user_passes_test — single RBAC source.
+OPS_EXTENDED_MODULE_ROLE_CODES: frozenset[str] = frozenset(
+    {
+        "ADMIN",
+        "LEADERSHIP",
+        "PRINCIPAL",
+        "IT_ADMIN",
+        "HOD",
+        "DEAN",
+    }
+)
+OPS_CLINIC_ROLE_CODES: frozenset[str] = frozenset(
+    {"ADMIN", "LEADERSHIP", "PRINCIPAL"}
+)
+
+
+def user_can_access_ops_extended_modules(user) -> bool:
+    """
+    Ops hub + library / transport / inventory / POS / canteen / etc.
+    Mirrors legacy schoolops _ops_roles_ok; uses api_user_has_any_role for
+    AccessRole + TemporaryRoleGrant consistency.
+    """
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+        return True
+    return api_user_has_any_role(user, OPS_EXTENDED_MODULE_ROLE_CODES)
+
+
+def user_can_access_ops_clinic(user) -> bool:
+    """Clinic / health log (narrower role set than general ops)."""
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+        return True
+    return api_user_has_any_role(user, OPS_CLINIC_ROLE_CODES)
+
+
 def can_access_module(user, module: str, action: str = "read") -> bool:
     """
     Module-level access guard for role + feature-permission enforcement.

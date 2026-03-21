@@ -73,6 +73,11 @@ Avoid generic "An error occurred." Prefer: "We couldn't save your changes. Pleas
 - **Global help:** Header/sidebar link to Knowledge Base (`kb:kb_home`). Topic-specific links: `?topic=invoices`, etc.
 - **Inline help:** Form help text and tooltips for complex fields; avoid long paragraphs in the main flow.
 
+### 2.7 Inclusive terminology and imagery (N23)
+
+- **North-star N23:** Use diverse, respectful language and imagery; avoid idioms and defaults that exclude regions or family structures.
+- **Implementation checklist:** [N23_INCLUSIVE_TERMINOLOGY_AND_IMAGERY.md](N23_INCLUSIVE_TERMINOLOGY_AND_IMAGERY.md) (governance + engineering patterns; sitewide copy audit is incremental).
+
 ---
 
 ## 3. Naming registry and terminology (scoped)

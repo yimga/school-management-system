@@ -4,7 +4,9 @@ from django.urls import NoReverseMatch, resolve, reverse
 from apps.accounts.models import User
 from apps.accounts.permissions import can_access_module
 from apps.schools.models import School
-from apps.siteconfig.models import HolidayCalendar, ReportCardStyleAssignment
+from apps.academics.models_tenant_runtime import ReportCardStyleAssignment
+from apps.global_registries.models import HolidayCalendar
+from apps.siteconfig.models import SiteSettings
 from config.admin import platform_admin_site, tenant_admin_site
 from config.schema import schema
 
@@ -72,6 +74,11 @@ class AdminRegistryBoundaryTests(SimpleTestCase):
         self.assertIn(HolidayCalendar, tenant_admin_site._registry)
         self.assertNotIn(ReportCardStyleAssignment, platform_admin_site._registry)
         self.assertNotIn(HolidayCalendar, platform_admin_site._registry)
+
+    def test_site_settings_tenant_admin_only_platform_uses_super(self):
+        """SiteSettings CRUD on tenant /admin/ only; manager uses super:site_settings_*."""
+        self.assertIn(SiteSettings, tenant_admin_site._registry)
+        self.assertNotIn(SiteSettings, platform_admin_site._registry)
 
 
 class AdminPlaneUrlConfTests(SimpleTestCase):

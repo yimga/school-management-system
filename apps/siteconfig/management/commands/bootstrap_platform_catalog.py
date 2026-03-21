@@ -64,6 +64,11 @@ BOOTSTRAP_STEPS = [
         [],
         "Region feature rules and tenant compliance snapshots",
     ),
+    (
+        "seed_marketing_cms",
+        [],
+        "Marketing blog posts and CMS snippets for public site",
+    ),
 ]
 
 

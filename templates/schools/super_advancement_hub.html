@@ -16,7 +16,7 @@
 <div class="container-fluid py-3 content-max-960">
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold text-white">{% trans "Advancement" %}</h1>
-    <p class="text-white-50 small mb-0">{% trans "One identity graph: student, family, alumni, donor. Phase 1: Alumni, campaigns, aid. Phase 2: donor/campaign/gift/receipt (in-product placeholder)." %}</p>
+    <p class="text-white-50 small mb-0">{% trans "One identity graph: student, family, alumni, donor. Phase 1: alumni directory, campaigns, and aid. Phase 2: in-product donor CRM, gifts, and receipts—use tenant backend links below; platform quick-add for cross-tenant ops." %}</p>
   </header>
   <div class="card border-secondary mb-3" role="region" aria-label="{% trans 'Identity graph' %}">
     <div class="card-body py-2">
@@ -55,31 +55,29 @@
       </div>
     </div>
     {% endif %}
+    {% if tenant_donor_crm_path %}
+    <div class="col-md-6">
+      <div class="card h-100 border-success border-opacity-50">
+        <div class="card-body">
+          <h6 class="card-title">{% trans "Tenant donor CRM (staff)" %}</h6>
+          <p class="small text-white-50 mb-2">{% trans "Each school: open backend on the school subdomain, then:" %} <code class="text-info">{{ tenant_donor_crm_path }}</code></p>
+          <p class="small mb-0">{% trans "List/edit donors, record gifts, campaigns (labels). Platform super form below remains for cross-tenant ops." %}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     {% if phase2_placeholder_url %}
     <div class="col-md-4">
       <div class="card h-100 border-secondary">
         <div class="card-body">
-          <h6 class="card-title">{% trans "Donors" %}</h6>
-          <p class="small text-white-50 mb-2">{% trans "Constituent giving; Phase 2." %}</p>
-          <a href="{{ phase2_placeholder_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-secondary">
-        <div class="card-body">
-          <h6 class="card-title">{% trans "Gifts & receipts" %}</h6>
-          <p class="small text-white-50 mb-2">{% trans "Gifts and acknowledgments; Phase 2." %}</p>
+          <h6 class="card-title">{% trans "Platform donor quick-add" %}</h6>
+          <p class="small text-white-50 mb-2">{% trans "Super-only cross-tenant entry by school ID (operations console)." %}</p>
           <a href="{{ phase2_placeholder_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
         </div>
       </div>
     </div>
     {% endif %}
   </div>
-  {% if phase2_placeholder_url %}
-  <div class="alert alert-secondary mt-3 mb-0">{% trans "Phase 2: donor/campaign/gift/receipt — in-product placeholder; full surface coming next." %}</div>
-  {% else %}
-  <div class="alert alert-secondary mt-3 mb-0">{% trans "Phase 2: donor/campaign/gift/receipt — coming next. One platform, no second CRM." %}</div>
-  {% endif %}
+  <div class="alert alert-secondary mt-3 mb-0">{% trans "Tenant CRUD shipped (Wave 8). Platform quick-add for ops; see docs/NORTH_STAR_WAVE8_CLOSURE.md." %}</div>
 </div>
 {% endblock %}

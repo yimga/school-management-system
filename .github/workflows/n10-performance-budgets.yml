@@ -1,0 +1,43 @@
+# N10 partial: strict server-side smoke budgets (workflow_dispatch + weekly).
+# Requires a staff user after migrate. Fails if PERF_BUDGET_STRICT paths exceed limits.
+name: N10 performance budgets
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 7 * * 1"
+
+jobs:
+  budgets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Migrate and CI staff user
+        env:
+          DEBUG: "1"
+          SECRET_KEY: "n10-budget-ci-not-production-64chars__________________________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell -c "
+          from django.contrib.auth import get_user_model
+          U = get_user_model()
+          if not U.objects.filter(is_staff=True).exists():
+              U.objects.create_superuser('n10_budget_ci', 'n10-ci@example.invalid', 'unused-local-only')
+          "
+      - name: Run strict N10 budgets (public marketing row)
+        env:
+          DEBUG: "1"
+          SECRET_KEY: "n10-budget-ci-not-production-64chars__________________________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+          PERF_BUDGET_STRICT: "1"
+          PERF_BUDGET_STRICT_N10: "1"
+          PERF_BUDGET_STRICT_GATE_ROWS: "n10_public"
+        run: python scripts/check_performance_budgets.py

@@ -201,6 +201,14 @@
     .setup-studio-hero { grid-template-columns: 1fr; }
     .setup-studio-grid { grid-template-columns: 1fr; }
   }
+  .setup-studio-ai-coach {
+    margin-top: 1rem;
+    padding: 1rem 1.15rem;
+    border-radius: 18px;
+    border: 1px solid rgba(139, 92, 246, 0.28);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(13, 110, 253, 0.06));
+  }
+  .setup-studio-ai-coach .bi-stars { color: #7c3aed; }
 </style>
 {% endblock %}
 
@@ -245,6 +253,53 @@
       {% endif %}
     </div>
   </section>
+  {% if school %}
+  <section id="setup-studio-ai-coach" class="setup-studio-ai-coach" hidden
+    data-coach-url="{% url 'siteconfig:api_onboarding_coach' %}"
+    data-ux-qa-marker="onboarding-ai-coach">
+    <div class="d-flex align-items-start gap-2 mb-2">
+      <i class="bi bi-stars fs-5"></i>
+      <div>
+        <div class="fw-semibold">{% trans "AI setup coach" %}</div>
+        <p class="setup-studio-muted mb-2 small mb-0" data-coach-message>{% trans "Loading personalized next steps…" %}</p>
+      </div>
+    </div>
+    <div class="setup-studio-actions" data-coach-actions></div>
+    <p class="setup-studio-muted small mt-2 mb-0"><span data-coach-source></span></p>
+  </section>
+  <script>
+  (function () {
+    var root = document.getElementById("setup-studio-ai-coach");
+    if (!root || !root.dataset.coachUrl) return;
+    fetch(root.dataset.coachUrl, { credentials: "same-origin", headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.ok) return;
+        var msg = root.querySelector("[data-coach-message]");
+        if (msg && d.coach_message) msg.textContent = d.coach_message;
+        var actions = root.querySelector("[data-coach-actions]");
+        if (actions && d.quick_actions && d.quick_actions.length) {
+          actions.innerHTML = "";
+          d.quick_actions.forEach(function (a) {
+            if (!a.url || !a.label) return;
+            var link = document.createElement("a");
+            link.href = a.url;
+            link.className = "btn btn-primary btn-sm me-2 mb-2";
+            link.textContent = a.label;
+            actions.appendChild(link);
+          });
+        }
+        var src = root.querySelector("[data-coach-source]");
+        if (src) {
+          src.textContent = d.source === "ai" ? "{% trans 'Powered by AI gateway' %}" :
+            (d.source === "rules+ai" ? "{% trans 'AI-enhanced suggestions' %}" : "{% trans 'Based on your setup progress' %}");
+        }
+        root.hidden = false;
+      })
+      .catch(function () {});
+  })();
+  </script>
+  {% endif %}
 
   <section class="setup-studio-grid">
     <aside class="setup-studio-panel setup-studio-rail">

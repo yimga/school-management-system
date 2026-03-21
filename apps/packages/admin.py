@@ -55,14 +55,14 @@ class PackageChangeLogAdmin(admin.ModelAdmin):
 
 
 class ExperiencePackAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "theme_pack_id", "is_active", "updated_at")
+    list_display = ("code", "version", "name", "theme_pack_id", "is_active", "updated_at")
     list_filter = ("is_active",)
     search_fields = ("code", "name", "description")
     ordering = ("name", "code")
 
 
 class DocumentPackAdmin(admin.ModelAdmin):
-    list_display = ("code", "name", "is_active", "updated_at")
+    list_display = ("code", "version", "name", "is_active", "updated_at")
     list_filter = ("is_active",)
     search_fields = ("code", "name", "description")
     ordering = ("name", "code")

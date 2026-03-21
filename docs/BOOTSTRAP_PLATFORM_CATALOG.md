@@ -59,6 +59,7 @@ Every seed listed here is idempotent unless noted. Run individually or via `boot
 | `seed_compliance_baseline` | Region feature rules and tenant compliance snapshots for active schools. |
 | `seed_regions` | Alternative: default regions and grading scales (smaller set; may overlap with seed_global_regions). |
 | `seed_preview_fixtures` | Preview fixtures for documents, widgets, sessions, site settings. |
+| `seed_marketing_cms` | Published **BlogPost** rows for `/blog/` and **MarketingContent** keys (hero overrides, blog intro). Idempotent. |
 
 ### Demo / test-only (do not use for production bootstrap)
 

@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}Generate Fee Invoices{% endblock %}
 
@@ -28,7 +28,7 @@
   {% endif %}
   <div class="card">
     <div class="card-body">
-      <form method="post" class="row g-2 align-items-end">
+      <form method="post" class="row g-2 align-items-end" id="generate-fees-form" data-draft-key="generate_fees_{{ request.user.id }}" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced fee generation' %}">
         {% csrf_token %}
         <div class="col-md-8">
           <label class="form-label small">Fee plan</label>
@@ -47,4 +47,14 @@
   </div>
 {% endif %}
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  var f = document.getElementById('generate-fees-form');
+  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
+})();
+</script>
 {% endblock %}

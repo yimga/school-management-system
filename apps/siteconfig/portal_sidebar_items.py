@@ -1284,18 +1284,20 @@ def build_portal_sidebar_items(request, site):
                 )
         if is_superuser and not in_backend:
             site_pk = getattr(site, "pk", 1)
-            items.append(
-                {
-                    "id": "site_settings",
-                    "label": "Site Settings",
-                    "url": _safe_reverse(
-                        "admin:siteconfig_sitesettings_change", args=[site_pk]
-                    ),
-                    "icon": "bi-gear-wide",
-                    "section": "Admin Panel",
-                    "badge": None,
-                }
-            )
+            from apps.siteconfig.staff_navigation import site_settings_change_url
+
+            _ss_url = site_settings_change_url(request, site_pk)
+            if _ss_url:
+                items.append(
+                    {
+                        "id": "site_settings",
+                        "label": "Site Settings",
+                        "url": _ss_url,
+                        "icon": "bi-gear-wide",
+                        "section": "Admin Panel",
+                        "badge": None,
+                    }
+                )
             items.append(
                 {
                     "id": "region_config",

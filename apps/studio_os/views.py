@@ -17,7 +17,10 @@ from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     request_context_for_log,
 )
-from apps.schools.control_plane import use_control_plane_shell
+from apps.schools.control_plane import (
+    use_control_plane_shell,
+    user_can_access_studio_on_request,
+)
 from .services import (
     get_studio_activity_feed,
     get_studio_compare_context,
@@ -42,7 +45,7 @@ from .services import (
 @login_required
 def studio_recommendations_api(request):
     """§4.1 Unified recommendation engine hook. GET ?mode= — returns JSON {recommendations: [{label, url, detail, tone}]}."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return JsonResponse({"recommendations": []})
     mode = (request.GET.get("mode") or "").strip().lower() or None
     recs = get_studio_recommendations(request, mode)
@@ -53,83 +56,81 @@ def studio_recommendations_api(request):
 @require_http_methods(["GET"])
 @login_required
 def studio_system_config_console(request):
-    """§6.1 Bounded console: System config hub. Single entry point for config surfaces (Capabilities, Blueprints, Runtime inspector, etc.)."""
-    if not getattr(request.user, "is_staff", False):
+    """§6.1 Bounded console: tenant-safe links + manager-host fallbacks for super-only tools."""
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
+    from django.conf import settings as dj_settings
+
+    mgr = (getattr(dj_settings, "MANAGER_PLATFORM_BASE_URL", None) or "").strip().rstrip(
+        "/"
+    )
     links = []
-    try:
+
+    def _add_local(label, viewname, embed=False):
+        try:
+            u = reverse(viewname)
+            if embed:
+                u += "?embed=1" if "?" not in u else "&embed=1"
+            links.append(
+                {
+                    "label": label,
+                    "url": u,
+                    "external": False,
+                    "hint": "",
+                }
+            )
+            return True
+        except NoReverseMatch:
+            return False
+
+    def _add_manager(label, path, hint):
+        if not mgr:
+            return
         links.append(
             {
-                "label": _("Capabilities"),
-                "url": reverse("siteconfig:feature_control_panel") + "?embed=1",
+                "label": label,
+                "url": f"{mgr}{path}",
+                "external": True,
+                "hint": hint,
             }
         )
-    except NoReverseMatch:
-        pass
-    try:
-        links.append(
-            {
-                "label": _("Blueprints & policy packs"),
-                "url": reverse("siteconfig:get_blueprints") + "?embed=1",
-            }
+
+    _add_local(_("Capabilities"), "siteconfig:feature_control_panel", embed=True)
+    _add_local(_("Blueprints & policy packs"), "siteconfig:get_blueprints", embed=True)
+    if not _add_local(_("Runtime inspector"), "super:runtime_inspector"):
+        _add_manager(
+            _("Runtime inspector"),
+            "/super/runtime-inspector/",
+            _("Manager host — superadmin"),
         )
-    except NoReverseMatch:
-        pass
-    try:
-        links.append(
-            {"label": _("Runtime inspector"), "url": reverse("super:runtime_inspector")}
+    if not _add_local(_("Metadata governance"), "metadata:metadata_governance"):
+        _add_manager(
+            _("Metadata governance"),
+            "/api/internal/metadata/governance/",
+            _("Manager / platform"),
         )
-    except NoReverseMatch:
-        pass
-    try:
-        links.append(
-            {
-                "label": _("Metadata governance"),
-                "url": reverse("metadata:metadata_governance"),
-            }
+    if not _add_local(_("Lineage & registry"), "metadata:metadata_lineage_graph"):
+        _add_manager(
+            _("Lineage & registry"),
+            "/api/internal/metadata/lineage/graph/?embed=1",
+            _("Manager / platform"),
         )
-    except NoReverseMatch:
-        pass
-    try:
-        links.append(
-            {
-                "label": _("Lineage & registry"),
-                "url": reverse("metadata:metadata_lineage_graph") + "?embed=1",
-            }
+    _add_local(_("Integrations (API Center)"), "apicenter:dashboard")
+    if not _add_local(_("Plans & entitlements"), "super:billing_dashboard", embed=True):
+        _add_manager(
+            _("Plans & billing"),
+            "/super/billing/?embed=1",
+            _("Manager host"),
         )
-    except NoReverseMatch:
-        pass
-    try:
-        links.append(
-            {"label": _("Integrations"), "url": reverse("apicenter:dashboard")}
-        )
-    except NoReverseMatch:
-        pass
-    try:
-        links.append(
-            {
-                "label": _("Plans & entitlements"),
-                "url": reverse("super:billing_dashboard") + "?embed=1",
-            }
-        )
-    except NoReverseMatch:
-        pass
-    try:
-        links.append(
-            {
-                "label": _("Diff / impact summary"),
-                "url": reverse("studio_os:control_impact") + "?embed=1",
-            }
-        )
-    except NoReverseMatch:
-        pass
+    _add_local(_("Diff / impact summary"), "studio_os:control_impact", embed=True)
+
     return render(
         request,
         "studio_os/system_config_console.html",
         {
             "page_title": _("System config"),
             "page_subtitle": _(
-                "Bounded console for configuration surfaces. Use the links below or the Control Studio rail."
+                "Each link opens the real surface. Super-only items open the manager host when you are on a school domain."
             ),
             "config_links": links,
             "action_url": reverse("studio_os:control"),
@@ -143,7 +144,7 @@ def studio_system_config_console(request):
 @login_required
 def studio_control_impact(request):
     """§4.6 Control Studio optional: Diff / impact summary. Renders control mode impact_summary for embedding in rail."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     preview_ctx = get_studio_preview_context("control", request)
     return render(
@@ -167,7 +168,7 @@ def studio_control_impact(request):
 @login_required
 def studio_ai_cleanup(request):
     """§4.6 Control Studio optional: AI cleanup suggestions. Renders control-mode recommendations for embedding in rail."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     recs = get_studio_recommendations(request, "control")
     return render(
@@ -190,7 +191,7 @@ def studio_ai_cleanup(request):
 @login_required
 def studio_experience_recommendations(request):
     """§4.2 Experience Studio optional: AI recommendations. Renders experience-mode recommendations for embedding in rail."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     recs = get_studio_recommendations(request, "experience")
     return render(
@@ -211,7 +212,7 @@ def studio_experience_recommendations(request):
 @login_required
 def studio_experience_compare(request):
     """§4.2 Experience Studio optional: Compare (before/after). §5.6 Live Previews: Add before/after."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     compare_ctx = get_studio_compare_context(request, "experience")
     return render(
@@ -233,7 +234,7 @@ def studio_experience_compare(request):
 @login_required
 def studio_experience_theme_tokens(request):
     """§4.2 Experience Studio optional: Theme tokens. Explains design tokens (CSS variables) used by in-shell theme form and outputs."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     theme_url = ""
     try:
@@ -260,7 +261,7 @@ def studio_experience_theme_tokens(request):
 @login_required
 def studio_experience_portal_shell_layouts(request):
     """§4.2 Experience Studio optional: Portal shell layouts. Explains portal shell structure (sidebar, header, content) and where to configure."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     customizer_url = ""
     try:
@@ -287,7 +288,7 @@ def studio_experience_portal_shell_layouts(request):
 @login_required
 def studio_experience_dashboard_visual_packs(request):
     """§4.2 Experience Studio optional: Dashboard visual packs. Explains dashboard widgets, charts, layout presets; links to dashboard/customizer."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     dashboard_url = ""
     try:
@@ -320,7 +321,7 @@ def studio_experience_dashboard_visual_packs(request):
 @login_required
 def studio_experience_school_website_blocks(request):
     """§4.2 Experience Studio optional: School website blocks. Explains landing page sections and school website content; links to marketing and Customizer."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     marketing_url = ""
     try:
@@ -353,7 +354,7 @@ def studio_experience_school_website_blocks(request):
 @login_required
 def studio_experience_communication_style_packs(request):
     """§4.2 Experience Studio optional: Communication style packs. Explains tone, templates, and notification styles; links to Customizer and communication settings."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     customizer_url = ""
     try:
@@ -380,7 +381,7 @@ def studio_experience_communication_style_packs(request):
 @login_required
 def studio_experience_packs(request):
     """§4.2 Experience Studio optional: ExperiencePack. Explains packageable theme + layout + dashboard + communication; shows current pack and links to admin and Theme & colors."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     effective_pack = None
@@ -388,7 +389,19 @@ def studio_experience_packs(request):
     try:
         from apps.brand_experience.experience_packs import get_effective_experience_pack
         from apps.packages.models import ExperiencePack
+        from apps.packages.tenant_pack_install import sync_experience_pack_install_from_school
 
+        if school:
+            sync_result = sync_experience_pack_install_from_school(
+                school, actor_id=getattr(request.user, "pk", None)
+            )
+            if not sync_result.get("ok") and not sync_result.get("skipped"):
+                log_exception_with_context(
+                    "studio_experience_packs sync_experience_pack_install_from_school",
+                    **request_context_for_log(request),
+                    exc_info=False,
+                    extra={"errors": sync_result.get("errors")},
+                )
         effective_pack = get_effective_experience_pack(school) if school else None
         pack_count = ExperiencePack.objects.filter(is_active=True).count()
     except (ImportError, AttributeError):
@@ -403,6 +416,15 @@ def studio_experience_packs(request):
         admin_packs_url = reverse("admin:packages_experiencepack_changelist")
     except NoReverseMatch:
         pass
+    package_impact_fetch_url = ""
+    experience_graph_package_id = ""
+    if school:
+        try:
+            package_impact_fetch_url = reverse("api:api-north-star-package-impact")
+        except NoReverseMatch:
+            package_impact_fetch_url = "/api/internal/north-star/package-impact/"
+    if school and effective_pack:
+        experience_graph_package_id = f"exp-pack:{effective_pack.code}"
     return render(
         request,
         "studio_os/experience_experience_packs.html",
@@ -411,6 +433,9 @@ def studio_experience_packs(request):
             "pack_count": pack_count,
             "theme_colors_url": theme_colors_url,
             "admin_packs_url": admin_packs_url,
+            "package_impact_fetch_url": package_impact_fetch_url,
+            "experience_graph_package_id": experience_graph_package_id,
+            "school": school,
             "page_title": _("Experience packs"),
             "page_subtitle": _(
                 "Packageable theme, layout, dashboard visual, and communication style. Assign per school; compare and rollback from Experience Studio."
@@ -426,7 +451,7 @@ def studio_experience_packs(request):
 @login_required
 def studio_output_dependency_graph(request):
     """§4.4 Output Studio optional: Dependency graph. Shows report pack dependencies for embedding in Output rail."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     graph = get_output_dependency_graph()
     return render(
@@ -446,7 +471,7 @@ def studio_output_dependency_graph(request):
 @login_required
 def studio_output_branding_inheritance(request):
     """§4.4 Output Studio optional: Branding inheritance. Explains that reports/documents inherit school theme (primary color, logo)."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     theme_url = ""
     try:
@@ -473,7 +498,7 @@ def studio_output_branding_inheritance(request):
 @login_required
 def studio_output_policy_registry(request):
     """§5.3 Report Library: Policy & registry compatibility. Explains how report packs align with policy registry and metadata lineage; links to Blueprints & policy and Lineage & registry."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     blueprints_url = ""
     lineage_url = ""
@@ -512,7 +537,7 @@ def studio_output_policy_registry(request):
 @login_required
 def studio_launch_select_plan(request):
     """§4.5 Launch Studio: Select plan. Placeholder when plans not productized; rail entry and view wired for when plan product ships."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     return render(
         request,
@@ -533,7 +558,7 @@ def studio_launch_select_plan(request):
 @login_required
 def studio_automation_conflict_detection(request):
     """§4.3 Automation Studio optional: Conflict detection. Explains workflow conflict detection and links to Workflow hub."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     try:
@@ -560,7 +585,7 @@ def studio_automation_conflict_detection(request):
 @login_required
 def studio_automation_staged_activation(request):
     """§4.3 Automation Studio optional: Staged activation. Explains activating workflows in stages and links to Workflow hub."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     try:
@@ -587,7 +612,7 @@ def studio_automation_staged_activation(request):
 @login_required
 def studio_automation_replay_rollback(request):
     """§4.3 Automation Studio optional: Replay / rollback. Explains workflow replay and rollback; links to Workflow hub and unified rollback."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     rollback_url = ""
@@ -619,7 +644,7 @@ def _automation_explainer_view(
     request, template_name: str, page_title: str, page_subtitle: str
 ):
     """Shared helper for Automation Studio explainer pages (staff-only, workflow_hub_url, action back to automation)."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     try:
@@ -689,7 +714,7 @@ def studio_automation_simulation_engine(request):
 @login_required
 def studio_automation_dependency_graph(request):
     """§4.3 Automation Studio optional: Dependency graph. Shows workflow packs and their templates for embedding in Automation rail."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     graph = get_automation_dependency_graph()
     return render(
@@ -709,7 +734,7 @@ def studio_automation_dependency_graph(request):
 @login_required
 def studio_automation_workflow_health(request):
     """§4.3 Automation Studio optional: Workflow health metrics. Summary of active packs and templates."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     from apps.studio_os.services import get_automation_workflow_health_summary
 
@@ -762,36 +787,30 @@ STUDIO_MODES = [
 
 
 def _resolve_legacy_urls(request):
-    """Links to current tools until each mode is fully in-shell. Reduces clicks by offering one entry."""
-    legacy = {}
-    try:
-        legacy["customizer"] = reverse("studio_os:experience")
-        legacy["theme_colors"] = reverse("siteconfig:theme_colors")
-        legacy["feature_control"] = reverse("siteconfig:feature_control_panel")
-        legacy["report_library"] = reverse("studio_os:output")
-        legacy["workflow_hub"] = reverse("studio_os:automation")
-        legacy["guided_onboarding"] = reverse("siteconfig:guided_onboarding")
-        legacy["document_library"] = reverse("portal:document_library_manage")
-        legacy["reportcard_builder"] = reverse("siteconfig:reportcard_builder")
-        legacy["workflow_flow_gallery"] = reverse("siteconfig:workflow_flow_gallery")
-        legacy["backend_dashboard"] = reverse("accounts:backend_dashboard")
-    except NoReverseMatch:
-        pass
-    # Operational hubs: canonical URLs under Studio OS.
+    """Links to current tools; each name resolved independently (manager vs tenant URLconf)."""
+    from apps.studio_os.deep_links import studio_legacy_urls_map, studio_resolve_url
+
+    legacy = studio_legacy_urls_map()
     for name, url_name in [
         ("approval_hub", "studio_os:approval_hub"),
         ("workflow_center", "studio_os:workflow_center"),
         ("import_hub", "studio_os:import_hub"),
-        ("rbac", "accounts:rbac"),
-        ("communication_groups", "communication:group_list"),
-        ("announcement_create", "communication:announcement_create"),
     ]:
-        if name not in legacy:
-            try:
-                legacy[name] = reverse(url_name)
-            except NoReverseMatch:
-                pass
+        if name not in legacy or not legacy.get(name):
+            u = studio_resolve_url(url_name)
+            if u:
+                legacy[name] = u
     return legacy
+
+
+def _studio_rail_append(
+    rail: list, label: str, viewname: str, *, embed: bool = False
+) -> None:
+    from apps.studio_os.deep_links import resolve_studio_href
+
+    u = resolve_studio_href(viewname, embed=embed)
+    if u:
+        rail.append({"label": label, "url": u, "embed": embed})
 
 
 def _resolve_embed_urls(request):
@@ -810,7 +829,7 @@ def studio_shell(request, mode=None):
     Single Studio OS shell. mode in ('experience','automation','output','launch','control').
     If mode is None, show home (overview of modes).
     """
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         from django.shortcuts import redirect
         from django.contrib import messages
 
@@ -901,130 +920,24 @@ def studio_shell(request, mode=None):
             context["studio_version_history"] = []
             context["studio_audit"] = []
         experience_rail = []
-        try:
-            experience_rail.append(
-                {
-                    "label": "Theme & colors",
-                    "url": reverse("siteconfig:theme_colors") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "Customizer",
-                    "url": reverse("studio_os:experience") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "School theme",
-                    "url": reverse("siteconfig:school_theme_settings") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "Experience packs",
-                    "url": reverse("studio_os:experience_packs") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "Import from website",
-                    "url": reverse("siteconfig:brand_import_from_url") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "Compare",
-                    "url": reverse("studio_os:experience_compare") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "AI recommendations",
-                    "url": reverse("studio_os:experience_recommendations") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "Theme tokens",
-                    "url": reverse("studio_os:experience_theme_tokens") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "Portal shell layouts",
-                    "url": reverse("studio_os:experience_portal_shell_layouts")
-                    + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "Dashboard visual packs",
-                    "url": reverse("studio_os:experience_dashboard_visual_packs")
-                    + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "School website blocks",
-                    "url": reverse("studio_os:experience_school_website_blocks")
-                    + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            experience_rail.append(
-                {
-                    "label": "Communication style packs",
-                    "url": reverse("studio_os:experience_communication_style_packs")
-                    + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
+        for label, vn in (
+            ("Theme & colors", "siteconfig:theme_colors"),
+            ("Customizer", "studio_os:experience"),
+            ("School theme", "siteconfig:school_theme_settings"),
+            ("Experience packs", "studio_os:experience_packs"),
+            ("Import from website", "siteconfig:brand_import_from_url"),
+            ("Compare", "studio_os:experience_compare"),
+            ("AI recommendations", "studio_os:experience_recommendations"),
+            ("Theme tokens", "studio_os:experience_theme_tokens"),
+            ("Portal shell layouts", "studio_os:experience_portal_shell_layouts"),
+            ("Dashboard visual packs", "studio_os:experience_dashboard_visual_packs"),
+            ("School website blocks", "studio_os:experience_school_website_blocks"),
+            (
+                "Communication style packs",
+                "studio_os:experience_communication_style_packs",
+            ),
+        ):
+            _studio_rail_append(experience_rail, label, vn, embed=True)
         context["experience_left_rail"] = experience_rail
 
     if mode == "launch" and school:
@@ -1061,152 +974,51 @@ def studio_shell(request, mode=None):
 
     if mode == "launch":
         launch_rail = []
-        try:
-            launch_rail.append(
-                {
-                    "label": "Guided onboarding",
-                    "url": reverse("siteconfig:guided_onboarding") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            launch_rail.append(
-                {
-                    "label": "Create school",
-                    "url": reverse("super:create_school_wizard"),
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            launch_rail.append(
-                {
-                    "label": "Select plan",
-                    "url": reverse("studio_os:launch_select_plan") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            launch_rail.append(
-                {
-                    "label": "Blueprint gallery",
-                    "url": reverse("siteconfig:get_blueprints") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            launch_rail.append(
-                {
-                    "label": "Import branding",
-                    "url": reverse("studio_os:experience") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            launch_rail.append(
-                {
-                    "label": "Launch checklist",
-                    "url": reverse("siteconfig:guided_onboarding") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
+        _studio_rail_append(
+            launch_rail, "Guided onboarding", "siteconfig:guided_onboarding", embed=True
+        )
+        _studio_rail_append(
+            launch_rail, "Create school", "super:create_school_wizard", embed=True
+        )
+        _studio_rail_append(
+            launch_rail, "Select plan", "studio_os:launch_select_plan", embed=True
+        )
+        _studio_rail_append(
+            launch_rail, "Blueprint gallery", "siteconfig:get_blueprints", embed=True
+        )
+        _studio_rail_append(launch_rail, "Import branding", "studio_os:experience", embed=True)
+        _studio_rail_append(
+            launch_rail, "Launch checklist", "siteconfig:guided_onboarding", embed=True
+        )
         context["launch_left_rail"] = launch_rail
 
     if mode == "automation":
+        from apps.studio_os.deep_links import resolve_studio_href
+
         workflow_entries = []
         automation_rail = []
-        try:
-            workflow_entries.append(
-                {
-                    "label": "Outcomes",
-                    "url": reverse("automation:outcomes_console") + "?embed=1",
-                }
-            )
-            workflow_entries.append(
-                {
-                    "label": "Workflow hub",
-                    "url": reverse("studio_os:automation") + "?embed=1",
-                }
-            )
-            workflow_entries.append(
-                {
-                    "label": "Flow gallery",
-                    "url": reverse("siteconfig:workflow_flow_gallery"),
-                }
-            )
-            workflow_entries.append(
-                {"label": "Approval hub", "url": reverse("studio_os:approval_hub")}
-            )
-            workflow_entries.append(
-                {
-                    "label": "Dependency graph",
-                    "url": reverse("studio_os:automation_dependency_graph")
-                    + "?embed=1",
-                }
-            )
-            workflow_entries.append(
-                {
-                    "label": "Workflow health metrics",
-                    "url": reverse("studio_os:automation_workflow_health") + "?embed=1",
-                }
-            )
-            workflow_entries.append(
-                {
-                    "label": "Conflict detection",
-                    "url": reverse("studio_os:automation_conflict_detection")
-                    + "?embed=1",
-                }
-            )
-            workflow_entries.append(
-                {
-                    "label": "Staged activation",
-                    "url": reverse("studio_os:automation_staged_activation")
-                    + "?embed=1",
-                }
-            )
-            workflow_entries.append(
-                {
-                    "label": "Replay / rollback",
-                    "url": reverse("studio_os:automation_replay_rollback") + "?embed=1",
-                }
-            )
-            workflow_entries.append(
-                {
-                    "label": "Visual builder",
-                    "url": reverse("studio_os:automation_visual_builder") + "?embed=1",
-                }
-            )
-            workflow_entries.append(
-                {
-                    "label": "Natural-language workflow",
-                    "url": reverse("studio_os:automation_natural_language_workflow")
-                    + "?embed=1",
-                }
-            )
-            workflow_entries.append(
-                {
-                    "label": "Simulation engine",
-                    "url": reverse("studio_os:automation_simulation_engine")
-                    + "?embed=1",
-                }
-            )
-            for entry in workflow_entries:
-                automation_rail.append(
-                    {"label": entry["label"], "url": entry["url"], "embed": True}
-                )
-        except NoReverseMatch:
-            pass
+        for label, vn, url_embed in (
+            ("Outcomes", "automation:outcomes_console", True),
+            ("Workflow hub", "studio_os:automation", True),
+            ("Flow gallery", "siteconfig:workflow_flow_gallery", False),
+            ("Approval hub", "studio_os:approval_hub", False),
+            ("Dependency graph", "studio_os:automation_dependency_graph", True),
+            ("Workflow health metrics", "studio_os:automation_workflow_health", True),
+            ("Conflict detection", "studio_os:automation_conflict_detection", True),
+            ("Staged activation", "studio_os:automation_staged_activation", True),
+            ("Replay / rollback", "studio_os:automation_replay_rollback", True),
+            ("Visual builder", "studio_os:automation_visual_builder", True),
+            (
+                "Natural-language workflow",
+                "studio_os:automation_natural_language_workflow",
+                True,
+            ),
+            ("Simulation engine", "studio_os:automation_simulation_engine", True),
+        ):
+            u = resolve_studio_href(vn, embed=url_embed)
+            if u:
+                workflow_entries.append({"label": label, "url": u})
+                automation_rail.append({"label": label, "url": u, "embed": True})
         context["workflow_entries"] = workflow_entries
         context["automation_left_rail"] = automation_rail
         context["automation_simulation_summary"] = (
@@ -1215,67 +1027,15 @@ def studio_shell(request, mode=None):
 
     if mode == "output":
         output_rail = []
-        try:
-            output_rail.append(
-                {
-                    "label": "Report library",
-                    "url": reverse("studio_os:output") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            output_rail.append(
-                {
-                    "label": "Document library",
-                    "url": reverse("portal:document_library_manage") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            output_rail.append(
-                {
-                    "label": "Report card builder",
-                    "url": reverse("siteconfig:reportcard_builder") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            output_rail.append(
-                {
-                    "label": "Dependency graph",
-                    "url": reverse("studio_os:output_dependency_graph") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            output_rail.append(
-                {
-                    "label": "Branding inheritance",
-                    "url": reverse("studio_os:output_branding_inheritance")
-                    + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            output_rail.append(
-                {
-                    "label": "Policy & registry",
-                    "url": reverse("studio_os:output_policy_registry") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
+        for label, vn in (
+            ("Report library", "studio_os:output"),
+            ("Document library", "portal:document_library_manage"),
+            ("Report card builder", "siteconfig:reportcard_builder"),
+            ("Dependency graph", "studio_os:output_dependency_graph"),
+            ("Branding inheritance", "studio_os:output_branding_inheritance"),
+            ("Policy & registry", "studio_os:output_policy_registry"),
+        ):
+            _studio_rail_append(output_rail, label, vn, embed=True)
         context["output_left_rail"] = output_rail
 
     if mode == "control":
@@ -1302,123 +1062,48 @@ def studio_shell(request, mode=None):
                 )
             context["control_audit_entries"] = []
         control_rail = []
-        try:
+        from apps.studio_os.deep_links import resolve_studio_href
+
+        _studio_rail_append(
+            control_rail, "System config", "studio_os:system_config_console", embed=True
+        )
+        _studio_rail_append(
+            control_rail, "Capabilities", "siteconfig:feature_control_panel", embed=True
+        )
+        u_audit = resolve_studio_href("siteconfig:feature_control_audit", embed=False)
+        if u_audit:
             control_rail.append(
-                {
-                    "label": "System config",
-                    "url": reverse("studio_os:system_config_console") + "?embed=1",
-                    "embed": True,
-                }
+                {"label": "Audit log", "url": u_audit, "embed": True}
             )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "Capabilities",
-                    "url": reverse("siteconfig:feature_control_panel") + "?embed=1",
-                    "embed": True,
-                }
-            )
-            control_rail.append(
-                {
-                    "label": "Audit log",
-                    "url": reverse("siteconfig:feature_control_audit"),
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "Runtime inspector",
-                    "url": reverse("super:runtime_inspector"),
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "Metadata governance",
-                    "url": reverse("metadata:metadata_governance"),
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "Lineage & registry",
-                    "url": reverse("metadata:metadata_lineage_graph") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "Integrations",
-                    "url": reverse("apicenter:dashboard"),
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "Blueprints & policy packs",
-                    "url": reverse("siteconfig:get_blueprints") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "Policy diff",
-                    "url": reverse("super:policy_diff") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "Plans & entitlements",
-                    "url": reverse("super:billing_dashboard") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "Diff / impact summary",
-                    "url": reverse("studio_os:control_impact") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
-        try:
-            control_rail.append(
-                {
-                    "label": "AI cleanup suggestions",
-                    "url": reverse("studio_os:ai_cleanup") + "?embed=1",
-                    "embed": True,
-                }
-            )
-        except NoReverseMatch:
-            pass
+        _studio_rail_append(
+            control_rail, "Runtime inspector", "super:runtime_inspector", embed=False
+        )
+        _studio_rail_append(
+            control_rail,
+            "Metadata governance",
+            "metadata:metadata_governance",
+            embed=False,
+        )
+        _studio_rail_append(
+            control_rail,
+            "Lineage & registry",
+            "metadata:metadata_lineage_graph",
+            embed=True,
+        )
+        _studio_rail_append(
+            control_rail, "Integrations", "apicenter:dashboard", embed=False
+        )
+        _studio_rail_append(
+            control_rail, "Blueprints & policy packs", "siteconfig:get_blueprints", embed=True
+        )
+        _studio_rail_append(control_rail, "Policy diff", "super:policy_diff", embed=True)
+        _studio_rail_append(
+            control_rail, "Plans & entitlements", "super:billing_dashboard", embed=True
+        )
+        _studio_rail_append(control_rail, "Diff / impact summary", "studio_os:control_impact", embed=True)
+        _studio_rail_append(
+            control_rail, "AI cleanup suggestions", "studio_os:ai_cleanup", embed=True
+        )
         context["control_left_rail"] = control_rail
         # In-shell control panel (no iframe) when user has permission
         if request.user.has_perm("settings.feature_control"):
@@ -1495,7 +1180,7 @@ def studio_rollback(request):
     def _wants_json() -> bool:
         return "application/json" in (request.headers.get("Accept") or "").lower()
 
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     mode = (request.GET.get("mode") or request.POST.get("mode") or "").strip().lower()
     if mode == "experience":
@@ -1602,7 +1287,7 @@ def studio_preview(request):
     Shared preview: POST mode=experience (plus form body) delegates to siteconfig preview_from_form;
     other modes return redirect_url to embed so client can open preview in new tab.
     """
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return JsonResponse({"errors": ["Staff required"]}, status=403)
     mode = (request.POST.get("mode") or "").strip().lower()
     if mode == "experience":
@@ -1639,7 +1324,7 @@ def studio_publish_api(request):
     Shared publish: validate and persist. Experience uses perform_theme_experience_publish;
     other modes use services.studio_publish. Returns JSON {ok, redirect_url} or {ok: false, errors}.
     """
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return JsonResponse({"ok": False, "errors": ["Staff required"]}, status=403)
     mode = (request.POST.get("mode") or "").strip().lower()
     if mode == "experience":
@@ -1659,7 +1344,7 @@ def studio_publish_api(request):
 @login_required
 def studio_save_draft_api(request):
     """Save draft (session stash). Returns JSON {ok} or {ok: false, errors}."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return JsonResponse({"ok": False, "errors": ["Staff required"]}, status=403)
     mode = (request.POST.get("mode") or "").strip().lower()
     payload = dict(request.POST.items())
@@ -1673,7 +1358,7 @@ def studio_save_draft_api(request):
 @login_required
 def studio_version_history_api(request):
     """GET ?mode=experience — version history for the mode. JSON list of {version, timestamp, actor, label}."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return JsonResponse({"versions": []})
     mode = (request.GET.get("mode") or "").strip().lower()
     try:
@@ -1689,7 +1374,7 @@ def studio_version_history_api(request):
 @login_required
 def studio_global_search(request):
     """§4.1 global search API. GET ?q= — returns JSON {results: [{label, url, kind}]}."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return JsonResponse({"results": []})
     q = (request.GET.get("q") or "").strip()
     try:
@@ -1702,7 +1387,7 @@ def studio_global_search(request):
 
 def studio_audit_api(request):
     """GET ?mode= — recent publish/rollback events. JSON list of activity items."""
-    if not getattr(request.user, "is_staff", False):
+    if not user_can_access_studio_on_request(request):
         return JsonResponse({"audit": []})
     mode = (request.GET.get("mode") or "").strip().lower() or None
     try:

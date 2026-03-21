@@ -4,19 +4,11 @@
 Extracted from super_views.py to reduce file size.
 """
 
-from django.db import DatabaseError
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 
-CONTROL_PLANE_METRIC_FAILURES = (
-    AttributeError,
-    DatabaseError,
-    ImportError,
-    LookupError,
-    TypeError,
-    ValueError,
-)
+from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 
 
 def super_workflow_packs_catalog(request):

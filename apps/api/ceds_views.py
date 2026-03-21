@@ -47,8 +47,16 @@ def _ceds_rate_limited(request, scope: str):
     )
     if allowed:
         return None
-    r = JsonResponse({"error": "Too many requests"}, status=429)
-    r["Retry-After"] = str(retry_after)
+    ra = int(retry_after)
+    r = JsonResponse(
+        {
+            "error": "Too many requests",
+            "message": "CEDS rate limit exceeded. Retry after the indicated seconds.",
+            "retry_after": ra,
+        },
+        status=429,
+    )
+    r["Retry-After"] = str(ra)
     return r
 
 

@@ -90,3 +90,28 @@ class ExperiencePackServiceTests(TestCase):
             ).count(),
             1,
         )
+
+    def test_rollback_experience_pack_deactivates_exp_pack_prefixed_row(self):
+        InstalledPackage.objects.create(
+            package_id="exp-pack:exp-portal",
+            package_type="experience_pack",
+            version="1.0.0",
+            school=self.school,
+            scope="tenant",
+            is_active=True,
+        )
+        result = rollback_experience_pack(self.school)
+        self.assertTrue(result["ok"], result)
+        self.assertFalse(
+            InstalledPackage.objects.filter(
+                school=self.school,
+                package_id="exp-pack:exp-portal",
+                is_active=True,
+            ).exists()
+        )
+        self.assertGreaterEqual(
+            PackageChangeLog.objects.filter(
+                package_id="exp-pack:exp-portal", action="rollback"
+            ).count(),
+            1,
+        )

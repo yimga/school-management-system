@@ -1,0 +1,59 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Visitor log" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Visitor check-in / check-out" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Check in visitor" %}</h2>
+      <form method="post" class="row g-2 align-items-end">{% csrf_token %}
+        <input type="hidden" name="action" value="checkin">
+        <div class="col-md-3"><label class="form-label small">{% trans "Name" %} *</label><input class="form-control" name="visitor_name" required maxlength="255"></div>
+        <div class="col-md-3"><label class="form-label small">{% trans "Visiting (host/office)" %}</label><input class="form-control" name="host_contact" maxlength="255"></div>
+        <div class="col-md-3"><label class="form-label small">{% trans "Purpose" %}</label><input class="form-control" name="purpose" maxlength="255"></div>
+        <div class="col-md-2"><label class="form-label small">{% trans "Badge #" %}</label><input class="form-control" name="badge_number" maxlength="64"></div>
+        <div class="col-12"><button type="submit" class="btn btn-primary">{% trans "Check in" %}</button></div>
+      </form>
+    </div>
+  </div>
+  <h3 class="h6">{% trans "Currently on site" %}</h3>
+  <div class="table-responsive mb-4">
+    <table class="table table-sm">
+      <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Host" %}</th><th>{% trans "In" %}</th><th></th></tr></thead>
+      <tbody>
+        {% for v in on_site %}
+        <tr>
+          <td>{{ v.visitor_name }}</td>
+          <td>{{ v.host_contact|default:"—" }}</td>
+          <td>{{ v.checked_in_at|date:"Y-m-d H:i" }}</td>
+          <td>
+            <form method="post" class="d-inline">{% csrf_token %}
+              <input type="hidden" name="action" value="checkout">
+              <input type="hidden" name="visit_id" value="{{ v.pk }}">
+              <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Check out" %}</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="4">{% trans "No open visits." %}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <h3 class="h6">{% trans "Recent (incl. checked out)" %}</h3>
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead><tr><th>{% trans "Name" %}</th><th>{% trans "In" %}</th><th>{% trans "Out" %}</th></tr></thead>
+      <tbody>
+        {% for v in recent %}
+        <tr>
+          <td>{{ v.visitor_name }}</td>
+          <td>{{ v.checked_in_at|date:"Y-m-d H:i" }}</td>
+          <td>{% if v.checked_out_at %}{{ v.checked_out_at|date:"Y-m-d H:i" }}{% else %}<span class="text-warning">{% trans "On site" %}</span>{% endif %}</td>
+        </tr>
+        {% empty %}<tr><td colspan="3">{% trans "No visits yet." %}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

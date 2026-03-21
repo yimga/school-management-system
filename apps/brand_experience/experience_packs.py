@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from django.db.models import Q
+
 from apps.packages.engine import rollback as rollback_package
 from apps.packages.models import ExperiencePack, InstalledPackage
 
@@ -109,12 +111,15 @@ def rollback_experience_pack(
             "message": "No active experience pack configured.",
             "rolled_back": False,
         }
+    exp_pid = f"exp-pack:{code}"
     install = (
         InstalledPackage.objects.filter(
             school=school,
-            package_id=code,
-            package_type="theme",
             is_active=True,
+        )
+        .filter(
+            Q(package_id=exp_pid, package_type="experience_pack")
+            | Q(package_id=code, package_type="theme")
         )
         .order_by("-applied_at", "-pk")
         .first()

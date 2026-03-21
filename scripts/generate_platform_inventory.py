@@ -50,6 +50,10 @@ SKIP_PARTS = {
     "__pycache__",
     ".pytest_cache",
     "test-results",
+    # IDE / agent artifacts under repo root can add/remove *.py and make --check flaky vs --write.
+    ".cursor",
+    ".idea",
+    ".vscode",
 }
 
 
@@ -157,7 +161,8 @@ def _baseline_counts() -> dict[str, int]:
 
 def _largest_python_files(limit: int = 12) -> list[dict[str, int | str]]:
     files = sorted(
-        _iter_files(".py"), key=lambda path: path.stat().st_size, reverse=True
+        _iter_files(".py"),
+        key=lambda path: (-path.stat().st_size, path.relative_to(ROOT).as_posix()),
     )[:limit]
     return [
         {
@@ -184,7 +189,7 @@ def _successor_domain_imports() -> dict[str, list[str]]:
             text = _safe_text(path)
             if "apps.siteconfig" in text:
                 hits.append(path.relative_to(ROOT).as_posix())
-        data[name] = hits
+        data[name] = sorted(hits)
     return data
 
 

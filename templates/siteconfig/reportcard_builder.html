@@ -113,12 +113,12 @@
                   {% trans "Coverage" %}: {{ assigned_classroom_count }}/{{ total_classroom_count }} {% trans "classrooms assigned" %}.
                 </div>
                 <div class="table-responsive builder-scroll-panel">
-                  <table class="table table-sm align-middle">
+                  <table class="table table-sm align-middle" aria-label="Report card style assignments by classroom">
                     <thead>
                       <tr>
-                        <th>{% trans "Classroom" %}</th>
-                        <th>{% trans "Style" %}</th>
-                        <th class="text-end">{% trans "Actions" %}</th>
+                        <th scope="col">{% trans "Classroom" %}</th>
+                        <th scope="col">{% trans "Style" %}</th>
+                        <th scope="col" class="text-end">{% trans "Actions" %}</th>
                       </tr>
                     </thead>
                     <tbody>

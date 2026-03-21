@@ -73,6 +73,8 @@ class SLOTargetsAPIView(_StaffSchoolMixin, View):
                 "health": "/health/",
                 "slo_dashboard": "/api/v1/slo-dashboard/",
                 "prometheus_metrics": "/metrics/",
+                "rum_web_vitals_summary": "/api/internal/north-star/rum-web-vitals/",
+                "upcoming_deadlines": "/api/internal/north-star/upcoming-deadlines/",
                 "runbook": "docs/NORTH_STAR_TRUST_AND_OPS.md",
             },
             "perf_gate": "PERF_BUDGET_STRICT=1 enables strict check_performance_budgets in pre_deploy_gate",
@@ -358,5 +360,62 @@ class TenantRegistriesEffectiveView(_StaffSchoolMixin, View):
             {
                 "attendance_codes": get_effective_attendance_codes(school),
                 "fee_types": get_effective_fee_types_for_school(school),
+            }
+        )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class DemographicInsightsView(_StaffSchoolMixin, View):
+    """Wave 7: long-horizon enrollment / cohort snapshot for operators."""
+
+    def get(self, request):
+        school = _school_from_request(request)
+        if school is None and request.user.is_staff:
+            sid = request.GET.get("school_id")
+            if sid:
+                from apps.schools.models import School
+
+                school = School.objects.filter(pk=sid).first()
+        if school is None:
+            return JsonResponse({"error": "school required"}, status=400)
+        from django.db.models import Count
+
+        from apps.people.models import StudentProfile
+
+        qs = StudentProfile.objects.filter(school=school)
+        active = qs.filter(is_active=True).count()
+        rows = (
+            qs.filter(is_active=True)
+            .values("classroom__name")
+            .annotate(c=Count("id"))
+        )
+        by_class = {
+            str(r["classroom__name"] or "unassigned"): r["c"] for r in rows
+        }
+        return JsonResponse(
+            {
+                "school_id": school.id,
+                "active_students": active,
+                "by_classroom_name": by_class,
+                "runbook": "docs/WAVE_EXECUTION_RUNBOOKS.md",
+                "note": "Extend with YoY enrollment velocity and forecast models.",
+            }
+        )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ClimateReportingHooksView(_StaffSchoolMixin, View):
+    """Wave 7: statutory/extension hooks for sustainability reporting (jurisdiction-dependent)."""
+
+    def get(self, request):
+        return JsonResponse(
+            {
+                "hooks": [
+                    "report_pack_optional_esg_stub",
+                    "statutory_csv_extension_energy",
+                    "ministry_placeholder_agreement_ref",
+                ],
+                "doc": "docs/WAVE_EXECUTION_RUNBOOKS.md",
+                "note": "Wire to region pack when jurisdiction mandates climate disclosures.",
             }
         )

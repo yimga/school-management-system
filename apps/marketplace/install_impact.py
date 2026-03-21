@@ -11,7 +11,11 @@ from apps.marketplace.services import check_app_compatibility
 
 
 def build_tenant_install_impact(school, app) -> dict[str, Any]:
-    from apps.packages.engine import preview_diff
+    from apps.packages.engine import (
+        list_reverse_dependent_package_ids,
+        normalize_declared_dependencies,
+        preview_diff,
+    )
     from apps.packages.models import InstalledPackage, PackageVersion
 
     manifest = app.manifest or {}
@@ -36,6 +40,7 @@ def build_tenant_install_impact(school, app) -> dict[str, Any]:
 
     package_preview: dict[str, Any] | None = None
     package_id_used: str | None = None
+    pv_used = None
     for pid in package_candidates:
         pv = (
             PackageVersion.objects.filter(package_id=pid)
@@ -52,6 +57,7 @@ def build_tenant_install_impact(school, app) -> dict[str, Any]:
                 dict(pv.payload_sections or {}),
             )
             package_id_used = pid
+            pv_used = pv
             break
         except (TypeError, ValueError, AttributeError):
             package_preview = None
@@ -69,6 +75,16 @@ def build_tenant_install_impact(school, app) -> dict[str, Any]:
             inst_summary = dict(inst.impact_summary or {})
             break
 
+    upstream: list[str] = []
+    downstream: list[str] = []
+    if package_id_used:
+        if pv_used:
+            try:
+                upstream = normalize_declared_dependencies(pv_used.dependencies)
+            except ValueError:
+                upstream = []
+        downstream = list_reverse_dependent_package_ids(package_id_used)
+
     return {
         "app": {
             "id": app.pk,
@@ -84,6 +100,11 @@ def build_tenant_install_impact(school, app) -> dict[str, Any]:
         },
         "package_resolution": {
             "candidates": package_candidates,
+            "matched_package_id": package_id_used,
+        },
+        "dependency_graph": {
+            "upstream_package_ids": upstream,
+            "downstream_package_ids": downstream,
             "matched_package_id": package_id_used,
         },
         "package_impact_preview": package_preview,

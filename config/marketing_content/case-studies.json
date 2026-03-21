@@ -1,0 +1,19 @@
+{
+  "label": "Case Studies",
+  "seo_title": "RunMyCampus Case Studies - Real school implementation outcomes",
+  "seo_description": "See how schools improve onboarding speed, intervention outcomes, and operational control with RunMyCampus.",
+  "headline": "Results from real school operations.",
+  "subheadline": "Case patterns show how teams reduce onboarding friction, improve intervention response, and scale governance.",
+  "schema_type": "CollectionPage",
+  "segments": [
+    {"title": "Faster onboarding", "body": "New campuses provision with clearer timelines and less manual setup overhead."},
+    {"title": "Better intervention response", "body": "Risk monitoring and action-center workflows improve follow-through for at-risk learners."},
+    {"title": "Higher support visibility", "body": "Global queues and SLA tracking reduce blind spots across growing tenant portfolios."}
+  ],
+  "extras": {
+    "faqs": [
+      {"question": "What outcomes do schools report?", "answer": "Teams typically see faster onboarding, clearer intervention follow-through, and better visibility into support and operations across tenants."},
+      {"question": "Can we read anonymized patterns?", "answer": "Marketing case studies summarize operational patterns without exposing tenant-identifiable data."}
+    ]
+  }
+}

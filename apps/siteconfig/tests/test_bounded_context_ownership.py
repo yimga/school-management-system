@@ -6,6 +6,7 @@ from apps.siteconfig import forms as siteconfig_forms
 from apps.siteconfig import views as siteconfig_views
 from apps.siteconfig.models import (
     BrandProfile as LegacyBrandProfile,
+    FeatureToggleDefinition,
     Integration as LegacyIntegration,
     RegionConfig as LegacyRegionConfig,
     ThemePack as LegacyThemePack,
@@ -15,7 +16,7 @@ from apps.siteconfig.models_workflow import WorkflowPack as LegacyWorkflowPack
 from apps.brand_experience.models import ThemePack
 from apps.global_registries.models import RegionConfig
 from apps.integrations_marketplace.models import Integration, MarketplaceListing
-from apps.plans_entitlements.models import Plan
+from apps.plans_entitlements.models import CountryMultiplier, Plan
 from apps.runtime_blueprints.models import BlueprintPack, DashboardPack, WorkflowPack
 from config.admin import platform_admin_site, tenant_admin_site
 
@@ -74,12 +75,19 @@ class BoundedContextOwnershipTests(SimpleTestCase):
             BlueprintPack,
             DashboardPack,
             WorkflowPack,
-            Plan,
-            RegionConfig,
             Integration,
             MarketplaceListing,
         ):
             self.assertIn(model, platform_admin_site._registry)
+
+    def test_plan_and_region_catalog_not_on_platform_admin_super_crud_instead(self):
+        """Plan / RegionConfig CRUD lives on super control plane, not platform /admin/."""
+        self.assertNotIn(Plan, platform_admin_site._registry)
+        self.assertNotIn(RegionConfig, platform_admin_site._registry)
+        self.assertNotIn(CountryMultiplier, platform_admin_site._registry)
+        self.assertNotIn(CountryMultiplier, tenant_admin_site._registry)
+        self.assertNotIn(FeatureToggleDefinition, platform_admin_site._registry)
+        self.assertIn(FeatureToggleDefinition, tenant_admin_site._registry)
 
     def test_legacy_siteconfig_models_are_not_the_visible_admin_owner(self):
         for model in (

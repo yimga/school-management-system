@@ -4,6 +4,7 @@ Bind SOT wedges 23–30 / 31–43 to tenant runtime: features, settings, workflo
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from apps.platform_runtime.learning_institution_catalog import (
@@ -14,6 +15,8 @@ from apps.platform_runtime.learning_institution_catalog import (
     normalize_delivery_code,
     normalize_institution_code,
 )
+
+logger = logging.getLogger(__name__)
 
 # Pack slug → feature flags (advisory; policies may still gate)
 PACK_FEATURE_MAP: dict[str, list[str]] = {
@@ -229,6 +232,98 @@ def apply_single_wedge_pack_slug(school, pack_slug: str) -> dict[str, Any]:
     return {
         "pack_slug": slug,
         "feature_keys_touched": list(PACK_FEATURE_MAP.get(slug, [slug])),
+    }
+
+
+def rollback_single_wedge_pack_slug(
+    school,
+    pack_slug: str,
+    *,
+    sync_marketplace: bool = True,
+    uninstalled_by=None,
+    actor_id: int | None = None,
+) -> dict[str, Any]:
+    """
+    Remove a single wedge pack from tenant features/settings.
+
+    Feature flags mapped by this pack are set False only when no other wedge in
+    ``wedge_marketplace_installs`` still requires them (shared-feature safe).
+    """
+    slug = (pack_slug or "").strip()
+    if not slug or slug not in all_catalog_pack_slugs():
+        raise ValueError(f"Unknown wedge pack slug: {pack_slug!r}")
+    features = dict(school.features or {})
+    settings = dict(school.settings or {})
+    installs = list(settings.get("wedge_marketplace_installs") or [])
+    wedge_key = f"wedge_pack_{slug}"
+    if slug not in installs and not features.get(wedge_key):
+        raise ValueError(f"Wedge pack not recorded as installed: {slug!r}")
+
+    new_installs = [x for x in installs if x != slug]
+    settings["wedge_marketplace_installs"] = new_installs[-100:]
+
+    needed_features: set[str] = set()
+    for s in new_installs:
+        for feat in PACK_FEATURE_MAP.get(s, [s]):
+            if feat:
+                needed_features.add(str(feat))
+
+    touched = list(PACK_FEATURE_MAP.get(slug, [slug]))
+    cleared: list[str] = []
+    for feat in touched:
+        if not feat:
+            continue
+        fs = str(feat)
+        if fs not in needed_features:
+            features[fs] = False
+            cleared.append(fs)
+
+    features[wedge_key] = False
+    school.features = features
+    school.settings = settings
+    school.save(update_fields=["settings", "features", "updated_at"])
+
+    if sync_marketplace:
+        try:
+            from apps.marketplace.models import AppInstallation, MarketplaceApp
+
+            from apps.marketplace.services import uninstall_app
+
+            app_slug = f"wedge-pack-{slug.replace('_', '-')}"[:80]
+            app = MarketplaceApp.objects.filter(slug=app_slug).first()
+            if app:
+                inst = AppInstallation.objects.filter(
+                    school=school,
+                    app=app,
+                    status=AppInstallation.Status.ACTIVE,
+                ).first()
+                if inst:
+                    uninstall_app(school, app, uninstalled_by=uninstalled_by)
+        except Exception:
+            logger.debug("wedge rollback marketplace sync skipped", exc_info=True)
+
+    try:
+        from apps.platform_runtime.events import emit_platform_event
+
+        emit_platform_event(
+            "learning_wedge_pack_rolled_back",
+            {
+                "school_id": str(school.id),
+                "pack_slug": slug,
+                "actor_id": actor_id,
+                "features_cleared": cleared,
+            },
+            tenant_id=str(getattr(school, "id", "") or ""),
+            school_id=None,
+            idempotency_key=f"wedge-rollback:{school.id}:{slug}",
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+
+    return {
+        "pack_slug": slug,
+        "features_cleared": cleared,
+        "wedge_marketplace_installs": settings["wedge_marketplace_installs"],
     }
 
 

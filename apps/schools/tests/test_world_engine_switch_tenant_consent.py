@@ -44,7 +44,10 @@ class SwitchToTenantConsentTests(TestCase):
         self.client.force_login(self.superuser)
         response = self.client.post(
             reverse("super:switch_to_tenant"),
-            data={"school_id": str(self.school.id)},
+            data={
+                "school_id": str(self.school.id),
+                "impersonation_reason": "Testing consent gate — operator justification.",
+            },
             follow=False,
         )
         self.assertEqual(response.status_code, 302)
@@ -66,7 +69,10 @@ class SwitchToTenantConsentTests(TestCase):
         self.client.force_login(self.superuser)
         response = self.client.post(
             reverse("super:switch_to_tenant"),
-            data={"school_id": str(self.school.id)},
+            data={
+                "school_id": str(self.school.id),
+                "impersonation_reason": "Testing consent granted — operator justification.",
+            },
             follow=False,
         )
         self.assertEqual(response.status_code, 302)

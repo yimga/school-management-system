@@ -9,6 +9,7 @@ proof_hero_image_key and hero/asset URLs from marketing_views context.
 from __future__ import annotations
 
 from django.conf import settings
+from django.templatetags.static import static
 
 
 # Asset keys for governance (style guide, versioning, approval). Phase 10: placeholders.
@@ -42,4 +43,16 @@ def get_marketing_ai_asset_url(key: str) -> str | None:
         "hero_ecosystem": getattr(settings, "MARKETING_ECOSYSTEM_IMAGE_URL", None),
         "hero_marketplace": getattr(settings, "MARKETING_MARKETPLACE_IMAGE_URL", None),
     }
-    return setting_map.get(key)
+    url = setting_map.get(key)
+    if url:
+        return url
+    # Static SVG fallbacks (repo ships these; PNG/video still via env when you add CDN assets).
+    static_fallbacks: dict[str, str] = {
+        "hero_dashboard": "images/marketing/hero-placeholder.svg",
+        "hero_migration_flow": "images/marketing/migration-flow.svg",
+        "hero_setup_studio": "images/marketing/setup-studio-flow.svg",
+        "hero_ecosystem": "images/marketing/ecosystem-diagram.svg",
+        "hero_marketplace": "images/marketing/platform-diagram-marketing.svg",
+    }
+    rel = static_fallbacks.get(key)
+    return static(rel) if rel else None

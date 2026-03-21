@@ -402,6 +402,13 @@ class School(models.Model):
         related_name="+",
         help_text="User (e.g. principal) who granted impersonation consent.",
     )
+    impersonation_dual_control = models.BooleanField(
+        default=False,
+        help_text=(
+            "When True, platform operators must name a second approver (different SUPERADMIN/superuser) "
+            "before impersonation is allowed (four-eyes)."
+        ),
+    )
 
     class Meta:
         ordering = ["name"]
@@ -854,6 +861,11 @@ class AdvancementGift(models.Model):
     received_at = models.DateField()
     receipt_sent = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
+    campaign_name = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Campaign or appeal label (e.g. Annual Fund 2026).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -1,4 +1,6 @@
 {% extends "portal_base.html" %}
+{% load static %}
+{% load i18n %}
 {% block title %}Take teacher attendance{% endblock %}
 {% block content %}
   {% include "widgets/dashboard_hero.html" with hero=hero %}
@@ -14,7 +16,11 @@
         </div>
       </form>
       {% if teachers_with_status %}
-        <form method="post" action="{% url 'portal:record_teacher_attendance' %}">
+        <form method="post" action="{% url 'portal:record_teacher_attendance' %}"
+              data-draft-key="teacher_roll_{{ date_value }}"
+              data-draft-max-age-hours="72"
+              data-offline-hint="{% trans 'Offline: teacher attendance is queued and syncs when you are back online.' %}"
+              data-draft-pending-label="{% trans 'Teacher attendance' %}">
           {% csrf_token %}
           <input type="hidden" name="date" value="{{ date_value }}">
           <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
@@ -28,8 +34,8 @@
             <table class="table table-sm align-middle">
               <thead class="table-light">
                 <tr>
-                  <th>Teacher</th>
-                  <th>Status</th>
+                  <th scope="col">{% trans "Teacher" %}</th>
+                  <th scope="col">{% trans "Status" %}</th>
                 </tr>
               </thead>
               <tbody>
@@ -37,7 +43,7 @@
                   <tr>
                     <td>{{ row.teacher.user.get_full_name|default:row.teacher.user.username }}</td>
                     <td>
-                      <select name="status_{{ row.teacher.id }}" class="form-select form-select-sm status-select">
+                      <select name="status_{{ row.teacher.id }}" class="form-select form-select-sm status-select min-touch-target" style="min-height:2.75rem;" aria-label="{% trans 'Attendance status' %} {{ row.teacher.user.get_full_name|default:row.teacher.user.username }}">
                         {% for value, label in status_choices %}
                           <option value="{{ value }}" {% if row.status == value %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
@@ -70,5 +76,12 @@
       document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
       this.closest('form').submit();
     });
+  </script>
+  <script src="{% static 'js/form-draft-save.js' %}"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var f = document.querySelector('form[data-draft-key][method="post"]');
+    if (f && window.FormDraftSave) window.FormDraftSave.init(f);
+  });
   </script>
 {% endblock %}

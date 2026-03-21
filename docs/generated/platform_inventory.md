@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `1946`
-- HTML templates: `536`
-- Markdown files: `953`
-- Migration files: `616`
-- Management commands: `140` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1135`
-- `get_solo()` refs: `181`
-- `except Exception`: `207`
+- Python files: `2066`
+- HTML templates: `559`
+- Markdown files: `992`
+- Migration files: `636`
+- Management commands: `143` (full list in JSON key `management_commands_list`)
+- `SiteSettings` refs: `1153`
+- `get_solo()` refs: `182`
+- `except Exception`: `219`
 - `cursor.execute()`: `352`
-- `csrf_exempt`: `126`
+- `csrf_exempt`: `140`
 - `AllowAny`: `63`
-- `print()`: `530`
-- `gilead` matches: `687` across `134` files
+- `print()`: `539`
+- `gilead` matches: `713` across `138` files
 
 
 ## Management Commands (full list)
 
-Total: `140` commands. First 25 by app/command:
+Total: `143` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -39,18 +39,18 @@ Total: `140` commands. First 25 by app/command:
 - `analytics` / `compute_benchmark_aggregates` — `apps/analytics/management/commands/compute_benchmark_aggregates.py`
 - `analytics` / `compute_nightly_risk` — `apps/analytics/management/commands/compute_nightly_risk.py`
 - `analytics` / `send_deadline_reminders` — `apps/analytics/management/commands/send_deadline_reminders.py`
+- `automation` / `migration_legacy_data_audit` — `apps/automation/management/commands/migration_legacy_data_audit.py`
 - `automation` / `seed_migration_profiles` — `apps/automation/management/commands/seed_migration_profiles.py`
 - `billing` / `import_platform_billing_snapshot` — `apps/billing/management/commands/import_platform_billing_snapshot.py`
 - `billing` / `run_platform_billing_lifecycle` — `apps/billing/management/commands/run_platform_billing_lifecycle.py`
 - `billing` / `run_revenue_share_payouts` — `apps/billing/management/commands/run_revenue_share_payouts.py`
 - `communication` / `purge_thread_message_retention` — `apps/communication/management/commands/purge_thread_message_retention.py`
-- `communication` / `sync_department_threads` — `apps/communication/management/commands/sync_department_threads.py`
-- … and 115 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 118 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
-- Reviewed `csrf_exempt` files: `10`
-- Reviewed `csrf_exempt` endpoints: `27`
+- Reviewed `csrf_exempt` files: `12`
+- Reviewed `csrf_exempt` endpoints: `34`
 - Reviewed `AllowAny` files: `1`
 - Reviewed `AllowAny` occurrences: `2`
 
@@ -78,16 +78,16 @@ Total: `140` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/schools/marketing_views.py`: `5775` lines / `248104` bytes
-- `apps/schools/super_views.py`: `3444` lines / `128290` bytes
-- `apps/siteconfig/admin.py`: `3269` lines / `116292` bytes
+- `apps/schools/marketing_page_definitions.py`: `2861` lines / `135837` bytes
+- `apps/schools/marketing_views.py`: `3034` lines / `120110` bytes
+- `apps/siteconfig/admin.py`: `3277` lines / `116827` bytes
+- `apps/accounts/views.py`: `3013` lines / `114809` bytes
 - `apps/evals/views.py`: `3100` lines / `114435` bytes
-- `apps/accounts/views.py`: `2990` lines / `113808` bytes
-- `apps/api/views_v1.py`: `2463` lines / `103010` bytes
+- `apps/api/views_v1.py`: `2468` lines / `103258` bytes
 - `apps/portal/views_parent.py`: `2504` lines / `98728` bytes
 - `apps/finance/models.py`: `2807` lines / `98407` bytes
 - `apps/siteconfig/models.py`: `2482` lines / `96669` bytes
-- `apps/siteconfig/views.py`: `2339` lines / `86367` bytes
+- `apps/siteconfig/views.py`: `2377` lines / `88300` bytes
 - `apps/finance/tasks.py`: `2069` lines / `84718` bytes
 - `apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py`: `1495` lines / `63960` bytes
 

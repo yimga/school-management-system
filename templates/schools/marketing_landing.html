@@ -22,7 +22,7 @@
 {% endblock %}
 {% block content %}
 <noscript><style>.marketing-home .mkt-reveal,.marketing-home .mkt-reveal-stagger>*{opacity:1;transform:none;}</style></noscript>
-<div class="marketing-home" data-scroll-story="true">
+<div class="marketing-home" data-scroll-story="true" data-marketing-hero-variant="{{ hero_variant|default:'A' }}" data-marketing-cta-variant="{{ marketing_cta_variant|default:'default' }}" data-marketing-experiment="hero={{ hero_variant|default:'A' }};cta={{ marketing_cta_variant|default:'default' }}">
   <a href="#hero" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   <div id="mkt-scroll-progress" class="mkt-scroll-progress" role="presentation" aria-hidden="true">
     <div id="mkt-scroll-progress-fill" class="mkt-scroll-progress-fill"></div>

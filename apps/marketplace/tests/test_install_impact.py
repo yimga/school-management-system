@@ -77,6 +77,30 @@ class TenantInstallImpactPreviewTests(TestCase):
         self.assertEqual(data["app"]["slug"], "impact-test-app")
         self.assertTrue(any(s["scope_code"] == "students.read" for s in data["scopes"]))
 
+    def test_build_tenant_install_impact_includes_dependency_graph(self):
+        from apps.packages.models import PackageVersion
+
+        wedge = "wedge-pack-impact-test-app"
+        PackageVersion.objects.create(
+            package_id=wedge,
+            version="1.0.0",
+            dependencies=["some-upstream"],
+            payload_sections={"theme": {"name": "w"}},
+        )
+        PackageVersion.objects.create(
+            package_id="downstream-of-wedge",
+            version="1.0.0",
+            dependencies=[wedge],
+            payload_sections={"theme": {}},
+        )
+        data = build_tenant_install_impact(self.school, self.app)
+        g = data.get("dependency_graph") or {}
+        self.assertIn("upstream_package_ids", g)
+        self.assertIn("downstream_package_ids", g)
+        self.assertEqual(g.get("matched_package_id"), wedge)
+        self.assertIn("some-upstream", g["upstream_package_ids"])
+        self.assertIn("downstream-of-wedge", g["downstream_package_ids"])
+
     def test_super_preview_requires_both_ids(self):
         c = Client()
         c.force_login(self.superuser)
@@ -93,3 +117,51 @@ class TenantInstallImpactPreviewTests(TestCase):
         data = r2.json()
         self.assertEqual(data["app"]["slug"], "impact-test-app")
         self.assertTrue(any(s["scope_code"] == "students.read" for s in data["scopes"]))
+
+    def test_blueprint_apply_requires_preview_session(self):
+        from apps.policies.models import BlueprintPack, PolicyBundle
+
+        pack = BlueprintPack.objects.create(
+            slug="n17-blueprint-preview",
+            name="N17 Pack",
+            policy_snapshot={"grading": {"scale": "A-F"}},
+            is_active=True,
+        )
+        c = Client()
+        c.force_login(self.superuser)
+        before = PolicyBundle.objects.filter(school=self.school).count()
+        r = c.post(
+            reverse("super:blueprint_marketplace"),
+            {
+                "action": "apply",
+                "pack_id": str(pack.pk),
+                "school_id": str(self.school.pk),
+            },
+            HTTP_HOST="manager.runmycampus.com",
+            follow=False,
+        )
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(
+            PolicyBundle.objects.filter(school=self.school).count(), before
+        )
+        c.post(
+            reverse("super:blueprint_marketplace"),
+            {
+                "action": "preview",
+                "pack_id": str(pack.pk),
+                "school_id": str(self.school.pk),
+            },
+            HTTP_HOST="manager.runmycampus.com",
+        )
+        c.post(
+            reverse("super:blueprint_marketplace"),
+            {
+                "action": "apply",
+                "pack_id": str(pack.pk),
+                "school_id": str(self.school.pk),
+            },
+            HTTP_HOST="manager.runmycampus.com",
+        )
+        self.assertGreater(
+            PolicyBundle.objects.filter(school=self.school).count(), before
+        )

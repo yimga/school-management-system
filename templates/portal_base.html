@@ -94,6 +94,7 @@
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
     <link rel="stylesheet" href="{% static 'css/tooltips.css' %}">
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
+    <link rel="stylesheet" href="{% static 'css/north-star-touch-targets.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
     {% block extrastyle %}{% endblock %}
 
@@ -352,6 +353,10 @@
         border: 1px solid var(--portal-border-strong, rgba(0,0,0,0.1));
         box-shadow: var(--portal-shadow-hover, 0 8px 24px rgba(0,0,0,0.15));
         border-radius: 12px;
+        z-index: 2000;
+      }
+      #portalHeader .dropdown-menu {
+        z-index: 2050;
       }
 
       .dropdown-item {
@@ -1099,15 +1104,15 @@
               <input 
                 type="text" 
                 class="form-control form-control-sm topbar-search-input nav-search" 
-                placeholder="Search students, teachers, invoices..."
+                placeholder="{% trans 'Search students, teachers, invoices…' %}"
                 id="headerSearchInput"
-                aria-label="Global search"
+                aria-label="{% trans 'Global search' %}"
                 aria-autocomplete="list"
                 aria-expanded="false"
                 aria-controls="headerSearchResults"
               />
               <span class="topbar-search-kbd" aria-hidden="true">Ctrl+K</span>
-              <div id="headerSearchResults" class="header-search-dropdown" role="listbox" aria-label="Search results" style="display: none;"></div>
+              <div id="headerSearchResults" class="header-search-dropdown" role="listbox" aria-label="{% trans 'Search results' %}" style="display: none;"></div>
             </div>
             {% endif %}
 
@@ -1530,6 +1535,7 @@
     <script src="{% static 'js/offline-status-bar.js' %}"></script>
     <script src="{% static 'js/auto-pilot.js' %}"></script>
     {% endif %}
+    <script src="{% static 'js/critical-read-degraded.js' %}"></script>
     <!-- PWA Service Worker Registration (full offline bar when enabled; parent portal shell when PWA + parent path) -->
     <script>
       (function() {
@@ -1595,6 +1601,8 @@
 
     {# Main Footer with Accreditation and Support #}
     {% include 'components/footer.html' %}
+
+    {% include 'components/rum_beacon.html' %}
 
     {% if SITE and SITE.is_preview %}
     <link rel="stylesheet" href="{% static 'css/preview-highlights.css' %}">

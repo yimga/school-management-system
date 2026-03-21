@@ -6,5 +6,19 @@
   "background_color": "#0f172a",
   "theme_color": "#2563eb",
   "description": "Parent portal — grades, attendance, messages.",
-  "icons": []
+  "icons": [],
+  "shortcuts": [
+    {
+      "name": "Calendar",
+      "short_name": "Calendar",
+      "description": "Unified family calendar",
+      "url": "/portal/unified-calendar/"
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Parent dashboard",
+      "url": "/portal/parent/"
+    }
+  ]
 }

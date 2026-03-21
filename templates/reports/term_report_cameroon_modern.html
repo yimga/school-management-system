@@ -101,20 +101,20 @@
     </div>
   </div>
 
-  <table class="cameroon-mark-table">
+  <table class="cameroon-mark-table" aria-label="Cameroon term marks (modern layout)">
     <thead>
       <tr>
-        <th>{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
-        <th class="text-center">{% report_style_label report_style "coef_header" "Coef" %}</th>
-        <th class="text-center">{{ labels.sequence_1|default:"Sequence 1 / Sequence 1" }}</th>
-        <th class="text-center">{{ labels.sequence_2|default:"Sequence 2 / Sequence 2" }}</th>
-        <th class="text-center">{{ labels.exam|default:"Exam / Examen" }}</th>
-        <th class="text-center">{{ labels.mock|default:"Mock / Probatoire" }}</th>
-        <th class="text-center">{{ labels.practical|default:"Practical / Pratique" }}</th>
-        <th class="text-center">{% report_style_label report_style "rank_header" "Rank / Rang" %}</th>
-        <th class="text-center">{{ labels.total|default:"Total / Total" }}</th>
-        <th>{% report_style_label report_style "remark_header" "Remark / Observation" %}</th>
-        <th>{% report_style_label report_style "teacher_header" "Teacher / Professeur" %}</th>
+        <th scope="col">{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
+        <th scope="col" class="text-center">{% report_style_label report_style "coef_header" "Coef" %}</th>
+        <th scope="col" class="text-center">{{ labels.sequence_1|default:"Sequence 1 / Sequence 1" }}</th>
+        <th scope="col" class="text-center">{{ labels.sequence_2|default:"Sequence 2 / Sequence 2" }}</th>
+        <th scope="col" class="text-center">{{ labels.exam|default:"Exam / Examen" }}</th>
+        <th scope="col" class="text-center">{{ labels.mock|default:"Mock / Probatoire" }}</th>
+        <th scope="col" class="text-center">{{ labels.practical|default:"Practical / Pratique" }}</th>
+        <th scope="col" class="text-center">{% report_style_label report_style "rank_header" "Rank / Rang" %}</th>
+        <th scope="col" class="text-center">{{ labels.total|default:"Total / Total" }}</th>
+        <th scope="col">{% report_style_label report_style "remark_header" "Remark / Observation" %}</th>
+        <th scope="col">{% report_style_label report_style "teacher_header" "Teacher / Professeur" %}</th>
       </tr>
     </thead>
     <tbody>

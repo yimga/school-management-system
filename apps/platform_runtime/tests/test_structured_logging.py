@@ -57,6 +57,15 @@ class RequestContextForLogTests(SimpleTestCase):
         out = request_context_for_log(request)
         self.assertIn("tenant_id", out)
 
+    def test_includes_runtime_trace_id_when_set(self) -> None:
+        request = MagicMock()
+        request.school = MagicMock(id=1)
+        request.user = MagicMock(id=2)
+        request.path = "/x/"
+        request._runtime_trace_id = "a1b2c3d4e5f67890"
+        out = request_context_for_log(request)
+        self.assertEqual(out["runtime_trace_id"], "a1b2c3d4e5f67890")
+
 
 class LogExceptionWithContextTests(SimpleTestCase):
     """log_exception_with_context merges context into extra and calls logger.warning."""

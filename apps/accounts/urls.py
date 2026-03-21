@@ -88,6 +88,27 @@ from .views_district_interop import (
     district_lms_interop,
     institution_profile_wizard,
 )
+from apps.schools.views_advancement import (
+    advancement_donor_create,
+    advancement_donor_detail,
+    advancement_donor_edit,
+    advancement_donor_list,
+    advancement_gift_delete,
+)
+from apps.accounts.views_tenant_observability import tenant_activity_log
+from apps.schoolops.views_tenant_ops import (
+    ops_canteen,
+    ops_clinic,
+    ops_hub,
+    ops_inventory,
+    ops_library,
+    ops_substitutes,
+    ops_timetabling,
+    ops_transport,
+    ops_visitor_log,
+    ops_facilities,
+    ops_pos,
+)
 
 try:
     from apps.people.views_backend import (
@@ -188,6 +209,55 @@ urlpatterns = [
         district_interop_csv_classes,
         name="district_interop_csv_classes",
     ),
+    path(
+        "backend/advancement/donors/",
+        advancement_donor_list,
+        name="advancement_donor_list",
+    ),
+    path(
+        "backend/advancement/donors/add/",
+        advancement_donor_create,
+        name="advancement_donor_create",
+    ),
+    path(
+        "backend/advancement/donors/<int:donor_id>/",
+        advancement_donor_detail,
+        name="advancement_donor_detail",
+    ),
+    path(
+        "backend/advancement/donors/<int:donor_id>/edit/",
+        advancement_donor_edit,
+        name="advancement_donor_edit",
+    ),
+    path(
+        "backend/advancement/gifts/<int:gift_id>/delete/",
+        advancement_gift_delete,
+        name="advancement_gift_delete",
+    ),
+    path("backend/activity-log/", tenant_activity_log, name="tenant_activity_log"),
+    path("backend/ops/", ops_hub, name="ops_hub"),
+    path("backend/ops/library/", ops_library, name="ops_library"),
+    path("backend/ops/transport/", ops_transport, name="ops_transport"),
+    path("backend/ops/inventory/", ops_inventory, name="ops_inventory"),
+    path("backend/ops/canteen/", ops_canteen, name="ops_canteen"),
+    path("backend/ops/clinic/", ops_clinic, name="ops_clinic"),
+    path("backend/ops/timetabling/", ops_timetabling, name="ops_timetabling"),
+    path(
+        "backend/ops/substitutes/",
+        ops_substitutes,
+        name="ops_substitutes",
+    ),
+    path(
+        "backend/ops/visitors/",
+        ops_visitor_log,
+        name="ops_visitor_log",
+    ),
+    path(
+        "backend/ops/facilities/",
+        ops_facilities,
+        name="ops_facilities",
+    ),
+    path("backend/ops/pos/", ops_pos, name="ops_pos"),
     path(
         "backend/district-lms-interop/advanced/",
         district_interop_save_advanced,

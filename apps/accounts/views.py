@@ -266,7 +266,7 @@ def _parent_children_tree(user):
     return {"children": children} if children else None
 
 
-def _admin_context(user):
+def _admin_context(user, request=None):
     """Build admin context for staff: Site Settings, Backend, Admin, RBAC URLs and permissions summary."""
     if not (user.is_staff or user.is_superuser):
         role = getattr(user, "role", None)
@@ -275,13 +275,19 @@ def _admin_context(user):
     site_settings_url = None
     if getattr(user, "has_feature_permission", lambda _: False)("settings.manage"):
         try:
-            site = get_effective_site_settings()
-            site_settings_url = reverse(
-                "admin:siteconfig_sitesettings_change", args=[site.pk]
+            from apps.siteconfig.staff_navigation import site_settings_change_url
+
+            site = (
+                get_effective_site_settings(request=request)
+                if request is not None
+                else get_effective_site_settings()
             )
+            site_settings_url = site_settings_change_url(request, site.pk)
         except (AttributeError, NoReverseMatch, TypeError, ValueError):
             try:
-                site_settings_url = reverse("admin:siteconfig_sitesettings_changelist")
+                from apps.siteconfig.staff_navigation import site_settings_list_url
+
+                site_settings_url = site_settings_list_url(request)
             except NoReverseMatch:
                 pass
     try:
@@ -350,7 +356,7 @@ def user_profile(request):
         )
     if role == "PARENT":
         context["parent_children_tree"] = _parent_children_tree(request.user)
-    admin_ctx = _admin_context(request.user)
+    admin_ctx = _admin_context(request.user, request)
     if admin_ctx:
         context["admin_context"] = admin_ctx
     # MFA status (only when django_otp is available)
@@ -1287,6 +1293,21 @@ def rbac_dashboard(request):
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def backend_dashboard(request):
+    # Manager host: school backend is tenant-primary; operators use impersonation on the tenant host.
+    if (getattr(request, "public_host_kind", None) or "").lower() == "manager":
+        from django.contrib import messages
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        from django.utils.translation import gettext as _
+
+        messages.warning(
+            request,
+            _(
+                "The school backend runs on the tenant host. "
+                "Use “Open as school” from the super dashboard to impersonate that school."
+            ),
+        )
+        return redirect(reverse("super:dashboard"))
     # Tenant Backend is subdomain-only: on base domain redirect to tenant subdomain
     if not getattr(request, "school", None):
         try:
@@ -2110,7 +2131,9 @@ def backend_dashboard(request):
     at_risk_ratio_pct = int(round((len(at_risk_students) / total_students) * 100))
 
     # Workflow progress and recommended next steps for dashboard (recommendation service)
-    workflow_progress = _workflow_progress(year)
+    from apps.accounts.views_workflow import _workflow_progress as _wf_progress
+
+    workflow_progress = _wf_progress(year)
 
     backend_main_module_count = sum(
         1

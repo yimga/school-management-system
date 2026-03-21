@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load region_format %}
+{% load static %}
 
 {% block title %}Scan Teller (OCR){% endblock %}
 
@@ -26,7 +27,7 @@
           {% endif %}
         </div>
         {% endif %}
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="scan-teller-form" data-draft-key="finance_scan_teller_{{ request.user.id }}" data-draft-max-age-hours="24">
           {% csrf_token %}
           <div class="mb-3">
             <label class="form-label">Receipt / teller file</label>
@@ -142,4 +143,14 @@
   </div>
 </div>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  var f = document.getElementById('scan-teller-form');
+  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
+})();
+</script>
 {% endblock %}

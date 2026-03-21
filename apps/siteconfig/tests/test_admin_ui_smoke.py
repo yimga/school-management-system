@@ -60,8 +60,8 @@ class AdminUiSmokeTests(TestCase):
             quick_paths = [
                 reverse("admin:index"),
                 platform_quick_link,
-                reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk]),
-                reverse("admin:global_registries_regionconfig_changelist"),
+                reverse("super:site_settings_edit", kwargs={"pk": self.site.pk}),
+                reverse("super:regions_list"),
                 reverse("admin:integrations_marketplace_integration_changelist"),
                 reverse("siteconfig:feature_control_panel"),
                 reverse("siteconfig:theme_colors"),
@@ -75,7 +75,7 @@ class AdminUiSmokeTests(TestCase):
             quick_paths = [
                 reverse("admin:index"),
                 reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk]),
-                reverse("admin:global_registries_regionconfig_changelist"),
+                reverse("super:regions_list"),
                 reverse("admin:integrations_marketplace_integration_changelist"),
                 reverse("siteconfig:feature_control_panel"),
                 reverse("siteconfig:theme_colors"),
@@ -169,8 +169,10 @@ class AdminUiSmokeTests(TestCase):
 
         quick_paths = {
             reverse("admin:index"),
-            reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk]),
-            reverse("admin:global_registries_regionconfig_changelist"),
+            reverse("super:dashboard"),
+            reverse("super:platform_operator_hub"),
+            reverse("super:site_settings_edit", kwargs={"pk": self.site.pk}),
+            reverse("super:regions_list"),
             reverse("admin:integrations_marketplace_integration_changelist"),
             reverse("siteconfig:feature_control_panel"),
             reverse("siteconfig:theme_colors"),

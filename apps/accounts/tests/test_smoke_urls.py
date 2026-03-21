@@ -101,15 +101,18 @@ class SmokeUrlResolutionTests(SimpleTestCase):
     def test_finance_dashboard(self):
         self.assertEqual(reverse("finance:dashboard"), "/finance/")
 
-    def test_admin_siteconfig_changelist(self):
+    def test_super_site_settings_list_path(self):
+        """SiteSettings removed from platform admin; list is on control plane."""
         self.assertEqual(
-            reverse("admin:siteconfig_sitesettings_changelist"),
-            "/admin/siteconfig/sitesettings/",
+            reverse("super:site_settings_list"),
+            "/super/config/site-settings/",
         )
 
-    def test_admin_siteconfig_change_with_pk(self):
-        url = reverse("admin:siteconfig_sitesettings_change", args=[1])
-        self.assertEqual(url, "/admin/siteconfig/sitesettings/1/change/")
+    def test_super_site_settings_edit_path(self):
+        self.assertEqual(
+            reverse("super:site_settings_edit", kwargs={"pk": 1}),
+            "/super/config/site-settings/1/",
+        )
 
     def test_marketing_blog_detail(self):
         """Blog post links (e.g. marketing_page.html) resolve on root urlconf."""

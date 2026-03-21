@@ -2355,6 +2355,259 @@
     }
   },
   {
+    "model": "siteconfig.themepack",
+    "pk": 52,
+    "fields": {
+      "name": "Ultra Gallery (Light)",
+      "slug": "admin-ultra-gallery",
+      "description": "Super ultra high-end. Gallery White, Rich Black typography, gold accent. Statement header, 600ms motion, hairline borders.",
+      "primary_color": "#0A0A0A",
+      "accent_color": "#B8860B",
+      "background_color": "#FDFDFD",
+      "font_family": "Inter, system-ui, -apple-system, sans-serif",
+      "layout": "STANDARD",
+      "custom_css": ":root{--luxury-rich-black:#0A0A0A;--luxury-gallery-white:#FDFDFD;--luxury-platinum:#E5E5E5;--luxury-accent:#B8860B;--statement-header-bg:#FDFDFD;--statement-header-fg:#0A0A0A;}.card,.cp-panel{border-radius:2px;border:1px solid rgba(10,10,10,0.08);}",
+      "palette": {
+        "admin_dashboard": {
+          "primary": "#0A0A0A",
+          "accent": "#B8860B",
+          "accent_light": "rgba(184,134,11,0.2)",
+          "dashboard_bg": "#FDFDFD",
+          "surface": "#FFFFFF",
+          "border": "rgba(10,10,10,0.08)",
+          "border_strong": "rgba(10,10,10,0.14)",
+          "text": "#1A1A1A",
+          "muted": "#525252",
+          "subtle": "#737373",
+          "role_admin": "#0A0A0A",
+          "role_student": "#0F172A",
+          "role_teacher": "#B8860B",
+          "success": "#0F172A",
+          "warning": "#f59e0b",
+          "danger": "#ef4444",
+          "info": "#3b82f6",
+          "shadow": "0 1px 2px rgba(15,23,42,0.05)",
+          "shadow_hover": "0 4px 12px rgba(15,23,42,0.1)",
+          "border_hover": "rgba(10,10,10,0.14)",
+          "weather_bg": "rgba(184,134,11,0.08)"
+        }
+      },
+      "logo": "",
+      "background_image": "",
+      "video_background": "",
+      "svg_background": "",
+      "logo_opacity": 0.3,
+      "logo_background_mode": "contain",
+      "applies_to_admin": true,
+      "is_active": true,
+      "is_default": false,
+      "created_at": "2026-03-13T21:37:25.319Z",
+      "updated_at": "2026-03-18T20:18:57.911Z"
+    }
+  },
+  {
+    "model": "siteconfig.themepack",
+    "pk": 53,
+    "fields": {
+      "name": "Ultra Noir (Dark)",
+      "slug": "admin-ultra-noir",
+      "description": "Super ultra high-end dark. Rich Black background, Platinum text, gold accent. Premium staff experience.",
+      "primary_color": "#FDFDFD",
+      "accent_color": "#B8860B",
+      "background_color": "#0A0A0A",
+      "font_family": "Inter, system-ui, -apple-system, sans-serif",
+      "layout": "STANDARD",
+      "custom_css": ":root{--luxury-rich-black:#0A0A0A;--luxury-gallery-white:#FDFDFD;--luxury-platinum:#E5E5E5;--luxury-accent:#B8860B;--statement-header-bg:#0A0A0A;--statement-header-fg:#FDFDFD;}",
+      "palette": {
+        "admin_dashboard": {
+          "primary": "#FDFDFD",
+          "accent": "#B8860B",
+          "accent_light": "rgba(184,134,11,0.25)",
+          "dashboard_bg": "#0A0A0A",
+          "surface": "#171717",
+          "border": "rgba(255,255,255,0.1)",
+          "border_strong": "rgba(255,255,255,0.18)",
+          "text": "#F5F5F5",
+          "muted": "#A3A3A3",
+          "subtle": "#E5E5E5",
+          "role_admin": "#B8860B",
+          "role_student": "#60a5fa",
+          "role_teacher": "#34d399",
+          "success": "#10b981",
+          "warning": "#f59e0b",
+          "danger": "#ef4444",
+          "info": "#3b82f6",
+          "shadow": "0 2px 12px rgba(0,0,0,0.3)",
+          "shadow_hover": "0 8px 24px rgba(0,0,0,0.4)",
+          "border_hover": "rgba(255,255,255,0.18)",
+          "weather_bg": "rgba(184,134,11,0.15)"
+        }
+      },
+      "logo": "",
+      "background_image": "",
+      "video_background": "",
+      "svg_background": "",
+      "logo_opacity": 0.3,
+      "logo_background_mode": "contain",
+      "applies_to_admin": true,
+      "backend_console_theme": "dark",
+      "is_active": true,
+      "is_default": false,
+      "created_at": "2026-03-13T21:37:25.321Z",
+      "updated_at": "2026-03-18T20:18:57.914Z"
+    }
+  },
+  {
+    "model": "siteconfig.themepack",
+    "pk": 54,
+    "fields": {
+      "name": "Ultra Platinum",
+      "slug": "admin-ultra-platinum",
+      "description": "Super ultra high-end neutral. Platinum surfaces, navy primary, gold accent. Magazine-style authority.",
+      "primary_color": "#0F172A",
+      "accent_color": "#B8860B",
+      "background_color": "#FAFAFA",
+      "font_family": "Inter, system-ui, -apple-system, sans-serif",
+      "layout": "STANDARD",
+      "custom_css": ":root{--luxury-rich-black:#0A0A0A;--luxury-gallery-white:#FDFDFD;--luxury-platinum:#E5E5E5;--luxury-accent:#B8860B;--statement-header-bg:#FAFAFA;--statement-header-fg:#0F172A;}",
+      "palette": {
+        "admin_dashboard": {
+          "primary": "#0F172A",
+          "accent": "#B8860B",
+          "accent_light": "rgba(184,134,11,0.2)",
+          "dashboard_bg": "#FAFAFA",
+          "surface": "#FFFFFF",
+          "border": "rgba(15,23,42,0.08)",
+          "border_strong": "rgba(15,23,42,0.14)",
+          "text": "#1A1A1A",
+          "muted": "#525252",
+          "subtle": "#737373",
+          "role_admin": "#0F172A",
+          "role_student": "#0ea5e9",
+          "role_teacher": "#10b981",
+          "success": "#10b981",
+          "warning": "#f59e0b",
+          "danger": "#ef4444",
+          "info": "#3b82f6",
+          "shadow": "0 1px 2px rgba(15,23,42,0.05)",
+          "shadow_hover": "0 4px 12px rgba(15,23,42,0.1)",
+          "border_hover": "rgba(15,23,42,0.14)",
+          "weather_bg": "rgba(184,134,11,0.08)"
+        }
+      },
+      "logo": "",
+      "background_image": "",
+      "video_background": "",
+      "svg_background": "",
+      "logo_opacity": 0.3,
+      "logo_background_mode": "contain",
+      "applies_to_admin": true,
+      "is_active": true,
+      "is_default": false,
+      "created_at": "2026-03-13T21:37:25.324Z",
+      "updated_at": "2026-03-18T20:18:57.916Z"
+    }
+  },
+  {
+    "model": "siteconfig.themepack",
+    "pk": 55,
+    "fields": {
+      "name": "Ultra Gallery (Portal)",
+      "slug": "portal-ultra-gallery",
+      "description": "Super ultra high-end portal. Gallery White, Rich Black, gold accent. Mature statement branding.",
+      "primary_color": "#0A0A0A",
+      "accent_color": "#B8860B",
+      "background_color": "#FDFDFD",
+      "font_family": "Inter, system-ui, -apple-system, sans-serif",
+      "layout": "STANDARD",
+      "custom_css": ":root{--luxury-rich-black:#0A0A0A;--luxury-gallery-white:#FDFDFD;--luxury-platinum:#E5E5E5;--luxury-accent:#B8860B;--statement-header-bg:#FDFDFD;--statement-header-fg:#0A0A0A;}",
+      "palette": {
+        "gradient": [
+          "#0A0A0A",
+          "#1A1A1A"
+        ],
+        "card": "#FFFFFF"
+      },
+      "logo": "",
+      "background_image": "",
+      "video_background": "",
+      "svg_background": "",
+      "logo_opacity": 0.3,
+      "logo_background_mode": "contain",
+      "applies_to_admin": false,
+      "is_active": true,
+      "is_default": false,
+      "created_at": "2026-03-13T21:37:25.325Z",
+      "updated_at": "2026-03-18T20:18:57.918Z"
+    }
+  },
+  {
+    "model": "siteconfig.themepack",
+    "pk": 56,
+    "fields": {
+      "name": "Ultra Noir (Portal)",
+      "slug": "portal-ultra-noir",
+      "description": "Super ultra high-end dark portal. Rich Black, Platinum text, gold accent.",
+      "primary_color": "#FDFDFD",
+      "accent_color": "#B8860B",
+      "background_color": "#0A0A0A",
+      "font_family": "Inter, system-ui, -apple-system, sans-serif",
+      "layout": "STANDARD",
+      "custom_css": ":root{--luxury-rich-black:#0A0A0A;--luxury-gallery-white:#FDFDFD;--luxury-platinum:#E5E5E5;--luxury-accent:#B8860B;--statement-header-bg:#0A0A0A;--statement-header-fg:#FDFDFD;}",
+      "palette": {
+        "gradient": [
+          "#0A0A0A",
+          "#171717"
+        ],
+        "card": "#171717"
+      },
+      "logo": "",
+      "background_image": "",
+      "video_background": "",
+      "svg_background": "",
+      "logo_opacity": 0.3,
+      "logo_background_mode": "contain",
+      "applies_to_admin": false,
+      "is_active": true,
+      "is_default": false,
+      "created_at": "2026-03-13T21:37:25.326Z",
+      "updated_at": "2026-03-18T20:18:57.921Z"
+    }
+  },
+  {
+    "model": "siteconfig.themepack",
+    "pk": 57,
+    "fields": {
+      "name": "Ultra Platinum (Portal)",
+      "slug": "portal-ultra-platinum",
+      "description": "Super ultra high-end neutral portal. Platinum surfaces, navy and gold. Premium tenant experience.",
+      "primary_color": "#0F172A",
+      "accent_color": "#B8860B",
+      "background_color": "#FAFAFA",
+      "font_family": "Inter, system-ui, -apple-system, sans-serif",
+      "layout": "STANDARD",
+      "custom_css": ":root{--luxury-rich-black:#0A0A0A;--luxury-gallery-white:#FDFDFD;--luxury-platinum:#E5E5E5;--luxury-accent:#B8860B;--statement-header-bg:#FAFAFA;--statement-header-fg:#0F172A;}",
+      "palette": {
+        "gradient": [
+          "#0F172A",
+          "#1e293b"
+        ],
+        "card": "#FFFFFF"
+      },
+      "logo": "",
+      "background_image": "",
+      "video_background": "",
+      "svg_background": "",
+      "logo_opacity": 0.3,
+      "logo_background_mode": "contain",
+      "applies_to_admin": false,
+      "is_active": true,
+      "is_default": false,
+      "created_at": "2026-03-13T21:37:25.328Z",
+      "updated_at": "2026-03-18T20:18:57.922Z"
+    }
+  },
+  {
     "model": "siteconfig.sitesettings",
     "pk": 1,
     "fields": {
@@ -2392,6 +2645,7 @@
       "danger_color": "#ef4444",
       "use_dark_mode": false,
       "backend_console_theme": "dark",
+      "theme_harmony": "polychromatic",
       "custom_css": ".btn-gradient-pill { box-shadow: 0 15px 35px rgba(255, 106, 136, 0.35); }",
       "theme_pack": 5,
       "admin_theme_pack": null,

@@ -225,8 +225,16 @@ def _auth_and_context(request, endpoint_key: str):
     )
     if not allowed:
         _observe(endpoint_key, "429")
-        r = JsonResponse({"error": "Too many requests (token quota)"}, status=429)
-        r["Retry-After"] = str(retry)
+        retry_i = int(retry)
+        r = JsonResponse(
+            {
+                "error": "Too many requests (token quota)",
+                "message": "OneRoster token rate limit exceeded. Retry after the indicated seconds.",
+                "retry_after": retry_i,
+            },
+            status=429,
+        )
+        r["Retry-After"] = str(retry_i)
         return None, None, None, r
     ok_ip, ra = throttle_ip_request(
         request,
@@ -236,8 +244,16 @@ def _auth_and_context(request, endpoint_key: str):
     )
     if not ok_ip:
         _observe(endpoint_key, "429")
-        r = JsonResponse({"error": "Too many requests"}, status=429)
-        r["Retry-After"] = str(ra)
+        ra_i = int(ra)
+        r = JsonResponse(
+            {
+                "error": "Too many requests",
+                "message": "OneRoster IP rate limit exceeded. Retry after the indicated seconds.",
+                "retry_after": ra_i,
+            },
+            status=429,
+        )
+        r["Retry-After"] = str(ra_i)
         return None, None, None, r
 
     if cfg.get("oneroster_audit_disabled") not in (True, "1", "yes"):

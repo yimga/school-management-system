@@ -110,7 +110,7 @@
           <h2 class="cp-panel-title">Revert to previous bundle</h2>
         </div>
         <div class="p-3">
-          <form method="post" id="rollback-form">
+          <form method="post" id="rollback-form" onsubmit="return confirm('Revert blueprint for this school? This affects live policy resolution.');">
             {% csrf_token %}
             <input type="hidden" name="action" value="rollback">
             <div class="mb-2">
@@ -128,14 +128,18 @@
                 <option value="">— Clear blueprint (no bundle) —</option>
                 {% for sid, data in school_bundles.items %}
                 {% for b in data.bundles %}
-                <option value="{{ b.id }}" data-school-id="{{ sid }}">{{ data.school_name }} — {{ b.name }} ({{ b.created_at|date:"Y-m-d H:i" }})</option>
+                <option value="{{ b.id }}" data-school-id="{{ sid }}" {% if data.current_active_id == b.id %}data-current="1"{% endif %}>{{ data.school_name }} — {{ b.name }} ({{ b.created_at|date:"Y-m-d H:i" }}){% if data.current_active_id == b.id %} — current{% endif %}</option>
                 {% endfor %}
                 {% endfor %}
               </select>
             </div>
+            <div class="mb-2">
+              <label class="form-label small">Confirm <code>ROLLBACK</code> (parity with tenant package rollback)</label>
+              <input type="text" name="confirm_blueprint_rollback" class="form-control form-control-sm" placeholder="ROLLBACK" autocomplete="off" required>
+            </div>
             <button type="submit" class="btn btn-outline-warning btn-sm">Revert to selected bundle</button>
           </form>
-          <p class="small text-muted mt-2 mb-0">Sets TenantBlueprint.active_bundle for the school. Pick the bundle to restore (or clear). Policy cache is invalidated.</p>
+          <p class="small text-muted mt-2 mb-0">Sets TenantBlueprint.active_bundle for the school. Pick the bundle to restore (or clear). Policy cache is invalidated. Current bundle is labeled in the list.</p>
         </div>
       </div>
       <div class="cp-panel">

@@ -10,6 +10,7 @@ from django.template.response import TemplateResponse
 from django.http import HttpResponseForbidden
 
 from apps.platform_runtime.helpers import get_effective_flags
+from apps.platform_runtime.views_rum import rum_ingest
 
 from apps.observability import views as obs_views
 from apps.portal.views_ai_copilot import (
@@ -339,6 +340,7 @@ urlpatterns = [
         "api/internal/metadata/",
         include(("apps.metadata.urls", "metadata"), namespace="metadata"),
     ),
+    path("api/internal/rum/", rum_ingest, name="rum_ingest"),
     # Section 8: Caddy on-demand TLS ask (no auth; restrict by IP in production)
     path("api/caddy-check/", verify_caddy_domain),
     path("api/v1/auth/check-domain/", verify_caddy_domain),

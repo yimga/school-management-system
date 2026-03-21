@@ -1,0 +1,44 @@
+# Server-side marketing landing budget on PRs that touch public marketing surfaces.
+# Complements .github/workflows/lighthouse-ci.yml (needs vars.LHCI_URL) and weekly n10-performance-budgets.yml.
+name: Marketing N10 budget (PR)
+
+on:
+  pull_request:
+    paths:
+      - "templates/schools/marketing_*.html"
+      - "templates/marketing/**"
+      - "static/css/marketing*.css"
+      - "static/images/marketing/**"
+      - "apps/schools/marketing_views.py"
+      - "apps/schools/marketing_ai.py"
+      - "apps/schools/marketing_settings_helpers.py"
+      - "config/marketing_content/**"
+      - "scripts/check_performance_budgets.py"
+
+jobs:
+  marketing_n10_public:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Migrate (minimal DB for Client)
+        env:
+          DEBUG: "1"
+          SECRET_KEY: "marketing-n10-pr-ci-not-production-64chars__________________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+        run: python manage.py migrate --noinput
+      - name: Strict N10 public marketing row only
+        env:
+          DEBUG: "1"
+          SECRET_KEY: "marketing-n10-pr-ci-not-production-64chars__________________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+          PERF_BUDGET_STRICT: "1"
+          PERF_BUDGET_STRICT_N10: "1"
+          PERF_BUDGET_STRICT_GATE_ROWS: "n10_public"
+        run: python scripts/check_performance_budgets.py

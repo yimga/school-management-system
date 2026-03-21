@@ -39,7 +39,7 @@
 
 | Improvement | Status | Implementation |
 |-------------|--------|----------------|
-| Phase 2 donor/campaign/gift/receipt | **Shipped** | In-product placeholder: `super:advancement_phase2_placeholder` (/super/advancement/phase2/); Donors and Gifts & receipts cards on advancement hub link to it. |
+| Phase 2 donor/campaign/gift/receipt | **Shipped** | Super ops console: `super:advancement_phase2_placeholder` (/super/advancement/phase2/) for cross-tenant quick-add; tenant donor CRM via backend links on hub. Hub copy describes phases without “placeholder” wording. |
 | No NXT slowness; sub-second | Partial | Performance budgets include Super advancement hub (advisory in gate); PERFORMANCE_BUDGETS.md. |
 | One identity graph visible | **Shipped** | "One identity graph" card on advancement hub; students, families, alumni, donors in one graph. |
 

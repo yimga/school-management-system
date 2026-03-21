@@ -389,14 +389,14 @@
       <h5 class="mb-3">Existing Roles</h5>
       {% if roles %}
         <div class="table-responsive">
-          <table class="table align-middle mb-0">
+          <table class="table align-middle mb-0" aria-label="Existing RBAC roles">
             <thead class="table-light">
               <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th class="rbac-perms-cell">Permissions</th>
-                <th class="text-end">Actions</th>
+                <th scope="col">Code</th>
+                <th scope="col">Name</th>
+                <th scope="col">Description</th>
+                <th scope="col" class="rbac-perms-cell">Permissions</th>
+                <th scope="col" class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>

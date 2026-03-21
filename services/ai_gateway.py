@@ -34,6 +34,25 @@ from services.ai_schemas import (
 
 logger = logging.getLogger(__name__)
 
+# High-confidence prompt-injection / jailbreak phrases — block before provider calls (CI tests cover).
+_PROMPT_INJECTION_MARKERS = (
+    "ignore previous instructions",
+    "ignore all previous",
+    "ignore all prior",
+    "disregard your instructions",
+    "disregard the above",
+    "you are now in developer",
+    "jailbreak",
+    "override safety",
+    "reveal your system prompt",
+    "print your instructions",
+)
+
+
+def _looks_like_prompt_injection(*texts: str) -> bool:
+    blob = "\n".join(t for t in texts if t).lower()
+    return any(m in blob for m in _PROMPT_INJECTION_MARKERS)
+
 # Task types (align with blueprint)
 class TaskType(str, Enum):
     CONFIG_EXPLAIN = "config_explain"
@@ -486,6 +505,20 @@ def invoke(
     """
     task = TaskType(task_type) if isinstance(task_type, str) else task_type
     task_key = task.value
+    if _looks_like_prompt_injection(prompt, user_query):
+        request_id = str(uuid4())
+        request_date = date.today().isoformat()
+        out_meta = {
+            "provider": "none",
+            "prompt_injection_blocked": True,
+            "request_id": request_id,
+            "request_date": request_date,
+            "task_type": task_key,
+        }
+        logger.warning(
+            "ai_gateway: blocked likely prompt injection (task=%s)", task_key
+        )
+        return None, out_meta
     tiers_map = _task_tiers()
     backends = tiers_map.get(task_key, ["ollama", "rules"])
     md = metadata or {}

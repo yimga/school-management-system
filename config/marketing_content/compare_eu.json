@@ -1,0 +1,18 @@
+{
+  "label": "Compare",
+  "seo_title": "RunMyCampus Compare — EU data protection lens",
+  "seo_description": "Compare tenancy, GDPR-aligned controls, and operational depth when evaluating school platforms in the EU.",
+  "headline": "Compare with GDPR and operator governance in mind.",
+  "subheadline": "Evaluate subdomain tenancy, audit trails, and regional defaults—not only feature checklists.",
+  "schema_type": "WebPage",
+  "segments": [
+    {"title": "Controller vs processor clarity", "body": "Your school remains in control of education records; the platform supports documented processing instructions."},
+    {"title": "Data residency posture", "body": "Align deployment and registry defaults to your EU/EEA hosting and transfer requirements."},
+    {"title": "Operational traceability", "body": "Support and provisioning actions stay attributable for audits and DPIA evidence."}
+  ],
+  "extras": {
+    "faqs": [
+      {"question": "When does this page show?", "answer": "When MARKETING_CONTENT_REGION is set to eu (or the host uses regional routing that sets it), this file overrides compare.json."}
+    ]
+  }
+}

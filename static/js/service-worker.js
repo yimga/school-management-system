@@ -1,5 +1,5 @@
 // Service worker for portal PWA + offline write-behind queue.
-const CACHE_VERSION = "sms-v1.4.0";
+const CACHE_VERSION = "sms-v1.4.1";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -36,6 +36,7 @@ const STATIC_ASSETS = [
   "/static/js/dashboard-layout.js",
   "/static/js/vendor/dexie.min.js",
   "/static/js/offline-db.js",
+  "/static/js/form-draft-save.js",
   "/static/js/sync-manager.js",
   "/static/js/low-power.js",
   "/static/js/offline-status-bar.js",

@@ -5,6 +5,7 @@ import io
 import logging
 import os
 import tempfile
+import time
 import zipfile
 from urllib.parse import urlencode
 
@@ -18,6 +19,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import (
     xframe_options_exempt,
     xframe_options_sameorigin,
@@ -500,6 +502,12 @@ def module_market(request):
         if code and any(m.get("code") == code for m in modules):
             features = dict(features)
             if action == "activate":
+                if request.POST.get("module_impact_ack") != "1":
+                    messages.error(
+                        request,
+                        "Confirm you have reviewed the module impact (checkbox) before activating.",
+                    )
+                    return redirect("siteconfig:module_market")
                 features[code] = True
             elif action == "deactivate":
                 features[code] = False
@@ -1437,13 +1445,9 @@ def theme_colors_page(request):
     else:
         form = ThemeColorsForm(instance=site, request=request)
 
-    try:
-        admin_change_url = reverse(
-            "admin:siteconfig_sitesettings_change",
-            args=[site.pk],
-        )
-    except NoReverseMatch:
-        admin_change_url = None
+    from apps.siteconfig.staff_navigation import site_settings_change_url
+
+    admin_change_url = site_settings_change_url(request, site.pk)
     back_url = _safe_next_url(request, request.GET.get("next"), admin_change_url)
     preview_config = _get_preview_platform_config(site)
     preview_mode_active = bool(
@@ -1611,12 +1615,9 @@ def get_theme_colors_context(request):
     admin_theme_packs_by_group = build_theme_pack_groups(
         admin_theme_packs, THEME_PALETTE_GROUPS
     )
-    try:
-        admin_change_url = reverse(
-            "admin:siteconfig_sitesettings_change", args=[site.pk]
-        )
-    except NoReverseMatch:
-        admin_change_url = None
+    from apps.siteconfig.staff_navigation import site_settings_change_url
+
+    admin_change_url = site_settings_change_url(request, site.pk)
     back_url = _safe_next_url(request, request.GET.get("next"), admin_change_url or "")
     preview_config = _get_preview_platform_config(site)
     preview_mode_active = bool(
@@ -1699,47 +1700,26 @@ def brand_import_from_url_view(request):
         if result.get("site_name"):
             site.site_name = result["site_name"][:120]
         site.save(update_fields=["primary_color", "site_name"])
-        # Apply suggested theme pack if user requested (metadata plan todo 7: brand import assistant).
+        # N17: Suggested theme + metadata apply uses template gallery (impact preview + session gate).
         apply_theme = request.POST.get("apply_theme") in ("1", "true", "on")
         if apply_theme and result.get("suggested_theme_pack_slug"):
             pack = ThemePack.objects.filter(
                 slug=result["suggested_theme_pack_slug"], is_active=True
             ).first()
             if pack:
-                site.apply_theme_pack(pack, save=True)
-                try:
-                    from apps.packages.engine import PackageEngine
-
-                    school = getattr(request, "school", None)
-                    PackageEngine.apply_package(
-                        tenant_id=getattr(school, "id", None),
-                        package_id=pack.slug,
-                        version=getattr(pack, "version", "1") or "1",
-                        payload_sections={"theme": {"name": pack.name}},
-                        mode="production",
-                        actor_id=getattr(request.user, "id", None)
-                        if getattr(request, "user", None)
-                        else None,
-                    )
-                except (
-                    AttributeError,
-                    ImportError,
-                    LookupError,
-                    OSError,
-                    RuntimeError,
-                    TypeError,
-                    ValueError,
-                ):
-                    pass
-                messages.success(
+                messages.info(
                     request,
-                    f'Theme "{pack.name}" applied. Refine colors below if needed.',
+                    _(
+                        "Brand details saved. Review dependency and package impact for the suggested theme in the template gallery, then confirm apply there."
+                    ),
                 )
-            else:
-                messages.success(
-                    request,
-                    "Brand details applied. Refine colors and logo below if needed.",
+                return redirect(
+                    f"{reverse('siteconfig:template_gallery')}?{urlencode({'preview_slug': pack.slug})}"
                 )
+            messages.success(
+                request,
+                "Brand details applied. Refine colors and logo below if needed.",
+            )
         else:
             messages.success(
                 request,
@@ -1755,55 +1735,113 @@ def template_gallery_page(request):
     """
     Template gallery: list ThemePacks as templates; Preview links to theme_colors; Use applies pack to tenant.
     Non-negotiable: Strategy Report Phase 2 — template gallery with preview-before-publish.
+    N17: dependency_graph + preview gate (session) before metadata apply.
     """
+    from apps.packages.engine import metadata_apply_preview_bundle
+
     site = get_effective_site_settings(request=request)
     if site is None:
         site = build_platform_default_site_settings()
     packs = list(
         ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
     )
+    school = getattr(request, "school", None)
+    preview_slug = (request.GET.get("preview_slug") or "").strip()
+    impact_bundle = None
+    if preview_slug and school:
+        pack_prev = next((p for p in packs if p.slug == preview_slug), None)
+        if pack_prev:
+            ver = getattr(pack_prev, "version", "1") or "1"
+            pl = {"theme": {"name": pack_prev.name}}
+            impact_bundle = metadata_apply_preview_bundle(
+                school.pk, pack_prev.slug, ver, pl
+            )
+            request.session["template_gallery_impact_gate"] = {
+                "slug": preview_slug,
+                "ts": time.time(),
+            }
     if request.method == "POST":
         slug = (request.POST.get("template_slug") or "").strip()
-        if slug:
-            pack = ThemePack.objects.filter(slug=slug, is_active=True).first()
-            if pack and site.pk:
-                site.apply_theme_pack(pack, save=True)
-                try:
-                    from apps.packages.engine import PackageEngine
+        if not slug:
+            return redirect(reverse("siteconfig:template_gallery"))
+        if not school:
+            messages.error(
+                request,
+                _("No school context; cannot apply template."),
+            )
+            return redirect(reverse("siteconfig:template_gallery"))
+        if request.POST.get("confirm_metadata_apply") != "1":
+            messages.error(
+                request,
+                _(
+                    "Confirm that you reviewed dependency and package impact before applying."
+                ),
+            )
+            return redirect(
+                f"{reverse('siteconfig:template_gallery')}?{urlencode({'preview_slug': slug})}"
+            )
+        gate = request.session.get("template_gallery_impact_gate") or {}
+        gate_ts = float(gate.get("ts") or 0)
+        if gate.get("slug") != slug or (time.time() - gate_ts > 900):
+            messages.error(
+                request,
+                _(
+                    "Open “Review impact” for this template within 15 minutes before applying."
+                ),
+            )
+            return redirect(
+                f"{reverse('siteconfig:template_gallery')}?{urlencode({'preview_slug': slug})}"
+            )
+        pack = ThemePack.objects.filter(slug=slug, is_active=True).first()
+        if pack and site.pk:
+            site.apply_theme_pack(pack, save=True)
+            try:
+                from apps.packages.engine import PackageEngine
 
-                    school = getattr(request, "school", None)
-                    PackageEngine.apply_package(
-                        tenant_id=getattr(school, "id", None),
-                        package_id=pack.slug,
-                        version=getattr(pack, "version", "1") or "1",
-                        payload_sections={"theme": {"name": pack.name}},
-                        mode="production",
-                        actor_id=getattr(request.user, "id", None)
-                        if getattr(request, "user", None)
-                        else None,
-                    )
-                except (
-                    AttributeError,
-                    ImportError,
-                    LookupError,
-                    OSError,
-                    RuntimeError,
-                    TypeError,
-                    ValueError,
-                ):
-                    pass
-                messages.success(
-                    request,
-                    f'Template "{pack.name}" applied. You can refine colors in Theme & Experience.',
+                PackageEngine.apply_package(
+                    tenant_id=getattr(school, "id", None),
+                    package_id=pack.slug,
+                    version=getattr(pack, "version", "1") or "1",
+                    payload_sections={"theme": {"name": pack.name}},
+                    mode="production",
+                    actor_id=getattr(request.user, "id", None)
+                    if getattr(request, "user", None)
+                    else None,
                 )
+            except (
+                AttributeError,
+                ImportError,
+                LookupError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ):
+                pass
+            request.session.pop("template_gallery_impact_gate", None)
+            messages.success(
+                request,
+                f'Template "{pack.name}" applied. You can refine colors in Theme & Experience.',
+            )
         return redirect(reverse("siteconfig:theme_colors"))
     theme_colors_url = reverse("siteconfig:theme_colors")
+    impact_graph_json = None
+    if impact_bundle:
+        dg = impact_bundle.get("dependency_graph") or {}
+        impact_graph_json = {
+            "center_id": impact_bundle.get("package_id") or "",
+            "upstream_package_ids": list(dg.get("upstream_package_ids") or []),
+            "downstream_package_ids": list(dg.get("downstream_package_ids") or []),
+        }
     return render(
         request,
         "siteconfig/template_gallery.html",
         {
             "templates": packs,
             "theme_colors_url": theme_colors_url,
+            "preview_slug": preview_slug,
+            "impact_bundle": impact_bundle,
+            "impact_graph_json": impact_graph_json,
         },
     )
 

@@ -1,0 +1,101 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "POS (stub)" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Point of sale — quick lines" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
+  <p class="text-muted small">{% trans "Stub module: logs sale lines. When Inventory is enabled, link a stock line to prefill the item name." %}</p>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Record sale line" %}</h2>
+      <form method="post" class="row g-2 align-items-end" id="ops-pos-sale-form" data-draft-key="pos_sale_line_{{ school.id }}" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced sale line' %}">{% csrf_token %}
+        {% if inventory_enabled and inventory_items %}
+        <div class="col-md-4"><label class="form-label small">{% trans "Inventory item (optional)" %}</label>
+          <select class="form-select" name="inventory_item_id" id="pos-inventory-pick">
+            <option value="">—</option>
+            {% for it in inventory_items %}<option value="{{ it.pk }}" data-label="{{ it.name|escapejs }}">{{ it.name }} ({{ it.quantity }} {% trans "on hand" %})</option>{% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="col-md-4"><label class="form-label small">{% trans "Item label" %} *</label><input class="form-control" name="item_label" id="pos-item-label" maxlength="255"></div>
+        <div class="col-md-2"><label class="form-label small">{% trans "Qty" %}</label><input class="form-control" type="number" name="quantity" value="1" min="1" max="9999"></div>
+        <div class="col-md-2"><label class="form-label small">{% trans "Unit price" %}</label><input class="form-control" type="text" name="unit_price" value="0" inputmode="decimal"></div>
+        <div class="col-md-2"><label class="form-label small">{% trans "Tax %" %}</label><input class="form-control" type="text" name="tax_rate_percent" value="0" inputmode="decimal" aria-describedby="pos-tax-help" maxlength="8"><span id="pos-tax-help" class="visually-hidden">{% trans "Sales tax or VAT percent, zero to one hundred" %}</span></div>
+        <div class="col-md-2"><label class="form-label small">{% trans "Payment" %}</label>
+          <select class="form-select" name="payment_method">
+            {% for pm in payment_methods %}<option value="{{ pm.value }}">{{ pm.label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6"><label class="form-label small">{% trans "Notes" %}</label><input class="form-control" name="notes" maxlength="255"></div>
+        <div class="col-12"><button type="submit" class="btn btn-primary">{% trans "Save line" %}</button></div>
+      </form>
+      <p class="text-muted small mb-0 mt-2">{% trans "Tax is computed on line total (qty × unit price) and stored as a snapshot on each line for reporting." %}</p>
+    </div>
+  </div>
+  {% if lines %}
+  <div class="card shadow-sm mb-3 border-secondary">
+    <div class="card-body py-2 d-flex flex-wrap gap-3 align-items-center justify-content-between">
+      <span class="small text-muted">{% trans "Totals (visible rows, up to 300)" %}</span>
+      <div class="d-flex flex-wrap gap-4 small">
+        <span><strong>{% trans "Net" %}:</strong> {{ pos_totals.net }}</span>
+        <span><strong>{% trans "Tax" %}:</strong> {{ pos_totals.tax }}</span>
+        <span><strong>{% trans "Gross" %}:</strong> {{ pos_totals.gross }}</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead><tr>
+        <th scope="col">{% trans "When" %}</th>
+        <th scope="col">{% trans "Item" %}</th>
+        <th scope="col">{% trans "Stock link" %}</th>
+        <th scope="col">{% trans "Qty" %}</th>
+        <th scope="col">{% trans "Unit" %}</th>
+        <th scope="col">{% trans "Net" %}</th>
+        <th scope="col">{% trans "Tax %" %}</th>
+        <th scope="col">{% trans "Tax" %}</th>
+        <th scope="col">{% trans "Gross" %}</th>
+        <th scope="col">{% trans "Pay" %}</th>
+      </tr></thead>
+      <tbody>
+        {% for line in lines %}
+        <tr>
+          <td class="small">{{ line.created_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ line.item_label }}</td>
+          <td>{% if line.inventory_item %}<span class="badge bg-info text-dark">{{ line.inventory_item.name }}</span>{% else %}—{% endif %}</td>
+          <td>{{ line.quantity }}</td>
+          <td>{{ line.unit_price }}</td>
+          <td>{{ line.line_total }}</td>
+          <td>{{ line.tax_rate_percent }}</td>
+          <td>{{ line.tax_amount }}</td>
+          <td>{{ line.grand_total }}</td>
+          <td>{{ line.get_payment_method_display }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="10">{% trans "No lines yet." %}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  var f = document.getElementById('ops-pos-sale-form');
+  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
+})();
+</script>
+{% if inventory_enabled and inventory_items %}
+<script>
+(function() {
+  var sel = document.getElementById('pos-inventory-pick');
+  var lab = document.getElementById('pos-item-label');
+  if (!sel || !lab) return;
+  sel.addEventListener('change', function() {
+    var opt = sel.options[sel.selectedIndex];
+    if (opt && opt.value && opt.dataset.label) lab.value = opt.dataset.label;
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

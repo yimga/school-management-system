@@ -18,6 +18,8 @@ load_dotenv(BASE_DIR / ".env.local", override=False)
 
 from django.core.exceptions import ImproperlyConfigured
 
+from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 _is_render = os.getenv("RENDER", "").lower() == "true"
 _debug_default = "0" if _is_render else "1"
@@ -48,6 +50,18 @@ _legacy_bases_raw = (
     (os.getenv("MULTI_TENANT_LEGACY_BASE_DOMAINS") or "").strip().lower()
 )
 _legacy_bases = [d.strip() for d in _legacy_bases_raw.split(",") if d.strip()]
+# Exposed for host_routing and tests (`@override_settings(MULTI_TENANT_BASE_DOMAIN=...)`).
+MULTI_TENANT_BASE_DOMAIN = _multi_tenant_base
+# Studio OS / manager deep links (Render: set in dashboard)
+MANAGER_PLATFORM_BASE_URL = (
+    os.getenv("MANAGER_PLATFORM_BASE_URL", "https://manager.runmycampus.com")
+    .strip()
+    .rstrip("/")
+)
+STUDIO_APPROVAL_HUB_TENANT_BASE_URL = (
+    os.getenv("STUDIO_APPROVAL_HUB_TENANT_BASE_URL", "").strip().rstrip("/")
+)
+
 if _multi_tenant_base:
     if _multi_tenant_base not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_multi_tenant_base)
@@ -60,6 +74,9 @@ for _legacy_base in _legacy_bases:
     _dotted_legacy = f".{_legacy_base}"
     if _dotted_legacy not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_dotted_legacy)
+# Default host for Django's test client and pytest-django.
+if "testserver" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("testserver")
 if not DEBUG and not ALLOWED_HOSTS:
     raise ImproperlyConfigured("ALLOWED_HOSTS must be configured for production.")
 
@@ -75,6 +92,10 @@ elif _render_host:
     CSRF_TRUSTED_ORIGINS = [f"https://{_render_host}"]
 else:
     CSRF_TRUSTED_ORIGINS = []
+# District roster push webhook (HMAC). Per-school override: school.settings["roster_webhook_secret"]
+ONEROSTER_WEBHOOK_SECRET = (os.getenv("ONEROSTER_WEBHOOK_SECRET") or "").strip()
+# RUM: optional ingest token (>= 16 chars). When set, portal/marketing load rum-beacon.js.
+RUM_INGEST_KEY = (os.getenv("RUM_INGEST_KEY") or "").strip()
 # Multi-tenant: ensure main domain HTTPS origin is trusted when MULTI_TENANT_BASE_DOMAIN is set
 if _multi_tenant_base:
     _origin = f"https://{_multi_tenant_base}"
@@ -189,6 +210,7 @@ MIDDLEWARE = [
     "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
     "apps.schools.middleware.ManagerHostControlPlaneRequiredMiddleware",  # manager host is platform-only beyond auth/bootstrap paths
     "apps.accounts.middleware.TenantHostControlPlaneIsolationMiddleware",  # platform operators need signed impersonation before tenant-host access
+    "apps.accounts.middleware.ImpersonationReadOnlyGuardMiddleware",  # block writes on sensitive prefixes when impersonation is read-only
     "apps.accounts.middleware.ModuleAccessMiddleware",
     "apps.accounts.middleware.RequireMFAMiddleware",
     "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",  # Restrict /super/ to SUPERADMIN
@@ -200,6 +222,7 @@ MIDDLEWARE += [
     "apps.compliance.middleware.ComplianceGuardMiddleware",  # Phase Compliance: region → feature_code RESTRICTED/DISABLED
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "apps.accounts.middleware.ManagerTenantPrimarySurfaceBlockMiddleware",  # manager: no /studio/hubs/* or /authentication/backend/*
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",
     "apps.siteconfig.middleware.preview_mode.PreviewModeMiddleware",
     # Phase 4: Audit & Monitoring middleware
@@ -243,6 +266,7 @@ TEMPLATES = [
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
+                "apps.platform_runtime.context_processors.rum_ingest_context",
             ]
         },
     }
@@ -494,6 +518,40 @@ _manager_csrf_cookie_domain_env = (
     os.getenv("MANAGER_CSRF_COOKIE_DOMAIN") or ""
 ).strip()
 MANAGER_CSRF_COOKIE_DOMAIN = _manager_csrf_cookie_domain_env or None
+
+# Signed impersonation token TTL (seconds); must match unsign max_age on tenant consume.
+IMPERSONATION_TOKEN_MAX_AGE_SECONDS = int(
+    os.getenv("IMPERSONATION_TOKEN_MAX_AGE_SECONDS", "3600")
+)
+# When true, switch_to_tenant requires a non-empty justification (POST impersonation_reason).
+IMPERSONATION_REQUIRE_JUSTIFICATION = (
+    os.getenv("IMPERSONATION_REQUIRE_JUSTIFICATION", "1").strip().lower()
+    in {"1", "true", "yes"}
+)
+# Default for new impersonation tokens: read-only until operator checks “allow writes”.
+IMPERSONATION_DEFAULT_READ_ONLY = (
+    os.getenv("IMPERSONATION_DEFAULT_READ_ONLY", "1").strip().lower()
+    in {"1", "true", "yes"}
+)
+# Prefixes blocked for POST/PUT/PATCH/DELETE while impersonation session has read_only=True.
+IMPERSONATION_READ_ONLY_BLOCKED_WRITE_PREFIXES = (
+    "/admin/",
+    "/api/",
+    "/finance/",
+    "/evals/",
+    "/people/",
+    "/academics/",
+    "/communication/",
+    "/reports/",
+    "/portal/",
+    "/studio/",
+    "/siteconfig/",
+    "/requests/",
+    "/payroll/",
+    "/analytics/",
+    "/compliance/",
+)
+
 # Manager and tenant planes should use host-only cookies by default.
 # Set SESSION_COOKIE_DOMAIN / CSRF_COOKIE_DOMAIN explicitly only when you accept shared auth scope.
 # Session expiry: use SESSION_INACTIVITY_TIMEOUT_MINUTES for shared computers (e.g. 15–30),
@@ -510,10 +568,27 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = (
 SESSION_SAVE_EVERY_REQUEST = os.getenv("SESSION_SAVE_EVERY_REQUEST", "1") == "1"
 
 # Marketing (Plan 4.11): demo tenant URL for "Try demo" CTA; analytics script URL for marketing pages
-MARKETING_DEMO_TENANT_URL = (os.getenv("MARKETING_DEMO_TENANT_URL") or "").strip() or ""
+# TENANT_EXAMPLE_SLUG: e.g. demo-school — used for example tenant links in marketing copy and, when
+# MARKETING_DEMO_TENANT_URL is unset, to build https://{slug}.{MULTI_TENANT_BASE_DOMAIN}/
+_tenant_example_slug_raw = (os.getenv("TENANT_EXAMPLE_SLUG") or "").strip()
+TENANT_EXAMPLE_SLUG = _tenant_example_slug_raw or None
+MARKETING_DEMO_TENANT_URL = derive_marketing_demo_tenant_url(
+    os.getenv("MARKETING_DEMO_TENANT_URL") or "",
+    TENANT_EXAMPLE_SLUG,
+    _multi_tenant_base,
+)
 MARKETING_ANALYTICS_SCRIPT_URL = (
     os.getenv("MARKETING_ANALYTICS_SCRIPT_URL") or ""
 ).strip() or ""
+# Optional: regional / campaign JSON layers — compare_eu.json, pricing_us.json, slug_variant.json, etc.
+_mkt_region = (os.getenv("MARKETING_CONTENT_REGION") or "").strip().lower()
+_mkt_variant = (os.getenv("MARKETING_CONTENT_VARIANT") or "").strip().lower()
+MARKETING_CONTENT_REGION = _mkt_region or None
+MARKETING_CONTENT_VARIANT = _mkt_variant or None
+# A/B landing: optional override text appended for hero_variant "B" when CMS landing_hero_ai_line is unset.
+MARKETING_HERO_VARIANT_B_SUBLINE = (
+    (os.getenv("MARKETING_HERO_VARIANT_B_SUBLINE") or "").strip() or None
+)
 # Marketing visual assets (override via env for production; fallbacks in apps/schools/marketing_views.py).
 # Full list of optional keys: MARKETING_PROOF_HERO_IMAGE_KEY, MARKETING_MIGRATION_DIAGRAM_URL, MARKETING_ECOSYSTEM_DIAGRAM_URL,
 # MARKETING_CONTROL_PLANE_DIAGRAM_URL, MARKETING_SETUP_STUDIO_FLOW_IMAGE_URL, MARKETING_HEALTH_SCORE_VISUAL_URL,
@@ -523,6 +598,19 @@ MARKETING_HERO_IMAGE_URL = (os.getenv("MARKETING_HERO_IMAGE_URL") or "").strip()
 MARKETING_HERO_VIDEO_URL = (os.getenv("MARKETING_HERO_VIDEO_URL") or "").strip() or None
 MARKETING_HERO_VIDEO_POSTER_URL = (
     os.getenv("MARKETING_HERO_VIDEO_POSTER_URL") or ""
+).strip() or None
+# Optional overrides for marketing_ai.get_marketing_ai_asset_url (same keys as MARKETING_AI_ASSET_KEYS).
+MARKETING_MIGRATION_FLOW_IMAGE_URL = (
+    os.getenv("MARKETING_MIGRATION_FLOW_IMAGE_URL") or ""
+).strip() or None
+MARKETING_SETUP_STUDIO_IMAGE_URL = (
+    os.getenv("MARKETING_SETUP_STUDIO_IMAGE_URL") or ""
+).strip() or None
+MARKETING_ECOSYSTEM_IMAGE_URL = (
+    os.getenv("MARKETING_ECOSYSTEM_IMAGE_URL") or ""
+).strip() or None
+MARKETING_MARKETPLACE_IMAGE_URL = (
+    os.getenv("MARKETING_MARKETPLACE_IMAGE_URL") or ""
 ).strip() or None
 MARKETING_MIGRATION_STUDIO_IMAGE_URL = (
     os.getenv("MARKETING_MIGRATION_STUDIO_IMAGE_URL") or ""
@@ -845,6 +933,12 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 120.0,  # Every 2 minutes
         "options": {"expires": 300},
         "kwargs": {"limit": 50},
+    },
+    # §0.1.5 Wave 5: scheduled migration exception / quarantine telemetry
+    "migration-scheduled-parity-tick": {
+        "task": "automation.migration_scheduled_parity_tick",
+        "schedule": 86400.0,
+        "options": {"expires": 3600},
     },
 }
 

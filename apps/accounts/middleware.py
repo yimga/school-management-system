@@ -2,6 +2,7 @@ import logging
 from http.cookies import SimpleCookie
 
 from django.conf import settings
+from django.contrib import messages
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import resolve, reverse
@@ -424,6 +425,135 @@ class TenantHostControlPlaneIsolationMiddleware:
             return self.get_response(request)
 
         return redirect(build_manager_absolute_url(request, "/super/"))
+
+
+class ManagerTenantPrimarySurfaceBlockMiddleware:
+    """
+    Manager host must not expose tenant-primary surfaces that assume ``request.school`` / school workflows:
+
+    - ``/studio/hubs/*`` (workflow, approvals, import)
+    - ``/authentication/backend/*`` (school operational backend)
+
+    Operators use signed impersonation on the tenant host instead.
+
+    Defense-in-depth with explicit view guards in ``apps.accounts.views_workflow``.
+    """
+
+    _BLOCKED_PREFIXES = (
+        "/studio/hubs/",
+        "/authentication/backend/",
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.process_request(request)
+        if response is not None:
+            return response
+        return self.get_response(request)
+
+    def process_request(self, request):
+        if (getattr(request, "public_host_kind", None) or "").lower() != "manager":
+            return None
+        path = request.path or ""
+        if not any(path.startswith(p) for p in self._BLOCKED_PREFIXES):
+            return None
+        if not getattr(request.user, "is_authenticated", False):
+            return None
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        from django.utils.translation import gettext as _
+
+        if path.startswith("/authentication/backend/"):
+            messages.warning(
+                request,
+                _(
+                    "The school backend runs on the tenant host. "
+                    "Use “Open as school” from the super dashboard to impersonate that school."
+                ),
+            )
+        else:
+            messages.warning(
+                request,
+                _(
+                    "School workflow hubs (workflow, approvals, import) run on the tenant host. "
+                    "Use “Open as school” from the super dashboard to impersonate that school."
+                ),
+            )
+        return redirect(reverse("super:dashboard"))
+
+
+# Backward-compatible name for imports / older docs
+ManagerTenantPrimaryStudioHubBlockMiddleware = ManagerTenantPrimarySurfaceBlockMiddleware
+
+
+class ImpersonationReadOnlyGuardMiddleware:
+    """
+    When impersonation is marked read-only, block unsafe HTTP methods on sensitive path prefixes
+    so operators cannot mutate tenant data through broad accidental POSTs (admin, APIs, core modules).
+
+    Authentication paths under ``/authentication/`` remain writable so the session can be ended.
+    """
+
+    SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.process_request(request)
+        if response is not None:
+            return response
+        return self.get_response(request)
+
+    def process_request(self, request):
+        if (getattr(request, "public_host_kind", None) or "").lower() != "tenant":
+            return None
+        if request.method in self.SAFE_METHODS:
+            return None
+        imp = request.session.get("impersonation") or {}
+        if not imp:
+            return None
+        school = getattr(request, "school", None)
+        if not school or str(imp.get("school_id") or "") != str(school.id):
+            return None
+        # Legacy sessions without explicit read_only: do not enforce (backward compatible).
+        if "read_only" not in imp:
+            return None
+        if imp.get("read_only") is not True:
+            return None
+        path = request.path or ""
+        if path.startswith("/authentication/"):
+            return None
+        if path.startswith("/static/") or path.startswith("/media/"):
+            return None
+        prefixes = getattr(
+            settings,
+            "IMPERSONATION_READ_ONLY_BLOCKED_WRITE_PREFIXES",
+            (
+                "/admin/",
+                "/api/",
+                "/finance/",
+                "/evals/",
+                "/people/",
+                "/academics/",
+                "/communication/",
+                "/reports/",
+                "/portal/",
+                "/studio/",
+                "/siteconfig/",
+                "/requests/",
+                "/payroll/",
+                "/analytics/",
+                "/compliance/",
+            ),
+        )
+        if any(path.startswith(p) for p in prefixes):
+            return HttpResponseForbidden(
+                "Read-only impersonation: this write operation is not permitted."
+            )
+        return None
 
 
 class RequireMFAMiddleware:

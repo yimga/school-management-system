@@ -7,6 +7,7 @@ RUNBOOK_ADMIN_TO_SUPER_MIGRATION Phases 1–8. All views must be wrapped with re
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_GET
 
 
@@ -16,6 +17,79 @@ def _config_context(request):
         "dashboard_url": reverse("super:dashboard"),
         "system_config_url": reverse("siteconfig:console_domains_hub"),
     }
+
+
+@require_GET
+def super_platform_operator_hub(request):
+    """
+    Single super-first entry for platform operations: curated super URLs plus every
+    platform-admin model changelist (from platform_admin_site registry). Verified at
+    render time via get_app_list (same ordering/sections as /admin/).
+    """
+    from config.admin import platform_admin_site
+
+    dashboard_url = reverse("super:dashboard")
+    system_config_url = reverse("siteconfig:console_domains_hub")
+    try:
+        admin_index_url = reverse("admin:index")
+    except NoReverseMatch:
+        admin_index_url = None
+
+    admin_app_list = platform_admin_site.get_app_list(request)
+
+    super_primary = []
+    for url_name, label, desc, icon in [
+        ("super:schools_list", _("Schools"), _("Directory, lifecycle, exports"), "bi-building"),
+        (
+            "super:site_settings_list",
+            _("Site settings"),
+            _("Platform records — full edit in control plane (not admin)"),
+            "bi-sliders",
+        ),
+        ("super:regions_list", _("Regions"), _("Region catalog"), "bi-globe2"),
+        ("super:grading_list", _("Grading scales"), _("Grading scale config"), "bi-mortarboard"),
+        ("super:plans_list", _("Plans & add-ons"), _("Plans catalog"), "bi-currency-dollar"),
+        (
+            "super:country_multipliers_list",
+            _("Country multipliers"),
+            _("PPP / regional price multipliers"),
+            "bi-globe-americas",
+        ),
+        ("super:feature_toggles_list", _("Feature toggles"), _("Flag definitions"), "bi-toggle2-on"),
+        ("super:ai_model_hub", _("AI model hub"), _("Models, prompts, gateway"), "bi-cpu"),
+        ("super:incidents_list", _("Incidents"), _("Platform incidents"), "bi-exclamation-triangle"),
+        ("super:billing_accounts_list", _("Billing accounts"), _("Subscriptions root"), "bi-credit-card"),
+        ("super:migration_runs_list", _("Migration runs"), _("Automation runs"), "bi-cloud-arrow-up"),
+        ("super:pulse", _("Pulse"), _("Operational telemetry"), "bi-activity"),
+        ("super:billing_dashboard", _("Billing"), _("Revenue & billing"), "bi-wallet2"),
+        ("super:migration_cloud", _("Migration cloud"), _("Imports & sync"), "bi-cloud-upload"),
+        ("super:package_rollout", _("Package rollout"), _("Experience & document packs"), "bi-box-seam"),
+        ("super:one_sis_any_lms", _("One SIS, any LMS"), _("Integration posture"), "bi-link-45deg"),
+        ("super:registries_overview", _("Registries"), _("Global registries overview"), "bi-journal-richtext"),
+    ]:
+        try:
+            super_primary.append(
+                {
+                    "url": reverse(url_name),
+                    "label": label,
+                    "description": desc,
+                    "icon": icon,
+                }
+            )
+        except NoReverseMatch:
+            pass
+
+    return render(
+        request,
+        "schools/super_platform_operator_hub.html",
+        {
+            "dashboard_url": dashboard_url,
+            "system_config_url": system_config_url,
+            "admin_index_url": admin_index_url,
+            "super_primary": super_primary,
+            "admin_app_list": admin_app_list,
+        },
+    )
 
 
 @require_GET
@@ -49,6 +123,10 @@ def super_site_settings_edit(request, pk):
             fields = [
                 "site_name",
                 "tagline",
+                "meta_description",
+                "school_code",
+                "brand_font",
+                "theme_brightness",
                 "primary_color",
                 "accent_color",
                 "backend_console_theme",
@@ -56,6 +134,12 @@ def super_site_settings_edit(request, pk):
             widgets = {
                 "site_name": forms.TextInput(attrs={"class": "form-control"}),
                 "tagline": forms.TextInput(attrs={"class": "form-control"}),
+                "meta_description": forms.Textarea(
+                    attrs={"class": "form-control", "rows": 2}
+                ),
+                "school_code": forms.TextInput(attrs={"class": "form-control"}),
+                "brand_font": forms.TextInput(attrs={"class": "form-control"}),
+                "theme_brightness": forms.Select(attrs={"class": "form-select"}),
                 "primary_color": forms.TextInput(
                     attrs={
                         "class": "form-control",
@@ -142,14 +226,33 @@ def super_plans_list(request):
     from apps.plans_entitlements.models import Plan, PlanAddon
 
     plans = list(Plan.objects.all().order_by("slug"))
-    addons_count = PlanAddon.objects.count()
+    addons = list(PlanAddon.objects.all().order_by("name"))
     return render(
         request,
         "schools/super_plans_list.html",
         {
             **_config_context(request),
             "plans": plans,
-            "addons_count": addons_count,
+            "addons": addons,
+            "addons_count": len(addons),
+            "country_multipliers_url": reverse("super:country_multipliers_list"),
+        },
+    )
+
+
+@require_GET
+def super_country_multipliers_list(request):
+    """List CountryMultiplier catalog; CRUD via super (not platform /admin/)."""
+    from apps.plans_entitlements.models import CountryMultiplier
+
+    rows = list(CountryMultiplier.objects.all().order_by("country_code"))
+    return render(
+        request,
+        "schools/super_country_multipliers_list.html",
+        {
+            **_config_context(request),
+            "multipliers": rows,
+            "plans_list_url": reverse("super:plans_list"),
         },
     )
 

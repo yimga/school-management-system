@@ -1,0 +1,21 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Canteen" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Canteen meals" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="post" class="row g-2 align-items-end">{% csrf_token %}
+        <div class="col-md-4"><label class="form-label small">{% trans "Meal" %}</label><input class="form-control" name="name" required maxlength="120"></div>
+        <div class="col-md-2"><label class="form-label small">{% trans "Price" %}</label><input class="form-control" name="price" value="0" step="0.01"></div>
+        <div class="col-md-2"><button type="submit" class="btn btn-primary">{% trans "Add" %}</button></div>
+      </form>
+    </div>
+  </div>
+  <table class="table table-sm"><thead><tr><th>{% trans "Meal" %}</th><th>{% trans "Price" %}</th></tr></thead>
+    <tbody>{% for m in meals %}<tr><td>{{ m.name }}</td><td>{{ m.price }}</td></tr>{% empty %}<tr><td colspan="2">{% trans "No meals." %}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

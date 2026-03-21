@@ -18,6 +18,75 @@ class ModuleSpec(TypedDict, total=False):
 
 
 # Registry of available modules (code -> ModuleSpec). Extend as needed.
+# N17: human-readable impact before module activation (module market).
+MODULE_IMPACT_BULLETS: dict[str, list[str]] = {
+    "library": [
+        "Navigation and library workflows become visible for this school.",
+        "Staff can manage catalog and lending when library UI is used.",
+    ],
+    "transport": [
+        "Transport routes and fee tools appear for authorized roles.",
+    ],
+    "canteen": [
+        "Canteen and meal-plan surfaces unlock for this tenant.",
+    ],
+    "parent_chat": [
+        "Parent messaging features depend on this flag; review privacy policy.",
+    ],
+    "cahier_de_texte": [
+        "Homework / class diary modules align with this toggle.",
+    ],
+    "offline_mode": [
+        "Mobile offline sync is allowed only if global Offline Mode is also enabled.",
+        "Devices must register before syncing queued changes.",
+    ],
+    "canary_tenant": [
+        "Marks tenant for staged rollouts; may receive newer feature flags first.",
+    ],
+    "alumni": [
+        "Alumni tracking and post-graduation workflows become available.",
+    ],
+    "dormitory": [
+        "Boarding and dorm management surfaces unlock.",
+    ],
+    "inventory": [
+        "Stock and location lines for school assets and supplies.",
+    ],
+    "clinic": [
+        "Health record visibility for leadership; handle PHI per policy.",
+    ],
+    "timetabling": [
+        "Published/draft schedule list; generation via scheduler API.",
+    ],
+    "substitutes": [
+        "Staff can log absent teachers and optional cover assignments.",
+        "Visible only in Operations hub when module is enabled.",
+    ],
+    "visitor_log": [
+        "Reception can record visitor check-in and check-out for this school.",
+        "Review data retention with your privacy policy.",
+    ],
+    "facilities_ops": [
+        "Staff can log maintenance / facilities requests and update status.",
+        "Not a full CMMS; use for internal triage until deeper integration.",
+    ],
+    "pos_stub": [
+        "Quick sale lines are recorded for this school (till / event counter).",
+        "Not integrated with full inventory or fiscal printers yet.",
+    ],
+}
+
+
+def get_module_impact_bullets(code: str) -> list[str]:
+    c = (code or "").strip().lower()
+    if c in MODULE_IMPACT_BULLETS:
+        return list(MODULE_IMPACT_BULLETS[c])
+    return [
+        "Sidebar and menus reflect this module when active.",
+        "Policy cache is refreshed after toggle.",
+    ]
+
+
 FEATURE_REGISTRY: list[ModuleSpec] = [
     {
         "code": "library",
@@ -72,6 +141,48 @@ FEATURE_REGISTRY: list[ModuleSpec] = [
         "code": "dormitory",
         "name": "Dormitory",
         "description": "Boarding and dorm management.",
+        "price": "Free",
+    },
+    {
+        "code": "inventory",
+        "name": "Inventory",
+        "description": "Asset and supply stock by location.",
+        "price": "Free",
+    },
+    {
+        "code": "clinic",
+        "name": "Clinic / health log",
+        "description": "School health record log (leadership visibility).",
+        "price": "Free",
+    },
+    {
+        "code": "timetabling",
+        "name": "Timetabling",
+        "description": "Master schedule list and scheduler integration.",
+        "price": "Free",
+    },
+    {
+        "code": "substitutes",
+        "name": "Substitutes / cover",
+        "description": "Record teacher absence and substitute cover lines.",
+        "price": "Free",
+    },
+    {
+        "code": "visitor_log",
+        "name": "Visitor log",
+        "description": "Front-desk visitor check-in and check-out.",
+        "price": "Free",
+    },
+    {
+        "code": "facilities_ops",
+        "name": "Facilities / maintenance",
+        "description": "Log and track maintenance requests by location.",
+        "price": "Free",
+    },
+    {
+        "code": "pos_stub",
+        "name": "POS / till (stub)",
+        "description": "Record quick point-of-sale lines (events, counters).",
         "price": "Free",
     },
 ]
@@ -149,11 +260,18 @@ def get_available_modules():
                 "name": str(row.label or code.title()),
                 "description": str(row.description or ""),
                 "price": str(metadata.get("price") or "Free"),
+                "impact_bullets": get_module_impact_bullets(code),
             }
         )
     if modules:
         return modules
-    return list(FEATURE_REGISTRY)
+    return [
+        {
+            **dict(m),
+            "impact_bullets": get_module_impact_bullets(str(m.get("code") or "")),
+        }
+        for m in FEATURE_REGISTRY
+    ]
 
 
 def get_module_by_code(code: str) -> ModuleSpec | None:

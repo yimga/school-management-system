@@ -15,6 +15,15 @@ from typing import Any, Optional
 RUNTIME_TRACE_ID_ATTR = "_runtime_trace_id"
 
 
+def _trace_id_from_request(request: Any) -> Optional[str]:
+    """Read trace id from request.__dict__ only (avoids Mock.__getattr__ returning a Mock)."""
+    d = getattr(request, "__dict__", None)
+    if not isinstance(d, dict):
+        return None
+    val = d.get(RUNTIME_TRACE_ID_ATTR)
+    return val if isinstance(val, str) and val else None
+
+
 def set_runtime_trace_context(request: Any) -> str:
     """
     Set a trace id on the request for this resolution path (if not already set).
@@ -22,7 +31,7 @@ def set_runtime_trace_context(request: Any) -> str:
     """
     if request is None:
         return ""
-    existing = getattr(request, RUNTIME_TRACE_ID_ATTR, None)
+    existing = _trace_id_from_request(request)
     if existing:
         return existing
     trace_id = secrets.token_hex(8)
@@ -34,4 +43,4 @@ def get_runtime_trace_id(request: Any) -> Optional[str]:
     """Return the current runtime trace id on the request, or None."""
     if request is None:
         return None
-    return getattr(request, RUNTIME_TRACE_ID_ATTR, None)
+    return _trace_id_from_request(request)

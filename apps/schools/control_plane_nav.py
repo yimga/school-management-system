@@ -339,6 +339,12 @@ def build_control_plane_nav(request):
         "Platform settings & admin",
         [
             {
+                "id": "super_platform_operator_hub",
+                "label": "Platform operator hub",
+                "url_name": "super:platform_operator_hub",
+                "icon": "bi-grid-3x3-gap",
+            },
+            {
                 "id": "config_console",
                 "label": "System config",
                 "url_name": "siteconfig:console_domains_hub",
@@ -346,7 +352,7 @@ def build_control_plane_nav(request):
             },
             {
                 "id": "cp_theme_experience",
-                "label": "Theme & Experience",
+                "label": "Fleet theme & experience defaults",
                 "url_name": "siteconfig:theme_colors",
                 "icon": "bi-palette",
             },
@@ -358,19 +364,19 @@ def build_control_plane_nav(request):
             },
             {
                 "id": "cp_platform_backoffice",
-                "label": "Platform backoffice (model CRUD)",
+                "label": "Advanced Django admin (model CRUD)",
                 "url_name": "admin:index",
                 "icon": "bi-database",
             },
             {
-                "id": "cp_integrations_admin",
-                "label": "Integrations (admin)",
-                "url_name": "admin:integrations_marketplace_integration_changelist",
+                "id": "cp_integrations_super",
+                "label": "Integrations (SIS / LMS)",
+                "url_name": "super:one_sis_any_lms",
                 "icon": "bi-plug",
             },
             {
                 "id": "cp_report_library",
-                "label": "Report Library",
+                "label": "Platform Studio · Reports",
                 "url_name": "studio_os:output",
                 "icon": "bi-journal-text",
             },

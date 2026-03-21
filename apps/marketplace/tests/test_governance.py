@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.marketplace.models import (
+    AppAuditLog,
     AppInstallation,
     MarketplaceApp,
     MarketplaceListing,
@@ -60,6 +61,28 @@ class MarketplaceGovernanceTests(TestCase):
 
     def tearDown(self):
         self.env.stop()
+
+    def test_install_app_audit_includes_impact_snapshot(self):
+        MarketplaceListing.objects.create(
+            app=self.third_party_app,
+            publisher=self.publisher,
+            status=MarketplaceListing.Status.APPROVED,
+            security_review_status=MarketplaceListing.ReviewStatus.APPROVED,
+        )
+        install_app(
+            self.school,
+            self.third_party_app,
+            installed_by=self.manager,
+            run_schema_patches=False,
+        )
+        log = AppAuditLog.objects.filter(
+            action="install", app=self.third_party_app
+        ).first()
+        self.assertIsNotNone(log)
+        snap = (log.payload or {}).get("impact_snapshot") or {}
+        self.assertIn("dependency_graph", snap)
+        self.assertIn("compatibility", snap)
+        self.assertIn("scopes_count", snap)
 
     def test_install_blocks_unapproved_third_party_listing(self):
         MarketplaceListing.objects.create(
@@ -136,7 +159,11 @@ class MarketplaceGovernanceTests(TestCase):
 
         response = self.client.post(
             reverse("super:app_catalog"),
-            {"app_id": self.third_party_app.pk, "school_id": self.school.pk},
+            {
+                "app_id": self.third_party_app.pk,
+                "school_id": self.school.pk,
+                "install_after_impact_preview": "1",
+            },
             HTTP_HOST="manager.runmycampus.com",
             follow=True,
         )
@@ -147,4 +174,23 @@ class MarketplaceGovernanceTests(TestCase):
         )
         self.assertEqual(
             installation.install_phase, AppInstallation.InstallPhase.SANDBOX
+        )
+
+    def test_catalog_install_blocked_without_impact_preview_ack(self):
+        MarketplaceListing.objects.create(
+            app=self.third_party_app,
+            publisher=self.publisher,
+            status=MarketplaceListing.Status.APPROVED,
+            security_review_status=MarketplaceListing.ReviewStatus.APPROVED,
+        )
+        self.client.force_login(self.manager)
+        self.client.post(
+            reverse("super:app_catalog"),
+            {"app_id": self.third_party_app.pk, "school_id": self.school.pk},
+            HTTP_HOST="manager.runmycampus.com",
+        )
+        self.assertFalse(
+            AppInstallation.objects.filter(
+                app=self.third_party_app, school=self.school
+            ).exists()
         )

@@ -6,4 +6,6 @@
 | LTI launch redirect | 150ms | 1.5s | Section 8 metrics |
 | Public API /api/v1/* auth | 100ms | 1s | API health |
 
-**Fail gate (CI optional):** Set `PERFORMANCE_BUDGET_GATE=1` and run `scripts/check_performance_budgets.py` when wired to k6 or prod metrics export. Until metrics are automated, manual review each release per NORTH_STAR N1–N29 in SOT.
+**Fail gate (CI optional):** Set `PERF_BUDGET_STRICT=1` and run `scripts/check_performance_budgets.py` — exits non-zero if any budget row exceeds time/query limits.
+
+**N10 tighter smoke (partial):** With `PERF_BUDGET_STRICT=1`, also set `PERF_BUDGET_STRICT_N10=1` to apply **~25% stricter** time ceilings. Budgets include **anonymous `/marketing/`** (public landing) plus staff paths. **CI:** workflow **N10 performance budgets** (weekly + manual) sets `PERF_BUDGET_STRICT_GATE_ROWS=n10_public` so only the anonymous **`/marketing/`** row is enforced (avoids staff-path query noise under DEBUG). Full rows still run locally without that env. **Lighthouse:** `.github/workflows/lighthouse-ci.yml` when `LHCI_URL` is set; optional **`LHCI_URLS_EXTRA`** (comma-separated full URLs, same origin) for multi-path lab runs; optional **`LHCI_AUTO_EXTRAS=1`** appends the recommended same-origin bundle in `lighthouserc.cjs`; **`LHCI_STRICT_N10`** GitHub var → stricter thresholds. **RUM read path:** staff `GET /api/internal/north-star/rum-web-vitals/` ([RUM_HOOK.md](RUM_HOOK.md)). See [LHCI_CI_URLS.md](LHCI_CI_URLS.md) + `lighthouserc.cjs`. Full CWV on every PR still optional until RUM/LHCI is default.

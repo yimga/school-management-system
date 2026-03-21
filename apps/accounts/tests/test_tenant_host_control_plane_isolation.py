@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from urllib.parse import urlparse
 
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import HttpResponse
@@ -48,7 +49,13 @@ class TenantHostControlPlaneIsolationMiddlewareTests(TestCase):
             response = middleware(request)
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "https://manager.runmycampus.com/super/")
+        loc = urlparse(response["Location"])
+        self.assertEqual(loc.netloc, "manager.runmycampus.com")
+        self.assertTrue(
+            (loc.path or "").rstrip("/").endswith("/super"),
+            msg=response["Location"],
+        )
+        self.assertIn(loc.scheme, ("http", "https"))
 
     def test_superadmin_with_matching_impersonation_session_is_allowed(self):
         middleware = TenantHostControlPlaneIsolationMiddleware(

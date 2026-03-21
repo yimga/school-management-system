@@ -43,7 +43,7 @@
 
 ## 6. Lint / CI gates
 
-- **pre_deploy_gate.sh** runs: check_no_committed_env, check_repo_hygiene, check_root_clutter, lint_bounded_context_imports, lint_siteconfig_legacy_imports, lint_secret_exposure, lint_gilead_residue, lint_no_print_in_apps, **ruff check apps --select F401,F841**, lint_tenant_settings, lint_csrf_exempt_usage, lint_allow_any_usage, lint_raw_sql_usage, lint_broad_except, lint_mega_files (optional strict), makemigrations --check, audit_tenant_models, smoke tests, targeted hardening tests, theme matrix, phase checks, visual QA, multi-tenant tests.
+- **pre_deploy_gate.sh** runs: check_no_committed_env, check_repo_hygiene, check_root_clutter, lint_bounded_context_imports, lint_siteconfig_legacy_imports, lint_secret_exposure, lint_gilead_residue, lint_no_print_in_apps, **ruff check apps --select F401,F841**, lint_tenant_settings, **migrate_gate_test_db.py** (apply migrations to gate test DB file so --keepdb and verify_ux_completion see current schema), lint_csrf_exempt_usage, lint_allow_any_usage, lint_raw_sql_usage, lint_broad_except, lint_mega_files (optional strict), makemigrations --check, audit_tenant_models, smoke tests, targeted hardening tests, theme matrix, phase checks, visual QA, multi-tenant tests.
 - **Release UX bar:** `scripts/full_ux_assurance.sh` → Playwright (`run_visual_qa.sh`) then gate with `SKIP_VISUAL_QA=1`. See [VISUAL_AND_DASHBOARD_UX_BAR.md](VISUAL_AND_DASHBOARD_UX_BAR.md).
 - **Render seed / audit_log:** `seed_render_users` refreshes `audit_trigger_fn()` per tenant. Trigger INSERT must match `TenantAuditLog` NOT NULL columns — see [people/AUDIT_LOG_TRIGGER_CONTRACT.md](people/AUDIT_LOG_TRIGGER_CONTRACT.md). Repository is source of truth; migrations 0041+ re-apply the function.
 
@@ -71,6 +71,23 @@
 ## 9. Migration / flow check
 
 - **makemigrations --check:** Run `python manage.py makemigrations --check --dry-run` to detect uncreated migrations. As of last run: **reports** (0017) and **siteconfig** (0156) had pending changes; do not run `makemigrations` blindly — coordinate with owners of reports/siteconfig before creating or applying. Pre_deploy_gate runs `makemigrations --check`; fix by creating migrations when model changes are intended.
+
+---
+
+## 10. Git completeness — package / rollback / graph wave (N17–N20)
+
+**Policy:** If `urls.py` imports a view or a template uses `{% static %}`, the file must be **committed**, not left untracked.
+
+**Easy-to-miss paths (verify with `git status` before merge):**
+
+- `static/js/package-dependency-graph.js`
+- `templates/siteconfig/installed_packages_rollback.html`
+- `apps/siteconfig/views_package_rollback.py`
+- `apps/packages/tenant_pack_install.py`
+- `apps/packages/migrations/0005_documentpack_experiencepack_version.py`
+- `apps/packages/tests/test_tenant_pack_install.py`
+- `apps/siteconfig/tests/test_tenant_package_rollback_ui.py`
+- `apps/siteconfig/tests/test_template_gallery_impact.py`
 
 ---
 

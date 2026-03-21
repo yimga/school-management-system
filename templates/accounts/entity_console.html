@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block backend_title %}Entity Console{% endblock %}
 
@@ -36,7 +36,7 @@
               </div>
               <div class="col-6">
                 <label class="form-label text-muted small">Admission #</label>
-                <input name="admission_number" class="form-control form-control-sm" placeholder="Optional">
+                <input name="admission_number" class="form-control form-control-sm" placeholder="{% trans 'Optional' %}">
               </div>
               <div class="col-6">
                 <label class="form-label text-muted small">Status</label>
@@ -52,7 +52,7 @@
               </div>
               <div class="col-6">
                 <label class="form-label text-muted small">Classroom ID</label>
-                <input name="classroom" class="form-control form-control-sm" type="number" placeholder="Optional">
+                <input name="classroom" class="form-control form-control-sm" type="number" placeholder="{% trans 'Optional' %}">
               </div>
             </div>
             <div class="d-flex gap-2 align-items-center mt-3">
@@ -83,7 +83,7 @@
               </div>
               <div class="col-4">
                 <label class="form-label text-muted small">Classroom ID</label>
-                <input name="classroom" class="form-control form-control-sm" type="number" placeholder="Optional">
+                <input name="classroom" class="form-control form-control-sm" type="number" placeholder="{% trans 'Optional' %}">
               </div>
             </div>
             <div class="d-flex gap-2 align-items-center mt-3">

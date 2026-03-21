@@ -191,3 +191,7 @@ class OneRosterViewsTests(TestCase):
                 response = self.client.get(url, **self._headers())
                 self.assertEqual(response.status_code, 429, msg=url)
                 self.assertEqual(response["Retry-After"], "30", msg=url)
+                body = response.json()
+                self.assertIn("retry_after", body, msg=url)
+                self.assertEqual(body["retry_after"], 30, msg=url)
+                self.assertIn("message", body, msg=url)

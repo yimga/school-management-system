@@ -40,8 +40,15 @@ def normalize_host(host: str) -> str:
 def get_canonical_base_domain() -> str:
     """
     Single source of truth for the platform base domain (e.g. runmycampus.com).
-    Use this everywhere instead of reading MULTI_TENANT_BASE_DOMAIN directly.
+    Prefer Django settings when configured (so tests can override).
     """
+    try:
+        from django.conf import settings
+        configured = getattr(settings, "MULTI_TENANT_BASE_DOMAIN", None)
+        if configured:
+            return str(configured).strip().lower()
+    except Exception:
+        pass
     base = (os.getenv("MULTI_TENANT_BASE_DOMAIN") or "").strip().lower()
     if base:
         return base

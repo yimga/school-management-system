@@ -17,17 +17,21 @@
     </div>
   {% else %}
     <div class="card">
-      <div class="card-body">
+      <div
+        class="card-body"
+        data-sms-offline-read-cache-key="teacher_timetable_{{ request.user.id }}"
+        data-page-critical-read="timetable"
+      >
         <h5 class="card-title mb-3">Weekly schedule</h5>
         <div class="table-responsive">
           <table class="table table-bordered align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th>Day</th>
-                <th>Time</th>
-                <th>Subject</th>
-                <th>Class</th>
-                <th>Room</th>
+                <th scope="col">Day</th>
+                <th scope="col">Time</th>
+                <th scope="col">Subject</th>
+                <th scope="col">Class</th>
+                <th scope="col">Room</th>
               </tr>
             </thead>
             <tbody>

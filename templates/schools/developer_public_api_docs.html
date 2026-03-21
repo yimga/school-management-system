@@ -10,6 +10,14 @@
     <li><strong>OpenAPI</strong> — {{ schema_note }}</li>
     <li><strong>{% trans "Sandbox" %}</strong> — {% trans "Site config → App sandbox after login." %}</li>
   </ul>
+  <h2 class="h5 mt-4">{% trans "Rate limits (HTTP 429)" %}</h2>
+  <p class="text-secondary small">{% trans "Many JSON endpoints return a machine-readable backoff hint. Prefer Retry-After header; body may include:" %}</p>
+  <pre class="bg-light p-3 rounded small mb-0"><code>{
+  "error": "Too many requests",
+  "message": "Human-readable guidance",
+  "retry_after": 30
+}</code></pre>
+  <p class="small text-muted mt-2">{% trans "OneRoster, EdFi, CEDS, SCIM, and JWT token endpoints follow this pattern where applicable. SCIM uses SCIM Error schema with detail + Retry-After." %}</p>
   <p class="small text-muted">{% trans "Repository: docs/DEVELOPER_PUBLIC_API.md" %}</p>
 </div>
 {% endblock %}

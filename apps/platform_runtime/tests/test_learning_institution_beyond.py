@@ -13,8 +13,10 @@ from apps.platform_runtime.learning_institution_catalog import (
 from apps.platform_runtime.learning_institution_runtime import (
     aggregate_learning_wedge_benchmarks,
     apply_single_wedge_pack_slug,
+    rollback_single_wedge_pack_slug,
     suggest_institution_profile_from_school,
 )
+from apps.platform_runtime.models import PlatformEventLog
 from apps.schools.models import School, is_feature_enabled
 
 
@@ -83,6 +85,76 @@ class LearningInstitutionBeyondTests(TestCase):
             self.school.features.get("timetable")
             or self.school.features.get("scheduling")
         )
+
+    def test_rollback_single_wedge_clears_features_and_install_list(self):
+        apply_single_wedge_pack_slug(self.school, "evals_rubrics")
+        self.school.refresh_from_db()
+        rollback_single_wedge_pack_slug(
+            self.school,
+            "evals_rubrics",
+            sync_marketplace=False,
+            actor_id=self.admin.pk,
+        )
+        self.school.refresh_from_db()
+        self.assertFalse(self.school.features.get("rubrics"))
+        self.assertFalse(self.school.features.get("wedge_pack_evals_rubrics"))
+        self.assertNotIn(
+            "evals_rubrics",
+            self.school.settings.get("wedge_marketplace_installs") or [],
+        )
+        log = PlatformEventLog.objects.filter(
+            event_type="learning_wedge_pack_rolled_back"
+        ).first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.payload.get("pack_slug"), "evals_rubrics")
+
+    def test_rollback_shared_feature_kept_when_second_pack_needs_it(self):
+        apply_single_wedge_pack_slug(self.school, "evals_rubrics")
+        apply_single_wedge_pack_slug(self.school, "evals_continuous")
+        rollback_single_wedge_pack_slug(
+            self.school, "evals_rubrics", sync_marketplace=False
+        )
+        self.school.refresh_from_db()
+        self.assertTrue(self.school.features.get("evals"))
+        self.assertFalse(self.school.features.get("rubrics"))
+
+    def test_learning_pack_rollback_view_requires_rollback_keyword(self):
+        from apps.api.learning_institution_api import LearningPackRollbackView
+
+        apply_single_wedge_pack_slug(self.school, "core_scheduling")
+        rf = RequestFactory()
+        req = rf.post(
+            "/api/learning/pack-rollback/",
+            data=json.dumps({"pack_slug": "core_scheduling", "sync_marketplace": False}),
+            content_type="application/json",
+        )
+        req.user = self.admin
+        req.school = self.school
+        resp = LearningPackRollbackView.as_view()(req)
+        self.assertEqual(resp.status_code, 400)
+
+    def test_learning_pack_rollback_view_with_keyword(self):
+        from apps.api.learning_institution_api import LearningPackRollbackView
+
+        apply_single_wedge_pack_slug(self.school, "core_scheduling")
+        rf = RequestFactory()
+        req = rf.post(
+            "/api/learning/pack-rollback/",
+            data=json.dumps(
+                {
+                    "pack_slug": "core_scheduling",
+                    "confirm_learning_wedge_rollback": "ROLLBACK",
+                    "sync_marketplace": False,
+                }
+            ),
+            content_type="application/json",
+        )
+        req.user = self.admin
+        req.school = self.school
+        resp = LearningPackRollbackView.as_view()(req)
+        self.assertEqual(resp.status_code, 200)
+        self.school.refresh_from_db()
+        self.assertFalse(self.school.features.get("wedge_pack_core_scheduling"))
 
     def test_institution_suggest_view(self):
         from apps.api.learning_institution_api import InstitutionProfileSuggestView

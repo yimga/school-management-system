@@ -1,6 +1,6 @@
-{% load region_format %}
+{% load i18n region_format %}
 <!doctype html>
-<html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
   <head>
     <meta charset="utf-8" />
     <title>Receipt {{ payment.reference|default:payment.id }}</title>
@@ -19,7 +19,7 @@
   </head>
   <body data-page-archetype="record-detail">
     <div class="header">
-      {% if logo_url %}<img src="{{ logo_url }}" alt="" style="max-height: 48px; margin-bottom: 8px;" />{% endif %}
+      {% if logo_url %}<img src="{{ logo_url }}" alt="{% trans 'School logo' %}" style="max-height: 48px; margin-bottom: 8px;" />{% endif %}
       <h1>{{ school }} Receipt</h1>
       <div class="meta">
         Payment #: {{ payment.reference|default:payment.id }} · {{ payment.paid_at|format_date }}
@@ -41,11 +41,11 @@
       <div>Remaining balance: {{ invoice.balance_amount|format_currency }}</div>
     </div>
 
-    <table class="table">
+    <table class="table" aria-label="{% trans 'Invoice line items and amount paid' %}">
       <thead>
         <tr>
-          <th>Description</th>
-          <th class="text-right">Amount</th>
+          <th scope="col">Description</th>
+          <th scope="col" class="text-right">Amount</th>
         </tr>
       </thead>
       <tbody>
@@ -58,7 +58,7 @@
       </tbody>
       <tfoot>
         <tr>
-          <th class="total">Amount paid</th>
+          <th scope="row" class="total">Amount paid</th>
           <td class="text-right total">{{ payment.amount|format_currency }}</td>
         </tr>
       </tfoot>

@@ -1,7 +1,10 @@
 {% extends "portal_base.html" %}
+{% load static %}
+{% load i18n %}
 {% block title %}Take student attendance{% endblock %}
 {% block content %}
   {% include "widgets/dashboard_hero.html" with hero=hero %}
+  <p class="small mb-2"><a href="{% url 'portal:teacher_bulk_capture_hub' %}">{% trans "← Bulk capture hub" %}</a></p>
   <div class="card mb-3">
     <div class="card-body">
       <form method="get" action="{% url 'portal:take_student_attendance' %}" class="row g-2 align-items-end mb-3">
@@ -26,7 +29,11 @@
         </div>
       </form>
       {% if classroom and students_with_status %}
-        <form method="post" action="{% url 'portal:take_student_attendance' %}">
+        <form method="post" action="{% url 'portal:take_student_attendance' %}"
+              data-draft-key="student_roll_{{ classroom.id }}_{{ date_value }}"
+              data-draft-max-age-hours="72"
+              data-offline-hint="{% trans 'Offline: attendance is saved locally and queued; syncs when you are back online.' %}"
+              data-draft-pending-label="{% trans 'Student attendance' %}">
           {% csrf_token %}
           <input type="hidden" name="date" value="{{ date_value }}">
           <input type="hidden" name="classroom" value="{{ classroom.id }}">
@@ -41,8 +48,8 @@
             <table class="table table-sm align-middle">
               <thead class="table-light">
                 <tr>
-                  <th>Student</th>
-                  <th>Status</th>
+                  <th scope="col">{% trans "Student" %}</th>
+                  <th scope="col">{% trans "Status" %}</th>
                 </tr>
               </thead>
               <tbody>
@@ -50,7 +57,7 @@
                   <tr>
                     <td>{{ row.student.last_name }}, {{ row.student.first_name }}</td>
                     <td>
-                      <select name="status_{{ row.student.id }}" class="form-select form-select-sm status-select">
+                      <select name="status_{{ row.student.id }}" class="form-select form-select-sm status-select min-touch-target" style="min-height:2.75rem;" aria-label="{% trans 'Attendance status' %} {{ row.student.last_name }}, {{ row.student.first_name }}">
                         {% for value, label in status_choices %}
                           <option value="{{ value }}" {% if row.status == value %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
@@ -91,5 +98,12 @@
         el.textContent = 'Offline. Cached data may be available after you sync when online.';
       });
     })();
+  </script>
+  <script src="{% static 'js/form-draft-save.js' %}"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var f = document.querySelector('form[data-draft-key][method="post"]');
+    if (f && window.FormDraftSave) window.FormDraftSave.init(f);
+  });
   </script>
 {% endblock %}

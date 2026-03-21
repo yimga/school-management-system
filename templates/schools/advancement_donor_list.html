@@ -1,0 +1,46 @@
+{% extends "backend_base.html" %}
+{% load static i18n %}
+{% block backend_title %}{% trans "Advancement — Donors" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% trans "Donors & advancement" as t_title %}
+  {% trans "Wedge 5 — donor CRM and gifts (staff)" as t_sub %}
+  {% trans "Add donor" as t_add %}
+  {% include "studio_os/components/page_header.html" with title=t_title subtitle=t_sub action_url=create_url action_text=t_add %}
+  <form method="get" class="row g-2 mb-3" role="search">
+    <div class="col-md-6">
+      <input type="search" name="q" class="form-control" placeholder="{% trans 'Search name or email…' %}" value="{{ search }}" aria-label="{% trans 'Search donors' %}">
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-primary min-touch-target">{% trans "Search" %}</button>
+    </div>
+  </form>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Email" %}</th><th>{% trans "Updated" %}</th><th></th></tr></thead>
+      <tbody>
+        {% for d in donors %}
+        <tr>
+          <td><a href="{% url 'accounts:advancement_donor_detail' d.pk %}">{{ d.display_name }}</a></td>
+          <td>{{ d.email|default:"—" }}</td>
+          <td class="text-muted small">{{ d.updated_at|date:"Y-m-d" }}</td>
+          <td><a class="btn btn-sm btn-outline-secondary min-touch-target" href="{% url 'accounts:advancement_donor_edit' d.pk %}">{% trans "Edit" %}</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-secondary">No donors yet. Add your first donor.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if donors.has_other_pages %}
+  <nav aria-label="Donor pages">
+    <ul class="pagination">
+      {% if donors.has_previous %}<li class="page-item"><a class="page-link min-touch-target" href="?page={{ donors.previous_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}">Previous</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">Page {{ donors.number }} of {{ donors.paginator.num_pages }}</span></li>
+      {% if donors.has_next %}<li class="page-item"><a class="page-link min-touch-target" href="?page={{ donors.next_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}">Next</a></li>{% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+  <p class="mt-3"><a href="{{ dashboard_url }}">← Back to dashboard</a></p>
+</div>
+{% endblock %}

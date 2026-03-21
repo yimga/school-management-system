@@ -1,0 +1,19 @@
+{
+  "label": "Contact Us",
+  "seo_title": "Contact RunMyCampus - Get in touch",
+  "seo_description": "Contact RunMyCampus for sales, support, or partnership inquiries.",
+  "headline": "Contact us.",
+  "subheadline": "Sales, support, and partnership inquiries. We respond within 24 hours.",
+  "schema_type": "ContactPage",
+  "segments": [
+    {"title": "Sales", "body": "Request a demo or discuss plans for your school or network."},
+    {"title": "Support", "body": "Existing customers can reach 24/7 support via the tenant portal or support hub."},
+    {"title": "Partnerships", "body": "Integrations, resellers, and technology partners."}
+  ],
+  "extras": {
+    "faqs": [
+      {"question": "How fast do you respond?", "answer": "We aim to respond to inbound requests within one business day."},
+      {"question": "I'm already a customer—where do I log support?", "answer": "Use your tenant portal or the support hub linked from your school admin workspace."}
+    ]
+  }
+}

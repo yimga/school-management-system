@@ -18,20 +18,20 @@
 
   <div class="card">
     <div class="card-body">
-      <table class="table table-sm">
+      <table class="table table-sm" aria-label="{% trans 'Transcript snapshot summary' %}">
         <tbody>
-          <tr><th class="text-muted" style="width:12rem;">Student</th><td>{{ snapshot.student_name|default:student.get_full_name }}</td></tr>
-          <tr><th class="text-muted">Academic year</th><td>{{ snapshot.academic_year_name|default:transcript.academic_year.name }}</td></tr>
-          <tr><th class="text-muted">Annual average</th><td>{{ snapshot.annual_average|floatformat:2|default:"—" }}</td></tr>
-          <tr><th class="text-muted">Class rank</th><td>{{ snapshot.class_rank_display|default:"—" }}</td></tr>
-          <tr><th class="text-muted">Promotion status</th><td>{{ snapshot.promotion_status|default:"—" }}</td></tr>
-          <tr><th class="text-muted">Teacher remark</th><td>{{ snapshot.teacher_remark|default:"—" }}</td></tr>
+          <tr><th scope="row" class="text-muted" style="width:12rem;">{% trans "Student" %}</th><td>{{ snapshot.student_name|default:student.get_full_name }}</td></tr>
+          <tr><th scope="row" class="text-muted">{% trans "Academic year" %}</th><td>{{ snapshot.academic_year_name|default:transcript.academic_year.name }}</td></tr>
+          <tr><th scope="row" class="text-muted">{% trans "Annual average" %}</th><td>{{ snapshot.annual_average|floatformat:2|default:"—" }}</td></tr>
+          <tr><th scope="row" class="text-muted">{% trans "Class rank" %}</th><td>{{ snapshot.class_rank_display|default:"—" }}</td></tr>
+          <tr><th scope="row" class="text-muted">{% trans "Promotion status" %}</th><td>{{ snapshot.promotion_status|default:"—" }}</td></tr>
+          <tr><th scope="row" class="text-muted">{% trans "Teacher remark" %}</th><td>{{ snapshot.teacher_remark|default:"—" }}</td></tr>
         </tbody>
       </table>
       {% if snapshot.term_rows %}
       <h6 class="mt-3">Term breakdown</h6>
-      <table class="table table-sm table-bordered">
-        <thead><tr><th>Term</th><th>Average</th><th>Rank</th></tr></thead>
+      <table class="table table-sm table-bordered" aria-label="{% trans 'Term breakdown' %}">
+        <thead><tr><th scope="col">{% trans "Term" %}</th><th scope="col">{% trans "Average" %}</th><th scope="col">{% trans "Rank" %}</th></tr></thead>
         <tbody>
           {% for row in snapshot.term_rows %}
           <tr>

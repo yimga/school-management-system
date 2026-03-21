@@ -5,12 +5,26 @@ Staff/superuser or school-scoped admin; BR-11 Clever/ClassLink native remains bl
 
 from __future__ import annotations
 
+from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.api.br_northstar_views import _StaffSchoolMixin, _school_from_request
+
+
+class _StaffSuperuserOnlyMixin(LoginRequiredMixin, UserPassesTestMixin):
+    """Platform-wide aggregates: staff/superuser only (not tenant teacher/admin)."""
+
+    def test_func(self):
+        u = self.request.user
+        if not u.is_authenticated:
+            return False
+        return bool(
+            getattr(u, "is_superuser", False) or getattr(u, "is_staff", False)
+        )
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -74,6 +88,80 @@ class NorthStarWedgePlaybookView(_StaffSchoolMixin, View):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
+class NorthStarRumWebVitalsSummaryView(_StaffSuperuserOnlyMixin, View):
+    """
+    N10 read path: aggregate recent rum_web_vitals from PlatformEventLog (staff-only).
+    Query: hours (1–168, default 24), limit (max rows scanned, default 2000, cap 5000).
+    """
+
+    def get(self, request):
+        from apps.platform_runtime.rum_aggregate import summarize_rum_web_vitals
+
+        try:
+            hours = int(request.GET.get("hours") or 24)
+        except (TypeError, ValueError):
+            hours = 24
+        try:
+            limit = int(request.GET.get("limit") or 2000)
+        except (TypeError, ValueError):
+            limit = 2000
+
+        body = summarize_rum_web_vitals(hours=hours, limit_rows=limit)
+        key = (getattr(settings, "RUM_INGEST_KEY", None) or "").strip()
+        body["version"] = "2026.03"
+        body["rum_ingest_configured"] = len(key) >= 16
+        body["read_model"] = "platform_event_log.rum_web_vitals"
+        return JsonResponse(body)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class NorthStarUpcomingDeadlinesView(_StaffSchoolMixin, View):
+    """
+    N28 proactive signals: merged upcoming grading deadlines + public school calendar events.
+    Tenant-scoped: requires ``request.school`` / tenant runtime or ``school_id`` query (staff).
+    """
+
+    def get(self, request):
+        from apps.academics.services import get_active_year_and_term
+        from apps.portal.services import merged_upcoming_events_for_api
+        from apps.schools.models import School
+
+        school = _school_from_request(request)
+        sid_raw = (request.GET.get("school_id") or "").strip()
+        sid_int = None
+        if sid_raw:
+            try:
+                sid_int = int(sid_raw)
+            except (TypeError, ValueError):
+                sid_int = None
+        if school is None and sid_int is not None:
+            school = School.objects.filter(pk=sid_int).first()
+        if school is None:
+            return JsonResponse(
+                {
+                    "error": "school context required",
+                    "hint": "Open in tenant context or pass school_id.",
+                },
+                status=400,
+            )
+
+        year, _term = get_active_year_and_term(school=school)
+        events = (
+            merged_upcoming_events_for_api(year, school=school) if year else []
+        )
+        return JsonResponse(
+            {
+                "version": "2026.03",
+                "read_model": "subject_assignment.grading_deadline_at + school_events",
+                "academic_year_id": year.pk if year else None,
+                "school_id": str(school.pk),
+                "events": events,
+                "count": len(events),
+            }
+        )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
 class NorthStarPackageImpactView(_StaffSchoolMixin, View):
     """
     N17-style package impact preview: uses PackageVersion payload + preview_diff for tenant.
@@ -81,7 +169,11 @@ class NorthStarPackageImpactView(_StaffSchoolMixin, View):
     """
 
     def get(self, request):
-        from apps.packages.engine import preview_diff
+        from apps.packages.engine import (
+            list_reverse_dependent_package_ids,
+            normalize_declared_dependencies,
+            preview_diff,
+        )
         from apps.packages.models import InstalledPackage, PackageVersion
         from apps.schools.models import School
 
@@ -102,17 +194,17 @@ class NorthStarPackageImpactView(_StaffSchoolMixin, View):
                 status=400,
             )
 
-        version = (request.GET.get("version") or "").strip()
-        if not version:
-            inst = (
-                InstalledPackage.objects.filter(
-                    package_id=package_id, school=school, is_active=True
-                )
-                .order_by("-applied_at")
-                .first()
+        inst_active = (
+            InstalledPackage.objects.filter(
+                package_id=package_id, school=school, is_active=True
             )
-            if inst:
-                version = inst.version
+            .order_by("-applied_at")
+            .first()
+        )
+
+        version = (request.GET.get("version") or "").strip()
+        if not version and inst_active:
+            version = inst_active.version
         pv = None
         if version:
             pv = PackageVersion.objects.filter(
@@ -127,23 +219,40 @@ class NorthStarPackageImpactView(_StaffSchoolMixin, View):
             if pv:
                 version = pv.version
 
+        downstream = list_reverse_dependent_package_ids(package_id)
+
+        def _dependency_graph_payload() -> dict:
+            upstream: list[str] = []
+            if pv:
+                try:
+                    upstream = normalize_declared_dependencies(pv.dependencies)
+                except ValueError:
+                    upstream = []
+            if not upstream and inst_active:
+                try:
+                    upstream = normalize_declared_dependencies(
+                        inst_active.dependency_snapshot
+                    )
+                except ValueError:
+                    upstream = []
+            return {
+                "upstream_package_ids": upstream,
+                "downstream_package_ids": downstream,
+                "note": "N17 advisory graph: downstream from a bounded PackageVersion scan; not a full solver.",
+            }
+
         if not pv or not (pv.payload_sections or {}):
-            inst = (
-                InstalledPackage.objects.filter(
-                    package_id=package_id, school=school, is_active=True
-                )
-                .order_by("-applied_at")
-                .first()
-            )
             return JsonResponse(
                 {
                     "package_id": package_id,
                     "school_id": str(school.pk),
                     "preview_available": False,
-                    "installed": bool(inst),
-                    "installed_version": inst.version if inst else None,
-                    "impact_summary_stored": (inst.impact_summary if inst else {})
-                    or {},
+                    "installed": bool(inst_active),
+                    "installed_version": inst_active.version if inst_active else None,
+                    "impact_summary_stored": (
+                        (inst_active.impact_summary if inst_active else {}) or {}
+                    ),
+                    "dependency_graph": _dependency_graph_payload(),
                     "hint": "Register PackageVersion with payload_sections for full preview_diff.",
                 }
             )
@@ -151,12 +260,13 @@ class NorthStarPackageImpactView(_StaffSchoolMixin, View):
         diff = preview_diff(
             school.pk, package_id, version, dict(pv.payload_sections or {})
         )
-        return JsonResponse(
-            {
-                "package_id": package_id,
-                "version": version,
-                "school_id": str(school.pk),
-                "preview_available": True,
-                "preview": diff,
-            }
-        )
+        body = {
+            "package_id": package_id,
+            "version": version,
+            "school_id": str(school.pk),
+            "preview_available": True,
+            "preview": diff,
+            "dependency_graph": _dependency_graph_payload(),
+        }
+        # preview_diff already includes dependencies; graph adds reverse edges for operators.
+        return JsonResponse(body)

@@ -28,6 +28,7 @@ def _interop_rate_limited(request, service: str):
             "implemented": True,
             "detail": "Too many discovery requests. Retry later.",
             "retry_after": retry_after,
+            "message": "Wait before retrying (see retry_after seconds).",
         },
         status=429,
     )

@@ -12,26 +12,18 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.http import JsonResponse
 from django.utils import timezone
 
-from django.core.exceptions import ValidationError
-from django.db import DatabaseError
-
 from .models import School
-
-CONTROL_PLANE_AUDIT_FAILURES = (
-    AttributeError,
-    DatabaseError,
-    ImportError,
-    LookupError,
-    TypeError,
-    ValidationError,
-    ValueError,
-)
+from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
 
 
 def super_migration_cloud(request):
     """Migration cloud pillar: control-plane governance for profiles, runs, parity, and rollback."""
     from apps.accounts.migration_services import compute_parity
-    from apps.automation.models import MigrationProfile, MigrationRun
+    from apps.automation.models import (
+        MigrationProfile,
+        MigrationQuarantineRecord,
+        MigrationRun,
+    )
     from apps.siteconfig.migration_services import dry_run_import
 
     profile_slug = (request.GET.get("profile") or "").strip()
@@ -83,7 +75,27 @@ def super_migration_cloud(request):
         )
         .exclude(rollback_snapshot={})
         .count(),
+        "exception_runs_open": MigrationRun.objects.filter(
+            exception_ack_status=MigrationRun.ExceptionAck.OPEN
+        ).count(),
+        "quarantine_pending": MigrationQuarantineRecord.objects.filter(
+            status=MigrationQuarantineRecord.Status.PENDING
+        ).count(),
     }
+    exception_runs_open = list(
+        MigrationRun.objects.filter(
+            exception_ack_status=MigrationRun.ExceptionAck.OPEN
+        )
+        .select_related("school", "triggered_by")
+        .order_by("-started_at")[:25]
+    )
+    quarantine_open = list(
+        MigrationQuarantineRecord.objects.filter(
+            status=MigrationQuarantineRecord.Status.PENDING
+        )
+        .select_related("school", "migration_run")
+        .order_by("-created_at")[:40]
+    )
 
     return render(
         request,
@@ -98,6 +110,8 @@ def super_migration_cloud(request):
             "preview": preview,
             "dashboard_url": reverse("super:dashboard"),
             "registry_url": reverse("super:migration_profile_registry"),
+            "exception_runs_open": exception_runs_open,
+            "quarantine_open": quarantine_open,
         },
     )
 
@@ -157,6 +171,59 @@ def super_migration_rollback(request, run_id):
         messages.success(request, result.get("message") or "Rollback completed.")
     else:
         messages.error(request, result.get("message") or "Rollback failed.")
+    return redirect("super:migration_cloud")
+
+
+@require_POST
+def super_migration_exception_ack(request, run_id):
+    """Close a run-level exception queue item (operator reviewed errors)."""
+    from apps.automation.models import MigrationRun
+
+    run = get_object_or_404(MigrationRun.objects.select_related("school"), pk=run_id)
+    if run.exception_ack_status != MigrationRun.ExceptionAck.OPEN:
+        messages.error(request, "This run is not in the open exception queue.")
+        return redirect("super:migration_cloud")
+    note = (request.POST.get("note") or "").strip()[:2000]
+    run.exception_ack_status = MigrationRun.ExceptionAck.CLOSED
+    run.exception_ack_at = timezone.now()
+    run.exception_ack_by = request.user if request.user.is_authenticated else None
+    run.exception_ack_note = note
+    run.save(
+        update_fields=[
+            "exception_ack_status",
+            "exception_ack_at",
+            "exception_ack_by",
+            "exception_ack_note",
+        ]
+    )
+    messages.success(
+        request,
+        f"Acknowledged exceptions for run #{run.pk} ({run.migration_type}).",
+    )
+    return redirect("super:migration_cloud")
+
+
+@require_POST
+def super_migration_quarantine_waive(request, record_id):
+    """Operator waives a quarantined row (no replay)."""
+    from apps.automation.models import MigrationQuarantineRecord
+
+    rec = get_object_or_404(
+        MigrationQuarantineRecord.objects.select_related("school"),
+        pk=record_id,
+        status=MigrationQuarantineRecord.Status.PENDING,
+    )
+    note = (request.POST.get("note") or "").strip()[:1000]
+    rec.status = MigrationQuarantineRecord.Status.REPAIRED
+    rec.resolved_at = timezone.now()
+    rec.resolution_payload = {"operator_waive": True, "note": note}
+    rec.save(
+        update_fields=["status", "resolved_at", "resolution_payload"],
+    )
+    messages.success(
+        request,
+        f"Waived quarantine row #{rec.pk} ({rec.domain} row {rec.row_index}).",
+    )
     return redirect("super:migration_cloud")
 
 

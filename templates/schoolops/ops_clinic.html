@@ -1,0 +1,25 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Clinic log" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Health records" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
+  <p class="small text-muted">{% trans "Confidential. Restricted to leadership and staff. Log entries are created from integrated clinic workflows or admin." %}</p>
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead><tr><th>{% trans "When" %}</th><th>{% trans "Student" %}</th><th>{% trans "Type" %}</th><th>{% trans "Notes" %}</th></tr></thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td>{{ r.recorded_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ r.student.get_full_name|default:r.student_id }}</td>
+          <td>{{ r.record_type }}</td>
+          <td>{% if r.confidential %}<span class="badge bg-warning">{% trans "Confidential" %}</span>{% else %}{{ r.notes|truncatechars:80|default:"—" }}{% endif %}</td>
+        </tr>
+        {% empty %}<tr><td colspan="4">{% trans "No records." %}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -3,7 +3,7 @@ import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase, override_settings
 
 from apps.accounts.portal_roles import ACTIVE_PORTAL_ROLE_KEY, get_effective_portal_role
 from apps.accounts.views_impersonation import _parse_impersonation_token
@@ -40,6 +40,7 @@ class ImpersonationTokenHelperTests(SimpleTestCase):
         ):
             self.assertIsNone(_parse_impersonation_token("token"))
 
+    @override_settings(IMPERSONATION_DEFAULT_READ_ONLY=True)
     def test_parse_impersonation_token_returns_payload_for_valid_token(self):
         payload = base64.b64encode(
             json.dumps({"school_id": "abc", "user_id": 42}).encode()
@@ -51,5 +52,22 @@ class ImpersonationTokenHelperTests(SimpleTestCase):
         ):
             self.assertEqual(
                 _parse_impersonation_token("token"),
-                {"school_id": "abc", "user_id": 42},
+                {"school_id": "abc", "user_id": 42, "read_only": True},
+            )
+
+    @override_settings(IMPERSONATION_DEFAULT_READ_ONLY=True)
+    def test_parse_impersonation_token_honors_read_only_in_payload(self):
+        payload = base64.b64encode(
+            json.dumps(
+                {"school_id": "abc", "user_id": 42, "read_only": False}
+            ).encode()
+        ).decode()
+
+        with patch(
+            "apps.accounts.views_impersonation.TimestampSigner.unsign",
+            return_value=payload,
+        ):
+            self.assertEqual(
+                _parse_impersonation_token("token"),
+                {"school_id": "abc", "user_id": 42, "read_only": False},
             )

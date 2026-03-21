@@ -72,6 +72,7 @@ ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES = (
     "apps/compliance/management/",
     "apps/evals/runtime_gradebook.py",  # Docstring only: tells callers to use runtime, not school.settings
     "apps/api/br_northstar_views.py",  # BR-09 legacy SIS connector config persisted on school.settings
+    "apps/api/oneroster_roster_webhook.py",  # Incoming webhook: lookup by school_id; roster_webhook_secret on school.settings
     "apps/compliance/attendance_region_packs.py",
     "apps/compliance/enrollment_region_packs.py",
     "apps/communication/management/commands/purge_thread_message_retention.py",

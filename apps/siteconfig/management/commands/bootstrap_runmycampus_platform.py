@@ -12,7 +12,8 @@ from django.core.management.base import BaseCommand
 class Command(BaseCommand):
     help = (
         "Bootstrap RunMyCampus platform end-to-end: seed registries, blueprint/policy packs, "
-        "workflow/dashboard packs, marketplace apps, portal FAQs/KB, finance defaults, compliance baseline. "
+        "workflow/dashboard packs, marketplace apps, portal FAQs/KB, finance defaults, compliance baseline, "
+        "marketing blog/CMS. "
         "Idempotent. Use for first-time setup or to ensure Manager surfaces are populated."
     )
 
@@ -37,6 +38,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 "RunMyCampus platform bootstrap complete. Blueprint marketplace, app catalog, "
-                "workflow/dashboard packs, registries, and portal content are seeded."
+                "workflow/dashboard packs, registries, portal content, and marketing CMS are seeded."
             )
         )

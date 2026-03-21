@@ -41,6 +41,10 @@ class BrNorthstarApiTests(TestCase):
         d = r.json()
         self.assertIn("targets", d)
         self.assertEqual(d["targets"]["api_p50_ms"], 800)
+        self.assertIn(
+            "rum_web_vitals_summary",
+            d.get("observability", {}),
+        )
 
     def test_compliance_validate_enrollment_off(self):
         c = Client()

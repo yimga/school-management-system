@@ -1,0 +1,97 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{{ page_title }} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "System config" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ back_url }}">{{ breadcrumb_extra }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="h6 text-uppercase text-white-50 mb-1">{% trans "Platform configuration" %}</div>
+        <h1 class="h4 mb-1 fw-bold text-white">{{ page_title }}</h1>
+      </div>
+      <a href="{{ back_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to list" %}</a>
+    </div>
+  </header>
+
+  <div class="cp-overview-card border border-secondary rounded p-4 mb-4">
+    <h2 class="h6 text-white-50 text-uppercase mb-3">{% trans "Plan" %}</h2>
+    <form method="post" action="">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label text-white">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+        {% if field.help_text %}<div class="form-text text-white-50">{{ field.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div class="d-flex flex-wrap gap-2 pt-2">
+        <button type="submit" class="btn btn-primary">{% trans "Save plan" %}</button>
+        <a href="{{ back_url }}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+        <a href="{{ system_config_url }}" class="btn btn-outline-secondary ms-md-auto">{% trans "System config" %}</a>
+      </div>
+    </form>
+  </div>
+
+  {% if delete_url %}
+  <div class="cp-overview-card border border-secondary border-opacity-50 rounded p-4 mb-4">
+    <p class="small text-white-50 text-uppercase mb-2">{% trans "Danger zone" %}</p>
+    <a href="{{ delete_url }}" class="btn btn-outline-danger btn-sm">{% trans "Delete this plan…" %}</a>
+  </div>
+  {% endif %}
+
+  {% if plan and addons is not None %}
+  <div class="cp-overview-card border border-secondary rounded p-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <h2 class="h6 text-white-50 text-uppercase mb-0">{% trans "Add-ons catalog" %}</h2>
+      <a href="{% url 'super:plan_addon_add' %}" class="btn btn-sm btn-outline-primary">{% trans "Add add-on" %}</a>
+    </div>
+    {% if addons %}
+    <div class="table-responsive">
+      <table class="table table-dark table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th scope="col" class="border-secondary">{% trans "Code" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Name" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Price" %}</th>
+            <th scope="col" class="border-secondary text-end">{% trans "Actions" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for addon in addons %}
+          <tr>
+            <td class="border-secondary"><code>{{ addon.code }}</code></td>
+            <td class="border-secondary">{{ addon.name }}</td>
+            <td class="border-secondary">{{ addon.price|default:"—" }}</td>
+            <td class="border-secondary text-end">
+              <div class="d-flex flex-wrap gap-1 justify-content-end">
+                <a href="{% url 'super:plan_addon_edit' addon.pk %}" class="btn btn-sm btn-primary">{% trans "Edit" %}</a>
+                <a href="{% url 'super:plan_addon_delete' addon.pk %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-white-50 small mb-0">{% trans "No add-ons yet." %}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

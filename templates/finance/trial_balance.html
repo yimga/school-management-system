@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}Trial Balance{% endblock %}
 
@@ -8,7 +9,7 @@
 {% trans "Back to Finance" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 
-<form method="get" class="card mb-3">
+<form method="get" class="card mb-3" id="trial-balance-filter-form" data-draft-key="trial_balance_filter_{{ request.user.id }}" data-draft-max-age-hours="72">
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
@@ -32,9 +33,9 @@
       <table class="table table-sm align-middle">
         <thead>
           <tr>
-            <th>Account</th>
-            <th class="text-end">Debit</th>
-            <th class="text-end">Credit</th>
+            <th scope="col">Account</th>
+            <th scope="col" class="text-end">Debit</th>
+            <th scope="col" class="text-end">Credit</th>
           </tr>
         </thead>
         <tbody>
@@ -60,4 +61,14 @@
   </div>
 </div>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  var f = document.getElementById('trial-balance-filter-form');
+  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
+})();
+</script>
 {% endblock %}

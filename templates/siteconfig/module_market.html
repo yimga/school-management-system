@@ -35,17 +35,35 @@
                     {% endif %}
                   </td>
                   <td>
+                    {% if mod.code in active_codes %}
                     <form method="post" action="" class="d-inline">
                       {% csrf_token %}
                       <input type="hidden" name="code" value="{{ mod.code }}">
-                      {% if mod.code in active_codes %}
-                        <input type="hidden" name="action" value="deactivate">
-                        <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Deactivate" %}</button>
-                      {% else %}
-                        <input type="hidden" name="action" value="activate">
-                        <button type="submit" class="btn btn-sm btn-primary">{% trans "Activate" %}</button>
-                      {% endif %}
+                      <input type="hidden" name="action" value="deactivate">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Deactivate" %}</button>
                     </form>
+                    {% else %}
+                    <form method="post" action="" class="d-inline-block">
+                      {% csrf_token %}
+                      <input type="hidden" name="code" value="{{ mod.code }}">
+                      <input type="hidden" name="action" value="activate">
+                      <details class="mb-2">
+                        <summary class="small text-primary" style="cursor:pointer;">{% trans "Impact before activate" %}</summary>
+                        <ul class="small text-muted mb-0 mt-1 ps-3">
+                          {% for line in mod.impact_bullets %}
+                          <li>{{ line }}</li>
+                          {% empty %}
+                          <li>{% trans "Navigation updates after activation." %}</li>
+                          {% endfor %}
+                        </ul>
+                      </details>
+                      <div class="form-check small mb-2">
+                        <input class="form-check-input" type="checkbox" name="module_impact_ack" value="1" id="ack-{{ mod.code }}" required>
+                        <label class="form-check-label" for="ack-{{ mod.code }}">{% trans "I have reviewed the impact above." %}</label>
+                      </div>
+                      <button type="submit" class="btn btn-sm btn-primary">{% trans "Activate" %}</button>
+                    </form>
+                    {% endif %}
                   </td>
                 </tr>
               {% empty %}
@@ -62,6 +80,7 @@
           </table>
         </div>
         <p class="small text-muted mt-3">{% trans "Sidebar and menus only show links for active modules." %}</p>
+        <p class="small mt-2"><a href="{% url 'siteconfig:installed_packages_rollback' %}">{% trans "Rollback installed metadata packages" %}</a> — {% trans "theme/workflow/dashboard policy packs applied via PackageEngine." %}</p>
       </div>
     </div>
   </div>

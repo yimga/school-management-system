@@ -22,7 +22,10 @@
         <h1 class="h4 mb-1 fw-bold text-white">{% trans "Feature toggles" %}</h1>
         <p class="text-white-50 small mb-0">{% trans "Platform feature flag definitions and state." %}</p>
       </div>
-      <a href="{{ system_config_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to System config" %}</a>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'super:feature_toggle_add' %}" class="btn btn-primary btn-sm">{% trans "Add definition" %}</a>
+        <a href="{{ system_config_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to System config" %}</a>
+      </div>
     </div>
   </header>
 
@@ -32,12 +35,13 @@
       <table class="table table-dark table-hover mb-0">
         <thead>
           <tr>
-            <th class="border-secondary">{% trans "Key" %}</th>
-            <th class="border-secondary">{% trans "Label" %}</th>
-            <th class="border-secondary">{% trans "Category" %}</th>
-            <th class="border-secondary">{% trans "Scope" %}</th>
-            <th class="border-secondary">{% trans "Default" %}</th>
-            <th class="border-secondary">{% trans "Active" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Key" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Label" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Category" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Scope" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Default" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Active" %}</th>
+            <th scope="col" class="border-secondary text-end">{% trans "Actions" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -49,6 +53,12 @@
             <td class="border-secondary">{{ def.scope|default:"—" }}</td>
             <td class="border-secondary">{% if def.default_enabled %}{% trans "On" %}{% else %}{% trans "Off" %}{% endif %}</td>
             <td class="border-secondary">{% if def.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+            <td class="border-secondary text-end">
+              <div class="d-flex flex-wrap gap-1 justify-content-end">
+                <a href="{% url 'super:feature_toggle_edit' def.pk %}" class="btn btn-sm btn-primary">{% trans "Edit" %}</a>
+                <a href="{% url 'super:feature_toggle_delete' def.pk %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</a>
+              </div>
+            </td>
           </tr>
           {% endfor %}
         </tbody>

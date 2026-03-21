@@ -474,6 +474,16 @@ body.control-plane-shell #nav-sidebar,
   background: var(--cp-ultra-panel);
   box-shadow: var(--cp-ultra-shadow);
   padding: 0.5rem;
+  z-index: 2000;
+}
+
+/* Search typeahead: must stack above main content and stay visible when open */
+.cp-header-search {
+  z-index: 2010;
+}
+.cp-search-results-panel.dropdown-menu.show {
+  display: block;
+  z-index: 2020;
 }
 
 .cp-navbar .dropdown-item {

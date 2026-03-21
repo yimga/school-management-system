@@ -124,15 +124,15 @@
   <div class="card">
     <div class="card-body">
       <h5 class="mb-3">Sample term table</h5>
-      <table class="report-table">
+      <table class="report-table" aria-label="Sample term report table preview">
         <thead>
           <tr>
-            <th>{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
-            <th class="text-center">{% report_style_label report_style "coef_header" "Coef" %}</th>
-            <th class="text-center">{{ labels.sequence_1|default:"Sequence 1 / Sequence 1" }}</th>
-            <th class="text-center">{{ labels.sequence_2|default:"Sequence 2 / Sequence 2" }}</th>
-            <th class="text-center">{{ labels.exam|default:"Exam / Examen" }}</th>
-            <th class="text-center">{{ labels.total|default:"Total / Total" }}</th>
+            <th scope="col">{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
+            <th scope="col" class="text-center">{% report_style_label report_style "coef_header" "Coef" %}</th>
+            <th scope="col" class="text-center">{{ labels.sequence_1|default:"Sequence 1 / Sequence 1" }}</th>
+            <th scope="col" class="text-center">{{ labels.sequence_2|default:"Sequence 2 / Sequence 2" }}</th>
+            <th scope="col" class="text-center">{{ labels.exam|default:"Exam / Examen" }}</th>
+            <th scope="col" class="text-center">{{ labels.total|default:"Total / Total" }}</th>
           </tr>
         </thead>
         <tbody>

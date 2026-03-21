@@ -6,6 +6,7 @@ from . import super_views
 from . import super_views_beyond_reach
 from .control_plane import require_super_access_with_host
 from . import super_views_config
+from . import super_views_config_crud
 from .super_views_catalog import (
     super_blueprints_catalog,
     super_dashboard_packs_catalog,
@@ -31,7 +32,9 @@ from .super_views_wedge import (
 from .super_views_migration import (
     sync_repair,
     super_migration_cloud,
+    super_migration_exception_ack,
     super_migration_profile_registry,
+    super_migration_quarantine_waive,
     super_migration_rollback,
 )
 from .super_views_provisioning import api_create_school
@@ -205,6 +208,16 @@ urlpatterns = [
         "migration/rollback/<int:run_id>/",
         require_super_access_with_host(super_migration_rollback),
         name="migration_rollback",
+    ),
+    path(
+        "migration/exception-ack/<int:run_id>/",
+        require_super_access_with_host(super_migration_exception_ack),
+        name="migration_exception_ack",
+    ),
+    path(
+        "migration/quarantine-waive/<int:record_id>/",
+        require_super_access_with_host(super_migration_quarantine_waive),
+        name="migration_quarantine_waive",
     ),
     path(
         "pulse/", require_super_access_with_host(super_views.super_pulse), name="pulse"
@@ -495,6 +508,13 @@ urlpatterns = [
         require_super_access_with_host(orchestration_views.retry_run),
         name="orchestration_retry_run",
     ),
+    path(
+        "platform-operator-hub/",
+        require_super_access_with_host(
+            super_views_config.super_platform_operator_hub
+        ),
+        name="platform_operator_hub",
+    ),
     # Legacy path: /super/config/ redirects to System config (siteconfig:console_domains_hub). Single config surface.
     path(
         "config/",
@@ -517,9 +537,39 @@ urlpatterns = [
         name="regions_list",
     ),
     path(
+        "config/regions/add/",
+        require_super_access_with_host(super_views_config_crud.super_region_add),
+        name="region_add",
+    ),
+    path(
+        "config/regions/<str:code>/edit/",
+        require_super_access_with_host(super_views_config_crud.super_region_edit),
+        name="region_edit",
+    ),
+    path(
+        "config/regions/<str:code>/delete/",
+        require_super_access_with_host(super_views_config_crud.super_region_delete),
+        name="region_delete",
+    ),
+    path(
         "config/grading/",
         require_super_access_with_host(super_views_config.super_grading_list),
         name="grading_list",
+    ),
+    path(
+        "config/grading/add/",
+        require_super_access_with_host(super_views_config_crud.super_grading_add),
+        name="grading_add",
+    ),
+    path(
+        "config/grading/<int:pk>/edit/",
+        require_super_access_with_host(super_views_config_crud.super_grading_edit),
+        name="grading_edit",
+    ),
+    path(
+        "config/grading/<int:pk>/delete/",
+        require_super_access_with_host(super_views_config_crud.super_grading_delete),
+        name="grading_delete",
     ),
     path(
         "config/plans/",
@@ -527,9 +577,88 @@ urlpatterns = [
         name="plans_list",
     ),
     path(
+        "config/plans/add/",
+        require_super_access_with_host(super_views_config_crud.super_plan_add),
+        name="plan_add",
+    ),
+    path(
+        "config/plans/<int:pk>/edit/",
+        require_super_access_with_host(super_views_config_crud.super_plan_edit),
+        name="plan_edit",
+    ),
+    path(
+        "config/plans/<int:pk>/delete/",
+        require_super_access_with_host(super_views_config_crud.super_plan_delete),
+        name="plan_delete",
+    ),
+    path(
+        "config/plan-addons/add/",
+        require_super_access_with_host(super_views_config_crud.super_plan_addon_add),
+        name="plan_addon_add",
+    ),
+    path(
+        "config/plan-addons/<int:pk>/edit/",
+        require_super_access_with_host(super_views_config_crud.super_plan_addon_edit),
+        name="plan_addon_edit",
+    ),
+    path(
+        "config/plan-addons/<int:pk>/delete/",
+        require_super_access_with_host(super_views_config_crud.super_plan_addon_delete),
+        name="plan_addon_delete",
+    ),
+    path(
         "config/feature-toggles/",
         require_super_access_with_host(super_views_config.super_feature_toggles_list),
         name="feature_toggles_list",
+    ),
+    path(
+        "config/feature-toggles/add/",
+        require_super_access_with_host(
+            super_views_config_crud.super_feature_toggle_add
+        ),
+        name="feature_toggle_add",
+    ),
+    path(
+        "config/feature-toggles/<int:pk>/edit/",
+        require_super_access_with_host(
+            super_views_config_crud.super_feature_toggle_edit
+        ),
+        name="feature_toggle_edit",
+    ),
+    path(
+        "config/feature-toggles/<int:pk>/delete/",
+        require_super_access_with_host(
+            super_views_config_crud.super_feature_toggle_delete
+        ),
+        name="feature_toggle_delete",
+    ),
+    path(
+        "config/country-multipliers/",
+        require_super_access_with_host(
+            super_views_config.super_country_multipliers_list
+        ),
+        name="country_multipliers_list",
+    ),
+    path(
+        "config/country-multipliers/add/",
+        require_super_access_with_host(
+            super_views_config_crud.super_country_multiplier_add
+        ),
+        name="country_multiplier_add",
+    ),
+    path(
+        "config/country-multipliers/<int:pk>/edit/",
+        require_super_access_with_host(
+            super_views_config_crud.super_country_multiplier_edit
+        ),
+        name="country_multiplier_edit",
+    ),
+    path(
+        "config/country-multipliers/<int:pk>/delete/",
+        require_super_access_with_host(
+            super_views_config_crud.super_country_multiplier_delete
+        ),
+        name="country_multiplier_delete",
     ),
     path(
         "incidents/",

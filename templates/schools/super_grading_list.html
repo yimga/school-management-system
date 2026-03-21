@@ -23,7 +23,8 @@
         <h1 class="h4 mb-1 fw-bold text-white">{% trans "Grading scales" %}</h1>
         <p class="text-white-50 small mb-0">{% trans "Grading scale catalog by region." %}</p>
       </div>
-      <div class="d-flex gap-2">
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'super:grading_add' %}" class="btn btn-primary btn-sm">{% trans "Add scale" %}</a>
         {% if regions_list_url %}
         <a href="{{ regions_list_url }}" class="btn btn-outline-primary btn-sm">{% trans "Regions" %}</a>
         {% endif %}
@@ -38,10 +39,11 @@
       <table class="table table-dark table-hover mb-0">
         <thead>
           <tr>
-            <th class="border-secondary">{% trans "Region" %}</th>
-            <th class="border-secondary">{% trans "Scale type" %}</th>
-            <th class="border-secondary">{% trans "Range" %}</th>
-            <th class="border-secondary">{% trans "Display format" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Region" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Scale type" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Range" %}</th>
+            <th scope="col" class="border-secondary">{% trans "Display format" %}</th>
+            <th scope="col" class="border-secondary text-end">{% trans "Actions" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -51,6 +53,12 @@
             <td class="border-secondary"><code>{{ scale.scale_type }}</code></td>
             <td class="border-secondary">{{ scale.min_score }} – {{ scale.max_score }}</td>
             <td class="border-secondary"><code>{{ scale.display_format|default:"—" }}</code></td>
+            <td class="border-secondary text-end">
+              <div class="d-flex flex-wrap gap-1 justify-content-end">
+                <a href="{% url 'super:grading_edit' scale.pk %}" class="btn btn-sm btn-primary">{% trans "Edit" %}</a>
+                <a href="{% url 'super:grading_delete' scale.pk %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</a>
+              </div>
+            </td>
           </tr>
           {% endfor %}
         </tbody>

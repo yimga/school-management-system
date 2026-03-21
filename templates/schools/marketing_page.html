@@ -397,10 +397,15 @@
       {% endif %}
     {% endif %}
 
-    {% if active_nav_slug == 'blog' and blog_posts %}
+    {% if active_nav_slug == 'blog' %}
       <section class="section-shell">
         <h2 class="section-heading">{% trans "Latest posts" %}</h2>
+        {% if blog_list_intro_html %}
+        <div class="section-lead blog-list-intro">{{ blog_list_intro_html|safe }}</div>
+        {% else %}
         <p class="section-lead">{% trans "Product updates, best practices, and stories from schools worldwide." %}</p>
+        {% endif %}
+        {% if blog_posts %}
         <div class="segment-grid">
           {% for post in blog_posts %}
             <article class="segment-card">
@@ -410,6 +415,9 @@
             </article>
           {% endfor %}
         </div>
+        {% else %}
+        <p class="text-muted mb-0">{% trans "No posts published yet. Run seed_marketing_cms or add posts in admin." %}</p>
+        {% endif %}
       </section>
     {% endif %}
 

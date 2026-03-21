@@ -15,6 +15,8 @@ class InstalledPackage(models.Model):
         ("dashboard", "Dashboard Pack"),
         ("policy", "Policy Bundle"),
         ("theme", "Theme Pack"),
+        ("document_pack", "Document Pack"),
+        ("experience_pack", "Experience Pack"),
     ]
 
     package_id = models.CharField(
@@ -174,6 +176,11 @@ class ExperiencePack(models.Model):
     """
 
     code = models.SlugField(max_length=80, unique=True)
+    version = models.CharField(
+        max_length=40,
+        default="1.0.0",
+        help_text="Version string for InstalledPackage / rollback (N20).",
+    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     theme_pack_id = models.IntegerField(
@@ -202,6 +209,11 @@ class DocumentPack(models.Model):
     """
 
     code = models.SlugField(max_length=80, unique=True)
+    version = models.CharField(
+        max_length=40,
+        default="1.0.0",
+        help_text="Version string for InstalledPackage / rollback (N20).",
+    )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     lifecycle_states = models.JSONField(

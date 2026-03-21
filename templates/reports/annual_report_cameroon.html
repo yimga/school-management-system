@@ -98,12 +98,12 @@
 
   <div class="boxed" style="margin-top:10px;">
     <div style="font-weight:800; margin-bottom:6px;">{% report_style_label report_style "term_summary_label" "Terminal Average / Moyenne Trimestre" %}</div>
-    <table class="cam">
+    <table class="cam" aria-label="Cameroon annual report term summary">
       <thead>
         <tr>
-          <th>{% report_style_label report_style "term_label" "Term" %}</th>
-          <th class="center">{% report_style_label report_style "avg_header" "Average" %}</th>
-          <th class="center">{% report_style_label report_style "rank_header" "Rank" %}</th>
+          <th scope="col">{% report_style_label report_style "term_label" "Term" %}</th>
+          <th scope="col" class="center">{% report_style_label report_style "avg_header" "Average" %}</th>
+          <th scope="col" class="center">{% report_style_label report_style "rank_header" "Rank" %}</th>
         </tr>
       </thead>
       <tbody>

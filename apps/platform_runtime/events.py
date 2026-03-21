@@ -48,6 +48,15 @@ EVENT_CATALOG = {
         "description": "Blueprint applied to tenant",
         "payload": ["blueprint_code", "school_id"],
     },
+    "blueprint_rolled_back": {
+        "description": "Tenant active blueprint bundle changed via control-plane rollback",
+        "payload": [
+            "school_id",
+            "previous_bundle_id",
+            "new_bundle_id",
+            "actor_id",
+        ],
+    },
     "parent_notified": {
         "description": "Parent/guardian notified",
         "payload": ["notification_id", "school_id"],
@@ -65,8 +74,8 @@ EVENT_CATALOG = {
         "payload": ["package_id", "package_type", "school_id"],
     },
     "package_rolled_back": {
-        "description": "Package rollback executed",
-        "payload": ["package_id", "school_id"],
+        "description": "Package rollback executed (metadata engine / tenant UI)",
+        "payload": ["package_id", "version", "school_id", "actor_id"],
     },
     "nl_governed_query_executed": {
         "description": "BR-07 super governed data intent",
@@ -100,6 +109,10 @@ EVENT_CATALOG = {
         "description": "Single wedge pack slug applied (marketplace / one-click)",
         "payload": ["school_id", "pack_slug"],
     },
+    "learning_wedge_pack_rolled_back": {
+        "description": "Single learning wedge pack rolled back (tenant API)",
+        "payload": ["school_id", "pack_slug", "actor_id", "features_cleared"],
+    },
     "marketplace_app_installed": {
         "description": "Marketplace app installed (sandbox or active)",
         "payload": ["app_slug", "school_id", "install_phase"],
@@ -115,6 +128,10 @@ EVENT_CATALOG = {
     "celery_task_failed": {
         "description": "Long-running Celery task failed",
         "payload": ["task_name", "celery_task_id", "school_id", "error"],
+    },
+    "rum_web_vitals": {
+        "description": "Client-reported Web Vitals / performance beacon (RUM)",
+        "payload": ["path", "metrics", "navigation_type"],
     },
 }
 

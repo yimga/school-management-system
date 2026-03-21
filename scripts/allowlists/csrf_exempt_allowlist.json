@@ -71,7 +71,7 @@
       "notes": "GraphQL endpoint still supports non-browser API clients."
     },
     "apps/api/br_northstar_views.py": {
-      "expected_count": 9,
+      "expected_count": 11,
       "owner": "beyond_reach_api",
       "verdict": "keep_with_hardening",
       "auth_model": "session_staff_or_service_bearer",
@@ -80,25 +80,45 @@
       "audit_logging": "manual_review_required",
       "notes": "Internal JSON APIs for BR north-star; called from control plane with session or Bearer."
     },
-    "apps/api/learning_institution_api.py": {
+    "apps/api/oneroster_roster_webhook.py": {
       "expected_count": 1,
+      "owner": "interop_webhook",
+      "verdict": "keep",
+      "auth_model": "hmac_signature_roster_webhook",
+      "replay_protection": "hmac_x_roster_webhook_signature",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "implemented",
+      "notes": "Incoming OneRoster roster webhook; verified by school-scoped secret (school.settings or ONEROSTER_WEBHOOK_SECRET)."
+    },
+    "apps/api/learning_institution_api.py": {
+      "expected_count": 2,
       "owner": "learning_institution",
       "verdict": "keep_with_hardening",
       "auth_model": "session_staff",
       "replay_protection": "internal_api",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "Studio/catalog JSON for institution types and delivery modes."
+      "notes": "Learning pack install + pack rollback (ROLLBACK keyword); session staff + school context."
     },
     "apps/api/north_star_api_views.py": {
-      "expected_count": 3,
+      "expected_count": 5,
       "owner": "north_star_api",
       "verdict": "keep_with_hardening",
       "auth_model": "session_staff",
       "replay_protection": "internal_api",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "Event catalog, wedge playbook, package-impact internal JSON."
+      "notes": "Event catalog, wedge playbook, RUM web vitals summary (staff), upcoming deadlines (N28), package-impact internal JSON."
+    },
+    "apps/platform_runtime/views_rum.py": {
+      "expected_count": 1,
+      "owner": "platform_observability",
+      "verdict": "keep_with_hardening",
+      "auth_model": "shared_ingest_token_env_rum_ingest_key",
+      "replay_protection": "rate_limit_per_ip_cache",
+      "rate_limiting": "implemented",
+      "audit_logging": "implemented",
+      "notes": "RUM POST; token in JSON body for sendBeacon; PlatformEventLog rum_web_vitals."
     }
   }
 }

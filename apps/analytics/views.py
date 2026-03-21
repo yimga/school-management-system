@@ -626,7 +626,7 @@ def at_risk_dashboard(request: HttpRequest):
     Uses RiskFactor (nightly-computed) and InterventionLog.
     """
     from apps.schools.mixins import get_current_school
-    from apps.analytics.models import RiskFactor, InterventionLog
+    from apps.analytics.models import InterventionLog, RiskFactor, StudentAtRiskSignal
 
     school = get_current_school(request)
     if not school:
@@ -655,10 +655,21 @@ def at_risk_dashboard(request: HttpRequest):
             school=school, status=InterventionLog.Status.ONGOING
         ).select_related("student")[:50]
     )
+    ews_signals = list(
+        StudentAtRiskSignal.objects.filter(school=school)
+        .exclude(status=StudentAtRiskSignal.Status.RESOLVED)
+        .exclude(status=StudentAtRiskSignal.Status.DISMISSED)
+        .select_related("student_user")[:40]
+    )
     return render(
         request,
         "analytics/at_risk_dashboard.html",
-        {"risk_factors": factors, "interventions": interventions, "school": school},
+        {
+            "risk_factors": factors,
+            "interventions": interventions,
+            "ews_signals": ews_signals,
+            "school": school,
+        },
     )
 
 
@@ -738,6 +749,12 @@ def at_risk_intervention_action(request: HttpRequest):
             )
         except (OSError, TypeError, ValueError, DatabaseError):
             pass
+        if getattr(student, "user_id", None):
+            from apps.analytics.models import StudentAtRiskSignal
+
+            StudentAtRiskSignal.objects.filter(
+                school=school, student_user_id=student.user_id
+            ).update(status=StudentAtRiskSignal.Status.IN_INTERVENTION)
         _flash(request, "success", "Intervention logged.")
     elif action == "resolve":
         lid = request.POST.get("intervention_id")
@@ -745,6 +762,13 @@ def at_risk_intervention_action(request: HttpRequest):
         log.status = InterventionLog.Status.RESOLVED
         log.resolved_at = timezone.now()
         log.save(update_fields=["status", "resolved_at"])
+        su = getattr(log.student, "user_id", None)
+        if su:
+            from apps.analytics.models import StudentAtRiskSignal
+
+            StudentAtRiskSignal.objects.filter(
+                school=school, student_user_id=su
+            ).update(status=StudentAtRiskSignal.Status.RESOLVED)
         _flash(request, "success", "Marked resolved.")
     elif action == "dismiss":
         lid = request.POST.get("intervention_id")
@@ -753,6 +777,13 @@ def at_risk_intervention_action(request: HttpRequest):
         log.dismissed_at = timezone.now()
         log.dismissed_by = request.user
         log.save(update_fields=["status", "dismissed_at", "dismissed_by"])
+        su = getattr(log.student, "user_id", None)
+        if su:
+            from apps.analytics.models import StudentAtRiskSignal
+
+            StudentAtRiskSignal.objects.filter(
+                school=school, student_user_id=su
+            ).update(status=StudentAtRiskSignal.Status.DISMISSED)
         _flash(request, "success", "Dismissed.")
     else:
         _flash(request, "error", "Unknown action.")

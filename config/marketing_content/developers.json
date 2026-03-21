@@ -1,0 +1,19 @@
+{
+  "label": "Developers",
+  "seo_title": "RunMyCampus Developer Portal - API & Integrations",
+  "seo_description": "API documentation, authentication, rate limits, and integration guides for RunMyCampus.",
+  "headline": "Developer Portal & API.",
+  "subheadline": "Build integrations with versioned APIs, webhooks, and LTI. Auth, rate limiting, and OpenAPI documented.",
+  "schema_type": "WebPage",
+  "segments": [
+    {"title": "API access", "body": "Authenticate with API keys or OAuth; versioned endpoints under /api/."},
+    {"title": "Rate limiting", "body": "Per-tenant and per-IP limits; 429 with Retry-After for fair use."},
+    {"title": "Integrations", "body": "LTI 1.3, OneRoster, webhooks, and custom integrations. See docs for details."}
+  ],
+  "extras": {
+    "faqs": [
+      {"question": "Where is the OpenAPI schema?", "answer": "Use the platform OpenAPI entrypoint documented in the API runbook; schema access is gated for deploy environments."},
+      {"question": "How do I get API credentials?", "answer": "Tenant administrators issue or approve credentials per your school’s integration policy."}
+    ]
+  }
+}

@@ -28,6 +28,14 @@ def safe_school_timeline_url(school_id) -> str:
         return ""
 
 
+def safe_platform_incidents_url() -> str:
+    """Reverse to observability incident console when registered; else empty string."""
+    try:
+        return reverse("platform_incidents_console")
+    except NoReverseMatch:
+        return ""
+
+
 def canonical_country_alpha2(raw_country_code: str | None) -> str:
     normalized = GlobalGeoCatalog.normalize_country_code(raw_country_code)
     alpha2 = GlobalGeoCatalog.alpha2_for_country(normalized or raw_country_code)

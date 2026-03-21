@@ -47,6 +47,7 @@ This keeps "any new command gets ledger entry + tests" as a repeatable process.
 ## 4a. Key commands (reference)
 
 - **platform_inventory** (platform_runtime): Lists apps, blueprints, workflows, dashboards, policies; `--format json` for scripted use (e.g. [MARKETPLACE_SEED_TARGETS.md](MARKETPLACE_SEED_TARGETS.md) §2; optional `scripts/refresh_marketplace_seed_targets.py`).
+- **validate_marketing_urls** (schools): Pre-release marketing gate — resolves key marketing URL names, runs Django `check`, and validates **all** `config/marketing_content/*.json` (valid JSON, non-empty `label` / `seo_title` / `headline`, sane `segments` / `extras` types), including regional files such as `compare_eu.json`. Runtime file choice uses `MARKETING_CONTENT_REGION` / `MARKETING_CONTENT_VARIANT` (see [MARKETING_REGIONAL_JSON.md](MARKETING_REGIONAL_JSON.md)). Optional `--smoke` GETs a subset on the canonical base host. See [MARKETING_EXECUTION.md](MARKETING_EXECUTION.md) and [MARKETING_NON_NEGOTIABLES.md](MARKETING_NON_NEGOTIABLES.md); operational keep.
 - **backfill_runtime_defaults** (platform_runtime): Syncs SiteSettings singleton to RuntimeDefaults; allowlisted get_solo per [SITESETTINGS_GET_SOLO_ALLOWLIST.md](SITESETTINGS_GET_SOLO_ALLOWLIST.md); operational keep.
 - **tenant_health_check**, **verify_onboarding_setup**, **db_liveness**: Health/verification; keep. See §3 for when-adding (ledger + tests + docstring).
 

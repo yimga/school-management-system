@@ -44,6 +44,64 @@
           </div>
         </div>
       </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 page-family-content-card">
+          <div class="card-body">
+            <div class="text-muted small">Run exceptions (open)</div>
+            <div class="fs-3 fw-semibold text-warning">{{ summary.exception_runs_open }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 page-family-content-card">
+          <div class="card-body">
+            <div class="text-muted small">Quarantine (pending)</div>
+            <div class="fs-3 fw-semibold text-danger">{{ summary.quarantine_pending }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0 page-family-content-card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Exception queue</h5>
+        <p class="text-muted small">Runs with row errors (PARTIAL/FAILED) require acknowledgement. Quarantined rows can be waived after review.</p>
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <h6 class="fw-semibold">Run-level exceptions</h6>
+            {% for run in exception_runs_open %}
+            <div class="border rounded p-3 mb-2">
+              <div class="fw-semibold">{{ run.migration_type }} — {{ run.school.name|default:"—" }}</div>
+              <div class="small text-muted">{{ run.started_at|date:"Y-m-d H:i" }} | errors: {{ run.error_count }} | {{ run.status }}</div>
+              {% if run.error_message %}<div class="small mt-1">{{ run.error_message|truncatechars:200 }}</div>{% endif %}
+              <form method="post" action="{% url 'super:migration_exception_ack' run.id %}" class="mt-2">
+                {% csrf_token %}
+                <input type="text" name="note" class="form-control form-control-sm mb-1" placeholder="Acknowledgement note (optional)" maxlength="2000">
+                <button type="submit" class="btn btn-sm btn-outline-primary">Acknowledge &amp; close</button>
+              </form>
+            </div>
+            {% empty %}
+            <div class="text-muted small">No open run-level exceptions.</div>
+            {% endfor %}
+          </div>
+          <div class="col-lg-6">
+            <h6 class="fw-semibold">Quarantine rows</h6>
+            {% for rec in quarantine_open %}
+            <div class="border rounded p-3 mb-2">
+              <div class="fw-semibold">{{ rec.domain }} row {{ rec.row_index }} — {{ rec.issue_class }}</div>
+              <div class="small text-muted">{{ rec.school.name|default:"—" }} | {{ rec.created_at|date:"Y-m-d H:i" }}</div>
+              <form method="post" action="{% url 'super:migration_quarantine_waive' rec.id %}" class="mt-2">
+                {% csrf_token %}
+                <input type="text" name="note" class="form-control form-control-sm mb-1" placeholder="Waive reason (optional)" maxlength="1000">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Waive row</button>
+              </form>
+            </div>
+            {% empty %}
+            <div class="text-muted small">No pending quarantine rows.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="row g-4">
@@ -126,15 +184,19 @@
           <div class="card-body">
             <h5 class="card-title">Recent migration runs</h5>
             <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
+              <table class="table table-sm align-middle mb-0" aria-label="Recent cloud migration runs">
                 <thead>
                   <tr>
-                    <th>Started</th>
-                    <th>School</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Parity</th>
-                    <th>Triggered by</th>
+                    <th scope="col">Started</th>
+                    <th scope="col">School</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="text-end">Rows</th>
+                    <th scope="col" class="text-end">Created</th>
+                    <th scope="col" class="text-end">Updated</th>
+                    <th scope="col" class="text-end">Errors</th>
+                    <th scope="col">Parity</th>
+                    <th scope="col">Triggered by</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -142,8 +204,12 @@
                   <tr>
                     <td>{{ run.started_at|date:"Y-m-d H:i" }}</td>
                     <td>{{ run.school.name|default:"-" }}</td>
-                    <td>{{ run.migration_type }}</td>
+                    <td>{{ run.migration_type }}{% if run.dry_run %} <span class="badge bg-secondary">dry</span>{% endif %}</td>
                     <td>{{ run.status }}</td>
+                    <td class="text-end">{{ run.row_count }}</td>
+                    <td class="text-end text-success">{{ run.created_count }}</td>
+                    <td class="text-end text-primary">{{ run.updated_count }}</td>
+                    <td class="text-end {% if run.error_count %}text-danger fw-semibold{% endif %}">{{ run.error_count }}</td>
                     <td>
                       {% if run.parity.match %}
                       <span class="table-status-chip table-status-chip--success">{{ run.parity.total_processed }}/{{ run.parity.source_rows }}</span>
@@ -155,7 +221,7 @@
                   </tr>
                   {% empty %}
                   <tr>
-                    <td colspan="6" class="p-0">
+                    <td colspan="10" class="p-0">
                       <div class="py-3 px-2">
                         {% load i18n %}
                         {% url 'super:super_migration_cloud' as cloud_url %}

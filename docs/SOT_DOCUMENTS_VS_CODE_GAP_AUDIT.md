@@ -40,7 +40,7 @@
 
 | Document (section) | What the doc says | Why "not coded" / gap |
 |--------------------|-------------------|------------------------|
-| **PATH_TO_100** III.5 (§6.2 platform_runtime) | **Add runtime tracing** (e.g. span/context for resolver resolution). | No code found for "runtime tracing" or "span/context" in `apps/platform_runtime`. |
+| **PATH_TO_100** III.5 (§6.2 platform_runtime) | **Add runtime tracing** (e.g. span/context for resolver resolution). | **Partial:** request-scoped `runtime_trace_id` on `get_effective_site_settings` and `build_tenant_runtime`; included in structured log context. OpenTelemetry-style spans not present. |
 | **PATH_TO_100** III.18 (§6.8 plans_entitlements) | **Why-enabled UI:** Expose "why this entitlement" in runtime inspector or control UI. | No code found for "why_enabled", "why entitlement", or equivalent in runtime inspector or control UI. |
 | **PATH_TO_100** III.26–III.29 (§6.11 policies) | Policy **diff engine**, **impact preview**, **sandbox apply** (policy bundle), **dependency graph** for policies. | Policy **diff** exists (`super_policy_diff` view + template). Impact preview, sandbox apply for policy bundle, and policy dependency graph are not verified in code (would need targeted search per item). |
 | **PATH_TO_100** III.67 (§6.23 observability) | **Request/runtime/workflow/package/migration tracing**. | No unified tracing implementation found across request/runtime/workflow/package/migration. |
@@ -80,10 +80,10 @@
 
 | Area | In doc | In code | Gap |
 |------|--------|--------|-----|
-| Pinned product frame **per chapter** + chapter-driven visual updates | Yes (scroll directive; CONTROL_PLANE §4; ADMIN_SUPER §2) | No (one pinned section + progress/reveal only) | **Yes** |
-| One shell for Studio/Theme on manager host | Yes (CONTROL_PLANE §0, §2; SOT §8.0.2) | No (Studio/Theme use portal_base) | **Yes** |
+| Pinned product frame **per chapter** + chapter-driven visual updates | Yes (scroll directive; CONTROL_PLANE §4; ADMIN_SUPER §2) | **Yes** (`marketing-product-scroll.js` + `#mkt-product-pinned-frame` / `data-chapter` panels) | **No** (verify on `/product/` if regressions) |
+| One shell for Studio/Theme on manager host | Yes (CONTROL_PLANE §0, §2; SOT §8.0.2) | **Partial:** `use_control_plane_shell` → **`studio_os/shell_control_plane.html`** for manager host; Theme & Experience paths may still use portal shell — verify per URL | **Partial** |
 | Signature/replay for SCIM/LTI (manual_review_required) | Yes (PATH_TO_100 II.1; public_endpoint_audit) | Deferred (rate + audit done) | **Yes** (by design) |
-| Runtime tracing (resolver span/context) | Yes (PATH_TO_100 III.5) | No | **Yes** |
+| Runtime tracing (resolver span/context) | Yes (PATH_TO_100 III.5) | **Partial:** `set_runtime_trace_context` on `get_effective_site_settings` + `build_tenant_runtime` (incl. cache hit); `runtime_trace_id` in `request_context_for_log` (`apps/platform_runtime/tracing.py`, `helpers.py`, `structured_logging.py`; tests `test_runtime_contract`, `test_structured_logging`) | **Partial** (OpenTelemetry spans / distributed trace not wired) |
 | Why-enabled entitlement UI | Yes (PATH_TO_100 III.18) | No | **Yes** |
 | Policy impact preview / sandbox apply / dependency graph | Yes (PATH_TO_100 III.27–29) | Policy diff only | **Partial** |
 | Request/runtime/workflow/package tracing | Yes (PATH_TO_100 III.67) | No | **Yes** |

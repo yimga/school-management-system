@@ -114,12 +114,20 @@
   </section>
   {% endif %}
 
-  {% if admin_index_url %}
+  {% if platform_operator_hub_url or admin_index_url %}
   <footer class="pt-3 mt-3 border-top border-secondary">
+    {% if platform_operator_hub_url %}
+    <p class="small text-white-50 mb-1">
+      {% trans "Platform operations & model registry:" %}
+      <a href="{{ platform_operator_hub_url }}" class="text-white-50 text-decoration-underline">{% trans "Open platform operator hub" %}</a>
+    </p>
+    {% endif %}
+    {% if admin_index_url %}
     <p class="small text-white-50 mb-0">
       {% trans "Raw model CRUD (Django admin):" %}
       <a href="{{ admin_index_url }}" class="text-white-50 text-decoration-underline">{% trans "Open in backoffice" %}</a>
     </p>
+    {% endif %}
   </footer>
   {% endif %}
 </div>

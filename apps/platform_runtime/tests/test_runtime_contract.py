@@ -162,6 +162,10 @@ class TenantRuntimeContractTests(TestCase):
             host="runtime-contract-school.runmycampus.com",
         )
         runtime = build_tenant_runtime(tenant_ctx, request=request)
+        from apps.platform_runtime.tracing import get_runtime_trace_id
+
+        self.assertIsNotNone(get_runtime_trace_id(request))
+        self.assertEqual(len(get_runtime_trace_id(request) or ""), 16)
         self.assertIsNotNone(runtime._school)
         self.assertEqual(runtime.tenant.slug, "runtime-contract-school")
         self.assertIsNotNone(runtime.policy_typed)

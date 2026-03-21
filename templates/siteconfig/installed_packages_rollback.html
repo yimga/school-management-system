@@ -1,0 +1,145 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Package rollback" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Installed metadata packages" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <p class="text-muted small mb-3">
+    {% trans "Rollback deactivates a package install, writes PackageChangeLog + platform event (package_rolled_back), same keyword pattern as learning wedge rollback. Blueprint marketplace reversions are separate (control plane)." %}
+    <a href="{{ modules_url }}">{% trans "Module Market" %}</a>
+    — {% trans "Dependency / impact JSON (staff):" %} <code>{{ package_impact_api_path }}?package_id=&amp;school_id={{ school.pk }}</code>
+  </p>
+  {% if messages %}
+  <div class="mb-3">{% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}</div>
+  {% endif %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header">{% trans "Active installs" %}</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>{% trans "Package" %}</th><th>{% trans "Version" %}</th><th>{% trans "Type" %}</th><th>{% trans "Dependencies (snapshot)" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Graph" %}</th><th></th></tr></thead>
+          <tbody>
+            {% for p in active_packages %}
+            <tr>
+              <td><code>{{ p.package_id }}</code></td>
+              <td>{{ p.version }}</td>
+              <td>{{ p.get_package_type_display }}</td>
+              <td class="small text-muted">{% if p.dependency_snapshot %}{% for item in p.dependency_snapshot %}{% if not forloop.first %}, {% endif %}{{ item }}{% endfor %}{% else %}—{% endif %}</td>
+              <td>{{ p.applied_at|date:"Y-m-d H:i" }}</td>
+              <td class="align-top">
+                <details class="small">
+                  <summary class="text-nowrap">{% trans "Interactive" %}</summary>
+                  <div class="rmc-rollback-graph-mount border rounded bg-white mt-2 p-1" style="min-height:180px;" data-loaded="0" data-package-id="{{ p.package_id|escape }}"></div>
+                </details>
+              </td>
+              <td>
+                <form method="post" class="d-inline" onsubmit="return confirm('{% trans "Rollback this package install?" %}');">
+                  {% csrf_token %}
+                  <input type="hidden" name="installed_id" value="{{ p.pk }}">
+                  <label class="small me-1">{% trans "Type" %} <code>ROLLBACK</code></label>
+                  <input type="text" name="confirm_rollback" class="form-control form-control-sm d-inline-block" style="width:7rem;" placeholder="ROLLBACK" autocomplete="off">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Rollback" %}</button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-muted p-3">{% trans "No active metadata package installs for this school." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% if activity_display %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span>{% trans "Package activity (apply / rollback / promote)" %}</span>
+      <span class="badge bg-secondary">{{ activity_display|length }} {% trans "rows" %}</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 small">
+          <thead>
+            <tr>
+              <th>{% trans "When" %}</th>
+              <th>{% trans "Action" %}</th>
+              <th>{% trans "Package" %}</th>
+              <th>{% trans "Version" %}</th>
+              <th>{% trans "Mode" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Actor" %}</th>
+              <th>{% trans "Token" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in activity_display %}
+            {% with row=item.log %}
+            <tr class="{% if row.action == 'rollback' %}table-danger{% elif row.action == 'apply' %}table-light{% endif %}">
+              <td class="text-nowrap">{{ row.created_at|date:"Y-m-d H:i:s" }}</td>
+              <td><span class="badge bg-{% if row.action == 'rollback' %}danger{% elif row.action == 'promote' %}info{% else %}primary{% endif %}">{{ row.get_action_display }}</span></td>
+              <td><code>{{ row.package_id }}</code></td>
+              <td>{{ row.version }}</td>
+              <td>{{ row.get_mode_display }}</td>
+              <td>{{ row.get_reconciliation_status_display }}</td>
+              <td>{{ item.actor_label }}</td>
+              <td class="text-truncate" style="max-width:8rem;" title="{{ row.rollback_token }}">{% if row.rollback_token %}<code>{{ row.rollback_token|truncatechars:12 }}</code>{% else %}—{% endif %}</td>
+            </tr>
+            {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="text-muted small mb-0 p-2">{% trans "Impact summaries and dependency snapshots are stored on each log row for support and lineage tools." %}</p>
+    </div>
+  </div>
+  {% endif %}
+  {% if rollback_history %}
+  <div class="card shadow-sm">
+    <div class="card-header">{% trans "Recent rollbacks (quick list)" %}</div>
+    <ul class="list-group list-group-flush small">
+      {% for h in rollback_history %}
+      <li class="list-group-item">{{ h.created_at|date:"Y-m-d H:i" }} — <code>{{ h.package_id }}</code>@{{ h.version }} — {{ h.get_reconciliation_status_display }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/package-dependency-graph.js' %}"></script>
+<script>
+(function () {
+  var base = "{{ package_impact_fetch_url|escapejs }}";
+  var schoolId = "{{ school.pk }}";
+  document.querySelectorAll(".rmc-rollback-graph-mount").forEach(function (mount) {
+    var details = mount.closest("details");
+    if (!details) return;
+    details.addEventListener("toggle", function () {
+      if (!details.open || mount.getAttribute("data-loaded") === "1") return;
+      mount.setAttribute("data-loaded", "1");
+      var pid = mount.getAttribute("data-package-id") || "";
+      var sep = base.indexOf("?") >= 0 ? "&" : "?";
+      var url = base + sep + "package_id=" + encodeURIComponent(pid) + "&school_id=" + encodeURIComponent(schoolId);
+      fetch(url, { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var dg = j.dependency_graph || {};
+          if (window.RmcPackageDependencyGraph) {
+            window.RmcPackageDependencyGraph.render(mount, {
+              center_id: pid,
+              upstream_package_ids: dg.upstream_package_ids || [],
+              downstream_package_ids: dg.downstream_package_ids || [],
+            });
+          }
+        })
+        .catch(function () {
+          mount.innerHTML = "<p class=\"text-danger small p-2 mb-0\">{% trans 'Could not load graph.' %}</p>";
+        });
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -184,6 +184,12 @@ class MigrationRun(models.Model):
         PARTIAL = "PARTIAL", "Partial"
         FAILED = "FAILED", "Failed"
 
+    class ExceptionAck(models.TextChoices):
+        """Operator exception queue: runs with errors need review until closed."""
+        NA = "NA", "N/A"
+        OPEN = "OPEN", "Open"
+        CLOSED = "CLOSED", "Closed"
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -231,12 +237,28 @@ class MigrationRun(models.Model):
         related_name="rollback_of_run",
         help_text="When set, this run reverted the migration recorded by the linked run.",
     )
+    exception_ack_status = models.CharField(
+        max_length=16,
+        choices=ExceptionAck.choices,
+        default=ExceptionAck.NA,
+        db_index=True,
+    )
+    exception_ack_at = models.DateTimeField(null=True, blank=True)
+    exception_ack_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="migration_exception_acks",
+    )
+    exception_ack_note = models.TextField(blank=True)
 
     class Meta:
         ordering = ["-started_at"]
         indexes = [
             models.Index(fields=["migration_type", "-started_at"]),
             models.Index(fields=["school", "-started_at"]),
+            models.Index(fields=["exception_ack_status", "-started_at"]),
         ]
 
     def __str__(self):

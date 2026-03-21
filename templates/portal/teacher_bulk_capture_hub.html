@@ -1,0 +1,28 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Bulk capture" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-3 mb-5 pb-5" data-page-archetype="bulk-capture" data-ux-qa-marker="teacher-bulk-capture-hub" style="touch-action: manipulation;">
+  <h1 class="h4 mb-2">{% trans "Bulk capture" %}</h1>
+  <p class="text-muted small mb-4">{% trans "Optimized for phone and tablet: large tap targets, one save per class. Offline marks sync via the mobile app when Offline Mode is enabled." %}</p>
+  <div class="row g-3">
+    {% for c in cards %}
+    <div class="col-12 col-md-6">
+      <a href="{{ c.url }}" class="text-decoration-none d-block">
+        <div class="card h-100 shadow-sm border-{% if c.primary %}primary{% else %}secondary{% endif %}">
+          <div class="card-body d-flex flex-column align-items-start p-4 min-touch-target">
+            <span class="display-6 mb-2" aria-hidden="true"><i class="bi {{ c.icon }}"></i></span>
+            <h2 class="h5 text-dark">{{ c.title }}</h2>
+            <p class="text-muted small mb-3 flex-grow-1">{{ c.description }}</p>
+            <span class="btn btn-{% if c.primary %}primary{% else %}outline-secondary{% endif %} btn-lg w-100 min-touch-target py-3">{% trans "Open" %}</span>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% if offline_sync_note %}
+  <p class="small text-secondary mt-4 border-top pt-3">{% trans "Tip: Add this page to your home screen for faster access on devices without a keyboard." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

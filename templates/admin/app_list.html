@@ -31,6 +31,12 @@
           <span class="admin-sidebar-link-text">{% trans "Control plane" %}</span>
         </a>
       </li>
+      <li>
+        <a href="{% url 'super:platform_operator_hub' %}" class="admin-sidebar-link {% if '/super/platform-operator-hub' in request.path %}active{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+          <span class="admin-sidebar-link-text">{% trans "Platform operator hub" %}</span>
+        </a>
+      </li>
       {% else %}
       <li>
         <a href="{% url 'accounts:backend_dashboard' %}" class="admin-sidebar-link {% if '/authentication/backend' in request.path %}active{% endif %}" aria-current="{% if '/authentication/backend' in request.path %}page{% endif %}">

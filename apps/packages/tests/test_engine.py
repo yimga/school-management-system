@@ -257,3 +257,56 @@ class PackageEngineTenantIsolationTests(TestCase):
             ).count(),
             0,
         )
+
+
+class PackageDependencyGraphTests(TestCase):
+    def test_list_reverse_dependent_package_ids(self):
+        from apps.packages.engine import list_reverse_dependent_package_ids
+        from apps.packages.models import PackageVersion
+
+        PackageVersion.objects.create(
+            package_id="parent-pkg",
+            version="1.0.0",
+            dependencies=[],
+            payload_sections={"theme": {}},
+        )
+        PackageVersion.objects.create(
+            package_id="child-pkg",
+            version="1.0.0",
+            dependencies=["parent-pkg"],
+            payload_sections={"theme": {}},
+        )
+        rev = list_reverse_dependent_package_ids("parent-pkg")
+        self.assertIn("child-pkg", rev)
+        self.assertNotIn("parent-pkg", rev)
+
+    def test_metadata_apply_preview_bundle_includes_graph(self):
+        from apps.packages.engine import metadata_apply_preview_bundle
+        from apps.schools.models import School
+
+        school = School.objects.create(
+            name="Prev School",
+            slug="prev-school",
+            subdomain="prev-school",
+            is_active=True,
+        )
+        PackageVersion.objects.create(
+            package_id="tmpl-a",
+            version="1.0.0",
+            dependencies=["base-theme"],
+            payload_sections={"theme": {"name": "A"}},
+        )
+        PackageVersion.objects.create(
+            package_id="other",
+            version="1.0.0",
+            dependencies=["tmpl-a"],
+            payload_sections={"theme": {}},
+        )
+        bundle = metadata_apply_preview_bundle(
+            school.pk, "tmpl-a", "1.0.0", {"theme": {"name": "A"}}
+        )
+        self.assertEqual(bundle["package_id"], "tmpl-a")
+        self.assertIn("base-theme", bundle["dependency_graph"]["upstream_package_ids"])
+        self.assertIn("other", bundle["dependency_graph"]["downstream_package_ids"])
+        self.assertIsNotNone(bundle.get("preview"))
+        self.assertTrue(bundle.get("has_registered_version"))

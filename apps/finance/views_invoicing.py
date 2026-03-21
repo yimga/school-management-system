@@ -802,7 +802,8 @@ def invoice_receipt(
         "accent_color": getattr(school_obj, "accent_color", None) or "#198754",
         "logo_url": getattr(school_obj, "logo_url", None) or "",
     }
-    html = render_to_string("finance/receipt.html", context)
+    # Pass request so i18n / LANGUAGE_CODE and other context processors apply (N3 print receipt).
+    html = render_to_string("finance/receipt.html", context, request=request)
     pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="receipt-{payment.id}.pdf"'

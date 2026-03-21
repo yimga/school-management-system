@@ -30,7 +30,7 @@
 | 18 | Legacy data cleaner + legacy view | `apps/accounts/views.py`: `legacy_data_cleaner_view`, `migration_legacy_view`; `legacy_data_cleaner.py`; URLs in `accounts/urls.py` |
 | 19 | Control plane SLO dashboard | `apps/observability/views.py`: `api_operational_slo_dashboard` (format=html); `apps/schools/super_views.py`: health hub link to SLO dashboard; `config/urls.py`, `manager_urls.py`, `tenant_urls.py`: route |
 | 20 | Support queue assignment | `GlobalSupportTicket.assigned_to` (migration 0141); `apps/schools/super_views.py`: `support_assign_ticket`; `super_urls.py`: `support_assign_ticket`; fragment template |
-| 21 | Support queue SLA | `apps/siteconfig/support_sla.py`: `SUPPORT_SLA_*`, `ticket_response_breach`, `ticket_resolution_breach`; `apps/schools/super_views.py`: `_annotate_tickets_sla`, dashboard + fragment pass SLA; `templates/schools/super_support_queue_fragment.html`: SLA column; `super_support_dashboard.html`: SLA alert |
+| 21 | Support queue SLA | `apps/siteconfig/support_sla.py`: `SUPPORT_SLA_*`, `ticket_response_breach`, `ticket_resolution_breach`; `apps/schools/super_views_support.py`: `_annotate_tickets_sla`, dashboard + fragment pass SLA (re-exported via `super_views`); `templates/schools/super_support_queue_fragment.html`: SLA column; `super_support_dashboard.html`: SLA alert |
 | 22 | Test matrix by blueprint family | `test_matrix_by_blueprint.md`; `apps/platform_runtime/tests/test_runtime_by_blueprint_family.py` |
 | 23 | Control-plane access/roles | `docs/architecture/control_plane_access_and_roles.md`; `require_super_access` in super views |
 | 24 | Sweep A/B/C | `scripts/run_sweep_ab.py` |

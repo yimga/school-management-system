@@ -1,0 +1,27 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Operations" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Operations hub" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <p class="text-muted mb-3">{% trans "First-party ops modules (Wave 4). Enable each module in Module Market if a card shows inactive." %}</p>
+  <div class="row g-3">
+    {% for c in cards %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h2 class="h6">{{ c.label }}</h2>
+          {% if c.enabled %}
+          <span class="badge bg-success mb-2">{% trans "Active" %}</span>
+          <a href="{{ c.url }}" class="btn btn-primary btn-sm d-block">{% trans "Open" %}</a>
+          {% else %}
+          <span class="badge bg-secondary mb-2">{% trans "Inactive" %}</span>
+          <a href="{{ module_market_url }}" class="btn btn-outline-secondary btn-sm d-block">{% trans "Enable in Module Market" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

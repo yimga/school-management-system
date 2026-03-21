@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load region_format %}
+{% load static %}
 {% block title %}Finance Access Requests{% endblock %}
 
 {% block content %}
@@ -10,7 +11,7 @@
   <div class="badge bg-warning text-dark">Unread {{ unread_count }}</div>
 </div>
 
-<form method="post">
+<form method="post" id="finance-requests-inbox-form" data-draft-key="finance_requests_inbox_{{ request.user.id }}" data-draft-max-age-hours="24">
   {% csrf_token %}
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
     <div class="btn-group" role="group" aria-label="Finance inbox view">
@@ -133,4 +134,14 @@
   </div>
 {% endif %}
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  var f = document.getElementById('finance-requests-inbox-form');
+  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
+})();
+</script>
 {% endblock %}

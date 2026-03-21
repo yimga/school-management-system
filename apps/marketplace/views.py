@@ -1,4 +1,5 @@
 import logging
+import time
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -31,6 +32,7 @@ from apps.marketplace.services import (
     uninstall_app,
 )
 from apps.platform_runtime.catalog_counts import get_platform_catalog_counts
+from apps.platform_runtime.events import emit_platform_event
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +309,13 @@ def blueprint_marketplace(request):
         action = (request.POST.get("action") or "apply").strip().lower()
         school_id = request.POST.get("school_id") or request.POST.get("school")
         if action == "rollback":
+            ack = (request.POST.get("confirm_blueprint_rollback") or "").strip()
+            if ack != "ROLLBACK":
+                messages.error(
+                    request,
+                    "Type ROLLBACK in the confirmation field to acknowledge blueprint impact.",
+                )
+                return redirect("super:blueprint_marketplace")
             bundle_id = request.POST.get("bundle_id", "").strip()
             if not school_id:
                 messages.error(request, "Select a school to revert.")
@@ -328,9 +337,20 @@ def blueprint_marketplace(request):
                         request, "Selected bundle does not belong to this school."
                     )
                     return redirect("super:blueprint_marketplace")
+            previous_bundle_id = tb.active_bundle_id
             tb.active_bundle_id = new_bundle_id
             tb.save(update_fields=["active_bundle", "updated_at"])
             invalidate_policy_cache(school)
+            emit_platform_event(
+                "blueprint_rolled_back",
+                {
+                    "school_id": str(school.pk),
+                    "previous_bundle_id": previous_bundle_id,
+                    "new_bundle_id": new_bundle_id,
+                    "actor_id": getattr(request.user, "pk", None),
+                },
+                tenant_id=str(school.pk),
+            )
             if new_bundle_id:
                 messages.success(
                     request, f"“{school.name}” reverted to selected bundle."
@@ -351,12 +371,17 @@ def blueprint_marketplace(request):
             try:
                 preview = preview_blueprint_pack(school, pack)
                 request.session["blueprint_preview"] = preview
+                request.session["blueprint_apply_allowed"] = {
+                    "pack_id": int(pack.pk),
+                    "school_id": int(school.pk),
+                    "ts": time.time(),
+                }
             except _MARKETPLACE_PREVIEW_FAILURES as e:
                 logger.warning("Blueprint pack preview failed: %s", e, exc_info=True)
                 messages.error(request, str(e))
             return redirect("super:blueprint_marketplace")
 
-        # apply
+        # apply (N17: preview required for same pack+school within 15 minutes)
         pack_id = request.POST.get("pack_id") or request.POST.get("pack")
         if not pack_id or not school_id:
             messages.error(request, "Select a blueprint pack and a school.")
@@ -364,10 +389,29 @@ def blueprint_marketplace(request):
         pack = get_object_or_404(BlueprintPack, pk=pack_id, is_active=True)
         school = get_object_or_404(School, pk=school_id, is_active=True)
         try:
+            pack_i, school_i = int(pack.pk), int(school.pk)
+        except (TypeError, ValueError):
+            messages.error(request, "Invalid pack or school.")
+            return redirect("super:blueprint_marketplace")
+        allowed = request.session.get("blueprint_apply_allowed") or {}
+        ts = float(allowed.get("ts") or 0)
+        if (
+            allowed.get("pack_id") != pack_i
+            or allowed.get("school_id") != school_i
+            or (time.time() - ts) > 900
+        ):
+            messages.error(
+                request,
+                "Preview this blueprint pack for the selected school before applying "
+                "(policy keys and impact). Use Preview, then Apply within 15 minutes.",
+            )
+            return redirect("super:blueprint_marketplace")
+        try:
             apply_blueprint_pack(school, pack, applied_by=request.user)
             messages.success(
                 request, f"Blueprint “{pack.name}” applied to “{school.name}”."
             )
+            request.session.pop("blueprint_apply_allowed", None)
         except ValueError as e:
             messages.error(request, str(e))
         return redirect("super:blueprint_marketplace")
@@ -444,6 +488,13 @@ def app_catalog(request):
         school_id = request.POST.get("school_id") or request.POST.get("school")
         if not app_id or not school_id:
             messages.error(request, "Select an app and a school.")
+            return redirect("super:app_catalog")
+        if request.POST.get("install_after_impact_preview") != "1":
+            messages.error(
+                request,
+                "Open “Preview impact”, review scopes and compatibility, then confirm "
+                "install from that dialog (N17).",
+            )
             return redirect("super:app_catalog")
         app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
         school = get_object_or_404(School, pk=school_id, is_active=True)
@@ -890,6 +941,12 @@ def tenant_install_app(request):
     app_id = request.POST.get("app_id") or request.POST.get("app")
     if not app_id:
         messages.error(request, "Select an app.")
+        return redirect("tenant_app_catalog")
+    if request.POST.get("install_after_impact_preview") != "1":
+        messages.error(
+            request,
+            "Use “Review impact & install” and confirm from the impact preview dialog (N17).",
+        )
         return redirect("tenant_app_catalog")
     app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
     try:

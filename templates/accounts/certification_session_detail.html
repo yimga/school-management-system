@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static region_format %}
+{% load i18n static region_format %}
 
 {% block title %}Exam Session{% endblock %}
 
@@ -86,17 +86,17 @@
 
       {% if candidates %}
       <div class="table-responsive">
-        <table class="table table-sm align-middle">
+        <table class="table table-sm align-middle" aria-label="{% trans 'Certification session candidates' %}">
           <thead>
             <tr>
-              <th>Student</th>
-              <th>Classroom</th>
-              <th>Specialty</th>
-              <th>UID (matricule)</th>
-              <th>Official CIN</th>
-              <th>MTN Txn ID</th>
-              <th class="text-end">Paid (FCFA)</th>
-              <th>Status</th>
+              <th scope="col">{% trans "Student" %}</th>
+              <th scope="col">{% trans "Classroom" %}</th>
+              <th scope="col">{% trans "Specialty" %}</th>
+              <th scope="col">{% trans "UID (matricule)" %}</th>
+              <th scope="col">{% trans "Official CIN" %}</th>
+              <th scope="col">{% trans "MTN Txn ID" %}</th>
+              <th scope="col" class="text-end">{% trans "Paid (FCFA)" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
             </tr>
           </thead>
           <tbody>

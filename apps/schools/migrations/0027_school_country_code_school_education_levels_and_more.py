@@ -40,9 +40,13 @@ def add_fields_if_missing(apps, schema_editor):
             )
             return cursor.fetchone() is not None
         if connection.vendor == "sqlite":
+            # Do not use "?" placeholders here: with DEBUG SQL logging, Django's
+            # sqlite last_executed_query does sql % params and breaks on "?".
+            if not table_name.replace("_", "").isalnum():
+                raise ValueError(f"unsafe table name for sqlite check: {table_name!r}")
             cursor.execute(
-                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
-                [table_name],
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = '%s'"
+                % table_name.replace("'", "")
             )
             return cursor.fetchone() is not None
         return table_name in connection.introspection.table_names(cursor)

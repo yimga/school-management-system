@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Experience packs" %} · {% trans "Experience" %}{% endblock %}
 
@@ -10,6 +10,13 @@
     <p class="mb-2">{% trans "Experience packs bundle theme, layout, dashboard visual, and communication style into a single packageable unit. Assign an experience pack per school; use Compare and rollback from Experience Studio to preview and revert changes." %}</p>
     {% if effective_pack %}
     <p class="mb-2">{% blocktrans with name=effective_pack.name code=effective_pack.code %}Current pack for this school: <strong>{{ name }}</strong> ({{ code }}).{% endblocktrans %}</p>
+    {% if school and experience_graph_package_id and package_impact_fetch_url %}
+    <details class="small mb-3" id="rmc-studio-exp-graph-details">
+      <summary>{% trans "Interactive dependency graph (installed pack id)" %}</summary>
+      <p class="text-muted mt-2 mb-1">{% trans "Pan by dragging; zoom with the mouse wheel." %}</p>
+      <div id="rmc-studio-exp-graph-mount" class="border rounded bg-white" style="min-height:200px;" data-loaded="0"></div>
+    </details>
+    {% endif %}
     {% endif %}
     {% if pack_count is not None and pack_count > 0 %}
     <p class="mb-2">{% blocktrans count counter=pack_count %}There is {{ counter }} active experience pack.{% plural %}There are {{ counter }} active experience packs.{% endblocktrans %}</p>
@@ -22,4 +29,39 @@
     {% endif %}
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+{{ block.super }}
+{% if school and experience_graph_package_id and package_impact_fetch_url %}
+<script src="{% static 'js/package-dependency-graph.js' %}"></script>
+<script>
+(function () {
+  var details = document.getElementById("rmc-studio-exp-graph-details");
+  var mount = document.getElementById("rmc-studio-exp-graph-mount");
+  if (!details || !mount || !window.RmcPackageDependencyGraph) return;
+  var base = "{{ package_impact_fetch_url|escapejs }}";
+  var pid = "{{ experience_graph_package_id|escapejs }}";
+  var schoolId = "{{ school.pk }}";
+  details.addEventListener("toggle", function () {
+    if (!details.open || mount.getAttribute("data-loaded") === "1") return;
+    mount.setAttribute("data-loaded", "1");
+    var sep = base.indexOf("?") >= 0 ? "&" : "?";
+    var url = base + sep + "package_id=" + encodeURIComponent(pid) + "&school_id=" + encodeURIComponent(schoolId);
+    fetch(url, { credentials: "same-origin", headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var dg = j.dependency_graph || {};
+        window.RmcPackageDependencyGraph.render(mount, {
+          center_id: pid,
+          upstream_package_ids: dg.upstream_package_ids || [],
+          downstream_package_ids: dg.downstream_package_ids || [],
+        });
+      })
+      .catch(function () {
+        mount.innerHTML = "<p class=\"text-danger small p-2 mb-0\">{% trans 'Could not load graph.' %}</p>";
+      });
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,49 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{{ page_title }} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "System config" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ back_url }}">{{ breadcrumb_extra }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-640">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="h6 text-uppercase text-danger mb-1">{% trans "Danger zone" %}</div>
+        <h1 class="h4 mb-1 fw-bold text-white">{{ page_title }}</h1>
+        <p class="text-white mb-0"><strong>{{ object_label }}</strong></p>
+      </div>
+      <a href="{{ back_url }}" class="btn btn-outline-light btn-sm">{% trans "Cancel" %}</a>
+    </div>
+  </header>
+
+  <div class="cp-overview-card border border-danger border-opacity-50 rounded p-4">
+    {% if warning_lines %}
+    <ul class="text-white-50 small mb-4">
+      {% for line in warning_lines %}
+      <li>{{ line }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <p class="text-white mb-4">{% trans "This cannot be undone. Type is not required — confirm only if you are sure." %}</p>
+    <form method="post" action="{{ delete_action_url }}">
+      {% csrf_token %}
+      <input type="hidden" name="confirm" value="yes">
+      <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-danger">{% trans "Yes, delete permanently" %}</button>
+        <a href="{{ back_url }}" class="btn btn-outline-secondary">{% trans "No, go back" %}</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

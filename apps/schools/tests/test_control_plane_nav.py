@@ -17,11 +17,12 @@ class ControlPlaneNavParityTests(SimpleTestCase):
             for it in grp.get("items") or []:
                 all_ids.append(it.get("id"))
         required = {
+            "super_platform_operator_hub",
             "config_console",
             "cp_theme_experience",
             "cp_feature_control",
             "cp_platform_backoffice",
-            "cp_integrations_admin",
+            "cp_integrations_super",
             "cp_report_library",
         }
         missing = required - set(all_ids)

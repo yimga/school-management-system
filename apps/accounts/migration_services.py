@@ -410,6 +410,17 @@ def run_migration_finish(run, result: dict[str, Any]) -> dict[str, Any]:
     if result.get("rollback_snapshot") and run.pk:
         run.rollback_snapshot = result["rollback_snapshot"]
         run.save(update_fields=["rollback_snapshot"])
+    # §0.1.5 exception queue: runs with errors need operator review
+    run.refresh_from_db()
+    ex = MigrationRun.ExceptionAck
+    need_open = run.error_count > 0 or run.status in (
+        MigrationRun.Status.PARTIAL,
+        MigrationRun.Status.FAILED,
+    )
+    new_ex = ex.OPEN if need_open else ex.NA
+    if run.exception_ack_status != new_ex:
+        run.exception_ack_status = new_ex
+        run.save(update_fields=["exception_ack_status"])
     result["status"] = status
     result["migration_run_id"] = run.pk
     result["row_count"] = run.row_count

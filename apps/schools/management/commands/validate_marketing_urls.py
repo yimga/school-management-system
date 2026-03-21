@@ -4,6 +4,7 @@ Validate marketing routes and Django checks for deploy/release.
 Supports the operational checklist in docs/MARKETING_NON_NEGOTIABLES.md:
 - Public routes remain marketing-only on apex host.
 - Marketing pages pass public smoke tests and Django checks.
+- config/marketing_content/*.json parse and include required keys (label, seo_title, headline).
 
 Usage:
 
@@ -13,8 +14,12 @@ Usage:
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.urls import reverse, NoReverseMatch
+from django.urls import NoReverseMatch, reverse
 
 
 class Command(BaseCommand):
@@ -73,6 +78,48 @@ class Command(BaseCommand):
             except NoReverseMatch as e:
                 errors.append(f"URL name {name}: {e}")
                 self.stdout.write(self.style.WARNING(f"  {name} -> NoReverseMatch"))
+
+        # 2b. config/marketing_content/*.json — valid JSON and minimum shape (see marketing_views._load_marketing_page_from_file; regional layers compare_eu.json etc. when MARKETING_CONTENT_REGION is set)
+        self.stdout.write("Validating config/marketing_content/*.json...")
+        mdir = Path(settings.BASE_DIR) / "config" / "marketing_content"
+        required_page_keys = ("label", "seo_title", "headline")
+        if not mdir.is_dir():
+            errors.append(f"marketing_content directory missing: {mdir}")
+        else:
+            for path in sorted(mdir.glob("*.json")):
+                try:
+                    data = json.loads(path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, OSError) as e:
+                    errors.append(f"marketing_content {path.name}: {e}")
+                    self.stdout.write(
+                        self.style.ERROR(f"  {path.name} -> invalid JSON or unreadable")
+                    )
+                    continue
+                if not isinstance(data, dict):
+                    errors.append(
+                        f"marketing_content {path.name}: root must be a JSON object"
+                    )
+                    continue
+                for k in required_page_keys:
+                    if not str(data.get(k, "") or "").strip():
+                        errors.append(
+                            f"marketing_content {path.name}: missing non-empty '{k}'"
+                        )
+                segs = data.get("segments")
+                if segs is not None and not isinstance(segs, list):
+                    errors.append(
+                        f"marketing_content {path.name}: 'segments' must be a list or omitted"
+                    )
+                extras = data.get("extras")
+                if extras is not None and not isinstance(extras, dict):
+                    errors.append(
+                        f"marketing_content {path.name}: 'extras' must be an object or omitted"
+                    )
+                self.stdout.write(f"  {path.name} OK")
+        if mdir.is_dir() and not any(
+            e.startswith("marketing_content") for e in errors
+        ):
+            self.stdout.write(self.style.SUCCESS("  All marketing_content JSON files OK."))
 
         # 3. Smoke test (GET 200). Use canonical base host so host routing accepts the request.
         if run_smoke:

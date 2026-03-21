@@ -45,6 +45,7 @@ from .views import (
     preview_communication_test,
 )
 from .views_parent_finance import parent_finance, parent_wallet, parent_feed
+from .views_bulk_capture import teacher_bulk_capture_hub
 from .views_onboarding import teacher_onboarding_wizard, student_onboarding_wizard
 from .views_support import support_request
 from .views_contact_requests import (
@@ -152,6 +153,11 @@ urlpatterns = [
     path("teacher/", teacher_dashboard_alias, name="teacher_dashboard_alias"),
     path("teacher/workflow/", teacher_workflow_alias, name="teacher_workflow"),
     path("teacher/onboarding/", teacher_onboarding_wizard, name="teacher_onboarding"),
+    path(
+        "teacher/bulk-capture/",
+        teacher_bulk_capture_hub,
+        name="teacher_bulk_capture_hub",
+    ),
     path("teacher/attendance/", teacher_attendance_view, name="teacher_attendance"),
     path(
         "teacher/attendance/export/",

@@ -29,6 +29,7 @@ from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.siteconfig.models import SiteSettings
 from apps.siteconfig.models_support import default_header_weather_config
+from apps.siteconfig.staff_navigation import site_settings_list_url
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +104,8 @@ def _build_admin_weather_config(site: SiteSettings) -> dict[str, Any]:
     }
 
 
-def _build_admin_control_links() -> list[dict[str, Any]]:
+def _build_admin_control_links(request=None) -> list[dict[str, Any]]:
+    site_settings_url = site_settings_list_url(request)
     return [
         {
             "label": "Manage Users",
@@ -113,7 +115,7 @@ def _build_admin_control_links() -> list[dict[str, Any]]:
         {
             "label": "Site Settings",
             "icon": "settings",
-            "url": _safe_reverse("admin:siteconfig_sitesettings_changelist"),
+            "url": site_settings_url,
         },
         {
             "label": "Feature Control",
@@ -160,6 +162,7 @@ def _build_kpi_cards(
     mfa_enabled_count: int,
     mfa_staff_total: int,
     mfa_by_role: list[dict[str, Any]],
+    site_settings_changelist_url: str | None = None,
 ) -> list[dict[str, Any]]:
     by_role_summary = ", ".join(
         [
@@ -191,7 +194,8 @@ def _build_kpi_cards(
     mfa_rows.append(
         {
             "link_label": "Site Settings",
-            "link_url": _safe_reverse("admin:siteconfig_sitesettings_changelist"),
+            "link_url": site_settings_changelist_url
+            or _safe_reverse("admin:siteconfig_sitesettings_changelist"),
             "link_class": "admin-kpi-val admin-kpi-val--small",
         }
     )
@@ -380,6 +384,8 @@ def _query_kpi_cards(query_context: dict[str, Any]) -> dict[str, Any]:
     except _ADMIN_WIDGET_QUERY_ERRORS:
         logger.debug("Failed to compute MFA KPI widget payload.", exc_info=True)
 
+    ss_list = site_settings_list_url(query_context.get("request"))
+
     return {
         "total_users": total_users,
         "admin_count": admin_count,
@@ -405,6 +411,7 @@ def _query_kpi_cards(query_context: dict[str, Any]) -> dict[str, Any]:
             mfa_enabled_count=mfa_enabled_count,
             mfa_staff_total=mfa_staff_total,
             mfa_by_role=mfa_by_role,
+            site_settings_changelist_url=ss_list,
         ),
     }
 
@@ -551,8 +558,12 @@ def _query_settings_audit(_query_context: dict[str, Any]) -> dict[str, Any]:
     return {"settings_change_log": settings_change_log}
 
 
-def _query_admin_controls(_query_context: dict[str, Any]) -> dict[str, Any]:
-    return {"admin_control_links": _build_admin_control_links()}
+def _query_admin_controls(query_context: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "admin_control_links": _build_admin_control_links(
+            query_context.get("request")
+        )
+    }
 
 
 ADMIN_DASHBOARD_WIDGET_REGISTRY: tuple[AdminDashboardWidgetSpec, ...] = (

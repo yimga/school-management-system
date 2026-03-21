@@ -1,0 +1,19 @@
+{
+  "label": "App Marketplace",
+  "seo_title": "RunMyCampus App Marketplace - Extend your campus platform",
+  "seo_description": "Discover apps and blueprints that extend RunMyCampus: integrations, themes, and workflow packs.",
+  "headline": "App marketplace.",
+  "subheadline": "Extend your platform with approved apps, blueprint packs, and integrations—governed and tenant-safe.",
+  "schema_type": "ItemList",
+  "segments": [
+    {"title": "Blueprint packs", "body": "Pre-built policy and workflow bundles for faster setup and best practices."},
+    {"title": "Integrations", "body": "LMS, payments, messaging, and data exchange with versioning and kill switches."},
+    {"title": "Governed rollout", "body": "Review pipeline, permission scopes, and sandbox so only safe extensions reach your tenant."}
+  ],
+  "extras": {
+    "faqs": [
+      {"question": "How are marketplace apps reviewed?", "answer": "Extensions go through a governed review path with permission scopes and operational safeguards before tenant rollout."},
+      {"question": "Can we build our own pack?", "answer": "Yes—use the developer platform and packaging flows documented for partners and internal builders."}
+    ]
+  }
+}

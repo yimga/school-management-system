@@ -204,7 +204,7 @@
 | 73 | Demo "What you'll see" block on book-demo and demo pages; `MARKETING_DEMO_WHAT_YOU_SEE` in settings; Try demo CTA | done |
 | 74 | Product tour CTA (landing hero); `MARKETING_PRODUCT_TOUR_URL` for external tour or internal interactive preview | done |
 | 75 | Newsletter signup form in footer; `MARKETING_NEWSLETTER_FORM_ACTION` for list endpoint or webhook | done |
-| 76 | Sticky CTA bar on scroll (landing); A/B and experimentation (hero_variant, marketing_cta_variant); performance bundle budget and analytics script required when enabled | done |
+| 76 | Sticky CTA bar on scroll (landing); A/B (`hero_variant`, `marketing_cta_variant`, `data-marketing-*` on landing, hero B copy, secondary CTA order); regional JSON via `MARKETING_CONTENT_REGION`; server `/marketing/` budget on marketing PRs (`.github/workflows/marketing-n10-pr.yml`); Lighthouse CI when `LHCI_URL` set; analytics script when enabled | done |
 
 ---
 
@@ -214,7 +214,7 @@
 - [x] Tenant links always point to `<slug>.runmycampus.com`.
 - [x] Manager links always point to `manager.runmycampus.com`.
 - [x] No hardcoded legacy domain references.
-- [x] Marketing pages pass public smoke tests and Django checks (run `python manage.py validate_marketing_urls --smoke`).
+- [x] Marketing pages pass public smoke tests and Django checks (run `python manage.py validate_marketing_urls --smoke`). Same command validates `config/marketing_content/*.json` (parse + required keys).
 
 Items 1–76 are implemented. Use this checklist at deploy/release time to verify host and link correctness.
 
@@ -241,4 +241,4 @@ Items 1–76 are implemented. Use this checklist at deploy/release time to verif
 ## Review cadence
 
 - All 76 items are marked `done`. Use this document for maintenance and new items; add new non-negotiables with a number and status.
-- At deploy/release: run `python manage.py validate_marketing_urls` and `python manage.py validate_marketing_urls --smoke` to verify marketing routes and smoke tests.
+- At deploy/release: run `python manage.py validate_marketing_urls` and `python manage.py validate_marketing_urls --smoke` to verify marketing routes, JSON content files, and smoke tests. Env for demo/hero: `docs/MARKETING_EXECUTION.md` (deploy checklist).

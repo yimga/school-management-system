@@ -478,6 +478,23 @@ def install_app(
         )
     if run_schema_patches:
         run_schema_patches_for_installation(installation)
+    impact_snapshot = {}
+    try:
+        from apps.marketplace.install_impact import build_tenant_install_impact
+
+        _impact = build_tenant_install_impact(school, app)
+        _prv = _impact.get("package_impact_preview")
+        impact_snapshot = {
+            "dependency_graph": _impact.get("dependency_graph"),
+            "compatibility": _impact.get("compatibility"),
+            "package_resolution": _impact.get("package_resolution"),
+            "scopes_count": len(_impact.get("scopes") or []),
+            "package_impact_preview_ok": (
+                _prv.get("ok") if isinstance(_prv, dict) else None
+            ),
+        }
+    except _MARKETPLACE_COMPAT_ERRORS:
+        pass
     AppAuditLog.objects.create(
         installation=installation,
         school=school,
@@ -487,6 +504,7 @@ def install_app(
             "config": installation.config,
             "listing_status": getattr(listing, "status", ""),
             "publisher": getattr(getattr(listing, "publisher", None), "slug", ""),
+            "impact_snapshot": impact_snapshot,
         },
         actor=installed_by,
     )

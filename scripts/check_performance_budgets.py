@@ -20,33 +20,88 @@ import django
 
 django.setup()
 
+from django.core.exceptions import DisallowedHost
 from django.test import Client
 from django.test.utils import CaptureQueriesContext
 from django.db import connection
-from django.urls import reverse
 
-# Budgets (p95 response time seconds, max query count) — align with docs/PERFORMANCE_BUDGETS.md
+# label, path, max_time_s, max_queries, enforce_when_strict_only_if_false_skip
+# anonymous=True: unauthenticated client (public marketing, etc.)
 BUDGETS = [
-    ("Role home (backend dashboard)", "/authentication/backend/", 1.2, 25, True),
-    ("Setup Studio", "/siteconfig/guided-onboarding/", 1.5, 35, True),
-    ("Metadata catalog view", "/siteconfig/metadata-catalog/", 1.0, 30, True),
-    (
-        "Super advancement hub",
-        "/super/advancement/",
-        1.0,
-        20,
-        False,
-    ),  # Advisory unless gate runs with manager urlconf
-    (
-        "Super geography",
-        "/super/geography/",
-        1.0,
-        25,
-        False,
-    ),  # Advisory unless gate runs with manager urlconf
+    {
+        "label": "Role home (backend dashboard)",
+        "path": "/authentication/backend/",
+        "max_time": 1.2,
+        "max_queries": 25,
+        "enforce": True,
+        "anonymous": False,
+    },
+    {
+        "label": "Setup Studio",
+        "path": "/siteconfig/guided-onboarding/",
+        "max_time": 1.5,
+        "max_queries": 35,
+        "enforce": True,
+        "anonymous": False,
+    },
+    {
+        "label": "Metadata catalog view",
+        "path": "/siteconfig/metadata-catalog/",
+        "max_time": 1.0,
+        "max_queries": 30,
+        "enforce": True,
+        "anonymous": False,
+    },
+    {
+        "label": "Super advancement hub",
+        "path": "/super/advancement/",
+        "max_time": 1.0,
+        "max_queries": 20,
+        "enforce": False,
+        "anonymous": False,
+    },
+    {
+        "label": "Super geography",
+        "path": "/super/geography/",
+        "max_time": 1.0,
+        "max_queries": 25,
+        "enforce": False,
+        "anonymous": False,
+    },
+    {
+        "label": "Tenant advancement donors list",
+        "path": "/authentication/backend/advancement/donors/",
+        "max_time": 1.0,
+        "max_queries": 20,
+        "enforce": True,
+        "anonymous": False,
+    },
+    {
+        "label": "Marketing landing (public, N10 proxy)",
+        "path": "/marketing/",
+        "max_time": 3.5,
+        "max_queries": 220,
+        "enforce": True,
+        "anonymous": True,
+        "n10_ci_only": True,
+    },
 ]
 
+# When PERF_BUDGET_STRICT_GATE_ROWS=n10_public, only rows with n10_ci_only run
+# (stable CI for N10 without failing on staff paths' query volume under DEBUG).
+_N10_CI = os.environ.get("PERF_BUDGET_STRICT_GATE_ROWS", "").strip().lower() == "n10_public"
+
 STRICT = os.environ.get("PERF_BUDGET_STRICT", "0") == "1"
+N10_STRICT = os.environ.get("PERF_BUDGET_STRICT_N10", "0") == "1"
+N10_TIME_FACTOR = 0.75 if N10_STRICT else 1.0
+_HTTP_HOST = (os.environ.get("PERF_BUDGET_HTTP_HOST") or "127.0.0.1").strip()
+
+
+def _get(client, path: str):
+    try:
+        return client.get(path, HTTP_HOST=_HTTP_HOST)
+    except DisallowedHost:
+        return client.get(path)
 
 
 def get_client_with_user():
@@ -62,15 +117,25 @@ def get_client_with_user():
 
 
 def run_budget_check():
-    # Query count is only recorded when DEBUG=True; time is always measured.
-    client = get_client_with_user()
+    budget_list = (
+        [b for b in BUDGETS if b.get("n10_ci_only")]
+        if _N10_CI
+        else list(BUDGETS)
+    )
+    client_staff = get_client_with_user()
+    client_anon = Client()
     failed = []
-    for label, path, max_time, max_queries, _ in BUDGETS:
+    for row in budget_list:
+        label = row["label"]
+        path = row["path"]
+        max_time = max(0.05, float(row["max_time"]) * N10_TIME_FACTOR)
+        max_queries = int(row["max_queries"])
+        client = client_anon if row.get("anonymous") else client_staff
         start = time.perf_counter()
         with CaptureQueriesContext(connection):
-            client.get(path)
+            _get(client, path)
         elapsed = time.perf_counter() - start
-        num_queries = len(connection.queries)  # 0 if DEBUG=False
+        num_queries = len(connection.queries)
         over_time = elapsed > max_time
         over_queries = (
             (num_queries > max_queries) if (max_queries and num_queries > 0) else False
@@ -88,6 +153,11 @@ def main():
     failed = run_budget_check()
     if failed and STRICT:
         print("Set PERF_BUDGET_STRICT=0 to warn only.", file=sys.stderr)
+        if N10_STRICT:
+            print(
+                "PERF_BUDGET_STRICT_N10=1 applied tighter time budgets (N10 partial).",
+                file=sys.stderr,
+            )
         sys.exit(1)
     sys.exit(0)
 

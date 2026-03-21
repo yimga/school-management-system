@@ -37,6 +37,22 @@ def is_control_plane_request(request) -> bool:
     return (getattr(request, "public_host_kind", None) or "").lower() == "manager"
 
 
+def user_can_access_studio_on_request(request) -> bool:
+    """
+    Studio OS is mounted on both manager and tenant hosts.
+
+    - **Manager host:** only platform operators (superuser / SUPERADMIN), never generic
+      tenant staff. Aligns Studio with the control-plane contract.
+    - **Tenant host:** standard Django staff gate (school-scoped operational Studio).
+    """
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if (getattr(request, "public_host_kind", None) or "").lower() == "manager":
+        return user_has_control_plane_access(user)
+    return getattr(user, "is_staff", False)
+
+
 def use_control_plane_shell(request) -> bool:
     """
     True when the request should see the control-plane UI (same top bar/sidebar as /super/).

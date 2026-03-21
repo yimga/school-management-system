@@ -55,6 +55,10 @@ MANAGER_AUTH_ALLOWED_PREFIXES = (
 )
 MANAGER_HOST_ALLOWED_PREFIXES = (
     *MANAGER_AUTH_ALLOWED_PREFIXES,
+    # Tenant-primary surface: must be allowlisted here so ReservedPublicHostAccessMiddleware
+    # does not redirect to "/"; ManagerTenantPrimarySurfaceBlockMiddleware then redirects
+    # authenticated users to the control-plane dashboard.
+    "/authentication/backend/",
     "/help/",
     "/support/",
     "/feedback/",

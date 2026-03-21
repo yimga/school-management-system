@@ -7,7 +7,6 @@ from .models import (
     GradingScaleConfig,
     HolidayCalendar,
     Province,
-    RegionConfig,
     SystemFeature,
     TenantSystem,
     WeatherLocation,
@@ -26,8 +25,8 @@ class ProxyOwnerAdmin(admin.ModelAdmin):
         return str(obj)
 
 
+# RegionConfig: platform CRUD is super:regions_list / region_* (not platform /admin/).
 for model in (
-    RegionConfig,
     EducationSystemProfile,
     Province,
     SystemFeature,
@@ -35,7 +34,8 @@ for model in (
 ):
     register_platform_admin(model, ProxyOwnerAdmin)
 
-for model in (GradingScaleConfig, WeatherLocation):
-    register_both(model, ProxyOwnerAdmin)
+# GradingScaleConfig: catalog CRUD is super:grading_list / grading_*; tenant admin only here.
+register_tenant_admin(GradingScaleConfig, ProxyOwnerAdmin)
+register_both(WeatherLocation, ProxyOwnerAdmin)
 
 register_tenant_admin(HolidayCalendar, ProxyOwnerAdmin)

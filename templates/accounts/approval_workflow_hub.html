@@ -17,9 +17,13 @@
             <h5 class="mb-0">Grade Approvals</h5>
           </div>
           <p class="text-muted small mb-3">Review teacher-submitted grades before publishing.</p>
-          <a class="btn btn-primary btn-sm" href="{% url 'evals:grade_approval_list' %}">
+          {% if grade_approvals_url %}
+          <a class="btn btn-primary btn-sm" href="{{ grade_approvals_url }}" {% if "://" in grade_approvals_url %}target="_blank" rel="noopener"{% endif %}>
             Review grade approvals <i class="bi bi-chevron-right ms-1"></i>
           </a>
+          {% else %}
+          <p class="small text-warning mb-0">Set <code>STUDIO_APPROVAL_HUB_TENANT_BASE_URL</code> (school site URL) for manager-host Studio.</p>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -31,9 +35,13 @@
             <h5 class="mb-0">Access Requests</h5>
           </div>
           <p class="text-muted small mb-3">Finance access, data visibility, and other permission requests.</p>
-          <a class="btn btn-success btn-sm" href="{% url 'requests:dashboard' %}">
+          {% if access_requests_url %}
+          <a class="btn btn-success btn-sm" href="{{ access_requests_url }}" {% if "://" in access_requests_url %}target="_blank" rel="noopener"{% endif %}>
             Review access requests <i class="bi bi-chevron-right ms-1"></i>
           </a>
+          {% else %}
+          <p class="small text-warning mb-0">Configure tenant base URL for deep link.</p>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -45,9 +53,13 @@
             <h5 class="mb-0">Contact Requests</h5>
           </div>
           <p class="text-muted small mb-3">Parent and guardian contact requests from the portal.</p>
-          <a class="btn btn-info btn-sm" href="{% url 'portal:staff_contact_request_list' %}">
+          {% if contact_requests_url %}
+          <a class="btn btn-info btn-sm" href="{{ contact_requests_url }}" {% if "://" in contact_requests_url %}target="_blank" rel="noopener"{% endif %}>
             Review contact requests <i class="bi bi-chevron-right ms-1"></i>
           </a>
+          {% else %}
+          <p class="small text-warning mb-0">Configure tenant base URL for deep link.</p>
+          {% endif %}
         </div>
       </div>
     </div>

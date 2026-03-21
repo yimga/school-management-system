@@ -1,0 +1,94 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Platform operator hub" %} — RunMyCampus Manager{% endblock %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="{% static 'css/cp_operator_hub.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Platform operator hub" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-1200 cp-operator-hub" data-page-archetype="catalog">
+  <div class="cpoh-hero">
+    <div class="cpoh-hero-inner">
+      <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+        <div class="min-w-0 flex-grow-1">
+          <p class="cpoh-eyebrow mb-0">{% trans "Control plane" %}</p>
+          <h1 class="cpoh-title">{% trans "Platform operator hub" %}</h1>
+          <p class="cpoh-sub">
+            {% blocktrans %}Curated super surfaces for daily operations. Site settings and other replaced admin tools live here — not duplicated in platform backoffice. Expand the section below only for remaining Django changelists.{% endblocktrans %}
+          </p>
+        </div>
+        <div class="cpoh-actions d-flex flex-wrap gap-2 flex-shrink-0">
+          <a href="{{ system_config_url }}" class="btn btn-primary btn-sm px-3">{% trans "System config" %}</a>
+          <a href="{{ dashboard_url }}" class="btn btn-outline-light btn-sm px-3">{% trans "Dashboard" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="mb-2" aria-labelledby="super-primary-heading">
+    <h2 id="super-primary-heading" class="cpoh-section-label">{% trans "Operator surfaces" %}</h2>
+    <div class="row g-3">
+      {% for item in super_primary %}
+      <div class="col-12 col-md-6 col-xl-4">
+        <a href="{{ item.url }}" class="cpoh-tile">
+          <span class="cpoh-tile-icon bi {{ item.icon }}" aria-hidden="true"></span>
+          <div class="min-w-0">
+            <h3 class="cpoh-tile-title">{{ item.label }}</h3>
+            <p class="cpoh-tile-desc">{{ item.description }}</p>
+          </div>
+        </a>
+      </div>
+      {% empty %}
+      <p class="text-white-50 small px-1">{% trans "No super links resolved (check URLconf)." %}</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <details class="cpoh-advanced" id="cpoh-advanced-registry">
+    <summary>
+      <span>{% trans "Advanced — remaining platform model changelists" %}</span>
+      {% if admin_index_url %}
+      <a href="{{ admin_index_url }}" class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();">{% trans "Admin index" %}</a>
+      {% endif %}
+    </summary>
+    <div class="cpoh-advanced-body">
+      <p class="small text-white-50 mb-3">
+        {% trans "Models still registered on the platform admin site. Prefer operator surfaces above; use these for deep maintenance only." %}
+      </p>
+      {% if admin_app_list %}
+      {% for app in admin_app_list %}
+        {% ifchanged app.section %}
+        <h3 class="cpoh-section-title">{{ app.section }}</h3>
+        {% endifchanged %}
+        <div class="cpoh-app-block">
+          <div class="cpoh-app-head">
+            <p class="cpoh-app-name">{{ app.name }}</p>
+            <a href="{% url 'admin:app_list' app.app_label %}" class="btn btn-sm btn-outline-light">{% trans "App" %}</a>
+          </div>
+          <ul class="list-unstyled mb-0 platform-op-hub-models">
+            {% for model in app.models %}
+            <li>
+              <a href="{{ model.admin_url }}" class="cpoh-model-link">{{ model.name }}</a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+      {% else %}
+      <p class="text-white-50 small">{% trans "No admin applications (empty registry or permissions)." %}</p>
+      {% endif %}
+    </div>
+  </details>
+</div>
+{% endblock %}

@@ -18,10 +18,11 @@
 1. **Tenant:** Backend → Institution profile → select delivery checkboxes + institution type → Apply.  
 2. **Suggest:** Use “Load suggestion” (heuristic) or `GET /api/learning/institution-suggest/?ai=1` when gateway enabled.  
 3. **Pack install:** `POST /api/learning/pack-install/` with `pack_slug` from catalog `pack_slugs`; `record_marketplace:true` creates first-party marketplace install row.  
-4. **Features:** Pack-derived keys live in `school.features`; `is_feature_enabled(school, code)` honors them.  
-5. **Ministry PDF:** From wizard links or `GET /api/learning/ministry-pdf/?stub=…`.  
-6. **Terminology:** `GET /api/learning/terminology/?locale=fr&institution_code=W43_HIGHER_EDUCATION`.  
-7. **Benchmarks (super):** `GET /api/internal/learning-wedge-benchmarks/` — anonymized adoption counts.
+4. **Pack rollback (N20):** `POST /api/learning/pack-rollback/` JSON body `pack_slug`, `confirm_learning_wedge_rollback: "ROLLBACK"`, optional `sync_marketplace` (default true). Removes pack from `wedge_marketplace_installs`, clears mapped features only when no other installed wedge still needs them, emits `learning_wedge_pack_rolled_back`.  
+5. **Features:** Pack-derived keys live in `school.features`; `is_feature_enabled(school, code)` honors them.  
+6. **Ministry PDF:** From wizard links or `GET /api/learning/ministry-pdf/?stub=…`.  
+7. **Terminology:** `GET /api/learning/terminology/?locale=fr&institution_code=W43_HIGHER_EDUCATION`.  
+8. **Benchmarks (super):** `GET /api/internal/learning-wedge-benchmarks/` — anonymized adoption counts.
 
 ## RFP / accreditation narrative
 

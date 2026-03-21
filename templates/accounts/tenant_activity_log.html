@@ -1,0 +1,25 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Activity log" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Platform activity (this school)" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <p class="text-muted small mb-3">{% trans "Recent catalog events recorded for this tenant. Used for audits and operational awareness (N24 partial)." %}</p>
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "Payload keys" %}</th></tr></thead>
+      <tbody>
+        {% for e in events %}
+        <tr>
+          <td class="text-nowrap">{{ e.created_at|date:"Y-m-d H:i:s" }}</td>
+          <td><code>{{ e.event_type }}</code></td>
+          <td class="small text-muted">{% for k in e.payload %}{{ k }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-muted">{% trans "No events in log for this school yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

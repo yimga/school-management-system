@@ -1119,13 +1119,19 @@ class SiteSettingsAdmin(ModelAdmin):
         """Launcher to the canonical Theme & Experience page."""
         try:
             url = reverse("siteconfig:theme_colors")
+        except NoReverseMatch:
+            url = "/siteconfig/theme-colors/"
+        try:
             next_path = (
                 reverse("admin:siteconfig_sitesettings_change", args=[obj.pk])
                 + "?stay_theme=1#section-theme-experience"
             )
-            url += "?next=" + quote(next_path, safe="/#")
+            sep = "&" if ("?" in url) else "?"
+            url = url + sep + "next=" + quote(next_path, safe="/#")
         except NoReverseMatch:
-            url = "/siteconfig/theme-colors/"
+            # Still signal "return to theme section" when admin URL is unavailable (tests / split admin).
+            sep = "&" if ("?" in url) else "?"
+            url = url + sep + "stay_theme=1"
         return format_html(
             '<p class="mb-2 text-muted">{}</p><a href="{}" class="btn btn-primary">{}</a>',
             "Theme editing is managed on a single page. These settings (Theme pack, Admin theme pack, per-role packs) apply here. Use the button below to open the Theme & Experience studio.",
@@ -2449,14 +2455,16 @@ class TenantAdmissionNumberPolicyAdmin(ModelAdmin):
 
 
 # Register: both = platform backoffice + tenant config; platform = manager only; tenant = tenant only
-register_both(SiteSettings, SiteSettingsAdmin)
+# Platform operators use super:site_settings_list / super:site_settings_edit only (not platform /admin/).
+register_tenant_admin(SiteSettings, SiteSettingsAdmin)
 register_tenant_admin(TenantAdmissionNumberPolicy, TenantAdmissionNumberPolicyAdmin)
 register_tenant_admin(UserPreference, UserPreferenceAdmin)
 register_both(ReportTemplate, ReportTemplateAdmin)
 register_both(OfficialReportTemplate, OfficialReportTemplateAdmin)
 register_both(ReportCardStyle, ReportCardStyleAdmin)
 register_tenant_admin(ReportCardStyleAssignment, ReportCardStyleAssignmentAdmin)
-register_both(FeatureToggleDefinition, FeatureToggleDefinitionAdmin)
+# FeatureToggleDefinition: platform CRUD is super:feature_toggles_list / feature_toggle_* (not platform /admin/).
+register_tenant_admin(FeatureToggleDefinition, FeatureToggleDefinitionAdmin)
 register_both(FeatureToggleState, FeatureToggleStateAdmin)
 
 

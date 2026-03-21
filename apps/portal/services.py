@@ -920,9 +920,33 @@ def _upcoming_deadlines(year):
             "title": f"Grading: {sa.subject.name} — {sa.classroom.name}",
             "when": sa.grading_deadline_at,
             "detail": f"Term {sa.term.label}",
+            "kind": "grading_deadline",
         }
         for sa in qs
     ]
+
+
+def merged_upcoming_events_for_api(year, *, school=None):
+    """
+    N28 / unified calendar: grading deadlines + public school events, JSON-serializable.
+    """
+    raw = _merged_upcoming_events(year, school=school)
+    out = []
+    for ev in raw:
+        w = ev.get("when")
+        if w is not None and hasattr(w, "isoformat"):
+            when_s = w.isoformat()
+        else:
+            when_s = None
+        out.append(
+            {
+                "title": ev.get("title"),
+                "when": when_s,
+                "detail": ev.get("detail"),
+                "kind": ev.get("kind") or "grading_deadline",
+            }
+        )
+    return out
 
 
 def _upcoming_school_events(limit=15, *, school=None):

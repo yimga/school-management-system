@@ -39,7 +39,7 @@
 | 23 | **Sweep A/B/C** | scripts/run_sweep_ab.py (runs check_no_hardcoding + lint_tenant_settings). |
 | 24 | **Form/view refactor (pattern + slice)** | Form_view_refactor_guide.md; portal: get_site_display_name in _whatsapp_invite_link and my_digital_id. |
 | 25 | **External connection points** | EXTERNAL_CONNECTION_POINTS.md (Ed-Fi, CEDS, WebAuthn, Offline, EMIS, Commercial); convert_quote_to_subscription stub in billing.services. |
-| 26 | **Support queue SLA** | `apps/siteconfig/support_sla.py`: SUPPORT_SLA_* hours, ticket_response_breach, ticket_resolution_breach. `apps/schools/super_views.py`: _annotate_tickets_sla; dashboard + fragment pass SLA. Templates: SLA column and breach alert. |
+| 26 | **Support queue SLA** | `apps/siteconfig/support_sla.py`: SUPPORT_SLA_* hours, ticket_response_breach, ticket_resolution_breach. `apps/schools/super_views_support.py`: _annotate_tickets_sla; dashboard + fragment pass SLA (re-exported via `super_views`). Templates: SLA column and breach alert. |
 | 27 | **13.2 models.png** | `scripts/gen_models_png.py`; `apps/siteconfig/management/commands/generate_models_diagram.py` (python manage.py generate_models_diagram). |
 | 28 | **Policy cache + bundles default on** | `config/settings.py`: POLICY_USE_BUNDLES default "1", POLICY_CACHE_TTL default 300. Resolver and invalidate_policy_cache wired. |
 | 29 | **Get blueprints tenant entry placement** | Done: Blueprints in Admin Panel (`portal_sidebar_items.py`); tenant URL `/siteconfig/get-blueprints/` (`config/tenant_urls.py` + siteconfig/urls.py). |

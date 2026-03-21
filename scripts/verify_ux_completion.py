@@ -28,6 +28,7 @@ django.setup()
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
+from django.db import OperationalError
 from django.test import RequestFactory
 from django.test.utils import override_settings
 
@@ -131,7 +132,20 @@ def audit_dashboard_contract(failures: list[str]) -> None:
             failures,
         )
     finally:
-        user.delete()
+        try:
+            user.delete()
+        except OperationalError as e:
+            # Stale test DB (e.g. --keepdb from before automation.exception_ack_by migration)
+            if "no such column" in str(e).lower():
+                import warnings
+                warnings.warn(
+                    f"verify_ux_completion: could not delete audit user (stale test DB): {e}. "
+                    "Run gate with fresh DB (PRE_GATE_FRESH_TEST_DB=1) or apply migrations.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+            else:
+                raise
 
 
 def audit_setup_studio_contract(failures: list[str]) -> None:

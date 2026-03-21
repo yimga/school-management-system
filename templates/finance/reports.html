@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
 {% load region_format %}
+{% load static %}
 
 {% block title %}Finance Reports{% endblock %}
 
@@ -14,7 +15,7 @@
 
 <div class="card mb-3">
   <div class="card-body">
-    <form class="row g-2 align-items-end" method="get">
+    <form class="row g-2 align-items-end" method="get" id="finance-reports-period-form" data-draft-key="finance_reports_period_{{ request.user.id }}" data-draft-max-age-hours="72">
       <div class="col-md-4">
         <label class="form-label">From date</label>
         <input class="form-control" type="date" name="start" value="{{ report_start|format_date:"YYYY-MM-DD" }}">
@@ -118,8 +119,8 @@
           <table class="table table-sm align-middle">
             <thead>
               <tr>
-                <th>Classroom</th>
-                <th class="text-end">Overdue</th>
+                <th scope="col">Classroom</th>
+                <th scope="col" class="text-end">Overdue</th>
               </tr>
             </thead>
             <tbody>
@@ -152,10 +153,10 @@
           <table class="table table-sm align-middle">
             <thead>
               <tr>
-                <th>Type</th>
-                <th>Requested by</th>
-                <th>Status</th>
-                <th>Created</th>
+                <th scope="col">Type</th>
+                <th scope="col">Requested by</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created</th>
               </tr>
             </thead>
             <tbody>
@@ -188,7 +189,7 @@
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-3">Request a custom report</h5>
-        <form method="post" action="{% url 'finance:report_request' %}">
+        <form method="post" action="{% url 'finance:report_request' %}" id="finance-report-request-form" data-draft-key="finance_report_request_{{ request.user.id }}" data-draft-max-age-hours="48">
           {% csrf_token %}
           <div class="mb-3">
             <label class="form-label">Report type</label>
@@ -205,4 +206,17 @@
   </div>
 </div>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  if (!window.FormDraftSave) return;
+  var p = document.getElementById('finance-reports-period-form');
+  if (p) window.FormDraftSave.init(p);
+  var r = document.getElementById('finance-report-request-form');
+  if (r) window.FormDraftSave.init(r);
+})();
+</script>
 {% endblock %}

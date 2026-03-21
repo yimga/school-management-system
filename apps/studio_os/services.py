@@ -70,7 +70,12 @@ def get_studio_preview_url(mode: str, request: Any = None) -> str:
         base = reverse(name)
         return f"{base}?{qs}" if qs else base
     except NoReverseMatch:
-        return ""
+        from apps.studio_os.deep_links import studio_resolve_url
+
+        base = studio_resolve_url(name)
+        if not base:
+            return ""
+        return f"{base}?{qs}" if qs else base
 
 
 def get_studio_preview_context(mode: str, request: Any = None) -> dict[str, Any]:
@@ -265,21 +270,29 @@ def get_studio_role_preview_entries(request: Any) -> list[dict[str, Any]]:
         except NoReverseMatch:
             return ""
 
+    from apps.studio_os.deep_links import studio_resolve_url
+
+    def _role_url(name: str) -> str:
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            return studio_resolve_url(name) or "#"
+
     return [
         {
             "role": "principal",
             "label": "Principal",
-            "url": _safe("accounts:backend_dashboard") or "#",
+            "url": _role_url("accounts:backend_dashboard"),
         },
         {
             "role": "teacher",
             "label": "Teacher",
-            "url": _safe("accounts:backend_dashboard") or "#",
+            "url": _role_url("accounts:backend_dashboard"),
         },
         {
             "role": "parent",
             "label": "Parent",
-            "url": _safe("portal:parent_dashboard") or "#",
+            "url": _role_url("portal:parent_dashboard"),
         },
     ]
 
@@ -290,11 +303,14 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
     """
     from django.urls import NoReverseMatch, reverse
 
-    def _safe(name: str) -> str | None:
+    from apps.studio_os.deep_links import studio_resolve_url
+
+    def _url(name: str) -> str | None:
         try:
             return reverse(name)
         except NoReverseMatch:
-            return None
+            u = studio_resolve_url(name)
+            return u or None
 
     recs = []
     school = getattr(request, "school", None)
@@ -309,18 +325,24 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
             rec = payload.get("recommended_next") or payload.get("health_summary")
             if rec:
                 if isinstance(rec, dict):
-                    url = _safe("studio_os:launch")
+                    direct = (rec.get("link") or "").strip()
+                    if direct and direct != "#":
+                        url = direct
+                    else:
+                        url = _url("studio_os:launch")
                     if url:
                         recs.append(
                             {
                                 "label": rec.get("label", "Launch"),
-                                "detail": rec.get("detail", ""),
+                                "detail": rec.get("detail", "")
+                                or rec.get("description", "")
+                                or rec.get("evidence", ""),
                                 "url": url,
                                 "tone": rec.get("tone", "neutral"),
                             }
                         )
                 else:
-                    url = _safe("studio_os:launch")
+                    url = _url("studio_os:launch")
                     if url:
                         recs.append(
                             {
@@ -331,7 +353,7 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
                             }
                         )
             if payload.get("launch_blockers"):
-                url = _safe("studio_os:launch")
+                url = _url("studio_os:launch")
                 if url:
                     recs.append(
                         {
@@ -345,7 +367,7 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
             logger.debug("Studio recommendations: launch payload unavailable: %s", e)
 
     if mode == "experience":
-        url = _safe("studio_os:experience")
+        url = _url("studio_os:experience")
         if url:
             recs.append(
                 {
@@ -357,7 +379,7 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
             )
 
     if mode == "control":
-        url = _safe("siteconfig:feature_control_audit")
+        url = _url("siteconfig:feature_control_audit")
         if url:
             recs.append(
                 {
@@ -369,7 +391,7 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
             )
 
     if not mode or mode == "overview":
-        url = _safe("studio_os:shell")
+        url = _url("studio_os:shell")
         if url:
             recs.append(
                 {
@@ -387,11 +409,13 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
     """Commands for global search / command palette. Resolves to Studio modes or actions."""
     from django.urls import NoReverseMatch, reverse
 
+    from apps.studio_os.deep_links import studio_resolve_url
+
     def _safe(name: str) -> str | None:
         try:
             return reverse(name)
         except NoReverseMatch:
-            return None
+            return studio_resolve_url(name) or None
 
     entries = []
 
@@ -449,6 +473,56 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
         "Go to district analytics",
         "super:analytics_overview",
         keywords="district analytics overview",
+    )
+    _add(
+        "Donors and gifts (advancement)",
+        "accounts:advancement_donor_list",
+        keywords="donor gift fundraising advancement CRM",
+    )
+    _add(
+        "Operations hub (library, transport, inventory)",
+        "accounts:ops_hub",
+        keywords="library transport inventory canteen clinic timetable ops wave4",
+    )
+    _add(
+        "Facilities / maintenance requests",
+        "accounts:ops_facilities",
+        keywords="facilities maintenance work order CMMS repair building",
+    )
+    _add(
+        "POS till quick sale (stub)",
+        "accounts:ops_pos",
+        keywords="pos point of sale till cash register canteen retail",
+    )
+    _add(
+        "Rollback metadata packages",
+        "siteconfig:installed_packages_rollback",
+        keywords="rollback package theme workflow dashboard policy N20",
+    )
+    _add(
+        "Bulk capture (attendance)",
+        "portal:teacher_bulk_capture_hub",
+        keywords="bulk capture mobile roll call class attendance wave6",
+    )
+    _add(
+        "Tenant activity log",
+        "accounts:tenant_activity_log",
+        keywords="events observability audit N24 platform log",
+    )
+    _add(
+        "District LMS interop hub",
+        "accounts:district_lms_interop",
+        keywords="district clever oneroster roster interop",
+    )
+    _add(
+        "Publish term grades",
+        "reports:publish_term_results",
+        keywords="publish grades term report card",
+    )
+    _add(
+        "Parent pay invoice",
+        "portal:parent_dashboard",
+        keywords="parent pay invoice fees",
     )
     return entries
 

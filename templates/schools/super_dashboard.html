@@ -538,11 +538,24 @@
                 </td>
                 <td>
                   <div class="cp-action-column">
-                    <form method="post" action="{% url 'super:switch_to_tenant' %}" class="d-inline">
+                    <form method="post" action="{% url 'super:switch_to_tenant' %}" class="d-inline-flex flex-column align-items-stretch gap-1">
                       {% csrf_token %}
                       <input type="hidden" name="school_id" value="{{ school.id }}">
                       <input type="hidden" name="next" value="/accounts/backend/">
-                      <button type="submit" class="btn btn-sm btn-outline-primary">Open as school</button>
+                      <label class="visually-hidden" for="imp-reason-{{ school.id }}">{% trans "Reason for impersonation" %}</label>
+                      <input type="text" id="imp-reason-{{ school.id }}" name="impersonation_reason" class="form-control form-control-sm" required minlength="3" maxlength="500" placeholder="{% trans 'Reason (required)' %}">
+                      <label class="visually-hidden" for="imp-ticket-{{ school.id }}">{% trans "Support ticket reference" %}</label>
+                      <input type="text" id="imp-ticket-{{ school.id }}" name="support_ticket_ref" class="form-control form-control-sm" maxlength="120" placeholder="{% trans 'Ticket # (optional)' %}">
+                      {% if school.impersonation_dual_control %}
+                      <label class="visually-hidden" for="imp-peer-{{ school.id }}">{% trans "Second approver (email)" %}</label>
+                      <input type="email" id="imp-peer-{{ school.id }}" name="peer_approver_email" class="form-control form-control-sm" required autocomplete="email" placeholder="{% trans 'Peer operator email (four-eyes)' %}">
+                      <p class="text-warning small mb-0">{% trans "Four-eyes: a second platform operator must be named; they must exist as superuser or SUPERADMIN." %}</p>
+                      {% endif %}
+                      <div class="form-check form-check-sm mb-0">
+                        <input class="form-check-input" type="checkbox" name="allow_writes" value="1" id="imp-write-{{ school.id }}">
+                        <label class="form-check-label small" for="imp-write-{{ school.id }}">{% trans "Allow write actions (default is read-only)" %}</label>
+                      </div>
+                      <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Open as school" %}</button>
                     </form>
                     {% if school.timeline_url %}<a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info">Timeline</a>{% endif %}
                     {% if school.sync_repair_url %}<a href="{{ school.sync_repair_url }}" class="btn btn-sm btn-outline-warning">Sync repair</a>{% endif %}

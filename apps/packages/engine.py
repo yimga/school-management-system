@@ -54,13 +54,57 @@ def _normalize_dependencies(raw_dependencies: Any) -> list[str]:
     return list(dict.fromkeys(normalized))
 
 
+def normalize_declared_dependencies(raw_dependencies: Any) -> list[str]:
+    """Public alias for dependency lists on PackageVersion / InstalledPackage snapshots."""
+    return _normalize_dependencies(raw_dependencies)
+
+
+def list_reverse_dependent_package_ids(
+    package_id: str,
+    *,
+    scan_limit: int = 400,
+    max_results: int = 25,
+) -> list[str]:
+    """
+    N17: other package IDs whose registered PackageVersion.dependencies include ``package_id``.
+    Scans recent PackageVersion rows only — advisory graph edge, not a full dependency solver.
+    """
+    pid = (package_id or "").strip()
+    if not pid:
+        return []
+    found: list[str] = []
+    seen: set[str] = set()
+    for pv in PackageVersion.objects.order_by("-created_at")[:scan_limit]:
+        if pv.package_id == pid:
+            continue
+        try:
+            deps = _normalize_dependencies(pv.dependencies)
+        except ValueError:
+            continue
+        if pid in deps and pv.package_id not in seen:
+            seen.add(pv.package_id)
+            found.append(pv.package_id)
+            if len(found) >= max_results:
+                break
+    return found
+
+
 def _infer_package_type(payload_sections: dict[str, Any]) -> str:
     if not payload_sections:
         return "blueprint"
     section = next(iter(payload_sections.keys()))
     return (
         section
-        if section in {"blueprint", "workflow", "dashboard", "policy", "theme"}
+        if section
+        in {
+            "blueprint",
+            "workflow",
+            "dashboard",
+            "policy",
+            "theme",
+            "document_pack",
+            "experience_pack",
+        }
         else "blueprint"
     )
 
@@ -464,6 +508,61 @@ def preview_diff(
     }
 
 
+def metadata_apply_preview_bundle(
+    tenant_id: Optional[Any],
+    package_id: str,
+    version: str,
+    payload_sections: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
+    """
+    N17: Tenant-facing preview before metadata apply — dependency_graph (upstream/downstream)
+    plus preview_diff when tenant_id and payload are available.
+    """
+    pid = (package_id or "").strip()
+    ver = (version or "").strip() or "1"
+    sections = dict(payload_sections or {})
+    pv: PackageVersion | None = None
+    if pid:
+        if ver:
+            pv = PackageVersion.objects.filter(
+                package_id=pid, version=ver
+            ).first()
+        if not pv:
+            pv = (
+                PackageVersion.objects.filter(package_id=pid)
+                .order_by("-created_at")
+                .first()
+            )
+        if pv:
+            ver = pv.version
+    upstream: list[str] = []
+    if pv:
+        try:
+            upstream = _normalize_dependencies(pv.dependencies)
+        except ValueError:
+            upstream = []
+    downstream = list_reverse_dependent_package_ids(pid) if pid else []
+    diff: dict[str, Any] | None = None
+    if tenant_id is not None and pid:
+        use_sections = (
+            dict(pv.payload_sections or {})
+            if pv and (pv.payload_sections or {})
+            else sections
+        )
+        if use_sections:
+            diff = preview_diff(tenant_id, pid, ver, use_sections)
+    return {
+        "package_id": pid,
+        "version": ver,
+        "dependency_graph": {
+            "upstream_package_ids": upstream,
+            "downstream_package_ids": downstream,
+        },
+        "preview": diff,
+        "has_registered_version": bool(pv),
+    }
+
+
 def apply_package(
     tenant_id: Optional[Any],
     package_id: str,
@@ -647,16 +746,17 @@ def rollback(
     try:
         from apps.platform_runtime.events import emit_platform_event
 
+        sid = installed_package.school_id
         emit_platform_event(
             "package_rolled_back",
             {
                 "package_id": installed_package.package_id,
                 "version": installed_package.version,
+                "school_id": str(sid) if sid is not None else "",
+                "actor_id": actor_id,
             },
-            tenant_id=str(installed_package.school_id)
-            if installed_package.school_id
-            else None,
-            school_id=installed_package.school_id,
+            tenant_id=str(sid) if sid is not None else None,
+            school_id=None,
         )
     except _EVENT_EMIT_ERRORS:
         logger.debug(
@@ -755,6 +855,17 @@ class PackageEngine:
             scope=scope,
             compatibility=compatibility,
             dependencies=dependencies,
+        )
+
+    @staticmethod
+    def metadata_apply_preview_bundle(
+        tenant_id: Optional[Any],
+        package_id: str,
+        version: str,
+        payload_sections: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
+        return metadata_apply_preview_bundle(
+            tenant_id, package_id, version, payload_sections
         )
 
     @staticmethod

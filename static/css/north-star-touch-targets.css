@@ -1,0 +1,17 @@
+/**
+ * North star N4 — touch targets ≥44px on marked controls (portal/backend).
+ * Apply class min-touch-target to primary nav actions, form submits, pagination.
+ */
+.min-touch-target {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.portal-shell .btn.min-touch-target,
+.backend-shell .btn.min-touch-target {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}

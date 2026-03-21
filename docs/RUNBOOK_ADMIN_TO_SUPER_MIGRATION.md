@@ -4,7 +4,7 @@
 
 **References:** [ADMIN_TO_SUPER_MIGRATION_ROADMAP.md](ADMIN_TO_SUPER_MIGRATION_ROADMAP.md), [ADMIN_VS_SUPER_RESPONSIBILITY_MATRIX.md](ADMIN_VS_SUPER_RESPONSIBILITY_MATRIX.md), [ADMIN_SUPER_SINGLE_ENTRY_AND_MARKETING_PRODUCT_PAGE.md](ADMIN_SUPER_SINGLE_ENTRY_AND_MARKETING_PRODUCT_PAGE.md).
 
-**Implementation status:** Phases 0–8 implemented. Config hub at `/super/config/`; nav "Configuration Engine" → config hub; Site settings (list + edit), Regions, Grading, Plans, Feature toggles, AI (ai_model_hub), System config, Advanced backoffice; Phase 8 operational links (Schools list, Pulse, Billing, Migration) on hub; Schools list at `/super/schools/` with pagination and filters. **Optional Phase 8 list views:** `/super/incidents/`, `/super/billing-accounts/`, `/super/migration-runs/` (PlatformIncident, BillingAccount, MigrationRun) with "Open in backoffice" and links to Pulse/Billing/Migration cloud. Run final verification checklist before release.
+**Implementation status:** Phases 0–8 implemented. `/super/config/` redirects to System config (`siteconfig:console_domains_hub`). **Platform operator hub** at `/super/platform-operator-hub/` (`super:platform_operator_hub`): super-first curated links plus full `platform_admin_site` changelist registry (same sections as platform `/admin/`). System config + quick access link to operator hub; control plane nav lists hub first under "Platform settings & admin"; integrations shortcut points to `super:one_sis_any_lms`. Site settings (list + edit), Regions, Grading, Plans, Feature toggles, AI (`ai_model_hub`); Phase 8 list views `/super/incidents/`, `/super/billing-accounts/`, `/super/migration-runs/`. Schools list at `/super/schools/` with pagination and filters. Run final verification checklist before release.
 
 ---
 
@@ -14,7 +14,7 @@
 - **Templates:** All new super config templates extend `control_plane_base.html`; use `{% block cp_title %}`, `{% block breadcrumbs %}`, `{% block cp_content %}`.
 - **Views:** Use `require_super_access_with_host(view_func)` for every new view. Views can live in `apps/schools/super_views.py` or a dedicated module (e.g. `apps/schools/super_views_config.py`); if a new module is created, import it in `super_urls.py`.
 - **Context:** Every template that needs dashboard link gets `dashboard_url = reverse("super:dashboard")` in the view context.
-- **Admin fallback URLs:** Use `reverse("admin:app_label_modelname_changelist")` for "Open in backoffice" links (e.g. `admin:siteconfig_sitesettings_changelist`). Catch `NoReverseMatch` and set to `None` if the model is not on platform admin.
+- **Admin fallback URLs:** Use `reverse("admin:app_label_modelname_changelist")` for "Open in backoffice" links where the model remains on platform admin. Catch `NoReverseMatch` and set to `None` if absent. **SiteSettings** is not on platform admin — use `apps.siteconfig.staff_navigation.site_settings_list_url` / `site_settings_change_url` (manager → super, tenant → admin).
 
 ---
 

@@ -51,6 +51,10 @@ Maintain a single `docs/COMPATIBILITY.md` (or section in README) listing:
 
 ## References
 
+- `docs/WAVE_EXECUTION_RUNBOOKS.md` — Wave 1–8 operator map
+- `docs/architecture/KONG_API_GATEWAY_PLAN.md`
+- `docs/architecture/TEMPORAL_WORKFLOWS_PLAN.md`
+- `docs/architecture/DEGRADATION_LOAD_TEST_PLAN.md`
 - `docs/architecture/SERVICE_CATALOG.md`
 - `docs/architecture/storage_and_search.md`
 - `docs/security_baseline.md`, `docs/execution/SECURITY_PERFORMANCE_NOTES.md`

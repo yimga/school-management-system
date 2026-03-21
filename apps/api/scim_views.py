@@ -60,8 +60,12 @@ def _scim_rate_limited(request: HttpRequest, scope: str):
     )
     if allowed:
         return None
-    response = _scim_error("Too many requests", status=429)
-    response["Retry-After"] = str(retry_after)
+    ra = int(retry_after)
+    response = _scim_error(
+        f"Too many requests; retry after {ra} seconds (see Retry-After header).",
+        status=429,
+    )
+    response["Retry-After"] = str(ra)
     return response
 
 

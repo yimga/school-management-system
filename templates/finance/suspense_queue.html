@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
 {% load region_format %}
+{% load static %}
 
 {% block title %}Suspense Queue{% endblock %}
 
@@ -47,7 +48,7 @@
           </div>
         {% endif %}
 
-        <form method="post" action="{% url 'finance:claim_suspense_payment' item.id %}" class="mt-3">
+        <form method="post" action="{% url 'finance:claim_suspense_payment' item.id %}" class="mt-3 suspense-claim-form" id="suspense-claim-form-{{ item.id }}" data-draft-key="suspense_claim_{{ item.id }}_{{ request.user.id }}" data-draft-max-age-hours="24">
           {% csrf_token %}
           <div class="mb-2">
             <label class="form-label">Allocation JSON</label>
@@ -74,4 +75,16 @@
   </div>
 {% endif %}
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  if (!window.FormDraftSave) return;
+  document.querySelectorAll('form.suspense-claim-form[data-draft-key]').forEach(function(f) {
+    window.FormDraftSave.init(f);
+  });
+})();
+</script>
 {% endblock %}

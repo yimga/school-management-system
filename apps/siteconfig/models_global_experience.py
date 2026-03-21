@@ -491,6 +491,14 @@ class ImpersonationLog(models.Model):
         null=True,
         related_name="impersonation_logs",
     )
+    peer_actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="impersonation_logs_as_peer",
+        help_text="Second platform operator recorded for four-eyes impersonation.",
+    )
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
@@ -500,6 +508,20 @@ class ImpersonationLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.CharField(max_length=500, blank=True)
+    reason = models.TextField(
+        blank=True,
+        help_text="Operator justification for impersonation (governance / audit).",
+    )
+    support_ticket_ref = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="External ticket or incident reference, if any.",
+    )
+    read_only = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Whether the impersonation session was read-only (None = legacy log rows).",
+    )
 
     class Meta:
         ordering = ["-created_at"]

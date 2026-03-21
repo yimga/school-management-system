@@ -130,13 +130,16 @@ from apps.api.scim_views import (
 from apps.api.learning_institution_api import (
     InstitutionProfileSuggestView,
     LearningPackInstallView,
+    LearningPackRollbackView,
     LearningWedgeBenchmarksView,
     MinistryStubPdfView,
     TerminologyPackView,
 )
 from apps.api.br_northstar_views import (
+    ClimateReportingHooksView,
     ComplianceValidateAttendanceView,
     ComplianceValidateEnrollmentView,
+    DemographicInsightsView,
     EWSListCreateView,
     LegacySisReadonlyStubView,
     MessagingRetentionPolicyView,
@@ -145,9 +148,12 @@ from apps.api.br_northstar_views import (
     SLOTargetsAPIView,
     TenantRegistriesEffectiveView,
 )
+from apps.api.oneroster_roster_webhook import oneroster_roster_webhook
 from apps.api.north_star_api_views import (
     NorthStarEventCatalogView,
     NorthStarPackageImpactView,
+    NorthStarRumWebVitalsSummaryView,
+    NorthStarUpcomingDeadlinesView,
     NorthStarWedgePlaybookView,
 )
 from apps.api.oneroster_views import (
@@ -192,6 +198,11 @@ urlpatterns = [
         "learning/pack-install/",
         LearningPackInstallView.as_view(),
         name="api-learning-pack-install",
+    ),
+    path(
+        "learning/pack-rollback/",
+        LearningPackRollbackView.as_view(),
+        name="api-learning-pack-rollback",
     ),
     path(
         "learning/institution-suggest/",
@@ -303,6 +314,11 @@ urlpatterns = [
     path("oneroster/v1p1/orgs", oneroster_orgs, name="oneroster-orgs"),
     path("oneroster/v1p1/courses", oneroster_courses, name="oneroster-courses"),
     path("oneroster/v1p1/users", oneroster_users, name="oneroster-users"),
+    path(
+        "oneroster/v1p1/roster-webhook",
+        oneroster_roster_webhook,
+        name="oneroster-roster-webhook",
+    ),
     # Phase 5: Digital ID for wallet / partner apps
     path("portal/digital-id/", DigitalIDAPI.as_view(), name="digital-id"),
     path(
@@ -370,6 +386,16 @@ urlpatterns = [
         name="api-br-tenant-registries",
     ),
     path(
+        "internal/br/demographic-insights/",
+        DemographicInsightsView.as_view(),
+        name="api-br-demographic-insights",
+    ),
+    path(
+        "internal/br/climate-reporting-hooks/",
+        ClimateReportingHooksView.as_view(),
+        name="api-br-climate-hooks",
+    ),
+    path(
         "internal/north-star/event-catalog/",
         NorthStarEventCatalogView.as_view(),
         name="api-north-star-event-catalog",
@@ -383,6 +409,16 @@ urlpatterns = [
         "internal/north-star/package-impact/",
         NorthStarPackageImpactView.as_view(),
         name="api-north-star-package-impact",
+    ),
+    path(
+        "internal/north-star/rum-web-vitals/",
+        NorthStarRumWebVitalsSummaryView.as_view(),
+        name="api-north-star-rum-web-vitals",
+    ),
+    path(
+        "internal/north-star/upcoming-deadlines/",
+        NorthStarUpcomingDeadlinesView.as_view(),
+        name="api-north-star-upcoming-deadlines",
     ),
     # AI Gateway productized endpoints (RunMyCampus blueprint; all via backend gateway)
     path("ai/setup-assistant/", api_setup_assistant, name="ai-setup-assistant"),

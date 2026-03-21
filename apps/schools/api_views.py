@@ -51,7 +51,11 @@ class SchoolConfigAPI(APIView):
         )
         if not allowed:
             return Response(
-                {"detail": "Request limit exceeded. Retry later."},
+                {
+                    "detail": "Request limit exceeded. Retry later.",
+                    "retry_after": retry_after,
+                    "message": "Wait a few seconds and try again.",
+                },
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
                 headers={"Retry-After": str(retry_after)},
             )

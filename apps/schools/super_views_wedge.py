@@ -179,6 +179,7 @@ def super_advancement_hub(request):
             "campaigns_url": campaigns_url,
             "aid_services_url": aid_services_url,
             "phase2_placeholder_url": phase2_placeholder_url,
+            "tenant_donor_crm_path": "/authentication/backend/advancement/donors/",
         },
     )
 

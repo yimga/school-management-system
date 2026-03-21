@@ -33,6 +33,16 @@ def _safe_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+def _path_skipped(path: Path) -> bool:
+    if any(part in SKIP_PARTS for part in path.parts):
+        return True
+    # CLI-only; not user-facing HTTP/runtime surfaces (lint targets templates, APIs, config).
+    rel = path.relative_to(ROOT).as_posix()
+    if "management/commands/" in rel:
+        return True
+    return False
+
+
 def _iter_candidate_files():
     for base in SCAN_ROOTS:
         if not base.exists():
@@ -40,7 +50,7 @@ def _iter_candidate_files():
         for path in base.rglob("*"):
             if not path.is_file():
                 continue
-            if any(part in SKIP_PARTS for part in path.parts):
+            if _path_skipped(path):
                 continue
             yield path
     for path in SCAN_FILES:

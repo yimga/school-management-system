@@ -52,6 +52,7 @@ from apps.customersuccess.views_tenant import (
     guided_onboarding_view,
     support_copilot_view,
 )
+from .views_onboarding_coach import api_onboarding_coach
 from .dashboard_views import (
     update_theme,
 )
@@ -66,6 +67,7 @@ from .views_impersonation_consent import (
 )
 from .views_form_draft import form_draft_api
 from .views import feedback_roadmap
+from .views_package_rollback import tenant_installed_packages_rollback
 from .views_console_domains import console_domains_hub
 from .views_tour import tour_steps_api
 from apps.schools.views_domains import custom_domain_wizard
@@ -77,6 +79,11 @@ urlpatterns = [
     path("console/", console_domains_hub, name="console_domains_hub"),
     path("grading-settings/", grading_settings, name="grading_settings"),
     path("modules/", module_market, name="module_market"),
+    path(
+        "installed-packages/",
+        tenant_installed_packages_rollback,
+        name="installed_packages_rollback",
+    ),
     path("customizer/clear-preview/", clear_preview, name="clear_preview"),
     path("theme-colors/", theme_colors_page, name="theme_colors"),
     path(
@@ -181,6 +188,11 @@ urlpatterns = [
     path("app-sandbox/", marketplace_sandbox_embed, name="marketplace_sandbox_embed"),
     path("support-copilot/", support_copilot_view, name="support_copilot"),
     path("guided-onboarding/", guided_onboarding_view, name="guided_onboarding"),
+    path(
+        "api/onboarding-coach/",
+        api_onboarding_coach,
+        name="api_onboarding_coach",
+    ),
     path(
         "guided-onboarding/execute-launch/", execute_launch_view, name="execute_launch"
     ),

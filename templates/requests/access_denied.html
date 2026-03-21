@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load static %}
 {% block title %}Access required{% endblock %}
 
 {% block content %}
@@ -26,6 +27,7 @@
 {% endblock %}
 
 {% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
 <script>
 (function() {
   var form = document.getElementById('access-request-form');

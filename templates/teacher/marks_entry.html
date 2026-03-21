@@ -236,16 +236,16 @@
         {% csrf_token %}
         <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
 
-        <table class="table table-sm table-striped align-middle">
+        <table class="table table-sm table-striped align-middle" aria-label="Marks entry by student">
           <thead>
             <tr>
-              <th>Student</th>
-              <th style="width:110px;">Sequence 1</th>
-              <th style="width:110px;">Sequence 2</th>
-              <th style="width:110px;">Exam</th>
-              <th style="width:110px;">Mock</th>
-              <th style="width:110px;">Practical</th>
-              <th>Remarks</th>
+              <th scope="col">Student</th>
+              <th scope="col" style="width:110px;">Sequence 1</th>
+              <th scope="col" style="width:110px;">Sequence 2</th>
+              <th scope="col" style="width:110px;">Exam</th>
+              <th scope="col" style="width:110px;">Mock</th>
+              <th scope="col" style="width:110px;">Practical</th>
+              <th scope="col">Remarks</th>
             </tr>
           </thead>
           <tbody>

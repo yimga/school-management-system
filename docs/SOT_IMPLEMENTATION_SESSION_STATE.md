@@ -11,10 +11,10 @@
 | Field | Value |
 |-------|--------|
 | **Current goal** | 11 (all SOT [ ] implemented and marked [x]); **all gap audit items (GAP.1–GAP.15) closed**; runbook §6 checklist + continuous improvement |
-| **Last completed** | **Full release sign-off 2026-03-17** (checklists prepared for when we launch). Platform **not ready for launch yet** — still developing. |
-| **Next section** | **All phases complete — 11/10.** Phase GAP closed. Release checklists filled and approved for future launch. **Continue developing** until platform is launch-ready; then use RELEASE_CHECKLIST and launch_studio_checklist for go-live. **Continuous improvement:** SOT §1.8 (1.1–1.7). |
-| **Date (UTC)** | 2026-03-17 |
-| **Done this session** | Phase GAP: GAP.11–GAP.15 closed. GAP.11 marketplace preview/trust/scopes; GAP.12 brand_experience resolver in _step7; GAP.13 flag metadata in runtime inspector; GAP.14 verify_section10_5_layers PASS; GAP.15 seven answers in registry + in-code for runtime inspector. |
+| **Last completed** | **Full verify chain PASS** (2026-03-21): §10.5 → pillar (91 paths) → inventory → gate DB migrate → **`SKIP_VISUAL_QA=1` `pre_deploy_gate`** → **`verify_section7_gate`** → **`record_pre_deploy_gate_output.sh`** (`docs/generated/pre_deploy_gate_run.txt`). |
+| **Next section** | **All phases complete — 11/10.** Phase GAP closed (GAP.1–GAP.15). **Open SOT `[ ]` rows** remain **PRODUCT / multi-sprint** — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). **Continuous improvement:** SOT §1.8 (1.1–1.7). |
+| **Date (UTC)** | 2026-03-21 |
+| **Done this session** | **Gaps closed:** (1) **Ruff F401** after dashboard split — trimmed dead imports in `super_views.py`; removed stray `brand_profile_for_school` import. (2) **`super_views_dashboard_surfaces.py`** — **`month_options` shadowing bug** (`UnboundLocalError` on `/super/`): import aliased to `build_month_options_list`; removed unused `timezone` / `require_http_methods`. Inventory refreshed; gate + §7 + recorded output green. |
 
 ### Gap audit progress (Phase GAP — update after each gap closed)
 

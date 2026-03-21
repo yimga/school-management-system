@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
 {% load region_format %}
+{% load static %}
 
 {% block title %}{% trans "Payments" %}{% endblock %}
 
@@ -16,7 +17,7 @@
   <a class="btn btn-sm btn-outline-secondary" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">Export PDF</a>
 </div>
 
-<form method="get" class="card mb-3">
+<form method="get" class="card mb-3" id="finance-payments-filter-form" data-draft-key="finance_payments_filter_{{ request.user.id }}" data-draft-max-age-hours="72">
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
@@ -92,4 +93,14 @@
 </div>
 {% include "components/was_this_helpful.html" with feedback_id="finance-payments" %}
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  var f = document.getElementById('finance-payments-filter-form');
+  if (f && window.FormDraftSave) window.FormDraftSave.init(f);
+})();
+</script>
 {% endblock %}

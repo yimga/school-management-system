@@ -7,7 +7,8 @@
 | File | When used |
 |------|-----------|
 | `.django_test_dbs/default.sqlite3` | Default when `DJANGO_TEST_DB_FILE` unset (local `python manage.py test`) |
-| `.django_test_dbs/pre_deploy_gate.sqlite3` | **pre_deploy_gate.sh** sets `DJANGO_TEST_DB_FILE` to this path so the gate does not compete with IDE/test runners holding `default.sqlite3`. |
+| `.django_test_dbs/pre_deploy_gate.sqlite3` | **pre_deploy_gate.sh** and **`python scripts/verify_section7_gate.py`** (default when `DJANGO_TEST_DB_FILE` is unset) use this path so the gate and §7 catalog tests do not compete with IDE/test runners holding `default.sqlite3`. |
+| `.django_test_dbs/pre_deploy_gate_run.sqlite3` | **Optional** alternate path if `pre_deploy_gate.sqlite3` is **locked** (Windows) or **half-migrated** (`table already exists` during `migrate_gate_test_db`). Set `export DJANGO_TEST_DB_FILE=.django_test_dbs/pre_deploy_gate_run.sqlite3` then run `python scripts/migrate_gate_test_db.py` once before the gate. |
 
 ## Fix corrupt or locked test DB
 

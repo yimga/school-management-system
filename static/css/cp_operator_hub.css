@@ -1,0 +1,225 @@
+/**
+ * Platform operator hub — control plane catalog surface (§8.0.11 polish).
+ * Scoped under .cp-operator-hub to avoid leaking into tenant shells.
+ */
+.cp-operator-hub {
+  --cpoh-card-bg: rgba(255, 255, 255, 0.04);
+  --cpoh-card-border: rgba(125, 152, 187, 0.22);
+  --cpoh-card-hover: rgba(99, 102, 241, 0.12);
+  --cpoh-glow: 0 12px 40px rgba(15, 23, 42, 0.45);
+}
+
+.cp-operator-hub .cpoh-hero {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1.5rem 1.75rem;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.14) 0%,
+    rgba(15, 23, 42, 0.65) 48%,
+    rgba(34, 197, 94, 0.08) 100%
+  );
+  border: 1px solid var(--cpoh-card-border);
+  box-shadow: var(--cpoh-glow);
+  margin-bottom: 2rem;
+}
+
+.cp-operator-hub .cpoh-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    600px 200px at 100% 0%,
+    rgba(99, 102, 241, 0.15),
+    transparent 55%
+  );
+}
+
+.cp-operator-hub .cpoh-hero-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.cp-operator-hub .cpoh-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+}
+
+.cp-operator-hub .cpoh-title {
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+  margin: 0.35rem 0 0.5rem;
+}
+
+.cp-operator-hub .cpoh-sub {
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 46rem;
+  margin: 0;
+}
+
+.cp-operator-hub .cpoh-actions .btn {
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.cp-operator-hub .cpoh-section-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.cp-operator-hub .cpoh-tile {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  height: 100%;
+  padding: 1.1rem 1.15rem;
+  border-radius: 0.85rem;
+  background: var(--cpoh-card-bg);
+  border: 1px solid var(--cpoh-card-border);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.18s ease,
+    box-shadow 0.2s ease;
+}
+
+.cp-operator-hub .cpoh-tile:hover {
+  border-color: rgba(129, 140, 248, 0.55);
+  background: var(--cpoh-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  color: inherit;
+}
+
+.cp-operator-hub .cpoh-tile-icon {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.65rem;
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  font-size: 1.2rem;
+}
+
+.cp-operator-hub .cpoh-tile-title {
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: #f1f5f9;
+  margin: 0 0 0.25rem;
+}
+
+.cp-operator-hub .cpoh-tile-desc {
+  font-size: 0.82rem;
+  color: rgba(226, 232, 240, 0.62);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.cp-operator-hub .cpoh-advanced {
+  margin-top: 2.5rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--cpoh-card-border);
+  background: rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.cp-operator-hub .cpoh-advanced summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  user-select: none;
+}
+
+.cp-operator-hub .cpoh-advanced summary::-webkit-details-marker {
+  display: none;
+}
+
+.cp-operator-hub .cpoh-advanced summary::after {
+  content: "▸";
+  color: rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s ease;
+}
+
+.cp-operator-hub .cpoh-advanced[open] summary::after {
+  transform: rotate(90deg);
+}
+
+.cp-operator-hub .cpoh-advanced-body {
+  padding: 0 1.25rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cp-operator-hub .cpoh-app-block {
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cp-operator-hub .cpoh-app-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cp-operator-hub .cpoh-app-name {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.cp-operator-hub .cpoh-section-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(248, 250, 252, 0.85);
+  margin: 1.25rem 0 0.5rem;
+}
+
+.cp-operator-hub .cpoh-model-link {
+  display: block;
+  padding: 0.55rem 1rem;
+  color: rgba(226, 232, 240, 0.78);
+  text-decoration: none;
+  font-size: 0.84rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cp-operator-hub .cpoh-model-link:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: #fff;
+}
+
+.cp-operator-hub .platform-op-hub-models li:last-child .cpoh-model-link {
+  border-bottom: none;
+}

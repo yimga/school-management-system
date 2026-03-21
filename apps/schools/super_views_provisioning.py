@@ -6,8 +6,6 @@ from __future__ import annotations
 
 import os
 
-from django.core.exceptions import ValidationError
-from django.db import DatabaseError
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
@@ -29,17 +27,8 @@ from apps.schools.super_views_helpers import (
     safe_school_timeline_url,
     slug_from_school_name,
 )
-from apps.schools.models import School, SchoolProvisioningEvent
-
-CONTROL_PLANE_AUDIT_FAILURES = (
-    AttributeError,
-    DatabaseError,
-    ImportError,
-    LookupError,
-    TypeError,
-    ValidationError,
-    ValueError,
-)
+from .models import School, SchoolProvisioningEvent
+from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
 
 
 @require_POST

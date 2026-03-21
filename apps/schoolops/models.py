@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 
@@ -322,3 +324,213 @@ class LibraryLoan(models.Model):
 
     def __str__(self):
         return f"{self.item.title} -> {self.borrower} (due {self.due_at})"
+
+
+class SubstituteCover(models.Model):
+    """
+    Wave 15: tenant substitute / cover assignment (ops module).
+    Records who is absent and optional covering teacher for a given date.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="substitute_covers",
+    )
+    work_date = models.DateField(db_index=True)
+    absent_teacher = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="substitute_cover_absences",
+    )
+    covering_teacher = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="substitute_cover_assignments",
+    )
+    period_label = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="e.g. Period 3, Full day",
+    )
+    notes = models.CharField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_substitutecover"
+        ordering = ["-work_date", "-created_at"]
+        indexes = [
+            models.Index(fields=["school", "work_date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.work_date} absent={self.absent_teacher_id}"
+
+
+class VisitorCheckIn(models.Model):
+    """
+    Wave 16: front-desk visitor log (ops module).
+    Check-in / check-out lines per school for reception workflows.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="visitor_checkins",
+    )
+    visitor_name = models.CharField(max_length=255)
+    host_contact = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Person or office being visited",
+    )
+    purpose = models.CharField(max_length=255, blank=True)
+    badge_number = models.CharField(max_length=64, blank=True)
+    checked_in_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    checked_out_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    recorded_by = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="visitor_checkins_recorded",
+    )
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_visitorcheckin"
+        ordering = ["-checked_in_at"]
+        indexes = [
+            models.Index(fields=["school", "checked_out_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.visitor_name} @ {self.checked_in_at}"
+
+    @property
+    def is_on_site(self) -> bool:
+        return self.checked_out_at is None
+
+
+class MaintenanceRequest(models.Model):
+    """
+    Wave 17: facilities / maintenance ticket (ops module).
+    Lightweight work-request log until full CMMS depth.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        IN_PROGRESS = "in_progress", "In progress"
+        CLOSED = "closed", "Closed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="maintenance_requests",
+    )
+    title = models.CharField(max_length=200)
+    location = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.OPEN,
+        db_index=True,
+    )
+    reported_by = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="maintenance_requests_reported",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_maintenancerequest"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.title} ({self.status})"
+
+
+class PosSaleLine(models.Model):
+    """
+    Wave 18: lightweight POS / till line (ops stub).
+    Not a full retail module — quick sale log for canteen or events.
+    """
+
+    class PaymentMethod(models.TextChoices):
+        CASH = "cash", "Cash"
+        CARD = "card", "Card"
+        MOBILE = "mobile", "Mobile money"
+        ACCOUNT = "account", "On account"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="pos_sale_lines",
+    )
+    item_label = models.CharField(max_length=255)
+    quantity = models.PositiveSmallIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CASH,
+    )
+    tax_rate_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0"),
+        help_text="Sales tax / VAT rate snapshot for this line (0–100).",
+    )
+    tax_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0"),
+        help_text="Tax amount charged on this line at sale time.",
+    )
+    notes = models.CharField(max_length=255, blank=True)
+    inventory_item = models.ForeignKey(
+        "schoolops.InventoryItem",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pos_sale_lines",
+        help_text="Optional link to stock line when Inventory module is enabled.",
+    )
+    recorded_by = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pos_sale_lines_recorded",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_possaleline"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.item_label} x{self.quantity}"
+
+    @property
+    def line_total(self):
+        return (self.unit_price or Decimal("0")) * Decimal(self.quantity or 0)
+
+    @property
+    def grand_total(self):
+        """Line net (pre-tax) + stored tax snapshot."""
+        return self.line_total + (self.tax_amount or Decimal("0"))

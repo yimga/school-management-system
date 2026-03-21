@@ -37,5 +37,7 @@ New internal views should return:
 | `internal/north-star/wedge-playbook/` | Wedge playbook |
 | `internal/north-star/package-impact/` | Package impact preview |
 | `internal/learning-wedge-benchmarks/` | Learning benchmarks (router) |
+| `internal/br/demographic-insights/` | Enrollment / classroom distribution snapshot (staff; `?school_id=`) |
+| `internal/br/climate-reporting-hooks/` | Sustainability reporting extension hooks (staff) |
 
 Add new internal endpoints only under `/api/internal/` with session/Bearer auth and documented purpose in this table.

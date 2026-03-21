@@ -124,3 +124,199 @@ class SuperConfigMigrationUrlTests(TestCase):
         self.assertEqual(
             response.status_code, 200, "Migration runs list must return 200"
         )
+
+    def test_platform_operator_hub_200(self):
+        response = self._get("super:platform_operator_hub")
+        self.assertEqual(
+            response.status_code,
+            200,
+            "Platform operator hub must return 200",
+        )
+        self.assertIn(
+            b"changelist",
+            response.content.lower(),
+            "Hub must render advanced model registry section",
+        )
+
+    def test_super_config_crud_forms_get_200(self):
+        """Platform catalog CRUD in super (not platform /admin/)."""
+        self.assertEqual(self._get("super:region_add").status_code, 200)
+        self.assertEqual(self._get("super:grading_add").status_code, 200)
+        self.assertEqual(
+            self._get("super:grading_add", query="region=CMR").status_code, 200
+        )
+        self.assertEqual(self._get("super:plan_add").status_code, 200)
+        self.assertEqual(self._get("super:plan_addon_add").status_code, 200)
+        self.assertEqual(self._get("super:feature_toggle_add").status_code, 200)
+
+        from apps.global_registries.models import RegionConfig as GRRegion
+        from apps.global_registries.models import GradingScaleConfig
+        from apps.plans_entitlements.models import Plan, PlanAddon
+        from apps.policies_rules.models import FeatureToggleDefinition
+
+        r = GRRegion.objects.first()
+        if r:
+            self.assertEqual(
+                self._get("super:region_edit", kwargs={"code": r.code}).status_code,
+                200,
+            )
+        else:
+            self.assertEqual(
+                self._get("super:region_edit", kwargs={"code": "__none__"}).status_code,
+                404,
+            )
+
+        g = GradingScaleConfig.objects.first()
+        if g:
+            self.assertEqual(
+                self._get("super:grading_edit", kwargs={"pk": g.pk}).status_code, 200
+            )
+        else:
+            self.assertEqual(
+                self._get("super:grading_edit", kwargs={"pk": 999999}).status_code,
+                404,
+            )
+
+        p = Plan.objects.first()
+        if p:
+            self.assertEqual(
+                self._get("super:plan_edit", kwargs={"pk": p.pk}).status_code, 200
+            )
+        else:
+            self.assertEqual(
+                self._get("super:plan_edit", kwargs={"pk": 999999}).status_code, 404
+            )
+
+        a = PlanAddon.objects.first()
+        if a:
+            self.assertEqual(
+                self._get("super:plan_addon_edit", kwargs={"pk": a.pk}).status_code,
+                200,
+            )
+        else:
+            self.assertEqual(
+                self._get("super:plan_addon_edit", kwargs={"pk": 999999}).status_code,
+                404,
+            )
+
+        f = FeatureToggleDefinition.objects.first()
+        if f:
+            self.assertEqual(
+                self._get(
+                    "super:feature_toggle_edit", kwargs={"pk": f.pk}
+                ).status_code,
+                200,
+            )
+        else:
+            self.assertEqual(
+                self._get(
+                    "super:feature_toggle_edit", kwargs={"pk": 999999}
+                ).status_code,
+                404,
+            )
+
+    def test_country_multipliers_super_200(self):
+        self.assertEqual(
+            self._get("super:country_multipliers_list").status_code, 200
+        )
+        self.assertEqual(self._get("super:country_multiplier_add").status_code, 200)
+        from apps.plans_entitlements.models import CountryMultiplier
+
+        m = CountryMultiplier.objects.first()
+        if m:
+            self.assertEqual(
+                self._get(
+                    "super:country_multiplier_edit", kwargs={"pk": m.pk}
+                ).status_code,
+                200,
+            )
+            self.assertEqual(
+                self._get(
+                    "super:country_multiplier_delete", kwargs={"pk": m.pk}
+                ).status_code,
+                200,
+            )
+        else:
+            self.assertEqual(
+                self._get(
+                    "super:country_multiplier_edit", kwargs={"pk": 999999}
+                ).status_code,
+                404,
+            )
+            self.assertEqual(
+                self._get(
+                    "super:country_multiplier_delete", kwargs={"pk": 999999}
+                ).status_code,
+                404,
+            )
+
+    def test_catalog_delete_confirm_get_200_or_404(self):
+        """Delete flows: confirmation page (GET) resolves like edit."""
+        from apps.global_registries.models import RegionConfig as GRRegion
+        from apps.global_registries.models import GradingScaleConfig
+        from apps.plans_entitlements.models import Plan, PlanAddon
+        from apps.policies_rules.models import FeatureToggleDefinition
+
+        r = GRRegion.objects.first()
+        if r:
+            self.assertEqual(
+                self._get("super:region_delete", kwargs={"code": r.code}).status_code,
+                200,
+            )
+        else:
+            self.assertEqual(
+                self._get(
+                    "super:region_delete", kwargs={"code": "__x__"}
+                ).status_code,
+                404,
+            )
+
+        g = GradingScaleConfig.objects.first()
+        if g:
+            self.assertEqual(
+                self._get("super:grading_delete", kwargs={"pk": g.pk}).status_code,
+                200,
+            )
+        else:
+            self.assertEqual(
+                self._get("super:grading_delete", kwargs={"pk": 999999}).status_code,
+                404,
+            )
+
+        p = Plan.objects.first()
+        if p:
+            self.assertEqual(
+                self._get("super:plan_delete", kwargs={"pk": p.pk}).status_code, 200
+            )
+        else:
+            self.assertEqual(
+                self._get("super:plan_delete", kwargs={"pk": 999999}).status_code, 404
+            )
+
+        a = PlanAddon.objects.first()
+        if a:
+            self.assertEqual(
+                self._get("super:plan_addon_delete", kwargs={"pk": a.pk}).status_code,
+                200,
+            )
+        else:
+            self.assertEqual(
+                self._get("super:plan_addon_delete", kwargs={"pk": 999999}).status_code,
+                404,
+            )
+
+        f = FeatureToggleDefinition.objects.first()
+        if f:
+            self.assertEqual(
+                self._get(
+                    "super:feature_toggle_delete", kwargs={"pk": f.pk}
+                ).status_code,
+                200,
+            )
+        else:
+            self.assertEqual(
+                self._get(
+                    "super:feature_toggle_delete", kwargs={"pk": 999999}
+                ).status_code,
+                404,
+            )

@@ -1,0 +1,52 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Substitutes" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Substitute / cover assignments" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Record cover" %}</h2>
+      {% if not teachers %}
+      <p class="text-secondary small mb-0">{% trans "No teachers linked to this school yet. Add staff in People first." %}</p>
+      {% else %}
+      <form method="post" class="row g-2 align-items-end">{% csrf_token %}
+        <div class="col-md-2"><label class="form-label small">{% trans "Date" %}</label><input class="form-control" type="date" name="work_date" required></div>
+        <div class="col-md-3"><label class="form-label small">{% trans "Absent" %}</label>
+          <select class="form-select" name="absent_teacher_id" required>
+            <option value="">—</option>
+            {% for tp in teachers %}<option value="{{ tp.user_id }}">{{ tp.user.get_full_name|default:tp.user.username }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3"><label class="form-label small">{% trans "Covering (optional)" %}</label>
+          <select class="form-select" name="covering_teacher_id">
+            <option value="">—</option>
+            {% for tp in teachers %}<option value="{{ tp.user_id }}">{{ tp.user.get_full_name|default:tp.user.username }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2"><label class="form-label small">{% trans "Period / slot" %}</label><input class="form-control" name="period_label" maxlength="80" placeholder="{% trans 'Full day' %}"></div>
+        <div class="col-md-6"><label class="form-label small">{% trans "Notes" %}</label><input class="form-control" name="notes" maxlength="500"></div>
+        <div class="col-12"><button type="submit" class="btn btn-primary">{% trans "Save" %}</button></div>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Absent" %}</th><th>{% trans "Cover" %}</th><th>{% trans "Period" %}</th><th>{% trans "Notes" %}</th></tr></thead>
+      <tbody>
+        {% for c in covers %}
+        <tr>
+          <td>{{ c.work_date }}</td>
+          <td>{{ c.absent_teacher.get_full_name|default:c.absent_teacher.username }}</td>
+          <td>{% if c.covering_teacher %}{{ c.covering_teacher.get_full_name|default:c.covering_teacher.username }}{% else %}—{% endif %}</td>
+          <td>{{ c.period_label|default:"—" }}</td>
+          <td>{{ c.notes|default:"—"|truncatechars:60 }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="5">{% trans "No records yet." %}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

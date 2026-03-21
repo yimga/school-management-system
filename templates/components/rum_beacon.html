@@ -1,0 +1,5 @@
+{% load static %}
+{% if rum_ingest_url and rum_ingest_key %}
+<script>window.__RUM__={u:"{{ rum_ingest_url|escapejs }}",k:"{{ rum_ingest_key|escapejs }}"};</script>
+<script src="{% static 'js/rum-beacon.js' %}" defer></script>
+{% endif %}

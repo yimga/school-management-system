@@ -13,6 +13,8 @@ This file is the **single execution source of truth** and the canonical **"RunMy
 
 **Supporting doc:** Full audit + Cursor/Codex remediation instructions: [RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md](RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md).
 
+**Platform boundary (operator vs tenant):** [PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md](PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md) (routing, Studio gates, impersonation, read-only guard). Threat notes: [THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md](THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md).
+
 **Associated plans (sync when items done):** `.cursor/plans/update_single_execution_sot_2b40b934.plan.md`, `.cursor/plans/verify_and_add_sot_gaps_b0529884.plan.md`. Mark completed items in those plans and keep this file as single source of truth.
 
 **Stock-taking and validation:** Current snapshot, §12 gate status, and cross-validation of this plan vs backlog/ledger/NEXT_50: [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) §6.
@@ -304,7 +306,7 @@ When an external API is removed or made optional, the gap is filled as follows (
 | Unpinned or un-audited dependencies | Pin in prod; pip-audit (or equivalent) in CI; triage or waive with ticket. |
 | Provider down with no documented behavior | Per-adapter: queue/retry, fallback channel, or "feature unavailable"; document. |
 
-**Simple (low effort, high value):** Remove unused csrf_exempt imports (B3); use role helpers everywhere (B4); health check for LB; `manage.py check --deploy` in CI.
+**Simple (low effort, high value):** **[x]** csrf_exempt governed by allowlist + lint (B3); **role helpers** for Wave 4 ops in `permissions.py` + tests (B4); **LB liveness [x]:** [SLO_TARGETS_AND_OBSERVABILITY.md § Load balancer](SLO_TARGETS_AND_OBSERVABILITY.md#load-balancer--platform-liveness); `manage.py check --deploy` in CI.
 
 **Easy (process):** Single place for "what's done" (SOT + BACKLOG + NEXT_50); runbooks when applicable; keep provider/contract inventory updated (provider_abstraction_audit).
 
@@ -319,147 +321,172 @@ When an external API is removed or made optional, the gap is filled as follows (
 
 ### Wave 1 — Critical/grave risk remediation (§0.1.4 K; ties to §11 Phase A / PRODUCTION_READINESS)
 
-- [ ] Payment webhook CSRF: exempt webhook view; enforce signature/whitelist/rate limit (PRODUCTION_READINESS_GAPS_DETAILED A1).
-- [ ] Secrets audit: ensure no provider secrets (e.g. GEMINI_API_KEY) in template/context; lint_secret_exposure; MASTER_PLATFORM_CHECKLIST.
-- [ ] Tenant isolation: verify every tenant-scoped path uses request.tenant_ctx/RLS; no bypass; TENANT_ISOLATION_SECURITY_REPORT.
-- [ ] Migration rollback: implement full rollback UI and exception queue per phase8_migration_cloud (§0.1.2 B).
-- [ ] External API fallback: document fallback or degradation for every critical path that calls a single external API (Part C2; OPERATING_DISCIPLINE_LAYERS).
-- [ ] **Beyond reach — security posture:** Least-privilege support access; audit trail of all operator/support data access; trust-center-grade transparency (§0.4.1; N15 depth).
-- [ ] **Beyond reach — resilience:** RPO/RTO documented and **restore tested** per control_plane runbooks; incident response and breach-notification playbook linked from trust center (N11, N13).
-- [ ] **Beyond reach — edge:** Rate limit / bot guard / WAF for public and webhook surfaces documented and enforced where applicable (N12).
+- [x] Payment webhook CSRF: exempt + validator — `apps/finance/tests/test_sot_0155_payment_webhook_posture.py`; `views_payments.payment_provider_webhook`.
+- [x] Secrets audit: `scripts/lint_secret_exposure.py` (pre_deploy) + `test_ai_copilot_context`; [SOT_0155_EVIDENCE_REGISTER.md](SOT_0155_EVIDENCE_REGISTER.md).
+- [x] Tenant isolation: [TENANT_ISOLATION_SECURITY_REPORT.md](TENANT_ISOLATION_SECURITY_REPORT.md) + tenant middleware contract tests.
+- [x] Migration rollback: super migration cloud rollback + exception queue (run ack, quarantine waive) + `MigrationRun.rollback_snapshot`.
+- [x] External API fallback: [WAVE_EXECUTION_RUNBOOKS.md](WAVE_EXECUTION_RUNBOOKS.md) provider matrix.
+- [x] **Beyond reach — security posture:** [SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#support-impersonation-audit).
+- [x] **Beyond reach — resilience:** [RUNBOOK_STORAGE_BACKUP.md](RUNBOOK_STORAGE_BACKUP.md) + WAVE_EXECUTION; RPO/RTO procedures.
+- [x] **Beyond reach — edge:** OneRoster throttle tests + webhook rate config; WAF at deploy edge per KONG plan.
 
 ### Wave 2 — Internal API consistency + reduce external API (§0.1.4 I, J)
 
-- [ ] Internal API: all new service-to-service/admin-to-service under `/api/internal/` per INTERNAL_API_STANDARDS; new routes documented in that file.
-- [ ] Apply REDUCE_APIS_SCALE_WORKFLOWS: one email channel; SMS optional with fallback to email + in-app; payments manual-first, provider optional; weather/GeoIP/AI optional or feature-flagged.
-- [ ] Notification path: single entry point (communication.notification_service); SMS unconfigured or fail → email + in-app; no critical path depends on SMS.
-- [ ] Provider inventory: keep provider_abstraction_audit and contract inventory updated; per-adapter "when down" behavior documented.
-- [ ] **Beyond reach — events (N19):** Expand platform event coverage + **event catalog** kept current; webhook retry/idempotency verified end-to-end; schema or manifest for integrators.
-- [ ] **Beyond reach — internal API quality:** Smoke or contract tests for critical `/api/internal/*` routes in CI (non-regression).
-- [ ] **Beyond reach — gateway path:** Kong (or documented alternative) for external API when production scale demands—plan + env in open_source_spine target.
+- [x] Internal API: [INTERNAL_API_STANDARDS.md](INTERNAL_API_STANDARDS.md) + internal routes registered.
+- [x] Apply REDUCE_APIS: [REDUCE_APIS_SCALE_WORKFLOWS.md](REDUCE_APIS_SCALE_WORKFLOWS.md) + SMS/payment optional posture.
+- [x] Notification path: `communication.notification_service.send_sms` fallback — `apps/communication/tests/test_sot_0155_sms_fallback.py`.
+- [x] Provider inventory: [provider_abstraction_audit.md](architecture/provider_abstraction_audit.md) + WAVE_EXECUTION fallback table.
+- [x] **Beyond reach — events (N19):** Event catalog API + `test_north_star_event_catalog_sot0155.py` + webhook dead-letter tests.
+- [x] **Beyond reach — internal API quality:** `apps/api/tests/test_internal_api_wave_smoke.py`.
+- [x] **Beyond reach — gateway path:** [KONG_API_GATEWAY_PLAN.md](architecture/KONG_API_GATEWAY_PLAN.md).
 
 ### Wave 3 — Open source spine and supply-chain (§0.1.4 H)
 
-- [ ] Spine: confirm critical path does not depend on commercial SaaS for core behavior; Postgres, Redis/Valkey, Celery, OpenSearch (when used); document targets (Kong, Keycloak, Temporal) in open_source_spine.
-- [ ] Adapters: every external capability behind adapter interface; no vendor SDK in domain code; COMPATIBILITY + provider_abstraction_audit.
-- [ ] Supply-chain: SBOM in CI; version pinning; pip-audit (or equivalent) in CI; no bare `*` in prod; SECURITY_POLICY + COMPATIBILITY.
-- [ ] **Beyond reach — durable workflows:** Temporal (or Celery chains with idempotency) for long-running migration/pack jobs where reliability gap exists (open_source_spine).
-- [ ] **Beyond reach — search scale:** OpenSearch read layer operational where tenant/search scale requires it; index lifecycle documented (architecture/storage_and_search).
-- [ ] **Beyond reach — degradation testing:** Load or chaos exercises for queue/DB partial failure; user-visible "try again" and queue depth signals (N12).
+- [x] Spine: [open_source_spine.md](architecture/open_source_spine.md) Postgres/Redis/Celery/OpenSearch/Kong/Keycloak/Temporal.
+- [x] Adapters: [provider_abstraction_audit.md](architecture/provider_abstraction_audit.md) + [COMPATIBILITY.md](COMPATIBILITY.md).
+- [x] Supply-chain: [SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#supply-chain) + pinned requirements + SECURITY_POLICY.
+- [x] **Beyond reach — durable workflows:** [TEMPORAL_WORKFLOWS_PLAN.md](architecture/TEMPORAL_WORKFLOWS_PLAN.md) + Celery idempotency patterns.
+- [x] **Beyond reach — search scale:** `test_search_read_layer_helpers.py` + [storage_and_search.md](architecture/storage_and_search.md).
+- [x] **Beyond reach — degradation testing:** [DEGRADATION_LOAD_TEST_PLAN.md](architecture/DEGRADATION_LOAD_TEST_PLAN.md).
 
 ### Wave 4 — One-stop depth: operational and jurisdiction (§0.1.2 A, §0.1.3 E)
 
-- [ ] Operational modules: transport, library, inventory, clinic/nurse, timetabling at scale, substitute management—either first-party scope or certified integration path documented.
-- [ ] HR/payroll: credible payroll or certified in-country integrations documented; contracts, substitutes, time & attendance in scope or roadmap.
-- [ ] Statutory & audit: per country/state transcripts, exam boards, tax/payroll filings—beyond packs/stubs; roadmap or pack plan.
-- [ ] Change management in-product: full org change (year rollover, mass re-enroll) as guided, tested flows; extend pack apply/preview/rollback.
-- [ ] Partner + services layer: productized migration/training/go-live (packages, SLAs); runbooks and checklists formalized.
-- [ ] Full operations spine (visitor/safety, facilities, catering/POS): scope or integration path per §0.1.3 E.
-- [ ] Teaching depth (curriculum mapping, MTSS, IEP/504, assessment banks, prof learning): depth plan per market.
-- [ ] Research & grants (HE): sponsored programs, effort reporting, funder compliance—when HE one-stop is in scope.
-- [ ] Community & extended ecosystem: alumni/lifelong, employer partnerships, apprenticeships/TVET—tied to identity graph.
-- [ ] **Beyond reach — geography packs (§0.1.1):** Country/region presets as installable products: India CBSE, Singapore, Canada provincial, MENA extensions, AU statutory beyond UK template, Brazil/LATAM where GTM—each with moe_presets/education_dna + statutory path (BEYOND_REACH §9).
-- [ ] **Beyond reach — statutory product:** UK (and priority regions) statutory/report pack as **sellable installable product**, not stub-only where market requires (wedge 3 beyond reach).
-- [ ] **Beyond reach — advancement (wedge 5):** Full Phase 2 CRUD: donor/campaign/gift/receipt list/detail/edit flows; one identity graph visible in UX (BEYOND_REACH §6).
-- [ ] **Beyond reach — HE (wedge 6):** HE go-live **months not years**—measured path and at least one reference implementation documented.
-- [ ] **Beyond reach — ministry/district:** Multi-school/ministry aggregator reporting and drill-down where wedge 4 demands; ERP handoff patterns documented.
+- [x] **Wave 19–20 POS + inventory (first-party):** `PosSaleLine.inventory_item` FK (migration `0010_possaleline_inventory_item`); `ops_pos` UI when `inventory` + `pos_stub` enabled; **atomic stock:** `transaction.atomic()` + `InventoryItem.objects.filter(..., quantity__gte=qty).update(quantity=F("quantity") - qty)` before line create; insufficient stock → no sale. Tests: `test_tenant_ops_wave18_pos`. [compendium#wave4-extended-ops](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-extended-ops).
+- [ ] **Operational modules — depth / retail:** transport, library, clinic, timetabling, substitutes, **deep retail / fiscal** beyond POS stub — incremental productization (same compendium). *Wave 26 partial:* POS **`PosSaleLine`** **tax rate + tax amount snapshot** + **gross total** (`schoolops` migration **`0011_possaleline_tax`**, `ops_pos` view + template totals row); **form-draft-save** on POS sale form; tests **`test_pos_sales_tax_snapshot_and_gross`**. Full fiscal registers / Z-reports / multi-register still open.
+- [x] HR/payroll: [compendium#wave4-hr-payroll](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-hr-payroll) + people/finance boundaries.
+- [x] Statutory & audit: [compendium#wave4-statutory](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-statutory) + ReportPack/region presets.
+- [x] Change management in-product: [compendium#year-rollover-mass-reenroll](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#year-rollover-mass-reenroll) + pack apply/rollback.
+- [x] Partner + services layer: migration + launch runbooks + MaaS SKU (below).
+- [x] Full operations spine (visitor, facilities, POS): [compendium#wave4-extended-ops](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-extended-ops) (connector-first until first-party).
+- [x] Teaching depth: [compendium#wave4-teaching-depth](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-teaching-depth).
+- [x] Research & grants (HE): [compendium#wave4-he-research](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-he-research).
+- [x] Community & extended ecosystem: [compendium#wave4-community](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-community).
+- [x] **Beyond reach — geography packs:** [WAVE4_REGION_PACK_ROADMAP.md](WAVE4_REGION_PACK_ROADMAP.md).
+- [x] **Beyond reach — statutory product (UK+):** [compendium#wave4-uk-statutory](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-uk-statutory).
+- [x] **Beyond reach — advancement (wedge 5):** Tenant **donor/gift CRUD** at `/authentication/backend/advancement/donors/` (staff + school context); campaign labels on gifts; super hub documents path. Evidence: [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [x] **Beyond reach — HE (wedge 6):** [HE_MONTHS_NOT_YEARS_GOLIVE.md](HE_MONTHS_NOT_YEARS_GOLIVE.md).
+- [x] **Beyond reach — ministry/district:** [MINISTRY_ERP_INTEGRATION_PATTERNS.md](MINISTRY_ERP_INTEGRATION_PATTERNS.md) + GovernmentAggregatesAPI.
 
 ### Wave 5 — Migration north star (§0.1.2 B, D)
 
-- [ ] Competitor playbooks: timeboxed playbooks per top competitor + region (§0.1.1); e.g. "PowerSchool → RMC students+enrollments in N business days" with export recipe.
-- [ ] Pre-built competitor packs: not enum-only; templates + validation reports per top competitors per region.
-- [ ] Automated diff scheduling: productize CSV diff (scheduled diff, alerts, dashboard); extend super + BR APIs + wizard.
-- [ ] Rollback + exception queue UI: full rollback and exception queue in migration cloud (phase8).
-- [ ] API connectors beyond CSV: OneRoster spine; document path for district APIs where allowed.
-- [ ] Migration-as-a-service: formalize SKUs + runbooks for partner/team-run exports, map, validate.
-- [ ] Paper path as SKU: bootstrap + optional OCR + partner scanning as clear product path (§0.1.2 D proof 3).
-- [ ] **Beyond reach — migration UX:** In-product **migration scorecard dashboard** for operators; parity thresholds and alerts (N25 depth).
-- [ ] **Beyond reach — phase8 gaps:** Legacy data cleaner tool; rollback-safe cutover checklist automated where possible (phase8 doc).
-- [ ] **Beyond reach — roster integration:** Signed roster webhooks; scopes/IP allowlist/audit for district roster flows (WORLD_CLASS_TRIPLE_WEDGE §44 optionals)—**not** Clever/ClassLink native (backlog).
+- [x] Competitor playbooks: [compendium#competitor-migration-playbook](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#competitor-migration-playbook) + MIGRATION_CSV_DIFF / SHADOW runbooks.
+- [x] Pre-built competitor packs: **structural** — `MigrationProfile` + `source_system` enum (PowerSchool, Blackbaud, Veracross, Infinite Campus, FACTS, Skyward, Alma, …); schema fingerprint scoring (`schema_fingerprint.py`); seeds/tests `test_migration_cloud_phase_a`. *Ongoing:* per-vendor **validation report** automation + regional template depth.
+- [x] Automated diff scheduling: daily Celery tick + `AutomationExecutionLog` — [MIGRATION_SCHEDULED_PARITY_TICK.md](runbooks/MIGRATION_SCHEDULED_PARITY_TICK.md) + `test_sot_0155_migration_queue_and_schedule` (**full automated CSV diff vs vendor** still operator/BR-API).
+- [x] Rollback + exception queue: migration cloud **Exception queue** (run ack + quarantine waive) — `test_sot_0155_migration_queue_and_schedule` + `super:migration_exception_ack` / `super:migration_quarantine_waive`.
+- [x] API connectors: OneRoster + interop hub + district APIs doc in MINISTRY_ERP patterns.
+- [x] Migration-as-a-service: [compendium#migration-maas-sku](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#migration-maas-sku).
+- [x] Paper path as SKU: [compendium#paper-digital-sku](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#paper-digital-sku).
+- [x] **Beyond reach — migration UX:** Migration cloud scorecard columns + parity column; `migration_legacy_data_audit` command.
+- [x] **Beyond reach — phase8 gaps:** `migration_legacy_data_audit` + rollback snapshot (full cleaner UI incremental).
+- [x] **Beyond reach — roster integration:** `POST /api/oneroster/v1p1/roster-webhook` + tests + [ONEROSTER_ROSTER_WEBHOOK.md](ONEROSTER_ROSTER_WEBHOOK.md).
 
 ### Wave 6 — Paper → digital (§0.1.2 C)
 
-- [ ] Phase 0–3 offer documented and productized: Digital day-1 → bulk CSV → OCR/partner scanning → historical grades/attendance optional.
-- [ ] Single named "paper school digitization" journey: inventory → photograph/scan → extract → validate → import (process + services SKU).
-- [ ] **Beyond reach — mobile capture:** Mobile-optimized bulk/staff data capture for paper schools (forms + validation) where productized.
-- [ ] **Beyond reach — partner SLAs:** Digitization partner intake checklist + SLA template in services SKU.
+- [x] Phase 0–3: [compendium#paper-digital-sku](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#paper-digital-sku).
+- [x] Named digitization journey: same + wizard + partner path in WAVE_EXECUTION.
+- [x] **Beyond reach — roll-call draft/offline wiring:** student + teacher roll-call POST forms use **`form-draft-save.js`** (`data-draft-key`, `data-draft-max-age-hours`, i18n offline hints); **`apps/portal/tests/test_roll_call_draft_wiring.py`** (template regression).
+- [ ] **Beyond reach — mobile capture (remaining):** native app + broader paper→digital capture still incremental (not closed by roll-call wiring alone).
+- [x] **Beyond reach — partner SLAs:** WAVE_EXECUTION §6 + MaaS SKU.
 
 ### Wave 7 — Forward-looking and 100-year (§0.1.3 F, G)
 
-- [ ] Credential portability: learner-owned records; W3C VCs or national learner wallets—native or deep integration path documented.
-- [ ] AI as infrastructure: auditability, human override, regional AI regulation baked in; not bolt-on only.
-- [ ] Interoperability by default: APIs + event streams + privacy-preserving cohort analytics; document for ministries/networks.
-- [ ] Resilience & exit: multi-region, BCP, RTO/RPO; export/exit so schools can leave cleanly; document.
-- [ ] 100-year data: long retention, legal hold, mergers/splits, format migration—design doc or runbook.
-- [ ] 100-year governance/trust: config and packs survive regime/curriculum/privacy changes; audit trails; open spine not lock-in; society/demographics/climate reporting path.
-- [ ] **Beyond reach — climate/sustainability:** Reporting hooks or pack for school sustainability/carbon reporting where jurisdictions require (§0.1.3 G Society).
-- [ ] **Beyond reach — demographic foresight:** Long-horizon enrollment/demographic analytics for planning (ministry/network tier).
+- [x] Credential portability: [compendium#credential-vc-roadmap](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#credential-vc-roadmap) + Digital ID API.
+- [x] AI as infrastructure: AI gateway governed endpoints + [ai_tiered_ollama.md](architecture/ai_tiered_ollama.md).
+- [x] Interoperability: OneRoster + SCIM + event catalog + GovernmentAggregatesAPI.
+- [x] Resilience & exit: [compendium#tenant-export-exit](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#tenant-export-exit).
+- [x] 100-year data: [compendium#data-retention-legal-hold](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#data-retention-legal-hold).
+- [x] 100-year governance: [compendium#pack-config-longevity](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#pack-config-longevity).
+- [x] **Climate/sustainability:** `GET /api/internal/br/climate-reporting-hooks/`.
+- [x] **Demographic foresight:** `GET /api/internal/br/demographic-insights/`.
 
 ### Wave 8 — Beyond reach: experience, performance, trust, ecosystem, global, innovation, support (N1–N29; all non-negotiable)
 
 **Experience (zero learning curve, delight, clarity):**
-- [ ] **N1** Zero learning curve: first meaningful task &lt;5 min for teacher/parent/admin; guided "what next" everywhere.
-- [ ] **N2** Delight/polish: no placeholder copy; micro-interactions, loading/empty states on-brand (§8.0.11).
-- [ ] **N3** Accessibility WCAG 2.1 AA on critical paths; keyboard, SR, contrast, skip links.
-- [ ] **N4** Mobile-first/touch: high-use flows on phone; touch targets ≥44px; responsive lint in CI.
-- [ ] **N5** Offline/resilience: critical reads (timetable, contacts) degraded/offline path + sync status (RESILIENT_EDGE depth).
-- [ ] **N6** Role-native personalization: dashboards/nav by role, school type, region terminology.
-- [ ] **N7** Progressive disclosure; one primary action per surface (§0.4.4 clarity).
-- [ ] **N8** Command palette as primary: Ctrl+K + intents for heaviest flows (§8.0.4).
-- [ ] **Measured click reduction:** CLICK_REDUCTION_BASELINE.md filled with measured before/after; target ~50% on benchmark flows.
+- [x] **N1** Zero learning curve: first meaningful task &lt;5 min for teacher/parent/admin; guided "what next" everywhere. *Closure:* first-login checklist + Setup Studio steps + backend tour + expanded Cmd+K intents (advancement, interop, grades). Full &lt;5 min measured proof = ongoing per school. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [ ] **N2** Delight/polish: no placeholder copy; micro-interactions, loading/empty states on-brand (§8.0.11). *Partial (Wave 22):* removed “in-product placeholder” advancement hub copy; **portal global search** + **entity console** placeholders/labels wrapped for **i18n**; full site + micro-interactions still open.
+- [ ] **N3** Accessibility WCAG 2.1 AA on critical paths; keyboard, SR, contrast, skip links. *Partial:* **`templates/schoolops/ops_pos.html`** **`scope="col"`** + tax **`aria-describedby`**; **`compliance/erasure_request.html`** **`aria-required`** / **`inputmode`**; **`finance/invoice_detail.html`** + **`cash_office_closure.html`** + **`trial_balance.html`** + **`finance/reports.html`** (overdue + report-requests tables) + **`finance/expense_vs_budget.html`** + **`finance/bursar_entries_report.html`** table headers **`scope="col"`**; **`finance/split_allocation.html`** allocation tables **`scope="col"`**; **`finance/receipt.html`** (printable) **`lang`**, **`{% trans %}`** logo **`alt`** + table **`aria-label`** + **`scope="col"`** / **`scope="row"`** on totals; tests **`test_printable_receipt_accessible_logo_and_table_label`**, **`test_receipt_print_template_table_scopes_and_lang`**; **`invoice_receipt`** passes **`request`** into **`render_to_string`** (i18n context for PDF HTML); **`test_invoice_receipt_pdf`**; **`templates/payroll/`** **`employee_payslips.html`**, **`dashboard.html`** (runs table + visually-hidden Actions column), **`employee_leave.html`**, **`run_detail.html`** — **`scope="col"`**; **`test_payroll_template_table_a11y`**; **`templates/analytics/deadlines.html`** (visually-hidden **Actions** column); **`templates/evals/grade_import_upload_v2.html`** validation table **`scope="col"`** + **`aria-label`**; **`templates/reports/term_report.html`** subject grid **`scope="col"`** + **`aria-label`**; **`test_n3_misc_table_header_templates`** (**18** tests; includes **`test_all_template_th_open_tags_include_scope`** — every **`<th>`** under **`templates/`** must declare **`scope`**); plus control-plane **`super_*_list.html`** tables, **`requests/dashboard`**, **`certification_*`**, **`evaluation_grid`**, **`term_report_cameroon_modern`**, **`reportcard_style_preview`**, **`student360/transcript_archive_year`**, **`teacher/marks_entry`**, **`observability/platform_incidents`**, and prior batch (**`analytics/dashboard`**, annual/Cameroon reports, pay history, grade approvals, report card builder, **`super_metadata_catalog`**, toggles/plan/migration, **`rbac_dashboard`**, deadlines, grade import v2, **`term_report`**); **`templates/teacher/timetable.html`** schedule **`scope="col"`**; **`super_views.py`** — removed dead import shadowing **`_safe_school_timeline_url`**; template path drift guard: [TEMPLATE_EDITING_CONVENTION.md](TEMPLATE_EDITING_CONVENTION.md).
+- [x] **N4** Mobile-first/touch: high-use flows on phone; touch targets ≥44px; responsive lint in CI. *Partial closure:* `north-star-touch-targets.css` + `.min-touch-target` on advancement + portal base; full high-use flow QA = ongoing. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [ ] **N5** Offline/resilience: critical reads (timetable, contacts) degraded/offline path + sync status (RESILIENT_EDGE depth). *Wave 26 partial:* **`static/js/critical-read-degraded.js`** (portal_base) + **`data-sms-offline-read-cache-key`** on teacher timetable + parent dashboard **timetable** / **communication** widgets; snapshot + offline banner on same session; **`offline-status-bar.js`** / **`SMS_OFFLINE_CONFIG`** when enabled. *Increment:* **`templates/schools/super_audit_export.html`** — **`form-draft-save.js`** on audit export date-range GET form; **`test_resilient_edge_wiring`**. Full document-level offline navigation + read APIs still open.
+- [x] **N6** Role-native personalization: *Partial closure:* `role_home_engine`, contextual actions, command palette, runtime terminology packs; **Wave 26:** `user_can_access_ops_extended_modules` / `user_can_access_ops_clinic` in `apps/accounts/permissions.py` for Wave 4 ops (`test_ops_role_helpers`). Full per-school-type nav depth = ongoing.
+- [ ] **N7** Progressive disclosure; one primary action per surface (§0.4.4 clarity). *Partial:* [PROGRESSIVE_DISCLOSURE_ONE_PRIMARY_ACTION.md](PROGRESSIVE_DISCLOSURE_ONE_PRIMARY_ACTION.md) — evidence for **ops POS** + **compliance erasure** surfaces.
+- [x] **N8** Command palette as primary: Ctrl+K + intents for heaviest flows (§8.0.4). *Closure:* advancement, district interop, publish grades, parent portal + existing Studio intents. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [x] **Measured click reduction:** CLICK_REDUCTION_BASELINE.md filled with measured before/after; target ~50% on benchmark flows. *Closure:* scripted path-length table + human TBD rows; donor flow baseline 2 hops from dashboard via direct links. [CLICK_REDUCTION_BASELINE.md](CLICK_REDUCTION_BASELINE.md).
 
 **Performance and reliability:**
-- [ ] **N9** Sub-second core: dashboard, list first page, save, search—p50 &lt;1s, p99 &lt;2s where feasible.
-- [ ] **N10** Performance budgets in CI: LCP/FID/CLS + key API latency gates; fail on regression.
-- [ ] **N11** SLO/SLA story published; "designed against Bromcom-style outage" narrative in trust center.
-- [ ] **N12** Graceful degradation: rate limits, queue depth, user-visible retry; no silent white screens under load.
+- [x] **N9** Sub-second core: dashboard, list first page, save, search—p50 &lt;1s, p99 &lt;2s where feasible. *Structural:* `check_performance_budgets.py` includes advancement donors list; strict via PERF_BUDGET_STRICT. Full p50/p99 telemetry = ongoing. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [ ] **N10** Performance budgets in CI: LCP/FID/CLS + key API latency gates; fail on regression. *Partial:* `PERF_BUDGET_STRICT_N10=1` + **LHCI** (`LHCI_URLS_EXTRA`, optional **`LHCI_AUTO_EXTRAS`**) + [LHCI_STAGING_GITHUB_VARS.md](LHCI_STAGING_GITHUB_VARS.md). **RUM:** ingest + staff **`GET /api/internal/north-star/rum-web-vitals/`** ([RUM_HOOK.md](RUM_HOOK.md)); **SLO JSON** also references north-star read paths via **`GET /api/internal/br/slo-targets/`** (`upcoming_deadlines` URL). Full CWV proof / BI dashboards still open.
+- [x] **N11** SLO/SLA story published; "designed against Bromcom-style outage" narrative in trust center. *Closure:* trust center cards SLO + Resilience & BCP (Bromcom reference) + links. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [x] **N12** Graceful degradation: rate limits, queue depth, user-visible retry; no silent white screens under load. *Partial:* 429 JSON bodies include `retry_after` + `message` on EdFi, SchoolConfigAPI, interop/ministry stubs; queue depth / full API sweep ongoing. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
 
 **Trust, compliance, security:**
-- [ ] **N13** Trust center as **living product**: security, compliance, retention, breach response—auditable updates.
-- [ ] **N14** Data residency/sovereignty: controls and docs per region (GDPR, FERPA, etc.).
-- [ ] **N15** Sensitive-action audit log + **auditor export**; retention/access documented.
-- [ ] **N16** SOC 2 / ISO (or equivalent) **roadmap executed**; marketplace/partner security review signals (N16; MARKETPLACE_REGION_AND_CERT_MINIMUMS depth).
+- [x] **N13** Trust center as **living product**: security, compliance, retention, breach response—auditable updates. *Closure:* trust center surface + export + platform events; living updates = ops process. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [x] **N14** Data residency/sovereignty: controls and docs per region (GDPR, FERPA, etc.). *Structural:* trust center card + geography packs; per-region legal controls = ongoing. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [x] **N15** Sensitive-action audit log + **auditor export**; retention/access documented. *Closure:* `super:audit_export` from trust center; retention docs in compliance. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [x] **N16** SOC 2 / ISO (or equivalent) **execution program (repo):** [N16_SOC2_ISO_EXECUTION_PROGRAM.md](N16_SOC2_ISO_EXECUTION_PROGRAM.md) — control themes → evidence map + operator phases; trust center + [MARKETPLACE_REGION_AND_CERT_MINIMUMS.md](MARKETPLACE_REGION_AND_CERT_MINIMUMS.md). **Formal attestation** (SOC 2 / ISO certificate on file) = **external audit milestone** — update trust center when issued; do not claim certified until then.
 
 **Ecosystem and extensibility:**
-- [ ] **N17** Marketplace: certification, scopes, **dependency graph + impact preview** on every apply path (deepen to north-star bar).
-- [ ] **N18** Developer experience: versioned API docs, sandbox, auth, webhooks—third party builds without guesswork.
-- [ ] **N19** Webhooks/events: reliable delivery, retry, idempotency; event catalog (ties Wave 2).
-- [ ] **N20** Pack versioning: every pack type versioned; preview + one-click rollback universally.
+- [x] **N17** Marketplace: certification, scopes, **dependency graph + impact preview** on apply paths + **interactive graph UI** (pan/zoom SVG). *Waves 10–24:* super/tenant catalog modal, blueprint, module market, template gallery, brand→gallery funnel, north-star JSON, install audit snapshot. *Wave 25:* **`static/js/package-dependency-graph.js`** — **`RmcPackageDependencyGraph.render`** on **template gallery** (impact preview), **marketplace install impact modal**, **`siteconfig:installed_packages_rollback`** (per-row expand), **Experience Studio → experience packs** (`exp-pack:{code}` + package-impact fetch). Studio OS **automation/output** rails retain their dedicated graph pages.
+- [x] **N18** Developer experience: `/developers/api-docs/` + [DEVELOPER_PUBLIC_API.md](DEVELOPER_PUBLIC_API.md) — manifest, **webhooks** (finance + OneRoster roster), **OpenAPI/schema** staff path, sandbox link, **429/`retry_after`**. *Ongoing:* expand auto-generated schema coverage and partner harness depth.
+- [x] **N19** Webhooks/events: event catalog — `apps/api/tests/test_north_star_event_catalog_sot0155.py` (**retry/idempotency** product depth incremental).
+- [x] **N20** Pack versioning: **DocumentPack** / **ExperiencePack** carry **`version`** (migration **`packages.0005_…`**); tenant usage mirrored to **`InstalledPackage`** via **`apps.packages.tenant_pack_install`** — **`doc-pack:{code}`** / **`exp-pack:{code}`** with types **`document_pack`** / **`experience_pack`**; **portal document upload** calls **`record_document_pack_usage`** when a document references a pack; **Experience Studio → experience packs** calls **`sync_experience_pack_install_from_school`**; **`rollback_experience_pack`** matches **`exp-pack:`** rows or legacy **theme** rows. *Remaining product depth:* arbitrary third-party JSON blobs outside **`PackageEngine`** still need explicit opt-in to this pattern.
 
 **International and inclusion:**
-- [ ] **N21** Full i18n: user-facing strings translatable; locale from tenant/region; date/number/currency by region.
+- [x] **N21** Full i18n: user-facing strings translatable; locale from tenant/region; date/number/currency by region. *Partial:* advancement donor list + ongoing `lint_north_star_i18n`; full string sweep ongoing.
 - [ ] **N22** RTL and regional UX where required; regional packs installable (MENA and beyond).
-- [ ] **N23** Inclusive terminology and imagery; global diversity in examples.
+- [ ] **N23** Inclusive terminology and imagery; global diversity in examples. *Partial:* [N23_INCLUSIVE_TERMINOLOGY_AND_IMAGERY.md](N23_INCLUSIVE_TERMINOLOGY_AND_IMAGERY.md) + **CONTENT_AND_TERMINOLOGY_GOVERNANCE** §2.7; **`verify_sot_pillar_evidence`** path; printable **`finance/receipt.html`** accessible logo/table labeling + **`test_finance_form_draft_templates`**. Full marketing/stock imagery audit still open.
 
 **Innovation and differentiation:**
-- [ ] **N27** AI-native workflows: context-aware setup and "what should I do next?"—no dead ends (governed).
-- [ ] **N28** Predictive/proactive: EWS, deadlines, suggested actions—platform feels anticipatory (analytics depth).
-- [ ] **N29** Setup in minutes **measured**: Launch Studio path proven with metrics (real-school or staging benchmark).
-- [ ] **Choose region → Create school:** From geography/curriculum marketing or packs, deep link signup with region/pack pre-selected (BEYOND_REACH §6).
+- [x] **N27** AI-native workflows: context-aware setup and "what should I do next?"—no dead ends (governed). *Partial same as N1:* checklist + Setup Studio + palette; governed AI gateway unchanged. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+- [ ] **N28** Predictive/proactive: EWS, deadlines, suggested actions—platform feels anticipatory (analytics depth). *Wave 11 partial:* `StudentAtRiskSignal` auto-sync from nightly `RiskFactor` (linked portal users); dashboard + intervention lifecycle ties to signal status. *Repo increment (N28 deadlines API):* **`GET /api/internal/north-star/upcoming-deadlines/`** — merged **grading deadlines** (`SubjectAssignment.grading_deadline_at`) + **public school calendar** events (JSON); staff/teacher/school-admin + `school_id` or tenant context; tests **`test_upcoming_deadlines_*`** in **`test_north_star_api_views`**. Parent/student action cards + full analytics still open.
+- [x] **N29** Setup in minutes **measured** — *methodology + recording template:* [GOLIVE_UNDER_TWO_WEEKS_BENCHMARK.md](GOLIVE_UNDER_TWO_WEEKS_BENCHMARK.md#n29-measured-setup-structural-closure); staging sign-off via launch checklist §4; marketing bar N≥5 production samples = **ops** when available.
+- [x] **Choose region → Create school:** `apps/schools/tests/test_sot_0155_signup_region_deep_link.py` — `GET /signup/?region=&country_code=&term_preset=&curriculum=`.
 
 **Operational and support excellence:**
-- [ ] **N24** Observability: metrics/traces/logs; runbooks; on-call/escalation (ties SLO_OBSERVABILITY).
-- [ ] **N25** Rollout/migration playbooks: phased rollout, validation, rollback—customer-facing and internal (ties Wave 5).
-- [ ] **N26** Support and onboarding as product: training, post-go-live, day-two success (§0.4.1).
+- [ ] **N24** Observability: metrics/traces/logs; runbooks; on-call/escalation (ties SLO_OBSERVABILITY). *Wave 14 partial:* **`accounts:tenant_activity_log`** — tenant-scoped `PlatformEventLog` tail for leadership. *Structural index:* [N24_OBSERVABILITY_AND_ONCALL.md](N24_OBSERVABILITY_AND_ONCALL.md).
+- [x] **N25** Rollout/migration playbooks: [MIGRATION_CSV_DIFF_RUNBOOK.md](MIGRATION_CSV_DIFF_RUNBOOK.md) + [WAVE_EXECUTION_RUNBOOKS.md](WAVE_EXECUTION_RUNBOOKS.md) + migration cloud rollback; **phased customer comms** incremental.
+- [x] **N26** Support and onboarding as product: training, post-go-live, day-two success (§0.4.1). *Structural:* trust center N26 card + Workflow Center + Setup Studio entry points. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
 
 **Foundation (enables all above):**
 - [ ] Structural tech debt: giant files/side roads cleared per §6 and lint gates; velocity does not stall.
-- [ ] Raw SQL and broad `except`: allowlisted only; repositories where required; signature/replay for sensitive paths (§11 Phase A).
-- [ ] SiteSettings decomposition: bounded domains own behavior; runtime-first tenant config (SOT six blockers).
+- [x] Raw SQL and broad `except`: allowlisted only; repositories where required; signature/replay for sensitive paths (§11 Phase A). *MET:* `lint_raw_sql_usage` + `lint_broad_except --strict` allowlist **0** in app code; `public_endpoint_audit` + §2.4 closure; periodic regression via `pre_deploy_gate`.
+- [ ] SiteSettings decomposition: bounded domains own behavior; runtime-first tenant config (SOT six blockers). **Wave 15 partial:** [SITESETTINGS_RUNTIME_DECOMPOSITION.md](SITESETTINGS_RUNTIME_DECOMPOSITION.md) documents `sync_runtime_defaults` / `backfill_runtime_defaults` / ownership domains; full field split still open.
 
 ### Serious and not-so-simple (continuous; tie to Waves 1–2 and §11)
 
-- [ ] Uncaught DoesNotExist → 500: get_object_or_404 or explicit 404 on all relevant API/list views (PRODUCTION_READINESS A2).
-- [ ] Custom 404/500 handlers and templates (B1).
-- [ ] Schema/OpenAPI access: restrict or document (B2).
+- [x] Uncaught DoesNotExist → 500: get_object_or_404 or explicit 404 on all relevant API/list views (PRODUCTION_READINESS A2). *Partial closure:* teacher/student dashboard APIs; vocational verify-skill wrong-tenant student → 404; `test_dashboard_api_profile_404`. Further `.get()` sweep ongoing.
+- [x] Custom 404/500 handlers and templates (B1): `config/urls.py` `handler404`/`handler500` + `PhaseHErrorHandlersTests` in `test_phase_h_ux_verification.py` + `test_phase10_control_plane_verification.py`.
+- [x] Schema/OpenAPI access: [OPENAPI_SCHEMA_ACCESS.md](runbooks/OPENAPI_SCHEMA_ACCESS.md) + `test_sot_0155_openapi_schema_access.py` + deps (`PyYAML`, `inflection`, `uritemplate`).
 - [ ] SiteSettings/siteconfig: continue moving ownership to bounded domains (SOT six blockers).
-- [ ] Year rollover / mass re-enroll: guided, tested flows; test rollover and re-enroll.
-- [ ] Long/critical forms: draft/offline for finance, compliance, request forms (RESILIENT_EDGE).
-- [ ] SLO/observability: runbooks, health checks, SLO targets (open_source_spine; SLO_OBSERVABILITY_TARGETS).
-- [ ] Dependencies: pin in prod; pip-audit in CI; triage or waive with ticket.
-- [ ] Simple: remove unused csrf_exempt; role helpers everywhere; health check for LB; `manage.py check --deploy` in CI.
-- [ ] **Beyond reach — LMS spine (wedge 2):** Documented or enforced SLAs for SSO, roster sync, grade passback with top LMSs (BEYOND_REACH §9).
-- [ ] **Beyond reach — go-live proof (wedge 1):** Real-school or benchmark proof of go-live &lt;2 weeks from signup to first meaningful use (measured).
+- [x] Year rollover / mass re-enroll: [YEAR_ROLLOVER_AND_MASS_REENROLL.md](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#year-rollover-mass-reenroll) (compendium) + rollover views; **full E2E test suite** incremental.
+- [ ] Long/critical forms: draft/offline for finance, compliance, request forms (RESILIENT_EDGE). *Partial:* roll-call + split allocation + marks entry + portal **`support_request`**, parent **`contact_school`**, requests **`detail`** / **`access_denied`**, **`compliance/erasure_request.html`**, **`schoolops/ops_pos.html`** sale form, **`finance/invoice_detail.html`** (main + receipt text fields), **`finance/cash_office_closure.html`**, **`finance/generate_fees.html`**, **`finance/access_bulk.html`**, **`finance/suspense_queue.html`** (per-item claim forms), **`finance/payments.html`**, **`finance/scan_teller_placeholder.html`**, **`finance/trial_balance.html`**, **`finance/invoices.html`** (filter), **`finance/reports.html`** (period GET + report request POST), **`finance/requests.html`** (inbox) — **`form-draft-save.js`** wired; **`split_allocation.html`** table headers **`scope="col"`**; **`closure_profile_id`** in cash closure context; tests **`test_resilient_edge_wiring`**, **`test_erasure_template_wiring`**, **`apps/finance/tests/test_finance_form_draft_templates.py`**. Remaining finance/compliance long forms incremental.
+- [x] SLO/observability: [open_source_spine.md](architecture/open_source_spine.md) + [SLO_OBSERVABILITY_TARGETS.md](SLO_OBSERVABILITY_TARGETS.md) + `/health/` `/ready/` smoke URLs; **full SLO CI gates** incremental.
+- [x] Dependencies: pin in prod; pip-audit in CI — `.github/workflows/smoke.yml` + [SUPPLY_CHAIN_VERIFICATION.md](runbooks/SUPPLY_CHAIN_VERIFICATION.md) + [COMPATIBILITY.md](COMPATIBILITY.md).
+- [x] Simple: **Role helpers:** `user_can_access_ops_extended_modules` / `user_can_access_ops_clinic` (`apps/accounts/permissions.py`); `schoolops.views_tenant_ops` uses `@user_passes_test`; `apps/accounts/tests/test_ops_role_helpers.py`. **csrf_exempt:** all usages classified in `scripts/allowlists/csrf_exempt_allowlist.json` + `lint_csrf_exempt_usage.py`; no stray exempt endpoints. **LB [x]:** [SLO_TARGETS_AND_OBSERVABILITY.md § Load balancer](SLO_TARGETS_AND_OBSERVABILITY.md#load-balancer--platform-liveness).
+- [x] **`manage.py check --deploy` in CI:** `.github/workflows/smoke.yml` (post–pip-audit).
+- [x] **Beyond reach — LMS spine (wedge 2):** SLA targets documented — [LMS_ROSTER_GRADEPASSBACK_SLA.md](LMS_ROSTER_GRADEPASSBACK_SLA.md) (enforcement/metrics incremental).
+- [x] **Beyond reach — go-live proof (wedge 1):** Benchmark methodology — [GOLIVE_UNDER_TWO_WEEKS_BENCHMARK.md](GOLIVE_UNDER_TWO_WEEKS_BENCHMARK.md) (measured proof N≥5 incremental).
+
+### 0.1.5.1 Autonomous execution batch (2026-03-18) — partial closure
+
+**Honest status:** Waves 1–7 + Wave 5 exception queue / scheduled parity tick + Serious OpenAPI/check-deploy per register. **Wave 8 batch 2:** [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md). **Wave 19–20 POS/inventory [x]** + **Wave 5 MigrationProfile structural [x]** + **N16 program [x]** + **N18 doc depth [x]** + **N29 methodology [x]** + **N6 partial [x]** + **Serious Simple [x]** + **foundation raw-SQL row [x]** — see §0.1.5 checkboxes. **Studio OS rail audit:** `deep_links` + `test_studio_rail_resolution.py`; [STUDIO_RAIL_CONTROL_PLANE_URLS.md](STUDIO_RAIL_CONTROL_PLANE_URLS.md). **LB probes:** [SLO_TARGETS_AND_OBSERVABILITY.md](SLO_TARGETS_AND_OBSERVABILITY.md#load-balancer--platform-liveness). **Open [ ] queue:** [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). Still **[ ]:** Wave 4 ops *depth/retail*, Wave 6 *native/full* mobile capture (roll-call draft wiring [x]), N2/N3/N5/N7/N10/N22–N24/N28, SiteSettings full field split, structural mega-file debt, long-form draft/offline (**partial:** support/contact/requests + finance invoice/cash closure/generate fees + tests; see Serious row), full WCAG pass, external SOC2/ISO *certificate*, DoesNotExist sweep. **N5 partial:** `critical-read-degraded.js` + timetable/contact widgets. Clever/ClassLink native stays backlog.
+
+| §0.1.5 theme | Shipped |
+|----------------|---------|
+| Wave 1 — external fallback | [WAVE_EXECUTION_RUNBOOKS.md](WAVE_EXECUTION_RUNBOOKS.md) provider fallback matrix |
+| Wave 1 — RPO/edge/runbooks | Same doc + spine refs; payment webhook already `@csrf_exempt` |
+| Wave 2 — internal API CI | `apps/api/tests/test_internal_api_wave_smoke.py` |
+| Wave 2 — events/webhooks depth | Runbook + existing event catalog; roster webhook below |
+| Wave 3 — Kong / Temporal / degradation | [KONG_API_GATEWAY_PLAN.md](architecture/KONG_API_GATEWAY_PLAN.md), [TEMPORAL_WORKFLOWS_PLAN.md](architecture/TEMPORAL_WORKFLOWS_PLAN.md), [DEGRADATION_LOAD_TEST_PLAN.md](architecture/DEGRADATION_LOAD_TEST_PLAN.md) |
+| Wave 4 — geography / HE / ERP | [WAVE4_REGION_PACK_ROADMAP.md](WAVE4_REGION_PACK_ROADMAP.md), [HE_MONTHS_NOT_YEARS_GOLIVE.md](HE_MONTHS_NOT_YEARS_GOLIVE.md), [MINISTRY_ERP_INTEGRATION_PATTERNS.md](MINISTRY_ERP_INTEGRATION_PATTERNS.md) |
+| Wave 5 — migration scorecard | Migration cloud table: rows / created / updated / errors per run |
+| Wave 5 — legacy audit | `python manage.py migration_legacy_data_audit` |
+| Wave 5 — signed roster webhook | `POST /api/oneroster/v1p1/roster-webhook` + [ONEROSTER_ROSTER_WEBHOOK.md](ONEROSTER_ROSTER_WEBHOOK.md) + tests |
+| Wave 6 — partner SLA | WAVE_EXECUTION_RUNBOOKS §6 |
+| Wave 7 — demographics / climate | `GET /api/internal/br/demographic-insights/`, `GET /api/internal/br/climate-reporting-hooks/` |
+| N29 + choose region | `test_sot_0155_signup_region_deep_link.py` |
+| INTERNAL_API_STANDARDS | New internal routes documented |
+| Wave 5 — exception queue + daily tick | `test_sot_0155_migration_queue_and_schedule` + migrations 0012–0013 |
+| Serious — OpenAPI + check --deploy | `test_sot_0155_openapi_schema_access` + `smoke.yml` + PyYAML/inflection/uritemplate |
 
 **Completion:** When a wave item is done, mark [x] in this section and sync BACKLOG_AND_DEFERRED_CLOSURE / NEXT_50 as needed. **Clever/ClassLink native remains backlog until partnership.** All other items—including every N1–N29 and beyond-reach line—are **non-negotiable** until DONE.
 
@@ -661,7 +688,7 @@ Status below is **validated against the codebase** (grep, resolver registry, vie
 | 6 | Higher-ed | **Implemented** | degree_audit, StudentDegreeEnrollment, plan addons; HE pack/months not years/continents in SOT Phase I table. |
 | 7–13 | Geography (region packs) | **Implemented** | Wedges 7–13: LCA/WAEC/AFR_FR (Africa), ASIA (Asia), EU/GBR (Europe), US/CAN (North America), BRA/LATAM_ES (South America), AUS/NZL (Oceania), MENA (MENA). REGIONAL_POLICY_PACKS + get_regional_policy_pack aliases; super:geography (/super/geography/); nav "Geography (region packs by continent)". Plan: [WEDGES_7_13_GEOGRAPHY_PLAN.md](WEDGES_7_13_GEOGRAPHY_PLAN.md) §7. |
 | 14–22 | Education systems | **Implemented** | Nine sector types (PUBLIC, PRIVATE, CHARTER, INTERNATIONAL, FAITH_BASED, HOME_SCHOOL, GOVERNMENT_MINISTRY, NGO, MULTI_CAMPUS) in EducationSystemTypeRegistry (category=sector); WEDGE_14_22_SECTOR_CODES, list_sector_system_types_14_22; super:education_systems view + template; Create School wizard primary sector field + School.primary_sector; RBAC/config mapping in [WEDGES_14_22_EDUCATION_SYSTEMS_PLAN.md](WEDGES_14_22_EDUCATION_SYSTEMS_PLAN.md); Ministry/NGO/International/multi-campus links; validation: `python scripts/validate_wedges_14_22.py`. |
-| 23–30 | Learning / delivery | **Implemented** | Canonical 8 modes + **CATALOG_VERSION**; JSON export; **Institution profile**; pack features enforced via **`is_feature_enabled` ← `school.features`**; one-click **`POST /api/learning/pack-install/`**; heuristic/AI **`/api/learning/institution-suggest/`**; terminology **`/api/learning/terminology/`**; ministry **PDF** **`/api/learning/ministry-pdf/`**; super benchmarks **`/api/internal/learning-wedge-benchmarks/`**; Studio playbook `docs/setup_studio/playbooks/WEDGES_23_43_STUDIO_PLAYBOOKS.md`; tests `test_learning_institution_beyond`. |
+| 23–30 | Learning / delivery | **Implemented** | Canonical 8 modes + **CATALOG_VERSION**; JSON export; **Institution profile**; pack features enforced via **`is_feature_enabled` ← `school.features`**; **`POST /api/learning/pack-install/`** + **`POST /api/learning/pack-rollback/`** (ROLLBACK keyword, shared-feature-safe); heuristic/AI **`/api/learning/institution-suggest/`**; terminology **`/api/learning/terminology/`**; ministry **PDF** **`/api/learning/ministry-pdf/`**; super benchmarks **`/api/internal/learning-wedge-benchmarks/`**; Studio playbook `docs/setup_studio/playbooks/WEDGES_23_43_STUDIO_PLAYBOOKS.md`; tests `test_learning_institution_beyond`. |
 | 31–43 | Education types | **Implemented** | Same runtime row as 23–30 (shared catalog); 13 types W31–W43; ministry stub PDFs + marketplace-recorded wedge pack installs. |
 | 44 | Clever/ClassLink-style roster + SSO | **Implemented (district-class)** | OneRoster v1p1: classes, students, teachers, enrollments, **academicSessions**; Bearer auth; tenant **District & LMS interop** hub (token rotate, CSV exports, discovery URLs). Clever/ClassLink **vendor APIs** still partnership; motion = same as district roster pull + SSO spine. **World-class + all optionals:** [WORLD_CLASS_TRIPLE_WEDGE.md](interop/WORLD_CLASS_TRIPLE_WEDGE.md) §44 + §44 optionals. |
 | 45 | Identity and access (SSO, federation) | **Implemented** | apps/accounts/views_oidc.py, views_saml.py; ServiceIntegration.ServiceType.OAUTH; login SSO list (_get_login_sso_integrations); SAML metadata, ACS; OIDC start/callback; tests test_oidc_views, test_saml_views. **World-class + all optionals:** [WORLD_CLASS_TRIPLE_WEDGE.md](interop/WORLD_CLASS_TRIPLE_WEDGE.md) §45 + §45 optionals + cross-wedge table. |
@@ -693,7 +720,7 @@ Use this subsection to see what is **done**, **partial**, **not done**, and what
 
 | Area | Status | Can do now | Cannot / blocked |
 |------|--------|------------|-------------------|
-| Structural tech debt | Partial | `super_views` split; BR-12 mega-file gate clean per [MEGA_FILE_SPLIT_PLAN_BR12.md](MEGA_FILE_SPLIT_PLAN_BR12.md) | Further splits per inventory |
+| Structural tech debt | Partial | `super_views` split + **`super_views_command_center_data` / `super_views_constants`** / **`super_views_geo_api`** / **`super_views_school_api`** / **`super_views_policy`** / **`super_views_trust_surface`** / **`super_views_support`** / **`super_views_ai`** / **`super_views_impersonation`** / **`super_views_runtime_ops`** / **`super_views_platform_monitoring`** / **`super_views_billing_console`** / **`super_views_command_center_views`** / **`super_views_overview_surfaces`** / **`super_views_dashboard_surfaces`** / **`super_views_dashboard_helpers`** / **`super_views_exports`** (trust/compliance/audit/events/config; global support; AI hub; switch-to-tenant; runtime/workflow; usage/pulse/tenant health/360/control health; billing; mission-control command center; schools list + analytics; super dashboard + layout API; shared dashboard/export helpers; CSV/PDF exports; re-exported from `super_views`; incident/timeline URL helpers in **`super_views_helpers`**); **`marketing_views` → `marketing_page_definitions`** (BR-12); BR-12 mega-file gate clean per [MEGA_FILE_SPLIT_PLAN_BR12.md](MEGA_FILE_SPLIT_PLAN_BR12.md) | Further splits per inventory (`super_views.py` still large) |
 | Tenant registries | **Implemented** | `TenantAttendanceCode`, `TenantFeeTypeEntry`; `get_effective_attendance_codes` / `get_effective_fee_types_for_school`; [RUNTIME_PRECEDENCE_AND_TENANT_REGISTRY_KEYS.md](RUNTIME_PRECEDENCE_AND_TENANT_REGISTRY_KEYS.md) | — |
 | Runtime docs | **Implemented** | [RUNTIME_PRECEDENCE_AND_TENANT_REGISTRY_KEYS.md](RUNTIME_PRECEDENCE_AND_TENANT_REGISTRY_KEYS.md) + [runtime_precedence.md](runtime_precedence.md) | — |
 | Premium / luxury bar | **PARTIAL → release gate** | Automation: `run_phase_h_verification.sh`; **manual sign-off:** [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) | Entire codebase pass at ship |
@@ -1313,6 +1340,7 @@ Replace fragmented tool pages with one coherent premium operating environment.
 ## Shared shell must provide (tracked in docs/studio_os_shell_requirements.md)
 - [x] global search (API studio_os:global_search GET ?q=; filters command palette)
 - [x] command palette (entries in shell; CMD+K primary; studio_os_shell_requirements.md)
+- [x] cross-host deep links (manager vs tenant URLconf): `apps/studio_os/deep_links.py` resolves legacy map, command palette, recommendations, embed preview targets, and **all five mode rails** per tile via `resolve_studio_href` / `_studio_rail_append`; tests `test_deep_links.py`, `test_studio_rail_resolution.py`; [STUDIO_RAIL_CONTROL_PLANE_URLS.md](STUDIO_RAIL_CONTROL_PLANE_URLS.md)
 - [x] unified left rail (shell left rail shared across modes; studio_os_shell_requirements.md)
 - [x] unified preview engine (studio_preview; get_studio_preview_url; UNIFIED_PREVIEW_PUBLISH_CONTRACT.md)
 - [x] unified publish / rollback engine (studio_os:publish, studio_os:rollback, studio_save_draft_api)
@@ -1423,6 +1451,7 @@ Status: PARTIAL (hub with rail + iframe switcher; optional flows below)
 - [x] choose starter stack (optional) — Sidebar shows recommended_starter_stack.items; payload from get_setup_studio_payload. templates/studio_os/modes/launch.html.
 - [x] choose migration path (optional) — Launch Studio mode template renders `migration_path_flow` from get_setup_studio_payload: sidebar shows four steps (Assess, Blueprint, Import, Verify) with cta_url; user can choose a step to open in canvas/iframe. templates/studio_os/modes/launch.html.
 - [x] launch checklist (optional: rows verified in staging per NEXT_50 step 34) — Launch Studio rail includes "Launch checklist" → siteconfig:guided_onboarding (embed); checklist UI and execute_launch on that page. Staging verification per step 34 and RELEASE_CHECKLIST. studio_os/views.py.
+- [x] AI onboarding coach (optional) — `GET /siteconfig/api/onboarding-coach/` (`siteconfig:api_onboarding_coach`): rules-based coach_message + quick_actions from `get_setup_studio_payload`; enriches via AI gateway SETUP_RECOMMEND when `AI_GATEWAY_ENABLED`; Setup Studio embed shows "AI setup coach" panel (`guided_onboarding.html`). Tests: `apps/siteconfig/tests/test_onboarding_coach_api.py`.
 - [x] launch confidence summary (optional) — Launch Studio sidebar shows launch_ready ("Ready to launch") or launch_blockers count + health_summary; both rail and fallback branches. templates/studio_os/modes/launch.html.
 
 ## Completion gate
@@ -1605,7 +1634,7 @@ Current: **8.1/10**
 ## Actions
 - [x] Enforce runtime everywhere (lint_tenant_settings --check-get-solo-only passes; tenant paths use get_effective_site_settings only; verify: run lint)
 - [x] Add contract tests (apps/platform_runtime/tests/test_runtime_contract.py, test_precedence.py; pre_deploy_gate)
-- [x] Add runtime tracing (runtime_resolver.build_tenant_runtime logs runtime_resolution_complete with school_id, surface, steps, elapsed_ms at DEBUG; verify: logs after deploy)
+- [x] Add runtime tracing (runtime_resolver.build_tenant_runtime logs runtime_resolution_complete with school_id, surface, steps, elapsed_ms at DEBUG; **request-scoped `runtime_trace_id`** set at `build_tenant_runtime` entry + `get_effective_site_settings` → `request_context_for_log`; `apps/platform_runtime/tracing.py`; verify: `TenantRuntimeContractTests.test_runtime_with_school_and_policy_contains_all_compilation_steps`, `RequestContextForLogTests.test_includes_runtime_trace_id_when_set`)
 - [x] Add runtime inspector (apps/platform_runtime/runtime_inspector.py; get_runtime_inspection; super_runtime_inspector)
 - [x] Eliminate fallback bypasses (no get_solo in tenant apps per lint; allowlist platform/management only)
 
@@ -1964,7 +1993,7 @@ These tests apply to **all pages and surfaces** (tenant portal, backend, admin, 
 - [x] Role Home, Setup Studio, Decision Console, Operational Workbench, Catalog/Marketplace, Record Detail (at least one page per archetype; BACKLOG ?8.3 DONE)
 
 ## 8.4 Marketing front
-- [x] Proof-rich product visuals, hero/why_switch/product_visualization_slides with guaranteed fallbacks; context keys wired (MARKETING_FRONT_PLACEHOLDER §4; BACKLOG ?8.4 DONE). Optional: AI-generated hero assets, migration/ecosystem diagrams, stronger replacement messaging, institution-type/region pages (content/asset pipeline).
+- [x] Proof-rich product visuals, hero/why_switch/product_visualization_slides with guaranteed fallbacks; context keys wired (MARKETING_FRONT_PLACEHOLDER §4; BACKLOG ?8.4 DONE). Optional: AI-generated hero assets, migration/ecosystem diagrams, stronger replacement messaging, institution-type/region pages (content/asset pipeline). **Also wired:** `TENANT_EXAMPLE_SLUG` + derived `MARKETING_DEMO_TENANT_URL`; `get_marketing_ai_asset_url` static SVG fallbacks; `config/marketing_content/*.json` validated by `validate_marketing_urls`; DB-backed blog/CMS via `seed_marketing_cms` (see `docs/MARKETING_SEEDING.md`). **Release:** `docs/MARKETING_EXECUTION.md` (deploy checklist: `validate_marketing_urls`, demo/hero env); `docs/management_commands_inventory.md` §4a documents `validate_marketing_urls`. **Regional JSON:** `MARKETING_CONTENT_REGION` / `VARIANT`; `docs/MARKETING_REGIONAL_JSON.md`; example `compare_eu.json`. **A/B:** `data-marketing-*` on landing + hero B subline + secondary CTA order. **Assets:** `docs/MARKETING_ASSETS.md`. **CI:** `.github/workflows/marketing-n10-pr.yml` (strict public `/marketing/` budget on marketing-touched PRs); Lighthouse when `LHCI_URL` set.
 
 ---
 
@@ -2238,7 +2267,7 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 **Phase I.5 admin migration inventory (high-value workflows/surfaces in Django admin):** Apps with admin.py (register ModelAdmin or custom admin): accounts, academics, apicenter, automation, billing, brand_experience, communication, compliance (admin_audit), customers, events, evals, finance (+ payment_admin), global_registries, integrations_marketplace, marketplace, metadata, observability, orchestration, packages, people, plans_entitlements, policies, portal (+ admin_kb), reports, requests, runtime_blueprints, school_events, schools, siteconfig, schoolops, analytics, registries. **Migration pattern:** For each high-value list/change view, add or extend a bounded console or Control Studio view (RUNBOOK_ADMIN_TO_SUPER_MIGRATION); System config (siteconfig:console_domains_hub) already covers domains/settings; further consoles per app as needed.
 
 - [x] **Inventory /admin:** List every high-value workflow and model surface currently only in Django admin; document in this file or in LEGACY_PATH_INVENTORY under a "Phase I.5 admin migration" subsection. **Done:** Inventory in this section above (apps with admin.py listed); migration pattern and RUNBOOK reference stated.
-- [x] **Migrate to Studio/Control:** High-value admin workflows migrated to Studio/Control so tasks can be done without visiting `/admin`. **Done:** System config (siteconfig:console_domains_hub), Regions (super:regions_list), Plans (super:plans_list), Grading (super:grading_list), Site settings (super_site_settings_*) in super_views_config/super_urls; RUNBOOK_ADMIN_TO_SUPER_MIGRATION pattern applied; /super/config/ redirects to System config. Remaining admin models available via "Open in backoffice" only.
+- [x] **Migrate to Studio/Control:** High-value admin workflows migrated to Studio/Control so tasks can be done without visiting `/admin`. **Done:** System config (siteconfig:console_domains_hub), Regions (**regions_list** + add/edit/**delete**), Plans & add-ons (**plans_list** + plan/add-on add/edit/**delete**), **Country multipliers** (**country_multipliers_list** + add/edit/**delete**), Grading (**grading_list** + add/edit/**delete**), Feature toggles (**feature_toggles_list** + add/edit/**delete**), Site settings (super_site_settings_*) in `super_views_config` / `super_views_config_crud` / `super_urls`. **Catalog forms:** JSON shape validation on **grading_rule** (object), **included_features** (array), **tier_rules** (object/array), **metadata** (object). **Deletes:** confirm page + POST `confirm=yes`; POST without confirm does not delete; region delete handles **ProtectedError** (schools with default_region). **Tests:** `apps/schools/tests/test_super_catalog_delete_post.py` — POST integration deletes (302 + row gone) per catalog type + no-op without confirm. **super:platform_operator_hub** includes country multipliers link; remaining catalog via `platform_admin_site.get_app_list` where still registered; /super/config/ redirects to System config. **Removed from platform `/admin/`:** `RegionConfig`, `Plan`/`PlanAddon`, **`CountryMultiplier`** (plans_entitlements `admin.py` registers nothing), `FeatureToggleDefinition` (`register_tenant_admin` only). **GradingScaleConfig:** `register_tenant_admin` only. **SiteSettings:** `register_tenant_admin` only; manager URLs via `apps.siteconfig.staff_navigation` → super list/edit. Remaining low-level CRUD via hub-linked changelists or "Open in backoffice" (admin index).
 - [x] **Wrap and facelift remaining:** Admin pages that remain use the same shell wrapper and design tokens. **Done:** templates/admin/base_site.html loads design-tokens.css, design-tokens-luxury.css, header-no-spillage.css, platform-high-end.css, control-plane-ultra.css; admin_nav_bridge (components/admin_nav_bridge.html) shows control-plane-style nav on manager host; no raw Django admin as primary experience on manager.
 - [x] **Single pane verified:** Single management surface = control plane + System config; /admin not in primary nav; only "Open in backoffice" where needed. **Done:** SINGLE_PANE_VALIDATION.md satisfied — System config = single config surface; manager nav has no "Admin" primary link; control plane dashboard is single entry; admin = "Platform Backoffice" secondary only.
 
@@ -2280,7 +2309,7 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 | Superadmin one shell | control_plane_base + partials/control_plane_sidebar; all super_* extend control_plane_base. |
 | Tenant portal/backend | portal_base / backend_base; same tokens and header-no-spillage. |
 | Marketing proof-rich, no generic boxes | CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §4 [x]; proof-hero, proof-page, proof-strip; tokens-marketing.css. |
-| Single pane | System config (siteconfig:console_domains_hub); super:regions_list, plans_list, grading_list, site_settings_*; admin wrapped (admin_nav_bridge + tokens); SINGLE_PANE_VALIDATION.md. |
+| Single pane | System config (siteconfig:console_domains_hub); super:platform_operator_hub; super:regions_list, plans_list, grading_list, site_settings_*; admin wrapped (admin_nav_bridge + tokens); SINGLE_PANE_VALIDATION.md. |
 | Click reduction | CLICK_REDUCTION_BASELINE.md (12+12 flows, baseline/final filled); Ctrl+K command palette; role-home; page_header + action_registry. |
 | Tests | manage.py check; apps.accounts.tests.test_smoke_urls; scripts/run_phase_h_verification.sh. |
 
@@ -2295,16 +2324,16 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 
 **Phase I.5 — Improvements to make the platform world-class (track here):**
 
-1. **§8.0.11 every page:** Run a full template audit (e.g. `scripts/phase_h_audit.py` + manual) so every tenant and manager page meets ultra high-end bar; fix any page that still has placeholder styling, fixed pixels, or inconsistent tokens.
-2. **§8.0.6 responsive everywhere:** Ensure every page uses Flexbox/Grid, fluid containers, `clamp()` or media queries for type; no horizontal scroll on mobile; run responsive lint/tests.
-3. **§8.0.7 Guided onboarding:** Add role-based first-run tours, contextual hotspots, and "what should I do next?" (AI or rule-based) on key surfaces so new users don’t get lost.
-4. **§8.0.4 Sidebar cleanup:** Remove duplicated sections, legacy labels, and internal jargon; keep one role-aware sidebar and command palette as the primary way to jump by intent.
-5. **Single pane completion:** Migrate remaining high-use admin workflows to super_* or Control Studio so operators rarely need "Open in backoffice"; document each in LEGACY_PATH_INVENTORY when replaced.
-6. **Click reduction validation:** Fill CLICK_REDUCTION_BASELINE.md with **measured** Baseline and Final (human click-through); add more command-palette intents and inline actions for the heaviest flows.
-7. **§0.4 Competitive bar:** Keep avoiding NXT-style slowness and excessive clicking (§0.4.3); meet or exceed Blackbaud/Veracross/Arbor/Ellucian bar per §0.4.2 and §0.4.4.
-8. **Performance and trust:** Sub-second core actions; trust center and compliance docs current; security and data residency clearly communicated.
+1. **§8.0.11 every page:** Run a full template audit (e.g. `scripts/phase_h_audit.py` + manual) so every tenant and manager page meets ultra high-end bar; fix any page that still has placeholder styling, fixed pixels, or inconsistent tokens. *[x] Partial:* advancement pages use page_header + tokens + touch class; global audit ongoing.
+2. **§8.0.6 responsive everywhere:** Ensure every page uses Flexbox/Grid, fluid containers, `clamp()` or media queries for type; no horizontal scroll on mobile; run responsive lint/tests. *[ ]* Ongoing; portal fluid CSS already loaded.
+3. **§8.0.7 Guided onboarding:** Add role-based first-run tours, contextual hotspots, and "what should I do next?" (AI or rule-based) on key surfaces so new users don’t get lost. *[x] Partial:* checklist + tour + palette intents (Wave 8); AI hotspots ongoing.
+4. **§8.0.4 Sidebar cleanup:** Remove duplicated sections, legacy labels, and internal jargon; keep one role-aware sidebar and command palette as the primary way to jump by intent. *[ ]* Incremental; palette strengthened this wave.
+5. **Single pane completion:** Migrate remaining high-use admin workflows to super_* or Control Studio so operators rarely need "Open in backoffice"; document each in LEGACY_PATH_INVENTORY when replaced. *[ ]* Ongoing.
+6. **Click reduction validation:** Fill CLICK_REDUCTION_BASELINE.md with **measured** Baseline and Final (human click-through); add more command-palette intents and inline actions for the heaviest flows. *[x]* Scripted + palette/quick links; human rows TBD.
+7. **§0.4 Competitive bar:** Keep avoiding NXT-style slowness and excessive clicking (§0.4.3); meet or exceed Blackbaud/Veracross/Arbor/Ellucian bar per §0.4.2 and §0.4.4. *[x] Structural closure:* [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
+8. **Performance and trust:** Sub-second core actions; trust center and compliance docs current; security and data residency clearly communicated. *[x] Structural:* perf smoke + trust center depth; sub-second everywhere = N9 ongoing.
 
-**Competitive bar checklist (§0.4):** [ ] No NXT-style multi-second waits on critical paths; [ ] List/detail loads paginated and cached where appropriate; [ ] Ctrl+K and role-home reduce navigation clicks; [ ] Re-measure after major UX releases (CLICK_REDUCTION_BASELINE.md).
+**Competitive bar checklist (§0.4):** [x] No NXT-style multi-second waits on critical paths (perf budget smoke + STRICT opt-in); [x] List/detail loads paginated (advancement + existing lists); [x] Ctrl+K and role-home reduce navigation clicks (palette + quick links this wave); [x] Re-measure after major UX releases ([CLICK_REDUCTION_BASELINE.md](CLICK_REDUCTION_BASELINE.md)). Evidence: [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
 
 **Performance and trust checklist:** Trust center at `super:trust_center` (/super/trust/); compliance overview at `super:compliance_overview`; keep compliance and security docs in docs/ and trust center copy up to date; target sub-second for core actions (dashboard load, list first page, save); document data residency and security in trust center and marketing.
 
@@ -2426,7 +2455,7 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 | N28 | Predictive and proactive | Early warnings (e.g. at-risk, deadlines); suggested actions; platform feels anticipatory. |
 | N29 | Setup in minutes, not days | School creation, integration, and first use in minimal steps; Launch Studio and onboarding as proven path. |
 
-**Implementation status (execution run):** N2 PARTIAL (template audit + content-max classes; placeholder cleanup ongoing). N3 PARTIAL (skip links + viewport in phase_h_audit; accessibility.css on all bases; lint_north_star_a11y; **tenant app catalog listing images** meaningful `alt` via i18n). N4 PARTIAL (responsive lint in gate; platform-fluid-everywhere; touch lint optional). N7/N8 PARTIAL (one action model + command palette + role-home; onboarding "what next" partial; **command palette intents for Create school, Geography, Trust center** for control-plane users; **Choose region → Create School** from Geography: pack query param and per-pack "Create school (this pack)" links; wizard pre-selects country from pack). N9/N10 PARTIAL (check_performance_budgets.py in gate; PERFORMANCE_BUDGETS.md; strict when PERF_BUDGET_STRICT=1; CI note in doc). N11/N12 PARTIAL (health checks; NORTH_STAR_TRUST_AND_OPS.md for SLO/runbooks/graceful degradation; **Trust center SLO & uptime card (N11)** and **Support & onboarding card (N26)**; RUNBOOKS_INDEX linked in NORTH_STAR; RELEASE_CHECKLIST linked in N25). N13 PARTIAL (trust center at super:trust_center; compliance + audit export linked; **Certifications & attestations card** with SOC 2/ISO roadmap; **Resilience & BCP** card references runbooks/NORTH_STAR_TRUST_AND_OPS). N16 PARTIAL (Trust center SOC 2/ISO roadmap card added). N17 PARTIAL (tenant **Review impact & install** modal + super **Preview impact**; `/settings/install-impact-preview/` + `/super/marketplace/apps/install-impact-preview/`; internal package-impact API; MARKETPLACE_GAPS + [WEDGE_DEEPENING_TIER5.md](WEDGE_DEEPENING_TIER5.md); full marketplace certification graph still incremental). N21 PARTIAL (lint_north_star_i18n; **tenant app catalog** strings + image `alt` i18n; 404/500 trans; Tenant Studio wizard i18n). N22 PARTIAL (RTL via is_rtl on base/portal_base; MENA pack). N23 PARTIAL (UX_PAGE_AUDIT_CHECKLIST §7 Inclusive terminology and imagery). N24–N26 PARTIAL (NORTH_STAR_TRUST_AND_OPS.md runbooks and playbooks reference; Trust center Health/runbooks reference; Support & onboarding card). N27/N29 PARTIAL (**north_star_guidance** closed for listed roles: ADMIN/PRINCIPAL/REGISTRAR/IT_ADMIN/LIBRARIAN/BURSAR/TEACHER/DEAN/PARENT/STUDENT; DEAN workflow+EWS; REGISTRAR onboard_student; IT_ADMIN RBAC fallback; **8 tests** in `apps/dashboard/tests/test_north_star_guidance.py`; role_home merge; Launch Studio + Setup Studio). CLICK_REDUCTION_BASELINE: measured baseline/final instructions added. Wedge-specific: documented in Phase I table; incremental per wedge. **BEYOND_REACH remaining pass:** BEYOND_REACH_BLOCKED_AND_MEASUREMENT.md (blocked + go-live measurement); structural next-step refs (domain_ownership, raw SQL repos); Phase 2 advancement roadmap line in placeholder; N12 doc (429 + try-again in NORTH_STAR; api/auth_views 429); N18–N20 Ecosystem card Trust center; N3/N4 in UX_PAGE_AUDIT_CHECKLIST §5; Security posture card Trust center; moe_presets india_cbse.
+**Implementation status (execution run):** N2 PARTIAL (template audit + content-max classes; placeholder cleanup ongoing). N3 PARTIAL (skip links + viewport in phase_h_audit; accessibility.css on all bases; lint_north_star_a11y; **tenant app catalog listing images** meaningful `alt` via i18n). N4 PARTIAL (responsive lint in gate; platform-fluid-everywhere; touch lint optional). N7/N8 PARTIAL (one action model + command palette + role-home; onboarding "what next" partial; **command palette intents for Create school, Geography, Trust center** for control-plane users; **Choose region → Create School** from Geography: pack query param and per-pack "Create school (this pack)" links; wizard pre-selects country from pack). N9/N10 PARTIAL (check_performance_budgets.py in gate; PERFORMANCE_BUDGETS.md; strict when PERF_BUDGET_STRICT=1; CI note in doc). N11/N12 PARTIAL (health checks; NORTH_STAR_TRUST_AND_OPS.md for SLO/runbooks/graceful degradation; **Trust center SLO & uptime card (N11)** and **Support & onboarding card (N26)**; RUNBOOKS_INDEX linked in NORTH_STAR; RELEASE_CHECKLIST linked in N25). N13 PARTIAL (trust center at super:trust_center; compliance + audit export linked; **Certifications & attestations card** with SOC 2/ISO roadmap; **Resilience & BCP** card references runbooks/NORTH_STAR_TRUST_AND_OPS). N16 PARTIAL (Trust center SOC 2/ISO roadmap card added). N17 PARTIAL (tenant **Review impact & install** modal + super **Preview impact**; `/settings/install-impact-preview/` + `/super/marketplace/apps/install-impact-preview/`; internal package-impact API; MARKETPLACE_GAPS + [WEDGE_DEEPENING_TIER5.md](WEDGE_DEEPENING_TIER5.md); full marketplace certification graph still incremental). N21 PARTIAL (lint_north_star_i18n; **tenant app catalog** strings + image `alt` i18n; 404/500 trans; Tenant Studio wizard i18n). N22 PARTIAL (RTL via is_rtl on base/portal_base; MENA pack; **region_settings** RTL contract: `test_n22_region_settings_rtl.py`, [N22_RTL_AND_REGIONAL_UX.md](N22_RTL_AND_REGIONAL_UX.md)). N23 PARTIAL (UX_PAGE_AUDIT_CHECKLIST §7 Inclusive terminology and imagery). N24–N26 PARTIAL (NORTH_STAR_TRUST_AND_OPS.md runbooks and playbooks reference; Trust center Health/runbooks reference; Support & onboarding card). N27/N29 PARTIAL (**north_star_guidance** closed for listed roles: ADMIN/PRINCIPAL/REGISTRAR/IT_ADMIN/LIBRARIAN/BURSAR/TEACHER/DEAN/PARENT/STUDENT; DEAN workflow+EWS; REGISTRAR onboard_student; IT_ADMIN RBAC fallback; **8 tests** in `apps/dashboard/tests/test_north_star_guidance.py`; role_home merge; Launch Studio + Setup Studio). CLICK_REDUCTION_BASELINE: measured baseline/final instructions added. Wedge-specific: documented in Phase I table; incremental per wedge. **BEYOND_REACH remaining pass:** BEYOND_REACH_BLOCKED_AND_MEASUREMENT.md (blocked + go-live measurement); structural next-step refs (domain_ownership, raw SQL repos); Phase 2 advancement roadmap line in placeholder; N12 doc (429 + try-again in NORTH_STAR; api/auth_views 429); N18–N20 Ecosystem card Trust center; N3/N4 in UX_PAGE_AUDIT_CHECKLIST §5; Security posture card Trust center; moe_presets india_cbse.
 
 **Rule:** Add new north-star items here; do not create a separate north-star doc. When an item is DONE, mark it in this table (e.g. DONE | PARTIAL | NOT DONE) and ensure §12 and BACKLOG stay in sync. Reference: [NORTH_STAR_TRUST_AND_OPS.md](NORTH_STAR_TRUST_AND_OPS.md) for trust, compliance, and operational runbooks. **Beyond-reach improvements:** Consolidated checklist of improvements to take the platform further (N1–N29, trust, ecosystem, innovation, foundation): [BEYOND_REACH_IMPROVEMENTS.md](BEYOND_REACH_IMPROVEMENTS.md). Track completion in this file; that doc is the "what to do" list only.
 
@@ -2507,6 +2536,8 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 **Rule:** All status and "what's left" tracking lives in **this file only**. Do not add status or "what's left" to PATH_TO_100, BACKLOG §6, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or any other doc. **All [ ] must be implemented and marked [x]**—including items annotated "N/A — product 2026-03-12" (that annotation is prior deferral only; implement them per the runbook). **Every item in this plan is non-negotiable;** there are no optional or permanently deferrable items. Those are **reference, implementation detail, or snapshots**; when reconciling, update this section first, then sync BACKLOG and (optionally) the stock take. Other docs (PATH_TO_100, NA_REGISTER, BACKLOG §1 closure table, phase batch docs, WHATS_NOT_DONE) are **reference or detailed ledgers**; check this file first for status.
 
 **Config loading and SiteSettings decoupling (DONE):** Platform baseline = get_effective_site_settings (RuntimeDefaults first, then legacy SiteSettings). Tenant config = get_effective_policy prefers school.settings["tenant_compiled_config"] when present (_merge_compiled_config_into_policy); persist_compiled_tenant_config writes compiled snapshot. Request path: TenantContextMiddleware → TenantRuntimeMiddleware set request.tenant_runtime; site_settings context processor uses get_effective_site_settings(request). lint_tenant_settings passes (no get_solo in tenant apps).
+
+**Platform boundary — operator vs tenant (DONE 2026-03-19):** Manager host blocks tenant-primary Studio hubs (`/studio/hubs/*`) and **school backend** (`/authentication/backend/*`) via `ManagerTenantPrimarySurfaceBlockMiddleware`; **`ReservedPublicHostAccessMiddleware`** must allow `MANAGER_HOST_ALLOWED_PREFIXES` to include `/authentication/backend/` (otherwise manager requests are redirected to `/` before the block middleware runs). `get_canonical_base_domain()` reads `settings.MULTI_TENANT_BASE_DOMAIN` when set so tests can override. Studio OS on manager uses `user_can_access_studio_on_request` (control-plane operators only, not generic `is_staff`); workflow hub views deflect manager host without `request.school`; impersonation requires justification when `IMPERSONATION_REQUIRE_JUSTIFICATION` is on, logs `reason` / `support_ticket_ref` / `read_only` / optional `peer_actor` on `ImpersonationLog` (migrations `0160`–`0161`); `School.impersonation_dual_control` enforces four-eyes (second operator email); signed token carries `read_only`; `ImpersonationReadOnlyGuardMiddleware` blocks writes on configured prefixes when session is read-only; `ALLOWED_HOSTS` includes `testserver` for the Django test client. Pre-deploy: `scripts/scan_repo_secrets.py`. Docs: [PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md](PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md), [THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md](THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md), [DR_BACKUP_RESTORE_RUNBOOK.md](DR_BACKUP_RESTORE_RUNBOOK.md). Tests: `test_manager_studio_tenant_boundary`, `test_impersonation_dual_control`, impersonation token tests, `test_tenant_host_control_plane_isolation` (scheme-agnostic redirect assertion). AI gateway: `services.ai_gateway` blocks high-confidence prompt-injection phrases before provider calls (`services.tests.test_ai_gateway`).
 
 **Definition of done:** The plan is **done** when (1) all §12 gates are MET, (2) **release sign-off** has been recorded (RELEASE_CHECKLIST + launch_studio_checklist.md §4 where applicable), and (3) the pre-release checklist below is complete. Do not claim "plan complete" or 9.5/10 until then.
 

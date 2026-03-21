@@ -14,10 +14,14 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_http_methods
 
 
-def _parse_impersonation_token(token, max_age_seconds=3600):
-    """Return payload dict (school_id, user_id) or None if invalid/expired."""
+def _parse_impersonation_token(token, max_age_seconds=None):
+    """Return payload dict (school_id, user_id, read_only) or None if invalid/expired."""
     if not token:
         return None
+    if max_age_seconds is None:
+        max_age_seconds = int(
+            getattr(settings, "IMPERSONATION_TOKEN_MAX_AGE_SECONDS", 3600)
+        )
     signer = TimestampSigner(key=getattr(settings, "SECRET_KEY", "fallback"))
     try:
         payload_b64 = signer.unsign(token, max_age=max_age_seconds)
@@ -28,7 +32,16 @@ def _parse_impersonation_token(token, max_age_seconds=3600):
         if isinstance(payload.get("school_id"), str) and isinstance(
             payload.get("user_id"), int
         ):
-            return payload
+            read_only = payload.get("read_only")
+            if not isinstance(read_only, bool):
+                read_only = bool(
+                    getattr(settings, "IMPERSONATION_DEFAULT_READ_ONLY", True)
+                )
+            return {
+                "school_id": payload["school_id"],
+                "user_id": payload["user_id"],
+                "read_only": read_only,
+            }
     except (
         binascii.Error,
         json.JSONDecodeError,
@@ -61,6 +74,7 @@ def impersonate_entry(request):
     request.session["impersonation"] = {
         "school_id": str(school.id),
         "actor_id": payload["user_id"],
+        "read_only": payload.get("read_only", True),
     }
     request.session.modified = True
     return redirect(next_url)

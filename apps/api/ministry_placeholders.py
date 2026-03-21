@@ -81,6 +81,7 @@ def _ministry_rate_limited(request, scope: str):
             "status": "rate_limited",
             "service": scope,
             "retry_after": retry_after,
+            "message": "Wait before retrying (see retry_after seconds).",
         },
         status=429,
     )

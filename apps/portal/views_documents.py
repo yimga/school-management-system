@@ -186,6 +186,24 @@ def document_upload(request, document_id=None):
             doc.created_by = request.user
         doc.school = school  # Section 25.3: tenant scope for upload path
         doc.save()
+        if school and doc.document_pack_id:
+            from apps.packages.tenant_pack_install import record_document_pack_usage
+
+            pack_result = record_document_pack_usage(
+                school,
+                doc.document_pack,
+                actor_id=getattr(request.user, "pk", None),
+            )
+            if not pack_result.get("ok") and not pack_result.get("skipped"):
+                log_exception_with_context(
+                    "document_upload record_document_pack_usage failed",
+                    **request_context_for_log(request),
+                    exc_info=False,
+                    extra={
+                        "document_id": getattr(doc, "pk", None),
+                        "errors": pack_result.get("errors"),
+                    },
+                )
 
         messages.success(
             request,
