@@ -109,6 +109,7 @@ TARGETED_HARDENING_TESTS=(
   services.tests.test_ai_gateway
   apps.schools.tests.test_impersonation_dual_control
   apps.schools.tests.test_manager_studio_tenant_boundary
+  apps.schools.tests.test_tenant_host_profile_url_wiring
   services.tests.test_ai_memory
   apps.siteconfig.tests.test_ai_copilot_context
   apps.siteconfig.tests.test_ai_admin_surfaces
