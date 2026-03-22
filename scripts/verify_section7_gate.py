@@ -18,6 +18,12 @@ Fresh test DB (recommended on Windows / half-migrated SQLite):
 Speed vs reliability for step 2:
   VERIFY_SECTION7_KEEPDB=1  — pass ``--keepdb`` to ``manage.py test`` (faster; fails if DB is corrupt/locked).
   Default: no ``--keepdb`` so Django rebuilds the test DB (slower, reliable).
+
+Windows (WinError 32):
+  When not using ``--keepdb``, Django may try to delete/replace a **shared** test DB file that is
+  still locked. This script then sets ``DJANGO_TEST_DB_FILE`` to a **unique**
+  ``.django_test_dbs/section7_verify_<uuid>.sqlite3`` per run unless
+  ``SECTION7_FIXED_TEST_DB=1`` (uses ``section7_verify.sqlite3``) or you preset ``DJANGO_TEST_DB_FILE``.
 """
 
 from __future__ import annotations
@@ -25,15 +31,50 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# Align with scripts/pre_deploy_gate.sh: use the same dedicated SQLite test DB so
-# `manage.py test` in step 2 does not hit a locked/default DB or wrong engine on Windows/CI.
+# Align with scripts/pre_deploy_gate.sh: shared gate DB when using --keepdb.
 _DEFAULT_GATE_DB = ROOT / ".django_test_dbs" / "pre_deploy_gate.sqlite3"
-if not os.environ.get("DJANGO_TEST_DB_FILE"):
-    os.environ["DJANGO_TEST_DB_FILE"] = str(_DEFAULT_GATE_DB)
+
+
+def _configure_django_test_db_for_step2() -> None:
+    """
+    Set DJANGO_TEST_DB_FILE before subprocess so manage.py test uses a predictable path.
+
+    - VERIFY_SECTION7_KEEPDB=1: reuse ``pre_deploy_gate.sqlite3`` (or existing env) — fast.
+    - Else: unique ``section7_verify_<uuid>.sqlite3`` so Windows does not hit WinError 32
+      when Django drops/recreates the test database file.
+    """
+    use_keepdb = (os.environ.get("VERIFY_SECTION7_KEEPDB") or "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    if use_keepdb:
+        if not os.environ.get("DJANGO_TEST_DB_FILE"):
+            os.environ["DJANGO_TEST_DB_FILE"] = str(_DEFAULT_GATE_DB)
+        return
+    if (os.environ.get("SECTION7_FIXED_TEST_DB") or "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        if not os.environ.get("DJANGO_TEST_DB_FILE"):
+            os.environ["DJANGO_TEST_DB_FILE"] = str(
+                ROOT / ".django_test_dbs" / "section7_verify.sqlite3"
+            )
+        return
+    if os.environ.get("DJANGO_TEST_DB_FILE"):
+        # User explicitly set path (e.g. CI); do not override.
+        return
+    dbs = ROOT / ".django_test_dbs"
+    dbs.mkdir(parents=True, exist_ok=True)
+    os.environ["DJANGO_TEST_DB_FILE"] = str(
+        dbs / f"section7_verify_{uuid.uuid4().hex}.sqlite3"
+    )
 
 
 def _maybe_remove_gate_test_db_for_fresh_run() -> None:
@@ -103,6 +144,7 @@ def main() -> int:
     failures: list[str] = []
     n = 0
 
+    _configure_django_test_db_for_step2()
     _maybe_remove_gate_test_db_for_fresh_run()
 
     # Step 1: platform inventory --check
