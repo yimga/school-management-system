@@ -9,6 +9,15 @@ Steps:
   1. generate_platform_inventory.py --check (committed inventory matches current state)
   2. test_marketplace_catalog_minimums (catalog counts meet MARKETPLACE_MINIMUMS)
   3. MARKETPLACE_MINIMUMS keys present in catalog_counts (sanity)
+
+Fresh test DB (recommended on Windows / half-migrated SQLite):
+  PRE_GATE_FRESH_TEST_DB=1  — remove ``.django_test_dbs/pre_deploy_gate.sqlite3`` before step 2 (best-effort).
+  If step 2 fails with WinError 32 (file in use), set e.g.
+  ``DJANGO_TEST_DB_FILE=.django_test_dbs/section7_verify.sqlite3`` so the test uses a dedicated file.
+
+Speed vs reliability for step 2:
+  VERIFY_SECTION7_KEEPDB=1  — pass ``--keepdb`` to ``manage.py test`` (faster; fails if DB is corrupt/locked).
+  Default: no ``--keepdb`` so Django rebuilds the test DB (slower, reliable).
 """
 
 from __future__ import annotations
@@ -25,6 +34,20 @@ ROOT = Path(__file__).resolve().parent.parent
 _DEFAULT_GATE_DB = ROOT / ".django_test_dbs" / "pre_deploy_gate.sqlite3"
 if not os.environ.get("DJANGO_TEST_DB_FILE"):
     os.environ["DJANGO_TEST_DB_FILE"] = str(_DEFAULT_GATE_DB)
+
+
+def _maybe_remove_gate_test_db_for_fresh_run() -> None:
+    """Match pre_deploy_gate: PRE_GATE_FRESH_TEST_DB=1 nukes the file-backed gate DB."""
+    raw = (os.environ.get("PRE_GATE_FRESH_TEST_DB") or "").strip().lower()
+    if raw not in ("1", "true", "yes"):
+        return
+    db_path = Path(os.environ.get("DJANGO_TEST_DB_FILE", str(_DEFAULT_GATE_DB)))
+    if not db_path.is_absolute():
+        db_path = ROOT / db_path
+    try:
+        db_path.unlink(missing_ok=True)
+    except OSError:
+        pass
 
 
 def run(
@@ -80,6 +103,8 @@ def main() -> int:
     failures: list[str] = []
     n = 0
 
+    _maybe_remove_gate_test_db_for_fresh_run()
+
     # Step 1: platform inventory --check
     n += 1
     ok, msg = run(
@@ -97,20 +122,27 @@ def main() -> int:
 
     # Step 2: catalog minimums test (requires Django + DB)
     n += 1
+    test_cmd = [
+        sys.executable,
+        "manage.py",
+        "test",
+        "apps.platform_runtime.tests.test_marketplace_catalog_minimums",
+        "--noinput",
+        "-v",
+        "0",
+    ]
+    # Default: no --keepdb — rebuilds test DB so half-migrated/corrupt SQLite cannot fail §7.
+    # VERIFY_SECTION7_KEEPDB=1 for faster reruns when the gate DB is known good.
+    if (os.environ.get("VERIFY_SECTION7_KEEPDB") or "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        test_cmd.append("--keepdb")
     ok, msg = run(
-        [
-            sys.executable,
-            "manage.py",
-            "test",
-            "apps.platform_runtime.tests.test_marketplace_catalog_minimums",
-            "--noinput",
-            "-v",
-            "0",
-            # Avoid WinError 32 when another process holds the test DB file.
-            "--keepdb",
-        ],
+        test_cmd,
         "§7 step 2: test_marketplace_catalog_minimums",
-        timeout=300,
+        timeout=900,
     )
     if ok:
         print(f"  [{n}] test_marketplace_catalog_minimums: PASS")
