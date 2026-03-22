@@ -11,7 +11,7 @@
 
 `config/admin.py` states explicitly: *"Platform Backoffice: raw CRUD only. Single config surface is System config (siteconfig:console_domains_hub)."*
 
-**Nothing was “moved entirely” from `/admin/` into `/super/`.** Many platform models have **no** first-class `/super/` screen; they remain **only** in `/admin/`. `/super/` adds **orchestration and catalog** views, not a duplicate of every changelist.
+**Changelist navigation is integrated:** `super:admin_bridge` + `apps/schools/super_admin_bridge_registry.py` maps **every** platform-registered changelist used for fleet config (siteconfig, integrations_marketplace, runtime_blueprints, global_registries, packages, etc.) to a stable `/super/admin-bridge/<slug>/` URL — operators need not hardcode `/admin/...` paths. **Editing** still uses Django admin for models without dedicated super CRUD forms; **first-class** super screens (catalogs, AI hub, System config) remain the default operator path where they exist.
 
 ## Security (logical)
 
@@ -31,10 +31,10 @@ Tenant **`/admin/`** (`TenantAdminSite`) is a **different** site: tenant models 
 
 **Change:** the **Platform settings & admin** group now mirrors those **quick-link** destinations so operators on `/super/` see the same entry points as the admin sidebar (CRUD still happens in `/admin/` where no super view exists).
 
-## Gaps that remain (by product choice)
+## Remaining product choices
 
-- **Per-model CRUD** under **Apps** in admin is **not** reproduced as individual `/super/` routes (dozens of models). Use **Platform backoffice (model CRUD)** in the control-plane sidebar → `/admin/`.
-- **Some `/super/` URLs** exist only in `super_urls.py` (e.g. group campuses, advancement, AI hub) and may not appear in the sidebar; they are linked from dashboards or bookmarks.
+- **Per-model CRUD forms** are still Django admin for most models; **bridges** provide `/super/` entry points to the same changelists. Building duplicate CRUD in `/super/` for every model is optional and product-gated.
+- **Some `/super/` URLs** exist only in `super_urls.py` (e.g. group campuses, advancement) and may not appear in the sidebar; they are linked from dashboards or bookmarks.
 
 ## Single source for `/super/` nav
 

@@ -23,6 +23,13 @@ class ControlPlaneNavParityTests(SimpleTestCase):
             "cp_feature_control",
             "cp_platform_backoffice",
             "cp_integrations_super",
+            "cp_admin_bridge_integrations",
+            "cp_admin_bridge_marketplace_apps",
+            "cp_admin_bridge_packages_installed",
+            "cp_admin_bridge_experience_packs",
+            "cp_admin_bridge_runtime_defaults",
+            "cp_admin_bridge_ai_model_registry",
+            "cp_admin_bridge_global_brand_registry",
             "cp_report_library",
         }
         missing = required - set(all_ids)

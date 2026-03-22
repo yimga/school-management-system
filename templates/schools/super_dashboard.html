@@ -541,7 +541,7 @@
                     <form method="post" action="{% url 'super:switch_to_tenant' %}" class="d-inline-flex flex-column align-items-stretch gap-1">
                       {% csrf_token %}
                       <input type="hidden" name="school_id" value="{{ school.id }}">
-                      <input type="hidden" name="next" value="/accounts/backend/">
+                      <input type="hidden" name="next" value="{% url 'accounts:backend_dashboard' %}">
                       <label class="visually-hidden" for="imp-reason-{{ school.id }}">{% trans "Reason for impersonation" %}</label>
                       <input type="text" id="imp-reason-{{ school.id }}" name="impersonation_reason" class="form-control form-control-sm" required minlength="3" maxlength="500" placeholder="{% trans 'Reason (required)' %}">
                       <label class="visually-hidden" for="imp-ticket-{{ school.id }}">{% trans "Support ticket reference" %}</label>

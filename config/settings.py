@@ -552,7 +552,11 @@ IMPERSONATION_READ_ONLY_BLOCKED_WRITE_PREFIXES = (
     "/compliance/",
 )
 
-# Manager and tenant planes should use host-only cookies by default.
+# Manager and tenant planes use host-only cookies unless domains are set.
+# “Open as school” (manager → tenant impersonation) requires the browser to send the same
+# session to both hosts: set SESSION_COOKIE_DOMAIN and CSRF_COOKIE_DOMAIN to the parent
+# (e.g. .runmycampus.com) and align MANAGER_SESSION_COOKIE_DOMAIN / MANAGER_CSRF_COOKIE_DOMAIN
+# so manager.* and *.tenant share cookies. Otherwise operators must log in again on the tenant.
 # Set SESSION_COOKIE_DOMAIN / CSRF_COOKIE_DOMAIN explicitly only when you accept shared auth scope.
 # Session expiry: use SESSION_INACTIVITY_TIMEOUT_MINUTES for shared computers (e.g. 15–30),
 # or SESSION_COOKIE_AGE (seconds) for max session length. With SESSION_SAVE_EVERY_REQUEST=True,

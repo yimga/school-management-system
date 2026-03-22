@@ -4,10 +4,12 @@
 Extracted from accounts/views.py to reduce file size and group workflow/approval concerns.
 """
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.shortcuts import redirect, render
 from django.urls import reverse, NoReverseMatch
+from django.utils.translation import gettext as _
 
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
@@ -55,10 +57,6 @@ def _manager_host_without_school_workflow_redirect(request):
         return None
     if getattr(request, "school", None):
         return None
-    from django.contrib import messages
-    from django.urls import reverse
-    from django.utils.translation import gettext as _
-
     messages.warning(
         request,
         _(
@@ -524,7 +522,7 @@ def academic_rules(request):
     from apps.reports.models import PromotionRule
 
     site = get_effective_site_settings(request=request)
-    year, _ = get_active_year_and_term()
+    year, _term_unused = get_active_year_and_term()
     rules = []
     if year:
         rules = list(

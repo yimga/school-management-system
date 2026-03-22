@@ -44,7 +44,12 @@
         <a href="{{ item.url }}" class="cpoh-tile">
           <span class="cpoh-tile-icon bi {{ item.icon }}" aria-hidden="true"></span>
           <div class="min-w-0">
-            <h3 class="cpoh-tile-title">{{ item.label }}</h3>
+            <h3 class="cpoh-tile-title d-flex align-items-center flex-wrap gap-2">
+              {{ item.label }}
+              {% if item.kind == "admin" %}
+              <span class="badge rounded-pill bg-secondary bg-opacity-50 small">{% trans "Admin" %}</span>
+              {% endif %}
+            </h3>
             <p class="cpoh-tile-desc">{{ item.description }}</p>
           </div>
         </a>

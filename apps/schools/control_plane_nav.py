@@ -21,6 +21,33 @@ def _safe_reverse(url_name, urlconf=None, kwargs=None, args=None):
         return None
 
 
+def _platform_admin_bridge_nav_items():
+    """
+    Sidebar entries for ``super:admin_bridge`` (registry keys with ``show_in_nav``).
+    Keeps ids/labels/icons aligned with ``super_admin_bridge_registry``.
+    """
+    from apps.schools.super_admin_bridge_registry import (
+        PLATFORM_ADMIN_BRIDGE_ORDER,
+        PLATFORM_ADMIN_BRIDGES,
+    )
+
+    items = []
+    for key in PLATFORM_ADMIN_BRIDGE_ORDER:
+        meta = PLATFORM_ADMIN_BRIDGES.get(key)
+        if not meta or not meta.get("show_in_nav"):
+            continue
+        items.append(
+            {
+                "id": meta["nav_id"],
+                "label": str(meta["nav_label"]),
+                "url_name": "super:admin_bridge",
+                "kwargs": {"bridge_key": key},
+                "icon": meta.get("nav_icon", "bi-box-arrow-up-right"),
+            }
+        )
+    return items
+
+
 def build_control_plane_nav(request):
     """
     Return list of groups, each with "label" (optional section heading) and "items"
@@ -335,52 +362,53 @@ def build_control_plane_nav(request):
     )
     # Parity with templates/admin/app_list.html quick links on manager host:
     # operators who live on /super/ can reach the same surfaces without hunting /admin/.
-    add_group(
-        "Platform settings & admin",
-        [
-            {
-                "id": "super_platform_operator_hub",
-                "label": "Platform operator hub",
-                "url_name": "super:platform_operator_hub",
-                "icon": "bi-grid-3x3-gap",
-            },
-            {
-                "id": "config_console",
-                "label": "System config",
-                "url_name": "siteconfig:console_domains_hub",
-                "icon": "bi-gear-wide-connected",
-            },
-            {
-                "id": "cp_theme_experience",
-                "label": "Fleet theme & experience defaults",
-                "url_name": "siteconfig:theme_colors",
-                "icon": "bi-palette",
-            },
-            {
-                "id": "cp_feature_control",
-                "label": "Feature Control",
-                "url_name": "siteconfig:feature_control_panel",
-                "icon": "bi-toggle2-on",
-            },
-            {
-                "id": "cp_platform_backoffice",
-                "label": "Advanced Django admin (model CRUD)",
-                "url_name": "admin:index",
-                "icon": "bi-database",
-            },
-            {
-                "id": "cp_integrations_super",
-                "label": "Integrations (SIS / LMS)",
-                "url_name": "super:one_sis_any_lms",
-                "icon": "bi-plug",
-            },
-            {
-                "id": "cp_report_library",
-                "label": "Platform Studio · Reports",
-                "url_name": "studio_os:output",
-                "icon": "bi-journal-text",
-            },
-        ],
+    _platform_settings_admin = [
+        {
+            "id": "super_platform_operator_hub",
+            "label": "Platform operator hub",
+            "url_name": "super:platform_operator_hub",
+            "icon": "bi-grid-3x3-gap",
+        },
+        {
+            "id": "config_console",
+            "label": "System config",
+            "url_name": "siteconfig:console_domains_hub",
+            "icon": "bi-gear-wide-connected",
+        },
+        {
+            "id": "cp_theme_experience",
+            "label": "Fleet theme & experience defaults",
+            "url_name": "siteconfig:theme_colors",
+            "icon": "bi-palette",
+        },
+        {
+            "id": "cp_feature_control",
+            "label": "Feature Control",
+            "url_name": "siteconfig:feature_control_panel",
+            "icon": "bi-toggle2-on",
+        },
+        {
+            "id": "cp_platform_backoffice",
+            "label": "Advanced Django admin (model CRUD)",
+            "url_name": "admin:index",
+            "icon": "bi-database",
+        },
+        {
+            "id": "cp_integrations_super",
+            "label": "Integrations (SIS / LMS)",
+            "url_name": "super:one_sis_any_lms",
+            "icon": "bi-plug",
+        },
+    ]
+    _platform_settings_admin.extend(_platform_admin_bridge_nav_items())
+    _platform_settings_admin.append(
+        {
+            "id": "cp_report_library",
+            "label": "Platform Studio · Reports",
+            "url_name": "studio_os:output",
+            "icon": "bi-journal-text",
+        }
     )
+    add_group("Platform settings & admin", _platform_settings_admin)
 
     return groups

@@ -15,6 +15,7 @@ from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils import translation
+from django.utils.translation import gettext as _
 import json
 from django_ratelimit.decorators import ratelimit
 from config.admin import admin_site
@@ -1295,11 +1296,6 @@ def rbac_dashboard(request):
 def backend_dashboard(request):
     # Manager host: school backend is tenant-primary; operators use impersonation on the tenant host.
     if (getattr(request, "public_host_kind", None) or "").lower() == "manager":
-        from django.contrib import messages
-        from django.shortcuts import redirect
-        from django.urls import reverse
-        from django.utils.translation import gettext as _
-
         messages.warning(
             request,
             _(
@@ -2304,7 +2300,7 @@ def backend_dashboard(request):
         from apps.runtime_blueprints.models import DashboardUserPreference
         from apps.customersuccess.services import get_guided_onboarding_steps
 
-        pref, _ = DashboardUserPreference.objects.get_or_create(
+        pref, _created = DashboardUserPreference.objects.get_or_create(
             user=request.user, defaults={"dashboard_layout": {}}
         )
         layout = pref.dashboard_layout or {}

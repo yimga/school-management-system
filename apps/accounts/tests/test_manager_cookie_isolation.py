@@ -82,6 +82,29 @@ class ManagerCookieIsolationMiddlewareTests(TestCase):
         self.assertEqual(response.cookies["sessionid"]["max-age"], 0)
         self.assertEqual(response.cookies["csrftoken"]["max-age"], 0)
 
+    def test_tenant_host_aliases_manager_cookies_when_sessionid_missing(self):
+        """Cross-host “Open as school”: manager session cookie must map to sessionid on tenant."""
+        captured = {}
+
+        def _response(request):
+            captured["sessionid"] = request.COOKIES.get("sessionid")
+            captured["csrftoken"] = request.COOKIES.get("csrftoken")
+            return HttpResponse("ok")
+
+        middleware = ManagerCookieIsolationMiddleware(_response)
+        with patch.dict(
+            "os.environ", {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
+            request = self.factory.get(
+                "/authentication/impersonate/",
+                HTTP_HOST="tenant-alpha.runmycampus.com",
+                HTTP_COOKIE="rmc_manager_sessionid=session-abc; rmc_manager_csrftoken=csrf-xyz",
+            )
+            middleware(request)
+
+        self.assertEqual(captured["sessionid"], "session-abc")
+        self.assertEqual(captured["csrftoken"], "csrf-xyz")
+
 
 @override_settings(ALLOWED_HOSTS=["*"], JIT_IMPERSONATION_REQUIRE_CONSENT=False)
 class EndImpersonationRedirectTests(TestCase):

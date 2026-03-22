@@ -1,3 +1,5 @@
+from functools import partial
+
 from django.urls import path
 from apps.marketplace import views as marketplace_views
 from apps.customersuccess import views_super as cs_views
@@ -514,6 +516,82 @@ urlpatterns = [
             super_views_config.super_platform_operator_hub
         ),
         name="platform_operator_hub",
+    ),
+    # Legacy admin-bridge paths / URL names → canonical super:admin_bridge (bookmarks & reverse).
+    path(
+        "admin-bridge/integrations-marketplace/",
+        require_super_access_with_host(
+            partial(
+                super_views_config.super_admin_bridge_legacy_redirect,
+                bridge_key="integrations",
+            )
+        ),
+        name="admin_bridge_integrations",
+    ),
+    path(
+        "admin-bridge/marketplace-apps/",
+        require_super_access_with_host(
+            partial(
+                super_views_config.super_admin_bridge_legacy_redirect,
+                bridge_key="marketplace_apps",
+            )
+        ),
+        name="admin_bridge_marketplace_apps",
+    ),
+    path(
+        "admin-bridge/packages/installed/",
+        require_super_access_with_host(
+            partial(
+                super_views_config.super_admin_bridge_legacy_redirect,
+                bridge_key="packages_installed",
+            )
+        ),
+        name="admin_bridge_packages_installed",
+    ),
+    path(
+        "admin-bridge/packages/experience-packs/",
+        require_super_access_with_host(
+            partial(
+                super_views_config.super_admin_bridge_legacy_redirect,
+                bridge_key="experience_packs",
+            )
+        ),
+        name="admin_bridge_experience_packs",
+    ),
+    path(
+        "admin-bridge/runtime-defaults/",
+        require_super_access_with_host(
+            partial(
+                super_views_config.super_admin_bridge_legacy_redirect,
+                bridge_key="runtime_defaults",
+            )
+        ),
+        name="admin_bridge_runtime_defaults",
+    ),
+    path(
+        "admin-bridge/ai-model-registry/",
+        require_super_access_with_host(
+            partial(
+                super_views_config.super_admin_bridge_legacy_redirect,
+                bridge_key="ai_model_registry",
+            )
+        ),
+        name="admin_bridge_ai_model_registry",
+    ),
+    path(
+        "admin-bridge/global-brand-registry/",
+        require_super_access_with_host(
+            partial(
+                super_views_config.super_admin_bridge_legacy_redirect,
+                bridge_key="global_brand_registry",
+            )
+        ),
+        name="admin_bridge_global_brand_registry",
+    ),
+    path(
+        "admin-bridge/<slug:bridge_key>/",
+        require_super_access_with_host(super_views_config.super_admin_bridge),
+        name="admin_bridge",
     ),
     # Legacy path: /super/config/ redirects to System config (siteconfig:console_domains_hub). Single config surface.
     path(

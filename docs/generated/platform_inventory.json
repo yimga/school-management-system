@@ -7,13 +7,13 @@
     "get_solo": 182,
     "gilead": 713,
     "gilead_files": 138,
-    "html_files": 559,
+    "html_files": 562,
     "management_commands": 143,
-    "markdown_files": 992,
+    "markdown_files": 993,
     "migration_files": 636,
     "print_calls": 539,
-    "python_files": 2066,
-    "site_settings": 1153
+    "python_files": 2067,
+    "site_settings": 1158
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -38,8 +38,8 @@
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 114809,
-      "lines": 3013,
+      "bytes": 114677,
+      "lines": 3009,
       "path": "apps/accounts/views.py"
     },
     {

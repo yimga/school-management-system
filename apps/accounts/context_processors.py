@@ -179,7 +179,6 @@ def dashboard_context(request):
 
     # RBAC: can user customize dashboard layout? (staff, ADMIN, LEADERSHIP, IT_ADMIN, SUPERADMIN only)
     try:
-        from django.urls import reverse
         from apps.siteconfig.dashboard_views import _can_customize
 
         context["can_customize_dashboard"] = _can_customize(user)
@@ -190,10 +189,8 @@ def dashboard_context(request):
     except CONTEXT_SOFT_FAILURES:
         context["can_customize_dashboard"] = False
         try:
-            from django.urls import reverse as _reverse
-
             context["dashboard_layout_link"] = (
-                _reverse("accounts:backend_dashboard") + "?customize=1"
+                reverse("accounts:backend_dashboard") + "?customize=1"
             )
         except CONTEXT_SOFT_FAILURES:
             context["dashboard_layout_link"] = "/authentication/backend/?customize=1"

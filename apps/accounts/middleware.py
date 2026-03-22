@@ -1,5 +1,5 @@
 import logging
-from http.cookies import SimpleCookie
+from http.cookies import CookieError, SimpleCookie
 
 from django.conf import settings
 from django.contrib import messages
@@ -23,6 +23,11 @@ class ManagerCookieIsolationMiddleware:
     """
     Keep manager-host auth isolated from tenant/base auth by aliasing manager-specific
     cookie names to Django's default names on request and rewriting them on response.
+
+    On **tenant/base** hosts, when ``sessionid`` is absent but the manager session cookie
+    is present (same browser, shared parent domain), copy manager → default names so
+    platform operators who logged in on ``manager.*`` stay authenticated when following
+    “Open as school” redirects to a school host (impersonation entry requires login).
     """
 
     def __init__(self, get_response):
@@ -56,27 +61,51 @@ class ManagerCookieIsolationMiddleware:
         return public_host_kind(host) == "manager"
 
     def _alias_request_cookies(self, request):
-        if not self._is_manager_request(request):
-            return
         raw_cookie = request.META.get("HTTP_COOKIE", "")
         if not raw_cookie:
             return
         cookie = SimpleCookie()
-        cookie.load(raw_cookie)
-        changed = False
-        for manager_name, default_name in (
-            (self.manager_session_cookie_name, self.session_cookie_name),
-            (self.manager_csrf_cookie_name, self.csrf_cookie_name),
-        ):
-            default_morsel = cookie.get(default_name)
-            default_blank = (
-                default_morsel is None or str(default_morsel.value or "").strip() == ""
-            )
-            if manager_name in cookie and default_blank:
-                cookie[default_name] = cookie[manager_name].value
-                changed = True
-        if not changed:
+        try:
+            cookie.load(raw_cookie)
+        except CookieError:
             return
+
+        if self._is_manager_request(request):
+            # Manager host: manager-named cookies → Django default names for SessionMiddleware
+            changed = False
+            for manager_name, default_name in (
+                (self.manager_session_cookie_name, self.session_cookie_name),
+                (self.manager_csrf_cookie_name, self.csrf_cookie_name),
+            ):
+                default_morsel = cookie.get(default_name)
+                default_blank = (
+                    default_morsel is None
+                    or str(default_morsel.value or "").strip() == ""
+                )
+                if manager_name in cookie and default_blank:
+                    cookie[default_name] = cookie[manager_name].value
+                    changed = True
+            if not changed:
+                return
+        else:
+            # Tenant / base / local: allow session established on manager host to apply here
+            # (browser sends rmc_manager_sessionid when domain is shared, e.g. .runmycampus.com).
+            changed = False
+            for manager_name, default_name in (
+                (self.manager_session_cookie_name, self.session_cookie_name),
+                (self.manager_csrf_cookie_name, self.csrf_cookie_name),
+            ):
+                default_morsel = cookie.get(default_name)
+                default_blank = (
+                    default_morsel is None
+                    or str(default_morsel.value or "").strip() == ""
+                )
+                if manager_name in cookie and default_blank:
+                    cookie[default_name] = cookie[manager_name].value
+                    changed = True
+            if not changed:
+                return
+
         request.META["HTTP_COOKIE"] = "; ".join(
             f"{key}={morsel.value}" for key, morsel in cookie.items()
         )

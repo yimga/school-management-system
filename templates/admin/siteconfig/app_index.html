@@ -1,0 +1,28 @@
+{% extends "admin/app_index.html" %}
+{% load i18n %}
+
+{# Platform backoffice: System Configuration app index — point to /super/ before per-model links. #}
+{% block content %}
+{% if is_manager_host %}
+<div class="mb-4 mx-4 p-4 rounded-lg border text-sm max-w-5xl"
+     style="border-color: rgba(59, 130, 246, 0.35); background: rgba(59, 130, 246, 0.06);"
+     role="status">
+  <p class="font-semibold mb-1">{% trans "Prefer the control plane" %}</p>
+  <p class="text-base-600 dark:text-base-300 mb-3">
+    {% blocktrans trimmed %}
+      <strong>SiteSettings</strong> is not on platform admin (tenant schools use tenant <code>/admin/</code>).
+      Other models below are for deep maintenance; primary operator flows live under <code>/super/</code> and System config.
+    {% endblocktrans %}
+  </p>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'super:platform_operator_hub' %}" class="px-3 py-1.5 rounded-md bg-primary-600 text-white text-xs font-medium hover:bg-primary-700">
+      {% trans "Platform operator hub" %}
+    </a>
+    <a href="{% url 'siteconfig:console_domains_hub' %}" class="px-3 py-1.5 rounded-md border border-base-300 dark:border-base-600 text-xs font-medium hover:bg-base-100 dark:hover:bg-base-800">
+      {% trans "System config" %}
+    </a>
+  </div>
+</div>
+{% endif %}
+{{ block.super }}
+{% endblock %}

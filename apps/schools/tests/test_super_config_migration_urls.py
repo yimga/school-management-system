@@ -7,6 +7,17 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.schools.super_admin_bridge_registry import (
+    PLATFORM_ADMIN_BRIDGE_ORDER,
+    PLATFORM_ADMIN_BRIDGES,
+)
+
+
+def _admin_changelist_path_tail(admin_url_name: str) -> str:
+    """Last path segment of reversed admin changelist URL — must appear in 302 Location."""
+    loc = reverse(str(admin_url_name)).lower()
+    parts = [p for p in loc.split("/") if p]
+    return parts[-1] if parts else ""
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -137,6 +148,61 @@ class SuperConfigMigrationUrlTests(TestCase):
             response.content.lower(),
             "Hub must render advanced model registry section",
         )
+
+    def test_admin_bridge_redirects_to_platform_changelists(self):
+        for bridge_key in PLATFORM_ADMIN_BRIDGE_ORDER:
+            with self.subTest(bridge_key=bridge_key):
+                r = self._get("super:admin_bridge", kwargs={"bridge_key": bridge_key})
+                self.assertEqual(r.status_code, 302, bridge_key)
+                admin_url = PLATFORM_ADMIN_BRIDGES[bridge_key]["admin_url"]
+                needle = _admin_changelist_path_tail(str(admin_url))
+                self.assertIn(
+                    needle,
+                    r.get("Location", "").lower(),
+                    msg=f"admin bridge {bridge_key}",
+                )
+
+    def test_platform_admin_bridge_registry_order_matches_bridges(self):
+        """ORDER and BRIDGES must list the same keys (single source for hub + redirects)."""
+        self.assertEqual(
+            len(PLATFORM_ADMIN_BRIDGE_ORDER),
+            len(set(PLATFORM_ADMIN_BRIDGE_ORDER)),
+            "PLATFORM_ADMIN_BRIDGE_ORDER must not contain duplicates",
+        )
+        self.assertEqual(
+            set(PLATFORM_ADMIN_BRIDGE_ORDER),
+            set(PLATFORM_ADMIN_BRIDGES.keys()),
+            "ORDER and PLATFORM_ADMIN_BRIDGES keys must match exactly",
+        )
+
+    def test_admin_bridge_unknown_key_404(self):
+        r = self._get("super:admin_bridge", kwargs={"bridge_key": "no-such-bridge"})
+        self.assertEqual(r.status_code, 404)
+
+    def test_legacy_admin_bridge_named_urls_match_canonical_target(self):
+        """Old ``super:admin_bridge_*`` names still resolve; same 302 target as slug route."""
+        legacy_pairs = (
+            ("super:admin_bridge_integrations", "integrations"),
+            ("super:admin_bridge_marketplace_apps", "marketplace_apps"),
+            ("super:admin_bridge_packages_installed", "packages_installed"),
+            ("super:admin_bridge_experience_packs", "experience_packs"),
+            ("super:admin_bridge_runtime_defaults", "runtime_defaults"),
+            ("super:admin_bridge_ai_model_registry", "ai_model_registry"),
+            ("super:admin_bridge_global_brand_registry", "global_brand_registry"),
+        )
+        for url_name, bridge_key in legacy_pairs:
+            with self.subTest(url_name=url_name):
+                legacy = self._get(url_name)
+                canonical = self._get(
+                    "super:admin_bridge", kwargs={"bridge_key": bridge_key}
+                )
+                self.assertEqual(legacy.status_code, 302, url_name)
+                self.assertEqual(canonical.status_code, 302, bridge_key)
+                self.assertEqual(
+                    legacy.get("Location", ""),
+                    canonical.get("Location", ""),
+                    msg=f"{url_name} vs canonical {bridge_key}",
+                )
 
     def test_super_config_crud_forms_get_200(self):
         """Platform catalog CRUD in super (not platform /admin/)."""

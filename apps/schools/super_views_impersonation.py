@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import base64
 import json
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -160,5 +161,6 @@ def switch_to_tenant(request):
     next_url = request.POST.get("next", "/").strip() or "/"
     url = build_tenant_backend_url(request, school, path=entry_path)
     sep = "&" if "?" in url else "?"
-    redirect_to = f"{url}{sep}impersonate={token}&next={next_url}"
+    query = urlencode({"impersonate": token, "next": next_url})
+    redirect_to = f"{url}{sep}{query}"
     return redirect(redirect_to)

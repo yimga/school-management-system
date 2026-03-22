@@ -5,10 +5,16 @@ RUNBOOK_ADMIN_TO_SUPER_MIGRATION Phases 1–8. All views must be wrapped with re
 """
 
 from django.contrib import messages
+from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_GET
+
+from .super_admin_bridge_registry import (
+    PLATFORM_ADMIN_BRIDGE_ORDER,
+    PLATFORM_ADMIN_BRIDGES,
+)
 
 
 def _config_context(request):
@@ -17,6 +23,34 @@ def _config_context(request):
         "dashboard_url": reverse("super:dashboard"),
         "system_config_url": reverse("siteconfig:console_domains_hub"),
     }
+
+
+@require_GET
+def super_admin_bridge(request, bridge_key: str):
+    """
+    302 to a platform-admin changelist. ``bridge_key`` must exist in
+    :data:`PLATFORM_ADMIN_BRIDGES` (see ``super_admin_bridge_registry``).
+    """
+    meta = PLATFORM_ADMIN_BRIDGES.get(bridge_key)
+    if not meta:
+        raise Http404("Unknown admin bridge key.")
+    admin_url_name = meta.get("admin_url")
+    if not admin_url_name or not isinstance(admin_url_name, str):
+        raise Http404("Invalid admin bridge configuration.")
+    try:
+        return redirect(reverse(admin_url_name))
+    except NoReverseMatch as e:
+        raise Http404("Admin target is not registered.") from e
+
+
+@require_GET
+def super_admin_bridge_legacy_redirect(request, bridge_key: str):
+    """
+    Same target as :func:`super_admin_bridge` for ``bridge_key`` (single 302 to
+    platform admin). Preserves legacy ``admin-bridge/.../`` paths and
+    ``super:admin_bridge_*`` URL names without chaining through the canonical slug URL.
+    """
+    return super_admin_bridge(request, bridge_key)
 
 
 @require_GET
@@ -38,34 +72,36 @@ def super_platform_operator_hub(request):
     admin_app_list = platform_admin_site.get_app_list(request)
 
     super_primary = []
-    for url_name, label, desc, icon in [
-        ("super:schools_list", _("Schools"), _("Directory, lifecycle, exports"), "bi-building"),
+    for url_name, label, desc, icon, kind in [
+        ("super:schools_list", _("Schools"), _("Directory, lifecycle, exports"), "bi-building", "super"),
         (
             "super:site_settings_list",
             _("Site settings"),
             _("Platform records — full edit in control plane (not admin)"),
             "bi-sliders",
+            "super",
         ),
-        ("super:regions_list", _("Regions"), _("Region catalog"), "bi-globe2"),
-        ("super:grading_list", _("Grading scales"), _("Grading scale config"), "bi-mortarboard"),
-        ("super:plans_list", _("Plans & add-ons"), _("Plans catalog"), "bi-currency-dollar"),
+        ("super:regions_list", _("Regions"), _("Region catalog"), "bi-globe2", "super"),
+        ("super:grading_list", _("Grading scales"), _("Grading scale config"), "bi-mortarboard", "super"),
+        ("super:plans_list", _("Plans & add-ons"), _("Plans catalog"), "bi-currency-dollar", "super"),
         (
             "super:country_multipliers_list",
             _("Country multipliers"),
             _("PPP / regional price multipliers"),
             "bi-globe-americas",
+            "super",
         ),
-        ("super:feature_toggles_list", _("Feature toggles"), _("Flag definitions"), "bi-toggle2-on"),
-        ("super:ai_model_hub", _("AI model hub"), _("Models, prompts, gateway"), "bi-cpu"),
-        ("super:incidents_list", _("Incidents"), _("Platform incidents"), "bi-exclamation-triangle"),
-        ("super:billing_accounts_list", _("Billing accounts"), _("Subscriptions root"), "bi-credit-card"),
-        ("super:migration_runs_list", _("Migration runs"), _("Automation runs"), "bi-cloud-arrow-up"),
-        ("super:pulse", _("Pulse"), _("Operational telemetry"), "bi-activity"),
-        ("super:billing_dashboard", _("Billing"), _("Revenue & billing"), "bi-wallet2"),
-        ("super:migration_cloud", _("Migration cloud"), _("Imports & sync"), "bi-cloud-upload"),
-        ("super:package_rollout", _("Package rollout"), _("Experience & document packs"), "bi-box-seam"),
-        ("super:one_sis_any_lms", _("One SIS, any LMS"), _("Integration posture"), "bi-link-45deg"),
-        ("super:registries_overview", _("Registries"), _("Global registries overview"), "bi-journal-richtext"),
+        ("super:feature_toggles_list", _("Feature toggles"), _("Flag definitions"), "bi-toggle2-on", "super"),
+        ("super:ai_model_hub", _("AI model hub"), _("Models, prompts, gateway"), "bi-cpu", "super"),
+        ("super:incidents_list", _("Incidents"), _("Platform incidents"), "bi-exclamation-triangle", "super"),
+        ("super:billing_accounts_list", _("Billing accounts"), _("Subscriptions root"), "bi-credit-card", "super"),
+        ("super:migration_runs_list", _("Migration runs"), _("Automation runs"), "bi-cloud-arrow-up", "super"),
+        ("super:pulse", _("Pulse"), _("Operational telemetry"), "bi-activity", "super"),
+        ("super:billing_dashboard", _("Billing"), _("Revenue & billing"), "bi-wallet2", "super"),
+        ("super:migration_cloud", _("Migration cloud"), _("Imports & sync"), "bi-cloud-upload", "super"),
+        ("super:package_rollout", _("Package rollout"), _("Experience & document packs"), "bi-box-seam", "super"),
+        ("super:one_sis_any_lms", _("One SIS, any LMS"), _("Integration posture"), "bi-link-45deg", "super"),
+        ("super:registries_overview", _("Registries"), _("Global registries overview"), "bi-journal-richtext", "super"),
     ]:
         try:
             super_primary.append(
@@ -74,6 +110,25 @@ def super_platform_operator_hub(request):
                     "label": label,
                     "description": desc,
                     "icon": icon,
+                    "kind": kind,
+                }
+            )
+        except NoReverseMatch:
+            pass
+
+    # Platform admin changelists — single ``super:admin_bridge`` route (see super_admin_bridge_registry).
+    for bridge_key in PLATFORM_ADMIN_BRIDGE_ORDER:
+        meta = PLATFORM_ADMIN_BRIDGES.get(bridge_key)
+        if not meta:
+            continue
+        try:
+            super_primary.append(
+                {
+                    "url": reverse("super:admin_bridge", kwargs={"bridge_key": bridge_key}),
+                    "label": str(meta["label"]),
+                    "description": str(meta["description"]),
+                    "icon": str(meta["icon"]),
+                    "kind": "admin",
                 }
             )
         except NoReverseMatch:

@@ -1,6 +1,11 @@
 """
 Staff-facing Site Settings URLs: manager host uses /super/ control plane; tenant host uses Django admin.
-Single resolver so we never dead-link after platform admin unregisters SiteSettings.
+
+SiteSettings is registered only on tenant admin — not on ``platform_admin_site``. This module resolves
+list/change URLs to ``super:site_settings_*`` on the manager host so operators never depend on a
+non-existent ``admin:siteconfig_sitesettings_*`` on platform backoffice.
+
+See docs/PLATFORM_ADMIN_TO_SUPER_SYSTEM_CONFIG.md for the full platform-admin vs control-plane split.
 """
 
 from __future__ import annotations

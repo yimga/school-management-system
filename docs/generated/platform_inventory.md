@@ -1,12 +1,12 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `2066`
-- HTML templates: `559`
-- Markdown files: `992`
+- Python files: `2067`
+- HTML templates: `562`
+- Markdown files: `993`
 - Migration files: `636`
 - Management commands: `143` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1153`
+- `SiteSettings` refs: `1158`
 - `get_solo()` refs: `182`
 - `except Exception`: `219`
 - `cursor.execute()`: `352`
@@ -81,7 +81,7 @@ Total: `143` commands. First 25 by app/command:
 - `apps/schools/marketing_page_definitions.py`: `2861` lines / `135837` bytes
 - `apps/schools/marketing_views.py`: `3034` lines / `120110` bytes
 - `apps/siteconfig/admin.py`: `3277` lines / `116827` bytes
-- `apps/accounts/views.py`: `3013` lines / `114809` bytes
+- `apps/accounts/views.py`: `3009` lines / `114677` bytes
 - `apps/evals/views.py`: `3100` lines / `114435` bytes
 - `apps/api/views_v1.py`: `2468` lines / `103258` bytes
 - `apps/portal/views_parent.py`: `2504` lines / `98728` bytes

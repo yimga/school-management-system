@@ -6,6 +6,7 @@
     ".pa11yci.json",
     ".python-version",
     "build.sh",
+    "conftest.py",
     "CONTRIBUTING.md",
     "deploy.sh",
     "lighthouserc.js",
