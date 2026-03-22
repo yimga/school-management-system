@@ -4,7 +4,7 @@
 
 **Rule:** Status is one of **NEXT_CODE** | **PRODUCT** | **OPS** | **COMPLIANCE** | **BLOCKED** (external).
 
-**Last sync:** 2026-03-21
+**Last sync:** 2026-03-22
 
 ---
 

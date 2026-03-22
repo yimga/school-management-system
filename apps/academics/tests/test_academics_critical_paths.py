@@ -26,7 +26,14 @@ class GetActiveYearAndTermTests(TestCase):
     """get_active_year_and_term is used by syllabus hub, reports, and evals."""
 
     def test_returns_none_when_no_data(self):
-        year, term = get_active_year_and_term()
+        """Scoped to a school with no academic years (DB may have other schools' data from migrations)."""
+        school = School.objects.create(
+            name="No Academic Data School",
+            slug="no-academic-data",
+            subdomain="no-academic-data",
+            is_active=True,
+        )
+        year, term = get_active_year_and_term(school=school)
         self.assertIsNone(year)
         self.assertIsNone(term)
 

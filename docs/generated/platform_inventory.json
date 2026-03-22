@@ -1,18 +1,18 @@
 {
   "baseline_counts": {
     "allow_any": 63,
-    "csrf_exempt": 140,
+    "csrf_exempt": 141,
     "cursor_execute": 352,
     "except_exception": 219,
     "get_solo": 182,
     "gilead": 713,
     "gilead_files": 138,
-    "html_files": 562,
-    "management_commands": 143,
+    "html_files": 564,
+    "management_commands": 144,
     "markdown_files": 993,
     "migration_files": 636,
-    "print_calls": 539,
-    "python_files": 2067,
+    "print_calls": 544,
+    "python_files": 2079,
     "site_settings": 1158
   },
   "doc_drift": {
@@ -138,6 +138,11 @@
       "app": "accounts",
       "command": "ensure_default_tenant_admin",
       "path": "apps/accounts/management/commands/ensure_default_tenant_admin.py"
+    },
+    {
+      "app": "accounts",
+      "command": "ensure_superadmin",
+      "path": "apps/accounts/management/commands/ensure_superadmin.py"
     },
     {
       "app": "accounts",

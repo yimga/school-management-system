@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `2067`
-- HTML templates: `562`
+- Python files: `2079`
+- HTML templates: `564`
 - Markdown files: `993`
 - Migration files: `636`
-- Management commands: `143` (full list in JSON key `management_commands_list`)
+- Management commands: `144` (full list in JSON key `management_commands_list`)
 - `SiteSettings` refs: `1158`
 - `get_solo()` refs: `182`
 - `except Exception`: `219`
 - `cursor.execute()`: `352`
-- `csrf_exempt`: `140`
+- `csrf_exempt`: `141`
 - `AllowAny`: `63`
-- `print()`: `539`
+- `print()`: `544`
 - `gilead` matches: `713` across `138` files
 
 
 ## Management Commands (full list)
 
-Total: `143` commands. First 25 by app/command:
+Total: `144` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -31,6 +31,7 @@ Total: `143` commands. First 25 by app/command:
 - `accounts` / `check_roles` — `apps/accounts/management/commands/check_roles.py`
 - `accounts` / `create_teacher_parent_accounts` — `apps/accounts/management/commands/create_teacher_parent_accounts.py`
 - `accounts` / `ensure_default_tenant_admin` — `apps/accounts/management/commands/ensure_default_tenant_admin.py`
+- `accounts` / `ensure_superadmin` — `apps/accounts/management/commands/ensure_superadmin.py`
 - `accounts` / `ensure_superuser` — `apps/accounts/management/commands/ensure_superuser.py`
 - `accounts` / `list_expired_temporary_grants` — `apps/accounts/management/commands/list_expired_temporary_grants.py`
 - `accounts` / `refresh_saml_idp_metadata` — `apps/accounts/management/commands/refresh_saml_idp_metadata.py`
@@ -44,8 +45,7 @@ Total: `143` commands. First 25 by app/command:
 - `billing` / `import_platform_billing_snapshot` — `apps/billing/management/commands/import_platform_billing_snapshot.py`
 - `billing` / `run_platform_billing_lifecycle` — `apps/billing/management/commands/run_platform_billing_lifecycle.py`
 - `billing` / `run_revenue_share_payouts` — `apps/billing/management/commands/run_revenue_share_payouts.py`
-- `communication` / `purge_thread_message_retention` — `apps/communication/management/commands/purge_thread_message_retention.py`
-- … and 118 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 119 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 

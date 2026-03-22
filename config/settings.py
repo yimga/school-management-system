@@ -393,6 +393,10 @@ for _alias, _db_config in DATABASES.items():
     _test_name.parent.mkdir(parents=True, exist_ok=True)
     _db_config.setdefault("TEST", {})
     _db_config["TEST"]["NAME"] = str(_test_name)
+    # Busy timeout (seconds) for sqlite3.connect — reduces flaky "database is locked"
+    # on Windows when many tests hit the same file-backed test DB (--keepdb).
+    _db_config.setdefault("OPTIONS", {})
+    _db_config["OPTIONS"].setdefault("timeout", 30.0)
 
 # PERFORMANCE: Enable persistent database connections (600 seconds = 10 minutes)
 # Reduces overhead of creating new connection for each request
