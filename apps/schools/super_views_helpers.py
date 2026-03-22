@@ -28,6 +28,18 @@ def safe_school_timeline_url(school_id) -> str:
         return ""
 
 
+# Underscore names: same behavior (tests and super_views re-export use these).
+_safe_school_timeline_url = safe_school_timeline_url
+
+
+def safe_school_admin_change_url(school_id) -> str:
+    """Admin URLs are not part of the product surface; placeholder for legacy call sites."""
+    return ""
+
+
+_safe_school_admin_change_url = safe_school_admin_change_url
+
+
 def safe_platform_incidents_url() -> str:
     """Reverse to observability incident console when registered; else empty string."""
     try:

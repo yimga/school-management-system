@@ -1,12 +1,12 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `2079`
+- Python files: `2081`
 - HTML templates: `564`
 - Markdown files: `993`
 - Migration files: `636`
 - Management commands: `144` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1158`
+- `SiteSettings` refs: `1159`
 - `get_solo()` refs: `182`
 - `except Exception`: `219`
 - `cursor.execute()`: `352`

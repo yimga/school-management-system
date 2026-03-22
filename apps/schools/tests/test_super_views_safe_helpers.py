@@ -4,18 +4,24 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.test import SimpleTestCase
 from django.urls import NoReverseMatch
 
-from apps.schools import super_views
-from apps.schools.super_views_dashboard_helpers import safe_registry_url
+from apps.schools.super_views_dashboard_helpers import (
+    brand_profile_for_school,
+    safe_registry_url,
+)
+from apps.schools.super_views_helpers import (
+    _safe_school_admin_change_url,
+    _safe_school_timeline_url,
+)
 
 
 class SuperViewsSafeHelperTests(SimpleTestCase):
     def test_safe_school_admin_change_url_returns_empty_on_missing_route(self):
-        with patch("apps.schools.super_views.reverse", side_effect=NoReverseMatch):
-            self.assertEqual(super_views._safe_school_admin_change_url(123), "")
+        with patch("apps.schools.super_views_helpers.reverse", side_effect=NoReverseMatch):
+            self.assertEqual(_safe_school_admin_change_url(123), "")
 
     def test_safe_school_timeline_url_returns_empty_on_missing_route(self):
-        with patch("apps.schools.super_views.reverse", side_effect=NoReverseMatch):
-            self.assertEqual(super_views._safe_school_timeline_url(123), "")
+        with patch("apps.schools.super_views_helpers.reverse", side_effect=NoReverseMatch):
+            self.assertEqual(_safe_school_timeline_url(123), "")
 
     def test_safe_registry_url_returns_empty_on_missing_route(self):
         with patch(
@@ -31,8 +37,8 @@ class SuperViewsSafeHelperTests(SimpleTestCase):
                 raise ObjectDoesNotExist("missing")
 
         self.assertIsNone(
-            super_views._brand_profile_for_school(MissingBrandProfileSchool())
+            brand_profile_for_school(MissingBrandProfileSchool())
         )
 
     def test_brand_profile_for_school_returns_none_when_attribute_missing(self):
-        self.assertIsNone(super_views._brand_profile_for_school(object()))
+        self.assertIsNone(brand_profile_for_school(object()))

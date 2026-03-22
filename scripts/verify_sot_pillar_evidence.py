@@ -301,6 +301,14 @@ REQUIRED: list[tuple[str, Path]] = [
         ROOT / "apps" / "schools" / "tests" / "test_super_views_billing_console.py",
     ),
     (
+        "BR-12 super_views create school wizard module",
+        ROOT / "apps" / "schools" / "super_views_create_school_wizard.py",
+    ),
+    (
+        "BR-12 super_views create school wizard re-export test",
+        ROOT / "apps" / "schools" / "tests" / "test_super_views_create_school_wizard.py",
+    ),
+    (
         "N23 inclusive terminology and imagery doc",
         ROOT / "docs" / "N23_INCLUSIVE_TERMINOLOGY_AND_IMAGERY.md",
     ),
