@@ -53,6 +53,7 @@
 | BR-12 super_views dashboard + exports split | **`super_views_dashboard_helpers.py`** (shared helpers incl. **`safe_registry_url`** → **`super:registries_overview`**); **`super_views_dashboard_surfaces.py`** (**`super_dashboard`**, **`super_dashboard_v2`**, **`api_super_dashboard_layout`**); **`super_views_exports.py`** (**`export_schools_csv`**, **`export_revenue_csv`**, **`export_super_dashboard_pdf`**); **`test_super_views_dashboard_surfaces.py`**, **`test_super_views_exports.py`**; **`verify_sot_pillar_evidence`** paths — **`super_views.py`** is re-exports + **`create_school_wizard`** alias (implementation **`super_views_create_school_wizard`**); umbrella structural **[ ]** |
 | BR-12 create school wizard split (2026-03-22) | **`super_views_create_school_wizard.py`**; **`test_super_views_create_school_wizard`**; **`verify_sot_pillar_evidence`** +2 paths |
 | N5 RESILIENT_EDGE audit export draft | **`templates/schools/super_audit_export.html`** — **`form-draft-save.js`** on date-range GET form; **`test_resilient_edge_wiring`** |
+| N5 RESILIENT_EDGE roll-call + marks (2026-03-22) | **`portal/roll_call_student.html`**, **`portal/roll_call_teacher.html`**, **`teacher/marks_entry.html`** — regression tests script-before-init in **`test_resilient_edge_wiring`** |
 
 ---
 

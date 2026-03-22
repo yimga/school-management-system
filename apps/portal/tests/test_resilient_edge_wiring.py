@@ -50,6 +50,27 @@ class ResilientEdgeFormDraftTemplateTests(SimpleTestCase):
         idx_init = text.index("FormDraftSave.init")
         self.assertLess(idx_lib, idx_init)
 
+    def test_roll_call_student_loads_form_draft_script_before_init(self):
+        text = self._read("templates", "portal", "roll_call_student.html")
+        self.assertIn("form-draft-save.js", text)
+        idx_lib = text.index("form-draft-save.js")
+        idx_init = text.index("FormDraftSave.init")
+        self.assertLess(idx_lib, idx_init)
+
+    def test_roll_call_teacher_loads_form_draft_script_before_init(self):
+        text = self._read("templates", "portal", "roll_call_teacher.html")
+        self.assertIn("form-draft-save.js", text)
+        idx_lib = text.index("form-draft-save.js")
+        idx_init = text.index("FormDraftSave.init")
+        self.assertLess(idx_lib, idx_init)
+
+    def test_marks_entry_loads_form_draft_script_before_init(self):
+        text = self._read("templates", "teacher", "marks_entry.html")
+        self.assertIn("form-draft-save.js", text)
+        idx_lib = text.index("form-draft-save.js")
+        idx_init = text.index("FormDraftSave.init")
+        self.assertLess(idx_lib, idx_init)
+
 
 class ResilientEdgeCriticalReadTests(SimpleTestCase):
     def _read(self, *parts: str) -> str:
