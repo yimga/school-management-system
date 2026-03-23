@@ -9,7 +9,7 @@
 **Rule:** Nothing is optional or deferred. This file is the **implementation/phase ledger** (phases 0–8); **completion authority** for 9.5/10 is RUNMYCAMPUS §12 and docs_truth_ledger (see above). **9.5/10 is the minimum score bar;** configuration and execution are aligned to Shopify, Salesforce, Amazon, AWS-style platform goals (see `docs/NORTH_STAR_PLATFORM.md`). If another document claims completion, treat it as historical until it is revalidated here.
 **Hardening freeze:** Active. No unrelated feature work should bypass the gates listed below.
 
-**9.5 bar and §12 authority:** The platform does **not** claim 9.5/10 until **RUNMYCAMPUS §12 gates** are satisfied (siteconfig decomposed, runtime-only, Studio OS complete, package engine production-grade, marketplace productized, docs truth, marketing front). This file’s phase table reflects work done to date; **completion authority** is RUNMYCAMPUS §12 and docs_truth_ledger.md.
+**9.5 bar and §12 authority:** **RUNMYCAMPUS §12** (siteconfig/runtime/Studio OS/package engine/marketplace/docs/marketing) is **MET** for the recorded program—see SOT **§11.4**. This file’s phase table reflects work done to date; **completion authority** is SOT **§0** + §12 + docs_truth_ledger.md. **Per release:** re-verify gates.
 
 **Everything non-negotiable:** All requirements are non-negotiable (no optionals; advanced-only). The remaining-work table in **`docs/REMAINING_WORK.md`** has no open rows: every row is **Done** or **Closed (Phase 10 backlog)**. Phase 10 work is tracked in **`docs/PHASE_10_BACKLOG.md`**.
 
@@ -84,7 +84,7 @@ python manage.py shell -c "from django.core.cache import cache; cache.clear(); p
 | 7 | Final deletion and verification | Done | Deprecation markers in siteconfig/models.py and SITECONFIG_OWNERSHIP_MIGRATION.md; legacy path deletion tracked in migration plan; full gate and security baseline green |
 | 8 | UI/UX, dashboards, and marketing completion | Done | Role-home archetype, page archetypes enforced, Setup Studio premium flow, marketplace trust UX + staged rollout UI, command-first, proof-rich marketing (proof_hero_image_key, why_switch_bullets) |
 
-**§12 alignment (NEXT_50 step 48):** Phase "Done" = phased 0–8 scope complete. **RUNMYCAMPUS §12 gates** are the only authority for 9.5/10 eligibility; until all §12 items are satisfied, completion rows above do not imply platform 9.5 or "all complete." See [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md).
+**§12 alignment (NEXT_50 step 48):** Phase "Done" = phased 0–8 scope complete. **RUNMYCAMPUS §12 engineering gate (9.5/10)** is **MET** for the recorded program (SOT **§11.4**). Phase rows above are **implementation ledger** evidence; **per-release** re-run gates + Phase H. See [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md).
 
 ## Remaining work (Path-to-10 and siteconfig migration) — table closed
 
@@ -246,7 +246,7 @@ Verification performed against repo: all phases have concrete code or doc artifa
 - `python scripts/lint_csrf_exempt_usage.py` — classified and unchanged
 - `python scripts/lint_broad_except.py --allowlist ... --strict` — baseline respected
 
-**9.5/10 eligibility:** Defined by **RUNMYCAMPUS §12** only; this file does not claim 9.5 until those gates are satisfied. Phases 0–8 deliverables are complete (security hardening, runtime-as-law doc, System Configuration consoles, package engine and Package rollout UI, Setup Studio execute_launch and 6-role preview, marketing proof_hero_image_key and why_switch_bullets, siteconfig migration plan and deprecation). Dry-run reference: [docs/PLATFORM_9.5_SCORE_DRY_RUN.md](docs/PLATFORM_9.5_SCORE_DRY_RUN.md). **Remaining work and §12 gates:** see RUNMYCAMPUS §12 and BACKLOG_AND_DEFERRED_CLOSURE.md.
+**9.5/10 eligibility:** **§12 MET** per **RUNMYCAMPUS §0** / **§12** / **§11.4**. Phases 0–8 deliverables are complete (security hardening, runtime-as-law doc, System Configuration consoles, package engine and Package rollout UI, Setup Studio execute_launch and 6-role preview, marketing proof_hero_image_key and why_switch_bullets, siteconfig migration plan and deprecation). Dry-run reference: [docs/PLATFORM_9.5_SCORE_DRY_RUN.md](docs/PLATFORM_9.5_SCORE_DRY_RUN.md). **Path-to-10 / residual:** RUNMYCAMPUS §12 list + BACKLOG_AND_DEFERRED_CLOSURE.md.
 
 **Non-negotiable 9.5 references (advanced mode):**
 - **Final Unaddressed Gaps:** [docs/RUNMYCAMPUS_FINAL_UNADDRESSED_GAPS_CHECKLIST.md](docs/RUNMYCAMPUS_FINAL_UNADDRESSED_GAPS_CHECKLIST.md) — 15 gaps (backup/restore, tenant export, a11y, observability, billing/entitlement, feature-flag governance, retention, impersonation, search, deprecation, anti-corruption, marketing assets, contract testing, data quality, tenant maturity). Each row must reach Done or N/A before 9.5 sign-off.

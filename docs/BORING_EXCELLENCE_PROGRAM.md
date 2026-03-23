@@ -11,7 +11,7 @@
 | Check | Status | Where / how |
 |-------|--------|-------------|
 | **Dead button/link detection** | In CI | `scripts/phase_h_audit.py` (URL reverse; `--live` for live reverse); Phase H URL tests in `test_phase_h_ux_verification`, `test_smoke_urls`. |
-| **Docs truth audits** | In CI / ledger | BACKLOG and docs_truth_ledger reconciled; RUNMYCAMPUS §12 authority; no 9.5 claim until gates met. Step 25 reconciliation; PLAN_VERIFICATION_REPORT. |
+| **Docs truth audits** | In CI / ledger | BACKLOG and docs_truth_ledger reconciled; SOT **§0** + §12 (**MET**). Step 25 reconciliation; PLAN_VERIFICATION_REPORT banner. |
 | **Observability gaps** | Partial | Observability app: healthz, api_health, db_liveness, SLO dashboard; structured logging with `log_exception_with_context`; pre_deploy_gate runs smoke and Phase H. |
 | **Permission drift** | Manual / backlog | AI permission matrix (get_ai_permission_for_user); staff-only tasks; public_endpoint_audit; lint_csrf_exempt_usage, lint_allow_any_usage in pre_deploy_gate. |
 | **Accessibility audits** | In CI | `phase_h_audit.py` (skip-to-main link, viewport/frame); responsive/CSS warnings reported when present. Optional: expand a11y checks. |

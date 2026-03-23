@@ -209,6 +209,6 @@
 
 ---
 
-**§9 alignment:** Completion authority is [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12; no 9.5/10 claimed until §12 gates are met. See [docs_truth_ledger.md](docs_truth_ledger.md).
+**§9 alignment:** Completion authority is [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§0** + §12; **§12 engineering gate MET** (SOT §11.4). See [docs_truth_ledger.md](docs_truth_ledger.md).
 
 *Source of truth: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md).*

@@ -8,7 +8,7 @@
 
 **Rule:** When an item is implemented, mark it Done here and add a one-line note; optionally remove or move to "Done" section. New work stays in PHASE_10_BACKLOG for tracking; this doc is the **full inventory**.
 
-**§12 authority:** 9.5/10 eligibility is defined by [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12; do not claim 9.5 until all §12 gates are satisfied (see [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) §6.3).
+**§12 authority:** **§12 engineering gate (9.5/10)** is **MET** per [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§0** / **§12** / **§11.4** (see [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) §6.3). This list is **path-to-11 / continuous improvement**, not a re-proof of §12.
 
 **For all agents:** Canonical execution and backlog: RUNMYCAMPUS, BACKLOG_AND_DEFERRED_CLOSURE, docs_truth_ledger, NEXT_50_EXECUTION_STEPS. Named plan: RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN. Check ledger and NEXT_50 before starting work.
 

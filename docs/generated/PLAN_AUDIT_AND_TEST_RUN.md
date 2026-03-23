@@ -26,4 +26,4 @@
 
 ## Backlog status
 
-All items in BACKLOG §1 have a status (DONE | PARTIAL | NOT DONE | BLOCKED). §2 and §2b are aligned with docs_truth_ledger and RUNMYCAMPUS. Completion authority remains RUNMYCAMPUS §12; no 9.5 claim until §12 gates are satisfied.
+All items in BACKLOG §1 have a status (DONE | PARTIAL | NOT DONE | BLOCKED). §2 and §2b are aligned with docs_truth_ledger and RUNMYCAMPUS. Completion authority: SOT **§0** + **§12** (**MET** per §11.4); per-release re-verify gates.

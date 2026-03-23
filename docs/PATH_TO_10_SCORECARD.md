@@ -2,7 +2,7 @@
 
 **Short answer: Yes. A scorecard of 10 (and above) is achievable.**
 
-**Completion authority:** The platform **does not claim 9.5/10** until [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12 gates are satisfied (see [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md)). Path-to-10 work and this scorecard move toward that bar. Reaching **10/10** means completing the "Path-to-10" work already identified in `AUDIT_VS_PLAN_VALIDATION.md` and the toolsets ledger. Nothing is speculative—each item is defined and scoped.
+**Completion authority:** **§12 engineering gate (9.5/10)** is **MET** per [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§0** / **§12** / **§11.4** (see [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md)). This scorecard describes work to move from **9.5 → 10+** (category polish and north-star depth)—**not** a second gate contradicting §12. Reaching **10/10** means completing the Path-to-10 work in `AUDIT_VS_PLAN_VALIDATION.md` and the toolsets ledger. Nothing is speculative—each item is defined and scoped.
 
 ---
 

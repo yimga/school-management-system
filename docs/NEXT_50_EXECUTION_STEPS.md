@@ -36,7 +36,7 @@
 22. **DONE** — RLS context (schools.rls_context set/reset) documented in bounded_context_ownership.md §2; cross-context interfaces kept current.
 23. **DONE** — Feature toggle inspection: fail closed (return [] on error); DatabaseError in catch; docstring updated.
 24. **DONE** — Governor limits + feature toggles surfaced in operator UI only (staff). super_runtime_inspector (super:runtime_inspector) shows both cards; staff-only via require_super_access_with_host; linked from Control Studio rail and control_plane_nav.
-25. **DONE** — Reconcile `docs_truth_ledger.md` after each milestone (no 9.5 claim until §12). Reconciled this run: ledger §2 aligned with BACKLOG §1 and NEXT_50; Docs contradict platform reality → DONE; §4 completion gate "Remove contradictory language" [x]. Policy: reconcile again after each milestone (BACKLOG §2c, ledger §4).
+25. **DONE** — Reconcile `docs_truth_ledger.md` after each milestone (scores per SOT **§0**; §12 **MET**). Reconciled this run: ledger §2 aligned with BACKLOG §1 and NEXT_50; Docs contradict platform reality → DONE; §4 completion gate "Remove contradictory language" [x]. Policy: reconcile again after each milestone (BACKLOG §2c, ledger §4).
 
 ## §4 Studio OS (26–35)
 

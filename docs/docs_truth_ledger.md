@@ -86,7 +86,7 @@
 | Backlog/deferred closure | DONE | docs/BACKLOG_AND_DEFERRED_CLOSURE.md: every unchecked/deferred item has status (DONE/PARTIAL/NOT DONE/BLOCKED) and closure note. |
 | Optionals and recommendations (non-negotiable) | **DONE** | Policy: all optionals are **required** (non-negotiable); each must be DONE; nothing deferred. RUNMYCAMPUS §11.1 + Rule of use: no deferrable optionals. RUNMYCAMPUS §11.1: all items DONE (Experience/Automation/Launch/Control Studios, Phase E, §12.1 record gate output). BACKLOG §2f: policy + status table all DONE; record_pre_deploy_gate_output.sh + RELEASE_CHECKLIST; refresh_marketplace_seed_targets.py; marketplace UX + ReportPack/DocumentPack; role-home/proof-rich marketing. No open optional. |
 | Implementation dependencies and order | DONE | docs/IMPLEMENTATION_DEPENDENCIES_AND_ORDER.md: dependency graph, get_solo/raw SQL/signature refactor checklist, §4 Studios and §7 scope, §9/§12 actions. |
-| §9 MASTER_PLATFORM_CHECKLIST alignment | DONE | 9.5/10 not claimed until §12; completion authority RUNMYCAMPUS §12; BACKLOG_AND_DEFERRED_CLOSURE referenced. |
+| §9 MASTER_PLATFORM_CHECKLIST alignment | DONE | §12 **MET**; completion authority SOT **§0** + §12 + §11.4; BACKLOG_AND_DEFERRED_CLOSURE referenced. |
 | MASTER_PLATFORM_CHECKLIST completion rows match §12 (step 48) | DONE | Phase ledger footnote: "Done" = phased 0–8 scope; §12 gates sole authority for 9.5; BACKLOG_AND_DEFERRED_CLOSURE linked. |
 | §12 gates evidence (step 46) | DONE | RUNMYCAMPUS §12.1 table: every gate has verification (lint/CI/test/doc); optional: record CI output per gate. |
 | §12 gate: siteconfig materially decomposed | **DONE** | domain_ownership + bounded-context surfaces; no tenant get_solo (lint_tenant_settings, lint_siteconfig_legacy_imports); get_effective_site_settings runtime-first. domain_ownership.md §6; BACKLOG §2.1 move ownership (behavioral) DONE. |
@@ -172,7 +172,7 @@
 
 **Control plane + marketing UX (CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL):** Template audit added (§5); single base (control_plane_base), single sidebar (partials/control_plane_sidebar + CONTROL_PLANE_NAV), design tokens verified. Marketing: pillar/outcome sections restyled (premium cards in marketing-home.css; landing loads marketing-home.css; mkt-section-pillars, mkt-card-premium). BACKLOG §2e row 8 → PARTIAL.
 
-**Reconciliation (NEXT_50 step 25):** Ledger §2 aligned with BACKLOG §1 and NEXT_50. Completion authority = RUNMYCAMPUS §12; do not claim 9.5/10 until §12 gates are satisfied. **Policy:** Reconcile after each milestone. **Last reconciliation:** This run. Step 6 DONE (product sign-off 2026-03-12). Snapshot: 50 DONE. Nothing left behind.
+**Reconciliation (NEXT_50 step 25):** Ledger §2 aligned with BACKLOG §1 and NEXT_50. Completion authority = RUNMYCAMPUS **§0** + §12 (**MET**). **Policy:** Reconcile after each milestone. **Last reconciliation:** This run. Step 6 DONE (product sign-off 2026-03-12). Snapshot: 50 DONE. Nothing left behind.
 
 ---
 

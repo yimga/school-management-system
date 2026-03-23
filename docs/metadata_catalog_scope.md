@@ -50,6 +50,6 @@
 
 ---
 
-**§9 alignment:** Completion authority is RUNMYCAMPUS §12; no platform score (9.5/10) claimed until §12 gates are met. See [docs_truth_ledger.md](docs_truth_ledger.md).
+**§9 alignment:** Completion authority is RUNMYCAMPUS **§0** + §12; **§12 MET** — claims must match SOT **§11.4**. See [docs_truth_ledger.md](docs_truth_ledger.md).
 
 *Source of truth: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §3.3.*

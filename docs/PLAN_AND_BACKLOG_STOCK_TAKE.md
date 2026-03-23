@@ -25,7 +25,7 @@
 
 ## 2. §12 Scoring gates
 
-**All 11 gates MET** (no 9.5 claim until release sign-off).
+**All 11 gates MET** — **§12 engineering gate (9.5/10)** satisfied for recorded program (SOT §11.4); **per release** refresh sign-off + Phase H.
 
 | Gate | Status | Verification |
 |------|--------|----------------|
