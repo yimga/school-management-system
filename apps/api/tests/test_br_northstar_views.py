@@ -45,6 +45,8 @@ class BrNorthstarApiTests(TestCase):
             "rum_web_vitals_summary",
             d.get("observability", {}),
         )
+        self.assertIn("perf_gate", d)
+        self.assertIn("check_performance_budgets", d["perf_gate"])
 
     def test_compliance_validate_enrollment_off(self):
         c = Client()

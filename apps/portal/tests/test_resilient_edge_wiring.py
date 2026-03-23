@@ -16,6 +16,8 @@ class ResilientEdgeFormDraftTemplateTests(SimpleTestCase):
         text = self._read("templates", "portal", "support_request.html")
         self.assertIn("form-draft-save.js", text)
         self.assertIn("FormDraftSave.init", text)
+        self.assertIn("<details", text)
+        self.assertIn('dir="auto"', text)
         idx_lib = text.index("form-draft-save.js")
         idx_init = text.index("FormDraftSave.init")
         self.assertLess(idx_lib, idx_init)
@@ -23,6 +25,26 @@ class ResilientEdgeFormDraftTemplateTests(SimpleTestCase):
     def test_contact_school_loads_form_draft_script_before_init(self):
         text = self._read("templates", "parent", "contact_school.html")
         self.assertIn("form-draft-save.js", text)
+        self.assertIn("<details", text)
+        self.assertIn('dir="auto"', text)
+        idx_lib = text.index("form-draft-save.js")
+        idx_init = text.index("FormDraftSave.init")
+        self.assertLess(idx_lib, idx_init)
+
+    def test_link_child_legacy_loads_form_draft_script_before_init(self):
+        text = self._read("templates", "parent", "link_child.html")
+        self.assertIn("form-draft-save.js", text)
+        self.assertIn("link-child-legacy-form", text)
+        self.assertIn("data-draft-key", text)
+        idx_lib = text.index("form-draft-save.js")
+        idx_init = text.index("FormDraftSave.init")
+        self.assertLess(idx_lib, idx_init)
+
+    def test_link_child_wizard_loads_form_draft_script_before_init(self):
+        text = self._read("templates", "parent", "link_child_wizard.html")
+        self.assertIn("form-draft-save.js", text)
+        self.assertIn("link-child-wizard-form", text)
+        self.assertIn("data-draft-key", text)
         idx_lib = text.index("form-draft-save.js")
         idx_init = text.index("FormDraftSave.init")
         self.assertLess(idx_lib, idx_init)
@@ -71,6 +93,27 @@ class ResilientEdgeFormDraftTemplateTests(SimpleTestCase):
         idx_init = text.index("FormDraftSave.init")
         self.assertLess(idx_lib, idx_init)
 
+    def test_claim_invite_loads_form_draft_script_before_init(self):
+        text = self._read("templates", "parent", "claim_invite.html")
+        self.assertIn("form-draft-save.js", text)
+        self.assertIn("claim-invite-form", text)
+        self.assertIn("data-draft-key", text)
+        self.assertIn('dir="auto"', text)
+        idx_lib = text.index("form-draft-save.js")
+        idx_init = text.index("FormDraftSave.init")
+        self.assertLess(idx_lib, idx_init)
+
+    def test_attendance_discipline_justification_loads_form_draft_script_before_init(self):
+        text = self._read("templates", "parent", "attendance_discipline.html")
+        self.assertIn("form-draft-save.js", text)
+        self.assertIn("parent-attendance-justification-form", text)
+        self.assertIn("data-draft-key", text)
+        self.assertIn('scope="col"', text)
+        self.assertIn('dir="auto"', text)
+        idx_lib = text.index("form-draft-save.js")
+        idx_init = text.index("FormDraftSave.init")
+        self.assertLess(idx_lib, idx_init)
+
 
 class ResilientEdgeCriticalReadTests(SimpleTestCase):
     def _read(self, *parts: str) -> str:
@@ -103,3 +146,4 @@ class ResilientEdgeCriticalReadTests(SimpleTestCase):
         self.assertIn("form-draft-save.js", text)
         self.assertIn('data-draft-key="pos_sale_line_', text)
         self.assertIn('scope="col"', text)
+        self.assertIn("export=json", text)

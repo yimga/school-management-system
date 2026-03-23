@@ -4,7 +4,7 @@
 
 **9.5 bar:** All phases 0–8 and Final Gaps are Done in this ledger. Items below were Path-to-10 or siteconfig migration; each is either completed (Done) or closed and tracked in `docs/PHASE_10_BACKLOG.md`.
 
-**§12 authority:** Do not claim 9.5/10 until [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12 gates are satisfied; see [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) §6.3.
+**§12 authority:** **§12 engineering gate MET** per [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§0** / **§11.4**; see [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) §6.3. This file tracks **residual** / Phase 10 items—not gate re-proofs.
 
 ---
 

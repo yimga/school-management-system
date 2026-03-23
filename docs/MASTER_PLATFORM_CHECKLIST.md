@@ -1,6 +1,6 @@
 # RunMyCampus Master Platform Checklist
 
-**Canonical completion status:** Completion and 9.5/10 eligibility are defined by [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12 and [docs_truth_ledger.md](docs_truth_ledger.md). Do not claim 9.5/10 or "all complete" until the §12 gates in the single source of truth are satisfied. **Reconciliation:** If this file’s phase table says “Done” while the embedded plan still has unchecked §12 items, treat §12 as authority—see [PLAN_VERIFICATION_REPORT.md](PLAN_VERIFICATION_REPORT.md).
+**Canonical completion status:** Completion and **§12 engineering gate (9.5/10)** are defined by [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§0** + **§12** + [docs_truth_ledger.md](docs_truth_ledger.md). **§12 is MET** for the recorded program (SOT §11.4). **Reconciliation:** If a **historical** paragraph in this file still says “until §12,” treat the **current SOT** as authority—see [PLAN_VERIFICATION_REPORT.md](PLAN_VERIFICATION_REPORT.md) banner. Do not claim **12/10+ market dominance** without SOT **§0.2** evidence.
 
 **Repo truth date:** March 10, 2026
 
@@ -13,7 +13,7 @@
 
 **Everything non-negotiable:** All requirements are non-negotiable (no optionals; advanced-only). The remaining-work table in **`docs/REMAINING_WORK.md`** has no open rows: every row is **Done** or **Closed (Phase 10 backlog)**. Phase 10 work is tracked in **`docs/PHASE_10_BACKLOG.md`**.
 
-**Validation:** Phases 0–8 checklist items in this file are **Done**. Implemented items meet the **advanced** standard. **Do not claim 9.5/10 or “all complete”** until RUNMYCAMPUS §12 gates are met—see PLAN_VERIFICATION_REPORT.md and BACKLOG_AND_DEFERRED_CLOSURE.md. Gates: check, showmigrations, lint_broad_except, pre_deploy_gate—passing.
+**Validation:** Phases 0–8 checklist items in this file are **Done**. Implemented items meet the **advanced** standard. **§12 engineering gate:** **MET** (SOT §11.4)—see PLAN_VERIFICATION_REPORT.md (banner) and BACKLOG_AND_DEFERRED_CLOSURE.md. Gates: check, showmigrations, lint_broad_except, pre_deploy_gate—passing on each release train.
 
 **Audit vs embedded plans:** The full 19-section 9.5/10 Excellence Checklist, Metadata-Driven Gap Closure Plan, UX Transformation Plan, Toolsets, and Final Gaps are cross-checked in **`docs/AUDIT_VS_PLAN_VALIDATION.md`**. Every item is either **Done at advanced standard** (with evidence) or **Path-to-10 only**. **Optionals are non-negotiable:** all are Done or N/A with justification; nothing is basic.
 
@@ -255,7 +255,7 @@ Verification performed against repo: all phases have concrete code or doc artifa
 
 **Quick 9.5 advanced verification:** Run `python scripts/lint_tenant_settings.py --check-get-solo-only` and `--report-allowlisted`; open System Configuration hub (Compare/Audit links); Setup Studio 6 previews + Go live; tenant app catalog (First-party + rollback copy); command palette Ctrl+K primary; control plane Package rollout (super:package_rollout).
 
-**Validation (phases 0–8):** Every checklist item in this file for phases 0–8 is done (no empty [ ]). Every implemented item meets the **advanced** standard (edge cases, validation, observability, docs)—not basic. Final Gaps 15/15 Done for the phased scope. **Do not claim 9.5/10 or "all complete"** until RUNMYCAMPUS §12 gates are satisfied; completion authority is §12 and docs_truth_ledger.md. Remaining work is tracked in BACKLOG_AND_DEFERRED_CLOSURE.md and the single source of truth.
+**Validation (phases 0–8):** Every checklist item in this file for phases 0–8 is done (no empty [ ]). Every implemented item meets the **advanced** standard (edge cases, validation, observability, docs)—not basic. Final Gaps 15/15 Done for the phased scope. **§12 engineering gate MET** (SOT §11.4); completion authority is SOT **§0** + §12 + docs_truth_ledger.md. Remaining work is tracked in BACKLOG_AND_DEFERRED_CLOSURE.md and the single source of truth.
 
 ## Historical-doc banner
 

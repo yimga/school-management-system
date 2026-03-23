@@ -517,6 +517,11 @@ urlpatterns = [
         ),
         name="platform_operator_hub",
     ),
+    path(
+        "operator-policy/",
+        require_super_access_with_host(super_views_config.super_operator_policy),
+        name="operator_policy",
+    ),
     # Legacy admin-bridge paths / URL names → canonical super:admin_bridge (bookmarks & reverse).
     path(
         "admin-bridge/integrations-marketplace/",

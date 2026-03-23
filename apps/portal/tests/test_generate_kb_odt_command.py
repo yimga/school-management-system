@@ -37,9 +37,11 @@ class GenerateKbOdtCommandTests(TestCase):
     @override_settings(MEDIA_ROOT="")
     def test_dry_run_lists_articles(self):
         out = StringIO()
+        # Scope to this test's article — DB may contain other published KB rows from fixtures.
         call_command(
             "generate_kb_odt",
-            "--all",
+            "--article-slug",
+            "teacher-onboarding",
             "--formats",
             "odt,docx",
             "--dry-run",
@@ -61,7 +63,8 @@ class GenerateKbOdtCommandTests(TestCase):
         with override_settings(MEDIA_ROOT=str(self.tmp_media)):
             call_command(
                 "generate_kb_odt",
-                "--all",
+                "--article-slug",
+                "teacher-onboarding",
                 "--formats",
                 "odt,docx",
                 "--engine",

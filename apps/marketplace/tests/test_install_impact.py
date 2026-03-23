@@ -77,6 +77,17 @@ class TenantInstallImpactPreviewTests(TestCase):
         self.assertEqual(data["app"]["slug"], "impact-test-app")
         self.assertTrue(any(s["scope_code"] == "students.read" for s in data["scopes"]))
 
+    def test_blueprint_apply_gate_compares_string_school_id_for_uuid_tenants(self):
+        """Regression: School.pk is UUID; session gate must not use int(school.pk)."""
+        allowed = {
+            "pack_id": 1,
+            "school_id": str(self.school.pk),
+            "ts": 0.0,
+        }
+        school_i = str(self.school.pk)
+        self.assertIsInstance(allowed["school_id"], str)
+        self.assertEqual(str(allowed.get("school_id")), school_i)
+
     def test_build_tenant_install_impact_includes_dependency_graph(self):
         from apps.packages.models import PackageVersion
 

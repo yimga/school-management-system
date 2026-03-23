@@ -1,10 +1,13 @@
 # SOT Plan vs Code — Gap Audit
 
-**Purpose:** Items that appear in the plan documents (SOT and referenced docs) but are **not implemented**, **only partially implemented**, or **stub/placeholder** in the codebase. This supports the single source of truth and release readiness.
+> **Status (2026-03-23):** **Phase GAP (GAP.1–GAP.15)** is **closed** per [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md). §0.1.5 **internal** queue is **closed** per [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) (**Internal — CLOSED**).  
+> Sections **1–8 below** are a **historical snapshot (2026-03-16)** of plan-vs-code differences for **product UX / marketing / optional depth** — they are **not** duplicate open “internal backlog” rows. New work: scoped tickets + updates to [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) only.
 
-**Scope:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) and its referenced plans: PATH_TO_100_PERCENT_EXECUTION_PLAN.md, CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md, RUNMYCAMPUS_SCROLL_STORYTELLING_MARKETING_DIRECTIVE.md, ADMIN_SUPER_SINGLE_ENTRY_AND_MARKETING_PRODUCT_PAGE.md, OPERATING_DISCIPLINE_LAYERS.md, DECISION_ARCHITECTURE_CHECKLIST.md, public_endpoint_audit.md, BACKLOG_AND_DEFERRED_CLOSURE.md.
+**Purpose:** Items that appeared in plan documents but were **not fully implemented** at audit time. Use for discovery; **live status** = SOT §11.4 + external backlog.
 
-**Date:** 2026-03-16 (audit run).
+**Scope:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) and referenced plans (PATH_TO_100, CONTROL_PLANE…, etc.).
+
+**Date:** 2026-03-16 (audit run); banner 2026-03-23.
 
 ---
 
@@ -95,11 +98,10 @@
 
 ## 9. How to use this audit
 
-- **Runbook (mandatory):** Every gap in this audit must be closed as part of the runbook. See **[IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md](IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md) §2.1 Phase GAP** for the ordered list (GAP.1–GAP.15). Implement each in order without skipping; update [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md) "Gap audit progress" after each. Run uninterrupted until all gaps are closed.
-- **Prioritization:** Within the runbook, Phase GAP follows Phase V; work GAP.1 → GAP.15 in order.
-- **SOT alignment:** Do not claim "all plan items coded" while these gaps remain; SOT §11.4 and §12 remain the authority.
-- **Updates:** When a gap is implemented and verified, update session state "Last closed gap" / "Next gap to close"; optionally add a one-line note in this doc §8 that the gap is closed.
+- **Phase GAP:** GAP.1–GAP.15 — **closed** (see session state). Do not re-open as a blocking checklist without a new ticket.
+- **Sections 1–8:** Optional **product** follow-ups (marketing UX, shell unification, etc.). Track in SOT / backlog when prioritized — not the same as [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **External** (vendor/cert) table unless explicitly moved there.
+- **Authority:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4, §12; [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md).
 
 ---
 
-*Generated from plan vs code comparison; see RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md and referenced docs. Implementation: IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md Phase GAP (§2.1).*
+*Historical plan vs code comparison (2026-03-16). For execution, use the SOT and internal/external backlog policy above.*

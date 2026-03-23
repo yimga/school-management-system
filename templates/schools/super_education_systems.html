@@ -19,6 +19,7 @@
     <h1 class="h4 mb-1 fw-bold text-white">{% trans "Education systems (Wedges 14–22)" %}</h1>
     <p class="text-white-50 small mb-0">{% trans "Every school is tagged with at least one system type. Create School and Setup Studio use the sector registry; RBAC and reporting defaults can be driven by system type." %}</p>
   </header>
+  {% include "schools/partials/wedge_super_premium_proof.html" %}
   <div class="row g-3">
     {% for item in sector_list %}
     <div class="col-12">

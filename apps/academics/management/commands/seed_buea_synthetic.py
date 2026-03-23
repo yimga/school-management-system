@@ -42,6 +42,7 @@ from apps.people.models import (
     TeacherProfile,
 )
 from apps.reports.models import PromotionRule, TermPublishStatus
+from apps.schools.school_cli_resolution import resolve_school_arg
 
 DEMO_PASSWORD = "Test1234"  # All Buea seed users (teachers, parents, admins, bursar) use this for simplicity.
 YEAR_2425 = "2024/2025"
@@ -96,20 +97,10 @@ class Command(BaseCommand):
             help="School slug or ID for tenant-scoped seed data. Omit for global (school=None) seed.",
         )
 
-    def _resolve_school(self, slug_or_id):
-        if not slug_or_id:
-            return None
-        from apps.schools.models import School
-
-        s = str(slug_or_id).strip()
-        if s.isdigit():
-            return School.objects.filter(pk=int(s)).first()
-        return School.objects.filter(slug=s).first()
-
     @transaction.atomic
     def handle(self, *args, **options):
         scale = options.get("scale", "small")
-        self.school = self._resolve_school(options.get("school"))
+        self.school = resolve_school_arg(options.get("school"))
         if options.get("school") and not self.school:
             self.stdout.write(
                 self.style.ERROR(

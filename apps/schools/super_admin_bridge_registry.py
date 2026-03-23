@@ -2,11 +2,12 @@
 """
 Platform admin changelist bridges: slug → Django admin URL name + hub copy.
 
-Covers **register_platform_admin** and **register_both** surfaces that appear on
-platform backoffice (siteconfig, integrations_marketplace, runtime_blueprints,
-global_registries, packages, brand_experience, platform_runtime, automation,
-observability), plus catalog/report rows, so operators never need hardcoded
-``/admin/...`` paths for fleet maintenance entry points.
+Covers **every** model on ``platform_admin_site`` (see merge from
+``platform_admin_surface_bridges``): siteconfig, integrations_marketplace,
+marketplace native, runtime_blueprints, global_registries, packages,
+brand_experience, platform_runtime, automation, billing, observability,
+policies, registries, schools, etc. Operators use ``super:admin_bridge`` instead
+of hardcoded ``/admin/...`` paths.
 
 Used by ``super_admin_bridge`` (302) and ``super_platform_operator_hub`` tiles.
 Nav can reference ``super:admin_bridge`` with ``kwargs={"bridge_key": "<slug>"}``.
@@ -17,6 +18,11 @@ Legacy URL names (``super:admin_bridge_integrations``, etc.) and paths under
 from __future__ import annotations
 
 from django.utils.translation import gettext_lazy as _
+
+from .platform_admin_surface_bridges import (
+    PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER,
+    PLATFORM_ADMIN_SURFACE_BRIDGES,
+)
 
 # Display order on the platform operator hub (admin-tagged tiles).
 PLATFORM_ADMIN_BRIDGE_ORDER: list[str] = [
@@ -601,3 +607,11 @@ PLATFORM_ADMIN_BRIDGES: dict[str, dict[str, object]] = {
         "show_in_nav": False,
     },
 }
+
+_overlap = set(PLATFORM_ADMIN_BRIDGE_ORDER) & set(PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER)
+assert not _overlap, f"Duplicate bridge keys between base and surface: {_overlap}"
+_overlap_b = set(PLATFORM_ADMIN_BRIDGES.keys()) & set(PLATFORM_ADMIN_SURFACE_BRIDGES.keys())
+assert not _overlap_b, f"Duplicate bridge keys in dict merge: {_overlap_b}"
+
+PLATFORM_ADMIN_BRIDGE_ORDER.extend(PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER)
+PLATFORM_ADMIN_BRIDGES.update(PLATFORM_ADMIN_SURFACE_BRIDGES)

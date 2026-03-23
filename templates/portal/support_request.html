@@ -1,28 +1,37 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Support Request{% endblock %}
+{% block title %}{% trans "Support Request" %}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
-    <h2 class="mb-0">Support & Feedback</h2>
+    <h2 class="mb-0">{% trans "Support & Feedback" %}</h2>
     <p class="text-muted small mb-1">
-      Send a request to the support team or share feedback about the platform.
+      {% trans "Send a request to the support team or share feedback about the platform." %}
     </p>
   </div>
-  <a class="btn btn-outline-secondary btn-sm js-return-to-origin" href="{{ next_url|default:'/' }}" data-fallback="{{ next_url|default:'/' }}">Back</a>
+  <a class="btn btn-outline-secondary btn-sm js-return-to-origin" href="{{ next_url|default:'/' }}" data-fallback="{{ next_url|default:'/' }}">{% trans "Back" %}</a>
 </div>
+
+<details class="card mb-3">
+  <summary class="card-header py-2 user-select-none" style="cursor: pointer;">
+    {% trans "Tips (optional)" %}
+  </summary>
+  <div class="card-body small text-muted">
+    {% trans "Include steps to reproduce, approximate time, and which browser or device you use. Screenshots help if you can attach them elsewhere." %}
+  </div>
+</details>
 
 <div class="card">
   <div class="card-body">
-    <form method="post" id="support-request-form" data-draft-key="support_request" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced message">
+    <form method="post" id="support-request-form" dir="auto" data-draft-key="support_request" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced message' %}">
       {% csrf_token %}
       {{ form.as_p }}
       {% if next_url %}
         <input type="hidden" name="next" value="{{ next_url }}">
       {% endif %}
-      <button class="btn btn-primary" type="submit">Send message</button>
+      <button class="btn btn-primary" type="submit">{% trans "Send message" %}</button>
     </form>
   </div>
 </div>

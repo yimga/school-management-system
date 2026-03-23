@@ -373,7 +373,7 @@ def blueprint_marketplace(request):
                 request.session["blueprint_preview"] = preview
                 request.session["blueprint_apply_allowed"] = {
                     "pack_id": int(pack.pk),
-                    "school_id": int(school.pk),
+                    "school_id": str(school.pk),
                     "ts": time.time(),
                 }
             except _MARKETPLACE_PREVIEW_FAILURES as e:
@@ -389,15 +389,16 @@ def blueprint_marketplace(request):
         pack = get_object_or_404(BlueprintPack, pk=pack_id, is_active=True)
         school = get_object_or_404(School, pk=school_id, is_active=True)
         try:
-            pack_i, school_i = int(pack.pk), int(school.pk)
+            pack_i = int(pack.pk)
         except (TypeError, ValueError):
-            messages.error(request, "Invalid pack or school.")
+            messages.error(request, "Invalid pack.")
             return redirect("super:blueprint_marketplace")
+        school_i = str(school.pk)
         allowed = request.session.get("blueprint_apply_allowed") or {}
         ts = float(allowed.get("ts") or 0)
         if (
             allowed.get("pack_id") != pack_i
-            or allowed.get("school_id") != school_i
+            or str(allowed.get("school_id")) != school_i
             or (time.time() - ts) > 900
         ):
             messages.error(

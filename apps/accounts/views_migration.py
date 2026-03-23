@@ -7,6 +7,7 @@ import csv
 import io
 import json
 
+from django.db import DatabaseError
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import redirect, render, get_object_or_404
@@ -383,6 +384,22 @@ def migration_wizard(request):
             if vi.get(cat)
         ]
     schema_hints_json = json.dumps(schema_hints)
+    profile_suggestions: list[dict[str, object]] = []
+    if has_data and headers:
+        from apps.automation.schema_fingerprint import suggest_profiles_from_headers
+
+        mt = wizard_data.get("migration_type") or ""
+        dom = mt if mt in ("students", "grades") else None
+        try:
+            scored = suggest_profiles_from_headers(
+                headers, domain=dom, min_confidence=0.15
+            )
+            profile_suggestions = [
+                {"slug": p.slug, "name": p.name, "confidence": round(c, 2)}
+                for p, c in scored[:8]
+            ]
+        except (TypeError, ValueError, AttributeError, DatabaseError):
+            profile_suggestions = []
     return render(
         request,
         "accounts/migration_wizard.html",
@@ -405,6 +422,7 @@ def migration_wizard(request):
             "scorecard": scorecard,
             "schema_hints": schema_hints,
             "schema_hints_json": schema_hints_json,
+            "profile_suggestions": profile_suggestions,
             "page_title": _("Data migration wizard"),
             "page_subtitle": _(
                 "Choose your current system, upload a CSV, map columns to target fields, preview, then run."

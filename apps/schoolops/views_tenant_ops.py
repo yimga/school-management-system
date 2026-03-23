@@ -5,6 +5,7 @@ Gated by School.features / is_feature_enabled (module market).
 
 from __future__ import annotations
 
+import csv
 from datetime import timedelta
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from zoneinfo import ZoneInfo
@@ -13,6 +14,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import DatabaseError, IntegrityError, transaction
 from django.db.models import F
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -567,6 +569,96 @@ def ops_facilities(request):
     )
 
 
+def _pos_sale_lines_csv_response(request, school) -> HttpResponse:
+    """
+    Wave 4 retail increment: CSV export of POS lines for audit / spreadsheet analysis
+    (deep retail fiscal registers still product backlog).
+    """
+    lines = list(
+        PosSaleLine.objects.filter(school=school)
+        .select_related("inventory_item", "recorded_by")
+        .order_by("-created_at")[:5000]
+    )
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    slug = getattr(school, "slug", None) or str(school.pk)
+    response["Content-Disposition"] = (
+        f'attachment; filename="pos_sales_{slug}_{timezone.now().date().isoformat()}.csv"'
+    )
+    w = csv.writer(response)
+    w.writerow(
+        [
+            "created_at",
+            "item_label",
+            "quantity",
+            "unit_price",
+            "line_net",
+            "tax_rate_percent",
+            "tax_amount",
+            "gross",
+            "payment_method",
+            "inventory_item",
+            "notes",
+            "recorded_by_email",
+        ]
+    )
+    for ln in lines:
+        w.writerow(
+            [
+                ln.created_at.isoformat() if ln.created_at else "",
+                ln.item_label,
+                ln.quantity,
+                str(ln.unit_price),
+                str(ln.line_total),
+                str(ln.tax_rate_percent),
+                str(ln.tax_amount),
+                str(ln.grand_total),
+                ln.payment_method,
+                ln.inventory_item.name if ln.inventory_item_id else "",
+                ln.notes,
+                getattr(ln.recorded_by, "email", "") or "",
+            ]
+        )
+    return response
+
+
+def _pos_sales_summary_json_response(request, school) -> HttpResponse:
+    """
+    Wave 4 retail depth: machine-readable aggregate of POS lines (audit / integrations).
+    Full fiscal period close / Z-report registers remain product backlog.
+    """
+    lines = list(
+        PosSaleLine.objects.filter(school=school)
+        .select_related("inventory_item", "recorded_by")
+        .order_by("-created_at")[:5000]
+    )
+    tot_net = sum((ln.line_total for ln in lines), Decimal("0"))
+    tot_tax = sum((ln.tax_amount or Decimal("0") for ln in lines), Decimal("0"))
+    tot_gross = sum((ln.grand_total for ln in lines), Decimal("0"))
+    by_pm: dict[str, Decimal] = {}
+    for ln in lines:
+        pm = str(ln.payment_method or "")
+        by_pm[pm] = by_pm.get(pm, Decimal("0")) + (ln.grand_total or Decimal("0"))
+    slug = getattr(school, "slug", None) or str(school.pk)
+    payload = {
+        "schema": "runmycampus.pos_sales_summary.v1",
+        "school_id": school.pk,
+        "school_slug": slug,
+        "generated_at": timezone.now().isoformat(),
+        "line_count": len(lines),
+        "totals": {
+            "net": str(tot_net),
+            "tax": str(tot_tax),
+            "gross": str(tot_gross),
+        },
+        "gross_by_payment_method": {k: str(v) for k, v in sorted(by_pm.items())},
+    }
+    response = JsonResponse(payload)
+    response["Content-Disposition"] = (
+        f'attachment; filename="pos_summary_{slug}_{timezone.now().date().isoformat()}.json"'
+    )
+    return response
+
+
 @login_required
 @user_passes_test(user_can_access_ops_extended_modules)
 @require_school
@@ -574,6 +666,11 @@ def ops_facilities(request):
 @require_http_methods(["GET", "POST"])
 def ops_pos(request):
     school = request.school
+    export = (request.GET.get("export") or "").strip().lower()
+    if request.method == "GET" and export == "csv":
+        return _pos_sale_lines_csv_response(request, school)
+    if request.method == "GET" and export == "json":
+        return _pos_sales_summary_json_response(request, school)
     inventory_enabled = is_feature_enabled(school, "inventory")
     inventory_items = []
     if inventory_enabled:

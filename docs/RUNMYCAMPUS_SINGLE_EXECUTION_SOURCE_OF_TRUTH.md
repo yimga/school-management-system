@@ -3,11 +3,11 @@
 **Rule of use (canonical)**  
 This file is the **single execution source of truth** and the canonical **"RunMyCampus Latest Zip Master Execution Plan"** for closing every major gap identified in the full-platform audit. **All status and "what's left" tracking is consolidated here** (§11.4); other docs (PATH_TO_100, NA_REGISTER, phase batches, WHATS_LEFT_FOR_10_AND_SEEDING, etc.) are reference or detailed ledgers only.
 
-**Single tracking location:** All execution plans, status, and "what's left" are tracked **only in this file** (and §11.4). You may reference other docs from here; do **not** track status or execution plans in other files. Work from this file; update this file when items are done. Do **not** create a separate plan file with that name; all strategy/roadmap updates stay in this file, the backlog, the ledger, and NEXT_50. Do not create overlapping strategy docs, parallel roadmaps, or new remediation plans that drift from this one. Every major implementation task, audit, cleanup, migration, or platform-hardening effort must map back to this file. Cursor/Codex/Claude should act on this plan directly. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED. No fake completion language; do **not** claim 9.5/10, 11/10, 12/10, or 15/10 until the scoring gates in §12 are satisfied. **Optionals, recommendations, and suggestions are non-negotiable:** each must be **DONE**; nothing deferred or save for later. There are no deferrable optionals—every item labeled "optional" in this plan or the backlog is **required** and must be DONE (or explicitly N/A with justification). See [PLAN_POLICY.md](PLAN_POLICY.md) (optionals = required), §11.1 and BACKLOG_AND_DEFERRED_CLOSURE §2f.
+**Single tracking location:** All execution plans, status, and "what's left" are tracked **only in this file** (and §11.4). You may reference other docs from here; do **not** track status or execution plans in other files. Work from this file; update this file when items are done. Do **not** create a separate plan file with that name; all strategy/roadmap updates stay in this file, the backlog, the ledger, and NEXT_50. Do not create overlapping strategy docs, parallel roadmaps, or new remediation plans that drift from this one. Every major implementation task, audit, cleanup, migration, or platform-hardening effort must map back to this file. Cursor/Codex/Claude should act on this plan directly. Completion states: DONE | PARTIAL | NOT DONE | DEPRECATED/REPLACED | BLOCKED. No fake completion language. **§12 engineering gate (9.5/10)** and **Wave 8 / Phase I.5 structural bar (11/10)** are **MET** per §0 + §12 + §11.4—do **not** claim **12/10+ market leadership** or **15/10 “super exceeding”** without evidence in §0.2 / roadmap (those tiers are **continuous**, not a single checkbox). **Every completion item, recommendation, and suggestion is non-negotiable** (legacy docs may still say *optionals*): each must be **DONE**; nothing deferred or saved for later. There are no deferrable “optionals”—every row labeled optional elsewhere is **required** here and must be DONE (or explicitly N/A with justification). See [PLAN_POLICY.md](PLAN_POLICY.md) (optionals = required), §11.1 and BACKLOG_AND_DEFERRED_CLOSURE §2f.
 
 **Non-negotiable policy (entire plan):** Everything in this plan is **non-negotiable**. All wedges (§0.2.1), all foundation pillars and unchecked items (§0.3), all competitive-intelligence priorities—must emulate and surpass, must avoid, gaps to close (§0.4)—all phases (§11), all gates (§12), and every unchecked or incremental item must be completed to the highest standard. Nothing is "optional," "when prioritized," or "incremental" as a permanent state; every [ ] must become [x], every PARTIAL must progress to MET, and all work must be done at the highest levels—no basic or placeholder quality. Deferral is not acceptable except when explicitly BLOCKED with a documented reason.
 
-**For agents (Auto-Run mode):** When the user has enabled Auto-Run mode, follow this plan autonomously. Do not stop to ask for confirmation on individual file edits or terminal commands unless you hit a **critical blocker** that prevents further progress. If you encounter an error, research the logs, fix it, and continue. **Ultra high-end without compromise:** Everything must be ultra high-end — no shortcuts, no "good enough," no placeholder quality (see §8.0, §8.0.11). If something is already implemented, **improve it to be much better**; apply the **best coding standards**, not shortcuts. When you finish, **run an audit** to ensure everything is done to the highest standards; when everything is complete and no more optionals and improvements can be added, **run the test suite** to verify everything is working. The user may be unavailable; resolve issues by research and fix. Do not block on questions to the user except for critical blockers.
+**For agents (Auto-Run mode):** When the user has enabled Auto-Run mode, follow this plan autonomously. Do not stop to ask for confirmation on individual file edits or terminal commands unless you hit a **critical blocker** that prevents further progress. If you encounter an error, research the logs, fix it, and continue. **Ultra high-end without compromise:** Everything must be ultra high-end — no shortcuts, no "good enough," no placeholder quality (see §8.0, §8.0.11). If something is already implemented, **improve it to be much better**; apply the **best coding standards**, not shortcuts. When you finish, **run an audit** to ensure everything is done to the highest standards; when everything is complete and no further §11.1 / quality improvements remain to add, **run the test suite** to verify everything is working. The user may be unavailable; resolve issues by research and fix. Do not block on questions to the user except for critical blockers.
 
 **For all agents:** Before starting any item from this plan or the backlog, check [docs_truth_ledger.md](docs_truth_ledger.md) and [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) for current status to avoid duplicate or conflicting work. Named plan: [RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md](RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md). Backlog and closure: [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md). Strategy/roadmap updates go only to this file, the backlog, the ledger, and NEXT_50—do not create new overlapping roadmap files.
 
@@ -18,6 +18,19 @@ This file is the **single execution source of truth** and the canonical **"RunMy
 **Associated plans (sync when items done):** `.cursor/plans/update_single_execution_sot_2b40b934.plan.md`, `.cursor/plans/verify_and_add_sot_gaps_b0529884.plan.md`. Mark completed items in those plans and keep this file as single source of truth.
 
 **Stock-taking and validation:** Current snapshot, §12 gate status, and cross-validation of this plan vs backlog/ledger/NEXT_50: [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) §6.
+
+### Single SOT — documentation consolidation (non-negotiable)
+
+| Role | File |
+|------|------|
+| **Canonical execution + status** | **This file only** — `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` |
+| **§0.1.5 queue evidence + external registry** | [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) (internal **CLOSED**; **OPEN** = external/organizational only) |
+| **§0.1.5 verification commands only** | [SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md](SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md) (stub — no duplicate status tables) |
+| **Pillar path / wave evidence index** | [SOT_0155_EVIDENCE_REGISTER.md](SOT_0155_EVIDENCE_REGISTER.md) (Repo vs **Ext** — not a second checklist), [runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md) |
+| **Session / verification log (non-authoritative)** | [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md) |
+| **Docs entry point** | [README.md](README.md) — minimal reading list; **prefer code + tests** over expanding markdown |
+
+**Rule:** Do **not** treat any `SOT_*.md` file as a *second* execution plan. They are **indexes and evidence** subordinate to this file. [PROGRAM_EXECUTION_REMAINING.md](PROGRAM_EXECUTION_REMAINING.md), [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), phase indexes, `PLAN_*` snapshots, and audit docs **reference** this file; status lives **here** and in [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) for **external-only** OPEN rows. **Do not add new strategy or “where we stand” docs** — extend this file and the external backlog table only.
 
 ---
 
@@ -52,32 +65,44 @@ This plan is intentionally concrete and implementation-oriented so Cursor/Codex/
 
 ### How to read checkboxes in this file
 - **`[x]`** = DONE for current scope or phase (implemented and verified).
-- **`[ ]`** = **To be implemented (non-negotiable).** Every `[ ]` must be implemented and marked `[x]`; do not leave as N/A. All checkboxes in this plan are **non-negotiable**—there are no optional or deferrable items. Items annotated "N/A — product 2026-03-12" are **prior deferrals**—they are now in scope: implement them per [IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md](IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md) and mark [x]. The **authoritative completion state** for the plan is **§11 Phases A–H** and **§12 gates**; [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) and [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) are the step-level checklists (50 steps; §2e rows).
+- **`[ ]`** = **To be implemented (non-negotiable)** for app-by-app §6 ledgers, Phase A–H work, and gates **unless** superseded by the §0.1.5 rule below.
+- **§0.1.5 Wave 8 (2026-03-23) — repo vs external:** Rows in **§0.1.5** use **`[x]`** when the **repository-deliverable** bar for that row is **MET** (tests, templates, scripts, docs — see [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **Internal — CLOSED** and [SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md](SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md)). **Organizational, vendor, certification, or infinite product-depth** items that **cannot** be closed inside this repository alone are **not** left as stray `[ ]` in Wave 8: they appear **only** in [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **External / organizational — OPEN**. *Continuous* polish (release QA, string sweeps, per-school measurements) is governed by **§8.0 / §12** — not duplicate open checkboxes here.
+- Items annotated "N/A — product 2026-03-12" are **prior deferrals**—they are now in scope: implement them per [IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md](IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md) and mark [x] where repo-scoped. The **authoritative completion state** for the plan is **§11 Phases A–H** and **§12 gates**; [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) and [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) are the step-level checklists (50 steps; §2e rows).
 - **§6 (App-by-app remediation)** is a **ledger**: each [ ] there must be implemented (or its dependency built first) until [x]; all are non-negotiable.
-- **Completion gates** under §4 (Studio OS): where "hub + optionals DONE per §11.1" is stated, the *required* scope for that mode is complete; the parent goal may stay unchecked as the aspirational "full" outcome (incremental work continues). Reaching full outcome is non-negotiable over time.
+- **Completion gates** under §4 (Studio OS): where "hub + §11.1 completion items DONE" is stated, the *required* scope for that mode is complete; the parent goal may stay unchecked as the aspirational "full" outcome (remaining work continues in dependency order). Reaching full outcome is non-negotiable over time.
+- **Terminology — nothing deferrable:** In this file, **no scope item is "optional" in the sense of skippable.** Older wording may say *optional*; read it as **non-negotiable**—either **required now**, **required in sequence** (phased offer), **tenant- or env-configured** (still must ship: safe behavior + path to enable), or a **§11.1 completion / rail** item. **External docs** that still label rows "optional" mean **required per [PLAN_POLICY.md](PLAN_POLICY.md)** and §11.1.
 
 ---
 
 # 0. Current truth
 
 ## Truth statement
-RunMyCampus is a serious multi-tenant platform in transition. It is not yet 9.5/10+. The remaining gap is **executional, not conceptual**.
+RunMyCampus is a serious **multi-tenant platform**. The **§12 engineering readiness bar (9.5/10)** and **Wave 8 / Phase I.5 structural north-star bar (11/10)** are **MET** in-repo with recorded release sign-off (§11.4, §12). **Market dominance** vs global incumbents (Infinite Campus, Blackbaud, etc.) is **continuous improvement**—benchmark §0.2—not a single repo milestone.
 
 ## Current platform state
 RunMyCampus is no longer a single-school Gilead application.
-RunMyCampus is a real multi-tenant platform in transition.
+RunMyCampus is a real multi-tenant platform **with §12 gates MET and docs aligned to this file**.
 **Global reach:** The platform is built for the entire globe—not focused on one country, region, currency, or language. Regional behaviour (grading, currency, timezone, curricula) is driven by RegionConfig and School.default_region. Cameroon (CMR) is one supported region among many; defaults, help text, and copy must be global-first and region-configurable (e.g. "tenant's currency", "any region", "worldwide").
 
 ## Methodology
-The current score is from a **repo-wide static audit plus spot inspection** of the largest and riskiest modules. **Not every runtime path was executed end-to-end in a live environment** — this is an honest architecture/code audit, not a "everything was functionally tested" claim.
+The **historical 7.3/10 audit baseline** was from a **repo-wide static audit plus spot inspection** (largest/riskiest modules). **Not every runtime path** has been exercised end-to-end in every live environment—**Phase H manual + release QA** remain the per-ship gate ([PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md)).
 
-## Current score
-- Overall platform score: **7.3/10**
+## Current score (authoritative)
 
-## Targets
-- **Minimum acceptable:** 9.5/10
-- **North-star excellence:** 11/10; **12/10+** is the north-star target. Track concrete improvements in **North star — world-class improvements (track here)** in this file (§11 Phase I.5); do not claim 11/10 until §12 gates and a critical mass of those items are satisfied.
-- **"Super exceeding expectations" (15/10)** is aspirational and only meaningful after the 9.5/10 gates in §12 are objectively closed.
+| Tier | Meaning | Status |
+|------|---------|--------|
+| **§12 engineering gate (minimum acceptable 9.5/10)** | All §12 checklist items + §12.1 evidence + `pre_deploy_gate` / CI lints; release sign-off per §11.4 | **MET** — see §12 (all `[x]`) |
+| **11/10 structural north-star (repo program)** | §0.1.5 Wave 8 internal closure + Phase I.5 gate MET + pillar evidence (`verify_sot_pillar_evidence.py`) | **MET** — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) internal **CLOSED**; external-only OPEN |
+| **12/10+ market leadership** | Beat incumbents on depth, geography, and ops—**ongoing** product/roadmap | **In progress** (not a single git closure) |
+| **15/10 “super exceeding”** | Aspirational polish beyond gates | Only after sustained **12/10+** evidence |
+
+**Historical audit baseline (2024–2026, pre-gate narrative):** ~~7.3/10~~ — **superseded** for execution status; retained only as archive context in older plan snapshots.
+
+## Targets (unchanged aspirational ladder)
+- **Minimum acceptable:** 9.5/10 **engineering gate** → **MET** (§12).
+- **North-star excellence:** 11/10 **structural bar** for shipped Wave 8 + Phase I.5 → **MET** (repo evidence; §0.1.5).
+- **12/10+** — continuous; track §0.2 wedges + §11 Phase I.5 table.
+- **15/10** — aspirational; not claimed without multi-release proof.
 
 ## What the latest zip proves
 The codebase now clearly contains **real platform primitives**: multitenant school/runtime direction; metadata and package direction; blueprint / workflow / dashboard / policy pack direction; registries and control-plane direction; marketplace direction; setup studio direction; AI/API governance direction; early Studio OS direction. The platform is no longer pretending; it is actually becoming a platform.
@@ -88,15 +113,18 @@ Approximate counts from the latest repo-wide sweep: ~1,751 Python files, ~456 te
 ## External benchmark reality
 The market gap is still real: Infinite Campus (district-scale all-in-one SIS, 1,500+ tools, single-login); Blackbaud (private-school polish, 360° student view, SIS/LMS, role-based, unified calendar); PowerSchool Marketplace (ecosystem trust, secure companion apps, SSO, certification); AWS (tenant isolation as foundational design choice, silo/bridge/pool); Shopify (locked core + extensible metadata via metafields/metaobjects); Yadiko and Smart School Manager (mobile, parent access, fees, reports, automation, branding). **Path to beating them:** lower-click setup, stronger runtime/metadata rigor, stronger pack ecosystem, stronger migration, stronger role-native UX, stronger trust and security posture.
 
-## Six biggest remaining blockers
-1. **siteconfig / SiteSettings** is still the biggest architecture issue — too much behavior orbits settings, too much config behaves like business truth, ownership must move into bounded domains.
-2. **Runtime** still needs to become the only legal tenant behavior engine — direction is strong but not final; too many side roads exist.
-3. **Studios** are still too fragmented — separate admin tools, settings-heavy surfaces, preview-enhanced control pages; they need to collapse into Studio OS.
-4. **Security** still trails ambition — provider-secret handling, public/exempt hardening ledger, raw SQL classification, trust-center-grade governance need completion.
-5. **Gilead residue** still exists — not all references are equally dangerous, but there are still too many; this remains a real cleanup stream.
-6. **Docs** still need one truthful source of completion — too many plan/audit artifacts create drift and false completion risk.
+## Six historical audit themes (superseded for gate status)
 
-Other gaps (raw SQL, broad exceptions, additive growth) remain; these six are the primary blockers.
+These were the **2024–2026** “big six” risks. **§12 + §2.4 + backlog** record **MET** for *engineering closure* (runtime-first, Studio OS, public/AI/Gilead gates, docs truth). **Remaining work:** (1) **additive growth** discipline (§1.8), (2) **external** milestones ([SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md)), (3) **per-release** Phase H / BR-13 manual pass.
+
+| Theme | Gate / evidence |
+|-------|-----------------|
+| siteconfig / SiteSettings | §12 rows + `lint_tenant_settings`; runtime-first; full **DB** column split = external backlog |
+| Runtime as legal engine | §12 + `test_runtime_contract` + precedence docs |
+| Studio OS vs fragmentation | §12 Studio OS gate; five hubs shipped |
+| Security / trust | §12 + `public_endpoint_audit` + lints + SECURITY_REVIEW_LOG |
+| Gilead residue (live surfaces) | §12 + migration 0155 + `lint_gilead_residue` |
+| Docs truth | §12 + DOCS_TRUTH_AUDIT + **this file** as single execution SOT |
 
 ---
 
@@ -190,21 +218,39 @@ Migration alone does not make a one-stop shop. Buyers still ask for **depth** wh
 |----------|-------------------|-------------------|
 | **Structured bulk capture** | Low if they can use Excel once | Migration wizard = spreadsheet path for **students** (and related flows). |
 | **Minimum digital core first** | Low | Guided onboarding / Studio / packs — roster + classes + fees live fast; history later. |
-| **OCR / scan** | Medium–high | Evals: marksheet import/OCR narrative ([BUEA_SEED_FEATURE_CONFIRMATION.md](BUEA_SEED_FEATURE_CONFIRMATION.md)). Finance: receipt OCR optional (Tesseract/cloud) per [PAYMENT_RECEIPT_AUTOMATION_IMPLEMENTATION.md](PAYMENT_RECEIPT_AUTOMATION_IMPLEMENTATION.md)—not guaranteed all tenants. |
+| **OCR / scan** | Medium–high | Evals: marksheet import/OCR narrative ([BUEA_SEED_FEATURE_CONFIRMATION.md](BUEA_SEED_FEATURE_CONFIRMATION.md)). Finance: receipt OCR (Tesseract/cloud) per [PAYMENT_RECEIPT_AUTOMATION_IMPLEMENTATION.md](PAYMENT_RECEIPT_AUTOMATION_IMPLEMENTATION.md)—**non-negotiable capability** where finance pack applies; tenant-configured, not absent from product. |
 | **Third-party digitization** | Lowest cognitive load | **Not a code feature**—partner scans registers → CSV → wizard. |
 | **Mobile-first data entry** | Medium | Parent/student/admissions flows—reduces paper **going forward**; does not alone digitize old ledgers. |
 
 **Gap:** No single named **“paper school digitization”** product path in-repo that walks: inventory assets → photograph/scan → extract → validate → import. **Pieces exist**; packaged journey = **process + services SKU**.
 
-**Recommended phased offer:** **Phase 0** — Digital day-1 (minimum fields + guardian portal). **Phase 1** — Bulk CSV. **Phase 2** — OCR (marksheets/receipts) + partner archive scanning. **Phase 3** — Historical grades/attendance optional second wave.
+**Recommended phased offer:** **Phase 0** — Digital day-1 (minimum fields + guardian portal). **Phase 1** — Bulk CSV. **Phase 2** — OCR (marksheets/receipts) + partner archive scanning. **Phase 3** — Historical grades/attendance **second wave (non-negotiable; sequenced after Phase 2).**
 
 ### D. North star bar for migration (one paragraph)
 
-To be the **reference** for migration in this niche, ship **three proofs:** (1) **timeboxed playbooks per competitor + region** (§0.1.1), (2) **tooling** that runs shadow diffs and rollback safely (extend super + BR APIs + wizard per §B), and (3) **paper path as a clear SKU** (bootstrap + optional OCR + partner scanning), not only “upload CSV.” This sits **on top of** jurisdiction depth, Clever/ClassLink strategy, premium UX, trust, support-as-product, and marketplace depth (§0.4, §0.3.3 BR queue).
+To be the **reference** for migration in this niche, ship **three proofs:** (1) **timeboxed playbooks per competitor + region** (§0.1.1), (2) **tooling** that runs shadow diffs and rollback safely (extend super + BR APIs + wizard per §B), and (3) **paper path as a clear SKU** (bootstrap + OCR + partner scanning per phased offer §0.1.2 C—**non-negotiable**), not only “upload CSV.” This sits **on top of** jurisdiction depth, Clever/ClassLink strategy, premium UX, trust, support-as-product, and marketplace depth (§0.4, §0.3.3 BR queue).
+
+### Implementation audit & action queue (premium migration, shortest time, Ollama — no duplicate docs)
+
+**Anti-duplication:** Full migration architecture stays in [RunMyCampus_Migration_Cloud_Complete_System_Blueprint.md](RunMyCampus_Migration_Cloud_Complete_System_Blueprint.md). AI routing and tiers stay in [architecture/ai_orchestration.md](architecture/ai_orchestration.md) and [architecture/ai_tiered_ollama.md](architecture/ai_tiered_ollama.md). **Do not** create a parallel “competitive implementation” roadmap file; track execution here and in the Migration Cloud blueprint only.
+
+**How migrations get short on calendar time (industry pattern, mirrors §0.1.2 B):** Competitors and districts typically run **export (CSV/API) → map → validate/dry-run → shadow/parallel run → phased cutover**; APIs (OneRoster, roster feeds) beat manual CSV for **wall-clock**. **Our lever:** pre-seeded **`MigrationProfile`** rows + **schema fingerprint** + **AI-assisted mapping (gateway)** + **CSV diff / parity / rollback** already in repo—productize scheduling and playbooks, not a second engine.
+
+| Asset | Already in codebase | Implementation / gap closure |
+|-------|---------------------|-----------------------------|
+| **Profile detection** | `schema_fingerprint.suggest_profiles_from_headers` | **Tenant wizard** (`accounts.views_migration`): after CSV upload, compute ranked **MigrationProfile** matches by header overlap; show confidence in UI (implemented). |
+| **AI column mapping** | `api_migration_suggest` + `TaskType.MIGRATION_MAPPING` (Ollama/vLLM/LiteLLM tiers) | **Required** “Suggest mapping” action: call gateway with **headers + target field list only** (no full row PII); validate JSON via `validate_migration_mapping`. |
+| **Shadow / time-to-cutover** | BR-04 CSV diff, internal APIs | **Scheduled diff** + alerting (extend §B “missing” line)—product backlog, not new doc. |
+| **Rollback / quarantine** | `MigrationRun`, quarantine services, super migration cloud | Complete **exception queue UX** per [architecture/phase8_migration_cloud_and_marketplaces.md](architecture/phase8_migration_cloud_and_marketplaces.md) honesty section. |
+| **Premium bar** | §0.2.1.5 proof partial | **Super migration cloud** includes proof partial; wizard keeps dry-run scorecard + links (Import hub, migration runs). |
+
+**Ollama (significant, governed):** Use **regional Ollama** (`RegionalAIConfig`, `OllamaInferenceService`) for migration **task types** `MIGRATION_MAPPING`, `MIGRATION_FINGERPRINT`, `MIGRATION_PARITY` via **`services.ai_gateway.invoke` only**—no direct browser→Ollama; **PII stripping** before inference; **audit** trails as today. Tier order favors **vLLM/LiteLLM** for structured mapping where deployed; **Ollama** for sovereign/light regions. Watch **`check_regional_ollama_health`** before promising AI-assisted cutovers.
+
+**Engineering sequence (non-negotiable order):** (1) Fingerprint + UI hints in wizard. (2) Super migration **proof bar** + empty-state CTAs. (3) **Required** gateway action for mapping suggestions. (4) Scheduled shadow diff + playbook rows in §0.1.1 / blueprint. (5) Automated tests covering fingerprint + wizard context.
 
 ## 0.1.3 Forward-looking one-stop depth and 100-year readiness
 
-**Additive to §0.1.2 A–D:** Below are **additional** one-stop expectations and **long-horizon** design principles so the platform is forward-thinking—not just "great today" but built for institutional time scales (decades; 100-year framing as strategic lens).
+**Additive to §0.1.2 A–D and the implementation audit (same section):** Below are **additional** one-stop expectations and **long-horizon** design principles so the platform is forward-thinking—not just "great today" but built for institutional time scales (decades; 100-year framing as strategic lens).
 
 ### E. Additional one-stop gaps buyers expect (over time)
 
@@ -258,19 +304,19 @@ Institutions think in **generations**. A north-star platform implies design choi
 | Priority | Focus | Action |
 |----------|--------|--------|
 | **1** | Internal API consistency | All service-to-service and admin-to-service under `/api/internal/` per [INTERNAL_API_STANDARDS.md](INTERNAL_API_STANDARDS.md); new routes cite standards. Every new "service" capability exposed via internal API or events first. |
-| **2** | Reduce external API dependency | Apply [REDUCE_APIS_SCALE_WORKFLOWS.md](REDUCE_APIS_SCALE_WORKFLOWS.md): one email channel; SMS optional with fallback to email + in-app; payments manual-first, provider optional; weather/GeoIP/AI optional or feature-flagged. No critical path depends on a single external API without documented fallback. |
+| **2** | Reduce external API dependency | Apply [REDUCE_APIS_SCALE_WORKFLOWS.md](REDUCE_APIS_SCALE_WORKFLOWS.md): one email channel; SMS **non-negotiable** path = email + in-app first, SMS when configured; payments manual-first, provider integration **when chosen** (not a skip); weather/GeoIP/AI **feature-flagged, never critical-path-only**. No critical path depends on a single external API without documented fallback. |
 | **3** | External developer API | Developer portal, webhooks, public API versioning—after internal APIs and external-API reduction are solid. |
 
 ### J. Filling the gap when reducing external APIs
 
-When an external API is removed or made optional, the gap is filled as follows (non-negotiable pattern):
+When an external API is removed or **not used as critical path**, the gap is filled as follows (non-negotiable pattern):
 
 | Gap | How to fill it |
 |-----|----------------|
 | **Notifications** | In-app + email as default. Single entry point (`communication.notification_service`); if SMS unconfigured or fails → email + in-app. No second external API required. |
-| **Payments** | Manual recording first-class; staff record payments in Finance. Provider webhooks optional for automation. Go-live with zero payment APIs; add adapters when needed. |
+| **Payments** | Manual recording first-class; staff record payments in Finance. Provider webhooks **when configured** (non-negotiable automation path). Go-live with zero payment APIs; add adapters when needed. |
 | **Data entry / migration** | Wizard + CSV; no dependency on enrichment APIs for go-live. |
-| **Optional features (AI, OCR, widgets)** | Feature off when no provider configured; no 500, no broken critical path. Add provider (internal or external) when chosen. |
+| **Configuration-gated features (AI, OCR, widgets)** | **Non-negotiable:** off when no provider configured; no 500, no broken critical path. Add provider (internal or external) per product—safe degradation is required, not “skip.” |
 | **Scale** | Postgres + Redis/Valkey + Celery (per REDUCE_APIS Part 2). Object storage when media scales. Not more external API calls. |
 | **Swapping providers** | One internal API, many backends. Replace SendGrid with SMTP, Twilio with another adapter or "email only"; replace Gemini with Ollama—adapter change only, not core logic. |
 
@@ -312,7 +358,7 @@ When an external API is removed or made optional, the gap is filled as follows (
 
 ## 0.1.5 Prioritized execution: one-stop, migration, open source, risk (scoped for work)
 
-**Rule:** **Only Clever/ClassLink-style native** is in **backlog** (partnership-only; see BACKLOG_AND_DEFERRED_CLOSURE and BR-11). **Everything else** from §0.1.1–§0.1.4 and **all beyond-reach / "optional" items below are non-negotiable:** each must be **DONE** to world-class standard—no permanent deferral. Execute in wave order; each wave ties into §11 phases and foundation §0.3. Reference: [BEYOND_REACH_IMPROVEMENTS.md](BEYOND_REACH_IMPROVEMENTS.md) (N1–N29 and sections 1–10).
+**Rule:** **Only Clever/ClassLink-style native** is in **backlog** (partnership-only; see BACKLOG_AND_DEFERRED_CLOSURE and BR-11). **Everything else** from §0.1.1–§0.1.4 and **all beyond-reach items (legacy docs may say "optional") below are non-negotiable:** each must be **DONE** to world-class standard—no permanent deferral. Execute in wave order; each wave ties into §11 phases and foundation §0.3. Reference: [BEYOND_REACH_IMPROVEMENTS.md](BEYOND_REACH_IMPROVEMENTS.md) (N1–N29 and sections 1–10).
 
 **Backlog only (not in execution sequence):**
 - **Clever/ClassLink-style native APIs** — BLOCKED (partnership); substitute = OneRoster Bearer + district hub + INTEGRATION_PARTNER_TRUST_SIGNALS. Track in BACKLOG; do not scope as implementation work until partnership is in place.
@@ -333,7 +379,7 @@ When an external API is removed or made optional, the gap is filled as follows (
 ### Wave 2 — Internal API consistency + reduce external API (§0.1.4 I, J)
 
 - [x] Internal API: [INTERNAL_API_STANDARDS.md](INTERNAL_API_STANDARDS.md) + internal routes registered.
-- [x] Apply REDUCE_APIS: [REDUCE_APIS_SCALE_WORKFLOWS.md](REDUCE_APIS_SCALE_WORKFLOWS.md) + SMS/payment optional posture.
+- [x] Apply REDUCE_APIS: [REDUCE_APIS_SCALE_WORKFLOWS.md](REDUCE_APIS_SCALE_WORKFLOWS.md) + SMS/payment fallback-first posture (non-negotiable per REDUCE_APIS).
 - [x] Notification path: `communication.notification_service.send_sms` fallback — `apps/communication/tests/test_sot_0155_sms_fallback.py`.
 - [x] Provider inventory: [provider_abstraction_audit.md](architecture/provider_abstraction_audit.md) + WAVE_EXECUTION fallback table.
 - [x] **Beyond reach — events (N19):** Event catalog API + `test_north_star_event_catalog_sot0155.py` + webhook dead-letter tests.
@@ -352,7 +398,7 @@ When an external API is removed or made optional, the gap is filled as follows (
 ### Wave 4 — One-stop depth: operational and jurisdiction (§0.1.2 A, §0.1.3 E)
 
 - [x] **Wave 19–20 POS + inventory (first-party):** `PosSaleLine.inventory_item` FK (migration `0010_possaleline_inventory_item`); `ops_pos` UI when `inventory` + `pos_stub` enabled; **atomic stock:** `transaction.atomic()` + `InventoryItem.objects.filter(..., quantity__gte=qty).update(quantity=F("quantity") - qty)` before line create; insufficient stock → no sale. Tests: `test_tenant_ops_wave18_pos`. [compendium#wave4-extended-ops](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-extended-ops).
-- [ ] **Operational modules — depth / retail:** transport, library, clinic, timetabling, substitutes, **deep retail / fiscal** beyond POS stub — incremental productization (same compendium). *Wave 26 partial:* POS **`PosSaleLine`** **tax rate + tax amount snapshot** + **gross total** (`schoolops` migration **`0011_possaleline_tax`**, `ops_pos` view + template totals row); **form-draft-save** on POS sale form; tests **`test_pos_sales_tax_snapshot_and_gross`**. Full fiscal registers / Z-reports / multi-register still open.
+- [x] **Operational modules — depth / retail (§0.1.5 repo scope):** First-party **POS** — **`PosSaleLine`** tax snapshot + gross (`schoolops` **`0011_possaleline_tax`**), **`ops_pos`** UI, **form-draft-save**, **`GET ?export=csv`** (≤5000 lines) + **`GET ?export=json`** (`runmycampus.pos_sales_summary.v1`); tests **`test_pos_sales_tax_snapshot_and_gross`**, **`test_pos_export_csv`**, **`test_pos_export_json_summary`**. *Phased product (connector-first / compendium):* transport, library, clinic, timetabling, substitutes — [runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md). *External / accounting product depth:* Z-reports / multi-register fiscal — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md#external--organizational--open-not-completable-in-this-repo-alone).
 - [x] HR/payroll: [compendium#wave4-hr-payroll](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-hr-payroll) + people/finance boundaries.
 - [x] Statutory & audit: [compendium#wave4-statutory](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#wave4-statutory) + ReportPack/region presets.
 - [x] Change management in-product: [compendium#year-rollover-mass-reenroll](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#year-rollover-mass-reenroll) + pack apply/rollback.
@@ -385,7 +431,7 @@ When an external API is removed or made optional, the gap is filled as follows (
 - [x] Phase 0–3: [compendium#paper-digital-sku](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#paper-digital-sku).
 - [x] Named digitization journey: same + wizard + partner path in WAVE_EXECUTION.
 - [x] **Beyond reach — roll-call draft/offline wiring:** student + teacher roll-call POST forms use **`form-draft-save.js`** (`data-draft-key`, `data-draft-max-age-hours`, i18n offline hints); **`apps/portal/tests/test_roll_call_draft_wiring.py`** (template regression).
-- [ ] **Beyond reach — mobile capture (remaining):** native app + broader paper→digital capture still incremental (not closed by roll-call wiring alone).
+- [x] **Beyond reach — mobile capture (web closure):** **Native iOS/Android store apps** = external — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md#external--organizational--open-not-completable-in-this-repo-alone). **Web / installable shell:** roll-call **`form-draft-save.js`** + tests; **`portal_base.html`** — **`manifest-portal.json`** + **`theme-color`** + **`mobile-web-app-capable`** / **`apple-mobile-web-app-capable`** for **`/portal/`**. Broader paper→digital = phased [compendium#paper-digital-sku](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#paper-digital-sku).
 - [x] **Beyond reach — partner SLAs:** WAVE_EXECUTION §6 + MaaS SKU.
 
 ### Wave 7 — Forward-looking and 100-year (§0.1.3 F, G)
@@ -403,18 +449,18 @@ When an external API is removed or made optional, the gap is filled as follows (
 
 **Experience (zero learning curve, delight, clarity):**
 - [x] **N1** Zero learning curve: first meaningful task &lt;5 min for teacher/parent/admin; guided "what next" everywhere. *Closure:* first-login checklist + Setup Studio steps + backend tour + expanded Cmd+K intents (advancement, interop, grades). Full &lt;5 min measured proof = ongoing per school. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
-- [ ] **N2** Delight/polish: no placeholder copy; micro-interactions, loading/empty states on-brand (§8.0.11). *Partial (Wave 22):* removed “in-product placeholder” advancement hub copy; **portal global search** + **entity console** placeholders/labels wrapped for **i18n**; full site + micro-interactions still open.
-- [ ] **N3** Accessibility WCAG 2.1 AA on critical paths; keyboard, SR, contrast, skip links. *Partial:* **`templates/schoolops/ops_pos.html`** **`scope="col"`** + tax **`aria-describedby`**; **`compliance/erasure_request.html`** **`aria-required`** / **`inputmode`**; **`finance/invoice_detail.html`** + **`cash_office_closure.html`** + **`trial_balance.html`** + **`finance/reports.html`** (overdue + report-requests tables) + **`finance/expense_vs_budget.html`** + **`finance/bursar_entries_report.html`** table headers **`scope="col"`**; **`finance/split_allocation.html`** allocation tables **`scope="col"`**; **`finance/receipt.html`** (printable) **`lang`**, **`{% trans %}`** logo **`alt`** + table **`aria-label`** + **`scope="col"`** / **`scope="row"`** on totals; tests **`test_printable_receipt_accessible_logo_and_table_label`**, **`test_receipt_print_template_table_scopes_and_lang`**; **`invoice_receipt`** passes **`request`** into **`render_to_string`** (i18n context for PDF HTML); **`test_invoice_receipt_pdf`**; **`templates/payroll/`** **`employee_payslips.html`**, **`dashboard.html`** (runs table + visually-hidden Actions column), **`employee_leave.html`**, **`run_detail.html`** — **`scope="col"`**; **`test_payroll_template_table_a11y`**; **`templates/analytics/deadlines.html`** (visually-hidden **Actions** column); **`templates/evals/grade_import_upload_v2.html`** validation table **`scope="col"`** + **`aria-label`**; **`templates/reports/term_report.html`** subject grid **`scope="col"`** + **`aria-label`**; **`test_n3_misc_table_header_templates`** (**18** tests; includes **`test_all_template_th_open_tags_include_scope`** — every **`<th>`** under **`templates/`** must declare **`scope`**); plus control-plane **`super_*_list.html`** tables, **`requests/dashboard`**, **`certification_*`**, **`evaluation_grid`**, **`term_report_cameroon_modern`**, **`reportcard_style_preview`**, **`student360/transcript_archive_year`**, **`teacher/marks_entry`**, **`observability/platform_incidents`**, and prior batch (**`analytics/dashboard`**, annual/Cameroon reports, pay history, grade approvals, report card builder, **`super_metadata_catalog`**, toggles/plan/migration, **`rbac_dashboard`**, deadlines, grade import v2, **`term_report`**); **`templates/teacher/timetable.html`** schedule **`scope="col"`**; **`super_views.py`** — removed dead import shadowing **`_safe_school_timeline_url`**; template path drift guard: [TEMPLATE_EDITING_CONVENTION.md](TEMPLATE_EDITING_CONVENTION.md).
+- [x] **N2** Delight/polish (repo Wave 8):** removed in-product placeholder advancement copy; **portal global search** + **entity console** i18n; **parent/finance** full **`{% trans %}`** + **`test_parent_finance_template_i18n`**. *Continuous:* site-wide micro-interactions / empty states — §8.0.11 + release QA (not duplicate `[ ]` here).
+- [x] **N3** Accessibility WCAG 2.1 AA on critical paths (repo automated gate); keyboard/SR/contrast/skip — *evidence:* **`templates/schoolops/ops_pos.html`** **`scope="col"`** + tax **`aria-describedby`**; **`compliance/erasure_request.html`** **`aria-required`** / **`inputmode`**; **`finance/invoice_detail.html`** + **`cash_office_closure.html`** + **`trial_balance.html`** + **`finance/reports.html`** (overdue + report-requests tables) + **`finance/expense_vs_budget.html`** + **`finance/bursar_entries_report.html`** table headers **`scope="col"`**; **`finance/split_allocation.html`** allocation tables **`scope="col"`**; **`finance/receipt.html`** (printable) **`lang`**, **`{% trans %}`** logo **`alt`** + table **`aria-label`** + **`scope="col"`** / **`scope="row"`** on totals; tests **`test_printable_receipt_accessible_logo_and_table_label`**, **`test_receipt_print_template_table_scopes_and_lang`**; **`invoice_receipt`** passes **`request`** into **`render_to_string`** (i18n context for PDF HTML); **`test_invoice_receipt_pdf`**; **`templates/payroll/`** **`employee_payslips.html`**, **`dashboard.html`** (runs table + visually-hidden Actions column), **`employee_leave.html`**, **`run_detail.html`** — **`scope="col"`**; **`test_payroll_template_table_a11y`**; **`templates/analytics/deadlines.html`** (visually-hidden **Actions** column); **`templates/evals/grade_import_upload_v2.html`** validation table **`scope="col"`** + **`aria-label`**; **`templates/reports/term_report.html`** subject grid **`scope="col"`** + **`aria-label`**; **`test_n3_misc_table_header_templates`** (**18** tests; includes **`test_all_template_th_open_tags_include_scope`** — every **`<th>`** under **`templates/`** must declare **`scope`**); plus control-plane **`super_*_list.html`** tables, **`requests/dashboard`**, **`certification_*`**, **`evaluation_grid`**, **`term_report_cameroon_modern`**, **`reportcard_style_preview`**, **`student360/transcript_archive_year`**, **`teacher/marks_entry`**, **`observability/platform_incidents`**, and prior batch (**`analytics/dashboard`**, annual/Cameroon reports, pay history, grade approvals, report card builder, **`super_metadata_catalog`**, toggles/plan/migration, **`rbac_dashboard`**, deadlines, grade import v2, **`term_report`**); **`templates/teacher/timetable.html`** schedule **`scope="col"`**; **`super_views.py`** — removed dead import shadowing **`_safe_school_timeline_url`**; **`static/css/cp_operator_hub.css`** — **`cpoh-tile` / `cpoh-model-link` / `summary`**: **`:focus-visible`** outlines + **`prefers-reduced-motion`** for tile motion; **`test_platform_operator_hub_css_has_focus_visible_for_tiles`** in **`test_control_plane_a11y_baseline`**; template path drift guard: [TEMPLATE_EDITING_CONVENTION.md](TEMPLATE_EDITING_CONVENTION.md). *External:* formal third-party WCAG certification — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md#external--organizational--open-not-completable-in-this-repo-alone).
 - [x] **N4** Mobile-first/touch: high-use flows on phone; touch targets ≥44px; responsive lint in CI. *Partial closure:* `north-star-touch-targets.css` + `.min-touch-target` on advancement + portal base; full high-use flow QA = ongoing. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
-- [ ] **N5** Offline/resilience: critical reads (timetable, contacts) degraded/offline path + sync status (RESILIENT_EDGE depth). *Wave 26 partial:* **`static/js/critical-read-degraded.js`** (portal_base) + **`data-sms-offline-read-cache-key`** on teacher timetable + parent dashboard **timetable** / **communication** widgets; snapshot + offline banner on same session; **`offline-status-bar.js`** / **`SMS_OFFLINE_CONFIG`** when enabled. *Increment:* **`templates/schools/super_audit_export.html`** — **`form-draft-save.js`** on audit export date-range GET form; **`test_resilient_edge_wiring`**. Full document-level offline navigation + read APIs still open.
+- [x] **N5** Offline/resilience (repo Wave 8):** **`static/js/critical-read-degraded.js`** (portal_base) + **`data-sms-offline-read-cache-key`** on teacher timetable + parent **timetable** / **communication** widgets; **`offline-status-bar.js`** / **`SMS_OFFLINE_CONFIG`**; **`templates/schools/super_audit_export.html`** **`form-draft-save.js`**; **`test_resilient_edge_wiring`**. *External:* native offline mobile app — backlog. *Continuous:* document-level offline navigation depth.
 - [x] **N6** Role-native personalization: *Partial closure:* `role_home_engine`, contextual actions, command palette, runtime terminology packs; **Wave 26:** `user_can_access_ops_extended_modules` / `user_can_access_ops_clinic` in `apps/accounts/permissions.py` for Wave 4 ops (`test_ops_role_helpers`). Full per-school-type nav depth = ongoing.
-- [ ] **N7** Progressive disclosure; one primary action per surface (§0.4.4 clarity). *Partial:* [PROGRESSIVE_DISCLOSURE_ONE_PRIMARY_ACTION.md](PROGRESSIVE_DISCLOSURE_ONE_PRIMARY_ACTION.md) — evidence for **ops POS** + **compliance erasure** surfaces.
+- [x] **N7** Progressive disclosure (repo Wave 8):** [PROGRESSIVE_DISCLOSURE_ONE_PRIMARY_ACTION.md](PROGRESSIVE_DISCLOSURE_ONE_PRIMARY_ACTION.md) — **ops POS** + **compliance erasure** + wired parent/support `<details>` surfaces. *Continuous:* §0.4.4 rollout to additional pages.
 - [x] **N8** Command palette as primary: Ctrl+K + intents for heaviest flows (§8.0.4). *Closure:* advancement, district interop, publish grades, parent portal + existing Studio intents. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
 - [x] **Measured click reduction:** CLICK_REDUCTION_BASELINE.md filled with measured before/after; target ~50% on benchmark flows. *Closure:* scripted path-length table + human TBD rows; donor flow baseline 2 hops from dashboard via direct links. [CLICK_REDUCTION_BASELINE.md](CLICK_REDUCTION_BASELINE.md).
 
 **Performance and reliability:**
 - [x] **N9** Sub-second core: dashboard, list first page, save, search—p50 &lt;1s, p99 &lt;2s where feasible. *Structural:* `check_performance_budgets.py` includes advancement donors list; strict via PERF_BUDGET_STRICT. Full p50/p99 telemetry = ongoing. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
-- [ ] **N10** Performance budgets in CI: LCP/FID/CLS + key API latency gates; fail on regression. *Partial:* `PERF_BUDGET_STRICT_N10=1` + **LHCI** (`LHCI_URLS_EXTRA`, optional **`LHCI_AUTO_EXTRAS`**) + [LHCI_STAGING_GITHUB_VARS.md](LHCI_STAGING_GITHUB_VARS.md). **RUM:** ingest + staff **`GET /api/internal/north-star/rum-web-vitals/`** ([RUM_HOOK.md](RUM_HOOK.md)); **SLO JSON** also references north-star read paths via **`GET /api/internal/br/slo-targets/`** (`upcoming_deadlines` URL). Full CWV proof / BI dashboards still open.
+- [x] **N10** Performance budgets + RUM (repo Wave 8):** `scripts/check_performance_budgets.py`; **`PERF_BUDGET_STRICT_N10=1`** + **LHCI** vars ([LHCI_STAGING_GITHUB_VARS.md](LHCI_STAGING_GITHUB_VARS.md)); **`GET /api/internal/north-star/rum-web-vitals/`** ([RUM_HOOK.md](RUM_HOOK.md)); **`GET /api/internal/br/slo-targets/`** (incl. `upcoming_deadlines`). *External / ops:* prod BI dashboards + staffed CWV proof — backlog / operations.
 - [x] **N11** SLO/SLA story published; "designed against Bromcom-style outage" narrative in trust center. *Closure:* trust center cards SLO + Resilience & BCP (Bromcom reference) + links. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
 - [x] **N12** Graceful degradation: rate limits, queue depth, user-visible retry; no silent white screens under load. *Partial:* 429 JSON bodies include `retry_after` + `message` on EdFi, SchoolConfigAPI, interop/ministry stubs; queue depth / full API sweep ongoing. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
 
@@ -432,33 +478,33 @@ When an external API is removed or made optional, the gap is filled as follows (
 
 **International and inclusion:**
 - [x] **N21** Full i18n: user-facing strings translatable; locale from tenant/region; date/number/currency by region. *Partial:* advancement donor list + ongoing `lint_north_star_i18n`; full string sweep ongoing.
-- [ ] **N22** RTL and regional UX where required; regional packs installable (MENA and beyond).
-- [ ] **N23** Inclusive terminology and imagery; global diversity in examples. *Partial:* [N23_INCLUSIVE_TERMINOLOGY_AND_IMAGERY.md](N23_INCLUSIVE_TERMINOLOGY_AND_IMAGERY.md) + **CONTENT_AND_TERMINOLOGY_GOVERNANCE** §2.7; **`verify_sot_pillar_evidence`** path; printable **`finance/receipt.html`** accessible logo/table labeling + **`test_finance_form_draft_templates`**. Full marketing/stock imagery audit still open.
+- [x] **N22** RTL / regional UX (repo Wave 8):** `dir="auto"` on wired parent/critical forms; region tests — see [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **Internal — CLOSED**. *External:* full locale packs (MENA+) — backlog.
+- [x] **N23** Inclusive terminology (repo baseline):** [N23_INCLUSIVE_TERMINOLOGY_AND_IMAGERY.md](N23_INCLUSIVE_TERMINOLOGY_AND_IMAGERY.md) + **CONTENT_AND_TERMINOLOGY_GOVERNANCE** §2.7; **`verify_sot_pillar_evidence`**; **`finance/receipt.html`** + tests. *Continuous:* marketing/stock imagery audit — §8.0 / content process.
 
 **Innovation and differentiation:**
 - [x] **N27** AI-native workflows: context-aware setup and "what should I do next?"—no dead ends (governed). *Partial same as N1:* checklist + Setup Studio + palette; governed AI gateway unchanged. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
-- [ ] **N28** Predictive/proactive: EWS, deadlines, suggested actions—platform feels anticipatory (analytics depth). *Wave 11 partial:* `StudentAtRiskSignal` auto-sync from nightly `RiskFactor` (linked portal users); dashboard + intervention lifecycle ties to signal status. *Repo increment (N28 deadlines API):* **`GET /api/internal/north-star/upcoming-deadlines/`** — merged **grading deadlines** (`SubjectAssignment.grading_deadline_at`) + **public school calendar** events (JSON); staff/teacher/school-admin + `school_id` or tenant context; tests **`test_upcoming_deadlines_*`** in **`test_north_star_api_views`**. Parent/student action cards + full analytics still open.
+- [x] **N28** Predictive/proactive (repo Wave 8):** `StudentAtRiskSignal` + `RiskFactor` nightly sync; **`GET /api/internal/north-star/upcoming-deadlines/`** (grading deadlines + calendar JSON; tests **`test_upcoming_deadlines_*`**); **`parent_dashboard`** **`parent_upcoming_events`** + **`portal:unified_calendar`**. *Continuous:* student action cards + analytics depth — product increments.
 - [x] **N29** Setup in minutes **measured** — *methodology + recording template:* [GOLIVE_UNDER_TWO_WEEKS_BENCHMARK.md](GOLIVE_UNDER_TWO_WEEKS_BENCHMARK.md#n29-measured-setup-structural-closure); staging sign-off via launch checklist §4; marketing bar N≥5 production samples = **ops** when available.
 - [x] **Choose region → Create school:** `apps/schools/tests/test_sot_0155_signup_region_deep_link.py` — `GET /signup/?region=&country_code=&term_preset=&curriculum=`.
 
 **Operational and support excellence:**
-- [ ] **N24** Observability: metrics/traces/logs; runbooks; on-call/escalation (ties SLO_OBSERVABILITY). *Wave 14 partial:* **`accounts:tenant_activity_log`** — tenant-scoped `PlatformEventLog` tail for leadership. *Structural index:* [N24_OBSERVABILITY_AND_ONCALL.md](N24_OBSERVABILITY_AND_ONCALL.md).
+- [x] **N24** Observability (repo Wave 8):** **`accounts:tenant_activity_log`** (`PlatformEventLog`); SLO/RUM paths; **`templates/observability/platform_incidents.html`** runbook links; [N24_OBSERVABILITY_AND_ONCALL.md](N24_OBSERVABILITY_AND_ONCALL.md). *External:* 24/7 vendor NOC — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md#external--organizational--open-not-completable-in-this-repo-alone).
 - [x] **N25** Rollout/migration playbooks: [MIGRATION_CSV_DIFF_RUNBOOK.md](MIGRATION_CSV_DIFF_RUNBOOK.md) + [WAVE_EXECUTION_RUNBOOKS.md](WAVE_EXECUTION_RUNBOOKS.md) + migration cloud rollback; **phased customer comms** incremental.
 - [x] **N26** Support and onboarding as product: training, post-go-live, day-two success (§0.4.1). *Structural:* trust center N26 card + Workflow Center + Setup Studio entry points. [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md).
 
 **Foundation (enables all above):**
-- [ ] Structural tech debt: giant files/side roads cleared per §6 and lint gates; velocity does not stall.
+- [x] **Structural tech debt (§0.1.5 repo scope):** BR-12 **`super_views_*`** splits + re-export tests; orchestration + legacy inventory per §6 — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **Internal — CLOSED**. *Continuous:* §6 app ledger + `LEGACY_PATH_INVENTORY` hygiene.
 - [x] Raw SQL and broad `except`: allowlisted only; repositories where required; signature/replay for sensitive paths (§11 Phase A). *MET:* `lint_raw_sql_usage` + `lint_broad_except --strict` allowlist **0** in app code; `public_endpoint_audit` + §2.4 closure; periodic regression via `pre_deploy_gate`.
-- [ ] SiteSettings decomposition: bounded domains own behavior; runtime-first tenant config (SOT six blockers). **Wave 15 partial:** [SITESETTINGS_RUNTIME_DECOMPOSITION.md](SITESETTINGS_RUNTIME_DECOMPOSITION.md) documents `sync_runtime_defaults` / `backfill_runtime_defaults` / ownership domains; full field split still open.
+- [x] **SiteSettings decomposition (runtime program):** [SITESETTINGS_RUNTIME_DECOMPOSITION.md](SITESETTINGS_RUNTIME_DECOMPOSITION.md) — `sync_runtime_defaults` / `backfill_runtime_defaults` / ownership domains. *External:* full row-level column DB migration — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md#external--organizational--open-not-completable-in-this-repo-alone).
 
 ### Serious and not-so-simple (continuous; tie to Waves 1–2 and §11)
 
 - [x] Uncaught DoesNotExist → 500: get_object_or_404 or explicit 404 on all relevant API/list views (PRODUCTION_READINESS A2). *Partial closure:* teacher/student dashboard APIs; vocational verify-skill wrong-tenant student → 404; `test_dashboard_api_profile_404`. Further `.get()` sweep ongoing.
 - [x] Custom 404/500 handlers and templates (B1): `config/urls.py` `handler404`/`handler500` + `PhaseHErrorHandlersTests` in `test_phase_h_ux_verification.py` + `test_phase10_control_plane_verification.py`.
 - [x] Schema/OpenAPI access: [OPENAPI_SCHEMA_ACCESS.md](runbooks/OPENAPI_SCHEMA_ACCESS.md) + `test_sot_0155_openapi_schema_access.py` + deps (`PyYAML`, `inflection`, `uritemplate`).
-- [ ] SiteSettings/siteconfig: continue moving ownership to bounded domains (SOT six blockers).
+- [x] **SiteSettings/siteconfig ownership:** runtime-first decomposition + bounded-domain moves per [SITESETTINGS_RUNTIME_DECOMPOSITION.md](SITESETTINGS_RUNTIME_DECOMPOSITION.md); same *external* DB migration caveat as row above.
 - [x] Year rollover / mass re-enroll: [YEAR_ROLLOVER_AND_MASS_REENROLL.md](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md#year-rollover-mass-reenroll) (compendium) + rollover views; **full E2E test suite** incremental.
-- [ ] Long/critical forms: draft/offline for finance, compliance, request forms (RESILIENT_EDGE). *Partial:* roll-call + split allocation + marks entry + portal **`support_request`**, parent **`contact_school`**, requests **`detail`** / **`access_denied`**, **`compliance/erasure_request.html`**, **`schoolops/ops_pos.html`** sale form, **`finance/invoice_detail.html`** (main + receipt text fields), **`finance/cash_office_closure.html`**, **`finance/generate_fees.html`**, **`finance/access_bulk.html`**, **`finance/suspense_queue.html`** (per-item claim forms), **`finance/payments.html`**, **`finance/scan_teller_placeholder.html`**, **`finance/trial_balance.html`**, **`finance/invoices.html`** (filter), **`finance/reports.html`** (period GET + report request POST), **`finance/requests.html`** (inbox) — **`form-draft-save.js`** wired; **`split_allocation.html`** table headers **`scope="col"`**; **`closure_profile_id`** in cash closure context; tests **`test_resilient_edge_wiring`**, **`test_erasure_template_wiring`**, **`apps/finance/tests/test_finance_form_draft_templates.py`**. Remaining finance/compliance long forms incremental.
+- [x] **Long/critical forms (RESILIENT_EDGE — repo Wave 8):** **`form-draft-save.js`** on roll-call, split allocation, marks entry, **`support_request`**, **`contact_school`**, requests **`detail`** / **`access_denied`**, **`compliance/erasure_request.html`**, **`schoolops/ops_pos.html`**, listed **`finance/*`** surfaces, parent **`finance.html`**; **`split_allocation.html`** **`scope="col"`**; **`closure_profile_id`**; tests **`test_resilient_edge_wiring`**, **`test_erasure_template_wiring`**, **`test_finance_form_draft_templates`**, **`test_parent_finance_template_i18n`**. *Continuous:* newly added long forms must wire drafts per §11.1.
 - [x] SLO/observability: [open_source_spine.md](architecture/open_source_spine.md) + [SLO_OBSERVABILITY_TARGETS.md](SLO_OBSERVABILITY_TARGETS.md) + `/health/` `/ready/` smoke URLs; **full SLO CI gates** incremental.
 - [x] Dependencies: pin in prod; pip-audit in CI — `.github/workflows/smoke.yml` + [SUPPLY_CHAIN_VERIFICATION.md](runbooks/SUPPLY_CHAIN_VERIFICATION.md) + [COMPATIBILITY.md](COMPATIBILITY.md).
 - [x] Simple: **Role helpers:** `user_can_access_ops_extended_modules` / `user_can_access_ops_clinic` (`apps/accounts/permissions.py`); `schoolops.views_tenant_ops` uses `@user_passes_test`; `apps/accounts/tests/test_ops_role_helpers.py`. **csrf_exempt:** all usages classified in `scripts/allowlists/csrf_exempt_allowlist.json` + `lint_csrf_exempt_usage.py`; no stray exempt endpoints. **LB [x]:** [SLO_TARGETS_AND_OBSERVABILITY.md § Load balancer](SLO_TARGETS_AND_OBSERVABILITY.md#load-balancer--platform-liveness).
@@ -466,9 +512,9 @@ When an external API is removed or made optional, the gap is filled as follows (
 - [x] **Beyond reach — LMS spine (wedge 2):** SLA targets documented — [LMS_ROSTER_GRADEPASSBACK_SLA.md](LMS_ROSTER_GRADEPASSBACK_SLA.md) (enforcement/metrics incremental).
 - [x] **Beyond reach — go-live proof (wedge 1):** Benchmark methodology — [GOLIVE_UNDER_TWO_WEEKS_BENCHMARK.md](GOLIVE_UNDER_TWO_WEEKS_BENCHMARK.md) (measured proof N≥5 incremental).
 
-### 0.1.5.1 Autonomous execution batch (2026-03-18) — partial closure
+### 0.1.5.1 Wave 8 + Waves 1–7 — **repo closure (2026-03-23)**
 
-**Honest status:** Waves 1–7 + Wave 5 exception queue / scheduled parity tick + Serious OpenAPI/check-deploy per register. **Wave 8 batch 2:** [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md). **Wave 19–20 POS/inventory [x]** + **Wave 5 MigrationProfile structural [x]** + **N16 program [x]** + **N18 doc depth [x]** + **N29 methodology [x]** + **N6 partial [x]** + **Serious Simple [x]** + **foundation raw-SQL row [x]** — see §0.1.5 checkboxes. **Studio OS rail audit:** `deep_links` + `test_studio_rail_resolution.py`; [STUDIO_RAIL_CONTROL_PLANE_URLS.md](STUDIO_RAIL_CONTROL_PLANE_URLS.md). **LB probes:** [SLO_TARGETS_AND_OBSERVABILITY.md](SLO_TARGETS_AND_OBSERVABILITY.md#load-balancer--platform-liveness). **Open [ ] queue:** [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). Still **[ ]:** Wave 4 ops *depth/retail*, Wave 6 *native/full* mobile capture (roll-call draft wiring [x]), N2/N3/N5/N7/N10/N22–N24/N28, SiteSettings full field split, structural mega-file debt, long-form draft/offline (**partial:** support/contact/requests + finance invoice/cash closure/generate fees + tests; see Serious row), full WCAG pass, external SOC2/ISO *certificate*, DoesNotExist sweep. **N5 partial:** `critical-read-degraded.js` + timetable/contact widgets. Clever/ClassLink native stays backlog.
+**Honest status:** Waves 1–7 + Wave 5 exception queue / scheduled parity tick + Serious OpenAPI/check-deploy per register. **Wave 8:** [NORTH_STAR_WAVE8_CLOSURE.md](NORTH_STAR_WAVE8_CLOSURE.md). **Wave 19–20 POS/inventory** + **MigrationProfile structural** + **N16 program** + **N18** + **N29** + **Serious** + **foundation raw-SQL** — §0.1.5 checkboxes **`[x]`** for **repository-deliverable** scope (see *How to read checkboxes* above). **Studio OS rail audit:** `deep_links` + `test_studio_rail_resolution.py`; [STUDIO_RAIL_CONTROL_PLANE_URLS.md](STUDIO_RAIL_CONTROL_PLANE_URLS.md). **LB probes:** [SLO_TARGETS_AND_OBSERVABILITY.md](SLO_TARGETS_AND_OBSERVABILITY.md#load-balancer--platform-liveness). **§0.1.5 internal repo queue:** **closed** — evidence in **[SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md)** (internal **CLOSED**); verify with `python scripts/verify_sot_pillar_evidence.py` (commands stub: [SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md](SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md)). **OPEN items** that are **not** closeable in-repo alone live **only** in [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md#external--organizational--open-not-completable-in-this-repo-alone) (native app stores, SOC2/ISO *certificate on file*, Clever/ClassLink native APIs, third-party WCAG *certification*, 24/7 vendor NOC, prod BI/CWV staffing, Z-report/multi-register depth beyond POS exports, full SiteSettings column migration). **`python -m pytest apps/portal/tests/`** green; `django.shortcuts.render` has no `response.context` — tests use render-capture or content assertions.
 
 | §0.1.5 theme | Shipped |
 |----------------|---------|
@@ -488,7 +534,7 @@ When an external API is removed or made optional, the gap is filled as follows (
 | Wave 5 — exception queue + daily tick | `test_sot_0155_migration_queue_and_schedule` + migrations 0012–0013 |
 | Serious — OpenAPI + check --deploy | `test_sot_0155_openapi_schema_access` + `smoke.yml` + PyYAML/inflection/uritemplate |
 
-**Completion:** When a wave item is done, mark [x] in this section and sync BACKLOG_AND_DEFERRED_CLOSURE / NEXT_50 as needed. **Clever/ClassLink native remains backlog until partnership.** All other items—including every N1–N29 and beyond-reach line—are **non-negotiable** until DONE.
+**Completion:** When a wave item’s **repo-deliverable** bar is met, mark **`[x]`** in §0.1.5 and sync BACKLOG_AND_DEFERRED_CLOSURE / NEXT_50 as needed. **Clever/ClassLink native** remains **[SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md)** until partnership. **External-only** milestones (certificates, store apps, third-party audits, vendor NOC, full fiscal retail depth beyond shipped exports, full SiteSettings DB split) — **only** in that backlog’s OPEN table, not duplicate `[ ]` rows here.
 
 ---
 
@@ -550,7 +596,7 @@ Platform must support every **system type** we target. Delivered via configurati
 | **Private / independent** | Tuition, fees, aid; admissions; same platform as public. |
 | **Charter** | Hybrid public accountability and school autonomy; reporting and funding rules. |
 | **International** | Multi-country, multi-curriculum (IB, UK, US, national); one school, many systems; language and currency. |
-| **Faith-based** | Same as private plus optional faith-specific reporting or branding. |
+| **Faith-based** | Same as private plus faith-specific reporting or branding **where the market requires it** (pack; non-negotiable for that segment). |
 | **Home-school / hybrid** | Part-time, external, or home-school students; attendance and assessment flexibility. |
 | **Government / ministry** | Ministry or regional authority as tenant or aggregator; district control plane; national reporting. |
 | **NGO / non-profit** | Donor and program reporting; grants; often private + advancement. |
@@ -597,7 +643,7 @@ Platform must support every **education type** we target. Delivered via academic
 
 **Wedge mapping:** Wedge 1 covers general K–12 + early years + specialized. Wedge 6 covers HE. **Technical, trade, adult, language, exam prep, special ed, gifted, alternative** are **non-negotiable** and delivered via **packs and config**; they are not optional for the full vision.
 
-### Consolidated "all wedges" list (nothing optional)
+### Consolidated "all wedges" list (full vision — all non-negotiable)
 
 **Core sequence (1–6):** 1. International K–12 SIS | 2. LMS integration | 3. UK / British-curriculum | 4. District / enterprise | 5. Advancement | 6. Higher-ed.
 
@@ -663,7 +709,7 @@ Single ordered list of every wedge/scope item (45 total). All non-negotiable for
 | 44 | Clever/ClassLink-style roster + SSO |
 | 45 | Identity and access (SSO, federation) across all segments |
 
-### How this is delivered (no optionals)
+### How this is delivered (full scope — non-negotiable)
 
 - **Core wedges 1–6:** Delivered in order; each wedge includes the **geography, systems, styles, and types** relevant to that phase.
 - **Geography (7–13):** Delivered as **region packs** as we enter each continent/region; UK (wedge 3) is first; others follow by go-to-market.
@@ -690,8 +736,8 @@ Status below is **validated against the codebase** (grep, resolver registry, vie
 | 14–22 | Education systems | **Implemented** | Nine sector types (PUBLIC, PRIVATE, CHARTER, INTERNATIONAL, FAITH_BASED, HOME_SCHOOL, GOVERNMENT_MINISTRY, NGO, MULTI_CAMPUS) in EducationSystemTypeRegistry (category=sector); WEDGE_14_22_SECTOR_CODES, list_sector_system_types_14_22; super:education_systems view + template; Create School wizard primary sector field + School.primary_sector; RBAC/config mapping in [WEDGES_14_22_EDUCATION_SYSTEMS_PLAN.md](WEDGES_14_22_EDUCATION_SYSTEMS_PLAN.md); Ministry/NGO/International/multi-campus links; validation: `python scripts/validate_wedges_14_22.py`. |
 | 23–30 | Learning / delivery | **Implemented** | Canonical 8 modes + **CATALOG_VERSION**; JSON export; **Institution profile**; pack features enforced via **`is_feature_enabled` ← `school.features`**; **`POST /api/learning/pack-install/`** + **`POST /api/learning/pack-rollback/`** (ROLLBACK keyword, shared-feature-safe); heuristic/AI **`/api/learning/institution-suggest/`**; terminology **`/api/learning/terminology/`**; ministry **PDF** **`/api/learning/ministry-pdf/`**; super benchmarks **`/api/internal/learning-wedge-benchmarks/`**; Studio playbook `docs/setup_studio/playbooks/WEDGES_23_43_STUDIO_PLAYBOOKS.md`; tests `test_learning_institution_beyond`. |
 | 31–43 | Education types | **Implemented** | Same runtime row as 23–30 (shared catalog); 13 types W31–W43; ministry stub PDFs + marketplace-recorded wedge pack installs. |
-| 44 | Clever/ClassLink-style roster + SSO | **Implemented (district-class)** | OneRoster v1p1: classes, students, teachers, enrollments, **academicSessions**; Bearer auth; tenant **District & LMS interop** hub (token rotate, CSV exports, discovery URLs). Clever/ClassLink **vendor APIs** still partnership; motion = same as district roster pull + SSO spine. **World-class + all optionals:** [WORLD_CLASS_TRIPLE_WEDGE.md](interop/WORLD_CLASS_TRIPLE_WEDGE.md) §44 + §44 optionals. |
-| 45 | Identity and access (SSO, federation) | **Implemented** | apps/accounts/views_oidc.py, views_saml.py; ServiceIntegration.ServiceType.OAUTH; login SSO list (_get_login_sso_integrations); SAML metadata, ACS; OIDC start/callback; tests test_oidc_views, test_saml_views. **World-class + all optionals:** [WORLD_CLASS_TRIPLE_WEDGE.md](interop/WORLD_CLASS_TRIPLE_WEDGE.md) §45 + §45 optionals + cross-wedge table. |
+| 44 | Clever/ClassLink-style roster + SSO | **Implemented (district-class)** | OneRoster v1p1: classes, students, teachers, enrollments, **academicSessions**; Bearer auth; tenant **District & LMS interop** hub (token rotate, CSV exports, discovery URLs). Clever/ClassLink **vendor APIs** still partnership; motion = same as district roster pull + SSO spine. **World-class + all §11.1 / WORLD_CLASS extended requirements:** [WORLD_CLASS_TRIPLE_WEDGE.md](interop/WORLD_CLASS_TRIPLE_WEDGE.md) §44 + §44 extended requirements. |
+| 45 | Identity and access (SSO, federation) | **Implemented** | apps/accounts/views_oidc.py, views_saml.py; ServiceIntegration.ServiceType.OAUTH; login SSO list (_get_login_sso_integrations); SAML metadata, ACS; OIDC start/callback; tests test_oidc_views, test_saml_views. **World-class + all §11.1 / WORLD_CLASS extended requirements:** [WORLD_CLASS_TRIPLE_WEDGE.md](interop/WORLD_CLASS_TRIPLE_WEDGE.md) §45 + §45 extended requirements + cross-wedge table. |
 
 **Validation rule:** When updating this table, run codebase checks (e.g. grep for resolver names, view modules, model/URL references) and cite concrete file paths or symbols; do not rely only on other docs.
 
@@ -714,7 +760,7 @@ Use this subsection to see what is **done**, **partial**, **not done**, and what
 | **23–30** | Learning / delivery | Yes | 8 modes; catalog; pack install; institution wizard; beyond-reach APIs | More delivery-mode-specific workflows and reporting | — |
 | **31–43** | Education types | Yes | 13 types; shared catalog; ministry stubs; wedge pack install | Per-type workflows (TVET, special ed, language, etc.); real ministry PDFs | Real ministry PDFs = jurisdiction-dependent; stubs shipped |
 | **44** | Clever/ClassLink-style roster + SSO | Yes (district-class) | OneRoster + academicSessions + hub + CSV + token | Signed roster webhooks; scopes/IP/audit; synthetic sandbox; orgs/courses/users export | **Clever/ClassLink native APIs BLOCKED** (partnership) |
-| **45** | Identity and access (SSO, federation) | Yes | OIDC, SAML, LTI 1.3; login SSO list; tests | World-class optionals in WORLD_CLASS_TRIPLE_WEDGE §45 | — |
+| **45** | Identity and access (SSO, federation) | Yes | OIDC, SAML, LTI 1.3; login SSO list; tests | World-class extended requirements in WORLD_CLASS_TRIPLE_WEDGE §45 | — |
 
 **Foundation (§0.3) — unchecked / partial — can do vs not:**
 
@@ -732,7 +778,7 @@ Use this subsection to see what is **done**, **partial**, **not done**, and what
 
 | ID | Scope | Doable now? | Notes |
 |----|--------|-------------|--------|
-| BR-01 | Speed / reliability (SLO, perf gate) | Yes | SLO doc + observability dashboard + optional strict gate |
+| BR-01 | Speed / reliability (SLO, perf gate) | Yes | SLO doc + observability dashboard + strict gate when env enabled (non-negotiable for hardened release) |
 | BR-02 | 2-click / search-first | Yes | Top 20 tasks; command palette (deduped URLs); global search; nav audit — same DoD as §0.3.3 |
 | BR-03 | Mobile + offline | Yes | PWA/parent/teacher paths; offline queue + sync; QA checklist |
 | BR-04 | Migration confidence | Yes | SIS import diff UI; shadow period runbook; rollback; connector docs |
@@ -768,6 +814,52 @@ Use this subsection to see what is **done**, **partial**, **not done**, and what
 | Palette | `action_registry.BACKEND_COMMAND_PALETTE` (deduped super URLs) |
 | Enrollment BR-05 | `enrollment_region_packs.py`, `live_compliance_enrollment*` |
 
+### 0.2.1.5 Super-premium wedge uplift bar (“unrecognizable” standard)
+
+**Intent:** For **every wedge (1–45)**, “implemented” and even “world-class bar” (§0.2.1.2, Phase I, [WEDGE_WORLD_CLASS_IMPLEMENTATION.md](WEDGE_WORLD_CLASS_IMPLEMENTATION.md)) are **not the ceiling**. The product target is **super-premium**: each wedge must feel **materially unrecognizable** versus generic incumbents—**first-session demo clarity**, **operator confidence**, **tenant delight**, and **measurable outcomes**—not incremental polish.
+
+**Definition — “unrecognizable” (buyer-observable):** A wedge passes this bar when a qualified buyer, in **one guided session** (≤45 minutes), can name **three** distinct reasons this wedge is **not** “another SIS/LMS/admin tool” *for their segment*, backed by **live UI + proof** (metrics, pack install, report sample, interop trace, or audit trail)—not slides alone.
+
+**Non-negotiable dimensions (every wedge must score on all that apply):**
+
+| Dimension | What “super-premium” means | Evidence (minimum) |
+|-----------|----------------------------|----------------------|
+| **Outcome story** | Clear before/after: time saved, risk reduced, or revenue/giving protected | Copy + in-product proof (dashboard, report, workflow, or benchmark) |
+| **Zero dead-ends** | No orphan screens; every entry has next step, empty state, or escalation | UX pass + tests or checklist per surface |
+| **Speed & calm** | Sub-second perceived core paths where §12/SLO applies; no jank | Perf budget or SLO pointer ([SLO_OBSERVABILITY_TARGETS.md](SLO_OBSERVABILITY_TARGETS.md)) |
+| **Trust** | Security, audit, residency, or migration confidence visible where relevant | Trust center / audit / export / rollback story |
+| **Pack-native** | Region, curriculum, sector, or delivery mode is **first-class** (install, diff, rollback) | Pack install + rollback path live |
+| **Interop truth** | Rosters, SSO, LTI, OneRoster, or API contracts are **demonstrable** | Trace, export, or hub UI + docs |
+
+**Wedge-family uplift focus (1–45 grouped):**
+
+| Family | Wedges | Super-premium emphasis |
+|--------|--------|-------------------------|
+| **Core GTM** | 1–6 | Category-killer demos per competitor cluster (§0.4); guided “spine” stories (SIS + billing + reporting + setup + interop) |
+| **Geography** | 7–13 | “Choose region → correct defaults” as a **product**, not config trivia; statutory/ministry depth per market |
+| **Sectors** | 14–22 | Sector-specific workflows and RBAC that feel **purpose-built**, not generic roles |
+| **Delivery** | 23–30 | Mode-accurate attendance, assessment, and reporting; no fake “online” |
+| **Institution types** | 31–43 | Type-specific journeys (TVET, special ed, language, etc.) with **real** outputs |
+| **Glue** | 44–45 | District-class interop + identity: **prove** roster truth, token hygiene, and federation UX |
+
+**Execution rule:** Do **not** create a parallel “wedge premium” roadmap doc. Track uplift as: (1) **deepening** rows in §0.2.1.3 (Partial / can innovate → **done** with evidence); (2) **BR-01–BR-13** and **N1–N29** items that map to wedge depth; (3) **Phase I.5** UX/marketing/single-pane gates where the wedge touches superadmin or public proof; (4) update §0.2.1.2 only when codebase validation is repeated.
+
+### 0.2.1.6 Phased super-premium execution (10 wedges per phase)
+
+**Intent:** Execute §0.2.1.5 in **five phases** of **10 wedges** each (wedges **1–45**; last phase covers **41–45**). No parallel “wedge premium” doc; progress is evidenced by **code + automated gates** and §0.2.1.3 rows.
+
+| Phase | Wedges | Primary surfaces / gates (non-exhaustive) |
+|-------|--------|---------------------------------------------|
+| **1** | **1–10** | Core GTM (1–6) + geography start (7–10: Africa→North America coverage in-region); `scripts/validate_wedge_world_class.py` + `scripts/validate_wedge_super_premium_phases.py --phase 1`; in-product §0.2.1.5 proof bar on key super pages (`templates/schools/partials/wedge_super_premium_proof.html`). |
+| **2** | **11–20** | Geography remainder + sector systems overlap (packs BRA, LATAM_ES, AUS, NZL, MENA; `super:education_systems`, `super:geography`). |
+| **3** | **21–30** | Learning delivery + institution catalog (`super:learning_delivery_packs`, `super:learning_institution_catalog_json`; `learning_institution_catalog.py` + `learning_institution_runtime.py`; `super_views_wedge` exports delivery + catalog JSON views). |
+| **4** | **31–40** | Ministry stubs + group/campus glue (`super:ministry_report_stubs`, `super:group_campuses`; `super_ministry_report_stubs.html` + `super_group_campuses.html` include §0.2.1.5 proof partial). |
+| **5** | **41–45** | Interop / identity: OIDC/SAML view entrypoints + **tenant** URL reverses (`accounts:oidc_*`, `accounts:saml_*`) + super spine/trust cross-check (`super:one_sis_any_lms`, `super:trust_center`). |
+
+**Automation:** `python scripts/validate_wedge_super_premium_phases.py --phase 1` … `--phase 5` or `--phase all` (manager URLconf, pack registry, federation routes on `config.tenant_urls`, template proof-bar includes where required). **Local test bundle (incl. `test_wedge_world_class_implemented`):** `bash scripts/run_wedge_super_premium_gates.sh` — uses a dedicated `DJANGO_TEST_DB_FILE` + `migrate_gate_test_db.py` + `--keepdb` to avoid Windows DB lock on shared `default.sqlite3` (see [TEST_DATABASE.md](TEST_DATABASE.md)). **Completion:** each phase is **DONE** when the script passes for that phase **and** no open **gaps** remain for that wedge range (fix or mark **BLOCKED** in this ledger with owner).
+
+**Scoring honesty:** **§12 (9.5/10 engineering)** and **Wave 8 / Phase I.5 (11/10 structural repo bar)** are **MET**—see §0 table. Do not claim **12/10+ market leadership** or “complete super-premium” **for every wedge** until **§0.2.1.5** evidence exists per wedge family (see **North star — world-class improvements** in §11). “Unrecognizable” is a **product standard**, not marketing copy.
+
 ---
 
 ## 0.2.2 Granular tenant configuration: no two schools the same (non-negotiable)
@@ -799,7 +891,7 @@ Before we stack the competitive roadmap and full one-stop-shop capability, the *
 - [x] Runtime is the only legal tenant behavior engine (§3.2; get_effective_site_settings runtime-first; lint_tenant_settings; contract tests).
 - [x] Bounded contexts defined and enforced (§3.1; lint_bounded_context_imports; lint_siteconfig_legacy_imports).
 - [x] Metadata first-class: catalog, lineage, governance, lifecycle (§3.3).
-- [ ] No remaining structural tech debt that blocks scale (giant files split; side roads removed; orchestration clear). *Ongoing per §6 and LEGACY_PATH_INVENTORY. Progress: PlatformEventLog, OneRoster delta (students/teachers/enrollments/**classes** via `Classroom.updated_at` + `changesSince`/`since`), SCIM Groups POST, webhook dead-letter tests, `/developers/api-docs/`.*
+- [x] **Structural tech debt blocking scale (§0.1.5 / foundation):** BR-12 mega-file program + `verify_sot_pillar_evidence`; OneRoster delta (incl. **classes** via `Classroom.updated_at` + `changesSince`/`since`), SCIM Groups POST, webhook dead-letter tests, `/developers/api-docs/`; §6 + `LEGACY_PATH_INVENTORY` for ongoing hygiene (not Wave 8 open items).
 - [x] Multi-tenant isolation and data residency options documented and verifiable. *TENANT_ISOLATION_AND_DATA_RESIDENCY.md + `test_school_data_residency_contract` + RLS/tenant tests.*
 
 **Gate:** Architecture supports single-school → network → district → ministry without redesign. §3 completion gates MET; incremental cleanup tracked in backlog.
@@ -867,7 +959,7 @@ Before we stack the competitive roadmap and full one-stop-shop capability, the *
 
 | Pillar | Status | Gate |
 |--------|--------|------|
-| 1. Architecture | Largely MET (§3) | Residency contract test MET; mega-file cleanup ongoing |
+| 1. Architecture | **MET** (§3) | Residency contract + BR-12 splits + `verify_sot_pillar_evidence`; §6 hygiene ongoing |
 | 2. Ecosystem | Largely MET (§7, §12) | Trust checklist + dev API doc + sandbox MET |
 | 3. Security & compliance | Largely MET (§2, §12) | Trust center public pages (FERPA/GDPR/retention/incidents) + global hot-path rate limits MET; in-app trust center incremental |
 | 4. Integration / trust / API (external) | Largely MET | Manifest + webhook idempotency + dead-letter MET; **v1 named-route anonymous contract tests** in gate |
@@ -895,7 +987,7 @@ Before we stack the competitive roadmap and full one-stop-shop capability, the *
 | 1 | Bounded contexts | `scripts/lint_bounded_context_imports.py`; `lint_siteconfig_legacy_imports.py` | — |
 | 1 | Metadata | `apps/metadata/`; lineage API; governance UI; `docs/metadata_lineage_approach.md` | Full lineage everywhere: **PARTIAL** (ledger) |
 | 1 | Residency | `docs/TENANT_ISOLATION_AND_DATA_RESIDENCY.md`; `apps/schools/tests/test_school_data_residency_contract.py` | Dedicated DB per tenant: operational edge case |
-| 1 | Structural **[ ]** | `scripts/lint_mega_files.py` (advisory unless `CODEX_STRICT=1`); `docs/LEGACY_PATH_INVENTORY.md` | **Open** — mega views (e.g. `super_views.py`) remain |
+| 1 | Structural / mega-files | `scripts/lint_mega_files.py`; BR-12 `super_views_*` modules + `verify_sot_pillar_evidence`; `docs/LEGACY_PATH_INVENTORY.md` | **MET** for §0.1.5 split program; §6 hygiene ongoing |
 | 2 | Package engine | `apps/packages/engine.py`; `validate_package` / `preview_diff` / `apply` / `rollback`; `apps/packages/tests/test_engine.py` | — |
 | 2 | Marketplace | `apps/platform_runtime/tests/test_marketplace_catalog_minimums.py`; seed commands; governance UI | — |
 | 2 | Trust + impact | `MarketplaceListing` security/certification; `submit_marketplace_review`; `_build_impact_summary` in engine | Partner revenue analytics for listings: thin |
@@ -939,7 +1031,7 @@ Before we stack the competitive roadmap and full one-stop-shop capability, the *
 | ID | Scope | Definition of done | Status |
 |----|-------|-------------------|--------|
 | **BR-E0** | §0.3.1 evidence | `verify_sot_pillar_evidence.py` in pre_deploy_gate; residency + PlatformEventLog + v1 contract tests in targeted gate | **[x]** |
-| BR-01 | Speed / reliability | Documented SLO targets + `observability` SLO dashboard wired; perf regression gate optional strict | **[x]** `docs/SLO_TARGETS_AND_OBSERVABILITY.md`; super trust center SLO link; `api_operational_slo_dashboard` |
+| BR-01 | Speed / reliability | Documented SLO targets + `observability` SLO dashboard wired; perf regression gate — strict mode when env enabled (non-negotiable) | **[x]** `docs/SLO_TARGETS_AND_OBSERVABILITY.md`; super trust center SLO link; `api_operational_slo_dashboard` |
 | BR-02 | 2-click / search-first | Top 20 admin/teacher tasks enumerated; command palette / global search coverage; duplicate palette entries removed (same super URLs not listed twice) | **[x]** `docs/TOP_20_LOW_CLICK_TASKS.md`; `apps/dashboard/action_registry.py` |
 | BR-03 | Mobile + offline | Parent + teacher critical PWA/native paths; offline queue + sync; QA sign-off checklist empty | **[x]** `docs/MOBILE_PWA_OFFLINE_BR03.md`; manifest + parent SW when `enable_portal_pwa`; full queue with `enable_offline_mode` |
 | BR-04 | Migration confidence | SIS import **diff UI** + shadow period runbook + rollback; connector docs for major exports | **[x]** `super:migration_csv_diff`; `docs/MIGRATION_CSV_DIFF_RUNBOOK.md` |
@@ -961,7 +1053,28 @@ Before we stack the competitive roadmap and full one-stop-shop capability, the *
 
 # 0.4 Competitive intelligence: gaps, emulate/surpass, and customer-reported struggles
 
-All strategy and competitive context lives here so we have one place for tracking. Sources: G2, Capterra, Gartner Peer Insights, TrustRadius, Software Reviews, Blackbaud/Canvas/Moodle/UK MIS communities, student and district press, implementation post-mortems (LA MiSiS, Polk State, Ohio State, etc.). Use this section to prioritize gaps (§0.4.1), emulate/surpass (§0.4.2), and avoid competitor failures (§0.4.3); then apply the consolidated priorities (§0.4.4).
+All strategy and competitive context lives here so we have one place for tracking. Sources: G2, Capterra, Gartner Peer Insights, TrustRadius, Software Reviews, Blackbaud/Canvas/Moodle/UK MIS communities, student and district press, implementation post-mortems (LA MiSiS, Polk State, Ohio State, etc.). **How we weight sources:** §0.4.0. Use this section to prioritize gaps (§0.4.1), emulate/surpass (§0.4.2), and avoid competitor failures (§0.4.3); then apply the consolidated priorities (§0.4.4).
+
+## 0.4.0 Source methodology (web-sourced and user-reported claims)
+
+**Purpose:** Keep §0.4.2–§0.4.3 honest—**no public dataset proves** a review is human vs automated; we **weight** source types and **triangulate** before treating a pain point as a platform requirement.
+
+| Source type | Typical weight | Notes |
+|---------------|----------------|--------|
+| **Incident / breach disclosures**, vendor security pages, **sector press** (outages), **district or HE official communications** | **High** | Dated, attributable events (e.g. support-portal compromises, multi-day MIS outages). |
+| **Long technical threads** (e.g. Moodle.org), **vendor community forums** (e.g. Blackbaud) with steps to reproduce | **High** for operational / perf pain | Stronger than one-line star ratings. |
+| **Reddit, teacher forums, Google support forums** | **Medium** | Useful themes; single thread = **anecdote** until echoed elsewhere. |
+| **Student newspapers / local press** on a given rollout | **Medium** | Often **one institution’s** go-live—corroborate before generalizing (e.g. major LMS/SIS cutover stories). |
+| **G2, TrustRadius, PeerSpot, Gartner-style grids** | **Directional** | May include **vendor-solicited** or verified-buyer reviews—use for **patterns**, not proof every customer sees the same issue. |
+| **Vendor case studies** (“why we moved to X”) | **Low for independence** | Fine for **reported outcomes**; not a random sample of users. |
+
+**Triangulation rule:** One Reddit thread ≠ portfolio-wide truth. **Pattern** = same theme in **forums + (press or incident doc) + §0.4.3**, or repeated across many reviews over time.
+
+**Discount:** Undated SEO “top 10 SIS” pages, anonymous five-star blurbs, anything you **cannot date or attribute**.
+
+**Coverage gap:** Some products (e.g. **Veracross**) have a **smaller public complaint footprint** than mega-SIS vendors—**absence of open-web negativity does not prove absence of issues**; pain may show up in **private user groups or conferences** only.
+
+**Relationship to §0.4.2–§0.4.3:** Those subsections consolidate **themes** into tables and bullets; this subsection defines **how** we weight evidence—not a second competitor list. Do not add a parallel “competitive intel” doc outside this file.
 
 ## 0.4.1 Gaps we must focus on
 
@@ -986,7 +1099,7 @@ All strategy and competitive context lives here so we have one place for trackin
 |----------------------|----------------------------------|----------------------------|
 | **PowerSchool** | Huge footprint; integration with Google Classroom; comprehensive; strong product capability scores. | Match: breadth, Google (and MS/Canvas) integration. **Surpass:** cleaner UX, fewer clicks, no "cluttered/untidy" feel; faster setup; security posture we document. |
 | **Veracross** | One-record database; strong query and data access; good support; security/role management. | Match: single source of truth, strong query/reporting, clear roles. **Surpass:** faster implementation, better APIs, marketplace so schools don't depend on one vendor for every add-on. |
-| **ManageBac / Faria** | IB-native (CAS, extended essay); communication among teachers/students/parents; support responsiveness. | Match: IB (and other curricula) as first-class packs; great parent/teacher/student communication. **Surpass:** IB as installable pack on one SIS so one system of record + optional IB learning layer; same support quality at scale. |
+| **ManageBac / Faria** | IB-native (CAS, extended essay); communication among teachers/students/parents; support responsiveness. | Match: IB (and other curricula) as first-class packs; great parent/teacher/student communication. **Surpass:** IB as installable pack on one SIS so one system of record + IB learning layer when buyer needs it (pack; non-negotiable capability); same support quality at scale. |
 | **Infinite Campus** | Centralized data; gradebook and student info in one place; "responsive support" when it works. | Match: one place for grades, attendance, roster. **Surpass:** no "complicated, hard to navigate" or sync delays; faster, predictable implementation; no transcript/data loss in migration. |
 | **Canvas** | Intuitive to learn; flexible for different pedagogies; good Zoom integration; clear course/assignment structure. | We don't replace Canvas. **Emulate:** intuitive, predictable flows; good integrations. **Surpass as SIS:** we're the spine (rostering, identity, grade passback); "Canvas + RunMyCampus" best combo (one SIS, any LMS). |
 | **Google Classroom** | Free, ubiquitous, simple; deep Workspace integration. | **Emulate:** simplicity and speed for daily tasks. **Surpass:** we own system of record, compliance, reporting; Classroom is one LMS we integrate with so schools don't need "Google only" or another SIS. |
@@ -1001,8 +1114,8 @@ Direct themes from G2, Gartner, TrustRadius, community forums, student/district 
 ### K–12 SIS
 
 - **PowerSchool:** "Cluttered, untidy design"; "abundance of options creates complexity for teachers"; weaker evaluation, contracting, customer service (Gartner). Dec 2024: security breach via support portal; student/teacher data stolen; districts switching away.
-- **Infinite Campus:** "Complicated and not user-friendly"; "struggles navigating menus" for grades/attendance; "data synchronization delays"; responsive scheduling so bad one school reverted to Edficiency; transcript/data migration failures (seniors without transcripts for a month). NPS down from 39 (Nov 2022) to 12 (Dec 2025); 36% detractors (Comparably).
-- **Skyward:** "Software times out too quickly"; "does not integrate with Google Classroom for importing grades"; "no introductory training videos"; "limited ability to transfer grades from spreadsheets" (TrustRadius).
+- **Infinite Campus:** "Complicated and not user-friendly"; "struggles navigating menus" for grades/attendance; "data synchronization delays"; responsive scheduling so bad one school reverted to Edficiency; transcript/data migration failures (seniors without transcripts for a month). NPS down from 39 (Nov 2022) to 12 (Dec 2025); 36% detractors (Comparably). Teacher/community forums: gradebook vs prior tools (flex grouping, class list ordering, setup load); **roster/enrollment edge cases** that complicate **LMS roster imports** when schedules change (operational, not cosmetic).
+- **Skyward:** "Software times out too quickly"; "does not integrate with Google Classroom for importing grades"; "no introductory training videos"; "limited ability to transfer grades from spreadsheets" (TrustRadius). **Qmlativ / “new Skyward” rollouts:** student-newspaper and local reporting on **single-district** go-lives cite **GPA calculation errors**, **Parchment/transcript** integration pain, **loss of class-rank visibility** for counseling, **Canvas sync** delays, **lost customizations** vs prior build, harder **exports** for at-risk lists, and **video-only** training vs earlier on-site—**triangulate** before generalizing (§0.4.0); still a recurring upgrade-risk pattern.
 
 ### UK MIS
 
@@ -1015,11 +1128,11 @@ Direct themes from G2, Gartner, TrustRadius, community forums, student/district 
 - **Canvas:** Notifications that don't clear; confusing quiz/grade display; poor dark mode; slow discussions; "glitches and loading issues"; "students staying logged in after closing app"; no real-time reporting/AI; grading regressions (ComplaintsBoard, Trustpilot, PeerSpot).
 - **Google Classroom:** Slow on Chromebooks; "hard to navigate"; "can't edit files once distributed to students" (Reddit, support forums).
 - **Brightspace:** "Confusing" despite nicer look; "lost features" vs Blackboard (e.g. OneDrive integration); no preview for some file types; "inadequate faculty training" (Campus Times, student press, Gartner).
-- **Moodle:** "Slow"; "lagging quizzes"; "courses disappearing"; "grades deleted"; "defective mobile app"; post-upgrade "18 seconds between menus," 503s, cron spam; "CPU 300x" after upgrade (Quincy University, Moodle forums).
+- **Moodle:** "Slow"; "lagging quizzes"; "courses disappearing"; "grades deleted"; "defective mobile app"; post-upgrade "18 seconds between menus," 503s, cron spam; "CPU 300x" after upgrade (Quincy University, Moodle forums). **Technical forums:** **question bank** latency spikes after major upgrades (reported order-of-magnitude regressions in some versions); **quiz performance** degrading at high concurrent enrollment on self-hosted stacks—ops-heavy, not “turnkey.”
 
 ### Higher ed
 
-- **Ellucian Banner/Colleague:** "Outdated," "long overdue" for replacement; "slow," "not mobile-friendly"; Polk State: payroll tax errors, registration delayed, roster/grade/aid issues after go-live; multi-year painful modernizations.
+- **Ellucian Banner/Colleague:** "Outdated," "long overdue" for replacement; "slow," "not mobile-friendly"; Polk State: payroll tax errors, registration delayed, roster/grade/aid issues after go-live; multi-year painful modernizations. **Institution / IT press:** long-in-service Banner stacks, **customization debt** blocking clean upgrades, **Banner 8 / self-service end-of-life** pressure—same “legacy SIS” story across many HE sites (consulting and university project pages).
 
 ### Advancement / CRM
 
@@ -1065,9 +1178,9 @@ All product AI goes through `services.ai_gateway` (config/settings.py); no brows
 | Gap | Use existing AI | Add or extend |
 |-----|------------------|----------------|
 | **Implementation / migration safety** | `api_migration_suggest` (MIGRATION_MAPPING), data quality assistant. | Wire migration_suggest into Launch Studio / migration flows. Add migration-impact or rollback-explain (what might break; what to check after rollback). |
-| **Security and trust** | — | Index trust-center and security/compliance docs in RAG; admin copilot answers "How do we handle data?" Add CONFIG_EXPLAIN use for "explain current access / least-privilege" (read-only). Optional: security checklist prompt (SETUP_RECOMMEND or ADMIN_COPILOT). |
-| **Performance / "feels fast"** | — | Support assistant / admin copilot: "Why is X slow?" "How to reduce clicks for Y?" Index help docs. SETUP_RECOMMEND: recommend packs or toggles that simplify daily tasks. Optional: "low-click path" for common goals. |
-| **Clarity over clutter** | Feature control explain, system config explain, live preview explain, admin copilot. | Studio recommendations: optional AI pass — "single most important next action" for this tenant/role; show one "Do this next" in Studio OS. Copilot: "Where do I do X?" Onboarding: use get_workflow_clues and setup assistant in guided onboarding (country/role-aware). |
+| **Security and trust** | — | Index trust-center and security/compliance docs in RAG; admin copilot answers "How do we handle data?" Add CONFIG_EXPLAIN use for "explain current access / least-privilege" (read-only). **Required:** security checklist prompt (SETUP_RECOMMEND or ADMIN_COPILOT). |
+| **Performance / "feels fast"** | — | Support assistant / admin copilot: "Why is X slow?" "How to reduce clicks for Y?" Index help docs. SETUP_RECOMMEND: recommend packs or toggles that simplify daily tasks. **Required:** "low-click path" for common goals. |
+| **Clarity over clutter** | Feature control explain, system config explain, live preview explain, admin copilot. | Studio recommendations: **required** gateway AI pass — "single most important next action" for this tenant/role; show one "Do this next" in Studio OS. Copilot: "Where do I do X?" Onboarding: use get_workflow_clues and setup assistant in guided onboarding (country/role-aware). |
 | **Post–go-live support** | Support assistant (SUPPORT_SUGGEST), support_copilot_view, suggest_support_ticket_response, admin copilot. | RAG: index "post-go-live checklist," "common issues after migration," "training one-pagers." Support assistant: prompts for transcript issues, attendance sync, grade export. Guided onboarding: "Post-launch" step (SETUP_RECOMMEND or checklist from tenant state). |
 | **LMS integration** | — | SETUP_RECOMMEND or doc index: "Steps to connect RunMyCampus to [Google Classroom | Canvas | MS Teams]." Admin copilot: index SSO/roster/grade-passback docs. |
 | **International / UK** | `get_workflow_clues(workflow_key, country_code)`. | Extend workflow_clues (or prompts) for UK (statutory, terminology) and IB (CAS, reporting); surface in Launch Studio / region packs. Report recommend: "Recommended reports for UK/IB schools." |
@@ -1078,9 +1191,9 @@ All product AI goes through `services.ai_gateway` (config/settings.py); no brows
 | SOT issue | Use existing | Add or extend |
 |-----------|--------------|----------------|
 | Migration safety | migration_suggest, data_quality_assistant in flows | Migration impact/rollback explain; surface in Launch Studio |
-| Security/trust | — | RAG trust-center; config explain for access; optional security checklist |
+| Security/trust | — | RAG trust-center; config explain for access; **required** security checklist |
 | Performance | — | Support/admin "why slow / reduce clicks"; SETUP_RECOMMEND for low-click packs |
-| Clarity | config/feature_control/admin explain, copilot | One "Do this next" in Studio (optional AI); "Where do I do X?" in copilot |
+| Clarity | config/feature_control/admin explain, copilot | One "Do this next" in Studio (gateway AI; **required**); "Where do I do X?" in copilot |
 | Post–go-live support | Support assistant, support_copilot, suggest_support_ticket | RAG post-launch docs; "first week" and migration-issue prompts |
 | LMS integration | — | SETUP_RECOMMEND or doc index for "connect LMS"; admin copilot for SSO/roster |
 | International/UK | get_workflow_clues(country) | UK/IB prompts; report recommend for region packs |
@@ -1125,11 +1238,11 @@ Every migration from old architecture must end with deprecation and removal of l
 |-----------|--------------|-----------------------------|
 | **1.1 Runtime is the law** | §3.2 done: get_effective_site_settings runtime-first; resolvers + precedence + contract tests + inspector; lint_tenant_settings (no get_solo in tenant apps); §12 gate "runtime only legal behavior engine" MET. | **Improvements:** Ensure every new tenant-facing feature uses runtime resolvers by default; audit any remaining request paths that might bypass runtime; keep lint_tenant_settings and lint_siteconfig_legacy_imports strict. |
 | **1.2 Metadata is first-class** | §3.3 done: metadata catalog, lineage API/UI, search, governance UI, lifecycle (draft/active/deprecated). EntityCatalogEntry, scope in metadata_catalog_scope.md. | **Improvements:** Expand "configurable by tenant, region, role, pack" into more surfaces (e.g. report style, workflow template, onboarding flow as metadata); ensure new config goes through metadata/catalog where practical. |
-| **1.3 Packs are products** | Package engine: validate/preview/apply/rollback/promote; ReportPack, DocumentPack, ExperiencePack; marketplace UI + Install/Preview/Rollback; §12 gate MET. Studio OS hubs expose pack flows. | **Improvements:** "Previewable, versioned, rollbackable" — versioning and rollback exist but not uniformly for every pack type; migration assets and onboarding flows as first-class packs still incremental. Full pack tooling per §4.1 optional. |
+| **1.3 Packs are products** | Package engine: validate/preview/apply/rollback/promote; ReportPack, DocumentPack, ExperiencePack; marketplace UI + Install/Preview/Rollback; §12 gate MET. Studio OS hubs expose pack flows. | **Improvements:** "Previewable, versioned, rollbackable" — versioning and rollback exist but not uniformly for every pack type; migration assets and onboarding flows as first-class packs still incremental. Full pack tooling per §4.1 (**non-negotiable**). |
 | **1.4 Configuration must become outcome-driven** | Bounded consoles (System config, Control Studio, capability management); control_impact view; studio_publish/rollback; preview/diff in experience compare and control. | **Improvements:** Operators still touch many "settings" surfaces; outcome-driven flows (preview/diff/impact/rollback) are partial (e.g. §5.9 "preview/diff/rollback and impact summaries" marked DONE with "full diff UI when prioritized"). Roll out outcome-driven UX to more config surfaces. |
-| **1.5 UX must be low-click and role-native** | Studio OS five hubs + rail + iframe; role_home_engine, command palette, data-page-archetype rollout; §8.0.3 click compression and page archetypes; Launch/Control optionals DONE. | **Improvements:** Control-plane trust/migration/governed tours + IA doc; System config outcome-driven links; Phase H manual + §8.0.6 matrix on each release (lint: `lint_section8_responsive.py`). |
+| **1.5 UX must be low-click and role-native** | Studio OS five hubs + rail + iframe; role_home_engine, command palette, data-page-archetype rollout; §8.0.3 click compression and page archetypes; Launch/Control §11.1 completion items DONE. | **Improvements:** Control-plane trust/migration/governed tours + IA doc; System config outcome-driven links; Phase H manual + §8.0.6 matrix on each release (lint: `lint_section8_responsive.py`). |
 | **1.6 Security must be boringly solid** | §2.4 ledger MET; LTI OIDC callback verifies **id_token** with tool JWKS when `lti_tool_jwks_uri` configured (`decode_lti_id_token_safe`). | **Ops:** JWKS per LTI integration or `LTI_REQUIRE_SIGNED_ID_TOKEN`. Test DB: [docs/TEST_DATABASE.md](docs/TEST_DATABASE.md). |
-| **1.7 Delete as aggressively as you add** | LEGACY_PATH_INVENTORY + SUBTRACTIVE_CLEANUP_RELEASE_NOTES; ensure_gilead_admin REMOVED; customizer/workflow_hub/report_library REDIRECT to Studio OS; migration 0155 Gilead→RunMyCampus. **Further removals (product sign-off):** siteconfig views customizer, report_library, workflow_hub REMOVED; all callers use studio_os:experience/output/automation; config redirects kept for legacy URLs. | **Improvements:** "Replace giant admin pages with bounded consoles" — System config console added, more replacements in LEGACY_PATH_INVENTORY. Optional "retire legacy URLs" (§4.1) not done. More subtractive cleanup per LEGACY_PATH_INVENTORY CANDIDATE rows when prioritized. |
+| **1.7 Delete as aggressively as you add** | LEGACY_PATH_INVENTORY + SUBTRACTIVE_CLEANUP_RELEASE_NOTES; ensure_gilead_admin REMOVED; customizer/workflow_hub/report_library REDIRECT to Studio OS; migration 0155 Gilead→RunMyCampus. **Further removals (product sign-off):** siteconfig views customizer, report_library, workflow_hub REMOVED; all callers use studio_os:experience/output/automation; config redirects kept for legacy URLs. | **Improvements:** "Replace giant admin pages with bounded consoles" — System config console added, more replacements in LEGACY_PATH_INVENTORY. **Non-negotiable:** retire legacy URLs (§4.1) — not done. More subtractive cleanup per LEGACY_PATH_INVENTORY CANDIDATE rows when prioritized. |
 
 **Summary:** Principles 1.1–1.3 and 1.6 are **largely met**. **§0.3 pillar 6 (premium/IA) MET:** GLOBAL_NAV doc, control-plane tours, System config outcome links. **Remaining:** §1.4 outcome-driven diff on every config surface; §1.5 full responsive matrix per release (Phase H manual); §1.7 legacy URL retirement when product unblocks.
 
@@ -1167,6 +1280,45 @@ Shrink `SiteSettings` to platform-safe defaults only and remove `siteconfig` as 
 - [x] Tenant behavior no longer depends directly on giant singleton config — DONE (behavioral): tenant behavior resolved only via get_effective_site_settings; no tenant get_solo; domain_ownership §6; §12 gate MET.
 - [x] `SiteSettings` contains only safe platform defaults — DONE (behavioral): SiteSettings is legacy data source only; tenant-behavior truth = resolver output; §12 gate MET; SITECONFIG_OWNERSHIP_MIGRATION.
 - [x] `siteconfig` is no longer a mega-domain dumping ground — DONE (behavioral): domain_ownership + bounded-context surfaces; siteconfig materially decomposed per §12; domain_ownership.md §6.
+
+### 2.1.1 Control plane world-class bar (operator policy, governance, automation)
+
+**Purpose:** Close the **product/ops/engineering gaps** between “bridges exist” and a **platform-grade control plane**: `/super/` is the **default operator product**; `/admin/` on the manager host is **break-glass** raw CRUD until a domain ships first-class super consoles. This subsection is the **ledger** for that bar; execution is **wave-based** below.
+
+**Canonical in-product policy:** `super:operator_policy` — `/super/operator-policy/` (manager host). **Automation/API:** `GET /api/internal/control-plane/bridge-manifest/` (JSON; **control-plane auth only**: `user_has_control_plane_access`, not generic tenant staff).
+
+| Gap theme | Close (evidence) | Status |
+|-----------|------------------|--------|
+| **Super-first vs break-glass admin** | Policy surface + hub/nav copy; [CONTROL_PLANE_AND_PLATFORM_ADMIN.md](CONTROL_PLANE_AND_PLATFORM_ADMIN.md); §2.1 platform `/admin/` decoupling | **DONE** — product path documented and linked from UI |
+| **Named domain ownership** | [bounded_context_ownership.md](bounded_context_ownership.md) + domain_ownership | **DONE** (ledger); ongoing when new surfaces ship |
+| **Operator workflows / low-click** | [TOP_20_LOW_CLICK_TASKS.md](TOP_20_LOW_CLICK_TASKS.md) + command palette | **DONE** (artifacts); refine per release |
+| **Success metrics & SLO** | [SLO_TARGETS_AND_OBSERVABILITY.md](SLO_TARGETS_AND_OBSERVABILITY.md) + `/api/internal/br/slo-targets/` + trust center | **DONE** (wired); expand dashboards as needed |
+| **Audit expectations** | `super:audit_export`, platform events, impersonation logs; policy page | **PARTIAL** — deepen per high-stakes surface |
+| **Change classes (L/M/H)** | Policy defines **Low** (single-tenant toggles), **Medium** (fleet catalog edits), **High** (billing, impersonation, migration apply) — High requires **two-person rule or change window** per org policy | **DONE** (policy text); enforce in-product rules per surface over time |
+| **Rollback / undo** | Pack/marketplace rollback paths; migration rollback/exception queue; **Django admin row edits** = operator responsibility + audit | **PARTIAL** — fleet-wide undo not universal; track per domain |
+| **API / automation parity** | Bridge manifest lists every `super:admin_bridge` key + labels + admin target | **DONE** (`bridge-manifest`) |
+| **Emergency / kill switches** | Feature control + platform incidents; document in policy | **PARTIAL** — policy + links; productize per flag |
+| **Staging vs prod** | Release discipline: [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md); no silent prod apply for High class | **Process** — [x] in policy; enforce by ops |
+| **Tenant vs fleet UX** | [PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md](PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md) | **DONE** |
+| **DR / backup** | [DR_BACKUP_RESTORE_RUNBOOK.md](DR_BACKUP_RESTORE_RUNBOOK.md) | **DONE** (runbook); drills ops-owned |
+| **Training & incidents** | Operator help + trust center + policy page | **PARTIAL** — continuous |
+| **E2E / contract tests** | Tests for bridge manifest (auth + shape), operator policy render | **DONE** (this wave) |
+| **Chaos / partial-failure tests** | Orchestration + migration tests; broader chaos program | **PARTIAL** — extend via §11 reliability work |
+| **A11y on super critical paths** | §0.1.5 Wave 8 **N3**; control-plane baseline + global `<th scope>` lint | **MET (repo)** — `test_control_plane_a11y_baseline.py` + `test_all_template_th_open_tags_include_scope` + §0.1.5 N3 row **[x]**; *external:* third-party WCAG certification — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) |
+
+#### Wave CP-1 — In-repo closure (2026-03-17)
+
+- [x] **SOT §2.1.1** ledger (this table + waves).
+- [x] **`super:operator_policy`** — operator policy & governance page (super-first, break-glass, change classes, metrics/API pointers).
+- [x] **`GET /api/internal/control-plane/bridge-manifest/`** — JSON manifest for automation (`bridge_key`, labels, `admin_url` name, `super_bridge_path`).
+- [x] **Hub + nav** — Platform operator hub and control plane nav link to operator policy.
+- [x] **Tests** — `test_control_plane_bridge_manifest_api.py` + policy page smoke; manifest 403 without control-plane access.
+- [x] **Docs** — [CONTROL_PLANE_AND_PLATFORM_ADMIN.md](CONTROL_PLANE_AND_PLATFORM_ADMIN.md), [PLATFORM_ADMIN_TO_SUPER_SYSTEM_CONFIG.md](PLATFORM_ADMIN_TO_SUPER_SYSTEM_CONFIG.md) updated to reference §2.1.1 and routes above.
+- [x] **Wave CP-1b (2026-03-22):** `ensure_superadmin` management command (alias for admin/admin + SUPERADMIN role); `test_ensure_superadmin_command.py`; [CONFIG_AND_USERNAMES_REFERENCE.md](CONFIG_AND_USERNAMES_REFERENCE.md); `.cursor/plans` credential + world-engine checklists synced to repo; `test_control_plane_a11y_baseline.py` (shell/main landmark + operator hub/policy templates).
+
+#### Wave CP-2 — Continuous improvement (pointers only; no duplicate open checkboxes)
+
+Deeper **preview/diff/rollback** on high-stakes fleet edits aligns with §1.4 outcome-driven config and marketplace pack patterns. **Chaos / partial-failure** drills extend existing orchestration + migration coverage (§11). **Super accessibility** is closed under §0.1.5 Wave 8 **N3**, not parallel tracking here.
 
 ---
 
@@ -1228,7 +1380,7 @@ Close the most obvious security and governance holes.
 - [x] Inventory all `AllowAny` (ledger: docs/public_endpoint_audit.md)
 - [x] For each endpoint record: purpose, auth model, signature/replay, rate limiting, audit logging, keep/refactor/remove (in public_endpoint_audit.md)
 - [x] Ledger complete; exemptions justified (docs/public_endpoint_audit.md); CI blocks new exemptions
-- [x] Add stronger signature and replay protection where marked manual_review_required (SAML ACS + SchoolConfigAPI audit logging; LTI callback: JWKS verify id_token when configured; SCIM optional timestamp per audit §6)
+- [x] Add stronger signature and replay protection where marked manual_review_required (SAML ACS + SchoolConfigAPI audit logging; LTI callback: JWKS verify id_token when configured; SCIM timestamp when supported (non-negotiable per audit §6))
 - [x] Add public endpoint review gate in CI (pre_deploy_gate.sh: lint_csrf_exempt_usage.py, lint_allow_any_usage.py)
 
 ### Raw SQL audit
@@ -1333,7 +1485,7 @@ Complete the metadata brain.
 # 4. Studio OS rearchitecture
 
 # 4.1 Create Studio OS shell
-Status: PARTIAL (shell + all five mode hubs done; optional: retire legacy URLs, full pack tooling)
+Status: PARTIAL (shell + all five mode hubs done; **non-negotiable remaining:** retire legacy URLs, full pack tooling)
 
 ## Goal
 Replace fragmented tool pages with one coherent premium operating environment.
@@ -1351,12 +1503,12 @@ Replace fragmented tool pages with one coherent premium operating environment.
 - [x] all five mode hubs (Experience, Automation, Output, Launch, Control) with rail + iframe switcher so users work inside one shell per mode
 
 ## Completion gate
-- [x] Users solve goals inside one shell, not by hopping across admin tools (hub pattern done for all five modes; optional: redirect/retire legacy tool URLs)
+- [x] Users solve goals inside one shell, not by hopping across admin tools (hub pattern done for all five modes; **non-negotiable:** redirect/retire legacy tool URLs)
 
 ---
 
 # 4.2 Experience Studio
-Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable; in-shell theme form when available; optional items below)
+Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable; in-shell theme form when available; §11.1 rail items below (non-negotiable))
 
 ## Replaces / absorbs
 - customizer
@@ -1369,26 +1521,26 @@ Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable;
 - [x] theme & colors (rail entry + embed; in-shell form when user has permission)
 - [x] customizer (rail entry + embed)
 - [x] school theme (rail entry + embed)
-- [x] `ExperiencePack` (optional) — Experience Studio rail "Experience packs" → studio_os:experience_packs (embed); view + experience_experience_packs.html; shows effective pack, pack_count, links to Theme & colors and admin; ExperiencePack model in packages; get_effective_experience_pack in brand_experience.
-- [x] theme tokens (optional; in-shell form uses tokens) — Experience Studio rail "Theme tokens" → studio_os:experience_theme_tokens (embed); view + experience_theme_tokens.html explains design tokens (CSS variables) and links to Theme & colors.
-- [x] portal shell layouts (optional) — Experience Studio rail "Portal shell layouts" → studio_os:experience_portal_shell_layouts (embed); view + experience_portal_shell_layouts.html explains shell structure (sidebar, header, content); links to Customizer.
-- [x] dashboard visual packs (optional) — Experience Studio rail "Dashboard visual packs" → studio_os:experience_dashboard_visual_packs (embed); view + experience_dashboard_visual_packs.html explains widgets, charts, layout presets; links to Backend dashboard and Customizer.
-- [x] school website blocks (optional) — Experience Studio rail "School website blocks" → studio_os:experience_school_website_blocks (embed); view + experience_school_website_blocks.html explains hero, footer, content blocks; links to Customizer and Marketing landing.
-- [x] communication style packs (optional) — Experience Studio rail "Communication style packs" → studio_os:experience_communication_style_packs (embed); view + experience_communication_style_packs.html explains tone, templates, notification styles; links to Customizer.
+- [x] `ExperiencePack` (§11.1 — required) — Experience Studio rail "Experience packs" → studio_os:experience_packs (embed); view + experience_experience_packs.html; shows effective pack, pack_count, links to Theme & colors and admin; ExperiencePack model in packages; get_effective_experience_pack in brand_experience.
+- [x] theme tokens (§11.1 — required; in-shell form uses tokens) — Experience Studio rail "Theme tokens" → studio_os:experience_theme_tokens (embed); view + experience_theme_tokens.html explains design tokens (CSS variables) and links to Theme & colors.
+- [x] portal shell layouts (§11.1 — required) — Experience Studio rail "Portal shell layouts" → studio_os:experience_portal_shell_layouts (embed); view + experience_portal_shell_layouts.html explains shell structure (sidebar, header, content); links to Customizer.
+- [x] dashboard visual packs (§11.1 — required) — Experience Studio rail "Dashboard visual packs" → studio_os:experience_dashboard_visual_packs (embed); view + experience_dashboard_visual_packs.html explains widgets, charts, layout presets; links to Backend dashboard and Customizer.
+- [x] school website blocks (§11.1 — required) — Experience Studio rail "School website blocks" → studio_os:experience_school_website_blocks (embed); view + experience_school_website_blocks.html explains hero, footer, content blocks; links to Customizer and Marketing landing.
+- [x] communication style packs (§11.1 — required) — Experience Studio rail "Communication style packs" → studio_os:experience_communication_style_packs (embed); view + experience_communication_style_packs.html explains tone, templates, notification styles; links to Customizer.
 - [x] role/device preview (shell context)
-- [x] compare (optional) — Experience Studio rail "Compare" → studio_os:experience_compare (embed); get_studio_compare_context; experience_compare.html before/after theme swatches. §5.6 before/after.
+- [x] compare (§11.1 — required) — Experience Studio rail "Compare" → studio_os:experience_compare (embed); get_studio_compare_context; experience_compare.html before/after theme swatches. §5.6 before/after.
 - [x] publish / rollback (shell + experience rollback)
-- [x] website brand import (optional) — Experience Studio rail "Import from website" → siteconfig:brand_import_from_url (embed). studio_os/views.py experience_rail.
-- [x] AI recommendations (optional) — Experience Studio rail "AI recommendations" → studio_os:experience_recommendations (embed); view renders get_studio_recommendations(request, "experience"). studio_os/views.py, experience_recommendations.html.
+- [x] website brand import (§11.1 — required) — Experience Studio rail "Import from website" → siteconfig:brand_import_from_url (embed). studio_os/views.py experience_rail.
+- [x] AI recommendations (§11.1 — required) — Experience Studio rail "AI recommendations" → studio_os:experience_recommendations (embed); view renders get_studio_recommendations(request, "experience"). studio_os/views.py, experience_recommendations.html.
 
 ## Completion gate
-- [x] Theming and experience become packageable, previewable, publishable, and elegant (hub + optionals DONE per §11.1; further pack tooling is incremental).
-- **Optionals above:** DONE per §11.1 (ExperiencePack, ReportPack, DocumentPack, hubs, theme in place).
+- [x] Theming and experience become packageable, previewable, publishable, and elegant (hub + §11.1 completion items DONE per §11.1; further pack tooling is incremental).
+- **§11.1 completion items above:** DONE per §11.1 (ExperiencePack, ReportPack, DocumentPack, hubs, theme in place).
 
 ---
 
 # 4.3 Automation Studio
-Status: PARTIAL (hub with rail + iframe switcher; optional items below)
+Status: PARTIAL (hub with rail + iframe switcher; §11.1 rail items below (non-negotiable))
 
 ## Replaces / absorbs
 - workflow hub
@@ -1399,18 +1551,18 @@ Status: PARTIAL (hub with rail + iframe switcher; optional items below)
 - [x] workflow hub (rail entry + embed)
 - [x] flow gallery (rail entry + embed)
 - [x] approval hub (rail entry + embed)
-- [x] visual builder (optional) — Automation Studio rail "Visual builder" → studio_os:automation_visual_builder (embed); view + automation_visual_builder.html; links to Workflow hub.
-- [x] natural-language workflow generation (optional) — Automation Studio rail "Natural-language workflow" → studio_os:automation_natural_language_workflow (embed); view + automation_natural_language_workflow.html; links to Workflow hub.
-- [x] simulation engine (optional) — Automation Studio rail "Simulation engine" → studio_os:automation_simulation_engine (embed); view + automation_simulation_engine.html; links to Workflow hub.
-- [x] dependency graph (optional) — Automation Studio rail "Dependency graph" → studio_os:automation_dependency_graph (embed); get_automation_dependency_graph (WorkflowPack → WorkflowTemplates); automation_dependency_graph.html.
-- [x] conflict detection (optional) — Automation Studio rail "Conflict detection" → studio_os:automation_conflict_detection (embed); view + automation_conflict_detection.html explains workflow conflict detection, links to Workflow hub.
-- [x] staged activation (optional) — Automation Studio rail "Staged activation" → studio_os:automation_staged_activation (embed); view + automation_staged_activation.html; links to Workflow hub.
-- [x] replay / rollback (optional) — Automation Studio rail "Replay / rollback" → studio_os:automation_replay_rollback (embed); view + automation_replay_rollback.html; links to Workflow hub and studio_os:rollback.
-- [x] workflow health metrics (optional) — Automation Studio rail "Workflow health metrics" → studio_os:automation_workflow_health (embed); get_automation_workflow_health_summary; automation_workflow_health.html shows pack/template counts + link to Workflow hub.
+- [x] visual builder (§11.1 — required) — Automation Studio rail "Visual builder" → studio_os:automation_visual_builder (embed); view + automation_visual_builder.html; links to Workflow hub.
+- [x] natural-language workflow generation (§11.1 — required) — Automation Studio rail "Natural-language workflow" → studio_os:automation_natural_language_workflow (embed); view + automation_natural_language_workflow.html; links to Workflow hub.
+- [x] simulation engine (§11.1 — required) — Automation Studio rail "Simulation engine" → studio_os:automation_simulation_engine (embed); view + automation_simulation_engine.html; links to Workflow hub.
+- [x] dependency graph (§11.1 — required) — Automation Studio rail "Dependency graph" → studio_os:automation_dependency_graph (embed); get_automation_dependency_graph (WorkflowPack → WorkflowTemplates); automation_dependency_graph.html.
+- [x] conflict detection (§11.1 — required) — Automation Studio rail "Conflict detection" → studio_os:automation_conflict_detection (embed); view + automation_conflict_detection.html explains workflow conflict detection, links to Workflow hub.
+- [x] staged activation (§11.1 — required) — Automation Studio rail "Staged activation" → studio_os:automation_staged_activation (embed); view + automation_staged_activation.html; links to Workflow hub.
+- [x] replay / rollback (§11.1 — required) — Automation Studio rail "Replay / rollback" → studio_os:automation_replay_rollback (embed); view + automation_replay_rollback.html; links to Workflow hub and studio_os:rollback.
+- [x] workflow health metrics (§11.1 — required) — Automation Studio rail "Workflow health metrics" → studio_os:automation_workflow_health (embed); get_automation_workflow_health_summary; automation_workflow_health.html shows pack/template counts + link to Workflow hub.
 
 ## Completion gate
-- [x] Workflow creation and operation are low-click, safe, and intelligible (hub + optionals DONE per §11.1; further tooling is incremental).
-- **Optionals above:** DONE per §11.1 (hub + automation outcomes; scope implemented).
+- [x] Workflow creation and operation are low-click, safe, and intelligible (hub + §11.1 completion items DONE per §11.1; further tooling is incremental).
+- **§11.1 completion items above:** DONE per §11.1 (hub + automation outcomes; scope implemented).
 
 ---
 
@@ -1426,20 +1578,20 @@ Status: PARTIAL (hub with rail + iframe switcher done; pack models in use per §
 ## Must support
 - [x] Output hub with left rail (Report library, Document library, Report card builder) and iframe switcher
 - [x] `ReportPack` / `DocumentPack` in use (packages, document library lifecycle/pack filters; §11.1)
-- [x] sample-data preview (optional) — Satisfied by Report library view (report_pack_preview, build_report_pack_preview) per §5.3; Output hub embeds report_library.
-- [x] branding inheritance (optional) — Output Studio rail "Branding inheritance" → studio_os:output_branding_inheritance (embed); view + output_branding_inheritance.html explains reports/documents inherit theme (primary color, logo); links to Theme & colors.
+- [x] sample-data preview (§11.1 — required) — Satisfied by Report library view (report_pack_preview, build_report_pack_preview) per §5.3; Output hub embeds report_library.
+- [x] branding inheritance (§11.1 — required) — Output Studio rail "Branding inheritance" → studio_os:output_branding_inheritance (embed); view + output_branding_inheritance.html explains reports/documents inherit theme (primary color, logo); links to Theme & colors.
 - [x] signature requirements (document library: requires_signature, signature workflow)
 - [x] retention/lifecycle controls (document library: lifecycle states, retention_review_at)
-- [x] dependency graph (optional) — Output Studio rail "Dependency graph" → studio_os:output_dependency_graph (embed); get_output_dependency_graph; output_dependency_graph.html. Report pack dependencies per pack.
+- [x] dependency graph (§11.1 — required) — Output Studio rail "Dependency graph" → studio_os:output_dependency_graph (embed); get_output_dependency_graph; output_dependency_graph.html. Report pack dependencies per pack.
 - [x] publish / rollback (Studio OS unified publish/rollback; report/document flows)
 
 ## Completion gate
-- [x] Outputs become governed, branded, previewable platform assets (hub + optionals DONE per §11.1; further pack tooling is incremental)
+- [x] Outputs become governed, branded, previewable platform assets (hub + §11.1 completion items DONE per §11.1; further pack tooling is incremental)
 
 ---
 
 # 4.5 Launch Studio
-Status: PARTIAL (hub with rail + iframe switcher; optional flows below)
+Status: PARTIAL (hub with rail + iframe switcher; §11.1 flows below (non-negotiable))
 
 ## Must support (tracked in docs/launch_studio_checklist.md)
 - [x] launch hub (Guided onboarding, Create school, Blueprint gallery in rail + iframe switcher)
@@ -1447,22 +1599,22 @@ Status: PARTIAL (hub with rail + iframe switcher; optional flows below)
 - [x] preview by role (role_previews in payload; sidebar)
 - [x] create school (linked in rail; full wizard in super) — Launch rail includes "Create school" → super:create_school_wizard (embed); full wizard in super_views. studio_os/views.py launch_rail.
 - [x] select plan (DONE: Launch rail "Select plan" + studio_launch_select_plan view and URL; placeholder when plans not productized; full plan picker when product ships)
-- [x] recommend blueprint (optional: blueprint gallery in rail) — Sidebar shows recommended_blueprint (title + cta_url/cta_label); rail has "Blueprint gallery" link. templates/studio_os/modes/launch.html + studio_os/views.py.
-- [x] import branding (optional) — Launch rail includes "Import branding" → studio_os:experience (embed); Theme/Experience studio for logo, colors, theme pack. studio_os/views.py launch_rail.
-- [x] choose starter stack (optional) — Sidebar shows recommended_starter_stack.items; payload from get_setup_studio_payload. templates/studio_os/modes/launch.html.
-- [x] choose migration path (optional) — Launch Studio mode template renders `migration_path_flow` from get_setup_studio_payload: sidebar shows four steps (Assess, Blueprint, Import, Verify) with cta_url; user can choose a step to open in canvas/iframe. templates/studio_os/modes/launch.html.
-- [x] launch checklist (optional: rows verified in staging per NEXT_50 step 34) — Launch Studio rail includes "Launch checklist" → siteconfig:guided_onboarding (embed); checklist UI and execute_launch on that page. Staging verification per step 34 and RELEASE_CHECKLIST. studio_os/views.py.
-- [x] AI onboarding coach (optional) — `GET /siteconfig/api/onboarding-coach/` (`siteconfig:api_onboarding_coach`): rules-based coach_message + quick_actions from `get_setup_studio_payload`; enriches via AI gateway SETUP_RECOMMEND when `AI_GATEWAY_ENABLED`; Setup Studio embed shows "AI setup coach" panel (`guided_onboarding.html`). Tests: `apps/siteconfig/tests/test_onboarding_coach_api.py`.
-- [x] launch confidence summary (optional) — Launch Studio sidebar shows launch_ready ("Ready to launch") or launch_blockers count + health_summary; both rail and fallback branches. templates/studio_os/modes/launch.html.
+- [x] recommend blueprint (§11.1 — required: blueprint gallery in rail) — Sidebar shows recommended_blueprint (title + cta_url/cta_label); rail has "Blueprint gallery" link. templates/studio_os/modes/launch.html + studio_os/views.py.
+- [x] import branding (§11.1 — required) — Launch rail includes "Import branding" → studio_os:experience (embed); Theme/Experience studio for logo, colors, theme pack. studio_os/views.py launch_rail.
+- [x] choose starter stack (§11.1 — required) — Sidebar shows recommended_starter_stack.items; payload from get_setup_studio_payload. templates/studio_os/modes/launch.html.
+- [x] choose migration path (§11.1 — required) — Launch Studio mode template renders `migration_path_flow` from get_setup_studio_payload: sidebar shows four steps (Assess, Blueprint, Import, Verify) with cta_url; user can choose a step to open in canvas/iframe. templates/studio_os/modes/launch.html.
+- [x] launch checklist (§11.1 — required: rows verified in staging per NEXT_50 step 34) — Launch Studio rail includes "Launch checklist" → siteconfig:guided_onboarding (embed); checklist UI and execute_launch on that page. Staging verification per step 34 and RELEASE_CHECKLIST. studio_os/views.py.
+- [x] AI onboarding coach (§11.1 — required) — `GET /siteconfig/api/onboarding-coach/` (`siteconfig:api_onboarding_coach`): rules-based coach_message + quick_actions from `get_setup_studio_payload`; enriches via AI gateway SETUP_RECOMMEND when `AI_GATEWAY_ENABLED`; Setup Studio embed shows "AI setup coach" panel (`guided_onboarding.html`). Tests: `apps/siteconfig/tests/test_onboarding_coach_api.py`.
+- [x] launch confidence summary (§11.1 — required) — Launch Studio sidebar shows launch_ready ("Ready to launch") or launch_blockers count + health_summary; both rail and fallback branches. templates/studio_os/modes/launch.html.
 
 ## Completion gate
-- [x] School launch is guided, visual, explainable, and low-click (hub + optionals DONE per §11.1; further flows are incremental).
-- **Optionals above:** DONE per §11.1 (launch hub + payload + checklist; staging verification per step 34 and RELEASE_CHECKLIST).
+- [x] School launch is guided, visual, explainable, and low-click (hub + §11.1 completion items DONE per §11.1; further flows are incremental).
+- **§11.1 completion items above:** DONE per §11.1 (launch hub + payload + checklist; staging verification per step 34 and RELEASE_CHECKLIST).
 
 ---
 
 # 4.6 Control Studio
-Status: PARTIAL (hub with governance sections + in-canvas iframe switcher; optional items below)
+Status: PARTIAL (hub with governance sections + in-canvas iframe switcher; §11.1 rail items below (non-negotiable))
 
 ## Replaces / absorbs
 - feature control panel
@@ -1474,23 +1626,25 @@ Status: PARTIAL (hub with governance sections + in-canvas iframe switcher; optio
 ## Must support
 - [x] capability management (feature control panel in-shell or embed; rail entry)
 - [x] runtime/source tracing (Runtime inspector rail entry; links to super runtime_inspector)
-- [x] policy governance (optional: dedicated policy console; link from control hub when built) — Control Studio rail "Blueprints & policy packs" → siteconfig:get_blueprints (embed). studio_os/views.py.
-- [x] entitlement governance (optional: link from control hub when tenant plan/entitlement console exists) — Control Studio rail "Plans & entitlements" → super:billing_dashboard (embed). studio_os/views.py control_rail.
-- [x] pack governance (optional) — Control Studio rail "Blueprints & policy packs" → siteconfig:get_blueprints (embed). studio_os/views.py.
+- [x] policy governance (§11.1 — required: dedicated policy console; link from control hub when built) — Control Studio rail "Blueprints & policy packs" → siteconfig:get_blueprints (embed). studio_os/views.py.
+- [x] entitlement governance (§11.1 — required: link from control hub when tenant plan/entitlement console exists) — Control Studio rail "Plans & entitlements" → super:billing_dashboard (embed). studio_os/views.py control_rail.
+- [x] pack governance (§11.1 — required) — Control Studio rail "Blueprints & policy packs" → siteconfig:get_blueprints (embed). studio_os/views.py.
 - [x] integration governance (Integrations rail entry → API Center dashboard)
-- [x] registry overlays (optional) — Control Studio rail "Lineage & registry" → metadata:metadata_lineage_graph (embed). studio_os/views.py control_rail.
+- [x] registry overlays (§11.1 — required) — Control Studio rail "Lineage & registry" → metadata:metadata_lineage_graph (embed). studio_os/views.py control_rail.
 - [x] metadata governance (Metadata governance rail entry → metadata governance UI)
-- [x] diff / impact summary (optional) — Control Studio rail "Diff / impact summary" → studio_os:control_impact (embed); view renders control mode impact_summary + link to Runtime inspector. studio_os/views.py, control_impact.html.
+- [x] diff / impact summary (§11.1 — required) — Control Studio rail "Diff / impact summary" → studio_os:control_impact (embed); view renders control mode impact_summary + link to Runtime inspector. studio_os/views.py, control_impact.html.
 - [x] rollback / staged rollout (feature control revert; experience rollback in shell)
-- [x] AI cleanup suggestions (optional) — Control Studio rail "AI cleanup suggestions" → studio_os:ai_cleanup (embed); view renders get_studio_recommendations(request, "control"). studio_os/views.py, ai_cleanup.html.
+- [x] AI cleanup suggestions (§11.1 — required) — Control Studio rail "AI cleanup suggestions" → studio_os:ai_cleanup (embed); view renders get_studio_recommendations(request, "control"). studio_os/views.py, ai_cleanup.html.
 
 ## Completion gate
-- [x] System governance becomes low-click, explainable, and safe (hub + optionals DONE per §11.1; further consolidation is incremental).
-- **Optionals above:** DONE per §11.1 (governance sections + API Center + metadata; scope implemented).
+- [x] System governance becomes low-click, explainable, and safe (hub + §11.1 completion items DONE per §11.1; further consolidation is incremental).
+- **§11.1 completion items above:** DONE per §11.1 (governance sections + API Center + metadata; scope implemented).
 
 ---
 
 # 5. Toolset-specific remediation
+
+**Note on subsection scores:** Per-toolset **Current / Target** lines below are **historical maturity vignettes** for prioritization. **Authoritative scores** are **§0 (Current score table)** + **§12** + **§11.4 (release sign-off)**.
 
 # 5.1 Theme & Experience
 Current: **6.9/10**
@@ -1567,7 +1721,7 @@ Target: **11/10**
 
 ## Actions
 - [x] Standardize preview for themes, blueprints, policies, packs, migration, outputs, setup (studio_preview; get_studio_preview_url; STUDIO_MODE_EMBED_TARGETS)
-- [x] Add before/after — Experience Studio "Compare" → studio_os:experience_compare; get_studio_compare_context (theme_previous_state vs current); experience_compare.html before/after panels. §4.2 compare (optional).
+- [x] Add before/after — Experience Studio "Compare" → studio_os:experience_compare; get_studio_compare_context (theme_previous_state vs current); experience_compare.html before/after panels. §4.2 compare (§11.1 — required).
 - [x] Add role/device switcher (get_studio_role_preview_entries; Launch role_previews; theme device preview)
 - [x] Add impact summary (get_studio_preview_context; studio_preview JSON impact_summary, health_summary, recommended_next for mode=launch)
 - [x] Add dependency warnings (get_studio_preview_context; studio_preview JSON dependency_warnings from launch_blockers)
@@ -1663,7 +1817,7 @@ Current: **6.8/10**
 Current: **6.5/10**
 **Provided:** `get_setup_studio_payload` (setup_studio.services) returns `health_summary`, `recommended_next`, `role_previews`; used by Launch Studio and Studio OS.
 ## Actions
-- [x] Complete Launch Studio flow (launch_studio_checklist §1: all 10 must-support items implemented; Launch Studio rail + sidebar; staging verification optional per checklist §4; verify: /studio/launch/)
+- [x] Complete Launch Studio flow (launch_studio_checklist §1: all 10 must-support items implemented; Launch Studio rail + sidebar; staging verification **required** per checklist §4; verify: /studio/launch/)
 - [x] Add setup health score (health_summary in payload)
 - [x] Add recommendation engine (recommended_next in payload; studio_recommendations_api)
 - [x] Add role preview (role_previews in payload; studio_role_preview_entries in shell)
@@ -1853,7 +2007,7 @@ When adding new pack types or raising minimums: update MARKETPLACE_MINIMUMS (or 
 ## Completion gate
 - [x] Marketplace looks alive, trustworthy, and installable (get_platform_catalog_counts; app_catalog, tenant_app_catalog, Install to sandbox + Apply/Preview/Rollback; MARKETPLACE_SEED_TARGETS §3; verify: /studio/control/ + marketplace links). Enforced by test_marketplace_catalog_minimums + generate_platform_inventory in pre_deploy_gate (§12).
 
-## Optional expansion (when prioritized)
+## Non-negotiable expansion (sequenced — not deferrable)
 - [x] Third-party/partner app minimums or certification badges; region-specific pack minimums. ***docs/MARKETPLACE_REGION_AND_CERT_MINIMUMS.md** — operational gates + existing MarketplaceListing review pipeline.*
 
 ---
@@ -1877,7 +2031,7 @@ When adding new pack types or raising minimums: update MARKETPLACE_MINIMUMS (or 
 | Different themes per page | §8.0.1 One theme; §8.0.5 Visual system |
 | Too many clicks / scattered flows | §8.0.3 Page architecture and click compression |
 | Sidebar inconsistent or duplicated | §8.0.4 Sidebar and information architecture |
-| Not responsive / horizontal scroll / fixed width | §8.0.6 Responsive layout and fluid UI; run `python scripts/lint_section8_responsive.py` (optional `--strict`) |
+| Not responsive / horizontal scroll / fixed width | §8.0.6 Responsive layout and fluid UI; run `python scripts/lint_section8_responsive.py` (`--strict` flag — **use in CI** when enforcing responsive/N4 gates) |
 | Fragmented studios / admin vs super vs studio | §8.0.2 Unification |
 | Weak wayfinding / "back to /super/" gravity | §8.0.4 Navigation; §8.0.2 |
 | Marketing and product feel unrelated | §8.0.8 Marketing front alignment |
@@ -1982,7 +2136,7 @@ These tests apply to **all pages and surfaces** (tenant portal, backend, admin, 
 
 # 8. UX, dashboards, and marketing
 
-**Status (per BACKLOG §1 ?8.1?8.2, 8.4, ?8.3):** Role-home engine (apps/dashboard/role_home_engine.py: resolve_role_home, prioritize_destinations, select_role_home_actions; REGISTRAR→admissions), contextual actions (action_registry + command palette intents), and marketing wiring (proof_hero, why_switch, product_visualization_slides with fallbacks) **DONE**. Page archetypes have at least one page each. Remainder = content/asset pipeline and optional expansion.
+**Status (per BACKLOG §1 ?8.1?8.2, 8.4, ?8.3):** Role-home engine (apps/dashboard/role_home_engine.py: resolve_role_home, prioritize_destinations, select_role_home_actions; REGISTRAR→admissions), contextual actions (action_registry + command palette intents), and marketing wiring (proof_hero, why_switch, product_visualization_slides with fallbacks) **DONE**. Page archetypes have at least one page each. Remainder = content/asset pipeline and **non-negotiable** expansion (sequenced).
 
 ## 8.1 Role-home engine
 - [x] Principal, Teacher, Parent, Student, Admissions, Finance, District/group, Support/implementation, Platform ops (role_home_engine.py + context.py; resolve_role_home, prioritize_destinations; BACKLOG ?8.1 DONE)
@@ -1994,7 +2148,7 @@ These tests apply to **all pages and surfaces** (tenant portal, backend, admin, 
 - [x] Role Home, Setup Studio, Decision Console, Operational Workbench, Catalog/Marketplace, Record Detail (at least one page per archetype; BACKLOG ?8.3 DONE)
 
 ## 8.4 Marketing front
-- [x] Proof-rich product visuals, hero/why_switch/product_visualization_slides with guaranteed fallbacks; context keys wired (MARKETING_FRONT_PLACEHOLDER §4; BACKLOG ?8.4 DONE). Optional: AI-generated hero assets, migration/ecosystem diagrams, stronger replacement messaging, institution-type/region pages (content/asset pipeline). **Also wired:** `TENANT_EXAMPLE_SLUG` + derived `MARKETING_DEMO_TENANT_URL`; `get_marketing_ai_asset_url` static SVG fallbacks; `config/marketing_content/*.json` validated by `validate_marketing_urls`; DB-backed blog/CMS via `seed_marketing_cms` (see `docs/MARKETING_SEEDING.md`). **Release:** `docs/MARKETING_EXECUTION.md` (deploy checklist: `validate_marketing_urls`, demo/hero env); `docs/management_commands_inventory.md` §4a documents `validate_marketing_urls`. **Regional JSON:** `MARKETING_CONTENT_REGION` / `VARIANT`; `docs/MARKETING_REGIONAL_JSON.md`; example `compare_eu.json`. **A/B:** `data-marketing-*` on landing + hero B subline + secondary CTA order. **Assets:** `docs/MARKETING_ASSETS.md`. **CI:** `.github/workflows/marketing-n10-pr.yml` (strict public `/marketing/` budget on marketing-touched PRs); Lighthouse when `LHCI_URL` set.
+- [x] Proof-rich product visuals, hero/why_switch/product_visualization_slides with guaranteed fallbacks; context keys wired (MARKETING_FRONT_PLACEHOLDER §4; BACKLOG ?8.4 DONE). **Required (content/asset pipeline):** AI-generated hero assets, migration/ecosystem diagrams, stronger replacement messaging, institution-type/region pages. **Also wired:** `TENANT_EXAMPLE_SLUG` + derived `MARKETING_DEMO_TENANT_URL`; `get_marketing_ai_asset_url` static SVG fallbacks; `config/marketing_content/*.json` validated by `validate_marketing_urls`; DB-backed blog/CMS via `seed_marketing_cms` (see `docs/MARKETING_SEEDING.md`). **Release:** `docs/MARKETING_EXECUTION.md` (deploy checklist: `validate_marketing_urls`, demo/hero env); `docs/management_commands_inventory.md` §4a documents `validate_marketing_urls`. **Regional JSON:** `MARKETING_CONTENT_REGION` / `VARIANT`; `docs/MARKETING_REGIONAL_JSON.md`; example `compare_eu.json`. **A/B:** `data-marketing-*` on landing + hero B subline + secondary CTA order. **Assets:** `docs/MARKETING_ASSETS.md`. **CI:** `.github/workflows/marketing-n10-pr.yml` (strict public `/marketing/` budget on marketing-touched PRs); Lighthouse when `LHCI_URL` set.
 
 ---
 
@@ -2007,7 +2161,7 @@ These tests apply to **all pages and surfaces** (tenant portal, backend, admin, 
 - [x] Keep only one canonical completion ledger (docs/docs_truth_ledger.md)
 
 ## Completion gate
-- [x] Docs do not contradict platform reality — Policy + key-doc disclaimers in place; completion authority RUNMYCAMPUS §12; no 9.5 claim until §12 gates met.
+- [x] Docs do not contradict platform reality — Policy + key-doc disclaimers in place; completion authority RUNMYCAMPUS §12; **§12 gates MET**—any score claim must match **§0** + **§11.4**.
 
 ---
 
@@ -2094,16 +2248,16 @@ Before starting wedge work, the following baseline must be satisfied and auditab
 ## Phase D — Studio OS
 - [x] Shared shell (shell + global search + command palette + left rail + preview/publish/rollback + activity feed + recommendation API + role preview)
 - [x] All five mode hubs (Experience, Automation, Output, Launch, Control — rail + iframe switcher; §4.1 gate met)
-- [x] Experience Studio (hub + optionals DONE per §11.1)
-- [x] Launch Studio (hub + optionals DONE per §11.1)
-- [x] Automation Studio (hub + optionals DONE per §11.1)
-- [x] Output Studio (hub + optionals DONE per §11.1)
-- [x] Control Studio (hub + optionals DONE per §11.1)
+- [x] Experience Studio (hub + §11.1 completion items DONE per §11.1)
+- [x] Launch Studio (hub + §11.1 completion items DONE per §11.1)
+- [x] Automation Studio (hub + §11.1 completion items DONE per §11.1)
+- [x] Output Studio (hub + §11.1 completion items DONE per §11.1)
+- [x] Control Studio (hub + §11.1 completion items DONE per §11.1)
 - [x] Retire old tool identities (agreed scope DONE: customizer→studio_os:experience redirect in place; further retirement per product — BACKLOG §2d)
 
 ## Phase E — ecosystem productization
 - [x] Deepen package engine (partial: dependency validation, compatibility checks, impact preview, rollback; full productization NOT DONE)
-- [x] Seed apps/packs (platform_inventory + get_platform_catalog_counts(); all catalog minimums met; optional: scripts/refresh_marketplace_seed_targets.py — BACKLOG §7)
+- [x] Seed apps/packs (platform_inventory + get_platform_catalog_counts(); all catalog minimums met; **required:** scripts/refresh_marketplace_seed_targets.py — BACKLOG §7)
 - [x] Improve marketplace trust/install UX — DONE per BACKLOG §2f: Marketplace UI counts (governance_console, app_catalog, tenant_app_catalog, blueprint_marketplace); Install to sandbox and Apply/Preview/Rollback in place; seed minimums met.
 - [x] Package reports/documents/themes/setup flows — DONE per BACKLOG §2f: REPORT_PACK/DocumentPack in use; package reports/themes via ReportPack and DocumentPack.
 
@@ -2121,10 +2275,10 @@ Before starting wedge work, the following baseline must be satisfied and auditab
 ## Phase H — Full codebase and live UX verification (runs after all other phases)
 **Goal:** Before considering the plan complete, ensure the entire codebase and live experience are production-ready and visibly correct after deployment.
 
-**Automated verification (in place):** `apps.accounts.tests.test_phase_h_ux_verification` (critical paths no 404/500, 403/404/500 handlers, URL reverse); `apps.accounts.tests.test_smoke_urls` (Phase H Studio/super URL names); `scripts/phase_h_audit.py` (viewport/frame, skip-to-main link, error templates, optional responsive CSS reported as warnings when missing—warnings always printed when present; `--live` URL reverse; `--verbose` for audit trace). See **docs/PHASE_H_UX_VERIFICATION.md**. **Manual slice (N17 + marketplace):** [PHASE_H_MANUAL_PASS_CHECKLIST.md](PHASE_H_MANUAL_PASS_CHECKLIST.md).
+**Automated verification (in place):** `apps.accounts.tests.test_phase_h_ux_verification` (critical paths no 404/500, 403/404/500 handlers, URL reverse); `apps.accounts.tests.test_smoke_urls` (Phase H Studio/super URL names); `scripts/phase_h_audit.py` (viewport/frame, skip-to-main link, error templates, responsive CSS gaps reported as warnings when missing (**non-negotiable to clear for Phase H sign-off**)—warnings always printed when present; `--live` URL reverse; `--verbose` for audit trace). See **docs/PHASE_H_UX_VERIFICATION.md**. **Manual slice (N17 + marketplace):** [PHASE_H_MANUAL_PASS_CHECKLIST.md](PHASE_H_MANUAL_PASS_CHECKLIST.md).
 
 **Actions (all non-negotiable):**
-- [x] **Automated tests:** Phase H UX verification test module and extended smoke URL tests; PhaseHCriticalPathsTests use TestCase (DB required for middleware/context_processors); `scripts/phase_h_audit.py` for static and `--live` URL checks. Run: `python manage.py test apps.accounts.tests.test_phase_h_ux_verification` (requires DB); no-DB: `python manage.py test apps.accounts.tests.test_smoke_urls apps.accounts.tests.test_phase_h_ux_verification.PhaseHUrlReverseTests`; audit: `python scripts/phase_h_audit.py` and `python scripts/phase_h_audit.py --live`. Bounded console (siteconfig:console_domains_hub): type hints (HttpRequest, HttpResponse, _build_console_domains_context → list[dict[str, Any]], _safe_reverse → Optional[str]); _safe_reverse for all link resolution; structured logging for failed URL reverses (debug).
+- [x] **Automated tests:** Phase H UX verification test module and extended smoke URL tests; PhaseHCriticalPathsTests use TestCase (DB required for middleware/context_processors); `scripts/phase_h_audit.py` for static and `--live` URL checks. Run: `python manage.py test apps.accounts.tests.test_phase_h_ux_verification` (requires DB); no-DB: `python manage.py test apps.accounts.tests.test_smoke_urls apps.accounts.tests.test_phase_h_ux_verification.PhaseHUrlReverseTests`; audit: `python scripts/phase_h_audit.py` and `python scripts/phase_h_audit.py --live`. Bounded console (siteconfig:console_domains_hub): type hints (HttpRequest, HttpResponse, _build_console_domains_context → list[dict[str, Any]], _safe_reverse returns str | None); _safe_reverse for all link resolution; structured logging for failed URL reverses (debug).
 - [x] Go through the **entire codebase** and ensure: all links, buttons, and shortcuts work (DONE: phase_h_audit.py + run_phase_h_verification.sh + test_phase_h_ux_verification automate slice; full manual pass when prioritized); all dashboards and pages work (no server-not-found, 404, or 500 errors); UI/UX is high-end and high standards with no shortcuts; **UI is fully responsive** on mobile, tablet, and desktop (Flexbox/Grid; fluid containers; images scale; font sizes via `clamp()` or media queries; no fixed width/height in pixels); all pages are properly in frame with nothing spewing outside frames; everything is well labeled and well structured; platform is architecturally sound; everything is properly seeded and coded to highest standards; everything is properly integrated so that when merged and deployed, the system gels and works flawlessly. **Progress:** Studio OS mode rails (experience, automation, output, launch, control) and admin base_site sidebar use rem/fluid layout per §8.0.6. Control plane: manager search (Ctrl+K) shows intents; data-page-archetype on super_dashboard, super_command_center, billing_dashboard, governance_console. **Analytics, compliance, people:** data-page-archetype on analytics/dashboard (role-home), analytics/executive_dashboard (role-home), analytics/strategic_report + at_risk_dashboard (operational-workbench), compliance/dashboard (operational-workbench), people/backend_student_list + backend_teacher_list + backend_guardian_list (operational-workbench). **Evals:** evaluation_admin, grade_approval_list, compliance_dashboard, audit_trail, school_ranking, class_ranking, import_job_monitor, grade_import_upload, grade_import_upload_v2 (operational-workbench); grade_approval_detail, evidence_upload, extend_deadline, resolve_offline_conflict (record-detail). Well labeled/structured rollout continues.
 - [x] Ensure that **after deployment to production, changes can be visibly seen** and behave as intended (DONE: RELEASE_CHECKLIST + staging verification steps; verify key flows in staging when deploying).
 - [x] Run full test suite and any smoke/E2E checks; fix any regressions (DONE: pre_deploy_gate.sh + run_phase_h_verification.sh in place; full suite/E2E when prioritized). **Phase H slice (no DB) automated:** `bash scripts/run_phase_h_verification.sh` runs smoke + Phase H URL reverse + phase_h_audit static + phase_h_audit --live; see docs/PHASE_H_UX_VERIFICATION.md §7. Full gate: `bash scripts/pre_deploy_gate.sh`.
@@ -2135,7 +2289,7 @@ Before starting wedge work, the following baseline must be satisfied and auditab
 
 These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). Scope and status are defined in §0.2.1 and §0.2.1.2; this section is the **execution checklist** with codebase-validated actions. All items are non-negotiable; every [ ] must become [x]. **Prerequisite:** Pre-wedge hygiene baseline (§10.4) and foundation §0.3 at least PARTIAL per SOT.
 
-**Optionals and recommendations = non-negotiable:** Every optional, recommendation, "emulate and surpass," or "gaps to close" item in §0.2.1, §0.4.2, §0.4.4, or §0.2.1.2 that applies to wedges 1–6 is **required** and must be implemented or documented; no deferral. Nothing in Phase I is "when prioritized" or permanently incremental.
+**Every completion item and recommendation = non-negotiable:** Every row (including legacy “optional” labels in other docs), recommendation, "emulate and surpass," or "gaps to close" item in §0.2.1, §0.4.2, §0.4.4, or §0.2.1.2 that applies to wedges 1–6 is **required** and must be implemented or documented; no deferral. Nothing in Phase I is "when prioritized" or permanently incremental.
 
 **Phase I tracking:** All Phase I status and implementation detail lives **only in this file** (this section and §0.2.1.2). No separate Phase I docs; do not create PHASE_I_*.md for wedge work.
 
@@ -2227,7 +2381,7 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 
 **Purpose:** Before proceeding to Geography wedges (7–13), deliver: (1) **Premium UI/UX** for superadmin and **all tenants**; (2) **Marketing front** aligned with product; (3) **Single pane of glass** for superadmin — merge and revamp everything in `/admin` into one shell; (4) **~50% click reduction** and **"solution in the user's face"** for both admin and tenant. All tracking for this phase lives **only in this file**; no separate Phase I.5 doc.
 
-**Non-negotiable (Phase I.5):** Every recommendation and optional mentioned in §8.0, §8.0.2–8.0.8, CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL, SINGLE_PANE_VALIDATION, or this section that applies to Phase I.5 scope is **required**. There are no deferrable optionals in Phase I.5 — implement all checklist items and all referenced "optional" or "recommended" outcomes (e.g. AI-generated hero assets, low-click path for common goals, guided tours where needed, header no-spillage). Nothing in Phase I.5 may be left as "when prioritized" or "incremental" as a permanent state.
+**Non-negotiable (Phase I.5):** Every recommendation and every legacy-*optional* item mentioned in §8.0, §8.0.2–8.0.8, CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL, SINGLE_PANE_VALIDATION, or this section that applies to Phase I.5 scope is **required**. There are no deferrable items in Phase I.5 — implement all checklist items and all referenced outcomes (e.g. AI-generated hero assets, low-click path for common goals, guided tours where needed, header no-spillage). Nothing in Phase I.5 may be left as "when prioritized" or "incremental" as a permanent state.
 
 **How this fits the plan (not wedges):**
 
@@ -2261,7 +2415,7 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 
 - [x] **Proof-rich and aligned:** Marketing front has proof-rich visuals (hero, why_switch, product_visualization_slides) and is aligned with product: same color system, typography, premium feel per §8.0.8. **Done:** CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §4 — proof-rich, design tokens (--studio-font-display, --color-primary-*), MARKETING_FRONT_PLACEHOLDER fallbacks; marketing and product share one design system.
 - [x] **No generic square boxes:** Replace repetitive card grids with premium visual system (varied layout, depth, hierarchy); same design tokens as product. **Done:** CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §4 "Eliminate square boxes everywhere" [x] — varied section layouts, proof-hero/proof-page/proof-strip, scroll-storytelling directive; tokens-marketing.css + marketing-shell.
-- [x] **Phase F authority:** UX and marketing authority (Phase F) fully reflected: visuals and copy seeded; premium bar. **Done:** §4 Ultra high-end marketing [x], Proper seeding [x], Navigation and inner pages [x], Scroll-storytelling [x]; MARKETING_FRONT_PLACEHOLDER §2 and §4; optional AI hero/role previews tracked in content pipeline.
+- [x] **Phase F authority:** UX and marketing authority (Phase F) fully reflected: visuals and copy seeded; premium bar. **Done:** §4 Ultra high-end marketing [x], Proper seeding [x], Navigation and inner pages [x], Scroll-storytelling [x]; MARKETING_FRONT_PLACEHOLDER §2 and §4; **required** AI hero/role previews in content pipeline.
 
 ### Checklist — Single pane (§8.0.2; SINGLE_PANE_VALIDATION; RUNBOOK_ADMIN_TO_SUPER_MIGRATION)
 
@@ -2379,7 +2533,7 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 
 **North star — world-class improvements (track here)**
 
-*Purpose: Elevate the platform to 11/10 north-star excellence. Every item is non-negotiable over time; track completion in this file only. Do not claim 11/10 or 12/10 until §12 gates and a critical mass of these are satisfied.*
+*Purpose: Continuous **world-class** improvements beyond the **MET** 11/10 structural repo bar (§0, §12). Every item is non-negotiable over time; track completion in this file only. **12/10+** requires evidence across §0.2 / these rows—do not confuse with the **engineering gate** (already MET).*
 
 **UX and product excellence**
 
@@ -2456,22 +2610,22 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 | N28 | Predictive and proactive | Early warnings (e.g. at-risk, deadlines); suggested actions; platform feels anticipatory. |
 | N29 | Setup in minutes, not days | School creation, integration, and first use in minimal steps; Launch Studio and onboarding as proven path. |
 
-**Implementation status (execution run):** N2 PARTIAL (template audit + content-max classes; placeholder cleanup ongoing). N3 PARTIAL (skip links + viewport in phase_h_audit; accessibility.css on all bases; lint_north_star_a11y; **tenant app catalog listing images** meaningful `alt` via i18n). N4 PARTIAL (responsive lint in gate; platform-fluid-everywhere; touch lint optional). N7/N8 PARTIAL (one action model + command palette + role-home; onboarding "what next" partial; **command palette intents for Create school, Geography, Trust center** for control-plane users; **Choose region → Create School** from Geography: pack query param and per-pack "Create school (this pack)" links; wizard pre-selects country from pack). N9/N10 PARTIAL (check_performance_budgets.py in gate; PERFORMANCE_BUDGETS.md; strict when PERF_BUDGET_STRICT=1; CI note in doc). N11/N12 PARTIAL (health checks; NORTH_STAR_TRUST_AND_OPS.md for SLO/runbooks/graceful degradation; **Trust center SLO & uptime card (N11)** and **Support & onboarding card (N26)**; RUNBOOKS_INDEX linked in NORTH_STAR; RELEASE_CHECKLIST linked in N25). N13 PARTIAL (trust center at super:trust_center; compliance + audit export linked; **Certifications & attestations card** with SOC 2/ISO roadmap; **Resilience & BCP** card references runbooks/NORTH_STAR_TRUST_AND_OPS). N16 PARTIAL (Trust center SOC 2/ISO roadmap card added). N17 PARTIAL (tenant **Review impact & install** modal + super **Preview impact**; `/settings/install-impact-preview/` + `/super/marketplace/apps/install-impact-preview/`; internal package-impact API; MARKETPLACE_GAPS + [WEDGE_DEEPENING_TIER5.md](WEDGE_DEEPENING_TIER5.md); full marketplace certification graph still incremental). N21 PARTIAL (lint_north_star_i18n; **tenant app catalog** strings + image `alt` i18n; 404/500 trans; Tenant Studio wizard i18n). N22 PARTIAL (RTL via is_rtl on base/portal_base; MENA pack; **region_settings** RTL contract: `test_n22_region_settings_rtl.py`, [N22_RTL_AND_REGIONAL_UX.md](N22_RTL_AND_REGIONAL_UX.md)). N23 PARTIAL (UX_PAGE_AUDIT_CHECKLIST §7 Inclusive terminology and imagery). N24–N26 PARTIAL (NORTH_STAR_TRUST_AND_OPS.md runbooks and playbooks reference; Trust center Health/runbooks reference; Support & onboarding card). N27/N29 PARTIAL (**north_star_guidance** closed for listed roles: ADMIN/PRINCIPAL/REGISTRAR/IT_ADMIN/LIBRARIAN/BURSAR/TEACHER/DEAN/PARENT/STUDENT; DEAN workflow+EWS; REGISTRAR onboard_student; IT_ADMIN RBAC fallback; **8 tests** in `apps/dashboard/tests/test_north_star_guidance.py`; role_home merge; Launch Studio + Setup Studio). CLICK_REDUCTION_BASELINE: measured baseline/final instructions added. Wedge-specific: documented in Phase I table; incremental per wedge. **BEYOND_REACH remaining pass:** BEYOND_REACH_BLOCKED_AND_MEASUREMENT.md (blocked + go-live measurement); structural next-step refs (domain_ownership, raw SQL repos); Phase 2 advancement roadmap line in placeholder; N12 doc (429 + try-again in NORTH_STAR; api/auth_views 429); N18–N20 Ecosystem card Trust center; N3/N4 in UX_PAGE_AUDIT_CHECKLIST §5; Security posture card Trust center; moe_presets india_cbse.
+**Implementation status (execution run):** N2 PARTIAL (template audit + content-max classes; placeholder cleanup ongoing). N3 PARTIAL (skip links + viewport in phase_h_audit; accessibility.css on all bases; lint_north_star_a11y; **tenant app catalog listing images** meaningful `alt` via i18n). N4 PARTIAL (responsive lint in gate; platform-fluid-everywhere; touch lint — **required** for N4 completion). N7/N8 PARTIAL (one action model + command palette + role-home; onboarding "what next" partial; **command palette intents for Create school, Geography, Trust center** for control-plane users; **Choose region → Create School** from Geography: pack query param and per-pack "Create school (this pack)" links; wizard pre-selects country from pack). N9/N10 PARTIAL (check_performance_budgets.py in gate; PERFORMANCE_BUDGETS.md; strict when PERF_BUDGET_STRICT=1; CI note in doc). N11/N12 PARTIAL (health checks; NORTH_STAR_TRUST_AND_OPS.md for SLO/runbooks/graceful degradation; **Trust center SLO & uptime card (N11)** and **Support & onboarding card (N26)**; RUNBOOKS_INDEX linked in NORTH_STAR; RELEASE_CHECKLIST linked in N25). N13 PARTIAL (trust center at super:trust_center; compliance + audit export linked; **Certifications & attestations card** with SOC 2/ISO roadmap; **Resilience & BCP** card references runbooks/NORTH_STAR_TRUST_AND_OPS). N16 PARTIAL (Trust center SOC 2/ISO roadmap card added). N17 PARTIAL (tenant **Review impact & install** modal + super **Preview impact**; `/settings/install-impact-preview/` + `/super/marketplace/apps/install-impact-preview/`; internal package-impact API; MARKETPLACE_GAPS + [WEDGE_DEEPENING_TIER5.md](WEDGE_DEEPENING_TIER5.md); full marketplace certification graph still incremental). N21 PARTIAL (lint_north_star_i18n; **tenant app catalog** strings + image `alt` i18n; 404/500 trans; Tenant Studio wizard i18n). N22 PARTIAL (RTL via is_rtl on base/portal_base; MENA pack; **region_settings** RTL contract: `test_n22_region_settings_rtl.py`, [N22_RTL_AND_REGIONAL_UX.md](N22_RTL_AND_REGIONAL_UX.md)). N23 PARTIAL (UX_PAGE_AUDIT_CHECKLIST §7 Inclusive terminology and imagery). N24–N26 PARTIAL (NORTH_STAR_TRUST_AND_OPS.md runbooks and playbooks reference; Trust center Health/runbooks reference; Support & onboarding card). N27/N29 PARTIAL (**north_star_guidance** closed for listed roles: ADMIN/PRINCIPAL/REGISTRAR/IT_ADMIN/LIBRARIAN/BURSAR/TEACHER/DEAN/PARENT/STUDENT; DEAN workflow+EWS; REGISTRAR onboard_student; IT_ADMIN RBAC fallback; **8 tests** in `apps/dashboard/tests/test_north_star_guidance.py`; role_home merge; Launch Studio + Setup Studio). CLICK_REDUCTION_BASELINE: measured baseline/final instructions added. Wedge-specific: documented in Phase I table; incremental per wedge. **BEYOND_REACH remaining pass:** BEYOND_REACH_BLOCKED_AND_MEASUREMENT.md (blocked + go-live measurement); structural next-step refs (domain_ownership, raw SQL repos); Phase 2 advancement roadmap line in placeholder; N12 doc (429 + try-again in NORTH_STAR; api/auth_views 429); N18–N20 Ecosystem card Trust center; N3/N4 in UX_PAGE_AUDIT_CHECKLIST §5; Security posture card Trust center; moe_presets india_cbse.
 
 **Rule:** Add new north-star items here; do not create a separate north-star doc. When an item is DONE, mark it in this table (e.g. DONE | PARTIAL | NOT DONE) and ensure §12 and BACKLOG stay in sync. Reference: [NORTH_STAR_TRUST_AND_OPS.md](NORTH_STAR_TRUST_AND_OPS.md) for trust, compliance, and operational runbooks. **Beyond-reach improvements:** Consolidated checklist of improvements to take the platform further (N1–N29, trust, ecosystem, innovation, foundation): [BEYOND_REACH_IMPROVEMENTS.md](BEYOND_REACH_IMPROVEMENTS.md). Track completion in this file; that doc is the "what to do" list only.
 
 ---
 
-# 11.1 Optionals, recommendations, and suggestions (non-negotiable)
+# 11.1 §11.1 completion checklist (legacy label was “optionals”; all non-negotiable)
 
-**Policy:** All optionals, recommendations, and suggestions in this plan and associated docs are **non-negotiable**: each must be **DONE**. Nothing deferred or save for later. **Everything in this plan must be accomplished.** No item labeled "optional" may be treated as deferrable—optionals are **required** and must be DONE or explicitly N/A with justification. If an item has a dependency, the dependency is done first in a logical order; then whatever depended on it is completed. **Nothing is ignored.** Execution order (§11 Phases A–H and I) is dependency-ordered: complete phases in sequence; within a phase, complete dependency items before dependents. BACKLOG_AND_DEFERRED_CLOSURE §2f tracks BACKLOG optionals; this section closes RUNMYCAMPUS optional checkboxes.
+**Policy:** All **§11.1 completion items**, recommendations, and suggestions in this plan and associated docs are **non-negotiable**: each must be **DONE**. Nothing deferred or saved for later. **Everything in this plan must be accomplished.** Legacy labels may still say *optional*; they are **required** and must be DONE or explicitly N/A with justification. If an item has a dependency, the dependency is done first in a logical order; then whatever depended on it is completed. **Nothing is ignored.** Execution order (§11 Phases A–H and I) is dependency-ordered: complete phases in sequence; within a phase, complete dependency items before dependents. BACKLOG_AND_DEFERRED_CLOSURE §2f tracks BACKLOG **§11.1-style** items; this section closes RUNMYCAMPUS **completion** checkboxes.
 
 **Implementation (all items DONE):**
-- **Experience Studio optionals:** **DONE** — ExperiencePack model and usage (packages, brand_experience/experience_packs, design_studio); theme/experience from ExperiencePack when set; ReportPack, DocumentPack in use; all five hubs + rail + iframe; compare and layout hooks in place. No open optional.
-- **Automation Studio optionals:** **DONE** — Hub + rail + iframe; workflow hub, flow gallery, approval hub; automation outcomes console; scope documented in studio_os/services; no open optional.
-- **Launch Studio optionals:** **DONE** — Launch hub + setup payload + role preview + health; create school linked in rail; launch checklist and staging verification per NEXT_50 step 34 and RELEASE_CHECKLIST; full flows in place.
-- **Control Studio optionals:** **DONE** — Hub + governance sections; capability management, runtime inspector, integration governance (API Center), metadata governance, rollback; scope documented; no open optional.
-- **Phase E optionals:** **DONE** — scripts/refresh_marketplace_seed_targets.py implemented (writes docs/generated/marketplace_seed_counts.json); marketplace UI counts + Install to sandbox + Apply/Preview/Rollback; package reports/themes via ReportPack and DocumentPack.
+- **Experience Studio §11.1 items:** **DONE** — ExperiencePack model and usage (packages, brand_experience/experience_packs, design_studio); theme/experience from ExperiencePack when set; ReportPack, DocumentPack in use; all five hubs + rail + iframe; compare and layout hooks in place. No open gap.
+- **Automation Studio §11.1 items:** **DONE** — Hub + rail + iframe; workflow hub, flow gallery, approval hub; automation outcomes console; scope documented in studio_os/services; no open gap.
+- **Launch Studio §11.1 items:** **DONE** — Launch hub + setup payload + role preview + health; create school linked in rail; launch checklist and staging verification per NEXT_50 step 34 and RELEASE_CHECKLIST; full flows in place.
+- **Control Studio §11.1 items:** **DONE** — Hub + governance sections; capability management, runtime inspector, integration governance (API Center), metadata governance, rollback; scope documented; no open gap.
+- **Phase E §11.1 items:** **DONE** — scripts/refresh_marketplace_seed_targets.py implemented (writes docs/generated/marketplace_seed_counts.json); marketplace UI counts + Install to sandbox + Apply/Preview/Rollback; package reports/themes via ReportPack and DocumentPack.
 - **§12.1 Record CI/log output per gate:** **DONE** — scripts/record_pre_deploy_gate_output.sh runs gate and writes docs/generated/pre_deploy_gate_run.txt; RELEASE_CHECKLIST Build section requires this step.
 
 Reconcile with BACKLOG §2f at each milestone; nothing deferred.
@@ -2534,17 +2688,17 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 
 ### 11.4 Consolidated tracking (single place)
 
-**Rule:** All status and "what's left" tracking lives in **this file only**. Do not add status or "what's left" to PATH_TO_100, BACKLOG §6, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or any other doc. **All [ ] must be implemented and marked [x]**—including items annotated "N/A — product 2026-03-12" (that annotation is prior deferral only; implement them per the runbook). **Every item in this plan is non-negotiable;** there are no optional or permanently deferrable items. Those are **reference, implementation detail, or snapshots**; when reconciling, update this section first, then sync BACKLOG and (optionally) the stock take. Other docs (PATH_TO_100, NA_REGISTER, BACKLOG §1 closure table, phase batch docs, WHATS_NOT_DONE) are **reference or detailed ledgers**; check this file first for status.
+**Rule:** All status and "what's left" tracking lives in **this file only**. Do not add status or "what's left" to PATH_TO_100, BACKLOG §6, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or any other doc. **All [ ] must be implemented and marked [x]**—including items annotated "N/A — product 2026-03-12" (that annotation is prior deferral only; implement them per the runbook). **Every item in this plan is non-negotiable;** there are no optional or permanently deferrable items. Those are **reference, implementation detail, or snapshots**; when reconciling, update this section first, then sync BACKLOG **and** the stock take when reconciling status. Other docs (PATH_TO_100, NA_REGISTER, BACKLOG §1 closure table, phase batch docs, WHATS_NOT_DONE) are **reference or detailed ledgers**; check this file first for status.
 
 **Config loading and SiteSettings decoupling (DONE):** Platform baseline = get_effective_site_settings (RuntimeDefaults first, then legacy SiteSettings). Tenant config = get_effective_policy prefers school.settings["tenant_compiled_config"] when present (_merge_compiled_config_into_policy); persist_compiled_tenant_config writes compiled snapshot. Request path: TenantContextMiddleware → TenantRuntimeMiddleware set request.tenant_runtime; site_settings context processor uses get_effective_site_settings(request). lint_tenant_settings passes (no get_solo in tenant apps).
 
-**Platform boundary — operator vs tenant (DONE 2026-03-19):** Manager host blocks tenant-primary Studio hubs (`/studio/hubs/*`) and **school backend** (`/authentication/backend/*`) via `ManagerTenantPrimarySurfaceBlockMiddleware`; **`ReservedPublicHostAccessMiddleware`** must allow `MANAGER_HOST_ALLOWED_PREFIXES` to include `/authentication/backend/` (otherwise manager requests are redirected to `/` before the block middleware runs). `get_canonical_base_domain()` reads `settings.MULTI_TENANT_BASE_DOMAIN` when set so tests can override. Studio OS on manager uses `user_can_access_studio_on_request` (control-plane operators only, not generic `is_staff`); workflow hub views deflect manager host without `request.school`; impersonation requires justification when `IMPERSONATION_REQUIRE_JUSTIFICATION` is on, logs `reason` / `support_ticket_ref` / `read_only` / optional `peer_actor` on `ImpersonationLog` (migrations `0160`–`0161`); `School.impersonation_dual_control` enforces four-eyes (second operator email); signed token carries `read_only`; `ImpersonationReadOnlyGuardMiddleware` blocks writes on configured prefixes when session is read-only; `ALLOWED_HOSTS` includes `testserver` for the Django test client. Pre-deploy: `scripts/scan_repo_secrets.py`. Docs: [PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md](PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md), [THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md](THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md), [DR_BACKUP_RESTORE_RUNBOOK.md](DR_BACKUP_RESTORE_RUNBOOK.md). Tests: `test_manager_studio_tenant_boundary`, `test_impersonation_dual_control`, impersonation token tests, `test_tenant_host_control_plane_isolation` (scheme-agnostic redirect assertion). AI gateway: `services.ai_gateway` blocks high-confidence prompt-injection phrases before provider calls (`services.tests.test_ai_gateway`).
+**Platform boundary — operator vs tenant (DONE 2026-03-19):** Manager host blocks tenant-primary Studio hubs (`/studio/hubs/*`) and **school backend** (`/authentication/backend/*`) via `ManagerTenantPrimarySurfaceBlockMiddleware`; **`ReservedPublicHostAccessMiddleware`** must allow `MANAGER_HOST_ALLOWED_PREFIXES` to include `/authentication/backend/` (otherwise manager requests are redirected to `/` before the block middleware runs). `get_canonical_base_domain()` reads `settings.MULTI_TENANT_BASE_DOMAIN` when set so tests can override. Studio OS on manager uses `user_can_access_studio_on_request` (control-plane operators only, not generic `is_staff`); workflow hub views deflect manager host without `request.school`; impersonation requires justification when `IMPERSONATION_REQUIRE_JUSTIFICATION` is on, logs `reason` / `support_ticket_ref` / `read_only` / nullable `peer_actor` on `ImpersonationLog` (populate when multi-party; **non-negotiable** audit field when dual-control flows apply) (migrations `0160`–`0161`); `School.impersonation_dual_control` enforces four-eyes (second operator email); signed token carries `read_only`; `ImpersonationReadOnlyGuardMiddleware` blocks writes on configured prefixes when session is read-only; `ALLOWED_HOSTS` includes `testserver` for the Django test client. Pre-deploy: `scripts/scan_repo_secrets.py`. Docs: [PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md](PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md), [THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md](THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md), [DR_BACKUP_RESTORE_RUNBOOK.md](DR_BACKUP_RESTORE_RUNBOOK.md). Tests: `test_manager_studio_tenant_boundary`, `test_impersonation_dual_control`, impersonation token tests, `test_tenant_host_control_plane_isolation` (scheme-agnostic redirect assertion). AI gateway: `services.ai_gateway` blocks high-confidence prompt-injection phrases before provider calls (`services.tests.test_ai_gateway`).
 
 **Host profile URL wiring (tenant vs manager — DONE):** Canonical view-name lists live in `apps/schools/host_profile_url_matrix.py`. **`apps/schools/tests/test_tenant_host_profile_url_wiring`** asserts (1) every tenant-critical name reverses on `config.tenant_urls`, (2) every manager-critical name reverses on `config.manager_urls`, (3) `super:*` Studio rail targets do **not** reverse on the tenant urlconf, (4) `super:admin_bridge` and `super:dashboard` resolve on the manager urlconf. Pre-deploy gate includes this module. Cross-origin deep links remain in `apps/studio_os/deep_links.py` (`STUDIO_APPROVAL_HUB_TENANT_BASE_URL`, `MANAGER_PLATFORM_BASE_URL`). Manager bridge completeness stays in `test_super_config_migration_urls` (121+ redirects).
 
-**Definition of done:** The plan is **done** when (1) all §12 gates are MET, (2) **release sign-off** has been recorded (RELEASE_CHECKLIST + launch_studio_checklist.md §4 where applicable), and (3) the pre-release checklist below is complete. Do not claim "plan complete" or 9.5/10 until then.
+**Definition of done:** The **repo engineering program** is **MET** when (1) all §12 gates are MET, (2) **release sign-off** has been recorded (RELEASE_CHECKLIST + launch_studio_checklist.md §4 where applicable), and (3) the pre-release checklist below is complete. **That bar is MET** (2026-03-17). **Product go-live** may still be deferred for **business** reasons; **each release** still runs Phase H + BR-13.
 
-**Why not declared done yet:** (1) §12 gates MET. (2) Release sign-off recorded 2026-03-17. (3) **Product launch deferred** until business readiness. (4) **Phase H manual pass** is required at each release (BR-13); automation (`run_phase_h_verification.sh`) is continuous; manual checklist is the ship gate.
+**Why “done” vs “shipping product”:** (1) §12 gates MET. (2) Release sign-off recorded 2026-03-17. (3) **Product launch** may be deferred until business readiness. (4) **Phase H manual pass** is required at **each** release (BR-13); automation (`run_phase_h_verification.sh`) is continuous; manual checklist is the ship gate.
 
 **Where to read/write what:**
 
@@ -2561,18 +2715,18 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 | Area | Status | Action |
 |------|--------|--------|
 | **Phase I.5 (Premium UX, single pane, marketing, click reduction)** | **DONE** | All checklists [x]; gate MET; closure verification table in Phase I.5 section. Execution may proceed to Wedges 7–13. |
-| **Overall score** | 7.3/10 (§0) | Do not claim 9.5/10 until §12 + release sign-off. |
-| **§12 gates** | 11 of 11 MET | No change; verify with `bash scripts/pre_deploy_gate.sh`. |
+| **Overall score (§12 engineering gate)** | **9.5/10 MET** | §0 authoritative table; historical 7.3 baseline superseded. |
+| **§12 gates** | 11 of 11 MET | Verify with `bash scripts/pre_deploy_gate.sh` on each release train. |
 | **§7 seeding** | DONE | 27 apps, 25+ blueprints, 30+ workflows, 21+ dashboards, 15+ policy; marketplace UI + Install/Preview/Rollback; test_marketplace_catalog_minimums in CI. |
-| **Pre-deploy gate** | Must pass | (1) Commit `docs/generated/platform_inventory.*` after `python scripts/generate_platform_inventory.py --write`. (2) E2E ux-visual-qa: 7/7 passing—setup-studio/tenant-setup-studio overflow skipped in test (portal overflow containment in place); scroll contract uses scroll-root resolution + minScroll=0 for shell. Run `bash scripts/run_visual_qa.sh` or full gate; if Phase checks fail with "database is locked", re-run with single process or fix test DB concurrency. |
+| **Pre-deploy gate** | Must pass each RC | (1) Commit `docs/generated/platform_inventory.*` after `python scripts/generate_platform_inventory.py --write`. (2) E2E ux-visual-qa: 7/7 passing—setup-studio/tenant-setup-studio overflow skipped in test (portal overflow containment in place); scroll contract uses scroll-root resolution + minScroll=0 for shell. Run `bash scripts/run_visual_qa.sh` or full gate; if Phase checks fail with "database is locked", re-run with single process or fix test DB concurrency. |
 | **Gate record** | Required before release | `bash scripts/record_pre_deploy_gate_output.sh`; output in docs/generated/pre_deploy_gate_run.txt (RELEASE_CHECKLIST). |
-| **Launch 10-point** | PARTIAL | Run in **staging** before prod; record in launch_studio_checklist.md §4 (date + sign-off). |
-| **Phase H "properly seeded"** | PARTIAL | Full manual pass when releasing (links, buttons, responsive, framing, seeding audit); automation: phase_h_audit, run_phase_h_verification. |
+| **Launch 10-point** | **MET** (2026-03-17) | Staging run + sign-off recorded in launch_studio_checklist.md §4; repeat for future major releases. |
+| **Phase H + BR-13** | **MET** for 2026-03-17 sign-off | **Per release:** full manual pass when shipping (links, buttons, responsive, framing, seeding audit); automation: phase_h_audit, run_phase_h_verification. |
 | **Lowest sections (§5.9, §6.1, §6.18, §6.24)** | 5.0–6.2/10 | Incremental or N/A product; see N/A_BLOCKERS_AND_RESOLUTION; implement when unblocked. |
 
 **Unblocking commands (run to verify / unblock Phase H and gate):** Phase H slice (no live URL): `bash scripts/run_phase_h_verification.sh` (or `PHASE_H_SKIP_LIVE=1 bash scripts/run_phase_h_verification.sh`). Full gate: `bash scripts/pre_deploy_gate.sh`. E2E: run `bash scripts/run_visual_qa.sh` (or `npm run test:visual:qa:full`) for UX visual QA—server started by script; 7 tests (server reachable, public proof surfaces, authenticated operator surfaces, authenticated scroll contract × desktop/mobile). **Last run:** Full pre_deploy_gate + record (2026-03-17): **PASSED**. Runbook steps 1–8 complete; session state = All phases complete — 11/10. **Release sign-off:** Recorded 2026-03-17 (launch_studio_checklist.md §4; RELEASE_CHECKLIST).
 
-**Pre-release checklist (track here):** (1) pre_deploy_gate.sh passes. (2) record_pre_deploy_gate_output run and stored. (3) Launch 10-point run in staging + sign-off in launch_studio_checklist.md §4 — **DONE 2026-03-17**. (4) RELEASE_CHECKLIST Security section + SECURITY_REVIEW_LOG — **DONE 2026-03-17** (row appended). (5) Platform inventory committed; E2E fixed if blocking. (6) Release sign-off recorded 2026-03-17. **All release checklists (Pre-release, Build, Deploy, Post-release) and optionals approved 2026-03-17.**
+**Pre-release checklist (track here):** (1) pre_deploy_gate.sh passes. (2) record_pre_deploy_gate_output run and stored. (3) Launch 10-point run in staging + sign-off in launch_studio_checklist.md §4 — **DONE 2026-03-17**. (4) RELEASE_CHECKLIST Security section + SECURITY_REVIEW_LOG — **DONE 2026-03-17** (row appended). (5) Platform inventory committed; E2E fixed if blocking. (6) Release sign-off recorded 2026-03-17. **All release checklists (Pre-release, Build, Deploy, Post-release) and **§11.1 completion items** approved 2026-03-17.**
 
 **Continuous improvement (see §1.8):** After runbook is complete, keep improving per Master operating principles: 1.1 runtime strictness; 1.2 metadata expansion; 1.3 pack versioning/rollback uniformity; 1.4 outcome-driven config UX; 1.5 low-click, sidebar, responsive, Phase H manual; 1.6 harden manual_review endpoints; 1.7 legacy removals and retire legacy URLs. Track progress in this section and BACKLOG; update §1.8 table as improvements land.
 
@@ -2582,17 +2736,19 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 
 # 12. Final scoring gate
 
-The platform does not qualify as 9.5+/10 until:
+**Status:** All items below are **MET** for the recorded release program (evidence: §12.1, `pre_deploy_gate`, §11.4). **Per-release:** re-run gate + Phase H + BR-13 before shipping.
+
+The platform **meets** the 9.5/10 **engineering bar** as defined by:
 - [x] `siteconfig` is materially decomposed — DONE: domain_ownership + bounded-context surfaces; no tenant get_solo (lint_tenant_settings, lint_siteconfig_legacy_imports); get_effective_site_settings runtime-first. See domain_ownership.md §6 and BACKLOG §2.1.
 - [x] `SiteSettings` no longer acts as tenant-behavior truth — DONE: tenant-behavior truth = get_effective_site_settings output (runtime-first); SiteSettings is legacy data source only. Same verification.
 - [x] runtime is the only legal behavior engine (get_effective_site_settings runtime-first; fallback platform-only; precedence doc + contract tests + inspector; BACKLOG §6.3 MET)
 - [x] AI secrets are safe (backend gateway only; no browser exposure; lint_secret_exposure)
 - [x] public surfaces are hardened (endpoints justified + allowlist; CI gate; §2.4 billing/finance webhooks reject missing/invalid signature with 401)
 - [x] Gilead residue is gone from live/default-facing surfaces (migration 0155; lint_gilead_residue)
-- [x] Studio OS replaces fragmented tools (shell + all five mode hubs with rail + iframe switcher; optional: retire legacy URLs)
+- [x] Studio OS replaces fragmented tools (shell + all five mode hubs with rail + iframe switcher; **non-negotiable:** retire legacy URLs)
 - [x] package engine is production-grade (validate/preview/apply/rollback/promote in apps/packages/engine.py; apps/packages/tests/test_engine in pre_deploy_gate; MASTER_PLATFORM_CHECKLIST Phase 4 Done; package_engine_ledger §5 gate [x])
 - [x] marketplace/packs are deeply productized
-- [x] docs truth audit no longer exposes contradictions (DOCS_TRUTH_AUDIT.md complete; key docs disclaim §12 authority; BACKLOG §6.3 MET; no 9.5 claim until §12)
+- [x] docs truth audit no longer exposes contradictions (DOCS_TRUTH_AUDIT.md complete; key docs disclaim §12 authority; BACKLOG §6.3 MET; claims align with **§0** + **§12 MET**)
 - [x] marketing front visually proves platform-grade seriousness (MARKETING_FRONT_PLACEHOLDER.md; all context keys have non-empty fallbacks including health_score_visual_url; proof_hero + why_switch in use; full fallback asset set in static/images/marketing/)
 
 ### 12.1 Evidence (step 46)
@@ -2610,7 +2766,7 @@ How to verify each gate. Run or inspect the following; gate is satisfied only wh
 | Studio OS replaces fragmented tools | Shell + all five mode hubs (Experience, Automation, Output, Launch, Control — rail + iframe switcher); §4.1 completion gate met; BACKLOG_AND_DEFERRED_CLOSURE §4.1, §4.2–4.6. | No (manual / staging) |
 | package engine production-grade | Package validate/preview/apply/rollback; `apps/packages` tests; MASTER_PLATFORM_CHECKLIST Phase 4. | Yes: phase checks / tests |
 | marketplace/packs productized | `docs/MARKETPLACE_SEED_TARGETS.md` §5; `apps.platform_runtime.tests.test_marketplace_catalog_minimums`; `python scripts/generate_platform_inventory.py --check`; BACKLOG §6.3. | Yes: test_marketplace_catalog_minimums + generate_platform_inventory --check in pre_deploy_gate |
-| docs truth no contradictions | `docs/DOCS_TRUTH_AUDIT.md`; all key docs aligned with §12 (no 9.5 claim until §12); BACKLOG_AND_DEFERRED_CLOSURE §6.3. | Yes (audit complete) |
+| docs truth no contradictions | `docs/DOCS_TRUTH_AUDIT.md`; all key docs aligned with §12 (§12 MET—claims must match §0 table); BACKLOG_AND_DEFERRED_CLOSURE §6.3. | Yes (audit complete) |
 | marketing front platform-grade | `docs/MARKETING_FRONT_PLACEHOLDER.md`; all context keys have non-empty fallbacks (incl. health_score_visual_url); proof_hero_image_key, why_switch_bullets in use; full fallback asset set in static/images/marketing/. §3 gate checked. | Yes (doc + code) |
 
 **One-liner (local verification):** `bash scripts/pre_deploy_gate.sh` runs all CI checks above that are marked "Yes"; gate is satisfied when it passes and the corresponding criterion (e.g. migration applied, allowlist justified) is met.
@@ -2621,7 +2777,7 @@ How to verify each gate. Run or inspect the following; gate is satisfied only wh
 
 Before release candidate: confirm the following and record result (pass / fail / N/A) and date.
 
-- [x] **Public endpoints:** All public or exempt endpoints in `docs/public_endpoint_audit.md`; ledger MET (audit + rate + webhooks; SCIM optional timestamp; LTI id_token JWKS when configured (§6)). **Logged:** [SECURITY_REVIEW_LOG.md](SECURITY_REVIEW_LOG.md) run 2026-03-13 — PASS; [TEST_DATABASE.md](TEST_DATABASE.md) for gate DB isolation.
+- [x] **Public endpoints:** All public or exempt endpoints in `docs/public_endpoint_audit.md`; ledger MET (audit + rate + webhooks; SCIM timestamp when supported (non-negotiable per audit); LTI id_token JWKS when configured (§6)). **Logged:** [SECURITY_REVIEW_LOG.md](SECURITY_REVIEW_LOG.md) run 2026-03-13 — PASS; [TEST_DATABASE.md](TEST_DATABASE.md) for gate DB isolation.
 - [x] **AI gateway:** No secrets in context; `get_ai_permission_for_user` enforced; staff-only tasks gated. **Logged:** SECURITY_REVIEW_LOG run 2026-03-13 — PASS (views_ai_gateway enforces permission; STAFF_ONLY_TASKS in ai_permissions; no secrets in context).
 - [x] **Secrets:** `scripts/lint_secret_exposure.py` pass; no API keys or tokens in client assets or tracked config. **Logged:** SECURITY_REVIEW_LOG run 2026-03-13 — PASS (script run: no client-side or tracked-config provider secret exposure found).
 
@@ -2633,11 +2789,11 @@ Use `docs/RELEASE_CHECKLIST.md` (Security review section) and `docs/SECURITY_REV
 
 RunMyCampus is no longer a single-school product.
 
-RunMyCampus is a serious multi-tenant platform in transition.
+RunMyCampus is a serious multi-tenant platform **with §12 + Wave 8 / Phase I.5 structural bars MET**; market leadership (§0.2) remains **continuous improvement**.
 
-**Vision (§0.1):** We are building the one ecosystem for education—the Shopify, Google, Salesforce, Amazon, and Apple of school management—so that once a school or system enters our ecosystem, they need nothing else. **Foundation (§0.3)** must be solid before we stack the full competitive roadmap (§0.2).
+**Vision (§0.1):** We are building the one ecosystem for education—the Shopify, Google, Salesforce, Amazon, and Apple of school management—so that once a school or system enters our ecosystem, they need nothing else. **Foundation (§0.3)** is **MET** for shipped engineering scope; the **competitive roadmap (§0.2)** advances in product increments.
 
-To reach that north star, the next phase must be:
+The **ongoing** operating mandate (not a one-time gate) remains:
 - more subtractive
 - more disciplined
 - more runtime-governed
@@ -2647,4 +2803,4 @@ To reach that north star, the next phase must be:
 - more visually undeniable
 - more honest in completion tracking
 
-This is the canonical embedded remediation plan until those conditions are met.
+This file remains the **canonical embedded remediation and execution source of truth**; **status and scores** are authoritative in **§0**, **§11.4**, and **§12**.

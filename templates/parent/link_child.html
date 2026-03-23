@@ -1,12 +1,12 @@
 {% extends "portal_base.html" %}
-{% load region_format %}
-{% block title %}Link a Child{% endblock %}
+{% load region_format i18n static %}
+{% block title %}{% trans "Link a Child" %}{% endblock %}
 
 {% block content %}
   <div data-page-archetype="setup-studio">
   <div class="mb-4">
-    <h2 class="mb-1">Link a Child</h2>
-    <div class="text-muted">Use the admission number you received from the school.</div>
+    <h2 class="mb-1">{% trans "Link a Child" %}</h2>
+    <div class="text-muted">{% trans "Use the admission number you received from the school." %}</div>
   </div>
 
   <div class="row g-3 mb-4">
@@ -15,7 +15,7 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <p class="text-uppercase small text-muted mb-1">Completeness meter</p>
+              <p class="text-uppercase small text-muted mb-1">{% trans "Completeness meter" %}</p>
               <h5 class="mb-0">{{ completeness_pct }}%</h5>
             </div>
             <span class="badge bg-primary">{{ completeness_pct }}%</span>
@@ -31,7 +31,7 @@
             ></div>
           </div>
           <p class="small text-muted mt-3 mb-0">
-            Completing guardian contact fields unlocks attendance, marks, and finance insights for your family.
+            {% trans "Completing guardian contact fields unlocks attendance, marks, and finance insights for your family." %}
           </p>
         </div>
       </div>
@@ -39,13 +39,13 @@
     <div class="col-lg-6">
       <div class="card shadow-sm border-0">
         <div class="card-body">
-          <p class="text-uppercase small text-muted mb-1">Referral & invitations</p>
-          <h5 class="mb-1">Bonus per referral</h5>
+          <p class="text-uppercase small text-muted mb-1">{% trans "Referral & invitations" %}</p>
+          <h5 class="mb-1">{% trans "Bonus per referral" %}</h5>
           <p class="h6 mb-3 text-primary">
-            {{ referral_bonus|default:0|format_number:2 }} bonus credits
+            {{ referral_bonus|default:0|format_number:2 }} {% trans "bonus credits" %}
           </p>
           <p class="small text-muted">
-            Share referral codes or ask the admissions team for an invite via email, SMS, or WhatsApp if you don't have one yet.
+            {% trans "Share referral codes or ask the admissions team for an invite via email, SMS, or WhatsApp if you don't have one yet." %}
           </p>
           <div class="d-flex flex-wrap gap-2 mt-2">
             {% if support_email %}
@@ -66,13 +66,14 @@
   <div class="card">
     <div class="card-body">
       {% if school_code %}
-        <div class="alert alert-info small">
-          School code: <strong>{{ school_code }}</strong>. Admission format: YY + {{ school_code }} + #### + SPEC + CLASS (no dashes).
-          Use the code provided by the school to avoid typos.
+        <div class="alert alert-info small" dir="auto">
+          {% trans "School code:" %} <strong>{{ school_code }}</strong>.
+          {% blocktrans with code=school_code %}Admission format: YY + {{ code }} + #### + SPEC + CLASS (no dashes).{% endblocktrans %}
+          {% trans "Use the code provided by the school to avoid typos." %}
         </div>
       {% endif %}
 
-      <form method="post" class="row g-3">
+      <form method="post" class="row g-3" id="link-child-legacy-form" dir="auto" data-draft-key="link_child_legacy_{{ request.user.id }}" data-draft-max-age-hours="48" data-draft-pending-label="{% trans 'Unsaved link form' %}">
         {% csrf_token %}
         {% if form.non_field_errors %}
           <div class="col-12">
@@ -83,7 +84,7 @@
         {% endif %}
 
         <div class="col-12">
-          <h5 class="mb-2">Student details</h5>
+          <h5 class="mb-2">{% trans "Student details" %}</h5>
         </div>
 
         <div class="col-md-6">
@@ -130,7 +131,7 @@
         </div>
 
         <div class="col-12">
-          <h5 class="mb-2">Parent & contact</h5>
+          <h5 class="mb-2">{% trans "Parent & contact" %}</h5>
         </div>
 
         <div class="col-md-4">
@@ -188,11 +189,21 @@
         </div>
 
         <div class="col-12 d-flex gap-2">
-          <button class="btn btn-primary" type="submit">Link child</button>
-          <a class="btn btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">Cancel</a>
+          <button class="btn btn-primary" type="submit">{% trans "Link child" %}</button>
+          <a class="btn btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">{% trans "Cancel" %}</a>
         </div>
       </form>
     </div>
   </div>
   </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  var form = document.getElementById('link-child-legacy-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
 {% endblock %}

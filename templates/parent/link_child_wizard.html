@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
-{% load region_format %}
-{% block title %}Link a Child{% endblock %}
+{% load region_format i18n static %}
+{% block title %}{% trans "Link a Child" %}{% endblock %}
 
 {% block extrastyle %}
 <style>
@@ -228,7 +228,7 @@
 
   <!-- Step Content -->
   <div class="wizard-step-content">
-    <form method="post" id="wizardForm">
+    <form method="post" id="link-child-wizard-form" dir="auto" data-draft-key="link_child_wizard_{{ request.user.id }}" data-draft-max-age-hours="48" data-draft-pending-label="{% trans 'Unsaved wizard progress' %}">
       {% csrf_token %}
       <input type="hidden" name="step" value="{{ step }}">
 
@@ -556,23 +556,26 @@
 {% endblock %}
 
 {% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
 <script>
   // Auto-focus on admission number field in step 1
   document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('link-child-wizard-form');
+    if (form && window.FormDraftSave) window.FormDraftSave.init(form);
     {% if step == 1 %}
     const admissionField = document.getElementById('{{ form.admission_number.id_for_label }}');
     if (admissionField) {
       admissionField.focus();
     }
     {% endif %}
-    
+
     // Prevent form submission on Enter key in textareas
     const textareas = document.querySelectorAll('textarea');
     textareas.forEach(function(textarea) {
       textarea.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && e.ctrlKey) {
           e.preventDefault();
-          document.getElementById('wizardForm').submit();
+          if (form) form.submit();
         }
       });
     });

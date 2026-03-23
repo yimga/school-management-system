@@ -43,6 +43,13 @@ settings.DATABASES["default"]["NAME"] = str(path)
 
 django.setup()
 
+# This script is not invoked via `manage.py test`, so settings would otherwise
+# leave django.db at DEBUG when DEBUG=True — massive SQL spam and I/O slowdown.
+import logging
+
+for _name in ("django.db.backends", "django.db.backends.schema"):
+    logging.getLogger(_name).setLevel(logging.WARNING)
+
 from django.core.management import call_command
 
 try:

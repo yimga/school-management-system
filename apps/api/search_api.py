@@ -261,9 +261,11 @@ class GlobalSearchAPI(View):
             sid = r.get("id")
             if sid is None:
                 continue
+            # Use ORM pk= (not int()) so JSON/string IDs from the API layer resolve correctly
+            # for integer StudentProfile PKs; avoids silent skips when sid is str.
             try:
                 st = StudentProfile.objects.select_related("school").get(
-                    pk=int(sid), school_id=school.id
+                    pk=sid, school_id=school.id
                 )
             except (StudentProfile.DoesNotExist, TypeError, ValueError):
                 continue

@@ -128,14 +128,16 @@ class NorthStarUpcomingDeadlinesView(_StaffSchoolMixin, View):
 
         school = _school_from_request(request)
         sid_raw = (request.GET.get("school_id") or "").strip()
-        sid_int = None
-        if sid_raw:
-            try:
-                sid_int = int(sid_raw)
-            except (TypeError, ValueError):
-                sid_int = None
-        if school is None and sid_int is not None:
-            school = School.objects.filter(pk=sid_int).first()
+        # School.pk is UUID — accept string UUID (and legacy int if ever used).
+        if school is None and sid_raw:
+            school = School.objects.filter(pk=sid_raw).first()
+            if school is None:
+                try:
+                    sid_int = int(sid_raw)
+                except (TypeError, ValueError):
+                    sid_int = None
+                if sid_int is not None:
+                    school = School.objects.filter(pk=sid_int).first()
         if school is None:
             return JsonResponse(
                 {

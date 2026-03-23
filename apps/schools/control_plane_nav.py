@@ -370,6 +370,12 @@ def build_control_plane_nav(request):
             "icon": "bi-grid-3x3-gap",
         },
         {
+            "id": "super_operator_policy",
+            "label": "Operator policy",
+            "url_name": "super:operator_policy",
+            "icon": "bi-shield-check",
+        },
+        {
             "id": "config_console",
             "label": "System config",
             "url_name": "siteconfig:console_domains_hub",

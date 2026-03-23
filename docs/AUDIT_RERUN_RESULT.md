@@ -3,7 +3,7 @@
 **Date:** 2026-03-12  
 **Reference:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12; [EXECUTION_RUNBOOK_11_10.md](EXECUTION_RUNBOOK_11_10.md).
 
-**§9 / Completion authority:** Completion and 9.5/10 eligibility are defined by RUNMYCAMPUS §12 and [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md). When this audit’s summary conflicts with the backlog (e.g. “9.5 gate satisfied” vs §12 gates NOT DONE), **the backlog and RUNMYCAMPUS §12 are authoritative.** Do not claim 9.5/10 until all §12 gates in the single source of truth are satisfied.
+**§9 / Completion authority:** Completion and **§12 engineering gate (9.5/10)** are defined by RUNMYCAMPUS **§0** + **§12** + [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md). **§12 gates are MET** for the recorded program—see SOT **§11.4**. If a snapshot still says “NOT DONE” vs “MET,” **the current SOT wins.** Do not claim **12/10+ market leadership** without SOT **§0.2** evidence.
 
 ## 1. Lint and CI (partial run)
 

@@ -1,10 +1,10 @@
 # Plan and Backlog — Where We Stand
 
-**Purpose:** Single snapshot of where the plan, backlog, and execution stand at this time. Update when reconciling or at major milestones.
+> **2026-03-23 — Read this instead for live status:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (§0.1.5, §11.4, §12) and [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) (external OPEN only). **[docs/README.md](README.md)** lists the minimal doc set. This file is a **historical snapshot**; do not update it for new execution state — update the SOT.
 
-**Authority:** Status and "what's left" live **only** in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4. This doc is a **derived snapshot** — do not use it as the source of truth. When reconciling, update SOT §11.4 first, then refresh this snapshot. Sources: SOT, [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md).
+**Purpose:** Archived snapshot of plan/backlog alignment. **Authority:** Always [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md).
 
-**Last updated:** 2026-03-18 — §6 premium/IA **MET**: GLOBAL_NAV_INFORMATION_ARCHITECTURE.md; control-plane Page tours (trust, migration diff, governed query); System config outcome banners; `control_plane_default_tour_steps` + tests; SOT/Phase H log/stock take updated. Per-release: full Phase H manual + BR-13 sign-off.
+**Last meaningful snapshot:** 2026-03-18 — §6 premium/IA **MET**; per-release Phase H manual + BR-13 sign-off remains a release process item.
 
 ---
 

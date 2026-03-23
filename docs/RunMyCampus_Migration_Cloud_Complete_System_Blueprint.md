@@ -18,7 +18,7 @@ Migration is the platform moat. The north star is "easy to switch to RunMyCampus
 
 - **Required:** Implement schema inference (table/column names, types, relationship patterns; confidence scores and auto-load profile). Wizard mapping is the current baseline.
 - **Implemented:** `apps.automation.schema_fingerprint.suggest_profiles_from_headers(headers, domain=None, min_confidence=0.0)` scores active MigrationProfiles with schema_hints against column headers and returns (profile, confidence) list for auto-load or suggestion.
-- **Touchpoint:** Migration wizard; call suggest_profiles_from_headers when headers are available to suggest or auto-load profile.
+- **Touchpoint:** Migration wizard (`accounts.views_migration`) calls `suggest_profiles_from_headers` when CSV headers exist and shows ranked profile suggestions in the mapping step. **Execution checklist and Ollama/gateway role:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §0.1.2 (implementation audit & action queue)—do not duplicate that content here.
 
 ### Canonical education translation layer
 

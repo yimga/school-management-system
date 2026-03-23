@@ -39,6 +39,11 @@ class InternalApiWaveSmokeTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn(b"targets", r.content)
 
+    def test_control_plane_bridge_manifest_403_staff_not_operator(self):
+        """§2.1.1: manifest is control-plane only (not generic staff)."""
+        r = self._get("api:api-control-plane-bridge-manifest")
+        self.assertEqual(r.status_code, 403)
+
     def test_demographic_insights_with_school_id(self):
         r = self._get(
             "api:api-br-demographic-insights",
@@ -65,10 +70,12 @@ class InternalApiWaveSmokeTests(TestCase):
         base = reverse("api:api-north-star-upcoming-deadlines")
         r = self.client.get(f"{base}?school_id={self.school.pk}")
         self.assertLess(r.status_code, 500)
-        self.assertIn(r.status_code, (200, 400))
-        if r.status_code == 200:
-            data = json.loads(r.content)
-            self.assertIn("events", data)
+        self.assertEqual(r.status_code, 200)
+        data = json.loads(r.content)
+        self.assertIn("events", data)
+        self.assertIn("version", data)
+        self.assertIn("read_model", data)
+        self.assertEqual(data.get("school_id"), str(self.school.pk))
 
     def test_migration_diff_preview_post(self):
         url = reverse("api:api-br-migration-diff")

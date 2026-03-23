@@ -10,7 +10,7 @@
 
 **Step 47 (no overlapping roadmaps):** Roadmap and strategy updates go only to [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md), this backlog, [docs_truth_ledger.md](docs_truth_ledger.md), and [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md). Do not create new overlapping strategy or roadmap files.
 
-**SOT open checkboxes (indexed):** Every remaining `- [ ]` in RUNMYCAMPUS §0.1.5+ is categorized in [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) (NEXT_CODE / PRODUCT / OPS / COMPLIANCE / BLOCKED). Reconcile that file when flipping a SOT checkbox to `[x]`.
+**§0.1.5 / Wave 8:** Repo-deliverable rows are **`[x]`** in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §0.1.5. **OPEN** items that are **external / organizational** only — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) External table. Do not track duplicate “queue status” elsewhere.
 
 ---
 
@@ -64,7 +64,7 @@ Items that remain `[ ]` in the plan are closed with one of the statuses below.
 | ?7 | Ecosystem seeding (25+ apps, blueprints, etc.) | **DONE** | platform_inventory + get_platform_catalog_counts(); all catalog minimums met. Marketplace UI shows counts (governance_console, app_catalog, tenant_app_catalog, blueprint_marketplace); Install to sandbox and Apply/Preview/Rollback in place. |
 | ?8.1?8.2, 8.4 | Role-home, contextual actions, marketing visuals | **DONE** | Phase F: role_home_engine.py service; contextual actions + command palette intents (fee reminder, grade reports, district analytics); proof_hero + why_switch + product_visualization_slides fallback; MARKETING_FRONT_PLACEHOLDER §4. Remainder = content/asset pipeline only. |
 | ?8.3 | Page archetypes (all types) | **DONE** | All listed archetypes have at least one page: operational-workbench (workflow_center, studio_os/shell, operator_workbench), catalog (governance, app_catalog, tenant_app_catalog, governance_console, blueprint_marketplace, lineage_graph), role-home (backend_dashboard), setup-studio (guided_onboarding), decision-console (console_domains_hub), record-detail (requests/detail). Optional: add more pages per archetype as needed; scope closed. |
-| ?9 | Remove contradictory "fully complete" language | **DONE** | ?9 docs alignment policy in place (BACKLOG ?2c). MASTER_PLATFORM_CHECKLIST, PATH_TO_10_SCORECARD, NORTH_STAR_PLATFORM state ?12 authority; no 9.5 claim until ?12 gates met. When touching any doc that mentions completion or 9.5, align with RUNMYCAMPUS ?12 and ledger. |
+| §9 | Remove contradictory "fully complete" language | **DONE** | §9 docs alignment policy in place (BACKLOG §2c). MASTER_PLATFORM_CHECKLIST, PATH_TO_10_SCORECARD, NORTH_STAR_PLATFORM state §12 authority; **§12 MET**—claims must match SOT §0 / §11.4. When touching any doc that mentions completion or scores, align with RUNMYCAMPUS §12 and ledger. |
 | ?9 | Docs do not contradict platform reality | **DONE** | Same as above; policy + key-doc disclaimers; ledger and BACKLOG are source for completion status. |
 | ?10 | Replace print with structured logging | **DONE** | CI blocks new print (lint_no_print_in_apps in pre_deploy_gate). No print() in apps outside tests/management/migrations; replacement in application paths complete. code_hygiene_ledger ?8 updated. |
 | ?10 | No major hygiene debt as systemic pattern | **DONE** | Step 40 DONE (F401/F841 clean); print and get_solo blocked in tenant paths; inventories + CI. code_hygiene_ledger ?8 completion gate updated. |
@@ -156,9 +156,9 @@ Only the following are updated for **roadmap / strategy / completion status**; d
 | [docs_truth_ledger.md](docs_truth_ledger.md) | Completion ledger: item ? DONE / PARTIAL / NOT DONE. |
 | [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) | Numbered checklist; status per step. |
 
-Other docs (MASTER_PLATFORM_CHECKLIST, WHAT_IS_LEFT_MASTER, PLAN_VERIFICATION_REPORT, etc.) are **reference or verification** only; completion authority is ?12 and the ledger. When in doubt, update RUNMYCAMPUS, this backlog, the ledger, or NEXT_50 rather than creating a new roadmap file.
+Other docs (MASTER_PLATFORM_CHECKLIST, WHAT_IS_LEFT_MASTER, PLAN_VERIFICATION_REPORT, etc.) are **reference or verification** only; completion authority is §12 and the ledger. When in doubt, update RUNMYCAMPUS, this backlog, the ledger, or NEXT_50 rather than creating a new roadmap file.
 
-**?9 Docs alignment policy (nothing left behind):** When editing **any** doc that mentions completion, 9.5/10, "all done," or "phases 0?8 Done," align with [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) ?12 and [docs_truth_ledger.md](docs_truth_ledger.md). **Do not claim 9.5/10 or "all complete" until all ?12 gates in the single source of truth are satisfied.** Key docs updated this run: PATH_TO_10_SCORECARD.md, NORTH_STAR_PLATFORM.md; MASTER_PLATFORM_CHECKLIST already states ?12 authority.
+**§9 Docs alignment policy (nothing left behind):** When editing **any** doc that mentions completion, 9.5/10, "all done," or "phases 0–8 Done," align with [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§0** + §12 and [docs_truth_ledger.md](docs_truth_ledger.md). **§12 is MET** for the recorded program—claims must match **§0** / **§11.4** (no stale "until §12" wording). Key docs: PATH_TO_10_SCORECARD.md, NORTH_STAR_PLATFORM.md; MASTER_PLATFORM_CHECKLIST aligned.
 
 ---
 
@@ -278,11 +278,11 @@ Other docs (MASTER_PLATFORM_CHECKLIST, WHAT_IS_LEFT_MASTER, PLAN_VERIFICATION_RE
 | docs truth no contradictions | **MET** | DOCS_TRUTH_AUDIT.md complete; all key docs disclaim §12 authority; no doc claims 9.5 until §12 satisfied; BACKLOG ?9. |
 | marketing front platform-grade | **MET** | All context keys have non-empty fallbacks (incl. health_score_visual_url); proof_hero + why_switch in use; full fallback asset set in static/images/marketing/ (MARKETING_FRONT_PLACEHOLDER §3). |
 
-**Summary:** **11 of 11 ?12 gates MET** (incl. marketplace/packs deeply productized per MARKETPLACE_SEED_TARGETS §5). Do not claim 9.5/10 until release sign-off.
+**Summary:** **11 of 11 §12 gates MET** (incl. marketplace/packs deeply productized per MARKETPLACE_SEED_TARGETS §5). **Release sign-off recorded 2026-03-17** (SOT §11.4). **12/10+ market** remains continuous (SOT §0.2).
  
 ### 6.4 Snapshot (where we stand at this time)
 
-**Plan and backlog authority:** RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md is the single execution source of truth; NEXT_50 is the numbered checklist; this backlog and docs_truth_ledger track closure. No 9.5/10 claim until ?12 gates are met.
+**Plan and backlog authority:** RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md is the single execution source of truth; NEXT_50 is the numbered checklist; this backlog and docs_truth_ledger track closure. No **incorrect** score claims—**§12 MET**; per-release re-verify gates (SOT §11.4).
 
 | Dimension | Status |
 |-----------|--------|

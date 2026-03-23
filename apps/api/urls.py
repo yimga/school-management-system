@@ -148,6 +148,7 @@ from apps.api.br_northstar_views import (
     SLOTargetsAPIView,
     TenantRegistriesEffectiveView,
 )
+from apps.api.control_plane_internal_views import ControlPlaneBridgeManifestAPIView
 from apps.api.oneroster_roster_webhook import oneroster_roster_webhook
 from apps.api.north_star_api_views import (
     NorthStarEventCatalogView,
@@ -348,6 +349,11 @@ urlpatterns = [
         "internal/br/slo-targets/",
         SLOTargetsAPIView.as_view(),
         name="api-br-slo-targets",
+    ),
+    path(
+        "internal/control-plane/bridge-manifest/",
+        ControlPlaneBridgeManifestAPIView.as_view(),
+        name="api-control-plane-bridge-manifest",
     ),
     path(
         "internal/br/compliance/validate-enrollment/",

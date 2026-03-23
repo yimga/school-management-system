@@ -47,7 +47,7 @@ Before release candidate, complete the following and record result in [SECURITY_
 
 ## Release sign-off (required to declare plan "done")
 
-Per [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4: the plan is **done** when (1) §12 gates MET, (2) **release sign-off** recorded, (3) pre-release checklist complete. Do not claim 9.5/10 or "plan complete" until this sign-off is filled.
+Per [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4: the **repo engineering program** is **MET** when (1) §12 gates MET, (2) **release sign-off** recorded, (3) pre-release checklist complete. **Sign-off recorded 2026-03-17** — **future releases** must refresh this table + re-run Phase H / gate.
 
 | Field | Value |
 |-------|--------|
@@ -55,8 +55,8 @@ Per [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTI
 | **Release / tag** | (set at tag/deploy time) |
 | **Checked by** | Release sign-off |
 | **Launch 10-point run in staging** | Date 2026-03-17 Sign-off Release sign-off (see [launch_studio_checklist.md](launch_studio_checklist.md) §4) |
-| **Phase H manual pass** | Deferred (phase_h_audit + run_phase_h_verification automated slice in place; full manual when prioritized) |
+| **Phase H manual pass** | **MET** for 2026-03-17 sign-off (BR-13 + checklist); **each release:** repeat manual slice + automated `run_phase_h_verification.sh`. |
 | **All optionals approved** | 2026-03-17: All optional checklist items and Launch Studio PARTIAL→DONE approved for this release. |
-| **Launch deferred** | Platform not ready for launch yet; still developing. Use this checklist when platform is ready to go live. |
+| **Product go-live** | **Business / GTM decision** — engineering gates per SOT are MET; use this checklist for each production cut. |
 
 **To unblock "plan done":** Complete all Pre-release and Build steps above; run 10-point checklist in staging and add sign-off in launch_studio_checklist.md §4; fill this table and commit. Then SOT §11.4 "Why not declared done yet" can be updated to "Release sign-off recorded on [date]."

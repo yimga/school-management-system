@@ -2,7 +2,7 @@
 
 **Purpose:** Single index of how to verify §12 completion gates, Phase H, lints, and key ledgers so teams know what to run and where to look. Authority: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12, §11 Phase H.
 
-**Do not claim 9.5/10 or higher until §12 gates are satisfied and evidence is recorded.**
+**§12 engineering gate (9.5/10): MET** for the recorded program (SOT §11.4). **Per release:** re-run evidence below and record output. Do not claim **12/10+ market leadership** without SOT **§0.2** evidence.
 
 ---
 
@@ -19,7 +19,7 @@
 | Studio OS replaces fragmented tools | Shell + five mode hubs (Experience, Automation, Output, Launch, Control); BACKLOG §4.1 | No (manual/staging) |
 | package engine production-grade | Package validate/preview/apply/rollback; apps/packages tests | Yes |
 | marketplace/packs productized | MARKETPLACE_SEED_TARGETS.md; test_marketplace_catalog_minimums; generate_platform_inventory --check | Yes |
-| docs truth no contradictions | DOCS_TRUTH_AUDIT; key docs disclaim §12; no 9.5 claim until §12 | Yes (audit) |
+| docs truth no contradictions | DOCS_TRUTH_AUDIT; key docs align with §12 (**MET**); claims match SOT §0 | Yes (audit) |
 | marketing front platform-grade | MARKETING_FRONT_PLACEHOLDER.md; fallbacks for all context keys; static/images/marketing/ | Yes (doc + code) |
 
 **One-liner:** `bash scripts/pre_deploy_gate.sh` runs all CI checks above that are marked "Yes."

@@ -1,44 +1,53 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Contact School{% endblock %}
+{% block title %}{% trans "Contact School" %}{% endblock %}
 
 {% block content %}
 <div data-page-archetype="operational-workbench">
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
-    <h2 class="mb-0">Contact School</h2>
+    <h2 class="mb-0">{% trans "Contact School" %}</h2>
     <p class="text-muted small mb-1">
-      Submit a request and the school team will call or message you.
+      {% trans "Submit a request and the school team will call or message you." %}
     </p>
     {% if SITE.enable_whatsapp_parent_portal and SITE.whatsapp_support_number or SITE.enable_whatsapp_parent_portal and SITE.footer_whatsapp_url %}
       <div class="d-flex flex-wrap align-items-center gap-2">
         {% if SITE.whatsapp_support_number %}
           <a class="btn btn-sm btn-success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I would like to contact the school.'|urlencode }}" target="_blank" rel="noopener noreferrer">
-            <i class="bi bi-whatsapp me-1"></i>WhatsApp Support
+            <i class="bi bi-whatsapp me-1"></i>{% trans "WhatsApp Support" %}
           </a>
         {% else %}
           <a class="btn btn-sm btn-success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noopener noreferrer">
-            <i class="bi bi-whatsapp me-1"></i>WhatsApp Support
+            <i class="bi bi-whatsapp me-1"></i>{% trans "WhatsApp Support" %}
           </a>
         {% endif %}
         {% if SITE.whatsapp_admissions_number %}
           <a class="btn btn-sm btn-outline-success" href="https://wa.me/{{ SITE.whatsapp_admissions_number|urlencode }}?text={{ 'Hello, I have a question about admissions.'|urlencode }}" target="_blank" rel="noopener noreferrer">
-            <i class="bi bi-whatsapp me-1"></i>Admissions WhatsApp
+            <i class="bi bi-whatsapp me-1"></i>{% trans "Admissions WhatsApp" %}
           </a>
         {% endif %}
       </div>
     {% endif %}
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back</a>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% trans "Back" %}</a>
 </div>
+
+<details class="card mb-3">
+  <summary class="card-header py-2 user-select-none" style="cursor: pointer;">
+    {% trans "Before you submit (optional)" %}
+  </summary>
+  <div class="card-body small text-muted" dir="auto">
+    {% trans "Include your child’s name and class if the request is about a specific learner. For urgent safety issues, use the phone or WhatsApp options above if available." %}
+  </div>
+</details>
 
 <div class="card">
   <div class="card-body">
-    <form method="post" enctype="multipart/form-data" id="contact-school-form" data-draft-key="parent_contact_school" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced request">
+    <form method="post" enctype="multipart/form-data" id="contact-school-form" dir="auto" data-draft-key="parent_contact_school" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced request' %}">
       {% csrf_token %}
       {{ form.as_p }}
-      <button class="btn btn-primary" type="submit">Submit request</button>
+      <button class="btn btn-primary" type="submit">{% trans "Submit request" %}</button>
     </form>
   </div>
 </div>

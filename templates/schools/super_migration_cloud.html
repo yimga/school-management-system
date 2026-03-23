@@ -7,6 +7,7 @@
 {% block cp_content %}
   <div class="container-fluid py-4" data-page-archetype="operational-workbench">
     {% include "studio_os/components/page_header.html" with title="Migration cloud" subtitle="Govern connector profiles, recent runs, parity, and rollback readiness from the control plane." action_url=dashboard_url action_text="Back to dashboard" %}
+    {% include "schools/partials/wedge_super_premium_proof.html" %}
     {% if registry_url %}
     <p class="mb-2"><a href="{{ registry_url }}">Migration Profile Registry</a> (by source system and category)</p>
     {% endif %}

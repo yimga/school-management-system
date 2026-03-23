@@ -1,14 +1,13 @@
 # Program work not closed by a single code drop
 
-Canonical checklist: `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` (§398+ Wave 8, §467 honest status).
+**Canonical execution + Wave 8 status:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§0.1.5** (all repo-scoped rows **`[x]`** as of 2026-03-23). **External-only OPEN items** — single list: [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) (**External** table). This file is **not** a second SOT; it explains **why** some real-world milestones stay outside any git-only closure.
 
-| Area | Why it is multi-sprint |
-|------|-------------------------|
-| **SOC 2 / N16** | Requires control design, evidence collection, auditor engagement, and attestation—not implementable as one PR. |
-| **N1–N29 full bars** | N10 (perf CI gates), N17 (dependency graph UI depth), N18 (sandbox/DX), N20–N24, N28 analytics depth, etc. are product + infra programs. |
-| **First-party ops (Wave 4)** | New operational surfaces and ownership, not only URL wiring. |
-| **SiteSettings split** | Large refactor; needs migration plan and regression matrix. |
-| **DoesNotExist sweep** | Ongoing hardening across hundreds of views; use typed exceptions per §2.4. |
-| **csrf_exempt cleanup** | Each endpoint needs contract review (webhooks, SCIM, SAML, GraphQL). Allowlist: `scripts/allowlists/csrf_exempt_allowlist.json`. |
+| Area | Why it is multi-sprint or external |
+|------|-------------------------------------|
+| **SOC 2 / N16 attestation** | Auditor engagement + certificate on file — not one PR. |
+| **Vendor / certification / ops** | App store releases, Clever/ClassLink native APIs, third-party WCAG cert, 24/7 NOC, prod BI/CWV staffing — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). |
+| **SiteSettings full DB column split** | Large migration program — external table in backlog. |
+| **DoesNotExist sweep** | Ongoing hardening across hundreds of views; §6 ledger. |
+| **csrf_exempt** | Governed allowlist: `scripts/allowlists/csrf_exempt_allowlist.json`. |
 
-**Closed in-repo when this doc is added:** Studio rail tile URL audit (all targets in `deep_links._PATHS`, per-tile resolution, tests). See `STUDIO_RAIL_CONTROL_PLANE_URLS.md`.
+**Closed in-repo:** Studio rail tile URL audit (`deep_links._PATHS`, `test_studio_rail_resolution.py`). See [STUDIO_RAIL_CONTROL_PLANE_URLS.md](STUDIO_RAIL_CONTROL_PLANE_URLS.md).

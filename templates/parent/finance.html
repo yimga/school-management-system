@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static i18n region_format %}
 
-{% block title %}Finances{% endblock %}
+{% block title %}{% trans "Finances" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -21,14 +21,14 @@
     <div class="d-flex align-items-center gap-2">
       <i class="bi bi-shield-lock"></i>
       <div>
-        Finance access is not yet enabled for your account. Once an admin grants access, invoices and payments will appear here.
-        <div class="small text-muted">Finance-enabled students: {{ finance_guardian_count|default:0 }}/{{ guardian_link_count|default:0 }}</div>
+        {% trans "Finance access is not yet enabled for your account. Once an admin grants access, invoices and payments will appear here." %}
+        <div class="small text-muted">{% trans "Finance-enabled students" %}: {{ finance_guardian_count|default:0 }}/{{ guardian_link_count|default:0 }}</div>
       </div>
     </div>
     {% if can_request_finance_access %}
-    <form method="post" action="{{ finance_request_url }}" class="ms-md-auto">
+    <form method="post" action="{{ finance_request_url }}" class="ms-md-auto" id="parent-finance-access-request-form" dir="auto">
       {% csrf_token %}
-      <button type="submit" class="btn btn-sm btn-primary">Request finance access</button>
+      <button type="submit" class="btn btn-sm btn-primary">{% trans "Request finance access" %}</button>
     </form>
     {% endif %}
   </div>
@@ -38,16 +38,16 @@
     <div class="col-md-4">
       <div class="card h-100">
         <div class="card-body">
-          <div class="text-muted small">Invoice attachments</div>
+          <div class="text-muted small">{% trans "Invoice attachments" %}</div>
           <div class="fs-4 fw-semibold">{{ attachment_count }}</div>
-          <p class="small text-muted mb-0">Receipts, slips, and PDFs uploaded by finance.</p>
+          <p class="small text-muted mb-0">{% trans "Receipts, slips, and PDFs uploaded by finance." %}</p>
         </div>
       </div>
     </div>
     <div class="col-md-4">
       <div class="card h-100">
         <div class="card-body">
-          <div class="text-muted small">Payment methods</div>
+          <div class="text-muted small">{% trans "Payment methods" %}</div>
           <div class="d-flex flex-column gap-1">
             {% for method in payment_method_summary %}
               <div class="d-flex justify-content-between">
@@ -55,7 +55,7 @@
                 <strong>{{ method.count }}</strong>
               </div>
             {% empty %}
-              <div class="small text-muted">No payments recorded yet.</div>
+              <div class="small text-muted">{% trans "No payments recorded yet." %}</div>
             {% endfor %}
           </div>
         </div>
@@ -64,9 +64,9 @@
     <div class="col-md-4">
       <div class="card h-100">
         <div class="card-body">
-          <div class="text-muted small">Referral rewards</div>
+          <div class="text-muted small">{% trans "Referral rewards" %}</div>
           <div class="fs-4 fw-semibold">{{ referral_total|default:"0.00" }}</div>
-          <p class="small text-muted mb-0">{{ referral_pending }} pending for approval.</p>
+          <p class="small text-muted mb-0">{% blocktrans with p=referral_pending %}{{ p }} pending for approval.{% endblocktrans %}</p>
         </div>
       </div>
     </div>
@@ -76,7 +76,7 @@
     <div class="col-md-3">
       <div class="card h-100">
         <div class="card-body">
-          <div class="text-muted small">Total due</div>
+          <div class="text-muted small">{% trans "Total due" %}</div>
           <div class="fs-5 fw-semibold">{{ total_due }}</div>
         </div>
       </div>
@@ -84,7 +84,7 @@
     <div class="col-md-3">
       <div class="card h-100">
         <div class="card-body">
-          <div class="text-muted small">Paid</div>
+          <div class="text-muted small">{% trans "Paid" %}</div>
           <div class="fs-5 fw-semibold">{{ paid }}</div>
         </div>
       </div>
@@ -92,7 +92,7 @@
     <div class="col-md-3">
       <div class="card h-100">
         <div class="card-body">
-          <div class="text-muted small">Outstanding</div>
+          <div class="text-muted small">{% trans "Outstanding" %}</div>
           <div class="fs-5 fw-semibold">{{ balance }}</div>
         </div>
       </div>
@@ -100,9 +100,9 @@
     <div class="col-md-3">
       <div class="card h-100">
         <div class="card-body">
-          <div class="text-muted small">Overdue invoices</div>
+          <div class="text-muted small">{% trans "Overdue invoices" %}</div>
           <div class="fs-5 fw-semibold">{{ overdue_count }}</div>
-          <div class="small text-muted">Contact finance if this looks off.</div>
+          <div class="small text-muted">{% trans "Contact finance if this looks off." %}</div>
         </div>
       </div>
     </div>
@@ -113,16 +113,16 @@
     <div class="card-body">
       <div class="row g-2 align-items-end">
         <div class="col-md-4">
-          <label class="form-label small">Status</label>
+          <label class="form-label small">{% trans "Status" %}</label>
           <select class="form-select form-select-sm" name="status">
-            <option value="">All</option>
+            <option value="">{% trans "All" %}</option>
             {% for value, label in invoice_statuses %}
               <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label small">Sort by</label>
+          <label class="form-label small">{% trans "Sort by" %}</label>
           <select class="form-select form-select-sm" name="order">
             {% for value, label in order_options %}
               <option value="{{ value }}" {% if selected_order == value %}selected{% endif %}>{{ label }}</option>
@@ -130,7 +130,7 @@
           </select>
         </div>
         <div class="col-md-2">
-          <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+          <button type="submit" class="btn btn-primary btn-sm">{% trans "Apply" %}</button>
         </div>
       </div>
     </div>
@@ -140,52 +140,52 @@
   <div class="card">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">Invoices</h5>
-        <a class="btn btn-sm btn-outline-secondary btn-back-primary no-print" href="{% url 'portal:parent_dashboard' %}#finance"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
+        <h5 class="mb-0">{% trans "Invoices" %}</h5>
+        <a class="btn btn-sm btn-outline-secondary btn-back-primary no-print" href="{% url 'portal:parent_dashboard' %}#finance"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to dashboard" %}</a>
       </div>
       {% if invoice_rows %}
         <div class="table-responsive">
-          <table class="table align-middle table-mobile-cards" aria-label="Your invoices: reference, student, due date, status, total, balance, and actions">
+          <table class="table align-middle table-mobile-cards" aria-label="{% trans 'Your invoices: reference, student, due date, status, total, balance, and actions' %}">
             <thead class="table-light">
             <tr>
-              <th scope="col">Reference</th>
-              <th scope="col">Payment code (MoMo)</th>
-              <th scope="col">Student</th>
-              <th scope="col">Due</th>
-              <th scope="col">Status</th>
-              <th scope="col">Method</th>
-              <th scope="col" class="text-end">Total</th>
-              <th scope="col" class="text-end">Balance</th>
-              <th scope="col">Attachment</th>
-              <th scope="col" class="text-end">Action</th>
+              <th scope="col">{% trans "Reference" %}</th>
+              <th scope="col">{% trans "Payment code (MoMo)" %}</th>
+              <th scope="col">{% trans "Student" %}</th>
+              <th scope="col">{% trans "Due" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+              <th scope="col">{% trans "Method" %}</th>
+              <th scope="col" class="text-end">{% trans "Total" %}</th>
+              <th scope="col" class="text-end">{% trans "Balance" %}</th>
+              <th scope="col">{% trans "Attachment" %}</th>
+              <th scope="col" class="text-end">{% trans "Action" %}</th>
             </tr>
             </thead>
             <tbody>
               {% for row in invoice_rows %}
                 {% with invoice=row.invoice link=row.payment_link %}
               <tr>
-                <td data-label="Reference">{{ invoice.reference|default:invoice.id }}</td>
-                <td data-label="Payment code"><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
-                <td data-label="Student">{{ invoice.student|default:"-" }}</td>
-                <td data-label="Due">{{ invoice.due_date|format_date|default:"—" }}</td>
-                <td data-label="Status">
+                <td data-label="{% trans 'Reference' %}">{{ invoice.reference|default:invoice.id }}</td>
+                <td data-label="{% trans 'Payment code' %}"><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
+                <td data-label="{% trans 'Student' %}">{{ invoice.student|default:"-" }}</td>
+                <td data-label="{% trans 'Due' %}">{{ invoice.due_date|format_date|default:"—" }}</td>
+                <td data-label="{% trans 'Status' %}">
                   <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
                 </td>
-                <td data-label="Method">{{ row.preferred_method }}</td>
-                <td class="text-end" data-label="Total">{{ invoice.total_amount|format_currency }}</td>
-                <td class="text-end" data-label="Balance">{{ invoice.balance_amount|format_currency }}</td>
-                <td class="text-center" data-label="Attachment">
+                <td data-label="{% trans 'Method' %}">{{ row.preferred_method }}</td>
+                <td class="text-end" data-label="{% trans 'Total' %}">{{ invoice.total_amount|format_currency }}</td>
+                <td class="text-end" data-label="{% trans 'Balance' %}">{{ invoice.balance_amount|format_currency }}</td>
+                <td class="text-center" data-label="{% trans 'Attachment' %}">
                   {% if row.attachment_url %}
-                    <a href="{{ row.attachment_url }}" target="_blank" rel="noopener noreferrer">View</a>
+                    <a href="{{ row.attachment_url }}" target="_blank" rel="noopener noreferrer">{% trans "View" %}</a>
                   {% else %}
-                    <span class="text-muted small">N/A</span>
+                    <span class="text-muted small">{% trans "N/A" %}</span>
                   {% endif %}
                 </td>
-                <td class="text-end" data-label="Action">
+                <td class="text-end" data-label="{% trans 'Action' %}">
                   {% if link %}
-                    <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">Pay now</a>
+                    <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{% trans "Pay now" %}</a>
                   {% else %}
-                    <span class="text-muted small">No link</span>
+                    <span class="text-muted small">{% trans "No link" %}</span>
                   {% endif %}
                 </td>
               </tr>
@@ -195,15 +195,15 @@
           </table>
         </div>
       {% else %}
-        <div class="alert alert-info mb-0">No invoices yet. Finance will publish them here when ready.</div>
+        <div class="alert alert-info mb-0">{% trans "No invoices yet. Finance will publish them here when ready." %}</div>
       {% endif %}
     </div>
   </div>
   <div class="card mt-4">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">Payment reminders</h5>
-        <span class="small text-muted">{{ reminders|length }} queued</span>
+        <h5 class="mb-0">{% trans "Payment reminders" %}</h5>
+        <span class="small text-muted">{{ reminders|length }} {% trans "queued" %}</span>
       </div>
       {% if reminders %}
         <div class="list-group list-group-flush">
@@ -212,20 +212,20 @@
               <div>
                 <div class="fw-semibold">{{ entry.invoice.student }}</div>
                 <div class="small text-muted">
-                  Due {{ entry.invoice.due_date|format_date|default:"—" }} · Balance {{ entry.invoice.balance_amount|format_currency }}
+                  {% trans "Due" %} {{ entry.invoice.due_date|format_date|default:"—" }} · {% trans "Balance" %} {{ entry.invoice.balance_amount|format_currency }}
                 </div>
-                <div class="small text-muted">Next send {{ entry.reminder.next_send_at|format_date }}</div>
+                <div class="small text-muted">{% trans "Next send" %} {{ entry.reminder.next_send_at|format_date }}</div>
               </div>
               {% if entry.payment_link %}
-                <a class="btn btn-sm btn-outline-primary" href="{{ entry.payment_link.url }}" target="_blank" rel="noopener noreferrer">Send pay link</a>
+                <a class="btn btn-sm btn-outline-primary" href="{{ entry.payment_link.url }}" target="_blank" rel="noopener noreferrer">{% trans "Send pay link" %}</a>
               {% else %}
-                <span class="badge bg-secondary">No integration</span>
+                <span class="badge bg-secondary">{% trans "No integration" %}</span>
               {% endif %}
             </div>
           {% endfor %}
         </div>
       {% else %}
-        <div class="alert alert-info mb-0">No active reminders. Finance will queue reminders once invoices become due.</div>
+        <div class="alert alert-info mb-0">{% trans "No active reminders. Finance will queue reminders once invoices become due." %}</div>
       {% endif %}
     </div>
   </div>

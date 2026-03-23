@@ -106,6 +106,27 @@
   color: inherit;
 }
 
+/* N3 / WCAG: keyboard focus must be visible on catalog tiles (critical /super/ path). */
+.cp-operator-hub .cpoh-tile:focus {
+  outline: none;
+}
+.cp-operator-hub .cpoh-tile:focus-visible {
+  outline: 2px solid rgba(196, 181, 253, 0.95);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.28),
+    0 8px 28px rgba(0, 0, 0, 0.35);
+  border-color: rgba(129, 140, 248, 0.75);
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-operator-hub .cpoh-tile:hover,
+  .cp-operator-hub .cpoh-tile:focus-visible {
+    transform: none;
+  }
+}
+
 .cp-operator-hub .cpoh-tile-icon {
   flex-shrink: 0;
   width: 2.5rem;
@@ -218,6 +239,25 @@
 .cp-operator-hub .cpoh-model-link:hover {
   background: rgba(99, 102, 241, 0.1);
   color: #fff;
+}
+
+.cp-operator-hub .cpoh-model-link:focus {
+  outline: none;
+}
+.cp-operator-hub .cpoh-model-link:focus-visible {
+  outline: 2px solid rgba(196, 181, 253, 0.95);
+  outline-offset: 2px;
+  background: rgba(99, 102, 241, 0.18);
+  color: #fff;
+}
+
+.cp-operator-hub .cpoh-advanced summary:focus {
+  outline: none;
+}
+.cp-operator-hub .cpoh-advanced summary:focus-visible {
+  outline: 2px solid rgba(196, 181, 253, 0.9);
+  outline-offset: 2px;
+  border-radius: 0.35rem;
 }
 
 .cp-operator-hub .platform-op-hub-models li:last-child .cpoh-model-link {

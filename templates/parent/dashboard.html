@@ -1505,6 +1505,26 @@
       </div>
     </section>
 
+    {% if parent_upcoming_events %}
+    <section class="mb-3" aria-labelledby="parent-upcoming-school-heading">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3">
+          <h2 id="parent-upcoming-school-heading" class="h6 mb-2"><i class="bi bi-calendar-event" aria-hidden="true"></i> {% trans "Upcoming at school" %}</h2>
+          <ul class="list-unstyled mb-2 small">
+            {% for ev in parent_upcoming_events %}
+            <li class="mb-2">
+              <strong>{{ ev.title }}</strong>
+              {% if ev.detail %}<span class="text-muted"> — {{ ev.detail }}</span>{% endif %}
+              {% if ev.when %}<br><span class="text-muted">{{ ev.when|date:"M j, Y g:i A" }}</span>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          <a href="{% url 'portal:unified_calendar' %}" class="small">{% trans "Open unified calendar" %}</a>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
     <!-- Main Content Grid -->
     <div class="row g-3 parent-content-row">
       <!-- Left Column - Main Content -->

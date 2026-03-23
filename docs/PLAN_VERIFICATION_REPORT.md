@@ -1,7 +1,9 @@
 # Plan verification report — embedded remediation vs repo
 
+> **Status banner (2026-03-17):** This report is a **March 12, 2026 verification snapshot**. **Authoritative execution + scores:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§0**, **§11.4**, **§12** — **§12 engineering gate (9.5/10)** and **Wave 8 / Phase I.5 structural bar (11/10)** are **MET** with recorded release sign-off. Treat sections below as **historical** unless reconciled to the current SOT.
+
 **Date:** March 12, 2026  
-**Canonical authority:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (7.3/10 baseline; §12 gates for 9.5+).  
+**Canonical authority:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) — **historical audit baseline 7.3/10** (superseded for execution status); **§12 MET** for 9.5+ engineering readiness.  
 **Purpose:** Verify that nothing in the plan was “missed” without honest status; reconcile optional/suggestion items and contradictory docs.
 
 ---
@@ -12,7 +14,7 @@
 |--------|--------|
 | **Checklist coverage** | The embedded plan has **~90 [x]** and **~100 [ ]** items. Nothing is hidden—all unchecked items are explicit backlog. |
 | **Optionals / suggestions** | The plan states **no deferrals**; “optional” in supporting docs means **operator choice at runtime** (e.g. Render Shell), not **skipping implementation**. Optional code paths are either implemented or listed as NOT DONE. |
-| **Contradictory docs** | **MASTER_PLATFORM_CHECKLIST.md** and **REMAINING_WORK.md** claim phases 0–8 “Done” and 9.5 bar met; the **single source of truth** still lists §12 gates and Studio OS as **NOT DONE**. **Reconciliation:** treat embedded plan + **docs_truth_ledger.md** as completion authority until §12 is satisfied; treat MASTER_PLATFORM_CHECKLIST as **implementation ledger** that must be aligned or bannered. |
+| **Contradictory docs (at snapshot time)** | **MASTER_PLATFORM_CHECKLIST.md** and **REMAINING_WORK.md** claimed phases 0–8 “Done” and 9.5 bar met while older SOT text lagged. **Reconciliation (current):** **§12 MET**; use **docs_truth_ledger.md** + SOT **§11.4** for status; banner stale snapshots that still say “NOT DONE” for gates now closed in SOT. |
 | **Stale checkboxes fixed** | §6.2 `platform_runtime` had duplicate unchecked rows for contract tests and runtime inspector; both exist in repo—checkboxes updated to **[x]** with evidence paths. |
 
 ---

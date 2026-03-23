@@ -41,6 +41,7 @@ MANAGER_HOST_CRITICAL_VIEWS: tuple[str, ...] = (
     "super:command_center",
     "super:create_school_wizard",
     "super:switch_to_tenant",
+    "super:operator_policy",
     "siteconfig:console_domains_hub",
     "studio_os:shell",
     "studio_os:control",

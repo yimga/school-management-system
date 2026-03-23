@@ -63,9 +63,9 @@
 | Portal broad-except replacement (§2.4) | DONE | views_parent_finance, models_kb, views_documents, services, views_kb, views_ai_copilot, **views_ai_gateway** (allowlist 0): typed exceptions + GATEWAY_VIEW_ERRORS; broad_exception_audit updated. ai_provider etc. remain allowlisted. |
 | Schools broad-except replacement (§2.4 / step 9) | DONE | health_repository, **models.py** (limits + _has_feature_fallback→typed + logger.debug; allowlist 0), middleware.py, signup_views.py, tasks.py, marketing_views.py, onboarding_service.py, super_views.py, welcome_email.py, celery_tasks.py, domain_sync.py, funnel_events.py, control_plane_lifecycle.py, control_plane.py, rls_context.py, repositories/health_repository.py, management/commands: align_tenant_config, tenant_health_check, validate_marketing_urls, tenant_wind_down, migrate_tenant_schemas_one_by_one, verify_custom_domains (all typed; allowlist 0); remaining per broad_exception_audit. |
 | Marketing proof_hero_image_key / §12 marketing front platform-grade | **DONE** | §12 gate MET. proof_hero_image_key + why_switch_bullets in use; all context keys have non-empty fallbacks (incl. health_score_visual_url→_diagram_fallback); full fallback asset set in static/images/marketing/. MARKETING_FRONT_PLACEHOLDER §3–§4 completion gate checked. Optional: replace placeholders with final creative via env or static. |
-| Docs contradict platform reality | **DONE** | §9 docs alignment policy (BACKLOG §2c); PATH_TO_10_SCORECARD + NORTH_STAR_PLATFORM disclaimers; MASTER_PLATFORM_CHECKLIST states §12 authority. When editing any doc that mentions completion or 9.5, align with RUNMYCAMPUS §12 and this ledger. No 9.5 claim until §12 gates met. |
+| Docs contradict platform reality | **DONE** | §9 docs alignment policy (BACKLOG §2c); PATH_TO_10_SCORECARD + NORTH_STAR_PLATFORM disclaimers; MASTER_PLATFORM_CHECKLIST states §12 authority. When editing any doc that mentions completion or scores, align with RUNMYCAMPUS **§0** + **§12** + **§11.4** (§12 **MET**; historical 7.3 baseline superseded for execution status). |
 | **§12 docs truth no contradictions gate** | **DONE** | docs/DOCS_TRUTH_AUDIT.md: completion authority §12 + BACKLOG §6.3; key docs table aligned; gate MET. PLATFORM_9.5_SCORE_DRY_RUN, REMAINING_WORK, WHAT_IS_LEFT_MASTER, AUDIT_RERUN_RESULT updated with §12 disclaimers. RUNMYCAMPUS §12.1 evidence + BACKLOG §6.3 MET. |
-| Phase G — align docs with reality | **DONE** | §9 docs alignment policy (BACKLOG §2c); PATH_TO_10_SCORECARD + NORTH_STAR_PLATFORM disclaimers; no 9.5 claim until §12. Ledgers map work to DONE/PARTIAL; when touching docs, align with RUNMYCAMPUS §12 and this ledger. |
+| Phase G — align docs with reality | **DONE** | §9 docs alignment policy (BACKLOG §2c); PATH_TO_10_SCORECARD + NORTH_STAR_PLATFORM disclaimers; scores per **§0** (§12 MET). Ledgers map work to DONE/PARTIAL; when touching docs, align with RUNMYCAMPUS §12 and this ledger. |
 | AI surface audit | DONE | docs/AI_surface_audit.md |
 | AI audit trail | **DONE** | log_ai_action: gateway, **ai_copilot_config**, **ai_copilot_limits**; get_ai_permission_for_user in views_ai_gateway |
 | Raw SQL replacement targets | **DONE** | All business-logic wraps DONE. Allowlist shrunk: raw_sql_allowlist.json only repos + cache_utils (10 entries); wrapped paths removed. raw_sql_audit.md + raw_sql_replacement_targets.md DONE. lint_raw_sql_usage pass. Step 10 DONE. |
@@ -150,7 +150,7 @@
 | Step 9 schools rls_context broad except | DONE | schools/rls_context.py: rls_school finally-block RESET → (OperationalError, ProgrammingError, DatabaseError); allowlist 0; lint_broad_except --strict pass. |
 | Step 40 code hygiene (one app) | DONE | All apps F401/F841 clean. siteconfig re-exports: noqa: F401 on all blocks in siteconfig/models.py; ruff check apps --select F401,F841 passes. Step 40 complete. |
 | §10 print + hygiene debt | **DONE** | No print() in apps outside tests/management/migrations (lint_no_print_in_apps pass); CI enforced; code_hygiene_ledger §8 completion gate updated. BACKLOG §1 ?10 rows marked DONE. |
-| Step 25 reconciliation (this run) | DONE | Ledger §2 cross-checked with BACKLOG §1 and NEXT_50; statuses consistent. Step 14 lint_secret_exposure re-run: pass. BACKLOG Last reconciled + §3 + §5a updated. No 9.5 claim; §12 gates remain authority. |
+| Step 25 reconciliation (this run) | DONE | Ledger §2 cross-checked with BACKLOG §1 and NEXT_50; statuses consistent. Step 14 lint_secret_exposure re-run: pass. BACKLOG Last reconciled + §3 + §5a updated. Scores per SOT **§0**; §12 **MET**. |
 | Step 13 migration 0155 + lint_gilead_residue | PARTIAL | Migration 0155 applied (this env); lint_gilead_residue.py pass. Apply in staging then prod at deploy (RELEASE_CHECKLIST Pre-release). NEXT_50 step 13 PARTIAL. |
 | Siteconfig 0156 (EducationSystemProfile subject_seed/term_labels) | DONE | Migration 0156_alter_educationsystemprofile_subject_seed_and_more created (serializable defaults) and applied. Aligns model help_text/default with models_platform_catalog. |
 | CMR/XAF hardcoded advisory (lint_tenant_settings full) | DONE (closure) | Documented in BACKLOG §3 and §2e; full run = advisory only; CI uses --check-get-solo-only. No code change required; closure = documented. Cleanup incremental per SITESETTINGS_AUDIT when touching those areas. |
@@ -159,7 +159,7 @@
 
 ## 3. Rule
 
-- Do not claim 9.5/10 or 11/10 until §12 gates in RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md are satisfied.
+- **§12 (9.5/10)** and **Wave 8 / Phase I.5 (11/10 structural)** are **MET** per RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md **§0** / **§12** / **§11.4**. Do not claim **12/10+ market leadership** without §0.2 / roadmap evidence.
 - When updating any roadmap or audit doc, set each item to exactly one of: DONE, PARTIAL, NOT DONE, DEPRECATED, BLOCKED. No "save for later" or "backlog" without a status.
 
 ---

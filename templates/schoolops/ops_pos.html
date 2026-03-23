@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container-fluid py-4">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
-  <p class="text-muted small">{% trans "Stub module: logs sale lines. When Inventory is enabled, link a stock line to prefill the item name." %}</p>
+  <p class="text-muted small d-flex flex-wrap gap-3 align-items-center">{% trans "Stub module: logs sale lines. When Inventory is enabled, link a stock line to prefill the item name." %} <a class="btn btn-sm btn-outline-secondary" href="?export=csv">{% trans "Export CSV (up to 5000 lines)" %}</a> <a class="btn btn-sm btn-outline-secondary" href="?export=json">{% trans "Export JSON summary" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <h2 class="h6">{% trans "Record sale line" %}</h2>

@@ -2,11 +2,17 @@
 
 **Validated against the codebase** (not a doc-only claim).
 
+**Single execution ledger:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§2.1.1** (control plane world-class bar: operator policy, governance, bridge manifest API).
+
+**In-product policy page:** `/super/operator-policy/` — `super:operator_policy` (super-first vs break-glass admin, change classes, metrics/API pointers).
+
+**Automation:** `GET /api/internal/control-plane/bridge-manifest/` — JSON list of every `super:admin_bridge` entry (control-plane auth only; not tenant staff).
+
 ## Two surfaces by design
 
 | Surface | URL (manager host) | Purpose | Access |
 |---------|-------------------|---------|--------|
-| **Control plane** | `/super/*` | Dashboards, catalogs, marketplace governance, billing overview, migration, trust, support, orchestration, etc. | `user_has_control_plane_access`: `is_superuser` **or** `role == SUPERADMIN`. Enforced by `TenantSuperAdminRequiredMiddleware` + per-view `require_super_access_with_host`. |
+| **Control plane** | `/super/*` | Dashboards, catalogs, marketplace governance, billing overview, migration, trust, support, orchestration, **operator policy**, etc. | `user_has_control_plane_access`: `is_superuser` **or** `role == SUPERADMIN`. Enforced by `TenantSuperAdminRequiredMiddleware` + per-view `require_super_access_with_host`. |
 | **Platform backoffice** | `/admin/*` | **Raw Django admin CRUD** for models registered with `register_platform_admin` (siteconfig AI/registry, billing waivers, packages, marketplace proxy models, registries, automation, etc.). | `PlatformAdminSite.has_permission`: manager host + `is_staff` + `is_superuser`. |
 
 `config/admin.py` states explicitly: *"Platform Backoffice: raw CRUD only. Single config surface is System config (siteconfig:console_domains_hub)."*

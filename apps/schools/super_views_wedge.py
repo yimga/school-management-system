@@ -5,7 +5,7 @@ Single pane; linked from control plane nav or Setup Studio.
 
 from urllib.parse import quote
 
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse, NoReverseMatch
 
 
@@ -198,13 +198,12 @@ def super_advancement_phase2_placeholder(request):
         if action == "add_donor":
             sid = (request.POST.get("school_id") or "").strip()
             name = (request.POST.get("display_name") or "").strip()
-            if (
-                sid.isdigit()
-                and name
-                and School.objects.filter(pk=int(sid), is_active=True).exists()
-            ):
+            school_obj = (
+                School.objects.filter(pk=sid, is_active=True).first() if sid else None
+            )
+            if school_obj and name:
                 AdvancementDonor.objects.create(
-                    school_id=int(sid),
+                    school=school_obj,
                     display_name=name[:200],
                     email=(request.POST.get("email") or "").strip()[:254],
                     external_ref=(request.POST.get("external_ref") or "").strip()[:120],

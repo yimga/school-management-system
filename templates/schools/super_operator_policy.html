@@ -1,0 +1,94 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Operator policy & governance" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Operator policy" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 content-max-960" data-page-archetype="reference">
+  <header class="mb-4">
+    <p class="text-uppercase small text-white-50 mb-1">{% trans "Control plane" %}</p>
+    <h1 class="h2 text-white mb-2">{% trans "Operator policy & governance" %}</h1>
+    <p class="text-white-50 mb-0">
+      {% blocktrans %}Single execution reference: repository file{% endblocktrans %}
+      <code class="user-select-all">docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md</code>
+      §2.1.1
+    </p>
+  </header>
+
+  <div class="card border-secondary bg-dark text-light mb-3">
+    <div class="card-body">
+      <h2 class="h5 card-title">{% trans "Super-first vs break-glass Django admin" %}</h2>
+      <ul class="mb-0">
+        <li>{% trans "Default operator path: /super/ — dashboards, System config, catalogs, migration cloud, trust, AI hub, platform operator hub." %}</li>
+        <li>{% trans "Platform /admin/ on the manager host is raw model CRUD for deep maintenance — use only when no first-class super screen exists or for bulk operations that are not yet migrated." %}</li>
+        <li>{% trans "Every platform changelist is reachable without hardcoding paths: super:admin_bridge with bridge_key — see Platform operator hub." %}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card border-secondary bg-dark text-light mb-3">
+    <div class="card-body">
+      <h2 class="h5 card-title">{% trans "Change classes (organizational)" %}</h2>
+      <dl class="row mb-0">
+        <dt class="col-sm-3">{% trans "Low" %}</dt>
+        <dd class="col-sm-9">{% trans "Single-tenant or reversible toggles; document in ticket; follow standard release notes." %}</dd>
+        <dt class="col-sm-3">{% trans "Medium" %}</dt>
+        <dd class="col-sm-9">{% trans "Fleet catalog edits (regions, plans, feature definitions); use preview/compare where available; peer review." %}</dd>
+        <dt class="col-sm-3">{% trans "High" %}</dt>
+        <dd class="col-sm-9">{% trans "Billing, impersonation, migration apply, revenue-affecting flags — require two-person review or maintenance window per your org policy; rely on audit export and platform events." %}</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card border-secondary bg-dark text-light mb-3">
+    <div class="card-body">
+      <h2 class="h5 card-title">{% trans "Metrics, SLO, and audit" %}</h2>
+      <ul class="mb-0">
+        <li>{% trans "SLO targets & observability: docs/SLO_TARGETS_AND_OBSERVABILITY.md; API: GET /api/internal/br/slo-targets/" %}</li>
+        <li>{% trans "Sensitive actions: super audit export, platform events log, impersonation logging (read-only default)." %}</li>
+        <li>{% trans "Tenant vs operator boundary: docs/PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md" %}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card border-secondary bg-dark text-light mb-3">
+    <div class="card-body">
+      <h2 class="h5 card-title">{% trans "Automation & API parity" %}</h2>
+      <p class="mb-2">
+        {% trans "Machine-readable list of every admin bridge (for scripts, doc generation, Terraform hooks):" %}
+        <code class="user-select-all">GET {{ bridge_manifest_path }}</code>
+      </p>
+      <p class="small text-white-50 mb-0">
+        {% trans "Requires control-plane authentication (superuser or SUPERADMIN role), not tenant staff." %}
+      </p>
+    </div>
+  </div>
+
+  <div class="card border-secondary bg-dark text-light mb-3">
+    <div class="card-body">
+      <h2 class="h5 card-title">{% trans "Rollback, DR, and incidents" %}</h2>
+      <ul class="mb-0">
+        <li>{% trans "Marketplace / experience packs: use install preview and rollback flows where provided." %}</li>
+        <li>{% trans "Migration cloud: exception queue, rollback snapshot — see migration runbooks." %}</li>
+        <li>{% trans "Backups & restore: docs/DR_BACKUP_RESTORE_RUNBOOK.md" %}</li>
+        <li>{% trans "Staging vs production: follow RELEASE_CHECKLIST — no silent production apply for High-class changes." %}</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="small text-white-50 mb-0">
+    <a href="{{ system_config_url }}" class="link-secondary">{% trans "System config" %}</a>
+    ·
+    <a href="{% url 'super:platform_operator_hub' %}" class="link-secondary">{% trans "Platform operator hub" %}</a>
+  </p>
+</div>
+{% endblock %}

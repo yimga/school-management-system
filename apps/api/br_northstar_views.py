@@ -75,6 +75,7 @@ class SLOTargetsAPIView(_StaffSchoolMixin, View):
                 "prometheus_metrics": "/metrics/",
                 "rum_web_vitals_summary": "/api/internal/north-star/rum-web-vitals/",
                 "upcoming_deadlines": "/api/internal/north-star/upcoming-deadlines/",
+                "control_plane_bridge_manifest": "/api/internal/control-plane/bridge-manifest/",
                 "runbook": "docs/NORTH_STAR_TRUST_AND_OPS.md",
             },
             "perf_gate": "PERF_BUDGET_STRICT=1 enables strict check_performance_budgets in pre_deploy_gate",

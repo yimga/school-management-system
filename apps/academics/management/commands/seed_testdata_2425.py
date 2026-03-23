@@ -20,6 +20,7 @@ from apps.academics.models import (
 from apps.evals.models import AssessmentWeights, Evaluation, TeacherAssignment
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.reports.models import PromotionRule, TermPublishStatus
+from apps.schools.school_cli_resolution import resolve_school_arg as _resolve_school
 
 
 DEMO_PASSWORD = "Test1234"
@@ -69,18 +70,6 @@ SUBJECTS = [
 
 def _clamp(value: int, low: int = 0, high: int = 20) -> int:
     return max(low, min(high, value))
-
-
-def _resolve_school(slug_or_id):
-    """Return School by slug or ID, or None if slug_or_id is empty."""
-    if not slug_or_id:
-        return None
-    from apps.schools.models import School
-
-    s = str(slug_or_id).strip()
-    if s.isdigit():
-        return School.objects.filter(pk=int(s)).first()
-    return School.objects.filter(slug=s).first()
 
 
 class Command(BaseCommand):

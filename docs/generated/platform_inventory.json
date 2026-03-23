@@ -9,11 +9,11 @@
     "gilead_files": 138,
     "html_files": 564,
     "management_commands": 144,
-    "markdown_files": 993,
+    "markdown_files": 994,
     "migration_files": 636,
     "print_calls": 544,
-    "python_files": 2081,
-    "site_settings": 1159
+    "python_files": 2085,
+    "site_settings": 1160
   },
   "doc_drift": {
     "actual_installed_app_count": 41,
@@ -53,11 +53,6 @@
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 98728,
-      "lines": 2504,
-      "path": "apps/portal/views_parent.py"
-    },
-    {
       "bytes": 98407,
       "lines": 2807,
       "path": "apps/finance/models.py"
@@ -81,6 +76,11 @@
       "bytes": 63960,
       "lines": 1495,
       "path": "apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py"
+    },
+    {
+      "bytes": 61639,
+      "lines": 1382,
+      "path": "config/settings.py"
     }
   ],
   "management_commands_list": [

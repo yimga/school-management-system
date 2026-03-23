@@ -135,6 +135,10 @@ REQUIRED: list[tuple[str, Path]] = [
     ),
     ("N24 observability map", ROOT / "docs" / "N24_OBSERVABILITY_AND_ONCALL.md"),
     (
+        "SOT §0.1.5 queue status map",
+        ROOT / "docs" / "SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md",
+    ),
+    (
         "Wave 6 roll-call draft wiring test",
         ROOT / "apps" / "portal" / "tests" / "test_roll_call_draft_wiring.py",
     ),
@@ -146,6 +150,15 @@ REQUIRED: list[tuple[str, Path]] = [
         "RESILIENT_EDGE wiring test",
         ROOT / "apps" / "portal" / "tests" / "test_resilient_edge_wiring.py",
     ),
+    (
+        "School CLI resolution (UUID --school for management commands)",
+        ROOT / "apps" / "schools" / "school_cli_resolution.py",
+    ),
+    (
+        "N2 parent finance template i18n test",
+        ROOT / "apps" / "portal" / "tests" / "test_parent_finance_template_i18n.py",
+    ),
+    ("N2 parent finance template", ROOT / "templates" / "parent" / "finance.html"),
     (
         "POS fiscal migration",
         ROOT / "apps" / "schoolops" / "migrations" / "0011_possaleline_tax.py",
@@ -165,6 +178,14 @@ REQUIRED: list[tuple[str, Path]] = [
     (
         "N28 north-star upcoming deadlines API",
         ROOT / "apps" / "api" / "north_star_api_views.py",
+    ),
+    (
+        "N10 performance budget script (pre_deploy_gate)",
+        ROOT / "scripts" / "check_performance_budgets.py",
+    ),
+    (
+        "Wave 4 POS tenant ops views",
+        ROOT / "apps" / "schoolops" / "views_tenant_ops.py",
     ),
     ("N22 RTL/regional UX doc", ROOT / "docs" / "N22_RTL_AND_REGIONAL_UX.md"),
     (

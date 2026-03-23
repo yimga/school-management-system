@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block backend_title %}Migration Wizard{% endblock %}
 
@@ -59,6 +59,17 @@
     </div>
   </div>
   {% else %}
+  {% if profile_suggestions %}
+  <div class="alert alert-info border-info mb-3" role="status">
+    <h3 class="h6 alert-heading mb-1">{% trans "Suggested connector profiles (schema match)" %}</h3>
+    <p class="small mb-2 text-muted">{% trans "Ranked by column-header overlap with seeded MigrationProfile schema hints. Pick a closer profile in Import Hub if you need a different connector." %}</p>
+    <ul class="small mb-0">
+      {% for s in profile_suggestions %}
+      <li><strong>{{ s.name }}</strong> <code>{{ s.slug }}</code> — {% trans "confidence" %} {{ s.confidence }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
   <div class="card shadow-sm mb-3">
     <div class="card-body">
       <h2 class="h6 mb-2">Step 2: Map columns → target fields</h2>

@@ -1,6 +1,8 @@
 # §5 Toolset remediation — implementation status
 
-**Purpose:** Track implementation evidence for RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md §5 (Toolset-specific remediation). Each subsection 5.1–5.9 has current/target scores and actions; this doc records what is implemented and what remains for the 11/10 target.
+**Purpose:** Track implementation evidence for RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md §5 (Toolset-specific remediation). Each subsection 5.1–5.9 has current/target scores and actions; this doc records what is implemented and what remains for **continuous** toolset excellence.
+
+**Scores:** Per-subsection **Current → Target** lines mirror SOT §5 **maturity vignettes**. **Authoritative platform gates:** SOT **§0** (9.5/10 §12 **MET**; 11/10 structural **MET**) + **§12** + **§11.4** — not re-proven by this file alone.
 
 **Rule:** Update this file when completing toolset actions; keep in sync with RUNMYCAMPUS §5 and BACKLOG_AND_DEFERRED_CLOSURE.md.
 

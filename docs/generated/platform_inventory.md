@@ -1,12 +1,12 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `2081`
+- Python files: `2085`
 - HTML templates: `564`
-- Markdown files: `993`
+- Markdown files: `994`
 - Migration files: `636`
 - Management commands: `144` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1159`
+- `SiteSettings` refs: `1160`
 - `get_solo()` refs: `182`
 - `except Exception`: `219`
 - `cursor.execute()`: `352`
@@ -84,12 +84,12 @@ Total: `144` commands. First 25 by app/command:
 - `apps/accounts/views.py`: `3009` lines / `114677` bytes
 - `apps/evals/views.py`: `3100` lines / `114435` bytes
 - `apps/api/views_v1.py`: `2468` lines / `103258` bytes
-- `apps/portal/views_parent.py`: `2504` lines / `98728` bytes
 - `apps/finance/models.py`: `2807` lines / `98407` bytes
 - `apps/siteconfig/models.py`: `2482` lines / `96669` bytes
 - `apps/siteconfig/views.py`: `2377` lines / `88300` bytes
 - `apps/finance/tasks.py`: `2069` lines / `84718` bytes
 - `apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py`: `1495` lines / `63960` bytes
+- `config/settings.py`: `1382` lines / `61639` bytes
 
 ## Documentation Drift
 

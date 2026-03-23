@@ -29,7 +29,7 @@ Single source of truth for deployment config and every **actual username** creat
 
 | Username | Password | Role | Created by | Notes |
 |----------|----------|------|------------|-------|
-| **admin** | **admin** (fixed) | Superuser | `ensure_superuser` | Platform only; change with `changepassword admin`. |
+| **admin** | **admin** (fixed) | Superuser | `ensure_superuser` (called by `seed_render_users`) or **`ensure_superadmin`** | Platform only; change with `changepassword admin`. **`ensure_superadmin`** is a thin alias that only ensures admin/admin (no tenant demo seed). |
 | **teacher1** | Value of `ADMIN_PASSWORD` (if set) | Teacher | `create_teacher_parent_accounts` | Only when ADMIN_PASSWORD is set. |
 | **Parent1** | Value of `ADMIN_PASSWORD` (if set) | Parent | `create_teacher_parent_accounts` | Only when ADMIN_PASSWORD is set. |
 | **principal1** | Value of `ADMIN_PASSWORD` (if set) | Principal | `create_teacher_parent_accounts` | Only when ADMIN_PASSWORD is set. |

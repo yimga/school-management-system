@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Attendance & Discipline" %}{% endblock %}
 
@@ -15,7 +15,7 @@
       {% if absences %}
         <div class="table-responsive">
           <table class="table table-sm">
-            <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Student" %}</th><th>{% trans "Status" %}</th><th>{% trans "Remarks" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Student" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Remarks" %}</th></tr></thead>
             <tbody>
               {% for a in absences %}
                 <tr>
@@ -40,7 +40,7 @@
     </div>
     <div class="card-body">
       {% if children %}
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="parent-attendance-justification-form" dir="auto" data-draft-key="attendance_justification_{{ request.user.id }}" data-draft-max-age-hours="48" data-draft-pending-label="{% trans 'Unsaved justification' %}">
           {% csrf_token %}
           {{ form.as_p }}
           <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
@@ -68,4 +68,14 @@
     </div>
   </div>
   </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  var form = document.getElementById('parent-attendance-justification-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
 {% endblock %}

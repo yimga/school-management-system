@@ -2,7 +2,7 @@
 
 **Purpose:** Document how **SiteSettings**, **system configuration**, and related fleet surfaces are decoupled from raw Django admin on the **manager host**, and where the canonical operator UX lives.
 
-**Single execution reference:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §2.1 (SiteSettings / siteconfig dismantling).
+**Single execution reference:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §2.1 (SiteSettings / siteconfig dismantling) and **§2.1.1** (control plane world-class bar: operator policy, bridge manifest API, governance table).
 
 ## Principles
 
@@ -12,14 +12,18 @@
 
 ## Full bridge coverage (platform changelists)
 
-Every **`register_platform_admin`** surface (and **`register_both`** models that also appear on platform admin) for **siteconfig**, **integrations_marketplace**, **runtime_blueprints**, **global_registries**, **packages**, **brand_experience**, **platform_runtime**, **automation**, **observability** — plus related catalog rows — has a **`super:admin_bridge`** entry in **`apps/schools/super_admin_bridge_registry.py`**.
+**121** models on `platform_admin_site` — **121** `super:admin_bridge` entries (core registry + **`platform_admin_surface_bridges`** merge): **siteconfig**, **integrations_marketplace** (proxy), **marketplace** (native app admins), **runtime_blueprints**, **global_registries**, **packages**, **brand_experience**, **platform_runtime**, **automation**, **billing**, **observability**, **policies**, **registries**, **schools**, etc.
 
 - **`PLATFORM_ADMIN_BRIDGE_ORDER`** — display order on **Platform operator hub** (Admin-tagged tiles).
 - **`PLATFORM_ADMIN_BRIDGES`** — `bridge_key` → `admin:…_changelist` + labels.
-- **Tests:** `test_platform_admin_bridge_registry_order_matches_bridges` and `test_admin_bridge_redirects_to_platform_changelists` assert **ORDER ↔ BRIDGE keys** match and each bridge **302** matches the resolved admin path (dynamic path-tail check).
+- **Tests:** `test_platform_admin_bridge_completeness` (every platform model ⊆ bridges); `test_platform_admin_bridge_registry_order_matches_bridges`; `test_admin_bridge_redirects_to_platform_changelists` (302 + path tail). Tests clear cache / reset super rate-limit windows so 120+ `/super/` GETs do not 429.
 
 Operators can open any covered platform changelist **without hardcoding `/admin/` paths** — use  
 `reverse("super:admin_bridge", kwargs={"bridge_key": "<slug>"})`.
+
+**Machine-readable manifest (automation):** `GET /api/internal/control-plane/bridge-manifest/` returns JSON (`bridges`, `bridge_count`, `operator_policy` URL). Requires **control-plane** authentication (same contract as `/super/`), not generic tenant staff.
+
+**Operator policy (UX):** `/super/operator-policy/` — canonical wording for super-first vs break-glass `/admin/`.
 
 ## UX: banners on platform backoffice
 

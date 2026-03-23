@@ -73,6 +73,13 @@ def super_platform_operator_hub(request):
 
     super_primary = []
     for url_name, label, desc, icon, kind in [
+        (
+            "super:operator_policy",
+            _("Operator policy & governance"),
+            _("Super-first vs break-glass admin; change classes; metrics & automation API"),
+            "bi-shield-check",
+            "super",
+        ),
         ("super:schools_list", _("Schools"), _("Directory, lifecycle, exports"), "bi-building", "super"),
         (
             "super:site_settings_list",
@@ -143,6 +150,27 @@ def super_platform_operator_hub(request):
             "admin_index_url": admin_index_url,
             "super_primary": super_primary,
             "admin_app_list": admin_app_list,
+        },
+    )
+
+
+@require_GET
+def super_operator_policy(request):
+    """
+    Canonical in-product policy: super-first control plane vs break-glass Django admin.
+
+    See docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md §2.1.1.
+    """
+    try:
+        bridge_manifest_path = reverse("api:api-control-plane-bridge-manifest")
+    except NoReverseMatch:
+        bridge_manifest_path = "/api/internal/control-plane/bridge-manifest/"
+    return render(
+        request,
+        "schools/super_operator_policy.html",
+        {
+            **_config_context(request),
+            "bridge_manifest_path": bridge_manifest_path,
         },
     )
 

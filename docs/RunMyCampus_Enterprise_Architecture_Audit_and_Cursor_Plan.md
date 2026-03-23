@@ -2,6 +2,8 @@
 
 **Single execution source of truth:** All remediation work is driven by [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Do not create overlapping plan files; map all work back to that ledger.
 
+> **Scores (read with SOT §0):** This audit’s **7.3/10** is a **historical static-audit baseline**. **Current execution status:** §12 **engineering gate (9.5/10)** and **Wave 8 / Phase I.5 structural bar (11/10)** are **MET** in-repo per SOT **§11.4** / **§12**. **Market leadership vs incumbents** remains **continuous** (SOT §0.2), not a single zip score.
+
 ---
 
 ## Scope and method
@@ -14,11 +16,11 @@ This is **not** a live-runtime or infrastructure penetration test. It does not p
 
 RunMyCampus has clearly crossed from "single-school product" into a **real multi-tenant platform in transition**.
 
-But it is **not yet enterprise-grade at the level of Shopify / Salesforce / AWS patterns**, and it is **not yet competitively polished enough** to claim superiority over mature incumbents like Infinite Campus, Blackbaud, or PowerSchool.
+But **competitive superiority** over mature incumbents (Infinite Campus, Blackbaud, PowerSchool) is a **continuous product benchmark**—see SOT §0.2—not disproven by a single audit score. **Repo engineering readiness:** see SOT §0 / §12 (**MET**).
 
-### Current platform score
+### Historical audit platform score (static zip)
 
-**7.3 / 10**
+**7.3 / 10** — baseline for the audit period; **superseded** for “where we stand” by SOT **§0** (9.5/10 §12 **MET**; 11/10 structural program **MET**).
 
 ### Current strongest areas
 - Platform ambition and breadth
@@ -337,7 +339,7 @@ For Studio OS, implement shared systems:
 ---
 
 ## Final success gates
-Do not claim enterprise-ready / north-star / 9.5+ until all are true:
+These gates map to **RUNMYCAMPUS §12** (all **MET** for the recorded program—verify in SOT). Do not claim **market dominance** / **12/10+** without SOT **§0.2** evidence. Per-release: re-verify gates + Phase H.
 - `siteconfig` materially decomposed
 - `SiteSettings` no longer acts as tenant-behavior truth
 - runtime is the only legal behavior engine

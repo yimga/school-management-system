@@ -39,4 +39,10 @@ Fresh checkouts have no stale DB; gate uses `pre_deploy_gate.sqlite3` inside the
 
 ## Settings
 
-Configured in `config/settings.py`: `TEST.NAME` for SQLite aliases from `DJANGO_TEST_DB_FILE` or `.django_test_dbs/{alias}.sqlite3`.
+Configured in `config/settings.py`:
+
+- `TEST.NAME` for SQLite aliases from `DJANGO_TEST_DB_FILE` or `.django_test_dbs/{alias}.sqlite3`.
+- `OPTIONS.timeout` (busy timeout) on SQLite to reduce flaky `database is locked` on Windows.
+- When `test` is in `sys.argv`, SQLite engines use **`CONN_MAX_AGE = 0`** so persistent connections do not worsen locks with `--keepdb` / `DJANGO_TEST_DB_FILE`.
+
+`scripts/migrate_gate_test_db.py` runs migrations **outside** `manage.py test`; it lowers `django.db.backends` log levels to **WARNING** so DEBUG builds do not emit full SQL (huge I/O and log bloat during long migrates).

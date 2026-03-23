@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block content %}
 <div class="container mt-4" data-page-archetype="setup-studio">
@@ -19,7 +19,7 @@
         <div class="card-body">
           <h5 class="card-title">{% trans "Claim an invite" %}</h5>
           <p class="text-muted mb-3">{% trans "Enter the invite code you received to link the student to your account." %}</p>
-          <form method="post" novalidate>
+          <form method="post" novalidate id="claim-invite-form" dir="auto" data-draft-key="claim_invite_{{ request.user.id }}" data-draft-max-age-hours="72" data-draft-pending-label="{% trans 'Unsaved invite code' %}">
             {% csrf_token %}
             {{ form.non_field_errors }}
             <div class="mb-3">
@@ -40,4 +40,14 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+<script>
+(function() {
+  var form = document.getElementById('claim-invite-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
 {% endblock %}

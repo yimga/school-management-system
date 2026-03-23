@@ -3,6 +3,7 @@ Final verification: all Admin→Super migration URLs resolve and return 200 (no 
 RUNBOOK_ADMIN_TO_SUPER_MIGRATION final checklist. Requires superuser on manager host.
 """
 
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -33,6 +34,8 @@ class SuperConfigMigrationUrlTests(TestCase):
         )
         self.client.force_login(self.user)
         self.host = "manager.runmycampus.com"
+        # SuperAdminRateLimitMiddleware: /super/ limited to 120 req/min per user; clear between tests.
+        cache.clear()
 
     def _get(self, url_name, args=None, kwargs=None, query=None):
         if args is None:
@@ -150,7 +153,10 @@ class SuperConfigMigrationUrlTests(TestCase):
         )
 
     def test_admin_bridge_redirects_to_platform_changelists(self):
-        for bridge_key in PLATFORM_ADMIN_BRIDGE_ORDER:
+        # Same test issues 121+ GETs; middleware limit is 120/min — reset counter mid-loop.
+        for idx, bridge_key in enumerate(PLATFORM_ADMIN_BRIDGE_ORDER):
+            if idx > 0 and idx % 100 == 0:
+                cache.clear()
             with self.subTest(bridge_key=bridge_key):
                 r = self._get("super:admin_bridge", kwargs={"bridge_key": bridge_key})
                 self.assertEqual(r.status_code, 302, bridge_key)

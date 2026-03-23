@@ -1,5 +1,6 @@
 """Wave 18: POS stub ops module."""
 
+import json
 import uuid
 from decimal import Decimal
 
@@ -133,3 +134,40 @@ class TenantOpsWave18PosTests(TestCase):
         self.assertEqual(line.tax_rate_percent, Decimal("7.5"))
         self.assertEqual(line.tax_amount, Decimal("1.50"))
         self.assertEqual(line.grand_total, Decimal("21.50"))
+
+    def test_pos_export_csv(self):
+        PosSaleLine.objects.create(
+            school=self.school,
+            item_label="CSV row",
+            quantity=1,
+            unit_price=Decimal("4.00"),
+            payment_method=PosSaleLine.PaymentMethod.CASH,
+            recorded_by=self.admin,
+        )
+        r = ops_pos(self._req("GET", "/p/?export=csv"))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("csv", (r.get("Content-Type") or "").lower())
+        body = r.content.decode("utf-8")
+        self.assertIn("CSV row", body)
+        self.assertIn("4.00", body)
+
+    def test_pos_export_json_summary(self):
+        PosSaleLine.objects.create(
+            school=self.school,
+            item_label="JSON row",
+            quantity=2,
+            unit_price=Decimal("5.00"),
+            payment_method=PosSaleLine.PaymentMethod.CARD,
+            tax_rate_percent=Decimal("0"),
+            tax_amount=Decimal("0"),
+            recorded_by=self.admin,
+        )
+        r = ops_pos(self._req("GET", "/p/?export=json"))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("json", (r.get("Content-Type") or "").lower())
+        data = json.loads(r.content.decode("utf-8"))
+        self.assertEqual(data.get("schema"), "runmycampus.pos_sales_summary.v1")
+        self.assertEqual(str(data.get("school_id")), str(self.school.pk))
+        self.assertEqual(data.get("line_count"), 1)
+        self.assertEqual(data["totals"]["net"], "10.00")
+        self.assertIn("gross_by_payment_method", data)

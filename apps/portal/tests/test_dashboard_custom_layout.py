@@ -2,6 +2,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -117,6 +118,16 @@ class DashboardCustomLayoutTests(TestCase):
         url = reverse("portal:parent_dashboard")
         self.client.force_login(self.user)
 
+        # django.shortcuts.render() returns HttpResponse without template context attached;
+        # the test client therefore cannot expose response.context. Capture the dict here.
+        render_context = {}
+
+        def _fake_render(request, template_name, context=None, **_kwargs):
+            render_context.clear()
+            if context:
+                render_context.update(context)
+            return HttpResponse(b"ok", status=200)
+
         with (
             patch(
                 "apps.portal.services.guardian_student_links",
@@ -130,7 +141,7 @@ class DashboardCustomLayoutTests(TestCase):
                 "apps.portal.services.class_announcements_for_parent", return_value=[]
             ),
             patch("apps.portal.services.class_threads_for_parent", return_value=[]),
-            patch("apps.portal.views_common._portal_features_status", return_value=[]),
+            patch("apps.portal.views_parent._portal_features_status", return_value=[]),
             patch(
                 "apps.platform_runtime.helpers.get_effective_site_settings",
                 return_value=site_payload,
@@ -143,11 +154,12 @@ class DashboardCustomLayoutTests(TestCase):
                 "apps.runtime_blueprints.models.get_dashboard_widget_metadata",
                 return_value={},
             ),
+            patch("apps.portal.views_parent.render", side_effect=_fake_render),
         ):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
-        context = response.context
+        context = render_context
         self.assertTrue(context["allow_custom_layout"])
         self.assertIn("dashboard_settings", context)
         self.assertEqual(context["dashboard_settings"]["tile_variant"], "default")

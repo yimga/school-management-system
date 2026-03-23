@@ -9,6 +9,13 @@ _REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 export DJANGO_TEST_DB_FILE="${DJANGO_TEST_DB_FILE:-$_REPO_ROOT/.django_test_dbs/pre_deploy_gate.sqlite3}"
 if [[ "${PRE_GATE_FRESH_TEST_DB:-0}" = "1" ]]; then
   rm -f "$DJANGO_TEST_DB_FILE" 2>/dev/null || true
+  # Windows: file may stay locked after rm; half-migrated DB then breaks migrate_gate_test_db ("table already exists").
+  if [[ -f "$DJANGO_TEST_DB_FILE" ]]; then
+    _ALT="$_REPO_ROOT/.django_test_dbs/pre_deploy_gate_run.sqlite3"
+    echo "[pre_deploy_gate] PRE_GATE_FRESH_TEST_DB=1: could not remove stale gate DB (locked?). Using ${_ALT##*/}" >&2
+    export DJANGO_TEST_DB_FILE="$_ALT"
+    rm -f "$DJANGO_TEST_DB_FILE" 2>/dev/null || true
+  fi
   echo "[pre_deploy_gate] PRE_GATE_FRESH_TEST_DB=1: fresh gate test database on next migrate"
 fi
 
@@ -81,6 +88,9 @@ fi
 echo "[pre_deploy_gate] §0.3.1 SOT pillar evidence paths (codebase registry)"
 python scripts/verify_sot_pillar_evidence.py
 
+echo "[pre_deploy_gate] §0.2.1.5–§0.2.1.6 wedge super-premium phased validation"
+python scripts/validate_wedge_super_premium_phases.py --phase all
+
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
 python manage.py makemigrations --check --dry-run
 
@@ -142,6 +152,7 @@ TARGETED_HARDENING_TESTS=(
   apps.platform_runtime.tests.test_rum_ingest
   apps.platform_runtime.tests.test_rum_aggregate
   apps.schools.tests.test_super_beyond_reach
+  apps.schools.tests.test_wedge_super_premium_phases
   apps.schools.tests.test_advancement_tenant_crud
   apps.schoolops.tests.test_tenant_ops_wave4
   apps.schoolops.tests.test_tenant_ops_wave15_substitutes

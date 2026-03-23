@@ -18,6 +18,7 @@ class ControlPlaneNavParityTests(SimpleTestCase):
                 all_ids.append(it.get("id"))
         required = {
             "super_platform_operator_hub",
+            "super_operator_policy",
             "config_console",
             "cp_theme_experience",
             "cp_feature_control",
