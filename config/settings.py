@@ -1316,6 +1316,9 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.customersuccess",
         "apps.brand_experience.apps.BrandExperienceConfig",  # Admin IA references; required for platform admin app list
         "apps.orchestration.apps.OrchestrationConfig",  # Phase 10 long-running process; tables in public schema
+        # Public-schema runtime state (RuntimeDefaults, PlatformEventLog, phase-B snapshots). Must be in SHARED_APPS
+        # so migrate_schemas --shared loads these migrations; siteconfig.0162+ depend on this app.
+        "apps.platform_runtime.apps.PlatformRuntimeConfig",
     ]
     TENANT_APPS = [
         "apps.portal",
