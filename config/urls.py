@@ -697,6 +697,11 @@ urlpatterns = [
         {"page_slug": "trust-center-ferpa"},
         name="marketing_trust_ferpa",
     ),
+    # Legacy slug (bots / old links): /trust-center-gdpr/ → canonical /trust-center/gdpr/
+    path(
+        "trust-center-gdpr/",
+        lambda request: redirect("marketing_trust_gdpr", permanent=False),
+    ),
     path(
         "trust-center/gdpr/",
         marketing_page,

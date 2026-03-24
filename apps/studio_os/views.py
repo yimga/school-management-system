@@ -48,7 +48,7 @@ def _automation_studio_base_url() -> str:
         return ""
 
 
-def _resolve_automation_iframe_src(pane: str) -> str:
+def _resolve_automation_iframe_src(request, pane: str) -> str:
     """Automation Studio: iframe only for heavy / external surfaces; default pane is native."""
     from apps.studio_os.deep_links import resolve_studio_href
 
@@ -62,7 +62,7 @@ def _resolve_automation_iframe_src(pane: str) -> str:
     if key not in mapping:
         return ""
     vn, emb = mapping[key]
-    return resolve_studio_href(vn, embed=emb) or ""
+    return resolve_studio_href(vn, embed=emb, request=request) or ""
 
 
 def _automation_explainer_context(pane: str):
@@ -144,7 +144,7 @@ def _automation_explainer_context(pane: str):
     }
 
 
-def _resolve_launch_iframe_src(_request, pane: str) -> str:
+def _resolve_launch_iframe_src(request, pane: str) -> str:
     """Launch Studio: iframe for wizards; overview/plan are native."""
     from apps.studio_os.deep_links import resolve_studio_href
 
@@ -159,7 +159,7 @@ def _resolve_launch_iframe_src(_request, pane: str) -> str:
     if key not in mapping:
         return ""
     vn, emb = mapping[key]
-    return resolve_studio_href(vn, embed=emb) or ""
+    return resolve_studio_href(vn, embed=emb, request=request) or ""
 
 
 @never_cache
@@ -931,25 +931,30 @@ def _resolve_legacy_urls(request):
     """Links to current tools; each name resolved independently (manager vs tenant URLconf)."""
     from apps.studio_os.deep_links import studio_legacy_urls_map, studio_resolve_url
 
-    legacy = studio_legacy_urls_map()
+    legacy = studio_legacy_urls_map(request=request)
     for name, url_name in [
         ("approval_hub", "studio_os:approval_hub"),
         ("workflow_center", "studio_os:workflow_center"),
         ("import_hub", "studio_os:import_hub"),
     ]:
         if name not in legacy or not legacy.get(name):
-            u = studio_resolve_url(url_name)
+            u = studio_resolve_url(url_name, request=request)
             if u:
                 legacy[name] = u
     return legacy
 
 
 def _studio_rail_append(
-    rail: list, label: str, viewname: str, *, embed: bool = False
+    rail: list,
+    label: str,
+    viewname: str,
+    *,
+    embed: bool = False,
+    request=None,
 ) -> None:
     from apps.studio_os.deep_links import resolve_studio_href
 
-    u = resolve_studio_href(viewname, embed=embed)
+    u = resolve_studio_href(viewname, embed=embed, request=request)
     if u:
         rail.append({"label": label, "url": u, "embed": embed})
 
@@ -1199,7 +1204,7 @@ def studio_shell(request, mode=None):
         automation_pane = pane_raw if pane_raw in allowed_auto else "overview"
         context["automation_pane"] = automation_pane
         context["automation_iframe_src"] = _resolve_automation_iframe_src(
-            automation_pane
+            request, automation_pane
         )
         graph = get_automation_dependency_graph()
         context["automation_dependency_graph"] = graph
@@ -1524,44 +1529,88 @@ def studio_shell(request, mode=None):
         from apps.studio_os.deep_links import resolve_studio_href
 
         _studio_rail_append(
-            control_rail, _("Config center"), "studio_os:system_config_console", embed=True
+            control_rail,
+            _("Config center"),
+            "studio_os:system_config_console",
+            embed=True,
+            request=request,
         )
         _studio_rail_append(
-            control_rail, "Capabilities", "siteconfig:feature_control_panel", embed=True
+            control_rail,
+            "Capabilities",
+            "siteconfig:feature_control_panel",
+            embed=True,
+            request=request,
         )
-        u_audit = resolve_studio_href("siteconfig:feature_control_audit", embed=False)
+        u_audit = resolve_studio_href(
+            "siteconfig:feature_control_audit", embed=False, request=request
+        )
         if u_audit:
             control_rail.append(
                 {"label": "Audit log", "url": u_audit, "embed": True}
             )
         _studio_rail_append(
-            control_rail, "Runtime inspector", "super:runtime_inspector", embed=False
+            control_rail,
+            "Runtime inspector",
+            "super:runtime_inspector",
+            embed=False,
+            request=request,
         )
         _studio_rail_append(
             control_rail,
             "Metadata governance",
             "metadata:metadata_governance",
             embed=False,
+            request=request,
         )
         _studio_rail_append(
             control_rail,
             "Lineage & registry",
             "metadata:metadata_lineage_graph",
             embed=True,
+            request=request,
         )
         _studio_rail_append(
-            control_rail, "Integrations", "apicenter:dashboard", embed=False
+            control_rail,
+            "Integrations",
+            "apicenter:dashboard",
+            embed=False,
+            request=request,
         )
         _studio_rail_append(
-            control_rail, "Blueprints & policy packs", "siteconfig:get_blueprints", embed=True
+            control_rail,
+            "Blueprints & policy packs",
+            "siteconfig:get_blueprints",
+            embed=True,
+            request=request,
         )
-        _studio_rail_append(control_rail, "Policy diff", "super:policy_diff", embed=True)
         _studio_rail_append(
-            control_rail, "Plans & entitlements", "super:billing_dashboard", embed=True
+            control_rail,
+            "Policy diff",
+            "super:policy_diff",
+            embed=True,
+            request=request,
         )
-        _studio_rail_append(control_rail, "Diff / impact summary", "studio_os:control_impact", embed=True)
         _studio_rail_append(
-            control_rail, "AI cleanup suggestions", "studio_os:ai_cleanup", embed=True
+            control_rail,
+            "Plans & entitlements",
+            "super:billing_dashboard",
+            embed=True,
+            request=request,
+        )
+        _studio_rail_append(
+            control_rail,
+            "Diff / impact summary",
+            "studio_os:control_impact",
+            embed=True,
+            request=request,
+        )
+        _studio_rail_append(
+            control_rail,
+            "AI cleanup suggestions",
+            "studio_os:ai_cleanup",
+            embed=True,
+            request=request,
         )
         context["control_left_rail"] = control_rail
         # Phase 3 — outcome groups (manager + tenant: fallback urlconf resolves super:)

@@ -566,6 +566,16 @@ urlpatterns = [
         name="marketing_trust_center",
     ),
     path(
+        "trust-center-gdpr/",
+        lambda request: redirect("/trust-center/gdpr/", permanent=False),
+    ),
+    path(
+        "trust-center/gdpr/",
+        marketing_page,
+        {"page_slug": "trust-center-gdpr"},
+        name="marketing_trust_gdpr",
+    ),
+    path(
         "app-marketplace/",
         marketing_page,
         {"page_slug": "app-marketplace"},

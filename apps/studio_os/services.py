@@ -10,6 +10,7 @@ import logging
 from typing import Any
 
 from django.db import DatabaseError
+from django.db.utils import ProgrammingError
 from django.db.models import ObjectDoesNotExist
 from django.urls import NoReverseMatch
 
@@ -72,7 +73,7 @@ def get_studio_preview_url(mode: str, request: Any = None) -> str:
     except NoReverseMatch:
         from apps.studio_os.deep_links import studio_resolve_url
 
-        base = studio_resolve_url(name)
+        base = studio_resolve_url(name, request=request)
         if not base:
             return ""
         return f"{base}?{qs}" if qs else base
@@ -276,7 +277,7 @@ def get_studio_role_preview_entries(request: Any) -> list[dict[str, Any]]:
         try:
             return reverse(name)
         except NoReverseMatch:
-            return studio_resolve_url(name) or "#"
+            return studio_resolve_url(name, request=request) or "#"
 
     return [
         {
@@ -309,7 +310,7 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
         try:
             return reverse(name)
         except NoReverseMatch:
-            u = studio_resolve_url(name)
+            u = studio_resolve_url(name, request=request)
             return u or None
 
     recs = []
@@ -415,7 +416,7 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
         try:
             return reverse(name)
         except NoReverseMatch:
-            return studio_resolve_url(name) or None
+            return studio_resolve_url(name, request=request) or None
 
     entries = []
 
@@ -763,6 +764,10 @@ def get_output_dependency_graph() -> list[dict[str, Any]]:
             }
             for p in packs
         ]
+    except ProgrammingError as e:
+        # e.g. public schema / wrong DB context: reports tables live on tenant schemas.
+        logger.debug("get_output_dependency_graph: %s", e)
+        return []
     except _STUDIO_SOFT_FAILURES as e:
         logger.warning("get_output_dependency_graph: %s", e)
         return []
@@ -798,6 +803,9 @@ def get_output_report_pack_preview_cards(*, out_base: str) -> list[dict[str, Any
                 }
             )
         return cards
+    except ProgrammingError as e:
+        logger.debug("get_output_report_pack_preview_cards: %s", e)
+        return []
     except _STUDIO_SOFT_FAILURES as e:
         logger.warning("get_output_report_pack_preview_cards: %s", e)
         return []
