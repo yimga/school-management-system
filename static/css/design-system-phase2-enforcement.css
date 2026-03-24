@@ -1,0 +1,216 @@
+/**
+ * Phase 2 — Design system + token enforcement (RunMyCampus).
+ * Load after: design-tokens.css, design-tokens-luxury.css, platform-high-end.css,
+ *             card-grammar.css, form-system.css, table-system.css.
+ *
+ * Purpose: one shared visual grammar — surfaces, elevation, forms, tables, alerts,
+ * empty states, action bars, drawer shells. Prefer these classes on new/changed UI.
+ * Dark/light: inherits html[data-theme] / data-bs-theme from each shell.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Surfaces: cards, panels, modals inner                                         */
+/* -------------------------------------------------------------------------- */
+
+.ds-surface {
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.ds-surface--raised {
+  background: var(--ds-surface-raised);
+  box-shadow: var(--ds-shadow-md);
+}
+
+/* Alias / extend Bootstrap card — use with .card */
+.ds-card.card,
+.card.ds-card {
+  background: var(--admin-content-card-bg, var(--ds-surface-raised));
+  color: var(--ds-text);
+  border-color: var(--ds-border);
+  border-radius: var(--platform-card-radius, var(--ds-radius-md));
+  box-shadow: var(--platform-premium-shadow, var(--ds-shadow-md));
+  transition: box-shadow var(--ds-motion-content), transform var(--ds-motion-content);
+}
+
+html[data-theme="dark"] .ds-card.card,
+html[data-bs-theme="dark"] .ds-card.card,
+body.portal-backend-dark .ds-card.card {
+  box-shadow: var(--platform-premium-shadow, var(--ds-shadow-md));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tables — align with .table-family; tokenized chips                          */
+/* -------------------------------------------------------------------------- */
+
+.ds-table-wrap {
+  border-radius: var(--ds-radius-md);
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface-raised);
+  overflow: hidden;
+}
+
+.ds-table-wrap .table {
+  margin-bottom: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Forms — stack spacing from tokens                                           */
+/* -------------------------------------------------------------------------- */
+
+.ds-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-space-md);
+}
+
+.ds-form-stack .form-label {
+  font-weight: 600;
+  color: var(--ds-text);
+  margin-bottom: var(--token-space-xs);
+}
+
+.ds-form-stack .form-text,
+.ds-form-stack .text-muted {
+  color: var(--ds-text-muted) !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Drawers / offcanvas inner — same surface language as product                */
+/* -------------------------------------------------------------------------- */
+
+.ds-drawer-panel,
+.offcanvas.ds-drawer-panel,
+.offcanvas.show.ds-drawer-panel {
+  background: var(--ds-surface-raised);
+  color: var(--ds-text);
+  border-color: var(--ds-border);
+}
+
+.ds-drawer-panel .offcanvas-header {
+  border-bottom: 1px solid var(--ds-border);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Empty states                                                                */
+/* -------------------------------------------------------------------------- */
+
+.ds-empty {
+  text-align: center;
+  padding: var(--token-space-xl) var(--token-space-md);
+  color: var(--ds-text-muted);
+  background: var(--ds-surface);
+  border: 1px dashed var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+}
+
+.ds-empty__icon {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  opacity: 0.45;
+  margin-bottom: var(--token-space-sm);
+  color: var(--ds-text-muted);
+}
+
+.ds-empty__title {
+  font-size: var(--type-section);
+  font-weight: 600;
+  color: var(--ds-text);
+  margin-bottom: var(--token-space-xs);
+}
+
+.ds-empty__body {
+  font-size: var(--type-body-secondary);
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ds-empty__actions {
+  margin-top: var(--token-space-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--token-space-sm);
+  justify-content: center;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Alerts — semantic borders/backgrounds from --ds-*                           */
+/* -------------------------------------------------------------------------- */
+
+.ds-alert,
+.alert.ds-alert {
+  border-radius: var(--ds-radius-sm);
+  border-width: 1px;
+  border-style: solid;
+}
+
+.alert-success.ds-alert,
+.ds-alert--success {
+  color: var(--ds-text);
+  background: var(--ds-success-bg);
+  border-color: var(--ds-success);
+}
+
+.alert-warning.ds-alert,
+.ds-alert--warning {
+  color: var(--ds-text);
+  background: var(--ds-warning-bg);
+  border-color: var(--ds-warning);
+}
+
+.alert-danger.ds-alert,
+.ds-alert--danger {
+  color: var(--ds-text);
+  background: var(--ds-danger-bg);
+  border-color: var(--ds-danger);
+}
+
+.alert-info.ds-alert,
+.ds-alert--info {
+  color: var(--ds-text);
+  background: var(--ds-info-bg);
+  border-color: var(--ds-info);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Action bars (sticky footers, bulk actions)                                  */
+/* -------------------------------------------------------------------------- */
+
+.ds-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--token-space-sm);
+  padding: var(--token-space-md) var(--token-space-lg);
+  margin-top: var(--token-space-lg);
+  border-top: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+}
+
+.ds-action-bar--sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky, 1020);
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+}
+
+html[data-theme="dark"] .ds-action-bar--sticky,
+html[data-bs-theme="dark"] .ds-action-bar--sticky {
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Motion: respect reduced motion                                              */
+/* -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-card.card,
+  .card-grammar,
+  .card--entity {
+    transition: none !important;
+  }
+}

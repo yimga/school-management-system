@@ -7,7 +7,7 @@
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
-    <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "System config" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "Config center" %}</a></li>
     <li class="breadcrumb-item"><a href="{{ regions_list_url }}">{% trans "Regions" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Grading scales" %}</li>
   </ol>
@@ -28,7 +28,7 @@
         {% if regions_list_url %}
         <a href="{{ regions_list_url }}" class="btn btn-outline-primary btn-sm">{% trans "Regions" %}</a>
         {% endif %}
-        <a href="{{ system_config_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to System config" %}</a>
+        <a href="{{ system_config_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to Config center" %}</a>
       </div>
     </div>
   </header>
@@ -70,6 +70,6 @@
     <p class="text-white-50 mb-0">{% trans "No grading scales configured." %}</p>
   </div>
   {% endif %}
-  <p class="mt-3"><a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to System config" %}</a></p>
+  <p class="mt-3"><a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to Config center" %}</a></p>
 </div>
 {% endblock %}

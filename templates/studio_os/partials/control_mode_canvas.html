@@ -1,0 +1,141 @@
+{% load i18n %}
+<style>
+  .studio-os__control-rail a.control-rail-link { display: block; padding: 0.35rem 0.5rem; border-radius: var(--token-radius-sm); color: var(--color-base-700, #334155); text-decoration: none; }
+  .studio-os__control-rail a.control-rail-link:hover { background: var(--color-base-100, #f1f5f9); color: var(--color-base-900, #0f172a); }
+  .studio-os__control-rail a.control-rail-link.active { background: var(--color-primary-50, #eff6ff); color: var(--color-primary-700, #1d4ed8); font-weight: 500; }
+  .studio-os__control-rail a.control-rail-link:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
+  .cp-outcome-pill { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+
+{% if control_outcome_sections %}
+<div class="studio-os__card mb-3 py-3 px-3" role="region" aria-labelledby="control-studio-outcomes-heading">
+  <h2 id="control-studio-outcomes-heading" class="h6 mb-1">{% trans "Control Studio" %}</h2>
+  {% if why_enabled_summary %}<p class="small text-muted mb-3">{{ why_enabled_summary }}</p>{% endif %}
+  {% for sec in control_outcome_sections %}
+  <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom border-secondary-subtle{% endif %}">
+    <div class="fw-semibold small">{{ sec.title }}</div>
+    <div class="small text-muted mb-2">{{ sec.subtitle }}</div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      {% for link in sec.links %}
+      <div class="d-inline-flex flex-wrap align-items-center gap-1">
+        <a href="{{ link.url }}" class="btn btn-sm btn-outline-primary" {% if request.public_host_kind == 'manager' %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ link.label }}</a>
+        {% if link.stability == 'danger' %}
+        <span class="badge text-bg-danger cp-outcome-pill">{% trans "danger" %}</span>
+        {% elif link.stability == 'beta' %}
+        <span class="badge text-bg-warning text-dark cp-outcome-pill">{% trans "beta" %}</span>
+        {% else %}
+        <span class="badge text-bg-secondary cp-outcome-pill">{% trans "stable" %}</span>
+        {% endif %}
+        {% if link.sources %}
+        <span class="small text-muted">{% trans "Sources" %}: {{ link.sources|join:", " }}</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% elif control_outcome_hub %}
+<div class="studio-os__card mb-3 py-2 px-3" role="region" aria-label="{% trans 'Operator outcomes' %}">
+  <div class="small text-muted text-uppercase mb-2" style="letter-spacing: 0.04em;">{% trans "Platform outcomes" %}</div>
+  <div class="d-flex flex-wrap gap-2">
+    {% for hub in control_outcome_hub %}
+    <a href="{{ hub.url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">{{ hub.label }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if operator_control_model %}
+<div class="studio-os__card mb-3 py-3 px-3" role="region" aria-labelledby="control-studio-operator-model-heading">
+  {% with compact=1 %}
+  {% include "siteconfig/partials/configuration_control_center_operator_model.html" %}
+  {% endwith %}
+</div>
+{% endif %}
+
+<div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__control-wrap">
+  {% if control_left_rail %}
+  <nav class="studio-os__control-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Control' %}" style="width: min(12.5rem, 100%); min-width: 0;">
+    <div class="studio-os__card py-2">
+      <div class="h6 mb-2">{% trans "Governance" %}</div>
+      <ul class="list-unstyled small mb-0" id="control-rail-list">
+        {% for item in control_left_rail %}
+        <li class="mb-1">
+          <a href="{{ item.url }}" class="control-rail-link {% if forloop.first %}active{% endif %}"
+             {% if item.embed %}data-embed="1"{% endif %}
+             {% if control_panel_html and forloop.first %}data-panel="1"{% endif %}>{{ item.label }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </nav>
+  {% endif %}
+  <div class="flex-grow-1 min-w-0">
+    {% if control_panel_html %}
+    <div class="studio-os__control-in-shell" id="control-panel-wrap">{{ control_panel_html|safe }}</div>
+    {% endif %}
+    {% if control_left_rail %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__control-native-fallback" role="region" aria-label="{% trans 'Control view options' %}">
+      <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
+      <a id="studio-control-open-full" class="btn btn-sm btn-outline-primary" href="{% if control_left_rail %}{{ control_left_rail.0.url }}{% endif %}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
+    </div>
+    <iframe id="studio-control-iframe" class="studio-os-iframe" title="{% trans 'Control' %}"
+            style="{% if control_panel_html %}display: none;{% endif %}"
+            src="{% if not control_panel_html and control_left_rail %}{{ control_left_rail.0.url }}{% endif %}"></iframe>
+    {% endif %}
+    {% if not control_left_rail %}
+      {% if embed_url %}
+      <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Control' %}"></iframe>
+      {% else %}
+      <div class="studio-os__card">
+        <p class="text-muted mb-0">{% trans "Load feature control in the canvas." %}</p>
+        {% if legacy_urls.feature_control %}<a href="{{ legacy_urls.feature_control }}" class="btn btn-primary btn-sm mt-2">{% trans "Feature control" %}</a>{% endif %}
+      </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% if control_left_rail %}
+<script>
+(function() {
+  var wrap = document.getElementById('control-panel-wrap');
+  var iframe = document.getElementById('studio-control-iframe');
+  var openFull = document.getElementById('studio-control-open-full');
+  var links = document.querySelectorAll('.control-rail-link[data-embed="1"]');
+  var hasPanel = !!document.querySelector('.control-rail-link[data-panel="1"]');
+  function syncFullWindowHref() {
+    if (openFull && iframe && iframe.src) {
+      openFull.setAttribute('href', iframe.src);
+    }
+  }
+  function setActive(el) {
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (el) el.classList.add('active');
+  }
+  if (iframe) {
+    iframe.addEventListener('load', syncFullWindowHref);
+  }
+  syncFullWindowHref();
+  links.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      if (link.getAttribute('data-panel') === '1' && hasPanel) {
+        e.preventDefault();
+        if (wrap) wrap.style.display = '';
+        if (iframe) iframe.style.display = 'none';
+        setActive(link);
+      } else if (link.getAttribute('data-embed') === '1') {
+        e.preventDefault();
+        if (iframe) {
+          iframe.src = link.getAttribute('href');
+          iframe.style.display = 'block';
+        }
+        if (wrap) wrap.style.display = 'none';
+        setActive(link);
+        syncFullWindowHref();
+      }
+    });
+  });
+})();
+</script>
+{% endif %}

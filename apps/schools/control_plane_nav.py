@@ -5,8 +5,8 @@ Used by context processor to inject CONTROL_PLANE_NAV; template renders from it.
 Each item has "id" for favorites/pins (Phase 8).
 
 §8.0.4 Sidebar cleanup: One role-aware sidebar + command palette (Ctrl+K);
-no duplicates, legacy labels, or internal jargon. "System config" is the single
-entry for bounded config; "Open in backoffice" only for rare/legacy (LEGACY_PATH_INVENTORY).
+no duplicates, legacy labels, or internal jargon. "Config center" (Configuration Control Center)
+is the single entry for bounded config; "Open in backoffice" only for rare/legacy (LEGACY_PATH_INVENTORY).
 """
 
 from django.urls import NoReverseMatch, reverse
@@ -48,6 +48,113 @@ def _platform_admin_bridge_nav_items():
     return items
 
 
+def _primary_nav_is_current(request_path: str, item_id: str) -> bool:
+    """Return True if request_path should highlight this primary nav pill."""
+    p = (request_path or "").split("?", 1)[0]
+    if not p.endswith("/"):
+        p = p + "/"
+    if item_id == "primary_home":
+        return p.startswith("/super/dashboard/") or p == "/super/"
+    if item_id == "primary_studio":
+        return p.startswith("/studio/") and not p.startswith("/studio/control/")
+    if item_id == "primary_operations":
+        return p.startswith("/super/command-center/")
+    if item_id == "primary_marketplace":
+        return p.startswith("/super/marketplace/")
+    if item_id == "primary_analytics":
+        return (
+            p.startswith("/super/analytics/")
+            or p.startswith("/super/usage/")
+            or p.startswith("/super/pulse/")
+        )
+    if item_id == "primary_migration":
+        return p.startswith("/super/migration")
+    if item_id == "primary_support":
+        return p.startswith("/super/support")
+    if item_id == "primary_control":
+        return "/studio/control/" in p
+    return False
+
+
+def build_primary_control_plane_nav(request):
+    """
+    Horizontal primary nav (Wave 1): one product language across /super/*.
+    Order: Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Control.
+    """
+    urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
+    raw = [
+        {
+            "id": "primary_home",
+            "label": "Home",
+            "url_name": "super:dashboard",
+            "icon": "bi-house-door",
+        },
+        {
+            "id": "primary_studio",
+            "label": "Studio",
+            "url_name": "studio_os:shell",
+            "icon": "bi-window-stack",
+        },
+        {
+            "id": "primary_operations",
+            "label": "Operations",
+            "url_name": "super:command_center",
+            "icon": "bi-lightning-charge",
+        },
+        {
+            "id": "primary_marketplace",
+            "label": "Marketplace",
+            "url_name": "super:app_catalog",
+            "icon": "bi-shop",
+        },
+        {
+            "id": "primary_analytics",
+            "label": "Analytics",
+            "url_name": "super:analytics_overview",
+            "icon": "bi-graph-up-arrow",
+        },
+        {
+            "id": "primary_migration",
+            "label": "Migration",
+            "url_name": "super:migration_cloud",
+            "icon": "bi-cloud-arrow-up",
+        },
+        {
+            "id": "primary_support",
+            "label": "Support",
+            "url_name": "super:support_dashboard",
+            "icon": "bi-headset",
+        },
+        {
+            "id": "primary_control",
+            "label": "Control",
+            "url_name": "studio_os:control",
+            "icon": "bi-sliders",
+        },
+    ]
+    out = []
+    path = getattr(request, "path", "") or ""
+    for row in raw:
+        url = _safe_reverse(
+            row["url_name"],
+            urlconf=urlconf,
+            kwargs=row.get("kwargs"),
+            args=row.get("args"),
+        )
+        if not url:
+            continue
+        out.append(
+            {
+                "id": row["id"],
+                "label": row["label"],
+                "url": url,
+                "icon": row["icon"],
+                "is_current": _primary_nav_is_current(path, row["id"]),
+            }
+        )
+    return out
+
+
 def build_control_plane_nav(request):
     """
     Return list of groups, each with "label" (optional section heading) and "items"
@@ -65,6 +172,9 @@ def build_control_plane_nav(request):
                 kwargs=item.get("kwargs"),
                 args=item.get("args"),
             )
+            if url and item.get("query"):
+                q = str(item["query"]).lstrip("?")
+                url = f"{url}{'&' if '?' in url else '?'}{q}"
             if url:
                 resolved.append(
                     {
@@ -154,6 +264,12 @@ def build_control_plane_nav(request):
                 "icon": "bi-file-earmark-text",
             },
             {
+                "id": "super_district_enterprise",
+                "label": "District & enterprise (wedge 4)",
+                "url_name": "super:district_enterprise",
+                "icon": "bi-buildings",
+            },
+            {
                 "id": "super_tenant_health",
                 "label": "School Health",
                 "url_name": "super:tenant_health",
@@ -175,6 +291,18 @@ def build_control_plane_nav(request):
                 "label": "Runtime inspector",
                 "url_name": "super:runtime_inspector",
                 "icon": "bi-code-square",
+            },
+            {
+                "id": "super_runtime_truth_hub",
+                "label": "Runtime truth hub",
+                "url_name": "super:runtime_truth_hub",
+                "icon": "bi-database-check",
+            },
+            {
+                "id": "super_wedge_index",
+                "label": "Wedge index (1–45)",
+                "url_name": "super:wedge_index",
+                "icon": "bi-grid-3x3-gap",
             },
             {
                 "id": "super_workflow_simulator",
@@ -377,7 +505,7 @@ def build_control_plane_nav(request):
         },
         {
             "id": "config_console",
-            "label": "System config",
+            "label": "Config center",
             "url_name": "siteconfig:console_domains_hub",
             "icon": "bi-gear-wide-connected",
         },
@@ -412,9 +540,17 @@ def build_control_plane_nav(request):
             "id": "cp_report_library",
             "label": "Platform Studio · Reports",
             "url_name": "studio_os:output",
+            "query": "pane=reports",
             "icon": "bi-journal-text",
         }
     )
+    # Phase 1: role-aware sidebar — raw Django admin is superuser-only; hide link for other staff.
+    if not getattr(request.user, "is_superuser", False):
+        _platform_settings_admin = [
+            item
+            for item in _platform_settings_admin
+            if item.get("id") != "cp_platform_backoffice"
+        ]
     add_group("Platform settings & admin", _platform_settings_admin)
 
     return groups

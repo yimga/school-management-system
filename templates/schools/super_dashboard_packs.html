@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="catalog">
+<div class="container-fluid py-2" data-page-archetype="catalog" data-decision-engine="surface">
   {% include "studio_os/components/page_header.html" with title=_("Dashboard Packs") subtitle=_("Assignable experience packs by role (admin, teacher, parent, etc.). Filter by sector (Wedges 14–22).") action_url=dashboard_url action_text=_("Back to Dashboard") %}
   {% if sector_choices %}
   <p class="small text-muted mb-2">{% trans "Filter by sector:" %}

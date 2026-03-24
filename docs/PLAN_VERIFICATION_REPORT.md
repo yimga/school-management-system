@@ -87,7 +87,7 @@
 | Item | Where mentioned | Status |
 |------|-----------------|--------|
 | PG-only index introspection in evals | raw_sql_replacement_targets / performance_optimization | **Implemented as static list only**; optional PG diff deferred to management command (documented in code) |
-| “Why enabled?” in runtime inspector | §5.2, runtime_inspector | **PARTIAL** — `get_feature_toggle_inspection(school)` exists; full UX may be pending |
+| “Why enabled?” in runtime inspector | §5.2, runtime_inspector | **DONE** — `get_feature_toggle_inspection` + entitlements_why + precedence / feature-flag merge order in `super_runtime_inspector`; §3.2 gate |
 | Render Shell optional steps | MASTER_PLATFORM_CHECKLIST | **Ops optional** only (omit cache clear)—not a code optional |
 | AI permission matrix deepening | §2.3 | **PARTIAL** — audit + gateway done; matrix not complete |
 

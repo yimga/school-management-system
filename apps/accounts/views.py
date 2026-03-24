@@ -1796,7 +1796,7 @@ def backend_dashboard(request):
         _item("kb", "Help Center", "kb:kb_home", icon="bi-life-preserver"),
         _item(
             "admin",
-            "System config"
+            "Config center"
             if getattr(request, "public_host_kind", None) == "manager"
             else "Admin Panel",
             "siteconfig:console_domains_hub"

@@ -6,7 +6,7 @@ Requires region_settings context processor for production; tests use mock contex
 from datetime import date, datetime
 from decimal import Decimal
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from apps.siteconfig.templatetags.region_format import (
     _date_format_to_django,
@@ -61,6 +61,7 @@ class FormatDateFilterTests(TestCase):
         self.assertEqual(format_date(ctx, dt), "15/03/2025")
 
 
+@override_settings(DEFAULT_CURRENCY="XAF")
 class FormatCurrencyFilterTests(TestCase):
     def test_none_returns_empty(self):
         self.assertEqual(format_currency(None), "")

@@ -22,7 +22,7 @@ from apps.brand_experience.models import (
 
 # Import from concrete submodules so admin loads when siteconfig.models is only partially loaded.
 from apps.academics.models import HolidayCalendar, ReportCardStyleAssignment
-from .models import SiteSettings, default_backend_feature_flags
+from .models import SiteSettings
 from .models_metadata_catalog import DynamicFieldDefinition, DynamicFieldValue
 from .models_platform_catalog import (
     BillingWaiverAuditLog,
@@ -111,6 +111,8 @@ class DashboardUserPreferenceForm(forms.ModelForm):
 
 
 class SiteSettingsForm(forms.ModelForm):
+    """Phase B: only columns that remain on SiteSettings; compliance_profile stored in RuntimeDefaults."""
+
     compliance_profile = forms.TypedChoiceField(
         required=False,
         choices=(),
@@ -122,44 +124,11 @@ class SiteSettingsForm(forms.ModelForm):
 
     class Meta:
         model = SiteSettings
-        fields = "__all__"
-
-    backend_flags_summary = forms.CharField(
-        required=False,
-        label="Backend feature flags",
-        widget=forms.Textarea(attrs={"rows": 6, "style": "width: 100%;"}),
-        disabled=True,
-    )
-
-    allowed_role_choices = [
-        ("ADMIN", "ADMIN"),
-        ("LEADERSHIP", "LEADERSHIP"),
-        ("PRINCIPAL", "PRINCIPAL"),
-        ("VICE_PRINCIPAL", "VICE_PRINCIPAL"),
-        ("DEAN", "DEAN"),
-        ("IT_ADMIN", "IT_ADMIN"),
-        ("CENSOR", "CENSOR"),
-        ("BURSAR", "BURSAR"),
-    ]
-
-    allowed_roles_entity_console = forms.MultipleChoiceField(
-        required=False,
-        choices=allowed_role_choices,
-        widget=forms.SelectMultiple(attrs={"size": 6, "style": "width: 240px;"}),
-        help_text="Roles allowed to access the Entity Console (frontend CRUD).",
-    )
-    allowed_roles_entity_import = forms.MultipleChoiceField(
-        required=False,
-        choices=allowed_role_choices,
-        widget=forms.SelectMultiple(attrs={"size": 6, "style": "width: 240px;"}),
-        help_text="Roles allowed to access the Entity Import (CSV) page.",
-    )
-    allowed_roles_api_schema = forms.MultipleChoiceField(
-        required=False,
-        choices=allowed_role_choices,
-        widget=forms.SelectMultiple(attrs={"size": 6, "style": "width: 240px;"}),
-        help_text="Roles allowed to access the API schema UI.",
-    )
+        fields = [
+            f.name
+            for f in SiteSettings._meta.concrete_fields
+            if not getattr(f, "primary_key", False) and getattr(f, "editable", True)
+        ] + ["compliance_profile"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -182,184 +151,20 @@ class SiteSettingsForm(forms.ModelForm):
                     (current_profile_id, f"Profile #{current_profile_id}")
                 )
         self.initial["compliance_profile"] = current_profile_id
-        flags = (
-            self.instance.get_backend_feature_flags()
-            if self.instance
-            and callable(getattr(self.instance, "get_backend_feature_flags", None))
-            else default_backend_feature_flags()
-        )
-        self.fields["allowed_roles_entity_console"].initial = flags.get(
-            "allowed_roles_entity_console", []
-        )
-        self.fields["allowed_roles_entity_import"].initial = flags.get(
-            "allowed_roles_entity_import", []
-        )
-        self.fields["allowed_roles_api_schema"].initial = flags.get(
-            "allowed_roles_api_schema", []
-        )
-        self.fields["max_bulk_import_rows"].initial = flags.get(
-            "max_bulk_import_rows", 500
-        )
-        self.fields["allow_bulk_commit"].initial = flags.get("allow_bulk_commit", True)
-        self.fields["enable_entity_console"].initial = flags.get(
-            "enable_entity_console", True
-        )
-        self.fields["enable_entity_import"].initial = flags.get(
-            "enable_entity_import", True
-        )
-        self.fields["enable_api_schema_ui"].initial = flags.get(
-            "enable_api_schema_ui", True
-        )
-        self.fields["require_guardian_finance_opt_in"].initial = flags.get(
-            "require_guardian_finance_opt_in", False
-        )
-        self.fields["allow_finance_access_requests"].initial = flags.get(
-            "allow_finance_access_requests", True
-        )
-        console = "On" if flags.get("enable_entity_console") else "Off"
-        imp = "On" if flags.get("enable_entity_import") else "Off"
-        schema = "On" if flags.get("enable_api_schema_ui") else "Off"
-        roles_console = (
-            ", ".join(flags.get("allowed_roles_entity_console", [])) or "N/A"
-        )
-        roles_import = ", ".join(flags.get("allowed_roles_entity_import", [])) or "N/A"
-        roles_schema = ", ".join(flags.get("allowed_roles_api_schema", [])) or "N/A"
-        finance_opt_in = (
-            "Required"
-            if flags.get("require_guardian_finance_opt_in")
-            else "Not required"
-        )
-        finance_requests = (
-            "Enabled"
-            if flags.get("allow_finance_access_requests", True)
-            else "Disabled"
-        )
-        max_rows = flags.get("max_bulk_import_rows") or "N/A"
-        allow_bulk_commit = "Yes" if flags.get("allow_bulk_commit") else "No"
-        summary_lines = [
-            f"Entity console: {console} (roles: {roles_console})",
-            f"Entity import: {imp} (roles: {roles_import})",
-            f"API schema: {schema} (roles: {roles_schema})",
-            f"Max bulk rows: {max_rows}",
-            f"Allow bulk commit: {allow_bulk_commit}",
-            f"Guardian finance opt-in: {finance_opt_in}",
-            f"Finance access requests: {finance_requests}",
-        ]
-        self.fields["backend_flags_summary"].initial = "\n".join(summary_lines)
-
-    enable_entity_console = forms.BooleanField(
-        required=False, label="Enable entity console"
-    )
-    enable_entity_import = forms.BooleanField(
-        required=False, label="Enable entity import"
-    )
-    enable_api_schema_ui = forms.BooleanField(
-        required=False, label="Enable API schema UI"
-    )
-    allow_bulk_commit = forms.BooleanField(required=False, label="Allow bulk commit")
-    require_guardian_finance_opt_in = forms.BooleanField(
-        required=False,
-        label="Require guardian finance opt-in",
-        help_text="If enabled, guardians must have can_view_finance=True to see invoices/payments.",
-    )
-    allow_finance_access_requests = forms.BooleanField(
-        required=False,
-        label="Allow finance access requests",
-        help_text="If enabled, guardians can submit a request for finance access to admins/finance.",
-    )
-    max_bulk_import_rows = forms.IntegerField(
-        required=False, min_value=0, label="Max bulk import rows"
-    )
-
-    def clean_backend_feature_flags(self):
-        raw = self.cleaned_data.get("backend_feature_flags") or {}
-        defaults = default_backend_feature_flags()
-        merged = {**defaults, **raw}
-
-        # Booleans from explicit fields
-        merged["enable_entity_console"] = bool(
-            self.cleaned_data.get(
-                "enable_entity_console", merged.get("enable_entity_console", True)
-            )
-        )
-        merged["enable_entity_import"] = bool(
-            self.cleaned_data.get(
-                "enable_entity_import", merged.get("enable_entity_import", True)
-            )
-        )
-        merged["enable_api_schema_ui"] = bool(
-            self.cleaned_data.get(
-                "enable_api_schema_ui", merged.get("enable_api_schema_ui", True)
-            )
-        )
-        merged["allow_bulk_commit"] = bool(
-            self.cleaned_data.get(
-                "allow_bulk_commit", merged.get("allow_bulk_commit", True)
-            )
-        )
-        merged["require_guardian_finance_opt_in"] = bool(
-            self.cleaned_data.get(
-                "require_guardian_finance_opt_in",
-                merged.get(
-                    "require_guardian_finance_opt_in",
-                    defaults.get("require_guardian_finance_opt_in", False),
-                ),
-            )
-        )
-        merged["allow_finance_access_requests"] = bool(
-            self.cleaned_data.get(
-                "allow_finance_access_requests",
-                merged.get(
-                    "allow_finance_access_requests",
-                    defaults.get("allow_finance_access_requests", True),
-                ),
-            )
-        )
-
-        # Role lists from multi-selects
-        merged["allowed_roles_entity_console"] = sorted(
-            {
-                str(r).upper()
-                for r in self.cleaned_data.get("allowed_roles_entity_console", [])
-            }
-        )
-        merged["allowed_roles_entity_import"] = sorted(
-            {
-                str(r).upper()
-                for r in self.cleaned_data.get("allowed_roles_entity_import", [])
-            }
-        )
-        merged["allowed_roles_api_schema"] = sorted(
-            {
-                str(r).upper()
-                for r in self.cleaned_data.get("allowed_roles_api_schema", [])
-            }
-        )
-
-        # Max rows numeric
-        try:
-            merged["max_bulk_import_rows"] = int(
-                self.cleaned_data.get(
-                    "max_bulk_import_rows",
-                    merged.get(
-                        "max_bulk_import_rows", defaults["max_bulk_import_rows"]
-                    ),
-                )
-            )
-        except (TypeError, ValueError):
-            raise ValidationError(
-                {"max_bulk_import_rows": "max_bulk_import_rows must be an integer."}
-            )
-        if merged["max_bulk_import_rows"] < 0:
-            raise ValidationError(
-                {"max_bulk_import_rows": "max_bulk_import_rows cannot be negative."}
-            )
-
-        return merged
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        instance.compliance_profile_id = self.cleaned_data.get("compliance_profile")
+        cp = self.cleaned_data.get("compliance_profile")
+        try:
+            from apps.finance.models import ComplianceProfile
+
+            if cp:
+                prof = ComplianceProfile.objects.filter(pk=cp).first()
+                instance.compliance_profile = prof
+            else:
+                instance.compliance_profile = None
+        except (ImportError, OperationalError, ProgrammingError):
+            pass
         if commit:
             instance.save()
         return instance
@@ -526,19 +331,17 @@ class SiteSettingsAdmin(ModelAdmin):
     # form assigned below after SiteSettingsForm definition
 
     def get_form(self, request, obj=None, **kwargs):
-        """
-        Strip non-model fields from the modelform_factory 'fields' list.
-        This prevents FieldError for custom form-only fields like backend_flags_summary.
-        """
+        """Strip readonly / virtual admin fields from modelform_factory field list."""
         fields = kwargs.get("fields")
         if fields:
             blocked_fields = {
-                "backend_flags_summary",
                 "theme_color_tools_link_block",
+                "platform_global_branding_notice",
                 "portal_features_help",
                 "automation_overview_block",
                 "rbac_discovery_block",
                 "integrations_api_center_block",
+                "runtime_defaults_notice",
             }
             if self.admin_site.is_platform_site():
                 blocked_fields.add("compliance_profile")
@@ -590,11 +393,13 @@ class SiteSettingsAdmin(ModelAdmin):
         "updated_at",
         "logo_preview",
         "site_summary",
+        "platform_global_branding_notice",
         "theme_color_tools_link_block",
         "portal_features_help",
         "automation_overview_block",
         "rbac_discovery_block",
         "integrations_api_center_block",
+        "runtime_defaults_notice",
     )
 
     fieldsets = (
@@ -602,344 +407,49 @@ class SiteSettingsAdmin(ModelAdmin):
             "At a glance",
             {
                 "classes": ("tab",),
-                "description": "Current site state. Use the other tabs to edit.",
+                "description": "Current site state.",
                 "fields": ("site_summary",),
             },
         ),
         (
-            "Branding",
+            "Platform branding",
             {
                 "classes": ("tab",),
+                "description": (
+                    "Logos, theme packs, and report defaults live on "
+                    "<strong>Platform global branding</strong> (Phase B Batch 3)."
+                ),
                 "fields": (
-                    "site_name",
-                    "tagline",
-                    "meta_description",
-                    "logo",
-                    "logo_opacity",
-                    "logo_background_mode",
-                    "logo_preview",
-                    "background_image",
-                    "video_background",
-                    "svg_background",
-                    "brand_font",
-                    "custom_css",
+                    "platform_global_branding_notice",
+                    "theme_color_tools_link_block",
                 ),
             },
         ),
         (
-            "Preview & Draft",
+            "Operations",
             {
                 "classes": ("tab",),
-                "description": "Stage changes without committing globally. Preview applies only to your session until cleared.",
-                "fields": (
-                    "preview_mode_enabled",
-                    "preview_note",
-                ),
+                "fields": ("maintenance_mode",),
             },
         ),
         (
-            "Company Details",
+            "Compliance pointer",
             {
                 "classes": ("tab",),
-                "fields": (
-                    "company_name",
-                    "company_slug",
-                    "school_code",
-                    "company_address",
-                    "company_phone",
-                    "company_email",
-                    "country",
-                    "region",
-                    "ministry",
-                    "default_region",
-                    "ministry_registration_code",
-                    "social_links",
-                ),
+                "description": "Stores compliance profile id in Runtime defaults payload (Phase B).",
+                "fields": ("compliance_profile",),
             },
         ),
         (
-            "Admissions & IDs",
+            "Where did my settings go?",
             {
                 "classes": ("tab",),
                 "fields": (
-                    "admission_number_mode",
-                    "admission_number_strategy",
-                    "admission_number_template",
-                    "admission_number_pattern",
-                ),
-            },
-        ),
-        (
-            "Login, Header & Layout",
-            {
-                "classes": ("tab",),
-                "fields": (
-                    "login_hero_heading",
-                    "login_hero_subtext",
-                    "show_header_search",
-                    "show_header_notifications",
-                    "show_header_profile_menu",
-                    "show_header_theme_toggle",
-                    "favicon",
-                    "layout_style",
-                    "default_sidebar_collapsed",
-                    "branded_domain",
-                    "portal_sidebar_order",
-                    "sidebar_icon",
-                ),
-            },
-        ),
-        (
-            "Theme & Experience",
-            {
-                "classes": ("tab",),
-                "description": "Theme & Experience is managed on a dedicated page (link below). Changes there are saved here (Theme pack & Admin theme pack). One source of truth for portal and staff themes.",
-                "fields": ("theme_color_tools_link_block",),
-            },
-        ),
-        (
-            "Portal & content",
-            {
-                "classes": ("tab",),
-                "fields": (
-                    "admin_portal_stats_config",
-                    "portal_quick_actions",
-                    "portal_announcements",
-                    "portal_recent_grades",
-                    "portal_upcoming_assessments",
-                    "referral_bonus_amount",
-                ),
-            },
-        ),
-        (
-            "Footer Content",
-            {
-                "classes": ("tab",),
-                "fields": (
-                    "footer_accreditation_text",
-                    "footer_accreditation_subtext",
-                    "footer_support_hours",
-                    "footer_whatsapp_url",
-                    "whatsapp_support_number",
-                    "whatsapp_admissions_number",
-                    "enable_whatsapp_parent_portal",
-                    "enable_whatsapp_staff_portal",
-                    "footer_status_text",
-                    "footer_badges",
-                    "footer_links",
-                ),
-            },
-        ),
-        (
-            "Feature Toggles (Modules)",
-            {
-                "classes": ("tab",),
-                "description": "Enable or disable portal modules and report PDFs. Portal feature flags (syllabus, documents, etc.) can also be edited as JSON below, or via Feature Control with an audit trail.",
-                "fields": (
+                    "runtime_defaults_notice",
                     "portal_features_help",
-                    "enable_parent_portal",
-                    "enable_teacher_portal",
-                    "default_portal_role_dual_role",
-                    "enable_reports_pdf",
-                    "portal_features",
+                    "integrations_api_center_block",
+                    "automation_overview_block",
                 ),
-            },
-        ),
-        (
-            "System Behavior & Offline",
-            {
-                "classes": ("tab",),
-                "fields": (
-                    "maintenance_mode",
-                    "enable_offline_mode",
-                    "offline_sync_conflict_resolution",
-                    "auto_tag_photos_from_exif",
-                ),
-            },
-        ),
-        (
-            "Backend Orchestration & Limits",
-            {
-                "classes": ("tab",),
-                "description": "Backend feature flags are JSON; use Feature Control for an audited toggle UI. Summary below reflects current flags. To manage who can do what (users and roles): use the Admin sidebar → Authentication → Users or Groups, or use the link below.",
-                "fields": (
-                    "enable_entity_console",
-                    "allowed_roles_entity_console",
-                    "enable_entity_import",
-                    "allowed_roles_entity_import",
-                    "enable_api_schema_ui",
-                    "allowed_roles_api_schema",
-                    "allow_bulk_commit",
-                    "require_guardian_finance_opt_in",
-                    "allow_finance_access_requests",
-                    "max_bulk_import_rows",
-                    "backend_feature_flags",
-                    "rbac_discovery_block",
-                    "backend_flags_summary",
-                ),
-            },
-        ),
-        (
-            "Integrations & API Center",
-            {
-                "classes": ("tab",),
-                "description": "Manage external integrations (email, SMS, payments, portal links) and turn them on/off with audit. Enable the API Center in Backend feature flags (above) to show the API Center in the backend sidebar.",
-                "fields": ("integrations_api_center_block",),
-            },
-        ),
-        (
-            "Notifications & Analytics",
-            {
-                "classes": ("tab",),
-                "description": "Guardian notifications: in-app and optional email for new invoices and payments. Parent welcome email when creating parent accounts from backend.",
-                "fields": (
-                    "notification_channels",
-                    "sms_provider",
-                    "sms_api_key",
-                    "sms_sender_id",
-                    "email_from_address",
-                    "teacher_deadline_reminder_days",
-                    "teacher_reminder_time_of_day",
-                    "finance_notify_guardians_new_invoice",
-                    "finance_notify_guardians_payment_received",
-                    "finance_notify_new_invoice_email",
-                    "finance_notify_payment_received_email",
-                    "notify_parent_welcome_email",
-                ),
-            },
-        ),
-        (
-            "Compliance & Payroll",
-            {
-                "classes": ("tab",),
-                "fields": (
-                    "compliance_profile",
-                    "require_mfa_roles",
-                    "require_mfa_all_staff",
-                    "requests_reminder_interval_hours",
-                ),
-            },
-        ),
-        (
-            "Marks Entry & OCR",
-            {
-                "classes": ("tab",),
-                "fields": (
-                    "marksheet_ocr_command",
-                    "enable_concurrent_mark_uploads",
-                    "enable_practical_assessment",
-                ),
-            },
-        ),
-        (
-            "Reports (publish & grades)",
-            {
-                "classes": ("tab",),
-                "description": "When grade approval is enabled, you can require approved grades before publishing term results and show only approved grades on report cards.",
-                "fields": (
-                    "report_preview_contact_email",
-                    "report_preview_contact_phone",
-                    "report_preview_footer_note",
-                    "default_report_preview_type",
-                    "grade_approval_enabled",
-                    "grade_approval_roles",
-                    "grade_approval_auto_validate",
-                    "grade_approval_deadline_days",
-                    "grade_approval_deadline_note",
-                    "grade_post_roles",
-                    "syllabus_approval_roles",
-                    "reports_require_approved_grades_before_publish",
-                    "reports_use_approved_grades_only",
-                ),
-            },
-        ),
-        (
-            "Delegation (Out of Office / Acting)",
-            {
-                "classes": ("tab",),
-                "description": "When staff are away, they can assign a delegate. Configure max duration, auto-revoke at end date, who can delegate to whom, and notifications.",
-                "fields": (
-                    "delegation_max_days",
-                    "delegation_auto_revoke",
-                    "delegation_notify_delegate_on_start",
-                    "delegation_block_delegator_while_ooo",
-                    "delegation_summary_report_on_return",
-                    "delegation_role_mapping",
-                ),
-            },
-        ),
-        (
-            "Finance Automation",
-            {
-                "classes": ("tab",),
-                "description": "All finance automation in one place. Sections: (1) Fee invoice generation, (2) Fee plan copying, (3) Payment reminders, (4) Invoice status updates, (5) Receipt verification, (6) Bank deposit verification, (7) Payment instructions, (8) Real-world scenarios (overpayment, void, withdrawal, retries).",
-                "fields": (
-                    "finance_auto_generate_invoices_enabled",
-                    "finance_auto_generate_schedule",
-                    "finance_auto_generate_due_date_offset_days",
-                    "finance_auto_generate_require_approval",
-                    "finance_fee_plan_auto_copy_enabled",
-                    "finance_fee_plan_auto_copy_mode",
-                    "finance_fee_plan_copy_increase_percentage",
-                    "finance_payment_reminder_default_channels",
-                    "finance_payment_reminder_default_days",
-                    "finance_payment_reminder_enable_whatsapp",
-                    "finance_invoice_auto_status_updates_enabled",
-                    "finance_invoice_overdue_grace_period_days",
-                    "finance_receipt_upload_enabled",
-                    "finance_receipt_auto_verify_enabled",
-                    "finance_receipt_verification_method",
-                    "finance_receipt_auto_apply_enabled",
-                    "finance_receipt_auto_apply_threshold",
-                    "finance_receipt_require_admin_approval",
-                    "finance_receipt_amount_tolerance",
-                    "finance_bank_verification_enabled",
-                    "finance_bank_verification_auto_approve",
-                    "finance_bank_verification_tolerance_days",
-                    "finance_bank_verification_amount_tolerance",
-                    "finance_payment_instructions_bank",
-                    "finance_payment_instructions_mtn_momo",
-                    "finance_payment_instructions_orange_money",
-                    "finance_payment_instructions_cash",
-                    "finance_receipt_upload_instructions",
-                    "finance_reminder_no_contact_action",
-                    "finance_receipt_max_size_mb",
-                    "finance_receipt_allowed_extensions",
-                    "finance_overpayment_handling",
-                    "finance_overpayment_tolerance_xaf",
-                    "finance_void_invoice_with_payments",
-                    "finance_on_student_withdrawal",
-                    "finance_receipt_idempotency_window_minutes",
-                    "finance_reminder_retry_failed_hours",
-                    "finance_reminder_max_retries",
-                    "finance_receipt_require_verification_reason",
-                    "finance_receipt_second_approval_threshold_xaf",
-                ),
-            },
-        ),
-        (
-            "Analytics Defaults",
-            {
-                "classes": ("tab", "collapse"),
-                "description": "Default values used by Analytics dashboards: top students list size, pass mark, promotion rules, weak subject threshold, improvement delta, and deadline display mode. Change these to match school policy.",
-                "fields": (
-                    "top_students_default_limit",
-                    "default_grading_scale",
-                    "pass_mark",
-                    "use_promotion_rule_for_pass",
-                    "weak_subject_threshold",
-                    "improvement_delta_threshold",
-                    "deadline_mode",
-                    "cache_rankings_interval_minutes",
-                ),
-            },
-        ),
-        (
-            "Automation (execution & approval)",
-            {
-                "classes": ("tab",),
-                "description": "All scheduled and manual automations (invoice generation, payment reminders, deadline reminders, etc.) log to Execution Log. High-impact tasks can use the Approval Queue when enabled in Finance Automation. Schedules and thresholds are configured in the sections above (e.g. Finance Automation, Notifications).",
-                "fields": ("automation_overview_block",),
             },
         ),
         (
@@ -954,48 +464,19 @@ class SiteSettingsAdmin(ModelAdmin):
     # Vertical sidebar navigation for Site Settings (Phase 6.1: logical buckets for non-technical admins).
     SETTINGS_NAV_GROUPS = [
         (
-            "Academics",
+            "Branding & experience",
             [
-                ("Admissions & IDs", "admissions-ids"),
-                ("Marks Entry & OCR", "marks-entry-ocr"),
-                ("Reports (publish & grades)", "reports-publish-grades"),
-                ("Analytics Defaults", "analytics-defaults"),
-            ],
-        ),
-        (
-            "Finance",
-            [
-                ("Finance Automation", "finance-automation"),
+                ("At a glance", "at-a-glance"),
+                ("Platform branding", "platform-branding"),
             ],
         ),
         (
             "System",
             [
-                ("Feature Toggles (Modules)", "feature-toggles-modules"),
-                ("System Behavior & Offline", "system-behavior-offline"),
-                ("Portal & content", "portal-content"),
-                ("Backend Orchestration & Limits", "backend-orchestration-limits"),
-                ("Compliance & Payroll", "compliance-payroll"),
-                ("Automation (execution & approval)", "automation-execution-approval"),
+                ("Operations", "operations"),
+                ("Compliance pointer", "compliance-pointer"),
+                ("Where did my settings go?", "where-did-settings-go"),
                 ("Metadata", "metadata"),
-            ],
-        ),
-        (
-            "Branding & experience",
-            [
-                ("At a glance", "at-a-glance"),
-                ("Branding", "branding"),
-                ("Preview & Draft", "preview-draft"),
-                ("Company Details", "company-details"),
-                ("Login, Header & Layout", "login-header-layout"),
-                ("Theme & Experience", "theme-experience"),
-                ("Footer Content", "footer-content"),
-            ],
-        ),
-        (
-            "Notifications",
-            [
-                ("Notifications & Analytics", "notifications-analytics"),
             ],
         ),
     ]
@@ -1032,54 +513,74 @@ class SiteSettingsAdmin(ModelAdmin):
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def logo_preview(self, obj):
-        if obj.logo:
+        from apps.platform_runtime.helpers import get_effective_site_settings
+
+        eff = get_effective_site_settings(request=None, school=None)
+        logo = getattr(eff, "logo", None) if eff else None
+        if logo and getattr(logo, "url", None):
             return format_html(
                 '<img src="{}" style="height:60px;border-radius:12px;background:#fff;padding:6px;" />',
-                obj.logo.url,
+                logo.url,
             )
         return "No logo uploaded"
 
     logo_preview.short_description = "Logo Preview"
 
+    def platform_global_branding_notice(self, obj):
+        try:
+            url = reverse("admin:brand_experience_platformglobalbranding_change", args=[1])
+        except NoReverseMatch:
+            return mark_safe(
+                "<p><strong>Platform global branding</strong> (singleton pk=1) holds "
+                "logos, theme packs, and report style defaults.</p>"
+            )
+        return format_html(
+            '<p class="mb-2">{}</p><a class="button" href="{}">{}</a>',
+            "Edit the canonical branding row (theme packs, media, report styles).",
+            url,
+            "Open Platform global branding",
+        )
+
+    platform_global_branding_notice.short_description = "Branding storage"
+
     def site_summary(self, obj):
         """Read-only summary for the first tab: site name, logo, primary color, key toggles."""
         if not obj or not obj.pk:
             return mark_safe("<p>Save once to see the summary.</p>")
-        _brand_metadata = (
-            obj.get_brand_metadata()
-            if callable(getattr(obj, "get_brand_metadata", None))
-            else {}
-        )
+        from apps.platform_runtime.helpers import get_effective_site_settings
+
+        eff = get_effective_site_settings(request=None, school=None) or obj
         theme_settings = (
-            obj.get_theme_experience_settings()
-            if callable(getattr(obj, "get_theme_experience_settings", None))
+            eff.get_theme_experience_settings()
+            if callable(getattr(eff, "get_theme_experience_settings", None))
             else {}
         )
-        name = getattr(obj, "site_name", None) or "—"
+        name = getattr(eff, "site_name", None) or "—"
         primary = (
             str(
-                theme_settings.get("primary_color", getattr(obj, "primary_color", ""))
+                theme_settings.get("primary_color", getattr(eff, "primary_color", ""))
                 or ""
             ).strip()
             or "#0d6efd"
         )
         logo_html = ""
-        if obj.logo:
+        logo = getattr(eff, "logo", None)
+        if logo and getattr(logo, "url", None):
             logo_html = format_html(
                 '<img src="{}" alt="" style="height:48px;border-radius:8px;background:#fff;padding:4px;margin-right:12px;" />',
-                obj.logo.url,
+                logo.url,
             )
         toggles = []
         for label, val in [
-            ("Maintenance", getattr(obj, "maintenance_mode", False)),
-            ("Parent portal", getattr(obj, "enable_parent_portal", True)),
-            ("Teacher portal", getattr(obj, "enable_teacher_portal", True)),
+            ("Maintenance", getattr(eff, "maintenance_mode", False)),
+            ("Parent portal", getattr(eff, "enable_parent_portal", True)),
+            ("Teacher portal", getattr(eff, "enable_teacher_portal", True)),
             (
                 "Reports PDF",
                 bool(
                     theme_settings.get(
                         "report_downloads_enabled",
-                        getattr(obj, "report_downloads_enabled", True),
+                        getattr(eff, "report_downloads_enabled", True),
                     )
                 ),
             ),
@@ -1087,7 +588,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "Dark mode",
                 bool(
                     theme_settings.get(
-                        "use_dark_mode", getattr(obj, "use_dark_mode", False)
+                        "use_dark_mode", getattr(eff, "use_dark_mode", False)
                     )
                 ),
             ),
@@ -1118,9 +619,12 @@ class SiteSettingsAdmin(ModelAdmin):
     def theme_color_tools_link_block(self, obj):
         """Launcher to the canonical Theme & Experience page."""
         try:
-            url = reverse("siteconfig:theme_colors")
+            url = reverse("studio_os:experience")
         except NoReverseMatch:
-            url = "/siteconfig/theme-colors/"
+            try:
+                url = reverse("siteconfig:theme_colors")
+            except NoReverseMatch:
+                url = "/siteconfig/theme-colors/"
         try:
             next_path = (
                 reverse("admin:siteconfig_sitesettings_change", args=[obj.pk])
@@ -1140,6 +644,23 @@ class SiteSettingsAdmin(ModelAdmin):
         )
 
     theme_color_tools_link_block.short_description = ""
+
+    def runtime_defaults_notice(self, obj):
+        """Phase B: point operators at RuntimeDefaults JSON + control-plane consoles."""
+        try:
+            url = reverse("admin:platform_runtime_runtimedefaults_change", args=[1])
+        except NoReverseMatch:
+            url = ""
+        return format_html(
+            "<p><strong>Phase B — SiteSettings slim row</strong></p>"
+            "<p>Most behavioral settings (portal copy, policies, finance automation, SMS, "
+            "feature flags JSON, etc.) are stored in <code>platform_runtime.RuntimeDefaults.payload</code>. "
+            "Edit them via the button below or the Configuration Control Center / Feature Control.</p>"
+            '<p><a class="button" href="{}">Runtime defaults (JSON)</a></p>',
+            url or "#",
+        )
+
+    runtime_defaults_notice.short_description = "Runtime defaults"
 
     def portal_features_help(self, obj):
         """Link to Feature Control for audited feature toggles."""
@@ -1741,7 +1262,7 @@ class RegionConfigAdmin(ModelAdmin):
             return "—"
 
         scales = obj.gradingscaleconfig_set.count()
-        holidays = obj.holidaycalendar_set.count()
+        holidays = obj.holidays.count()
 
         html = f"""
         <div style="background: #f8f9fa; padding: 12px; border-radius: 5px; font-size: 13px;">

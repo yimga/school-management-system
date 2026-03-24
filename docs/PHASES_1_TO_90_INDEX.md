@@ -26,7 +26,7 @@
 
 - **Verification:** [VERIFICATION_GATES_INDEX.md](VERIFICATION_GATES_INDEX.md) — §12 gates, Phase H, lints, ledgers.
 - **UX bar:** [UX_ACCEPTANCE_AND_RESPONSIVE_REFERENCE.md](UX_ACCEPTANCE_AND_RESPONSIVE_REFERENCE.md) — §8.0.6, §8.0.11, §8.0.13.
-- **Consoles:** [BOUNDED_CONSOLES_INVENTORY.md](BOUNDED_CONSOLES_INVENTORY.md) — System config, Studios, API Center, etc.
+- **Consoles:** [BOUNDED_CONSOLES_INVENTORY.md](BOUNDED_CONSOLES_INVENTORY.md) — Configuration Control Center, Studios, API Center, etc.
 - **N/A and unblock:** [N/A_BLOCKERS_AND_RESOLUTION.md](N/A_BLOCKERS_AND_RESOLUTION.md).
 
 ---

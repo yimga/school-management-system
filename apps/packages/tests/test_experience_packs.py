@@ -52,8 +52,10 @@ class ExperiencePackServiceTests(TestCase):
 
     def test_resolve_experience_theme_pack_is_used_by_branding(self):
         site = get_platform_site_settings_record(create=True)
-        site.theme_pack_id = self.fallback_theme.pk
-        site.save(update_fields=["theme_pack_id"])
+        site.apply_theme_experience_state(
+            field_updates={"theme_pack": self.fallback_theme},
+            save=True,
+        )
 
         resolved_theme = resolve_experience_theme_pack(self.school)
         brand = resolve_brand_profile(school=self.school, site=site)

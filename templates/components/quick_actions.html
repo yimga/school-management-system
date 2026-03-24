@@ -1,3 +1,4 @@
+{% load i18n %}
 {# Contextual action surface. Prefer contextual_actions with ranked items; legacy quick-action grid remains as fallback. #}
 <div class="card shadow-sm contextual-quick-actions">
   <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
@@ -82,10 +83,10 @@
     {% if is_backend_context %}
     <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-th"></i> Backend Console</a>
     {% if request.user.is_superuser %}
-    <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-gear"></i> System config</a>
+    <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-gear"></i> {% trans "Config center" %}</a>
     {% endif %}
     {% else %}
-    <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-th"></i> System config</a>
+    <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-th"></i> {% trans "Config center" %}</a>
     {% endif %}
     <a href="{% url 'accounts:rbac' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-users-cog"></i> RBAC</a>
   </div>

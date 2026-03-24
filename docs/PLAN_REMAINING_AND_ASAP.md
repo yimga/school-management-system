@@ -25,7 +25,7 @@
 | **Marketing** | 7.1: AI-generated hero/videos; integrate into marketing | Medium (assets + integration) | No |
 | **Developer platform** | 8.1: External API portal, webhooks, SDKs, certification | Large | No |
 | **Governance** | 9.1: Delete obsolete commands; expose critical ops in control-plane UI | Small (delete) / Medium (UI) | Delete obsolete = yes |
-| **Toolsets** | 10.1–10.9: Theme, Feature Control, Report/Document Library, Design Studio, Live Previews, Workflows, AI & API, System Config | Large (each is a project) | No |
+| **Toolsets** | 10.1–10.9: Theme, Feature Control, Report/Document Library, Design Studio, Live Previews, Workflows, AI & API, Configuration Control Center | Large (each is a project) | No |
 
 ---
 

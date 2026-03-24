@@ -84,6 +84,19 @@ def emis_dashboard(request):
         },
     }
 
+    from django.urls import reverse as _reverse
+
+    recent = list(recent_exports or [])[:4]
+    activity = [
+        {
+            "title": str(getattr(x, "export_type", "Export")),
+            "meta": str(getattr(x, "export_date", "") or ""),
+        }
+        for x in recent
+    ]
+    if not activity:
+        activity = [{"title": "EMIS exports", "meta": "Run an export to see history."}]
+
     context = {
         'academic_years': academic_years,
         'current_year': current_year,
@@ -97,6 +110,30 @@ def emis_dashboard(request):
         'available_sidebar_items': available_sidebar_items,
         'widget_meta_json': widget_meta_json,
         'chart_entity_donut_json': json.dumps(chart_entity_donut),
+        "phase7_de": {
+            "eyebrow": "EMIS / regulatory",
+            "headline_label": "Students in scope",
+            "headline_value": students_count,
+            "headline_meta": getattr(current_year, "name", "") or "Active year",
+            "metrics": [
+                {"label": "Teachers", "value": teachers_count, "meta": "Active", "status": "ok"},
+                {"label": "Classes", "value": classes_count, "meta": "Roster", "status": "ok"},
+                {"label": "Subjects", "value": subjects_count, "meta": "Assignments", "status": "ok"},
+            ],
+            "urgent_queue": [
+                {
+                    "title": "Validate export country & year",
+                    "url": "",
+                    "hint": "Before submitting to ministry systems.",
+                }
+            ],
+            "next_actions": [
+                {"label": "Jump to export form", "url": "#emis-export-form"},
+                {"label": "Backend home", "url": _reverse("accounts:backend_dashboard")},
+                {"label": "Reload", "url": request.get_full_path()},
+            ],
+            "activity": activity,
+        },
     }
 
     return render(request, 'emis/dashboard.html', context)

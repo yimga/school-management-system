@@ -15,9 +15,9 @@
 | **Control plane** | `/super/*` | Dashboards, catalogs, marketplace governance, billing overview, migration, trust, support, orchestration, **operator policy**, etc. | `user_has_control_plane_access`: `is_superuser` **or** `role == SUPERADMIN`. Enforced by `TenantSuperAdminRequiredMiddleware` + per-view `require_super_access_with_host`. |
 | **Platform backoffice** | `/admin/*` | **Raw Django admin CRUD** for models registered with `register_platform_admin` (siteconfig AI/registry, billing waivers, packages, marketplace proxy models, registries, automation, etc.). | `PlatformAdminSite.has_permission`: manager host + `is_staff` + `is_superuser`. |
 
-`config/admin.py` states explicitly: *"Platform Backoffice: raw CRUD only. Single config surface is System config (siteconfig:console_domains_hub)."*
+`config/admin.py` states explicitly: *"Platform Backoffice: raw CRUD only. Single config surface is Configuration Control Center (siteconfig:console_domains_hub)."*
 
-**Changelist navigation is integrated:** `super:admin_bridge` + `apps/schools/super_admin_bridge_registry.py` maps **every** platform-registered changelist used for fleet config (siteconfig, integrations_marketplace, runtime_blueprints, global_registries, packages, etc.) to a stable `/super/admin-bridge/<slug>/` URL — operators need not hardcode `/admin/...` paths. **Editing** still uses Django admin for models without dedicated super CRUD forms; **first-class** super screens (catalogs, AI hub, System config) remain the default operator path where they exist.
+**Changelist navigation is integrated:** `super:admin_bridge` + `apps/schools/super_admin_bridge_registry.py` maps **every** platform-registered changelist used for fleet config (siteconfig, integrations_marketplace, runtime_blueprints, global_registries, packages, etc.) to a stable `/super/admin-bridge/<slug>/` URL — operators need not hardcode `/admin/...` paths. **Editing** still uses Django admin for models without dedicated super CRUD forms; **first-class** super screens (catalogs, AI hub, Configuration Control Center) remain the default operator path where they exist.
 
 ## Security (logical)
 
@@ -31,9 +31,9 @@ Tenant **`/admin/`** (`TenantAdminSite`) is a **different** site: tenant models 
 
 **`templates/admin/app_list.html`** (manager) includes:
 
-- Dashboard, **Control plane**, System config, Theme & Experience, Feature Control, Integrations (advanced), Report Library, Blueprint Marketplace, Operator Help, plus **Apps** (all platform-admin models).
+- Dashboard, **Control plane**, Configuration Control Center, Theme & Experience, Feature Control, Integrations (advanced), Report Library, Blueprint Marketplace, Operator Help, plus **Apps** (all platform-admin models).
 
-**`apps/schools/control_plane_nav.py`** builds **`CONTROL_PLANE_NAV`** for `/super/`. It previously **did not** list Theme, Feature Control, Platform backoffice, Integrations admin, or Report Library — only “System config” under Platform settings.
+**`apps/schools/control_plane_nav.py`** builds **`CONTROL_PLANE_NAV`** for `/super/`. It previously **did not** list Theme, Feature Control, Platform backoffice, Integrations admin, or Report Library — only “Configuration Control Center” under Platform settings.
 
 **Change:** the **Platform settings & admin** group now mirrors those **quick-link** destinations so operators on `/super/` see the same entry points as the admin sidebar (CRUD still happens in `/admin/` where no super view exists).
 

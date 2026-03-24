@@ -1,0 +1,57 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% blocktrans with n=wedge_id %}Wedge {{ n }}{% endblocktrans %} — {{ wedge.name }} — Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    {% if wedge_index_url %}<li class="breadcrumb-item"><a href="{{ wedge_index_url }}">{% trans "Wedge index" %}</a></li>{% endif %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Wedge" %} {{ wedge_id }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Wedge" %} {{ wedge_id }}: {{ wedge.name }}</h1>
+    <p class="text-white-50 small mb-1">{% trans "Tier" %} <span class="badge bg-secondary">{{ wedge.tier }}</span> · {% trans "Execution phase" %} {{ wedge.phase }}</p>
+    {% if canonical_path %}<p class="small text-info mb-0"><strong>{% trans "Canonical URL" %}:</strong> <code>{{ canonical_path }}</code></p>{% endif %}
+  </header>
+  {% include "schools/partials/wedge_super_premium_proof.html" %}
+
+  <section class="mb-4" aria-label="{% trans 'Registry URL names' %}">
+    <h2 class="h6 text-white">{% trans "Wedge line registry (manager reverses)" %}</h2>
+    <ul class="list-unstyled small">
+      {% for u in registry_urls %}
+      <li class="mb-1"><code class="text-white-50">{{ u.name }}</code>
+        {% if u.url %} — <a href="{{ u.url }}" class="link-info">{% trans "Open" %}</a>{% else %}<span class="text-warning">{% trans "No reverse" %}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {% if deep_links %}
+  <section class="mb-4" aria-label="{% trans 'Deep links' %}">
+    <h2 class="h6 text-white">{% trans "Grouped operator surfaces" %}</h2>
+    <div class="d-flex flex-wrap gap-2">
+      {% for l in deep_links %}
+      <a href="{{ l.href }}" class="btn btn-outline-light btn-sm">{{ l.label }}</a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if native_roster_url %}
+  <section class="mb-4" aria-label="{% trans 'Native roster' %}">
+    <h2 class="h6 text-white">{% trans "Native Clever / ClassLink" %}</h2>
+    <p class="small text-white-50">{% trans "Run live API probes with district credentials (super only)." %}</p>
+    <a href="{{ native_roster_url }}" class="btn btn-primary btn-sm">{% trans "Open native roster console" %}</a>
+  </section>
+  {% endif %}
+
+  {% include "schools/partials/beachhead_operator_checklist.html" %}
+</div>
+{% endblock %}

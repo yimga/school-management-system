@@ -350,7 +350,7 @@
 
 ---
 
-### 10. **apps.siteconfig** - ⚙️ System Configuration
+### 10. **apps.siteconfig** - ⚙️ Configuration Control Center
 
 **Purpose**: Site-wide settings, themes, preferences, dashboard customization
 

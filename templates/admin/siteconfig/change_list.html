@@ -1,7 +1,7 @@
 {% extends "admin/change_list.html" %}
 {% load i18n %}
 
-{# Manager host (platform admin): steer operators to /super/ + System config; raw changelist = deep maintenance only. #}
+{# Manager host (platform admin): steer operators to /super/ + Configuration Control Center; raw changelist = deep maintenance only. #}
 {% block content %}
 {% if is_manager_host %}
 <div class="mb-4 p-4 rounded-lg border text-sm max-w-5xl"
@@ -10,7 +10,7 @@
   <p class="font-semibold mb-1">{% trans "Control plane first" %}</p>
   <p class="text-base-600 dark:text-base-300 mb-3">
     {% blocktrans trimmed %}
-      Fleet and system configuration are integrated in the control plane (<code>/super/</code>) and System config.
+      Fleet and system configuration are integrated in the control plane (<code>/super/</code>) and the Configuration Control Center.
       Use this Django changelist only for deep maintenance or fields not yet exposed in super.
     {% endblocktrans %}
   </p>
@@ -19,7 +19,7 @@
       {% trans "Platform operator hub" %}
     </a>
     <a href="{% url 'siteconfig:console_domains_hub' %}" class="px-3 py-1.5 rounded-md border border-base-300 dark:border-base-600 text-xs font-medium hover:bg-base-100 dark:hover:bg-base-800">
-      {% trans "System config" %}
+      {% trans "Config center" %}
     </a>
     <a href="{% url 'super:dashboard' %}" class="px-3 py-1.5 rounded-md border border-base-300 dark:border-base-600 text-xs font-medium hover:bg-base-100 dark:hover:bg-base-800">
       {% trans "Control plane dashboard" %}

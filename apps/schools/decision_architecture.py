@@ -37,6 +37,15 @@ _PRESETS: Dict[str, Dict[str, str]] = {
         "what_happens_if_they_are_wrong": "Error message if no school / resolution failure",
         "what_is_the_fallback_path": "Back to dashboard; pick school from sample",
     },
+    "runtime_truth_hub": {
+        "who_is_this_for": "Platform operator / super",
+        "what_question_are_they_asking": "Where do global defaults live after SiteSettings slimming?",
+        "what_state_are_they_in": "Reviewing RuntimeDefaults.payload + slim SiteSettings",
+        "what_action_should_they_take_next": "Open runtime inspector for a tenant drill-down",
+        "what_confidence_signal_do_we_show": "Key counts, payload key preview, maintenance flag",
+        "what_happens_if_they_are_wrong": "Empty payload or missing row — still valid for fresh envs",
+        "what_is_the_fallback_path": "Runtime inspector, workflow simulator, bounded config center",
+    },
     "policy_diff": {
         "who_is_this_for": "Operator",
         "what_question_are_they_asking": "What does this bundle change?",

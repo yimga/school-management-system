@@ -5,6 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
@@ -1329,7 +1330,7 @@
 
 {% block content %}
 {% with widgets=display_widgets %}
-<div class="parent-dashboard dashboard-clear parent-dashboard-shell" data-page-archetype="role-home">
+<div class="parent-dashboard dashboard-clear parent-dashboard-shell" data-page-archetype="role-home" data-decision-engine="surface">
   <div class="container-lg py-4">
     {% if PREVIEW_MODE_ENABLED %}
     <div class="alert alert-warning rounded-3 mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -1398,7 +1399,7 @@
     {% endif %}
 
     <!-- Header -->
-    <header class="parent-dashboard-header" aria-labelledby="parent-dashboard-title">
+    <header class="parent-dashboard-header" aria-labelledby="parent-dashboard-title" data-decision-zone="headline">
       <div class="dashboard-header">
         <div class="dashboard-title">
           <span class="dashboard-eyebrow">Parent Portal</span>

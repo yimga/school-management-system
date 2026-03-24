@@ -12,13 +12,14 @@ from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Permission
-from apps.brand_experience.models import ThemePack
+from apps.brand_experience.models import PlatformGlobalBranding, ThemePack
 from apps.runtime_blueprints.models import ReportCardStyle
 from config.admin import tenant_admin_site
 from apps.siteconfig.context_processors import site_settings
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.forms import THEME_PUBLISH_GUARDED_FIELDS, ThemeColorsForm
 from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.tests.payload_helpers import persist_runtime_site_settings_payload
 from apps.brand_experience.admin import ThemePackAdmin
 
 
@@ -28,6 +29,8 @@ User = get_user_model()
 class ThemeStudioAccessTests(TestCase):
     def setUp(self):
         self.url = reverse("siteconfig:theme_colors")
+        # Full theme form HTML (GET without ?standalone=1 redirects to Studio Experience)
+        self.url_standalone = f"{self.url}?standalone=1"
         self.user = User.objects.create_user(
             username="theme-user",
             email="theme-user@example.com",
@@ -105,7 +108,7 @@ class ThemeStudioAccessTests(TestCase):
             applies_to_admin=False,
         )
         self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Portal Pack")
 
@@ -142,18 +145,18 @@ class ThemeStudioAccessTests(TestCase):
         )
         response = self.client.post(self.url, payload, follow=True)
         self.assertEqual(response.status_code, 200)
-        site = get_platform_site_settings_record(create=True)
-        self.assertNotEqual(site.admin_theme_pack_id, non_admin_pack.id)
+        pgb = PlatformGlobalBranding.objects.get(pk=1)
+        self.assertNotEqual(pgb.admin_theme_pack_id, non_admin_pack.id)
 
     def test_theme_studio_renders_admin_use_site_primary_guard(self):
         self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "admin-use-site-primary-guard")
 
     def test_theme_studio_renders_active_state_strip(self):
         self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "theme-draft-status-badge")
         self.assertContains(response, "theme-contrast-status-badge")
@@ -170,7 +173,7 @@ class ThemeStudioAccessTests(TestCase):
 
     def test_theme_studio_color_palette_starts_collapsed_for_compact_layout(self):
         self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="cps-body" style="display: none;"')
 
@@ -226,8 +229,10 @@ class ThemeStudioAccessTests(TestCase):
             is_active=True,
         )
         site = get_platform_site_settings_record(create=True)
-        site.default_term_report_style = style_a
-        site.save(update_fields=["default_term_report_style"])
+        site.apply_theme_experience_state(
+            field_updates={"default_term_report_style": style_a},
+            save=True,
+        )
 
         self.client.login(username="theme-manager", password="password")
         payload = self._theme_form_payload(
@@ -244,7 +249,10 @@ class ThemeStudioAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         site.refresh_from_db()
-        self.assertEqual(site.default_term_report_style_id, style_a.id)
+        self.assertEqual(
+            site.get_report_style_selection_ids()["default_term_report_style_id"],
+            style_a.id,
+        )
         self.assertContains(response, "Live preview confirmation is required")
 
     def test_theme_publish_guarded_fields_include_report_style_defaults(self):
@@ -253,7 +261,7 @@ class ThemeStudioAccessTests(TestCase):
 
     def test_theme_studio_catalog_uses_compact_scroll_region(self):
         self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "theme-pack-catalog-scroll")
         self.assertContains(response, "theme-pack-catalog-hint")
@@ -261,14 +269,14 @@ class ThemeStudioAccessTests(TestCase):
 
     def test_theme_studio_catalog_shows_active_site_and_admin_labels(self):
         self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "theme-pack-active-site-label")
         self.assertContains(response, "theme-pack-active-admin-label")
 
     def test_theme_studio_renders_enhanced_device_preview_layout(self):
         self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url)
+        response = self.client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "preview-metrics-grid")
         self.assertContains(response, "preview-chart-bars")
@@ -287,7 +295,7 @@ class ThemeStudioAccessTests(TestCase):
         self.client.login(username="theme-manager", password="password")
 
         with patch("apps.siteconfig.views.call_command") as mocked_call_command:
-            response = self.client.get(self.url)
+            response = self.client.get(self.url_standalone)
 
         self.assertEqual(response.status_code, 200)
         mocked_call_command.assert_called_once_with("seed_admin_dashboard_palettes")
@@ -301,7 +309,7 @@ class ThemeStudioAccessTests(TestCase):
             },
         )
         self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse("siteconfig:theme_colors"), response.url)
+        self.assertIn(reverse("studio_os:experience"), response.url)
         self.assertIn(
             "next=%2Fadmin%2Fsiteconfig%2Fsitesettings%2F1%2Fchange%2F%23section-theme-experience",
             response.url,
@@ -321,10 +329,14 @@ class ThemeResolutionTests(TestCase):
             applies_to_admin=True,
             is_active=True,
         )
-        self.site.primary_color = "#123456"
-        self.site.accent_color = "#654321"
-        self.site.admin_theme_pack = self.admin_pack
-        self.site.save()
+        persist_runtime_site_settings_payload(
+            primary_color="#123456",
+            accent_color="#654321",
+        )
+        pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
+        pgb.admin_theme_pack = self.admin_pack
+        pgb.save()
+        self.site.refresh_from_db()
 
     def _context(self):
         request = self.factory.get("/admin/")
@@ -335,8 +347,10 @@ class ThemeResolutionTests(TestCase):
     def test_site_settings_theme_resolution_prefers_brand_experience_owner_surface(
         self,
     ):
-        self.site.theme_pack = self.admin_pack
-        self.site.save(update_fields=["theme_pack"])
+        pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
+        pgb.theme_pack = self.admin_pack
+        pgb.save()
+        self.site.refresh_from_db()
 
         resolved = self.site.active_theme
 
@@ -350,11 +364,11 @@ class ThemeResolutionTests(TestCase):
         self.assertEqual(resolved.pk, self.admin_pack.pk)
 
     def test_theme_colors_form_initials_use_theme_experience_settings(self):
-        self.site.skip_theme_publish_guard = True
-        self.site.default_refresh_rate = 75
-        self.site.save(
-            update_fields=["skip_theme_publish_guard", "default_refresh_rate"]
+        persist_runtime_site_settings_payload(
+            skip_theme_publish_guard=True,
+            default_refresh_rate=75,
         )
+        self.site.refresh_from_db()
 
         form = ThemeColorsForm(instance=self.site)
 
@@ -399,16 +413,16 @@ class ThemeResolutionTests(TestCase):
         self.assertEqual(kwargs["field_updates"]["accent_color"], "#047857")
 
     def test_admin_use_site_primary_true_forces_site_colors(self):
-        self.site.admin_use_site_primary = True
-        self.site.save(update_fields=["admin_use_site_primary"])
+        persist_runtime_site_settings_payload(admin_use_site_primary=True)
+        self.site.refresh_from_db()
 
         ctx = self._context()
         self.assertEqual(ctx["ADMIN_RESOLVED_PRIMARY"], "#123456")
         self.assertEqual(ctx["ADMIN_RESOLVED_ACCENT"], "#654321")
 
     def test_admin_use_site_primary_false_uses_admin_pack_colors(self):
-        self.site.admin_use_site_primary = False
-        self.site.save(update_fields=["admin_use_site_primary"])
+        persist_runtime_site_settings_payload(admin_use_site_primary=False)
+        self.site.refresh_from_db()
 
         ctx = self._context()
         self.assertEqual(ctx["ADMIN_RESOLVED_PRIMARY"], "#111111")
@@ -438,9 +452,11 @@ class ThemePackSelectorTemplateTests(TestCase):
             },
         )
         site = get_platform_site_settings_record(create=True)
-        site.theme_pack = pack
-        site.admin_theme_pack = pack
-        site.save(update_fields=["theme_pack", "admin_theme_pack"])
+        pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
+        pgb.theme_pack = pack
+        pgb.admin_theme_pack = pack
+        pgb.save()
+        site.refresh_from_db()
 
         html = render_to_string(
             "admin/components/admin_dashboard_palette_selector.html",
@@ -464,21 +480,35 @@ class ThemePackSelectorTemplateTests(TestCase):
 
 
 class ThemeStudioSingleSurfaceTests(TestCase):
-    def test_sitesettings_theme_fieldset_is_launcher_only(self):
-        model_admin = tenant_admin_site._registry[SiteSettings]
-        theme_fieldset = next(
-            config
-            for title, config in model_admin.fieldsets
-            if title == "Theme & Experience"
-        )
-        self.assertEqual(theme_fieldset["fields"], ("theme_color_tools_link_block",))
-
-    def test_sitesettings_branding_fieldset_does_not_expose_theme_pack_editor(self):
+    def test_sitesettings_theme_launcher_under_platform_branding(self):
         model_admin = tenant_admin_site._registry[SiteSettings]
         branding_fieldset = next(
-            config for title, config in model_admin.fieldsets if title == "Branding"
+            config
+            for title, config in model_admin.fieldsets
+            if title == "Platform branding"
         )
-        self.assertNotIn("theme_pack", branding_fieldset["fields"])
+        self.assertIn("theme_color_tools_link_block", branding_fieldset["fields"])
+
+    def test_sitesettings_platform_branding_fieldset_points_to_singleton(self):
+        model_admin = tenant_admin_site._registry[SiteSettings]
+        branding_fieldset = next(
+            config
+            for title, config in model_admin.fieldsets
+            if title == "Platform branding"
+        )
+        self.assertIn("platform_global_branding_notice", branding_fieldset["fields"])
+
+    def test_sitesettings_fieldsets_exclude_concrete_theme_pack_fields(self):
+        model_admin = tenant_admin_site._registry[SiteSettings]
+        flat: list[str] = []
+        for _title, cfg in model_admin.fieldsets:
+            for f in cfg.get("fields") or ():
+                if isinstance(f, (list, tuple)):
+                    flat.extend(f)
+                else:
+                    flat.append(f)
+        self.assertNotIn("theme_pack", flat)
+        self.assertNotIn("admin_theme_pack", flat)
 
     def test_theme_launcher_uses_back_link_with_stay_theme_flag(self):
         model_admin = tenant_admin_site._registry[SiteSettings]
@@ -502,7 +532,7 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         request = RequestFactory().get("/admin/siteconfig/themepack/1/change/")
         response = model_admin.changeform_view(request, object_id="1")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("siteconfig:theme_colors"))
+        self.assertEqual(response.url, reverse("studio_os:experience"))
 
 
 class ThemeStudioApplyScriptTests(SimpleTestCase):

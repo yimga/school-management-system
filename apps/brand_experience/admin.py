@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 
 from config.admin import register_both, register_platform_admin
@@ -11,6 +11,7 @@ from .models import (
     BrandSettings,
     DesignTemplate,
     GlobalBrandRegistry,
+    PlatformGlobalBranding,
     ThemePack,
 )
 
@@ -89,7 +90,10 @@ class ThemePackAdmin(ModelAdmin):
         return {}
 
     def _studio_redirect(self):
-        return HttpResponseRedirect(reverse("siteconfig:theme_colors"))
+        try:
+            return HttpResponseRedirect(reverse("studio_os:experience"))
+        except NoReverseMatch:
+            return HttpResponseRedirect(reverse("siteconfig:theme_colors"))
 
     def changelist_view(self, request, extra_context=None):
         return self._studio_redirect()
@@ -114,3 +118,55 @@ for model in (DesignTemplate, BrandProfile, BrandSettings):
     register_both(model, ProxyOwnerAdmin)
 
 register_platform_admin(GlobalBrandRegistry, ProxyOwnerAdmin)
+
+
+class PlatformGlobalBrandingAdmin(ModelAdmin):
+    """Singleton platform branding (Phase B Batch 3 primary store for media + theme/report FKs)."""
+
+    list_display = ("id", "updated_at")
+    readonly_fields = ("id", "updated_at")
+    fieldsets = (
+        (
+            "Media",
+            {
+                "fields": (
+                    "video_background",
+                    "svg_background",
+                    "logo",
+                    "background_image",
+                    "favicon",
+                    "sidebar_icon",
+                )
+            },
+        ),
+        (
+            "Theme packs",
+            {
+                "fields": (
+                    "theme_pack",
+                    "admin_theme_pack",
+                    "teacher_theme_pack",
+                    "parent_theme_pack",
+                )
+            },
+        ),
+        (
+            "Report styles",
+            {
+                "fields": (
+                    "default_term_report_style",
+                    "default_annual_report_style",
+                )
+            },
+        ),
+        ("Metadata", {"fields": ("id", "updated_at")}),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+register_platform_admin(PlatformGlobalBranding, PlatformGlobalBrandingAdmin)

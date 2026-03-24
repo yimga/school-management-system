@@ -39,7 +39,7 @@
 | §2.1 domain_ownership doc | DONE | docs/domain_ownership.md: field ownership, resolver path, legacy-path policy; references apps/siteconfig/domain_ownership.py. |
 | §2.1 evals/caching resolver | DONE | evals/caching.py: SiteSettings.load() → get_cached_site_settings(school=); lint_tenant_settings flags SiteSettings.load(). |
 | Bounded context ownership | DONE | docs/bounded_context_ownership.md; 15 contexts, owner + source-of-truth. |
-| Runtime precedence | DONE | docs/runtime_precedence.md; 7-step order; platform_runtime implements. |
+| Runtime precedence / Phase 6 map | DONE | docs/runtime_precedence.md + PHASE_6_RUNTIME_FIRST_ENFORCEMENT.md; 7-step order; `merge_feature_flags_by_runtime_precedence`; step 6 + `get_effective_flags` sandbox overlay; inspector precedence + `feature_flags_merge_order`; RuntimeHelperResolutionTests Phase B `_persist_runtime_test_state`; SOT §3.2 completion gate [x]. |
 | Gilead theme/report defaults | DONE | Migration 0155_normalize_gilead_residue_runmycampus. |
 | Studio OS shared shell | DONE | Shell + all five mode hubs (rail + iframe switcher); customizer→Studio OS Experience redirect in place; pack tooling deferred to product. |
 | Experience / Automation / Output / Launch / Control Studio | DONE | All five mode hubs done; customizer redirect in place; pack tooling deferred. |
@@ -74,7 +74,7 @@
 | Subprocess classified | DONE | docs/subprocess_usage_ledger.md |
 | Subprocess when-adding rule (NEXT_50 step 39) | DONE | Ledger §3: when adding subprocess call, add row to table and apply policy; completion gate updated. |
 | Feature toggle inspection fail closed (§2.4) | DONE | runtime_inspector: DatabaseError in catch; return [] on error; docstring. |
-| Studio OS shell requirements doc | DONE | studio_os_shell_requirements.md: all 8 shared requirements DONE. |
+| Studio OS shell requirements doc | **DONE** (spine) / **PARTIAL** (product) | studio_os_shell_requirements.md: shared shell + five hubs + control-plane canvas parity **DONE**; subtractive legacy URL retirement **open** (SOT §4.1 / §1.7). Validation: STUDIO_OS_PHASE4_VALIDATION.md §7 + `pytest apps/studio_os/tests/` + `verify_design_system_phase2.py`. |
 | Packages dependency/impact preview (§6.4) | DONE | validate_package; _compatibility_report; preview_diff; _build_impact_summary. |
 | Setup Studio health/recommendation (§6.5) | DONE | get_setup_studio_payload provides health_summary, recommended_next, role_previews; used by Launch Studio / Studio OS. |
 | verify_onboarding_setup raw SQL wrap (§2.4) | DONE | check_siteconfig_migration_applied in onboarding_verification.py; command uses helper; raw_sql_allowlist + audit updated. |

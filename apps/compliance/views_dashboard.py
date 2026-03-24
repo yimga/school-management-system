@@ -75,6 +75,101 @@ class ComplianceDashboardView(View):
         context["playbook_url"] = incident_cfg.get("playbook_url")
         context["oncall_emails"] = incident_cfg.get("oncall_emails", [])
 
+        m = context.get("metrics") or {}
+        integrity = context.get("integrity_status") or {}
+        failed = int(m.get("failed_accesses") or 0)
+        suspicious = int(m.get("suspicious_sessions") or 0)
+        recent = context.get("recent_audits") or []
+        activity_rows = []
+        for row in list(recent)[:4]:
+            if isinstance(row, dict):
+                who = row.get("user__username") or ""
+                obj = row.get("object_repr") or ""
+                activity_rows.append(
+                    {
+                        "title": str(row.get("action") or "Audit event"),
+                        "meta": " ".join(
+                            x for x in (str(who), str(obj)[:80]) if x
+                        ).strip()
+                        or str(row.get("timestamp") or ""),
+                    }
+                )
+            else:
+                activity_rows.append(
+                    {"title": str(getattr(row, "action", "Audit")), "meta": ""}
+                )
+        if not activity_rows:
+            activity_rows.append(
+                {"title": "Compliance monitoring", "meta": "No recent audit rows."}
+            )
+        from django.urls import reverse as _reverse
+
+        urgent = []
+        if failed > 10:
+            urgent.append(
+                {
+                    "title": f"{failed} failed accesses (week)",
+                    "url": "",
+                    "hint": "Review access patterns and RBAC.",
+                }
+            )
+        if suspicious:
+            urgent.append(
+                {
+                    "title": f"{suspicious} suspicious session(s)",
+                    "url": "",
+                    "hint": "Investigate flagged sessions.",
+                }
+            )
+        if not urgent:
+            urgent.append(
+                {
+                    "title": "No critical access spikes",
+                    "url": "",
+                    "hint": "Continue monitoring audit stream.",
+                }
+            )
+
+        context["phase7_de"] = {
+            "eyebrow": "Compliance home",
+            "headline_label": "Integrity score",
+            "headline_value": f"{integrity.get('score', 0)}%",
+            "headline_meta": str(integrity.get("status", "")),
+            "metrics": [
+                {
+                    "label": "Active users (week)",
+                    "value": m.get("active_week", 0),
+                    "meta": f"/ {m.get('total_users', 0)} total",
+                    "status": "ok",
+                },
+                {
+                    "label": "Failed accesses",
+                    "value": failed,
+                    "meta": "Past 7 days",
+                    "status": "danger" if failed > 10 else "warn" if failed else "ok",
+                },
+                {
+                    "label": "Audit events (month)",
+                    "value": m.get("audits_month", 0),
+                    "meta": "Recorded",
+                    "status": "ok",
+                },
+            ],
+            "urgent_queue": urgent,
+            "next_actions": [
+                {
+                    "label": "Open playbook",
+                    "url": context.get("playbook_url") or "#",
+                },
+                {"label": "Reload dashboard", "url": request.get_full_path()},
+                {
+                    "label": "Backend home",
+                    "url": _reverse("accounts:backend_dashboard"),
+                },
+            ],
+            "activity": activity_rows,
+        }
+
         return render(request, "compliance/dashboard.html", context)
 
     def _get_metrics(self):

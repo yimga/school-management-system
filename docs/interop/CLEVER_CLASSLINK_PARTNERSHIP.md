@@ -1,7 +1,7 @@
-# Clever & ClassLink — partnership unblock
+# Clever & ClassLink — native client + district credentials
 
-**Code unblock:** `apps/interop/clever_classlink_client.py` implements HTTP calls once `CLEVER_CLIENT_ID` + `CLEVER_CLIENT_SECRET` (district) or bearer token from Clever Secure Sync is stored in tenant `ServiceIntegration` or env.
+**Shipped:** `apps/interop/clever_classlink_client.py` — Clever API v3.1 (`/users`, `/schools`, `/sections`), OAuth code exchange (`POST https://clever.com/oauth/tokens`), ClassLink OneRoster ping + `/courses`. **Super console:** `GET/POST /super/native-roster-connectors/` (`super:native_roster_connectors`) for operator probes with district bearer / OAuth fields.
 
-**Business unblock:** Execute district agreement with Clever / ClassLink → obtain API credentials → enter in **District & LMS interop** (future: dedicated “Connect Clever” button writing to `ServiceIntegration`).
+**Tenant path:** Continue to use **District & LMS interop** (OneRoster Bearer, CSV, token rotate) for day-to-day ops; native vendor calls complement that spine when the district provisions Clever/ClassLink tokens.
 
-**Until then:** OneRoster Bearer + `changesSince` on students + CSV exports = same roster motion.
+**Business:** District still executes vendor agreement; this repo supplies the integration surface once tokens exist.

@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class SiteconfigConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.siteconfig"
-    verbose_name = "⚙️ System Configuration"
+    verbose_name = "⚙️ Configuration Control Center"
 
     def ready(self):
         # Ensure additional dashboard and workflow models are imported for migrations

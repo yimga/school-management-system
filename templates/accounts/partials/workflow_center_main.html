@@ -1,0 +1,76 @@
+{% load i18n %}
+{# Shared main body: Workflow Center (full backend page + Studio embed). #}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" id="workflow-main">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+
+  <section class="workflow-hero mt-3" aria-labelledby="workflow-hero-desc">
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
+        <i class="bi bi-pin-angle me-1"></i>{% trans "Use Dashboard as default view" %}
+      </a>
+      <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">
+        <i class="bi bi-journal-text me-1"></i>{% trans "Help / KB" %}
+      </a>
+    </div>
+    <p id="workflow-hero-desc" class="small text-muted mb-0">{% trans "Fits general and technical education worldwide (GCE, BAC, BEPC, CAP, GCSE, A-Level, K–12, etc.); use the steps that match your subsystem—no rigid sequence." %}</p>
+    <div class="mt-2 small text-muted">
+      {% trans "Active year:" %} <strong>{{ active_year.name|default:"—" }}</strong> · {% trans "Active term:" %} <strong>{{ active_term.name|default:active_term|default:"—" }}</strong>
+    </div>
+    {% if workflow_progress %}
+    <div class="workflow-progress-summary">
+      <span class="badge bg-primary">{% trans "Classrooms:" %} {{ workflow_progress.classrooms|default:0 }}</span>
+      <span class="badge bg-success">{% trans "Students:" %} {{ workflow_progress.students|default:0 }}</span>
+      <span class="badge bg-info">{% trans "Teachers:" %} {{ workflow_progress.teachers|default:0 }}</span>
+    </div>
+    {% endif %}
+    {% if steps %}
+    <div class="workflow-quick-jump mt-2 pt-2" style="border-top: 1px solid var(--workflow-quick-jump-divider, rgba(148,163,184,0.2));">
+      <span class="text-muted me-2">{% trans "Jump to:" %}</span>
+      {% for step in steps %}
+        <a href="#step-{{ step.step_key }}" class="me-2"><i class="bi {{ step.icon|default:'bi-circle' }} me-1"></i>{{ step.title }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+
+  {% if steps %}
+  <div class="mb-3" role="region" aria-label="{% trans 'Workflow progress' %}">
+    <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
+      <span>{% trans "Workflow overview" %} — {{ steps|length }} {% trans "steps" %}</span>
+    </div>
+    <div class="progress workflow-progress-bar">
+      <div class="progress-bar bg-primary" role="progressbar" style="width: 100%; opacity: 0.35;" aria-valuenow="{{ steps|length }}" aria-valuemin="0" aria-valuemax="{{ steps|length }}" title="{% trans 'All steps visible below' %}"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="workflow-grid" role="list" aria-label="{% trans 'Workflow steps' %}">
+    {% for step in steps %}
+      <article class="workflow-card" id="step-{{ step.step_key }}" aria-labelledby="step-title-{{ step.step_key }}">
+        <div class="card-body">
+          <div class="workflow-step-meta">{% trans "Step" %} {{ step.step_index }} {% trans "of" %} {{ step.total_steps }}</div>
+          <h3 id="step-title-{{ step.step_key }}" class="workflow-title d-flex align-items-center h6 mb-0">
+            <i class="bi {{ step.icon|default:'bi-circle' }} workflow-step-icon" aria-hidden="true"></i>
+            {{ step.title }}
+          </h3>
+          <div class="workflow-subtitle">{{ step.subtitle }}</div>
+          {% if step.progress_label %}
+          <div class="workflow-progress-label">{{ step.progress_label }}</div>
+          {% endif %}
+          {% if step.tip %}
+          <div class="workflow-tip"><i class="bi bi-lightbulb me-1"></i>{{ step.tip }}</div>
+          {% endif %}
+          <div class="workflow-links">
+            {% for link in step.links %}
+              {% if link.primary %}
+              <a class="btn btn-sm btn-primary" href="{{ link.url }}">{{ link.label }}</a>
+              {% else %}
+              <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}">{{ link.label }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</div>

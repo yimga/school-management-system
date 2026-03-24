@@ -164,16 +164,23 @@ def validate_phase(phase: int, failures: list[str]) -> None:
     if phase == 4:
         _django()
         _reverse_urls(
-            ["super:ministry_report_stubs", "super:group_campuses"],
+            [
+                "super:ministry_report_stubs",
+                "super:ministry_stub_pdf",
+                "super:group_campuses",
+                "super:district_enterprise",
+            ],
             failures,
         )
         stub = REPO_ROOT / "templates" / "schools" / "super_ministry_report_stubs.html"
         grp = REPO_ROOT / "templates" / "schools" / "super_group_campuses.html"
+        dist = REPO_ROOT / "templates" / "schools" / "super_district_enterprise.html"
         partial = REPO_ROOT / "templates" / "schools" / "partials" / "wedge_super_premium_proof.html"
-        _files_exist([stub, grp, partial], failures)
+        _files_exist([stub, grp, dist, partial], failures)
         for path, needle in (
             (stub, "wedge_super_premium_proof"),
             (grp, "wedge_super_premium_proof"),
+            (dist, "wedge_super_premium_proof"),
         ):
             if path.exists():
                 t = path.read_text(encoding="utf-8", errors="replace")

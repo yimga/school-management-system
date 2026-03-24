@@ -60,6 +60,7 @@ python manage.py showmigrations packages setup_studio | grep -E '^\s+\[ \]' && {
 echo "[pre_deploy_gate] Architecture laws (no hardcoding; lint reports SiteSettings usage)"
 python scripts/check_no_hardcoding.py --allow-tests
 python scripts/lint_tenant_settings.py --check-get-solo-only
+python scripts/lint_tenant_settings.py --check-sitesettings-orm-in-tenant-apps
 python scripts/lint_tenant_settings.py --check-school-settings-features
 # Path to 10: report allowlisted get_solo (migration backlog); optional visibility
 python scripts/lint_tenant_settings.py --report-allowlisted --base . 2>/dev/null || true
@@ -67,14 +68,22 @@ echo "[pre_deploy_gate] Platform inventory refresh"
 python scripts/generate_platform_inventory.py --write
 echo "[pre_deploy_gate] Platform inventory verification"
 python scripts/generate_platform_inventory.py --check
+echo "[pre_deploy_gate] Phase 5 SiteSettings / siteconfig dismantling (docs + domain_ownership + get_solo lint)"
+python scripts/verify_phase_5_siteconfig.py
+echo "[pre_deploy_gate] Phase B Batch 3 burn-in (no SiteSettings ORM writes to removed branding FK columns)"
+python scripts/lint_phase_b_batch3_sitesettings_fk_writes.py
 python scripts/lint_csrf_exempt_usage.py
 python scripts/lint_allow_any_usage.py
 python scripts/lint_raw_sql_usage.py
+echo "[pre_deploy_gate] Phase 8 merged security ledger (csrf_exempt + AllowAny + raw SQL allowlists)"
+python scripts/build_phase8_security_ledger.py --check
 python scripts/lint_broad_except.py --allowlist scripts/allowlists/broad_except_allowlist.json --strict
 echo "[pre_deploy_gate] §10.5 operating-discipline doc refs (role_home_engine *_DOC → docs/)"
 python scripts/verify_operating_discipline_docs.py
 echo "[pre_deploy_gate] §10.5 operating-discipline layers (doc + code)"
 python scripts/verify_section10_5_layers.py
+echo "[pre_deploy_gate] Phase 2 design system + token enforcement gate"
+python scripts/verify_design_system_phase2.py
 echo "[pre_deploy_gate] Marketing nav no overflow"
 python scripts/lint_marketing_nav_no_overflow.py
 
@@ -91,11 +100,17 @@ python scripts/verify_sot_pillar_evidence.py
 echo "[pre_deploy_gate] §0.2.1.5–§0.2.1.6 wedge super-premium phased validation"
 python scripts/validate_wedge_super_premium_phases.py --phase all
 
+echo "[pre_deploy_gate] Phase 7 dashboard surface markers (full registry)"
+python scripts/verify_phase7_dashboard_markers.py
+
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
 python manage.py makemigrations --check --dry-run
 
 echo "[pre_deploy_gate] Ensure gate test DB has migrations (for --keepdb and verify_ux_completion)"
 python scripts/migrate_gate_test_db.py
+
+echo "[pre_deploy_gate] Phase B batch execution (PlatformGlobalBranding table + singleton)"
+python scripts/verify_phase_b_execution.py
 
 echo "[pre_deploy_gate] Tenant model audit"
 python manage.py audit_tenant_models --strict
@@ -129,11 +144,15 @@ TARGETED_HARDENING_TESTS=(
   apps.siteconfig.tests.test_metadata_catalog
   apps.packages.tests.test_engine
   apps.platform_runtime.tests.test_precedence
+  apps.platform_runtime.tests.test_tenant_isolation_and_identity
+  apps.platform_runtime.tests.test_tenant_settings_lint
   apps.platform_runtime.tests.test_learning_institution_beyond
   apps.platform_runtime.tests.test_runtime_contract
   apps.platform_runtime.tests.test_structured_logging
   apps.platform_runtime.tests.test_public_api_lints
   apps.platform_runtime.tests.test_marketplace_catalog_minimums
+  apps.brand_experience.tests.test_platform_global_branding
+  apps.platform_runtime.tests.test_phase_b_domain_snapshots
   apps.marketplace.tests.test_install_impact
   apps.marketplace.tests.test_blueprint_rollback_ack
   apps.marketplace.tests.test_governance
@@ -146,6 +165,7 @@ TARGETED_HARDENING_TESTS=(
   apps.api.tests.test_api_v1_route_contract
   apps.api.tests.test_api_v1_manifest
   apps.api.tests.test_api_v1_contract_smoke
+  apps.api.tests.test_ai_chat_consumer_gateway
   apps.api.tests.test_dashboard_api_profile_404
   apps.schools.tests.test_school_data_residency_contract
   apps.platform_runtime.tests.test_platform_event_log
@@ -162,11 +182,14 @@ TARGETED_HARDENING_TESTS=(
   apps.siteconfig.tests.test_tenant_package_rollback_ui
   apps.portal.tests.test_bulk_capture_hub
   apps.accounts.tests.test_tenant_activity_log_view
+  apps.accounts.tests.test_security_trust_hub_views
   apps.compliance.tests.test_attendance_region_br05
   apps.analytics.tests.test_at_risk_intervention_br06
   apps.analytics.tests.test_ews_signal_sync
   apps.communication.tests.test_thread_locale_retention_br08
   apps.communication.tests.test_message_locale_wiring
+  apps.dashboard.tests.test_phase7_decision_surface
+  apps.dashboard.tests.test_role_home_engine
 )
 run_django_tests "${TARGETED_HARDENING_TESTS[@]}"
 

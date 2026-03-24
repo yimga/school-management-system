@@ -1,0 +1,83 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Native Clever / ClassLink console" %} — Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    {% if wedge_detail_url %}<li class="breadcrumb-item"><a href="{{ wedge_detail_url }}">{% trans "Wedge 44" %}</a></li>{% endif %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Native connectors" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Clever API v3.1 & ClassLink OneRoster host" %}</h1>
+    <p class="text-white-50 small mb-0">{% trans "POST runs real HTTPS calls when tokens are valid. Do not paste production secrets on shared screens." %}</p>
+  </header>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header text-white">{% trans "Clever bearer probes" %}</div>
+        <div class="card-body">
+          <form method="post" class="small">
+            {% csrf_token %}
+            <label class="form-label text-white-50">{% trans "District / app bearer token" %}</label>
+            <input type="password" name="clever_bearer" class="form-control form-control-sm mb-2" autocomplete="off">
+            <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "GET users, schools, sections" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header text-white">{% trans "ClassLink OneRoster" %}</div>
+        <div class="card-body">
+          <form method="post" class="small">
+            {% csrf_token %}
+            <label class="form-label text-white-50">{% trans "Bearer token" %}</label>
+            <input type="password" name="classlink_bearer" class="form-control form-control-sm mb-2" autocomplete="off">
+            <label class="form-label text-white-50">{% trans "District base URL (optional)" %}</label>
+            <input type="text" name="classlink_base_url" class="form-control form-control-sm mb-2" placeholder="https://…/v1p1">
+            <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Ping + courses" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bg-dark border-secondary mt-3">
+    <div class="card-header text-white">{% trans "Clever OAuth code exchange" %}</div>
+    <div class="card-body small">
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-2">
+          <div class="col-md-6"><input type="text" name="clever_client_id" class="form-control form-control-sm" placeholder="client_id"></div>
+          <div class="col-md-6"><input type="password" name="clever_client_secret" class="form-control form-control-sm" placeholder="client_secret"></div>
+          <div class="col-md-6"><input type="text" name="clever_auth_code" class="form-control form-control-sm" placeholder="authorization code"></div>
+          <div class="col-md-6"><input type="text" name="clever_redirect_uri" class="form-control form-control-sm" placeholder="redirect_uri"></div>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary btn-sm mt-2">{% trans "Exchange code" %}</button>
+      </form>
+    </div>
+  </div>
+
+  {% if clever_result_json %}
+  <h2 class="h6 text-white mt-4">{% trans "Clever probe result" %}</h2>
+  <pre class="small text-white-50 bg-black p-3 border border-secondary rounded">{{ clever_result_json }}</pre>
+  {% endif %}
+  {% if classlink_result_json %}
+  <h2 class="h6 text-white mt-4">{% trans "ClassLink result" %}</h2>
+  <pre class="small text-white-50 bg-black p-3 border border-secondary rounded">{{ classlink_result_json }}</pre>
+  {% endif %}
+  {% if oauth_result_json %}
+  <h2 class="h6 text-white mt-4">{% trans "OAuth exchange result" %}</h2>
+  <pre class="small text-white-50 bg-black p-3 border border-secondary rounded">{{ oauth_result_json }}</pre>
+  {% endif %}
+</div>
+{% endblock %}

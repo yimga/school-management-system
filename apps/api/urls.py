@@ -128,11 +128,13 @@ from apps.api.scim_views import (
     scim_group_detail,
 )
 from apps.api.learning_institution_api import (
+    IdentityGraphSummaryView,
     InstitutionProfileSuggestView,
     LearningPackInstallView,
     LearningPackRollbackView,
     LearningWedgeBenchmarksView,
     MinistryStubPdfView,
+    StatutoryExtractJsonView,
     TerminologyPackView,
 )
 from apps.api.br_northstar_views import (
@@ -219,6 +221,16 @@ urlpatterns = [
         "learning/ministry-pdf/",
         MinistryStubPdfView.as_view(),
         name="api-ministry-stub-pdf",
+    ),
+    path(
+        "learning/statutory-extract/",
+        StatutoryExtractJsonView.as_view(),
+        name="api-statutory-extract-json",
+    ),
+    path(
+        "learning/identity-graph-summary/",
+        IdentityGraphSummaryView.as_view(),
+        name="api-identity-graph-summary",
     ),
     path(
         "internal/learning-wedge-benchmarks/",

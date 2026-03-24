@@ -18,7 +18,7 @@ from .super_admin_bridge_registry import (
 
 
 def _config_context(request):
-    """Common context for config list/edit views. Back link is System config (single config surface)."""
+    """Common context for config list/edit views. Back link is Configuration Control Center (single config surface)."""
     return {
         "dashboard_url": reverse("super:dashboard"),
         "system_config_url": reverse("siteconfig:console_domains_hub"),
@@ -177,10 +177,11 @@ def super_operator_policy(request):
 
 @require_GET
 def super_site_settings_list(request):
-    """List platform SiteSettings; edit via super. Config surface is System config (no admin residue)."""
-    from apps.siteconfig.models import SiteSettings
+    """List platform SiteSettings singleton; edit via super. Behavioral keys: RuntimeDefaults + CCC."""
+    from apps.platform_runtime.helpers import get_platform_site_settings_record
 
-    sites = list(SiteSettings.objects.all().order_by("id"))
+    site = get_platform_site_settings_record(create=False)
+    sites = [site] if site is not None else []
     return render(
         request,
         "schools/super_site_settings_list.html",
@@ -193,68 +194,66 @@ def super_site_settings_list(request):
 
 @require_http_methods(["GET", "POST"])
 def super_site_settings_edit(request, pk):
-    """Edit a single SiteSettings row; subset of fields for platform. Phase 2."""
+    """Edit slim SiteSettings (maintenance) + PlatformGlobalBranding (theme/report FKs). Phase B Batch 3."""
     from django import forms
+
+    from apps.brand_experience.platform_global_branding import PlatformGlobalBranding
     from apps.siteconfig.models import SiteSettings
 
     site = get_object_or_404(SiteSettings, pk=pk)
+    pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
 
-    # Minimal form for super: key platform-facing fields; extend as needed.
-    class SiteSettingsSuperForm(forms.ModelForm):
+    class SiteMaintenanceSuperForm(forms.ModelForm):
         class Meta:
             model = SiteSettings
+            fields = ["maintenance_mode"]
+            widgets = {
+                "maintenance_mode": forms.CheckboxInput(
+                    attrs={"class": "form-check-input"}
+                ),
+            }
+
+    class PlatformBrandingSuperForm(forms.ModelForm):
+        class Meta:
+            model = PlatformGlobalBranding
             fields = [
-                "site_name",
-                "tagline",
-                "meta_description",
-                "school_code",
-                "brand_font",
-                "theme_brightness",
-                "primary_color",
-                "accent_color",
-                "backend_console_theme",
+                "theme_pack",
+                "admin_theme_pack",
+                "teacher_theme_pack",
+                "parent_theme_pack",
+                "default_term_report_style",
+                "default_annual_report_style",
             ]
             widgets = {
-                "site_name": forms.TextInput(attrs={"class": "form-control"}),
-                "tagline": forms.TextInput(attrs={"class": "form-control"}),
-                "meta_description": forms.Textarea(
-                    attrs={"class": "form-control", "rows": 2}
+                "theme_pack": forms.Select(attrs={"class": "form-select"}),
+                "admin_theme_pack": forms.Select(attrs={"class": "form-select"}),
+                "teacher_theme_pack": forms.Select(attrs={"class": "form-select"}),
+                "parent_theme_pack": forms.Select(attrs={"class": "form-select"}),
+                "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
+                "default_annual_report_style": forms.Select(
+                    attrs={"class": "form-select"}
                 ),
-                "school_code": forms.TextInput(attrs={"class": "form-control"}),
-                "brand_font": forms.TextInput(attrs={"class": "form-control"}),
-                "theme_brightness": forms.Select(attrs={"class": "form-select"}),
-                "primary_color": forms.TextInput(
-                    attrs={
-                        "class": "form-control",
-                        "type": "text",
-                        "placeholder": "#0d6efd",
-                    }
-                ),
-                "accent_color": forms.TextInput(
-                    attrs={
-                        "class": "form-control",
-                        "type": "text",
-                        "placeholder": "#198754",
-                    }
-                ),
-                "backend_console_theme": forms.Select(attrs={"class": "form-select"}),
             }
 
     if request.method == "POST":
-        form = SiteSettingsSuperForm(request.POST, instance=site)
-        if form.is_valid():
-            form.save()
+        site_form = SiteMaintenanceSuperForm(request.POST, instance=site)
+        branding_form = PlatformBrandingSuperForm(request.POST, instance=pgb)
+        if site_form.is_valid() and branding_form.is_valid():
+            site_form.save()
+            branding_form.save()
             messages.success(request, "Site settings saved.")
             return redirect("super:site_settings_list")
     else:
-        form = SiteSettingsSuperForm(instance=site)
+        site_form = SiteMaintenanceSuperForm(instance=site)
+        branding_form = PlatformBrandingSuperForm(instance=pgb)
     return render(
         request,
         "schools/super_site_settings_edit.html",
         {
             **_config_context(request),
             "site": site,
-            "form": form,
+            "site_form": site_form,
+            "branding_form": branding_form,
         },
     )
 
@@ -264,7 +263,7 @@ def super_site_settings_edit(request, pk):
 
 @require_GET
 def super_regions_list(request):
-    """List platform RegionConfig. Config surface is System config (no admin residue)."""
+    """List platform RegionConfig. Config surface is Configuration Control Center (no admin residue)."""
     from apps.global_registries.models import RegionConfig
 
     regions = list(RegionConfig.objects.all().order_by("code"))
@@ -281,7 +280,7 @@ def super_regions_list(request):
 
 @require_GET
 def super_grading_list(request):
-    """List platform GradingScaleConfig. Config surface is System config (no admin residue)."""
+    """List platform GradingScaleConfig. Config surface is Configuration Control Center (no admin residue)."""
     from apps.global_registries.models import GradingScaleConfig
 
     grading_scales = list(
@@ -305,7 +304,7 @@ def super_grading_list(request):
 
 @require_GET
 def super_plans_list(request):
-    """List platform Plan. Config surface is System config (no admin residue)."""
+    """List platform Plan. Config surface is Configuration Control Center (no admin residue)."""
     from apps.plans_entitlements.models import Plan, PlanAddon
 
     plans = list(Plan.objects.all().order_by("slug"))
@@ -345,7 +344,7 @@ def super_country_multipliers_list(request):
 
 @require_GET
 def super_feature_toggles_list(request):
-    """List platform FeatureToggleDefinition. Config surface is System config (no admin residue)."""
+    """List platform FeatureToggleDefinition. Config surface is Configuration Control Center (no admin residue)."""
     from apps.policies_rules.models import FeatureToggleDefinition
 
     definitions = list(

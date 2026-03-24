@@ -84,17 +84,22 @@
 
     <div class="proof-catalog-grid">
       {% for listing in listings %}
-      <article class="proof-app-card">
+      <article class="proof-app-card" data-phase9-listing-trust>
         {% if listing.preview_image_url %}
         <div class="proof-app-preview-img mb-2">
           <img src="{{ listing.preview_image_url }}" alt="{% trans 'App listing preview image' %}" class="img-fluid rounded" style="max-height: 140px; object-fit: cover; width: 100%;" loading="lazy">
         </div>
         {% endif %}
         {% if listing.screenshot_urls %}
-        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap">
+        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap" data-listing-screenshots>
           {% for url in listing.screenshot_urls|slice:":5" %}
           <img src="{{ url }}" alt="{% trans 'App screenshot' %}" class="rounded" style="height: 56px; width: 80px; object-fit: cover;" loading="lazy">
           {% endfor %}
+        </div>
+        {% elif not listing.preview_image_url %}
+        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap opacity-75" data-listing-screenshots-placeholder>
+          <img src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="" class="rounded border" style="height: 56px; width: 80px; object-fit: cover;" width="80" height="56" loading="lazy">
+          <img src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="" class="rounded border" style="height: 56px; width: 80px; object-fit: cover;" width="80" height="56" loading="lazy">
         </div>
         {% endif %}
         <div class="proof-app-head">
@@ -144,6 +149,29 @@
           {% endif %}
         </div>
 
+        {% with cd=listing.catalog_display %}
+        <div class="small border-top pt-2 mt-2" data-listing-compatibility>
+          {% if cd.platform_min_version or cd.min_rmc_version %}
+          <p class="mb-1"><strong>{% trans "Platform compatibility" %}:</strong>
+            {% if cd.platform_min_version %}{% trans "min platform" %} <code>{{ cd.platform_min_version }}</code>{% endif %}
+            {% if cd.min_rmc_version %}{% if cd.platform_min_version %} · {% endif %}{% trans "min RMC" %} <code>{{ cd.min_rmc_version }}</code>{% endif %}
+            {% if cd.app_version_range %}<span class="text-muted">({{ cd.app_version_range }})</span>{% endif %}
+          </p>
+          {% endif %}
+          {% if cd.blueprint_families %}
+          <p class="mb-1 text-muted">{% trans "Blueprint families" %}: {{ cd.blueprint_families|join:", " }}</p>
+          {% endif %}
+          {% if cd.workflow_families %}
+          <p class="mb-1 text-muted">{% trans "Workflow families" %}: {{ cd.workflow_families|join:", " }}</p>
+          {% endif %}
+          {% if cd.recommended_sectors %}
+          <p class="mb-1 text-muted">{% trans "Sectors" %}: {{ cd.recommended_sectors|join:", " }}</p>
+          {% endif %}
+          {% if cd.compat_notes %}
+          <p class="mb-1 small text-muted">{{ cd.compat_notes }}</p>
+          {% endif %}
+        </div>
+        {% endwith %}
         <div class="text-muted small">
           {% if listing.compatibility.countries %}
           {% trans "Declared for regions:" %} {{ listing.compatibility.countries|join:", " }}
@@ -154,6 +182,9 @@
           <span class="d-block mt-1">{% trans "Preview in sandbox before going live. Uninstall available from Installed apps anytime." %}</span>
           {% endif %}
         </div>
+        {% with cd=listing.catalog_display %}
+        <div class="small text-muted mt-1" data-listing-rollback-copy><strong>{% trans "Rollback expectations" %}:</strong> {{ cd.rollback_summary }}</div>
+        {% endwith %}
 
         {% if listing.app.slug in installed_slugs %}
         <div class="proof-app-actions">
@@ -203,6 +234,70 @@
         <li>{% trans "Installed apps page gives the team one place to activate or uninstall." %}</li>
         <li>{% trans "Uninstall from Installed apps at any time; no long-term lock-in." %}</li>
       </ul>
+    </div>
+  </section>
+
+  <section class="proof-panel mt-4" data-phase9-ecosystem-hub>
+    <h2 class="proof-panel-title">{% trans "Migration & interoperability hub" %}</h2>
+    <p class="proof-panel-copy mb-3">{% trans "First-class workflows: move data in, wire connectors, govern packs — without leaving the tenant surface." %}</p>
+    <div class="row g-3">
+      {% if phase9_links.migration_wizard %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-secondary shadow-sm">
+          <div class="card-body">
+            <h3 class="h6"><i class="bi bi-cloud-upload me-1" aria-hidden="true"></i>{% trans "Migration Cloud" %}</h3>
+            <p class="small text-muted mb-2">{% trans "Source-aware CSV wizard, mapping, dry run, parity scorecard, and run history with rollback entry points." %}</p>
+            <a href="{{ phase9_links.migration_wizard }}" class="btn btn-outline-primary btn-sm me-1 mb-1">{% trans "Open migration wizard" %}</a>
+            {% if phase9_links.migration_run_list %}<a href="{{ phase9_links.migration_run_list }}" class="btn btn-outline-secondary btn-sm mb-1">{% trans "Run history" %}</a>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if phase9_links.district_interop %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-secondary shadow-sm">
+          <div class="card-body">
+            <h3 class="h6"><i class="bi bi-diagram-3 me-1" aria-hidden="true"></i>{% trans "Interop workbench" %}</h3>
+            <p class="small text-muted mb-2">{% trans "District/LMS connectors, exports, and advanced packet flows for schema alignment." %}</p>
+            <a href="{{ phase9_links.district_interop }}" class="btn btn-outline-primary btn-sm">{% trans "Open interop" %}</a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if phase9_links.apicenter %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-secondary shadow-sm">
+          <div class="card-body">
+            <h3 class="h6"><i class="bi bi-plugin me-1" aria-hidden="true"></i>{% trans "API Center" %}</h3>
+            <p class="small text-muted mb-2">{% trans "Webhooks, keys, and integration health for event replay and compatibility testing." %}</p>
+            <a href="{{ phase9_links.apicenter }}" class="btn btn-outline-primary btn-sm">{% trans "Open API Center" %}</a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if phase9_links.pack_rollback %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-secondary shadow-sm">
+          <div class="card-body">
+            <h3 class="h6"><i class="bi bi-box-seam me-1" aria-hidden="true"></i>{% trans "Packs & rollback" %}</h3>
+            <p class="small text-muted mb-2">{% trans "Installed experience packs: staged apply, impact preview in Studio, and governed rollback." %}</p>
+            <a href="{{ phase9_links.pack_rollback }}" class="btn btn-outline-primary btn-sm me-1 mb-1">{% trans "Pack rollback" %}</a>
+            {% if phase9_links.workflow_center %}<a href="{{ phase9_links.workflow_center }}" class="btn btn-outline-secondary btn-sm mb-1">{% trans "Workflow Center" %}</a>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if phase9_links.ai_migration_suggest %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-secondary shadow-sm">
+          <div class="card-body">
+            <h3 class="h6"><i class="bi bi-stars me-1" aria-hidden="true"></i>{% trans "AI-assisted mapping" %}</h3>
+            <p class="small text-muted mb-2">{% trans "Backend AI gateway endpoint for migration field hints (authenticated POST from internal tools)." %}</p>
+            <code class="small d-block mb-2 text-break">{{ phase9_links.ai_migration_suggest }}</code>
+          </div>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </section>
   {% if school and install_impact_preview_url %}

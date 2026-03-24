@@ -38,7 +38,7 @@ class Command(BaseCommand):
         # Get regions to validate
         regions = RegionConfig.objects.annotate(
             grading_scales_count=Count("gradingscaleconfig"),
-            holidays_count=Count("holidaycalendar"),
+            holidays_count=Count("holidays"),
         )
 
         if options["region"]:

@@ -1,5 +1,9 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
+{% endblock %}
 {% block cp_title %}Support — Super Admin{% endblock %}
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
@@ -11,8 +15,11 @@
 {% endblock %}
 {% block cp_content %}
 {% url 'super:dashboard' as dashboard_url %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% include "studio_os/components/page_header.html" with title=_("Support mission control") subtitle=_("Ticket queue, SLA, and support health.") action_url=dashboard_url action_text=_("Back to dashboard") %}
+  {% if phase7_de %}
+  {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
+  {% endif %}
   <div class="d-flex flex-wrap gap-2 mb-3" style="margin-top: -0.5rem;">
     <a href="{% url 'super:command_center' %}" class="btn btn-sm btn-outline-warning">{% trans "Open command center" %}</a>
   </div>

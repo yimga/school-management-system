@@ -80,3 +80,6 @@ class StudioPreviewContextTests(SimpleTestCase):
     def test_preview_url_returns_embed_url_for_modes(self):
         self.assertIn("embed=1", get_studio_preview_url("launch") or "")
         self.assertIn("embed=1", get_studio_preview_url("output") or "")
+        auto_url = get_studio_preview_url("automation") or ""
+        self.assertIn("embed=1", auto_url)
+        self.assertIn("workflow", auto_url.lower())

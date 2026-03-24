@@ -1,8 +1,12 @@
 {% extends "marketing/base_marketing.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% trans "Marketing funnel dashboard" %} | RunMyCampus{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
+{% endblock %}
 {% block content %}
-<div class="container py-4">
+<div class="container py-4" data-decision-engine="surface">
   <h1 class="mb-4">{% trans "Conversion funnel" %}</h1>
   <p class="text-muted">{% trans "Visit → Discovery → Signup → Activation. Staff only." %}</p>
 

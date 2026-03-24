@@ -1,5 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
+{# Phase 9: connector health + schema / webhook workbench links #}
 {% block backend_title %}{% trans "District & LMS interoperability" %}{% endblock %}
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="setup-flow">
@@ -10,6 +11,51 @@
     </ol>
   </nav>
   {% include "studio_os/components/page_header.html" with title=_("District & LMS interoperability") subtitle=_("OneRoster roster pull + SSO/LTI spine — same motion as district roster hubs (Bearer token).") %}
+
+  <section class="card border-0 shadow-sm mb-3" data-phase9-interop-workbench>
+    <div class="card-header fw-semibold">{% trans "Interop workbench (Phase 9)" %}</div>
+    <div class="card-body small">
+      <p class="text-muted mb-2">{% trans "Wire roster/schema flows, validate connectors, and replay integration traffic from one surface." %}</p>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        {% if phase9_links.migration_wizard %}<a class="btn btn-sm btn-outline-primary" href="{{ phase9_links.migration_wizard }}">{% trans "Migration Cloud (CSV schema mapping)" %}</a>{% endif %}
+        {% if phase9_links.apicenter %}<a class="btn btn-sm btn-outline-primary" href="{{ phase9_links.apicenter }}">{% trans "API Center (webhooks & keys)" %}</a>{% endif %}
+        {% if phase9_links.tenant_app_catalog %}<a class="btn btn-sm btn-outline-secondary" href="{{ phase9_links.tenant_app_catalog }}">{% trans "App catalog" %}</a>{% endif %}
+        <a class="btn btn-sm btn-outline-secondary" href="{{ readiness_oneroster }}" target="_blank" rel="noopener">{% trans "OneRoster compatibility probe" %}</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ readiness_lti }}" target="_blank" rel="noopener">{% trans "LTI compatibility probe" %}</a>
+      </div>
+      <p class="mb-1 fw-semibold">{% trans "Webhook / event replay" %}</p>
+      <p class="text-muted mb-0">{% trans "Configure roster webhook URL below; use API Center for outbound signing keys, delivery logs, and manual replay patterns. District exports complement API pulls for schema parity checks." %}</p>
+    </div>
+  </section>
+
+  <div class="card border-0 shadow-sm mb-3" data-phase9-connector-health>
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span>{% trans "Connector access log (recent)" %}</span>
+      <span class="badge bg-secondary">{{ interop_access_recent|length }} {% trans "rows" %}</span>
+    </div>
+    <div class="card-body p-0">
+      {% if interop_access_recent %}
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 small">
+          <thead><tr><th>{% trans "When" %}</th><th>{% trans "Service" %}</th><th>{% trans "Endpoint" %}</th><th>{% trans "IP" %}</th><th>{% trans "Token" %}</th></tr></thead>
+          <tbody>
+            {% for row in interop_access_recent %}
+            <tr>
+              <td class="text-nowrap">{{ row.created_at|date:"Y-m-d H:i:s" }}</td>
+              <td><code>{{ row.service }}</code></td>
+              <td><code>{{ row.endpoint }}</code></td>
+              <td class="text-muted">{{ row.client_ip|default:"—" }}</td>
+              <td><code>{{ row.token_prefix|default:"—" }}</code></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted mb-0 p-3">{% trans "No successful OneRoster/interop API calls logged yet (or audit disabled). Pull roster once to populate health." %}</p>
+      {% endif %}
+    </div>
+  </div>
 
   <div class="alert alert-info small">
     {% trans "Configure your LMS or district ETL to call the URLs below with header: Authorization: Bearer &lt;token&gt;. CSV exports use your logged-in session (for bursars/IT)." %}
@@ -69,6 +115,28 @@
       </div>
       {% else %}
       <p class="text-muted mb-0">{% trans "No SAML/OIDC IdP integrations yet (besides OneRoster district token). Add integrations under Integrations." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3" data-native-vendor-roster>
+    <div class="card-header fw-semibold">{% trans "Native Clever / ClassLink (tenant credentials)" %}</div>
+    <div class="card-body small">
+      <p class="text-muted mb-2">{% trans "Store district bearer tokens for vendor APIs (encrypted at rest per your deployment). Probes are rate-limited and logged without response bodies in the access log." %}</p>
+      <form method="post" action="{% url 'accounts:district_interop_save_native_vendor' %}" class="mb-3">
+        {% csrf_token %}
+        <div class="mb-2"><label class="form-label">{% trans "Clever API bearer" %}</label><input class="form-control form-control-sm" type="password" name="native_clever_bearer" autocomplete="off" placeholder="{% if native_clever_preview %}{% trans 'Leave blank to keep' %}{% endif %}"></div>
+        <div class="mb-2"><label class="form-label">{% trans "ClassLink / OneRoster bearer" %}</label><input class="form-control form-control-sm" type="password" name="native_classlink_bearer" autocomplete="off" placeholder="{% if native_classlink_preview %}{% trans 'Leave blank to keep' %}{% endif %}"></div>
+        <div class="mb-2"><label class="form-label">{% trans "ClassLink base URL (optional)" %}</label><input class="form-control form-control-sm" type="text" name="native_classlink_base_url" value="{{ native_classlink_base_url|default:'' }}" placeholder="https://…/v1p1"></div>
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Save native credentials" %}</button>
+      </form>
+      <p class="text-muted mb-1">{% trans "Stored" %}: Clever <code>{{ native_clever_preview|default:"—" }}</code> · ClassLink <code>{{ native_classlink_preview|default:"—" }}</code></p>
+      <form method="post" action="{% url 'accounts:district_interop_native_probe' %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Run probe (uses saved tokens)" %}</button>
+      </form>
+      {% if native_probe_result %}
+      <pre class="small bg-light text-dark p-2 mt-2 rounded border" style="max-height:20rem;overflow:auto;">{{ native_probe_result }}</pre>
       {% endif %}
     </div>
   </div>
@@ -148,6 +216,6 @@
     </div>
   </div>
 
-  <p class="small text-muted mb-0">{% trans "SSO: configure OIDC/SAML under Integrations. LTI: register tools per tenant. Clever/ClassLink vendor connectors require separate partnership." %}</p>
+  <p class="small text-muted mb-0">{% trans "SSO: configure OIDC/SAML under Integrations. LTI: register tools per tenant. Native Clever/ClassLink HTTP clients are available above when the district provisions tokens." %}</p>
 </div>
 {% endblock %}

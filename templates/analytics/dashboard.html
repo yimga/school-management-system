@@ -1,10 +1,11 @@
 {% extends "portal_base.html" %}
-{% load static region_format %}
+{% load i18n static region_format %}
 
 {% block title %}Analytics Dashboard{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <script>
@@ -16,6 +17,9 @@
 
 {% block content %}
 <div class="container-fluid py-2" data-page-archetype="role-home">
+{% if phase7_de %}
+{% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
+{% endif %}
 {% if finance_requests_count %}
   <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -58,8 +62,10 @@
   </div>
 </div>
 
+<details class="de-secondary-collapsible mb-2">
+<summary>{% trans "Expand full operational KPI grid" %}</summary>
 <div class="dashboard-card-grid dashboard-card-grid--charts mb-4" data-dashboard-column="main">
-  <div class="card shadow-sm p-3" data-widget-id="analytics-operational-pulse">
+  <div class="card shadow-sm p-3" data-widget-id="analytics-operational-pulse" id="analytics-weak-anchor">
       <div class="d-flex justify-content-between align-items-center flex-wrap">
         <div>
           <h3 class="h5 mb-1">Operational pulse</h3>
@@ -123,6 +129,7 @@
       </div>
   </div>
 </div>
+</details>
 
 <form method="get" class="card mb-3" data-dashboard-column="main" data-widget-id="analytics-filters">
   <div class="card-body">

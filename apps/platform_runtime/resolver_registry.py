@@ -29,6 +29,10 @@ RESOLVER_ENTRY_POINTS = [
         "apps.platform_runtime.runtime_resolver._step6_flags_entitlements",
     ),
     (
+        "EntitlementRegistrySnapshot",
+        "apps.platform_runtime.registry_snapshots.build_entitlement_registry_snapshot",
+    ),
+    (
         "IntegrationResolver",
         "apps.platform_runtime.runtime_resolver._step10_integrations_marketplace",
     ),

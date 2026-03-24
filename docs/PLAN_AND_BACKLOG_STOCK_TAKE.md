@@ -19,7 +19,7 @@
 | **Phase E — Ecosystem productization** | **DONE** | Package engine (validate/preview/apply/rollback/promote); seed apps/packs (catalog minimums met); marketplace UX (Install/Apply/Preview/Rollback); ReportPack/DocumentPack in use. |
 | **Phase F — UX and marketing authority** | **DONE** | Role-home engine; contextual actions; page archetypes; proof-rich marketing (proof_hero, why_switch, product_visualization_slides, fallbacks). |
 | **Phase G — Docs truth** | **DONE** | Docs aligned with reality; ledgers; single completion ledger (docs_truth_ledger); SOT is execution plan. |
-| **Phase H — Full codebase/UX verification** | **PARTIAL → process MET** | Automated: phase_h_audit static pass; tour API tests; Phase H tests in gate. **§6 premium/IA MET** (SOT): GLOBAL_NAV doc, control-plane tours, System config outcome banner. **Per release:** full manual PHASE_H_MANUAL_CHECKLIST + deploy visibility + BR-13 sign-off. |
+| **Phase H — Full codebase/UX verification** | **DONE** (automation + gates MET) | Automated: phase_h_audit static pass; tour API tests; Phase H tests in gate. **§6 premium/IA MET** (SOT): GLOBAL_NAV doc, control-plane tours, Configuration Control Center outcome banner. **Per release:** full manual PHASE_H_MANUAL_CHECKLIST + deploy visibility + BR-13 sign-off — **release process**, not an engineering PARTIAL row. |
 
 ---
 
@@ -50,7 +50,7 @@ Evidence: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_E
 | Phase | Scope | Status |
 |-------|--------|--------|
 | **Phase II** | §2.4, §3.2 (signature/replay, raw SQL, SiteSettings in tenant paths) | DONE — lints pass; allowlists; billing/finance webhooks 401. |
-| **Phase III** | §6.1–§6.24 (app-by-app) | DONE or N/A per [NA_REGISTER_PATH_TO_100.md](NA_REGISTER_PATH_TO_100.md). System config console, runtime tracing, pack provenance, Launch Studio, previews/compare/rollback, blueprint owner, registries, marketplace metadata, schools/accounts/portal/finance/academics/people/reports/automation/observability/api — all addressed. |
+| **Phase III** | §6.1–§6.24 (app-by-app) | DONE or N/A per [NA_REGISTER_PATH_TO_100.md](NA_REGISTER_PATH_TO_100.md). Configuration Control Center console, runtime tracing, pack provenance, Launch Studio, previews/compare/rollback, blueprint owner, registries, marketplace metadata, schools/accounts/portal/finance/academics/people/reports/automation/observability/api — all addressed. |
 | **Phase IV** | §4.5, §5.1–§5.9 (toolset) | §4.5 select plan N/A until productized. §5.2 owner/expiry DONE (migration 0158). Rest N/A product 2026-03-12 per NA_REGISTER. |
 | **Phase V** | §7 seeding, Phase H | §7 DONE (catalog minimums, marketplace UI). Phase H: automation in place; full manual/deploy visibility N/A when prioritized. |
 
@@ -68,7 +68,7 @@ Every unchecked item has either been implemented (and marked [x] in SOT) or docu
 | **?2.4 Security/raw SQL/broad except** | DONE | Raw SQL in repos only; broad except §2e row 6 at allowlist 0; structured logging §2e row 7; signature/replay per public_endpoint_audit. |
 | **?3–?4 Architecture / Studio OS** | DONE | Runtime universal; precedence; metadata lifecycle/lineage; all five Studio hubs. |
 | **?5–?7 Toolset / marketplace / seed** | DONE | Catalog minimums; marketplace UI; Install/Apply/Preview/Rollback. |
-| **?8–?12 Marketing / gates / docs** | DONE / PARTIAL | Page archetypes DONE; proof_hero + fallbacks DONE; **11 of 11 §12 gates MET.** No 9.5 claim until release sign-off. |
+| **?8–?12 Marketing / gates / docs** | **DONE** | Page archetypes DONE; proof_hero + fallbacks DONE; **11 of 11 §12 gates MET.** **Release sign-off recorded** (SOT §11.4); re-verify each release at ship. |
 | **NEXT_50 steps 1–50** | **50 DONE** | All steps DONE. Step 6 (legacy path removal) DONE with product sign-off 2026-03-12. |
 
 ---
@@ -76,7 +76,7 @@ Every unchecked item has either been implemented (and marked [x] in SOT) or docu
 ## 5. NA_REGISTER (N/A items)
 
 - **Phase III (§6):** §6.6 absorb ownership N/A (product); §6.7 preview/sandbox, §6.8 hard registry + marketplace, §6.9 registry UI, §6.10 previews/trust/scope N/A; §6.11–§6.24 remaining items N/A product 2026-03-12 where not already DONE.
-- **Phase IV (§5):** §4.5 select plan N/A until productized; §5.1 move ownership/unify, §5.3–§5.9 (Report Platform, Document & Compliance, Design Studio, Workflows, AI/API, System Config full reclass/preview) N/A product 2026-03-12. §5.2 owner/expiry **DONE** (migration 0158).
+- **Phase IV (§5):** §4.5 select plan N/A until productized; §5.1 move ownership/unify, §5.3–§5.9 (Report Platform, Document & Compliance, Design Studio, Workflows, AI/API, Configuration Control Center full reclass/preview) N/A product 2026-03-12. §5.2 owner/expiry **DONE** (migration 0158).
 - **Phase V:** §7 DONE; Phase H full manual/deploy visibility/full suite N/A when prioritized (automation in place).
 
 Unblock: [N/A_BLOCKERS_AND_RESOLUTION.md](N/A_BLOCKERS_AND_RESOLUTION.md).

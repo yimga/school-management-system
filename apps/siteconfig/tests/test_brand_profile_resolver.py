@@ -4,15 +4,18 @@ from apps.brand_experience.models import BrandProfile, BrandSettings
 from apps.schools.models import School
 from apps.siteconfig.branding import brand_css_vars, resolve_brand_profile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.siteconfig.tests.payload_helpers import persist_runtime_site_settings_payload
 
 
 class BrandProfileResolverTests(TestCase):
     def setUp(self):
         self.site = get_platform_site_settings_record(create=True)
-        self.site.primary_color = "#101820"
-        self.site.accent_color = "#ff6f00"
-        self.site.tagline = "Platform default"
-        self.site.save()
+        persist_runtime_site_settings_payload(
+            primary_color="#101820",
+            accent_color="#ff6f00",
+            tagline="Platform default",
+        )
+        self.site.refresh_from_db()
         self.school = School.objects.create(
             name="Resolver School",
             slug="resolver-school",

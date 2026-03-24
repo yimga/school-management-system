@@ -28,6 +28,17 @@ PATTERNS = (
 )
 
 
+def _count_broad_lines(text: str) -> int:
+    count = 0
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith("#"):
+            continue
+        if any(pattern.search(line) for pattern in PATTERNS):
+            count += 1
+    return count
+
+
 def _scan_counts(base: Path) -> dict[str, int]:
     counts: dict[str, int] = {}
     for root_name in ("apps", "config"):
@@ -46,16 +57,25 @@ def _scan_counts(base: Path) -> dict[str, int]:
                 text = py_path.read_text(encoding="utf-8", errors="replace")
             except OSError:
                 continue
-            count = 0
-            for line in text.splitlines():
-                stripped = line.lstrip()
-                if stripped.startswith("#"):
-                    continue
-                if any(pattern.search(line) for pattern in PATTERNS):
-                    count += 1
+            count = _count_broad_lines(text)
             if count:
                 counts[rel] = count
     return counts
+
+
+def _merge_allowlisted_services_counts(base: Path, counts: dict[str, int], allowlist: dict[str, int]) -> None:
+    """Baseline may include services/*.py (e.g. ai_gateway); scan only allowlisted paths."""
+    for rel in allowlist:
+        if not rel.startswith("services/"):
+            continue
+        py_path = base / rel
+        if not py_path.is_file():
+            continue
+        try:
+            text = py_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        counts[rel] = _count_broad_lines(text)
 
 
 def _load_allowlist(path: str | None) -> dict[str, int]:
@@ -88,6 +108,7 @@ def main() -> int:
     allowlist = _load_allowlist(args.allowlist)
 
     if allowlist:
+        _merge_allowlisted_services_counts(base, counts, allowlist)
         violations: list[tuple[str, int, int]] = []
         for path, allowed_count in sorted(allowlist.items()):
             actual = counts.get(path, 0)

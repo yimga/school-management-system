@@ -30,16 +30,20 @@ _SYLLABUS_BADGE_ERRORS = (
 )
 
 
-def _get_teacher_assignments(user):
-    """Return TeacherAssignment queryset for current user and active year, or None if not a teacher with assignments."""
+def _teacher_and_assignment_queryset(user):
+    """
+    Return (teacher, assignments_qs) or (None, None) if the user has no teacher profile.
+    Active academic year is resolved for the teacher's school so multi-tenant tests and
+    installs do not pick another school's active year.
+    """
     try:
-        teacher = TeacherProfile.objects.get(user=user)
+        teacher = TeacherProfile.objects.select_related("school").get(user=user)
     except TeacherProfile.DoesNotExist:
-        return None
-    year, _ = get_active_year_and_term()
+        return None, None
+    year, _ = get_active_year_and_term(school=teacher.school)
     if not year:
-        return TeacherAssignment.objects.none()
-    return (
+        return teacher, TeacherAssignment.objects.none()
+    qs = (
         TeacherAssignment.objects.filter(
             teacher=teacher,
             academic_year=year,
@@ -56,6 +60,15 @@ def _get_teacher_assignments(user):
             "subject_assignment__classroom__name", "subject_assignment__subject__name"
         )
     )
+    return teacher, qs
+
+
+def _get_teacher_assignments(user):
+    """Return TeacherAssignment queryset for current user and active year, or None if not a teacher."""
+    teacher, qs = _teacher_and_assignment_queryset(user)
+    if teacher is None:
+        return None
+    return qs
 
 
 def _assignment_syllabus_status(assignment):
@@ -72,8 +85,8 @@ def _assignment_syllabus_status(assignment):
 @login_required
 def teacher_syllabus_hub(request):
     """Grid of course cards: Subject, Class, Syllabus Status, actions (Builder | Upload | Preview | Clone)."""
-    assignments_qs = _get_teacher_assignments(request.user)
-    if assignments_qs is None:
+    teacher, assignments_qs = _teacher_and_assignment_queryset(request.user)
+    if teacher is None:
         return HttpResponseForbidden("Teacher profile not found.")
     assignments = list(assignments_qs)
     cards = []
@@ -93,7 +106,7 @@ def teacher_syllabus_hub(request):
         "academics/teacher_syllabus_hub.html",
         {
             "cards": cards,
-            "year_term": get_active_year_and_term(),
+            "year_term": get_active_year_and_term(school=teacher.school),
             "approved_count": approved_count,
         },
     )

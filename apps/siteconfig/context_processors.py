@@ -36,6 +36,14 @@ OPTIONAL_CONTEXT_ERRORS = (
 OPTIONAL_STORAGE_ERRORS = (AttributeError, OSError, RuntimeError, TypeError, ValueError)
 
 
+def _safe_site_attr(site, name: str, default=None):
+    """Phase B: slim SiteSettings — virtual keys use __getattr__ and may raise AttributeError."""
+    try:
+        return getattr(site, name)
+    except AttributeError:
+        return default
+
+
 def _get_portal_sidebar_items(request, site):
     """Return portal sidebar items (optionally sorted by portal_sidebar_order)."""
     try:
@@ -530,7 +538,9 @@ def site_settings(request):
             site, "use_secondary_font_for_headings", False
         ),
         "SITE_BASE_FONT_SIZE": getattr(site, "base_font_size", None),
-        "REPORT_DOWNLOADS_ENABLED": site.report_downloads_enabled,
+        "REPORT_DOWNLOADS_ENABLED": bool(
+            _safe_site_attr(site, "report_downloads_enabled", True)
+        ),
         "BREADCRUMBS": breadcrumbs,
         "SITE_LOGO_URL": logo_url,
         "SITE_BACKGROUND_URL": background_url,
@@ -665,9 +675,13 @@ def site_settings(request):
     ctx["CONTROL_PLANE_SHELL"] = public_host_kind == "manager"
     if ctx["CONTROL_PLANE_SHELL"]:
         try:
-            from apps.schools.control_plane_nav import build_control_plane_nav
+            from apps.schools.control_plane_nav import (
+                build_control_plane_nav,
+                build_primary_control_plane_nav,
+            )
 
             ctx["CONTROL_PLANE_NAV"] = build_control_plane_nav(request)
+            ctx["PRIMARY_CONTROL_PLANE_NAV"] = build_primary_control_plane_nav(request)
             # Phase 8: Pinned control plane items (Quick access)
             pinned_cp_ids = []
             try:
@@ -696,10 +710,12 @@ def site_settings(request):
             ctx["PINNED_CONTROL_PLANE_IDS"] = set(pinned_cp_ids)
         except OPTIONAL_CONTEXT_ERRORS:
             ctx["CONTROL_PLANE_NAV"] = []
+            ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
             ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
             ctx["PINNED_CONTROL_PLANE_IDS"] = set()
     else:
         ctx["CONTROL_PLANE_NAV"] = []
+        ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
         ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
         ctx["PINNED_CONTROL_PLANE_IDS"] = set()
     ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"

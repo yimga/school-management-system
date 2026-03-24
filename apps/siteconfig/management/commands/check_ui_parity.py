@@ -6,7 +6,9 @@ from typing import Any
 
 from django.core.management.base import BaseCommand, CommandError
 
+from apps.siteconfig.domain_ownership import is_runtime_payload_shadow_key
 from apps.siteconfig.models import SiteSettings, ThemePack
+from apps.siteconfig.models_support import virtual_site_setting_default
 
 
 THEME_COMPARE_FIELDS = (
@@ -52,6 +54,14 @@ BLANK_EQUALS_NULL_FIELDS = frozenset(
         "backend_console_theme",
     }
 )
+
+
+def _safe_sitesettings_attr(site: SiteSettings, name: str) -> Any:
+    """Phase B: many compare fields are virtual (RuntimeDefaults); __getattr__ may raise."""
+    try:
+        return getattr(site, name)
+    except AttributeError:
+        return None
 
 
 def _normalize(value: Any, field_name: str | None = None) -> Any:
@@ -124,13 +134,21 @@ class Command(BaseCommand):
         for field_name in SITE_COMPARE_FIELDS:
             fixture_value = fixture_site_row.get(field_name)
             if field_name in SITE_FOREIGN_KEY_FIELDS:
+                if fixture_value in (None, ""):
+                    fixture_value = fixture_site_row.get(f"{field_name}_id")
                 actual_value = getattr(site, f"{field_name}_id", None)
             else:
-                actual_value = getattr(site, field_name, None)
+                actual_value = _safe_sitesettings_attr(site, field_name)
 
             expected = _normalize(fixture_value, field_name)
             actual = _normalize(actual_value, field_name)
             if expected != actual:
+                # Phase B: fixture may omit virtual keys; DB reads resolve via __getattr__ defaults.
+                if fixture_value is None and is_runtime_payload_shadow_key(field_name):
+                    if actual == _normalize(
+                        virtual_site_setting_default(field_name), field_name
+                    ):
+                        continue
                 mismatches.append(
                     f"SiteSettings.{field_name}: fixture={expected!r}, db={actual!r}"
                 )

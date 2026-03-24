@@ -8,7 +8,7 @@
 
 From the current Site Settings page:
 
-- **Breadcrumb**: "System Configuration > Site Settings**s**" — there is a small typo (double "s").
+- **Breadcrumb**: "Configuration Control Center > Site Settings**s**" — there is a small typo (double "s").
 - **Settings navigation**: A long **horizontal row of tab links**. Included are:
   - Company Details, Login/Header & Layout, Theme & Experience, Portal & content, Footer Content, Feature Toggles, Backend Orchestration & Limits, Notifications & Analytics, Compliance & Payroll
   - Then **seven** Finance Automation tabs in a row: Fee Invoice Generation, Fee Plan Copying, Payment Reminders, Invoice Status Updates, Receipt Verification, Bank Deposit Verification, Payment Instructions (and in code there are more: Real-world scenarios, Analytics Defaults, Metadata).

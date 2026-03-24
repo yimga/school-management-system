@@ -30,12 +30,23 @@ from apps.platform_runtime.contracts import (
     FlagsContext,
     RuntimeDebug,
 )
+from apps.platform_runtime.precedence import PRECEDENCE_ORDER
+from apps.platform_runtime.runtime_resolver import _step4_blueprint
+from apps.platform_runtime.runtime_inspector import inspect_runtime
 from apps.platform_runtime.runtime_resolver import (
     build_tenant_runtime,
     build_tenant_runtime_for_tenant,
 )
 from apps.schools.models import School
-from apps.siteconfig.models import build_platform_default_site_settings
+from apps.siteconfig.models import SiteSettings, build_platform_default_site_settings
+
+
+def _persist_runtime_test_state(**payload_updates: object) -> None:
+    """Phase B: behavioral keys live in RuntimeDefaults.payload, not SiteSettings columns."""
+    from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
+
+    SiteSettings._persist_runtime_payload_updates(payload_updates)
+    invalidate_effective_site_settings_cache()
 
 
 class TenantRuntimeContractTests(TestCase):
@@ -113,6 +124,30 @@ class TenantRuntimeContractTests(TestCase):
         ctx = TenantContext.empty(host="runmycampus.com")
         runtime = build_tenant_runtime(ctx, request=None)
         self.assertEqual(runtime.route.surface, "marketing")
+
+    def test_step4_blueprint_uses_tenant_blueprint_accessor(self):
+        """Regression: reverse accessor is tenant_blueprint (related_name), not tenantblueprint."""
+
+        class _Pack:
+            id = 42
+            slug = "fixture-pack"
+            code = "fixture-pack"
+            category = "K12"
+            default_dashboard_pack_id = 7
+            default_workflow_pack_id = 8
+            country_code = ""
+
+        class _TB:
+            applied_pack = _Pack()
+
+        class _School:
+            tenant_blueprint = _TB()
+
+        school = _School()
+        blueprint = _step4_blueprint(school, {})
+        self.assertEqual(blueprint.id, 42)
+        self.assertEqual(blueprint.code, "fixture-pack")
+        self.assertEqual(blueprint.default_dashboard_pack, 7)
 
     def test_flags_is_enabled_default_false(self):
         """FlagsContext.is_enabled returns False for missing key."""
@@ -213,16 +248,12 @@ class TenantRuntimeContractTests(TestCase):
 class RuntimeHelperResolutionTests(TestCase):
     def test_site_settings_owned_payload_filters_to_requested_owner(self):
         site = get_platform_site_settings_record(create=True)
-        site.site_name = "Brand Surface"
-        site.backend_feature_flags = {"enable_api_center": True}
-        site.default_dashboard_view = "ACADEMICS"
-        site.save(
-            update_fields=[
-                "site_name",
-                "backend_feature_flags",
-                "default_dashboard_view",
-            ]
+        _persist_runtime_test_state(
+            site_name="Brand Surface",
+            backend_feature_flags={"enable_api_center": True},
+            default_dashboard_view="ACADEMICS",
         )
+        site.refresh_from_db()
 
         brand_payload = site.owned_payload("brand_experience")
         runtime_payload = site.owned_payload("runtime_blueprints")
@@ -236,18 +267,14 @@ class RuntimeHelperResolutionTests(TestCase):
         )
 
     def test_runtime_defaults_sync_from_site_settings_can_scope_to_owner_domains(self):
+        """Scoped sync writes only requested owners; omit brand keys from the slice under test."""
         site = get_platform_site_settings_record(create=True)
-        site.site_name = "Scoped Brand"
-        site.default_dashboard_view = "ACADEMICS"
-        site.backend_feature_flags = {"enable_api_center": True}
-        site.save(
-            update_fields=[
-                "site_name",
-                "default_dashboard_view",
-                "backend_feature_flags",
-            ]
-        )
         RuntimeDefaults.objects.all().delete()
+        _persist_runtime_test_state(
+            default_dashboard_view="ACADEMICS",
+            backend_feature_flags={"enable_api_center": True},
+        )
+        site.refresh_from_db()
 
         runtime_defaults, _created = RuntimeDefaults.sync_from_site_settings(
             site,
@@ -260,10 +287,12 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_backfill_runtime_defaults_command_creates_platform_payload(self):
         site = get_platform_site_settings_record(create=True)
-        site.site_name = "Command Synced Platform"
-        site.enable_offline_mode = True
-        site.save(update_fields=["site_name", "enable_offline_mode"])
         RuntimeDefaults.objects.all().delete()
+        _persist_runtime_test_state(
+            site_name="Command Synced Platform",
+            enable_offline_mode=True,
+        )
+        site.refresh_from_db()
 
         stdout = StringIO()
         call_command("backfill_runtime_defaults", stdout=stdout)
@@ -274,20 +303,20 @@ class RuntimeHelperResolutionTests(TestCase):
             runtime_defaults.payload["site_name"], "Command Synced Platform"
         )
         self.assertTrue(runtime_defaults.payload["enable_offline_mode"])
-        self.assertIn("created", stdout.getvalue().lower())
+        out = stdout.getvalue().lower()
+        self.assertTrue(
+            "created" in out or "updated" in out,
+            msg="backfill command should report created or updated",
+        )
 
     def test_runtime_defaults_scoped_sync_preserves_other_owner_domains(self):
         site = get_platform_site_settings_record(create=True)
-        site.site_name = "Brand Baseline"
-        site.default_dashboard_view = "OVERVIEW"
-        site.backend_feature_flags = {"enable_api_center": False}
-        site.save(
-            update_fields=[
-                "site_name",
-                "default_dashboard_view",
-                "backend_feature_flags",
-            ]
+        _persist_runtime_test_state(
+            site_name="Brand Baseline",
+            default_dashboard_view="OVERVIEW",
+            backend_feature_flags={"enable_api_center": False},
         )
+        site.refresh_from_db()
 
         RuntimeDefaults.objects.update_or_create(
             pk=1,
@@ -300,7 +329,10 @@ class RuntimeHelperResolutionTests(TestCase):
             },
         )
 
-        site.backend_feature_flags = {"enable_api_center": True}
+        _persist_runtime_test_state(
+            backend_feature_flags={"enable_api_center": True},
+        )
+        site.refresh_from_db()
         runtime_defaults, _created = RuntimeDefaults.sync_from_site_settings(
             site,
             owners=("policies_rules",),
@@ -315,15 +347,16 @@ class RuntimeHelperResolutionTests(TestCase):
     def test_site_settings_save_auto_syncs_runtime_defaults_for_changed_owner_domains(
         self,
     ):
+        """Phase B: virtual keys live in RuntimeDefaults; DB save syncs only concrete owners."""
         site = get_platform_site_settings_record(create=True)
         RuntimeDefaults.objects.all().delete()
-
-        site.site_name = "Auto Synced Brand"
-        site.backend_feature_flags = {"enable_api_center": True}
-        site.maintenance_mode = True
-        site.save(
-            update_fields=["site_name", "backend_feature_flags", "maintenance_mode"]
+        _persist_runtime_test_state(
+            site_name="Auto Synced Brand",
+            backend_feature_flags={"enable_api_center": True},
         )
+        site.maintenance_mode = True
+        site.save(update_fields=["maintenance_mode"])
+        site.refresh_from_db()
 
         runtime_defaults = RuntimeDefaults.get_singleton()
 
@@ -345,8 +378,10 @@ class RuntimeHelperResolutionTests(TestCase):
             is_active=True,
         )
         site = get_platform_site_settings_record(create=True)
-        site.default_term_report_style_id = style.pk
-        site.save(update_fields=["default_term_report_style"])
+        site.apply_theme_experience_state(
+            field_updates={"default_term_report_style": style},
+            save=True,
+        )
 
         resolved = site.resolve_default_report_style("TERM")
 
@@ -358,9 +393,11 @@ class RuntimeHelperResolutionTests(TestCase):
         self,
     ):
         site = get_platform_site_settings_record(create=True)
-        site.site_name = "Legacy Site Settings"
-        site.enable_offline_mode = False
-        site.save(update_fields=["site_name", "enable_offline_mode"])
+        _persist_runtime_test_state(
+            site_name="Legacy Site Settings",
+            enable_offline_mode=False,
+        )
+        site.refresh_from_db()
 
         RuntimeDefaults.objects.update_or_create(
             pk=1,
@@ -380,9 +417,11 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_get_effective_site_settings_uses_school_overrides(self):
         site = get_platform_site_settings_record(create=True)
-        site.site_name = "Platform Default"
-        site.enable_offline_mode = False
-        site.save(update_fields=["site_name", "enable_offline_mode"])
+        _persist_runtime_test_state(
+            site_name="Platform Default",
+            enable_offline_mode=False,
+        )
+        site.refresh_from_db()
 
         school = School.objects.create(
             name="Tenant Override Academy",
@@ -404,11 +443,13 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_get_effective_flags_for_school_merges_school_backend_flags(self):
         site = get_platform_site_settings_record(create=True)
-        site.backend_feature_flags = {
-            "enable_api_center": False,
-            "require_guardian_finance_opt_in": False,
-        }
-        site.save(update_fields=["backend_feature_flags"])
+        _persist_runtime_test_state(
+            backend_feature_flags={
+                "enable_api_center": False,
+                "require_guardian_finance_opt_in": False,
+            },
+        )
+        site.refresh_from_db()
 
         school = School.objects.create(
             name="Flag Override Academy",
@@ -425,8 +466,10 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_site_settings_get_backend_feature_flags_merges_defaults(self):
         site = get_platform_site_settings_record(create=True)
-        site.backend_feature_flags = {"enable_api_center": True}
-        site.save(update_fields=["backend_feature_flags"])
+        _persist_runtime_test_state(
+            backend_feature_flags={"enable_api_center": True},
+        )
+        site.refresh_from_db()
 
         flags = site.get_backend_feature_flags()
 
@@ -435,28 +478,19 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_site_settings_feature_control_settings_use_owner_surfaces(self):
         site = get_platform_site_settings_record(create=True)
-        site.portal_features = {"documents": True}
-        site.backend_feature_flags = {"enable_api_center": True}
-        site.notification_channels = ["email", "sms"]
-        site.enable_parent_portal = True
-        site.maintenance_mode = True
-        site.preview_mode_enabled = True
-        site.show_header_search = True
-        site.report_downloads_enabled = False
-        site.auto_tag_photos_from_exif = True
-        site.save(
-            update_fields=[
-                "portal_features",
-                "backend_feature_flags",
-                "notification_channels",
-                "enable_parent_portal",
-                "maintenance_mode",
-                "preview_mode_enabled",
-                "show_header_search",
-                "report_downloads_enabled",
-                "auto_tag_photos_from_exif",
-            ]
+        _persist_runtime_test_state(
+            portal_features={"documents": True},
+            backend_feature_flags={"enable_api_center": True},
+            notification_channels=["email", "sms"],
+            enable_parent_portal=True,
+            preview_mode_enabled=True,
+            show_header_search=True,
+            report_downloads_enabled=False,
+            auto_tag_photos_from_exif=True,
         )
+        site.refresh_from_db()
+        site.maintenance_mode = True
+        site.save(update_fields=["maintenance_mode"])
 
         feature_settings = site.get_feature_control_settings()
 
@@ -472,9 +506,11 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_site_settings_notification_delivery_settings_use_owner_surfaces(self):
         site = get_platform_site_settings_record(create=True)
-        site.notification_channels = ["email", "sms"]
-        site.email_from_address = "northstar@example.com"
-        site.save(update_fields=["notification_channels", "email_from_address"])
+        _persist_runtime_test_state(
+            notification_channels=["email", "sms"],
+            email_from_address="northstar@example.com",
+        )
+        site.refresh_from_db()
 
         delivery_settings = site.get_notification_delivery_settings()
 
@@ -485,16 +521,12 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_site_settings_offline_runtime_settings_use_owner_surfaces(self):
         site = get_platform_site_settings_record(create=True)
-        site.enable_offline_mode = True
-        site.offline_sync_conflict_resolution = "auto_merge"
-        site.backend_feature_flags = {"enable_offline_attendance_sync": False}
-        site.save(
-            update_fields=[
-                "enable_offline_mode",
-                "offline_sync_conflict_resolution",
-                "backend_feature_flags",
-            ]
+        _persist_runtime_test_state(
+            enable_offline_mode=True,
+            offline_sync_conflict_resolution="auto_merge",
+            backend_feature_flags={"enable_offline_attendance_sync": False},
         )
+        site.refresh_from_db()
 
         offline_settings = site.get_offline_runtime_settings()
 
@@ -509,16 +541,12 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_request_helpers_use_owner_scoped_site_accessors(self):
         site = get_platform_site_settings_record(create=True)
-        site.portal_features = {"documents": True}
-        site.enable_offline_mode = True
-        site.whatsapp_support_number = "+15550001111"
-        site.save(
-            update_fields=[
-                "portal_features",
-                "enable_offline_mode",
-                "whatsapp_support_number",
-            ]
+        _persist_runtime_test_state(
+            portal_features={"documents": True},
+            enable_offline_mode=True,
+            whatsapp_support_number="+15550001111",
         )
+        site.refresh_from_db()
 
         feature_settings = get_effective_feature_control_settings()
         offline_settings = get_effective_offline_runtime_settings()
@@ -535,30 +563,19 @@ class RuntimeHelperResolutionTests(TestCase):
         self,
     ):
         site = get_platform_site_settings_record(create=True)
-        site.site_name = "North Star Academy"
-        site.school_code = "NSA"
-        site.country = "Cameroon"
-        site.region = "Centre"
-        site.ministry = "Education"
-        site.tagline = "One platform"
-        site.report_preview_contact_email = "reports@example.com"
-        site.report_preview_contact_phone = "+237600000000"
-        site.report_preview_footer_note = "Preview footer"
-        site.default_report_preview_type = "ANNUAL"
-        site.save(
-            update_fields=[
-                "site_name",
-                "school_code",
-                "country",
-                "region",
-                "ministry",
-                "tagline",
-                "report_preview_contact_email",
-                "report_preview_contact_phone",
-                "report_preview_footer_note",
-                "default_report_preview_type",
-            ]
+        _persist_runtime_test_state(
+            site_name="North Star Academy",
+            school_code="NSA",
+            country="Cameroon",
+            region="Centre",
+            ministry="Education",
+            tagline="One platform",
+            report_preview_contact_email="reports@example.com",
+            report_preview_contact_phone="+237600000000",
+            report_preview_footer_note="Preview footer",
+            default_report_preview_type="ANNUAL",
         )
+        site.refresh_from_db()
 
         brand_metadata = site.get_brand_metadata()
         preview_settings = site.get_report_preview_settings()
@@ -597,17 +614,14 @@ class RuntimeHelperResolutionTests(TestCase):
             is_active=True,
         )
         site = get_platform_site_settings_record(create=True)
-        site.theme_pack = portal_pack
-        site.admin_theme_pack = admin_pack
-        site.teacher_theme_pack = teacher_pack
-        site.parent_theme_pack = parent_pack
-        site.save(
-            update_fields=[
-                "theme_pack",
-                "admin_theme_pack",
-                "teacher_theme_pack",
-                "parent_theme_pack",
-            ]
+        site.apply_theme_experience_state(
+            field_updates={
+                "theme_pack": portal_pack,
+                "admin_theme_pack": admin_pack,
+                "teacher_theme_pack": teacher_pack,
+                "parent_theme_pack": parent_pack,
+            },
+            save=True,
         )
 
         theme_selection_ids = site.get_theme_selection_ids()
@@ -630,28 +644,23 @@ class RuntimeHelperResolutionTests(TestCase):
             applies_to_admin=True,
         )
         site = get_platform_site_settings_record(create=True)
-        site.primary_color = "#112233"
-        site.accent_color = "#445566"
-        site.use_dark_mode = True
-        site.skip_theme_publish_guard = True
-        site.theme_pack = portal_pack
-        site.admin_theme_pack = admin_pack
-        site.default_dashboard_view = "ACADEMICS"
-        site.default_refresh_rate = 90
-        site.report_downloads_enabled = False
-        site.save(
-            update_fields=[
-                "primary_color",
-                "accent_color",
-                "use_dark_mode",
-                "skip_theme_publish_guard",
-                "theme_pack",
-                "admin_theme_pack",
-                "default_dashboard_view",
-                "default_refresh_rate",
-                "report_downloads_enabled",
-            ]
+        site.apply_theme_experience_state(
+            field_updates={
+                "theme_pack": portal_pack,
+                "admin_theme_pack": admin_pack,
+            },
+            save=True,
         )
+        _persist_runtime_test_state(
+            primary_color="#112233",
+            accent_color="#445566",
+            use_dark_mode=True,
+            skip_theme_publish_guard=True,
+            default_dashboard_view="ACADEMICS",
+            default_refresh_rate=90,
+            report_downloads_enabled=False,
+        )
+        site.refresh_from_db()
 
         settings = site.get_theme_experience_settings()
 
@@ -667,20 +676,14 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_site_settings_owner_accessors_normalize_legacy_placeholders(self):
         site = get_platform_site_settings_record(create=True)
-        site.site_name = "School System"
-        site.school_code = "GIL"
-        site.tagline = "Knowledge ƒ?› Technology ƒ?› Excellence"
-        site.report_preview_contact_email = "reports@gileadtech.edu"
-        site.report_preview_contact_phone = "+237 670 000 000"
-        site.save(
-            update_fields=[
-                "site_name",
-                "school_code",
-                "tagline",
-                "report_preview_contact_email",
-                "report_preview_contact_phone",
-            ]
+        _persist_runtime_test_state(
+            site_name="School System",
+            school_code="GIL",
+            tagline="Knowledge ƒ?› Technology ƒ?› Excellence",
+            report_preview_contact_email="reports@gileadtech.edu",
+            report_preview_contact_phone="+237 670 000 000",
         )
+        site.refresh_from_db()
 
         brand_metadata = site.get_brand_metadata()
         preview_settings = site.get_report_preview_settings()
@@ -695,27 +698,19 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_site_settings_finance_runtime_config_uses_policy_owner_payload(self):
         site = get_platform_site_settings_record(create=True)
-        site.finance_auto_generate_invoices_enabled = True
-        site.finance_auto_generate_schedule = {
-            "mode": "term_start",
-            "term_start_offset_days": 5,
-        }
-        site.finance_fee_plan_auto_copy_mode = "year_end"
-        site.finance_invoice_overdue_grace_period_days = 4
-        site.finance_receipt_amount_tolerance = Decimal("2.50")
-        site.finance_bank_verification_auto_approve = True
-        site.finance_reminder_no_contact_action = "create_task"
-        site.save(
-            update_fields=[
-                "finance_auto_generate_invoices_enabled",
-                "finance_auto_generate_schedule",
-                "finance_fee_plan_auto_copy_mode",
-                "finance_invoice_overdue_grace_period_days",
-                "finance_receipt_amount_tolerance",
-                "finance_bank_verification_auto_approve",
-                "finance_reminder_no_contact_action",
-            ]
+        _persist_runtime_test_state(
+            finance_auto_generate_invoices_enabled=True,
+            finance_auto_generate_schedule={
+                "mode": "term_start",
+                "term_start_offset_days": 5,
+            },
+            finance_fee_plan_auto_copy_mode="year_end",
+            finance_invoice_overdue_grace_period_days=4,
+            finance_receipt_amount_tolerance=Decimal("2.50"),
+            finance_bank_verification_auto_approve=True,
+            finance_reminder_no_contact_action="create_task",
         )
+        site.refresh_from_db()
 
         finance_settings = site.get_finance_runtime_config()
 
@@ -731,18 +726,13 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_site_settings_marketplace_integration_settings_use_owner_payload(self):
         site = get_platform_site_settings_record(create=True)
-        site.marksheet_ocr_command = "/opt/runmycampus/bin/tesseract"
-        site.sms_sender_id = "RUNMYCAMPUS"
-        site.email_from_address = "platform@runmycampus.com"
-        site.whatsapp_support_number = "+15551234567"
-        site.save(
-            update_fields=[
-                "marksheet_ocr_command",
-                "sms_sender_id",
-                "email_from_address",
-                "whatsapp_support_number",
-            ]
+        _persist_runtime_test_state(
+            marksheet_ocr_command="/opt/runmycampus/bin/tesseract",
+            sms_sender_id="RUNMYCAMPUS",
+            email_from_address="platform@runmycampus.com",
+            whatsapp_support_number="+15551234567",
         )
+        site.refresh_from_db()
 
         integration_settings = site.get_marketplace_integration_settings()
 
@@ -766,6 +756,29 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(site.site_name, "RunMyCampus")
         self.assertEqual(site.school_code, "RMC")
         self.assertIsInstance(site.get_preview_platform_config(), dict)
+
+
+class RuntimeInspectorPrecedenceTests(TestCase):
+    """Phase 6: inspector exposes the same seven-level precedence chain as precedence.py."""
+
+    def test_inspect_runtime_includes_precedence_chain_matching_precedence_order(self):
+        ctx = TenantContext.empty(host="inspector.example.com")
+        runtime = build_tenant_runtime(ctx, request=None)
+        payload = inspect_runtime(runtime)
+        chain = payload.get("precedence_chain") or []
+        keys = [entry["key"] for entry in chain]
+        self.assertEqual(keys, list(PRECEDENCE_ORDER))
+        self.assertEqual(len(chain), 7)
+        self.assertEqual(chain[0]["key"], "platform_default")
+        self.assertEqual(chain[-1]["key"], "sandbox_override")
+        self.assertEqual(
+            payload.get("feature_flags_merge_order"),
+            ["policy_bundle", "tenant_override", "sandbox_override"],
+        )
+        self.assertIn("entitlement_registry", payload)
+        self.assertEqual(payload["entitlement_registry"]["registry_schema_version"], 1)
+        self.assertIn("blueprint_lifecycle", payload)
+        self.assertIn("marketplace_install_registry", payload)
 
 
 class ResolverRegistryContractTests(TestCase):

@@ -111,7 +111,7 @@
 
 ---
 
-## 5.9 System Configuration / SiteSettings (Current 5.0/10 → Target 11/10)
+## 5.9 Configuration Control Center / SiteSettings (Current 5.0/10 → Target 11/10)
 
 | Action | Status | Evidence |
 |--------|--------|----------|

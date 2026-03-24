@@ -3,12 +3,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<style>
-  .studio-os__experience-rail a.experience-rail-link { display: block; padding: 0.35rem 0.5rem; border-radius: 4px; color: var(--color-base-700, #334155); text-decoration: none; }
-  .studio-os__experience-rail a.experience-rail-link:hover { background: var(--color-base-100, #f1f5f9); color: var(--color-base-900, #0f172a); }
-  .studio-os__experience-rail a.experience-rail-link.active { background: var(--color-primary-50, #eff6ff); color: var(--color-primary-700, #1d4ed8); font-weight: 500; }
-  .studio-os__experience-rail a.experience-rail-link:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
-</style>
+<link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
 {% endblock %}
 
 {% block studio_canvas %}

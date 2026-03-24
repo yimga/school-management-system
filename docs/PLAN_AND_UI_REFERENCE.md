@@ -9,7 +9,7 @@
 1. **The plan (SOT, PATH_TO_100, BACKLOG)** is the **execution backlog**: what to build, in what order, and what’s DONE/N/A. It drives *what we implement*.
 
 2. **The UI you see** is the **product of that work**:
-   - **Configuration Engine (admin index)** — "Applications & sections" and quick config (Site settings, Feature Control, Theme & Experience, Region Config) come from the plan’s bounded-console and System config work.
+   - **Configuration Engine (admin index)** — "Applications & sections" and quick config (Site settings, Feature Control, Theme & Experience, Region Config) come from the plan’s bounded-console and Configuration Control Center work.
    - **Control Plane** — Dashboard, phase status (Phases A–G done, Phase H manual N/A), operator workstreams, and health come from §11 and the execution phases.
    - **Studio OS** — Experience, Automation, Output, Launch, Control hubs and rails come from the plan’s Studio OS and toolset remediation.
 

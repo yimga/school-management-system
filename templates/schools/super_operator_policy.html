@@ -28,7 +28,7 @@
     <div class="card-body">
       <h2 class="h5 card-title">{% trans "Super-first vs break-glass Django admin" %}</h2>
       <ul class="mb-0">
-        <li>{% trans "Default operator path: /super/ — dashboards, System config, catalogs, migration cloud, trust, AI hub, platform operator hub." %}</li>
+        <li>{% trans "Default operator path: /super/ — dashboards, Configuration Control Center, catalogs, migration cloud, trust, AI hub, platform operator hub." %}</li>
         <li>{% trans "Platform /admin/ on the manager host is raw model CRUD for deep maintenance — use only when no first-class super screen exists or for bulk operations that are not yet migrated." %}</li>
         <li>{% trans "Every platform changelist is reachable without hardcoding paths: super:admin_bridge with bridge_key — see Platform operator hub." %}</li>
       </ul>
@@ -86,7 +86,7 @@
   </div>
 
   <p class="small text-white-50 mb-0">
-    <a href="{{ system_config_url }}" class="link-secondary">{% trans "System config" %}</a>
+    <a href="{{ system_config_url }}" class="link-secondary">{% trans "Config center" %}</a>
     ·
     <a href="{% url 'super:platform_operator_hub' %}" class="link-secondary">{% trans "Platform operator hub" %}</a>
   </p>

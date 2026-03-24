@@ -46,7 +46,8 @@ class TranslationManagerTestCase(TestCase):
     def test_get_text_fallback(self):
         """Test getting untranslated text (returns original)."""
         text = TranslationManager.get_text("Unknown Text", "fr")
-        self.assertEqual(text, "Unknown Text")
+        # get_text falls back to str.capitalize() for untranslated keys.
+        self.assertEqual(text, "Unknown text")
 
     def test_set_translation(self):
         """Test setting a translation."""

@@ -53,3 +53,6 @@ class GovernmentAggregatesApiTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(payload["schools_count"], 0)
         self.assertEqual(payload["students_count"], 0)
+        self.assertEqual(payload.get("schema_version"), "1.1")
+        self.assertIn("teachers_count", payload)
+        self.assertIn("guardian_links_count", payload)

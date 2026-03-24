@@ -19,17 +19,22 @@ from .super_views_catalog import (
     super_workflow_packs_catalog,
 )
 from .super_views_wedge import (
+    super_advancement_hub,
+    super_advancement_phase2_placeholder,
     super_curriculum_packs,
-    super_ministry_report_stubs,
-    super_learning_delivery_packs,
-    super_learning_institution_catalog_json,
+    super_district_enterprise,
     super_education_systems,
     super_geography,
     super_group_campuses,
-    super_one_sis_any_lms,
-    super_advancement_hub,
-    super_advancement_phase2_placeholder,
     super_he_pack,
+    super_learning_delivery_packs,
+    super_learning_institution_catalog_json,
+    super_ministry_report_stubs,
+    super_ministry_stub_pdf,
+    super_native_roster_connectors,
+    super_one_sis_any_lms,
+    super_wedge_index,
+    super_wedge_operator_detail,
 )
 from .super_views_migration import (
     sync_repair,
@@ -105,7 +110,32 @@ urlpatterns = [
         name="ministry_report_stubs",
     ),
     path(
+        "ministry-stub-pdf/",
+        require_super_access_with_host(super_ministry_stub_pdf),
+        name="ministry_stub_pdf",
+    ),
+    path(
+        "district-enterprise/",
+        require_super_access_with_host(super_district_enterprise),
+        name="district_enterprise",
+    ),
+    path(
         "geography/", require_super_access_with_host(super_geography), name="geography"
+    ),
+    path(
+        "wedge/",
+        require_super_access_with_host(super_wedge_index),
+        name="wedge_index",
+    ),
+    path(
+        "wedge/<int:wedge_id>/",
+        require_super_access_with_host(super_wedge_operator_detail),
+        name="wedge_operator_detail",
+    ),
+    path(
+        "native-roster-connectors/",
+        require_super_access_with_host(super_native_roster_connectors),
+        name="native_roster_connectors",
     ),
     path(
         "education-systems/",
@@ -496,6 +526,11 @@ urlpatterns = [
         name="runtime_inspector",
     ),
     path(
+        "runtime-truth-hub/",
+        require_super_access_with_host(super_views.super_runtime_truth_hub),
+        name="runtime_truth_hub",
+    ),
+    path(
         "workflow-simulator/",
         require_super_access_with_host(super_views.super_workflow_simulator),
         name="workflow_simulator",
@@ -598,7 +633,7 @@ urlpatterns = [
         require_super_access_with_host(super_views_config.super_admin_bridge),
         name="admin_bridge",
     ),
-    # Legacy path: /super/config/ redirects to System config (siteconfig:console_domains_hub). Single config surface.
+    # Legacy path: /super/config/ redirects to Configuration Control Center (siteconfig:console_domains_hub). Single config surface.
     path(
         "config/",
         require_super_access_with_host(super_views.super_config_hub_redirect),

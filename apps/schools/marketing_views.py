@@ -1330,7 +1330,7 @@ def _marketing_context(
     support_implementation_copy = "We set you up. Dedicated onboarding and support when you need it—so you're not just buying software, you're getting a partner for go-live."
     accessibility_line = "Accessible by design. We align with inclusive design practices and regional accessibility requirements."
     why_switch_path = _safe_reverse("marketing_why_switch") or "/why-switch/"
-    # Explicit "Why switch now" messaging (9.5/10 marketing — plan Section 12.4)
+    # Explicit "Why switch now" messaging (homepage narrative)
     why_switch_bullets = [
         "Replace legacy SIS pain with one modern platform.",
         "Easier onboarding: Setup Studio gets you live in days, not months.",

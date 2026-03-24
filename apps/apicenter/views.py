@@ -82,6 +82,71 @@ def api_center_dashboard(request):
     else:
         action_url = reverse("accounts:backend_dashboard")
         action_text = _("Back to dashboard")
+    integ_list = list(integrations)
+    n_total = len(integ_list)
+    n_on = sum(1 for i in integ_list if getattr(i, "enabled", False))
+    audit_list = list(audit_logs)[:4]
+    activity = []
+    for log in audit_list:
+        integ = getattr(log, "integration", None)
+        integ_name = getattr(integ, "name", "") if integ is not None else ""
+        try:
+            title = log.get_action_display()
+        except (AttributeError, TypeError, ValueError):
+            title = str(getattr(log, "action", "change"))
+        activity.append({"title": str(title), "meta": str(integ_name)})
+    if not activity:
+        activity.append({"title": "API Center", "meta": "No recent audit rows."})
+    phase7_de = {
+        "eyebrow": "Integrations home",
+        "headline_label": "Active integrations",
+        "headline_value": n_on,
+        "headline_meta": f"{n_total} configured",
+        "metrics": [
+            {
+                "label": "Enabled",
+                "value": n_on,
+                "meta": "Kill-switch ready",
+                "status": "ok",
+            },
+            {
+                "label": "Disabled",
+                "value": n_total - n_on,
+                "meta": "Off or paused",
+                "status": "warn" if n_total - n_on else "ok",
+            },
+            {
+                "label": "Quotas",
+                "value": len(quotas),
+                "meta": "Rate limits",
+                "status": "ok",
+            },
+        ],
+        "urgent_queue": [
+            {
+                "title": "Review disabled integrations",
+                "url": request.get_full_path() + "#apicenter-all-integrations",
+                "hint": "Each toggle requires a reason and writes audit.",
+            }
+        ]
+        if n_total - n_on
+        else [
+            {
+                "title": "All integrations enabled",
+                "url": "",
+                "hint": "Keep monitoring audit log.",
+            }
+        ],
+        "next_actions": [
+            {"label": action_text, "url": action_url},
+            {
+                "label": "Domain hub",
+                "url": reverse("siteconfig:console_domains_hub"),
+            },
+            {"label": "Reload", "url": request.get_full_path()},
+        ],
+        "activity": activity,
+    }
     return render(
         request,
         "apicenter/dashboard.html",
@@ -96,6 +161,7 @@ def api_center_dashboard(request):
             ),
             "action_url": action_url,
             "action_text": action_text,
+            "phase7_de": phase7_de,
         },
     )
 

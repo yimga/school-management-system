@@ -26,6 +26,7 @@ _STUDIO_RAIL_VIEWNAMES = frozenset(
         "siteconfig:get_blueprints",
         "automation:outcomes_console",
         "studio_os:automation",
+        "studio_os:workflow_center",
         "siteconfig:workflow_flow_gallery",
         "studio_os:approval_hub",
         "studio_os:automation_dependency_graph",

@@ -33,25 +33,16 @@ from apps.platform_runtime.structured_logging import (
 )
 
 
-@permission_required("settings.manage")
-@login_required
-def document_library_manage(request):
+def document_library_filtered_queryset(request):
     """
-    Backend UI for managing documents in the Document Library.
-    When not embedded in Studio, redirect to Studio Output (pane=documents).
-    End-user role-aware visibility is enforced by PortalFeatureItem.can_view() when
-    serving documents to portal users; this manage view shows all school docs for admins.
+    School-scoped document library queryset with the same GET filters as the manage view.
     """
-    if request.GET.get("embed") != "1":
-        return redirect(reverse("studio_os:output") + "?pane=documents")
-    # Get all documents
     qs = PortalFeatureItem.objects.filter(feature=PortalFeatureItem.Feature.DOCUMENTS)
     school = getattr(request, "school", None)
     if school is not None:
         qs = qs.filter(school=school)
     documents = qs.select_related("created_by").order_by("-created_at")
 
-    # Filter by document type if requested
     doc_type = request.GET.get("type")
     if doc_type:
         documents = documents.filter(document_type=doc_type)
@@ -64,7 +55,6 @@ def document_library_manage(request):
     if pack_code:
         documents = documents.filter(document_pack__code=pack_code)
 
-    # Search
     search_query = request.GET.get("q")
     if search_query:
         documents = documents.filter(
@@ -72,6 +62,78 @@ def document_library_manage(request):
             | Q(title__icontains=search_query)
             | Q(description__icontains=search_query)
         )
+    return documents
+
+
+def build_document_library_manage_context(request, *, studio_output_native: bool = False):
+    """
+    Shared context for document library full page, embed=1 iframe, or Studio Output native pane.
+    """
+    documents = document_library_filtered_queryset(request)
+
+    doc_type = request.GET.get("type")
+    lifecycle_state = (request.GET.get("lifecycle") or "").strip().lower()
+    pack_code = (request.GET.get("pack") or "").strip()
+    search_query = request.GET.get("q")
+
+    stats = {
+        "total": documents.count(),
+        "with_files": documents.filter(file__isnull=False).count(),
+        "with_links": documents.exclude(link="").count(),
+        "requires_signature": documents.filter(requires_signature=True).count(),
+        "active": documents.filter(is_active=True).count(),
+        "packaged": documents.filter(document_pack__isnull=False).count(),
+        "archived": documents.filter(lifecycle_state="archived").count(),
+    }
+
+    by_type = {}
+    for dt, label in PortalFeatureItem.DocumentType.choices:
+        count = documents.filter(document_type=dt).count()
+        if count > 0:
+            by_type[dt] = {"label": label, "count": count}
+
+    embed = request.GET.get("embed") == "1" or studio_output_native
+    document_upload_url = reverse("portal:document_upload") + ("?embed=1" if embed else "")
+
+    try:
+        studio_output_url = reverse("studio_os:output")
+    except NoReverseMatch:
+        studio_output_url = ""
+    document_library_form_action = (
+        f"{studio_output_url}?pane=documents" if studio_output_native and studio_output_url else ""
+    )
+
+    return {
+        "documents": documents,
+        "stats": stats,
+        "by_type": by_type,
+        "document_types": PortalFeatureItem.DocumentType.choices,
+        "document_packs": DocumentPack.objects.filter(is_active=True).order_by("name"),
+        "lifecycle_choices": DOCUMENT_LIFECYCLE_CHOICES,
+        "current_type": doc_type,
+        "current_lifecycle": lifecycle_state,
+        "current_pack": pack_code,
+        "search_query": search_query,
+        "embed": embed,
+        "studio_output_native": studio_output_native,
+        "document_upload_url": document_upload_url,
+        "document_library_form_action": document_library_form_action,
+    }
+
+
+@permission_required("settings.manage")
+@login_required
+def document_library_manage(request):
+    """
+    Backend UI for managing documents in the Document Library.
+    When not embedded in Studio, redirect to Studio Output (pane=documents).
+    End-user role-aware visibility is enforced by PortalFeatureItem.can_view() when
+    serving documents to portal users; this manage view shows all school docs for admins.
+    """
+    if request.GET.get("embed") != "1":
+        return redirect(reverse("studio_os:output") + "?pane=documents")
+
+    documents = document_library_filtered_queryset(request)
 
     # Export CSV (26.5 list standards)
     if request.GET.get("format") == "csv":
@@ -113,44 +175,7 @@ def document_library_manage(request):
             )
         return response
 
-    # Stats
-    stats = {
-        "total": documents.count(),
-        "with_files": documents.filter(file__isnull=False).count(),
-        "with_links": documents.exclude(link="").count(),
-        "requires_signature": documents.filter(requires_signature=True).count(),
-        "active": documents.filter(is_active=True).count(),
-        "packaged": documents.filter(document_pack__isnull=False).count(),
-        "archived": documents.filter(lifecycle_state="archived").count(),
-    }
-
-    # Group by type
-    by_type = {}
-    for doc_type, label in PortalFeatureItem.DocumentType.choices:
-        count = documents.filter(document_type=doc_type).count()
-        if count > 0:
-            by_type[doc_type] = {"label": label, "count": count}
-
-    embed = request.GET.get("embed") == "1"
-    document_upload_url = reverse("portal:document_upload") + (
-        "?embed=1" if embed else ""
-    )
-
-    context = {
-        "documents": documents,
-        "stats": stats,
-        "by_type": by_type,
-        "document_types": PortalFeatureItem.DocumentType.choices,
-        "document_packs": DocumentPack.objects.filter(is_active=True).order_by("name"),
-        "lifecycle_choices": DOCUMENT_LIFECYCLE_CHOICES,
-        "current_type": doc_type,
-        "current_lifecycle": lifecycle_state,
-        "current_pack": pack_code,
-        "search_query": search_query,
-        "embed": embed,
-        "document_upload_url": document_upload_url,
-    }
-
+    context = build_document_library_manage_context(request, studio_output_native=False)
     return render(request, "portal/document_library_manage.html", context)
 
 

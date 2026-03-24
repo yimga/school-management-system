@@ -51,7 +51,7 @@ from typing import Any, Dict, List, Optional, Tuple
 ROLE_HOME_BY_ROLE: Dict[str, str] = {
     "ADMIN": "implementation",
     "IT_ADMIN": "implementation",
-    "SUPERADMIN": "implementation",
+    "SUPERADMIN": "platform_ops",
     "PRINCIPAL": "principal",
     "VICE_PRINCIPAL": "principal",
     "LEADERSHIP": "district_leader",
@@ -147,6 +147,19 @@ ROLE_HOME_CONFIG: Dict[str, Dict[str, Any]] = {
         "next_label": "Launch next",
         "recent_label": "Recent setup movement",
         "search_hint": "Search setup tasks, blueprints, branding, and launch blockers",
+        "destinations": ["workflow_center", "documents", "preferences"],
+    },
+    "platform_ops": {
+        "key": "platform_ops",
+        "eyebrow": "Platform operations",
+        "title": "Fleet health and control-plane velocity",
+        "purpose": "See cross-tenant risk, billing, incidents, and rollout status before drilling into a single school.",
+        "focus_areas": ["Fleet pulse", "Incidents & billing", "Governance"],
+        "default_intent": "executive",
+        "queue_label": "Platform queue",
+        "next_label": "Ops next",
+        "recent_label": "Recent platform movement",
+        "search_hint": "Search schools, incidents, billing, and marketplace governance",
         "destinations": ["workflow_center", "documents", "preferences"],
     },
     "parent": {

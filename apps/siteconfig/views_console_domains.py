@@ -14,6 +14,12 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 
+from apps.siteconfig.control_outcome_center import (
+    WHY_ENABLED_SUMMARY,
+    build_operator_control_model_for_request,
+    build_outcome_groups_for_request,
+)
+
 logger = logging.getLogger(__name__)
 
 # Per-domain actions for 9.5/10: search, preview, diff (compare before apply), audit (change history), rollback (revert where relevant).
@@ -301,7 +307,7 @@ def _build_operational_links_context(request: HttpRequest) -> list[dict[str, str
 
 
 def _build_operational_hubs_context(request: HttpRequest) -> list[dict[str, Any]]:
-    """Operational hubs merged into System config: Studio OS entry plus Workflow, Approvals, Import, Documents, Reports, RBAC, Feature control, Communications. Single integrated list."""
+    """Operational hubs merged into Configuration Control Center: Studio OS entry plus Workflow, Approvals, Import, Documents, Reports, RBAC, Feature control, Communications. Single integrated list."""
     hubs = []
     for label, url_name, icon in [
         ("Studio OS", "studio_os:shell", "bi-window-stack"),
@@ -339,6 +345,11 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
         "studio_experience_url": _safe_reverse("studio_os:experience"),
         "guided_onboarding_url": _safe_reverse("siteconfig:guided_onboarding"),
         "theme_colors_hub_url": _safe_reverse("siteconfig:theme_colors"),
+        "outcome_groups": build_outcome_groups_for_request(request),
+        "why_enabled_summary": WHY_ENABLED_SUMMARY,
+        "operator_control_model": build_operator_control_model_for_request(request),
+        # Light chrome on tenant portal; dark chrome on manager control plane
+        "ccc_outcome_compact": getattr(request, "public_host_kind", None) != "manager",
     }
     if template == "siteconfig/console_domains_hub_control_plane.html":
         try:
@@ -357,4 +368,6 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
             context["admin_index_url"] = reverse("admin:index")
         except NoReverseMatch:
             context["admin_index_url"] = None
+    else:
+        context["compact"] = True
     return render(request, template, context)

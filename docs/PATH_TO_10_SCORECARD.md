@@ -85,7 +85,7 @@ Execute these to move from 9.5 to 10. Order is logical; dependencies noted.
 | Live Previews | Central preview service; side-by-side before/after where applicable; preview by role/device/tenant in one contract. |
 | Workflows | Simulation with impact counts; workflow marketplace cards (outcome-oriented); versioning and replay. |
 | AI & API | API contracts and contract tests; AI action audit trail (who invoked what, when, scope). |
-| System Config | Migrate remaining get_solo() to runtime resolvers; CI fails on new tenant-facing get_solo (allowlist shrunk to zero or N/A). |
+| Configuration Control Center | Migrate remaining get_solo() to runtime resolvers; CI fails on new tenant-facing get_solo (allowlist shrunk to zero or N/A). |
 
 ---
 

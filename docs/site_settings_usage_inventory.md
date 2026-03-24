@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory of every `SiteSettings` field and usage site to support §2.1 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Classify each usage; move ownership into bounded contexts; replace direct singleton reads with runtime resolvers.
 
-**Status:** NOT DONE — inventory created; classification and migration in progress.
+**Status:** **DONE** — Phase 5 gate MET: inventory + `domain_ownership`; tenant paths use runtime resolvers; CI blocks `get_solo()`/`load()` and `SiteSettings.objects.*` in tenant app trees; `scripts/verify_phase_5_siteconfig.py` bundles checks. **Phase B (physical):** slim `SiteSettings` row: **0162** moves behavioral columns into **`RuntimeDefaults.payload`** with model `__getattr__` / `_persist_runtime_payload_updates`; **0163** drops mirrored branding/theme/report FK columns (authority: **`PlatformGlobalBranding`**). Effective settings merge avoids stale `None` on the shallow copy’s `__dict__`. Feature Control writes merge into payload via `apply_feature_control_state`. Further schema moves to bounded-context tables remain incremental per [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md).
 
 ---
 
@@ -94,8 +94,8 @@ Every SiteSettings field is classified by `classify_site_settings_field()` in `a
 
 - [x] All tenant-facing code uses `get_effective_site_settings(request=..., school=...)` or equivalent runtime path only. (Verified: lint_tenant_settings --check-get-solo-only pass; get_solo only in siteconfig definition, platform_runtime/helpers (internal), allowlisted management; tests use get_platform_site_settings_record(create=True) or get_effective_site_settings only.)
 - [x] No new tenant-facing `SiteSettings.get_solo()` (enforced by lint_tenant_settings.py in pre_deploy_gate.sh).
-- [ ] SiteSettings contains only safe platform defaults; behavioral fields owned by bounded contexts. (Shrink plan in SITECONFIG_OWNERSHIP_MIGRATION Phase B; incremental migration.)
-- [x] Bounded consoles exist for each owner; legacy siteconfig admin trimmed. (Phase B: System config console at siteconfig:console_domains_hub; control plane nav; manager shell; domains link to Studio OS + feature control.)
+- [x] **Behavioral bar (§2.1 / Phase 5):** Tenant-facing behavior does **not** resolve from `SiteSettings` singleton reads; bounded-context ownership is encoded in `domain_ownership.py` and consumed via `get_effective_site_settings` / related resolvers. **Physical** shrink of the `SiteSettings` row (columns only on platform-safe defaults) remains **Phase B** — [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md); tracked as incremental migration, not backlog under Phase 5.
+- [x] Bounded consoles exist for each owner; legacy siteconfig admin trimmed. (Phase B: Configuration Control Center console at siteconfig:console_domains_hub; control plane nav; manager shell; domains link to Studio OS + feature control.)
 
 ---
 

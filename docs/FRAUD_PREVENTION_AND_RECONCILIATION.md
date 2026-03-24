@@ -256,7 +256,7 @@ Finance staff receive **immediate email notifications** when:
    - Explain why receipt was rejected
    - Notify parent with reason
 
-### For System Configuration
+### For Configuration Control Center
 
 1. **Set Appropriate Thresholds**:
    - `finance_receipt_auto_apply_threshold`: 0.9 (90% confidence)

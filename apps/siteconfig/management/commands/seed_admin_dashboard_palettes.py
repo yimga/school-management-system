@@ -7,6 +7,7 @@ Run: python manage.py seed_admin_dashboard_palettes [--reset]
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from apps.brand_experience.platform_global_branding import PlatformGlobalBranding
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.models import ThemePack
 
@@ -1476,12 +1477,13 @@ class Command(BaseCommand):
                 updated_count += 1
                 self.stdout.write(self.style.WARNING(f"  ~ Updated: {pack.name}"))
 
-        site_settings = get_platform_site_settings_record(create=True)
-        if site_settings is not None and not site_settings.admin_theme_pack:
+        get_platform_site_settings_record(create=True)
+        pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
+        if not pgb.admin_theme_pack_id:
             default_pack = ThemePack.objects.filter(slug="admin-academic-slate").first()
             if default_pack:
-                site_settings.admin_theme_pack = default_pack
-                site_settings.save(update_fields=["admin_theme_pack"])
+                pgb.admin_theme_pack = default_pack
+                pgb.save()
                 self.stdout.write(
                     self.style.SUCCESS(
                         f"\n  + Set default admin theme: {default_pack.name}"

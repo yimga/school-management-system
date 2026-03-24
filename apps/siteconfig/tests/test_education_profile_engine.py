@@ -13,6 +13,14 @@ from apps.siteconfig.models import EducationSystemProfile, RegionConfig
 
 
 class EducationProfileEngineTests(TestCase):
+    @staticmethod
+    def _uganda_region():
+        """Avoid hard dependency on seed data; keep tests decoupled from fixture ordering."""
+        existing = RegionConfig.objects.filter(code="UGA").first()
+        if existing:
+            return existing
+        return ensure_region_for_country("UGA")
+
     def test_ensure_region_for_country_creates_region(self):
         region = ensure_region_for_country("JP")
         self.assertIsNotNone(region)
@@ -30,7 +38,18 @@ class EducationProfileEngineTests(TestCase):
         self.assertTrue((profile.config or {}).get("generated"))
 
     def test_resolve_profile_for_school_prefers_requested_profile(self):
-        uganda = RegionConfig.objects.get(code="UGA")
+        uganda = self._uganda_region()
+        self.assertIsNotNone(uganda)
+        EducationSystemProfile.objects.get_or_create(
+            code="uga-national-default",
+            defaults={
+                "name": "Uganda National Default",
+                "region": uganda,
+                "sub_system": EducationSystemProfile.SubSystem.EN,
+                "approval_status": EducationSystemProfile.ApprovalStatus.APPROVED,
+                "is_active": True,
+            },
+        )
         school = School.objects.create(
             name="Engine School",
             slug="engine-school",
@@ -69,7 +88,8 @@ class EducationProfileEngineTests(TestCase):
         self.assertNotIn("uga-draft-pack", codes)
 
     def test_resolve_profile_for_school_ignores_non_approved_requested_profile(self):
-        uganda = RegionConfig.objects.get(code="UGA")
+        uganda = self._uganda_region()
+        self.assertIsNotNone(uganda)
         draft = EducationSystemProfile.objects.create(
             code="uga-en-draft-explicit",
             name="Uganda Explicit Draft",

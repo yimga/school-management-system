@@ -12,7 +12,7 @@
 | Runtime & governance | Inspector, registries, trust-adjacent tools |
 | Workflows / Marketplace / Migration | As registered in `build_control_plane_nav` |
 
-**Rules:** One sidebar; pin favorites; Ctrl+K palette; no duplicate “System config” vs “Settings” — **System config** = bounded console (`console_domains_hub`). Legacy Django admin only where inventory allows.
+**Rules:** One sidebar; pin favorites; Ctrl+K palette; no duplicate **Config center** vs “Settings” — **Configuration Control Center** (`console_domains_hub`; sidebar label **Config center**). Legacy Django admin only where inventory allows.
 
 ## 2. Tenant backend (`/accounts/backend-*`, staff)
 

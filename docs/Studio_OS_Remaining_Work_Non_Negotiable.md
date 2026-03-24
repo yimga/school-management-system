@@ -65,7 +65,7 @@ Everything below is required. No item is optional.
 
 | # | Task | Detail |
 |---|------|--------|
-| 6.1 | **Output mode content in-shell** | `templates/studio_os/modes/output.html`: tabs or sections — Reports | Documents | Report cards | Certificates/IDs — in one view, not only report_library iframe. |
+| 6.1 | **Output mode content in-shell** | **DONE:** vertical rail + **horizontal tab row** (`studio-os__output-tabs`, `studio-mode-rail.css`) + **in-canvas pack sample previews** (`get_output_report_pack_preview_cards`, `?pack=` focus) + all panes native per SOT §4.4 **DONE**. Further certificate/report SKUs → §5 / §11.4 (not an open §6.1 gap). |
 | 6.2 | **Output left rail** | Output types, report packs, document packs, region/institution filters. |
 | 6.3 | **Document library in Output** | Embed or deep-link `portal:document_library_manage` into Output Studio (same mental model as reports); add redirect `document_library_manage` → `studio_os:output` with pane=documents (or equivalent). |
 | 6.4 | **Right rail: style, branding, dependencies, publish** | Style settings, branding inheritance, data dependencies, publish/rollback for outputs. |

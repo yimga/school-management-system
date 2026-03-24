@@ -28,9 +28,9 @@
 
 {% block content %}
 {% with widgets=display_widgets %}
-<div class="tdm-bg">
+<div class="tdm-bg" data-decision-engine="surface">
   <div class="tdm-shell">
-    <section class="tdm-hero card-glass">
+    <section class="tdm-hero card-glass" data-decision-zone="headline">
       <div class="tdm-hero__text">
         <p class="tdm-eyebrow">{% trans "Teacher Hub" %}</p>
         <h1>{% trans "Good afternoon" %}{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}</h1>
@@ -73,7 +73,7 @@
     </div>
     {% endif %}
 
-    <section class="tdm-overview-grid dashboard-card-grid dashboard-card-grid--dense">
+    <section class="tdm-overview-grid dashboard-card-grid dashboard-card-grid--dense" data-decision-zone="supporting-metrics">
       <div class="tdm-stat card-glass purple">
         <div class="tdm-stat-label">{% trans "Classes today" %}</div>
         <div class="tdm-stat-value">{{ assignments|length|default:0 }}</div>

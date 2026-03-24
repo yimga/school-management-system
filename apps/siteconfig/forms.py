@@ -9,6 +9,7 @@ from django.db.models import Q
 
 from apps.academics.models import Classroom
 from apps.brand_experience.models import ThemePack
+from apps.brand_experience.platform_global_branding import PlatformGlobalBranding
 from apps.platform_runtime.helpers import get_effective_site_settings
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.runtime_blueprints.models import ReportCardStyle
@@ -21,6 +22,8 @@ from .models_support import (
 )
 from apps.academics.models import ReportCardStyleAssignment
 from .models import SiteSettings
+from .models_constants import BACKEND_CONSOLE_THEME_CHOICES
+from .models_support import DashboardView
 from .models_platform_catalog import RegionConfig
 from .models_tooling import UserPreference
 from .translations import SUPPORTED_LANGUAGES
@@ -943,8 +946,10 @@ class ReportCardStyleAssignmentForm(forms.Form):
 
 
 class ReportCardStyleSelectionForm(forms.ModelForm):
+    """Defaults live on PlatformGlobalBranding (Phase B slim SiteSettings)."""
+
     class Meta:
-        model = SiteSettings
+        model = PlatformGlobalBranding
         fields = ["default_term_report_style", "default_annual_report_style"]
         widgets = {
             "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
@@ -953,6 +958,10 @@ class ReportCardStyleSelectionForm(forms.ModelForm):
 
 
 # Combined Theme & Experience page: all fields from admin "Theme & Experience" section (except theme_color_tools_link_block).
+# Theme Studio field ids: most values resolve from get_effective_site_settings (facade).
+# default_term_report_style / default_annual_report_style are stored on
+# brand_experience.PlatformGlobalBranding; the facade exposes *_id keys via
+# get_theme_experience_settings() / get_theme_selection_ids() — not on slim SiteSettings columns.
 THEME_EXPERIENCE_FIELD_NAMES = [
     "primary_color",
     "accent_color",
@@ -998,79 +1007,160 @@ THEME_COLOR_FIELD_NAMES = [
     )
 ]
 
+_THEME_BRIGHTNESS_CHOICES = [
+    ("system", "System"),
+    ("light", "Light"),
+    ("dark", "Dark"),
+    ("classic", "Classic"),
+    ("high_contrast", "High Contrast"),
+]
+_THEME_HARMONY_CHOICES = [
+    ("square", "Square (four evenly spaced hues)"),
+    ("achromatic", "Achromatic (grayscale)"),
+    ("polychromatic", "Polychromatic (multi-hue)"),
+    ("diad", "Diad (two hues)"),
+]
+
+
+def _theme_experience_model_field_names() -> list[str]:
+    names = {
+        f.name
+        for f in SiteSettings._meta.concrete_fields
+        if not getattr(f, "primary_key", False)
+    }
+    return [n for n in THEME_EXPERIENCE_FIELD_NAMES if n in names]
+
+
+def _theme_experience_virtual_field_names() -> list[str]:
+    names = {
+        f.name
+        for f in SiteSettings._meta.concrete_fields
+        if not getattr(f, "primary_key", False)
+    }
+    return [n for n in THEME_EXPERIENCE_FIELD_NAMES if n not in names]
+
+
+_THEME_EXPERIENCE_FIELD_WIDGETS = {
+    "primary_color": ColorInputWithPreview(),
+    "accent_color": ColorInputWithPreview(),
+    "header_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0d6efd"}),
+    "footer_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0f172a"}),
+    "success_color": ColorInputWithPreview(attrs={"placeholder": "#22c55e"}),
+    "warning_color": ColorInputWithPreview(attrs={"placeholder": "#fbbf24"}),
+    "danger_color": ColorInputWithPreview(attrs={"placeholder": "#ef4444"}),
+    "theme_brightness": forms.Select(attrs={"class": "form-select"}),
+    "use_dark_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    "theme_pack": forms.Select(
+        attrs={"class": "form-select", "aria-describedby": "help-theme-pack"}
+    ),
+    "admin_theme_pack": forms.Select(
+        attrs={
+            "class": "form-select",
+            "aria-describedby": "help-admin-theme-pack",
+        }
+    ),
+    "teacher_theme_pack": forms.Select(attrs={"class": "form-select"}),
+    "parent_theme_pack": forms.Select(attrs={"class": "form-select"}),
+    "theme_harmony": forms.Select(
+        attrs={"class": "form-select", "aria-describedby": "help-theme-harmony"}
+    ),
+    "skip_theme_publish_guard": forms.CheckboxInput(
+        attrs={"class": "form-check-input"}
+    ),
+    "admin_use_site_primary": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    "backend_console_theme": forms.Select(attrs={"class": "form-select"}),
+    "secondary_font": forms.TextInput(
+        attrs={"class": "form-control", "placeholder": "e.g. Georgia, serif"}
+    ),
+    "use_secondary_font_for_headings": forms.CheckboxInput(
+        attrs={"class": "form-check-input"}
+    ),
+    "base_font_size": forms.NumberInput(
+        attrs={
+            "class": "form-control",
+            "min": 12,
+            "max": 24,
+            "placeholder": "16",
+        }
+    ),
+    "default_widgets_per_role": forms.Textarea(
+        attrs={
+            "class": "form-control font-monospace small",
+            "rows": 3,
+            "placeholder": "{}",
+        }
+    ),
+    "report_downloads_enabled": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    "default_dashboard_view": forms.Select(attrs={"class": "form-select"}),
+    "default_refresh_rate": forms.NumberInput(
+        attrs={"class": "form-control", "min": 30, "max": 600}
+    ),
+    "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
+    "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
+}
+
 
 class ThemeColorsForm(forms.ModelForm):
     """Form for the combined Theme & Experience page (/siteconfig/theme-colors/)."""
 
     class Meta:
         model = SiteSettings
-        fields = THEME_EXPERIENCE_FIELD_NAMES
+        fields = _theme_experience_model_field_names()
         widgets = {
-            "primary_color": ColorInputWithPreview(),
-            "accent_color": ColorInputWithPreview(),
-            "header_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0d6efd"}),
-            "footer_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0f172a"}),
-            "success_color": ColorInputWithPreview(attrs={"placeholder": "#22c55e"}),
-            "warning_color": ColorInputWithPreview(attrs={"placeholder": "#fbbf24"}),
-            "danger_color": ColorInputWithPreview(attrs={"placeholder": "#ef4444"}),
-            "theme_brightness": forms.Select(attrs={"class": "form-select"}),
-            "use_dark_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "theme_pack": forms.Select(
-                attrs={"class": "form-select", "aria-describedby": "help-theme-pack"}
-            ),
-            "admin_theme_pack": forms.Select(
-                attrs={
-                    "class": "form-select",
-                    "aria-describedby": "help-admin-theme-pack",
-                }
-            ),
-            "teacher_theme_pack": forms.Select(attrs={"class": "form-select"}),
-            "parent_theme_pack": forms.Select(attrs={"class": "form-select"}),
-            "theme_harmony": forms.Select(
-                attrs={"class": "form-select", "aria-describedby": "help-theme-harmony"}
-            ),
-            "skip_theme_publish_guard": forms.CheckboxInput(
-                attrs={"class": "form-check-input"}
-            ),
-            "admin_use_site_primary": forms.CheckboxInput(
-                attrs={"class": "form-check-input"}
-            ),
-            "backend_console_theme": forms.Select(attrs={"class": "form-select"}),
-            "secondary_font": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "e.g. Georgia, serif"}
-            ),
-            "use_secondary_font_for_headings": forms.CheckboxInput(
-                attrs={"class": "form-check-input"}
-            ),
-            "base_font_size": forms.NumberInput(
-                attrs={
-                    "class": "form-control",
-                    "min": 12,
-                    "max": 24,
-                    "placeholder": "16",
-                }
-            ),
-            "default_widgets_per_role": forms.Textarea(
-                attrs={
-                    "class": "form-control font-monospace small",
-                    "rows": 3,
-                    "placeholder": "{}",
-                }
-            ),
-            "report_downloads_enabled": forms.CheckboxInput(
-                attrs={"class": "form-check-input"}
-            ),
-            "default_dashboard_view": forms.Select(attrs={"class": "form-select"}),
-            "default_refresh_rate": forms.NumberInput(
-                attrs={"class": "form-control", "min": 30, "max": 600}
-            ),
-            "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
-            "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
+            k: v
+            for k, v in _THEME_EXPERIENCE_FIELD_WIDGETS.items()
+            if k in _theme_experience_model_field_names()
         }
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
+        for name in _theme_experience_virtual_field_names():
+            w = _THEME_EXPERIENCE_FIELD_WIDGETS.get(name, forms.TextInput())
+            if name in (
+                "use_dark_mode",
+                "skip_theme_publish_guard",
+                "admin_use_site_primary",
+                "report_downloads_enabled",
+            ):
+                self.fields[name] = forms.BooleanField(required=False, widget=w)
+            elif name in ("base_font_size", "default_refresh_rate"):
+                self.fields[name] = forms.IntegerField(required=False, widget=w)
+            elif name == "theme_brightness":
+                self.fields[name] = forms.ChoiceField(
+                    choices=_THEME_BRIGHTNESS_CHOICES, required=False, widget=w
+                )
+            elif name == "theme_harmony":
+                self.fields[name] = forms.ChoiceField(
+                    choices=_THEME_HARMONY_CHOICES, required=False, widget=w
+                )
+            elif name == "backend_console_theme":
+                self.fields[name] = forms.ChoiceField(
+                    choices=BACKEND_CONSOLE_THEME_CHOICES, required=False, widget=w
+                )
+            elif name == "default_dashboard_view":
+                self.fields[name] = forms.ChoiceField(
+                    choices=DashboardView.choices, required=False, widget=w
+                )
+            elif name == "default_widgets_per_role":
+                self.fields[name] = forms.CharField(required=False, widget=w)
+            elif name in (
+                "theme_pack",
+                "admin_theme_pack",
+                "teacher_theme_pack",
+                "parent_theme_pack",
+            ):
+                self.fields[name] = forms.ModelChoiceField(
+                    queryset=ThemePack.objects.none(), required=False, widget=w
+                )
+            elif name in ("default_term_report_style", "default_annual_report_style"):
+                self.fields[name] = forms.ModelChoiceField(
+                    queryset=ReportCardStyle.objects.none(),
+                    required=False,
+                    widget=w,
+                )
+            else:
+                self.fields[name] = forms.CharField(required=False, widget=w)
         instance = getattr(self, "instance", None)
         if instance is None and request is not None:
             try:
@@ -1098,30 +1188,19 @@ class ThemeColorsForm(forms.ModelForm):
             else {}
         )
         if theme_experience_settings:
-            for field_name in (
-                "theme_brightness",
-                "use_dark_mode",
-                "theme_harmony",
-                "admin_use_site_primary",
-                "backend_console_theme",
-                "secondary_font",
-                "use_secondary_font_for_headings",
-                "base_font_size",
-                "default_dashboard_view",
-                "default_refresh_rate",
-                "report_downloads_enabled",
-                "skip_theme_publish_guard",
-            ):
-                if field_name in self.fields:
+            for field_name in THEME_EXPERIENCE_FIELD_NAMES:
+                if field_name not in self.fields:
+                    continue
+                if field_name == "default_term_report_style":
+                    self.initial[field_name] = theme_experience_settings.get(
+                        "default_term_report_style_id"
+                    )
+                elif field_name == "default_annual_report_style":
+                    self.initial[field_name] = theme_experience_settings.get(
+                        "default_annual_report_style_id"
+                    )
+                else:
                     self.initial[field_name] = theme_experience_settings.get(field_name)
-            if "default_term_report_style" in self.fields:
-                self.initial["default_term_report_style"] = (
-                    theme_experience_settings.get("default_term_report_style_id")
-                )
-            if "default_annual_report_style" in self.fields:
-                self.initial["default_annual_report_style"] = (
-                    theme_experience_settings.get("default_annual_report_style_id")
-                )
 
         theme_qs = ThemePack.objects.filter(is_active=True).order_by(
             "-is_default", "name"
@@ -1183,6 +1262,26 @@ class ThemeColorsForm(forms.ModelForm):
         self.fields[
             "admin_theme_pack"
         ].help_text = "Used for Django Admin and Backend (Workflow Center) only."
+
+        term_qs = ReportCardStyle.objects.active().order_by("name")
+        annual_qs = ReportCardStyle.objects.active().order_by("name")
+        if theme_experience_settings:
+            tid = theme_experience_settings.get("default_term_report_style_id")
+            if tid:
+                term_qs = (
+                    ReportCardStyle.objects.filter(Q(pk=tid) | Q(is_active=True))
+                    .order_by("name")
+                    .distinct()
+                )
+            aid = theme_experience_settings.get("default_annual_report_style_id")
+            if aid:
+                annual_qs = (
+                    ReportCardStyle.objects.filter(Q(pk=aid) | Q(is_active=True))
+                    .order_by("name")
+                    .distinct()
+                )
+        self.fields["default_term_report_style"].queryset = term_qs
+        self.fields["default_annual_report_style"].queryset = annual_qs
 
     def clean(self):
         cleaned = super().clean()

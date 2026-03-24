@@ -1,0 +1,90 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+
+{% block cp_title %}{% trans "Runtime truth hub" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Runtime truth hub" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench"{% include "schools/partials/decision_architecture_attrs.html" %}>
+  {% include "studio_os/components/page_header.html" with title="Runtime truth hub" subtitle="Read-only view of platform RuntimeDefaults.payload and the slim SiteSettings singleton (Phase B bridge)." action_url=dashboard_url action_text="Back to dashboard" %}
+
+  <div class="alert alert-secondary border-0 shadow-sm mb-3" role="note">
+    <strong>{% trans "Read-only." %}</strong>
+    {% trans "Behavioral settings live in RuntimeDefaults.payload; SiteSettings holds media, theme/report FKs, and maintenance." %}
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6 mb-3">
+      <div class="card shadow-sm border-0 page-family-content-card card-grammar h-100">
+        <div class="card-header bg-dark text-light">{% trans "RuntimeDefaults (pk=1)" %}</div>
+        <div class="card-body">
+          {% if runtime_defaults %}
+          <ul class="list-unstyled mb-3">
+            <li><strong>{% trans "Updated" %}:</strong> {{ runtime_defaults.updated_at|default:"—" }}</li>
+            <li><strong>{% trans "Payload keys" %}:</strong> {{ payload_key_count }}</li>
+            <li><strong>{% trans "cache_rankings_interval_minutes" %}:</strong> {{ cache_rankings_interval_minutes|default:"—" }}</li>
+          </ul>
+          {% if payload_preview %}
+          <p class="small text-secondary mb-1">{% trans "Key preview (types only; first 48 keys)" %}</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0">
+              <thead><tr><th>{% trans "Key" %}</th><th>{% trans "Kind" %}</th><th>{% trans "Detail" %}</th></tr></thead>
+              <tbody>
+                {% for row in payload_preview %}
+                <tr>
+                  <td><code class="small">{{ row.key }}</code></td>
+                  <td>{{ row.kind }}</td>
+                  <td class="small text-break">{{ row.extra }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% if payload_keys_truncated %}
+          <p class="small text-secondary mt-2 mb-0">{% trans "Additional keys omitted from this table." %}</p>
+          {% endif %}
+          {% else %}
+          <p class="text-secondary mb-0">{% trans "Payload is empty." %}</p>
+          {% endif %}
+          {% else %}
+          <p class="text-secondary mb-0">{% trans "No RuntimeDefaults row yet (pk=1)." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 mb-3">
+      <div class="card shadow-sm border-0 page-family-content-card card-grammar h-100">
+        <div class="card-header bg-dark text-light">{% trans "SiteSettings (slim, pk=1)" %}</div>
+        <div class="card-body">
+          {% if site_settings_summary %}
+          <ul class="list-unstyled mb-0">
+            <li><strong>PK:</strong> {{ site_settings_summary.pk }}</li>
+            <li><strong>{% trans "Maintenance mode" %}:</strong> {% if site_settings_summary.maintenance_mode %}{% trans "On" %}{% else %}{% trans "Off" %}{% endif %}</li>
+            <li><strong>{% trans "Updated" %}:</strong> {{ site_settings_summary.updated_at|default:"—" }}</li>
+            <li><strong>{% trans "Logo present" %}:</strong> {% if site_settings_summary.has_logo %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</li>
+            <li><strong>{% trans "Favicon present" %}:</strong> {% if site_settings_summary.has_favicon %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</li>
+            <li><strong>theme_pack_id:</strong> {{ site_settings_summary.theme_pack_id|default:"—" }}</li>
+            <li><strong>admin_theme_pack_id:</strong> {{ site_settings_summary.admin_theme_pack_id|default:"—" }}</li>
+          </ul>
+          {% else %}
+          <p class="text-secondary mb-0">{% trans "No SiteSettings row (pk=1)." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="small text-secondary mb-0">
+    {% trans "For per-school resolution traces, use" %}
+    <a href="{% url 'super:runtime_inspector' %}">{% trans "Runtime inspector" %}</a>.
+  </p>
+</div>
+{% endblock %}

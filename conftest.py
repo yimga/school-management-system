@@ -18,3 +18,44 @@ def pytest_configure() -> None:
     if apps.ready:
         return
     django.setup()
+
+    # Reduce flaky "database is locked" under parallel pytest / slow disks (SQLite default is 5s).
+    from django.conf import settings as django_settings
+
+    default_db = django_settings.DATABASES.get("default") or {}
+    if "sqlite" in str(default_db.get("ENGINE", "")):
+        opts = default_db.setdefault("OPTIONS", {})
+        opts.setdefault("timeout", 30)
+
+
+def pytest_sessionstart(session) -> None:
+    """Mirror DiscoverRunner: point default connection at TEST database (file-backed sqlite)."""
+    from django.apps import apps
+    from django.test.utils import setup_databases
+
+    if not apps.ready:
+        return
+    keepdb = os.environ.get("PYTEST_KEEPDB", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+    session._django_db_old_config = setup_databases(
+        verbosity=1,
+        interactive=False,
+        keepdb=keepdb,
+    )
+
+
+def pytest_sessionfinish(session, exitstatus) -> None:
+    cfg = getattr(session, "_django_db_old_config", None)
+    if cfg is None:
+        return
+    from django.test.utils import teardown_databases
+
+    keepdb = os.environ.get("PYTEST_KEEPDB", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+    teardown_databases(cfg, verbosity=1, parallel=0, keepdb=keepdb)

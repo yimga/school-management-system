@@ -14,7 +14,12 @@ from django.db.models import Q
 from .runtime_resolver import build_tenant_runtime
 from .contracts import TenantRuntime
 from .governor_limits import get_governor_usage_for_tenant
-from .precedence import describe_precedence_chain
+from .precedence import PRECEDENCE_ORDER, describe_precedence_chain
+from .registry_snapshots import (
+    build_blueprint_lifecycle_snapshot,
+    build_entitlement_registry_snapshot,
+    build_marketplace_install_snapshot,
+)
 from .exceptions import RuntimeResolutionError
 from apps.tenancy.context import TenantContext
 
@@ -75,8 +80,15 @@ def inspect_runtime(runtime: TenantRuntime) -> Dict[str, Any]:
     localization, integrations, and override sources.
     """
     debug = runtime.debug or {}
+    pol = getattr(runtime, "policy", None)
+    pol_dict: Dict[str, Any] = pol if isinstance(pol, dict) else {}
     return {
         "precedence_chain": describe_precedence_chain(),
+        "feature_flags_merge_order": [
+            PRECEDENCE_ORDER[3],
+            PRECEDENCE_ORDER[5],
+            PRECEDENCE_ORDER[6],
+        ],
         "effective_blueprint": _serialize_blueprint(runtime.blueprint),
         "active_packs": {
             "workflow": getattr(getattr(runtime, "workflows", None), "pack_code", None),
@@ -120,6 +132,15 @@ def inspect_runtime(runtime: TenantRuntime) -> Dict[str, Any]:
         "primary_sector": getattr(
             getattr(runtime, "tenant", None), "primary_sector", None
         ),
+        "entitlement_registry": build_entitlement_registry_snapshot(
+            getattr(runtime, "_school", None),
+            pol_dict,
+            runtime.entitlements,
+        ),
+        "blueprint_lifecycle": build_blueprint_lifecycle_snapshot(
+            getattr(runtime, "_school", None)
+        ),
+        "marketplace_install_registry": build_marketplace_install_snapshot(runtime),
     }
 
 

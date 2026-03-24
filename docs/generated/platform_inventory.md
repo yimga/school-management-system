@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `41`
-- Python files: `2085`
-- HTML templates: `564`
-- Markdown files: `994`
-- Migration files: `636`
-- Management commands: `144` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1160`
-- `get_solo()` refs: `182`
-- `except Exception`: `219`
+- Python files: `2143`
+- HTML templates: `602`
+- Markdown files: `1003`
+- Migration files: `642`
+- Management commands: `146` (full list in JSON key `management_commands_list`)
+- `SiteSettings` refs: `1294`
+- `get_solo()` refs: `187`
+- `except Exception`: `229`
 - `cursor.execute()`: `352`
-- `csrf_exempt`: `141`
-- `AllowAny`: `63`
-- `print()`: `544`
-- `gilead` matches: `713` across `138` files
+- `csrf_exempt`: `146`
+- `AllowAny`: `67`
+- `print()`: `586`
+- `gilead` matches: `734` across `142` files
 
 
 ## Management Commands (full list)
 
-Total: `144` commands. First 25 by app/command:
+Total: `146` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -45,7 +45,7 @@ Total: `144` commands. First 25 by app/command:
 - `billing` / `import_platform_billing_snapshot` — `apps/billing/management/commands/import_platform_billing_snapshot.py`
 - `billing` / `run_platform_billing_lifecycle` — `apps/billing/management/commands/run_platform_billing_lifecycle.py`
 - `billing` / `run_revenue_share_payouts` — `apps/billing/management/commands/run_revenue_share_payouts.py`
-- … and 119 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 121 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
@@ -56,21 +56,12 @@ Total: `144` commands. First 25 by app/command:
 
 ## SiteSettings Ownership
 
-- `brand_experience`: `54` fields
 - `delete`: `1` fields
-- `design_studio`: `1` fields
-- `documents`: `1` fields
-- `global_registries`: `6` fields
-- `marketplace_integrations`: `9` fields
-- `policies_rules`: `80` fields
-- `preview_platform`: `3` fields
-- `reports`: `10` fields
-- `runtime_blueprints`: `14` fields
-- `safe_platform_default`: `2` fields
+- `safe_platform_default`: `1` fields
 
 ## Successor Domain Imports Still Touching siteconfig
 
-- `brand_experience`: `1` files
+- `brand_experience`: `3` files
 - `runtime_blueprints`: `1` files
 - `plans_entitlements`: `1` files
 - `global_registries`: `1` files
@@ -79,16 +70,16 @@ Total: `144` commands. First 25 by app/command:
 ## Largest Python Files
 
 - `apps/schools/marketing_page_definitions.py`: `2861` lines / `135837` bytes
-- `apps/schools/marketing_views.py`: `3034` lines / `120110` bytes
-- `apps/siteconfig/admin.py`: `3277` lines / `116827` bytes
+- `apps/schools/marketing_views.py`: `3034` lines / `120090` bytes
 - `apps/accounts/views.py`: `3009` lines / `114677` bytes
 - `apps/evals/views.py`: `3100` lines / `114435` bytes
 - `apps/api/views_v1.py`: `2468` lines / `103258` bytes
 - `apps/finance/models.py`: `2807` lines / `98407` bytes
-- `apps/siteconfig/models.py`: `2482` lines / `96669` bytes
-- `apps/siteconfig/views.py`: `2377` lines / `88300` bytes
+- `apps/siteconfig/admin.py`: `2798` lines / `97079` bytes
+- `apps/siteconfig/views.py`: `2457` lines / `91721` bytes
 - `apps/finance/tasks.py`: `2069` lines / `84718` bytes
-- `apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py`: `1495` lines / `63960` bytes
+- `apps/studio_os/views.py`: `1897` lines / `73246` bytes
+- `apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py`: `1497` lines / `64003` bytes
 - `config/settings.py`: `1382` lines / `61639` bytes
 
 ## Documentation Drift

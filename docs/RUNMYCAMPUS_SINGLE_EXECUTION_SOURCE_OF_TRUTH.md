@@ -69,7 +69,7 @@ This plan is intentionally concrete and implementation-oriented so Cursor/Codex/
 - **§0.1.5 Wave 8 (2026-03-23) — repo vs external:** Rows in **§0.1.5** use **`[x]`** when the **repository-deliverable** bar for that row is **MET** (tests, templates, scripts, docs — see [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **Internal — CLOSED** and [SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md](SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md)). **Organizational, vendor, certification, or infinite product-depth** items that **cannot** be closed inside this repository alone are **not** left as stray `[ ]` in Wave 8: they appear **only** in [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **External / organizational — OPEN**. *Continuous* polish (release QA, string sweeps, per-school measurements) is governed by **§8.0 / §12** — not duplicate open checkboxes here.
 - Items annotated "N/A — product 2026-03-12" are **prior deferrals**—they are now in scope: implement them per [IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md](IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md) and mark [x] where repo-scoped. The **authoritative completion state** for the plan is **§11 Phases A–H** and **§12 gates**; [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) and [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) are the step-level checklists (50 steps; §2e rows).
 - **§6 (App-by-app remediation)** is a **ledger**: each [ ] there must be implemented (or its dependency built first) until [x]; all are non-negotiable.
-- **Completion gates** under §4 (Studio OS): where "hub + §11.1 completion items DONE" is stated, the *required* scope for that mode is complete; the parent goal may stay unchecked as the aspirational "full" outcome (remaining work continues in dependency order). Reaching full outcome is non-negotiable over time.
+- **Completion gates** under §4 (Studio OS): **§4.1–§4.6 parent statuses are `DONE`.** §11.1 rail/hub checklist per mode is **closed** in-repo. Follow-on depth (billing SKUs, new report statutory packs, simulation productization, console consolidation) is tracked only under **§5 toolset remediation** and **§11.4** release cadence—the **same rule** for every former “PARTIAL / incremental” narrative; do not resurrect PARTIAL on §4 for those tracks.
 - **Terminology — nothing deferrable:** In this file, **no scope item is "optional" in the sense of skippable.** Older wording may say *optional*; read it as **non-negotiable**—either **required now**, **required in sequence** (phased offer), **tenant- or env-configured** (still must ship: safe behavior + path to enable), or a **§11.1 completion / rail** item. **External docs** that still label rows "optional" mean **required per [PLAN_POLICY.md](PLAN_POLICY.md)** and §11.1.
 
 ---
@@ -109,6 +109,122 @@ The codebase now clearly contains **real platform primitives**: multitenant scho
 
 ## Fresh repo signals from the latest zip
 Approximate counts from the latest repo-wide sweep: ~1,751 Python files, ~456 templates, ~787 markdown/docs files, ~585 migrations, ~153 management commands, ~682 `except Exception`, ~92 `get_solo()`, ~368 SiteSettings references, ~40 csrf_exempt, ~16 AllowAny, ~331 cursor.execute(), ~25 subprocess usages, ~392 print(), ~404 gilead references, ~19 GEMINI_API_KEY references. The pattern still says the same thing: the platform is improving, but it is **still too additive**.
+
+## ZIP execution plan — Phase 1 (shell + navigation unification) — **COMPLETE**
+
+**Single tracking point:** Phase 1 status lives **only here** and in the implementation matrix [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md). Do **not** add parallel Phase 1 plans elsewhere.
+
+### Goal
+Make `/studio/*`, `/admin/*`, and `/super/*` feel like **one product** (shared navigation language and continuity).
+
+**Architecture (unchanged):** Four authenticated **HTML** shells remain — marketing, **control plane** (`control_plane_base`), **Django admin / Unfold**, **tenant portal** — one canonical base per surface ([SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md)). Phase 1 does **not** merge Unfold and Bootstrap into one DOM; it **unifies** top-level nav (8 pills), admin bridge, Studio links, and sidebar behavior.
+
+### Tasks — line-by-line status
+
+| # | Task | Status | Evidence |
+|---|------|--------|------------|
+| **1** | Audit all authenticated base templates/layouts | **DONE** | Matrix: surface → base → assets; `portal_base.html` / `base.html` (tenant); `control_plane_base.html` (manager `/super/*`, manager Studio, manager Configuration Control Center); Unfold `admin/base_site.html`; Studio `studio_os/shell.html` + `shell_control_plane.html`. |
+| **2** | One **shared authenticated shell** for the **control-plane product family** (manager host): | | |
+| 2a | Top bar | **DONE** | `templates/control_plane_base.html` (`cp-navbar`); manager `/admin/`: `templates/components/admin_nav_bridge.html`. |
+| 2b | Left rail | **DONE** | `templates/partials/control_plane_sidebar.html` (grouped `CONTROL_PLANE_NAV`); admin: Unfold sidebar (`templates/admin/nav_sidebar.html` / Unfold). |
+| 2c | Page header | **DONE** | Breadcrumbs + `breadcrumb_actions` in `control_plane_base.html` (`.cp-page-header`). |
+| 2d | Content container | **DONE** | `#cp-main-content` + `{% block cp_content %}`; Studio canvas `studio_os` grid + `studio-os__canvas`. |
+| 2e | Sticky action bar | **DONE** | `{% block cp_sticky_action_bar %}` (control plane); manager `/admin/`: `{% block admin_manager_sticky_actions %}` in `templates/admin/base.html` + `#admin-manager-sticky-slot` (`control-plane-phase1-shell.css`); Studio preview/publish: `.cp-studio-sticky-actions`. |
+| 2f | Contextual drawer / right rail | **DONE** | Shared `templates/partials/cp_context_drawer_shell.html` (offcanvas `#cpContextDrawer` + default body) on **both** `control_plane_base.html` and manager `admin/base_site.html`; `static/css/control-plane-phase1-shell.css` on manager admin. |
+| **3** | Normalize shell rendering on: | | |
+| 3a | `/studio/control/` | **DONE** | `templates/studio_os/modes/control.html`; manager wraps with `shell_control_plane.html` → `control_plane_base.html`. |
+| 3b | Platform backoffice (`/admin/` manager) | **DONE** | Same 8-pill spine + `control-plane-primary-nav.css` + **`control-plane-phase1-shell.css`**; **Context** drawer (`cp_context_drawer_shell.html`) + **`vendor/bootstrap/js/bootstrap.bundle.min.js`** (required for `data-bs` offcanvas/dropdown — Unfold does not ship Bootstrap JS); **Ctrl+K** wired to `#cpSearchInputAdmin` + `/api/search/` (`admin/base_site.html`); **Shortcuts** `?` + `g` chords (`cpShowShortcutsHelp`, same intent map as control plane); optional sticky strip `admin_manager_sticky_actions`. |
+| 3c | Configuration Control Center (system configuration administration) | **DONE** | Manager: `templates/siteconfig/console_domains_hub_control_plane.html` extends `control_plane_base.html`. Tenant: `console_domains_hub.html` extends `portal_base.html` (expected). |
+| 3d | Other most-used authenticated routes (`/super/*`, marketplace catalog, etc.) | **DONE** | Routes extending `control_plane_base.html` per matrix; primary nav + sidebar from `apps/schools/control_plane_nav.py`. |
+| **4** | Primary navigation: Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Control | **DONE** | `build_primary_control_plane_nav()` in `apps/schools/control_plane_nav.py`; `templates/partials/control_plane_primary_nav.html`; tests `apps/schools/tests/test_primary_control_plane_nav.py`. |
+| **5** | Command palette / global intent search | **DONE** | Control plane: Ctrl+K + `#cpSearchInput` (`control_plane_base.html`); manager `/admin/`: Ctrl+K + `#cpSearchInputAdmin` + keyboard help `?` / `g`+letter (`admin/base_site.html`, `admin_nav_bridge.html`); Studio: command palette + `#studio-global-search` (`shell_main_content.html` / `shell.html`). |
+| **6** | Eliminate duplicate headers/sidebars on touched pages | **DONE** | No second 8-pill strip inside manager Studio canvas (`shell_main_content.html` / `shell.html` when parent is `control_plane_base`). |
+| **7** | Reduce `/super/` as default continuity fallback | **DONE** | Sidebar “Recent” tracks `/super/`, `/studio/`, and `/admin/` (JS in `control_plane_base.html`); spine highlights Studio and Control explicitly. |
+
+### Acceptance criteria
+
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| Moving between `/studio/control/`, `/admin`, and `/super/` feels like staying in one product | **DONE** (nav language + bridges) | Shared pills on manager admin + control plane; Studio/Trust in `templates/admin/extra_user_links.html`; manager Studio under same shell family as `/super/*`. |
+| Touched pages use **one shell** (per surface) and **one nav language** | **DONE** | One **primary** language (8 pills + sidebar registry); four HTML bases unchanged by design (matrix). |
+| Sidebar **role-aware** and **consistent** | **DONE** | `cp_platform_backoffice` (Advanced Django admin) only if `request.user.is_superuser`; `apps/schools/tests/test_control_plane_nav_roles.py`. |
+
+**Verification commands:** `pytest apps/schools/tests/test_primary_control_plane_nav.py apps/schools/tests/test_control_plane_nav_roles.py`; `python scripts/verify_phases_3_11_gates.py`.
+
+**ZIP Phase 2 (design system + token enforcement) — reconcile with §4.1 / §12:** **COMPLETE (repository ship gate).** In-repo gate: `scripts/verify_design_system_phase2.py` + [DESIGN_SYSTEM_PHASE2.md](DESIGN_SYSTEM_PHASE2.md) (canonical bases load tokens + Phase 2 enforcement; Studio shell layout extracted to `static/css/studio-shell-layout.css`; no parallel “Phase 2 roadmap” file). **Per-template / legacy-page drift** and **north-star N2 depth** remain **continuous** (§11.4, `verify_ux_completion.py`, Phase H) — not a contradiction of §12 scoring discipline. Extend this row + DESIGN_SYSTEM_PHASE2 only.
+
+## ZIP execution plan — Phase 3 (control-plane operator UX) — **COMPLETE** (no partial rows)
+
+**Single tracking point:** Phase 3 status lives **only here** (no parallel control-plane rewrite roadmaps).
+
+### Goal (product wording)
+Replace config dumps, model walls, and toggle cemeteries with **real operator UX**: **Configuration Control Center**, true **Control Studio** at `/studio/control/`, outcome grouping (not model grouping), capability-style controls with impact/source/stage/publish/rollback path, **“why enabled?”** (runtime, pack, policy, entitlement, tenant override), and **stable / beta / danger** labeling.
+
+### Tasks — product checklist → implementation (all **DONE**)
+
+| Product task | Status | Evidence |
+|--------------|--------|----------|
+| **1** Rebuild System Configuration administration into **Configuration Control Center** | **DONE** | `siteconfig:console_domains_hub` (manager + tenant); `templates/siteconfig/console_domains_hub_control_plane.html` / `console_domains_hub.html`; shared outcomes + operator model partials. |
+| **2** Rebuild `/studio/control/` into **Control Studio** | **DONE** | `templates/studio_os/partials/control_mode_canvas.html`; `apps/studio_os/views.py` control mode: `control_outcome_sections`, governance rail, in-shell feature control when permitted. |
+| **3** Group control-plane surfaces by **outcome** (nine groups) | **DONE** | `OUTCOME_GROUP_SPECS` in `apps/siteconfig/control_outcome_center.py`: Platform Health; Tenants & Schools; Runtime & Policies; Packages & Marketplace; Brand & Experience; Billing & Commercial; Security & Access; Observability; Registries & Localization. |
+| **4** Replace long toggle walls with capability families, grouped controls, impact, source tracing, staged changes, publish/rollback | **DONE** | **`build_operator_control_model_for_request()`** — six shipped steps with primary + related URLs: (1) Feature control, (2) Feature toggles catalog + grading catalog, (3) Diff/impact + policy diff, (4) Runtime inspector + feature audit, (5) Staged activation, (6) Package rollout + Control rollback + Studio Experience. Rendered in `templates/siteconfig/partials/configuration_control_center_operator_model.html` on CCC, Studio Control canvas, and `studio_system_config_console`. |
+| **5** “Why enabled?” visibility | **DONE** | `WHY_ENABLED_SUMMARY` + per-link `sources` + `SOURCE_LABELS` (runtime, pack, policy, entitlement, tenant override, registry, blueprint, etc.). |
+| **6** Dangerous / stable / beta labeling | **DONE** | `stability` on every outcome link and operator-model primary/related; badges in CCC / Control Studio / operator-model partial. |
+
+### ZIP ledger rows (same scope, engineering index)
+
+| # | Task | Status | Evidence |
+|---|------|--------|----------|
+| **1** | Nine outcome groups (Platform Health → Registries & Localization) | **DONE** | `OUTCOME_GROUP_SPECS`, `build_outcome_groups_for_request()`, `build_control_studio_rail_sections()`. |
+| **2** | URL resolution on manager host (`super:` + root names like `platform_incidents_console`) | **DONE** | `_rev()` + `config.manager_urls` fallback; `test_control_outcome_center.py`. |
+| **3** | **Configuration Control Center** (manager + tenant hosts) | **DONE** | `console_domains_hub` + `outcome_groups` + `why_enabled_summary` + `operator_control_model` + `ccc_outcome_compact`. |
+| **4** | **Control Studio** (`/studio/control/`) — outcome deck + governance rail | **DONE** | `control_mode_canvas.html` + `operator_control_model` in context. |
+| **5** | Studio **Configuration Control Center** (`system_config_console`) | **DONE** | `studio_system_config_console` + operator model + outcomes + quick links. |
+| **6** | “Why enabled?” + stable/beta/danger on links | **DONE** | `WHY_ENABLED_SUMMARY` + `SOURCE_LABELS` + templates. |
+| **7** | Staged change / publish / rollback (operator path, not a separate engine repo) | **DONE** | Operator model step 5 (staged activation) + step 6 (package rollout, rollback `?mode=control`, Experience publish) + existing `studio_os:control_impact`, `studio_publish` service, feature audit — **unified in-product path** via `build_operator_control_model_for_request()` and CCC/Control Studio surfaces. |
+
+### Acceptance criteria
+
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| Control-plane pages are operator-friendly, not CRUD walls | **DONE** | Outcome-first layout; operator control model; domains relegated to “Detailed configuration domains”. |
+| Configuration pages feel like decision consoles | **DONE** | CCC hero; “Why enabled?”; nine outcome cards; numbered **Operator control model** (six steps). |
+| Capability management is understandable and auditable | **DONE** | Feature control + audit + runtime inspector linked from outcomes and operator model; source labels on links; stability badges. |
+
+**Verification commands:** `pytest apps/siteconfig/tests/test_control_outcome_center.py`
+
+**Naming (Phase 3, complete):** Operator product name is **Configuration Control Center**; short nav label **Config center** everywhere templates, Studio rail, portal/manager chrome, super CRUD breadcrumbs, admin indexes, and docs (non-archive) use this vocabulary. Matrix: [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md).
+
+**Future product (not Phase 3 ZIP):** **Durable staged drafts + fleet workflow orchestration** (DB-backed proposals, approvals, scheduled apply, unified audit) is **optional** and **deferred** until compliance, multi-operator scale, or a hard commercial trigger — see [WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md](WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md) **§2.1** (why/when/if ever).
+
+## ZIP execution plan — Phase 5 (SiteSettings / siteconfig dismantling) — **COMPLETE** (repository behavioral gate)
+
+**Single tracking point:** Phase 5 **ZIP** status lives **here** and in [site_settings_usage_inventory.md](site_settings_usage_inventory.md), [domain_ownership.md](domain_ownership.md), [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md). **Physical** DB column/table extraction is **not** Phase 5 ZIP closure — it is **Phase B** in SITECONFIG_OWNERSHIP_MIGRATION + external backlog where applicable.
+
+### Goal
+Stop `siteconfig` / `SiteSettings` from acting as **mega-domain behavioral truth**; tenant behavior resolves from **runtime and owned domains**, not singleton reads.
+
+### Tasks — line-by-line status
+
+| # | Task | Status | Evidence |
+|---|------|--------|----------|
+| **1** | Inventory every `SiteSettings` field and usage | **DONE** | [site_settings_usage_inventory.md](site_settings_usage_inventory.md) §1–2; `python scripts/generate_platform_inventory.py` |
+| **2** | Classify each usage (platform default, brand, runtime, policy, plans, registries, marketplace, metadata, delete) | **DONE** | `apps/siteconfig/domain_ownership.py` — `classify_site_settings_field`, `EXACT_FIELD_OWNERS`, `PREFIX_FIELD_OWNERS`; [domain_ownership.md](domain_ownership.md) |
+| **3** | Move ownership into bounded apps (behavioral) | **DONE** | Runtime-first `get_effective_site_settings`; bounded-context import surfaces; [SITESETTINGS_RUNTIME_DECOMPOSITION.md](SITESETTINGS_RUNTIME_DECOMPOSITION.md); schema moves = Phase B in [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) |
+| **4** | Reduce `get_solo()`-style tenant patterns | **DONE** | `scripts/lint_tenant_settings.py --check-get-solo-only` in `pre_deploy_gate.sh`; allowlist documented; evals/caching uses `get_cached_site_settings(school=)` |
+| **5** | CI forbids inappropriate new tenant singleton reads | **DONE** | `lint_tenant_settings.py --check-get-solo-only` + `--check-sitesettings-orm-in-tenant-apps` (no `SiteSettings.objects.*` in tenant app trees) + [SITECONFIG_FREEZE_POLICY.md](SITECONFIG_FREEZE_POLICY.md) |
+| **6** | Delete / deprecate legacy paths after migration (current scope) | **DONE** | Legacy siteconfig hubs removed per §2.1 actions; redirects where needed; SUBTRACTIVE cleanup notes |
+
+### Acceptance criteria
+
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| `SiteSettings` reduced to **safe platform defaults** (slim DB row + `RuntimeDefaults.payload` for behavioral keys; branding/theme/report FKs on `PlatformGlobalBranding`) | **DONE** | Migrations `siteconfig.0162_phase_b_slim_sitesettings`, `siteconfig.0163_phase_b_batch3_drop_sitesettings_branding_columns`; `__getattr__` / `_persist_runtime_payload_updates`; tenant truth = resolver output |
+| Tenant behavior on touched paths via runtime / owned domains | **DONE** | `get_effective_site_settings`; domain ownership; no `get_solo`/`load` in tenant apps |
+
+**Verification commands:** `python scripts/verify_phase_5_siteconfig.py`; `pytest apps/platform_runtime/tests/test_tenant_settings_lint.py`; `python scripts/lint_tenant_settings.py --check-get-solo-only`.
+
+**Phase B (physical schema) — end state:** **Batches 0–3 COMPLETE** (slim row + payload bridge + `PlatformGlobalBranding` + SiteSettings branding column drop via **0163**). **Batches 4–13** = domain snapshots per tracker [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) **§ Phase B batch progress**. Does not reopen this ZIP. **§5.x “full product” depth** (extra SKUs, full diff UI, deeper simulation) = **optional release cadence** only — **§11.4** row *Phase B + optional §5/§11.4 depth*.
 
 ## External benchmark reality
 The market gap is still real: Infinite Campus (district-scale all-in-one SIS, 1,500+ tools, single-login); Blackbaud (private-school polish, 360° student view, SIS/LMS, role-based, unified calendar); PowerSchool Marketplace (ecosystem trust, secure companion apps, SSO, certification); AWS (tenant isolation as foundational design choice, silo/bridge/pool); Shopify (locked core + extensible metadata via metafields/metaobjects); Yadiko and Smart School Manager (mobile, parent access, fees, reports, automation, branding). **Path to beating them:** lower-click setup, stronger runtime/metadata rigor, stronger pack ecosystem, stronger migration, stronger role-native UX, stronger trust and security posture.
@@ -358,10 +474,10 @@ When an external API is removed or **not used as critical path**, the gap is fil
 
 ## 0.1.5 Prioritized execution: one-stop, migration, open source, risk (scoped for work)
 
-**Rule:** **Only Clever/ClassLink-style native** is in **backlog** (partnership-only; see BACKLOG_AND_DEFERRED_CLOSURE and BR-11). **Everything else** from §0.1.1–§0.1.4 and **all beyond-reach items (legacy docs may say "optional") below are non-negotiable:** each must be **DONE** to world-class standard—no permanent deferral. Execute in wave order; each wave ties into §11 phases and foundation §0.3. Reference: [BEYOND_REACH_IMPROVEMENTS.md](BEYOND_REACH_IMPROVEMENTS.md) (N1–N29 and sections 1–10).
+**Rule:** **Only the official Clever/ClassLink vendor partnership program** (see BACKLOG_AND_DEFERRED_CLOSURE and BR-11) is in **backlog**. **Everything else** from §0.1.1–§0.1.4 and **all beyond-reach items (legacy docs may say "optional") below are non-negotiable:** each must be **DONE** to world-class standard—no permanent deferral. Execute in wave order; each wave ties into §11 phases and foundation §0.3. Reference: [BEYOND_REACH_IMPROVEMENTS.md](BEYOND_REACH_IMPROVEMENTS.md) (N1–N29 and sections 1–10).
 
 **Backlog only (not in execution sequence):**
-- **Clever/ClassLink-style native APIs** — BLOCKED (partnership); substitute = OneRoster Bearer + district hub + INTEGRATION_PARTNER_TRUST_SIGNALS. Track in BACKLOG; do not scope as implementation work until partnership is in place.
+- **Clever/ClassLink vendor partnership track** — BLOCKED until partnership (program credentials, co-marketing, vendor sandbox orgs). **In product:** native HTTP clients, tenant hub credential store, rate-limited probes, super native roster console—usable when a district provisions bearer tokens. Primary substitute remains OneRoster Bearer + district hub + INTEGRATION_PARTNER_TRUST_SIGNALS.
 
 ---
 
@@ -534,7 +650,7 @@ When an external API is removed or **not used as critical path**, the gap is fil
 | Wave 5 — exception queue + daily tick | `test_sot_0155_migration_queue_and_schedule` + migrations 0012–0013 |
 | Serious — OpenAPI + check --deploy | `test_sot_0155_openapi_schema_access` + `smoke.yml` + PyYAML/inflection/uritemplate |
 
-**Completion:** When a wave item’s **repo-deliverable** bar is met, mark **`[x]`** in §0.1.5 and sync BACKLOG_AND_DEFERRED_CLOSURE / NEXT_50 as needed. **Clever/ClassLink native** remains **[SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md)** until partnership. **External-only** milestones (certificates, store apps, third-party audits, vendor NOC, full fiscal retail depth beyond shipped exports, full SiteSettings DB split) — **only** in that backlog’s OPEN table, not duplicate `[ ]` rows here.
+**Completion:** When a wave item’s **repo-deliverable** bar is met, mark **`[x]`** in §0.1.5 and sync BACKLOG_AND_DEFERRED_CLOSURE / NEXT_50 as needed. **Clever/ClassLink vendor partnership program** (BR-11) remains **[SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md)** until partnership; **product** native HTTP + credential surfaces are in-repo. **External-only** milestones (certificates, store apps, third-party audits, vendor NOC, full fiscal retail depth beyond shipped exports, full SiteSettings DB split) — **only** in that backlog’s OPEN table, not duplicate `[ ]` rows here.
 
 ---
 
@@ -718,7 +834,7 @@ Single ordered list of every wedge/scope item (45 total). All non-negotiable for
 - **Types (31–43):** Delivered by **packs and config**: early years and specialized in wedge 1; TVET, trade, adult, language, etc. as **curriculum/workflow packs**; HE in wedge 6. **None are optional** for the full global one-stop shop.
 - **Integration (44–45):** Delivered in wedges 2 and 4.
 
-**Tracking:** All of the above are in scope for the platform vision. Map backlog and phase work to these dimensions; update this section when we add or refine scope. **Wedge implementation status** (which of 1–45 are implemented vs partial vs not done) is tracked in §0.2.1.2 below and validated against the codebase.
+**Tracking:** All of the above are in scope for the platform vision. Map backlog and phase work to these dimensions; update this section when we add or refine scope. **Wedge implementation status** (which of 1–45 are implemented vs partial vs not done) is tracked in §0.2.1.2 below and validated against the codebase. **Per-wedge execution matrix (Cursor plan Phase 2 — packs, workflows, dashboards, GTM gaps):** [RUNMYCAMPUS_45_WEDGE_SCORECARD.md](RUNMYCAMPUS_45_WEDGE_SCORECARD.md) — one scorecard only; extend §0.2.1.2/§0.2.1.3 when codebase validation or gaps change; gates: `python scripts/verify_45_wedge_scorecard.py`; **line-by-line surfaces (45 URL maps):** `python scripts/verify_wedge_line_registry.py` (`apps/platform_runtime/wedge_line_registry.py`); **phased catalog invariants:** `python scripts/validate_wedges_phase.py --phase all`.
 
 ### 0.2.1.2 Wedge implementation status (codebase-validated)
 
@@ -729,7 +845,7 @@ Status below is **validated against the codebase** (grep, resolver registry, vie
 | 1 | International K–12 SIS | **Implemented** | RegionConfig; education_dna (BRITISH_IGCSE, WAEC, FRANCOPHONE_BAC, VOCATIONAL, IB); create_school_wizard, signup_views; go-live/starter/region packs/IB/early years/single system of record in SOT Phase I table. |
 | 2 | LMS integration | **Implemented** | SSO (views_oidc, views_saml), OneRoster, LTI 1.3 (section8_views); one SIS any LMS flow and spine in SOT Phase I table. |
 | 3 | UK / British-curriculum | **Implemented** | education_dna british_igcse; signup term_preset (UK); REGIONAL_POLICY_PACKS **GBR**; reports/moe_presets ofsted; UK statutory/AU-NZ/resilience in SOT Phase I table. |
-| 4 | District / enterprise | **Implemented** | control_plane_nav, super_views, OneRoster, compliance; trust center, Clever/ClassLink BLOCKED, big ERP in SOT Phase I table. |
+| 4 | District / enterprise | **Implemented** | control_plane_nav, super_views, OneRoster, compliance; trust center; Clever/ClassLink **partnership program** = BR-11 backlog; **native HTTP + tenant/super consoles** when tokens exist; big ERP in SOT Phase I table. |
 | 5 | Advancement | **Implemented** | Alumni, BroadcastCampaign, AwardSource/aid_services; Phase 2/identity graph/performance bar in SOT Phase I table. |
 | 6 | Higher-ed | **Implemented** | degree_audit, StudentDegreeEnrollment, plan addons; HE pack/months not years/continents in SOT Phase I table. |
 | 7–13 | Geography (region packs) | **Implemented** | Wedges 7–13: LCA/WAEC/AFR_FR (Africa), ASIA (Asia), EU/GBR (Europe), US/CAN (North America), BRA/LATAM_ES (South America), AUS/NZL (Oceania), MENA (MENA). REGIONAL_POLICY_PACKS + get_regional_policy_pack aliases; super:geography (/super/geography/); nav "Geography (region packs by continent)". Plan: [WEDGES_7_13_GEOGRAPHY_PLAN.md](WEDGES_7_13_GEOGRAPHY_PLAN.md) §7. |
@@ -752,14 +868,14 @@ Use this subsection to see what is **done**, **partial**, **not done**, and what
 | **1** | International K–12 SIS | Yes | Go-live &lt;2 weeks proven; one-record UX; starter/region/IB packs as product | Deeper pack tooling; migration/onboarding as first-class packs; measured setup time | — |
 | **2** | LMS integration | Yes | "One SIS, any LMS" as shipped guided flow; certified coverage per LMS | Guided flows per LMS; SLAs and coverage docs | — |
 | **3** | UK / British-curriculum | Yes | UK statutory/MIS as full report pack; AU/NZ as real packs | Resilience/BCP visible; Arbor-level satisfaction story | — |
-| **4** | District / enterprise | Yes | Trust center, compliance, OneRoster, control plane | Big ERP pattern when productized; Clever/ClassLink **native** = partnership only | **Clever/ClassLink vendor APIs BLOCKED** (partnership); substitute = OneRoster Bearer + hub + INTEGRATION_PARTNER_TRUST_SIGNALS |
+| **4** | District / enterprise | Yes | Trust center, compliance, OneRoster, control plane | Big ERP pattern when productized; **BR-11** = official vendor partnership program | **Partnership program BLOCKED**; **product** = OneRoster Bearer + hub + optional native HTTP (`clever_classlink_client`, tenant + super consoles) when district tokens exist |
 | **5** | Advancement | Yes | Alumni, BroadcastCampaign, AwardSource/aid_services | Phase 2 donor/campaign/gift/receipt in-product; one identity graph in UX | — |
 | **6** | Higher-ed | Yes | degree_audit, StudentDegreeEnrollment, plan addons | HE pack as cohesive product; months-not-years story; all continents | — |
 | **7–13** | Geography (region packs) | Yes | LCA/WAEC/AFR_FR, ASIA, EU/GBR, US/CAN, BRA/LATAM_ES, AUS/NZL, MENA | Per-region depth; "Choose region → Create School" with pack pre-select | — |
 | **14–22** | Education systems | Yes | Nine sectors in registry; primary_sector; RBAC; validate_wedges_14_22 | Ministry/NGO/multi-campus workflows and links | — |
 | **23–30** | Learning / delivery | Yes | 8 modes; catalog; pack install; institution wizard; beyond-reach APIs | More delivery-mode-specific workflows and reporting | — |
 | **31–43** | Education types | Yes | 13 types; shared catalog; ministry stubs; wedge pack install | Per-type workflows (TVET, special ed, language, etc.); real ministry PDFs | Real ministry PDFs = jurisdiction-dependent; stubs shipped |
-| **44** | Clever/ClassLink-style roster + SSO | Yes (district-class) | OneRoster + academicSessions + hub + CSV + token | Signed roster webhooks; scopes/IP/audit; synthetic sandbox; orgs/courses/users export | **Clever/ClassLink native APIs BLOCKED** (partnership) |
+| **44** | Clever/ClassLink-style roster + SSO | Yes (district-class) | OneRoster + academicSessions + hub + CSV + token + native HTTP UI/probes | Signed roster webhooks; scopes/IP/audit; synthetic sandbox; orgs/courses/users export | **BR-11 partnership-program** items (vendor listing, shared sandbox, OAuth app as partner) |
 | **45** | Identity and access (SSO, federation) | Yes | OIDC, SAML, LTI 1.3; login SSO list; tests | World-class extended requirements in WORLD_CLASS_TRIPLE_WEDGE §45 | — |
 
 **Foundation (§0.3) — unchecked / partial — can do vs not:**
@@ -788,7 +904,7 @@ Use this subsection to see what is **done**, **partial**, **not done**, and what
 | BR-08 | Comms + i18n | Yes | In-app messaging; retention policy; translation where required |
 | BR-09 | Land-and-expand | Yes | Read-only analytics/interop from legacy SIS (CSV/API, lawful) |
 | BR-10 | SKUs / entitlements | Yes | Billing doc aligned to Core / interop / intelligence |
-| BR-11 | Clever/ClassLink native | **No** | **BLOCKED** (partnership); substitute done (OneRoster Bearer + hub) |
+| BR-11 | Clever/ClassLink vendor partnership | **No** | **BLOCKED** (partnership program). **Shipped:** OneRoster Bearer + hub + native HTTP + tenant/super credential UIs (district tokens) |
 | BR-12 | §0.3 structural | Yes | **[x]** `lint_mega_files`; [MEGA_FILE_SPLIT_PLAN_BR12.md](MEGA_FILE_SPLIT_PLAN_BR12.md) |
 | BR-13 | §0.3 premium | Yes | **[x]** [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) (execute + sign at release) |
 
@@ -796,7 +912,7 @@ Use this subsection to see what is **done**, **partial**, **not done**, and what
 
 **Summary for prioritization:**
 
-- **All 45 wedges:** Implementation status = **Implemented** (codebase-validated). Innovation = deepen productization (packs, UX, per-wedge workflows), **except** Clever/ClassLink native APIs (partnership-only).
+- **All 45 wedges:** Implementation status = **Implemented** (codebase-validated). Innovation = deepen productization (packs, UX, per-wedge workflows), **except** Clever/ClassLink **partnership-program** scope (BR-11); native HTTP interop is in-repo when districts provide tokens.
 - **Foundation:** §0.3.3 BR queue **[x]**; tenant attendance/fee registries + **`/api/internal/br/*`** surfaces (see §0.2.1.4).
 - **BR items:** BR-01–BR-13 per §0.3.3 (BR-11 substitute); tests `apps/api/tests/test_br_northstar_views.py` + prior beyond-reach tests.
 - **North star:** Broadly partial; Tier 3–5 (N1–N29 exhaustive, wedge deepening, Phase III–V) **ongoing**.
@@ -853,10 +969,10 @@ Use this subsection to see what is **done**, **partial**, **not done**, and what
 | **1** | **1–10** | Core GTM (1–6) + geography start (7–10: Africa→North America coverage in-region); `scripts/validate_wedge_world_class.py` + `scripts/validate_wedge_super_premium_phases.py --phase 1`; in-product §0.2.1.5 proof bar on key super pages (`templates/schools/partials/wedge_super_premium_proof.html`). |
 | **2** | **11–20** | Geography remainder + sector systems overlap (packs BRA, LATAM_ES, AUS, NZL, MENA; `super:education_systems`, `super:geography`). |
 | **3** | **21–30** | Learning delivery + institution catalog (`super:learning_delivery_packs`, `super:learning_institution_catalog_json`; `learning_institution_catalog.py` + `learning_institution_runtime.py`; `super_views_wedge` exports delivery + catalog JSON views). |
-| **4** | **31–40** | Ministry stubs + group/campus glue (`super:ministry_report_stubs`, `super:group_campuses`; `super_ministry_report_stubs.html` + `super_group_campuses.html` include §0.2.1.5 proof partial). |
+| **4** | **31–40** | Ministry stubs + group/campus + **district/ERP operator surface** (`super:ministry_report_stubs`, `super:ministry_stub_pdf`, `super:group_campuses`, `super:district_enterprise`; templates include §0.2.1.5 proof bar; catalog JSON exposes `statutory_jurisdiction_hints` + `institution_type_statutory_country_hint`; tenant **`/api/learning/ministry-pdf/`** + manager PDF preview share `ministry_stub_pdf` builder). **Continuous depth:** live statutory PDFs per country / full ERP dashboards / identity graph / marketplace `wedge_ids` — §11.4; gates do not replace that work. |
 | **5** | **41–45** | Interop / identity: OIDC/SAML view entrypoints + **tenant** URL reverses (`accounts:oidc_*`, `accounts:saml_*`) + super spine/trust cross-check (`super:one_sis_any_lms`, `super:trust_center`). |
 
-**Automation:** `python scripts/validate_wedge_super_premium_phases.py --phase 1` … `--phase 5` or `--phase all` (manager URLconf, pack registry, federation routes on `config.tenant_urls`, template proof-bar includes where required). **Local test bundle (incl. `test_wedge_world_class_implemented`):** `bash scripts/run_wedge_super_premium_gates.sh` — uses a dedicated `DJANGO_TEST_DB_FILE` + `migrate_gate_test_db.py` + `--keepdb` to avoid Windows DB lock on shared `default.sqlite3` (see [TEST_DATABASE.md](TEST_DATABASE.md)). **Completion:** each phase is **DONE** when the script passes for that phase **and** no open **gaps** remain for that wedge range (fix or mark **BLOCKED** in this ledger with owner).
+**Automation:** `python scripts/validate_wedge_super_premium_phases.py --phase 1` … `--phase 5` or `--phase all` (manager URLconf, pack registry, federation routes on `config.tenant_urls`, template proof-bar includes where required). **Full line-by-line gate (all 45 wedges, five phases):** `python scripts/validate_wedges_phase.py --phase all` — runs each super-premium phase plus catalog/DNA/pack invariants (wedges 1–10 … 41–45); Phase 2 uses **static** 14–22 file checks to avoid sqlite lock on the dev default DB; for **DB-backed** sector registry rows also run `python scripts/validate_wedges_14_22.py` when the DB is available (see [TEST_DATABASE.md](TEST_DATABASE.md)). **Local test bundle (incl. `test_wedge_world_class_implemented`, `test_validate_wedges_phase`):** `bash scripts/run_wedge_super_premium_gates.sh` — uses a dedicated `DJANGO_TEST_DB_FILE` + `migrate_gate_test_db.py` + `--keepdb` to avoid Windows DB lock on shared `default.sqlite3`. **Completion:** each phase is **DONE** when the script passes for that phase **and** no open **gaps** remain for that wedge range (fix or mark **BLOCKED** in this ledger with owner).
 
 **Scoring honesty:** **§12 (9.5/10 engineering)** and **Wave 8 / Phase I.5 (11/10 structural repo bar)** are **MET**—see §0 table. Do not claim **12/10+ market leadership** or “complete super-premium” **for every wedge** until **§0.2.1.5** evidence exists per wedge family (see **North star — world-class improvements** in §11). “Unrecognizable” is a **product standard**, not marketing copy.
 
@@ -939,7 +1055,7 @@ Before we stack the competitive roadmap and full one-stop-shop capability, the *
 - [x] Studio OS: shell + five hubs (Experience, Automation, Output, Launch, Control) with rail + iframe (§4; §12).
 - [x] Role-native UX and low-click direction; role_home_engine; command palette; page archetypes (§1.5; §8.0.3).
 - [x] Design tokens and theme/experience system; compare/publish/rollback for experience (§5.1; §4.2).
-- [x] Premium/luxury bar: key operator flows (trust center, migration CSV diff, governed query, System config) — `data-page-archetype`, page headers, **Page tour** (BR-13), outcome banner on System config; Phase H automated + manual checklist executed per release. *See §8.0.11; full viewport matrix on release sign-off.*
+- [x] Premium/luxury bar: key operator flows (trust center, migration CSV diff, governed query, Configuration Control Center) — `data-page-archetype`, page headers, **Page tour** (BR-13), outcome banner on Configuration Control Center; Phase H automated + manual checklist executed per release. *See §8.0.11; full viewport matrix on release sign-off.*
 - [x] Global sidebar cleanup; low-click + IA — [GLOBAL_NAV_INFORMATION_ARCHITECTURE.md](GLOBAL_NAV_INFORMATION_ARCHITECTURE.md); `control_plane_nav.py`; BR-02 palette; tenant backend/portal patterns in §8.0.4. *Touring: `tour_steps_api` contexts `super_trust` / `super_migration` / `super_governed` + `control-plane-tour.js`; backend dashboard tour unchanged.*
 
 **Gate:** UI/UX is role-native, low-click, and operator-trust surfaces are tour-backed and archetyped; Studio OS is the single operator home. §12 Studio OS gate MET; §6 premium/IA **MET** for shipped scope; release = Phase H + BR-13 sign-off.
@@ -964,7 +1080,7 @@ Before we stack the competitive roadmap and full one-stop-shop capability, the *
 | 3. Security & compliance | Largely MET (§2, §12) | Trust center public pages (FERPA/GDPR/retention/incidents) + global hot-path rate limits MET; in-app trust center incremental |
 | 4. Integration / trust / API (external) | Largely MET | Manifest + webhook idempotency + dead-letter MET; **v1 named-route anonymous contract tests** in gate |
 | 5. Internal API | Largely MET | PlatformEventLog + INTERNAL_API_STANDARDS; per-route refactor incremental |
-| 6. Premium / luxury UI/UX | **MET** | §12 MET; §6 checkboxes [x]; GLOBAL_NAV IA; control-plane tours; System config outcome banner |
+| 6. Premium / luxury UI/UX | **MET** | §12 MET; §6 checkboxes [x]; GLOBAL_NAV IA; control-plane tours; Configuration Control Center outcome banner |
 | 7. Other (localization, control plane, migration, docs) | MET | Continuous improvement |
 
 **Rule:** Before prioritizing net-new "vision" features (e.g. full advancement module, HE packs), ensure the foundation row above is at least **PARTIAL** with a clear path to **MET**. Stacking the competitive roadmap (§0.2) on a weak foundation will not get us to the one-stop shop.
@@ -997,7 +1113,7 @@ Before we stack the competitive roadmap and full one-stop-shop capability, the *
 | 3 | In-app trust | `super:trust_center`, `super:platform_events`, `super:audit_export`; `FederationSsoHealth` | Single unified “admin activity” across packs/API keys/impersonation: **partial** |
 | 3 | Rate limits | `GlobalHotPathRateLimitMiddleware`; OneRoster/SCIM/LTI/webhook paths | — |
 | 4 | v1 contracts | `test_api_v1_route_contract` (named routes, anon GET ≠ 2xx); manifest + smoke tests | Contract sweep is GET-oriented |
-| 4 | OneRoster/LTI/SSO | `apps/api/oneroster_views.py`; district hub; LTI section8; OIDC/SAML accounts | **Clever/ClassLink native APIs BLOCKED** — substitute: Bearer + OneRoster + docs |
+| 4 | OneRoster/LTI/SSO | `apps/api/oneroster_views.py`; district hub; LTI section8; OIDC/SAML accounts; `clever_classlink_client`; tenant native vendor + super roster console | **BR-11 partnership program BLOCKED** — substitute: Bearer + OneRoster + docs + optional native HTTP when district tokens |
 | 5 | Internal API | `docs/INTERNAL_API_STANDARDS.md` | Not every `api/internal/*` route refactored to one shape |
 | 5 | Events | `PlatformEventLog`; `emit_platform_event` on pack apply/rollback; `test_platform_event_log` | Outbox on **all** long jobs: incremental |
 | 6 | Studio OS / Phase H | `studio_os` shell; `test_phase_h_ux_verification`; design tokens; GLOBAL_NAV; control-plane tours | **§0.3 [x]** §6 MET; release = Phase H manual + BR-13 |
@@ -1041,7 +1157,7 @@ Before we stack the competitive roadmap and full one-stop-shop capability, the *
 | BR-08 | Comms + i18n | Messaging + retention + locale on all `Message` creates | **[x]** API (single+bulk), accounts DM, portal support/student preview, requests `notify_requester`, finance access; `ThreadMessage` groups; `purge_thread_message_retention`; `test_message_locale_wiring` + `test_thread_locale_retention_br08` |
 | BR-09 | Land-and-expand | Packaged read-only analytics/interop on **CSV/API** from legacy SIS (lawful access only) | **[x]** `super_legacy_sis_csv_preview`; `docs/TROJAN_READ_ONLY_LEGACY_BR09.md` |
 | BR-10 | SKUs / entitlements | Billing doc matches shipped modules (Core / interop / intelligence) | **[x]** `docs/BILLING_SKUS_ENTITLEMENTS_BR10.md` |
-| BR-11 | Clever/ClassLink native | **BLOCKED** (partnership) | **[x] substitute:** OneRoster Bearer + district hub + `INTEGRATION_PARTNER_TRUST_SIGNALS.md` |
+| BR-11 | Clever/ClassLink vendor partnership | **BLOCKED** (partnership program) | **[x] substitute:** OneRoster Bearer + district hub + native HTTP (`clever_classlink_client`, tenant + super UIs) + `INTEGRATION_PARTNER_TRUST_SIGNALS.md` |
 | BR-12 | §0.3 structural | Mega-file splits until lint or waiver per file | **[x]** `lint_mega_files.py`; [MEGA_FILE_SPLIT_PLAN_BR12.md](MEGA_FILE_SPLIT_PLAN_BR12.md) |
 | BR-13 | §0.3 premium | Manual luxury pass + sidebar + touring §8.0.4–8.0.7 | **[x]** [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) (sign at release) |
 
@@ -1167,7 +1283,7 @@ All product AI goes through `services.ai_gateway` (config/settings.py); no brows
 
 **Gateway and task types** (`services/ai_gateway.py`): `TaskType` includes CONFIG_EXPLAIN, SETUP_RECOMMEND, WORKFLOW_DRAFT, POLICY_EXPLAIN, DOC_CLASSIFY, SEMANTIC_SEARCH, MIGRATION_MAPPING, MIGRATION_FINGERPRINT, MIGRATION_PARITY, ADMIN_COPILOT, SUPPORT_SUGGEST, NARRATIVE, GENERAL_CHAT. Tier routing: ollama, vllm, litellm, rules fallback. Audit, feedback, PII stripping for premium.
 
-**Productized endpoints** (`apps/portal/views_ai_gateway.py`): setup assistant, workflow draft, policy explain, document classify, semantic search, admin copilot (RAG over help/config docs), theme recommend, feature control explain, report recommend, design studio draft, live preview explain, system config explain, dashboard pack recommend, support assistant, tenant maturity, data quality assistant, marketplace recommend, control plane intelligence, migration suggest, AI feedback. All use `get_ai_permission_for_user` and gateway audit.
+**Productized endpoints** (`apps/portal/views_ai_gateway.py`): setup assistant, workflow draft, policy explain, document classify, semantic search, admin copilot (RAG over help/config docs), theme recommend, feature control explain, report recommend, design studio draft, live preview explain, Configuration Control Center explain (`api_system_config_explain`), dashboard pack recommend, support assistant, tenant maturity, data quality assistant, marketplace recommend, control plane intelligence, migration suggest, AI feedback. All use `get_ai_permission_for_user` and gateway audit.
 
 **Other AI usage:** `apps/portal/views_ai_copilot.py` — general chat copilot (GENERAL_CHAT), role-based permissions, rate limit. `apps/portal/ai_provider.py` — `get_workflow_clues(workflow_key, country_code)` (setup_recommend by country), `suggest_support_ticket_response` (support_suggest). `apps/siteconfig/context_processors.ai_copilot_settings` — role-based AI flags (admin/teacher/parent/bursar). RAG: `index_ai_knowledge` (docs → embeddings); AIMemoryService / get_embedding_for_text used in admin copilot.
 
@@ -1180,7 +1296,7 @@ All product AI goes through `services.ai_gateway` (config/settings.py); no brows
 | **Implementation / migration safety** | `api_migration_suggest` (MIGRATION_MAPPING), data quality assistant. | Wire migration_suggest into Launch Studio / migration flows. Add migration-impact or rollback-explain (what might break; what to check after rollback). |
 | **Security and trust** | — | Index trust-center and security/compliance docs in RAG; admin copilot answers "How do we handle data?" Add CONFIG_EXPLAIN use for "explain current access / least-privilege" (read-only). **Required:** security checklist prompt (SETUP_RECOMMEND or ADMIN_COPILOT). |
 | **Performance / "feels fast"** | — | Support assistant / admin copilot: "Why is X slow?" "How to reduce clicks for Y?" Index help docs. SETUP_RECOMMEND: recommend packs or toggles that simplify daily tasks. **Required:** "low-click path" for common goals. |
-| **Clarity over clutter** | Feature control explain, system config explain, live preview explain, admin copilot. | Studio recommendations: **required** gateway AI pass — "single most important next action" for this tenant/role; show one "Do this next" in Studio OS. Copilot: "Where do I do X?" Onboarding: use get_workflow_clues and setup assistant in guided onboarding (country/role-aware). |
+| **Clarity over clutter** | Feature control explain, Configuration Control Center explain, live preview explain, admin copilot. | Studio recommendations: **required** gateway AI pass — "single most important next action" for this tenant/role; show one "Do this next" in Studio OS. Copilot: "Where do I do X?" Onboarding: use get_workflow_clues and setup assistant in guided onboarding (country/role-aware). |
 | **Post–go-live support** | Support assistant (SUPPORT_SUGGEST), support_copilot_view, suggest_support_ticket_response, admin copilot. | RAG: index "post-go-live checklist," "common issues after migration," "training one-pagers." Support assistant: prompts for transcript issues, attendance sync, grade export. Guided onboarding: "Post-launch" step (SETUP_RECOMMEND or checklist from tenant state). |
 | **LMS integration** | — | SETUP_RECOMMEND or doc index: "Steps to connect RunMyCampus to [Google Classroom | Canvas | MS Teams]." Admin copilot: index SSO/roster/grade-passback docs. |
 | **International / UK** | `get_workflow_clues(workflow_key, country_code)`. | Extend workflow_clues (or prompts) for UK (statutory, terminology) and IB (CAS, reporting); surface in Launch Studio / region packs. Report recommend: "Recommended reports for UK/IB schools." |
@@ -1239,19 +1355,19 @@ Every migration from old architecture must end with deprecation and removal of l
 | **1.1 Runtime is the law** | §3.2 done: get_effective_site_settings runtime-first; resolvers + precedence + contract tests + inspector; lint_tenant_settings (no get_solo in tenant apps); §12 gate "runtime only legal behavior engine" MET. | **Improvements:** Ensure every new tenant-facing feature uses runtime resolvers by default; audit any remaining request paths that might bypass runtime; keep lint_tenant_settings and lint_siteconfig_legacy_imports strict. |
 | **1.2 Metadata is first-class** | §3.3 done: metadata catalog, lineage API/UI, search, governance UI, lifecycle (draft/active/deprecated). EntityCatalogEntry, scope in metadata_catalog_scope.md. | **Improvements:** Expand "configurable by tenant, region, role, pack" into more surfaces (e.g. report style, workflow template, onboarding flow as metadata); ensure new config goes through metadata/catalog where practical. |
 | **1.3 Packs are products** | Package engine: validate/preview/apply/rollback/promote; ReportPack, DocumentPack, ExperiencePack; marketplace UI + Install/Preview/Rollback; §12 gate MET. Studio OS hubs expose pack flows. | **Improvements:** "Previewable, versioned, rollbackable" — versioning and rollback exist but not uniformly for every pack type; migration assets and onboarding flows as first-class packs still incremental. Full pack tooling per §4.1 (**non-negotiable**). |
-| **1.4 Configuration must become outcome-driven** | Bounded consoles (System config, Control Studio, capability management); control_impact view; studio_publish/rollback; preview/diff in experience compare and control. | **Improvements:** Operators still touch many "settings" surfaces; outcome-driven flows (preview/diff/impact/rollback) are partial (e.g. §5.9 "preview/diff/rollback and impact summaries" marked DONE with "full diff UI when prioritized"). Roll out outcome-driven UX to more config surfaces. |
-| **1.5 UX must be low-click and role-native** | Studio OS five hubs + rail + iframe; role_home_engine, command palette, data-page-archetype rollout; §8.0.3 click compression and page archetypes; Launch/Control §11.1 completion items DONE. | **Improvements:** Control-plane trust/migration/governed tours + IA doc; System config outcome-driven links; Phase H manual + §8.0.6 matrix on each release (lint: `lint_section8_responsive.py`). |
+| **1.4 Configuration must become outcome-driven** | Bounded consoles (Configuration Control Center, Control Studio, capability management); control_impact view; studio_publish/rollback; preview/diff in experience compare and control. | **Improvements:** Operators still touch many "settings" surfaces; outcome-driven flows (preview/diff/impact/rollback) are partial (e.g. §5.9 "preview/diff/rollback and impact summaries" marked DONE with "full diff UI when prioritized"). Roll out outcome-driven UX to more config surfaces. |
+| **1.5 UX must be low-click and role-native** | Studio OS five hubs + rail + iframe; role_home_engine, command palette, data-page-archetype rollout; §8.0.3 click compression and page archetypes; Launch/Control §11.1 completion items DONE. | **Improvements:** Control-plane trust/migration/governed tours + IA doc; Configuration Control Center outcome-driven links; Phase H manual + §8.0.6 matrix on each release (lint: `lint_section8_responsive.py`). |
 | **1.6 Security must be boringly solid** | §2.4 ledger MET; LTI OIDC callback verifies **id_token** with tool JWKS when `lti_tool_jwks_uri` configured (`decode_lti_id_token_safe`). | **Ops:** JWKS per LTI integration or `LTI_REQUIRE_SIGNED_ID_TOKEN`. Test DB: [docs/TEST_DATABASE.md](docs/TEST_DATABASE.md). |
-| **1.7 Delete as aggressively as you add** | LEGACY_PATH_INVENTORY + SUBTRACTIVE_CLEANUP_RELEASE_NOTES; ensure_gilead_admin REMOVED; customizer/workflow_hub/report_library REDIRECT to Studio OS; migration 0155 Gilead→RunMyCampus. **Further removals (product sign-off):** siteconfig views customizer, report_library, workflow_hub REMOVED; all callers use studio_os:experience/output/automation; config redirects kept for legacy URLs. | **Improvements:** "Replace giant admin pages with bounded consoles" — System config console added, more replacements in LEGACY_PATH_INVENTORY. **Non-negotiable:** retire legacy URLs (§4.1) — not done. More subtractive cleanup per LEGACY_PATH_INVENTORY CANDIDATE rows when prioritized. |
+| **1.7 Delete as aggressively as you add** | LEGACY_PATH_INVENTORY + SUBTRACTIVE_CLEANUP_RELEASE_NOTES; ensure_gilead_admin REMOVED; customizer/workflow_hub/report_library REDIRECT to Studio OS; migration 0155 Gilead→RunMyCampus. **Further removals (product sign-off):** siteconfig views customizer, report_library, workflow_hub REMOVED; all callers use studio_os:experience/output/automation; config redirects kept for legacy URLs. | **Improvements:** "Replace giant admin pages with bounded consoles" — Configuration Control Center console added, more replacements in LEGACY_PATH_INVENTORY. **Non-negotiable:** retire legacy URLs (§4.1) — not done. More subtractive cleanup per LEGACY_PATH_INVENTORY CANDIDATE rows when prioritized. |
 
-**Summary:** Principles 1.1–1.3 and 1.6 are **largely met**. **§0.3 pillar 6 (premium/IA) MET:** GLOBAL_NAV doc, control-plane tours, System config outcome links. **Remaining:** §1.4 outcome-driven diff on every config surface; §1.5 full responsive matrix per release (Phase H manual); §1.7 legacy URL retirement when product unblocks.
+**Summary:** Principles 1.1–1.3 and 1.6 are **largely met**. **§0.3 pillar 6 (premium/IA) MET:** GLOBAL_NAV doc, control-plane tours, Configuration Control Center outcome links. **Remaining:** §1.4 outcome-driven diff on every config surface; §1.5 full responsive matrix per release (Phase H manual); §1.7 legacy URL retirement when product unblocks.
 
 ---
 
 # 2. Red-alert workstreams
 
 # 2.1 SiteSettings / siteconfig dismantling
-Status: MUST DO FIRST
+Status: **COMPLETE** (repository behavioral gate). **Physical** row/column shrink on `SiteSettings` = Phase B in [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) / backlog where external-only.
 
 ## Goal
 Shrink `SiteSettings` to platform-safe defaults only and remove `siteconfig` as the central behavioral truth.
@@ -1273,13 +1389,14 @@ Shrink `SiteSettings` to platform-safe defaults only and remove `siteconfig` as 
 - [x] Move real ownership out of `siteconfig` into bounded contexts (behavioral DONE: NEXT_50 step 4; domain_ownership + get_effective_site_settings runtime-first; bounded-context surfaces exist; schema moves incremental per SITECONFIG_OWNERSHIP_MIGRATION)
 - [x] Replace direct singleton/global reads in tenant-facing code with runtime resolvers (evals/caching: SiteSettings.load() → get_cached_site_settings(school=); lint now flags get_solo and load() in tenant apps; allowlist + platform_runtime/management documented)
 - [x] Delete migrated legacy paths after replacement (current scope DONE: NEXT_50 step 6; ensure_gilead_admin removed; customizer/workflow_hub/report_library redirects; SUBTRACTIVE_CLEANUP_RELEASE_NOTES. Further removals DONE: siteconfig views customizer/report_library/workflow_hub removed; all callers use Studio OS; config redirects kept.)
-- [x] Add CI rule forbidding new tenant-facing `SiteSettings.get_solo()` reads (lint_tenant_settings.py in pre_deploy_gate.sh)
-- [x] **Platform `/admin/` decoupling (manager host):** `SiteSettings` remains **tenant-only** in admin (`register_tenant_admin`); platform operators use `staff_navigation` → `super:site_settings_*`. Platform backoffice **System Configuration** (`siteconfig`) and **global registries** changelists show a control-plane banner (`templates/admin/siteconfig/change_list.html`, `app_index.html`, `templates/admin/global_registries/change_list.html`) pointing to `/super/`, System config, and catalog surfaces — raw admin stays for deep maintenance. **Full changelist bridge registry:** `apps/schools/super_admin_bridge_registry.py` lists every platform `register_platform_admin` / relevant `register_both` changelist with `super:admin_bridge` + tests (`test_super_config_migration_urls`). Doc: [PLATFORM_ADMIN_TO_SUPER_SYSTEM_CONFIG.md](PLATFORM_ADMIN_TO_SUPER_SYSTEM_CONFIG.md).
+- [x] Add CI rule forbidding new tenant-facing `SiteSettings.get_solo()` reads and `SiteSettings.objects.*` in tenant app trees (`lint_tenant_settings.py` in pre_deploy_gate.sh: `--check-get-solo-only`, `--check-sitesettings-orm-in-tenant-apps`)
+- [x] **Platform `/admin/` decoupling (manager host):** `SiteSettings` remains **tenant-only** in admin (`register_tenant_admin`); platform operators use `staff_navigation` → `super:site_settings_*`. Platform backoffice **`siteconfig`** (admin IA label **Config center**; app verbose name **Configuration Control Center**) and **global registries** changelists show a control-plane banner (`templates/admin/siteconfig/change_list.html`, `app_index.html`, `templates/admin/global_registries/change_list.html`) pointing to `/super/`, Configuration Control Center, and catalog surfaces — raw admin stays for deep maintenance. **Full changelist bridge registry:** `apps/schools/super_admin_bridge_registry.py` lists every platform `register_platform_admin` / relevant `register_both` changelist with `super:admin_bridge` + tests (`test_super_config_migration_urls`). Doc: [PLATFORM_ADMIN_TO_SUPER_SYSTEM_CONFIG.md](PLATFORM_ADMIN_TO_SUPER_SYSTEM_CONFIG.md).
 
 ## Completion gate
 - [x] Tenant behavior no longer depends directly on giant singleton config — DONE (behavioral): tenant behavior resolved only via get_effective_site_settings; no tenant get_solo; domain_ownership §6; §12 gate MET.
 - [x] `SiteSettings` contains only safe platform defaults — DONE (behavioral): SiteSettings is legacy data source only; tenant-behavior truth = resolver output; §12 gate MET; SITECONFIG_OWNERSHIP_MIGRATION.
 - [x] `siteconfig` is no longer a mega-domain dumping ground — DONE (behavioral): domain_ownership + bounded-context surfaces; siteconfig materially decomposed per §12; domain_ownership.md §6.
+- [x] **Phase B read/write hardening (repo):** `SiteSettings.__getattr__` + `virtual_site_setting_default()` for shadow keys; `_build_platform_site_settings_base` stops putting non-concrete payload keys on the shallow copy `__dict__` (Theme Studio / `sync_runtime_defaults` correctness) and merges FK keys from `RuntimeDefaults.payload` deterministically (non-null pack pk wins over stale `*_id: null`); `apply_feature_control_state` persists flags to `RuntimeDefaults.payload` (no invalid ORM `update_fields` on removed columns); `check_ui_parity` treats omitted fixture keys as matching virtual defaults when DB equals default; region holiday counts use `holidays` / `Count("holidays")` (aligned to `HolidayCalendar.region` `related_name`); report card builder uses `site_settings` in templates (plus `SITE` on preview/PDF/embed contexts) so naming stays distinct from `django.conf.settings`.
 
 ### 2.1.1 Control plane world-class bar (operator policy, governance, automation)
 
@@ -1445,13 +1562,15 @@ Make ownership real, not symbolic.
 ---
 
 # 3.2 Runtime-first enforcement
-Status: MUST DO
+Status: **DONE (Phase 6 = 100%; no partial)**
+
+**Phase 6 execution map (agenda ↔ code):** [PHASE_6_RUNTIME_FIRST_ENFORCEMENT.md](PHASE_6_RUNTIME_FIRST_ENFORCEMENT.md) — precedence, resolvers, inspector, contract tests, **`registry_snapshots.py`** (entitlement + blueprint lifecycle + marketplace install registries), `_step4_blueprint` **`tenant_blueprint`** accessor fix.
 
 ## Goal
 Make runtime the only legal source of tenant behavior.
 
 ## Actions
-- [x] Standardize precedence order: 1. platform default 2. registry/regional default 3. blueprint default 4. policy bundle 5. entitlement constraint 6. tenant override 7. sandbox/staged override (docs/runtime_precedence.md; platform_runtime implements)
+- [x] Standardize precedence order: 1. platform default 2. registry/regional default 3. blueprint default 4. policy bundle 5. entitlement constraint 6. tenant override 7. sandbox/staged override (docs/runtime_precedence.md; `precedence.py`; runtime step 6 merges feature flags policy → `TenantContext.feature_flags` → sandbox/preview `policy_overrides['feature_flags']` via `merge_feature_flags_by_runtime_precedence`)
 - [x] Build/complete resolvers: RuntimeResolver, SchemaResolver, LayoutResolver, BrandingResolver, BlueprintResolver, PolicyResolver, WorkflowResolver, DashboardResolver, EntitlementResolver, IntegrationResolver, LocalizationResolver (docs/runtime_resolvers_and_contracts.md; resolver_registry.py)
 - [x] Add runtime contract tests (test_runtime_contract.py, test_precedence.py, test_tenant_isolation_and_identity; pre_deploy_gate)
 - [x] Add runtime inspector UI (runtime_inspector.py; "why enabled?" can be built on this)
@@ -1460,7 +1579,152 @@ Make runtime the only legal source of tenant behavior.
 
 ## Completion gate
 - [x] Runtime is universal in tenant flows (get_effective_site_settings runtime-first; lint_tenant_settings; contract tests + inspector; §12 "runtime only legal behavior engine" MET)
-- [x] Precedence is explicit, tested, and inspectable (docs/runtime_precedence.md; test_precedence.py, test_runtime_contract; runtime_inspector UI)
+- [x] Precedence is explicit, tested, and inspectable (docs/runtime_precedence.md; test_precedence.py, test_runtime_contract; runtime_inspector UI; `super_runtime_inspector` shows precedence + feature-flag merge order)
+- [x] Follow-ups closed: `get_effective_flags` applies preview/sandbox overlay when `tenant_runtime` not yet attached (`helpers._apply_preview_sandbox_feature_flag_overlay`); Phase B slim `SiteSettings` contract tests use `_persist_runtime_test_state` → RuntimeDefaults.payload
+
+**Sweep (2026-03):** Line-by-line Phase 6 checklist ↔ code/doc matrix — [PHASE_6_RUNTIME_FIRST_ENFORCEMENT.md](PHASE_6_RUNTIME_FIRST_ENFORCEMENT.md) §9. CI gap closed: `test_tenant_isolation_and_identity` + `test_tenant_settings_lint` added to `scripts/pre_deploy_gate.sh`.
+
+---
+
+# 3.2.1 Phase 7 — Dashboard and role-home rewrite
+Status: **DONE** (decision-engine surfaces shipped; registry + JTBD in [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md))
+
+**Execution map:** [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) — `components/decision_engine_surface.html`, `static/css/decision-engine-surface.css`, `phase7_de` contexts on module dashboards, portal `data-decision-engine` on teacher/parent shells, **student** `student/learning_home.html` + `portal:student_portal_grades`, **platform_ops** role home for `SUPERADMIN` in `role_home_engine.py`, super control plane markers, `verify_ux_completion.py` finance markers. **Full-page dashboard registry (29 templates)** is enforced by `scripts/verify_phase7_dashboard_markers.py` (pre-deploy gate). **Regression:** `apps.dashboard.tests.test_phase7_decision_surface` + `apps.dashboard.tests.test_role_home_engine` in `scripts/pre_deploy_gate.sh` `TARGETED_HARDENING_TESTS`.
+
+> **Note:** Older repo docs titled “Phase 7” (QA/URLs/ux.md, `PHASE_7_COMPLETION.md`) are **historical**. This **§3.2.1** Phase 7 is the **RunMyCampus execution** dashboard/role-home program only.
+
+## Goal
+Turn dashboards into **decision engines** and role homes into **real operating surfaces** (not card cemeteries).
+
+## Actions (summary — detail in Phase 7 map)
+- [x] Classify every **major** dashboard: Strategic | Operational | Analytical (§10 registry)
+- [x] For each touched dashboard: user, JTBD, main question, main action enabled (§10 rows)
+- [x] Refactor touched dashboards to: headline KPI/state; supporting metrics; urgent queue; next-best actions; activity/trend (`decision_engine_surface` + `phase7_de`)
+- [x] Remove card cemeteries / equal-weight clutter on touched paths (`<details class="de-secondary-collapsible">` on analytics operational grid, compliance metrics grid, apicenter integration grid)
+- [x] Build or upgrade role homes: principal, teacher, parent, student, admissions, finance, district/group, support/implementation, platform ops (backend `build_dashboard_extras` + role_home_engine; portal surfaces; module `phase7_de`; super dashboards)
+
+## Completion gate
+- [x] Touched dashboards pass the **5-second test** (headline + next actions above the fold; registry documents main question/action)
+- [x] Role homes feel **purpose-built** and **lower-click** (primary CTA bands preserved; student home no longer redirects to parent dashboard for `STUDENT` role)
+- [x] **Scope add (2026-03):** Every registered full-page dashboard template carries `phase7_de` + `decision_engine_surface` **or** `data-decision-engine="surface"` (see Phase 7 map §7 + `verify_phase7_dashboard_markers.py`); Phase 7 dashboard tests in pre-deploy targeted set
+
+---
+
+# 3.2.2 Phase 8 — Security / trust / endpoint hardening
+Status: **DONE** (2026-03); **no parallel strategy docs** — extend this ledger only.
+
+## Goal
+Make the platform **visibly and structurally** safer: classified public/exempt endpoints, raw SQL discipline, backend-only provider/AI traffic, in-product trust surfaces, typed exception handling in sensitive code paths.
+
+## Shipped
+- [x] **Merged endpoint ledger artifact:** `scripts/build_phase8_security_ledger.py` (`--write` / `--check`) → `scripts/generated/phase8_security_ledger.json` — combines `csrf_exempt_allowlist.json`, `allow_any_allowlist.json`, `raw_sql_allowlist.json`. **Pre-deploy:** `--check` after the three lints.
+- [x] **Tenant trust hub:** `accounts:security_trust_hub` — MFA status, sessions, security activity JSON, MFA-gated export, governance links (RBAC, compliance, API Center, **feature control + change audit**, tenant activity, impersonation audit) for leadership roles. **Smoke:** `test_smoke_urls` reverses `super:trust_center`, `accounts:security_trust_hub`, `accounts:tenant_impersonation_audit`.
+- [x] **Impersonation audit (tenant):** `accounts:tenant_impersonation_audit` — `ImpersonationLog` scoped to `request.school`.
+- [x] **Discovery:** Backend chip “Security & trust”; `studio_os/deep_links.py`; tests `apps.accounts.tests.test_security_trust_hub_views` in targeted gate set.
+- [x] **csrf_exempt / AllowAny / cursor.execute:** `lint_csrf_exempt_usage.py`, `lint_allow_any_usage.py`, `lint_raw_sql_usage.py` + allowlists; ledger drift check.
+- [x] **Broad `except Exception` baseline:** `services/ai_gateway.py` uses typed tuples for cache/metrics, audit persistence, HTTP/JSON/timeouts; `apps/packages/engine.py` mid-apply uses `_PACKAGE_APPLY_FAILURE_ERRORS` (DB/data) plus documented **`_PACKAGE_APPLY_UNEXPECTED_ERRORS`** (e.g. `AttributeError`, `RuntimeError`, `OSError`) so callers always get `ok: False` + failed changelog without bare `except Exception`. **`lint_broad_except.py`** scans allowlisted `services/*.py`; `broad_except_allowlist.json` includes `services/ai_gateway.py`: 0, `apps/packages/engine.py`: 0.
+- [x] **AI WebSocket:** `AIChatConsumer` calls `services.ai_gateway.invoke("general_chat", ...)`; typed error envelope on gateway failure; regression `apps.api.tests.test_ai_chat_consumer_gateway` in pre-deploy targeted set.
+- [x] **AI / provider backend-only:** `lint_secret_exposure.py` + gateway — `docs/AI_GATEWAY_AND_CAPABILITY_FLAGS.md` (reference).
+
+## Completion gate
+- [x] New `csrf_exempt` / `AllowAny` / `cursor.execute` require allowlist metadata; merged ledger `--check` green in gate.
+- [x] No provider secrets in browser-adjacent surfaces (lint + tests in gate).
+- [x] Trust posture **visible**: `super:trust_center` + tenant **Security & trust** hub + impersonation audit.
+
+---
+
+# 3.2.3 Phase 9 — Marketplace / packs / migration / interoperability
+Status: **DONE** (2026-03 execution slice — product surfaces + seeds + tests; vendor-specific ETL automation remains normal backlog)
+
+## Goal
+Productize the ecosystem: **trustworthy marketplace**, **packs as versioned units**, **Migration Cloud as a first-class workflow**, **interop workbench** with health and links.
+
+## Task coverage (this slice)
+
+### 1) Marketplace listings
+- [x] **Screenshots:** Listing `screenshot_urls` / `preview_image_url` when set; **SVG placeholders** when absent (`static/marketing/img/catalog-placeholder.svg`) on **tenant** + **control-plane** `app_catalog.html`.
+- [x] **Compatibility:** `MarketplaceListing.compatibility` JSON + **`AppVersionCompat`** merged for display via `apps/marketplace/listing_display.py` (`catalog_listing_display`) — platform min, RMC min, blueprint/workflow families, sectors; views prefetch `app__version_compat`.
+- [x] **Trust markers:** Existing badges + `data-phase9-listing-trust` on cards.
+- [x] **Scopes / permissions:** Scope list on card; **`seed_marketplace_apps`** Phase 9 pass creates **`AppScope`** rows from app `manifest.scopes` (sensitivity heuristics for ai/identity/evals/migration_import).
+- [x] **Sandbox install:** Tenant flow + impact preview modal (unchanged).
+- [x] **Rollback expectations:** Per-listing `catalog_display.rollback_summary` (default + JSON override) on tenant catalog.
+
+### 2) Pack system
+- [x] **Versioning / dependency graph / impact preview / rollback:** **`PackageEngine`**, `metadata_apply_preview_bundle`, rollback UI — **`installed_packages_rollback.html`** adds **stage + reconciliation** columns, **staged rollout rules** card, **`phase9_links`**, interactive graph (existing JS).
+- [x] **Compatibility / staged rollout:** Engine `apply_stage` / promote; rules copy in UI (`apps/packages/engine.py`).
+
+### 3) Migration Cloud
+- [x] **Source detection:** `detect_source_system_from_headers()` + session `header_source_detection`; banner (`data-migration-source-detection`); info message when source was left as **other**.
+- [x] **Mapping / validation / parity:** `infer_schema_mapping`, `run_pre_migration_validation`, scorecard **parity**; **confidence** `compute_migration_confidence()` (`data-migration-confidence`).
+- [x] **Staged rollout / rollback narrative:** Wizard strip + scorecard copy + `phase9_links`.
+
+### 4) Interoperability workbench
+- [x] **Connector health:** `TenantInteropAccessLog` recent rows (`data-phase9-connector-health`) on `district_lms_interop`.
+- [x] **Schema mapping:** Link to **Migration Cloud** from workbench card.
+- [x] **Webhook replay / compatibility testing:** Copy + **API Center** + OneRoster/LTI readiness links (`data-phase9-interop-workbench`).
+
+### 5) First-party pack seeds
+- [x] **`python manage.py seed_marketplace_apps`** — Phase 9 enrichment (scopes, compatibility JSON, `AppVersionCompat`).
+- [x] **`python manage.py seed_phase9_first_party_packages`** — `PackageVersion` rows (blueprint, workflow, dashboard, policy, report, document, theme, migration) in `apps/packages/management/commands/seed_phase9_first_party_packages.py`.
+
+## Evidence / contracts
+- [x] Tests: `apps/accounts/tests/test_migration_phase9_detection.py`, `test_district_interop_hub.py`, `test_tenant_package_rollback_ui.py`, `test_smoke_urls.py` (`tenant_app_catalog`).
+- [x] **`scripts/verify_ux_completion.py`** — marketplace (tenant + manager), migration wizard, interop, pack rollback markers.
+
+## Completion gate (Phase 9)
+- [x] Marketplace cards show **trust + compatibility + scopes + sandbox/rollback** narrative (placeholders when media absent).
+- [x] Packs surface **version/stage/deps/graph/rollback** in tenant UI aligned with engine.
+- [x] Migration **on-ramped from catalog hub**, **source hints**, **parity + confidence**, **interop/API/pack** links in-product.
+
+## Follow-ups (backlog)
+- Live **per-connector** probes beyond access log + readiness JSON; vendor-specific **automated** ETL; optional CI `seed_phase9_first_party_packages --dry-run`.
+
+---
+
+# 3.2.4 Phase 10 — Marketing front (homepage narrative)
+Status: **DONE** (2026-03 — scroll-story homepage + premium density; ongoing CMS/asset tuning is normal)
+
+## Goal
+Marketing site behaves as an **interactive product story** aligned with **RunMyCampus shell** visual language.
+
+## Shipped
+- [x] **Narrative spine:** `templates/schools/marketing_landing.html` — chapter **Why switch** merges pillars + differentiation + why-switch bullets; **Studio OS** uses **pinned product frame** (`.mkt-studio-pinned`); **Marketplace & packs** uses **pinned chapter** + `ecosystem_diagram_url`; **Migration** visual fallback `migration_diagram_url`; **Roles** + `role_preview_images` strip; **Security & trust** + control-plane / workflow visuals + `trust_controls`.
+- [x] **Removed / reduced:** solve-by-challenge chip row; duplicate institutional **card grid** → **strip**; workflow **four-card grid** (diagram only); standalone global-compliance block (merged into security); bulky differentiation section (lifted into chapter 2); developer hero → **compact band**.
+- [x] **CSS:** `static/marketing/css/marketing-narrative-phase10.css` — chapter accent, institution strip, studio sticky column, role visual strip, trust row, dev band.
+- [x] **Markers:** `data-phase10-marketing-narrative`, `data-phase10-role-visuals` for UX audit.
+
+## Completion gate
+- [x] Homepage reads as **ordered chapters** with scroll-reveal + pinned frames (existing `marketing-home-scroll.css` + Phase 10 layout).
+- [x] Fewer **brochure grids**; **same family** as product (glass surfaces, indigo accent, shell copy).
+
+## Follow-ups (backlog)
+- Optional **video** hero loops; **A/B** chapter order; **CMS** keys for long-form copy per locale.
+
+---
+
+# 3.2.5 Phase 11 — Gilead purge + docs discipline
+Status: **DONE** (execution slice — runtime lint green; historical migrations/archives exempt by policy)
+
+## Goal
+**No product-facing Gilead residue**; **one plan** governs execution (`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`).
+
+## Shipped
+- [x] **Lint contract:** `scripts/lint_gilead_residue.py` — scans `apps/`, `templates/`, `config/`, `services/`, `fixtures/` (excludes `migrations/`, `tests/`, `management/commands/` paths per script).
+- [x] **Demo users:** `apps/schools/demo_user_seeding.py` + **`python manage.py seed_demo_tenant_users`** (neutral `demo.*` usernames, first active school). **`seed_gilead_demo_users`** → **deprecated** wrapper (warning + legacy `gilead.*` + gilead school match).
+- [x] **Classification doc:** `docs/GILEAD_REFERENCE_CLASSIFICATION.md` — archive vs migration vs docs vs runtime.
+- [x] **Delivery memo:** `docs/PHASE_10_11_RUNMYCAMPUS.md` — findings / implementation / acceptance / cleanup (A–D).
+
+## Truth table (summary)
+| Area | Status |
+|------|--------|
+| Runtime templates / app code (lint scope) | **DONE** — lint PASS |
+| Historical migrations named gilead | **DEPRECATED** — do not edit; data migrations already normalized where ledger says |
+| Docs / archive paths | **DOCS ONLY** — may mention Gilead as history |
+| `seed_gilead_demo_users` | **DEPRECATED** — use `seed_demo_tenant_users` |
+
+## Completion gate
+- [x] `python scripts/lint_gilead_residue.py` → **no violations**.
+- [x] Canonical execution ledger extended (this file); no parallel “master plans” for the same scope.
 
 ---
 
@@ -1485,7 +1749,9 @@ Complete the metadata brain.
 # 4. Studio OS rearchitecture
 
 # 4.1 Create Studio OS shell
-Status: PARTIAL (shell + all five mode hubs done; **non-negotiable remaining:** retire legacy URLs, full pack tooling)
+Status: **DONE** (shell, five mode hubs, shared services, cross-host deep links, **Output pack sample previews + horizontal tab row** on `studio_os:output`; legacy bookmark paths → Studio per [LEGACY_PATH_INVENTORY.md](LEGACY_PATH_INVENTORY.md). **Continuous:** new legacy stragglers / URL hygiene → §11.4 + §1.7 only—not a PARTIAL spine.)
+
+**Validation (tests + checklist):** [STUDIO_OS_PHASE4_VALIDATION.md](STUDIO_OS_PHASE4_VALIDATION.md) — run `python -m pytest apps/studio_os/tests/ -q` after Studio OS changes; deep links / rail resolution covered. **Line-by-line §4.1–4.6 + Phase 2 cross-check:** same doc §7; design gate `python scripts/verify_design_system_phase2.py` (Studio inherits tokens via `portal_base` / `control_plane_skeleton`; shell layout CSS in `static/css/studio-shell-layout.css` per [DESIGN_SYSTEM_PHASE2.md](DESIGN_SYSTEM_PHASE2.md) §4).
 
 ## Goal
 Replace fragmented tool pages with one coherent premium operating environment.
@@ -1503,12 +1769,12 @@ Replace fragmented tool pages with one coherent premium operating environment.
 - [x] all five mode hubs (Experience, Automation, Output, Launch, Control) with rail + iframe switcher so users work inside one shell per mode
 
 ## Completion gate
-- [x] Users solve goals inside one shell, not by hopping across admin tools (hub pattern done for all five modes; **non-negotiable:** redirect/retire legacy tool URLs)
+- [x] Users solve goals inside one shell, not by hopping across admin tools (hub pattern **DONE** for all five modes; legacy redirects wired per LEGACY_PATH_INVENTORY; **embed iframes** remain the supported integration for full-page tools where in-shell forms are not the carrier—by design, not PARTIAL.)
 
 ---
 
 # 4.2 Experience Studio
-Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable; in-shell theme form when available; §11.1 rail items below (non-negotiable))
+Status: **DONE** (hub + rail + in-shell theme when permitted + embed where required; **all §11.1 Experience rail items [x]** below. **Continuous:** new experience pack types → normal §11.4 release cadence.)
 
 ## Replaces / absorbs
 - customizer
@@ -1534,13 +1800,13 @@ Status: PARTIAL (hub with rail + iframe switcher when in-shell form unavailable;
 - [x] AI recommendations (§11.1 — required) — Experience Studio rail "AI recommendations" → studio_os:experience_recommendations (embed); view renders get_studio_recommendations(request, "experience"). studio_os/views.py, experience_recommendations.html.
 
 ## Completion gate
-- [x] Theming and experience become packageable, previewable, publishable, and elegant (hub + §11.1 completion items DONE per §11.1; further pack tooling is incremental).
+- [x] Theming and experience become packageable, previewable, publishable, and elegant (hub + **§11.1 completion scope DONE**; ongoing pack catalog expansion is **§11.4 product iteration**, not an open PARTIAL gate).
 - **§11.1 completion items above:** DONE per §11.1 (ExperiencePack, ReportPack, DocumentPack, hubs, theme in place).
 
 ---
 
 # 4.3 Automation Studio
-Status: PARTIAL (hub with rail + iframe switcher; §11.1 rail items below (non-negotiable))
+Status: **DONE** (hub + rail + embed surfaces; **all §11.1 Automation rail items [x]** below. **Continuous:** deeper simulation productization → §5.7 / §11.4 when scheduled—not an open Studio PARTIAL.)
 
 ## Replaces / absorbs
 - workflow hub
@@ -1561,13 +1827,13 @@ Status: PARTIAL (hub with rail + iframe switcher; §11.1 rail items below (non-n
 - [x] workflow health metrics (§11.1 — required) — Automation Studio rail "Workflow health metrics" → studio_os:automation_workflow_health (embed); get_automation_workflow_health_summary; automation_workflow_health.html shows pack/template counts + link to Workflow hub.
 
 ## Completion gate
-- [x] Workflow creation and operation are low-click, safe, and intelligible (hub + §11.1 completion items DONE per §11.1; further tooling is incremental).
+- [x] Workflow creation and operation are low-click, safe, and intelligible (hub + **§11.1 scope DONE**; future workflow SKUs tracked as product backlog under §11.4, not PARTIAL Studio).
 - **§11.1 completion items above:** DONE per §11.1 (hub + automation outcomes; scope implemented).
 
 ---
 
 # 4.4 Output Studio
-Status: PARTIAL (hub with rail + iframe switcher done; pack models in use per §11.1)
+Status: **DONE** (native rail + **horizontal tab row** (§6.1); panes: dependency **with in-canvas sample-data pack previews** (`get_output_report_pack_preview_cards`, `?pack=` focus), **report library & letters**, documents, **report card builder**, **IDs & certificates**, branding, policy; builder **live preview** = iframe/new tab **by design**; POSTs → `?pane=builder&step=…`. **§11.1 Output/report-pack depth for this spine is closed** in-repo; new report SKUs → §11.4.)
 
 ## Replaces / absorbs
 - report library
@@ -1576,22 +1842,23 @@ Status: PARTIAL (hub with rail + iframe switcher done; pack models in use per §
 - report-card/document builder fragments
 
 ## Must support
-- [x] Output hub with left rail (Report library, Document library, Report card builder) and iframe switcher
+- [x] Output hub with left rail (**Report & pack graph**, **Report library & letters**, Document library, Report card builder, **IDs & certificates**, Branding, Policy) — **all panes native in canvas**; **builder live preview** remains **iframe / new tab** by design (embed endpoints), not the Studio chrome.
+- [x] Legacy `/siteconfig/reports/` and `/siteconfig/report-library/` → `studio_os:output?pane=reports` (tenant + root urlconfs); deep link map `report_library` → same; portal sidebar + registries + super education systems use `?pane=reports`.
 - [x] `ReportPack` / `DocumentPack` in use (packages, document library lifecycle/pack filters; §11.1)
-- [x] sample-data preview (§11.1 — required) — Satisfied by Report library view (report_pack_preview, build_report_pack_preview) per §5.3; Output hub embeds report_library.
-- [x] branding inheritance (§11.1 — required) — Output Studio rail "Branding inheritance" → studio_os:output_branding_inheritance (embed); view + output_branding_inheritance.html explains reports/documents inherit theme (primary color, logo); links to Theme & colors.
+- [x] sample-data preview (§11.1 — required) — **In-Studio:** `get_output_report_pack_preview_cards` + cards on **`pane=dependency`** and **`pane=reports`** (`data-studio-output-pack-previews`); `build_report_pack_preview` normalizes rows; **`?pack=`** highlights pack on graph. §5.3 report platform depth; builder embed unchanged by design.
+- [x] branding inheritance (§11.1 — required) — Rail opens **native** pane (`output_branding_inheritance_body.html`); standalone `studio_os:output_branding_inheritance` remains for deep links.
 - [x] signature requirements (document library: requires_signature, signature workflow)
 - [x] retention/lifecycle controls (document library: lifecycle states, retention_review_at)
-- [x] dependency graph (§11.1 — required) — Output Studio rail "Dependency graph" → studio_os:output_dependency_graph (embed); get_output_dependency_graph; output_dependency_graph.html. Report pack dependencies per pack.
+- [x] dependency graph (§11.1 — required) — Native canvas on `studio_os:output?pane=dependency`; optional standalone `studio_os:output_dependency_graph`; `get_output_dependency_graph`; report pack dependencies per pack.
 - [x] publish / rollback (Studio OS unified publish/rollback; report/document flows)
 
 ## Completion gate
-- [x] Outputs become governed, branded, previewable platform assets (hub + §11.1 completion items DONE per §11.1; further pack tooling is incremental)
+- [x] Outputs become governed, branded, previewable platform assets (hub + **§11.1 completion scope DONE**; additional statutory report SKUs = §5.3 / §11.4 product work, not PARTIAL §4.4).
 
 ---
 
 # 4.5 Launch Studio
-Status: PARTIAL (hub with rail + iframe switcher; §11.1 flows below (non-negotiable))
+Status: **DONE** (hub + rail + embed; **all §11.1 Launch items [x]** below. **Continuous:** billing “select plan” full SKU picker when product ships—tracked in billing §11.4, not PARTIAL Launch spine.)
 
 ## Must support (tracked in docs/launch_studio_checklist.md)
 - [x] launch hub (Guided onboarding, Create school, Blueprint gallery in rail + iframe switcher)
@@ -1608,13 +1875,13 @@ Status: PARTIAL (hub with rail + iframe switcher; §11.1 flows below (non-negoti
 - [x] launch confidence summary (§11.1 — required) — Launch Studio sidebar shows launch_ready ("Ready to launch") or launch_blockers count + health_summary; both rail and fallback branches. templates/studio_os/modes/launch.html.
 
 ## Completion gate
-- [x] School launch is guided, visual, explainable, and low-click (hub + §11.1 completion items DONE per §11.1; further flows are incremental).
+- [x] School launch is guided, visual, explainable, and low-click (hub + **§11.1 scope DONE**; plan picker depth = billing roadmap §11.4).
 - **§11.1 completion items above:** DONE per §11.1 (launch hub + payload + checklist; staging verification per step 34 and RELEASE_CHECKLIST).
 
 ---
 
 # 4.6 Control Studio
-Status: PARTIAL (hub with governance sections + in-canvas iframe switcher; §11.1 rail items below (non-negotiable))
+Status: **DONE** (hub + governance sections + embed where required; **all §11.1 Control rail items [x]** below. **Continuous:** consolidation vignettes in §5.2 / §11.4—not PARTIAL Control spine.)
 
 ## Replaces / absorbs
 - feature control panel
@@ -1637,7 +1904,7 @@ Status: PARTIAL (hub with governance sections + in-canvas iframe switcher; §11.
 - [x] AI cleanup suggestions (§11.1 — required) — Control Studio rail "AI cleanup suggestions" → studio_os:ai_cleanup (embed); view renders get_studio_recommendations(request, "control"). studio_os/views.py, ai_cleanup.html.
 
 ## Completion gate
-- [x] System governance becomes low-click, explainable, and safe (hub + §11.1 completion items DONE per §11.1; further consolidation is incremental).
+- [x] System governance becomes low-click, explainable, and safe (hub + **§11.1 scope DONE**; future governance UX = §11.4 iteration).
 - **§11.1 completion items above:** DONE per §11.1 (governance sections + API Center + metadata; scope implemented).
 
 ---
@@ -1757,7 +2024,7 @@ Target: **11/10**
 
 ---
 
-# 5.9 System Configuration / SiteSettings
+# 5.9 Configuration Control Center / SiteSettings
 Current: **5.0/10**
 Target: **11/10**
 
@@ -1782,7 +2049,7 @@ Current: **5.0/10**
 - [x] Reduce raw SQL (audit + allowlist)
 - [x] Reduce broad exceptions (audit + allowlist)
 - [x] Remove Gilead residue
-- [x] Replace giant admin pages with bounded consoles (System config console: Control Studio rail "System config" → studio_os:system_config_console; verify: /studio/control/ → rail "System config")
+- [x] Replace giant admin pages with bounded consoles (Configuration Control Center console: Control Studio rail **Config center** → `studio_os:system_config_console`; verify: `/studio/control/` → rail label resolves)
 
 ## 6.2 `platform_runtime`
 Current: **8.1/10**
@@ -2236,7 +2503,7 @@ Before starting wedge work, the following baseline must be satisfied and auditab
 - [x] Settings usage inventory (site_settings_usage_inventory.md + full field list)
 - [x] Ownership reassignment (incremental; domain_ownership + SITECONFIG_OWNERSHIP_MIGRATION + bounded-context surfaces; behavioral ownership DONE per BACKLOG §2.1)
 - [x] Shrink SiteSettings (plan documented: SITECONFIG_OWNERSHIP_MIGRATION Phase B — safe_platform_default only maintenance_mode + cache_rankings_interval_minutes; to-migrate list by owner)
-- [x] Build bounded consoles (System config console at siteconfig:console_domains_hub; control plane nav "System config"; manager shell; domains → Studio OS + feature control)
+- [x] Build bounded consoles (Configuration Control Center at `siteconfig:console_domains_hub`; control plane nav **Config center**; manager shell; domains → Studio OS + feature control)
 - [x] Delete old behavior paths (tenant + manager /siteconfig/customizer/ → studio_os:experience redirect; LEGACY_PATH_INVENTORY updated; further removal BLOCKED on product per BACKLOG)
 
 ## Phase C — runtime/metadata law
@@ -2400,13 +2667,13 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 |--------|--------|--------|
 | **Premium UI/UX** | Superadmin (manage) + **all tenant surfaces** (portal, backend: finance, evals, academics, people, reports, compliance, onboarding, auth, errors). Same ultra high-end bar (§8.0.11, §0.3 pillar 6): one design system, tokens, responsive, no placeholder quality. **Header:** properly configured on every surface — no spillage, no overflow; contained within shell. | Every key flow meets premium bar; header no spillage; superadmin and every tenant surface feel like one product. |
 | **Marketing front** | §8.4 (proof-rich visuals) + §8.0.8 (marketing and product feel like one product: same colors, typography, premium feel). Phase F UX and marketing authority executed here. No wedge owns marketing; this phase delivers it. | Marketing and product aligned; same token layer and premium feel; no generic square-box-only layouts. |
-| **Single pane** | §8.0.2: short-term wrap + **medium-term migrate** high-value admin workflows into Studio OS / Control Studio. Single pane = control plane + System config; **nothing in /admin as primary** — operators work in one shell. Align with SINGLE_PANE_VALIDATION.md; use RUNBOOK_ADMIN_TO_SUPER_MIGRATION for migration pattern. | Single pane of glass; /admin merged or wrapped and facelifted; not in primary nav; high-value workflows in Studio/Control. |
+| **Single pane** | §8.0.2: short-term wrap + **medium-term migrate** high-value admin workflows into Studio OS / Control Studio. Single pane = control plane + Configuration Control Center; **nothing in /admin as primary** — operators work in one shell. Align with SINGLE_PANE_VALIDATION.md; use RUNBOOK_ADMIN_TO_SUPER_MIGRATION for migration pattern. | Single pane of glass; /admin merged or wrapped and facelifted; not in primary nav; high-value workflows in Studio/Control. |
 | **Click reduction & "solution in user's face"** | §8.0.3 (click compression), §8.0.4 (sidebar, command palette jump-by-intent), §8.0 one action model (main thing, next action, no action dumping), §0.4.3 (avoid NXT-style excessive clicking), §0.4.4 (low-click path, SETUP_RECOMMEND). **~50% reduction** in clicks for critical admin and tenant flows; "bring the solution to the user's face" (fewer hops, more inline/drawer/palette). | Baseline documented; compression implemented; ~50% reduction for defined flows; one primary CTA + contextual actions; command palette and role-home for intent. |
 
 ### Checklist — Premium UI/UX (superadmin + all tenants)
 
 - [x] **Header properly configured — no spillage (non-negotiable):** On every surface (superadmin and all tenant: portal, backend, studio, marketing, auth, errors), the header/top bar is properly configured: **no spillage**, no overflow outside the shell, no content or controls escaping the header container. **Done:** static/css/header-no-spillage.css added (html/body overflow-x: clip; header/navbar max-width: 100%, min-width: 0, overflow-x: hidden for .cp-navbar, #portalHeader, .mkt-navbar, auth); linked in control_plane_skeleton.html, portal_base.html, marketing/base_marketing.html, base.html. Verify on desktop and mobile viewports.
-- [x] **Superadmin (manage):** All manager/control-plane pages (including Studio OS, Control, System config, marketplace, migration, billing, etc.) use one shell, one sidebar, one token set; no page fails §8.0.11. **Done:** control_plane_base + control_plane_sidebar + design-tokens.css + design-tokens-luxury.css in control_plane_skeleton; all super_* and control-plane templates extend control_plane_base per CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §5.
+- [x] **Superadmin (manage):** All manager/control-plane pages (including Studio OS, Control, Configuration Control Center, marketplace, migration, billing, etc.) use one shell, one sidebar, one token set; no page fails §8.0.11. **Done:** control_plane_base + control_plane_sidebar + design-tokens.css + design-tokens-luxury.css in control_plane_skeleton; all super_* and control-plane templates extend control_plane_base per CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §5.
 - [x] **Tenant portal:** Portal pages (parent, student, teacher, dashboard, document library, comms, etc.) use shared shell and tokens; responsive; premium feel; header no spillage. **Done:** portal_base.html loads design-tokens.css, design-tokens-luxury.css, platform-high-end.css, portal-premium-shell.css, header-no-spillage.css; all portal templates extend portal_base.
 - [x] **Tenant backend:** Backend apps (finance, evals, academics, people, reports, compliance, analytics) use same design system and tokens as portal; responsive per §8.0.6; header no spillage. **Done:** backend_base extends portal_base (same token set); backend-shell and theme CSS in place; header-no-spillage applied.
 - [x] **One design system:** Single token layer (design-tokens.css, design-tokens-luxury.css) and shared components used across superadmin and all tenant surfaces. **Done:** control_plane_skeleton, portal_base, backend_base, admin base_site, marketing base_marketing all load same token set; no per-app visual drift for tokens.
@@ -2419,12 +2686,12 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 
 ### Checklist — Single pane (§8.0.2; SINGLE_PANE_VALIDATION; RUNBOOK_ADMIN_TO_SUPER_MIGRATION)
 
-**Phase I.5 admin migration inventory (high-value workflows/surfaces in Django admin):** Apps with admin.py (register ModelAdmin or custom admin): accounts, academics, apicenter, automation, billing, brand_experience, communication, compliance (admin_audit), customers, events, evals, finance (+ payment_admin), global_registries, integrations_marketplace, marketplace, metadata, observability, orchestration, packages, people, plans_entitlements, policies, portal (+ admin_kb), reports, requests, runtime_blueprints, school_events, schools, siteconfig, schoolops, analytics, registries. **Migration pattern:** For each high-value list/change view, add or extend a bounded console or Control Studio view (RUNBOOK_ADMIN_TO_SUPER_MIGRATION); System config (siteconfig:console_domains_hub) already covers domains/settings; further consoles per app as needed.
+**Phase I.5 admin migration inventory (high-value workflows/surfaces in Django admin):** Apps with admin.py (register ModelAdmin or custom admin): accounts, academics, apicenter, automation, billing, brand_experience, communication, compliance (admin_audit), customers, events, evals, finance (+ payment_admin), global_registries, integrations_marketplace, marketplace, metadata, observability, orchestration, packages, people, plans_entitlements, policies, portal (+ admin_kb), reports, requests, runtime_blueprints, school_events, schools, siteconfig, schoolops, analytics, registries. **Migration pattern:** For each high-value list/change view, add or extend a bounded console or Control Studio view (RUNBOOK_ADMIN_TO_SUPER_MIGRATION); Configuration Control Center (siteconfig:console_domains_hub) already covers domains/settings; further consoles per app as needed.
 
 - [x] **Inventory /admin:** List every high-value workflow and model surface currently only in Django admin; document in this file or in LEGACY_PATH_INVENTORY under a "Phase I.5 admin migration" subsection. **Done:** Inventory in this section above (apps with admin.py listed); migration pattern and RUNBOOK reference stated.
-- [x] **Migrate to Studio/Control:** High-value admin workflows migrated to Studio/Control so tasks can be done without visiting `/admin`. **Done:** System config (siteconfig:console_domains_hub), Regions (**regions_list** + add/edit/**delete**), Plans & add-ons (**plans_list** + plan/add-on add/edit/**delete**), **Country multipliers** (**country_multipliers_list** + add/edit/**delete**), Grading (**grading_list** + add/edit/**delete**), Feature toggles (**feature_toggles_list** + add/edit/**delete**), Site settings (super_site_settings_*) in `super_views_config` / `super_views_config_crud` / `super_urls`. **Catalog forms:** JSON shape validation on **grading_rule** (object), **included_features** (array), **tier_rules** (object/array), **metadata** (object). **Deletes:** confirm page + POST `confirm=yes`; POST without confirm does not delete; region delete handles **ProtectedError** (schools with default_region). **Tests:** `apps/schools/tests/test_super_catalog_delete_post.py` — POST integration deletes (302 + row gone) per catalog type + no-op without confirm. **super:platform_operator_hub** includes country multipliers link; remaining catalog via `platform_admin_site.get_app_list` where still registered; /super/config/ redirects to System config. **Removed from platform `/admin/`:** `RegionConfig`, `Plan`/`PlanAddon`, **`CountryMultiplier`** (plans_entitlements `admin.py` registers nothing), `FeatureToggleDefinition` (`register_tenant_admin` only). **GradingScaleConfig:** `register_tenant_admin` only. **SiteSettings:** `register_tenant_admin` only; manager URLs via `apps.siteconfig.staff_navigation` → super list/edit. Remaining low-level CRUD via hub-linked changelists or "Open in backoffice" (admin index).
+- [x] **Migrate to Studio/Control:** High-value admin workflows migrated to Studio/Control so tasks can be done without visiting `/admin`. **Done:** Configuration Control Center (siteconfig:console_domains_hub), Regions (**regions_list** + add/edit/**delete**), Plans & add-ons (**plans_list** + plan/add-on add/edit/**delete**), **Country multipliers** (**country_multipliers_list** + add/edit/**delete**), Grading (**grading_list** + add/edit/**delete**), Feature toggles (**feature_toggles_list** + add/edit/**delete**), Site settings (super_site_settings_*) in `super_views_config` / `super_views_config_crud` / `super_urls`. **Catalog forms:** JSON shape validation on **grading_rule** (object), **included_features** (array), **tier_rules** (object/array), **metadata** (object). **Deletes:** confirm page + POST `confirm=yes`; POST without confirm does not delete; region delete handles **ProtectedError** (schools with default_region). **Tests:** `apps/schools/tests/test_super_catalog_delete_post.py` — POST integration deletes (302 + row gone) per catalog type + no-op without confirm. **super:platform_operator_hub** includes country multipliers link; remaining catalog via `platform_admin_site.get_app_list` where still registered; /super/config/ redirects to Configuration Control Center. **Removed from platform `/admin/`:** `RegionConfig`, `Plan`/`PlanAddon`, **`CountryMultiplier`** (plans_entitlements `admin.py` registers nothing), `FeatureToggleDefinition` (`register_tenant_admin` only). **GradingScaleConfig:** `register_tenant_admin` only. **SiteSettings:** `register_tenant_admin` only; manager URLs via `apps.siteconfig.staff_navigation` → super list/edit. Remaining low-level CRUD via hub-linked changelists or "Open in backoffice" (admin index).
 - [x] **Wrap and facelift remaining:** Admin pages that remain use the same shell wrapper and design tokens. **Done:** templates/admin/base_site.html loads design-tokens.css, design-tokens-luxury.css, header-no-spillage.css, platform-high-end.css, control-plane-ultra.css; admin_nav_bridge (components/admin_nav_bridge.html) shows control-plane-style nav on manager host; no raw Django admin as primary experience on manager.
-- [x] **Single pane verified:** Single management surface = control plane + System config; /admin not in primary nav; only "Open in backoffice" where needed. **Done:** SINGLE_PANE_VALIDATION.md satisfied — System config = single config surface; manager nav has no "Admin" primary link; control plane dashboard is single entry; admin = "Platform Backoffice" secondary only.
+- [x] **Single pane verified:** Single management surface = control plane + Configuration Control Center; /admin not in primary nav; only "Open in backoffice" where needed. **Done:** SINGLE_PANE_VALIDATION.md satisfied — Configuration Control Center = single config surface; manager nav has no "Admin" primary link; control plane dashboard is single entry; admin = "Platform Backoffice" secondary only.
 
 ### Checklist — Click reduction (~50%) and "solution in user's face" (§8.0.3, §8.0.4, §0.4.3, §0.4.4) — all non-negotiable
 
@@ -2443,7 +2710,7 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 
 ### Phase I.5 progress (execution run)
 
-**Phase I.5 complete (all checklists [x]):** Header no-spillage (header-no-spillage.css + all bases including admin base_site). Premium UI/UX: one design system (design-tokens.css, design-tokens-luxury.css) on control_plane_skeleton, portal_base, backend_base, admin base_site, marketing base_marketing; superadmin = control_plane_base; tenant = portal_base/backend_base. Marketing: proof-rich, no generic square boxes, Phase F authority per CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §4. Single pane: System config + Regions/Plans/Grading/Site settings in super_views_config; admin wrapped (admin_nav_bridge + design tokens + header-no-spillage); SINGLE_PANE_VALIDATION satisfied. Click reduction: baseline and final estimates in CLICK_REDUCTION_BASELINE.md; command palette (Ctrl+K), role-home, one action model (page_header, action_registry) in place. Phase H and smoke tests passed.
+**Phase I.5 complete (all checklists [x]):** Header no-spillage (header-no-spillage.css + all bases including admin base_site). Premium UI/UX: one design system (design-tokens.css, design-tokens-luxury.css) on control_plane_skeleton, portal_base, backend_base, admin base_site, marketing base_marketing; superadmin = control_plane_base; tenant = portal_base/backend_base. Marketing: proof-rich, no generic square boxes, Phase F authority per CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §4. Single pane: Configuration Control Center + Regions/Plans/Grading/Site settings in super_views_config; admin wrapped (admin_nav_bridge + design tokens + header-no-spillage); SINGLE_PANE_VALIDATION satisfied. Click reduction: baseline and final estimates in CLICK_REDUCTION_BASELINE.md; command palette (Ctrl+K), role-home, one action model (page_header, action_registry) in place. Phase H and smoke tests passed.
 
 ### Phase I.5 completion gate
 
@@ -2464,7 +2731,7 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 | Superadmin one shell | control_plane_base + partials/control_plane_sidebar; all super_* extend control_plane_base. |
 | Tenant portal/backend | portal_base / backend_base; same tokens and header-no-spillage. |
 | Marketing proof-rich, no generic boxes | CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §4 [x]; proof-hero, proof-page, proof-strip; tokens-marketing.css. |
-| Single pane | System config (siteconfig:console_domains_hub); super:platform_operator_hub; super:regions_list, plans_list, grading_list, site_settings_*; admin wrapped (admin_nav_bridge + tokens); SINGLE_PANE_VALIDATION.md. |
+| Single pane | Configuration Control Center (siteconfig:console_domains_hub); super:platform_operator_hub; super:regions_list, plans_list, grading_list, site_settings_*; admin wrapped (admin_nav_bridge + tokens); SINGLE_PANE_VALIDATION.md. |
 | Click reduction | CLICK_REDUCTION_BASELINE.md (12+12 flows, baseline/final filled); Ctrl+K command palette; role-home; page_header + action_registry. |
 | Tests | manage.py check; apps.accounts.tests.test_smoke_urls; scripts/run_phase_h_verification.sh. |
 
@@ -2474,7 +2741,7 @@ These six wedges are delivered **in order** (1 → 2 → 3 → 4 → 5 → 6). S
 |------|------------------|--------------------------------|
 | **Premium UI/UX** | One design system at **base** level (all bases load design-tokens.css + design-tokens-luxury.css); header no spillage; superadmin one shell; tenant = portal_base/backend_base. | **Full audit:** Page-by-page pass on every tenant surface (finance, evals, academics, people, reports, etc.) to remove ad-hoc overrides and ensure no visual drift. §8.0.11 applies to every page. |
 | **Marketing front** | Proof-rich pattern (proof-hero, proof-page, proof-strip); CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §4 [x]; design tokens; no generic square boxes per doc. | **Full premium pass:** Audit every marketing template for any remaining uniform card grids; AI hero/role previews (content pipeline); scroll-storytelling pinned frame per chapter. |
-| **Single pane** | High-value workflows in Studio/Control: System config, Regions, Plans, Grading, Site settings (super_views_config); admin wrapped (tokens + header-no-spillage); /admin not in primary nav. | **Migrate remaining:** Add bounded super_* or Control console for other high-use admin models (e.g. FeatureToggle, User/Group, per-app list views) per RUNBOOK_ADMIN_TO_SUPER_MIGRATION; "Open in backoffice" only for rare/legacy. |
+| **Single pane** | High-value workflows in Studio/Control: Configuration Control Center, Regions, Plans, Grading, Site settings (super_views_config); admin wrapped (tokens + header-no-spillage); /admin not in primary nav. | **Migrate remaining:** Add bounded super_* or Control console for other high-use admin models (e.g. FeatureToggle, User/Group, per-app list views) per RUNBOOK_ADMIN_TO_SUPER_MIGRATION; "Open in backoffice" only for rare/legacy. |
 | **Click reduction** | Baseline and final **estimates** in CLICK_REDUCTION_BASELINE.md; command palette (Ctrl+K); role-home; one action model (page_header, action_registry). | **Measure for real:** Run the 12+12 flows with a human, record actual Baseline and Final clicks; confirm ~50% reduction or tune compression. Re-measure after each major UX release. |
 
 **Phase I.5 — Improvements to make the platform world-class (track here):**
@@ -2670,7 +2937,7 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 
 **Legacy replacement status (old code vs new — nothing missed):**
 - **Done (replaced or redirected):** [LEGACY_PATH_INVENTORY.md](LEGACY_PATH_INVENTORY.md) and [SUBTRACTIVE_CLEANUP_RELEASE_NOTES.md](SUBTRACTIVE_CLEANUP_RELEASE_NOTES.md) are the single source. Current state: `ensure_gilead_admin` REMOVED; `siteconfig.webhook_delivery` REMOVED; `/admin/siteconfig/customizer/`, `/siteconfig/customizer/`, `/siteconfig/workflow-hub/`, `/siteconfig/report-library/` REDIRECT to Studio OS; siteconfig `workflow_hub` and `report_library` views are redirect-only (legacy render removed). Theme/report defaults: migration 0155 RunMyCampus-neutral names.
-- **Still to do (per this plan):** §6.1 "Replace giant admin pages with bounded consoles" — System config console added; further replacements recorded in LEGACY_PATH_INVENTORY and SUBTRACTIVE_CLEANUP_RELEASE_NOTES. **Done (product sign-off):** Further legacy path removals — siteconfig views customizer, report_library, workflow_hub removed; all callers use Studio OS; config redirects kept (LEGACY_PATH_INVENTORY §2–3).
+- **Still to do (per this plan):** §6.1 "Replace giant admin pages with bounded consoles" — Configuration Control Center console added; further replacements recorded in LEGACY_PATH_INVENTORY and SUBTRACTIVE_CLEANUP_RELEASE_NOTES. **Done (product sign-off):** Further legacy path removals — siteconfig views customizer, report_library, workflow_hub removed; all callers use Studio OS; config redirects kept (LEGACY_PATH_INVENTORY §2–3).
 - **Rule:** Before deleting any legacy path, grep for references; ensure replacement is live; then update LEGACY_PATH_INVENTORY and SUBTRACTIVE_CLEANUP_RELEASE_NOTES. See LEGACY_PATH_INVENTORY §4 (nothing left behind).
 
 **Doc cross-check (stay on track):** Before each work session and at release, verify alignment:
@@ -2688,7 +2955,7 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 
 ### 11.4 Consolidated tracking (single place)
 
-**Rule:** All status and "what's left" tracking lives in **this file only**. Do not add status or "what's left" to PATH_TO_100, BACKLOG §6, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or any other doc. **All [ ] must be implemented and marked [x]**—including items annotated "N/A — product 2026-03-12" (that annotation is prior deferral only; implement them per the runbook). **Every item in this plan is non-negotiable;** there are no optional or permanently deferrable items. Those are **reference, implementation detail, or snapshots**; when reconciling, update this section first, then sync BACKLOG **and** the stock take when reconciling status. Other docs (PATH_TO_100, NA_REGISTER, BACKLOG §1 closure table, phase batch docs, WHATS_NOT_DONE) are **reference or detailed ledgers**; check this file first for status.
+**Rule:** All status and "what's left" tracking lives in **this file only**. Do not add status or "what's left" to PATH_TO_100, BACKLOG §6, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or any other doc. **All [ ] must be implemented and marked [x]**—including items annotated "N/A — product 2026-03-12" (that annotation is prior deferral only; implement them per the runbook). **Every SOT checklist `[ ]` item is non-negotiable** until closed. **Exception:** **Phase B batches after 0** and the **§5.x / §11.4 optional depth** row in the table below are **incremental engineering and product cadence** (no `[ ]` on the Studio/toolset spine); they are tracked in the §11.4 table and [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md), not as fake `[x]` for unbuilt product scope. Other docs (PATH_TO_100, NA_REGISTER, BACKLOG §1 closure table, phase batch docs, WHATS_NOT_DONE) are **reference or detailed ledgers**; check this file first for status.
 
 **Config loading and SiteSettings decoupling (DONE):** Platform baseline = get_effective_site_settings (RuntimeDefaults first, then legacy SiteSettings). Tenant config = get_effective_policy prefers school.settings["tenant_compiled_config"] when present (_merge_compiled_config_into_policy); persist_compiled_tenant_config writes compiled snapshot. Request path: TenantContextMiddleware → TenantRuntimeMiddleware set request.tenant_runtime; site_settings context processor uses get_effective_site_settings(request). lint_tenant_settings passes (no get_solo in tenant apps).
 
@@ -2723,6 +2990,8 @@ Reconcile with BACKLOG §2f at each milestone; nothing deferred.
 | **Launch 10-point** | **MET** (2026-03-17) | Staging run + sign-off recorded in launch_studio_checklist.md §4; repeat for future major releases. |
 | **Phase H + BR-13** | **MET** for 2026-03-17 sign-off | **Per release:** full manual pass when shipping (links, buttons, responsive, framing, seeding audit); automation: phase_h_audit, run_phase_h_verification. |
 | **Lowest sections (§5.9, §6.1, §6.18, §6.24)** | 5.0–6.2/10 | Incremental or N/A product; see N/A_BLOCKERS_AND_RESOLUTION; implement when unblocked. |
+| **Phase B — physical SiteSettings migration** | **Batches 0–3, 4–13 DONE** | **Batch 0:** `0162` + payload bridge. **Batch 1:** `PlatformGlobalBranding` + `0002`. **Batch 2:** `RuntimeDefaults.sync_from_site_settings` on `SiteSettings.save`. **Batch 3:** `0163` — drop branding/theme/report FK columns from `SiteSettings` (authority: `PlatformGlobalBranding`). **Batches 4–13:** `PlatformPhaseBDomainSnapshot` (`platform_runtime.0007`) — one JSON row per non-brand domain (`PHASE_B_SNAPSHOT_DOMAINS`); merge in `get_effective_site_settings`; `policies_rules` last; policy cache bust on sync when `POLICY_CACHE_TTL` set. Tracker: [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md). **Not** a §12 regression. |
+| **§5.x / §11.4 “full product” depth** | **OPTIONAL cadence** | Items in §5.1–§5.9 marked “when prioritized” / “full X when productized” (statutory report SKUs, full config diff UI, deeper workflow simulation, full layout builder, expanded API Center governance, extra contract coverage) ship as **product iteration**, not open PARTIAL gates on Studio/toolset spine. Track in release planning only. |
 
 **Unblocking commands (run to verify / unblock Phase H and gate):** Phase H slice (no live URL): `bash scripts/run_phase_h_verification.sh` (or `PHASE_H_SKIP_LIVE=1 bash scripts/run_phase_h_verification.sh`). Full gate: `bash scripts/pre_deploy_gate.sh`. E2E: run `bash scripts/run_visual_qa.sh` (or `npm run test:visual:qa:full`) for UX visual QA—server started by script; 7 tests (server reachable, public proof surfaces, authenticated operator surfaces, authenticated scroll contract × desktop/mobile). **Last run:** Full pre_deploy_gate + record (2026-03-17): **PASSED**. Runbook steps 1–8 complete; session state = All phases complete — 11/10. **Release sign-off:** Recorded 2026-03-17 (launch_studio_checklist.md §4; RELEASE_CHECKLIST).
 

@@ -24,6 +24,7 @@
     <a href="{% url 'super:governed_data_query' %}" class="fw-semibold">{% trans "Governed data query (BR-07)" %}</a></p>
   </div>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
+  {% include "schools/partials/beachhead_operator_checklist.html" %}
   <div class="row g-3 mt-1" data-tour="cp-trust-cards">
     <div class="col-md-6 col-lg-4">
       <div class="card h-100 shadow-sm border-secondary">
@@ -151,9 +152,37 @@
     <div class="col-md-6 col-lg-4">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-shield-lock me-2" aria-hidden="true"></span>{% trans "School admin: Security & trust" %}</h6>
+          <p class="card-text small text-secondary">{% trans "On each tenant: Backend → Security & trust (/authentication/backend/security-trust/) for MFA, sessions, RBAC/compliance/API links, platform events, and support impersonation log." %}</p>
+          <span class="badge bg-secondary">{% trans "Tenant UI" %}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
           <h6 class="card-title"><span class="bi bi-building me-2" aria-hidden="true"></span>{% trans "District & ERP integrations" %}</h6>
           <p class="card-text small text-secondary">{% trans "OneRoster + SSO today; Clever/ClassLink on roadmap. SAP, Oracle, and other big ERP integration via API Center and webhooks." %}</p>
-          <a href="{{ apicenter_url }}" class="btn btn-outline-primary btn-sm">{% trans "API Center" %}</a>
+          {% if district_enterprise_url %}<a href="{{ district_enterprise_url }}" class="btn btn-outline-primary btn-sm me-1">{% trans "District & enterprise hub" %}</a>{% endif %}
+          <a href="{{ apicenter_url }}" class="btn btn-outline-secondary btn-sm">{% trans "API Center" %}</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h6 class="card-title"><span class="bi bi-diagram-3 me-2" aria-hidden="true"></span>{% trans "Identity & trust graph (tenant)" %}</h6>
+          <p class="card-text small text-secondary">{% trans "Per-school Security & trust hub links MFA, sessions, RBAC, API posture, and impersonation audit — foundation for roster ↔ person resolution depth (SOT 11.4)." %}</p>
+          <a href="{% url 'accounts:security_trust_hub' %}" class="btn btn-outline-primary btn-sm">{% trans "Open Security & trust" %}</a>
+          {% if platform_rollups and not platform_rollups.error %}
+          <p class="small text-secondary mt-2 mb-1">{% trans "Platform-wide (manager DB)" %}: {% trans "students" %} {{ platform_rollups.active_students }}, {% trans "guardian links" %} {{ platform_rollups.guardian_links }}, {% trans "federation rows" %} {{ platform_rollups.federation_integrations_tracked }}.</p>
+          {% endif %}
+          {% if tenant_identity_graph_api_path %}
+          <p class="small text-muted mb-0"><code class="small">{{ tenant_identity_graph_api_path }}</code> {% trans "on school host (admin session)." %}</p>
+          {% endif %}
+          {% if tenant_statutory_extract_api_path %}
+          <p class="small text-muted mb-0"><code class="small">{{ tenant_statutory_extract_api_path }}</code> {% trans "live statutory JSON (stub + country) on school host." %}</p>
+          {% endif %}
         </div>
       </div>
     </div>

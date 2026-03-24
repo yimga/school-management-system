@@ -1,0 +1,14 @@
+{% load i18n %}
+<div class="studio-os__automation-overview" data-page-archetype="operational-workbench">
+  <p class="small text-muted mb-3">{% trans "Native overview: pack graph and health. Use the rail for Outcomes, Workflow center (full grid), approvals, and governance tools — iframes load only when you open those panes." %}</p>
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <h2 class="h6 mb-2">{% trans "Pack & template graph" %}</h2>
+      {% include "studio_os/partials/automation_dependency_graph_body.html" with graph=graph %}
+    </div>
+    <div class="col-lg-6">
+      <h2 class="h6 mb-2">{% trans "Workflow health" %}</h2>
+      {% include "studio_os/partials/automation_workflow_health_body.html" with pack_count=pack_count template_count=template_count workflow_center_pane_url=workflow_center_pane_url %}
+    </div>
+  </div>
+</div>

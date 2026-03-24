@@ -45,7 +45,7 @@
 - Precedence documented and tested: **Done** — RESOLUTION_CHAIN; allowlist documents migration path.
 - Runtime observability: **Done** — Runtime inspector (super:runtime_inspector); catalog output.
 
-### Section 4 — System Configuration
+### Section 4 — Configuration Control Center
 - Decomposed into seven consoles: **Done** — views_console_domains; console_domains_hub; Search/Preview/Compare/Audit/Rollback.
 - siteconfig not landfill: **Done** — Migration plan; deprecation; bounded-context imports; no new tenant logic by policy.
 - Config UX (search, preview, diff, audit, rollback): **Done** — Per-domain links and operator copy in hub.
@@ -145,7 +145,7 @@
 
 ---
 
-## 4. Toolsets (Theme, Feature Control, Report, Document, Design Studio, Live Previews, Workflows, AI/API, System Config)
+## 4. Toolsets (Theme, Feature Control, Report, Document, Design Studio, Live Previews, Workflows, AI/API, Configuration Control Center)
 
 | Toolset | 9.5 bar met (advanced) | Evidence |
 |---------|------------------------|----------|
@@ -157,7 +157,7 @@
 | Live Previews | Yes | preview_from_form; theme/blueprint/workflow preview; Setup Studio 6-role preview |
 | Workflows | Yes | WorkflowPack; hub; preview API; run log; pack install (path-to-10: visual editor, simulation) |
 | AI & API | Yes | No secret in templates; API Center; Setup Studio ai_recommended; backend-only AI |
-| System Config | Yes | Seven consoles; Compare/Audit/Rollback; operator copy; lint + allowlist; SITECONFIG_OWNERSHIP_MIGRATION |
+| Configuration Control Center | Yes | Seven consoles; Compare/Audit/Rollback; operator copy; lint + allowlist; SITECONFIG_OWNERSHIP_MIGRATION |
 
 ---
 

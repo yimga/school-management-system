@@ -14,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 
 from django.contrib.auth import get_user_model
 
+from apps.marketplace.ecosystem_links import build_phase9_ecosystem_links
 from apps.packages.engine import rollback as package_rollback
 from apps.packages.models import InstalledPackage, PackageChangeLog
 
@@ -126,5 +127,6 @@ def tenant_installed_packages_rollback(request):
             "modules_url": reverse("siteconfig:module_market"),
             "package_impact_api_path": "/api/internal/north-star/package-impact/",
             "package_impact_fetch_url": package_impact_fetch_url,
+            "phase9_links": build_phase9_ecosystem_links(),
         },
     )

@@ -56,10 +56,10 @@ class SuperConfigMigrationUrlTests(TestCase):
             self.assertIn(
                 "console/",
                 response.get("Location", ""),
-                "Config hub must redirect to System config",
+                "Config hub must redirect to Configuration Control Center",
             )
             follow = self.client.get(response["Location"], HTTP_HOST=self.host)
-            self.assertEqual(follow.status_code, 200, "System config must return 200")
+            self.assertEqual(follow.status_code, 200, "Configuration Control Center must return 200")
         else:
             self.assertEqual(response.status_code, 200)
 

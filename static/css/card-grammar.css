@@ -61,10 +61,10 @@
 .card--alert {
   border-left-width: 4px;
 }
-.card--alert.card--alert-success { border-left-color: #22c55e; }
-.card--alert.card--alert-warning { border-left-color: #f59e0b; }
-.card--alert.card--alert-danger  { border-left-color: #ef4444; }
-.card--alert.card--alert-info    { border-left-color: #3b82f6; }
+.card--alert.card--alert-success { border-left-color: var(--ds-success); }
+.card--alert.card--alert-warning { border-left-color: var(--ds-warning); }
+.card--alert.card--alert-danger  { border-left-color: var(--ds-danger); }
+.card--alert.card--alert-info    { border-left-color: var(--ds-info); }
 
 /* Widget: compact for dashboards */
 .card--widget .card-body {

@@ -8,6 +8,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from apps.accounts.models import Permission
+
 User = get_user_model()
 
 LAUNCH_RAIL_VIEWS = [
@@ -38,6 +40,13 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
         )
         self.user.is_staff = True
         self.user.save(update_fields=["is_staff"])
+        self.user.refresh_from_db()
+        assert self.user.is_staff, "fixture user must be staff for Studio / workflow views"
+        manage_perm, _ = Permission.objects.get_or_create(
+            code="settings.manage",
+            defaults={"name": "Manage settings"},
+        )
+        self.user.feature_permissions.add(manage_perm)
 
     def test_launch_select_plan_returns_200_for_staff(self):
         """§4.5 Select plan: view and URL wired; returns 200."""
@@ -60,3 +69,47 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
                     200,
                     f"{name} should return 200 for staff",
                 )
+
+    def test_automation_overview_is_native_without_iframe(self):
+        """Default Automation pane renders server-side overview (no iframe)."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:automation") + "?pane=overview"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(
+            b"<iframe",
+            response.content.lower(),
+            "Overview should be native HTML, not an iframe canvas",
+        )
+
+    def test_automation_workflow_pane_uses_iframe(self):
+        """Workflow center embed loads in iframe when pane=workflow."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:automation") + "?pane=workflow"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"<iframe", response.content.lower())
+
+    def test_workflow_center_embed_returns_200(self):
+        """Workflow center supports ?embed=1 for Automation Studio iframe."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:workflow_center") + "?embed=1"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "workflow-grid")
+
+    def test_launch_overview_native_without_iframe_when_payload(self):
+        """Launch overview is native when setup payload exists."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:launch") + "?pane=overview"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        # Without a bound school, overview is native empty-state (no iframe).
+        self.assertNotIn(b"<iframe", response.content.lower())
+
+    def test_launch_onboarding_pane_uses_iframe(self):
+        self.client.force_login(self.user)
+        url = reverse("studio_os:launch") + "?pane=onboarding"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"studio-launch-iframe", response.content.lower())

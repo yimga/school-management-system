@@ -137,6 +137,75 @@ def dashboard(request: HttpRequest):
         },
     ]
 
+    n_runs = PayrollRun.objects.filter(profile=profile).count()
+    next_payroll_actions = [
+        {"label": "New run", "url": reverse("payroll:create_run")},
+    ]
+    if latest_run:
+        next_payroll_actions.append(
+            {
+                "label": "Open latest",
+                "url": reverse("payroll:run_detail", args=[latest_run.id]),
+            }
+        )
+    else:
+        next_payroll_actions.append(
+            {
+                "label": "Employee payslips",
+                "url": reverse("payroll:employee_payslips"),
+            }
+        )
+    next_payroll_actions.append(
+        {"label": "Backend home", "url": reverse("accounts:backend_dashboard")}
+    )
+
+    phase7_de = {
+        "eyebrow": "Payroll home",
+        "headline_label": "Latest run status",
+        "headline_value": latest_run.get_status_display()
+        if latest_run
+        else "No runs yet",
+        "headline_meta": profile.name,
+        "metrics": [
+            {
+                "label": "Payslips (latest)",
+                "value": payslip_count,
+                "meta": "Current run",
+                "status": "ok",
+            },
+            {
+                "label": "Runs on file",
+                "value": n_runs,
+                "meta": "History",
+                "status": "ok",
+            },
+            {
+                "label": "Period",
+                "value": f"{latest_run.period_start} → {latest_run.period_end}"
+                if latest_run
+                else "—",
+                "meta": "Latest window",
+                "status": "ok",
+            },
+        ],
+        "urgent_queue": [
+            {
+                "title": "Start or open a payroll run",
+                "url": reverse("payroll:create_run")
+                if not latest_run
+                else reverse("payroll:run_detail", args=[latest_run.id]),
+                "hint": "Keep pay periods current.",
+            }
+        ],
+        "next_actions": next_payroll_actions[:3],
+        "activity": [
+            {
+                "title": "Payroll console",
+                "meta": "Runs and payslips below.",
+            }
+        ],
+    }
+
     return render(
         request,
         "payroll/dashboard.html",
@@ -152,6 +221,7 @@ def dashboard(request: HttpRequest):
             "dashboard_layout_url": dashboard_layout_url,
             "available_sidebar_items": available_sidebar_items,
             "widget_meta_json": widget_meta_json,
+            "phase7_de": phase7_de,
         },
     )
 

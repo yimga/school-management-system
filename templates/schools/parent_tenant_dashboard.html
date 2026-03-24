@@ -1,11 +1,16 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Parent tenant dashboard" %} – {{ parent_school.name }}{% endblock %}
 {% block backend_title %}{% trans "Parent tenant dashboard" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
+{% endblock %}
+
 {% block content %}
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-4" data-decision-engine="surface">
     <h1 class="h4 mb-3">{% trans "Child schools" %} ({{ parent_school.name }})</h1>
     <div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
       <div class="card shadow-sm text-center">

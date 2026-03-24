@@ -252,7 +252,7 @@
 
 ---
 
-## 10. apps.siteconfig — System Configuration (settings, themes, preferences)
+## 10. apps.siteconfig — Configuration Control Center (settings, themes, preferences)
 
 ### What’s in place
 - SiteSettings (large model: theme, MFA, reports flags, finance automation, feature flags), RegionConfig, ReportCardStyle, portal sidebar, context_processors (site_settings, is_backend_context), dashboard widget metadata.

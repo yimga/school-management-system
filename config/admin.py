@@ -281,7 +281,7 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             },
             "siteconfig": {
                 "order": 1000,
-                "name": "System Configuration",
+                "name": "Config center",
                 "icon": "siteconfig",
                 "section": "system",
             },
@@ -367,7 +367,7 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
 
 
 class PlatformAdminSite(BaseRunMyCampusAdminSite):
-    """Platform Backoffice: raw CRUD only. Single config surface is System config (siteconfig:console_domains_hub)."""
+    """Platform Backoffice: raw CRUD only. Single config surface is Configuration Control Center (siteconfig:console_domains_hub)."""
 
     site_header = "Platform Backoffice"
     site_title = "Platform Backoffice"
@@ -400,7 +400,7 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
     PLATFORM_APP_ORDER = {
         "siteconfig": {
             "order": 1,
-            "name": "System Configuration",
+            "name": "Config center",
             "section": "Platform Configuration",
         },
         "schools": {

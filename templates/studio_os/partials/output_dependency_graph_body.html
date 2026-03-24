@@ -1,0 +1,68 @@
+{% load i18n %}
+{# graph: get_output_dependency_graph; pack_preview_cards / focus_pack_code optional #}
+<div class="container-fluid py-2 studio-output-native-pane" data-studio-output-native="dependency">
+  {% if pack_preview_cards %}
+  <div class="studio-os__card py-3 px-3 ds-card mb-3" data-studio-output-pack-previews="1" role="region" aria-label="{% trans 'Report pack sample previews' %}">
+    <h3 class="h6 mb-2">{% trans "Sample-data previews" %}</h3>
+    <p class="small text-muted mb-3">{% trans "Each active report pack exposes seeded preview rows for stakeholder review. Open the pack on the graph (link per card) to align with dependencies below." %}</p>
+    <div class="row g-2">
+      {% for card in pack_preview_cards %}
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="border rounded p-2 h-100 {% if focus_pack_code and focus_pack_code == card.pack_code %}border-primary border-2{% else %}border-secondary-subtle{% endif %}">
+          <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+            <strong class="small">{{ card.preview.title|default:card.pack_name }}</strong>
+            {% if card.pack_code %}<code class="small text-muted">{{ card.pack_code }}</code>{% endif %}
+          </div>
+          {% if card.preview.description %}
+          <p class="small text-muted mb-2">{{ card.preview.description }}</p>
+          {% endif %}
+          {% if card.preview.summary %}
+          <dl class="small mb-2 row gx-2">
+            {% for k, v in card.preview.summary.items %}
+            <dt class="col-5 text-muted text-truncate" title="{{ k }}">{{ k }}</dt>
+            <dd class="col-7 mb-1">{{ v }}</dd>
+            {% endfor %}
+          </dl>
+          {% endif %}
+          {% if card.preview.rows %}
+          <ul class="list-unstyled small mb-2">
+            {% for row in card.preview.rows %}
+            <li class="d-flex justify-content-between gap-2 border-bottom border-light py-1">
+              <span>{{ row.label }}</span>
+              <span class="text-muted text-end">{{ row.value }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <a class="btn btn-sm btn-outline-primary" href="{{ card.graph_url }}">{% trans "Focus on graph" %}</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <div class="studio-os__card py-3 px-3 ds-card">
+    <h3 class="h6 mb-3">{% trans "Dependencies by pack" %}</h3>
+    {% if graph %}
+    <ul class="list-unstyled mb-0">
+      {% for node in graph %}
+      <li class="mb-3 {% if focus_pack_code and focus_pack_code == node.pack_code %}ps-2 border-start border-primary border-3{% endif %}">
+        <strong>{{ node.pack_name|default:node.pack_code|default:"—" }}</strong>
+        {% if node.pack_code %}<code class="small ms-1">{{ node.pack_code }}</code>{% endif %}
+        {% if node.dependencies %}
+        <ul class="small text-muted mt-1 mb-0 ps-3">
+          {% for dep in node.dependencies %}
+          <li><span class="text-dark">{{ dep.label }}:</span> {{ dep.items|join:", " }}</li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <span class="small text-muted d-block mt-1">— {% trans "No dependencies" %}</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted mb-0">{% trans "No report packs or dependencies to show. Add active report packs or configure report templates." %}</p>
+    {% endif %}
+  </div>
+</div>

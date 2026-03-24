@@ -122,6 +122,7 @@ Declare archetype in template or registry (e.g. `data-page-archetype="role-home"
 
 - **One shell:** All authenticated surfaces in one AppShell/StudioShell (§8.0.1).
 - **One design system:** Tokens (color, spacing, radius, typography) from THEME_CANONICAL_TOKENS or design_tokens; no ad hoc per-page styling (§8.0.5).
+- **Phase 2 — token enforcement:** See [DESIGN_SYSTEM_PHASE2.md](DESIGN_SYSTEM_PHASE2.md): `--ds-*` semantic tokens, `.ds-card` / `.ds-empty` / `.ds-alert` / `.ds-action-bar`, marketing `tokens-marketing.css` aliased to product scales, brand primary unified on `--school-primary`. **Automated gate:** `python scripts/verify_design_system_phase2.py` (required CSS, canonical bases, no regressed inline `<style>` in migrated components; runs `verify_section10_5_layers.py`).
 - **Responsive:** Flexbox/Grid; fluid containers; no fixed width/height in pixels for layout; typography via clamp() or media queries (§8.0.6).
 - **Decision architecture:** Every important page/dashboard/workflow/control declares the seven answers (§1.8 / §8.0); see OPERATING_DISCIPLINE_LAYERS.md.
 

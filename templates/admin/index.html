@@ -503,10 +503,10 @@
       {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
       <div class="app-card" onclick="window.location='{% url 'siteconfig:console_domains_hub' %}'">
         <span class="app-icon">⚙️</span>
-        <h3 class="app-title">{% trans "System config" %}</h3>
-        <p class="app-meta">{% trans "Site settings, regions, features" %}</p>
+        <h3 class="app-title">{% trans "Configuration Control Center" %}</h3>
+        <p class="app-meta">{% trans "Outcomes, domains, platform settings" %}</p>
         <div class="app-actions">
-          <a href="{% url 'siteconfig:console_domains_hub' %}" class="app-btn">{% trans "Open System config" %}</a>
+          <a href="{% url 'siteconfig:console_domains_hub' %}" class="app-btn">{% trans "Open Config center" %}</a>
         </div>
       </div>
       {% endif %}

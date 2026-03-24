@@ -179,7 +179,7 @@
         <div class="sidebar-section-title">People & Access</div>
         <a class="nav-link nav-pill" href="{% url 'accounts:backend_student_list' %}"><i class="bi bi-person-lines-fill me-2"></i>Student Profiles</a>
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
-        <a class="nav-link nav-pill" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide me-2"></i>{% trans "System config" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide me-2"></i>{% trans "Config center" %}</a>
         {% endif %}
         <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control</a>
         <div class="sidebar-section-title">Academic Management</div>
@@ -234,7 +234,7 @@
       <ul class="list-unstyled mb-0 small mt-1 recent-activity-list">
         {% if recent_activities %}
           {% for activity in recent_activities|slice:":6" %}
-            <li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left: 3px solid rgba(99,102,241,0.5); padding-left: 0.6rem !important;">
+            <li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left: 3px solid color-mix(in srgb, var(--stat-admin) 50%, transparent); padding-left: 0.6rem !important;">
               <span class="fw-semibold d-block" style="font-size: 0.8rem;">{{ activity.user.username }}</span>
               <span class="small text-muted">{{ activity.action }} {{ activity.model }}</span>
               <span class="badge bg-secondary ms-1" style="font-size: 0.65rem;">{{ activity.time_ago }} ago</span>

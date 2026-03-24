@@ -695,7 +695,12 @@ def build_education_system_support_accordion(safe_reverse) -> list[dict]:
                 return out
         return None
 
-    report_library = u("siteconfig:report_library", "reports:report_list")
+    _out_reports = u("studio_os:output")
+    report_library = (
+        f"{_out_reports}?pane=reports"
+        if _out_reports
+        else u("reports:report_list")
+    )
 
     def actions_for(sector: str) -> list[dict]:
         seen: set[str] = set()

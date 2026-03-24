@@ -38,6 +38,11 @@ class RoleHomeEngineTests(TestCase):
         self.assertEqual(role_home["key"], "implementation")
         self.assertEqual(role_home["active_intent"], "setup")
 
+    def test_resolve_role_home_superadmin_platform_ops(self):
+        role_home = resolve_role_home("SUPERADMIN", None)
+        self.assertEqual(role_home["key"], "platform_ops")
+        self.assertEqual(role_home["active_intent"], "executive")
+
     def test_resolve_role_home_unknown_role_falls_back_to_principal(self):
         role_home = resolve_role_home("UNKNOWN_ROLE", None)
         self.assertEqual(role_home["key"], "principal")

@@ -50,18 +50,30 @@ class GovernmentAggregatesAPI(View):
         payload = {
             "schools_count": 0,
             "students_count": 0,
+            "teachers_count": 0,
+            "guardian_links_count": 0,
+            "schools_with_parent_count": 0,
             "by_region": {},
-            "schema_version": "1.0",
+            "schema_version": "1.1",
         }
         try:
             if apps.is_installed("schools"):
                 School = apps.get_model("schools", "School")
                 payload["schools_count"] = School.objects.filter(is_active=True).count()
+                payload["schools_with_parent_count"] = School.objects.filter(
+                    is_active=True, parent_school__isnull=False
+                ).count()
             if apps.is_installed("people"):
                 StudentProfile = apps.get_model("people", "StudentProfile")
+                TeacherProfile = apps.get_model("people", "TeacherProfile")
+                StudentGuardian = apps.get_model("people", "StudentGuardian")
                 payload["students_count"] = StudentProfile.objects.filter(
                     is_active=True
                 ).count()
+                payload["teachers_count"] = TeacherProfile.objects.filter(
+                    is_active=True
+                ).count()
+                payload["guardian_links_count"] = StudentGuardian.objects.count()
                 # Optional: by region (country_code) — no PII
                 by_region = (
                     StudentProfile.objects.filter(is_active=True)

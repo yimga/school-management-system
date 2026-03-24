@@ -15,7 +15,7 @@
 | Completed by | Engineering (UI/UX closure sprint) |
 | Branch/commit | (current) |
 
-**2026-03-18 automated + productization slice (done):** `phase_h_audit.py` static **passed**; new **control-plane Page tour** (trust / migration CSV diff / governed query); **GLOBAL_NAV_INFORMATION_ARCHITECTURE.md**; **System config outcome banner** (Studio Experience, Setup Studio, Theme & colors); **test_tour_steps_control_plane**; SOT §6 pillar **MET**. Full manual §2–8 still required **per release** on staging (tick boxes below).
+**2026-03-18 automated + productization slice (done):** `phase_h_audit.py` static **passed**; new **control-plane Page tour** (trust / migration CSV diff / governed query); **GLOBAL_NAV_INFORMATION_ARCHITECTURE.md**; **Configuration Control Center outcome banner** (Studio Experience, Setup Studio, Theme & colors); **test_tour_steps_control_plane**; SOT §6 pillar **MET**. Full manual §2–8 still required **per release** on staging (tick boxes below).
 
 ---
 

@@ -9,23 +9,26 @@ from apps.academics.models import AcademicYear, Department, Specialty, Classroom
 from apps.people.models import StudentProfile, StudentGuardian
 from apps.finance.models import ComplianceProfile, Invoice, Notification
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.platform_runtime.models import RuntimeDefaults
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 from apps.communication.models import Message
 
 
 class FinanceAccessRequestTests(TestCase):
     def setUp(self):
-        site = get_platform_site_settings_record(create=True)
-        flags = {
-            **default_backend_feature_flags(),
-            **(site.backend_feature_flags or {}),
-        }
+        get_platform_site_settings_record(create=True)
+        flags = {**default_backend_feature_flags()}
         flags["allow_finance_access_requests"] = True
         flags["require_guardian_finance_opt_in"] = True
-        SiteSettings.objects.filter(pk=site.pk).update(backend_feature_flags=flags)
-        # Clear site settings cache so the view sees updated flags
+        rd, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
+        pl = dict(rd.payload or {})
+        pl["backend_feature_flags"] = flags
+        rd.payload = pl
+        rd.save(update_fields=["payload", "updated_at"])
+        from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
         from apps.siteconfig.models import _clear_site_settings_cache
 
+        invalidate_effective_site_settings_cache()
         _clear_site_settings_cache(SiteSettings)
 
         self.year = AcademicYear.objects.create(
@@ -95,14 +98,19 @@ class FinanceAccessRequestTests(TestCase):
         )
 
     def test_request_access_disabled_flag_blocks(self):
-        site = get_platform_site_settings_record(create=True)
-        flags = {
-            **default_backend_feature_flags(),
-            **(site.backend_feature_flags or {}),
-        }
+        get_platform_site_settings_record(create=True)
+        flags = {**default_backend_feature_flags()}
         flags["allow_finance_access_requests"] = False
-        site.backend_feature_flags = flags
-        site.save()
+        rd, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
+        pl = dict(rd.payload or {})
+        pl["backend_feature_flags"] = flags
+        rd.payload = pl
+        rd.save(update_fields=["payload", "updated_at"])
+        from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
+        from apps.siteconfig.models import _clear_site_settings_cache
+
+        invalidate_effective_site_settings_cache()
+        _clear_site_settings_cache(SiteSettings)
 
         StudentGuardian.objects.create(
             guardian_user=self.parent, student=self.student, can_view_finance=False

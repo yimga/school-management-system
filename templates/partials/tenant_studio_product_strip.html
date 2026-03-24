@@ -1,0 +1,15 @@
+{% load i18n %}
+{# Same nav language as manager control-plane spine: Studio family on tenant portal (Phase 1 continuity). #}
+<nav class="tenant-studio-spine" role="navigation" aria-label="{% trans 'Studio and configuration shortcuts' %}" data-tenant-studio-spine="1">
+  <span class="tenant-studio-spine__label">{% trans "Studio" %}</span>
+  <a href="{% url 'studio_os:shell' %}">{% trans "Overview" %}</a>
+  <a href="{% url 'studio_os:experience' %}">{% trans "Experience" %}</a>
+  <a href="{% url 'studio_os:output' %}">{% trans "Outputs" %}</a>
+  <a href="{% url 'studio_os:automation' %}">{% trans "Automation" %}</a>
+  <a href="{% url 'studio_os:launch' %}">{% trans "Launch" %}</a>
+  <a href="{% url 'studio_os:control' %}">{% trans "Control" %}</a>
+  <a href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Config center" %}</a>
+  {% if request.user.is_superuser %}
+  <a href="{% url 'admin:index' %}">{% trans "Platform admin" %}</a>
+  {% endif %}
+</nav>

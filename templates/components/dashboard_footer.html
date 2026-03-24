@@ -55,7 +55,7 @@
               {% if is_backend_context %}
               <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-shield-lock"></i> Backend Dashboard</a>
               {% else %}
-              <a href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-shield-lock"></i> System config</a>
+              <a href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-shield-lock"></i> {% trans "Config center" %}</a>
               {% endif %}
               <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-activity"></i> Activity Logs</a>
             {% endif %}

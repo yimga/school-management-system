@@ -74,17 +74,22 @@
 
     <div class="proof-catalog-grid" id="app-catalog-list">
       {% for listing in listings %}
-      <article class="proof-app-card" data-rmc-school-select data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.category|default:''|lower }}">
+      <article class="proof-app-card" data-rmc-school-select data-phase9-listing-trust data-app-name="{{ listing.app.name|lower }}" data-app-slug="{{ listing.app.slug|lower }}" data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.category|default:''|lower }}">
         {% if listing.preview_image_url %}
         <div class="proof-app-preview-img mb-2">
           <img src="{{ listing.preview_image_url }}" alt="" class="img-fluid rounded" style="max-height: 140px; object-fit: cover; width: 100%;" loading="lazy">
         </div>
         {% endif %}
         {% if listing.screenshot_urls %}
-        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap">
+        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap" data-listing-screenshots>
           {% for url in listing.screenshot_urls|slice:":5" %}
           <img src="{{ url }}" alt="" class="rounded" style="height: 56px; width: 80px; object-fit: cover;" loading="lazy">
           {% endfor %}
+        </div>
+        {% elif not listing.preview_image_url %}
+        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap opacity-75" data-listing-screenshots-placeholder>
+          <img src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="" class="rounded border" style="height: 56px; width: 80px; object-fit: cover;" width="80" height="56" loading="lazy">
+          <img src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="" class="rounded border" style="height: 56px; width: 80px; object-fit: cover;" width="80" height="56" loading="lazy">
         </div>
         {% endif %}
         <div class="proof-app-head">
@@ -131,6 +136,21 @@
           </div>
           {% endif %}
         </div>
+
+        {% with cd=listing.catalog_display %}
+        <div class="small border-top pt-2 mt-2 text-muted" data-listing-compatibility>
+          {% if cd.platform_min_version or cd.min_rmc_version %}
+          <p class="mb-1"><strong>Platform compatibility:</strong>
+            {% if cd.platform_min_version %}min platform <code>{{ cd.platform_min_version }}</code>{% endif %}
+            {% if cd.min_rmc_version %}{% if cd.platform_min_version %} · {% endif %}min RMC <code>{{ cd.min_rmc_version }}</code>{% endif %}
+            {% if cd.app_version_range %}<span class="text-muted">({{ cd.app_version_range }})</span>{% endif %}
+          </p>
+          {% endif %}
+          {% if cd.blueprint_families %}<p class="mb-1">Blueprint families: {{ cd.blueprint_families|join:", " }}</p>{% endif %}
+          {% if cd.workflow_families %}<p class="mb-1">Workflow families: {{ cd.workflow_families|join:", " }}</p>{% endif %}
+        </div>
+        <div class="small text-muted mt-1" data-listing-rollback-copy><strong>Rollback expectations:</strong> {{ cd.rollback_summary }}</div>
+        {% endwith %}
 
         <div class="text-muted small">
           {% if listing.sandbox_installations %}

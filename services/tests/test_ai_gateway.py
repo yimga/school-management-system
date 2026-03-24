@@ -1,7 +1,7 @@
 """Tests for services.ai_gateway and services.ai_schemas."""
 from unittest.mock import patch
 
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from services.ai_gateway import TaskType, invoke, record_feedback, _task_tiers
 from services.ai_schemas import (
@@ -27,7 +27,7 @@ class TaskTiersTests(SimpleTestCase):
         self.assertIn("rules", tiers.get(TaskType.GENERAL_CHAT.value, [])[-1:] or ["rules"])
 
 
-class InvokeTests(SimpleTestCase):
+class InvokeTests(TestCase):
     @override_settings(AI_GATEWAY_ENABLED=True)
     @patch("services.ai_gateway._call_ollama", return_value=("test response", {"provider": "ollama", "tier": "ollama"}))
     def test_invoke_returns_ollama_result(self, mock_ollama):

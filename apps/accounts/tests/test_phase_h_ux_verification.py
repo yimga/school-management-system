@@ -170,7 +170,7 @@ class PhaseHUrlReverseTests(SimpleTestCase):
         self.assertIn("/siteconfig/", url)
 
     def test_siteconfig_console_domains_hub_resolves(self):
-        """Phase B bounded console (System config) must resolve on manager and tenant."""
+        """Phase B bounded console (Configuration Control Center) must resolve on manager and tenant."""
         url = reverse("siteconfig:console_domains_hub")
         self.assertEqual(url, "/siteconfig/console/")
 

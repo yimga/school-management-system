@@ -30,17 +30,19 @@
     <div class="cp-eyebrow">{% trans "Platform Backoffice" %}</div>
     <h1 class="cp-hero-title">{% trans "Platform Backoffice" %}</h1>
     <p class="cp-hero-copy">
-      {% trans "Remaining platform models only. Site settings and primary operator flows live on the Platform operator hub and System config — not here." %}
+      {% trans "Remaining platform models only. Prefer Configuration Control Center and Studio (Experience, Outputs, Control) for operator workflows — use this index for raw model access when required." %}
     </p>
     <div class="d-flex flex-wrap gap-2">
       <a href="{% url 'super:platform_operator_hub' %}" class="btn btn-primary btn-sm">{% trans "Platform operator hub" %}</a>
-      <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-outline-light btn-sm">{% trans "Open System config" %}</a>
+      <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-outline-light btn-sm">{% trans "Open Config center" %}</a>
+      <a href="{% url 'studio_os:control' %}" class="btn btn-outline-light btn-sm">{% trans "Studio Control" %}</a>
+      <a href="{% url 'studio_os:output' %}" class="btn btn-outline-light btn-sm">{% trans "Studio Outputs" %}</a>
       <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Control plane" %}</a>
     </div>
   </section>
 
   <h2 class="h6 text-uppercase text-muted mb-2">{% trans "Applications" %}</h2>
-  <p class="small text-muted mb-3">{% trans "Direct access to model changelists. For guided configuration use System config above." %}</p>
+  <p class="small text-muted mb-3">{% trans "Direct access to model changelists. For guided configuration use the Configuration Control Center above." %}</p>
   <ul class="cp-admin-app-list">
     {% for app in app_list %}
     <li>

@@ -7,7 +7,7 @@
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
-    <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "System config" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "Config center" %}</a></li>
     <li class="breadcrumb-item"><a href="{% url 'super:site_settings_list' %}">{% trans "Site settings" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Edit" %}</li>
   </ol>
@@ -21,7 +21,9 @@
       <div>
         <div class="h6 text-uppercase text-white-50 mb-1">{% trans "Platform configuration" %}</div>
         <h1 class="h4 mb-1 fw-bold text-white">{% trans "Edit site settings" %}</h1>
-        <p class="text-white-50 small mb-0">{% trans "Site name, theme, and defaults." %}</p>
+        <p class="text-white-50 small mb-0">
+          {% trans "Maintenance on SiteSettings; theme packs and default report styles on Platform global branding. Site name, colors, and flags live in Runtime Defaults and Feature Control." %}
+        </p>
       </div>
       <a href="{% url 'super:site_settings_list' %}" class="btn btn-outline-light btn-sm">{% trans "Back to list" %}</a>
     </div>
@@ -30,8 +32,18 @@
   <div class="cp-overview-card border border-secondary rounded p-4">
     <form method="post" action="">
       {% csrf_token %}
-      {{ form.non_field_errors }}
-      {% for field in form %}
+      {{ site_form.non_field_errors }}
+      {{ branding_form.non_field_errors }}
+      {% for field in site_form %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label text-white">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+        {% if field.help_text %}<div class="form-text text-white-50">{{ field.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div class="text-uppercase text-white-50 small mb-2 mt-4">{% trans "Platform branding" %}</div>
+      {% for field in branding_form %}
       <div class="mb-3">
         <label for="{{ field.id_for_label }}" class="form-label text-white">{{ field.label }}</label>
         {{ field }}
@@ -42,7 +54,7 @@
       <div class="d-flex gap-2 pt-2">
         <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
         <a href="{% url 'super:site_settings_list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
-        <a href="{{ system_config_url }}" class="btn btn-outline-secondary ms-auto">{% trans "System config" %}</a>
+        <a href="{{ system_config_url }}" class="btn btn-outline-secondary ms-auto">{% trans "Config center" %}</a>
       </div>
     </form>
   </div>

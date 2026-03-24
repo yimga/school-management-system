@@ -1,5 +1,6 @@
 """Control plane sidebar must expose admin-sidebar parity links (manager host)."""
 
+from django.contrib.auth import get_user_model
 from django.test import RequestFactory, SimpleTestCase
 
 from apps.schools.control_plane_nav import build_control_plane_nav
@@ -11,6 +12,8 @@ class ControlPlaneNavParityTests(SimpleTestCase):
     def test_platform_settings_group_includes_admin_parity_ids(self):
         request = RequestFactory().get("/super/")
         request.urlconf = "config.manager_urls"
+        User = get_user_model()
+        request.user = User(is_superuser=True, username="nav_parity")
         groups = build_control_plane_nav(request)
         all_ids = []
         for grp in groups:

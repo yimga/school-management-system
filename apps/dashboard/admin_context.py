@@ -25,7 +25,10 @@ from django.utils import timezone
 
 from apps.dashboard.action_registry import get_admin_header_actions
 from apps.finance.models import Notification
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import (
+    get_effective_site_settings,
+    get_platform_site_settings_record,
+)
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.siteconfig.models import SiteSettings
 from apps.siteconfig.models_support import default_header_weather_config
@@ -780,6 +783,14 @@ def build_admin_dashboard_context(
     ).count()
 
     site = get_effective_site_settings(request=request)
+    if site is None or not getattr(site, "pk", None):
+        persisted = get_platform_site_settings_record(create=True)
+        if persisted is not None:
+            site = persisted
+        else:
+            from apps.siteconfig.models import build_platform_default_site_settings
+
+            site = build_platform_default_site_settings()
     admin_theme = site.get_admin_theme()
     admin_palette: dict[str, Any] = {}
     if (

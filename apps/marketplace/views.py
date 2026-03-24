@@ -21,6 +21,8 @@ from apps.marketplace.models import (
     PublisherOrganization,
     ScopeGrant,
 )
+from apps.marketplace.ecosystem_links import build_phase9_ecosystem_links
+from apps.marketplace.listing_display import catalog_listing_display
 from apps.marketplace.install_impact import build_tenant_install_impact
 from apps.marketplace.services import (
     activate_sandbox_installation,
@@ -475,6 +477,8 @@ def app_catalog(request):
     installable_listings = [
         lst for lst in listings if getattr(lst, "installable", False)
     ]
+    for lst in installable_listings:
+        lst.catalog_display = catalog_listing_display(lst)
     schools, school_query, school_limit = _control_plane_school_options(request)
     installed = set()
     if schools:
@@ -833,11 +837,16 @@ def tenant_app_catalog(request):
         return render(
             request,
             "marketplace/tenant_app_catalog.html",
-            {"listings": [], "school": None, "installed_slugs": set()},
+            {
+                "listings": [],
+                "school": None,
+                "installed_slugs": set(),
+                "phase9_links": build_phase9_ecosystem_links(),
+            },
         )
     listings = (
         MarketplaceListing.objects.select_related("app", "publisher")
-        .prefetch_related("app__scopes")
+        .prefetch_related("app__scopes", "app__version_compat")
         .annotate(
             active_installations=Count(
                 "app__installations",
@@ -859,6 +868,7 @@ def tenant_app_catalog(request):
     for lst in listings:
         if getattr(lst, "kill_switch_active", False):
             continue
+        lst.catalog_display = catalog_listing_display(lst)
         installable.append(lst)
     installed_slugs = set(
         AppInstallation.objects.filter(
@@ -893,6 +903,7 @@ def tenant_app_catalog(request):
             "catalog_stats": catalog_stats,
             "catalog_counts": catalog_counts,
             "install_impact_preview_url": reverse("tenant_install_impact_preview"),
+            "phase9_links": build_phase9_ecosystem_links(),
         },
     )
 

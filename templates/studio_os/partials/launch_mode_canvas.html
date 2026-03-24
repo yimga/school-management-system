@@ -1,0 +1,82 @@
+{% load i18n %}
+  {% if launch_left_rail %}
+  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__launch-wrap">
+    <nav class="studio-os__launch-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Launch' %}" style="width: min(12.5rem, 100%); min-width: 0;">
+      <div class="studio-os__card py-2">
+        <div class="h6 mb-2">{% trans "Launch" %}</div>
+        <ul class="list-unstyled small mb-0" id="launch-rail-list">
+          {% for item in launch_left_rail %}
+          <li class="mb-1">
+            <a href="{{ item.url }}"
+               class="launch-rail-link {% if item.pane == launch_pane %}active{% endif %}">{{ item.label }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% if launch_payload %}
+        <hr class="my-2">
+        <div class="h6 mb-1 small">{% trans "Progress" %}</div>
+        <p class="small mb-1"><strong>{% trans "Health:" %} {{ launch_payload.health_score|default:0 }}%</strong></p>
+        {% if launch_payload.launch_ready %}
+        <p class="small text-success mb-1">{% trans "Ready to launch" %}</p>
+        {% elif launch_payload.launch_blockers %}
+        <p class="small text-warning mb-1">{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
+        {% endif %}
+        {% endif %}
+      </div>
+    </nav>
+    <div class="flex-grow-1 min-w-0">
+      {% if launch_pane == 'overview' and launch_payload %}
+        {% include "studio_os/partials/launch_studio_overview_body.html" %}
+      {% elif launch_pane == 'plan' %}
+        {% include "studio_os/partials/launch_select_plan_body.html" %}
+      {% elif launch_pane == 'overview' and not launch_payload %}
+      <div class="studio-os__card">
+        <h2 class="h5 mb-2">{% trans "Launch" %}</h2>
+        <p class="small text-muted mb-3">{% trans "Select a school context for setup health and checklists, or open guided onboarding." %}</p>
+        <div class="d-flex flex-wrap gap-2">
+          {% if legacy_urls.guided_onboarding %}<a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-primary btn-sm">{% trans "Guided onboarding" %}</a>{% endif %}
+          {% if launch_studio_base_url %}<a href="{{ launch_studio_base_url }}?pane=onboarding" class="btn btn-outline-primary btn-sm">{% trans "Onboarding (embedded)" %}</a>{% endif %}
+        </div>
+      </div>
+      {% elif launch_iframe_src %}
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Launch view options' %}">
+        <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
+        <a class="btn btn-sm btn-outline-primary" href="{{ launch_iframe_src }}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
+      </div>
+      <iframe id="studio-launch-iframe" class="studio-os-iframe" title="{% trans 'Launch' %}"
+              src="{{ launch_iframe_src }}"></iframe>
+      {% else %}
+      <div class="studio-os__card">
+        <p class="text-muted mb-2">{% trans "This launch pane could not be loaded." %}</p>
+        {% if legacy_urls.guided_onboarding %}<a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-primary btn-sm">{% trans "Guided onboarding" %}</a>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% elif launch_payload %}
+  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
+    <nav class="studio-os__launch-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Launch' %}" style="width: min(12.5rem, 100%); min-width: 0;">
+      <div class="studio-os__card py-2">
+        <div class="h6 mb-2">{% trans "Progress" %}</div>
+        <p class="small mb-2"><strong>{% trans "Health:" %} {{ launch_payload.health_score|default:0 }}%</strong></p>
+        {% if launch_payload.launch_ready %}
+        <p class="small text-success mb-1">{% trans "Ready to launch" %}</p>
+        {% elif launch_payload.launch_blockers %}
+        <p class="small text-warning mb-1">{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
+        {% endif %}
+        {% if launch_payload.health_summary %}<p class="small text-muted mb-0">{{ launch_payload.health_summary }}</p>{% endif %}
+      </div>
+    </nav>
+    <div class="flex-grow-1 min-w-0">
+      {% include "studio_os/partials/launch_studio_overview_body.html" %}
+    </div>
+  </div>
+  {% elif embed_url %}
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Launch view options' %}">
+    <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
+    <a class="btn btn-sm btn-outline-primary" href="{{ embed_url }}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
+  </div>
+  <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Launch' %}"></iframe>
+  {% else %}
+  <div class="studio-os__card"><a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-primary btn-sm">{% trans "Guided onboarding" %}</a></div>
+  {% endif %}

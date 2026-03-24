@@ -4,13 +4,5 @@
 {% block title %}{% trans "Branding inheritance" %} · {% trans "Outputs" %}{% endblock %}
 
 {% block content %}
-<div class="container py-3" data-page-archetype="operational-workbench">
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
-  <div class="studio-os__card py-3 px-3">
-    <p class="mb-2">{% trans "Reports and documents inherit school and theme branding (primary color, logo, accent) from the current theme. Configure theme and colors to control how outputs and document exports appear." %}</p>
-    {% if theme_colors_url %}
-    <p class="mb-0"><a href="{{ theme_colors_url }}">{% trans "Theme & colors" %}</a> — {% trans "Set primary color, accent, and logo used in reports and document outputs." %}</p>
-    {% endif %}
-  </div>
-</div>
+{% include "studio_os/partials/output_branding_inheritance_body.html" %}
 {% endblock %}

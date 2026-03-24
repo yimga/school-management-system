@@ -6,7 +6,7 @@
 |-----------|---------|----------|
 | **role-home** | One clear intent; key metrics; urgent queue; next-best action | Backend dashboard, portal home |
 | **setup-studio** | Guided setup; progress rail; live preview; launch checklist | Guided onboarding |
-| **decision-console** | Compare, audit, rollback; operator outcomes | System Configuration hub, policy diff |
+| **decision-console** | Compare, audit, rollback; operator outcomes | Configuration Control Center hub, policy diff |
 | **workbench** | Operational list/detail; bulk actions; filters | Student list, finance, admissions |
 | **catalog** | Browse, search, install; trust markers; compatibility | Tenant app catalog, control-plane app catalog, blueprint marketplace |
 | **record-detail** | Single entity; tabs; related; actions | School 360, student detail |

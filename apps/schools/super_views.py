@@ -42,6 +42,7 @@ from .super_views_ai import (
 from .super_views_impersonation import switch_to_tenant
 from .super_views_runtime_ops import (
     super_runtime_inspector,
+    super_runtime_truth_hub,
     super_workflow_simulator,
 )
 from .super_views_platform_monitoring import (
@@ -102,6 +103,7 @@ __all__ = (
     "super_analytics_overview",
     "super_schools_list",
     "super_runtime_inspector",
+    "super_runtime_truth_hub",
     "super_workflow_simulator",
     "switch_to_tenant",
     "super_apply_policy_bundle_to_sandbox",

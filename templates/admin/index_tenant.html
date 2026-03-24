@@ -58,10 +58,10 @@
   <header class="tenant-admin-hero">
     <div class="tenant-admin-hero-label">{% trans "School backoffice" %}</div>
     <h1>{% trans "Raw model CRUD only" %}</h1>
-    <p>{% trans "For configuration, workflows, and daily operations use System config and the Backend Console." %}</p>
+    <p>{% trans "For configuration, workflows, and daily operations use the Configuration Control Center and the Backend Console." %}</p>
     <div class="tenant-admin-hero-actions">
       <a href="{% url 'siteconfig:console_domains_hub' %}" class="tenant-admin-cta-primary">
-        <i class="bi bi-gear-wide-connected"></i> {% trans "Open System config" %}
+        <i class="bi bi-gear-wide-connected"></i> {% trans "Open Config center" %}
       </a>
       <a href="{% url 'accounts:backend_dashboard' %}" class="tenant-admin-cta-secondary">
         <i class="bi bi-speedometer2"></i> {% trans "Backend Console" %}
@@ -70,7 +70,7 @@
   </header>
 
   <div class="tenant-admin-section-title">{% trans "Applications (raw CRUD)" %}</div>
-  <p class="small text-muted mb-3">{% trans "Direct access to model changelists. For guided configuration use System config above." %}</p>
+  <p class="small text-muted mb-3">{% trans "Direct access to model changelists. For guided configuration use the Configuration Control Center above." %}</p>
   <ul class="tenant-admin-app-list">
     {% for app in app_list %}
     <li>

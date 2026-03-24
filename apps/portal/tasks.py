@@ -24,7 +24,7 @@ def generate_ai_response_async(
     **kwargs: Any,
 ) -> dict[str, Any]:
     """
-    Heavy AI: run inference via OllamaInferenceService and store result in cache for UI poll.
+    Heavy AI: Celery worker calls ``services.ai_gateway.invoke("narrative", ...)``; result in cache for UI poll.
     Result key: ai:async_result:{task_id}. Poll with task_id from AsyncResult.id.
     """
     from services.ai_gateway import invoke

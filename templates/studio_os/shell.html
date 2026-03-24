@@ -12,9 +12,10 @@
 {% block content %}
 <div class="container-fluid py-2 px-0 px-md-2" style="max-width: 100%; width: 100%;" data-page-archetype="operational-workbench">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
+  {# On manager host Studio uses shell_control_plane → control_plane_base (8-pill nav there). Tenant: no PRIMARY nav. #}
   <div class="d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}">
     {% if request.public_host_kind == 'manager' %}
-    <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Control plane' %}"><i class="bi bi-building me-1"></i>{% trans "Manager" %}</a>
+    <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Home — control plane' %}"><i class="bi bi-house-door me-1"></i>{% trans "Home" %}</a>
     {% endif %}
     <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Studio home' %}">
       <i class="bi bi-grid-3x3-gap"></i>
@@ -196,6 +197,7 @@
           <p class="small text-muted mb-2">{% trans "Complete setup steps and preview by role. Execute launch when ready." %}</p>
         {% elif current_mode == 'control' %}
           <p class="small fw-semibold mb-1">{% trans "Impact" %}</p>
+          {% if why_enabled_summary %}<p class="small text-muted mb-2">{{ why_enabled_summary }}</p>{% endif %}
           <p class="small text-muted mb-2">{% trans "Feature changes affect portal and backend. Review audit before rollback." %}</p>
           {% if control_audit_entries %}
           <ul class="studio-os-activity-list mb-2">

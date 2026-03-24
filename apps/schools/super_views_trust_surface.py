@@ -63,6 +63,16 @@ def super_trust_center(request):
         ).count()
     except (DatabaseError, ImportError, ValueError, TypeError):
         pass
+    district_enterprise_url = ""
+    try:
+        district_enterprise_url = reverse("super:district_enterprise")
+    except NoReverseMatch:
+        pass
+    from apps.platform_runtime.identity_graph_rollups import (
+        compute_platform_identity_rollups,
+    )
+    from apps.schools.super_views_wedge import _beachhead_checklist
+
     return render(
         request,
         "schools/super_trust_center.html",
@@ -79,12 +89,18 @@ def super_trust_center(request):
             "platform_events_url": reverse("super:platform_events"),
             "slo_dashboard_url": reverse("api_operational_slo_dashboard")
             + "?format=html&hours=168",
+            "district_enterprise_url": district_enterprise_url,
+            "platform_rollups": compute_platform_identity_rollups(),
+            "tenant_identity_graph_api_path": "/api/learning/identity-graph-summary/",
+            "tenant_statutory_extract_api_path": "/api/learning/statutory-extract/",
+            "beachhead_checklist": _beachhead_checklist(45),
+            "beachhead_wedge_id": 45,
         },
     )
 
 
 def super_config_hub_redirect(request):
-    """Legacy URL only. The single config surface is System config (siteconfig:console_domains_hub). No hub page; redirect."""
+    """Legacy URL only. The single config surface is Configuration Control Center (siteconfig:console_domains_hub). No hub page; redirect."""
     return redirect("siteconfig:console_domains_hub", permanent=False)
 
 

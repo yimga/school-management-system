@@ -1,0 +1,194 @@
+{
+  "allow_any": {
+    "apps/schools/api_views.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "public_host_resolved_read_only",
+      "data_exposure": "branding_and_feature_flags_only",
+      "expected_count": 2,
+      "notes": "SchoolConfigAPI exposes host-resolved branding and offline capability to SPA/mobile clients without authentication.",
+      "owner": "tenant_bootstrap_api",
+      "rate_limiting": "implemented",
+      "verdict": "keep"
+    }
+  },
+  "csrf_exempt": {
+    "apps/accounts/views_saml.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "signed_saml_assertion",
+      "expected_count": 1,
+      "notes": "SAML ACS callback accepts IdP POST without browser session CSRF token.",
+      "owner": "identity_access",
+      "rate_limiting": "not_applicable",
+      "replay_protection": "idp_assertion_validity_window",
+      "verdict": "keep"
+    },
+    "apps/api/br_northstar_views.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "session_staff_or_service_bearer",
+      "expected_count": 11,
+      "notes": "Internal JSON APIs for BR north-star; called from control plane with session or Bearer.",
+      "owner": "beyond_reach_api",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "session_csrf_bypass_internal_json",
+      "verdict": "keep_with_hardening"
+    },
+    "apps/api/lead_capture_api.py": {
+      "audit_logging": "implemented",
+      "auth_model": "public_form_post",
+      "expected_count": 1,
+      "notes": "Public lead capture; rate limiting + audit logging (lead_capture_created/lead_capture_duplicate).",
+      "owner": "marketing_leads",
+      "rate_limiting": "implemented",
+      "replay_protection": "not_applicable",
+      "verdict": "keep"
+    },
+    "apps/api/learning_institution_api.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "session_staff",
+      "expected_count": 2,
+      "notes": "Learning pack install + pack rollback (ROLLBACK keyword); session staff + school context.",
+      "owner": "learning_institution",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "internal_api",
+      "verdict": "keep_with_hardening"
+    },
+    "apps/api/north_star_api_views.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "session_staff",
+      "expected_count": 5,
+      "notes": "Event catalog, wedge playbook, RUM web vitals summary (staff), upcoming deadlines (N28), package-impact internal JSON.",
+      "owner": "north_star_api",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "internal_api",
+      "verdict": "keep_with_hardening"
+    },
+    "apps/api/oneroster_roster_webhook.py": {
+      "audit_logging": "implemented",
+      "auth_model": "hmac_signature_roster_webhook",
+      "expected_count": 1,
+      "notes": "Incoming OneRoster roster webhook; verified by school-scoped secret (school.settings or ONEROSTER_WEBHOOK_SECRET).",
+      "owner": "interop_webhook",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "hmac_x_roster_webhook_signature",
+      "verdict": "keep"
+    },
+    "apps/api/scim_views.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "bearer_token_scim",
+      "expected_count": 4,
+      "notes": "Bearer-token SCIM provisioning mutation and detail endpoints.",
+      "owner": "identity_provisioning",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "token_auth_only_manual_review_required",
+      "verdict": "keep"
+    },
+    "apps/billing/api_views.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "provider_webhook_signature",
+      "expected_count": 1,
+      "notes": "Billing webhook callback.",
+      "owner": "billing",
+      "rate_limiting": "not_applicable",
+      "replay_protection": "provider_signature_timestamp_manual_review_required",
+      "verdict": "keep"
+    },
+    "apps/finance/views_payments.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "payment_webhook_signature",
+      "expected_count": 1,
+      "notes": "Payment provider webhook callback (payment_provider_webhook).",
+      "owner": "finance_payments",
+      "rate_limiting": "not_applicable",
+      "replay_protection": "provider_signature_timestamp_manual_review_required",
+      "verdict": "keep"
+    },
+    "apps/platform_runtime/views_rum.py": {
+      "audit_logging": "implemented",
+      "auth_model": "shared_ingest_token_env_rum_ingest_key",
+      "expected_count": 1,
+      "notes": "RUM POST; token in JSON body for sendBeacon; PlatformEventLog rum_web_vitals.",
+      "owner": "platform_observability",
+      "rate_limiting": "implemented",
+      "replay_protection": "rate_limit_per_ip_cache",
+      "verdict": "keep_with_hardening"
+    },
+    "apps/schools/section8_views.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "external_tool_callback",
+      "expected_count": 5,
+      "notes": "Cross-origin LTI callback and service endpoints that still accept external tool traffic.",
+      "owner": "interop_lti",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "tool_signature_manual_review_required",
+      "verdict": "keep_with_hardening"
+    },
+    "config/graphql_view.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "mixed_client_access",
+      "expected_count": 1,
+      "notes": "GraphQL endpoint still supports non-browser API clients.",
+      "owner": "api_platform",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "not_applicable",
+      "verdict": "keep_with_hardening"
+    }
+  },
+  "generated_at": "2026-03-23T17:12:31.839849+00:00",
+  "raw_sql": {
+    "apps/accounts/management/commands/seed_render_users.py": {
+      "expected_count": 1,
+      "reason": "\u00a72.4 Render predeploy: ALTER TABLE people_teacherprofile ADD COLUMN IF NOT EXISTS updated_at per tenant schema; defensive fix when migration state is out of sync."
+    },
+    "apps/customers/repositories/schema_provisioning_repository.py": {
+      "expected_count": 2,
+      "reason": "\u00a72.4 Tenant schema provisioning: SELECT information_schema.schemata, CREATE SCHEMA IF NOT EXISTS; staff-only."
+    },
+    "apps/observability/db_liveness.py": {
+      "expected_count": 1,
+      "reason": "\u00a72.4 Database liveness SELECT 1; monitoring + views (healthz, api_health) use check_db_liveness()."
+    },
+    "apps/people/repositories/audit_repository.py": {
+      "expected_count": 5,
+      "reason": "\u00a72.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only."
+    },
+    "apps/schools/repositories/health_repository.py": {
+      "expected_count": 5,
+      "reason": "\u00a72.4 Tenant health PG catalog + check_table_exists/count_table_rows for tenant_health_check; staff-only; tested."
+    },
+    "apps/schools/repositories/rls_repository.py": {
+      "expected_count": 1,
+      "reason": "\u00a72.4 RLS verification: single SELECT on pg_class/pg_namespace for verify_tenant_rls."
+    },
+    "apps/schools/repositories/tenant_schema_repository.py": {
+      "expected_count": 1,
+      "reason": "\u00a72.4 Tenant schema drop (onboarding kill-switch); single DROP SCHEMA."
+    },
+    "apps/schools/rls_context.py": {
+      "expected_count": 6,
+      "reason": "\u00a72.4 RLS session variable management (set/reset app.current_school_id + rls_school/rls_bypass context managers)."
+    },
+    "apps/siteconfig/cache_utils.py": {
+      "expected_count": 1,
+      "reason": "\u00a72.4 Keep: current_setting('app.current_school_id', true) read-only; no ORM equivalent."
+    },
+    "apps/siteconfig/repositories/database_recovery_repository.py": {
+      "expected_count": 1,
+      "reason": "\u00a72.4 SQLite PRAGMA integrity_check for recover_database command; staff-only."
+    },
+    "apps/siteconfig/repositories/migrations_repository.py": {
+      "expected_count": 1,
+      "reason": "\u00a72.4 Migration state: single SELECT on django_migrations; portal.onboarding_verification delegates; staff/onboarding only."
+    }
+  },
+  "schema_version": 1,
+  "sources": {
+    "allow_any_allowlist": "scripts/allowlists/allow_any_allowlist.json",
+    "csrf_exempt_allowlist": "scripts/allowlists/csrf_exempt_allowlist.json",
+    "raw_sql_allowlist": "scripts/allowlists/raw_sql_allowlist.json"
+  },
+  "summary": {
+    "allow_any_files": 1,
+    "csrf_exempt_files": 12,
+    "raw_sql_files": 11
+  }
+}

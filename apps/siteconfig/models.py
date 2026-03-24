@@ -1,29 +1,27 @@
 from __future__ import annotations
 
-from decimal import Decimal
 import logging
 
 from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.db import models, connection, OperationalError, DatabaseError
 from django.db.models.fields.files import FieldFile
 from django.db.models.signals import post_delete, post_save
-from django.core.validators import MinValueValidator, MaxValueValidator
-from .image_utils import optimize_image
 from django.apps import apps as django_apps
 
 from apps.academics.models import HolidayCalendar  # noqa: F401
-from .domain_ownership import OWNERSHIP_DOMAINS, classify_site_settings_field
+from .domain_ownership import (
+    EXACT_FIELD_OWNERS,
+    OWNERSHIP_DOMAINS,
+    classify_site_settings_field,
+    is_runtime_payload_shadow_key,
+)
 
 logger = logging.getLogger(__name__)
 
 # Phase 2/7: Tenant behavior must not be sourced from SiteSettings; use runtime resolvers and
 # bounded-context services. Migration plan: docs/SITECONFIG_OWNERSHIP_MIGRATION.md
 
-from .models_constants import (
-    BACKEND_CONSOLE_THEME_CHOICES,
-    LOGO_BG_MODE_CHOICES,
-    REPORT_CARD_TYPE_TERM,
-)
+from .models_constants import REPORT_CARD_TYPE_TERM
 
 PLATFORM_DEFAULT_SITE_NAME = "RunMyCampus"
 PLATFORM_DEFAULT_SCHOOL_CODE = "RMC"
@@ -117,1031 +115,61 @@ _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
 # DEPRECATED: Prefer apps.platform_runtime.helpers.get_effective_site_settings and bounded-context
 # services for tenant behavior. Use SiteSettings only for platform defaults. Removal target: post Phase 10.
 class SiteSettings(models.Model):
+    """Phase B slim singleton: maintenance + timestamps. Branding/theme/report FKs: PlatformGlobalBranding."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._orig_backend_feature_flags = (self.backend_feature_flags or {}).copy()
+        self._orig_backend_feature_flags = {}
 
-    video_background = models.FileField(
-        upload_to="branding/video/",
-        blank=True,
-        null=True,
-        help_text="Optional: Short looping video (mp4/webm) for animated background.",
-    )
-    svg_background = models.FileField(
-        upload_to="branding/svg/",
-        blank=True,
-        null=True,
-        help_text="Optional: SVG file for animated or vector background.",
-    )
-    # Branding
-    site_name = models.CharField(max_length=120, default="School System")
-    tagline = models.CharField(
-        max_length=200, blank=True, default="Knowledge ƒ?› Technology ƒ?› Excellence"
-    )
-    meta_description = models.CharField(
-        max_length=320,
-        blank=True,
-        default="",
-        help_text="Optional SEO meta description for pages (used in base/portal_base templates).",
-    )
-    logo = models.ImageField(upload_to="branding/", blank=True, null=True)
-    logo_opacity = models.FloatField(
-        default=0.3,
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
-        help_text="Opacity for logo background (0.0 = fully transparent, 1.0 = fully opaque)",
-    )
-    logo_background_mode = models.CharField(
-        max_length=16,
-        choices=LOGO_BG_MODE_CHOICES,
-        default="contain",
-        help_text="How the logo background image is displayed: contain, cover, tile, or center.",
-    )
-    LOGO_BG_MODE_CHOICES = (
-        LOGO_BG_MODE_CHOICES  # from models_constants; backward compat
-    )
-    BRIGHTNESS_CHOICES = [
-        ("system", "System"),
-        ("light", "Light"),
-        ("dark", "Dark"),
-        ("classic", "Classic"),
-        ("high_contrast", "High Contrast"),
-    ]
-    theme_brightness = models.CharField(
-        max_length=16,
-        choices=BRIGHTNESS_CHOICES,
-        default="system",
-        help_text="Choose default theme brightness (System/Light/Dark/Classic/High Contrast).",
-    )
-    background_image = models.ImageField(
-        upload_to="branding/bg/", blank=True, null=True
-    )
+    # Phase B Batch 3: branding media + theme/report FKs live on
+    # brand_experience.PlatformGlobalBranding only (see get_effective_site_settings).
 
-    brand_font = models.CharField(
-        max_length=120, default="Inter, system-ui, sans-serif"
-    )
-    school_code = models.CharField(
-        max_length=20,
-        default="SCH",
-        help_text="Short code used in admission numbers (e.g., SCH).",
-    )
-
-    class AdmissionNumberMode(models.TextChoices):
-        AUTO = "AUTO", "Auto-generate (recommended)"
-        MANUAL = "MANUAL", "Manual entry only"
-        AUTO_OR_MANUAL = "AUTO_OR_MANUAL", "Allow auto or manual"
-
-    admission_number_mode = models.CharField(
-        max_length=20,
-        choices=AdmissionNumberMode.choices,
-        default=AdmissionNumberMode.AUTO_OR_MANUAL,
-        help_text=(
-            "Controls whether student admission numbers are auto-generated, "
-            "entered manually, or can be either. In AUTO/AUTO_OR_MANUAL modes, "
-            "leaving the field blank will generate a number using the school code."
-        ),
-    )
-    admission_number_pattern = models.CharField(
-        max_length=255,
-        blank=True,
-        default=(
-            r"(\\d{2}[A-Z0-9]{2,10}\\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4})|"
-            r"(\\d{2}-[A-Z0-9]{2,10}-\\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4})"
-        ),
-        help_text=(
-            "Regex used to validate admission numbers. "
-            "Defaults to YY + SCHOOL + #### + SPEC + CLASS (no dashes) "
-            "or the legacy dashed format."
-        ),
-    )
-
-    class AdmissionNumberStrategy(models.TextChoices):
-        FULL = "FULL", "Full (YY+School+Seq+Spec+Class)"
-        YEAR_SEQ = "YEAR_SEQ", "Year + sequence only"
-        SEQ_ONLY = "SEQ_ONLY", "Sequence only"
-
-    admission_number_strategy = models.CharField(
-        max_length=20,
-        choices=AdmissionNumberStrategy.choices,
-        default=AdmissionNumberStrategy.FULL,
-        blank=True,
-        help_text="Built-in generation strategy when no template is set.",
-    )
-    admission_number_template = models.CharField(
-        max_length=255,
-        blank=True,
-        default="",
-        help_text=(
-            "Optional template with placeholders: {year_2digit}, {school_code}, "
-            "{seq_4digit}, {spec_code}, {class_segment}. Overrides strategy when set."
-        ),
-    )
-    company_name = models.CharField(max_length=160, blank=True, default="")
-    company_address = models.TextField(blank=True, default="")
-    company_phone = models.CharField(max_length=50, blank=True, default="")
-    company_email = models.EmailField(blank=True, default="")
-    ministry_registration_code = models.CharField(max_length=80, blank=True, default="")
-    company_slug = models.SlugField(max_length=120, blank=True, default="")
-    country = models.CharField(
-        max_length=80,
-        blank=True,
-        default="",
-        help_text="Country where the school is located.",
-    )
-    region = models.CharField(
-        max_length=120,
-        blank=True,
-        default="",
-        help_text="Region, division, or state where the school operates.",
-    )
-    ministry = models.CharField(
-        max_length=160,
-        blank=True,
-        default="",
-        help_text="Oversight ministry, delegation, or authority.",
-    )
-
-    # Theme configuration
-    primary_color = models.CharField(max_length=20, default="#0d6efd")
-    accent_color = models.CharField(max_length=20, default="#198754")
-    header_bg_color = models.CharField(
-        max_length=20,
-        blank=True,
-        default="",
-        help_text="Optional: Header background color (hex). Leave blank to use primary→accent gradient.",
-    )
-    footer_bg_color = models.CharField(
-        max_length=20,
-        blank=True,
-        default="",
-        help_text="Optional: Footer background color (hex). Leave blank for default.",
-    )
-    success_color = models.CharField(max_length=20, default="#22c55e")
-    warning_color = models.CharField(max_length=20, default="#fbbf24")
-    danger_color = models.CharField(max_length=20, default="#ef4444")
-    use_dark_mode = models.BooleanField(default=False)
-    backend_console_theme = models.CharField(
-        max_length=20,
-        choices=BACKEND_CONSOLE_THEME_CHOICES,
-        default="dark",
-        help_text="Theme for the Backend Console (Workflow Center, Entity Console).",
-    )
-    BACKEND_CONSOLE_THEME_CHOICES = (
-        BACKEND_CONSOLE_THEME_CHOICES  # from models_constants; backward compat
-    )
-    # Color harmony for theme palette (DETAILED_IMPLEMENTATION_PLAN / NON_NEGOTIABLE_BACKLOG item 7)
-    THEME_HARMONY_CHOICES = [
-        ("square", "Square (four evenly spaced hues)"),
-        ("achromatic", "Achromatic (grayscale)"),
-        ("polychromatic", "Polychromatic (multi-hue)"),
-        ("diad", "Diad (two hues)"),
-    ]
-    theme_harmony = models.CharField(
-        max_length=20,
-        choices=THEME_HARMONY_CHOICES,
-        default="polychromatic",
-        blank=True,
-        help_text="Color harmony rule for palette generation and theme consistency.",
-    )
-    custom_css = models.TextField(blank=True)
-    theme_pack = models.ForeignKey(
-        "siteconfig.ThemePack",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="site_settings",
-        help_text="Theme for portal (parent, teacher, student dashboards). Does not affect /admin or /backend.",
-    )
-    admin_theme_pack = models.ForeignKey(
-        "siteconfig.ThemePack",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="admin_site_settings",
-        help_text="Theme for staff dashboards: /admin and /backend. Shared between both.",
-    )
-    teacher_theme_pack = models.ForeignKey(
-        "siteconfig.ThemePack",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="site_settings_teacher",
-        help_text="Optional: Theme pack for teachers on the portal. If unset, portal theme pack is used.",
-    )
-    parent_theme_pack = models.ForeignKey(
-        "siteconfig.ThemePack",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="site_settings_parent",
-        help_text="Optional: Theme pack for parents on the portal. If unset, portal theme pack is used.",
-    )
-    skip_theme_publish_guard = models.BooleanField(
-        default=False,
-        help_text="When enabled, theme pack and high-impact theme changes save without requiring live preview confirmation. Use only in low-risk environments.",
-    )
-    preview_mode_enabled = models.BooleanField(default=False)
-    preview_note = models.CharField(max_length=255, blank=True, default="")
-
-    # Theme Phase A–D: login, header, layout, sidebar, email, nav, typography
-    login_hero_heading = models.CharField(
-        max_length=160,
-        blank=True,
-        default="",
-        help_text="Optional heading for the login hero (e.g. 'Welcome to Our School'). Leave blank to use site name.",
-    )
-    login_hero_subtext = models.CharField(
-        max_length=255,
-        blank=True,
-        default="",
-        help_text="Optional subtext for the login hero. Leave blank to use tagline.",
-    )
-    show_header_search = models.BooleanField(
-        default=True,
-        help_text="Show search in the portal/backend header.",
-    )
-    show_header_notifications = models.BooleanField(
-        default=True,
-        help_text="Show notifications bell in the header.",
-    )
-    show_header_profile_menu = models.BooleanField(
-        default=True,
-        help_text="Show user profile / quick links in the header.",
-    )
-    show_header_theme_toggle = models.BooleanField(
-        default=True,
-        help_text="Show theme (light/dark) toggle in the header when applicable.",
-    )
-    favicon = models.ImageField(
-        upload_to="branding/",
-        blank=True,
-        null=True,
-        help_text="Favicon for browser tabs. Shown across portal, backend, and admin.",
-    )
-    LAYOUT_STYLE_CHOICES = [
-        ("fluid", "Fluid (full width)"),
-        ("boxed", "Boxed (max-width container)"),
-    ]
-    layout_style = models.CharField(
-        max_length=10,
-        choices=LAYOUT_STYLE_CHOICES,
-        default="fluid",
-        help_text="Page layout: fluid (full width) or boxed (centered max-width).",
-    )
-    default_sidebar_collapsed = models.BooleanField(
-        default=False,
-        help_text="When True, new users see the nav sidebar collapsed by default.",
-    )
-    branded_domain = models.CharField(
-        max_length=255,
-        blank=True,
-        default="",
-        help_text="Display-only domain for login and emails (e.g. portal.school.edu). No DNS logic.",
-    )
-    portal_sidebar_order = models.JSONField(
-        default=list,
-        blank=True,
-        help_text="Optional list of portal sidebar item IDs in display order. Empty = use template default.",
-    )
-    sidebar_icon = models.ImageField(
-        upload_to="branding/",
-        blank=True,
-        null=True,
-        help_text="Optional small icon shown when the nav sidebar is collapsed.",
-    )
-    secondary_font = models.CharField(
-        max_length=120,
-        blank=True,
-        default="",
-        help_text="Optional secondary font (e.g. for headings). Leave blank to use primary font.",
-    )
-    use_secondary_font_for_headings = models.BooleanField(
-        default=False,
-        help_text="When True, use secondary_font for headings (h1–h6).",
-    )
-    base_font_size = models.PositiveSmallIntegerField(
-        default=16,
-        blank=True,
-        null=True,
-        help_text="Base font size in pixels for rem-based typography. Null = use CSS default.",
-    )
-    default_widgets_per_role = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text='Optional: role code -> list of widget IDs for default dashboard (e.g. {"TEACHER": ["widget-a", "widget-b"]}).',
-    )
-    admin_use_site_primary = models.BooleanField(
-        default=False,
-        help_text="When True, admin sidebar active/accent uses SiteSettings.primary_color.",
-    )
-
-    # Behavior & personalization defaults
     maintenance_mode = models.BooleanField(default=False)
-    default_dashboard_view = models.CharField(
-        max_length=20,
-        choices=DashboardView.choices,
-        default=DashboardView.OVERVIEW,
-    )
-    default_refresh_rate = models.PositiveSmallIntegerField(
-        default=60,
-        help_text="Interval in seconds before dashboards refresh automatically.",
-    )
-    notification_channels = models.JSONField(default=list, blank=True)
-    admin_portal_stats_config = models.JSONField(
-        default=default_admin_portal_stats_config,
-        blank=True,
-        help_text=(
-            "Admin portal stats JSON. Keys: sections, max_sections, max_items, items. "
-            'Example: {"sections":["academics"],"max_items":2,"items":{"academics":["Students"]}}'
-        ),
-    )
-    portal_quick_actions = models.JSONField(
-        default=default_portal_quick_actions,
-        blank=True,
-        help_text="Portal quick actions list (JSON). Each item: label, url, icon, roles, enabled.",
-    )
-    portal_announcements = models.JSONField(
-        default=default_portal_announcements,
-        blank=True,
-        help_text="Portal announcements list (JSON). Each item: title, meta, roles, enabled.",
-    )
-    portal_recent_grades = models.JSONField(
-        default=default_portal_recent_grades,
-        blank=True,
-        help_text="Portal recent grades list (JSON). Each item: label, grade, tone, roles, enabled.",
-    )
-    portal_upcoming_assessments = models.JSONField(
-        default=default_portal_upcoming_assessments,
-        blank=True,
-        help_text="Portal upcoming assessments list (JSON). Each item: title, when, detail, tone, roles, enabled.",
-    )
-    footer_accreditation_text = models.CharField(
-        max_length=255,
-        blank=True,
-        default="Education platform ready for regional accreditation and global compliance",
-        help_text="Footer accreditation text.",
-    )
-    footer_accreditation_subtext = models.CharField(
-        max_length=255,
-        blank=True,
-        default="Certified for educational institutions worldwide | ISO 9001:2015 Quality Management",
-        help_text="Footer accreditation subtext.",
-    )
-    footer_support_hours = models.CharField(
-        max_length=120,
-        blank=True,
-        default="Mon-Fri: 8AM-6PM | Sat: 9AM-4PM",
-        help_text="Footer support hours label.",
-    )
-    footer_whatsapp_url = models.URLField(
-        blank=True,
-        default="https://wa.me/237XXXXXXXXX?text=Hello%20School%20Management%20System%20Support",
-        help_text="Footer WhatsApp support link.",
-    )
-    whatsapp_support_number = models.CharField(
-        max_length=32,
-        blank=True,
-        default="",
-        help_text=(
-            "Official WhatsApp Business number for general support (E.164 format, "
-            "e.g. +2376XXXXXXX). If set, footer and portal can generate wa.me links."
-        ),
-    )
-    whatsapp_admissions_number = models.CharField(
-        max_length=32,
-        blank=True,
-        default="",
-        help_text=(
-            "Optional WhatsApp Business number for Admissions / Front office. "
-            "Used for admissions-specific CTAs when configured."
-        ),
-    )
-    enable_whatsapp_parent_portal = models.BooleanField(
-        default=False,
-        help_text="Allow WhatsApp contact buttons in the parent portal (support and, if set, admissions).",
-    )
-    enable_whatsapp_staff_portal = models.BooleanField(
-        default=False,
-        help_text="Allow WhatsApp shortcuts for staff when contacting guardians.",
-    )
-    footer_status_text = models.CharField(
-        max_length=120,
-        blank=True,
-        default="All Systems Operational",
-        help_text="Footer system status label.",
-    )
-    footer_badges = models.JSONField(
-        default=default_footer_badges,
-        blank=True,
-        help_text="Footer badges list (JSON). Each item: label, tone.",
-    )
-    footer_links = models.JSONField(
-        default=default_footer_links,
-        blank=True,
-        help_text="Footer links list (JSON). Each item: label, url, roles, enabled.",
-    )
-
-    # Report preview & OCR configuration
-    report_preview_contact_email = models.EmailField(
-        blank=True,
-        default="",
-        help_text="Email shown on report card previews/header.",
-    )
-    report_preview_contact_phone = models.CharField(
-        max_length=50,
-        blank=True,
-        default="",
-        help_text="Phone number shown on report previews/header.",
-    )
-    report_preview_footer_note = models.CharField(
-        max_length=160,
-        blank=True,
-        default="Powered by RunMyCampus.",
-        help_text="Footer note text shown on report previews.",
-    )
-    default_report_preview_type = models.CharField(
-        max_length=12,
-        choices=[("term", "Term Report"), ("annual", "Annual Report")],
-        default="term",
-        help_text="Template shown to admins when opening a report preview from the builder.",
-    )
-    marksheet_ocr_command = models.CharField(
-        max_length=255,
-        blank=True,
-        default="",
-        help_text="Absolute path to the Tesseract binary when the executable is not on PATH.",
-    )
-
-    # Grade approval workflow settings
-    grade_approval_enabled = models.BooleanField(
-        default=True,
-        help_text="Require staff approval before publishing teacher-submitted marks.",
-    )
-    # Phase 4: MFA for compliance – require TOTP for selected roles (zero marginal cost)
-    require_mfa_roles = models.JSONField(
-        default=list,
-        blank=True,
-        help_text='Role codes that must have MFA (TOTP) enabled, e.g. ["ADMIN","BURSAR","IT_ADMIN"]. Empty = not required.',
-    )
-    require_mfa_all_staff = models.BooleanField(
-        default=False,
-        help_text="When enabled, all staff must set up MFA (TOTP) before accessing admin or backend. Overrides role-based require_mfa_roles for staff.",
-    )
-    # Phase 4.3: Optional reminder for pending AccessRequest assignees (0 = disabled)
-    requests_reminder_interval_hours = models.PositiveIntegerField(
-        default=0,
-        blank=True,
-        help_text="When > 0, a scheduled task notifies assignees of pending access requests (e.g. 24 = daily). 0 = disabled.",
-    )
-    grade_approval_roles = models.JSONField(
-        default=default_grade_approval_roles,
-        blank=True,
-        help_text="List of role codes allowed to review/approve teacher grade submissions.",
-    )
-    grade_approval_auto_validate = models.BooleanField(
-        default=True,
-        help_text="Automatically flag missing or anomalous scores before sending to approvers.",
-    )
-    grade_approval_deadline_days = models.PositiveSmallIntegerField(
-        default=3,
-        help_text="Days before a submitted request must be reviewed.",
-    )
-    grade_approval_deadline_note = models.CharField(
-        max_length=160,
-        blank=True,
-        default="Please review before the deadline.",
-        help_text="Friendly reminder shown when deadline approaches.",
-    )
-    grade_post_roles = models.JSONField(
-        default=default_grade_post_roles,
-        blank=True,
-        help_text="Roles that can finalize/post grade approvals (post/extract).",
-    )
-    syllabus_approval_roles = models.JSONField(
-        default=default_syllabus_approval_roles,
-        blank=True,
-        help_text="List of role codes allowed to approve syllabi (e.g. DEAN, HOD). Used with delegation: when approver is OOO, their delegate receives requests.",
-    )
-
-    # Delegation (Out of Office / Acting) – configurable from admin
-    delegation_max_days = models.PositiveSmallIntegerField(
-        default=14,
-        help_text="Maximum duration in days for a single delegation period.",
-    )
-    delegation_auto_revoke = models.BooleanField(
-        default=True,
-        help_text="When True, proxy access is automatically revoked at end of return date.",
-    )
-    delegation_notify_delegate_on_start = models.CharField(
-        max_length=20,
-        choices=[
-            ("off", "Off"),
-            ("email", "Email"),
-            ("sms", "SMS"),
-            ("both", "Email and SMS"),
-        ],
-        default="email",
-        help_text="Notify the delegate when a delegation starts.",
-    )
-    delegation_block_delegator_while_ooo = models.BooleanField(
-        default=True,
-        help_text="When True, block the delegator from taking delegated actions while OOO (avoid double-approvals).",
-    )
-    delegation_role_mapping = models.JSONField(
-        default=default_delegation_role_mapping,
-        blank=True,
-        help_text='Who can delegate to whom: {"PRINCIPAL": ["VICE_PRINCIPAL", "HOD"], ...}. Empty or missing role = no restriction.',
-    )
-    delegation_summary_report_on_return = models.BooleanField(
-        default=True,
-        help_text="When True, generate 'While You Were Away' summary for the returning user when delegation ends.",
-    )
-
-    # Feature toggles
-    enable_parent_portal = models.BooleanField(default=True)
-    enable_teacher_portal = models.BooleanField(default=True)
-    DEFAULT_PORTAL_ROLE_DUAL_CHOICES = [
-        ("", "Use primary role (user.role)"),
-        ("TEACHER", "Teacher"),
-        ("PARENT", "Parent"),
-    ]
-    default_portal_role_dual_role = models.CharField(
-        max_length=20,
-        choices=DEFAULT_PORTAL_ROLE_DUAL_CHOICES,
-        blank=True,
-        default="",
-        help_text="For users who have both Teacher and Parent roles: default portal view when they have not yet chosen. Leave blank to use the user's primary role.",
-    )
-    enable_reports_pdf = models.BooleanField(default=True)
-    report_downloads_enabled = models.BooleanField(default=True)
-    # Phase 2: Evals–Reports – require approved grades before publish; report cards show only approved grades
-    reports_require_approved_grades_before_publish = models.BooleanField(
-        default=False,
-        help_text="When enabled (and grade approval is on), block or warn when publishing term results if there are pending grade approvals.",
-    )
-    reports_use_approved_grades_only = models.BooleanField(
-        default=False,
-        help_text="When enabled, term/annual report context only includes evaluations whose subject has been approved (or has no approval request).",
-    )
-    portal_features = models.JSONField(default=default_portal_features, blank=True)
-    social_links = models.JSONField(default=default_social_links, blank=True)
-    backend_feature_flags = models.JSONField(
-        default=default_backend_feature_flags,
-        blank=True,
-        help_text="Backend/front-office admin feature flags (entity console/import, schema UI, bulk limits).",
-    )
-    default_term_report_style = models.ForeignKey(
-        "siteconfig.ReportCardStyle",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="term_default_for",
-    )
-    default_annual_report_style = models.ForeignKey(
-        "siteconfig.ReportCardStyle",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="annual_default_for",
-    )
-    referral_bonus_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        help_text="Default credit amount awarded per successful referral.",
-    )
-
-    # ===== NEW: GRADING CONFIGURATION =====
-    default_grading_scale = models.CharField(
-        max_length=50,
-        choices=[
-            ("numeric_0_20", "Numeric 0–20 (Cameroon Francophone)"),
-            ("letter_a_e", "Letters A–E (Cameroon Anglophone)"),
-            ("gpa_4_0", "GPA 4.0 Scale"),
-            ("percentage", "Percentage 0–100"),
-        ],
-        default="numeric_0_20",
-    )
-    default_region = models.CharField(
-        max_length=50,
-        choices=[
-            ("cameroon_anglophone", "Cameroon Anglophone"),
-            ("cameroon_francophone", "Cameroon Francophone"),
-            ("global", "Global/Other"),
-        ],
-        default="cameroon_anglophone",
-    )
-
-    # ===== NEW: NOTIFICATIONS =====
-    sms_provider = models.CharField(
-        max_length=30,
-        choices=[
-            ("twilio", "Twilio"),
-            ("africastalking", "AfricasTalking"),
-            ("console", "Console (Dev Only)"),
-        ],
-        default="console",
-    )
-    sms_api_key = models.CharField(max_length=255, blank=True)
-    sms_sender_id = models.CharField(max_length=50, default="RUNMYCAMPUS")
-    email_from_address = models.EmailField(default="noreply@school.example.com")
-
-    # ===== NEW: DEADLINE REMINDERS =====
-    teacher_deadline_reminder_days = models.JSONField(
-        default=list, help_text="Days before deadline: [7, 3, 1, 0.5]"
-    )
-    teacher_reminder_time_of_day = models.TimeField(default="08:00")
-
-    # ===== NEW: PERFORMANCE =====
-    cache_rankings_interval_minutes = models.PositiveIntegerField(default=10)
-    enable_concurrent_mark_uploads = models.BooleanField(default=True)
-
-    # ===== NEW: PRACTICAL ASSESSMENT =====
-    enable_practical_assessment = models.BooleanField(default=True)
-    auto_tag_photos_from_exif = models.BooleanField(default=True)
-
-    # ===== NEW: OFFLINE MODE =====
-    enable_offline_mode = models.BooleanField(default=True)
-    offline_sync_conflict_resolution = models.CharField(
-        max_length=20,
-        choices=[
-            ("show_both", "Show Both Versions"),
-            ("reject", "Reject Offline Entry"),
-            ("auto_merge", "Auto-Merge Latest"),
-        ],
-        default="show_both",
-    )
-
-    # Compliance profile (finance/payroll). Store the tenant model PK only so the
-    # shared SiteSettings row does not carry a tenant ORM relation in schema mode.
-    compliance_profile_id = models.PositiveBigIntegerField(
-        null=True,
-        blank=True,
-        db_column="compliance_profile_id",
-        editable=False,
-    )
-
-    # ===== NEW: FINANCE AUTOMATION =====
-    # Fee Invoice Generation
-    finance_auto_generate_invoices_enabled = models.BooleanField(
-        default=False,
-        help_text="Enable automatic fee invoice generation based on schedule.",
-    )
-    finance_auto_generate_schedule = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text='Schedule configuration: {"mode": "academic_year_start", "days_before": 7, "academic_year_start_offset_days": 0, "term_start_offset_days": 0, "custom_date": null}',
-    )
-    finance_auto_generate_due_date_offset_days = models.PositiveIntegerField(
-        default=30, help_text="Days after issue date to set invoice due date."
-    )
-    finance_auto_generate_require_approval = models.BooleanField(
-        default=False,
-        help_text="Require admin approval before generating invoices automatically.",
-    )
-
-    # Fee Plan Copying
-    finance_fee_plan_auto_copy_enabled = models.BooleanField(
-        default=False,
-        help_text="Enable automatic fee plan copying on academic year transition.",
-    )
-    finance_fee_plan_auto_copy_mode = models.CharField(
-        max_length=20,
-        choices=[
-            ("manual", "Manual (admin action only)"),
-            ("year_start", "Auto-copy on academic year start"),
-            ("year_end", "Auto-copy on previous year end"),
-        ],
-        default="manual",
-        help_text="When to automatically copy fee plans.",
-    )
-    finance_fee_plan_copy_increase_percentage = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        help_text="Percentage increase to apply when copying fee plans (e.g., 5.00 for 5% increase).",
-    )
-
-    # Payment Reminders
-    finance_payment_reminder_default_channels = models.JSONField(
-        default=list,
-        blank=True,
-        help_text="Default notification channels for payment reminders: ['email'], ['whatsapp'], ['email', 'sms'], etc.",
-    )
-    finance_payment_reminder_default_days = models.JSONField(
-        default=list,
-        blank=True,
-        help_text="Default reminder days before due date: [7, 3, 1]",
-    )
-    finance_payment_reminder_enable_whatsapp = models.BooleanField(
-        default=False, help_text="Enable WhatsApp as a payment reminder channel."
-    )
-
-    # Invoice Status Updates
-    finance_invoice_auto_status_updates_enabled = models.BooleanField(
-        default=True,
-        help_text="Enable automatic invoice status updates (overdue, paid detection).",
-    )
-    finance_invoice_overdue_grace_period_days = models.PositiveIntegerField(
-        default=0, help_text="Grace period in days before marking invoice as overdue."
-    )
-
-    # Receipt Verification & Automation
-    finance_receipt_upload_enabled = models.BooleanField(
-        default=True,
-        help_text="Enable receipt upload in parent portal for cash/bank payments.",
-    )
-    finance_receipt_auto_verify_enabled = models.BooleanField(
-        default=True,
-        help_text="Automatically verify uploaded receipts using pattern matching or OCR.",
-    )
-    finance_receipt_verification_method = models.CharField(
-        max_length=30,
-        choices=[
-            ("pattern", "Pattern Matching (Free)"),
-            ("ocr_tesseract", "Tesseract OCR (Free, requires installation)"),
-            ("ocr_cloud_google", "Google Vision API (Paid)"),
-            ("ocr_cloud_aws", "AWS Textract (Paid)"),
-        ],
-        default="pattern",
-        help_text="Method used to extract data from receipts.",
-    )
-    finance_receipt_auto_apply_threshold = models.FloatField(
-        default=0.9,
-        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
-        help_text="Confidence threshold (0.0-1.0) for auto-applying payments. Lower = more automatic, Higher = more manual review.",
-    )
-    finance_receipt_auto_apply_enabled = models.BooleanField(
-        default=True,
-        help_text="Automatically apply payments when verification confidence exceeds threshold.",
-    )
-    finance_receipt_require_admin_approval = models.BooleanField(
-        default=False,
-        help_text="Require admin approval even if verification passes (for extra security).",
-    )
-    finance_receipt_amount_tolerance = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("1.00"),
-        help_text="Tolerance for amount matching in tenant's currency (e.g., 1.00 units difference allowed).",
-    )
-
-    # Bank Deposit Verification
-    finance_bank_verification_enabled = models.BooleanField(
-        default=True,
-        help_text="Enable bank deposit verification against bank statements.",
-    )
-    finance_bank_verification_auto_approve = models.BooleanField(
-        default=False,
-        help_text="Automatically approve receipts that are verified in bank statements.",
-    )
-    finance_bank_verification_tolerance_days = models.PositiveIntegerField(
-        default=7,
-        help_text="Days to search before/after receipt date when matching bank statements.",
-    )
-    finance_bank_verification_amount_tolerance = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("1.00"),
-        help_text="Amount tolerance when matching by amount + date, in tenant's currency (default: 1.00).",
-    )
-
-    # Payment Instructions for Reminders
-    finance_payment_instructions_bank = models.TextField(
-        blank=True,
-        default=(
-            "🏦 BANK TRANSFER:\n"
-            "Account: {bank_account}\n"
-            "Bank: {bank_name}\n"
-            "Branch: {branch}\n"
-            "Reference: {payment_code}"
-        ),
-        help_text="Bank transfer payment instructions template. Variables: {bank_account}, {bank_name}, {branch}, {payment_code}",
-    )
-    finance_payment_instructions_mtn_momo = models.TextField(
-        blank=True,
-        default=(
-            "📱 MTN MOBILE MONEY:\n"
-            "Merchant: {mtn_momo_number}\n"
-            "Payment Code: {payment_code}\n"
-            "Amount: {amount} XAF"
-        ),
-        help_text="MTN MoMo payment instructions template. Variables: {mtn_momo_number}, {payment_code}, {amount}",
-    )
-    finance_payment_instructions_orange_money = models.TextField(
-        blank=True,
-        default=(
-            "📱 ORANGE MONEY:\n"
-            "Merchant: {orange_money_number}\n"
-            "Payment Code: {payment_code}\n"
-            "Amount: {amount} XAF"
-        ),
-        help_text="Orange Money payment instructions template. Variables: {orange_money_number}, {payment_code}, {amount}",
-    )
-    finance_payment_instructions_cash = models.TextField(
-        blank=True,
-        default="💵 CASH: Pay at school office during business hours.",
-        help_text="Cash payment instructions template",
-    )
-    finance_receipt_upload_instructions = models.TextField(
-        blank=True,
-        default="After payment, upload your receipt here: {receipt_upload_link}",
-        help_text="Receipt upload instructions. Variables: {receipt_upload_link}",
-    )
-
-    # Real-world scenarios: reminders & receipt upload
-    finance_reminder_no_contact_action = models.CharField(
-        max_length=20,
-        choices=[
-            ("skip", "Skip reminder only"),
-            ("warn_only", "Log warning only"),
-            ("create_task", "Create task for staff to contact guardian"),
-        ],
-        default="warn_only",
-        help_text="When guardian has no email/phone for reminder.",
-    )
-    finance_receipt_max_size_mb = models.PositiveSmallIntegerField(
-        default=5, help_text="Max receipt file size in MB (e.g. 5)."
-    )
-    finance_receipt_allowed_extensions = models.CharField(
-        max_length=80,
-        default="pdf,jpg,jpeg,png",
-        help_text="Comma-separated: pdf,jpg,jpeg,png",
-    )
-    finance_overpayment_handling = models.CharField(
-        max_length=30,
-        choices=[
-            ("reject", "Reject (strict)"),
-            ("allow_with_refund", "Allow and create refund request for excess"),
-            ("allow_as_credit", "Allow excess as credit for next invoice"),
-        ],
-        default="allow_with_refund",
-        help_text="When receipt amount exceeds invoice balance.",
-    )
-    finance_overpayment_tolerance_xaf = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("1000.00"),
-        help_text="Max overpayment to allow, in site default currency (Region config). Above this always flag for review.",
-    )
-    finance_void_invoice_with_payments = models.CharField(
-        max_length=30,
-        choices=[
-            ("allow", "Allow void, stop reminders only"),
-            ("allow_credit_only", "Allow void, treat remaining as credit"),
-            ("block_void", "Block void if invoice has payments"),
-        ],
-        default="allow",
-        help_text="When voiding an invoice that has payments.",
-    )
-    finance_on_student_withdrawal = models.CharField(
-        max_length=30,
-        choices=[
-            ("stop_reminders_only", "Stop payment reminders only"),
-            ("stop_and_mark", "Stop reminders and mark invoices (no new payments)"),
-            ("no_auto_change", "No automatic change"),
-        ],
-        default="stop_reminders_only",
-        help_text="When student is marked withdrawn/inactive.",
-    )
-    finance_receipt_idempotency_window_minutes = models.PositiveSmallIntegerField(
-        default=10,
-        help_text="Minutes within which duplicate receipt upload (same invoice+user+file) is ignored.",
-    )
-    finance_reminder_retry_failed_hours = models.PositiveSmallIntegerField(
-        default=24,
-        help_text="Retry failed reminders after this many hours (0 = no retry).",
-    )
-    finance_reminder_max_retries = models.PositiveSmallIntegerField(
-        default=2, help_text="Max retries for failed reminder sends."
-    )
-    finance_receipt_require_verification_reason = models.BooleanField(
-        default=True,
-        help_text="Require a reason when staff manually approve or reject a receipt.",
-    )
-    finance_receipt_second_approval_threshold_xaf = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0"),
-        help_text="Receipts above this amount (site default currency, Region config) require second approver (0 = disabled).",
-    )
-    # Phase 2: Notifications to guardians (in-app + optional email)
-    finance_notify_guardians_new_invoice = models.BooleanField(
-        default=True,
-        help_text="When a new invoice is issued, send in-app notification to guardians with finance access.",
-    )
-    finance_notify_guardians_payment_received = models.BooleanField(
-        default=True,
-        help_text="When a payment is recorded, send in-app notification to guardians with finance access.",
-    )
-    finance_notify_new_invoice_email = models.BooleanField(
-        default=False,
-        help_text="Also send email when a new invoice is issued (in addition to in-app notification).",
-    )
-    finance_notify_payment_received_email = models.BooleanField(
-        default=False,
-        help_text="Also send email when a payment is recorded (in addition to in-app notification).",
-    )
-    # Phase 2.1: Optional parent welcome email when parent account is created (backend or onboarding)
-    notify_parent_welcome_email = models.BooleanField(
-        default=False,
-        help_text="When a parent account is created (e.g. from backend student create), send a short welcome email. Parent must contact school for login credentials unless you use a separate invite flow.",
-    )
-
-    class DeadlineMode(models.TextChoices):
-        TERM_END = "TERM_END", "Term end date"
-        CUSTOM_DEADLINE = "CUSTOM_DEADLINE", "Custom deadline"
-        PUBLISH_DATE = "PUBLISH_DATE", "Publish date"
-
-    # Analytics defaults
-    top_students_default_limit = models.PositiveSmallIntegerField(
-        default=10,
-        help_text=(
-            "How many top students to show by default on analytics views "
-            "(e.g. Top 10 students in a class or school)."
-        ),
-    )
-    pass_mark = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=10,
-        help_text=(
-            "Default pass mark used by analytics and summary widgets when a more "
-            "specific rule is not configured."
-        ),
-    )
-    use_promotion_rule_for_pass = models.BooleanField(
-        default=False,
-        help_text=(
-            "If enabled, use the promotion rule configuration to decide pass/fail "
-            "instead of this simple pass mark."
-        ),
-    )
-    weak_subject_threshold = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=10,
-        help_text=(
-            "Score threshold below which a subject is highlighted as weak in "
-            "analytics reports."
-        ),
-    )
-    improvement_delta_threshold = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=1,
-        help_text=(
-            "Minimum score improvement required between terms for a student to be "
-            "flagged as 'improving' in analytics."
-        ),
-    )
-    deadline_mode = models.CharField(
-        max_length=20,
-        choices=DeadlineMode.choices,
-        default=DeadlineMode.TERM_END,
-    )
-
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Site Settings"
         verbose_name_plural = "Site Settings"
 
+    def __getattr__(self, name: str):
+        """Phase B: behavioral columns removed from this table; read from RuntimeDefaults.payload."""
+        if name.startswith("_"):
+            raise AttributeError(name)
+        try:
+            from apps.platform_runtime.models import RuntimeDefaults
+
+            rt = RuntimeDefaults.get_singleton()
+            pl = rt.payload if rt and isinstance(rt.payload, dict) else {}
+            if name in pl:
+                return pl[name]
+        except (AttributeError, ImportError, TypeError, ValueError):
+            pass
+        if is_runtime_payload_shadow_key(name):
+            from .models_support import virtual_site_setting_default
+
+            return virtual_site_setting_default(name)
+        raise AttributeError(
+            f"{type(self).__name__!r} object has no attribute {name!r}"
+        )
+
+    @classmethod
+    def _persist_runtime_payload_updates(cls, updates: dict[str, object]) -> None:
+        """Merge JSON-safe keys into RuntimeDefaults.payload (authoritative store for slim SiteSettings)."""
+        if not updates:
+            return
+        from apps.platform_runtime.models import RuntimeDefaults
+
+        obj, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
+        merged = dict(obj.payload or {})
+        for key, value in updates.items():
+            merged[key] = _site_settings_json_safe(value)
+        obj.payload = merged
+        obj.save(update_fields=["payload", "updated_at"])
+
     @classmethod
     def _ensure_preview_columns(cls) -> None:
-        with connection.cursor() as cursor:
-            try:
-                columns = [
-                    col.name
-                    for col in connection.introspection.get_table_description(
-                        cursor, cls._meta.db_table
-                    )
-                ]
-            except OperationalError:
-                try:
-                    connection.rollback()
-                except DatabaseError:
-                    pass
-                return
-
-        if "video_background" not in columns:
-            try:
-                field = cls._meta.get_field("video_background")
-                with connection.schema_editor() as schema_editor:
-                    schema_editor.add_field(cls, field)
-            except (
-                FieldDoesNotExist,
-                OperationalError,
-                DatabaseError,
-                RuntimeError,
-                TypeError,
-                ValueError,
-            ):
-                try:
-                    connection.rollback()
-                except DatabaseError:
-                    pass
+        """Legacy no-op (Batch 3 removed dynamic video_background repair)."""
+        return
 
     @classmethod
     def _run_in_public_schema_if_tenant(cls, fn):
@@ -1182,56 +210,8 @@ class SiteSettings(models.Model):
         return _SITE_SETTINGS_CACHE
 
     def _sanitize_foreign_keys(self, *, persist: bool = False) -> list[str]:
-        report_style_app = (
-            "runtime_blueprints"
-            if django_apps.is_installed("apps.runtime_blueprints")
-            else "siteconfig"
-        )
-        fk_guards = (
-            ("theme_pack", "brand_experience", "ThemePack"),
-            ("admin_theme_pack", "brand_experience", "ThemePack"),
-            ("teacher_theme_pack", "brand_experience", "ThemePack"),
-            ("parent_theme_pack", "brand_experience", "ThemePack"),
-            ("default_term_report_style", report_style_app, "ReportCardStyle"),
-            ("default_annual_report_style", report_style_app, "ReportCardStyle"),
-            ("compliance_profile", "finance", "ComplianceProfile"),
-        )
-        model_cache: dict[tuple[str, str], object | None] = {}
-        cleared_fields: list[str] = []
-
-        for field_name, app_label, model_name in fk_guards:
-            field_id = getattr(self, f"{field_name}_id", None)
-            if not field_id:
-                continue
-            cache_key = (app_label, model_name)
-            if cache_key not in model_cache:
-                try:
-                    model_cache[cache_key] = django_apps.get_model(
-                        app_label, model_name
-                    )
-                except (LookupError, OperationalError):
-                    model_cache[cache_key] = None
-            related_model = model_cache[cache_key]
-            if related_model is None:
-                continue
-            try:
-                exists = related_model.objects.filter(pk=field_id).exists()
-            except (OperationalError, DatabaseError):
-                continue
-            if exists:
-                continue
-            setattr(self, f"{field_name}_id", None)
-            self._state.fields_cache.pop(field_name, None)
-            cleared_fields.append(field_name)
-
-        if persist and cleared_fields and getattr(self, "pk", None):
-            update_kwargs = {f"{field_name}_id": None for field_name in cleared_fields}
-            try:
-                type(self).objects.filter(pk=self.pk).update(**update_kwargs)
-            except (OperationalError, DatabaseError):
-                pass
-
-        return cleared_fields
+        # Phase B Batch 3: theme/report FKs moved to PlatformGlobalBranding; sanitize there.
+        return []
 
     def get_theme_background(self, field_name: str) -> FieldFile | None:
         target = getattr(self, field_name, None)
@@ -1243,45 +223,31 @@ class SiteSettings(models.Model):
         return None
 
     def get_theme_logo_opacity(self) -> float:
-        if self.logo_opacity not in (None, ""):
-            return self.logo_opacity
+        try:
+            direct = self.logo_opacity
+        except AttributeError:
+            direct = None
+        if direct not in (None, ""):
+            try:
+                return float(direct)
+            except (TypeError, ValueError):
+                pass
         theme = self.active_theme
         if theme and theme.logo_opacity not in (None, ""):
             return theme.logo_opacity
         return 0.3
 
     def get_theme_logo_bg_mode(self) -> str:
-        if self.logo_background_mode:
-            return self.logo_background_mode
+        try:
+            mode = self.logo_background_mode
+        except AttributeError:
+            mode = None
+        if mode:
+            return mode
         theme = self.active_theme
         if theme and getattr(theme, "logo_background_mode", None):
             return theme.logo_background_mode
         return "contain"
-
-    def _optimize_branding_assets(self) -> None:
-        """Optimize image-backed branding assets before persisting changes."""
-        for field_name in ("logo", "background_image", "favicon", "sidebar_icon"):
-            field = getattr(self, field_name, None)
-            if not isinstance(field, FieldFile) or not getattr(field, "name", None):
-                continue
-            try:
-                file_handle = field.file
-            except (FileNotFoundError, OSError, ValueError):
-                logger.warning(
-                    "Skipping branding asset optimization for missing file",
-                    extra={
-                        "field_name": field_name,
-                        "field_path": getattr(field, "name", ""),
-                    },
-                )
-                continue
-            if getattr(file_handle, "_optimized", False):
-                continue
-            optimized = optimize_image(field)
-            if not optimized:
-                continue
-            optimized._optimized = True
-            field.save(field.name, optimized, save=False)
 
     def _normalize_update_field_names(
         self,
@@ -1364,7 +330,8 @@ class SiteSettings(models.Model):
 
     def save(self, *args, **kwargs):
         before = getattr(self, "_orig_backend_feature_flags", {}) or {}
-        after = self.backend_feature_flags or {}
+        _bf = getattr(self, "backend_feature_flags", None)
+        after = _bf if isinstance(_bf, dict) else {}
         changed_opt_in = before.get("require_guardian_finance_opt_in") != after.get(
             "require_guardian_finance_opt_in"
         )
@@ -1376,8 +343,6 @@ class SiteSettings(models.Model):
             kwargs["update_fields"] = list(normalized_update_fields)
         else:
             normalized_update_fields = None
-
-        self._optimize_branding_assets()
 
         try:
             super().save(*args, **kwargs)
@@ -1406,6 +371,25 @@ class SiteSettings(models.Model):
         if owners_to_sync:
             self.sync_runtime_defaults(owners=owners_to_sync)
 
+        # Phase B Batches 4-13: bounded-context domain snapshots (policies, blueprints, etc.).
+        try:
+            from apps.platform_runtime.phase_b_domain_snapshots import (
+                sync_phase_b_domain_snapshots_from_site,
+            )
+
+            sync_phase_b_domain_snapshots_from_site(self)
+        except (
+            AttributeError,
+            DatabaseError,
+            ImportError,
+            LookupError,
+            OperationalError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ):
+            pass
+
         self._orig_backend_feature_flags = after.copy()
 
     @classmethod
@@ -1415,9 +399,10 @@ class SiteSettings(models.Model):
         *,
         exclude_owners: set[str] | None = None,
     ) -> list[str]:
-        """Return concrete SiteSettings field names filtered by ownership domain."""
+        """Return SiteSettings field names for an ownership domain (DB columns + Phase B virtual keys)."""
         excluded = set(exclude_owners or set())
         field_names: list[str] = []
+        seen: set[str] = set()
         for field in cls._meta.concrete_fields:
             name = getattr(field, "name", "")
             if not name or name == "id":
@@ -1428,6 +413,52 @@ class SiteSettings(models.Model):
             if field_owner in excluded:
                 continue
             field_names.append(name)
+            seen.add(name)
+        if owner:
+            for key, dom in EXACT_FIELD_OWNERS.items():
+                if dom != owner or dom in excluded:
+                    continue
+                if key in seen:
+                    continue
+                field_names.append(key)
+                seen.add(key)
+            try:
+                from apps.platform_runtime.models import RuntimeDefaults
+
+                rt = RuntimeDefaults.get_singleton()
+                pl = rt.payload if rt and isinstance(rt.payload, dict) else {}
+                for key in pl:
+                    if key in seen:
+                        continue
+                    ko = classify_site_settings_field(key)
+                    if ko != owner or ko in excluded:
+                        continue
+                    field_names.append(key)
+                    seen.add(key)
+            except (AttributeError, ImportError, TypeError, ValueError):
+                pass
+        else:
+            for key, dom in EXACT_FIELD_OWNERS.items():
+                if dom in excluded:
+                    continue
+                if key in seen:
+                    continue
+                field_names.append(key)
+                seen.add(key)
+            try:
+                from apps.platform_runtime.models import RuntimeDefaults
+
+                rt = RuntimeDefaults.get_singleton()
+                pl = rt.payload if rt and isinstance(rt.payload, dict) else {}
+                for key in pl:
+                    if key in seen:
+                        continue
+                    if classify_site_settings_field(key) in excluded:
+                        continue
+                    field_names.append(key)
+                    seen.add(key)
+            except (AttributeError, ImportError, TypeError, ValueError):
+                pass
         return field_names
 
     def owned_payload(
@@ -1442,7 +473,15 @@ class SiteSettings(models.Model):
         excluded = set(exclude_owners or set())
         payload: dict[str, object] = {}
         for name in self.owned_field_names(owner=owner, exclude_owners=excluded):
-            field = self._meta.get_field(name)
+            try:
+                field = self._meta.get_field(name)
+            except FieldDoesNotExist:
+                try:
+                    value = getattr(self, name)
+                except AttributeError:
+                    value = None
+                payload[name] = _site_settings_json_safe(value)
+                continue
             attr_name = getattr(field, "attname", name)
             try:
                 value = getattr(self, name, None)
@@ -1672,20 +711,35 @@ class SiteSettings(models.Model):
         This keeps console write semantics centralized while the legacy
         `SiteSettings` fields are still being migrated into owner-scoped domains.
         """
-        update_fields = [
-            "portal_features",
-            "backend_feature_flags",
-            "updated_at",
-        ]
+        payload_updates: dict[str, object] = {
+            "portal_features": dict(portal_features),
+            "backend_feature_flags": dict(backend_feature_flags),
+        }
+        concrete = {
+            f.name
+            for f in type(self)._meta.concrete_fields
+            if not getattr(f, "primary_key", False)
+        }
+        save_fields: list[str] = []
         for field_name, value in field_updates.items():
-            if not hasattr(self, field_name):
-                continue
-            setattr(self, field_name, value)
-            update_fields.append(field_name)
+            if field_name in concrete:
+                setattr(self, field_name, value)
+                save_fields.append(field_name)
+            else:
+                payload_updates[field_name] = value
 
-        self.portal_features = dict(portal_features)
-        self.backend_feature_flags = dict(backend_feature_flags)
-        self.save(update_fields=update_fields)
+        type(self)._persist_runtime_payload_updates(payload_updates)
+        if save_fields and getattr(self, "pk", None):
+            self.save(update_fields=list(dict.fromkeys(save_fields + ["updated_at"])))
+        elif save_fields and not getattr(self, "pk", None):
+            # Effective-settings copy or unsent row: payload already merged into RuntimeDefaults.
+            pass
+        elif payload_updates and getattr(self, "pk", None):
+            from django.utils import timezone as django_timezone
+
+            type(self).objects.filter(pk=self.pk).update(
+                updated_at=django_timezone.now()
+            )
 
     def get_notification_delivery_settings(self) -> dict[str, object]:
         """
@@ -1808,6 +862,15 @@ class SiteSettings(models.Model):
         preview_payload = self.owned_payload(owner="preview_platform")
         runtime_payload = self.owned_payload(owner="runtime_blueprints")
         reports_payload = self.owned_payload(owner="reports")
+        # PGB + runtime mirror win over reports snapshot (Batch 3).
+        _term_report_style_id = getattr(self, "default_term_report_style_id", None)
+        if _term_report_style_id is None:
+            _term_report_style_id = reports_payload.get("default_term_report_style_id")
+        _annual_report_style_id = getattr(self, "default_annual_report_style_id", None)
+        if _annual_report_style_id is None:
+            _annual_report_style_id = reports_payload.get(
+                "default_annual_report_style_id"
+            )
         return {
             "primary_color": _payload_string(
                 brand_payload, self, "primary_color", "#0d6efd"
@@ -1898,14 +961,8 @@ class SiteSettings(models.Model):
                 "report_downloads_enabled",
                 True,
             ),
-            "default_term_report_style_id": reports_payload.get(
-                "default_term_report_style_id",
-                getattr(self, "default_term_report_style_id", None),
-            ),
-            "default_annual_report_style_id": reports_payload.get(
-                "default_annual_report_style_id",
-                getattr(self, "default_annual_report_style_id", None),
-            ),
+            "default_term_report_style_id": _term_report_style_id,
+            "default_annual_report_style_id": _annual_report_style_id,
         }
 
     def get_report_style_selection_ids(self) -> dict[str, int | None]:
@@ -2113,12 +1170,22 @@ class SiteSettings(models.Model):
 
     @compliance_profile.setter
     def compliance_profile(self, value):
+        from apps.platform_runtime.models import RuntimeDefaults
+
+        obj, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
+        pl = dict(obj.payload or {})
         if value is None:
-            self.compliance_profile_id = None
+            pl.pop("compliance_profile_id", None)
+            obj.payload = pl
+            obj.save(update_fields=["payload", "updated_at"])
             self._state.fields_cache["compliance_profile"] = None
             return
         profile_id = getattr(value, "pk", value)
-        self.compliance_profile_id = profile_id or None
+        pid = profile_id or None
+        if pid:
+            pl["compliance_profile_id"] = pid
+        obj.payload = pl
+        obj.save(update_fields=["payload", "updated_at"])
         self._state.fields_cache["compliance_profile"] = (
             value if getattr(value, "pk", None) else None
         )
@@ -2181,20 +1248,35 @@ class SiteSettings(models.Model):
             return None
 
     def apply_theme_pack(self, pack: "ThemePack", save: bool = True) -> None:
-        self.theme_pack = pack
-        self.primary_color = pack.primary_color
-        self.accent_color = pack.accent_color
-        self.custom_css = pack.custom_css or ""
-        self.brand_font = pack.font_family or self.brand_font
-        update_fields = [
-            "theme_pack",
-            "primary_color",
-            "accent_color",
-            "custom_css",
-            "brand_font",
-        ]
+        self._persist_runtime_payload_updates(
+            {
+                "primary_color": pack.primary_color,
+                "accent_color": pack.accent_color,
+                "custom_css": pack.custom_css or "",
+                "brand_font": pack.font_family
+                or getattr(self, "brand_font", "Inter, system-ui, sans-serif"),
+            }
+        )
+        try:
+            from apps.brand_experience.platform_global_branding import (
+                PlatformGlobalBranding,
+            )
+
+            obj, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
+            obj.theme_pack = pack
+            if save:
+                obj.save()
+        except (
+            AttributeError,
+            ImportError,
+            OperationalError,
+            DatabaseError,
+            TypeError,
+            ValueError,
+        ):
+            pass
         if save:
-            self.save(update_fields=update_fields)
+            self.save(update_fields=["updated_at"])
 
     def apply_theme_experience_state(
         self,
@@ -2203,11 +1285,7 @@ class SiteSettings(models.Model):
         save: bool = True,
     ) -> None:
         """
-        Persist Theme Studio changes through one owner-scoped write contract.
-
-        The underlying fields still live on the legacy singleton during the
-        migration, but Theme Studio should not be mutating them ad hoc from the
-        form layer.
+        Persist Theme Studio changes. Phase B: non-column fields go to RuntimeDefaults.payload.
         """
         allowed_fields = {
             "primary_color",
@@ -2237,19 +1315,63 @@ class SiteSettings(models.Model):
             "default_term_report_style",
             "default_annual_report_style",
         }
+        model_field_names = {
+            f.name
+            for f in type(self)._meta.concrete_fields
+            if not getattr(f, "primary_key", False)
+        }
+        _pgb_fields = frozenset(
+            {
+                "theme_pack",
+                "admin_theme_pack",
+                "teacher_theme_pack",
+                "parent_theme_pack",
+                "default_term_report_style",
+                "default_annual_report_style",
+            }
+        )
         update_fields: list[str] = []
+        payload_updates: dict[str, object] = {}
+        pgb = None
         for field_name, value in field_updates.items():
-            if field_name not in allowed_fields or not hasattr(self, field_name):
+            if field_name not in allowed_fields:
                 continue
-            setattr(self, field_name, value)
-            update_fields.append(field_name)
+            if field_name in _pgb_fields:
+                try:
+                    from apps.brand_experience.platform_global_branding import (
+                        PlatformGlobalBranding,
+                    )
+
+                    if pgb is None:
+                        pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
+                    setattr(pgb, field_name, value)
+                except (
+                    AttributeError,
+                    ImportError,
+                    OperationalError,
+                    DatabaseError,
+                    TypeError,
+                    ValueError,
+                ):
+                    pass
+                continue
+            if field_name in model_field_names:
+                setattr(self, field_name, value)
+                update_fields.append(field_name)
+            else:
+                payload_updates[field_name] = value
+        if payload_updates:
+            self._persist_runtime_payload_updates(payload_updates)
+        if pgb is not None and save:
+            pgb.save()
         if save and update_fields:
             self.save(update_fields=update_fields)
 
     @property
     def active_social_links(self) -> list[dict]:
         links = []
-        for item in self.social_links or []:
+        raw = getattr(self, "social_links", None)
+        for item in (raw if isinstance(raw, (list, tuple)) else []) or []:
             if not item.get("enabled"):
                 continue
             url = item.get("url")

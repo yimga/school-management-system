@@ -5,6 +5,18 @@
       data-theme="{% if PUBLIC_BRAND_MODE %}system{% else %}light{% endif %}">
 <head>
   <meta charset="utf-8">
+  <script>
+    (function () {
+      var h = document.documentElement;
+      var dt = (h.getAttribute("data-theme") || "light").toLowerCase();
+      if (dt === "system") {
+        var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        h.setAttribute("data-bs-theme", dark ? "dark" : "light");
+      } else {
+        h.setAttribute("data-bs-theme", dt === "dark" ? "dark" : "light");
+      }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   {% block meta_description %}
@@ -23,6 +35,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-shell.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+  <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
   <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
   {% if PUBLIC_BRAND_MODE %}
   <style>
@@ -49,7 +62,7 @@
     {% if messages %}
       <div class="mb-3">
         {% for message in messages %}
-          <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
+          <div class="alert alert-{{ message.tags|default:'info' }} mb-2 ds-alert" role="alert">{{ message }}</div>
         {% endfor %}
       </div>
     {% endif %}

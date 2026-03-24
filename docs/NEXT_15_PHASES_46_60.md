@@ -18,7 +18,7 @@
 | 51 | Design Studio split and optionals | IV.9–14 | Documented | Split document/experience, layout builder, section/block, responsive preview, versioning, publish/rollback; N/A product. |
 | 52 | Workflows: simulation, builder, dependency | IV.15–22 | Documented | Simulation, visual builder, AI, dependency graph, conflict, staged, replay, health; N/A product; outcomes + automation rail exist. |
 | 53 | AI/API: permissions, use AI, contract | IV.23–26 | Documented | AI permissions/audit partial; use AI in setup/workflow N/A; API Center + contract tests in place; see apicenter_integration_governance. |
-| 54 | System config: bounded consoles inventory | IV.27 | DONE | BOUNDED_CONSOLES_INVENTORY.md added — System config, feature control, all five Studio hubs, outcomes, API Center, metadata, blueprint, runtime inspector. |
+| 54 | Configuration Control Center: bounded consoles inventory | IV.27 | DONE | BOUNDED_CONSOLES_INVENTORY.md added — Configuration Control Center, feature control, all five Studio hubs, outcomes, API Center, metadata, blueprint, runtime inspector. |
 | 55 | UX acceptance and responsive reference | §8.0.6, 8.0.11, 8.0.13 | DONE | UX_ACCEPTANCE_AND_RESPONSIVE_REFERENCE.md — single reference for §8.0.6 (fluid, Flexbox/Grid, clamp), §8.0.11, §8.0.13; links to DESIGN_SYSTEM_BEHAVIOR, DECISION_ARCHITECTURE, Phase H. |
 | 56 | Decision architecture + dashboard taxonomy | §10.5 | Documented | DECISION_ARCHITECTURE_CHECKLIST.md, DASHBOARD_TAXONOMY_AND_REGISTRY.md; DESIGN_SYSTEM_BEHAVIOR; enforcement per SOT §10.5. |
 | 57 | Operating discipline layers rollup | §10.5 | Documented | OPERATING_DISCIPLINE_LAYERS.md; 10.5.1–10.5.8; Phase I status; RUNMYCAMPUS §10.5 table. |
@@ -30,7 +30,7 @@
 
 ## Implemented in this batch
 
-- **Bounded consoles inventory (54):** New doc `docs/BOUNDED_CONSOLES_INVENTORY.md` — System config, feature control, Experience/Automation/Output/Launch/Control studios, outcomes console, API Center, metadata governance, blueprint/policy, runtime inspector; entry points and verification.
+- **Bounded consoles inventory (54):** New doc `docs/BOUNDED_CONSOLES_INVENTORY.md` — Configuration Control Center, feature control, Experience/Automation/Output/Launch/Control studios, outcomes console, API Center, metadata governance, blueprint/policy, runtime inspector; entry points and verification.
 - **UX acceptance and responsive (55):** New doc `docs/UX_ACCEPTANCE_AND_RESPONSIVE_REFERENCE.md` — §8.0.6 (responsive), §8.0.11 (acceptance standard), §8.0.13 (acceptance tests); cross-links to design system, decision architecture, dashboard taxonomy, Phase H.
 
 ---

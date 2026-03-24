@@ -233,6 +233,11 @@ class MarketingLandingContextTests(TestCase):
         self.assertContains(resp, "images/marketing/platform-diagram-marketing.svg")
         self.assertContains(resp, "images/marketing/setup-studio-flow.svg")
         self.assertContains(resp, "images/marketing/viz-admin.svg")
+        # Phase 10 narrative spine (verify_ux_completion.py markers)
+        self.assertContains(resp, "data-phase10-marketing-narrative")
+        self.assertContains(resp, "mkt-narrative-phase10")
+        self.assertContains(resp, "Why schools switch")
+        self.assertContains(resp, "Studio OS — one shell for every mode")
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)

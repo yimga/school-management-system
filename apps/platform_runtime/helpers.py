@@ -16,6 +16,7 @@ from typing import Any, Optional
 
 from django.core.cache import cache
 from django.db import DatabaseError
+from django.db.utils import OperationalError
 
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
@@ -53,6 +54,35 @@ def invalidate_effective_site_settings_cache() -> None:
 def get_tenant_runtime(request: Any) -> Optional[Any]:
     """Return request.tenant_runtime or None (e.g. on public/control plane)."""
     return getattr(request, "tenant_runtime", None)
+
+
+def _apply_preview_sandbox_feature_flag_overlay(
+    request: Any, flags: dict[str, bool]
+) -> dict[str, bool]:
+    """
+    When request.tenant_runtime is not attached yet, still honor preview/sandbox
+    feature flag overlays from TenantContext.policy_overrides (same order as
+    runtime_resolver._step6_flags_entitlements).
+    """
+    if request is None:
+        return flags
+    if getattr(request, "tenant_runtime", None) is not None:
+        return flags
+    tenant_ctx = getattr(request, "tenant_ctx", None)
+    if tenant_ctx is None:
+        return flags
+    po = getattr(tenant_ctx, "policy_overrides", None) or {}
+    if not isinstance(po, dict):
+        return flags
+    if not (bool(po.get("preview")) or bool(po.get("sandbox"))):
+        return flags
+    raw = po.get("feature_flags") or po.get("sandbox_feature_flags")
+    if not isinstance(raw, dict):
+        return flags
+    out = dict(flags)
+    for k, v in raw.items():
+        out[str(k)] = bool(v)
+    return out
 
 
 def get_effective_branding(request: Any) -> Any:
@@ -124,7 +154,9 @@ def get_effective_flags(request: Any) -> dict:
     except (AttributeError, ImportError, TypeError, ValueError):
         defaults = {}
     if rt and getattr(rt, "flags", None) and getattr(rt.flags, "flags", None):
-        return {**defaults, **rt.flags.flags}
+        return _apply_preview_sandbox_feature_flag_overlay(
+            request, {**defaults, **rt.flags.flags}
+        )
     try:
         feature_settings = get_effective_feature_control_settings(
             request=request,
@@ -133,9 +165,11 @@ def get_effective_flags(request: Any) -> dict:
         site_overrides = feature_settings.get("backend_feature_flags") or {}
         if not isinstance(site_overrides, dict):
             site_overrides = {}
-        return {**defaults, **site_overrides}
+        return _apply_preview_sandbox_feature_flag_overlay(
+            request, {**defaults, **site_overrides}
+        )
     except (AttributeError, LookupError, TypeError, ValueError):
-        return defaults
+        return _apply_preview_sandbox_feature_flag_overlay(request, dict(defaults))
 
 
 def get_effective_flags_for_school(school: Any = None) -> dict:
@@ -320,10 +354,14 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
         TypeError,
         ValueError,
     ):
-        ctx = request_context_for_log(request) if request else {}
+        ctx = dict(request_context_for_log(request) if request else {})
         log_exception_with_context(
             "Failed to build platform site settings base from runtime defaults / SiteSettings",
-            **ctx,
+            tenant_id=ctx.pop("tenant_id", None),
+            school_id=ctx.pop("school_id", None),
+            actor_id=ctx.pop("actor_id", None),
+            route=ctx.pop("route", None),
+            extra=ctx or None,
         )
         base = None
     if base is None:
@@ -411,13 +449,101 @@ def get_platform_site_settings_record(*, create: bool = False) -> Any:
     return site
 
 
+def apply_payload_dict_to_site_settings_shallow_base(
+    base: Any, payload: dict[str, Any]
+) -> None:
+    """
+    Apply a flat JSON payload onto a shallow copy of SiteSettings (same rules as
+    RuntimeDefaults merge). Used by ``_build_platform_site_settings_base`` and Phase B
+    domain snapshots (batches 4-13).
+    """
+    from apps.siteconfig.models import SiteSettings
+
+    if not payload:
+        return
+    assigned_keys: set[str] = set()
+    for field in SiteSettings._meta.concrete_fields:
+        fname = field.name
+        attname = getattr(field, "attname", fname)
+        if getattr(field, "remote_field", None) is not None:
+            in_att = attname in payload
+            in_name = fname in payload
+            v_att = payload.get(attname) if in_att else None
+            v_name = payload.get(fname) if in_name else None
+            chosen: str | None = None
+            raw: object | None = None
+            if in_att and v_att is not None:
+                chosen, raw = attname, v_att
+            elif in_name and v_name is not None:
+                chosen, raw = fname, v_name
+            elif in_att:
+                chosen, raw = attname, v_att
+            elif in_name:
+                chosen, raw = fname, v_name
+            if chosen is None or not hasattr(base, attname):
+                continue
+            setattr(base, attname, raw)
+            assigned_keys.update({fname, attname, chosen})
+            continue
+        field_names = {fname, attname}
+        payload_key = next((name for name in field_names if name in payload), None)
+        if payload_key is None:
+            continue
+        target_attr = payload_key
+        if payload_key == fname:
+            target_attr = attname
+        if not hasattr(base, target_attr):
+            continue
+        setattr(base, target_attr, payload[payload_key])
+        assigned_keys.add(payload_key)
+        assigned_keys.add(target_attr)
+    concrete_names = {f.name for f in SiteSettings._meta.concrete_fields}
+    concrete_attnames = {
+        getattr(f, "attname", f.name) for f in SiteSettings._meta.concrete_fields
+    }
+    concrete_allowed = concrete_names | concrete_attnames
+    for key, val in payload.items():
+        if key in assigned_keys:
+            continue
+        if key not in concrete_allowed:
+            continue
+        try:
+            setattr(base, key, val)
+        except (TypeError, AttributeError):
+            try:
+                object.__setattr__(base, key, val)
+            except (TypeError, AttributeError):
+                pass
+
+    # Phase B slim table: many ownership keys live only in JSON payloads; set instance attrs
+    # so reads do not fall through to __getattr__ / RuntimeDefaults defaults.
+    try:
+        from apps.siteconfig.domain_ownership import is_runtime_payload_shadow_key
+    except ImportError:
+        is_runtime_payload_shadow_key = None  # type: ignore[assignment]
+    if is_runtime_payload_shadow_key:
+        for key, val in payload.items():
+            if key in assigned_keys:
+                continue
+            if not is_runtime_payload_shadow_key(key):
+                continue
+            try:
+                setattr(base, key, val)
+            except (TypeError, AttributeError):
+                try:
+                    object.__setattr__(base, key, val)
+                except (TypeError, AttributeError):
+                    pass
+
+
 def _build_platform_site_settings_base() -> Any:
-    """Build the platform baseline from RuntimeDefaults first, then legacy SiteSettings for compatibility fields."""
+    """
+    Build the platform baseline: legacy SiteSettings row, then Phase B domain snapshots
+    (last persisted save),     then ``RuntimeDefaults.payload`` (wins on key overlap), then
+    first-class runtime columns, then ``PlatformGlobalBranding``.
+    """
     from apps.platform_runtime.models import RuntimeDefaults
-    from apps.siteconfig.models import (
-        SiteSettings,
-        build_platform_default_site_settings,
-    )
+    from apps.siteconfig.models import build_platform_default_site_settings
 
     payload = {}
     rt_defaults = None
@@ -446,21 +572,32 @@ def _build_platform_site_settings_base() -> Any:
     else:
         base = build_platform_default_site_settings()
 
+    # Phase B Batches 4-13: bounded-context snapshots from last SiteSettings.save (may lag
+    # RuntimeDefaults if payload was updated without save); apply before RT payload so RT wins.
+    try:
+        from apps.platform_runtime.phase_b_domain_snapshots import (
+            merge_phase_b_domain_snapshots_into_base,
+        )
+
+        merge_phase_b_domain_snapshots_into_base(base)
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        LookupError,
+        OperationalError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
+        pass
+    try:
+        base._sanitize_foreign_keys(persist=False)
+    except (AttributeError, DatabaseError, TypeError, ValueError):
+        pass
+
     if payload:
-        for field in SiteSettings._meta.concrete_fields:
-            field_names = {field.name, getattr(field, "attname", field.name)}
-            payload_key = next((name for name in field_names if name in payload), None)
-            if payload_key is None:
-                continue
-            target_attr = payload_key
-            if (
-                getattr(field, "remote_field", None) is not None
-                and payload_key == field.name
-            ):
-                target_attr = getattr(field, "attname", field.name)
-            if not hasattr(base, target_attr):
-                continue
-            setattr(base, target_attr, payload[payload_key])
+        apply_payload_dict_to_site_settings_shallow_base(base, payload)
     # Step 4: first-class owned columns override payload when set
     try:
         if (
@@ -475,6 +612,29 @@ def _build_platform_site_settings_base() -> Any:
                     rt_defaults.cache_rankings_interval_minutes,
                 )
     except (AttributeError, TypeError, ValueError):
+        pass
+    try:
+        base._sanitize_foreign_keys(persist=False)
+    except (AttributeError, DatabaseError, TypeError, ValueError):
+        pass
+    # Phase B Batch 1: brand_experience.PlatformGlobalBranding is authoritative for
+    # theme/media/report-default FKs once the row exists (backfilled from SiteSettings).
+    try:
+        from apps.brand_experience.branding_singleton_sync import (
+            merge_platform_global_branding_into_base,
+        )
+
+        merge_platform_global_branding_into_base(base)
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        LookupError,
+        OperationalError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
         pass
     try:
         base._sanitize_foreign_keys(persist=False)

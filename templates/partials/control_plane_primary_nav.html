@@ -1,0 +1,15 @@
+{% load i18n %}
+{# Wave 1: one product language — Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Control #}
+{% if PRIMARY_CONTROL_PLANE_NAV %}
+<nav class="cp-primary-nav d-flex flex-wrap align-items-center gap-1 gap-md-2 px-3 py-2 border-bottom" aria-label="{% trans 'Primary product navigation' %}" style="border-color: rgba(125,152,187,0.22) !important; background: rgba(8,16,30,0.45);">
+  {% for item in PRIMARY_CONTROL_PLANE_NAV %}
+  <a href="{{ item.url }}"
+     class="cp-primary-nav__pill btn btn-sm {% if item.is_current %}btn-warning text-dark fw-semibold{% else %}btn-outline-light{% endif %}"
+     {% if item.is_current %}aria-current="page"{% endif %}
+     data-cp-primary-id="{{ item.id }}">
+    <i class="bi {{ item.icon }} me-1" aria-hidden="true"></i>
+    <span>{% trans item.label %}</span>
+  </a>
+  {% endfor %}
+</nav>
+{% endif %}

@@ -1,5 +1,5 @@
 /**
- * Site settings / system config preview: scroll to section and highlight
+ * Site settings / Configuration Control Center preview: scroll to section and highlight
  * configurable areas. Used when SITE.is_preview and ?preview_section= is set.
  *
  * Config: window.PREVIEW_SECTION_CONFIG (object keyed by section name).

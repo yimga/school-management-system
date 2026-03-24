@@ -3,8 +3,13 @@
 
 {% block title %}Dashboard Configuration Hub{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4 professional-page">
+<div class="container-fluid py-4 professional-page" data-decision-engine="surface">
   <div class="card shadow-sm border-0">
     <div class="card-header bg-light border-bottom py-3 px-4">
       <h1 class="h5 mb-1 fw-semibold">Dashboard Configuration Hub</h1>

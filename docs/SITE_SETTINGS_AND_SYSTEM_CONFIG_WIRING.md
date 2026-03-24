@@ -1,4 +1,4 @@
-# Site Settings and system config wiring
+# Site Settings and Configuration Control Center wiring
 
 Part 1 Q&A (branding). Single source of truth for **site-level** vs **tenant-level** configuration.
 

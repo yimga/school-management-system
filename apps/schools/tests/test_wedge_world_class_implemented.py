@@ -25,6 +25,9 @@ WEDGE_PATHS = [
     ("super:he_pack", "/super/he-pack/"),
     ("super:education_systems", "/super/education-systems/"),  # Wedges 14–22
     ("super:learning_delivery_packs", "/super/learning-delivery-packs/"),  # Phase J
+    ("super:district_enterprise", "/super/district-enterprise/"),
+    ("super:wedge_index", "/super/wedge/"),
+    ("super:native_roster_connectors", "/super/native-roster-connectors/"),
 ]
 
 
@@ -115,6 +118,15 @@ class WedgeWorldClassImplementedTests(TestCase):
         # Geography (Wedges 7–13)
         geo = TEMPLATES / "schools" / "super_geography.html"
         self.assertTrue(geo.exists(), "super_geography.html must exist")
+        dist_ent = TEMPLATES / "schools" / "super_district_enterprise.html"
+        self.assertTrue(dist_ent.exists(), "super_district_enterprise.html must exist")
+        for tname in (
+            "super_wedge_index.html",
+            "super_wedge_operator_detail.html",
+            "super_native_roster_connectors.html",
+        ):
+            p = TEMPLATES / "schools" / tname
+            self.assertTrue(p.exists(), f"{p} must exist")
 
     def test_geography_packs_resolve(self):
         """Wedges 7–13: WAEC, AFR_FR, ASIA, CAN, LATAM_ES, MENA must resolve via get_regional_policy_pack."""
@@ -147,24 +159,11 @@ class WedgeWorldClassImplementedTests(TestCase):
                 self.assertIn("description", preset)
 
     def test_education_systems_14_22_world_class(self):
-        """Wedges 14–22: Education systems view and registry; list_sector_system_types_14_22 returns 9."""
-        from apps.registries.services import (
-            WEDGE_14_22_SECTOR_CODES,
-            list_sector_system_types_14_22,
-        )
+        """Wedges 14–22: static sector tuple + super surface (DB rows: validate_wedges_14_22.py)."""
+        from apps.registries.services import WEDGE_14_22_SECTOR_CODES
 
-        sector_list = list_sector_system_types_14_22()
-        self.assertEqual(
-            len(sector_list),
-            9,
-            "list_sector_system_types_14_22() must return 9 sector types",
-        )
-        codes = {r["code"] for r in sector_list}
-        self.assertEqual(
-            codes,
-            set(WEDGE_14_22_SECTOR_CODES),
-            "Sector codes must match WEDGE_14_22_SECTOR_CODES",
-        )
+        self.assertEqual(len(WEDGE_14_22_SECTOR_CODES), 9)
+        self.assertEqual(WEDGE_14_22_SECTOR_CODES[-2:], ("NGO", "MULTI_CAMPUS"))
         with self.settings(ROOT_URLCONF="config.manager_urls"):
             url = reverse("super:education_systems")
             self.assertIn("/education-systems", url)

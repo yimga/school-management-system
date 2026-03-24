@@ -65,10 +65,15 @@ GlobalBrandRegistry = _proxy_model(
     doc="Brand Experience owner surface for globally seeded branding assets.",
 )
 
+from apps.brand_experience.platform_global_branding import (  # noqa: E402
+    PlatformGlobalBranding,
+)
+
 __all__ = [
     "ThemePack",
     "DesignTemplate",
     "BrandProfile",
     "BrandSettings",
     "GlobalBrandRegistry",
+    "PlatformGlobalBranding",
 ]

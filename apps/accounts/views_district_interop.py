@@ -1,6 +1,8 @@
 """
 Tenant hub: district / LMS interoperability (OneRoster, SSO, LTI discovery).
-Clever/ClassLink-class motion = Bearer + OneRoster pull + CSV for ops.
+Clever/ClassLink-class motion = Bearer + OneRoster pull + CSV for ops, plus optional
+native vendor HTTP when the district stores Clever/ClassLink bearer tokens (see
+district_interop_save_native_vendor / district_interop_native_probe).
 """
 
 from __future__ import annotations
@@ -20,9 +22,11 @@ from django.contrib import messages
 
 from apps.accounts.district_interop_helpers import integration_readiness_snapshot
 from apps.accounts.models import FederationSsoHealth
+from apps.marketplace.ecosystem_links import build_phase9_ecosystem_links
 from apps.integrations_marketplace.models import ServiceIntegration
 from apps.interop.oneroster.constants import ONEROSTER_DISTRICT_API_SERVICE_NAME
 from apps.people.models import StudentProfile, TeacherProfile
+from apps.schools.models import TenantInteropAccessLog
 from apps.academics.models import Classroom
 from apps.platform_runtime.learning_institution_catalog import (
     INSTITUTION_TYPE_PACKS,
@@ -34,6 +38,12 @@ from apps.platform_runtime.learning_institution_runtime import (
 from apps.platform_runtime.school_settings_kv import (
     get_school_settings_dict,
     toggle_school_setting_bool,
+)
+from apps.accounts.district_interop_native import (
+    log_native_vendor_access,
+    mask_token_preview,
+    native_probe_rate_allow,
+    summarize_api_result,
 )
 
 
@@ -118,6 +128,30 @@ def district_lms_interop(request):
         ),
         "clever_partnership_doc": "/docs/interop/CLEVER_CLASSLINK_PARTNERSHIP.md",
         "oneroster_delta_hint": "changesSince=ISO8601 on students (updated_at filter).",
+        "interop_access_recent": list(
+            TenantInteropAccessLog.objects.filter(school=school).order_by("-created_at")[
+                :50
+            ]
+        ),
+        "phase9_links": build_phase9_ecosystem_links(),
+        "native_clever_preview": mask_token_preview(
+            (integration.config or {}).get("native_clever_bearer") if integration else ""
+        ),
+        "native_classlink_preview": mask_token_preview(
+            (integration.config or {}).get("native_classlink_bearer")
+            if integration
+            else ""
+        ),
+        "native_classlink_base_url": (
+            (integration.config or {}).get("native_classlink_base_url") or ""
+        )
+        if integration
+        else "",
+        "native_probe_result": (
+            request.session.pop("district_native_probe_result", None)
+            if getattr(request, "session", None) is not None
+            else None
+        ),
     }
     return render(request, "accounts/district_lms_interop.html", ctx)
 
@@ -320,6 +354,103 @@ def district_interop_save_advanced(request):
     integration.config = cfg
     integration.save(update_fields=["config", "updated_at"])
     messages.success(request, "Interop security settings saved.")
+    return HttpResponseRedirect(reverse("accounts:district_lms_interop"))
+
+
+@login_required
+@require_http_methods(["POST"])
+def district_interop_save_native_vendor(request):
+    """Store Clever/ClassLink bearer + ClassLink base URL in OneRoster integration config."""
+    if not _can_district_interop(request.user):
+        return HttpResponseForbidden("Not allowed.")
+    school, redir = _school_or_redirect(request)
+    if redir:
+        return redir
+    integration, _ = ServiceIntegration.objects.get_or_create(
+        school=school,
+        service_name=ONEROSTER_INTEGRATION_NAME,
+        defaults={
+            "service_type": ServiceIntegration.ServiceType.OAUTH,
+            "is_active": True,
+            "config": {},
+        },
+    )
+    cfg = dict(integration.config or {})
+    clever = (request.POST.get("native_clever_bearer") or "").strip()
+    if clever:
+        cfg["native_clever_bearer"] = clever
+    cl = (request.POST.get("native_classlink_bearer") or "").strip()
+    if cl:
+        cfg["native_classlink_bearer"] = cl
+    base = (request.POST.get("native_classlink_base_url") or "").strip()
+    if base:
+        cfg["native_classlink_base_url"] = base
+    integration.config = cfg
+    integration.save(update_fields=["config", "updated_at"])
+    messages.success(request, "Native vendor credentials saved.")
+    return HttpResponseRedirect(reverse("accounts:district_lms_interop"))
+
+
+@login_required
+@require_http_methods(["POST"])
+def district_interop_native_probe(request):
+    """Rate-limited outbound Clever/ClassLink API probes using stored tenant config."""
+    if not _can_district_interop(request.user):
+        return HttpResponseForbidden("Not allowed.")
+    school, redir = _school_or_redirect(request)
+    if redir:
+        return redir
+    ok, err = native_probe_rate_allow(school.pk)
+    if not ok:
+        messages.error(request, err)
+        return HttpResponseRedirect(reverse("accounts:district_lms_interop"))
+    integration = ServiceIntegration.objects.filter(
+        school=school, service_name=ONEROSTER_INTEGRATION_NAME, is_active=True
+    ).first()
+    cfg = (integration.config or {}) if integration else {}
+    from apps.interop.clever_classlink_client import (
+        classlink_list_courses,
+        classlink_roster_ping,
+        clever_list_schools,
+        clever_list_sections,
+        clever_list_users,
+    )
+
+    out: dict[str, Any] = {}
+    ct = (cfg.get("native_clever_bearer") or "").strip()
+    if ct:
+        out["clever"] = {
+            "users": clever_list_users(ct, limit=3),
+            "schools": clever_list_schools(ct, limit=3),
+            "sections": clever_list_sections(ct, limit=3),
+        }
+        log_native_vendor_access(
+            school,
+            endpoint="clever_probe",
+            client_ip=request.META.get("REMOTE_ADDR", "") or "",
+            token_prefix=ct[:6] if len(ct) >= 6 else "",
+        )
+    cl_tok = (cfg.get("native_classlink_bearer") or "").strip()
+    cl_base = (cfg.get("native_classlink_base_url") or "").strip()
+    if cl_tok:
+        out["classlink"] = {
+            "ping": classlink_roster_ping(cl_tok, district_path=cl_base),
+            "courses": classlink_list_courses(cl_tok, district_path=cl_base),
+        }
+        log_native_vendor_access(
+            school,
+            endpoint="classlink_probe",
+            client_ip=request.META.get("REMOTE_ADDR", "") or "",
+            token_prefix=cl_tok[:6] if len(cl_tok) >= 6 else "",
+        )
+    if not out:
+        messages.warning(
+            request,
+            "No native Clever or ClassLink bearer stored. Save credentials first.",
+        )
+        return HttpResponseRedirect(reverse("accounts:district_lms_interop"))
+    request.session["district_native_probe_result"] = summarize_api_result(out)
+    messages.success(request, "Native vendor probe complete. See result below.")
     return HttpResponseRedirect(reverse("accounts:district_lms_interop"))
 
 

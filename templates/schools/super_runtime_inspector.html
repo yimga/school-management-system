@@ -134,6 +134,10 @@
           {% else %}
           <p class="text-secondary mb-0">--</p>
           {% endif %}
+          {% if inspection.feature_flags_merge_order %}
+          <p class="small text-secondary mt-2 mb-0"><strong>{% trans "Runtime feature-flag merge (step 6)" %}:</strong>
+          <code>{{ inspection.feature_flags_merge_order|join:" → " }}</code></p>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -185,6 +189,51 @@
       {% endif %}
     </div>
   </div>
+  {% if inspection.entitlement_registry %}
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Entitlement registry (canonical, Phase 6)" %}</div>
+    <div class="card-body small">
+      <p class="mb-1"><strong>{% trans "Schema" %}:</strong> {{ inspection.entitlement_registry.registry_schema_version|default:"—" }}</p>
+      <p class="mb-1"><strong>{% trans "Effective modules" %}:</strong> {{ inspection.entitlement_registry.effective_modules|join:", "|default:"—" }}</p>
+      <p class="mb-1"><strong>{% trans "Caps" %}:</strong> max_students={{ inspection.entitlement_registry.caps.max_students|default:"—" }}, max_api_calls={{ inspection.entitlement_registry.caps.max_api_calls|default:"—" }}</p>
+      <p class="mb-0"><strong>{% trans "Gates" %}:</strong> marketplace={{ inspection.entitlement_registry.gates.marketplace_allowed|yesno:"Yes,No" }}, sandbox={{ inspection.entitlement_registry.gates.sandbox_enabled|yesno:"Yes,No" }}, white_label={{ inspection.entitlement_registry.gates.white_label_enabled|yesno:"Yes,No" }}</p>
+    </div>
+  </div>
+  {% endif %}
+  {% if inspection.blueprint_lifecycle %}
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Blueprint lifecycle &amp; versioning" %}</div>
+    <div class="card-body small">
+      {% if inspection.blueprint_lifecycle.linked %}
+      <p class="mb-1"><strong>{% trans "Pack update needed" %}:</strong> {{ inspection.blueprint_lifecycle.pack_update_needed|yesno:"Yes,No" }}</p>
+      {% if inspection.blueprint_lifecycle.applied_pack %}
+      <p class="mb-1"><strong>{% trans "Applied pack" %}:</strong> {{ inspection.blueprint_lifecycle.applied_pack.slug|default:"—" }} v{{ inspection.blueprint_lifecycle.applied_pack.version|default:"—" }}</p>
+      {% endif %}
+      {% if inspection.blueprint_lifecycle.active_policy_bundle %}
+      <p class="mb-0"><strong>{% trans "Active bundle" %}:</strong> id={{ inspection.blueprint_lifecycle.active_policy_bundle.id|default:"—" }}, applied_pack_version={{ inspection.blueprint_lifecycle.active_policy_bundle.applied_pack_version|default:"—" }}</p>
+      {% endif %}
+      {% else %}
+      <p class="text-secondary mb-0">{% trans "No TenantBlueprint linked for this school." %}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% if inspection.marketplace_install_registry %}
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Marketplace install registry" %}</div>
+    <div class="card-body small">
+      <p class="mb-1"><strong>{% trans "Active installations" %}:</strong> {{ inspection.marketplace_install_registry.active_installation_count|default:0 }}</p>
+      <p class="mb-1"><strong>{% trans "Granted scopes" %}:</strong> {{ inspection.marketplace_install_registry.granted_scope_count|default:0 }}</p>
+      {% if inspection.marketplace_install_registry.apps %}
+      <ul class="list-unstyled mb-0">
+        {% for a in inspection.marketplace_install_registry.apps %}
+        <li><code>{{ a.app_slug|default:"—" }}</code> {% if a.version %}v{{ a.version }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-header bg-dark text-light">{% trans "Feature toggles &amp; flag metadata (GAP.13)" %}</div>
     <div class="card-body">

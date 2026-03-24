@@ -62,6 +62,9 @@
                     {% endblock content_tabs %}
 
                     {% block content %}
+                        {% if is_manager_host and not is_popup %}
+                            {% include "admin/includes/operator_path_banner.html" %}
+                        {% endif %}
                         {% block object-tools %}{% endblock %}
 
                         {{ content }}
@@ -77,6 +80,13 @@
                     {% block sidebar %}{% endblock %}
                 </div>
             </div>
+
+            {# Phase 1: optional sticky action strip (manager platform backoffice); hidden when empty #}
+            {% if is_manager_host %}
+            <div id="admin-manager-sticky-slot" class="admin-manager-sticky-slot flex-shrink-0">
+              {% block admin_manager_sticky_actions %}{% endblock %}
+            </div>
+            {% endif %}
 
             {% block footer %}
             {% include 'components/back_to_top.html' %}

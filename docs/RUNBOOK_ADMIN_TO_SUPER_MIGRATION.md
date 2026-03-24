@@ -4,7 +4,7 @@
 
 **References:** [ADMIN_TO_SUPER_MIGRATION_ROADMAP.md](ADMIN_TO_SUPER_MIGRATION_ROADMAP.md), [ADMIN_VS_SUPER_RESPONSIBILITY_MATRIX.md](ADMIN_VS_SUPER_RESPONSIBILITY_MATRIX.md), [ADMIN_SUPER_SINGLE_ENTRY_AND_MARKETING_PRODUCT_PAGE.md](ADMIN_SUPER_SINGLE_ENTRY_AND_MARKETING_PRODUCT_PAGE.md).
 
-**Implementation status:** Phases 0–8 implemented. `/super/config/` redirects to System config (`siteconfig:console_domains_hub`). **Platform operator hub** at `/super/platform-operator-hub/` (`super:platform_operator_hub`): super-first curated links plus full `platform_admin_site` changelist registry (same sections as platform `/admin/`). **Admin bridges (no hardcoded `/admin/` in nav):** Canonical route `super:admin_bridge` with path `/super/admin-bridge/<bridge_key>/` — `bridge_key` values and copy live in `apps/schools/super_admin_bridge_registry.py` (`PLATFORM_ADMIN_BRIDGES` / `PLATFORM_ADMIN_BRIDGE_ORDER`). Each bridge 302s to the matching `admin:…_changelist`. **Legacy:** The seven previous paths (e.g. `/super/admin-bridge/integrations-marketplace/`) and URL names (`super:admin_bridge_integrations`, …) remain registered and hit the same admin target as the slug keys (`integrations`, …). The seven high-traffic bridges remain on the hub (badge “Admin”) and in control plane nav under “Platform settings & admin”; additional bridges are hub-only to avoid sidebar overflow. System config + quick access link to operator hub; control plane nav lists hub first under "Platform settings & admin"; integrations shortcut points to `super:one_sis_any_lms`. Site settings (list + edit), Regions, Grading, Plans, Feature toggles, AI (`ai_model_hub`); Phase 8 list views `/super/incidents/`, `/super/billing-accounts/`, `/super/migration-runs/`. Schools list at `/super/schools/` with pagination and filters. Run final verification checklist before release.
+**Implementation status:** Phases 0–8 implemented. `/super/config/` redirects to Configuration Control Center (`siteconfig:console_domains_hub`). **Platform operator hub** at `/super/platform-operator-hub/` (`super:platform_operator_hub`): super-first curated links plus full `platform_admin_site` changelist registry (same sections as platform `/admin/`). **Admin bridges (no hardcoded `/admin/` in nav):** Canonical route `super:admin_bridge` with path `/super/admin-bridge/<bridge_key>/` — `bridge_key` values and copy live in `apps/schools/super_admin_bridge_registry.py` (`PLATFORM_ADMIN_BRIDGES` / `PLATFORM_ADMIN_BRIDGE_ORDER`). Each bridge 302s to the matching `admin:…_changelist`. **Legacy:** The seven previous paths (e.g. `/super/admin-bridge/integrations-marketplace/`) and URL names (`super:admin_bridge_integrations`, …) remain registered and hit the same admin target as the slug keys (`integrations`, …). The seven high-traffic bridges remain on the hub (badge “Admin”) and in control plane nav under “Platform settings & admin”; additional bridges are hub-only to avoid sidebar overflow. Configuration Control Center + quick access link to operator hub; control plane nav lists hub first under "Platform settings & admin"; integrations shortcut points to `super:one_sis_any_lms`. Site settings (list + edit), Regions, Grading, Plans, Feature toggles, AI (`ai_model_hub`); Phase 8 list views `/super/incidents/`, `/super/billing-accounts/`, `/super/migration-runs/`. Schools list at `/super/schools/` with pagination and filters. Run final verification checklist before release.
 
 ---
 
@@ -29,7 +29,7 @@
 | 0.2 | Confirm `/super/blueprints/`, `/super/policies/`, `/super/workflow-packs/`, `/super/dashboard-packs/` resolve | Same |
 | 0.3 | Confirm `/super/migration/` resolves | Same |
 | 0.4 | Confirm `/super/billing/` resolves | Same |
-| 0.5 | Confirm `/siteconfig/console/` (System config) resolves on manager | Same |
+| 0.5 | Confirm `/siteconfig/console/` (Configuration Control Center) resolves on manager | Same |
 | 0.6 | Confirm "Configuration Engine" in nav points to config hub | Sidebar has Configuration Engine → /super/config/ (`super:config_hub`) |
 
 **Exit:** Phase 0 complete when all above are true. Proceed to Phase 1.
@@ -38,7 +38,7 @@
 
 ## Phase 1 — Configuration hub
 
-**Goal:** One landing at `/super/config/`; nav "Configuration Engine" points here; hub links to Site settings, Regions, Plans, Feature toggles, AI models, System config, Advanced backoffice.
+**Goal:** One landing at `/super/config/`; nav "Configuration Engine" points here; hub links to Site settings, Regions, Plans, Feature toggles, AI models, Configuration Control Center, Advanced backoffice.
 
 ### Step 1.1 — Add view function
 
@@ -77,7 +77,7 @@
     - Card "Plans & addons": link to `plans_url` or "Coming soon"; icon bi-currency-dollar.
     - Card "Feature toggles": link to `feature_toggles_url` or "Coming soon"; icon bi-toggle-on.
     - Card "AI / model registry": link to `ai_models_url` or `super:ai_model_hub` or "Coming soon"; icon bi-cpu.
-    - Card "System config (bounded)": link to `system_config_url`; icon bi-sliders.
+    - Card "Configuration Control Center (bounded)": link to `system_config_url`; icon bi-sliders.
     - Card "Advanced backoffice": link to `admin_index_url`; icon bi-gear-wide-connected; text "Full Django admin".
   - Every card: title, short description, primary button/link. Use `dashboard_url` for any "Back" link.
 
@@ -92,7 +92,7 @@
 - Visit `/super/config/` on manager host; 200; page shows all seven cards.
 - "Configuration Engine" in sidebar goes to `/super/config/` (not `/admin/`).
 - "Advanced backoffice" links to `/admin/`.
-- "System config (bounded)" links to `/siteconfig/console/`.
+- "Configuration Control Center (bounded)" links to `/siteconfig/console/`.
 
 **Exit:** Phase 1 complete. Proceed to Phase 2.
 
@@ -112,7 +112,7 @@
 - **View name:** `super_site_settings_list`.
 - **URL name:** `super:site_settings_list`; path `config/site-settings/`.
 - **Logic:** Query `SiteSettings.objects.all().order_by("id")` (or filter by platform site if applicable). Paginate if count > 20 (e.g. Page 20 per page). Build list of dicts: `id`, `__str__` or `name`/`domain`, link to edit view.
-- **Template:** `schools/super_site_settings_list.html`. Extend control_plane_base; breadcrumbs Dashboard → System config (link to siteconfig:console_domains_hub) → Site settings; table or card list with "Edit" link per row to `super:site_settings_edit` with pk.
+- **Template:** `schools/super_site_settings_list.html`. Extend control_plane_base; breadcrumbs Dashboard → Configuration Control Center (link to siteconfig:console_domains_hub) → Site settings; table or card list with "Edit" link per row to `super:site_settings_edit` with pk.
 - **Context:** `site_settings_list`, `dashboard_url`, `system_config_url`, `admin_changelist_url` (for "Open in backoffice").
 
 ### Step 2.3 — Edit view
@@ -321,7 +321,7 @@
 - [x] Site settings: list and edit work; breadcrumbs and backoffice link work.
 - [x] Regions and Grading lists load; Plans list loads; Feature toggles list loads; AI models (or ai_model_hub) load.
 - [x] Schools list loads and paginates.
-- [x] System config (bounded) and Advanced backoffice links work.
+- [x] Configuration Control Center (bounded) and Advanced backoffice links work.
 - [x] No 404 or 500 on any of the new URLs when accessed as superuser on manager host (see automated tests below).
 - [x] Run `python manage.py check`; fix any issues.
 

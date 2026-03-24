@@ -1,0 +1,285 @@
+{% load i18n region_format %}
+{# Shared body: full portal page, embed=1 iframe, or Studio Output native (no iframe). #}
+<div class="container-fluid py-2 py-lg-4 doc-library-page{% if studio_output_native %} studio-output-native-documents{% endif %}" data-page-archetype="operational-workbench"{% if studio_output_native %} data-studio-output-native="documents"{% endif %}>
+  {% include "studio_os/components/page_header.html" with title="Document Library" subtitle="Manage school documents, lifecycle stages, and pack-driven retention." action_url=document_upload_url action_text="Upload Document" %}
+  <div class="d-flex gap-2 mb-3 small flex-wrap">
+    {% if embed and not studio_output_native %}
+    <a href="{% url 'studio_os:output' %}?pane=documents" class="text-muted" title="{% trans 'Open in Output Studio' %}"><i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Open in Output Studio" %}</a>
+    {% endif %}
+    {% if studio_output_native %}
+    <span class="text-success small"><i class="bi bi-check-circle me-1"></i>{% trans "Native view — no embedded frame" %}</span>
+    {% endif %}
+    <a href="{% url 'portal:signature_request_create' %}" class="text-muted"><i class="bi bi-pen me-1"></i>{% trans "Request Signature" %}</a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm ds-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">{% trans "Total Documents" %}</div>
+              <div class="h4 mb-0">{{ stats.total }}</div>
+            </div>
+            <div class="text-primary">
+              <i class="bi bi-file-earmark-text fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm ds-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">{% trans "With Files" %}</div>
+              <div class="h4 mb-0">{{ stats.with_files }}</div>
+            </div>
+            <div class="text-success">
+              <i class="bi bi-cloud-upload fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm ds-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">{% trans "Require Signature" %}</div>
+              <div class="h4 mb-0">{{ stats.requires_signature }}</div>
+            </div>
+            <div class="text-warning">
+              <i class="bi bi-pen fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm ds-card">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="text-muted small">{% trans "Packaged / Archived" %}</div>
+              <div class="h4 mb-0">{{ stats.packaged }} / {{ stats.archived }}</div>
+            </div>
+            <div class="text-info">
+              <i class="bi bi-archive fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4 ds-card">
+    <div class="card-body">
+      <form method="get" class="row g-3"{% if document_library_form_action %} action="{{ document_library_form_action }}"{% endif %}>
+        {% if studio_output_native %}<input type="hidden" name="pane" value="documents">{% endif %}
+        {% if embed and not studio_output_native %}<input type="hidden" name="embed" value="1">{% endif %}
+        <div class="col-md-3">
+          <label class="form-label">{% trans "Document Type" %}</label>
+          <select name="type" class="form-select">
+            <option value="">{% trans "All Types" %}</option>
+            {% for doc_type, label in document_types %}
+              <option value="{{ doc_type }}" {% if current_type == doc_type %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">{% trans "Lifecycle" %}</label>
+          <select name="lifecycle" class="form-select">
+            <option value="">{% trans "All states" %}</option>
+            {% for state, label in lifecycle_choices %}
+              <option value="{{ state }}" {% if current_lifecycle == state %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">{% trans "Document Pack" %}</label>
+          <select name="pack" class="form-select">
+            <option value="">{% trans "All packs" %}</option>
+            {% for pack in document_packs %}
+              <option value="{{ pack.code }}" {% if current_pack == pack.code %}selected{% endif %}>{{ pack.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">{% trans "Search" %}</label>
+          <input type="text" name="q" class="form-control" placeholder="{% trans 'Search documents…' %}" value="{{ search_query }}">
+        </div>
+        <div class="col-12 d-flex align-items-end gap-2 flex-wrap">
+          <button type="submit" class="btn btn-primary flex-grow-1">
+            <i class="bi bi-search me-1"></i>{% trans "Filter" %}
+          </button>
+          <a href="{% url 'portal:document_library_manage' %}?embed=1&format=csv{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if current_type %}&type={{ current_type|urlencode }}{% endif %}{% if current_lifecycle %}&lifecycle={{ current_lifecycle|urlencode }}{% endif %}{% if current_pack %}&pack={{ current_pack|urlencode }}{% endif %}" class="btn btn-outline-secondary" title="{% trans 'Export list as CSV' %}">
+            <i class="bi bi-download me-1"></i>{% trans "Export CSV" %}
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm ds-card">
+    <div class="card-body">
+      {% if documents %}
+        <div class="table-responsive ds-table-wrap">
+          <table class="table table-hover align-middle table-family" aria-label="{% trans 'Document library' %}">
+            <thead>
+              <tr>
+                <th scope="col">{% trans "Title" %}</th>
+                <th scope="col">{% trans "Type" %}</th>
+                <th scope="col">{% trans "Pack" %}</th>
+                <th scope="col">{% trans "Lifecycle" %}</th>
+                <th scope="col">{% trans "File/Link" %}</th>
+                <th scope="col">{% trans "Signature" %}</th>
+                <th scope="col">{% trans "Retention" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col">{% trans "Created" %}</th>
+                <th scope="col" class="text-end">{% trans "Actions" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for doc in documents %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ doc.title }}</div>
+                    {% if doc.description %}
+                      <div class="text-muted small">{{ doc.description|truncatewords:10 }}</div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge bg-secondary">{{ doc.get_document_type_display }}</span>
+                  </td>
+                  <td>
+                    {% if doc.document_pack %}
+                      <span class="badge text-bg-light">{{ doc.document_pack.name }}</span>
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge {% if doc.lifecycle_state == 'approved' %}bg-success{% elif doc.lifecycle_state == 'archived' %}bg-secondary{% elif doc.lifecycle_state == 'review' %}bg-warning text-dark{% elif doc.lifecycle_state == 'retracted' %}bg-danger{% else %}bg-light text-dark{% endif %}">
+                      {{ doc.get_lifecycle_state_display|default:doc.lifecycle_state|title }}
+                    </span>
+                  </td>
+                  <td>
+                    {% if doc.file %}
+                      <span class="badge bg-success">
+                        <i class="bi bi-file-earmark me-1"></i>File ({{ doc.file_size_mb }}MB)
+                      </span>
+                    {% elif doc.link %}
+                      <span class="badge bg-info">
+                        <i class="bi bi-link-45deg me-1"></i>Link
+                      </span>
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if doc.requires_signature %}
+                      <span class="badge bg-warning text-dark">
+                        <i class="bi bi-pen me-1"></i>{% trans "Required" %}
+                      </span>
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if doc.retention_review_at %}
+                      <div class="small">{{ doc.retention_review_at|format_date:"YYYY-MM-DD" }}</div>
+                      <div class="text-muted small">{% trans "review" %}</div>
+                    {% else %}
+                      <span class="text-muted">-</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if doc.is_active %}
+                      <span class="badge bg-success">{% trans "Active" %}</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="small">{{ doc.created_at|format_date }}</div>
+                    <div class="text-muted small">{% trans "by" %} {{ doc.created_by.get_full_name|default:doc.created_by.username }}</div>
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      {% if doc.file %}
+                        <a href="{% url 'portal:document_download' doc.id %}" class="btn btn-outline-primary" title="{% trans 'Download' %}">
+                          <i class="bi bi-download"></i>
+                        </a>
+                        {% if doc.file.name|slice:"-4:"|lower == ".odt" or doc.file.name|slice:"-5:"|lower == ".docx" %}
+                          <a href="{% url 'portal:document_download_pdf' doc.id %}" class="btn btn-outline-danger" title="{% trans 'Download as PDF' %}">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                          </a>
+                        {% endif %}
+                      {% elif doc.link %}
+                        <a href="{{ doc.link }}" target="_blank" class="btn btn-outline-info" rel="noopener noreferrer" title="{% trans 'Open Link' %}">
+                          <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                      {% endif %}
+                      <a href="{% url 'portal:document_edit' doc.id %}" class="btn btn-outline-secondary" title="{% trans 'Edit' %}">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <button type="button" class="btn btn-outline-danger" data-doc-id="{{ doc.id }}" data-doc-title="{{ doc.title|escapejs }}" title="{% trans 'Delete' %}">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-file-earmark-text" title="No documents found" message="Upload school documents, forms, and policies so staff and families can access them." action_url=document_upload_url action_text="Upload your first document" %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{% trans "Delete Document" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+        <p>{% trans "Are you sure you want to delete" %} <strong id="deleteDocTitle"></strong>?</p>
+        <p class="text-danger small">{% trans "This action cannot be undone." %}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+        <form id="deleteForm" method="post" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var DELETE_URL_TEMPLATE = "{% url 'portal:document_delete' 999999 %}";
+  function confirmDelete(docId, docTitle) {
+    var t = document.getElementById('deleteDocTitle');
+    if (t) t.textContent = docTitle || '';
+    var f = document.getElementById('deleteForm');
+    if (f) f.action = DELETE_URL_TEMPLATE.replace('999999', String(docId));
+    var m = document.getElementById('deleteModal');
+    if (m && window.bootstrap) new bootstrap.Modal(m).show();
+  }
+  document.querySelectorAll('.doc-library-page button[data-doc-id]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      confirmDelete(btn.getAttribute('data-doc-id'), btn.getAttribute('data-doc-title'));
+    });
+  });
+})();
+</script>

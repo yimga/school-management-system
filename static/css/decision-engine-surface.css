@@ -1,0 +1,147 @@
+/* Phase 7 — shared decision-engine surface (role homes + module dashboards) */
+.decision-engine-surface {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--token-radius-lg, 16px);
+  border: 1px solid var(--admin-content-border, rgba(148, 163, 184, 0.35));
+  background: var(--admin-content-bg, #fff);
+  box-shadow: var(--dashboard-card-shadow, 0 8px 24px rgba(15, 23, 42, 0.06));
+}
+
+.de-eyebrow {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--bs-secondary-color, #64748b);
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+}
+
+.de-headline-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.25rem;
+}
+
+.de-kpi-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color, #64748b);
+}
+
+.de-kpi-value {
+  display: block;
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.de-kpi-meta {
+  display: block;
+  font-size: 0.88rem;
+  margin-top: 0.2rem;
+}
+
+.de-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.65rem;
+}
+
+.de-metric-card {
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--token-radius-md, 12px);
+  border: 1px solid var(--admin-content-border, #e9ecef);
+  background: var(--portal-bg, #f8fafc);
+}
+
+.de-metric-card.de-status-warn {
+  border-color: rgba(245, 158, 11, 0.45);
+}
+.de-metric-card.de-status-danger {
+  border-color: rgba(220, 53, 69, 0.45);
+}
+
+.de-metric-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--bs-secondary-color, #64748b);
+}
+
+.de-metric-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.de-metric-meta {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--bs-secondary-color, #64748b);
+}
+
+.de-panel-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bs-secondary-color, #64748b);
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+}
+
+.de-queue-item {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--admin-content-border, #e9ecef);
+}
+.de-queue-item:last-child {
+  border-bottom: 0;
+}
+
+.de-queue-link {
+  text-decoration: none;
+  color: inherit;
+}
+.de-queue-link:hover .de-queue-title {
+  text-decoration: underline;
+}
+
+.de-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.de-action-primary {
+  flex: 0 1 auto;
+}
+
+.de-activity-row {
+  padding: 0.3rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border-bottom: 1px dashed var(--admin-content-border, #e9ecef);
+}
+.de-activity-row:last-child {
+  border-bottom: 0;
+}
+
+/* Collapsible secondary (card cemetery avoidance) */
+.de-secondary-collapsible {
+  margin-top: 1rem;
+}
+.de-secondary-collapsible > summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.5rem 0;
+  list-style: none;
+}
+.de-secondary-collapsible > summary::-webkit-details-marker {
+  display: none;
+}

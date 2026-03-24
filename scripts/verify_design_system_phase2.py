@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""
+Phase 2 — Design system + token enforcement: automated gate.
+
+Fails if required CSS is missing, canonical bases omit token + Phase 2 enforcement links,
+or high-regression templates reintroduce inline theme <style> blocks (dashboard header,
+theme toggle, Studio shell_extrastyle).
+
+Run from repo root: python scripts/verify_design_system_phase2.py
+See docs/DESIGN_SYSTEM_PHASE2.md §7.
+"""
+
+from __future__ import annotations
+
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+
+REQUIRED_STATIC = [
+    "static/css/design-tokens.css",
+    "static/css/design-system-phase2-enforcement.css",
+    "static/css/design-system-unified.css",
+    "static/marketing/css/tokens-marketing.css",
+    "static/css/dashboard-header-component.css",
+    "static/css/theme-toggle-component.css",
+    "static/css/studio-mode-rail.css",
+    "static/css/studio-shell-layout.css",
+]
+
+CANONICAL_BASES = [
+    "templates/portal_base.html",
+    "templates/base.html",
+    "templates/marketing/base_marketing.html",
+    "templates/admin/base_site.html",
+    "templates/control_plane_skeleton.html",
+]
+
+FORBIDDEN_INLINE_STYLE_TEMPLATES = [
+    "templates/components/dashboard_header.html",
+    "templates/components/theme_toggle.html",
+]
+
+
+def _read(p: Path) -> str:
+    return p.read_text(encoding="utf-8", errors="replace")
+
+
+def main() -> int:
+    errors: list[str] = []
+
+    for rel in REQUIRED_STATIC:
+        fp = REPO / rel
+        if not fp.is_file():
+            errors.append(f"Missing required file: {rel}")
+
+    for base in CANONICAL_BASES:
+        p = REPO / base
+        if not p.is_file():
+            errors.append(f"Missing canonical base: {base}")
+            continue
+        text = _read(p)
+        if "design-tokens.css" not in text:
+            errors.append(f"{base}: must link design-tokens.css")
+        if "design-system-phase2-enforcement.css" not in text:
+            errors.append(f"{base}: must link design-system-phase2-enforcement.css")
+
+    # No full theme <style> blocks in components we migrated to external CSS
+    for rel in FORBIDDEN_INLINE_STYLE_TEMPLATES:
+        p = REPO / rel
+        if not p.is_file():
+            errors.append(f"Missing template: {rel}")
+            continue
+        text = _read(p)
+        if "<style>" in text.lower():
+            errors.append(
+                f"{rel}: inline <style> not allowed (use static/css/*-component.css)"
+            )
+
+    # Section 10.5 design-system layer (repo script)
+    v10 = REPO / "scripts" / "verify_section10_5_layers.py"
+    if v10.is_file():
+        r = subprocess.run(
+            [sys.executable, str(v10)],
+            cwd=str(REPO),
+            capture_output=True,
+            text=True,
+        )
+        if r.returncode != 0:
+            errors.append(
+                "verify_section10_5_layers.py failed:\n"
+                + (r.stdout or "")
+                + (r.stderr or "")
+            )
+    else:
+        errors.append("Missing scripts/verify_section10_5_layers.py")
+
+    if errors:
+        print("Phase 2 verification FAILED:\n", file=sys.stderr)
+        for e in errors:
+            print(f"  - {e}", file=sys.stderr)
+        return 1
+
+    print("Phase 2 verification: PASS")
+    print("  - Required static CSS present")
+    print("  - Canonical bases load design-tokens + phase2 enforcement")
+    print("  - No inline <style> in dashboard_header / theme_toggle / shell_extrastyle")
+    print("  - verify_section10_5_layers.py PASS")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

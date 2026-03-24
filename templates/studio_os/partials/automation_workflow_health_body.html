@@ -1,0 +1,11 @@
+{% load i18n %}
+<div class="studio-os__card py-3 px-3 h-100">
+  <p class="mb-3 small text-muted">{% trans "Summary of active workflow packs and templates." %}</p>
+  <ul class="list-unstyled mb-3">
+    <li><strong>{% trans "Active workflow packs" %}:</strong> {{ pack_count }}</li>
+    <li><strong>{% trans "Templates (this tenant)" %}:</strong> {{ template_count }}</li>
+  </ul>
+  {% if workflow_center_pane_url %}
+  <p class="mb-0 small"><a href="{{ workflow_center_pane_url }}">{% trans "Open Workflow center in Studio" %}</a> — {% trans "Full lifecycle steps and deep links." %}</p>
+  {% endif %}
+</div>

@@ -6,7 +6,26 @@ from pathlib import Path
 from django.core import serializers
 from django.core.management.base import BaseCommand, CommandError
 
+from apps.brand_experience.models import PlatformGlobalBranding
 from apps.siteconfig.models import SiteSettings, ThemePack
+
+
+def _merge_runtime_payload_into_sitesettings_rows(records: list[dict]) -> None:
+    """Phase B: serializer only emits slim DB columns; merge RuntimeDefaults.payload for UI parity."""
+    try:
+        from apps.platform_runtime.models import RuntimeDefaults
+
+        rt = RuntimeDefaults.get_singleton()
+        pl = dict(rt.payload or {}) if rt and isinstance(rt.payload, dict) else {}
+    except Exception:
+        pl = {}
+    for row in records:
+        if row.get("model") != "siteconfig.sitesettings":
+            continue
+        fields = row.setdefault("fields", {})
+        for key, value in pl.items():
+            if key not in fields:
+                fields[key] = value
 
 
 def _canonicalize_optional_blank_fields(records: list[dict]) -> list[dict]:
@@ -40,16 +59,18 @@ class Command(BaseCommand):
         output_path = Path(options["output"])
         site_settings = list(SiteSettings.objects.order_by("pk"))
         theme_packs = list(ThemePack.objects.order_by("pk"))
+        branding_rows = list(PlatformGlobalBranding.objects.order_by("pk"))
         if not site_settings:
             raise CommandError("No SiteSettings row found; cannot export UI config.")
         if not theme_packs:
             raise CommandError("No ThemePack rows found; cannot export UI config.")
 
-        records = theme_packs + site_settings
+        records = theme_packs + branding_rows + site_settings
         payload = serializers.serialize("json", records, indent=2)
         decoded = json.loads(payload)
         if not isinstance(decoded, list) or not decoded:
             raise CommandError("Serialization produced an empty payload.")
+        _merge_runtime_payload_into_sitesettings_rows(decoded)
         decoded = _canonicalize_optional_blank_fields(decoded)
         payload = json.dumps(decoded, indent=2, ensure_ascii=False)
 
@@ -57,7 +78,8 @@ class Command(BaseCommand):
         output_path.write_text(payload + "\n", encoding="utf-8")
         self.stdout.write(
             self.style.SUCCESS(
-                f"Exported UI config: {len(theme_packs)} ThemePacks + {len(site_settings)} "
+                f"Exported UI config: {len(theme_packs)} ThemePacks + "
+                f"{len(branding_rows)} PlatformGlobalBranding + {len(site_settings)} "
                 f"SiteSettings -> {output_path}"
             )
         )

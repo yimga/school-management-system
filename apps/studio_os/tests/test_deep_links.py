@@ -32,6 +32,8 @@ class StudioDeepLinksTests(TestCase):
         m = studio_legacy_urls_map()
         self.assertIn("customizer", m)
         self.assertTrue(m["customizer"].startswith("/"))
+        self.assertIn("report_library", m)
+        self.assertIn("pane=reports", m["report_library"])
 
     @override_settings(STUDIO_APPROVAL_HUB_TENANT_BASE_URL="https://tenant.test")
     @patch("apps.studio_os.deep_links.reverse", side_effect=NoReverseMatch())

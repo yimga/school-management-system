@@ -4,7 +4,7 @@
 {% block title %}{% trans "Dashboard visual packs" %} · {% trans "Experience" %}{% endblock %}
 
 {% block content %}
-<div class="container py-3" data-page-archetype="operational-workbench">
+<div class="container py-3" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="studio-os__card py-3 px-3">
     <p class="mb-2">{% trans "Dashboard visual packs define widgets, charts, and layout presets for role-based dashboards (parent, teacher, staff). Configure which widgets appear and how they are arranged via the Backend dashboard and Customizer so each role sees a consistent, branded experience." %}</p>

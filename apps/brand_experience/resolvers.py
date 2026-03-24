@@ -2,8 +2,9 @@
 GAP.12 / PATH_TO_100 IV.2–IV.3: Unified theme/layout token resolution.
 
 Single entry point for portal, dashboard, and admin to read theme/experience tokens
-so they share one design system. Resolvers here delegate to SiteSettings.get_theme_experience_settings()
-which uses owned_payload(owner="brand_experience"); data ownership remains in brand_experience models.
+so they share one design system. Uses ``get_effective_site_settings``, which merges
+``RuntimeDefaults`` and **``PlatformGlobalBranding``** (singleton) over the legacy
+``SiteSettings`` row for authoritative platform branding (Phase B Batch 1).
 """
 
 from __future__ import annotations

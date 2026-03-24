@@ -129,7 +129,7 @@ Full task list and notes: **`docs/REMAINING_WORK.md`**. Phase 10 implementation 
 - [x] Added LOGOUT to SecurityAuditLog.EventType and logout_view now logs LOGOUT event before session flush
 - [x] SECURITY.md updated with session timeout (SESSION_INACTIVITY_TIMEOUT_MINUTES), auth rate limiting, and security audit references
 
-### System Configuration (9.5 push)
+### Configuration Control Center (9.5 push)
 - [x] Console hub: per-domain Compare (diff), Audit links where backend exists; operator-safe subtext "Outcomes not jargon. Compare before apply; view change history; revert if needed."
 
 ### Phase 2
@@ -225,7 +225,7 @@ Verification performed against repo: all phases have concrete code or doc artifa
 ### North Star execution (this run)
 - [x] Workstream 1: Critical hardening (secret/CSRF/raw SQL/broad except gates; two exceptions narrowed in accounts/views; showmigrations in pre_deploy_gate).
 - [x] Workstream 1.5: Auth/Security (LOGOUT audit, SECURITY.md session/rate-limit/audit).
-- [x] Workstream 2: System Configuration consoles (Search/Preview links per domain in console_domains_hub).
+- [x] Workstream 2: Configuration Control Center consoles (Search/Preview links per domain in console_domains_hub).
 - [x] Workstream 3: Runtime as law (RESOLUTION_CHAIN.md updated with runtime-as-law statement).
 - [x] Workstream 4: Package engine (reconciliation docstring in engine.py).
 - [x] Workstream 5: Setup Studio (execute_launch in setup_studio.services).
@@ -246,14 +246,14 @@ Verification performed against repo: all phases have concrete code or doc artifa
 - `python scripts/lint_csrf_exempt_usage.py` — classified and unchanged
 - `python scripts/lint_broad_except.py --allowlist ... --strict` — baseline respected
 
-**9.5/10 eligibility:** **§12 MET** per **RUNMYCAMPUS §0** / **§12** / **§11.4**. Phases 0–8 deliverables are complete (security hardening, runtime-as-law doc, System Configuration consoles, package engine and Package rollout UI, Setup Studio execute_launch and 6-role preview, marketing proof_hero_image_key and why_switch_bullets, siteconfig migration plan and deprecation). Dry-run reference: [docs/PLATFORM_9.5_SCORE_DRY_RUN.md](docs/PLATFORM_9.5_SCORE_DRY_RUN.md). **Path-to-10 / residual:** RUNMYCAMPUS §12 list + BACKLOG_AND_DEFERRED_CLOSURE.md.
+**9.5/10 eligibility:** **§12 MET** per **RUNMYCAMPUS §0** / **§12** / **§11.4**. Phases 0–8 deliverables are complete (security hardening, runtime-as-law doc, Configuration Control Center consoles, package engine and Package rollout UI, Setup Studio execute_launch and 6-role preview, marketing proof_hero_image_key and why_switch_bullets, siteconfig migration plan and deprecation). Dry-run reference: [docs/PLATFORM_9.5_SCORE_DRY_RUN.md](docs/PLATFORM_9.5_SCORE_DRY_RUN.md). **Path-to-10 / residual:** RUNMYCAMPUS §12 list + BACKLOG_AND_DEFERRED_CLOSURE.md.
 
 **Non-negotiable 9.5 references (advanced mode):**
 - **Final Unaddressed Gaps:** [docs/RUNMYCAMPUS_FINAL_UNADDRESSED_GAPS_CHECKLIST.md](docs/RUNMYCAMPUS_FINAL_UNADDRESSED_GAPS_CHECKLIST.md) — 15 gaps (backup/restore, tenant export, a11y, observability, billing/entitlement, feature-flag governance, retention, impersonation, search, deprecation, anti-corruption, marketing assets, contract testing, data quality, tenant maturity). Each row must reach Done or N/A before 9.5 sign-off.
-- **Toolsets execution ledger:** [docs/PLATFORM_9.5_TOOLSETS_EXECUTION.md](docs/PLATFORM_9.5_TOOLSETS_EXECUTION.md) — Theme & Experience, Feature Control, Report Library, Document Library, Design Studio, **Live Previews (platform-wide:** [docs/PLATFORM_LIVE_PREVIEW.md](docs/PLATFORM_LIVE_PREVIEW.md) + reusable button), Workflows, AI/API, System Config. North-star bar and next advanced steps per toolset.
+- **Toolsets execution ledger:** [docs/PLATFORM_9.5_TOOLSETS_EXECUTION.md](docs/PLATFORM_9.5_TOOLSETS_EXECUTION.md) — Theme & Experience, Feature Control, Report Library, Document Library, Design Studio, **Live Previews (platform-wide:** [docs/PLATFORM_LIVE_PREVIEW.md](docs/PLATFORM_LIVE_PREVIEW.md) + reusable button), Workflows, AI/API, Configuration Control Center. North-star bar and next advanced steps per toolset.
 - **In-code 9.5 anchors:** Feature-flag governance (owner/scope/expiry) docstring in `apps/siteconfig/views_feature_control.py`; theme/experience runtime note in `apps/brand_experience/__init__.py`. Both reference the two checklists above.
 
-**Quick 9.5 advanced verification:** Run `python scripts/lint_tenant_settings.py --check-get-solo-only` and `--report-allowlisted`; open System Configuration hub (Compare/Audit links); Setup Studio 6 previews + Go live; tenant app catalog (First-party + rollback copy); command palette Ctrl+K primary; control plane Package rollout (super:package_rollout).
+**Quick 9.5 advanced verification:** Run `python scripts/lint_tenant_settings.py --check-get-solo-only` and `--report-allowlisted`; open Configuration Control Center hub (Compare/Audit links); Setup Studio 6 previews + Go live; tenant app catalog (First-party + rollback copy); command palette Ctrl+K primary; control plane Package rollout (super:package_rollout).
 
 **Validation (phases 0–8):** Every checklist item in this file for phases 0–8 is done (no empty [ ]). Every implemented item meets the **advanced** standard (edge cases, validation, observability, docs)—not basic. Final Gaps 15/15 Done for the phased scope. **§12 engineering gate MET** (SOT §11.4); completion authority is SOT **§0** + §12 + docs_truth_ledger.md. Remaining work is tracked in BACKLOG_AND_DEFERRED_CLOSURE.md and the single source of truth.
 

@@ -264,15 +264,17 @@ def import_hub(request):
 
 
 @permission_required("settings.manage")
-@user_passes_test(_is_admin_user)
 def workflow_center(request):
     """
     Operator-friendly entry point to the end-to-end school workflow.
     Served under Studio OS (/studio/hubs/workflow/).
     """
-    early = _manager_host_without_school_workflow_redirect(request)
-    if early is not None:
-        return early
+    # Embed loads inside Automation Studio iframe; allow manager host without a
+    # bound school so operators see the workflow grid (tenant steps may be empty).
+    if (request.GET.get("embed") or "").strip() != "1":
+        early = _manager_host_without_school_workflow_redirect(request)
+        if early is not None:
+            return early
     site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()
     progress = _workflow_progress(year)
@@ -496,21 +498,28 @@ def workflow_center(request):
         s["step_index"] = i
         s["total_steps"] = total_steps
 
-    return render(
-        request,
-        "accounts/workflow_center.html",
-        {
-            "site": site,
-            "active_year": year,
-            "active_term": term,
-            "steps": steps,
-            "workflow_progress": progress,
-            "page_title": "Workflow Center",
-            "page_subtitle": "Follow the year lifecycle: setup → onboarding → marks → reports → documents. Designed for non-technical school operators.",
-            "action_url": reverse("accounts:backend_dashboard"),
-            "action_text": "Back to Backend",
-        },
-    )
+    ctx = {
+        "site": site,
+        "active_year": year,
+        "active_term": term,
+        "steps": steps,
+        "workflow_progress": progress,
+        "page_title": _("Workflow Center"),
+        "page_subtitle": _(
+            "Follow the year lifecycle: setup → onboarding → marks → reports → documents. "
+            "Designed for non-technical school operators."
+        ),
+        "action_url": reverse("accounts:backend_dashboard"),
+        "action_text": _("Back to Backend"),
+    }
+    if (request.GET.get("embed") or "").strip() == "1":
+        try:
+            ctx["action_url"] = reverse("studio_os:automation")
+            ctx["action_text"] = _("Back to Automation Studio")
+        except NoReverseMatch:
+            pass
+        return render(request, "accounts/workflow_center_embed.html", ctx)
+    return render(request, "accounts/workflow_center.html", ctx)
 
 
 @permission_required("settings.manage")

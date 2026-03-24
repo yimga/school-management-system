@@ -1,7 +1,7 @@
 {% extends "admin/app_index.html" %}
 {% load i18n %}
 
-{# Platform backoffice: System Configuration app index — point to /super/ before per-model links. #}
+{# Platform backoffice: Configuration Control Center (siteconfig) app index — point to /super/ before per-model links. #}
 {% block content %}
 {% if is_manager_host %}
 <div class="mb-4 mx-4 p-4 rounded-lg border text-sm max-w-5xl"
@@ -11,7 +11,7 @@
   <p class="text-base-600 dark:text-base-300 mb-3">
     {% blocktrans trimmed %}
       <strong>SiteSettings</strong> is not on platform admin (tenant schools use tenant <code>/admin/</code>).
-      Other models below are for deep maintenance; primary operator flows live under <code>/super/</code> and System config.
+      Other models below are for deep maintenance; primary operator flows live under <code>/super/</code> and the Configuration Control Center.
     {% endblocktrans %}
   </p>
   <div class="flex flex-wrap gap-2">
@@ -19,7 +19,7 @@
       {% trans "Platform operator hub" %}
     </a>
     <a href="{% url 'siteconfig:console_domains_hub' %}" class="px-3 py-1.5 rounded-md border border-base-300 dark:border-base-600 text-xs font-medium hover:bg-base-100 dark:hover:bg-base-800">
-      {% trans "System config" %}
+      {% trans "Config center" %}
     </a>
   </div>
 </div>

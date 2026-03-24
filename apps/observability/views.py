@@ -505,7 +505,9 @@ def api_health(request):
 def api_admin_weather(request):
     """Server-side weather snapshot for admin dashboard widgets (tenant-scoped cache)."""
     payload = _resolve_weather_payload(
-        _build_admin_weather_config(), scope="admin", request=request
+        _build_admin_weather_config(request=request),
+        scope="admin",
+        request=request,
     )
     return JsonResponse(payload)
 
@@ -514,7 +516,7 @@ def api_admin_weather(request):
 def api_weather_context(request):
     """Public-safe weather snapshot for shared header/backend widgets. Never raises; returns disabled payload on error."""
     try:
-        config = _build_admin_weather_config()
+        config = _build_admin_weather_config(request=request)
         payload = _resolve_weather_payload(config, scope="context", request=request)
         return JsonResponse(payload)
     except (

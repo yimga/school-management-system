@@ -5,11 +5,12 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/hub-premium.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 hub-page professional-page" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4 hub-page professional-page" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
   <div class="hub-cards">

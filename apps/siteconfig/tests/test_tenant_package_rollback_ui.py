@@ -131,3 +131,5 @@ class TenantPackageRollbackUiTests(TestCase):
         resp = tenant_installed_packages_rollback(self._req("GET", "/"))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Dependencies (snapshot)")
+        self.assertContains(resp, "Staged rollout")
+        self.assertContains(resp, "Stage")

@@ -17,6 +17,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
+from apps.marketplace.ecosystem_links import build_phase9_ecosystem_links
 
 
 def _is_admin_user(user):
@@ -138,13 +139,33 @@ def migration_wizard(request):
                     f"Could not read the CSV file. Use UTF-8 encoding and check the file is not corrupted. Details: {e}",
                 )
                 return redirect("accounts:migration_wizard")
+            from apps.accounts.migration_services import detect_source_system_from_headers
+
+            detection = detect_source_system_from_headers(headers)
+            chosen_source = wizard_data.get("source_system", "other")
+            if (
+                detection.get("suggested_system")
+                and detection["suggested_system"] != "other"
+                and detection.get("score", 0) >= 0.45
+                and chosen_source == "other"
+            ):
+                messages.info(
+                    request,
+                    (
+                        "Detected source system from column headers: "
+                        f"{detection['suggested_system'].replace('_', ' ').title()} "
+                        f"(confidence {detection.get('score', 0):.0%}). "
+                        "You can change this in step 1 if it is wrong."
+                    ),
+                )
             request.session[session_key] = {
-                "source_system": wizard_data.get("source_system", "other"),
+                "source_system": chosen_source,
                 "migration_type": migration_type,
                 "profile_slug": profile_slug,
                 "headers": headers,
                 "rows": rows,
                 "row_count": len(rows),
+                "header_source_detection": detection,
             }
             return redirect("accounts:migration_wizard")
 
@@ -429,6 +450,7 @@ def migration_wizard(request):
             ),
             "action_url": reverse("studio_os:import_hub"),
             "action_text": _("Back to Import Hub"),
+            "phase9_links": build_phase9_ecosystem_links(),
         },
     )
 

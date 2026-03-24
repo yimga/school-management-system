@@ -2,6 +2,8 @@
 
 **Purpose:** Single reference for SiteSettings field ownership and target bounded contexts. Used by §2.1 (move ownership out of siteconfig), `site_settings_usage_inventory.md`, and CI (`lint_tenant_settings`, `lint_siteconfig_legacy_imports`).
 
+**Phase 5 / §2.1:** Repository gate **MET** — classification lives in code; tenant reads use runtime resolvers only; aggregated verification: `python scripts/verify_phase_5_siteconfig.py` (also in `pre_deploy_gate.sh`).
+
 **Source of truth (code):** `apps/siteconfig/domain_ownership.py` — `classify_site_settings_field()`, `EXACT_FIELD_OWNERS`, `PREFIX_FIELD_OWNERS`, `OWNERSHIP_DOMAINS`.
 
 ---
@@ -66,7 +68,7 @@ Legacy paths (deprecated accessors, re-exports) are **deleted per-migration** af
 - **siteconfig materially decomposed:** (a) Every SiteSettings field classified to an ownership domain (domain_ownership.py + this doc). (b) Bounded-context surfaces exist (platform_runtime, brand_experience, policies, etc.). (c) No tenant-facing code uses `SiteSettings.get_solo()` or `.load()` — enforced by `lint_tenant_settings --check-get-solo-only`. (d) `get_effective_site_settings(request=..., school=...)` is the only tenant-facing API for site settings; it is runtime-first (RuntimeDefaults then SiteSettings). (e) `lint_siteconfig_legacy_imports` blocks new direct imports from legacy siteconfig domain wrappers.
 - **SiteSettings not tenant-behavior truth:** Tenant-behavior *truth* is the output of `get_effective_site_settings` (runtime-first). SiteSettings is the legacy data source used by the resolver when RuntimeDefaults is not populated; it is not the authority for tenant behavior. Verification: same lints + runtime_precedence.md + test_runtime_contract.
 
-**Verification:** Run `lint_tenant_settings --check-get-solo-only` and `lint_siteconfig_legacy_imports`; both must pass. See BACKLOG_AND_DEFERRED_CLOSURE §6.3 and RUNMYCAMPUS §12.1.
+**Verification:** Run `python scripts/verify_phase_5_siteconfig.py`, `lint_tenant_settings --check-get-solo-only`, and `lint_siteconfig_legacy_imports`; all must pass. See BACKLOG_AND_DEFERRED_CLOSURE §6.3 and RUNMYCAMPUS §12.1.
 
 ---
 

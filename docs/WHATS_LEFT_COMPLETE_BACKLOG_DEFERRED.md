@@ -44,9 +44,26 @@ From **`docs/PHASE_10_BACKLOG.md`**. Not required for 9.5/10; tracked for **path
 | **Toolsets** | 10.1 ExperiencePack | Done | ExperiencePack packageable; Studio Experience theme_colors + publish/rollback; compare/rollback in studio_os. |
 | **Toolsets** | 10.2 Feature Control registry | Done | Inspector shows FeatureToggleState (key, is_enabled, source, expires_at); get_feature_toggle_inspection(school). |
 | **Toolsets** | 10.3 ReportPack | Done | ReportPack in reports; Studio Output Reports/Documents tabs; preview with sample data; dependency mapping. |
-| **Toolsets** | 10.4–10.9 Document Library, Design Studio, Live Previews, Workflows, AI & API, System Config | Done | 10.4 DocumentPack lifecycle/retention; 10.5–10.9 per PHASE_10_BACKLOG (layout, preview, simulation, AI audit, get_solo CI). |
+| **Toolsets** | 10.4–10.9 Document Library, Design Studio, Live Previews, Workflows, AI & API, Configuration Control Center | Done | 10.4 DocumentPack lifecycle/retention; 10.5–10.9 per PHASE_10_BACKLOG (layout, preview, simulation, AI audit, get_solo CI). |
 
 **Summary:** Phase 10 path-to-10 aligned with PHASE_10_BACKLOG. Event 4.1, Marketing 7.1, Developer 8.1, Toolsets 10.1–10.9 at done/target level.
+
+---
+
+## 2.1 Product backlog — durable **staged drafts** + **fleet workflow** orchestration
+
+**What it is (beyond what is already shipped):** A **cross-cutting data + state machine** for fleet changes: persisted **drafts/proposals**, optional **approval**, **scheduled apply**, **target scope** (school list / segment), and a **single auditable trail** that *coordinates* existing levers (staged activation, package rollout, feature control, Studio publish/rollback) instead of only linking to them. This is **not** the same as the Phase 3 **operator control model** (`build_operator_control_model_for_request`) — that path is **navigation + UX**; this backlog item is **orchestration + persistence**.
+
+| Question | Answer |
+|----------|--------|
+| **Do we need it at all?** | **Not for current Phase 3 / 9.5 closure.** Many schools can run governed changes using **today’s surfaces** (staged activation, package rollout, Control rollback, diff/impact, feature audit, Studio publish). |
+| **Why we might *not* do it** | **Cost and overlap risk:** large schema, UI surface area, idempotency, conflict rules, and tests. Without a **named pain** (see triggers below), it duplicates concepts the product already exposes and becomes a second “engine” to maintain. |
+| **Why we *should* do it (triggers)** | **(1) Compliance / enterprise** — customers require **immutable fleet change records** and **approval chains** (SOC/ISO sales motion, district RFP). **(2) Scale / collisions** — many operators changing the same fleet scope and **overwrites or silent drift** in production. **(3) Revenue** — a signed deal is **blocked** on “staged fleet rollout with sign-off,” not on clearer links. |
+| **If we build it** | **Thin vertical slice first:** one change type (e.g. one class of flag/pack), states `draft → pending_approval → scheduled → applying → succeeded|failed`, who/when/scope, **reuse existing apply paths** underneath, tests on transitions — then expand. |
+
+**Status:** **Deferred / trigger-based** — open as **product option**, not an open Phase 3 ZIP row. Revisit when a trigger is true; otherwise treat as **not needed**.
+
+**Related (already in repo):** `studio_os:automation_staged_activation`, `super:package_rollout`, `studio_os:rollback`, `studio_os:control_impact`, `siteconfig:feature_control_audit`, `services.studio_publish` / `studio_publish_api` — see [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) ZIP Phase 3.
 
 ---
 
@@ -84,6 +101,7 @@ Items previously deferred are now **implemented** or **closed** as below.
 | **Full inventory (everything left: backlog, deferred, optionals, path-to-11)** | **`docs/WHAT_IS_LEFT_MASTER.md`** — single non-negotiable scope list |
 | **Complete Studio OS** | §1 above + `docs/Studio_OS_Remaining_Work_Non_Negotiable.md` |
 | **Execute Path-to-10** | §2 above + `docs/PHASE_10_BACKLOG.md` |
+| **Staged fleet workflow (optional)** | **§2.1** — durable drafts + orchestration; defer unless compliance/scale/revenue trigger |
 | **Review deferred/optional** | §3 above + `docs/architecture/ROADMAP_AND_OPTIONAL_CLOSURE.md` |
 | **Verify 9.5 and gates** | `docs/MASTER_PLATFORM_CHECKLIST.md` |
 | **ASAP / quick wins** | `docs/PLAN_REMAINING_AND_ASAP.md` (governor wiring, empty states, obsolete command already done) |
@@ -104,6 +122,7 @@ Items previously deferred are now **implemented** or **closed** as below.
 
 - **Completed (no open 9.5 promise):** Studio OS (§1) — shared preview, publish/rollback, in-mode rails, Control in-page (no iframe), Experience left/right rail, Launch payload, Recommendations. Path-to-10 (§2) aligned with PHASE_10_BACKLOG; toolsets 10.1–10.9 at done/target level.
 - **Backlog (path-to-10):** Phase 10 backlog (§2) — all items Done or at target; see PHASE_10_BACKLOG.md.
+- **Backlog (optional product):** §2.1 — staged drafts + fleet workflow orchestration; **not required** unless §2.1 triggers apply.
 - **Save for later / deferred:** §3 only; no open deferred without closure. Doc-audit §2 items: Closed (Phase 10); see DOCS_COMPLETION_AUDIT.md.
 
 **Final audit (completed):** No item remains deferred, backlog, or save-for-later without being either completed or explicitly closed with reference to WHATS_LEFT / PHASE_10_BACKLOG.

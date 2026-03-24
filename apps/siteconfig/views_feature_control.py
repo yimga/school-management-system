@@ -25,7 +25,10 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 
 from apps.accounts.decorators import permission_required
-from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.helpers import (
+    get_effective_site_settings,
+    get_platform_site_settings_record,
+)
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.models import (
     SiteSettings,
@@ -39,6 +42,20 @@ from apps.siteconfig.models_dashboard import FeatureControlAudit
 logger = logging.getLogger("siteconfig.feature_control")
 FEATURE_CONTROL_LAST_SAVED_KEY = "feature_control_last_saved"
 REVERT_SESSION_KEY = "feature_control_previous_state"
+
+
+def _resolve_feature_control_site(request):
+    """
+    Writes must target the persisted platform singleton (pk set), not a shallow
+    effective-settings copy without pk. Keeps Feature Control decoupled from tenant overlays.
+    """
+    site = get_effective_site_settings(request=request)
+    if site is not None and getattr(site, "pk", None):
+        return site
+    persisted = get_platform_site_settings_record(create=True)
+    if persisted is not None:
+        return persisted
+    return SiteSettings()
 
 # (key, label, critical, description, when_disabled, depends_on)
 # depends_on: list of keys that must be ON for this to work (e.g. allow_finance_access needs parent_portal)
@@ -1161,7 +1178,7 @@ def _log_audit(request, action: str, changes: dict) -> None:
 @require_http_methods(["GET"])
 def feature_control_export(request):
     """Export current feature configuration as JSON."""
-    site = get_effective_site_settings(request=request)
+    site = _resolve_feature_control_site(request)
     current = _get_site_features(site)
     weather = _get_weather_selector_state(site)
     defaults = default_backend_feature_flags()
@@ -1405,9 +1422,7 @@ def feature_control_panel(request):
 
 def get_feature_control_panel_context(request):
     """Build context for feature control panel (GET). Used by panel view and by Studio OS in-shell."""
-    site = get_effective_site_settings(request=request)
-    if site is None:
-        site = SiteSettings()
+    site = _resolve_feature_control_site(request)
     current = _get_site_features(site)
     cat_labels = {
         "academic": ("Academic", "bi-journal-text"),
@@ -1542,7 +1557,7 @@ def feature_control_weather_cities(request):
 @require_http_methods(["GET"])
 def feature_control_api(request):
     """REST API: GET returns current feature state as JSON."""
-    site = get_effective_site_settings(request=request)
+    site = _resolve_feature_control_site(request)
     current = _get_site_features(site)
     weather_state = _get_weather_selector_state(site)
     defaults = default_backend_feature_flags()

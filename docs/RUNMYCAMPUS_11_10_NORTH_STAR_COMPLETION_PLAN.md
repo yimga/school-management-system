@@ -52,7 +52,7 @@ This plan is closed. Implementation and verification evidence is tracked in code
 - [x] Live Previews
 - [x] Workflows
 - [x] AI and API usage
-- [x] System Configuration / SiteSettings
+- [x] Configuration Control Center / SiteSettings
 - [x] Studio OS + toolset unification (single Studio shell + redirects)
 
 ### Phase 5. Productization and market-gap closure

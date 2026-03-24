@@ -173,8 +173,8 @@ def _manager_search_static_catalog():
     return [
         {
             "title": "Open report library",
-            "description": "Reports and documents; publish and rollback.",
-            "url": reverse("studio_os:output"),
+            "description": "Report packs, letters, and report card builder hub.",
+            "url": f"{reverse('studio_os:output')}?pane=reports",
             "type": "report",
             "meta": ["Studio Output", "Report library"],
         },
@@ -194,8 +194,8 @@ def _manager_search_static_catalog():
         },
         {
             "title": "Studio Output",
-            "description": "Report library, document library, and outputs.",
-            "url": reverse("studio_os:output"),
+            "description": "Report library hub, document library, IDs, branding, policy.",
+            "url": f"{reverse('studio_os:output')}?pane=reports",
             "type": "report",
             "meta": ["Studio", "Reports"],
         },

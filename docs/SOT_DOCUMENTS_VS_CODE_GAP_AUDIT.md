@@ -57,7 +57,7 @@
 
 | Document (section) | What the doc says | Why "not coded" / gap |
 |--------------------|-------------------|------------------------|
-| **PATH_TO_100** IV.2–IV.3 (§5.1) | **Move theme/experience ownership into brand_experience**; **unify** theme/layout/portal/dashboard visual systems. | SOT marks behavioral ownership and bounded-context surfaces as DONE; "real" model ownership in brand_experience and single token/layout system may still be partial (not fully verified in this audit). |
+| **PATH_TO_100** IV.2–IV.3 (§5.1) | **Move theme/experience ownership into brand_experience**; **unify** theme/layout/portal/dashboard visual systems. | **2026-03-24:** **`PlatformGlobalBranding`** + **`PlatformPhaseBDomainSnapshot`** (batches 4–13, migration `0007_platform_phase_b_domain_snapshots`): platform reads merge runtime payload, per-domain snapshots (policies/reporting/etc.), then branding singleton. Policy-derived platform fields consumed via `get_effective_site_settings` in `get_effective_policy`; snapshot sync calls `invalidate_all_tenant_policy_caches` when TTL caching is on. Full visual unification across every legacy page remains incremental product work. |
 | **PATH_TO_100** IV.4–IV.5 (§5.2) | **Feature toggle → capability registry**; **owner/expiry/source/scope** on flags; expose in runtime inspector. | feature_control_ledger and runtime inspector exist; full migration of long-lived toggles to registry and full metadata on every flag may be partial. |
 
 ---

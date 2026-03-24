@@ -19,7 +19,7 @@ This checklist is derived from the RunMyCampus Platform Hardening, Simplificatio
 - [x] A3: Introduce exception classes (RuntimeResolutionError, BlueprintCompatibilityError, PolicyApplicationError, MarketplaceInstallError, MigrationValidationError, BrandImportError, WorkflowSimulationError, DashboardAssignmentError); replace broad except Exception in priority paths
 - [x] A4: Add architecture CI guardrails (fail on singleton in tenant paths, mega-files, unapproved broad except; scripts + pre_deploy_gate)
 
-## 3. Workstream B — System Configuration decomposition
+## 3. Workstream B — Configuration Control Center decomposition
 - [x] B1: Split siteconfig into seven domains (brand_experience, runtime_blueprints, policies_rules, plans_entitlements, global_registries, integrations_marketplace, metadata_catalog)
 - [x] B2: Shrink SiteSettings to platform defaults only (docs/execution/SITESETTINGS_PLATFORM_DEFAULTS_CONTRACT.md, apps/siteconfig/platform_defaults.py)
 - [x] B3: Console UX per domain (siteconfig/console/, views_console_domains.py, console_domains_hub.html)

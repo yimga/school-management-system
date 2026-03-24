@@ -2,7 +2,7 @@
 
 This checklist keeps all the Phase 6 goals aligned with code in `phase6-customization_UI`. Tick them off once the corresponding component is wired up, then push the branch and open the PR.
 
-## I. Core System Configuration
+## I. Core Configuration Control Center
 - [x] **Role-Based access & portals**: decorators in `apps/accounts/decorators.py` gate parent/teacher portal views; `SiteSettings` toggles live portal permissions.
 - [x] **Security & data privacy**: `django` defaults plus middleware (`apps/siteconfig/middleware.py`) enforce login/maintenance.
 - [x] **Branding & theming**: `SiteSettings`, `ThemePack`, and `templates/portal_base.html` render logos, palette, font, and custom CSS.

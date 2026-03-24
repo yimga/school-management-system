@@ -79,7 +79,7 @@ class Command(BaseCommand):
             },
             "system-admin": {
                 "name": "System Administration",
-                "description": "System configuration and administration",
+                "description": "Configuration Control Center and platform administration",
                 "icon": "fa-cogs",
                 "ordering": 8,
             },
@@ -278,7 +278,7 @@ class Command(BaseCommand):
 <p><strong>Access Level:</strong> Full system access</p>
 <p><strong>Responsibilities:</strong></p>
 <ul>
-<li>System configuration and setup</li>
+<li>Configuration Control Center and setup</li>
 <li>User account management</li>
 <li>System maintenance and backups</li>
 <li>Generate system-wide reports</li>

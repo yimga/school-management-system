@@ -173,6 +173,30 @@ PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
 )
 
 
+def is_runtime_payload_shadow_key(field_name: str) -> bool:
+    """
+    True if `field_name` is a legacy SiteSettings virtual key (stored in RuntimeDefaults.payload),
+    excluding keys deleted from the ownership map.
+    """
+    normalized = str(field_name or "").strip()
+    if not normalized or normalized.startswith("_"):
+        return False
+    if normalized in EXACT_FIELD_OWNERS:
+        return EXACT_FIELD_OWNERS[normalized] != "delete"
+    for prefix, _owner in PREFIX_FIELD_OWNERS:
+        if normalized.startswith(prefix):
+            return True
+    if normalized.endswith("_template"):
+        return True
+    if normalized.endswith("_policy"):
+        return True
+    if normalized.endswith("_pack"):
+        return True
+    if normalized.endswith("_registry"):
+        return True
+    return False
+
+
 def classify_site_settings_field(field_name: str) -> str:
     normalized = str(field_name or "").strip()
     if not normalized:

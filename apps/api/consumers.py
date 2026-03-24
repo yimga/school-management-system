@@ -190,7 +190,13 @@ class AIChatConsumer(AsyncWebsocketConsumer):
             )
             return text, meta
 
-        text, meta = await sync_to_async(_gateway_infer)()
+        try:
+            text, meta = await sync_to_async(_gateway_infer)()
+        except (TypeError, ValueError, RuntimeError, OSError):
+            await self.send(
+                text_data=json.dumps({"reply": "", "error": "unavailable"})
+            )
+            return
         if text is None:
             await self.send(
                 text_data=json.dumps(

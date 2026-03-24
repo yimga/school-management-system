@@ -19,6 +19,7 @@
     <p class="text-white-50 small mb-0">{% trans "Starter and region packs: installable via Create School or Setup Studio. One record per entity (Veracross-style)." %}</p>
   </header>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
+  {% include "schools/partials/beachhead_operator_checklist.html" %}
   <div class="alert alert-secondary mb-4" role="region" aria-label="{% trans 'One record' %}">
     <h6 class="alert-heading mb-1">{% trans "One record per entity (Veracross-style)" %}</h6>
     <p class="small mb-0">{% trans "One system of record for each student, staff, and guardian; reporting and queries use the same record. No duplicate or split records across modules." %}</p>
@@ -67,6 +68,32 @@
     </div>
   </div>
   {% endif %}
+  {% if beachhead_blueprint_packs and blueprints_catalog_url %}
+  <div class="card border-secondary mt-3" role="region" aria-label="{% trans 'Beachhead marketplace blueprints' %}">
+    <div class="card-body">
+      <h6 class="card-title">{% trans "Phase 3 beachhead — installable blueprint packs" %}</h6>
+      <p class="small text-white-50 mb-2">{% trans "Seed targets (manage.py seed_blueprint_policy_packs). Install from Blueprints catalog on manager host." %}</p>
+      <ul class="list-unstyled small mb-2">
+        {% for bp in beachhead_blueprint_packs %}
+        <li class="mb-1"><code class="text-info">{{ bp.slug }}</code> — {{ bp.label }}</li>
+        {% endfor %}
+      </ul>
+      <a href="{{ blueprints_catalog_url }}" class="btn btn-outline-light btn-sm">{% trans "Blueprints catalog" %}</a>
+    </div>
+  </div>
+  {% endif %}
+  <div class="card border-secondary mt-3" role="region" aria-label="{% trans 'Related operator surfaces' %}">
+    <div class="card-body">
+      <h6 class="card-title">{% trans "Close the loop (wedges 1–10)" %}</h6>
+      <p class="small text-white-50 mb-2">{% trans "Trust, migration, LMS spine, and learning catalog — same shell, no dead ends." %}</p>
+      <div class="d-flex flex-wrap gap-2">
+        {% if one_sis_url %}<a href="{{ one_sis_url }}" class="btn btn-outline-light btn-sm">{% trans "One SIS, any LMS" %}</a>{% endif %}
+        {% if migration_cloud_url %}<a href="{{ migration_cloud_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Migration cloud" %}</a>{% endif %}
+        {% if trust_center_url %}<a href="{{ trust_center_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Trust center" %}</a>{% endif %}
+        {% if learning_delivery_url %}<a href="{{ learning_delivery_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Learning delivery (23–30)" %}</a>{% endif %}
+      </div>
+    </div>
+  </div>
   {% if uk_statutory_name %}
   <div class="card border-secondary mt-3">
     <div class="card-body">

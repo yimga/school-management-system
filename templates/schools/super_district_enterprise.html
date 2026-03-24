@@ -1,0 +1,95 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "District & enterprise" %} — Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "District & enterprise" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3 content-max-960">
+  <header class="mb-4 pb-3 border-bottom border-secondary">
+    <h1 class="h4 mb-1 fw-bold text-white">{% trans "District & enterprise (wedge 4)" %}</h1>
+    <p class="text-white-50 small mb-0">{% trans "Operator surface: multi-school governance, interop, billing, and analytics — decision links, not a toggle wall." %}</p>
+  </header>
+  {% include "schools/partials/wedge_super_premium_proof.html" %}
+  {% include "schools/partials/beachhead_operator_checklist.html" %}
+  {% if platform_rollups and not platform_rollups.error %}
+  <section class="mb-4 pt-2 border-top border-secondary" aria-label="{% trans 'Platform rollups (district / EMIS intelligence)' %}">
+    <h2 class="h6 text-white mb-2">{% trans "Live platform rollups" %}</h2>
+    <p class="small text-white-50 mb-2">{% trans "Cross-tenant aggregates for operators (no student-level rows). Pairs with tenant statutory JSON and government aggregate API." %}</p>
+    <div class="table-responsive">
+      <table class="table table-dark table-sm w-auto">
+        <tbody class="small">
+          <tr><th scope="row" class="text-white-50">{% trans "Active schools" %}</th><td>{{ platform_rollups.active_schools }}</td></tr>
+          <tr><th scope="row" class="text-white-50">{% trans "Students" %}</th><td>{{ platform_rollups.active_students }}</td></tr>
+          <tr><th scope="row" class="text-white-50">{% trans "Teachers" %}</th><td>{{ platform_rollups.active_teachers }}</td></tr>
+          <tr><th scope="row" class="text-white-50">{% trans "Guardian links" %}</th><td>{{ platform_rollups.guardian_links }}</td></tr>
+          <tr><th scope="row" class="text-white-50">{% trans "Distinct guardian users" %}</th><td>{{ platform_rollups.distinct_guardian_users }}</td></tr>
+          <tr><th scope="row" class="text-white-50">{% trans "Schools with parent org" %}</th><td>{{ platform_rollups.schools_with_parent }}</td></tr>
+          <tr><th scope="row" class="text-white-50">{% trans "Federation health rows" %}</th><td>{{ platform_rollups.federation_integrations_tracked }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    {% if government_aggregates_path %}<p class="small mb-0 text-white-50">{% trans "Government aggregates API (school or staff host)" %}: <code class="text-info">{{ government_aggregates_path }}</code></p>{% endif %}
+  </section>
+  {% endif %}
+  <section class="mb-4" aria-label="{% trans 'Primary operator paths' %}">
+    <h2 class="h6 text-white mb-3">{% trans "Primary paths" %}</h2>
+    <div class="d-flex flex-wrap gap-2">
+      {% if schools_list_url %}<a href="{{ schools_list_url }}" class="btn btn-outline-light btn-sm">{% trans "Schools" %}</a>{% endif %}
+      {% if group_campuses_url %}<a href="{{ group_campuses_url }}" class="btn btn-outline-light btn-sm">{% trans "Group / campuses" %}</a>{% endif %}
+      {% if migration_cloud_url %}<a href="{{ migration_cloud_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Migration cloud" %}</a>{% endif %}
+      {% if one_sis_url %}<a href="{{ one_sis_url }}" class="btn btn-outline-secondary btn-sm">{% trans "One SIS, any LMS" %}</a>{% endif %}
+      {% if apicenter_url %}<a href="{{ apicenter_url }}" class="btn btn-outline-secondary btn-sm">{% trans "API Center" %}</a>{% endif %}
+      {% if trust_center_url %}<a href="{{ trust_center_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Trust center" %}</a>{% endif %}
+    </div>
+  </section>
+  <section class="mb-4 pt-3 border-top border-secondary" aria-label="{% trans 'ERP coexistence patterns' %}">
+    <h2 class="h6 text-white mb-2">{% trans "Customer ERP coexistence" %}</h2>
+    <p class="small text-white-50 mb-2">{% trans "Signed webhooks + API Center subscriptions; customer maps events to their finance system of record." %}</p>
+    {% if erp_coexistence_patterns %}
+    <div class="table-responsive mb-3">
+      <table class="table table-dark table-sm">
+        <thead><tr><th>{% trans "Pattern" %}</th><th>{% trans "Motion" %}</th><th>{% trans "Webhook events" %}</th></tr></thead>
+        <tbody class="small">
+          {% for p in erp_coexistence_patterns %}
+          <tr>
+            <td><strong>{{ p.label }}</strong><br><code class="text-white-50">{{ p.code }}</code></td>
+            <td class="text-white-50">{{ p.motion }}</td>
+            <td><code class="text-info">{{ p.webhook_events }}</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+    {% if erp_webhook_sample_json %}
+    <p class="small text-white-50 mb-1">{% trans "Sample envelope (JSON)" %}:</p>
+    <pre class="small text-white-50 bg-black p-2 border border-secondary rounded">{{ erp_webhook_sample_json }}</pre>
+    {% endif %}
+    <div class="d-flex flex-wrap gap-2 mt-2">
+      {% if apicenter_url %}<a href="{{ apicenter_url }}" class="btn btn-outline-light btn-sm">{% trans "API Center (webhooks)" %}</a>{% endif %}
+      {% if native_roster_connectors_url %}<a href="{{ native_roster_connectors_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Native roster console" %}</a>{% endif %}
+      {% if wedge_index_url %}<a href="{{ wedge_index_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Wedge index (1–45)" %}</a>{% endif %}
+    </div>
+  </section>
+  <section class="mb-4 pt-3 border-top border-secondary" aria-label="{% trans 'Finance and geography' %}">
+    <h2 class="h6 text-white mb-3">{% trans "Finance, geography, education systems" %}</h2>
+    <div class="d-flex flex-wrap gap-2">
+      {% if billing_url %}<a href="{{ billing_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Billing" %}</a>{% endif %}
+      {% if geography_url %}<a href="{{ geography_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Geography" %}</a>{% endif %}
+      {% if education_systems_url %}<a href="{{ education_systems_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Education systems (14–22)" %}</a>{% endif %}
+      {% if analytics_url %}<a href="{{ analytics_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Analytics" %}</a>{% endif %}
+      {% if usage_url %}<a href="{{ usage_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Usage" %}</a>{% endif %}
+    </div>
+  </section>
+  <p class="small text-white-50 mb-0">{% trans "Clever and ClassLink native HTTP clients ship in-repo; district OAuth and bearer tokens unlock live calls. OneRoster + district hub remains the universal fallback." %}</p>
+</div>
+{% endblock %}

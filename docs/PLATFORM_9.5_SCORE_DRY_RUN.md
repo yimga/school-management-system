@@ -19,7 +19,7 @@
 | **Platform transition** | 9.5 | Multi-tenant primitives; bounded-context surfaces; legacy import gate; path-to-10 allowlist. |
 | **Metadata-driven architecture** | 9.5 | Catalog, lineage, package registry, blast radius; runtime metadata and package payload registration. |
 | **Runtime / multitenancy** | 9.5 | Resolvers, precedence, inspector; SITESETTINGS_GET_SOLO_ALLOWLIST + 9.5 enforcement; allowlist report. |
-| **System Configuration** | 9.5 | Seven consoles with Search/Preview/Compare/Audit/Rollback; operator copy; no new tenant logic by policy. |
+| **Configuration Control Center** | 9.5 | Seven consoles with Search/Preview/Compare/Audit/Rollback; operator copy; no new tenant logic by policy. |
 | **Marketplace / packs** | 9.5 | 25+ first-party apps; First-party/Verified badges; compatibility; preview-before-install + rollback; staged rollout UI (Promote to production). |
 | **Setup / onboarding** | 9.5 | Full layout (left rail, center, right preview); health score; 6 role previews; execute_launch; AI recommends badge; blueprint rankings. |
 | **UI/UX / dashboards** | 9.5 | Role-home (data-page-archetype); command palette primary; page archetypes doc + enforced on key templates. |
@@ -59,7 +59,7 @@
 - **Architecture:** Bounded-context surfaces and legacy-import gates in place; giant-file and parallel-architecture cleanup ongoing.
 - **Metadata:** Catalog covers schema, experience, runtime, registry, integration, governance; lineage and rollback blast radius in package/catalog.
 - **Runtime:** Precedence documented (RESOLUTION_CHAIN.md); resolver and inspector exist; tenant behavior migration from SiteSettings in progress.
-- **System Configuration:** Seven consoles with Search/Preview; no new tenant logic in siteconfig by policy.
+- **Configuration Control Center:** Seven consoles with Search/Preview; no new tenant logic in siteconfig by policy.
 - **Setup Studio:** Full guided flow, health score, recommendations, 6 role previews (website, admin, teacher, parent, finance, student), preview_fidelity_level and preview_note, execute_launch UI, “Open in new tab” for previews.
 - **Security:** No provider secret in client; auth audit (login/logout); session/rate-limit/audit in SECURITY.md; CSRF/raw SQL/broad except allowlisted and gated.
 - **Verification:** `python manage.py check`, `showmigrations packages setup_studio`, `pre_deploy_gate.sh`, secret/CSRF/raw SQL/broad-except lints; WHERE_TO_SEE_MASTER_CHECKLIST_AFTER_DEPLOY updated.
@@ -68,7 +68,7 @@
 
 ## 4. Gaps to reach 9.5/10 in every category (per this dry-run; §12 gates are completion authority)
 
-1. **System Configuration:** ✅ Compare/Audit/Rollback links and operator-safe copy; seven consoles with Search/Preview/Compare/Audit/Rollback where backend exists—9.5 met.
+1. **Configuration Control Center:** ✅ Compare/Audit/Rollback links and operator-safe copy; seven consoles with Search/Preview/Compare/Audit/Rollback where backend exists—9.5 met.
 2. **Runtime as law:** ✅ Allowlist and 9.5 enforcement in SITESETTINGS_GET_SOLO_ALLOWLIST.md; path-to-10 report; tenant behavior routed through resolvers per policy—9.5 met.
 3. **Marketplace:** ✅ First-party badge, verified badge, compatibility, preview-before-install and rollback copy; staged rollout/promotion in UI (app sandbox + Package rollout)—9.5 met.
 4. **UI/UX:** ✅ Command palette primary; page archetypes doc and data-page-archetype on key templates; role-native homes and contextual action engine in place—9.5 met.
@@ -86,7 +86,7 @@
 - `bash scripts/pre_deploy_gate.sh`
 - `python manage.py test apps.setup_studio.tests apps.siteconfig.tests.test_metadata_catalog apps.packages.tests.test_engine -v 1`
 - Manual: Setup Studio page shows 6 preview cards, preview_fidelity_level, “Open in new tab,” and Go live when ready.
-- Manual: System Configuration hub shows Search, Preview, Compare, Audit (and Rollback where present) per console; operator-safe subtext visible.
+- Manual: Configuration Control Center hub shows Search, Preview, Compare, Audit (and Rollback where present) per console; operator-safe subtext visible.
 - Manual: Tenant app catalog shows First-party badge, Verified, compatibility, and rollback expectations.
 - Manual: Homepage/why-switch context has explicit "Why switch now" messaging (why_switch_bullets) available for templates.
 
@@ -111,7 +111,7 @@ The platform is scored and tracked in this dry-run so that:
 
 - **Architecture:** Zero new tenant logic in siteconfig; all bounded contexts real; no giant-file entropy; parallel architecture eliminated.
 - **Runtime:** Every tenant behavior path through resolvers; allowlist shrinking; precedence tested and documented.
-- **System Configuration:** Every console has search, preview, compare, audit, impact summary, rollback where relevant; operator language only.
+- **Configuration Control Center:** Every console has search, preview, compare, audit, impact summary, rollback where relevant; operator language only.
 - **Marketplace:** 25+ apps, trust markers on every listing, sandbox + rollback expectations, staged rollout in UI.
 - **Setup Studio:** One coherent launch flow with preview-by-role and launch execution; health score and recommendations always visible.
 - **UI/UX:** Command palette primary; role-native homes for every role; page archetypes enforced; empty states are action states.
@@ -130,7 +130,7 @@ The platform is scored and tracked in this dry-run so that:
 - [x] pre_deploy_gate.sh passes (root clutter, secret, CSRF, raw SQL, broad except, legacy siteconfig, showmigrations).
 - [x] Django check and showmigrations packages setup_studio pass.
 - [x] Targeted tests: setup_studio, metadata_catalog, packages engine, ai_copilot_context, accounts security (as applicable).
-- [x] System Configuration hub: diff/audit/rollback links and operator copy present.
+- [x] Configuration Control Center hub: diff/audit/rollback links and operator copy present.
 - [x] Marketplace tenant catalog: first-party badge, verified, compatibility, rollback copy; sandbox inspector "Promote to production."
 - [x] Setup Studio: 6 preview surfaces, fidelity level, Go live button when ready; AI recommends badge; full three-column layout.
 - [x] Command palette: Ctrl+K documented as primary; global_search and backend context wired.

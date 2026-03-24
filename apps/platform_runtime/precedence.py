@@ -75,3 +75,35 @@ def merge_by_precedence(*, values: list[tuple[str, object]]) -> object | None:
         return None
     best_scope = max(values, key=lambda item: precedence_rank(item[0]))
     return best_scope[1]
+
+
+def merge_feature_flags_by_runtime_precedence(
+    *,
+    policy_features: dict[str, Any] | None,
+    tenant_feature_flags: dict[str, Any] | None,
+    sandbox_feature_flags: dict[str, Any] | None,
+) -> dict[str, bool]:
+    """
+    Merge boolean-ish feature flags for runtime step 6 (EntitlementResolver facet).
+
+    Order matches PRECEDENCE_ORDER for overlapping sources:
+    policy_bundle < tenant_override < sandbox_override.
+
+    - *policy_features*: from effective policy ``features`` (already merged through
+      get_effective_policy: platform / region / tenant policy bundle).
+    - *tenant_feature_flags*: ``TenantContext.feature_flags`` (per-request tenant overlay).
+    - *sandbox_feature_flags*: optional overlay when route is preview/sandbox, from
+      ``TenantContext.policy_overrides["feature_flags"]`` or
+      ``policy_overrides["sandbox_feature_flags"]``.
+    """
+    merged: dict[str, bool] = {}
+    pf = policy_features if isinstance(policy_features, dict) else {}
+    for k, v in pf.items():
+        merged[str(k)] = bool(v)
+    tf = tenant_feature_flags if isinstance(tenant_feature_flags, dict) else {}
+    for k, v in tf.items():
+        merged[str(k)] = bool(v)
+    sf = sandbox_feature_flags if isinstance(sandbox_feature_flags, dict) else {}
+    for k, v in sf.items():
+        merged[str(k)] = bool(v)
+    return merged

@@ -47,13 +47,12 @@ def dashboard(request: HttpRequest):
             },
         ],
         "actions": [
-            {"label": "All Invoices", "url": "/finance/invoices/"},
             {
                 "label": "Overdue list",
                 "url": reverse("finance:invoices") + "?status=OVERDUE",
             },
-            {"label": "Payments", "url": "/finance/payments/"},
-            {"label": "Suspense Queue", "url": "/finance/reconciliation/suspense/"},
+            {"label": "Generate fees", "url": reverse("finance:generate_fees")},
+            {"label": "All invoices", "url": reverse("finance:invoices")},
         ],
     }
     dashboard_context = get_dashboard_context(request.user, "finance")
@@ -147,11 +146,66 @@ def dashboard(request: HttpRequest):
         },
     }
 
+    urgent_queue: list[dict] = []
+    for n in finance_requests_qs[:4]:
+        urgent_queue.append(
+            {
+                "title": str(getattr(n, "title", "") or "Finance request"),
+                "url": finance_request_link,
+                "hint": str(getattr(n, "message", "") or "")[:140],
+            }
+        )
+    overdue_n = summary.get("overdue") or 0
+    if overdue_n and not urgent_queue:
+        urgent_queue.append(
+            {
+                "title": f"{overdue_n} overdue invoice(s)",
+                "url": reverse("finance:invoices") + "?status=OVERDUE",
+                "hint": "Collect or follow up on overdue balances.",
+            }
+        )
+    if not urgent_queue:
+        urgent_queue.append(
+            {
+                "title": "No finance inbox items",
+                "url": "",
+                "hint": "Receivables and payments look quiet.",
+            }
+        )
+
+    recent_invoices = dashboard_data.get("recent_invoices") or []
+    activity_rows: list[dict] = []
+    for inv in list(recent_invoices)[:4]:
+        try:
+            status = inv.get_status_display()  # type: ignore[union-attr]
+        except (AttributeError, TypeError, ValueError):
+            status = ""
+        ref = getattr(inv, "reference", None) or getattr(inv, "id", "")
+        activity_rows.append({"title": str(ref), "meta": str(status)})
+
+    if not activity_rows:
+        activity_rows.append(
+            {"title": "Finance dashboard", "meta": "Snapshot ready — use next actions."}
+        )
+
+    recv = summary.get("receivables")
+    phase7_de = {
+        "eyebrow": "Finance home",
+        "headline_label": "Outstanding receivables",
+        "headline_value": recv,
+        "headline_meta": str(profile.name),
+        "metrics": list(hero.get("stats") or [])[:4],
+        "urgent_queue": urgent_queue,
+        "next_actions": list(hero.get("actions") or [])[:3],
+        "activity": activity_rows,
+    }
+
     context = {
         "profile": profile,
         "hero": hero,
         "chart_status_donut_json": json.dumps(chart_status_donut),
         "chart_trend_area_json": json.dumps(chart_trend_area),
+        "phase7_de": phase7_de,
         **dashboard_data,
     }
     context.update(

@@ -45,12 +45,18 @@
   margin-bottom: 0.15rem;
 }
 
-/* Action row (submit / cancel) */
+/* Action row (submit / cancel) — Phase 2: pair with .ds-action-bar for sticky/toolbar grammar */
 .form-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--token-space-sm, 0.5rem);
   margin-top: var(--token-space-lg, 1rem);
   padding-top: var(--token-space-md, 1rem);
-  border-top: 1px solid var(--portal-border, rgba(15, 23, 42, 0.08));
+  border-top: 1px solid var(--ds-border, var(--portal-border, rgba(15, 23, 42, 0.08)));
+}
+.form-actions.ds-action-bar {
+  margin-top: var(--token-space-lg);
+  padding: var(--token-space-md) var(--token-space-lg);
+  border-top: 1px solid var(--ds-border);
+  background: var(--ds-surface);
 }

@@ -117,6 +117,29 @@ class RuntimeDefaults(models.Model):
             _invalidate_effective_site_settings_cache()
 
 
+class PlatformPhaseBDomainSnapshot(models.Model):
+    """
+    Phase B Batches 4-13: one JSON snapshot per non-brand ownership domain.
+
+    Rows mirror ``SiteSettings.owned_payload(owner=domain)`` on save (excluding
+    ``sms_api_key`` for marketplace_integrations). ``get_effective_site_settings``
+    merges these after ``RuntimeDefaults`` and before ``PlatformGlobalBranding``.
+    """
+
+    domain = models.CharField(max_length=64, primary_key=True)
+    payload = models.JSONField(default=dict, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_phase_b_domain_snapshot"
+        verbose_name = "Phase B domain snapshot"
+        verbose_name_plural = "Phase B domain snapshots"
+
+    def __str__(self) -> str:
+        return self.domain
+
+
 class AIActionAuditLog(models.Model):
     """
     Phase 10 — 10.8: AI action audit trail.

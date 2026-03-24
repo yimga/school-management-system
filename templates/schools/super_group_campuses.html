@@ -20,6 +20,7 @@
     <p class="text-white-50 small mb-0">{% trans "Schools can be organized in a hierarchy: a group (parent) and its campuses (children). Use parent_school_id and hierarchy_path for roll-up reporting." %}</p>
   </header>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
+  {% include "schools/partials/beachhead_operator_checklist.html" %}
   <div class="mb-3">
     {% if schools_list_url %}<a href="{{ schools_list_url }}" class="btn btn-outline-secondary btn-sm me-2">{% trans "Schools list" %}</a>{% endif %}
     {% if create_school_url %}<a href="{{ create_school_url }}" class="btn btn-primary btn-sm">{% trans "Create school" %}</a>{% endif %}

@@ -22,7 +22,7 @@ Log in as a **super-admin** and open the **Control plane** (manager host, e.g. `
 | **Runtime inspector** | `/super/runtime-inspector/` | Inspect a school: effective blueprint, active packs, route, override sources, compilation trace, localization, integrations. Quick-pick list of schools. |
 | **Metadata catalog** | `/super/metadata-catalog/` | **Platform catalog** card at top (schema, experience, runtime, registry, integration, governance). Below: entity/field catalog when metadata app is seeded. |
 | **Registries** | `/super/registries/` | Existing registries overview. |
-| **System Configuration (tenant)** | `/siteconfig/console/` (tenant backend) | Seven domains (Brand & experience, Runtime & blueprints, Policies & rules, Plans & entitlements, Global registries, Integrations & marketplace, Metadata catalog) with Search and Preview links per domain. |
+| **Configuration Control Center (tenant)** | `/siteconfig/console/` (tenant backend) | Seven domains (Brand & experience, Runtime & blueprints, Policies & rules, Plans & entitlements, Global registries, Integrations & marketplace, Metadata catalog) with Search and Preview links per domain. |
 | **Tenant Health**, **Migration**, **Support**, etc. | (existing) | Unchanged; still in sidebar. |
 
 **Direct URLs (bookmark these):**

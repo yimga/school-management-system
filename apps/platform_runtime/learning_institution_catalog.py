@@ -269,6 +269,91 @@ MINISTRY_REPORT_STUBS: dict[str, list[dict[str, str]]] = {
     ],
 }
 
+# ISO 3166-1 alpha-2 → statutory / privacy narrative for ministry stub PDFs (shell; §11.4 depth = live connectors).
+STATUTORY_JURISDICTION_HINTS: dict[str, dict[str, str]] = {
+    "US": {
+        "label": "United States",
+        "framework": "FERPA; state reporting varies by SEA — replace shell with live extracts.",
+    },
+    "GB": {
+        "label": "United Kingdom",
+        "framework": "DfE / UK statutory returns — align with GBR region pack and report library.",
+    },
+    "NG": {
+        "label": "Nigeria",
+        "framework": "WAEC / state ministry — use WAEC region pack + statutory roadmap.",
+    },
+    "GH": {
+        "label": "Ghana",
+        "framework": "WASSCE / GES — West Africa pack defaults.",
+    },
+    "KE": {
+        "label": "Kenya",
+        "framework": "CBC / ministry reporting — Kenya CBC blueprint alignment.",
+    },
+    "CM": {
+        "label": "Cameroon",
+        "framework": "Francophone / Anglophone MoE — dual policy packs.",
+    },
+    "AE": {
+        "label": "United Arab Emirates",
+        "framework": "MoE / KHDA-style governance — UAE MoE+IB blueprint.",
+    },
+    "AU": {
+        "label": "Australia",
+        "framework": "ACARA / state registers — ACARA blueprint + AUS pack.",
+    },
+    "NZ": {
+        "label": "New Zealand",
+        "framework": "MoE NZ — NZL pack + statutory exports.",
+    },
+    "CA": {
+        "label": "Canada",
+        "framework": "Provincial ministries — PIPEDA + provincial reporting.",
+    },
+    "FR": {
+        "label": "France",
+        "framework": "Ministère — EU GDPR + national bulletin norms.",
+    },
+    "DE": {
+        "label": "Germany",
+        "framework": "KMK / Länder — EU GDPR + state education law.",
+    },
+    "BR": {
+        "label": "Brazil",
+        "framework": "MEC / INEP — BRA pack + national census narratives.",
+    },
+    "IN": {
+        "label": "India",
+        "framework": "CBSE / state boards — India CBSE blueprint.",
+    },
+    "SG": {
+        "label": "Singapore",
+        "framework": "MOE Singapore — Asia pack + ministry stubs.",
+    },
+    "CO": {
+        "label": "Colombia",
+        "framework": "MEN — LATAM_ES pack.",
+    },
+}
+
+# Suggested ISO alpha-2 for manager-host ministry PDF preview (stub shell; not legal filing).
+INSTITUTION_TYPE_STATUTORY_COUNTRY_HINT: dict[str, str] = {
+    "W31_GENERAL_K12": "US",
+    "W32_TVET": "GB",
+    "W33_TRADE_APPRENTICESHIP": "GB",
+    "W34_SPECIALIZED_STEM_ARTS": "US",
+    "W35_EARLY_YEARS": "GB",
+    "W36_ADULT_EDUCATION": "US",
+    "W37_PROFESSIONAL_CORPORATE": "US",
+    "W38_LANGUAGE_SCHOOL": "GB",
+    "W39_EXAM_PREP_TUTORING": "US",
+    "W40_SPECIAL_EDUCATION": "US",
+    "W41_GIFTED_ADVANCED": "US",
+    "W42_ALTERNATIVE_PROVISION": "GB",
+    "W43_HIGHER_EDUCATION": "US",
+}
+
 
 def normalize_delivery_code(code: str) -> str:
     c = str(code or "").strip().upper()

@@ -1,5 +1,6 @@
 """
-Runtime inspector and workflow simulator (BR-12 split from super_views).
+Runtime inspector, runtime truth hub (platform defaults read-only), and workflow simulator
+(BR-12 split from super_views).
 """
 
 from __future__ import annotations
@@ -41,6 +42,78 @@ def super_runtime_inspector(request):
             "dashboard_url": reverse("super:dashboard"),
             "decision_architecture": get_decision_architecture_for_page(
                 "runtime_inspector"
+            ),
+        },
+    )
+
+
+def super_runtime_truth_hub(request):
+    """
+    Read-only platform summary: RuntimeDefaults singleton + slim SiteSettings row.
+
+    Uses direct ORM lookups (no SiteSettings.get_solo()) to avoid cache/side effects
+    while still reflecting the Phase B bridge (payload + slim columns).
+    """
+    from apps.platform_runtime.models import RuntimeDefaults
+    from apps.siteconfig.models import SiteSettings
+
+    rt = RuntimeDefaults.get_singleton()
+    payload = rt.payload if rt and isinstance(rt.payload, dict) else {}
+    payload_keys = sorted(payload.keys())
+    preview: list[dict[str, object]] = []
+    for key in payload_keys[:48]:
+        val = payload[key]
+        if isinstance(val, dict):
+            kind = "dict"
+            extra = f"len={len(val)}"
+        elif isinstance(val, list):
+            kind = "list"
+            extra = f"len={len(val)}"
+        elif isinstance(val, bool):
+            kind = "bool"
+            extra = repr(val)
+        elif val is None:
+            kind = "null"
+            extra = ""
+        elif isinstance(val, (int, float)):
+            kind = "number"
+            extra = str(val)
+        else:
+            s = str(val)
+            kind = "string"
+            extra = s if len(s) <= 64 else s[:61] + "…"
+        preview.append({"key": key, "kind": kind, "extra": extra})
+
+    ss = SiteSettings.objects.filter(pk=1).first()
+    site_settings_summary = None
+    if ss is not None:
+        site_settings_summary = {
+            "pk": ss.pk,
+            "maintenance_mode": ss.maintenance_mode,
+            "updated_at": ss.updated_at,
+            "has_logo": bool(getattr(ss, "logo", None)),
+            "has_favicon": bool(getattr(ss, "favicon", None)),
+            "theme_pack_id": getattr(ss.theme_pack, "pk", None),
+            "admin_theme_pack_id": getattr(ss.admin_theme_pack, "pk", None),
+        }
+
+    return render(
+        request,
+        "schools/super_runtime_truth_hub.html",
+        {
+            "dashboard_url": reverse("super:dashboard"),
+            "runtime_defaults": rt,
+            "payload_key_count": len(payload_keys),
+            "payload_keys_truncated": len(payload_keys) > len(preview),
+            "payload_preview": preview,
+            "cache_rankings_interval_minutes": getattr(
+                rt, "cache_rankings_interval_minutes", None
+            )
+            if rt
+            else None,
+            "site_settings_summary": site_settings_summary,
+            "decision_architecture": get_decision_architecture_for_page(
+                "runtime_truth_hub"
             ),
         },
     )

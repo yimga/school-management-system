@@ -37,24 +37,39 @@ def _date_format_to_django(pattern: str) -> str:
     """Convert placeholder pattern (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD) to Django date format (d, m, Y)."""
     if not pattern:
         return "d/m/Y"
+    if not isinstance(pattern, str):
+        return "d/m/Y"
     s = pattern.replace("YYYY", "Y").replace("DD", "d").replace("MM", "m")
     return s
 
 
-@register.filter
-def format_date(value, date_format_pattern=None):
-    """Format a date/datetime.
-    When request is in context (e.g. RequestContext), uses tenant locale date_format.
-    Usage: {{ some_date|format_date }} or {{ some_date|format_date:"YYYY-MM-DD" }}
-    """
+def _format_date_value(value, pattern: str) -> str:
     if value is None:
         return ""
-    pattern = date_format_pattern or "DD/MM/YYYY"
     fmt = _date_format_to_django(pattern)
     try:
         return dateformat.format(value, fmt)
     except (TypeError, ValueError, AttributeError):
         return str(value)
+
+
+@register.filter
+def format_date(value, date_format_pattern=None):
+    """Format a date/datetime.
+
+    Template usage: ``{{ some_date|format_date }}`` or ``{{ some_date|format_date:"YYYY-MM-DD" }}``.
+
+    Unit tests and PDF-style renderers may call ``format_date(locale_ctx, dt)`` where *locale_ctx*
+    is a dict with ``date_format`` (same keys as the region_settings context processor).
+    """
+    if isinstance(value, dict):
+        ctx = value
+        inner = date_format_pattern
+        if inner is None:
+            return ""
+        pattern = ctx.get("date_format") or "DD/MM/YYYY"
+        return _format_date_value(inner, pattern)
+    return _format_date_value(value, date_format_pattern or "DD/MM/YYYY")
 
 
 @register.filter
@@ -104,22 +119,56 @@ def format_currency_tenant(context, value):
         return str(value)
 
 
-@register.filter
-def format_number(value, decimals=2):
-    """Format a number with thousands separators.
+def _format_number_value(
+    num: float, decimals: int, dec_sep: str, thousands_sep: str
+) -> str:
+    s = f"{num:,.{decimals}f}"
+    s = s.replace(".", "\x00").replace(",", thousands_sep).replace("\x00", dec_sep)
+    return s
 
-    Usage in templates:
-        {{ amount|format_number }}      -> 1,234.56 (2 decimals)
-        {{ amount|format_number:0 }}    -> 1,235 (no decimals)
 
-    Uses period for decimal and comma for thousands (Anglophone Cameroon default).
-    """
+def _format_number_from_ctx(ctx: dict, inner, dec_override: int = 2) -> str:
+    dec_sep = ctx.get("decimal_separator")
+    thousands_sep = ctx.get("thousands_separator")
+    if dec_sep is None:
+        dec_sep = "."
+    if thousands_sep is None:
+        thousands_sep = ","
+    try:
+        num = float(inner)
+    except (TypeError, ValueError):
+        return str(inner)
+    dec = int(dec_override) if dec_override is not None else 2
+    return _format_number_value(num, dec, str(dec_sep), str(thousands_sep))
+
+
+def _format_number_plain(value, decimals=2) -> str:
     if value is None:
         return ""
     try:
         num = float(value)
     except (TypeError, ValueError):
         return str(value)
-    dec = int(decimals) if decimals is not None else 2
-    s = f"{num:,.{dec}f}"
-    return s
+    if decimals is None:
+        dec = 2
+    else:
+        dec = int(decimals)
+    return _format_number_value(num, dec, ".", ",")
+
+
+@register.filter
+def format_number(first, second=None, third=None):
+    """Format a number; optional locale dict for separators (tests / PDF helpers).
+
+    Templates: ``{{ amount|format_number }}`` or ``{{ amount|format_number:0 }}``.
+
+    Python: ``format_number(ctx, value)`` or ``format_number(ctx, value, 0)`` with
+    ``decimal_separator`` / ``thousands_separator`` on *ctx* (same as region_settings).
+    """
+    if isinstance(first, dict):
+        inner = second
+        if inner is None:
+            return ""
+        dec_arg = 2 if third is None else third
+        return _format_number_from_ctx(first, inner, dec_arg)
+    return _format_number_plain(first, second)

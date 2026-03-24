@@ -4,7 +4,6 @@ Wedges 23–43 beyond-reach APIs: pack install, terminology, AI/heuristic sugges
 
 from __future__ import annotations
 
-import io
 import json
 import logging
 
@@ -190,7 +189,7 @@ class TerminologyPackView(View):
 
 
 class MinistryStubPdfView(LoginRequiredMixin, View):
-    """GET ?stub=stub_census_headcount — real PDF (ReportLab) for ministry stub exports."""
+    """GET ?stub=stub_census_headcount&country=GB — PDF shell; country adds statutory narrative."""
 
     def get(self, request):
         if not _can_learning_institution_admin(request.user):
@@ -199,6 +198,7 @@ class MinistryStubPdfView(LoginRequiredMixin, View):
         stub = (request.GET.get("stub") or "").strip()
         if not stub or not stub.replace("_", "").isalnum():
             return HttpResponse("Invalid stub", status=400)
+        country = (request.GET.get("country") or request.GET.get("jurisdiction") or "").strip()
         from apps.platform_runtime.learning_institution_catalog import (
             MINISTRY_REPORT_STUBS,
         )
@@ -210,40 +210,72 @@ class MinistryStubPdfView(LoginRequiredMixin, View):
                     label = r.get("label") or stub
                     break
         try:
-            from reportlab.lib.pagesizes import letter
-            from reportlab.pdfgen import canvas
+            from apps.platform_runtime.ministry_stub_pdf import (
+                build_ministry_stub_pdf_bytes,
+            )
         except ImportError:
             return HttpResponse("PDF engine unavailable", status=503)
-        buf = io.BytesIO()
-        c = canvas.Canvas(buf, pagesize=letter)
-        c.setTitle(f"Ministry report — {label}")
-        y = 750
-        c.drawString(72, y, "RunMyCampus — Ministry / statutory export (generated)")
-        y -= 24
-        c.drawString(72, y, f"Report: {label}")
-        y -= 24
-        c.drawString(72, y, f"Stub key: {stub}")
-        y -= 24
+        school_name = None
         if school:
-            c.drawString(72, y, f"Tenant: {school.name} (id {school.pk})")
-        else:
-            c.drawString(72, y, "Tenant: (not resolved in session)")
-        y -= 36
-        c.drawString(
-            72,
-            y,
-            "This document is a structured shell for RFP / accreditation workflows.",
-        )
-        y -= 20
-        c.drawString(
-            72, y, "Replace with live aggregates when ministry connectors are enabled."
-        )
-        c.showPage()
-        c.save()
-        pdf = buf.getvalue()
+            school_name = f"{school.name} (id {school.pk})"
+        try:
+            pdf = build_ministry_stub_pdf_bytes(
+                stub,
+                label,
+                school_name=school_name,
+                country_code=country or None,
+            )
+        except ImportError:
+            return HttpResponse("PDF engine unavailable", status=503)
+        cc = (country or "").strip().upper()[:2]
+        suffix = f"_{cc}" if cc else ""
         resp = HttpResponse(pdf, content_type="application/pdf")
-        resp["Content-Disposition"] = f'attachment; filename="ministry_{stub}.pdf"'
+        resp["Content-Disposition"] = (
+            f'attachment; filename="ministry_{stub}{suffix}.pdf"'
+        )
         return resp
+
+
+class StatutoryExtractJsonView(LoginRequiredMixin, View):
+    """GET ?stub=stub_census_headcount&country=GB — live tenant aggregates for EMIS/statutory pipelines."""
+
+    def get(self, request):
+        if not _can_learning_institution_admin(request.user):
+            return JsonResponse({"detail": "Forbidden"}, status=403)
+        school = _school(request)
+        if not school:
+            return JsonResponse({"detail": "School context required"}, status=400)
+        stub = (request.GET.get("stub") or "").strip()
+        if not stub or not stub.replace("_", "").isalnum():
+            return JsonResponse({"detail": "Invalid stub"}, status=400)
+        country = (
+            request.GET.get("country") or request.GET.get("jurisdiction") or ""
+        ).strip()
+        from apps.platform_runtime.statutory_tenant_extract import (
+            build_statutory_tenant_extract,
+        )
+
+        return JsonResponse(
+            build_statutory_tenant_extract(
+                school, stub=stub, country_code=country or None
+            )
+        )
+
+
+class IdentityGraphSummaryView(LoginRequiredMixin, View):
+    """GET — roster/guardian/integration counts for the current tenant (wedge 44–45 spine)."""
+
+    def get(self, request):
+        if not _can_learning_institution_admin(request.user):
+            return JsonResponse({"detail": "Forbidden"}, status=403)
+        school = _school(request)
+        if not school:
+            return JsonResponse({"detail": "School context required"}, status=400)
+        from apps.platform_runtime.identity_graph_rollups import (
+            compute_tenant_identity_graph_summary,
+        )
+
+        return JsonResponse(compute_tenant_identity_graph_summary(school))
 
 
 class LearningWedgeBenchmarksView(LoginRequiredMixin, UserPassesTestMixin, View):

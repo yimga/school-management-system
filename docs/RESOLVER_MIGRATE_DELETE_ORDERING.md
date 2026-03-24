@@ -28,6 +28,7 @@
 | get_effective_policy | apps.policies.resolver | Policy flags and rules | **DONE** |
 | workflow_resolver / dashboard_resolver | apps.siteconfig | Workflow and dashboard for action/role | **DONE** |
 | RuntimeDefaults + SiteSettings fallback | platform_runtime.helpers | Platform defaults when no tenant | **DONE** |
+| PlatformPhaseBDomainSnapshot (batches 4–13) | platform_runtime.phase_b_domain_snapshots + helpers._build_platform_site_settings_base | Per-domain JSON mirrors of `SiteSettings.owned_payload` (excl. brand_experience → PGB; marketplace snapshot strips `sms_api_key`) | **DONE** |
 
 All tenant-facing reads must go through one of the above. No new singleton surface.
 
@@ -53,6 +54,7 @@ All tenant-facing reads must go through one of the above. No new singleton surfa
 | admin/siteconfig/customizer/ URL | Studio OS Experience (studio_os:experience) | Redirect in place (config/urls.py). Product confirms bookmarks migrated; then optional remove URL or keep redirect. | **BLOCKED** — per BACKLOG Step 6 |
 | Other admin/portal URLs with Studio OS equivalent | Per URL | Replacement live; no callers; document in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. | NOT DONE (per migration) |
 | SiteSettings.get_solo() definition | N/A | Cannot remove while platform backfill and sync use it. Ownership move (model/table to bounded context) is separate, incremental. | NOT DONE |
+| **SiteSettings** columns: theme/report FKs + branding media (Batch 3) | **PlatformGlobalBranding** (`brand_experience`) + `apply_theme_experience_state` / resolvers | Physical columns dropped in `siteconfig.0163`; CI: `lint_phase_b_batch3_sitesettings_fk_writes.py` | **DONE** (schema + lint) |
 
 ---
 

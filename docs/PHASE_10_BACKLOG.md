@@ -54,7 +54,7 @@
 - **10.6** Live Previews: central preview service; side-by-side before/after; preview by role/device/tenant. **Done:** `get_preview_url(role=, device=, tenant_id=, path=)` returns `/portal/preview?…` with query params.
 - **10.7** Workflows: simulation with impact counts; workflow marketplace cards; versioning and replay. **Done:** `run_workflow_simulation` runs runner.run_step() in memory, returns impact_count + steps (dry_run).
 - **10.8** AI & API: API contracts and contract tests; AI action audit trail. **Done:** `log_ai_action(action_type, tenant_id=, user_id=, request_id=, payload=)` in platform_runtime.helpers writes to AIActionAuditLog.
-- **10.9** System Config: migrate remaining get_solo() to runtime; shrink allowlist toward zero; CI fails on new tenant-facing get_solo. **Done (CI):** `scripts/lint_tenant_settings.py --check-get-solo-only` already fails CI for new get_solo in tenant apps; allowlist in SITESETTINGS_GET_SOLO_ALLOWLIST.md; 1.2 RuntimeDefaults provides migration path.
+- **10.9** Configuration Control Center: migrate remaining get_solo() to runtime; shrink allowlist toward zero; CI fails on new tenant-facing get_solo. **Done (CI):** `scripts/lint_tenant_settings.py --check-get-solo-only` already fails CI for new get_solo in tenant apps; allowlist in SITESETTINGS_GET_SOLO_ALLOWLIST.md; 1.2 RuntimeDefaults provides migration path.
 
 ---
 

@@ -316,6 +316,153 @@ def default_delegation_role_mapping():
     }
 
 
+def virtual_site_setting_default(name: str) -> object:
+    """
+    Safe defaults for legacy SiteSettings keys that live in RuntimeDefaults.payload when the key
+    is absent. Keeps templates and owned_payload(getattr) from raising or returning unusable nulls.
+    """
+    from decimal import Decimal
+
+    from .models import (
+        PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL,
+        PLATFORM_DEFAULT_SCHOOL_CODE,
+        PLATFORM_DEFAULT_SITE_NAME,
+        PLATFORM_DEFAULT_TAGLINE,
+    )
+
+    _factories: dict[str, object] = {
+        "backend_feature_flags": default_backend_feature_flags,
+        "portal_features": default_portal_features,
+        "social_links": default_social_links,
+        "admin_portal_stats_config": default_admin_portal_stats_config,
+        "portal_quick_actions": default_portal_quick_actions,
+        "portal_announcements": default_portal_announcements,
+        "portal_recent_grades": default_portal_recent_grades,
+        "portal_upcoming_assessments": default_portal_upcoming_assessments,
+        "grade_approval_roles": default_grade_approval_roles,
+        "grade_post_roles": default_grade_post_roles,
+        "syllabus_approval_roles": default_syllabus_approval_roles,
+        "delegation_role_mapping": default_delegation_role_mapping,
+    }
+    factory = _factories.get(name)
+    if callable(factory):
+        return factory()
+
+    _lists = {"notification_channels", "require_mfa_roles"}
+    if name in _lists:
+        return []
+
+    if name == "default_widgets_per_role":
+        return {}
+
+    _strings: dict[str, str] = {
+        "site_name": PLATFORM_DEFAULT_SITE_NAME,
+        "school_code": PLATFORM_DEFAULT_SCHOOL_CODE,
+        "tagline": PLATFORM_DEFAULT_TAGLINE,
+        "meta_description": "",
+        "company_name": "",
+        "company_address": "",
+        "company_phone": "",
+        "company_email": "",
+        "company_slug": "",
+        "branded_domain": "",
+        "custom_css": "",
+        "backend_console_theme": "auto",
+        "primary_color": "#0d6efd",
+        "accent_color": "#198754",
+        "success_color": "#22c55e",
+        "warning_color": "#f59e0b",
+        "danger_color": "#ef4444",
+        "header_bg_color": "#0f172a",
+        "footer_bg_color": "#0f172a",
+        "theme_brightness": "system",
+        "theme_harmony": "polychromatic",
+        "secondary_font": "",
+        "default_dashboard_view": "",
+        "default_report_preview_type": "TERM",
+        "offline_sync_conflict_resolution": "show_both",
+        "report_preview_contact_email": PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL,
+        "report_preview_contact_phone": "",
+        "sms_provider": "",
+        "sms_api_key": "",
+        "sms_sender_id": "",
+        "email_from_address": "",
+        "whatsapp_support_number": "",
+        "whatsapp_admissions_number": "",
+        "marksheet_ocr_command": "",
+        "admission_number_mode": "",
+        "admission_number_pattern": "",
+        "admission_number_strategy": "",
+        "admission_number_template": "",
+        "country": "",
+        "region": "",
+        "ministry": "",
+        "default_region": "",
+        "default_grading_scale": "",
+        "ministry_registration_code": "",
+    }
+    if name in _strings:
+        return _strings[name]
+
+    if name == "compliance_profile_id":
+        return None
+
+    _ints = {
+        "cache_rankings_interval_minutes": 60,
+        "requests_reminder_interval_hours": 24,
+        "teacher_reminder_time_of_day": 8,
+        "top_students_default_limit": 5,
+        "default_refresh_rate": 60,
+        "base_font_size": 16,
+    }
+    if name in _ints:
+        return _ints[name]
+
+    if name == "referral_bonus_amount":
+        return Decimal("0")
+
+    _bool_true = {
+        "enable_parent_portal",
+        "enable_teacher_portal",
+        "enable_concurrent_mark_uploads",
+        "enable_reports_pdf",
+        "notify_parent_welcome_email",
+    }
+    if name in _bool_true:
+        return True
+
+    _bool_false = {
+        "preview_mode_enabled",
+        "use_dark_mode",
+        "default_sidebar_collapsed",
+        "use_secondary_font_for_headings",
+        "admin_use_site_primary",
+        "skip_theme_publish_guard",
+        "default_portal_role_dual_role",
+        "grade_approval_enabled",
+        "enable_practical_assessment",
+        "require_mfa_all_staff",
+        "use_promotion_rule_for_pass",
+        "enable_offline_mode",
+        "auto_tag_photos_from_exif",
+        "reports_require_approved_grades_before_publish",
+        "reports_use_approved_grades_only",
+        "enable_whatsapp_parent_portal",
+        "enable_whatsapp_staff_portal",
+    }
+    if name in _bool_false:
+        return False
+
+    if name.startswith("enable_") or name.endswith("_enabled"):
+        return False
+    if name.startswith("use_") or name.startswith("require_"):
+        return False
+    if name.startswith("show_") or name.startswith("allow_") or name.startswith("block_"):
+        return False
+
+    return ""
+
+
 def get_theme_pack_owner_model():
     try:
         model = django_apps.get_model("brand_experience", "ThemePack")
@@ -716,9 +863,11 @@ def build_platform_default_site_settings():
 
     site = SiteSettings()
     site.pk = 1
-    site.site_name = PLATFORM_DEFAULT_SITE_NAME
-    site.school_code = PLATFORM_DEFAULT_SCHOOL_CODE
-    site.tagline = PLATFORM_DEFAULT_TAGLINE
-    site.report_preview_contact_email = PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL
-    site.report_preview_contact_phone = ""
+    object.__setattr__(site, "site_name", PLATFORM_DEFAULT_SITE_NAME)
+    object.__setattr__(site, "school_code", PLATFORM_DEFAULT_SCHOOL_CODE)
+    object.__setattr__(site, "tagline", PLATFORM_DEFAULT_TAGLINE)
+    object.__setattr__(
+        site, "report_preview_contact_email", PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL
+    )
+    object.__setattr__(site, "report_preview_contact_phone", "")
     return site

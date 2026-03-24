@@ -1,12 +1,12 @@
-# Platform `/admin/` → control plane (`/super/`) — system configuration
+# Platform `/admin/` → control plane (`/super/`) — Configuration Control Center
 
-**Purpose:** Document how **SiteSettings**, **system configuration**, and related fleet surfaces are decoupled from raw Django admin on the **manager host**, and where the canonical operator UX lives.
+**Purpose:** Document how **SiteSettings**, **Configuration Control Center** (`siteconfig`), and related fleet surfaces are decoupled from raw Django admin on the **manager host**, and where the canonical operator UX lives.
 
 **Single execution reference:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §2.1 (SiteSettings / siteconfig dismantling) and **§2.1.1** (control plane world-class bar: operator policy, bridge manifest API, governance table).
 
 ## Principles
 
-1. **Manager host (`platform_admin_site`):** Primary flows use **`/super/`** (control plane) and **`siteconfig:console_domains_hub`** (System config). Platform `/admin/` is **deep maintenance** raw model CRUD, not the default operator path.
+1. **Manager host (`platform_admin_site`):** Primary flows use **`/super/`** (control plane) and **`siteconfig:console_domains_hub`** (Configuration Control Center). Platform `/admin/` is **deep maintenance** raw model CRUD, not the default operator path.
 2. **SiteSettings:** Registered only on **tenant** admin (`register_tenant_admin`). It does **not** appear on platform `/admin/`. On the manager host, links resolve via `apps.siteconfig.staff_navigation` to **`super:site_settings_list`** / **`super:site_settings_edit`**.
 3. **Plans & catalog models** that have super CRUD are intentionally **not** registered on platform admin where noted in app `admin.py` (e.g. `plans_entitlements`).
 
@@ -27,14 +27,14 @@ Operators can open any covered platform changelist **without hardcoding `/admin/
 
 ## UX: banners on platform backoffice
 
-When `is_manager_host` is true (platform admin), changelist templates under **`admin/siteconfig/`** and **`admin/global_registries/`** show a short banner with links to the control plane, System config, and relevant super lists.
+When `is_manager_host` is true (platform admin), changelist templates under **`admin/siteconfig/`** and **`admin/global_registries/`** show a short banner with links to the control plane, Configuration Control Center, and relevant super lists.
 
-## Quick map (operator → super / System config)
+## Quick map (operator → super / Configuration Control Center)
 
 | Concern | Canonical surface |
 |--------|-------------------|
 | Fleet dashboard & curated links | `super:platform_operator_hub`, `super:dashboard` |
-| Bounded “System config” console | `siteconfig:console_domains_hub` |
+| Bounded “Configuration Control Center” console | `siteconfig:console_domains_hub` |
 | Site settings (manager) | `super:site_settings_list`, `super:site_settings_edit` |
 | Regions, grading, plans, feature toggles (catalog) | `super:regions_list`, `super:grading_list`, `super:plans_list`, `super:feature_toggles_list` |
 | AI posture (regional clusters, upgrade flows) | `super:ai_model_hub`, `super:global_ai_version` |

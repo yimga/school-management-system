@@ -16,6 +16,71 @@ from apps.siteconfig.identifier_policy_service import default_school_code_for
 
 logger = logging.getLogger(__name__)
 
+
+def _safe_effective_site_attr(site: Any, name: str, default: Any = None) -> Any:
+    """Phase B SiteSettings: virtual attrs may raise AttributeError; never use bare getattr(..., default)."""
+    try:
+        val = getattr(site, name)
+    except AttributeError:
+        return default
+    return default if val is None else val
+
+
+def _backfill_admissions_from_platform_site_settings(
+    out: Dict[str, Any], school: Any
+) -> None:
+    """
+    Merge admission number defaults from platform SiteSettings / RuntimeDefaults.
+    Required for school=None callers (catalog preview) and when school.settings omits admissions.
+    """
+    if not out.get("admissions") or not isinstance(out.get("admissions"), dict):
+        out["admissions"] = out.get("admissions") or {}
+    if any(
+        k in out["admissions"]
+        for k in ("admission_number_mode", "admission_number_strategy", "school_code")
+    ):
+        return
+    try:
+        site = get_effective_site_settings(school=school)
+        if site is None:
+            try:
+                from apps.platform_runtime.helpers import get_platform_site_settings_record
+
+                site = get_platform_site_settings_record(create=False)
+            except (
+                AttributeError,
+                ImportError,
+                LookupError,
+                TypeError,
+                ValueError,
+            ):
+                site = None
+        if site is None:
+            raise LookupError("effective site settings unavailable")
+        mode = _safe_effective_site_attr(site, "admission_number_mode", "AUTO_OR_MANUAL")
+        strategy = _safe_effective_site_attr(site, "admission_number_strategy", "FULL")
+        template = _safe_effective_site_attr(site, "admission_number_template", "") or ""
+        pattern = _safe_effective_site_attr(site, "admission_number_pattern", "") or ""
+        code = _safe_effective_site_attr(site, "school_code", None) or default_school_code_for(
+            school
+        )
+        out["admissions"] = {
+            **out["admissions"],
+            "admission_number_mode": mode or "AUTO_OR_MANUAL",
+            "admission_number_strategy": strategy or "FULL",
+            "admission_number_template": template,
+            "admission_number_pattern": pattern,
+            "school_code": code or default_school_code_for(school),
+        }
+    except (AttributeError, LookupError, TypeError, ValueError) as e:
+        logger.debug("Admissions backfill from SiteSettings failed: %s", e)
+        out["admissions"].setdefault("admission_number_mode", "AUTO_OR_MANUAL")
+        out["admissions"].setdefault("admission_number_strategy", "FULL")
+        out["admissions"].setdefault("admission_number_template", "")
+        out["admissions"].setdefault("admission_number_pattern", "")
+        out["admissions"].setdefault("school_code", default_school_code_for(school))
+
+
 # Typed exceptions for §2.4 broad-except replacement (allowlist 0).
 _POLICY_CACHE_ERRORS = (AttributeError, TypeError, ValueError, ConnectionError, OSError)
 _POLICY_MERGE_ERRORS = (
@@ -99,6 +164,38 @@ def invalidate_policy_cache(school) -> None:
     key = _policy_cache_key(school)
     if key:
         cache.delete(key)
+
+
+_POLICY_CACHE_BUST_ERRORS = (
+    AttributeError,
+    ImportError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
+
+
+def invalidate_all_tenant_policy_caches() -> None:
+    """
+    Drop cached ``get_effective_policy`` entries for every school when platform defaults
+    change (Phase B domain snapshots / SiteSettings). No-op when POLICY_CACHE_TTL unset.
+    """
+    try:
+        from django.conf import settings as django_settings
+
+        ttl = getattr(django_settings, "POLICY_CACHE_TTL", None)
+        if not ttl or ttl <= 0:
+            return
+        from django.core.cache import cache
+        from apps.schools.models import School
+
+        for pk in School.objects.values_list("pk", flat=True).iterator(chunk_size=500):
+            cache.delete(f"policy:{pk}")
+    except _POLICY_CACHE_BUST_ERRORS:
+        logger.debug(
+            "invalidate_all_tenant_policy_caches: skipped (cache or School query)"
+        )
 
 
 def _merge_sector_defaults_into_policy(out: Dict[str, Any], school) -> None:
@@ -246,6 +343,7 @@ def get_effective_policy(
         out["terminology"]["admission_number_label"] = "Admission number"
 
     if school is None:
+        _backfill_admissions_from_platform_site_settings(out, school=None)
         return out
 
     # Prefer compiled tenant config when present (decouple from raw SiteSettings; single source from tenant_config).
@@ -476,45 +574,7 @@ def get_effective_policy(
         )
 
     # Admissions: if not set from school.settings, backfill from SiteSettings (single-tenant / backward compat)
-    if not out.get("admissions") or not isinstance(out.get("admissions"), dict):
-        out["admissions"] = out.get("admissions") or {}
-    if not any(
-        k in out["admissions"]
-        for k in ("admission_number_mode", "admission_number_strategy", "school_code")
-    ):
-        try:
-            site = get_effective_site_settings(school=school)
-            if site is None:
-                raise LookupError("effective site settings unavailable")
-            out["admissions"] = {
-                **out["admissions"],
-                "admission_number_mode": getattr(
-                    site, "admission_number_mode", "AUTO_OR_MANUAL"
-                )
-                or "AUTO_OR_MANUAL",
-                "admission_number_strategy": getattr(
-                    site, "admission_number_strategy", "FULL"
-                )
-                or "FULL",
-                "admission_number_template": (
-                    getattr(site, "admission_number_template", None) or ""
-                )
-                or "",
-                "admission_number_pattern": (
-                    getattr(site, "admission_number_pattern", None) or ""
-                )
-                or "",
-                "school_code": (
-                    getattr(site, "school_code", None)
-                    or default_school_code_for(school)
-                )
-                or default_school_code_for(school),
-            }
-        except (AttributeError, LookupError, TypeError, ValueError) as e:
-            logger.debug("Admissions backfill from SiteSettings failed: %s", e)
-            out["admissions"].setdefault("admission_number_mode", "AUTO_OR_MANUAL")
-            out["admissions"].setdefault("admission_number_strategy", "FULL")
-            out["admissions"].setdefault("school_code", default_school_code_for(school))
+    _backfill_admissions_from_platform_site_settings(out, school)
     # Section 22: TenantAdmissionNumberPolicy overrides when present for this school
     if school is not None:
         try:

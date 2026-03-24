@@ -7,28 +7,6 @@
 <div class="container py-3" data-page-archetype="operational-workbench">
   {% trans "Back to Outputs" as back_action %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
-  <div class="studio-os__card py-3 px-3">
-    {% if graph %}
-    <ul class="list-unstyled mb-0">
-      {% for node in graph %}
-      <li class="mb-3">
-        <strong>{{ node.pack_name|default:node.pack_code|default:"—" }}</strong>
-        {% if node.pack_code %}<code class="small ms-1">{{ node.pack_code }}</code>{% endif %}
-        {% if node.dependencies %}
-        <ul class="small text-muted mt-1 mb-0 ps-3">
-          {% for dep in node.dependencies %}
-          <li><span class="text-dark">{{ dep.label }}:</span> {{ dep.items|join:", " }}</li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <span class="small text-muted d-block mt-1">— {% trans "No dependencies" %}</span>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="text-muted mb-0">{% trans "No report packs or dependencies to show. Add active report packs in Report library." %}</p>
-    {% endif %}
-  </div>
+  {% include "studio_os/partials/output_dependency_graph_body.html" with graph=graph pack_preview_cards=pack_preview_cards focus_pack_code=focus_pack_code %}
 </div>
 {% endblock %}

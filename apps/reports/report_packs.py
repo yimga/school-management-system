@@ -42,6 +42,19 @@ def build_report_pack_preview(pack: ReportPack) -> dict[str, Any]:
             {"label": "Promotion", "value": "Promoted"},
             {"label": "Class rank", "value": "4 / 28"},
         ]
+    else:
+        norm_rows: list[dict[str, Any]] = []
+        for raw in rows:
+            if not isinstance(raw, dict):
+                continue
+            lbl = raw.get("label") or raw.get("name") or "—"
+            val = raw.get("value")
+            if val is None:
+                val = raw.get("val", "—")
+            norm_rows.append({"label": str(lbl), "value": str(val)})
+        rows = norm_rows or [
+            {"label": "Average", "value": "13.42 / 20"},
+        ]
     summary = config.get("summary")
     if not isinstance(summary, Mapping):
         summary = {

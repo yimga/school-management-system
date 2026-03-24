@@ -8,6 +8,7 @@ from django.test import RequestFactory, TestCase
 from apps.accounts.models import User
 from apps.platform_runtime.learning_institution_catalog import (
     CATALOG_VERSION,
+    STATUTORY_JURISDICTION_HINTS,
     terminology_for_locale,
 )
 from apps.platform_runtime.learning_institution_runtime import (
@@ -186,6 +187,56 @@ class LearningInstitutionBeyondTests(TestCase):
         resp = MinistryStubPdfView.as_view()(req)
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(resp.content[:4] == b"%PDF")
+
+    def test_ministry_pdf_country_gb_embeds_jurisdiction(self):
+        from apps.api.learning_institution_api import MinistryStubPdfView
+
+        rf = RequestFactory()
+        req = rf.get(
+            "/api/learning/ministry-pdf/?stub=stub_census_headcount&country=GB"
+        )
+        req.user = self.admin
+        req.school = self.school
+        resp = MinistryStubPdfView.as_view()(req)
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.content[:4] == b"%PDF")
+        disp = resp.get("Content-Disposition") or ""
+        self.assertIn("_GB", disp)
+        self.assertEqual(
+            STATUTORY_JURISDICTION_HINTS.get("GB", {}).get("label"),
+            "United Kingdom",
+        )
+
+    def test_statutory_extract_json_returns_counts(self):
+        from apps.api.learning_institution_api import StatutoryExtractJsonView
+
+        rf = RequestFactory()
+        req = rf.get(
+            "/api/learning/statutory-extract/?stub=stub_census_headcount&country=GB"
+        )
+        req.user = self.admin
+        req.school = self.school
+        resp = StatutoryExtractJsonView.as_view()(req)
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertEqual(data.get("extract_kind"), "tenant_statutory_aggregate")
+        self.assertEqual(data.get("stub"), "stub_census_headcount")
+        self.assertIn("counts", data)
+        self.assertIn("active_students", data["counts"])
+
+    def test_identity_graph_summary_returns_shape(self):
+        from apps.api.learning_institution_api import IdentityGraphSummaryView
+
+        rf = RequestFactory()
+        req = rf.get("/api/learning/identity-graph-summary/")
+        req.user = self.admin
+        req.school = self.school
+        resp = IdentityGraphSummaryView.as_view()(req)
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertEqual(data.get("schema_version"), "1.0")
+        self.assertEqual(data.get("school_id"), str(self.school.pk))
+        self.assertIn("guardian_links", data)
 
     def test_benchmarks_superuser_only(self):
         from apps.api.learning_institution_api import LearningWedgeBenchmarksView

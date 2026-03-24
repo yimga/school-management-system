@@ -79,6 +79,18 @@ def offline_page(request):
     return render(request, "offline.html", status=200)
 
 
+def _coerce_request_user_for_error_pages(request):
+    """
+    Error views may run without AuthenticationMiddleware; tests may set user=None.
+    Auth context processor always supplies ``user`` from request.user — ensure it is never None
+    so base templates can safely reference user.username (AnonymousUser uses empty string).
+    """
+    from django.contrib.auth.models import AnonymousUser
+
+    if getattr(request, "user", None) is None:
+        request.user = AnonymousUser()
+
+
 def _is_schema_allowed(user):
     role = (getattr(user, "role", "") or "").upper()
     return user.is_authenticated and (
@@ -138,8 +150,14 @@ def legacy_workflow_hub_redirect(request):
 
 
 def legacy_report_library_redirect(request):
-    """Step 6 / Optional 12: Legacy report library → Studio OS Output. When product confirms a different path, add it here or replace this path."""
-    return redirect(reverse("studio_os:output"))
+    """Legacy report library URLs → Output Studio · Report library pane (§4.4 / §6.1)."""
+    from urllib.parse import urlencode
+
+    base = reverse("studio_os:output")
+    params = dict(request.GET.items())
+    params.setdefault("pane", "reports")
+    q = urlencode(params)
+    return redirect(f"{base}?{q}" if q else base)
 
 
 def legacy_siteconfig_customizer_redirect(request):
@@ -149,6 +167,7 @@ def legacy_siteconfig_customizer_redirect(request):
 
 def permission_denied(request, exception):
     """Custom 403: friendly message when staff hit Admin without superuser."""
+    _coerce_request_user_for_error_pages(request)
     is_admin_forbidden = (
         request.path.startswith("/admin")
         and request.user.is_authenticated
@@ -167,6 +186,7 @@ def permission_denied(request, exception):
 
 def page_not_found(request, exception):
     """Custom 404 page."""
+    _coerce_request_user_for_error_pages(request)
     template = (
         "errors/404_control_plane.html"
         if getattr(request, "public_host_kind", None) == "manager"
@@ -177,7 +197,8 @@ def page_not_found(request, exception):
 
 def server_error(request):
     """Custom 500 page. Pass user so base template and includes render when context processors failed."""
-    context = {"user": getattr(request, "user", None)}
+    _coerce_request_user_for_error_pages(request)
+    context = {"user": request.user}
     template = (
         "errors/500_control_plane.html"
         if getattr(request, "public_host_kind", None) == "manager"

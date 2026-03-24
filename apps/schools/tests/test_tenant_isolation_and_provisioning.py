@@ -25,6 +25,7 @@ from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.models import (
     EducationSystemProfile,
     RegionConfig,
+    SiteSettings,
     TenantSystem,
     SystemFeature,
 )
@@ -416,9 +417,9 @@ class OfflineSyncPerSchoolTests(TestCase):
             platform="WEB",
             app_version="1.0",
         )
-        site = get_platform_site_settings_record(create=True)
-        site.enable_offline_mode = True
-        site.save(update_fields=["enable_offline_mode"])
+        get_platform_site_settings_record(create=True)
+        # Phase B: enable_offline_mode is runtime payload, not a SiteSettings column.
+        SiteSettings._persist_runtime_payload_updates({"enable_offline_mode": True})
 
         client = Client()
         client.force_login(user)

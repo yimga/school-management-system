@@ -1,9 +1,10 @@
 {% load i18n %}
 <div class="container-fluid py-2 px-0 px-md-2" style="max-width: 100%; width: 100%; min-width: 0; overflow-x: clip;" data-page-archetype="operational-workbench">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
+  {# Primary 8-pill nav is on control_plane_base (manager); do not duplicate here. #}
   <div class="d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}">
     {% if request.public_host_kind == 'manager' %}
-    <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Control plane' %}"><i class="bi bi-building me-1"></i>{% trans "Manager" %}</a>
+    <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Home — control plane' %}"><i class="bi bi-house-door me-1"></i>{% trans "Home" %}</a>
     {% endif %}
     <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Studio home' %}">
       <i class="bi bi-grid-3x3-gap"></i>
@@ -64,6 +65,14 @@
             {% if legacy_urls.communication_groups %}<div class="col-auto"><a href="{{ legacy_urls.communication_groups }}" class="btn btn-outline-primary btn-sm">{% trans "Message groups" %}</a></div>{% endif %}
             {% if legacy_urls.announcement_create %}<div class="col-auto"><a href="{{ legacy_urls.announcement_create }}" class="btn btn-outline-primary btn-sm">{% trans "Announcements" %}</a></div>{% endif %}
           </div>
+        {% elif current_mode == 'control' %}
+          {% include "studio_os/partials/control_mode_canvas.html" %}
+        {% elif current_mode == 'automation' %}
+          {% include "studio_os/partials/automation_mode_canvas.html" %}
+        {% elif current_mode == 'output' %}
+          {% include "studio_os/partials/output_mode_canvas.html" %}
+        {% elif current_mode == 'launch' %}
+          {% include "studio_os/partials/launch_mode_canvas.html" %}
         {% elif embed_url %}
           <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Studio mode content' %}"></iframe>
         {% else %}
@@ -183,6 +192,7 @@
           <p class="small text-muted mb-2">{% trans "Complete setup steps and preview by role. Execute launch when ready." %}</p>
         {% elif current_mode == 'control' %}
           <p class="small fw-semibold mb-1">{% trans "Impact" %}</p>
+          {% if why_enabled_summary %}<p class="small text-muted mb-2">{{ why_enabled_summary }}</p>{% endif %}
           <p class="small text-muted mb-2">{% trans "Feature changes affect portal and backend. Review audit before rollback." %}</p>
           {% if control_audit_entries %}
           <ul class="studio-os-activity-list mb-2">
@@ -202,7 +212,7 @@
   </div>
 
   {% if studio_show_bottom_bar and studio_bottom_bar_actions %}
-  <div class="studio-os-bottom-bar mt-3" id="studio-bottom-bar" data-preview-url="{{ studio_preview_url|default:studio_preview_from_form_url|default:'' }}" data-publish-url="{{ studio_publish_url|default:'' }}" data-rollback-url="{{ studio_rollback_url|default:'' }}" data-mode="{{ current_mode|default:'' }}">
+  <div class="studio-os-bottom-bar mt-3 {% if request.public_host_kind == 'manager' %}cp-studio-sticky-actions{% endif %}" id="studio-bottom-bar" data-preview-url="{{ studio_preview_url|default:studio_preview_from_form_url|default:'' }}" data-publish-url="{{ studio_publish_url|default:'' }}" data-rollback-url="{{ studio_rollback_url|default:'' }}" data-mode="{{ current_mode|default:'' }}">
     {% for a in studio_bottom_bar_actions %}
     <button type="button" class="btn btn-sm {% if a.primary %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-studio-action="{{ a.id }}">{{ a.label }}</button>
     {% endfor %}

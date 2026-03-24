@@ -17,7 +17,7 @@
 | Reduce raw SQL | DONE (audit) | raw_sql_audit.md; siteconfig: cache_utils, recover_database allowlisted |
 | Reduce broad exceptions | DONE (audit) | broad_exception_audit.md; allowlist + CI |
 | Remove Gilead residue | DONE | migration 0155_normalize_gilead_residue_runmycampus; gilead_residue_inventory.md; lint_gilead_residue |
-| Replace giant admin pages with bounded consoles | IN PROGRESS | Phase B: Bounded console at siteconfig:console_domains_hub (/siteconfig/console/); linked from control plane nav "System config"; manager uses control_plane_base shell; domains link to Studio OS (Experience, Automation, Output) and feature control; further replacement incremental. |
+| Replace giant admin pages with bounded consoles | IN PROGRESS | Phase B: Bounded console at siteconfig:console_domains_hub (/siteconfig/console/); linked from control plane nav "Configuration Control Center"; manager uses control_plane_base shell; domains link to Studio OS (Experience, Automation, Output) and feature control; further replacement incremental. |
 
 ---
 

@@ -60,6 +60,83 @@ def super_support_dashboard(request):
         1 for t in tickets if getattr(t, "sla_resolution_breach", False)
     )
 
+    from django.urls import reverse as _reverse
+
+    urgent = []
+    if sla_breach_response or sla_breach_resolution:
+        urgent.append(
+            {
+                "title": f"SLA breaches: {sla_breach_response} response / {sla_breach_resolution} resolution",
+                "url": request.get_full_path() + "#support-queue",
+                "hint": "Prioritize oldest tickets first.",
+            }
+        )
+    elif open_count:
+        urgent.append(
+            {
+                "title": f"{open_count} open ticket(s)",
+                "url": _reverse("super:command_center"),
+                "hint": "Triage from command center.",
+            }
+        )
+    else:
+        urgent.append(
+            {
+                "title": "Queue calm",
+                "url": "",
+                "hint": "No open tickets in snapshot.",
+            }
+        )
+
+    top_tickets = tickets[:4]
+    activity = []
+    for t in top_tickets:
+        activity.append(
+            {
+                "title": str(getattr(t, "subject", "") or "Ticket"),
+                "meta": f"{getattr(t, 'status', '')} · {getattr(t, 'age_hours', '')}h",
+            }
+        )
+    if not activity:
+        activity.append({"title": "Support queue", "meta": "No tickets in view."})
+
+    phase7_de = {
+        "eyebrow": "Support mission control",
+        "headline_label": "Open tickets",
+        "headline_value": open_count,
+        "headline_meta": f"{in_progress_count} in progress · oldest {round(oldest_hours, 1)}h",
+        "metrics": [
+            {
+                "label": "Backlog >48h",
+                "value": backlog_48h,
+                "meta": "Aging",
+                "status": "warn" if backlog_48h else "ok",
+            },
+            {
+                "label": "Backlog >7d",
+                "value": backlog_7d,
+                "meta": "Critical aging",
+                "status": "danger" if backlog_7d else "ok",
+            },
+            {
+                "label": "SLA response breach",
+                "value": sla_breach_response,
+                "meta": f"Target {SUPPORT_SLA_RESPONSE_HOURS.get('NORMAL', 24)}h (normal)",
+                "status": "danger" if sla_breach_response else "ok",
+            },
+        ],
+        "urgent_queue": urgent,
+        "next_actions": [
+            {
+                "label": "Command center",
+                "url": _reverse("super:command_center"),
+            },
+            {"label": "Control plane", "url": _reverse("super:dashboard")},
+            {"label": "Reload", "url": request.get_full_path()},
+        ],
+        "activity": activity,
+    }
+
     return render(
         request,
         "schools/super_support_dashboard.html",
@@ -77,6 +154,7 @@ def super_support_dashboard(request):
             "sla_resolution_hours": SUPPORT_SLA_RESOLUTION_HOURS,
             "status_filter": status_filter,
             "priority_filter": priority_filter,
+            "phase7_de": phase7_de,
         },
     )
 

@@ -43,7 +43,7 @@
 | 136 | Staging 10-point launch checklist (Step 34) | NEXT_50 step 34 | Documented | launch_studio_checklist.md §4; RELEASE_CHECKLIST row when run. |
 | 137 | §6.1 siteconfig migrate ownership (incremental) | III.1 | Documented | domain_ownership §5; SITECONFIG_OWNERSHIP_MIGRATION; implement per product. |
 | 138 | §6.1 Delete legacy behavior paths (further) | III.2 | Documented | LEGACY_PATH_INVENTORY; product sign-off for each removal. |
-| 139 | §6.1 Replace giant admin with bounded consoles (further) | III.3 | Documented | System config console DONE; further pages per BOUNDED_CONSOLES_INVENTORY. |
+| 139 | §6.1 Replace giant admin with bounded consoles (further) | III.3 | Documented | Configuration Control Center console DONE; further pages per BOUNDED_CONSOLES_INVENTORY. |
 | 140 | §6.7 Blueprint preview/compare/sandbox/versioning | III.15 | N/A | product 2026-03-12; studio_preview covers launch/control. |
 | 141 | §6.8 Hard entitlement registry + marketplace compatibility | III.16, III.19 | N/A | product 2026-03-12. |
 | 142 | §6.9 Improve registry UI and runtime visibility | III.21 | N/A | product 2026-03-12; Lineage & registry in Control. |

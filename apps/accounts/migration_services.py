@@ -27,6 +27,115 @@ def _normalize_for_match(s: str) -> str:
     return t.strip("_")
 
 
+# Phase 9: distinctive header tokens per SIS export (heuristic source detection).
+_SOURCE_HEADER_SIGNATURES: dict[str, frozenset[str]] = {
+    "powerschool": frozenset(
+        {"dcid", "lastfirst", "schoolid", "enroll_status"}
+    ),
+    "infinite_campus": frozenset(
+        {"studentstateidentifier", "calid", "state_student_number"}
+    ),
+    "veracross": frozenset({"person_pk", "household_fk", "person_id"}),
+    "blackbaud": frozenset({"constituent_id", "legacy_id", "system_id"}),
+}
+
+
+def detect_source_system_from_headers(headers: list[str] | None) -> dict[str, Any]:
+    """
+    Infer likely SIS / export source from CSV column names (non-destructive hint).
+    Returns: suggested_system, score (0–1), matched_signals, candidates (ranked).
+    """
+    if not headers:
+        return {
+            "suggested_system": "other",
+            "score": 0.0,
+            "matched_signals": [],
+            "candidates": [],
+        }
+    norms = [_normalize_for_match(h) for h in headers if h and str(h).strip()]
+    norm_set = set(norms)
+
+    def _token_hits(sig: frozenset[str]) -> list[str]:
+        matched: list[str] = []
+        for raw in sig:
+            tn = _normalize_for_match(raw)
+            if tn in norm_set:
+                matched.append(raw)
+                continue
+            for n in norms:
+                if len(tn) >= 5 and tn in n:
+                    matched.append(raw)
+                    break
+                if len(n) >= 5 and n in tn:
+                    matched.append(raw)
+                    break
+        return sorted(set(matched))
+
+    scores: dict[str, tuple[float, list[str]]] = {}
+    for system, sig in _SOURCE_HEADER_SIGNATURES.items():
+        hits = _token_hits(sig)
+        frac = len(hits) / max(len(sig), 1)
+        scores[system] = (frac, hits)
+
+    ranked = sorted(scores.items(), key=lambda x: (-x[1][0], x[0]))
+    best_system, (best_frac, best_hits) = ranked[0]
+    second_frac = ranked[1][1][0] if len(ranked) > 1 else 0.0
+
+    if best_frac < 0.34:
+        suggested = "other"
+        conf = round(best_frac, 3)
+    elif best_frac - second_frac < 0.01 and second_frac >= 0.34:
+        suggested = "other"
+        conf = round(best_frac * 0.75, 3)
+    else:
+        suggested = best_system
+        conf = min(1.0, round(best_frac + 0.1 * len(best_hits), 3))
+
+    return {
+        "suggested_system": suggested,
+        "score": conf,
+        "matched_signals": best_hits,
+        "candidates": [
+            {"system": name, "score": round(sc, 3), "matched": hits}
+            for name, (sc, hits) in ranked
+            if sc > 0
+        ][:4],
+    }
+
+
+def compute_migration_confidence(
+    row_count: int,
+    scorecard: dict[str, Any],
+    validation_issues: dict[str, list[Any]],
+) -> dict[str, Any]:
+    """
+    Phase 9: single scorecard band for operators (not a legal guarantee).
+    Combines row-level errors with categorized validation issue counts.
+    """
+    if row_count <= 0:
+        return {"band": "unknown", "score": 0.0, "hint": "No rows uploaded."}
+    err = int(scorecard.get("error_count") or 0)
+    vi_total = sum(len(validation_issues.get(cat, []) or []) for cat in VALIDATION_CATEGORIES)
+    penalty = (err + vi_total) / float(row_count)
+    score = max(0.0, min(1.0, 1.0 - penalty))
+    if score >= 0.85 and err == 0 and vi_total == 0:
+        band = "high"
+        hint = "Dry run clean — review parity, then commit or export audit from run history."
+    elif score >= 0.55:
+        band = "medium"
+        hint = "Some rows or validation issues need review before production import."
+    else:
+        band = "low"
+        hint = "Fix validation issues or adjust mapping; avoid full commit until score improves."
+    return {
+        "band": band,
+        "score": round(score, 3),
+        "hint": hint,
+        "error_rows": err,
+        "validation_issue_rows": vi_total,
+    }
+
+
 def infer_schema_mapping(
     headers: list[str], target_fields: list[str]
 ) -> dict[str, str]:
@@ -326,6 +435,9 @@ def run_dry_run(
     scorecard["row_count"] = row_count
     scorecard["parity"] = compute_parity_from_scorecard(row_count, scorecard)
     scorecard["validation_issues"] = validation_issues
+    scorecard["confidence"] = compute_migration_confidence(
+        row_count, scorecard, validation_issues
+    )
 
     if create_audit and school:
         from apps.automation.models import MigrationRun

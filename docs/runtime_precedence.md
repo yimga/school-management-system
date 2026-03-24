@@ -4,11 +4,13 @@
 
 **Status:** DONE — order documented and implemented in platform_runtime.
 
+**Phase 6 checklist:** [PHASE_6_RUNTIME_FIRST_ENFORCEMENT.md](PHASE_6_RUNTIME_FIRST_ENFORCEMENT.md) maps the external “Phase 6” tasks to this file, `precedence.py`, and contract tests.
+
 ---
 
 ## 1. Standard precedence order
 
-Tenant-effective value is resolved in this order (first non-null / applicable wins):
+Layers are listed from **lowest** to **highest** authority. For merges (e.g. feature flags, `merge_by_precedence`), **higher layers override** lower ones; the highest applicable layer wins (see `precedence.py` — `sandbox_override` > `tenant_override` > … > `platform_default`).
 
 1. **Platform default** — System-wide fallback (e.g. `build_platform_default_site_settings()`).
 2. **Registry / regional default** — Global registries (region, country, education profile) and regional overrides.

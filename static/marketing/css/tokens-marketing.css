@@ -1,37 +1,94 @@
 /**
- * Marketing-only design tokens. Do not depend on dashboard or tenant tokens.
- * Used only by the marketing shell (runmycampus.com).
+ * Marketing shell tokens — Phase 2: same family as product (design-tokens.css).
+ * --mkt-* names stay for marketing templates; values alias platform scale so the
+ * marketing front cannot drift into a separate palette.
+ *
+ * Load order: design-tokens.css → design-tokens-luxury.css → this file.
  */
 :root {
-  --mkt-primary: #0f172a;
-  --mkt-primary-light: #1e293b;
-  /* Brand accent: overridden in marketing base when PUBLIC_BRAND_MODE */
+  /* Neutrals → color-base scale (product) */
+  --mkt-primary: var(--color-base-900);
+  --mkt-primary-light: var(--color-base-800);
   --mkt-accent: #f59e0b;
   --mkt-accent-hover: color-mix(in srgb, var(--mkt-accent) 85%, #000);
-  --mkt-hero-bg: #0f172a;
-  --mkt-hero-bg-mid: #1e293b;
-  --mkt-hero-bg-end: #334155;
-  --mkt-text: #0f172a;
-  --mkt-text-muted: #64748b;
-  --mkt-text-inverse: #f8fafc;
-  --mkt-surface: #ffffff;
+  --mkt-hero-bg: var(--color-base-900);
+  --mkt-hero-bg-mid: var(--color-base-800);
+  --mkt-hero-bg-end: var(--color-base-700);
+  --mkt-text: var(--color-base-900);
+  --mkt-text-muted: var(--color-base-500);
+  --mkt-text-inverse: var(--color-base-50);
+  --mkt-surface: var(--color-base-0);
   --mkt-border: rgba(15, 23, 42, 0.08);
-  --mkt-radius-sm: 8px;
-  --mkt-radius-md: 12px;
-  --mkt-radius-lg: 16px;
-  --mkt-radius-xl: 24px;
-  --mkt-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
-  --mkt-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
-  --mkt-shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.12);
-  --mkt-spacing-xs: 0.5rem;
-  --mkt-spacing-sm: 1rem;
-  --mkt-spacing-md: 1.5rem;
-  --mkt-spacing-lg: 2.5rem;
-  --mkt-spacing-xl: 4rem;
-  --mkt-spacing-2xl: 5rem;
-  --mkt-font: Inter, system-ui, -apple-system, sans-serif;
-  --mkt-type-hero: clamp(2rem, 4vw, 3.25rem);
-  --mkt-type-section: clamp(1.75rem, 3vw, 2.25rem);
-  --mkt-type-body: 1.125rem;
-  --mkt-type-micro: 0.75rem;
+
+  /* Radii → token-radius (product) */
+  --mkt-radius-sm: var(--token-radius-sm);
+  --mkt-radius-md: var(--token-radius-md);
+  --mkt-radius-lg: var(--token-radius-lg);
+  --mkt-radius-xl: var(--token-radius-xl);
+
+  /* Elevation → shell / platform family */
+  --mkt-shadow-sm: var(--shell-elevation-1);
+  --mkt-shadow-md: var(--shell-elevation-2);
+  --mkt-shadow-lg: var(--shell-elevation-3);
+
+  /* Spacing → token-space (product 4px grid) */
+  --mkt-spacing-xs: var(--token-space-sm);
+  --mkt-spacing-sm: var(--token-space-md);
+  --mkt-spacing-md: var(--token-space-lg);
+  --mkt-spacing-lg: var(--token-space-xl);
+  --mkt-spacing-xl: var(--token-space-2xl);
+  --mkt-spacing-2xl: var(--token-space-3xl);
+
+  --mkt-font: var(--portal-font);
+  /* Hero/section type: match Studio / control plane display scale */
+  --mkt-type-hero: var(--studio-font-display);
+  --mkt-type-section: var(--type-section);
+  --mkt-type-body: var(--type-body);
+  --mkt-type-micro: var(--type-micro);
+
+  /* Text on primary / accent surfaces (nav, hero, footer) — product family */
+  --mkt-on-primary: var(--mkt-text-inverse);
+  --mkt-on-accent: var(--color-base-900);
+  --mkt-star-rating: var(--ds-warning);
+  --mkt-checkmark: var(--ds-success);
+
+  /* Bridge: proof-pages + shared product token names on marketing shell */
+  --school-primary: var(--mkt-primary);
+  --school-accent: var(--mkt-accent);
+}
+
+/* PUBLIC_BRAND_MODE inline style in base_marketing still overrides --mkt-primary / --mkt-hero-bg / --mkt-accent */
+
+/* Dark marketing — explicit theme */
+html[data-theme="dark"][data-surface="marketing"],
+html[data-bs-theme="dark"][data-surface="marketing"] {
+  --mkt-text: var(--color-base-100);
+  --mkt-text-muted: var(--color-base-400);
+  --mkt-surface: var(--color-base-900);
+  --mkt-border: rgba(148, 163, 184, 0.2);
+  --mkt-hero-bg: var(--color-base-900);
+  --mkt-hero-bg-mid: var(--color-base-800);
+  --mkt-hero-bg-end: var(--color-base-700);
+  --mkt-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --mkt-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --mkt-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --mkt-on-accent: var(--color-base-900);
+  --mkt-checkmark: var(--ds-success);
+  --mkt-star-rating: var(--ds-warning);
+}
+
+/* System preference when marketing uses data-theme="system" */
+@media (prefers-color-scheme: dark) {
+  html[data-theme="system"][data-surface="marketing"] {
+    --mkt-text: var(--color-base-100);
+    --mkt-text-muted: var(--color-base-400);
+    --mkt-surface: var(--color-base-900);
+    --mkt-border: rgba(148, 163, 184, 0.2);
+    --mkt-hero-bg: var(--color-base-900);
+    --mkt-hero-bg-mid: var(--color-base-800);
+    --mkt-hero-bg-end: var(--color-base-700);
+    --mkt-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --mkt-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --mkt-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
+  }
 }

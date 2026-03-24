@@ -13,7 +13,7 @@
 
 - **Super (control plane):** **Page tour** on `/super/trust/`, `/super/migration/csv-diff/`, `/super/tools/governed-query/` → `siteconfig:tour_steps_api?context=super_trust|super_migration|super_governed` + `static/js/control-plane-tour.js`.
 - **Tenant backend:** `tour_steps_api?context=backend_dashboard` + first-login tour (unchanged).
-- **Setup Studio** linked from System config outcome banner (`console_domains_hub`).
+- **Setup Studio** linked from Configuration Control Center outcome banner (`console_domains_hub`).
 
 ## Sign-off
 

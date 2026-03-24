@@ -5,6 +5,7 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/marketing-home.css' %}">
   <link rel="stylesheet" href="{% static 'css/marketing-home-scroll.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-narrative-phase10.css' %}">
   {# CWV: below-fold live-flow CSS loads non-blocking #}
   <link rel="preload" href="{% static 'css/mkt-live-flow.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="{% static 'css/mkt-live-flow.css' %}"></noscript>
@@ -22,7 +23,7 @@
 {% endblock %}
 {% block content %}
 <noscript><style>.marketing-home .mkt-reveal,.marketing-home .mkt-reveal-stagger>*{opacity:1;transform:none;}</style></noscript>
-<div class="marketing-home" data-scroll-story="true" data-marketing-hero-variant="{{ hero_variant|default:'A' }}" data-marketing-cta-variant="{{ marketing_cta_variant|default:'default' }}" data-marketing-experiment="hero={{ hero_variant|default:'A' }};cta={{ marketing_cta_variant|default:'default' }}">
+<div class="marketing-home mkt-narrative-phase10" id="mkt-narrative-root" data-scroll-story="true" data-phase10-marketing-narrative="true" data-marketing-hero-variant="{{ hero_variant|default:'A' }}" data-marketing-cta-variant="{{ marketing_cta_variant|default:'default' }}" data-marketing-experiment="hero={{ hero_variant|default:'A' }};cta={{ marketing_cta_variant|default:'default' }}">
   <a href="#hero" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   <div id="mkt-scroll-progress" class="mkt-scroll-progress" role="presentation" aria-hidden="true">
     <div id="mkt-scroll-progress-fill" class="mkt-scroll-progress-fill"></div>
@@ -89,13 +90,15 @@
     </div>
   </section>
 
-  {# Chapter 2 — Why schools switch / platform pillars #}
+  {# Chapter 2 — Why switch: narrative pillars + proof (Phase 10) #}
   {% if platform_pillar_grid %}
-  <section id="platform-pillars" class="mkt-section mkt-section-pillars mkt-reveal" aria-label="{% trans 'Platform pillars' %}" data-chapter="2">
+  <section id="platform-pillars" class="mkt-section mkt-section-pillars mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Why schools switch' %}" data-chapter="2">
     <div class="container">
-      <div class="row g-3 g-md-4 text-center mkt-reveal-stagger">
+      <h2 class="mkt-section-heading text-center">{% trans "Why schools switch" %}</h2>
+      <p class="mkt-section-lead text-center">{% trans "Six platform chapters — one continuous story from classroom to control plane." %}</p>
+      <div class="row g-3 g-md-4 text-center mkt-reveal-stagger mkt-narrative-pillars">
         {% for pillar in platform_pillar_grid %}
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
           <div class="mkt-pillar-card rmc-glass-surface">
             <strong class="mkt-pillar-label">{{ pillar.label }}</strong>
             <span class="mkt-pillar-sub">{{ pillar.sub }}</span>
@@ -103,6 +106,21 @@
         </div>
         {% endfor %}
       </div>
+      {% if differentiation_block %}
+      <h3 class="h5 text-center mt-4 mb-3">{% trans "Why RunMyCampus" %}</h3>
+      <ul class="mkt-why-switch-list small text-muted">
+        {% for item in differentiation_block %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+      {% if why_switch_bullets %}
+      <h3 class="h5 text-center mt-4 mb-3">{% trans "Why switch now" %}</h3>
+      <ol class="mkt-why-switch-list">
+        {% for bullet in why_switch_bullets %}<li>{{ bullet }}</li>{% endfor %}
+      </ol>
+      {% if why_switch_path %}
+      <p class="text-center mt-2"><a href="{{ why_switch_path }}" class="btn btn-outline-primary btn-sm">{% trans "Deep dive: why switch" %}</a></p>
+      {% endif %}
+      {% endif %}
     </div>
   </section>
   {% endif %}
@@ -238,43 +256,42 @@
   </section>
   {% endif %}
 
-  {# Chapter 5 — Studio OS / product in action #}
+  {# Chapter 5 — Studio OS / pinned product frame (Phase 10) #}
   {% if product_visualization_slides %}
-  <section id="product-visualization" class="mkt-section mkt-reveal" aria-label="{% trans 'Product in action' %}" data-tour="product-visualization" data-chapter="5">
-    <h2 class="mkt-section-heading">{% trans "See your entire school in real time" %}</h2>
-    <p class="mkt-section-lead">{% trans "Student profiles, teacher dashboards, and admin analytics—one platform." %}</p>
-    <div class="mkt-product-viz-scroll" role="list">
-      {% for slide in product_visualization_slides %}
-      <div class="mkt-product-viz-slide" role="listitem">
-        <div class="mkt-product-viz-frame">
-          {% if slide.image_url %}
-          <img src="{{ slide.image_url }}" alt="{{ slide.title }}" width="600" height="360" loading="lazy" decoding="async">
-          {% elif slide.image_static %}
-          <img src="{% static slide.image_static %}" alt="{{ slide.title }}" width="600" height="360" loading="lazy" decoding="async">
-          {% endif %}
-        </div>
-        <h3 class="h6 mt-2">{{ slide.title }}</h3>
-        <p class="small text-muted mb-0">{{ slide.caption }}</p>
+  <section id="product-visualization" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Studio OS' %}" data-tour="product-visualization" data-chapter="5">
+    <div class="container mkt-studio-pinned">
+      <div class="mkt-studio-copy">
+        <h2 class="mkt-section-heading">{% trans "Studio OS — one shell for every mode" %}</h2>
+        <p class="mkt-section-lead">{% trans "Experience, Automation, Output, Launch, and Control — scroll the product frame while the narrative stays put." %}</p>
+        <p class="small text-muted">{% trans "Same chrome as your tenant: command palette, rails, and publish/rollback discipline." %}</p>
       </div>
-      {% endfor %}
+      <div class="mkt-product-viz-scroll" role="list">
+        {% for slide in product_visualization_slides %}
+        <div class="mkt-product-viz-slide" role="listitem">
+          <div class="mkt-product-viz-frame">
+            {% if slide.image_url %}
+            <img src="{{ slide.image_url }}" alt="{{ slide.title }}" width="600" height="360" loading="lazy" decoding="async">
+            {% elif slide.image_static %}
+            <img src="{% static slide.image_static %}" alt="{{ slide.title }}" width="600" height="360" loading="lazy" decoding="async">
+            {% endif %}
+          </div>
+          <h3 class="h6 mt-2">{{ slide.title }}</h3>
+          <p class="small text-muted mb-0">{{ slide.caption }}</p>
+        </div>
+        {% endfor %}
+      </div>
     </div>
   </section>
   {% endif %}
 
-  {# 2. Institutional coverage #}
-  <section id="institutional-coverage" class="mkt-section" aria-label="{% trans 'Institutional coverage' %}">
-    <h2 class="mkt-section-heading">{% trans "Built for every type of institution" %}</h2>
-    <p class="mkt-section-lead">{% trans "K-12, higher ed, technical, private, and government education—one platform." %}</p>
-    <div class="mkt-modules-grid">
-      {% for inst in institution_types %}
-        <article class="mkt-module-card">
-          <h3>{{ inst.label }}</h3>
-          <p>{{ inst.summary }}</p>
-          <a href="{{ inst.path }}" class="btn btn-sm btn-outline-primary">{% trans "Explore" %}</a>
-        </article>
-      {% endfor %}
-    </div>
-  </section>
+  {# Institutional coverage — compact strip (Phase 10: no duplicate card grid) #}
+  {% if institution_types %}
+  <nav id="institutional-coverage" class="mkt-institution-strip container" aria-label="{% trans 'Institutional coverage' %}">
+    {% for inst in institution_types %}
+    <a href="{{ inst.path }}">{{ inst.label }}</a>{% if not forloop.last %}<span class="text-muted" aria-hidden="true">·</span>{% endif %}
+    {% endfor %}
+  </nav>
+  {% endif %}
 
   {# Product pillars (6) — Learn more links #}
   {% if product_pillars_home %}
@@ -312,11 +329,25 @@
   </section>
   {% endif %}
 
-  {# Chapter 8 — Role experiences #}
+  {# Chapter 8 — Role experiences + role-home visuals #}
   {% if for_your_role %}
-  <section id="for-your-role" class="mkt-section mkt-reveal" aria-label="{% trans 'For your role' %}" data-chapter="8">
-    <h2 class="mkt-section-heading">{% trans "For your role" %}</h2>
-    <p class="mkt-section-lead">{% trans "Purpose-built workflows for every stakeholder." %}</p>
+  <section id="for-your-role" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'For your role' %}" data-chapter="8">
+    <h2 class="mkt-section-heading">{% trans "Role-native experiences" %}</h2>
+    <p class="mkt-section-lead">{% trans "Purpose-built home surfaces — not a one-size portal." %}</p>
+    {% if role_preview_images %}
+    <div class="mkt-role-visual-strip" data-phase10-role-visuals>
+      {% for rp in role_preview_images %}
+      <div class="mkt-role-visual-card">
+        {% if rp.image_url %}
+        <img src="{{ rp.image_url }}" alt="{{ rp.label }}" width="200" height="120" loading="lazy" decoding="async">
+        {% elif rp.image_static %}
+        <img src="{% static rp.image_static %}" alt="{{ rp.label }}" width="200" height="120" loading="lazy" decoding="async">
+        {% endif %}
+        <div class="mkt-role-visual-label">{{ rp.label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
     <div class="mkt-modules-grid">
       {% for role in for_your_role %}
       <article class="mkt-module-card">
@@ -326,19 +357,6 @@
       </article>
       {% endfor %}
     </div>
-  </section>
-  {% endif %}
-
-  {# Solve by challenge #}
-  {% if solve_by_challenge %}
-  <section id="solve-by-challenge" class="mkt-section" aria-label="{% trans 'Solve by challenge' %}">
-    <h2 class="mkt-section-heading">{% trans "Solve by challenge" %}</h2>
-    <p class="mkt-section-lead">{% trans "Find the path that fits your priority." %}</p>
-    <ul class="list-unstyled d-flex flex-wrap gap-2 justify-content-center">
-      {% for ch in solve_by_challenge %}
-      <li><a href="{{ ch.path }}" class="btn btn-outline-secondary btn-sm">{{ ch.title }}</a></li>
-      {% endfor %}
-    </ul>
   </section>
   {% endif %}
 
@@ -363,7 +381,7 @@
   {% endif %}
 
   {# Launch your school in minutes — School-in-a-Box (required per Visual Asset plan) #}
-  <section id="launch-in-minutes" class="mkt-section" aria-label="{% trans 'Launch your school in minutes' %}">
+  <section id="launch-in-minutes" class="mkt-section mkt-reveal mkt-narrative-chapter" aria-label="{% trans 'Launch your school in minutes' %}" data-chapter="4">
     <h2 class="mkt-section-heading">{% trans "Launch your school in minutes" %}</h2>
     <p class="mkt-section-lead">{% trans "Guided setup: choose your blueprint, brand your school, install modules, and go live." %}</p>
     {% if school_in_a_box_flow_image_url %}
@@ -409,25 +427,6 @@
         </g>
       </svg>
     </div>
-    <div class="mkt-platform-grid">
-      {% for item in workflow_automation %}
-        <article class="mkt-platform-card rmc-glass-surface">
-          <h3>{{ item.title }}</h3>
-          <p>{{ item.body }}</p>
-        </article>
-      {% endfor %}
-    </div>
-  </section>
-
-  {# 5. Global compliance #}
-  <section id="global-compliance" class="mkt-section mkt-reveal" aria-label="{% trans 'Global compliance' %}" data-chapter="9">
-    <h2 class="mkt-section-heading">{% trans "Global compliance" %}</h2>
-    <p class="mkt-section-lead">{% trans "Regional defaults, audit trails, and role-based access—ready for FERPA, GDPR, and local regulations." %}</p>
-    <ul class="mkt-migration-list">
-      {% for item in trust_controls %}
-        <li>{{ item }}</li>
-      {% endfor %}
-    </ul>
   </section>
 
   {# AI Intelligence — required section (Visual Asset plan) #}
@@ -491,55 +490,63 @@
       </ul>
     </div>
     <div class="mkt-chapter-visual">
-      {% if migration_studio_image_url %}<img src="{{ migration_studio_image_url }}" alt="{% trans 'Migration Cloud' %}" width="600" height="360" loading="lazy" decoding="async">{% endif %}
+      {% if migration_studio_image_url %}
+      <img src="{{ migration_studio_image_url }}" alt="{% trans 'Migration Cloud' %}" width="600" height="360" loading="lazy" decoding="async">
+      {% elif migration_diagram_url %}
+      <img src="{{ migration_diagram_url }}" alt="{% trans 'Migration Cloud flow' %}" width="600" height="360" loading="lazy" decoding="async">
+      {% endif %}
     </div>
   </section>
 
-  {# 7. Ecosystem — App Marketplace hero, integrations strip, developer story, partners #}
-  <section id="ecosystem" class="mkt-section" data-tour="ecosystem">
-    {% if app_marketplace_hero %}
-    <h2 class="mkt-section-heading">{{ app_marketplace_hero.title }}</h2>
-    <p class="mkt-section-lead">{{ app_marketplace_hero.summary }} {{ app_marketplace_hero.app_count }} {% trans "integrations and apps." %}</p>
-    <p class="text-center mb-3">
-      <a href="{{ app_marketplace_hero.cta_path }}" class="btn btn-primary">{{ app_marketplace_hero.cta_label }}</a>
-    </p>
-    {% else %}
-    <h2 class="mkt-section-heading">{% trans "Ecosystem & integrations" %}</h2>
-    <p class="mkt-section-lead">{% trans "Connect your LMS, payments, messaging, and identity providers." %}</p>
-    {% endif %}
-    {% if integrations_strip %}
-    <p class="text-center small text-muted mb-3">{% trans "Works with:" %} {{ integrations_strip|join:", " }}</p>
-    {% endif %}
-    <div class="mkt-ecosystem-grid">
-      {% for app in ecosystem_apps %}
+  {# 7. Marketplace & packs — pinned diagram + apps (Phase 10) #}
+  <section id="ecosystem" class="mkt-section mkt-reveal mkt-narrative-chapter mkt-chapter-pinned" data-tour="ecosystem" data-chapter="6">
+    <div class="mkt-chapter-copy">
+      {% if app_marketplace_hero %}
+      <h2 class="mkt-section-heading">{{ app_marketplace_hero.title }}</h2>
+      <p class="mkt-section-lead">{{ app_marketplace_hero.summary }} {{ app_marketplace_hero.app_count }} {% trans "integrations and apps." %}</p>
+      {% else %}
+      <h2 class="mkt-section-heading">{% trans "Marketplace & packs" %}</h2>
+      <p class="mkt-section-lead">{% trans "Governed installs, sandbox rollout, and rollback — same discipline as your tenant catalog." %}</p>
+      {% endif %}
+      {% if integrations_strip %}
+      <p class="small text-muted">{% trans "Works with:" %} {{ integrations_strip|join:", " }}</p>
+      {% endif %}
+      <p class="mt-3">
+        <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-primary">{% if app_marketplace_hero %}{{ app_marketplace_hero.cta_label }}{% else %}{% trans "App Marketplace" %}{% endif %}</a>
+        <a href="{% url 'marketing_integrations' %}" class="btn btn-outline-primary ms-2">{% trans "View integrations" %}</a>
+      </p>
+      {% if partners_list %}
+      <p class="small text-muted mt-2">{% trans "Implementation partners:" %} {% for p in partners_list %}<a href="{{ p.url }}">{{ p.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+      {% endif %}
+    </div>
+    <div class="mkt-chapter-visual">
+      {% if ecosystem_diagram_url %}
+      <img src="{{ ecosystem_diagram_url }}" alt="{% trans 'Marketplace and ecosystem map' %}" width="720" height="400" loading="lazy" decoding="async">
+      {% endif %}
+      <div class="mkt-ecosystem-grid mt-3">
+        {% for app in ecosystem_apps %}
         <div class="mkt-ecosystem-card">
           {% if app.image_url %}
           <div class="mkt-ecosystem-card-icon"><img src="{{ app.image_url }}" alt="" width="48" height="48" loading="lazy" decoding="async"></div>
           {% endif %}
           <h4>{{ app.name }}</h4>
-          <p>{{ app.summary }}</p>
+          <p class="small mb-0">{{ app.summary }}</p>
           {% if app.install_path or app.cta_path %}
           <a href="{{ app.install_path|default:app.cta_path }}" class="btn btn-sm btn-outline-primary mt-2">{% trans app.cta_label|default:"Install" %}</a>
           {% endif %}
         </div>
-      {% endfor %}
+        {% endfor %}
+      </div>
     </div>
-    <p class="text-center mt-3">
-      <a href="{% url 'marketing_integrations' %}" class="btn btn-outline-primary">{% trans "View integrations" %}</a>
-      <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-outline-secondary ms-2">{% trans "App Marketplace" %}</a>
-    </p>
-    {% if partners_list %}
-    <p class="text-center small text-muted mt-2">{% trans "Implementation partners:" %} {% for p in partners_list %}<a href="{{ p.url }}">{{ p.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-    {% endif %}
   </section>
 
-  {# 8. Developer platform — By developers, for developers #}
-  <section id="developer-platform" class="mkt-section" aria-label="{% trans 'Developer platform' %}">
-    <h2 class="mkt-section-heading">{{ developer_platform_card.title }}</h2>
-    <p class="mkt-section-lead">{% if developer_story_summary %}{{ developer_story_summary }}{% else %}{{ developer_platform_card.summary }}{% endif %}</p>
-    <p class="text-center">
-      <a href="{{ developer_platform_card.cta_path }}" class="btn btn-outline-primary">{{ developer_platform_card.cta_label }}</a>
-    </p>
+  {# Developer platform — compact band #}
+  <section id="developer-platform" class="mkt-section mkt-reveal" aria-label="{% trans 'Developer platform' %}">
+    <div class="container mkt-dev-band">
+      <p class="mb-1 fw-semibold">{{ developer_platform_card.title }}</p>
+      <p class="small text-muted mb-2">{% if developer_story_summary %}{{ developer_story_summary }}{% else %}{{ developer_platform_card.summary }}{% endif %}</p>
+      <a href="{{ developer_platform_card.cta_path }}" class="btn btn-sm btn-outline-primary">{{ developer_platform_card.cta_label }}</a>
+    </div>
   </section>
 
   {# Customer logos #}
@@ -686,31 +693,6 @@
   </section>
   {% endif %}
 
-  {# Differentiation block #}
-  {% if differentiation_block %}
-  <section id="differentiation" class="mkt-section" aria-label="{% trans 'Why RunMyCampus' %}">
-    <h2 class="mkt-section-heading">{% trans "Why RunMyCampus" %}</h2>
-    <ul class="mkt-migration-list">
-      {% for item in differentiation_block %}
-      <li>{{ item }}</li>
-      {% endfor %}
-    </ul>
-    {% if why_switch_bullets %}
-    <h3 class="h6 mt-4 mb-2">{% trans "Why switch now" %}</h3>
-    <ul class="mkt-migration-list">
-      {% for bullet in why_switch_bullets %}
-      <li>{{ bullet }}</li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-    {% if why_switch_path %}
-    <p class="text-center mt-3">
-      <a href="{{ why_switch_path }}" class="btn btn-outline-primary">{% trans "Why switch" %}</a>
-    </p>
-    {% endif %}
-  </section>
-  {% endif %}
-
   {# 10 reasons link #}
   {% if ten_reasons_page_path %}
   <section id="10-reasons-cta" class="mkt-section">
@@ -722,15 +704,29 @@
   {% endif %}
 
   {# 11. Trust + security — support & accessibility #}
-  {# Chapter 9 — Security & trust #}
-  <section id="security-compliance" class="mkt-section mkt-reveal" data-chapter="9">
-    <h2 class="mkt-section-heading">{% trans "Security & compliance" %}</h2>
-    <p class="mkt-section-lead">{% trans "Enterprise-grade safeguards and regional compliance readiness." %}</p>
+  {# Chapter 9 — Security & trust + control-plane visual #}
+  <section id="security-compliance" class="mkt-section mkt-reveal mkt-narrative-chapter" data-chapter="9">
+    <h2 class="mkt-section-heading">{% trans "Security & trust" %}</h2>
+    <p class="mkt-section-lead">{% trans "Enterprise-grade safeguards, regional compliance defaults, and operator-grade audit." %}</p>
+    <div class="mkt-trust-visual-row">
+      {% if control_plane_diagram_url %}
+      <img src="{{ control_plane_diagram_url }}" alt="{% trans 'Control plane governance' %}" loading="lazy" decoding="async">
+      {% endif %}
+      {% if illustration_workflow_url %}
+      <img src="{{ illustration_workflow_url }}" alt="" loading="lazy" decoding="async" aria-hidden="true">
+      {% endif %}
+    </div>
     {% if support_implementation_copy %}
     <p class="mkt-security-copy">{{ support_implementation_copy }}</p>
     {% endif %}
     {% if accessibility_line %}
     <p class="mkt-security-copy">{{ accessibility_line }}</p>
+    {% endif %}
+    {% if trust_controls %}
+    <h3 class="h6">{% trans "Compliance posture" %}</h3>
+    <ul class="mkt-migration-list small">
+      {% for item in trust_controls %}<li>{{ item }}</li>{% endfor %}
+    </ul>
     {% endif %}
     <div class="mkt-security-badges">
       {% for badge in security_badges %}

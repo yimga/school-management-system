@@ -8,13 +8,17 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import OperationalError, ProgrammingError
 
-from apps.siteconfig.models import ThemePack
+from apps.siteconfig.models import SiteSettings, ThemePack
 
 
 class Command(BaseCommand):
     help = (
         "Import a UI parity fixture (ThemePack + SiteSettings) and normalize defaults."
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._sitesettings_runtime_field_extras: dict[int, dict] = {}
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -136,6 +140,14 @@ class Command(BaseCommand):
 
     def _normalize_fixture_fields(self, data: list[dict]) -> list[dict]:
         normalized = json.loads(json.dumps(data))
+        allowed_site_fields: set[str] = set()
+        for field in SiteSettings._meta.get_fields():
+            if not getattr(field, "concrete", False):
+                continue
+            allowed_site_fields.add(field.name)
+            att = getattr(field, "attname", None)
+            if att:
+                allowed_site_fields.add(att)
         for row in normalized:
             if (
                 not isinstance(row, dict)
@@ -145,4 +157,47 @@ class Command(BaseCommand):
             fields = row.get("fields") or {}
             if "compliance_profile" in fields and "compliance_profile_id" not in fields:
                 fields["compliance_profile_id"] = fields.pop("compliance_profile")
+            extra: dict = {}
+            for key in list(fields.keys()):
+                if key not in allowed_site_fields:
+                    extra[key] = fields.pop(key)
+            pk = row.get("pk")
+            if extra and pk is not None:
+                self._sitesettings_runtime_field_extras[int(pk)] = extra
         return normalized
+
+    def _apply_sitesettings_runtime_extras(self) -> None:
+        """
+        Phase B Batch 3: keys stripped from SiteSettings rows (theme FKs, etc.) are merged
+        into PlatformGlobalBranding and RuntimeDefaults so imports stay coherent.
+        """
+        if not self._sitesettings_runtime_field_extras:
+            return
+        try:
+            from apps.brand_experience.platform_global_branding import (
+                PlatformGlobalBranding,
+            )
+            from apps.siteconfig.models import SiteSettings
+        except ImportError:
+            return
+        pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
+        rt_merge: dict = {}
+        pgb_fk_keys = frozenset(
+            {
+                "theme_pack_id",
+                "admin_theme_pack_id",
+                "teacher_theme_pack_id",
+                "parent_theme_pack_id",
+                "default_term_report_style_id",
+                "default_annual_report_style_id",
+            }
+        )
+        for _pk, extra in self._sitesettings_runtime_field_extras.items():
+            for k, v in extra.items():
+                if k in pgb_fk_keys:
+                    setattr(pgb, k, v)
+                else:
+                    rt_merge[k] = v
+        pgb.save()
+        if rt_merge:
+            SiteSettings._persist_runtime_payload_updates(rt_merge)

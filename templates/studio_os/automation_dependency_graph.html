@@ -7,28 +7,6 @@
 <div class="container py-3" data-page-archetype="operational-workbench">
   {% trans "Back to Automation" as back_action %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
-  <div class="studio-os__card py-3 px-3">
-    {% if graph %}
-    <ul class="list-unstyled mb-0">
-      {% for node in graph %}
-      <li class="mb-3">
-        <strong>{{ node.pack_name|default:node.pack_code|default:"—" }}</strong>
-        {% if node.pack_code %}<code class="small ms-1">{{ node.pack_code }}</code>{% endif %}
-        {% if node.templates %}
-        <ul class="small text-muted mt-1 mb-0 ps-3">
-          {% for t in node.templates %}
-          <li><span class="text-dark">{{ t.name|default:t.code|default:"—" }}</span>{% if t.code %} <code>{{ t.code }}</code>{% endif %}</li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <span class="small text-muted d-block mt-1">— {% trans "No templates" %}</span>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="text-muted mb-0">{% trans "No workflow packs to show. Seed workflow packs or add active packs in the catalog." %}</p>
-    {% endif %}
-  </div>
+  {% include "studio_os/partials/automation_dependency_graph_body.html" with graph=graph %}
 </div>
 {% endblock %}

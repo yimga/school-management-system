@@ -9,7 +9,7 @@ Live preview is a **platform-wide capability**, not limited to one section or pa
 | Mode | Entry point | Use |
 |------|-------------|-----|
 | **Config / full-page** | `siteconfig:preview_from_form` | Theme & Experience, Site Settings (header, footer, login, sidebar). Form POSTs with `preview_section`; user is redirected to portal (or login) with unsaved settings applied and section highlighted. |
-| **Report / embed** | `siteconfig:reportcard_style_embed_preview`, `reportcard_style_live_preview` | Report Card Builder: iframe or new-tab preview of report style with sample student. |
+| **Report / embed** | `siteconfig:reportcard_style_embed_preview`, `reportcard_style_live_preview` | Report Card Builder: **iframe** embed preview and/or **new-tab** full HTML preview of report style with sample student (builder workflow itself lives in **Output Studio** natively). |
 | **Setup Studio** | Guided onboarding "Live preview workspace" + 6-role preview cards | Onboarding: preview by role (website, admin, teacher, parent, etc.) before go-live. |
 
 Same idea everywhere: **preview before save**, with the right context (section highlight, embed, or role). The Site Settings admin change form uses this same contract via its dynamic Preview button (active section from the sidebar is sent as `preview_section`).
@@ -55,7 +55,7 @@ Multiple sections: send `preview_section=footer,header` (comma-separated). Optio
 
 ## Report and Setup Studio
 
-- **Report Card Builder**: Live preview is iframe-based (embed endpoint) and/or new-tab (live_preview endpoint). Same "platform live preview" idea: preview style and data before saving. See `templates/siteconfig/partials/mock_reportcard_preview.html` and `siteconfig:reportcard_style_embed_preview`.
+- **Report Card Builder**: The **preview strip** is iframe-based (embed endpoint) and/or new-tab (live_preview endpoint); the **builder shell** is **Output Studio** (`studio_os:output?pane=builder`) with native forms. Same "platform live preview" idea: preview style and data before saving. See `templates/siteconfig/partials/mock_reportcard_preview.html` and `siteconfig:reportcard_style_embed_preview`.
 - **Setup Studio**: 6-role preview cards and "Live preview workspace" are the onboarding flavour of platform live preview (preview by role before launch). See `templates/customersuccess/guided_onboarding.html` and Setup Studio payload (`preview_workspace`, `preview_cards`).
 
 ---

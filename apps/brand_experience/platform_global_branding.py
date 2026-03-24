@@ -1,0 +1,160 @@
+"""
+Phase B Batch 1: first-class platform branding singleton in brand_experience.
+
+Authoritative store for global theme packs, report defaults, and branding media
+that previously lived only on siteconfig.SiteSettings. SiteSettings remains the
+compatibility write surface; saves sync into this row and get_effective_site_settings
+merges this row over the legacy copy (see platform_runtime.helpers).
+"""
+
+from __future__ import annotations
+
+from django.db import DatabaseError, models
+
+from apps.siteconfig.image_utils import optimize_image
+
+
+class PlatformGlobalBranding(models.Model):
+    """
+    Singleton row (pk=1): platform-wide branding and report defaults.
+    Mirrors the corresponding concrete fields on SiteSettings for migration off siteconfig.
+    """
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+
+    video_background = models.FileField(
+        upload_to="branding/video/",
+        blank=True,
+        null=True,
+        help_text="Optional: Short looping video (mp4/webm) for animated background.",
+    )
+    svg_background = models.FileField(
+        upload_to="branding/svg/",
+        blank=True,
+        null=True,
+        help_text="Optional: SVG file for animated or vector background.",
+    )
+    logo = models.ImageField(upload_to="branding/", blank=True, null=True)
+    background_image = models.ImageField(
+        upload_to="branding/bg/", blank=True, null=True
+    )
+    favicon = models.ImageField(
+        upload_to="branding/",
+        blank=True,
+        null=True,
+        help_text="Favicon for browser tabs. Shown across portal, backend, and admin.",
+    )
+    sidebar_icon = models.ImageField(
+        upload_to="branding/",
+        blank=True,
+        null=True,
+        help_text="Optional small icon shown when the nav sidebar is collapsed.",
+    )
+    theme_pack = models.ForeignKey(
+        "siteconfig.ThemePack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_global_branding_portal",
+        help_text="Theme for portal (parent, teacher, student dashboards).",
+    )
+    admin_theme_pack = models.ForeignKey(
+        "siteconfig.ThemePack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_global_branding_admin",
+        help_text="Theme for staff dashboards: /admin and /backend.",
+    )
+    teacher_theme_pack = models.ForeignKey(
+        "siteconfig.ThemePack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_global_branding_teacher",
+    )
+    parent_theme_pack = models.ForeignKey(
+        "siteconfig.ThemePack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_global_branding_parent",
+    )
+    default_term_report_style = models.ForeignKey(
+        "siteconfig.ReportCardStyle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_global_term_default",
+    )
+    default_annual_report_style = models.ForeignKey(
+        "siteconfig.ReportCardStyle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_global_annual_default",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "brand_experience"
+        verbose_name = "Platform global branding"
+        verbose_name_plural = "Platform global branding"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(id=1),
+                name="brand_experience_platformglobalbranding_id_is_one",
+            ),
+        ]
+
+    def _optimize_branding_assets(self) -> None:
+        from django.db.models.fields.files import FieldFile
+
+        for field_name in ("logo", "background_image", "favicon", "sidebar_icon"):
+            field = getattr(self, field_name, None)
+            if not isinstance(field, FieldFile) or not getattr(field, "name", None):
+                continue
+            try:
+                file_handle = field.file
+            except (FileNotFoundError, OSError, ValueError):
+                continue
+            if getattr(file_handle, "_optimized", False):
+                continue
+            optimized = optimize_image(field)
+            if not optimized:
+                continue
+            optimized._optimized = True
+            field.save(field.name, optimized, save=False)
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        self.id = 1
+        self._optimize_branding_assets()
+        super().save(*args, **kwargs)
+        try:
+            from apps.brand_experience.branding_singleton_sync import (
+                mirror_platform_global_branding_fk_ids_to_runtime_payload,
+            )
+
+            mirror_platform_global_branding_fk_ids_to_runtime_payload()
+        except (AttributeError, ImportError, TypeError, ValueError):
+            pass
+        try:
+            from apps.platform_runtime.helpers import (
+                invalidate_effective_site_settings_cache,
+            )
+
+            invalidate_effective_site_settings_cache()
+        except (AttributeError, ImportError, TypeError, ValueError):
+            pass
+        try:
+            from apps.siteconfig.models import SiteSettings
+            from apps.platform_runtime.phase_b_domain_snapshots import (
+                sync_phase_b_domain_snapshots_from_site,
+            )
+
+            site = SiteSettings.objects.order_by("pk").first()
+            if site is not None:
+                sync_phase_b_domain_snapshots_from_site(site)
+        except (AttributeError, ImportError, TypeError, ValueError, DatabaseError):
+            pass

@@ -1,5 +1,6 @@
 {% load static %}
 {# Theme toggle with admin-configurable brightness defaults #}
+<link rel="stylesheet" href="{% static 'css/theme-toggle-component.css' %}">
 <div class="theme-toggle-wrapper">
   <div class="theme-toggle-btn" id="themeToggle" title="Toggle light/dark">
     <div class="theme-icon">
@@ -17,234 +18,6 @@
   </select>
 </div>
 
-<style>
-:root {
-  /* Light theme colors */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #f1f5f9;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --text-tertiary: #94a3b8;
-  --border-color: #e9ecef;
-  --shadow: rgba(0, 0, 0, 0.1);
-  --link-color: #0d6efd;
-  --card-bg: #ffffff;
-  --header-bg: #ffffff;
-  --sidebar-bg: #f8f9fa;
-}
-
-[data-theme="dark"] {
-  /* Dark theme colors */
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #94a3b8;
-  --border-color: #334155;
-  --shadow: rgba(0, 0, 0, 0.3);
-  --link-color: var(--color-primary, var(--school-primary));
-  --card-bg: #1e293b;
-  --header-bg: #1e293b;
-  --sidebar-bg: #0f172a;
-}
-
-[data-theme="classic"] {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #eef2ff;
-  --bg-tertiary: #e2e8f0;
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-tertiary: #475569;
-  --border-color: #cbd5e1;
-  --shadow: rgba(15, 23, 42, 0.12);
-  --link-color: #2563eb;
-  --card-bg: #ffffff;
-  --header-bg: #ffffff;
-  --sidebar-bg: #f1f5f9;
-}
-
-[data-theme="high_contrast"] {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #111827;
-  --bg-tertiary: #0f172a;
-  --text-primary: #f8fafc;
-  --text-secondary: #e2e8f0;
-  --text-tertiary: #cbd5e1;
-  --border-color: #e2e8f0;
-  --shadow: rgba(0, 0, 0, 0.4);
-  --link-color: #38bdf8;
-  --card-bg: #0f172a;
-  --header-bg: #0b1220;
-  --sidebar-bg: #0a0f1a;
-}
-
-.theme-toggle-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.theme-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: var(--text-primary);
-}
-
-.theme-toggle-btn:hover {
-  background: var(--bg-tertiary);
-  transform: scale(1.05);
-}
-
-.theme-icon {
-  position: relative;
-  width: 20px;
-  height: 20px;
-}
-
-.theme-icon i {
-  position: absolute;
-  top: 0;
-  left: 0;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
-}
-
-.sun-icon {
-  color: #fbbf24;
-  opacity: 1;
-  transform: rotate(0deg) scale(1);
-}
-
-.moon-icon {
-  color: #60a5fa;
-  opacity: 0;
-  transform: rotate(180deg) scale(0);
-}
-
-[data-theme="dark"] .sun-icon {
-  opacity: 0;
-  transform: rotate(-180deg) scale(0);
-}
-
-[data-theme="dark"] .moon-icon {
-  opacity: 1;
-  transform: rotate(0deg) scale(1);
-}
-
-.theme-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-/* Apply theme colors to body and main elements */
-body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.card,
-.dashboard-card {
-  background-color: var(--card-bg);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.dashboard-header {
-  background-color: var(--header-bg);
-  border-bottom-color: var(--border-color);
-}
-
-.sidebar {
-  background-color: var(--sidebar-bg);
-  border-right-color: var(--border-color);
-}
-
-a {
-  color: var(--link-color);
-}
-
-.text-muted {
-  color: var(--text-secondary) !important;
-}
-
-.border {
-  border-color: var(--border-color) !important;
-}
-
-.bg-light {
-  background-color: var(--bg-secondary) !important;
-}
-
-/* Dark theme specific adjustments */
-[data-theme="dark"] .table {
-  color: var(--text-primary);
-}
-
-[data-theme="dark"] .table thead th {
-  background-color: var(--bg-tertiary);
-  border-color: var(--border-color);
-}
-
-[data-theme="dark"] .table td,
-[data-theme="dark"] .table th {
-  border-color: var(--border-color);
-}
-
-[data-theme="dark"] .form-control,
-[data-theme="dark"] .form-select {
-  background-color: var(--bg-secondary);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-[data-theme="dark"] .modal-content {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-[data-theme="dark"] .dropdown-menu {
-  background-color: var(--bg-secondary);
-  border-color: var(--border-color);
-}
-
-[data-theme="dark"] .dropdown-item {
-  color: var(--text-primary);
-}
-
-[data-theme="dark"] .dropdown-item:hover {
-  background-color: var(--bg-tertiary);
-}
-
-.theme-select {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  border-radius: 12px;
-  padding: 0.45rem 0.65rem;
-  font-size: 0.85rem;
-}
-
-@media (max-width: 768px) {
-  .theme-toggle-wrapper {
-    gap: 0.35rem;
-  }
-  .theme-select {
-    padding: 0.4rem 0.5rem;
-  }
-}
-</style>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const themeToggle = document.getElementById('themeToggle');
@@ -252,6 +25,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const themeLabel = document.getElementById('themeLabel');
   const htmlElement = document.documentElement;
   const adminDefault = (htmlElement.dataset.adminTheme || 'system').toLowerCase();
+
+  function updateMetaThemeColor(theme) {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    const useDarkMeta = theme === 'dark' || theme === 'high_contrast';
+    const prop = useDarkMeta ? '--meta-theme-color-dark' : '--meta-theme-color-light';
+    const value = getComputedStyle(htmlElement).getPropertyValue(prop).trim();
+    if (value) meta.setAttribute('content', value);
+  }
 
   // initialize selector to admin default
   themeSelector.value = adminDefault === 'system' ? 'system' : adminDefault;
@@ -295,12 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
       localStorage.setItem('theme', theme);
     }
 
-    // Update meta theme-color for mobile browsers
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) {
-      const fallback = (theme === 'dark' || theme === 'high_contrast') ? '#0f172a' : '#ffffff';
-      metaThemeColor.setAttribute('content', fallback);
-    }
+    updateMetaThemeColor(theme);
 
     // Dispatch custom event for other components
     window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }));

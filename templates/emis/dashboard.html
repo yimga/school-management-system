@@ -5,6 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <script>
@@ -16,10 +17,13 @@
 
 {% block content %}
 <div class="emis-dashboard-widgets">
+{% if phase7_de %}
+{% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
+{% endif %}
 
 <div class="dashboard-card-grid" style="gap: 1.5rem;">
   <!-- Export Form -->
-  <div class="card">
+  <div class="card" id="emis-export-form">
       <div class="card-header">
         <h5 class="card-title mb-0">
           <i class="bi bi-file-earmark-spreadsheet me-2"></i>

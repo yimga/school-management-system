@@ -95,6 +95,11 @@ SCHOOL_FEATURES_PATTERN = (
     re.compile(r"\bschool\.features\b"),
     "school.features (use request.tenant_runtime or get_effective_*)",
 )
+# Phase 5: direct SiteSettings ORM queries in tenant-facing apps (use platform_runtime.helpers).
+SITESETTINGS_OBJECTS_PATTERN = (
+    re.compile(r"SiteSettings\.objects\.(get|filter|first|all|create|update|get_or_create)\s*\("),
+    "SiteSettings.objects.* (use get_platform_site_settings_record / runtime helpers in tenant code)",
+)
 HARDCODED_PATTERNS = [
     (
         re.compile(r"['\"]CMR['\"]|REGION_CODE\s*=\s*['\"]CMR['\"]"),
@@ -141,6 +146,11 @@ def main() -> int:
         help="Flag direct school.settings/school.features in tenant apps (use runtime).",
     )
     ap.add_argument(
+        "--check-sitesettings-orm-in-tenant-apps",
+        action="store_true",
+        help="Flag SiteSettings.objects.* in tenant-facing app trees (Phase 5).",
+    )
+    ap.add_argument(
         "--report-allowlisted",
         action="store_true",
         help="Report get_solo() in allowlisted paths only (migration backlog for path to 10).",
@@ -181,6 +191,12 @@ def main() -> int:
             path_str.startswith(p) for p in ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES
         )
         for i, line in enumerate(text.splitlines(), 1):
+            if getattr(args, "check_sitesettings_orm_in_tenant_apps", False):
+                if in_tenant_app and SITESETTINGS_OBJECTS_PATTERN[0].search(line):
+                    hits.append(
+                        (path_str, i, line.strip()[:90], SITESETTINGS_OBJECTS_PATTERN[1])
+                    )
+                continue
             if (
                 in_tenant_app
                 and not allowed_for_get_solo
@@ -253,11 +269,19 @@ def main() -> int:
             for p, ln, sn, lb in hits
             if "school.settings" in lb or "school.features" in lb
         ]
+    elif getattr(args, "check_sitesettings_orm_in_tenant_apps", False):
+        hits = [
+            (p, ln, sn, lb)
+            for p, ln, sn, lb in hits
+            if "SiteSettings.objects" in lb
+        ]
 
     if not hits:
         msg = "lint_tenant_settings: No SiteSettings.get_solo() or hardcoded region/currency in tenant paths."
         if getattr(args, "check_school_settings_features", False):
             msg = "lint_tenant_settings: No direct school.settings/school.features reads in tenant apps."
+        if getattr(args, "check_sitesettings_orm_in_tenant_apps", False):
+            msg = "lint_tenant_settings: No SiteSettings.objects.* in tenant-facing app paths."
         print(msg)
         return 0
     print(

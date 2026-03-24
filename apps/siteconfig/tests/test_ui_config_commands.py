@@ -8,12 +8,13 @@ import json
 from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
 
-from apps.brand_experience.models import ThemePack
+from apps.brand_experience.models import PlatformGlobalBranding, ThemePack
 from apps.finance.models import ComplianceProfile
 from apps.siteconfig.management.commands.import_ui_config import (
     Command as ImportUIConfigCommand,
 )
 from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.tests.payload_helpers import persist_runtime_site_settings_payload
 
 
 class UIConfigCommandTests(TestCase):
@@ -27,7 +28,10 @@ class UIConfigCommandTests(TestCase):
             applies_to_admin=True,
             is_active=True,
         )
-        SiteSettings.objects.create(theme_pack=self.theme)
+        SiteSettings.objects.create()
+        pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
+        pgb.theme_pack = self.theme
+        pgb.save(update_fields=["theme_pack"])
 
     @contextmanager
     def workspace_tempdir(self):
@@ -104,8 +108,8 @@ class UIConfigCommandTests(TestCase):
             output = tmp / "ui_export.json"
             call_command("export_ui_config", "--output", str(output))
             site = SiteSettings.objects.order_by("pk").first()
-            site.primary_color = "#ffffff"
-            site.save(update_fields=["primary_color"])
+            persist_runtime_site_settings_payload(primary_color="#ffffff")
+            site.refresh_from_db()
             with self.assertRaises(CommandError):
                 call_command("check_ui_parity", "--input-file", str(output), "--strict")
 
@@ -142,6 +146,8 @@ class UIConfigCommandTests(TestCase):
             self.assertEqual(ThemePack.objects.count(), 1)
             site = SiteSettings.objects.order_by("pk").first()
             self.assertIsNotNone(site)
+            pgb = PlatformGlobalBranding.objects.order_by("pk").first()
+            self.assertIsNotNone(pgb)
             self.assertEqual(
-                site.theme_pack_id, ThemePack.objects.order_by("pk").first().pk
+                pgb.theme_pack_id, ThemePack.objects.order_by("pk").first().pk
             )

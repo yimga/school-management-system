@@ -106,6 +106,41 @@
   --spacing-3xl: var(--token-space-3xl);
   --token-radius-sm: 8px;
   --token-radius-md: 12px;
+  --token-radius-lg: 16px;
+  --token-radius-xl: 20px;
+  --token-radius-2xl: 24px;
+
+  /* ========== Phase 2 — semantic design system (--ds-*) ==========
+     Single grammar for cards, surfaces, alerts, chips. Alias platform/luxury/tokens.
+     Components: design-system-phase2-enforcement.css + card-grammar / form-system / table-system. */
+  --ds-font-sans: var(--portal-font);
+  --ds-text: var(--admin-content-text);
+  --ds-text-muted: var(--admin-content-text-muted);
+  --ds-surface: var(--admin-content-bg);
+  --ds-surface-raised: var(--admin-content-surface);
+  --ds-surface-muted: var(--surface-bg-muted);
+  --ds-border: var(--admin-content-border);
+  --ds-border-strong: var(--portal-border-strong);
+  --ds-shadow-sm: var(--shell-elevation-1);
+  --ds-shadow-md: var(--shell-elevation-2);
+  --ds-shadow-lg: var(--shell-elevation-3);
+  --ds-radius-sm: var(--token-radius-sm);
+  --ds-radius-md: var(--token-radius-md);
+  --ds-radius-lg: var(--token-radius-lg);
+  --ds-radius-xl: var(--token-radius-xl);
+  --ds-focus: var(--focus-ring-color);
+  /* Semantic states — use for alerts, chips, badges (not brand chrome) */
+  --ds-success: #16a34a;
+  --ds-success-bg: rgba(34, 197, 94, 0.12);
+  --ds-warning: #d97706;
+  --ds-warning-bg: rgba(245, 158, 11, 0.15);
+  --ds-danger: #dc2626;
+  --ds-danger-bg: rgba(239, 68, 68, 0.12);
+  --ds-info: #2563eb;
+  --ds-info-bg: rgba(59, 130, 246, 0.12);
+  --ds-motion-content: var(--motion-normal);
+  /* Decorative motion: luxury sheet may override --luxury-motion-* after load */
+  --ds-motion-decorative: 600ms ease-out;
 
   /* Dashboard tokens (radius, spacing, shadow, type scale) – used by backend/admin/parent/teacher dashboards.
      Premium feel: platform-high-end.css overrides with --platform-* tokens where loaded. */
@@ -262,6 +297,10 @@
   /* Safe mid-tones: visible on both #000 and #fff (avoid pure black/white for un-outlined text) */
   --theme-proof-muted: #64748b;
   --theme-proof-accent: #0ea5e9;
+
+  /* Meta theme-color (mobile browser chrome) — no raw hex in JS */
+  --meta-theme-color-light: var(--color-base-0);
+  --meta-theme-color-dark: var(--color-base-900);
 }
 
 /* Phase 9: Visible keyboard focus – use tokens so theme can override */
@@ -318,6 +357,26 @@ body.portal-backend-dark {
   --theme-proof-stroke-dark: 0 0 1px #fff, 0 0 2px #fff, 0 1px 2px rgba(0,0,0,0.3);
   --theme-proof-backplate: rgba(0, 0, 0, 0.45);
   --theme-proof-shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.4);
+
+  /* Phase 2 — semantic DS tokens (after admin/portal dark vars above) */
+  --ds-text: var(--admin-content-text);
+  --ds-text-muted: var(--admin-content-text-muted);
+  --ds-surface: var(--admin-content-bg);
+  --ds-surface-raised: var(--admin-content-surface);
+  --ds-surface-muted: var(--admin-content-thead-bg);
+  --ds-border: var(--admin-content-border);
+  --ds-border-strong: var(--portal-border-strong);
+  --ds-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --ds-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --ds-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --ds-success: #4ade80;
+  --ds-success-bg: rgba(34, 197, 94, 0.18);
+  --ds-warning: #fbbf24;
+  --ds-warning-bg: rgba(245, 158, 11, 0.2);
+  --ds-danger: #f87171;
+  --ds-danger-bg: rgba(239, 68, 68, 0.18);
+  --ds-info: #60a5fa;
+  --ds-info-bg: rgba(59, 130, 246, 0.2);
 }
 
 

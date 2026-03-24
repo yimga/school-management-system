@@ -19,6 +19,7 @@
     <p class="text-white-50 small mb-0">{% trans "We're the spine: configure integration → SSO → roster sync (OneRoster) → grade passback (LTI). Google, Microsoft, Canvas, D2L, Moodle, Blackboard." %}</p>
   </header>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
+  {% include "schools/partials/beachhead_operator_checklist.html" %}
   <ol class="list-group list-group-numbered list-group-flush">
     <li class="list-group-item bg-dark border-secondary text-white">
       <strong>{% trans "Configure integration" %}</strong>
@@ -45,15 +46,17 @@
       <table class="table table-dark table-sm table-striped">
         <thead>
           <tr>
-            <th scope="col">{% trans "LMS" %}</th>
+            <th scope="col">{% trans "LMS / roster" %}</th>
             <th scope="col">{% trans "Status" %}</th>
+            <th scope="col">{% trans "API surface" %}</th>
           </tr>
         </thead>
         <tbody>
           {% for row in lms_certification %}
           <tr>
             <td>{{ row.name }}</td>
-            <td><span class="badge {% if row.status == 'Certified' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ row.status }}</span></td>
+            <td><span class="badge {{ row.badge_class }}">{{ row.status }}</span></td>
+            <td class="small text-white-50">{{ row.api_surface }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -61,10 +64,28 @@
     </div>
   </section>
   {% endif %}
+  <section class="mt-4 pt-3 border-top border-secondary" aria-label="{% trans 'Native roster APIs' %}">
+    <h2 class="h6 mb-2 fw-bold text-white">{% trans "Native district roster (Clever / ClassLink)" %}</h2>
+    <p class="small text-white-50 mb-2">{% trans "End-to-end HTTP clients ship in-repo; district tokens activate live calls." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% if native_roster_connectors_url %}<a href="{{ native_roster_connectors_url }}" class="btn btn-outline-info btn-sm">{% trans "Native roster console (super)" %}</a>{% endif %}
+      {% if wedge_44_url %}<a href="{{ wedge_44_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Wedge 44 operator page" %}</a>{% endif %}
+    </div>
+  </section>
   <section class="mt-4 pt-3 border-top border-secondary" aria-label="{% trans 'Related catalogs' %}">
     <h2 class="h6 mb-2 fw-bold text-white">{% trans "Tenant operators" %}</h2>
     <p class="small text-white-50 mb-2">{% trans "Each school: Backend → District & LMS interop — OneRoster URLs, token rotate, CSV roster exports, SSO/LTI discovery." %}</p>
     <p class="small text-white-50 mb-0">{% trans "Learning modes & institution types (23–43):" %} <a href="{% url 'super:learning_delivery_packs' %}" class="link-light">{% trans "Learning delivery & institution types" %}</a></p>
+  </section>
+  <section class="mt-4 pt-3 border-top border-secondary" aria-label="{% trans 'Platform spine' %}">
+    <h2 class="h6 mb-2 fw-bold text-white">{% trans "Platform spine" %}</h2>
+    <div class="d-flex flex-wrap gap-2">
+      {% if curriculum_packs_url %}<a href="{{ curriculum_packs_url }}" class="btn btn-outline-light btn-sm">{% trans "Curriculum & region packs" %}</a>{% endif %}
+      {% if geography_url %}<a href="{{ geography_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Geography (7–13)" %}</a>{% endif %}
+      {% if migration_cloud_url %}<a href="{{ migration_cloud_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Migration cloud" %}</a>{% endif %}
+      {% if trust_center_url %}<a href="{{ trust_center_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Trust center" %}</a>{% endif %}
+    </div>
+    <p class="small text-white-50 mt-3 mb-0"><strong>{% trans "SLA & observability" %}:</strong> {% trans "Repository doc" %} <code class="text-info">docs/LMS_ROSTER_GRADEPASSBACK_SLA.md</code> — {% trans "roster sync and grade passback targets for operators." %}</p>
   </section>
   {% if onboarding_url %}<a href="{{ onboarding_url }}" class="btn btn-primary mt-3">{% trans "Setup Studio" %}</a>{% endif %}
 </div>

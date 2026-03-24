@@ -52,7 +52,7 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 |---|------|--------|
 | III.1 | Migrate ownership | Implement: Continue SITECONFIG_OWNERSHIP_MIGRATION; move fields to domain owners per `docs/domain_ownership.md` and inventory. |
 | III.2 | Delete legacy behavior paths | Implement or N/A: Per LEGACY_PATH_INVENTORY and product sign-off; remove deprecated views/urls after redirects in place. |
-| III.3 | Replace giant admin pages with bounded consoles | Implement: Replace large siteconfig admin pages with bounded-console UIs (e.g. console_domains_hub pattern); link from Control Studio / System config. |
+| III.3 | Replace giant admin pages with bounded consoles | Implement: Replace large siteconfig admin pages with bounded-console UIs (e.g. console_domains_hub pattern); link from Control Studio / Configuration Control Center. |
 
 ### §6.2 platform_runtime
 
@@ -312,11 +312,11 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 | IV.25 | Turn API Center into integration governance console | Implement: Per docs/apicenter_integration_governance.md; API Center UI. |
 | IV.26 | Add contract testing across API/runtime/packages/events | Implement: Contract tests for API, runtime, packages, events. |
 
-### §5.9 System Configuration / SiteSettings
+### §5.9 Configuration Control Center / SiteSettings
 
 | # | Item | Action |
 |---|------|--------|
-| IV.27 | Total decomposition into bounded consoles | Implement: Each settings domain has a bounded console (e.g. System config, feature control, branding). |
+| IV.27 | Total decomposition into bounded consoles | Implement: Each settings domain has a bounded console (e.g. Configuration Control Center, feature control, branding). |
 | IV.28 | Reclassify every settings field | Implement: Per site_settings_usage_inventory; reclassify and assign owner. |
 | IV.29 | Add preview/diff/rollback and impact summaries | Implement: Preview/diff/rollback for config changes; impact summary in UI. |
 
@@ -367,7 +367,7 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 | (initial) | Plan created; all items assigned to Phase II–V or Phase H/§7. |
 | 2026-03-12 | Phase II DONE: II.1 SAML + SchoolConfigAPI audit logging; SCIM/LTI deferred per public_endpoint_audit §6. II.2 Raw SQL already in repos (allowlist). II.3 lint_tenant_settings --check-get-solo-only passes. SOT §2.4, §3.2 checkboxes marked [x]. |
 | 2026-03-12 | Phase III/IV/V: §6.3 pack provenance DONE (EntityCatalogEntry.source_pack_id, source_pack_version; migration 0008; search API). All other Phase III–V items documented N/A in [NA_REGISTER_PATH_TO_100.md](NA_REGISTER_PATH_TO_100.md) (owner product, date 2026-03-12). No item left without decision. |
-| 2026-03-12 | Phase III implemented: §6.1 siteconfig (ownership next-batch doc; ensure_superadmin REMOVED; System config console + Control rail). §6.2 platform_runtime (tracing; enforce/tracing/fallback DONE). §6.4 packages (mid-apply failure → changelog failed + rollback). §6.6 Purge Gilead (0155 verify). §6.12 schools (raw SQL repos only; routes hardened; schools_control_plane_boundary.md). SOT and NA_REGISTER updated. |
+| 2026-03-12 | Phase III implemented: §6.1 siteconfig (ownership next-batch doc; ensure_superadmin REMOVED; Configuration Control Center console + Control rail). §6.2 platform_runtime (tracing; enforce/tracing/fallback DONE). §6.4 packages (mid-apply failure → changelog failed + rollback). §6.6 Purge Gilead (0155 verify). §6.12 schools (raw SQL repos only; routes hardened; schools_control_plane_boundary.md). SOT and NA_REGISTER updated. |
 | 2026-03-12 | Next 15 logical phases: §6.5 Launch Studio flow DONE (checklist 10 items). §6.6 previews/compare/rollback DONE; absorb ownership N/A. §6.7 blueprint owner + connect DONE; preview/sandbox N/A. §6.8 runtime consumption + why-enabled DONE; hard registry + marketplace N/A. §6.9 central to setup DONE; registry UI N/A. §6.10 richer metadata DONE; previews/trust/scope N/A. §6.11–6.24: all addressed (DONE or N/A); NA_REGISTER consolidated. |
 | 2026-03-12 | Phase IV + Phase V (next 15): §4.5 select plan N/A until productized. §5.1–§5.9 all unchecked items given explicit N/A (product 2026-03-12) with pointer to ledger/implement when prioritized. §7 all minimum targets and completion gate marked [x] (MARKETPLACE_SEED_TARGETS §2–§3; 27/25/30/21/15; marketplace UI). Phase H three items given N/A with phase_h_audit + run_phase_h_verification + pre_deploy_gate in place. SOT and NA_REGISTER updated. |
 | 2026-03-12 | One shell (Option C): ONE_SHELL_IMPLEMENTATION_PLAN.md — one standard, two shells aligned; completion gate [x]. Marketing ultra high-end: migration-flow.svg, ecosystem-diagram.svg, control-plane-diagram.svg, setup-studio-flow.svg, health-score-visual.svg added and wired as defaults. Phase H: phase_h_url_check.py added; phase_h_audit includes platform-fluid-everywhere.css; PHASE_H_MANUAL_CHECKLIST updated. Responsive: platform-fluid-everywhere on all bases; photo_upload_phone max-width fluid. |

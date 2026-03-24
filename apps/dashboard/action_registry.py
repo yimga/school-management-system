@@ -92,10 +92,16 @@ BACKEND_ACTION_CHIPS = [
         "allow_key": "always",
     },
     {
-        "label": "System config",
+        "label": "Config center",
         "icon": "bi-gear-wide-connected",
         "url_name": "siteconfig:console_domains_hub",
         "allow_key": "can_manage_settings",
+    },
+    {
+        "label": "Security & trust",
+        "icon": "bi-shield-check",
+        "url_name": "accounts:security_trust_hub",
+        "allow_key": "always",
     },
 ]
 

@@ -51,6 +51,7 @@ from .forms import (
     ReportCardStyleAssignmentForm,
     ReportCardStyleForm,
     ReportCardStyleSelectionForm,
+    THEME_EXPERIENCE_FIELD_NAMES,
     THEME_PUBLISH_GUARDED_FIELDS,
     ThemeColorsForm,
     UserPreferenceForm,
@@ -544,8 +545,13 @@ def module_market(request):
     )
 
 
-@permission_required("settings.manage")
-def reportcard_builder(request):
+def build_reportcard_builder_context(
+    request, *, studio_output_native: bool = False
+) -> dict:
+    """
+    Context for report card builder: full portal page or Output Studio native pane.
+    Forms bind to POST when present; workflow_step follows POST form_type or GET step.
+    """
     settings_obj = get_effective_site_settings(request=request)
     if settings_obj is None:
         settings_obj = build_platform_default_site_settings()
@@ -577,7 +583,6 @@ def reportcard_builder(request):
             .order_by("classroom_id", "last_name", "first_name")
         )
         for student in sample_candidates:
-            # Keep the first student per classroom from the ordered queryset.
             sample_students.setdefault(student.classroom_id, student)
     for assignment in assignments:
         assignment.sample_student = sample_students.get(assignment.classroom_id)
@@ -601,53 +606,89 @@ def reportcard_builder(request):
     assignment_form = ReportCardStyleAssignmentForm(
         request.POST or None, prefix="assign"
     )
+    from apps.brand_experience.platform_global_branding import PlatformGlobalBranding
+
+    branding_row, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
     selection_form = ReportCardStyleSelectionForm(
         request.POST or None,
         prefix="selection",
-        instance=settings_obj,
+        instance=branding_row,
     )
     workflow_step = (request.GET.get("step") or "style").strip().lower()
+    if request.method == "POST":
+        form_type_guess = (request.POST.get("form_type") or "").strip().lower()
+        if form_type_guess in {"style", "assignment", "selection"}:
+            workflow_step = form_type_guess
     if workflow_step not in {"style", "assignment", "selection"}:
         workflow_step = "style"
 
+    return {
+        # Effective SiteSettings for builder UI (avoid template name `settings`: confusable with django.conf).
+        "site_settings": settings_obj,
+        "settings": settings_obj,
+        "styles": styles,
+        "assignments": assignments,
+        "preview_students": preview_students,
+        "preview_default_style_slug": preview_default_style_slug,
+        "preview_default_student_id": preview_default_student_id,
+        "total_classroom_count": len(all_classrooms),
+        "assigned_classroom_count": len(assigned_classroom_ids),
+        "unassigned_classroom_count": max(
+            0, len(all_classrooms) - len(assigned_classroom_ids)
+        ),
+        "style_form": style_form,
+        "assignment_form": assignment_form,
+        "selection_form": selection_form,
+        "workflow_step": workflow_step,
+        "studio_output_native": studio_output_native,
+    }
+
+
+@permission_required("settings.manage")
+def reportcard_builder(request):
+    post_studio = (
+        request.method == "POST"
+        and (request.POST.get("studio_output_native") or "").strip() == "1"
+    )
+
     if request.method == "POST":
+        ctx = build_reportcard_builder_context(
+            request, studio_output_native=post_studio
+        )
         form_type = (request.POST.get("form_type") or "").strip().lower()
-        if form_type in {"style", "assignment", "selection"}:
-            workflow_step = form_type
+        style_form = ctx["style_form"]
+        assignment_form = ctx["assignment_form"]
+        selection_form = ctx["selection_form"]
+
         if form_type == "style" and style_form.is_valid():
             style_form.save()
-            messages.success(request, "Report card style saved.")
+            messages.success(request, _("Report card style saved."))
+            if post_studio:
+                return redirect(
+                    reverse("studio_os:output") + "?pane=builder&step=style"
+                )
             return redirect("siteconfig:reportcard_builder")
         if form_type == "assignment" and assignment_form.is_valid():
             assignment_form.save()
-            messages.success(request, "Style assignments updated.")
+            messages.success(request, _("Style assignments updated."))
+            if post_studio:
+                return redirect(
+                    reverse("studio_os:output") + "?pane=builder&step=assignment"
+                )
             return redirect("siteconfig:reportcard_builder")
         if form_type == "selection" and selection_form.is_valid():
             selection_form.save()
-            messages.success(request, "Default styles saved.")
+            messages.success(request, _("Default styles saved."))
+            if post_studio:
+                return redirect(
+                    reverse("studio_os:output") + "?pane=builder&step=selection"
+                )
             return redirect("siteconfig:reportcard_builder")
 
-    return render(
-        request,
-        "siteconfig/reportcard_builder.html",
-        {
-            "settings": settings_obj,
-            "styles": styles,
-            "assignments": assignments,
-            "preview_students": preview_students,
-            "preview_default_style_slug": preview_default_style_slug,
-            "preview_default_student_id": preview_default_student_id,
-            "total_classroom_count": len(all_classrooms),
-            "assigned_classroom_count": len(assigned_classroom_ids),
-            "unassigned_classroom_count": max(
-                0, len(all_classrooms) - len(assigned_classroom_ids)
-            ),
-            "style_form": style_form,
-            "assignment_form": assignment_form,
-            "selection_form": selection_form,
-            "workflow_step": workflow_step,
-        },
-    )
+        return render(request, "siteconfig/reportcard_builder.html", ctx)
+
+    ctx = build_reportcard_builder_context(request, studio_output_native=False)
+    return render(request, "siteconfig/reportcard_builder.html", ctx)
 
 
 def _build_style_metadata(site: SiteSettings) -> dict:
@@ -735,6 +776,8 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
         "student": student,
         "student_name": f"{student.last_name} {student.first_name}",
         "labels": labels,
+        # Report templates expect SITE (portal context processor may not run on all render paths).
+        "SITE": site,
     }
     if report_type == ReportCard.Type.TERM:
         if year and term:
@@ -969,6 +1012,7 @@ def reportcard_style_preview(request, slug: str):
         "metadata": metadata,
         "generated_at": timezone.now(),
         "preview_mode": True,
+        "SITE": site,
     }
     return render(request, "siteconfig/reportcard_style_preview.html", context)
 
@@ -1287,9 +1331,39 @@ def bulk_letters(request):
     return response
 
 
+def _theme_experience_canonical_url() -> str:
+    """Studio OS Experience mode is the canonical theme entry; keep legacy URL for embed/standalone."""
+    try:
+        return reverse("studio_os:experience")
+    except NoReverseMatch:
+        return reverse("siteconfig:theme_colors")
+
+
+def _theme_post_success_redirect(request):
+    """After save, send staff to Studio; others stay on standalone theme form (same permission as POST)."""
+    from apps.schools.control_plane import user_can_access_studio_on_request
+
+    if user_can_access_studio_on_request(request):
+        try:
+            return redirect(reverse("studio_os:experience"))
+        except NoReverseMatch:
+            pass
+    return redirect(f"{reverse('siteconfig:theme_colors')}?standalone=1")
+
+
 @permission_required("settings.manage")
 def theme_colors_page(request):
     """Standalone Color & harmony page: palette studio, presets, preview, and save flows."""
+    if request.method == "GET":
+        if request.GET.get("embed") != "1" and request.GET.get("standalone") != "1":
+            from apps.schools.control_plane import user_can_access_studio_on_request
+
+            if user_can_access_studio_on_request(request):
+                try:
+                    return redirect(reverse("studio_os:experience"))
+                except NoReverseMatch:
+                    pass
+            return redirect(f"{reverse('siteconfig:theme_colors')}?standalone=1")
     site = get_effective_site_settings(request=request)
     if site is None:
         site = build_platform_default_site_settings()
@@ -1333,7 +1407,8 @@ def theme_colors_page(request):
     admin_theme_packs_by_group = build_theme_pack_groups(
         admin_theme_packs, THEME_PALETTE_GROUPS
     )
-    tracked_theme_fields = list(ThemeColorsForm.Meta.fields)
+    # Slim SiteSettings: ThemeColorsForm.Meta.fields is empty; guard/compare all experience fields.
+    tracked_theme_fields = list(THEME_EXPERIENCE_FIELD_NAMES)
 
     if request.method == "POST":
         baseline_values = _snapshot_theme_field_values(site, tracked_theme_fields)
@@ -1439,7 +1514,7 @@ def theme_colors_page(request):
                 )
                 if back_url:
                     return redirect(back_url)
-                return redirect("siteconfig:theme_colors")
+                return _theme_post_success_redirect(request)
         else:
             messages.error(request, "Please fix the errors below.")
     else:
@@ -1510,7 +1585,7 @@ def perform_theme_experience_publish(request):
     if site is None:
         site = build_platform_default_site_settings()
     theme_settings = _get_theme_experience_settings(site)
-    tracked_theme_fields = list(ThemeColorsForm.Meta.fields)
+    tracked_theme_fields = list(THEME_EXPERIENCE_FIELD_NAMES)
     baseline_values = _snapshot_theme_field_values(site, tracked_theme_fields)
     form = ThemeColorsForm(request.POST, instance=site, request=request)
     if not form.is_valid():
@@ -1584,15 +1659,20 @@ def perform_theme_experience_publish(request):
         "preview_confirmed": bool(preview_confirmed),
     }
     request.session.modified = True
+    from apps.schools.control_plane import user_can_access_studio_on_request
+
     try:
-        redirect_url = reverse("studio_os:experience")
+        if user_can_access_studio_on_request(request):
+            redirect_url = reverse("studio_os:experience")
+        else:
+            redirect_url = f"{reverse('siteconfig:theme_colors')}?standalone=1"
     except NoReverseMatch:
         log_view_exception(
             request,
             "theme/experience save: studio_os:experience reverse failed, falling back to theme_colors",
             extra={"fallback": "siteconfig:theme_colors"},
         )
-        redirect_url = reverse("siteconfig:theme_colors")
+        redirect_url = f"{reverse('siteconfig:theme_colors')}?standalone=1"
     return {"ok": True, "redirect_url": redirect_url}
 
 
@@ -1664,7 +1744,7 @@ def theme_experience_redirect(request):
     Legacy route redirector so all theme editing lands on the canonical
     Theme & Experience studio.
     """
-    target = reverse("siteconfig:theme_colors")
+    target = _theme_experience_canonical_url()
     next_url = _safe_next_url(request, request.GET.get("next"), "")
     if next_url:
         target = f"{target}?{urlencode({'next': next_url})}"
@@ -1678,21 +1758,21 @@ def brand_import_from_url_view(request):
     Non-negotiable: Website/competitor import — HOW_WE_SCOPE_WEBSITE_IMPORT implemented.
     """
     if request.method != "POST":
-        return redirect(reverse("siteconfig:theme_colors"))
+        return redirect(_theme_experience_canonical_url())
     consent = request.POST.get("consent") in ("1", "true", "on")
     if not consent:
         messages.error(request, "Consent is required to fetch an external URL.")
-        return redirect(reverse("siteconfig:theme_colors"))
+        return redirect(_theme_experience_canonical_url())
     url = (request.POST.get("url") or "").strip()
     if not url:
         messages.error(request, "URL is required.")
-        return redirect(reverse("siteconfig:theme_colors"))
+        return redirect(_theme_experience_canonical_url())
     from apps.siteconfig.brand_import import fetch_and_parse_brand_url
 
     result = fetch_and_parse_brand_url(url)
     if result.get("error"):
         messages.error(request, result["error"])
-        return redirect(reverse("siteconfig:theme_colors"))
+        return redirect(_theme_experience_canonical_url())
     site = get_effective_site_settings(request=request)
     if site and site.pk:
         if result.get("primary_color"):
@@ -1727,7 +1807,7 @@ def brand_import_from_url_view(request):
             )
     else:
         messages.info(request, "Brand fetched; create or save site settings to apply.")
-    return redirect(reverse("siteconfig:theme_colors"))
+    return redirect(_theme_experience_canonical_url())
 
 
 @permission_required("settings.manage")
@@ -1823,8 +1903,8 @@ def template_gallery_page(request):
                 request,
                 f'Template "{pack.name}" applied. You can refine colors in Theme & Experience.',
             )
-        return redirect(reverse("siteconfig:theme_colors"))
-    theme_colors_url = reverse("siteconfig:theme_colors")
+        return redirect(_theme_experience_canonical_url())
+    theme_colors_url = _theme_experience_canonical_url()
     impact_graph_json = None
     if impact_bundle:
         dg = impact_bundle.get("dependency_graph") or {}
@@ -2060,7 +2140,7 @@ def region_validation_dashboard(request):
 
     regions = RegionConfig.objects.annotate(
         grading_scales_count=Count("gradingscaleconfig"),
-        holidays_count=Count("holidaycalendar"),
+        holidays_count=Count("holidays"),
     )
 
     validation_results = []

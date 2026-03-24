@@ -1,0 +1,14 @@
+{% load i18n %}
+{# Shared Phase 1 chrome: same Context drawer on control_plane_base and manager /admin/. #}
+<button type="button" class="btn btn-sm btn-outline-light cp-context-drawer-toggle position-fixed bottom-0 end-0 m-3 d-none d-md-inline-flex align-items-center gap-1" data-bs-toggle="offcanvas" data-bs-target="#cpContextDrawer" aria-controls="cpContextDrawer" title="{% trans 'Page context & shortcuts' %}">
+  <i class="bi bi-layout-sidebar-reverse" aria-hidden="true"></i><span class="d-none d-lg-inline">{% trans "Context" %}</span>
+</button>
+<div class="offcanvas offcanvas-end cp-context-drawer" tabindex="-1" id="cpContextDrawer" aria-labelledby="cpContextDrawerLabel">
+  <div class="offcanvas-header">
+    <h2 class="offcanvas-title h5 mb-0 text-white" id="cpContextDrawerLabel">{% trans "Context" %}</h2>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#cpContextDrawer" aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div class="offcanvas-body">
+    {% include "partials/control_plane_context_drawer_default.html" %}
+  </div>
+</div>

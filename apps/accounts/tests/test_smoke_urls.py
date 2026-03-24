@@ -152,6 +152,31 @@ class SmokeUrlResolutionTests(SimpleTestCase):
     def test_super_dashboard_resolves(self):
         self.assertEqual(reverse("super:dashboard"), "/super/")
 
+    def test_super_trust_center_resolves(self):
+        """§3.2.2 Phase 8: control-plane trust hub URL must reverse."""
+        self.assertEqual(reverse("super:trust_center"), "/super/trust/")
+
+    def test_tenant_security_trust_hub_resolves(self):
+        """§3.2.2 Phase 8: tenant Security & trust hub."""
+        self.assertEqual(
+            reverse("accounts:security_trust_hub"),
+            "/authentication/backend/security-trust/",
+        )
+
+    def test_tenant_impersonation_audit_resolves(self):
+        """§3.2.2 Phase 8: school-scoped impersonation audit."""
+        self.assertEqual(
+            reverse("accounts:tenant_impersonation_audit"),
+            "/authentication/backend/security-trust/impersonation/",
+        )
+
+    def test_tenant_app_catalog_resolves(self):
+        """§3.2.3 Phase 9: tenant marketplace catalog (tenant urlconf)."""
+        self.assertEqual(
+            reverse("tenant_app_catalog", urlconf="config.tenant_urls"),
+            "/settings/app-catalog/",
+        )
+
     def test_studio_os_all_modes_resolve(self):
         """Studio OS shell and all five mode URLs must reverse correctly."""
         modes = [

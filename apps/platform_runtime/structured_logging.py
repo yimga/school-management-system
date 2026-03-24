@@ -86,7 +86,7 @@ def request_context_for_log(request: Any) -> dict[str, Any]:
     if getattr(request, "path", None):
         out["route"] = request.path
     trace_id = getattr(request, "_runtime_trace_id", None)
-    if trace_id:
+    if trace_id and isinstance(trace_id, str):
         out["runtime_trace_id"] = trace_id  # GAP.5: resolver path tracing
     return out
 
@@ -106,13 +106,19 @@ def log_view_exception(
     logging everywhere). request is typically HttpRequest; None is handled
     (context will be empty).
     """
-    ctx = request_context_for_log(request) if request else {}
+    ctx = dict(request_context_for_log(request) if request else {})
+    merged_extra = dict(extra or {})
+    tid = ctx.pop("tenant_id", None)
+    sid = ctx.pop("school_id", None)
+    aid = ctx.pop("actor_id", None)
+    route = ctx.pop("route", None)
+    merged_extra.update(ctx)
     log_exception_with_context(
         message,
-        tenant_id=ctx.get("tenant_id"),
-        school_id=ctx.get("school_id"),
-        actor_id=ctx.get("actor_id"),
-        route=ctx.get("route"),
+        tenant_id=tid,
+        school_id=sid,
+        actor_id=aid,
+        route=route,
         exc_info=exc_info,
-        extra=extra,
+        extra=merged_extra or None,
     )

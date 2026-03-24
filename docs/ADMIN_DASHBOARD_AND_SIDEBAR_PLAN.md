@@ -28,10 +28,10 @@ This document is the single source for fixing and upgrading the `/admin` experie
 - **Logic:** `SiteSettings.require_mfa_roles` (JSON list). When a user’s role is in that list, middleware redirects to MFA setup if they have no TOTP device. Bypass paths include `/admin/login`, `/admin/logout`; `/admin/` itself is **not** bypassed, so role-required users are redirected from admin to MFA setup.
 - **Gap:** MFA is **role-based** only. There is no “require MFA for all staff” or “encourage MFA for everyone.” No persistent “Set up MFA” prompt in admin for users who don’t have it.
 
-### 1.4 System Config / Site Settings
+### 1.4 Configuration Control Center / Site Settings
 
 - **Model:** Single-object `SiteSettings` (get_solo()). No changelist of multiple “settings”; it’s a single change form.
-- **Secondary nav:** `admin/siteconfig/sitesettings/settings_sidebar.html` already provides a **secondary sidebar** on the Site Settings form (search + grouped sections with anchors). There is no separate “System Config” changelist with `?group=general|grading|mfa`; the form is one page with in-page sections.
+- **Secondary nav:** `admin/siteconfig/sitesettings/settings_sidebar.html` already provides a **secondary sidebar** on the Site Settings form (search + grouped sections with anchors). There is no separate “Config center” changelist with `?group=general|grading|mfa`; the form is one page with in-page sections.
 - **Gap:** No dedicated “Security & MFA” tab in the UI with an MFA compliance widget (e.g. “MFA enabled: X%”) and no explicit “Security & MFA” section in the settings sidebar that links to MFA enforcement and status.
 
 ---
@@ -39,7 +39,7 @@ This document is the single source for fixing and upgrading the `/admin` experie
 ## 2. Requirements (From Your Spec) — In Scope
 
 - **Global navigation:** Group all modules into 4–5 collapsible domains (e.g. Operational Core, Academic Processing, Financial Engine, System & Infrastructure). Use a single, consistent structure (Unfold-style or current get_app_list, but not both duplicated).
-- **Dual-sidebar:** Primary = module navigation (left). Secondary = when in System Config / Site Settings: contextual nav (General, Grading, Finance, Security & MFA) with optional MFA health widget.
+- **Dual-sidebar:** Primary = module navigation (left). Secondary = when in Configuration Control Center / Site Settings: contextual nav (General, Grading, Finance, Security & MFA) with optional MFA health widget.
 - **Zero-cost MFA (TOTP):** Keep current stack. **Every user account** should have MFA; **encourage** setup for all (banner/prompt in admin and profile). Option to **require** MFA for all staff (not just by role).
 - **Command-center dashboard:** KPI cards (MFA compliance %, Unpaid fees, Attendance, Active sessions, Pending approvals), Action Queue (pending items from apps.requests / approvals), System Health. No “Welcome, Admin” empty space.
 - **CMD+K:** Global command palette for instant navigation (Unfold: `show_search` / `command_search`).
@@ -70,7 +70,7 @@ UNFOLD["SIDEBAR"] = {
             {"title": _("Payroll"), "link": reverse_lazy("admin:payroll_payslip_changelist"), "icon": "account_balance_wallet"},
         ]},
         {"title": _("System & Infrastructure"), "collapsible": True, "items": [
-            {"title": _("System Config"), "link": reverse_lazy("admin:siteconfig_sitesettings_changelist"), "icon": "settings"},
+            {"title": _("Config center"), "link": reverse_lazy("admin:siteconfig_sitesettings_changelist"), "icon": "settings"},
             {"title": _("Compliance"), "link": reverse_lazy("admin:compliance_complianceauditlog_changelist"), "icon": "verified_user"},
             {"title": _("Automation"), "link": reverse_lazy("admin:automation_automationexecutionlog_changelist"), "icon": "robot"},
         ]},
@@ -109,7 +109,7 @@ If we keep a custom app list instead, the **same domain names and order** should
 | 5 | MFA only role-based | Add `SiteSettings.require_mfa_all_staff` (bool). When True, middleware redirects **any** staff without TOTP to MFA setup (except bypass paths). Default False for backward compatibility. |
 | 6 | No “encourage” for all users | Show a **dismissible** “Set up MFA for stronger security” banner (or link in user dropdown) in admin when `not user_has_device(user)`. Same on profile page (already has “Set up” link; ensure it’s prominent). Optionally show on first login. |
 | 7 | No MFA compliance on dashboard | Add **MFA compliance %** to admin index: e.g. “Staff with MFA: X / Y (Z%)”. Add to KPI row. |
-| 8 | No Security & MFA in System Config | In Site Settings secondary sidebar, add a **Security & MFA** group (or section) linking to in-page anchor for `require_mfa_roles` / `require_mfa_all_staff` and help text. Optionally add a small “MFA status” widget in that sidebar (e.g. “Compliance: Secure” when enforcement is on and count shown). |
+| 8 | No Security & MFA in Config center / Site Settings | In Site Settings secondary sidebar, add a **Security & MFA** group (or section) linking to in-page anchor for `require_mfa_roles` / `require_mfa_all_staff` and help text. Optionally add a small “MFA status” widget in that sidebar (e.g. “Compliance: Secure” when enforcement is on and count shown). |
 
 ### 3.3 Sidebar and navigation gaps
 
@@ -128,7 +128,7 @@ If we keep a custom app list instead, the **same domain names and order** should
 | 14 | Unpaid fees / Collection ratio | Add KPI for total unpaid (or collection ratio) from finance if not already present; ensure it’s permission-aware. |
 | 15 | DASHBOARD_CALLBACK | Unfold may support a dashboard callback to inject context; if so, use it for KPIs and action queue so the index stays the single “engine” view. Otherwise keep logic in `GileadAdminSite.index`. |
 
-### 3.5 System Config (secondary sidebar) gaps
+### 3.5 Configuration Control Center — Site Settings (secondary sidebar) gaps
 
 | # | Gap | Fix |
 |---|-----|-----|
@@ -181,7 +181,7 @@ If we keep a custom app list instead, the **same domain names and order** should
 12. Add **Unpaid fees / Collection** KPI if not present (permission-aware).
 13. Keep or add **System health** widget (e.g. “System Status: Online”, “Last backup” if applicable) on dashboard.
 
-### Phase 5 — System Config and Security & MFA
+### Phase 5 — Configuration Control Center and Security & MFA
 
 14. Add **Security & MFA** section to Site Settings secondary sidebar (in `settings_nav_groups` or equivalent) with anchor to MFA-related fields; add help text for “Require MFA for all staff” and “Require MFA for roles.”
 15. Add small **MFA status widget** in Site Settings secondary sidebar (e.g. “Staff with MFA: X/Y” or “Compliance: Secure” when enforcement on).
@@ -206,7 +206,7 @@ If we keep a custom app list instead, the **same domain names and order** should
 - **Zero-cost:** TOTP only (current); no SMS/email cost.
 - **Require:** Option “Require MFA for all staff” (new) + existing “Require MFA for roles.” When either applies, middleware redirects to MFA setup until device is configured.
 - **Encourage:** For every user without MFA: persistent (dismissible) prompt in admin and clear “Set up MFA” in profile/dropdown. Dashboard shows MFA compliance % so admins see progress.
-- **System Config:** Security & MFA section in Site Settings with enforcement toggles and optional MFA status widget in secondary sidebar.
+- **Config center / Site Settings:** Security & MFA section in Site Settings with enforcement toggles and optional MFA status widget in secondary sidebar.
 
 ---
 
@@ -218,7 +218,7 @@ If we keep a custom app list instead, the **same domain names and order** should
 | App list / nav | `config/admin.py` (`get_app_list`, `app_order`), `config/settings.py` (`UNFOLD`) |
 | MFA | `apps/accounts/middleware.py` (RequireMFAMiddleware), `views_mfa.py`, `templates/accounts/mfa_setup.html`, `apps/siteconfig/models.py` (require_mfa_roles) |
 | Dashboard | `config/admin.py` (index), `templates/admin/admin_dashboard.html` |
-| System Config | `templates/admin/siteconfig/sitesettings/settings_sidebar.html`, `change_form.html`, siteconfig admin (settings_nav_groups) |
+| Config center (Site Settings) | `templates/admin/siteconfig/sitesettings/settings_sidebar.html`, `change_form.html`, siteconfig admin (settings_nav_groups) |
 | Header | `templates/unfold/helpers/header.html`, `templates/components/admin_nav_bridge.html` |
 | Styles | `static/css/admin-sidebar-*.css`, `admin-dashboard.css`, `templates/admin/base_site.html` |
 | EMIS | `emis/admin.py` |
@@ -244,10 +244,10 @@ If we keep a custom app list instead, the **same domain names and order** should
 ## 7. Summary
 
 - **Fix first:** Duplicate CSS, EMIS registration, app_order, Simplebar.
-- **MFA:** Add “require for all staff” option and **encourage** setup for every user (banner + dashboard KPI + Security & MFA in System Config).
+- **MFA:** Add “require for all staff” option and **encourage** setup for every user (banner + dashboard KPI + Security & MFA in Config center / Site Settings).
 - **Sidebar:** One source of truth (Unfold navigation or get_app_list); collapsible domains; CMD+K; vertically scrollable, no gaps.
 - **Dashboard:** Command center with MFA compliance, Action queue (pending approvals), unpaid/collection KPI, system health.
-- **System Config:** Secondary sidebar with Security & MFA section and MFA widget.
+- **Config center / Site Settings:** Secondary sidebar with Security & MFA section and MFA widget.
 - **Redundancy:** Single nav source, compact header, consolidated tokens/styles, breadcrumbs, dirty state, empty states and bulk actions where needed.
 
 This plan should be treated as the single roadmap for making /admin the “engine” of the platform and fixing all identified gaps and redundancies.

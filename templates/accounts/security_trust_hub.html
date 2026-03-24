@@ -1,0 +1,139 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Security & trust" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  <h1 class="h4 mb-1">{% trans "Security & trust" %}</h1>
+  <p class="text-muted small mb-4">{% blocktrans with s=school.name %}Posture and controls for your account and <strong>{{ s }}</strong>. Provider credentials and AI keys stay server-side only.{% endblocktrans %}</p>
+
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-shield-lock me-2" aria-hidden="true"></span>{% trans "Multi-factor authentication" %}</h2>
+          <p class="card-text small text-secondary">{% trans "TOTP, backup codes, or passkeys strengthen sign-in." %}</p>
+          {% if mfa_enabled %}
+            <span class="badge bg-success mb-2">{% trans "Enabled" %}</span>
+          {% else %}
+            <span class="badge bg-warning text-dark mb-2">{% trans "Not enabled" %}</span>
+          {% endif %}
+          {% if urls.mfa_setup %}
+            <div><a href="{{ urls.mfa_setup }}" class="btn btn-outline-primary btn-sm">{% trans "MFA settings" %}</a></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-laptop me-2" aria-hidden="true"></span>{% trans "Sessions & devices" %}</h2>
+          <p class="card-text small text-secondary">{% trans "Review and revoke active sessions." %}</p>
+          {% if urls.sessions %}
+            <a href="{{ urls.sessions }}" class="btn btn-outline-primary btn-sm">{% trans "Manage sessions" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-clock-history me-2" aria-hidden="true"></span>{% trans "Your security activity" %}</h2>
+          <p class="card-text small text-secondary">{% trans "Recent sign-in and security events (JSON)." %}</p>
+          {% if urls.security_activity %}
+            <a href="{{ urls.security_activity }}" class="btn btn-outline-primary btn-sm" target="_blank" rel="noopener">{% trans "View feed" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-download me-2" aria-hidden="true"></span>{% trans "Export my security log" %}</h2>
+          <p class="card-text small text-secondary">{% trans "CSV export requires MFA (data portability)." %}</p>
+          {% if urls.security_export %}
+            <a href="{{ urls.security_export }}" class="btn btn-outline-primary btn-sm">{% trans "Download CSV" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% if show_governance_links %}
+    <div class="col-12"><h2 class="h6 text-uppercase text-muted mt-2">{% trans "School governance" %}</h2></div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-people me-2" aria-hidden="true"></span>{% trans "Access review (RBAC)" %}</h2>
+          <p class="card-text small text-secondary">{% trans "Roles and permissions for staff." %}</p>
+          {% if urls.rbac %}
+            <a href="{{ urls.rbac }}" class="btn btn-outline-primary btn-sm">{% trans "Open RBAC" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-clipboard-check me-2" aria-hidden="true"></span>{% trans "Compliance & audit" %}</h2>
+          <p class="card-text small text-secondary">{% trans "Integrity, access, and playbook links." %}</p>
+          {% if urls.compliance %}
+            <a href="{{ urls.compliance }}" class="btn btn-outline-primary btn-sm">{% trans "Compliance dashboard" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-key me-2" aria-hidden="true"></span>{% trans "API & integrations" %}</h2>
+          <p class="card-text small text-secondary">{% trans "API keys and integration governance." %}</p>
+          {% if urls.apicenter %}
+            <a href="{{ urls.apicenter }}" class="btn btn-outline-primary btn-sm">{% trans "API Center" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-sliders2-vertical me-2" aria-hidden="true"></span>{% trans "Policy & feature enforcement" %}</h2>
+          <p class="card-text small text-secondary">{% trans "Kill switches, packs, and feature flags for this school." %}</p>
+          {% if urls.feature_control %}
+            <a href="{{ urls.feature_control }}" class="btn btn-outline-primary btn-sm me-1 mb-1">{% trans "Feature control" %}</a>
+          {% endif %}
+          {% if urls.feature_control_audit %}
+            <a href="{{ urls.feature_control_audit }}" class="btn btn-outline-secondary btn-sm mb-1">{% trans "Change audit" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-activity me-2" aria-hidden="true"></span>{% trans "Platform events (tenant)" %}</h2>
+          <p class="card-text small text-secondary">{% trans "Pack apply and catalog signals for this school." %}</p>
+          {% if urls.tenant_activity %}
+            <a href="{{ urls.tenant_activity }}" class="btn btn-outline-primary btn-sm">{% trans "Activity log" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-person-badge me-2" aria-hidden="true"></span>{% trans "Support impersonation log" %}</h2>
+          <p class="card-text small text-secondary">{% trans "Break-glass access by platform operators (read-only audit)." %}</p>
+          {% if urls.impersonation_audit %}
+            <a href="{{ urls.impersonation_audit }}" class="btn btn-outline-primary btn-sm">{% trans "View log" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if urls.backend_home %}
+    <p class="mt-4 mb-0"><a href="{{ urls.backend_home }}" class="small">{% trans "← Back to dashboard" %}</a></p>
+  {% endif %}
+</div>
+{% endblock %}

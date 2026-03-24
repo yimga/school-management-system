@@ -18,6 +18,7 @@ backend-shell dashboard-page-backend
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-tokens.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2-contract.css' %}">
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
   (function () {
@@ -307,7 +308,7 @@ backend-shell dashboard-page-backend
   {% admin_health as health %}
 
   {# Optional: load status strip via HTMX so initial render does not wait on this data #}
-  <div class="backend-dashboard-content">
+  <div class="backend-dashboard-content" data-decision-engine="surface">
   <div id="backend-status-fragment" class="backend-status-fragment-placeholder backend-status-fragment--compact"
        hx-get="{% url 'accounts:backend_dashboard_status_fragment' %}"
        hx-trigger="load"

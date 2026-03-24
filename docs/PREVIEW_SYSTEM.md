@@ -1,4 +1,4 @@
-# Preview System – Platform-Wide Live Preview (Site Settings & System Configuration)
+# Preview System – Platform-Wide Live Preview (Site Settings & Configuration Control Center)
 
 This is the **platform-wide Live Preview** system for site settings and system configuration. Any section can participate (see **`docs/PLATFORM_LIVE_PREVIEW.md`** for the single contract and how report/Setup Studio previews fit in). The following describes how full-page config preview works and how to extend it for any site-setting or system-config section. Preview is heavily used when editing **Site Settings** (header, footer, theme, branding, etc.) so admins can see exactly which parts of the site their changes affect.
 

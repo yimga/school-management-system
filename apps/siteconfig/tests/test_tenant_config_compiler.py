@@ -93,16 +93,17 @@ class TenantConfigCompilerTests(TestCase):
         self.assertTrue(is_tenant_setting_editable(compiled, "default_language"))
 
     def test_low_connectivity_pack_defaults_offline_mode(self):
-        cmr, _ = RegionConfig.objects.get_or_create(
-            code="CMR",
+        # CMR maps to AFR_FR policy pack; LCA (low-connectivity) pack applies to UGA/KEN/...
+        uga, _ = RegionConfig.objects.get_or_create(
+            code="UGA",
             defaults={
-                "name": "Cameroon",
+                "name": "Uganda",
                 "default_language": "en",
-                "timezone": "Africa/Douala",
+                "timezone": "Africa/Kampala",
                 "date_format": "DD/MM/YYYY",
                 "grading_scale": "0-20",
-                "default_currency": "XAF",
-                "academic_year_start_month": 9,
+                "default_currency": "UGX",
+                "academic_year_start_month": 2,
                 "term_count_per_year": 3,
             },
         )
@@ -111,7 +112,7 @@ class TenantConfigCompilerTests(TestCase):
             slug="lca-school",
             subdomain="lca-school",
             is_active=True,
-            default_region=cmr,
+            default_region=uga,
         )
         compiled = compile_effective_tenant_config(school)
         self.assertTrue(compiled["effective"]["offline_mode_default"])

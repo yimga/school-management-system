@@ -94,6 +94,20 @@ class BulkLettersRBACTestCase(TestCase):
             email="super@test.com",
             password="testpass123",
         )
+        # Seed a classroom so GET renders the letter form (not only empty-state).
+        year = AcademicYear.objects.create(
+            name="2024-2025",
+            start_date=date(2024, 9, 1),
+            end_date=date(2025, 6, 30),
+            is_active=True,
+        )
+        dept = Department.objects.create(name="Science", code="SCI")
+        Classroom.objects.create(
+            academic_year=year,
+            department=dept,
+            name="Form 3A",
+            code="F3A-2425",
+        )
 
     def test_bulk_letters_anonymous_redirected(self):
         response = self.client.get(reverse("siteconfig:bulk_letters"))
@@ -106,6 +120,15 @@ class BulkLettersRBACTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Bulk Letters", response.content)
         self.assertIn(b"Letter body", response.content)
+
+    def test_bulk_letters_get_empty_state_when_no_classrooms(self):
+        """Without classrooms, page explains setup instead of showing the letter editor."""
+        Classroom.objects.all().delete()
+        self.client.login(username="super_bl", password="testpass123")
+        response = self.client.get(reverse("siteconfig:bulk_letters"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Bulk Letters", response.content)
+        self.assertIn(b"No classrooms found", response.content)
 
 
 class BulkLettersPostTestCase(TestCase):

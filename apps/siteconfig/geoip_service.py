@@ -1,223 +1,134 @@
 """
-Phase 8 Task 10: GeoIP & Regional Support
-Geographic IP detection, location-based access control, region customization
+GeoIP and regional helpers without ORM (tables removed in siteconfig 0075).
+
+Lookup path: Django cache key ``geoip:{ip}`` (dict shaped like a GeoIP row).
+Region defaults are static until a future registry / edge integration owns them.
 """
 
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import timedelta
+from math import atan2, cos, radians, sin, sqrt
+from typing import Any, Dict, List, Optional
+
 from django.core.cache import cache
-from django.core.exceptions import ImproperlyConfigured
-from django.db import models
-from typing import Optional, Dict, List
-
-try:
-    from django.contrib.gis.geos import Point
-    from django.contrib.gis.db import models as gis_models
-except (ImportError, ImproperlyConfigured):
-    Point = None
-
-    class _DummyGIS:
-        PointField = models.JSONField
-
-    gis_models = _DummyGIS()
+from django.utils import timezone
 
 
-class RegionalConfig(models.Model):
-    """Regional configuration settings"""
+@dataclass(frozen=True)
+class RegionalConfigSnapshot:
+    """Read-only regional defaults (replaces deleted RegionalConfig model)."""
 
-    REGION_CHOICES = [
-        ("WEST_AFRICA", "West Africa"),
-        ("EAST_AFRICA", "East Africa"),
-        ("SOUTHERN_AFRICA", "Southern Africa"),
-        ("CENTRAL_AFRICA", "Central Africa"),
-        ("NORTH_AFRICA", "North Africa"),
-    ]
-
-    region = models.CharField(max_length=20, choices=REGION_CHOICES, unique=True)
-    currency = models.CharField(max_length=3, default="USD")
-    language = models.CharField(max_length=10, default="en")
-    timezone = models.CharField(max_length=50, default="UTC")
-    countries = models.JSONField(default=list)  # List of country codes
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name_plural = "Regional Configs"
-
-    def __str__(self):
-        return f"{self.region} ({self.currency})"
+    region: str
+    currency: str
+    language: str
+    timezone: str
 
 
-class IPWhitelist(models.Model):
-    """IP whitelist for regional access"""
+# Default economics/locale per macro-region (platform fallback; not tenant-specific).
+REGION_DEFAULTS: Dict[str, RegionalConfigSnapshot] = {
+    "WEST_AFRICA": RegionalConfigSnapshot(
+        "WEST_AFRICA", "NGN", "en", "Africa/Lagos"
+    ),
+    "EAST_AFRICA": RegionalConfigSnapshot(
+        "EAST_AFRICA", "KES", "en", "Africa/Nairobi"
+    ),
+    "SOUTHERN_AFRICA": RegionalConfigSnapshot(
+        "SOUTHERN_AFRICA", "ZAR", "en", "Africa/Johannesburg"
+    ),
+    "CENTRAL_AFRICA": RegionalConfigSnapshot(
+        "CENTRAL_AFRICA", "XAF", "fr", "Africa/Douala"
+    ),
+    "NORTH_AFRICA": RegionalConfigSnapshot(
+        "NORTH_AFRICA", "EGP", "ar", "Africa/Cairo"
+    ),
+}
 
-    ip_address = models.GenericIPAddressField(unique=True)
-    region = models.ForeignKey(RegionalConfig, on_delete=models.CASCADE)
-    description = models.TextField(blank=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.ip_address} - {self.region}"
-
-
-class GeoIPLocation(models.Model):
-    """Cached GeoIP location data"""
-
-    ip_address = models.GenericIPAddressField(unique=True, db_index=True)
-    country_code = models.CharField(max_length=2)
-    country_name = models.CharField(max_length=100)
-    city = models.CharField(max_length=100, blank=True)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    location = gis_models.PointField(null=True)
-    timezone = models.CharField(max_length=50, blank=True)
-    isp = models.CharField(max_length=100, blank=True)
-    is_vpn = models.BooleanField(default=False)
-    is_proxy = models.BooleanField(default=False)
-    last_checked = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=["country_code"]),
-            models.Index(fields=["ip_address"]),
-        ]
-
-    def __str__(self):
-        return f"{self.ip_address} - {self.country_name}"
-
-
-class RegionalAccessPolicy(models.Model):
-    """Define access policies per region"""
-
-    ACCESS_TYPES = [
-        ("ALLOW", "Allow"),
-        ("DENY", "Deny"),
-        ("RESTRICT", "Restrict"),
-    ]
-
-    region = models.ForeignKey(RegionalConfig, on_delete=models.CASCADE)
-    access_type = models.CharField(max_length=10, choices=ACCESS_TYPES)
-    require_vpn = models.BooleanField(default=False)
-    data_residency_required = models.BooleanField(default=False)
-    user_groups = models.JSONField(default=list)  # List of user groups allowed
-    ip_ranges = models.JSONField(default=list)  # CIDR ranges
-    rate_limit_per_hour = models.IntegerField(default=1000)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ("region", "access_type")
-
-    def __str__(self):
-        return f"{self.region} - {self.access_type}"
+# ISO 3166-1 alpha-2 → macro-region (subset; expand in registries when productized).
+_COUNTRY_TO_REGION: Dict[str, str] = {
+    "NG": "WEST_AFRICA",
+    "GH": "WEST_AFRICA",
+    "SL": "WEST_AFRICA",
+    "GM": "WEST_AFRICA",
+    "CV": "WEST_AFRICA",
+    "KE": "EAST_AFRICA",
+    "UG": "EAST_AFRICA",
+    "TZ": "EAST_AFRICA",
+    "RW": "EAST_AFRICA",
+    "BI": "EAST_AFRICA",
+    "ZA": "SOUTHERN_AFRICA",
+    "BW": "SOUTHERN_AFRICA",
+    "ZW": "SOUTHERN_AFRICA",
+    "NA": "SOUTHERN_AFRICA",
+    "LS": "SOUTHERN_AFRICA",
+    "CM": "CENTRAL_AFRICA",
+    "CF": "CENTRAL_AFRICA",
+    "CD": "CENTRAL_AFRICA",
+    "AO": "CENTRAL_AFRICA",
+    "EG": "NORTH_AFRICA",
+    "TN": "NORTH_AFRICA",
+    "DZ": "NORTH_AFRICA",
+    "MA": "NORTH_AFRICA",
+    "LY": "NORTH_AFRICA",
+}
 
 
 class GeoIPService:
-    """Service for GeoIP lookups and regional operations"""
+    """GeoIP-style lookups: cache-backed dict only; no database tables."""
 
     MAXMIND_DB_PATH = "geoip/GeoLite2-City.mmdb"
     CACHE_TIMEOUT = 86400  # 24 hours
 
     @staticmethod
-    def lookup_ip(ip_address: str) -> Optional[Dict]:
-        """Lookup IP geolocation"""
+    def lookup_ip(ip_address: str) -> Optional[Dict[str, Any]]:
+        """Return cached geo dict for IP, or None (no ORM / no bundled MaxMind in this path)."""
         cache_key = f"geoip:{ip_address}"
-
-        # Check cache first
         cached = cache.get(cache_key)
-        if cached:
+        if cached is not None:
             return cached
-
-        try:
-            # Try to get from database
-            location = GeoIPLocation.objects.get(ip_address=ip_address)
-            result = {
-                "ip": ip_address,
-                "country_code": location.country_code,
-                "country_name": location.country_name,
-                "city": location.city,
-                "latitude": location.latitude,
-                "longitude": location.longitude,
-                "timezone": location.timezone,
-                "isp": location.isp,
-                "is_vpn": location.is_vpn,
-                "is_proxy": location.is_proxy,
-            }
-            cache.set(cache_key, result, GeoIPService.CACHE_TIMEOUT)
-            return result
-        except GeoIPLocation.DoesNotExist:
-            # Query external service or MaxMind DB
-            return None
-
-    @staticmethod
-    def get_user_region(ip_address: str) -> Optional[str]:
-        """Get region from IP address"""
-        location = GeoIPService.lookup_ip(ip_address)
-        if not location:
-            return None
-
-        configs = RegionalConfig.objects.filter(is_active=True)
-        country_code = location.get("country_code")
-        for config in configs:
-            countries = config.countries or []
-            if country_code in countries:
-                return config.region
-
         return None
 
     @staticmethod
+    def get_user_region(ip_address: str) -> Optional[str]:
+        location = GeoIPService.lookup_ip(ip_address)
+        if not location:
+            return None
+        country_code = (location.get("country_code") or "").upper()
+        if not country_code:
+            return None
+        return _COUNTRY_TO_REGION.get(country_code)
+
+    @staticmethod
     def is_ip_whitelisted(ip_address: str) -> bool:
-        """Check if IP is whitelisted"""
-        return IPWhitelist.objects.filter(
-            ip_address=ip_address, is_active=True
-        ).exists()
+        """No persistent whitelist store after 0075; always False unless you set cache elsewhere."""
+        return False
 
     @staticmethod
     def check_region_access(region: str, user_group: str) -> bool:
-        """Check if user group has access to region"""
-        try:
-            policy = RegionalAccessPolicy.objects.get(
-                region__region=region, access_type="ALLOW"
-            )
-            return user_group in policy.user_groups
-        except RegionalAccessPolicy.DoesNotExist:
-            return False
+        """No regional access policy store; deny closed until a governance surface exists."""
+        return False
 
     @staticmethod
-    def get_region_config(region: str) -> Optional[RegionalConfig]:
-        """Get configuration for region"""
-        cache_key = f"region_config:{region}"
-
-        cached = cache.get(cache_key)
-        if cached:
-            return cached
-
-        try:
-            config = RegionalConfig.objects.get(region=region, is_active=True)
-            cache.set(cache_key, config, GeoIPService.CACHE_TIMEOUT)
-            return config
-        except RegionalConfig.DoesNotExist:
+    def get_region_config(region: Optional[str]) -> Optional[RegionalConfigSnapshot]:
+        if not region:
             return None
+        return REGION_DEFAULTS.get(region)
 
     @staticmethod
     def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-        """Calculate distance between two coordinates (km)"""
-        from math import radians, sin, cos, sqrt, atan2
-
-        R = 6371  # Earth radius in km
+        """Great-circle distance in km."""
+        r_earth = 6371.0
         lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
         dlat = lat2 - lat1
         dlon = lon2 - lon1
-
         a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        distance = R * c
-
-        return distance
+        return r_earth * c
 
 
 class LocationBasedAccessControl:
-    """Control access based on geolocation"""
+    """Lightweight access hints from cached geo dict only."""
 
     def __init__(self, ip_address: str):
         self.ip_address = ip_address
@@ -225,51 +136,36 @@ class LocationBasedAccessControl:
         self.region = GeoIPService.get_user_region(ip_address)
 
     def is_allowed(self, required_region: Optional[str] = None) -> bool:
-        """Check if access is allowed"""
         if not self.location:
             return False
-
-        # Check whitelist
         if GeoIPService.is_ip_whitelisted(self.ip_address):
             return True
-
-        # Check VPN/Proxy
         if self.location.get("is_vpn") or self.location.get("is_proxy"):
             return False
-
-        # Check region
         if required_region and self.region != required_region:
             return False
-
         return True
 
     def get_access_level(self) -> str:
-        """Get access level (full, restricted, denied)"""
         if not self.location:
             return "denied"
-
         if GeoIPService.is_ip_whitelisted(self.ip_address):
             return "full"
-
         if self.location.get("is_vpn"):
             return "restricted"
-
         return "full"
 
     def enforce_data_residency(self, data_region: str) -> bool:
-        """Check data residency requirement"""
         if not self.region:
             return False
-
         config = GeoIPService.get_region_config(self.region)
         if not config:
             return False
-
         return config.region == data_region
 
 
 class RegionalDataLocalization:
-    """Localize data based on regional requirements"""
+    """Regional formatting; currency symbols via siteconfig.currency."""
 
     REGIONAL_CURRENCIES = {
         "WEST_AFRICA": {"NGN", "GHS", "SLL", "GMD", "CVE"},
@@ -288,25 +184,23 @@ class RegionalDataLocalization:
     }
 
     @staticmethod
-    def get_regional_currency(region: str) -> str:
-        """Get default currency for region"""
-        config = GeoIPService.get_region_config(region)
+    def get_regional_currency(region: Optional[str]) -> str:
+        config = GeoIPService.get_region_config(region or "")
         return config.currency if config else "USD"
 
     @staticmethod
-    def get_regional_languages(region: str) -> List[str]:
-        """Get supported languages for region"""
+    def get_regional_languages(region: Optional[str]) -> List[str]:
+        if not region:
+            return ["en"]
         return RegionalDataLocalization.REGIONAL_LANGUAGES.get(region, ["en"])
 
     @staticmethod
-    def get_regional_timezone(region: str) -> str:
-        """Get timezone for region"""
-        config = GeoIPService.get_region_config(region)
+    def get_regional_timezone(region: Optional[str]) -> str:
+        config = GeoIPService.get_region_config(region or "")
         return config.timezone if config else "UTC"
 
     @staticmethod
     def format_currency(amount: float, region: str, decimal_places: int = 2) -> str:
-        """Format currency based on region. Uses canonical CURRENCY_SYMBOLS from siteconfig."""
         from apps.siteconfig.currency import get_currency_symbol
 
         currency = RegionalDataLocalization.get_regional_currency(region)
@@ -315,10 +209,8 @@ class RegionalDataLocalization:
         return f"{symbol}{formatted_amount}"
 
     @staticmethod
-    def apply_regional_rules(user_id: int, ip_address: str) -> Dict:
-        """Apply all regional rules to user"""
+    def apply_regional_rules(user_id: int, ip_address: str) -> Dict[str, Any]:
         region = GeoIPService.get_user_region(ip_address)
-
         return {
             "region": region,
             "currency": RegionalDataLocalization.get_regional_currency(region),
@@ -328,37 +220,31 @@ class RegionalDataLocalization:
 
 
 class GeoIPEventLogger:
-    """Log location-based events"""
+    """Structured geo events in cache (short TTL), not SQL."""
 
     @staticmethod
-    def log_access(ip_address: str, user_id: int, resource: str, allowed: bool):
-        """Log access attempt"""
+    def log_access(ip_address: str, user_id: int, resource: str, allowed: bool) -> None:
         location = GeoIPService.lookup_ip(ip_address)
         if not location:
             return
-
         event = {
-            "timestamp": timezone.now(),
+            "timestamp": timezone.now().isoformat(),
             "ip": ip_address,
             "user": user_id,
             "resource": resource,
             "allowed": allowed,
-            "country": location["country_code"],
-            "city": location["city"],
+            "country": location.get("country_code"),
+            "city": location.get("city"),
         }
-
-        # Store in cache or database
-        cache.set(f"geo_event:{ip_address}:{user_id}:{resource}", event, 86400)
+        cache.set(
+            f"geo_event:{ip_address}:{user_id}:{resource}",
+            event,
+            86400,
+        )
 
     @staticmethod
-    def get_access_summary(days: int = 30) -> Dict:
-        """Get summary of access patterns"""
-        # Query recent access logs
-        from django.utils import timezone
-        from datetime import timedelta
-
-        _cutoff = timezone.now() - timedelta(days=days)
-
+    def get_access_summary(days: int = 30) -> Dict[str, Any]:
+        _ = timezone.now() - timedelta(days=days)
         return {
             "period_days": days,
             "total_access_attempts": 0,
@@ -366,7 +252,3 @@ class GeoIPEventLogger:
             "denied": 0,
             "vpn_detected": 0,
         }
-
-
-# Import timezone at module level
-from django.utils import timezone

@@ -1023,12 +1023,12 @@ def api_live_preview_explain(request):
         )
 
 
-# --- Toolset 5I: System Configuration ---
+# --- Toolset 5I: Configuration Control Center ---
 @require_http_methods(["POST"])
 @csrf_protect
 @login_required
 def api_system_config_explain(request):
-    """POST: { "query": "..." } → system config explanation."""
+    """POST: { "query": "..." } → Configuration Control Center / settings explanation."""
     rate_err = _gateway_rate_limit(request)
     if rate_err:
         return rate_err
@@ -1042,7 +1042,7 @@ def api_system_config_explain(request):
         prompt = (
             get_prompt_template("system_config", {"query": query}) or ""
         ).strip() or (
-            f"Explain system configuration options. User question: {query}\n\n"
+            f"Explain Configuration Control Center and related settings options. User question: {query}\n\n"
             "Answer concisely; do not include secrets or internal URLs."
         )
         result, meta = _gateway_response(
@@ -1072,7 +1072,7 @@ def api_system_config_explain(request):
     except GATEWAY_VIEW_ERRORS as e:
         log_view_exception(
             request,
-            "portal.views_ai_gateway: System config explain failed",
+            "portal.views_ai_gateway: Configuration Control Center explain failed",
             extra={"error": str(e)},
         )
         return JsonResponse(

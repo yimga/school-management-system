@@ -34,10 +34,132 @@ from .services import (
     get_studio_command_palette_entries,
     get_studio_version_history,
     get_output_dependency_graph,
+    get_output_report_pack_preview_cards,
     studio_rollback_available,
     studio_publish,
     studio_save_draft,
 )
+
+
+def _automation_studio_base_url() -> str:
+    try:
+        return reverse("studio_os:automation")
+    except NoReverseMatch:
+        return ""
+
+
+def _resolve_automation_iframe_src(pane: str) -> str:
+    """Automation Studio: iframe only for heavy / external surfaces; default pane is native."""
+    from apps.studio_os.deep_links import resolve_studio_href
+
+    key = (pane or "").strip().lower()
+    mapping = {
+        "outcomes": ("automation:outcomes_console", True),
+        "workflow": ("studio_os:workflow_center", True),
+        "flow_gallery": ("siteconfig:workflow_flow_gallery", False),
+        "approval": ("studio_os:approval_hub", False),
+    }
+    if key not in mapping:
+        return ""
+    vn, emb = mapping[key]
+    return resolve_studio_href(vn, embed=emb) or ""
+
+
+def _automation_explainer_context(pane: str):
+    """Context for in-shell explainer panes (native HTML, no iframe)."""
+    from django.utils.translation import gettext as gt
+
+    wf = ""
+    try:
+        wf = reverse("studio_os:automation") + "?pane=workflow"
+    except NoReverseMatch:
+        pass
+    hint = gt("Manage flows, run simulations, and activate workflows.")
+    explainers = {
+        "conflict": {
+            "title": gt("Conflict detection"),
+            "subtitle": "",
+            "body": gt(
+                "Conflict detection helps identify overlapping or incompatible workflow definitions before activation. "
+                "Use the Workflow center to run simulations and review dependencies; resolve conflicts there before enabling new flows."
+            ),
+            "workflow_hint": hint,
+        },
+        "staged": {
+            "title": gt("Staged activation"),
+            "subtitle": "",
+            "body": gt(
+                "Roll out workflow changes in stages: preview impact, enable for a subset, then promote. "
+                "Use the Workflow center to run simulations before full activation."
+            ),
+            "workflow_hint": hint,
+        },
+        "replay": {
+            "title": gt("Replay / rollback"),
+            "subtitle": "",
+            "body": gt(
+                "Review workflow runs, replay instances for debugging, and roll back when needed. "
+                "Use Automation rollback from the Studio toolbar when available."
+            ),
+            "workflow_hint": gt(
+                "View runs, replay instances, and manage workflow config."
+            ),
+        },
+        "visual_builder": {
+            "title": gt("Visual builder"),
+            "subtitle": "",
+            "body": gt(
+                "Build workflows visually with drag-and-drop: add steps, connect conditions, and define triggers. "
+                "The Workflow center is where you create and edit flows; a full visual builder can integrate there when productized."
+            ),
+            "workflow_hint": gt("Manage flows and workflow templates."),
+        },
+        "nl_workflow": {
+            "title": gt("Natural-language workflow"),
+            "subtitle": "",
+            "body": gt(
+                "Describe automations in plain language; the system maps intent to workflow steps where supported. "
+                "Use the Workflow center to refine and activate generated flows."
+            ),
+            "workflow_hint": gt("Create and manage workflows."),
+        },
+        "simulation": {
+            "title": gt("Simulation engine"),
+            "subtitle": "",
+            "body": gt(
+                "Run workflow simulations before going live. Verify behavior and impact from the Workflow center, then activate when ready."
+            ),
+            "workflow_hint": gt("Run simulations and activate workflows."),
+        },
+    }
+    data = explainers.get((pane or "").strip().lower())
+    if not data:
+        return None
+    return {
+        "title": data["title"],
+        "subtitle": data.get("subtitle", ""),
+        "body": data["body"],
+        "workflow_pane_url": wf,
+        "workflow_hint": data.get("workflow_hint", hint),
+    }
+
+
+def _resolve_launch_iframe_src(_request, pane: str) -> str:
+    """Launch Studio: iframe for wizards; overview/plan are native."""
+    from apps.studio_os.deep_links import resolve_studio_href
+
+    key = (pane or "").strip().lower()
+    mapping = {
+        "onboarding": ("siteconfig:guided_onboarding", True),
+        "create_school": ("super:create_school_wizard", True),
+        "blueprints": ("siteconfig:get_blueprints", True),
+        "branding": ("studio_os:experience", True),
+        "checklist": ("siteconfig:guided_onboarding", True),
+    }
+    if key not in mapping:
+        return ""
+    vn, emb = mapping[key]
+    return resolve_studio_href(vn, embed=emb) or ""
 
 
 @never_cache
@@ -124,15 +246,25 @@ def studio_system_config_console(request):
         )
     _add_local(_("Diff / impact summary"), "studio_os:control_impact", embed=True)
 
+    from apps.siteconfig.control_outcome_center import (
+        WHY_ENABLED_SUMMARY,
+        build_operator_control_model_for_request,
+        build_outcome_groups_for_request,
+    )
+
     return render(
         request,
         "studio_os/system_config_console.html",
         {
-            "page_title": _("System config"),
+            "page_title": _("Configuration Control Center"),
             "page_subtitle": _(
-                "Each link opens the real surface. Super-only items open the manager host when you are on a school domain."
+                "Outcome-based surfaces — runtime, packs, policy, entitlements, overrides. "
+                "Each link opens the real tool; manager-only items use your platform host when needed."
             ),
             "config_links": links,
+            "outcome_groups": build_outcome_groups_for_request(request),
+            "why_enabled_summary": WHY_ENABLED_SUMMARY,
+            "operator_control_model": build_operator_control_model_for_request(request),
             "action_url": reverse("studio_os:control"),
             "action_text": _("Back to Control"),
         },
@@ -454,11 +586,16 @@ def studio_output_dependency_graph(request):
     if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     graph = get_output_dependency_graph()
+    out_base = reverse("studio_os:output")
+    pack_preview_cards = get_output_report_pack_preview_cards(out_base=out_base)
+    focus = (request.GET.get("pack") or "").strip()[:160]
     return render(
         request,
         "studio_os/output_dependency_graph.html",
         {
             "graph": graph,
+            "pack_preview_cards": pack_preview_cards,
+            "focus_pack_code": focus,
             "page_title": "Dependency graph",
             "page_subtitle": "Report packs and their dependencies (fields, policies, templates).",
             "action_url": reverse("studio_os:output"),
@@ -512,7 +649,7 @@ def studio_output_policy_registry(request):
     except NoReverseMatch:
         pass
     try:
-        report_library_url = reverse("studio_os:output") + "?embed=1"
+        report_library_url = reverse("studio_os:output") + "?pane=reports"
     except NoReverseMatch:
         pass
     return render(
@@ -521,7 +658,7 @@ def studio_output_policy_registry(request):
         {
             "page_title": _("Policy & registry"),
             "page_subtitle": _(
-                "Reports and report packs align with policy (blueprints, grading, terms) and metadata registry (lineage, fields). Use Report library to build; Control for policy and lineage."
+                "Reports and report packs align with policy (blueprints, grading, terms) and metadata registry (lineage, fields). Use Output Studio · Report library & letters; Control for policy and lineage."
             ),
             "action_url": reverse("studio_os:output"),
             "action_text": _("Back to Outputs"),
@@ -562,7 +699,7 @@ def studio_automation_conflict_detection(request):
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     try:
-        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
+        workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
     return render(
@@ -589,7 +726,7 @@ def studio_automation_staged_activation(request):
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     try:
-        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
+        workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
     return render(
@@ -617,7 +754,7 @@ def studio_automation_replay_rollback(request):
     workflow_hub_url = ""
     rollback_url = ""
     try:
-        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
+        workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
     try:
@@ -648,7 +785,7 @@ def _automation_explainer_view(
         return redirect(reverse("accounts:backend_dashboard"))
     workflow_hub_url = ""
     try:
-        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
+        workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
     return render(
@@ -717,6 +854,10 @@ def studio_automation_dependency_graph(request):
     if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     graph = get_automation_dependency_graph()
+    try:
+        auto_back = reverse("studio_os:automation") + "?pane=dependency"
+    except NoReverseMatch:
+        auto_back = reverse("studio_os:automation")
     return render(
         request,
         "studio_os/automation_dependency_graph.html",
@@ -724,7 +865,7 @@ def studio_automation_dependency_graph(request):
             "graph": graph,
             "page_title": "Dependency graph",
             "page_subtitle": "Workflow packs and their templates (pack → templates).",
-            "action_url": reverse("studio_os:automation"),
+            "action_url": auto_back,
         },
     )
 
@@ -739,9 +880,9 @@ def studio_automation_workflow_health(request):
     from apps.studio_os.services import get_automation_workflow_health_summary
 
     summary = get_automation_workflow_health_summary()
-    workflow_hub_url = ""
+    workflow_center_pane_url = ""
     try:
-        workflow_hub_url = reverse("studio_os:automation") + "?embed=1"
+        workflow_center_pane_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
     return render(
@@ -750,10 +891,10 @@ def studio_automation_workflow_health(request):
         {
             "pack_count": summary.get("pack_count", 0),
             "template_count": summary.get("template_count", 0),
-            "workflow_hub_url": workflow_hub_url,
+            "workflow_center_pane_url": workflow_center_pane_url,
             "page_title": _("Workflow health metrics"),
             "page_subtitle": _(
-                "Active workflow packs and templates; run simulations from Workflow hub."
+                "Active workflow packs and templates; run simulations from Workflow center."
             ),
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
@@ -973,70 +1114,388 @@ def studio_shell(request, mode=None):
         context["launch_ready"] = False
 
     if mode == "launch":
-        launch_rail = []
-        _studio_rail_append(
-            launch_rail, "Guided onboarding", "siteconfig:guided_onboarding", embed=True
+        launch_base = reverse("studio_os:launch")
+        context["launch_studio_base_url"] = launch_base
+        context["launch_left_rail"] = [
+            {
+                "label": _("Overview"),
+                "url": f"{launch_base}?pane=overview",
+                "pane": "overview",
+            },
+            {
+                "label": _("Guided onboarding"),
+                "url": f"{launch_base}?pane=onboarding",
+                "pane": "onboarding",
+            },
+            {
+                "label": _("Create school"),
+                "url": f"{launch_base}?pane=create_school",
+                "pane": "create_school",
+            },
+            {
+                "label": _("Select plan"),
+                "url": f"{launch_base}?pane=plan",
+                "pane": "plan",
+            },
+            {
+                "label": _("Blueprint gallery"),
+                "url": f"{launch_base}?pane=blueprints",
+                "pane": "blueprints",
+            },
+            {
+                "label": _("Import branding"),
+                "url": f"{launch_base}?pane=branding",
+                "pane": "branding",
+            },
+            {
+                "label": _("Launch checklist"),
+                "url": f"{launch_base}?pane=checklist",
+                "pane": "checklist",
+            },
+        ]
+        pane_raw = (request.GET.get("pane") or "overview").strip().lower()
+        allowed_launch = frozenset(
+            {
+                "overview",
+                "onboarding",
+                "create_school",
+                "plan",
+                "blueprints",
+                "branding",
+                "checklist",
+            }
         )
-        _studio_rail_append(
-            launch_rail, "Create school", "super:create_school_wizard", embed=True
-        )
-        _studio_rail_append(
-            launch_rail, "Select plan", "studio_os:launch_select_plan", embed=True
-        )
-        _studio_rail_append(
-            launch_rail, "Blueprint gallery", "siteconfig:get_blueprints", embed=True
-        )
-        _studio_rail_append(launch_rail, "Import branding", "studio_os:experience", embed=True)
-        _studio_rail_append(
-            launch_rail, "Launch checklist", "siteconfig:guided_onboarding", embed=True
-        )
-        context["launch_left_rail"] = launch_rail
+        launch_pane = pane_raw if pane_raw in allowed_launch else "overview"
+        context["launch_pane"] = launch_pane
+        context["launch_iframe_src"] = _resolve_launch_iframe_src(request, launch_pane)
 
     if mode == "automation":
-        from apps.studio_os.deep_links import resolve_studio_href
+        from apps.studio_os.services import get_automation_workflow_health_summary
 
-        workflow_entries = []
-        automation_rail = []
-        for label, vn, url_embed in (
-            ("Outcomes", "automation:outcomes_console", True),
-            ("Workflow hub", "studio_os:automation", True),
-            ("Flow gallery", "siteconfig:workflow_flow_gallery", False),
-            ("Approval hub", "studio_os:approval_hub", False),
-            ("Dependency graph", "studio_os:automation_dependency_graph", True),
-            ("Workflow health metrics", "studio_os:automation_workflow_health", True),
-            ("Conflict detection", "studio_os:automation_conflict_detection", True),
-            ("Staged activation", "studio_os:automation_staged_activation", True),
-            ("Replay / rollback", "studio_os:automation_replay_rollback", True),
-            ("Visual builder", "studio_os:automation_visual_builder", True),
-            (
-                "Natural-language workflow",
-                "studio_os:automation_natural_language_workflow",
-                True,
-            ),
-            ("Simulation engine", "studio_os:automation_simulation_engine", True),
-        ):
-            u = resolve_studio_href(vn, embed=url_embed)
-            if u:
-                workflow_entries.append({"label": label, "url": u})
-                automation_rail.append({"label": label, "url": u, "embed": True})
-        context["workflow_entries"] = workflow_entries
-        context["automation_left_rail"] = automation_rail
-        context["automation_simulation_summary"] = (
-            "Run simulation from Workflow hub to see impact before activating."
+        auto_base = _automation_studio_base_url()
+        if not auto_base:
+            try:
+                auto_base = reverse("studio_os:automation")
+            except NoReverseMatch:
+                auto_base = ""
+        pane_raw = (request.GET.get("pane") or "overview").strip().lower()
+        allowed_auto = frozenset(
+            {
+                "overview",
+                "outcomes",
+                "workflow",
+                "flow_gallery",
+                "approval",
+                "dependency",
+                "health",
+                "conflict",
+                "staged",
+                "replay",
+                "visual_builder",
+                "nl_workflow",
+                "simulation",
+            }
+        )
+        automation_pane = pane_raw if pane_raw in allowed_auto else "overview"
+        context["automation_pane"] = automation_pane
+        context["automation_iframe_src"] = _resolve_automation_iframe_src(
+            automation_pane
+        )
+        graph = get_automation_dependency_graph()
+        context["automation_dependency_graph"] = graph
+        summary = get_automation_workflow_health_summary()
+        context["automation_health_summary"] = summary
+        wf_pane = f"{auto_base}?pane=workflow" if auto_base else ""
+        context["automation_workflow_center_pane_url"] = wf_pane
+        explainer_panes = frozenset(
+            {
+                "conflict",
+                "staged",
+                "replay",
+                "visual_builder",
+                "nl_workflow",
+                "simulation",
+            }
+        )
+        if automation_pane in explainer_panes:
+            context["automation_explainer"] = _automation_explainer_context(
+                automation_pane
+            )
+        else:
+            context["automation_explainer"] = None
+        if auto_base:
+            context["automation_left_rail"] = [
+                {
+                    "label": _("Overview"),
+                    "url": f"{auto_base}?pane=overview",
+                    "pane": "overview",
+                },
+                {
+                    "label": _("Outcomes"),
+                    "url": f"{auto_base}?pane=outcomes",
+                    "pane": "outcomes",
+                },
+                {
+                    "label": _("Workflow center"),
+                    "url": f"{auto_base}?pane=workflow",
+                    "pane": "workflow",
+                },
+                {
+                    "label": _("Flow gallery"),
+                    "url": f"{auto_base}?pane=flow_gallery",
+                    "pane": "flow_gallery",
+                },
+                {
+                    "label": _("Approval hub"),
+                    "url": f"{auto_base}?pane=approval",
+                    "pane": "approval",
+                },
+                {
+                    "label": _("Dependency graph"),
+                    "url": f"{auto_base}?pane=dependency",
+                    "pane": "dependency",
+                },
+                {
+                    "label": _("Workflow health metrics"),
+                    "url": f"{auto_base}?pane=health",
+                    "pane": "health",
+                },
+                {
+                    "label": _("Conflict detection"),
+                    "url": f"{auto_base}?pane=conflict",
+                    "pane": "conflict",
+                },
+                {
+                    "label": _("Staged activation"),
+                    "url": f"{auto_base}?pane=staged",
+                    "pane": "staged",
+                },
+                {
+                    "label": _("Replay / rollback"),
+                    "url": f"{auto_base}?pane=replay",
+                    "pane": "replay",
+                },
+                {
+                    "label": _("Visual builder"),
+                    "url": f"{auto_base}?pane=visual_builder",
+                    "pane": "visual_builder",
+                },
+                {
+                    "label": _("Natural-language workflow"),
+                    "url": f"{auto_base}?pane=nl_workflow",
+                    "pane": "nl_workflow",
+                },
+                {
+                    "label": _("Simulation engine"),
+                    "url": f"{auto_base}?pane=simulation",
+                    "pane": "simulation",
+                },
+            ]
+        else:
+            context["automation_left_rail"] = []
+        context["workflow_entries"] = []
+        context["automation_simulation_summary"] = _(
+            "Run simulation from Workflow center to see impact before activating."
         )
 
     if mode == "output":
-        output_rail = []
-        for label, vn in (
-            ("Report library", "studio_os:output"),
-            ("Document library", "portal:document_library_manage"),
-            ("Report card builder", "siteconfig:reportcard_builder"),
-            ("Dependency graph", "studio_os:output_dependency_graph"),
-            ("Branding inheritance", "studio_os:output_branding_inheritance"),
-            ("Policy & registry", "studio_os:output_policy_registry"),
-        ):
-            _studio_rail_append(output_rail, label, vn, embed=True)
-        context["output_left_rail"] = output_rail
+        pane_raw = (request.GET.get("pane") or "dependency").strip().lower()
+        allowed_panes = frozenset(
+            {
+                "dependency",
+                "reports",
+                "documents",
+                "builder",
+                "credentials",
+                "branding",
+                "policy",
+            }
+        )
+        output_pane = pane_raw if pane_raw in allowed_panes else "dependency"
+        context["output_pane"] = output_pane
+        out_base = reverse("studio_os:output")
+        context["output_dependency_graph"] = get_output_dependency_graph()
+        context["output_pack_preview_cards"] = get_output_report_pack_preview_cards(
+            out_base=out_base
+        )
+        _focus_pack = (request.GET.get("pack") or "").strip()
+        context["output_focus_pack_code"] = _focus_pack[:160] if _focus_pack else ""
+        context["output_doc_library"] = None
+        context["output_documents_denied"] = False
+        context["output_reportcard_builder"] = None
+        context["output_builder_denied"] = False
+        context["output_branding_native"] = None
+        context["output_policy_native"] = None
+        context["output_reports_native"] = None
+        context["output_reports_denied"] = False
+        context["output_credentials_native"] = None
+        _perm = getattr(request.user, "has_feature_permission", lambda _c: False)
+        _can_settings = _perm("settings.manage")
+
+        if output_pane == "documents":
+            if _can_settings:
+                from apps.portal.views_documents import (
+                    build_document_library_manage_context,
+                )
+
+                context["output_doc_library"] = build_document_library_manage_context(
+                    request, studio_output_native=True
+                )
+            else:
+                context["output_documents_denied"] = True
+            context["output_iframe_src"] = ""
+        elif output_pane == "reports":
+            bulk_letters_url = ""
+            try:
+                bulk_letters_url = reverse("siteconfig:bulk_letters")
+            except NoReverseMatch:
+                pass
+            if _can_settings:
+                context["output_reports_native"] = {
+                    "page_title": _("Report library & packs"),
+                    "page_subtitle": _(
+                        "Report packs, bulk letters, and the dependency graph — "
+                        "one place in Output Studio (legacy /siteconfig/reports/ redirects here)."
+                    ),
+                    "dependency_pane_url": f"{out_base}?pane=dependency",
+                    "bulk_letters_url": bulk_letters_url,
+                    "builder_pane_url": f"{out_base}?pane=builder",
+                    "credentials_pane_url": f"{out_base}?pane=credentials",
+                    "action_url": out_base,
+                    "action_text": _("Back to Outputs"),
+                }
+            else:
+                context["output_reports_denied"] = True
+            context["output_iframe_src"] = ""
+        elif output_pane == "credentials":
+            staff_id_url = ""
+            backend_students_url = ""
+            try:
+                staff_id_url = reverse("portal:my_digital_id")
+            except NoReverseMatch:
+                pass
+            try:
+                backend_students_url = reverse("accounts:backend_student_list")
+            except NoReverseMatch:
+                pass
+            context["output_credentials_native"] = {
+                "page_title": _("IDs & certificates"),
+                "page_subtitle": _(
+                    "Digital IDs and printed-style outputs: staff badges, parent/student cards, "
+                    "and report certificates. Unfold model pages remain for edge CRUD; prefer Studio "
+                    "and portal flows below."
+                ),
+                "staff_id_url": staff_id_url,
+                "backend_students_url": backend_students_url,
+                "action_url": reverse("studio_os:output"),
+                "action_text": _("Back to Outputs"),
+            }
+            context["output_iframe_src"] = ""
+        elif output_pane == "branding":
+            theme_url = ""
+            try:
+                theme_url = reverse("siteconfig:theme_colors") + "?embed=1"
+            except NoReverseMatch:
+                pass
+            context["output_branding_native"] = {
+                "page_title": _("Branding inheritance"),
+                "page_subtitle": _(
+                    "Reports and documents inherit school theme branding. Configure theme and colors to control outputs."
+                ),
+                "theme_colors_url": theme_url,
+                "action_url": reverse("studio_os:output"),
+                "action_text": _("Back to Outputs"),
+            }
+            context["output_iframe_src"] = ""
+        elif output_pane == "policy":
+            blueprints_url = ""
+            lineage_url = ""
+            report_library_url = ""
+            try:
+                blueprints_url = reverse("siteconfig:get_blueprints") + "?embed=1"
+            except NoReverseMatch:
+                pass
+            try:
+                lineage_url = reverse("metadata:metadata_lineage_graph") + "?embed=1"
+            except NoReverseMatch:
+                pass
+            try:
+                report_library_url = reverse("studio_os:output") + "?pane=reports"
+            except NoReverseMatch:
+                pass
+            context["output_policy_native"] = {
+                "page_title": _("Policy & registry"),
+                "page_subtitle": _(
+                    "Align report packs with policy blueprints and metadata lineage."
+                ),
+                "blueprints_url": blueprints_url,
+                "lineage_url": lineage_url,
+                "report_library_url": report_library_url,
+                "action_url": reverse("studio_os:output"),
+                "action_text": _("Back to Outputs"),
+            }
+            context["output_iframe_src"] = ""
+        elif output_pane == "builder":
+            if _can_settings:
+                from apps.siteconfig.views import build_reportcard_builder_context
+
+                context["output_reportcard_builder"] = (
+                    build_reportcard_builder_context(
+                        request, studio_output_native=True
+                    )
+                )
+            else:
+                context["output_builder_denied"] = True
+            context["output_iframe_src"] = ""
+        elif output_pane == "dependency":
+            context["output_iframe_src"] = ""
+        else:
+            context["output_iframe_src"] = ""
+
+        context["output_left_rail"] = [
+            {
+                "label": _("Report & pack graph"),
+                "url": f"{out_base}?pane=dependency",
+                "embed": False,
+                "pane": "dependency",
+            },
+            {
+                "label": _("Report library & letters"),
+                "url": f"{out_base}?pane=reports",
+                "embed": False,
+                "pane": "reports",
+            },
+            {
+                "label": _("Document library"),
+                "url": f"{out_base}?pane=documents",
+                "embed": False,
+                "pane": "documents",
+            },
+            {
+                "label": _("Report card builder"),
+                "url": f"{out_base}?pane=builder",
+                "embed": False,
+                "pane": "builder",
+            },
+            {
+                "label": _("IDs & certificates"),
+                "url": f"{out_base}?pane=credentials",
+                "embed": False,
+                "pane": "credentials",
+            },
+            {
+                "label": _("Branding inheritance"),
+                "url": f"{out_base}?pane=branding",
+                "embed": False,
+                "pane": "branding",
+            },
+            {
+                "label": _("Policy & registry"),
+                "url": f"{out_base}?pane=policy",
+                "embed": False,
+                "pane": "policy",
+            },
+        ]
 
     if mode == "control":
         try:
@@ -1065,7 +1524,7 @@ def studio_shell(request, mode=None):
         from apps.studio_os.deep_links import resolve_studio_href
 
         _studio_rail_append(
-            control_rail, "System config", "studio_os:system_config_console", embed=True
+            control_rail, _("Config center"), "studio_os:system_config_console", embed=True
         )
         _studio_rail_append(
             control_rail, "Capabilities", "siteconfig:feature_control_panel", embed=True
@@ -1105,6 +1564,21 @@ def studio_shell(request, mode=None):
             control_rail, "AI cleanup suggestions", "studio_os:ai_cleanup", embed=True
         )
         context["control_left_rail"] = control_rail
+        # Phase 3 — outcome groups (manager + tenant: fallback urlconf resolves super:)
+        from apps.siteconfig.control_outcome_center import (
+            WHY_ENABLED_SUMMARY,
+            build_control_studio_rail_sections,
+            build_operator_control_model_for_request,
+        )
+
+        context["control_outcome_sections"] = build_control_studio_rail_sections(
+            request
+        )
+        context["why_enabled_summary"] = WHY_ENABLED_SUMMARY
+        context["operator_control_model"] = build_operator_control_model_for_request(
+            request
+        )
+        context["control_outcome_hub"] = []
         # In-shell control panel (no iframe) when user has permission
         if request.user.has_perm("settings.feature_control"):
             try:
@@ -1207,9 +1681,11 @@ def studio_rollback(request):
             return redirect(reverse("studio_os:experience"))
 
         from django.utils import timezone
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.siteconfig.forms import THEME_EXPERIENCE_FIELD_NAMES
+        from apps.siteconfig.models import SiteSettings
 
-        site = get_effective_site_settings(request=request)
+        # Persist on the real SiteSettings row — not get_effective_site_settings() (shallow copy / resolver shell).
+        site = SiteSettings.objects.order_by("pk").first()
         if site is None:
             if _wants_json():
                 return JsonResponse(
@@ -1221,26 +1697,49 @@ def studio_rollback(request):
                 )
             return redirect(reverse("studio_os:experience"))
 
-        updated_fields = []
-        for field_name, previous_value in values.items():
-            id_attr = f"{field_name}_id"
-            if hasattr(site, id_attr):
-                setattr(site, id_attr, previous_value)
-                updated_fields.append(field_name)
-            elif hasattr(site, field_name):
-                setattr(site, field_name, previous_value)
-                updated_fields.append(field_name)
+        allowed = frozenset(THEME_EXPERIENCE_FIELD_NAMES)
+        field_updates = {
+            str(k): v
+            for k, v in values.items()
+            if isinstance(k, str) and k.strip() and k in allowed
+        }
+        if not field_updates:
+            if _wants_json():
+                return JsonResponse(
+                    {
+                        "ok": False,
+                        "errors": ["No recognized theme fields in rollback state."],
+                    },
+                    status=400,
+                )
+            return redirect(reverse("studio_os:experience"))
 
-        theme_fields = list(
-            dict.fromkeys(
-                [f for f in updated_fields if isinstance(f, str) and f.strip()]
+        # Phase B: colors and other virtual theme keys live in RuntimeDefaults.payload — mirror ThemeColorsForm.save().
+        if callable(getattr(site, "apply_theme_experience_state", None)):
+            site.apply_theme_experience_state(
+                field_updates=field_updates,
+                save=True,
             )
-        )
-        save_fields = list(theme_fields)
-        if hasattr(site, "updated_at"):
-            save_fields.append("updated_at")
-        if save_fields:
-            site.save(update_fields=save_fields)
+        else:
+            updated_fields: list[str] = []
+            for field_name, previous_value in field_updates.items():
+                id_attr = f"{field_name}_id"
+                if hasattr(site, id_attr):
+                    setattr(site, id_attr, previous_value)
+                    updated_fields.append(field_name)
+                elif hasattr(site, field_name):
+                    setattr(site, field_name, previous_value)
+                    updated_fields.append(field_name)
+            theme_fields = [
+                f for f in updated_fields if isinstance(f, str) and f.strip()
+            ]
+            save_fields = list(dict.fromkeys(theme_fields))
+            if hasattr(site, "updated_at"):
+                save_fields.append("updated_at")
+            if save_fields:
+                site.save(update_fields=save_fields)
+
+        theme_fields = sorted(field_updates.keys())
 
         actor_label = (
             request.user.get_username() if request.user.is_authenticated else "system"

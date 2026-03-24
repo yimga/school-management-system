@@ -1,0 +1,67 @@
+{% load i18n %}
+{# Phase 7 — Decision engine layout: headline → metrics → queue → next actions → activity #}
+<section class="decision-engine-surface" data-decision-engine="surface" aria-label="{% trans 'Operating summary' %}">
+  <div class="de-headline" data-decision-zone="headline">
+    {% if de_eyebrow %}<p class="de-eyebrow">{{ de_eyebrow }}</p>{% endif %}
+    <div class="de-headline-row">
+      <div class="de-kpi">
+        <span class="de-kpi-label">{{ de_headline_label }}</span>
+        <strong class="de-kpi-value">{{ de_headline_value }}</strong>
+        {% if de_headline_meta %}<span class="de-kpi-meta text-muted">{{ de_headline_meta }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if de_metrics %}
+  <div class="de-metrics" data-decision-zone="supporting-metrics" role="list">
+    {% for m in de_metrics %}
+    <div class="de-metric-card de-status-{{ m.status|default:'ok' }}" role="listitem">
+      <span class="de-metric-label">{{ m.label }}</span>
+      <strong class="de-metric-value">{{ m.value }}</strong>
+      {% if m.meta %}<span class="de-metric-meta">{{ m.meta }}</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if de_urgent_queue %}
+  <div class="de-panel de-panel-queue" data-decision-zone="urgent-queue">
+    <h3 class="de-panel-title">{% trans "Needs attention" %}</h3>
+    <ul class="de-queue list-unstyled mb-0">
+      {% for item in de_urgent_queue %}
+      <li class="de-queue-item">
+        {% if item.url %}<a href="{{ item.url }}" class="de-queue-link">{% endif %}
+          <span class="de-queue-title">{{ item.title }}</span>
+          {% if item.hint %}<span class="de-queue-hint text-muted small d-block">{{ item.hint }}</span>{% endif %}
+        {% if item.url %}</a>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if de_next_actions %}
+  <div class="de-panel de-panel-actions" data-decision-zone="next-best-actions">
+    <h3 class="de-panel-title">{% trans "Next best actions" %}</h3>
+    <div class="de-action-row">
+      {% for a in de_next_actions %}
+      <a class="btn btn-primary de-action-primary" href="{{ a.url }}">{{ a.label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if de_activity %}
+  <div class="de-panel de-panel-activity" data-decision-zone="activity-trend">
+    <h3 class="de-panel-title">{% trans "Recent activity" %}</h3>
+    <ul class="de-activity list-unstyled mb-0">
+      {% for row in de_activity %}
+      <li class="de-activity-row">
+        <span class="de-activity-title">{{ row.title }}</span>
+        {% if row.meta %}<span class="de-activity-meta text-muted small">{{ row.meta }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>

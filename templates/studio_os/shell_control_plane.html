@@ -6,12 +6,13 @@
 {% block extrastyle %}
 {{ block.super }}
 {% include "studio_os/partials/shell_extrastyle.html" %}
+<link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
 {% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0 flex-wrap">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Manager" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Studio" %}</li>
   </ol>
 </nav>

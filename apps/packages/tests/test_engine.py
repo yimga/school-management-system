@@ -2,6 +2,8 @@
 CI enforcement: PackageEngine validate, preview, apply, promote, rollback.
 """
 
+from unittest.mock import patch
+
 from django.test import TestCase
 
 from apps.metadata.models import MetadataDependency
@@ -101,6 +103,31 @@ class PackageEngineApplyRollbackTests(TestCase):
             ).count(),
             1,
         )
+
+    def test_apply_package_structured_failure_on_unexpected_mid_apply_error(self):
+        with patch(
+            "apps.packages.engine._register_metadata_usages",
+            side_effect=AttributeError("simulated mid-apply bug"),
+        ):
+            result = apply_package(
+                tenant_id=None,
+                package_id="ci-unexpected-apply-pack",
+                version="1.0",
+                payload_sections={"policy": {"entity_codes": ["student"]}},
+                mode="production",
+                actor_id=None,
+            )
+        self.assertFalse(result["ok"], result)
+        self.assertEqual(result.get("reconciliation_status"), "failed")
+        self.assertTrue(result.get("errors"))
+        self.assertIn("simulated mid-apply bug", result["errors"][0])
+        failed = PackageChangeLog.objects.filter(
+            package_id="ci-unexpected-apply-pack",
+            reconciliation_status="failed",
+        ).order_by("-created_at")
+        self.assertTrue(failed.exists())
+        summary = failed.first().impact_summary
+        self.assertEqual(summary.get("mid_apply_error_type"), "AttributeError")
 
     def test_apply_package_rejects_incompatible_scope(self):
         from apps.schools.models import School

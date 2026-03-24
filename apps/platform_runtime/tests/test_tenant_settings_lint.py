@@ -56,3 +56,47 @@ class TenantSettingsLintTests(unittest.TestCase):
             0,
             f"lint_tenant_settings (school.settings/features) failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
         )
+
+    def test_no_sitesettings_orm_in_tenant_apps(self):
+        """Phase 5: no SiteSettings.objects.* in tenant-facing app trees."""
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        script = root / "scripts" / "lint_tenant_settings.py"
+        if not script.is_file():
+            self.skipTest("scripts/lint_tenant_settings.py not found")
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--check-sitesettings-orm-in-tenant-apps",
+                "--base",
+                str(root),
+            ],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"lint_tenant_settings (SiteSettings.objects in tenant apps) failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+        )
+
+    def test_phase_5_siteconfig_verify_script_passes(self):
+        """Phase 5 ZIP gate: docs + domain_ownership + get_solo lint bundle."""
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        script = root / "scripts" / "verify_phase_5_siteconfig.py"
+        if not script.is_file():
+            self.skipTest("scripts/verify_phase_5_siteconfig.py not found")
+        result = subprocess.run(
+            [sys.executable, str(script)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"verify_phase_5_siteconfig failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+        )

@@ -303,9 +303,65 @@ def dashboard(request: HttpRequest):
         },
     }
 
+    phase7_de = {
+        "eyebrow": "Analytics home",
+        "headline_label": "Top-N window",
+        "headline_value": top_n,
+        "headline_meta": f"{term_obj.label} · {year_obj.name}",
+        "metrics": [
+            {
+                "label": "Weak subjects",
+                "value": len(weak_subject_rows),
+                "meta": "Below threshold",
+                "status": "warn" if weak_subject_rows else "ok",
+            },
+            {
+                "label": "Teacher compliance rows",
+                "value": len(teacher_rows),
+                "meta": "On deadlines",
+                "status": "ok",
+            },
+            {
+                "label": "Students improving",
+                "value": len(improvement_rows),
+                "meta": "Term-over-term",
+                "status": "ok",
+            },
+        ],
+        "urgent_queue": (
+            [
+                {
+                    "title": f"{len(weak_subject_rows)} weak subject signal(s)",
+                    "url": (request.path or "") + "#analytics-weak-anchor",
+                    "hint": "Prioritize interventions this term.",
+                }
+            ]
+            if weak_subject_rows
+            else [
+                {
+                    "title": "No weak-subject fire drill",
+                    "url": "",
+                    "hint": "Tune filters or thresholds as needed.",
+                }
+            ]
+        ),
+        "next_actions": [
+            {"label": "Master sheet", "url": reverse("analytics:master_sheet")},
+            {"label": "Grading deadlines", "url": reverse("analytics:deadlines")},
+            {"label": "Executive view", "url": reverse("analytics:executive_dashboard")},
+        ],
+        "activity": [
+            {
+                "title": "Dashboard context",
+                "meta": f"Year {year_obj.name}, term {term_obj.label}",
+            }
+        ],
+    }
+
     context = {
         "year": year_obj,
         "term": term_obj,
+        "phase7_de": phase7_de,
         "chart_weak_subjects_json": json.dumps(chart_weak_subjects),
         "chart_specialty_donut_json": json.dumps(chart_specialty_donut),
         "years": AcademicYear.objects.order_by("-start_date"),

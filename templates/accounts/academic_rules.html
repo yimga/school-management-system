@@ -17,7 +17,7 @@
     <div class="card-body">
       <h2 class="h5 mb-3">Academic rules</h2>
       <p class="text-muted small mb-0">
-        Summary of promotion thresholds, grading defaults, and who can edit grades. Manage grading defaults and promotion configuration in System config.
+        {% blocktrans %}Summary of promotion thresholds, grading defaults, and who can edit grades. Manage grading defaults and promotion configuration in the Configuration Control Center.{% endblocktrans %}
       </p>
     </div>
   </div>
@@ -67,7 +67,7 @@
             </table>
           </div>
           {% else %}
-          <p class="text-muted small mb-0">No promotion rules for this year yet. Configure them in System config (grading settings), or defaults will apply.</p>
+          <p class="text-muted small mb-0">{% blocktrans %}No promotion rules for this year yet. Configure them in the Configuration Control Center (grading settings), or defaults will apply.{% endblocktrans %}</p>
           {% endif %}
         </div>
       </div>

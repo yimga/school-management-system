@@ -5,6 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -15,6 +16,9 @@
 
 {% block content %}
 <div class="compliance-dashboard" data-page-archetype="operational-workbench">
+{% if phase7_de %}
+{% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
+{% endif %}
     <h1>📊 Compliance & Audit Dashboard</h1>
     
     <!-- Incident Response & Playbook Links -->
@@ -40,6 +44,8 @@
     </div>
     
     <!-- Key Metrics Section -->
+    <details class="de-secondary-collapsible mb-3">
+    <summary>{% trans "Expand full metrics grid" %}</summary>
     <div class="metrics-grid">
         <div class="metric-card">
             <h3>Active Users (Week)</h3>
@@ -77,6 +83,7 @@
             <div class="metric-label status-{{ integrity_status.status|lower }}">{{ integrity_status.status }}</div>
         </div>
     </div>
+    </details>
 
     <!-- Activity Chart -->
     <div class="chart-section">
@@ -345,7 +352,7 @@
             <a href="{% url 'compliance:compliance_reporting:permissions' %}" class="link-btn">🔐 Permissions</a>
             <a href="{% url 'compliance:compliance_reporting:integrity_check' %}" class="link-btn">✓ Integrity Check</a>
             <a href="{% url 'compliance:compliance_reporting:anomalies' %}" class="link-btn">⚠️ Anomalies</a>
-            <a href="{% url 'siteconfig:console_domains_hub' %}" class="link-btn">⚙️ System config</a>
+            <a href="{% url 'siteconfig:console_domains_hub' %}" class="link-btn">⚙️ {% trans "Config center" %}</a>
         </div>
         <div class="export-links">
             <span class="export-label">Export shortcuts:</span>

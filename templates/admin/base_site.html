@@ -31,7 +31,12 @@
   <link rel="stylesheet" href="{% static 'css/table-system.css' %}">
   <link rel="stylesheet" href="{% static 'css/form-system.css' %}">
   <link rel="stylesheet" href="{% static 'css/card-grammar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
   <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
+  {% if is_manager_host %}
+  <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
+  <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
+  {% endif %}
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
   <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
@@ -58,8 +63,8 @@
         left: -999px;
         top: 0;
         padding: 0.4rem 0.75rem;
-        background: #0f172a;
-        color: #f9fafb;
+        background: var(--color-base-900);
+        color: var(--color-base-50);
         z-index: 2000;
         border-radius: 999px;
         font-size: 0.85rem;
@@ -264,6 +269,149 @@
   <div id="admin-sidebar-live" aria-live="polite" aria-atomic="true" class="visually-hidden" role="status"></div>
   {% include 'components/ai_copilot.html' %}
   {% include 'components/toast_notifications.html' %}
+  {% if is_manager_host %}
+  {% include "partials/cp_context_drawer_shell.html" %}
+  <script>
+  (function () {
+    var searchInput = document.getElementById('cpSearchInputAdmin');
+    var resultsEl = document.getElementById('cpSearchResultsAdmin');
+    if (!searchInput || !resultsEl) return;
+    var debounce = null;
+    function renderResults(data) {
+      var list = (data && data.results) ? data.results : [];
+      if (list.length === 0) {
+        resultsEl.innerHTML = '<div class="px-3 py-2 text-muted small">No results</div>';
+      } else {
+        resultsEl.innerHTML = list.map(function (r) {
+          var url = r.url || '#';
+          var title = (r.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          var desc = (r.description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return '<a class="dropdown-item" href="' + url + '"><strong>' + title + '</strong>' + (desc ? '<br><span class="small text-secondary">' + desc + '</span>' : '') + '</a>';
+        }).join('');
+      }
+      resultsEl.classList.add('show');
+    }
+    function doSearch() {
+      var q = (searchInput.value || '').trim();
+      if (q.length === 0) {
+        fetch('/api/search/?q=', { headers: { 'Accept': 'application/json' } })
+          .then(function (res) { return res.json(); })
+          .then(renderResults)
+          .catch(function () { renderResults({ results: [] }); });
+        resultsEl.classList.add('show');
+        return;
+      }
+      if (q.length < 2) {
+        resultsEl.innerHTML = '';
+        resultsEl.classList.remove('show');
+        return;
+      }
+      fetch('/api/search/?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+        .then(function (res) { return res.json(); })
+        .then(renderResults)
+        .catch(function () { renderResults({ results: [] }); });
+    }
+    searchInput.addEventListener('input', function () {
+      clearTimeout(debounce);
+      debounce = setTimeout(doSearch, 220);
+    });
+    searchInput.addEventListener('focus', function () { doSearch(); });
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { resultsEl.classList.remove('show'); searchInput.blur(); }
+    });
+    document.addEventListener('click', function (e) {
+      if (!searchInput.contains(e.target) && !resultsEl.contains(e.target)) resultsEl.classList.remove('show');
+    });
+    document.addEventListener('keydown', function (e) {
+      if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        searchInput.focus();
+        if ((searchInput.value || '').trim().length >= 2) doSearch();
+      }
+    });
+  })();
+  </script>
+  <script>
+  (function () {
+    var gPending = false;
+    var gTimeout = null;
+    var shortcuts = {
+      d: { url: '/super/', label: 'Dashboard' },
+      c: { url: '/super/command-center/', label: 'Command Center' },
+      t: { url: '/studio/', label: 'Studio OS' },
+      o: { url: '/super/orchestration/', label: 'Orchestration' },
+      a: { url: '{% url "siteconfig:console_domains_hub" %}', label: 'Config center' },
+      b: { url: '/super/billing/', label: 'Billing' },
+      s: { url: '/super/support/', label: 'Support' },
+      m: { url: '/super/migration/', label: 'Migration' },
+      u: { url: '/super/usage/', label: 'Usage' },
+      h: { url: '/super/tenant-health/', label: 'School Health' },
+      p: { url: '/super/pulse/', label: 'Pulse' }
+    };
+    var helpEl = null;
+    function showHelp() {
+      if (helpEl) {
+        helpEl.style.display = 'flex';
+        return;
+      }
+      helpEl = document.createElement('div');
+      helpEl.id = 'cp-keyboard-help-admin';
+      helpEl.setAttribute('role', 'dialog');
+      helpEl.setAttribute('aria-label', 'Keyboard shortcuts');
+      helpEl.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;';
+      var t = '<div class="rounded shadow-lg p-4 bg-dark text-white" style="min-width:280px;max-width:400px;">';
+      t += '<h3 class="h6 mb-3">Keyboard shortcuts</h3>';
+      t += '<p class="small text-muted mb-2">Press <kbd>g</kbd> then one of:</p><ul class="list-unstyled small mb-0">';
+      for (var k in shortcuts) {
+        t += '<li><kbd>g</kbd> <kbd>' + k + '</kbd> &rarr; ' + (shortcuts[k].label || shortcuts[k].url) + '</li>';
+      }
+      t += '</ul><p class="small text-muted mt-2 mb-0"><kbd>Ctrl</kbd>+<kbd>K</kbd> focuses search. <kbd>?</kbd> toggles help. <kbd>Esc</kbd> to close.</p></div>';
+      helpEl.innerHTML = t;
+      helpEl.addEventListener('click', function (e) {
+        if (e.target === helpEl) hideHelp();
+      });
+      document.body.appendChild(helpEl);
+      document.addEventListener('keydown', function onEsc(e) {
+        if (e.key === 'Escape') {
+          hideHelp();
+          document.removeEventListener('keydown', onEsc);
+        }
+      });
+    }
+    function hideHelp() {
+      if (helpEl) helpEl.style.display = 'none';
+    }
+    window.cpShowShortcutsHelp = showHelp;
+    document.addEventListener('keydown', function (e) {
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+        e.preventDefault();
+        showHelp();
+        return;
+      }
+      if (e.key === 'g' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        var tag2 = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag2 === 'input' || tag2 === 'textarea' || tag2 === 'select') return;
+        e.preventDefault();
+        gPending = true;
+        clearTimeout(gTimeout);
+        gTimeout = setTimeout(function () { gPending = false; }, 1200);
+        return;
+      }
+      if (gPending && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        var info = shortcuts[e.key];
+        if (info) {
+          e.preventDefault();
+          gPending = false;
+          clearTimeout(gTimeout);
+          window.location.href = info.url;
+        }
+      }
+    });
+  })();
+  </script>
+  {% endif %}
   <script>
   (function() {
     function announceAdminSidebar(msg) {
@@ -370,4 +518,8 @@
     });
   })();
   </script>
+  {# Phase 1: Bootstrap bundle required for offcanvas Context drawer (data-bs-toggle) — Unfold does not ship it. #}
+  {% if is_manager_host %}
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  {% endif %}
 {% endblock %}

@@ -10,7 +10,7 @@
 - **Structured fieldsets:** Site Settings admin uses logical groups: Branding, Preview & Draft, Company Details, Login/Header/Layout, Theme & Experience, **Admin Sidebar Theme** (collapse), Admin Portal, Portal Content, Footer, System Behavior, Feature Toggles, Backend Orchestration, Notifications, Compliance, Analytics Defaults, Metadata. Easy to find the right section.
 - **Admin theme from Site + ThemePack:** Context exposes `SITE`, `SITE_ADMIN_THEME` (from `admin_theme_pack` or fallback), `SITE_ADMIN_BACKGROUND_URL`, `SITE_ADMIN_LOGO_URL`. Admin can use either per-model sidebar colors (SiteSettings) or a Theme Pack for admin (logo, background). Good for branding.
 - **Sidebar colors in one place:** SiteSettings has a dedicated “Admin Sidebar Theme” fieldset (bg, surface, border, text, muted, hover, active, badge, child gradient, `admin_use_site_primary`). base_site.html injects these as CSS variables so the sidebar respects config.
-- **Custom admin site:** `GileadAdminSite` customizes index (dashboard), app list order, and adds URLs (dashboard, activity-logs, system-health). App grouping (Accounts, People, Academics, Evals, etc.) and “System Configuration” last is clear.
+- **Custom admin site:** `GileadAdminSite` customizes index (dashboard), app list order, and adds URLs (dashboard, activity-logs, system-health). App grouping (Accounts, People, Academics, Evals, etc.) and **Configuration Control Center** (**Config center** in admin IA) last is clear.
 - **Dashboard content:** The actual `/admin/` view uses `admin_dashboard.html` with preview status, finance inbox, security stats, login/access stats, and calendar. Useful for day-to-day ops.
 - **RegionConfig:** Separate model and admin for regions (timezone, currency, grading, terms, portals). Fieldsets and inlines (grading scales, holidays) keep region config in one screen. Clone/validate/export actions exist.
 - **Site Settings change form:** Uses a custom template that adds theme preview (small-screen preview, role selector, contrast hint). Helps admins see impact of theme/sidebar changes.
@@ -60,7 +60,7 @@
   - **admin_theme_pack:** In the form, add a line: “Used for admin background image and logo. Sidebar colors are set in ‘Admin Sidebar Theme’ below.”
 
 - **Region vs RegionConfig:**  
-  - In Site Settings, if there’s a “default region” or “region” field, add help text: “Display/default region. For full region settings (timezone, currency, grading), use Region configuration in System Configuration.”  
+  - In Site Settings, if there’s a “default region” or “region” field, add help text: “Display/default region. For full region settings (timezone, currency, grading), use Region configuration in Configuration Control Center.”  
   - Optionally add a read-only link “Manage regions →” next to it pointing to RegionConfig changelist.
 
 - **Admin dashboard layout:**  
@@ -86,10 +86,10 @@
 
 | Config | Where | Purpose |
 |--------|--------|--------|
-| **Site Settings (single row)** | Admin → System Configuration → Site Settings | Branding, company, login/header/layout, theme colors, **Admin Sidebar Theme**, Admin Portal (stats config), portal/footer, feature toggles, backend limits, analytics defaults. |
+| **Site Settings (single row)** | Admin → Config center → Site Settings | Branding, company, login/header/layout, theme colors, **Admin Sidebar Theme**, Admin Portal (stats config), portal/footer, feature toggles, backend limits, analytics defaults. |
 | **Admin Sidebar Theme** | Site Settings → “Admin Sidebar Theme” (collapse) | 14 color fields + “Use site primary for active state.” Drives sidebar on all /admin/ pages (base_site injects as CSS vars). |
 | **Admin Theme Pack** | Site Settings → Branding (theme_pack area) or dedicated field | `admin_theme_pack` FK. Provides admin background image and logo; fallback logic in `get_admin_theme()`. |
-| **RegionConfig** | Admin → System Configuration → Region configuration | Per-region: timezone, currency, grading scale, terms, portals; inlines for grading scales and holidays. |
+| **RegionConfig** | Admin → Config center → Region configuration | Per-region: timezone, currency, grading scale, terms, portals; inlines for grading scales and holidays. |
 | **Theme & Experience** | Site Settings → “Theme & Experience” | primary/accent/success/warning/danger, theme_brightness, use_dark_mode, **backend_console_theme** (Backend Console, not Django admin), fonts, base font size, default widgets, report defaults, default_dashboard_view, refresh_rate. |
 | **Preview & Draft** | Site Settings → “Preview & Draft” | preview_mode_enabled, preview_note. Session-based staging of theme/settings. |
 | **admin_portal_stats_config** | Site Settings → “Admin Portal” | JSON; used for admin dashboard stats/config. Not documented in UI. |

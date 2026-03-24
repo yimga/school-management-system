@@ -4,8 +4,20 @@
 {% block backend_title %}Migration Wizard{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+
+  <div class="alert alert-light border mb-3" role="region" aria-label="{% trans 'Related ecosystem workflows' %}">
+    <div class="small fw-semibold mb-2">{% trans "Staged rollout & safety" %}</div>
+    <p class="small text-muted mb-2">{% trans "Validate with dry run, review the scorecard, then commit. Use run history for audit; interop and API Center cover connectors and webhooks." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% if phase9_links.migration_run_list %}<a class="btn btn-sm btn-outline-secondary" href="{{ phase9_links.migration_run_list }}">{% trans "Migration run history" %}</a>{% endif %}
+      {% if phase9_links.tenant_app_catalog %}<a class="btn btn-sm btn-outline-secondary" href="{{ phase9_links.tenant_app_catalog }}">{% trans "App catalog" %}</a>{% endif %}
+      {% if phase9_links.district_interop %}<a class="btn btn-sm btn-outline-secondary" href="{{ phase9_links.district_interop }}">{% trans "Interop workbench" %}</a>{% endif %}
+      {% if phase9_links.apicenter %}<a class="btn btn-sm btn-outline-secondary" href="{{ phase9_links.apicenter }}">{% trans "API Center" %}</a>{% endif %}
+      {% if phase9_links.pack_rollback %}<a class="btn btn-sm btn-outline-secondary" href="{{ phase9_links.pack_rollback }}">{% trans "Pack rollback" %}</a>{% endif %}
+    </div>
+  </div>
 
   {% if not wizard_data.source_system %}
   <div class="card shadow-sm">
@@ -59,6 +71,26 @@
     </div>
   </div>
   {% else %}
+  {% if wizard_data.header_source_detection %}
+  <div class="alert alert-secondary border mb-3" role="status" data-migration-source-detection>
+    <h3 class="h6 alert-heading mb-1">{% trans "Source detection (from CSV headers)" %}</h3>
+    <p class="small mb-1">
+      {% trans "Best guess" %}: <strong>{{ wizard_data.header_source_detection.suggested_system|title }}</strong>
+      — {% trans "confidence" %} <strong>{{ wizard_data.header_source_detection.score }}</strong>
+      {% if wizard_data.header_source_detection.matched_signals %}
+      <span class="text-muted">({% trans "signals" %}: {% for s in wizard_data.header_source_detection.matched_signals %}<code>{{ s }}</code>{% if not forloop.last %}, {% endif %}{% endfor %})</span>
+      {% endif %}
+    </p>
+    {% if wizard_data.header_source_detection.candidates %}
+    <details class="small mb-0"><summary>{% trans "All candidates" %}</summary>
+      <ul class="mb-0 mt-1">{% for c in wizard_data.header_source_detection.candidates %}
+        <li><code>{{ c.system }}</code> — {{ c.score }} — {% for m in c.matched %}<code>{{ m }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}</li>
+      {% endfor %}</ul>
+    </details>
+    {% endif %}
+    <p class="small text-muted mb-0 mt-2">{% trans "Declared system in step 1" %}: <strong>{{ source_system|title }}</strong>. {% trans "Use “Change” above if detection disagrees with your export." %}</p>
+  </div>
+  {% endif %}
   {% if profile_suggestions %}
   <div class="alert alert-info border-info mb-3" role="status">
     <h3 class="h6 alert-heading mb-1">{% trans "Suggested connector profiles (schema match)" %}</h3>
@@ -154,8 +186,15 @@
     <div class="card-body">
       <p class="mb-1">Rows: {{ scorecard.row_count|default:0 }} → Would create: {{ scorecard.created|default:0 }}, would update: {{ scorecard.updated|default:0 }}, errors: {{ scorecard.error_count|default:0 }}. Status: {{ scorecard.status|default:"—" }}</p>
       {% if scorecard.parity %}
-      <p class="mb-1 small text-muted">Parity: {{ scorecard.parity.total_processed|default:0 }} processed (match: {{ scorecard.parity.match|yesno:"Yes,No" }})</p>
+      <p class="mb-1 small text-muted">{% trans "Parity" %}: {{ scorecard.parity.total_processed|default:0 }} {% trans "processed" %} ({% trans "balance check" %}: {% if scorecard.parity.match %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %} — {{ scorecard.parity.source_rows|default:0 }} {% trans "source rows" %})</p>
       {% endif %}
+      {% if scorecard.confidence %}
+      <p class="mb-1 small" data-migration-confidence>
+        <strong>{% trans "Confidence" %}</strong>: <span class="badge bg-{% if scorecard.confidence.band == 'high' %}success{% elif scorecard.confidence.band == 'medium' %}warning{% else %}danger{% endif %}">{{ scorecard.confidence.band|upper }}</span>
+        ({{ scorecard.confidence.score }}) — {{ scorecard.confidence.hint }}
+      </p>
+      {% endif %}
+      <p class="small text-muted mb-0">{% trans "Rollback: student creates store IDs in the migration run record; use run history for audit and operator rollback entry points." %}</p>
       {% if scorecard.errors %}
       <ul class="small mb-0 mt-2 list-unstyled">
         {% for err in scorecard.errors %}

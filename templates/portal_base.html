@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n accounts_extras %}
 <!doctype html>
 <html lang="{{ LANGUAGE_CODE|default:default_language|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %} data-surface="tenant">
   <head>
@@ -89,6 +89,7 @@
     <link rel="stylesheet" href="{% static 'css/table-system.css' %}">
     <link rel="stylesheet" href="{% static 'css/form-system.css' %}">
     <link rel="stylesheet" href="{% static 'css/card-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
     <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
@@ -1164,7 +1165,7 @@
                   <i class="bi bi-gear" aria-hidden="true"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
-                  <li><a class="dropdown-item" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide-connected"></i> {% trans "System config" %}</a></li>
+                  <li><a class="dropdown-item" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide-connected"></i> {% trans "Configuration Control Center" %}</a></li>
                 </ul>
               </div>
 
@@ -1211,6 +1212,11 @@
             <div class="mb-0">{% include "partials/breadcrumbs.html" %}</div>
             <div class="breadcrumb-actions">{% block breadcrumb_actions %}{% endblock %}</div>
           </div>
+            {% if request.user.is_authenticated and request.resolver_match.namespace|default:'' != 'studio_os' %}
+              {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+                {% include "partials/tenant_studio_product_strip.html" %}
+              {% endif %}
+            {% endif %}
             {% if messages %}
             <div class="mb-3">
               <!-- Global Announcements Banner -->
@@ -1285,11 +1291,19 @@
           if (stored === 'system') return getSystemTheme();
           return stored === 'dark' ? 'dark' : 'light';
         }
+        function updateMetaThemeColor(resolved) {
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (!meta) return;
+          var prop = resolved === 'dark' ? '--meta-theme-color-dark' : '--meta-theme-color-light';
+          var value = getComputedStyle(htmlElement).getPropertyValue(prop).trim();
+          if (value) meta.setAttribute('content', value);
+        }
         function applyTheme(stored) {
           var resolved = resolveTheme(stored);
           htmlElement.setAttribute("data-theme", resolved);
           htmlElement.setAttribute("data-bs-theme", resolved);
           updateThemeIcon(stored, resolved);
+          updateMetaThemeColor(resolved);
         }
         function updateThemeIcon(stored, resolved) {
           if (!themeToggle) return;

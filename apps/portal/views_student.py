@@ -4,7 +4,9 @@ Portal student-facing and syllabus/preview views (§6.14 role separation).
 
 from __future__ import annotations
 
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
+from django.db import DatabaseError
 from django.http import HttpRequest, HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -24,10 +26,117 @@ from .views_common import PORTAL_FEATURES_META
 
 
 def student_portal_grades(request: HttpRequest):
-    """Semantic alias for parent dashboard (grades overview)."""
+    """Student role home (Phase 7); other roles use the family dashboard."""
     if not request.user.is_authenticated:
-        return redirect_to_login(next=reverse("portal:parent_dashboard"))
+        return redirect_to_login(next=request.get_full_path())
+    if get_user_role(request.user) == User.Role.STUDENT:
+        return student_learning_home(request)
     return redirect("portal:parent_dashboard")
+
+
+@login_required
+def student_learning_home(request: HttpRequest):
+    """
+    Phase 7 — Student operating surface: headline state, metrics, queue, next actions.
+    """
+    if get_user_role(request.user) != User.Role.STUDENT:
+        return redirect("portal:parent_dashboard")
+
+    site = get_effective_site_settings(request=request)
+    profile = None
+    try:
+        profile = StudentProfile.objects.filter(
+            user=request.user, is_active=True
+        ).select_related("classroom").first()
+    except (AttributeError, DatabaseError, TypeError, ValueError):
+        profile = None
+
+    unread = 0
+    try:
+        unread = Message.objects.filter(
+            recipient=request.user, is_read=False
+        ).count()
+    except (AttributeError, DatabaseError, TypeError, ValueError):
+        pass
+
+    class_label = (
+        profile.classroom.name
+        if profile and getattr(profile, "classroom", None)
+        else "—"
+    )
+    headline = (
+        f"{profile.first_name} {profile.last_name}".strip()
+        if profile
+        else request.user.get_full_name() or request.user.username
+    )
+
+    metrics = [
+        {
+            "label": "Class",
+            "value": class_label,
+            "meta": "Current homeroom",
+            "status": "ok",
+        },
+        {
+            "label": "Unread messages",
+            "value": unread,
+            "meta": "From school",
+            "status": "warn" if unread else "ok",
+        },
+    ]
+
+    urgent_queue = []
+    if unread:
+        urgent_queue.append(
+            {
+                "title": f"{unread} unread message(s)",
+                "url": reverse("accounts:user_messages"),
+                "hint": "Open your inbox",
+            }
+        )
+    if profile is None:
+        urgent_queue.append(
+            {
+                "title": "Student profile not linked",
+                "url": reverse("accounts:user_profile"),
+                "hint": "Ask your school to link your login to a student record.",
+            }
+        )
+
+    next_actions = [
+        {"label": "Messages", "url": reverse("accounts:user_messages")},
+        {"label": "Syllabus & resources", "url": reverse("portal:portal_syllabus")},
+        {"label": "Account & profile", "url": reverse("accounts:user_profile")},
+    ]
+
+    activity = [
+        {"title": "Student portal", "meta": "Signed in and ready for school updates."}
+    ]
+
+    phase7_de = {
+        "eyebrow": "Student home",
+        "headline_label": "Learning status",
+        "headline_value": "On track" if profile else "Setup needed",
+        "headline_meta": headline,
+        "metrics": metrics,
+        "urgent_queue": urgent_queue
+        or [
+            {
+                "title": "No urgent items",
+                "url": "",
+                "hint": "Check messages and syllabus for updates.",
+            }
+        ],
+        "next_actions": next_actions,
+        "activity": activity,
+    }
+
+    _ = site  # reserved for enable_student_portal wiring
+    return render(
+        request,
+        "student/learning_home.html",
+        {"phase7_de": phase7_de},
+    )
 
 
 def admissions_application_status(request: HttpRequest):
@@ -37,9 +146,9 @@ def admissions_application_status(request: HttpRequest):
     return redirect("portal:parent_dashboard")
 
 
-@role_required(User.Role.PARENT, User.Role.TEACHER)
+@role_required(User.Role.PARENT, User.Role.TEACHER, User.Role.STUDENT)
 def portal_syllabus(request: HttpRequest):
-    """Syllabus view for parent and teacher roles; access gated by site and role."""
+    """Syllabus for parent, teacher, and student; gated by portal toggles."""
     site = get_effective_site_settings(request=request)
     role = get_user_role(request.user)
     if role == User.Role.PARENT and not site.enable_parent_portal:
@@ -64,6 +173,7 @@ def portal_syllabus(request: HttpRequest):
             "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
             "items": items,
             "is_teacher": role == User.Role.TEACHER,
+            "is_student": role == User.Role.STUDENT,
         },
     )
 

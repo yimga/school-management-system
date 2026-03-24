@@ -27,8 +27,11 @@
 | `/siteconfig/customizer/` | URL | **REDIRECT** | `studio_os:experience` (`/studio/experience/`) | Phase B: redirect added in config/urls.py, config/tenant_urls.py, config/manager_urls.py. |
 | `siteconfig.webhook_delivery` (code) | Module ref | **REMOVED** | `apps.events.webhooks` | Callers use events.webhooks. |
 | `/siteconfig/workflow-hub/` | URL | **REDIRECT** | `studio_os:automation` | config/urls.py `legacy_workflow_hub_redirect`. Step 6 / Optional 12 done. If product confirms a different legacy path, add that path to same redirect or document in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
-| `/siteconfig/report-library/` | URL | **REDIRECT** | `studio_os:output` | config/urls.py `legacy_report_library_redirect`. Step 6 / Optional 12 done. If product confirms a different legacy path, add that path to same redirect or document in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
-| `/siteconfig/reports/` | URL | **REDIRECT** | `studio_os:output` | config/urls.py, tenant_urls.py, manager_urls.py `legacy_report_library_redirect`. Further legacy path removals (product sign-off). |
+| `/siteconfig/report-library/` | URL | **REDIRECT** | `studio_os:output?pane=reports` (default; merges existing query) | `legacy_report_library_redirect` in config/urls.py + tenant_urls.py (+ manager reuse). §4.4 / §6.1 hub pane. |
+| `/siteconfig/reports/` | URL | **REDIRECT** | `studio_os:output?pane=reports` | Same as above. |
+| `/siteconfig/theme-colors/` | URL | **KEEP + redirect** | `studio_os:experience` (staff) or `?standalone=1` (non-staff with `settings.manage`) | `theme_colors_page`: GET without `embed=1`/`standalone=1` sends staff to Experience Studio; others to full-page form. POST targets unchanged; success redirect mirrors same rule. Deep link `theme_colors` → `studio_os:experience`. |
+| `/siteconfig/feature-control/` | URL | **REDIRECT** (GET) | `studio_os:control` | `embed=1` keeps embeddable form for Studio iframes. |
+| Document library manage (portal) | URL | **REDIRECT** (GET) | `studio_os:output?pane=documents` | `document_library_manage`; `embed=1` preserved. |
 | `siteconfig.views.customizer` | View | **REMOVED** | — | All callers use `studio_os:experience`; config-level redirect for `/siteconfig/customizer/` only. LEGACY_PATH_INVENTORY §2. |
 | `siteconfig.views.report_library` | View | **REMOVED** | — | All callers use `studio_os:output`; config-level redirect for `/siteconfig/reports/` and `/siteconfig/report-library/`. |
 | `siteconfig.views_dashboard_config.workflow_hub` | View | **REMOVED** | — | All callers use `studio_os:automation`; config-level redirect for `/siteconfig/workflow-hub/`. |

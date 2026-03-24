@@ -17,8 +17,8 @@ All LLM usage goes through a single orchestration layer. **No browser or front-e
 | Sync single-turn (copilot, narrative) | `apps.portal.ai_provider.generate_ai_response(...)` | Routes through `services.ai_gateway.invoke("general_chat", ...)` when AI_GATEWAY_ENABLED; returns (text, meta). |
 | Productized AI (setup, workflow, policy, doc, search, migration) | `POST /api/ai/setup-assistant/`, `/api/ai/workflow-draft/`, `/api/ai/policy-explain/`, `/api/ai/document-classify/`, `/api/ai/semantic-search/`, `/api/ai/migration-suggest/` | `apps.portal.views_ai_gateway`; permission + audit; gateway only. |
 | Admin & Toolset 5A–5I, Wave 2/3 | `POST /api/ai/admin-copilot/`, `/api/ai/theme-recommend/`, `/api/ai/feature-control-explain/`, `/api/ai/report-recommend/`, `/api/ai/design-studio-draft/`, `/api/ai/live-preview-explain/`, `/api/ai/system-config-explain/`, `/api/ai/dashboard-pack-recommend/`, `/api/ai/support-assistant/`, `/api/ai/tenant-maturity/` (GET/POST), `/api/ai/data-quality-assistant/`, `/api/ai/marketplace-recommend/`, `/api/ai/control-plane-intelligence/` | Same pattern: rate limit, RAG where applicable, budget 429, audit, citations where used. |
-| Async / bulk | `apps.portal.tasks.generate_ai_response_async` + poll `ai:async_result:{task_id}` | Uses `OllamaInferenceService.infer` and cache. |
-| WebSocket chat | `apps.api.consumers` | Calls `OllamaInferenceService.infer` (sync_to_async). |
+| Async / bulk | `apps.portal.tasks.generate_ai_response_async` + poll `ai:async_result:{task_id}` | Celery → `services.ai_gateway.invoke("narrative", ...)`; result in cache. |
+| WebSocket chat | `apps.api.consumers.AIChatConsumer` | `sync_to_async` → `services.ai_gateway.invoke("general_chat", ...)` (same gateway as HTTP). |
 | Workflow / country suggestions | `apps.portal.ai_provider.get_workflow_clues` / `get_country_dossier_summary` | Delegates to Ollama. |
 
 ## Provider order and adapters

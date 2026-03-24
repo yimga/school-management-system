@@ -120,13 +120,15 @@ def legacy_workflow_hub_redirect(request):
 
 
 def legacy_report_library_redirect(request):
-    """Legacy /siteconfig/reports/ or report-library → Studio OS Output (tenant)."""
+    """Legacy /siteconfig/reports/ or report-library → Output Studio · Report library pane (tenant)."""
     from django.urls import reverse
+    from urllib.parse import urlencode
 
-    url = reverse("studio_os:output")
-    if request.GET:
-        url = f"{url}?{request.GET.urlencode()}"
-    return redirect(url)
+    base = reverse("studio_os:output")
+    params = dict(request.GET.items())
+    params.setdefault("pane", "reports")
+    q = urlencode(params)
+    return redirect(f"{base}?{q}" if q else base)
 
 
 def permission_denied(request, exception):

@@ -1,0 +1,233 @@
+/**
+ * Dashboard header (components/dashboard_header.html) — Phase 2 token-only surfaces.
+ * Load after design-tokens.css / design-system-unified.css.
+ */
+.dashboard-header-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background: var(--admin-content-bg, var(--statement-header-bg, var(--color-base-0)));
+  box-shadow: var(--ds-shadow-sm, 0 2px 8px color-mix(in srgb, var(--color-base-900) 8%, transparent));
+  margin-bottom: var(--token-space-lg, 1.5rem);
+}
+
+.dashboard-header {
+  padding: var(--token-space-md, 1rem) 0;
+  background: var(--admin-content-bg, var(--color-base-0));
+}
+
+.header-logo {
+  height: 48px;
+  width: 48px;
+  border-radius: var(--token-radius-md, 12px);
+  object-fit: cover;
+  border: 2px solid color-mix(in srgb, var(--school-primary, var(--color-primary-500)) 18%, transparent);
+}
+
+/* Brand mark when no logo image (initials) */
+.header-logo-placeholder {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(
+    135deg,
+    var(--school-primary, var(--color-primary-600)),
+    var(--color-secondary, var(--color-base-600))
+  );
+  border-radius: var(--token-radius-md, 10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--header-brand-fg, var(--color-base-0));
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text, var(--ds-text, var(--color-base-800)));
+  line-height: 1.2;
+}
+
+.header-subtitle {
+  font-size: 0.75rem;
+  color: var(--admin-content-text-muted, var(--ds-text-muted, var(--color-base-500)));
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--school-primary, var(--color-primary-500));
+}
+
+.user-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--school-primary, var(--color-primary-500)),
+    var(--color-secondary, var(--color-base-600))
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--header-brand-fg, var(--color-base-0));
+  font-size: 1.5rem;
+}
+
+.user-name {
+  display: block;
+  font-weight: 600;
+  color: var(--admin-text, var(--ds-text, var(--color-base-800)));
+  font-size: 0.9rem;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.role-badge-admin {
+  background: linear-gradient(135deg, var(--ds-danger), color-mix(in srgb, var(--ds-danger) 88%, var(--color-base-900)));
+  color: var(--color-base-0);
+}
+
+.role-badge-teacher {
+  background: linear-gradient(135deg, var(--school-primary, var(--color-primary-600)), var(--color-primary-800));
+  color: var(--color-base-0);
+}
+
+.role-badge-parent {
+  background: linear-gradient(135deg, var(--ds-success), color-mix(in srgb, var(--ds-success) 85%, var(--color-base-800)));
+  color: var(--color-base-0);
+}
+
+.role-badge-student {
+  background: linear-gradient(135deg, var(--color-secondary, var(--color-base-600)), var(--color-primary-700));
+  color: var(--color-base-0);
+}
+
+.role-badge-leadership {
+  background: linear-gradient(135deg, var(--ds-warning), color-mix(in srgb, var(--ds-warning) 90%, var(--color-base-900)));
+  color: var(--color-base-900);
+}
+
+.role-badge-bursar {
+  background: linear-gradient(135deg, var(--ds-info), color-mix(in srgb, var(--ds-info) 88%, var(--color-base-800)));
+  color: var(--color-base-0);
+}
+
+.role-badge-hod {
+  background: linear-gradient(135deg, var(--ds-warning), var(--ds-danger));
+  color: var(--color-base-0);
+}
+
+.role-badge-principal {
+  background: linear-gradient(135deg, var(--color-primary-700), var(--ds-danger));
+  color: var(--color-base-0);
+}
+
+.header-metrics {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.metric-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--admin-content-surface, var(--ds-surface-raised, var(--color-base-50)));
+  border-radius: var(--token-radius-md, 12px);
+  border: 1px solid var(--admin-content-border, var(--ds-border, var(--color-base-200)));
+  box-shadow: var(--ds-shadow-sm, 0 2px 4px color-mix(in srgb, var(--color-base-900) 5%, transparent));
+}
+
+.metric-pill i {
+  font-size: 1.1rem;
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  color: var(--admin-content-text-muted, var(--ds-text-muted, var(--color-base-500)));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--admin-text, var(--ds-text, var(--color-base-800)));
+}
+
+.header-filters {
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--school-primary, var(--color-primary-500)) 6%, var(--color-base-0));
+  border-radius: var(--token-radius-md, 12px);
+  border: 1px solid color-mix(in srgb, var(--school-primary, var(--color-primary-500)) 14%, transparent);
+}
+
+.filter-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-base-600);
+}
+
+.filter-btn {
+  font-size: 0.8rem;
+  border-radius: var(--token-radius-sm, 8px);
+  transition: background var(--motion-fast, 0.2s ease), color var(--motion-fast, 0.2s ease),
+    border-color var(--motion-fast, 0.2s ease), transform var(--motion-fast, 0.2s ease);
+}
+
+.filter-btn:hover {
+  background: var(--school-primary, var(--color-primary-600));
+  color: var(--color-base-0);
+  border-color: var(--school-primary, var(--color-primary-600));
+  transform: translateY(-1px);
+}
+
+.filter-btn.active {
+  background: var(--school-primary, var(--color-primary-600));
+  color: var(--color-base-0);
+  border-color: var(--school-primary, var(--color-primary-600));
+}
+
+@media (max-width: 768px) {
+  .header-title {
+    font-size: 1.1rem;
+  }
+
+  .header-metrics {
+    justify-content: flex-start;
+  }
+
+  .metric-pill {
+    flex: 1;
+    min-width: 90px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-btn {
+    transition: none;
+  }
+  .filter-btn:hover {
+    transform: none;
+  }
+}

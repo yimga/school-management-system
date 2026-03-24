@@ -3,7 +3,20 @@
 {% block title %}{% trans "Package rollback" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Installed metadata packages" %}{% endblock %}
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  <div class="alert alert-light border mb-3" data-phase9-pack-staged-rollout>
+    <div class="small fw-semibold mb-1">{% trans "Staged rollout & rollback rules" %}</div>
+    <ul class="small mb-2 ps-3">
+      <li>{% trans "Packages move sandbox → test → production via promote; rollback uses the stored rollback token and dependency snapshot." %}</li>
+      <li>{% trans "Impact preview (N17) runs before apply; dependency graph loads per row below." %}</li>
+      <li>{% trans "Typing ROLLBACK acknowledges blast radius for metadata installs." %}</li>
+    </ul>
+    <div class="d-flex flex-wrap gap-2">
+      {% if phase9_links.tenant_app_catalog %}<a class="btn btn-sm btn-outline-secondary" href="{{ phase9_links.tenant_app_catalog }}">{% trans "App catalog" %}</a>{% endif %}
+      {% if phase9_links.workflow_center %}<a class="btn btn-sm btn-outline-secondary" href="{{ phase9_links.workflow_center }}">{% trans "Workflow Center" %}</a>{% endif %}
+      {% if phase9_links.migration_wizard %}<a class="btn btn-sm btn-outline-secondary" href="{{ phase9_links.migration_wizard }}">{% trans "Migration wizard" %}</a>{% endif %}
+    </div>
+  </div>
   <p class="text-muted small mb-3">
     {% trans "Rollback deactivates a package install, writes PackageChangeLog + platform event (package_rolled_back), same keyword pattern as learning wedge rollback. Blueprint marketplace reversions are separate (control plane)." %}
     <a href="{{ modules_url }}">{% trans "Module Market" %}</a>
@@ -19,13 +32,15 @@
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-sm mb-0">
-          <thead><tr><th>{% trans "Package" %}</th><th>{% trans "Version" %}</th><th>{% trans "Type" %}</th><th>{% trans "Dependencies (snapshot)" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Graph" %}</th><th></th></tr></thead>
+          <thead><tr><th>{% trans "Package" %}</th><th>{% trans "Version" %}</th><th>{% trans "Type" %}</th><th>{% trans "Stage" %}</th><th>{% trans "Reconciliation" %}</th><th>{% trans "Dependencies (snapshot)" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Graph" %}</th><th></th></tr></thead>
           <tbody>
             {% for p in active_packages %}
             <tr>
               <td><code>{{ p.package_id }}</code></td>
               <td>{{ p.version }}</td>
               <td>{{ p.get_package_type_display }}</td>
+              <td class="small text-nowrap"><span class="badge bg-secondary">{{ p.get_apply_stage_display }}</span></td>
+              <td class="small"><span class="badge bg-light text-dark">{{ p.get_reconciliation_status_display }}</span></td>
               <td class="small text-muted">{% if p.dependency_snapshot %}{% for item in p.dependency_snapshot %}{% if not forloop.first %}, {% endif %}{{ item }}{% endfor %}{% else %}—{% endif %}</td>
               <td>{{ p.applied_at|date:"Y-m-d H:i" }}</td>
               <td class="align-top">
@@ -45,7 +60,7 @@
               </td>
             </tr>
             {% empty %}
-            <tr><td colspan="7" class="text-muted p-3">{% trans "No active metadata package installs for this school." %}</td></tr>
+            <tr><td colspan="9" class="text-muted p-3">{% trans "No active metadata package installs for this school." %}</td></tr>
             {% endfor %}
           </tbody>
         </table>

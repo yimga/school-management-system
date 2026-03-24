@@ -5,147 +5,14 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/workflow-center.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'workflow';
   });
 </script>
-<style>
-  .workflow-hero {
-    background: linear-gradient(135deg, var(--workflow-hero-bg-start, rgba(102,126,234,0.14)), var(--workflow-hero-bg-end, rgba(118,75,162,0.12)));
-    border: 1px solid var(--workflow-hero-border, rgba(148,163,184,0.22));
-    border-radius: 18px;
-    padding: 1.25rem 1.25rem;
-    margin-bottom: 1rem;
-  }
-  .workflow-hero h2 { margin: 0; font-weight: 800; color: var(--admin-text); }
-  .workflow-hero p { margin: 0.25rem 0 0; color: var(--admin-muted); }
-  .workflow-progress-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--workflow-progress-divider, rgba(148,163,184,0.2));
-  }
-  .workflow-progress-summary .badge {
-    font-size: 0.8rem;
-    padding: 0.35rem 0.65rem;
-  }
-  .workflow-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
-  }
-  .workflow-card {
-    border: 1px solid var(--admin-border);
-    border-radius: 18px;
-    background: var(--admin-surface);
-    box-shadow: 0 8px 24px var(--workflow-card-shadow, rgba(15, 23, 42, 0.06));
-    overflow: hidden;
-  }
-  .workflow-card .card-body { padding: 1.1rem 1.1rem; }
-  .workflow-title { font-weight: 800; font-size: 1rem; margin: 0 0 0.25rem; color: var(--admin-text); }
-  .workflow-subtitle { margin: 0 0 0.5rem; color: var(--admin-muted); font-size: 0.9rem; }
-  .workflow-progress-label {
-    font-size: 0.8rem;
-    color: var(--brand-primary);
-    font-weight: 600;
-    margin-bottom: 0.6rem;
-  }
-  .workflow-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .workflow-links a { border-radius: 999px; font-weight: 650; }
-  .workflow-links a.btn-primary { border-radius: 999px; }
-  .workflow-step-icon { font-size: 1.25rem; color: var(--brand-primary); margin-right: 0.5rem; }
-  .workflow-step-meta { font-size: 0.8rem; color: var(--admin-muted); margin-bottom: 0.35rem; }
-  .workflow-tip {
-    font-size: 0.85rem; color: var(--admin-muted); background: var(--workflow-tip-bg, rgba(99, 102, 241, 0.08));
-    border-left: 3px solid var(--brand-primary); padding: 0.4rem 0.6rem; border-radius: 0 8px 8px 0; margin-top: 0.5rem;
-  }
-  .workflow-quick-jump { font-size: 0.9rem; }
-  .workflow-quick-jump a { text-decoration: none; color: var(--admin-muted); }
-  .workflow-quick-jump a:hover { color: var(--brand-primary); }
-  .workflow-progress-bar { height: 6px; border-radius: 3px; background: var(--workflow-progress-bar-bg, rgba(148, 163, 184, 0.25)); }
-  @media (max-width: 575px) {
-    .workflow-hero { padding: 1rem; }
-    .workflow-grid { grid-template-columns: 1fr; }
-  }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" id="workflow-main">
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
-
-  <section class="workflow-hero mt-3" aria-labelledby="workflow-hero-desc">
-    <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
-        <i class="bi bi-pin-angle me-1"></i>Use Dashboard as default view
-      </a>
-      <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">
-        <i class="bi bi-journal-text me-1"></i>Help / KB
-      </a>
-    </div>
-    <p id="workflow-hero-desc" class="small text-muted mb-0">Fits general and technical education worldwide (GCE, BAC, BEPC, CAP, GCSE, A-Level, K–12, etc.); use the steps that match your subsystem—no rigid sequence.</p>
-    <div class="mt-2 small text-muted">
-      Active year: <strong>{{ active_year.name|default:"—" }}</strong> · Active term: <strong>{{ active_term.name|default:active_term|default:"—" }}</strong>
-    </div>
-    {% if workflow_progress %}
-    <div class="workflow-progress-summary">
-      <span class="badge bg-primary">Classrooms: {{ workflow_progress.classrooms|default:0 }}</span>
-      <span class="badge bg-success">Students: {{ workflow_progress.students|default:0 }}</span>
-      <span class="badge bg-info">Teachers: {{ workflow_progress.teachers|default:0 }}</span>
-    </div>
-    {% endif %}
-    {% if steps %}
-    <div class="workflow-quick-jump mt-2 pt-2" style="border-top: 1px solid var(--workflow-quick-jump-divider, rgba(148,163,184,0.2));">
-      <span class="text-muted me-2">Jump to:</span>
-      {% for step in steps %}
-        <a href="#step-{{ step.step_key }}" class="me-2"><i class="bi {{ step.icon|default:'bi-circle' }} me-1"></i>{{ step.title }}</a>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </section>
-
-  {% if steps %}
-  <div class="mb-3" role="region" aria-label="Workflow progress">
-    <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
-      <span>Workflow overview — {{ steps|length }} steps</span>
-    </div>
-    <div class="progress workflow-progress-bar">
-      <div class="progress-bar bg-primary" role="progressbar" style="width: 100%; opacity: 0.35;" aria-valuenow="{{ steps|length }}" aria-valuemin="0" aria-valuemax="{{ steps|length }}" title="All steps visible below"></div>
-    </div>
-  </div>
-  {% endif %}
-
-  <div class="workflow-grid" role="list" aria-label="Workflow steps">
-    {% for step in steps %}
-      <article class="workflow-card" id="step-{{ step.step_key }}" aria-labelledby="step-title-{{ step.step_key }}">
-        <div class="card-body">
-          <div class="workflow-step-meta">Step {{ step.step_index }} of {{ step.total_steps }}</div>
-          <h3 id="step-title-{{ step.step_key }}" class="workflow-title d-flex align-items-center h6 mb-0">
-            <i class="bi {{ step.icon|default:'bi-circle' }} workflow-step-icon" aria-hidden="true"></i>
-            {{ step.title }}
-          </h3>
-          <div class="workflow-subtitle">{{ step.subtitle }}</div>
-          {% if step.progress_label %}
-          <div class="workflow-progress-label">{{ step.progress_label }}</div>
-          {% endif %}
-          {% if step.tip %}
-          <div class="workflow-tip"><i class="bi bi-lightbulb me-1"></i>{{ step.tip }}</div>
-          {% endif %}
-          <div class="workflow-links">
-            {% for link in step.links %}
-              {% if link.primary %}
-              <a class="btn btn-sm btn-primary" href="{{ link.url }}">{{ link.label }}</a>
-              {% else %}
-              <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}">{{ link.label }}</a>
-              {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-      </article>
-    {% endfor %}
-  </div>
-</div>
+{% include "accounts/partials/workflow_center_main.html" %}
 {% endblock %}

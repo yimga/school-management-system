@@ -1,0 +1,18 @@
+{% extends "portal_base.html" %}
+{% load static i18n %}
+{# Minimal chrome for Studio Automation iframe (?embed=1). #}
+{% block title %}{% trans "Workflow Center" %} · {{ block.super }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/workflow-center.css' %}">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'workflow';
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+{% include "accounts/partials/workflow_center_main.html" %}
+{% endblock %}

@@ -2,7 +2,7 @@
 
 **Purpose:** One visual language from marketing → login → dashboard.  
 **CSS:** `static/css/glass-surface-recipe.css`  
-**Loaded on:** `templates/marketing/base_marketing.html`, `templates/portal_base.html`, `templates/backend_base.html`. **Studio OS rail** uses the same tokens in `templates/studio_os/partials/shell_extrastyle.html` (`.studio-os__rail`).
+**Loaded on:** `templates/marketing/base_marketing.html`, `templates/portal_base.html`, `templates/backend_base.html`. **Studio OS rail** uses the same tokens in `static/css/studio-shell-layout.css` (linked from `shell_extrastyle.html`; `.studio-os__rail`).
 
 ## Variables
 

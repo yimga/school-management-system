@@ -97,7 +97,7 @@
 | 10.6 | Live Previews: central preview service; side-by-side; preview by role/device/tenant | — | Closed (Phase 10) | See PHASE_10_BACKLOG.md |
 | 10.7 | Workflows: simulation with impact counts; marketplace cards; versioning and replay | — | Closed (Phase 10) | See PHASE_10_BACKLOG.md |
 | 10.8 | AI & API: API contracts and contract tests; AI action audit trail | — | Closed (Phase 10) | See PHASE_10_BACKLOG.md |
-| 10.9 | System Config: migrate get_solo to runtime; shrink allowlist to zero | — | Closed (Phase 10) | See PHASE_10_BACKLOG.md |
+| 10.9 | Configuration Control Center: migrate get_solo to runtime; shrink allowlist to zero | — | Closed (Phase 10) | See PHASE_10_BACKLOG.md |
 
 ---
 

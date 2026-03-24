@@ -142,6 +142,62 @@ def requests_dashboard(request: HttpRequest):
     q.pop("page", None)
     pagination_extra_query = q.urlencode()
 
+    total_open = status_counts_dict.get(
+        AccessRequest.Status.PENDING, 0
+    ) + status_counts_dict.get(AccessRequest.Status.CLARIFICATION_REQUESTED, 0)
+    phase7_de = {
+        "eyebrow": "Approvals home",
+        "headline_label": "Open requests",
+        "headline_value": total_open,
+        "headline_meta": f"{paginator.count} total in scope",
+        "metrics": [
+            {
+                "label": "Pending",
+                "value": status_counts_dict.get(AccessRequest.Status.PENDING, 0),
+                "meta": "Awaiting action",
+                "status": "warn",
+            },
+            {
+                "label": "Approved",
+                "value": status_counts_dict.get(AccessRequest.Status.APPROVED, 0),
+                "meta": "All time",
+                "status": "ok",
+            },
+            {
+                "label": "Denied",
+                "value": status_counts_dict.get(AccessRequest.Status.DENIED, 0),
+                "meta": "Closed",
+                "status": "ok",
+            },
+        ],
+        "urgent_queue": [
+            {
+                "title": f"{total_open} item(s) need a decision",
+                "url": reverse("requests:dashboard") + "?status=PENDING",
+                "hint": "Filter to pending and clarification.",
+            }
+        ]
+        if total_open
+        else [
+            {
+                "title": "Inbox clear",
+                "url": "",
+                "hint": "No pending or in-review items.",
+            }
+        ],
+        "next_actions": [
+            {"label": "Filter pending", "url": reverse("requests:dashboard") + "?status=PENDING"},
+            {"label": "All requests", "url": reverse("requests:dashboard")},
+            {"label": "Backend home", "url": reverse("accounts:backend_dashboard")},
+        ],
+        "activity": [
+            {
+                "title": "Latest in table",
+                "meta": f"Page {page_obj.number} of {paginator.num_pages}",
+            }
+        ],
+    }
+
     return render(
         request,
         "requests/dashboard.html",
@@ -155,6 +211,7 @@ def requests_dashboard(request: HttpRequest):
             "status_options": status_options,
             "chart_status_donut_json": json.dumps(chart_status_donut),
             "pagination_extra_query": pagination_extra_query,
+            "phase7_de": phase7_de,
         },
     )
 

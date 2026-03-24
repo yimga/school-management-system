@@ -47,7 +47,7 @@ _STUDIO_SOFT_FAILURES = (
 # Mode -> (reverse_name, query_param). Single source for Studio embed/preview URLs.
 STUDIO_MODE_EMBED_TARGETS = {
     "experience": ("siteconfig:theme_colors", "embed=1"),
-    "automation": ("studio_os:automation", "embed=1"),
+    "automation": ("studio_os:workflow_center", "embed=1"),
     "output": ("studio_os:output", "embed=1"),
     "launch": ("siteconfig:guided_onboarding", "embed=1"),
     "control": ("siteconfig:feature_control_panel", "embed=1"),
@@ -457,6 +457,36 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
         keywords="grade reports configure output reports",
     )
     _add("Set up grade reports", "studio_os:output", keywords="reports output")
+    try:
+        out_base = reverse("studio_os:output")
+        entries.append(
+            {
+                "label": "Document library (Output Studio)",
+                "url": f"{out_base}?pane=documents",
+                "keywords": "documents files library output upload retention",
+            }
+        )
+        entries.append(
+            {
+                "label": "Report library & letters (Output Studio)",
+                "url": f"{out_base}?pane=reports",
+                "keywords": "report library packs bulk letters output reports",
+            }
+        )
+        entries.append(
+            {
+                "label": "Report card builder",
+                "url": f"{out_base}?pane=builder",
+                "keywords": "report card builder grades term annual",
+            }
+        )
+    except NoReverseMatch:
+        pass
+    _add(
+        "Configuration Control Center",
+        "siteconfig:console_domains_hub",
+        keywords="config center configuration domains hub operator",
+    )
     _add(
         "Workflows & approvals",
         "studio_os:automation",
@@ -735,6 +765,41 @@ def get_output_dependency_graph() -> list[dict[str, Any]]:
         ]
     except _STUDIO_SOFT_FAILURES as e:
         logger.warning("get_output_dependency_graph: %s", e)
+        return []
+
+
+def get_output_report_pack_preview_cards(*, out_base: str) -> list[dict[str, Any]]:
+    """
+    Sample-data preview cards for each active ReportPack (§4.4 / §5.3 in-Studio depth).
+    `out_base` is absolute path to studio_os:output (no query); graph links add pane + pack.
+    """
+    try:
+        from apps.reports.report_packs import (
+            build_report_pack_preview,
+            list_active_report_packs,
+        )
+
+        base = (out_base or "").rstrip("/") or "/studio/output/"
+        cards: list[dict[str, Any]] = []
+        for pack in list_active_report_packs():
+            code = (getattr(pack, "code", None) or "").strip()
+            name = (getattr(pack, "name", None) or code or "—").strip()
+            preview = build_report_pack_preview(pack)
+            q = "pane=dependency"
+            if code:
+                q = f"{q}&pack={code}"
+            join = "&" if "?" in base else "?"
+            cards.append(
+                {
+                    "pack_code": code,
+                    "pack_name": name,
+                    "preview": preview,
+                    "graph_url": f"{base}{join}{q}",
+                }
+            )
+        return cards
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_output_report_pack_preview_cards: %s", e)
         return []
 
 

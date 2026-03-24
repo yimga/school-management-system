@@ -80,10 +80,12 @@ from .views_district_interop import (
     district_interop_csv_classes,
     district_interop_csv_students,
     district_interop_csv_teachers,
-    district_interop_rotate_token,
+    district_interop_native_probe,
     district_interop_packet,
     district_interop_partner,
+    district_interop_rotate_token,
     district_interop_save_advanced,
+    district_interop_save_native_vendor,
     district_interop_toggle_synthetic,
     district_lms_interop,
     institution_profile_wizard,
@@ -96,6 +98,7 @@ from apps.schools.views_advancement import (
     advancement_gift_delete,
 )
 from apps.accounts.views_tenant_observability import tenant_activity_log
+from apps.accounts.views_trust_hub import security_trust_hub, tenant_impersonation_audit
 from apps.schoolops.views_tenant_ops import (
     ops_canteen,
     ops_clinic,
@@ -235,6 +238,16 @@ urlpatterns = [
         name="advancement_gift_delete",
     ),
     path("backend/activity-log/", tenant_activity_log, name="tenant_activity_log"),
+    path(
+        "backend/security-trust/",
+        security_trust_hub,
+        name="security_trust_hub",
+    ),
+    path(
+        "backend/security-trust/impersonation/",
+        tenant_impersonation_audit,
+        name="tenant_impersonation_audit",
+    ),
     path("backend/ops/", ops_hub, name="ops_hub"),
     path("backend/ops/library/", ops_library, name="ops_library"),
     path("backend/ops/transport/", ops_transport, name="ops_transport"),
@@ -262,6 +275,16 @@ urlpatterns = [
         "backend/district-lms-interop/advanced/",
         district_interop_save_advanced,
         name="district_interop_save_advanced",
+    ),
+    path(
+        "backend/district-lms-interop/native-vendor/",
+        district_interop_save_native_vendor,
+        name="district_interop_save_native_vendor",
+    ),
+    path(
+        "backend/district-lms-interop/native-probe/",
+        district_interop_native_probe,
+        name="district_interop_native_probe",
     ),
     path(
         "backend/district-lms-interop/synthetic/",

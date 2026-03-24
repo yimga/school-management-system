@@ -42,6 +42,7 @@ _PATHS: dict[str, str] = {
     "siteconfig:installed_packages_rollback": "/siteconfig/installed-packages/",
     "portal:teacher_bulk_capture_hub": "/portal/teacher/bulk-capture/",
     "accounts:tenant_activity_log": "/authentication/backend/activity-log/",
+    "accounts:security_trust_hub": "/authentication/backend/security-trust/",
     "accounts:district_lms_interop": "/authentication/backend/district-lms-interop/",
     "automation:outcomes_console": "/automation/outcomes/",
     "metadata:metadata_lineage_graph": "/api/internal/metadata/lineage/graph/",
@@ -163,7 +164,7 @@ def studio_legacy_urls_map() -> dict[str, str]:
     out: dict[str, str] = {}
     pairs = [
         ("customizer", "studio_os:experience"),
-        ("theme_colors", "siteconfig:theme_colors"),
+        ("theme_colors", "studio_os:experience"),
         ("feature_control", "siteconfig:feature_control_panel"),
         ("report_library", "studio_os:output"),
         ("workflow_hub", "studio_os:automation"),
@@ -183,4 +184,8 @@ def studio_legacy_urls_map() -> dict[str, str]:
         u = studio_resolve_url(viewname)
         if u:
             out[key] = u
+    # §4.4 / §6.1: canonical “report library” lands on Output Studio hub pane, not default graph only.
+    rl = out.get("report_library")
+    if rl:
+        out["report_library"] = f"{rl}{'&' if '?' in rl else '?'}pane=reports"
     return out

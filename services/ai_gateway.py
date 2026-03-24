@@ -18,6 +18,26 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import DatabaseError
+
+# Typed handlers for non-fatal side effects (metrics, cache, audit persistence).
+_CACHE_METRIC_ERRORS = (
+    TypeError,
+    ValueError,
+    OSError,
+    RuntimeError,
+    ConnectionError,
+    EOFError,
+    TimeoutError,
+)
+_AI_AUDIT_PERSIST_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+    DatabaseError,
+)
 
 from services.ai_schemas import (
     extract_json_from_text,
@@ -164,7 +184,7 @@ def _record_metric(
         if schema_fail:
             bucket["schema_fail"] = bucket.get("schema_fail", 0) + 1
         cache.set(cache_key, bucket, timeout=86400 * 3)
-    except Exception as e:
+    except _CACHE_METRIC_ERRORS as e:
         logger.debug("AI gateway metric record failed: %s", e)
 
 
@@ -201,7 +221,7 @@ def _record_feedback_metric(
         if manual_correction is True:
             bucket["manual_correction_count"] = bucket.get("manual_correction_count", 0) + 1
         cache.set(cache_key, bucket, timeout=86400 * 3)
-    except Exception as e:
+    except _CACHE_METRIC_ERRORS as e:
         logger.debug("AI gateway feedback metric record failed: %s", e)
 
 
@@ -241,7 +261,7 @@ def _audit_log(
             cost_class=cost_class,
             schema_fail=bool(meta and meta.get("schema_validation_failed")),
         )
-    except Exception:
+    except _CACHE_METRIC_ERRORS:
         pass
     # Persist to AIActionAuditLog for compliance and audit trail (platform_runtime.helpers.log_ai_action)
     try:
@@ -262,7 +282,7 @@ def _audit_log(
                 "school_id": str(school_id) if school_id is not None else None,
             },
         )
-    except Exception as e:
+    except _AI_AUDIT_PERSIST_ERRORS as e:
         logger.debug("AI action audit log write skipped: %s", e)
 
 
@@ -297,7 +317,8 @@ def _call_vllm(prompt: str, metadata: dict[str, Any] | None = None, json_mode: b
     timeout = timeout_sec if timeout_sec is not None else _request_timeout(metadata)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            body = json.loads(resp.read().decode("utf-8"))
+            raw = resp.read().decode("utf-8")
+        body = json.loads(raw)
         choices = body.get("choices") or []
         text = (choices[0].get("text") or "").strip() if choices else None
         return text or None, {"provider": "vllm", "tier": "vllm", "model": model}
@@ -307,9 +328,11 @@ def _call_vllm(prompt: str, metadata: dict[str, Any] | None = None, json_mode: b
     except urllib.error.URLError as e:
         logger.debug("vLLM request failed: %s", e.reason)
         return None, {"provider": "vllm", "error": "unavailable"}
-    except Exception as e:
-        logger.exception("vLLM call failed")
-        return None, {"provider": "vllm", "error": str(e)[:200]}
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        logger.warning("vLLM response parse failed: %s", e)
+        return None, {"provider": "vllm", "error": "invalid_response"}
+    except TimeoutError:
+        return None, {"provider": "vllm", "error": "timeout"}
 
 
 def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key: str | None = None, timeout_sec: int | None = None) -> tuple[str | None, dict[str, Any]]:
@@ -335,7 +358,8 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
     timeout = timeout_sec if timeout_sec is not None else _request_timeout(metadata)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            body = json.loads(resp.read().decode("utf-8"))
+            raw = resp.read().decode("utf-8")
+        body = json.loads(raw)
         choices = body.get("choices") or []
         msg = choices[0].get("message", {}) if choices else {}
         text = (msg.get("content") or "").strip()
@@ -346,9 +370,11 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
     except urllib.error.URLError as e:
         logger.debug("LiteLLM request failed: %s", getattr(e, "reason", e))
         return None, {"provider": "litellm", "error": "unavailable"}
-    except Exception as e:
-        logger.exception("LiteLLM call failed")
-        return None, {"provider": "litellm", "error": str(e)[:200]}
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        logger.warning("LiteLLM response parse failed: %s", e)
+        return None, {"provider": "litellm", "error": "invalid_response"}
+    except TimeoutError:
+        return None, {"provider": "litellm", "error": "timeout"}
 
 
 def _call_gemini(prompt: str) -> tuple[str | None, dict[str, Any]]:
@@ -387,7 +413,7 @@ def _safe_schema_default(response_schema: str | None) -> Any:
 def _payload_contains_pii(*texts: Any) -> bool:
     try:
         from services.inference import strip_pii_for_inference
-    except Exception:
+    except ImportError:
         return False
     for text in texts:
         if not isinstance(text, str):
@@ -440,7 +466,7 @@ def _check_and_consume_budget(tenant_id: Any) -> tuple[bool, dict[str, Any]]:
             cache.set(cache_key, 1, timeout=86400 * 2)  # 2 days TTL to cover day boundary
         else:
             cache.incr(cache_key)
-    except Exception:
+    except _CACHE_METRIC_ERRORS:
         # If cache fails, allow the request (fail open)
         return True, {}
     return True, {}

@@ -1030,11 +1030,12 @@ class ManagerHostControlPlaneRequiredMiddleware(MiddlewareMixin):
 class SuperAdminRateLimitMiddleware(MiddlewareMixin):
     """
     Control plane hardening (12.7): rate limit /super/ to 120 requests per user per minute.
-    Runs after TenantSuperAdminRequiredMiddleware; only applied when path starts with /super/.
+    Stricter cap for POST /super/native-roster-connectors/ (credential probes).
     Returns 429 Too Many Requests with Retry-After: 60 when exceeded.
     """
 
     MINUTE_LIMIT = 120
+    NATIVE_ROSTER_POST_PER_MINUTE = 25
 
     def process_request(self, request):
         if not request.path.startswith("/super/"):
@@ -1044,6 +1045,24 @@ class SuperAdminRateLimitMiddleware(MiddlewareMixin):
         from django.core.cache import cache
         from django.utils import timezone
         from django.http import HttpResponse
+
+        if (
+            request.method == "POST"
+            and "native-roster-connectors" in request.path
+        ):
+            nk = "super_native_rl:{}:{}".format(
+                request.user.pk,
+                timezone.now().strftime("%Y%m%d%H%M"),
+            )
+            try:
+                nc = cache.get(nk, 0)
+                if nc >= self.NATIVE_ROSTER_POST_PER_MINUTE:
+                    r = HttpResponse("Too Many Requests (native roster console)", status=429)
+                    r["Retry-After"] = "60"
+                    return r
+                cache.set(nk, nc + 1, timeout=120)
+            except (AttributeError, TypeError, ValueError):
+                pass
 
         key = "super_rl:{}:{}".format(
             request.user.pk,

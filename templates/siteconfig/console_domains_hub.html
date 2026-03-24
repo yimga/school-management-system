@@ -1,21 +1,23 @@
 {% extends "portal_base.html" %}
 {% load static i18n %}
 
-{% block title %}{% trans "System config" %}{% endblock %}
+{% block title %}{% trans "Configuration Control Center" %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4 content-max-960" data-page-archetype="decision-console">
   <header class="mb-4 pb-3 border-bottom">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>
-        <h1 class="h4 mb-1 fw-bold">{% trans "System config" %}</h1>
-        <p class="text-muted small mb-0">{% trans "Operational hubs and configuration domains in one place. Workflows, approvals, import, documents, reports, RBAC, feature control, and more." %}</p>
+        <h1 class="h4 mb-1 fw-bold">{% trans "Configuration Control Center" %}</h1>
+        <p class="text-muted small mb-0">{% trans "Same nine outcome groups as the platform console (links resolve for your host). Operational hubs and detailed domains below." %}</p>
       </div>
       {% if studio_shell_url %}
       <a href="{{ studio_shell_url }}" class="btn btn-primary btn-sm">{% trans "Open Studio OS" %} <i class="bi bi-arrow-right ms-1"></i></a>
       {% endif %}
     </div>
   </header>
+
+  {% include "siteconfig/partials/configuration_control_center_outcomes.html" %}
 
   <div class="alert alert-info border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4" role="region" aria-label="{% trans 'Outcome-driven configuration' %}">
     <div class="small mb-0">
@@ -48,7 +50,7 @@
   {% endif %}
 
   <section class="mb-4">
-    <h2 class="h6 text-uppercase text-muted mb-2">{% trans "Configuration domains" %}</h2>
+    <h2 class="h6 text-uppercase text-muted mb-2">{% trans "Detailed configuration domains" %}</h2>
     <p class="small text-muted mb-3">{% trans "Brand, runtime, policies, plans, registries, integrations." %}</p>
     <div class="row g-2">
       {% for domain in domains %}

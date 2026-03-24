@@ -1012,8 +1012,10 @@ def build_portal_sidebar_items(request, site):
                     "badge": None,
                 }
             )
-        _report_url = studio_shell_url or _safe_reverse("studio_os:output")
-        if _report_url:
+        _report_base = studio_shell_url or _safe_reverse("studio_os:output")
+        if _report_base:
+            _rq = "&" if "?" in _report_base else "?"
+            _report_url = f"{_report_base}{_rq}pane=reports"
             items.append(
                 {
                     "id": "report_library",
@@ -1314,7 +1316,7 @@ def build_portal_sidebar_items(request, site):
             items.append(
                 {
                     "id": "admin_panel",
-                    "label": "System config",
+                    "label": "Config center",
                     "url": _safe_reverse("siteconfig:console_domains_hub"),
                     "icon": "bi-gear-wide-connected",
                     "section": "Admin Panel",

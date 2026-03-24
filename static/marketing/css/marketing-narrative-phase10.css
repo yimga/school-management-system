@@ -1,0 +1,161 @@
+/**
+ * Phase 10 — marketing homepage narrative (scroll-story + premium density).
+ * Complements marketing-home.css / marketing-home-scroll.css / product shell tokens.
+ */
+.marketing-home.mkt-narrative-phase10 {
+  --mkt-chapter-accent: rgba(99, 102, 241, 0.35);
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-narrative-chapter {
+  position: relative;
+  padding-top: clamp(2.5rem, 6vw, 4.5rem);
+  padding-bottom: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-narrative-chapter::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    var(--mkt-chapter-accent),
+    transparent 85%
+  );
+  border-radius: 2px;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+@media (max-width: 991.98px) {
+  .marketing-home.mkt-narrative-phase10 .mkt-narrative-chapter::before {
+    display: none;
+  }
+}
+
+/* Why switch: narrative pillars (fewer, larger cells) */
+.marketing-home.mkt-narrative-phase10 .mkt-narrative-pillars .mkt-pillar-card {
+  min-height: 6.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.25rem 1rem;
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-why-switch-list {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-why-switch-list li {
+  margin-bottom: 0.5rem;
+}
+
+/* Institution strip — replaces heavy grid */
+.marketing-home.mkt-narrative-phase10 .mkt-institution-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-institution-strip a {
+  font-size: 0.9rem;
+  color: var(--mkt-text-muted, #64748b);
+  text-decoration: none;
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-institution-strip a:hover {
+  color: var(--mkt-primary, #0b3d91);
+  text-decoration: underline;
+}
+
+/* Studio OS — sticky product frame (desktop) */
+@media (min-width: 992px) {
+  .marketing-home.mkt-narrative-phase10 .mkt-studio-pinned {
+    display: grid;
+    grid-template-columns: minmax(280px, 36%) 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  .marketing-home.mkt-narrative-phase10 .mkt-studio-pinned .mkt-studio-copy {
+    position: sticky;
+    top: calc(56px + 1.5rem);
+  }
+  .marketing-home.mkt-narrative-phase10 .mkt-studio-pinned .mkt-product-viz-scroll {
+    max-height: min(78vh, 720px);
+    overflow-y: auto;
+    padding-right: 0.25rem;
+    scrollbar-width: thin;
+  }
+}
+
+/* Role home visual strip */
+.marketing-home.mkt-narrative-phase10 .mkt-role-visual-strip {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 1rem 0 1.5rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-role-visual-card {
+  flex: 0 0 auto;
+  width: min(200px, 42vw);
+  scroll-snap-align: start;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--mkt-surface, #1e293b);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.12);
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-role-visual-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-role-visual-label {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.5rem;
+  text-align: center;
+  color: #e2e8f0;
+}
+
+/* Security / trust visual band */
+.marketing-home.mkt-narrative-phase10 .mkt-trust-visual-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.marketing-home.mkt-narrative-phase10 .mkt-trust-visual-row img {
+  max-height: 120px;
+  width: auto;
+  opacity: 0.95;
+}
+
+/* Dev platform — single band, not a brochure section */
+.marketing-home.mkt-narrative-phase10 .mkt-dev-band {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.04),
+    rgba(99, 102, 241, 0.08),
+    rgba(15, 23, 42, 0.04)
+  );
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-align: center;
+}

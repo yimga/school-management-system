@@ -1,10 +1,14 @@
 """
-Wedge 1–6 world-class bar: curriculum packs, One SIS any LMS flow, advancement hub, HE pack.
-Single pane; linked from control plane nav or Setup Studio.
+Super wedge surfaces: Tier A (1–6) plus geography (7–13), education systems (14–22),
+learning delivery & institution types (23–43), ministry stubs, group campuses (22), etc.
+
+Operator checklists: ``?wedge=`` on geography, education_systems, learning_delivery_packs,
+ministry_report_stubs; fixed wedges where the page is single-wedge scoped.
 """
 
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
+from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, NoReverseMatch
 
@@ -16,20 +20,185 @@ def _safe_reverse(name, *args, **kwargs):
         return None
 
 
+def _beachhead_checklist(wedge_id: int):
+    from apps.platform_runtime.beachhead_operator_checklists import (
+        build_resolved_beachhead_checklist,
+    )
+
+    return build_resolved_beachhead_checklist(wedge_id, _safe_reverse)
+
+
+def _operator_wedge_from_query(request, *, default: int, lo: int, hi: int) -> int:
+    raw = (request.GET.get("wedge") or "").strip()
+    if raw.isdigit():
+        v = int(raw)
+        if lo <= v <= hi:
+            return v
+    return default
+
+
+def _operator_wedge_from_query_allowed(
+    request, *, default: int, allowed: frozenset[int]
+) -> int:
+    raw = (request.GET.get("wedge") or "").strip()
+    if raw.isdigit():
+        v = int(raw)
+        if v in allowed:
+            return v
+    return default
+
+
+def _wedge_switcher_links_for_wedges(
+    request,
+    *,
+    url_name: str,
+    wedges: tuple[int, ...],
+    default_wedge: int,
+    label_for_wedge: dict[int, str] | None = None,
+) -> list[dict[str, object]]:
+    """Build ?wedge= links for a non-contiguous set of wedge ids (e.g. 1 and 3 on curriculum)."""
+    try:
+        base = reverse(url_name)
+    except NoReverseMatch:
+        return []
+    allowed = frozenset(wedges)
+    active = _operator_wedge_from_query_allowed(
+        request, default=default_wedge, allowed=allowed
+    )
+    out: list[dict[str, object]] = []
+    for w in wedges:
+        sep = "&" if "?" in base else "?"
+        href = f"{base}{sep}wedge={w}"
+        label = (label_for_wedge or {}).get(w, f"W{w}")
+        out.append({"wedge": w, "label": label, "href": href, "active": w == active})
+    return out
+
+
+def _wedge_switcher_links(
+    request,
+    *,
+    url_name: str,
+    lo: int,
+    hi: int,
+    label_for_wedge: dict[int, str] | None = None,
+) -> list[dict[str, object]]:
+    """Build ?wedge= navigation for operator checklist (manager host)."""
+    try:
+        base = reverse(url_name)
+    except NoReverseMatch:
+        return []
+    active = _operator_wedge_from_query(request, default=lo, lo=lo, hi=hi)
+    out: list[dict[str, object]] = []
+    for w in range(lo, hi + 1):
+        sep = "&" if "?" in base else "?"
+        href = f"{base}{sep}wedge={w}"
+        label = (label_for_wedge or {}).get(w, f"W{w}")
+        out.append({"wedge": w, "label": label, "href": href, "active": w == active})
+    return out
+
+
+def _get_wedge_line_row(wedge_id: int):
+    from apps.platform_runtime.wedge_line_registry import WEDGE_LINES
+
+    for r in WEDGE_LINES:
+        if int(r["id"]) == wedge_id:
+            return r
+    return None
+
+
+def _operator_deep_links(wedge_id: int) -> list[dict[str, str]]:
+    """Human grouping surfaces (often with ?wedge=) from canonical wedge id."""
+    out: list[dict[str, str]] = []
+
+    def add(label: str, viewname: str, params: dict[str, str] | None = None) -> None:
+        base = _safe_reverse(viewname)
+        if not base:
+            return
+        if params:
+            sep = "&" if "?" in base else "?"
+            out.append(
+                {"label": label, "href": f"{base}{sep}{urlencode(params)}"}
+            )
+        else:
+            out.append({"label": label, "href": base})
+
+    if wedge_id in (1, 3):
+        add(
+            "Curriculum & region packs",
+            "super:curriculum_packs",
+            {"wedge": str(wedge_id)},
+        )
+    elif wedge_id == 2:
+        add("One SIS, any LMS", "super:one_sis_any_lms")
+    elif wedge_id == 4:
+        add("District & enterprise", "super:district_enterprise")
+    elif wedge_id == 5:
+        add("Advancement hub", "super:advancement_hub")
+    elif wedge_id == 6:
+        add("Higher-ed pack", "super:he_pack")
+    elif 7 <= wedge_id <= 13:
+        add("Geography hub", "super:geography", {"wedge": str(wedge_id)})
+    elif 14 <= wedge_id <= 22:
+        add("Education systems", "super:education_systems", {"wedge": str(wedge_id)})
+        if wedge_id == 22:
+            add("Group & campuses", "super:group_campuses")
+    elif 23 <= wedge_id <= 43:
+        add(
+            "Learning delivery & institution types",
+            "super:learning_delivery_packs",
+            {"wedge": str(wedge_id)},
+        )
+        if wedge_id >= 31:
+            add(
+                "Ministry report stubs",
+                "super:ministry_report_stubs",
+                {"wedge": str(wedge_id)},
+            )
+    elif wedge_id == 44:
+        add("One SIS, any LMS", "super:one_sis_any_lms")
+        add("Native Clever / ClassLink console", "super:native_roster_connectors")
+    elif wedge_id == 45:
+        add("Trust center", "super:trust_center")
+    return out
+
+
 def super_ministry_report_stubs(request):
     """Per institution type: ministry / accreditation report stub catalog (Phase J+)."""
     from apps.platform_runtime.learning_institution_catalog import (
         INSTITUTION_TYPE_PACKS,
+        INSTITUTION_TYPE_STATUTORY_COUNTRY_HINT,
         MINISTRY_REPORT_STUBS,
     )
 
+    pdf_preview = _safe_reverse("super:ministry_stub_pdf")
+    country_hint = INSTITUTION_TYPE_STATUTORY_COUNTRY_HINT
     rows = []
     for pack in INSTITUTION_TYPE_PACKS:
         code = pack["code"]
         stubs = MINISTRY_REPORT_STUBS.get(code) or MINISTRY_REPORT_STUBS.get(
             "DEFAULT", []
         )
-        rows.append({**pack, "stubs": stubs})
+        cc = country_hint.get(code, "")
+        enriched = []
+        for s in stubs:
+            slug = (s.get("slug") or "").strip()
+            enriched.append(
+                {
+                    **s,
+                    "pdf_preview_url": (
+                        f"{pdf_preview}?stub={quote(slug)}&country={quote(cc)}"
+                        if pdf_preview and slug and cc
+                        else (
+                            f"{pdf_preview}?stub={quote(slug)}"
+                            if pdf_preview and slug
+                            else None
+                        )
+                    ),
+                    "suggested_country": cc,
+                }
+            )
+        rows.append({**pack, "stubs": enriched})
+    min_wedge = _operator_wedge_from_query(request, default=31, lo=31, hi=43)
     return render(
         request,
         "schools/super_ministry_report_stubs.html",
@@ -37,6 +206,90 @@ def super_ministry_report_stubs(request):
             "dashboard_url": reverse("super:dashboard"),
             "rows": rows,
             "learning_packs_url": _safe_reverse("super:learning_delivery_packs"),
+            "statutory_hints_url": _safe_reverse("super:learning_institution_catalog_json"),
+            "tenant_statutory_extract_path": "/api/learning/statutory-extract/",
+            "tenant_identity_graph_path": "/api/learning/identity-graph-summary/",
+            "beachhead_checklist": _beachhead_checklist(min_wedge),
+            "beachhead_wedge_id": min_wedge,
+            "operator_wedge_switcher": _wedge_switcher_links(
+                request,
+                url_name="super:ministry_report_stubs",
+                lo=31,
+                hi=43,
+            ),
+        },
+    )
+
+
+def super_ministry_stub_pdf(request):
+    """Manager-host ministry stub PDF (same bytes as tenant API) — super access only."""
+    stub = (request.GET.get("stub") or "").strip()
+    if not stub or not stub.replace("_", "").isalnum():
+        return HttpResponseBadRequest("Invalid stub")
+    country = (request.GET.get("country") or request.GET.get("jurisdiction") or "").strip()
+    from apps.platform_runtime.learning_institution_catalog import MINISTRY_REPORT_STUBS
+
+    label = stub
+    for _k, rows in MINISTRY_REPORT_STUBS.items():
+        for r in rows or []:
+            if r.get("slug") == stub:
+                label = r.get("label") or stub
+                break
+    try:
+        from apps.platform_runtime.ministry_stub_pdf import build_ministry_stub_pdf_bytes
+    except ImportError:
+        return HttpResponse("PDF engine unavailable", status=503)
+    try:
+        pdf = build_ministry_stub_pdf_bytes(
+            stub,
+            label,
+            school_name="Manager preview (no tenant)",
+            country_code=country or None,
+        )
+    except ImportError:
+        return HttpResponse("PDF engine unavailable", status=503)
+    cc = (country or "").strip().upper()[:2]
+    suffix = f"_{cc}" if cc else ""
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    resp["Content-Disposition"] = (
+        f'attachment; filename="ministry_{stub}{suffix}.pdf"'
+    )
+    return resp
+
+
+def super_district_enterprise(request):
+    """Wedge 4: District / ERP operator surface — decision links, not a toggle wall."""
+    from apps.interop import erp_coexistence
+    from apps.platform_runtime.identity_graph_rollups import (
+        compute_platform_identity_rollups,
+    )
+
+    return render(
+        request,
+        "schools/super_district_enterprise.html",
+        {
+            "dashboard_url": reverse("super:dashboard"),
+            "trust_center_url": _safe_reverse("super:trust_center"),
+            "schools_list_url": _safe_reverse("super:schools_list"),
+            "group_campuses_url": _safe_reverse("super:group_campuses"),
+            "migration_cloud_url": _safe_reverse("super:migration_cloud"),
+            "one_sis_url": _safe_reverse("super:one_sis_any_lms"),
+            "apicenter_url": _safe_reverse("apicenter:dashboard"),
+            "billing_url": _safe_reverse("super:billing_dashboard"),
+            "geography_url": _safe_reverse("super:geography"),
+            "education_systems_url": _safe_reverse("super:education_systems"),
+            "analytics_url": _safe_reverse("super:analytics_overview"),
+            "usage_url": _safe_reverse("super:usage"),
+            "government_aggregates_path": "/api/government/aggregates/",
+            "platform_rollups": compute_platform_identity_rollups(),
+            "beachhead_checklist": _beachhead_checklist(4),
+            "beachhead_wedge_id": 4,
+            "erp_coexistence_patterns": erp_coexistence.list_patterns(),
+            "erp_webhook_sample_json": json.dumps(erp_sample, indent=2),
+            "native_roster_connectors_url": _safe_reverse(
+                "super:native_roster_connectors"
+            ),
+            "wedge_index_url": _safe_reverse("super:wedge_index"),
         },
     )
 
@@ -48,8 +301,10 @@ def super_learning_institution_catalog_json(request):
     from apps.platform_runtime.learning_institution_catalog import (
         CATALOG_VERSION,
         INSTITUTION_TYPE_PACKS,
+        INSTITUTION_TYPE_STATUTORY_COUNTRY_HINT,
         LEARNING_DELIVERY_MODES,
         MINISTRY_REPORT_STUBS,
+        STATUTORY_JURISDICTION_HINTS,
         TERMINOLOGY_PACKS,
     )
 
@@ -59,6 +314,8 @@ def super_learning_institution_catalog_json(request):
             "learning_delivery_modes": LEARNING_DELIVERY_MODES,
             "institution_type_packs": INSTITUTION_TYPE_PACKS,
             "ministry_report_stubs": MINISTRY_REPORT_STUBS,
+            "statutory_jurisdiction_hints": STATUTORY_JURISDICTION_HINTS,
+            "institution_type_statutory_country_hint": INSTITUTION_TYPE_STATUTORY_COUNTRY_HINT,
             "terminology_locales": list(TERMINOLOGY_PACKS.keys()),
             "version": 1,
         },
@@ -73,6 +330,7 @@ def super_learning_delivery_packs(request):
         LEARNING_DELIVERY_MODES,
     )
 
+    ld_wedge = _operator_wedge_from_query(request, default=23, lo=23, hi=43)
     return render(
         request,
         "schools/super_learning_delivery_packs.html",
@@ -86,12 +344,21 @@ def super_learning_delivery_packs(request):
             "catalog_json_url": _safe_reverse(
                 "super:learning_institution_catalog_json"
             ),
+            "beachhead_checklist": _beachhead_checklist(ld_wedge),
+            "beachhead_wedge_id": ld_wedge,
+            "operator_wedge_switcher": _wedge_switcher_links(
+                request,
+                url_name="super:learning_delivery_packs",
+                lo=23,
+                hi=43,
+            ),
         },
     )
 
 
 def super_curriculum_packs(request):
-    """Wedge 1: Starter & region packs as product — education_dna + REGIONAL_POLICY_PACKS, discoverable."""
+    """Starter & region packs — W1 and W3 operator checklists (?wedge=1|3); DNA + REGIONAL_POLICY_PACKS."""
+    from apps.platform_runtime.wedge_line_registry import BEACHHEAD_BLUEPRINT_PACKS
     from apps.siteconfig.education_dna import EDUCATION_DNA_CURRICULUMS
     from apps.siteconfig.tenant_config import REGIONAL_POLICY_PACKS
 
@@ -118,6 +385,16 @@ def super_curriculum_packs(request):
     uk_statutory_reports_url = _safe_reverse(
         "siteconfig:report_library"
     ) or _safe_reverse("reports:report_list")
+    trust_center_url = _safe_reverse("super:trust_center")
+    migration_cloud_url = _safe_reverse("super:migration_cloud")
+    one_sis_url = _safe_reverse("super:one_sis_any_lms")
+    learning_delivery_url = _safe_reverse("super:learning_delivery_packs")
+    blueprints_catalog_url = _safe_reverse("super:blueprints_catalog")
+    # W1 (international K-12) and W3 (UK / British) both map to this surface per wedge_line_registry.
+    curriculum_checklist_wedges = (1, 3)
+    cur_wedge = _operator_wedge_from_query_allowed(
+        request, default=1, allowed=frozenset(curriculum_checklist_wedges)
+    )
     return render(
         request,
         "schools/super_curriculum_packs.html",
@@ -131,25 +408,41 @@ def super_curriculum_packs(request):
             "geography_url": geography_url,
             "uk_statutory_name": "UK statutory pack",
             "uk_statutory_reports_url": uk_statutory_reports_url,
+            "trust_center_url": trust_center_url,
+            "migration_cloud_url": migration_cloud_url,
+            "one_sis_url": one_sis_url,
+            "learning_delivery_url": learning_delivery_url,
+            "beachhead_blueprint_packs": list(BEACHHEAD_BLUEPRINT_PACKS),
+            "blueprints_catalog_url": blueprints_catalog_url,
+            "beachhead_checklist": _beachhead_checklist(cur_wedge),
+            "beachhead_wedge_id": cur_wedge,
+            "operator_wedge_switcher": _wedge_switcher_links_for_wedges(
+                request,
+                url_name="super:curriculum_packs",
+                wedges=curriculum_checklist_wedges,
+                default_wedge=1,
+                label_for_wedge={
+                    1: "W1 International K-12",
+                    3: "W3 UK / British",
+                },
+            ),
         },
     )
 
 
 def super_one_sis_any_lms(request):
     """Wedge 2: One SIS, any LMS — shipped guided flow: configure → SSO → roster → grade passback; certified LMS status."""
+    from apps.platform_runtime.lms_certification_registry import as_template_rows
+
     integration_url = _safe_reverse("siteconfig:integration_catalog") or _safe_reverse(
         "apicenter:dashboard"
     )
     onboarding_url = _safe_reverse("siteconfig:guided_onboarding")
-    # Certification status per LMS (incremental; update as we certify)
-    lms_certification = [
-        {"name": "Google Classroom / Workspace", "status": "Certified"},
-        {"name": "Microsoft Teams / 365", "status": "Certified"},
-        {"name": "Canvas", "status": "Certified"},
-        {"name": "D2L Brightspace", "status": "In progress"},
-        {"name": "Moodle", "status": "Certified"},
-        {"name": "Blackboard", "status": "In progress"},
-    ]
+    migration_cloud_url = _safe_reverse("super:migration_cloud")
+    trust_center_url = _safe_reverse("super:trust_center")
+    curriculum_packs_url = _safe_reverse("super:curriculum_packs")
+    geography_url = _safe_reverse("super:geography")
+    lms_certification = as_template_rows()
     return render(
         request,
         "schools/super_one_sis_any_lms.html",
@@ -157,7 +450,21 @@ def super_one_sis_any_lms(request):
             "dashboard_url": reverse("super:dashboard"),
             "integration_url": integration_url,
             "onboarding_url": onboarding_url,
+            "migration_cloud_url": migration_cloud_url,
+            "trust_center_url": trust_center_url,
+            "curriculum_packs_url": curriculum_packs_url,
+            "geography_url": geography_url,
             "lms_certification": lms_certification,
+            "native_roster_connectors_url": _safe_reverse(
+                "super:native_roster_connectors"
+            ),
+            "wedge_44_url": _safe_reverse(
+                "super:wedge_operator_detail", kwargs={"wedge_id": 44}
+            ),
+            "beachhead_checklist": _beachhead_checklist(2),
+            "beachhead_wedge_id": 2,
+            "secondary_operator_checklist": _beachhead_checklist(44),
+            "secondary_operator_wedge_id": 44,
         },
     )
 
@@ -180,6 +487,8 @@ def super_advancement_hub(request):
             "aid_services_url": aid_services_url,
             "phase2_placeholder_url": phase2_placeholder_url,
             "tenant_donor_crm_path": "/authentication/backend/advancement/donors/",
+            "beachhead_checklist": _beachhead_checklist(5),
+            "beachhead_wedge_id": 5,
         },
     )
 
@@ -269,12 +578,20 @@ def super_advancement_phase2_placeholder(request):
 def super_he_pack(request):
     """Wedge 6: HE pack as cohesive product — degree_audit, enrollment, catalog; months-not-years."""
     plans_url = _safe_reverse("super:plans_list")
+    catalog_json_url = _safe_reverse("super:learning_institution_catalog_json")
+    learning_delivery_url = _safe_reverse("super:learning_delivery_packs")
+    curriculum_packs_url = _safe_reverse("super:curriculum_packs")
     return render(
         request,
         "schools/super_he_pack.html",
         {
             "dashboard_url": reverse("super:dashboard"),
             "plans_url": plans_url,
+            "catalog_json_url": catalog_json_url,
+            "learning_delivery_url": learning_delivery_url,
+            "curriculum_packs_url": curriculum_packs_url,
+            "beachhead_checklist": _beachhead_checklist(6),
+            "beachhead_wedge_id": 6,
         },
     )
 
@@ -364,6 +681,16 @@ def super_geography(request):
     setup_studio_url = _safe_reverse("siteconfig:guided_onboarding")
     curriculum_packs_url = _safe_reverse("super:curriculum_packs")
     trust_center_url = _safe_reverse("super:trust_center")
+    geo_wedge = _operator_wedge_from_query(request, default=7, lo=7, hi=13)
+    geo_labels = {
+        7: "W7 Africa",
+        8: "W8 Asia",
+        9: "W9 Europe",
+        10: "W10 N. America",
+        11: "W11 S. America",
+        12: "W12 Oceania",
+        13: "W13 MENA",
+    }
     return render(
         request,
         "schools/super_geography.html",
@@ -374,6 +701,15 @@ def super_geography(request):
             "setup_studio_url": setup_studio_url,
             "curriculum_packs_url": curriculum_packs_url,
             "trust_center_url": trust_center_url,
+            "beachhead_checklist": _beachhead_checklist(geo_wedge),
+            "beachhead_wedge_id": geo_wedge,
+            "operator_wedge_switcher": _wedge_switcher_links(
+                request,
+                url_name="super:geography",
+                lo=7,
+                hi=13,
+                label_for_wedge=geo_labels,
+            ),
         },
     )
 
@@ -391,8 +727,11 @@ def super_education_systems(request):
     advancement_hub_url = _safe_reverse("super:advancement_hub")
     registries_url = _safe_reverse("super:registries_overview")
     # Ministry/statutory (14 Public, 20 Government): moe_presets and statutory reporting
-    report_library_url = _safe_reverse("siteconfig:report_library") or _safe_reverse(
-        "reports:report_list"
+    _out_studio = _safe_reverse("studio_os:output")
+    report_library_url = (
+        f"{_out_studio}?pane=reports"
+        if _out_studio
+        else _safe_reverse("reports:report_list")
     )
     # Multi-campus (22): hierarchy; link to schools list; wedge 14–22: segment by sector
     schools_list_url = _safe_reverse("super:schools_list")
@@ -422,6 +761,7 @@ def super_education_systems(request):
     support_by_sector = build_education_system_support_accordion(_safe_reverse)
     for s in support_by_sector:
         s["next_actions"] = [a for a in s["next_actions"] if a.get("url")]
+    edu_wedge = _operator_wedge_from_query(request, default=14, lo=14, hi=22)
     return render(
         request,
         "schools/super_education_systems.html",
@@ -442,6 +782,14 @@ def super_education_systems(request):
             "sector_filtered_links": sector_filtered_links,
             "playbook_url": playbook_url,
             "support_by_sector": support_by_sector,
+            "beachhead_checklist": _beachhead_checklist(edu_wedge),
+            "beachhead_wedge_id": edu_wedge,
+            "operator_wedge_switcher": _wedge_switcher_links(
+                request,
+                url_name="super:education_systems",
+                lo=14,
+                hi=22,
+            ),
         },
     )
 
@@ -501,5 +849,143 @@ def super_group_campuses(request):
             "create_school_url": create_school_url,
             "schools_list_url": schools_list_url,
             "education_systems_url": education_systems_url,
+            "beachhead_checklist": _beachhead_checklist(22),
+            "beachhead_wedge_id": 22,
+        },
+    )
+
+
+def super_wedge_index(request):
+    """Canonical index: one stable URL per wedge (1–45) via wedge_operator_detail."""
+    from apps.platform_runtime.wedge_line_registry import WEDGE_LINES
+
+    wedge_rows = []
+    for r in WEDGE_LINES:
+        wid = int(r["id"])
+        href = _safe_reverse("super:wedge_operator_detail", kwargs={"wedge_id": wid})
+        wedge_rows.append(
+            {
+                "id": wid,
+                "name": r["name"],
+                "tier": r["tier"],
+                "phase": r["phase"],
+                "href": href,
+            }
+        )
+    return render(
+        request,
+        "schools/super_wedge_index.html",
+        {
+            "dashboard_url": reverse("super:dashboard"),
+            "wedge_rows": wedge_rows,
+        },
+    )
+
+
+def super_wedge_operator_detail(request, wedge_id: int):
+    """Standalone operator surface for a single wedge id (canonical /super/wedge/<id>/)."""
+    if wedge_id < 1 or wedge_id > 45:
+        raise Http404
+    row = _get_wedge_line_row(wedge_id)
+    if not row:
+        raise Http404
+    registry_urls: list[dict[str, str | None]] = []
+    for name in row["urls"]:
+        registry_urls.append({"name": name, "url": _safe_reverse(name)})
+    canonical_url = _safe_reverse(
+        "super:wedge_operator_detail", kwargs={"wedge_id": wedge_id}
+    )
+    return render(
+        request,
+        "schools/super_wedge_operator_detail.html",
+        {
+            "dashboard_url": reverse("super:dashboard"),
+            "wedge_index_url": _safe_reverse("super:wedge_index"),
+            "wedge": row,
+            "wedge_id": wedge_id,
+            "registry_urls": registry_urls,
+            "deep_links": _operator_deep_links(wedge_id),
+            "beachhead_checklist": _beachhead_checklist(wedge_id),
+            "beachhead_wedge_id": wedge_id,
+            "canonical_path": canonical_url,
+            "native_roster_url": _safe_reverse("super:native_roster_connectors")
+            if wedge_id == 44
+            else None,
+        },
+    )
+
+
+def super_native_roster_connectors(request):
+    """Super-only: exercise Clever v3.1 + ClassLink OneRoster clients with district credentials."""
+    import json
+
+    from django.contrib import messages
+
+    from apps.accounts.district_interop_native import (
+        log_super_native_probe,
+        super_native_roster_post_allow,
+    )
+    from apps.interop.clever_classlink_client import (
+        classlink_list_courses,
+        classlink_roster_ping,
+        clever_list_schools,
+        clever_list_sections,
+        clever_list_users,
+        clever_oauth_token_exchange,
+    )
+
+    clever_result = None
+    classlink_result = None
+    oauth_result = None
+    if request.method == "POST":
+        if not super_native_roster_post_allow(request.user.pk):
+            messages.error(
+                request,
+                "Native roster console: hourly POST limit reached. Retry later.",
+            )
+        else:
+            ct = (request.POST.get("clever_bearer") or "").strip()
+            if ct:
+                clever_result = {
+                    "users": clever_list_users(ct, limit=5),
+                    "schools": clever_list_schools(ct, limit=5),
+                    "sections": clever_list_sections(ct, limit=5),
+                }
+            cl_tok = (request.POST.get("classlink_bearer") or "").strip()
+            cl_base = (request.POST.get("classlink_base_url") or "").strip()
+            if cl_tok:
+                classlink_result = {
+                    "ping": classlink_roster_ping(cl_tok, district_path=cl_base),
+                    "courses": classlink_list_courses(cl_tok, district_path=cl_base),
+                }
+            c_id = (request.POST.get("clever_client_id") or "").strip()
+            c_sec = (request.POST.get("clever_client_secret") or "").strip()
+            code = (request.POST.get("clever_auth_code") or "").strip()
+            redir = (request.POST.get("clever_redirect_uri") or "").strip()
+            if c_id and c_sec and code and redir:
+                oauth_result = clever_oauth_token_exchange(c_id, c_sec, code, redir)
+            log_super_native_probe(
+                user_id=request.user.pk,
+                had_clever=bool(ct),
+                had_classlink=bool(cl_tok),
+                had_oauth=bool(c_id and c_sec and code and redir),
+            )
+
+    def _dump(obj: object | None) -> str | None:
+        if obj is None:
+            return None
+        return json.dumps(obj, indent=2, default=str)[:12000]
+
+    return render(
+        request,
+        "schools/super_native_roster_connectors.html",
+        {
+            "dashboard_url": reverse("super:dashboard"),
+            "wedge_detail_url": _safe_reverse(
+                "super:wedge_operator_detail", kwargs={"wedge_id": 44}
+            ),
+            "clever_result_json": _dump(clever_result),
+            "classlink_result_json": _dump(classlink_result),
+            "oauth_result_json": _dump(oauth_result),
         },
     )

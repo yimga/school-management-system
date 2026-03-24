@@ -3,6 +3,7 @@
 Covers III.39: Deepen tests for academics critical paths.
 """
 
+import uuid
 from datetime import date
 
 from django.test import TestCase, override_settings
@@ -12,12 +13,14 @@ from apps.academics.models import (
     AcademicYear,
     Classroom,
     Department,
+    Specialty,
     Subject,
     SubjectAssignment,
     Term,
 )
 from apps.academics.services import get_active_year_and_term
 from apps.accounts.models import User
+from apps.evals.models import TeacherAssignment
 from apps.people.models import TeacherProfile
 from apps.schools.models import School
 
@@ -101,20 +104,27 @@ class SyllabusHubCriticalPathTests(TestCase):
             name="Grade 10",
             code="G10",
         )
-        self.subject = Subject.objects.create(
-            school=self.school, name="Algebra", code="ALG"
+        self.specialty = Specialty.objects.create(
+            school=self.school,
+            department=self.dept,
+            name="General",
+            code=f"SYL-{uuid.uuid4().hex[:12]}",
         )
+        self.subject = Subject.objects.create(school=self.school, name="Algebra")
         self.subject_assignment = SubjectAssignment.objects.create(
+            school=self.school,
             classroom=self.classroom,
             subject=self.subject,
             term=self.term,
             academic_year=self.year,
+            specialty=self.specialty,
         )
         self.teacher_user = User.objects.create_user(
             username="teacher_syllabus",
             email="teacher_syllabus@test.com",
             password="testpass123",
             is_staff=True,
+            role=User.Role.TEACHER,
         )
         self.other_user = User.objects.create_user(
             username="other_user",
@@ -133,9 +143,17 @@ class SyllabusHubCriticalPathTests(TestCase):
     @override_settings(ROOT_URLCONF="config.urls")
     def test_teacher_syllabus_hub_200_with_teacher_profile(self):
         """Teacher with profile (and optional assignments) gets 200 and hub page."""
-        TeacherProfile.objects.create(user=self.teacher_user, school=self.school)
+        profile = TeacherProfile.objects.create(user=self.teacher_user, school=self.school)
+        TeacherAssignment.objects.create(
+            school=self.school,
+            teacher=profile,
+            academic_year=self.year,
+            subject_assignment=self.subject_assignment,
+            is_active=True,
+        )
         self.client.login(username="teacher_syllabus", password="testpass123")
         response = self.client.get(reverse("academics:teacher_syllabus_hub"))
         self.assertEqual(response.status_code, 200)
-        self.assertIn("cards", response.context)
-        self.assertIn("year_term", response.context)
+        # render() returns HttpResponse; test client does not attach template context.
+        self.assertContains(response, "Course syllabi")
+        self.assertContains(response, "Algebra")

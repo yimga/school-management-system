@@ -13,7 +13,43 @@ import logging
 import uuid
 from typing import Any, Optional
 
-from django.db import transaction
+from django.db import DatabaseError, IntegrityError, InterfaceError, OperationalError, transaction
+
+# Mid-apply failures: persist changelog without swallowing arbitrary bugs as "apply failed".
+_PACKAGE_APPLY_FAILURE_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    OperationalError,
+    InterfaceError,
+    ValueError,
+    TypeError,
+    KeyError,
+)
+_CHANGELOG_SECONDARY_ERRORS = (
+    DatabaseError,
+    IntegrityError,
+    OperationalError,
+    InterfaceError,
+    TypeError,
+    ValueError,
+)
+
+# Mid-apply faults that are not DB/data errors but must still yield the same ok=False payload
+# (and optional failed changelog). Explicit tuple — no bare ``except Exception``.
+# SystemExit / KeyboardInterrupt are BaseException and are not listed, so they propagate.
+_PACKAGE_APPLY_UNEXPECTED_ERRORS = (
+    AttributeError,
+    NameError,
+    NotImplementedError,
+    AssertionError,
+    ImportError,
+    RuntimeError,
+    RecursionError,
+    ZeroDivisionError,
+    UnicodeDecodeError,
+    UnicodeEncodeError,
+    OSError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -563,6 +599,76 @@ def metadata_apply_preview_bundle(
     }
 
 
+def _apply_package_mid_failure_result(
+    *,
+    preview: dict[str, Any],
+    package_id: str,
+    version: str,
+    tenant_id: Optional[Any],
+    mode: str,
+    actor_id: Optional[int],
+    rollback_token: str,
+    exc: BaseException,
+    log_exc_info: bool,
+) -> dict[str, Any]:
+    """
+    §6.4 Mid-apply failure: best-effort failed changelog + stable API shape for callers.
+    ``log_exc_info=True`` uses logger.exception (unexpected / bug-class errors).
+    """
+    err_text = (str(exc) or "").strip() or type(exc).__name__
+    artifacts = preview.get("impacted_artifacts") or {}
+    impact_summary = {
+        "mid_apply_error": err_text,
+        "mid_apply_error_type": type(exc).__name__,
+        "entity_codes": list(artifacts.get("entity_codes") or []),
+    }
+    try:
+        with transaction.atomic():
+            PackageChangeLog.objects.create(
+                package_id=package_id,
+                version=version,
+                school_id=tenant_id,
+                mode=mode,
+                action="apply",
+                rollback_token=rollback_token,
+                actor_id=actor_id,
+                dependency_snapshot=preview["dependencies"],
+                impact_summary=impact_summary,
+                reconciliation_status="failed",
+            )
+    except _CHANGELOG_SECONDARY_ERRORS as log_err:
+        logger.warning("Failed to log apply_failed changelog: %s", log_err)
+
+    extra = {
+        "package_id": package_id,
+        "version": version,
+        "exc_type": type(exc).__name__,
+    }
+    if log_exc_info:
+        logger.exception(
+            "package_apply_mid_failure_unexpected",
+            extra={
+                **extra,
+                "tenant_id": str(tenant_id) if tenant_id else None,
+            },
+        )
+    else:
+        log_exception_with_context(
+            "package_apply_mid_failure",
+            tenant_id=str(tenant_id) if tenant_id else None,
+            school_id=tenant_id,
+            extra=extra,
+        )
+    return {
+        "ok": False,
+        "errors": [err_text],
+        "warnings": preview.get("warnings", []),
+        "package_id": package_id,
+        "version": version,
+        "reconciliation_status": "failed",
+    }
+
+
 def apply_package(
     tenant_id: Optional[Any],
     package_id: str,
@@ -646,43 +752,30 @@ def apply_package(
                 impact_summary=applied_impact_summary,
                 reconciliation_status=reconciliation_status,
             )
-    except Exception as e:
-        # §6.4 Mid-apply failure: record failed apply in changelog (separate transaction) for audit
-        try:
-            with transaction.atomic():
-                PackageChangeLog.objects.create(
-                    package_id=package_id,
-                    version=version,
-                    school_id=tenant_id,
-                    mode=mode,
-                    action="apply",
-                    rollback_token=rollback_token,
-                    actor_id=actor_id,
-                    dependency_snapshot=preview["dependencies"],
-                    impact_summary={
-                        "mid_apply_error": str(e),
-                        "entity_codes": list(
-                            preview["impacted_artifacts"].get("entity_codes") or []
-                        ),
-                    },
-                    reconciliation_status="failed",
-                )
-        except Exception as log_err:
-            logger.warning("Failed to log apply_failed changelog: %s", log_err)
-        log_exception_with_context(
-            "package_apply_mid_failure",
-            tenant_id=str(tenant_id) if tenant_id else None,
-            school_id=tenant_id,
-            extra={"package_id": package_id, "version": version},
+    except _PACKAGE_APPLY_FAILURE_ERRORS as e:
+        return _apply_package_mid_failure_result(
+            preview=preview,
+            package_id=package_id,
+            version=version,
+            tenant_id=tenant_id,
+            mode=mode,
+            actor_id=actor_id,
+            rollback_token=rollback_token,
+            exc=e,
+            log_exc_info=False,
         )
-        return {
-            "ok": False,
-            "errors": [str(e)],
-            "warnings": preview.get("warnings", []),
-            "package_id": package_id,
-            "version": version,
-            "reconciliation_status": "failed",
-        }
+    except _PACKAGE_APPLY_UNEXPECTED_ERRORS as e:
+        return _apply_package_mid_failure_result(
+            preview=preview,
+            package_id=package_id,
+            version=version,
+            tenant_id=tenant_id,
+            mode=mode,
+            actor_id=actor_id,
+            rollback_token=rollback_token,
+            exc=e,
+            log_exc_info=True,
+        )
     try:
         from apps.platform_runtime.events import emit_platform_event
 

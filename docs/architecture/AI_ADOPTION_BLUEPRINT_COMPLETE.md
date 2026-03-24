@@ -38,7 +38,7 @@
 | POST /api/ai/report-recommend/ (5C) | Done | Toolset 5C Report Library |
 | POST /api/ai/design-studio-draft/ (5E) | Done | Toolset 5E Design Studio |
 | POST /api/ai/live-preview-explain/ (5F) | Done | Toolset 5F Live Previews |
-| POST /api/ai/system-config-explain/ (5I) | Done | Toolset 5I System Configuration |
+| POST /api/ai/system-config-explain/ (5I) | Done | Toolset 5I Configuration Control Center |
 | POST /api/ai/dashboard-pack-recommend/ | Done | Wave 2 dashboard/pack recommendations |
 | POST /api/ai/support-assistant/ | Done | Wave 2 support assistant, RAG help |
 | GET|POST /api/ai/tenant-maturity/ | Done | Wave 2 tenant maturity score + tier |

@@ -45,7 +45,10 @@ class FeatureControlPanelTest(TestCase):
         """User with settings.feature_control permission can access."""
         from apps.accounts.models import AccessRole, Permission
 
-        perm = Permission.objects.get(code="settings.feature_control")
+        perm, _ = Permission.objects.get_or_create(
+            code="settings.feature_control",
+            defaults={"name": "Feature control", "description": ""},
+        )
         role, _ = AccessRole.objects.get_or_create(
             code="IT_ADMIN", defaults={"name": "IT Admin", "description": ""}
         )

@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional
 
 from apps.policies.resolver import (
     get_effective_policy as _get_effective_policy,
+    invalidate_all_tenant_policy_caches as _invalidate_all_tenant_policy_caches,
     invalidate_policy_cache as _invalidate_policy_cache,
 )
 
@@ -31,7 +32,13 @@ def invalidate_policy_cache(school) -> None:
     _invalidate_policy_cache(school)
 
 
+def invalidate_all_tenant_policy_caches() -> None:
+    """After platform SiteSettings / Phase B snapshots change, bust per-tenant policy cache (if enabled)."""
+    _invalidate_all_tenant_policy_caches()
+
+
 __all__ = [
     "get_effective_policy",
+    "invalidate_all_tenant_policy_caches",
     "invalidate_policy_cache",
 ]

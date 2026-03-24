@@ -59,6 +59,7 @@ from .cache import (
     set_cached_runtime_for_request,
 )
 from .tracing import set_runtime_trace_context
+from .precedence import merge_feature_flags_by_runtime_precedence
 
 
 def _school_from_request(request: Optional[Any]) -> Any:
@@ -251,8 +252,8 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
 def _step4_blueprint(school: Any, policy: Dict[str, Any]) -> BlueprintContext:
     """Step 4: Resolve blueprint from TenantBlueprint/BlueprintPack when present."""
     try:
-        if school and hasattr(school, "tenantblueprint"):
-            tb = getattr(school, "tenantblueprint", None)
+        if school and hasattr(school, "tenant_blueprint"):
+            tb = getattr(school, "tenant_blueprint", None)
             if tb and hasattr(tb, "applied_pack"):
                 pack = tb.applied_pack
                 if pack:
@@ -302,20 +303,46 @@ def _step5_policy_bundle(
 
 
 def _step6_flags_entitlements(
-    tenant_ctx: TenantContext, policy: Dict[str, Any], school: Any
+    tenant_ctx: TenantContext,
+    policy: Dict[str, Any],
+    school: Any,
+    route: Optional[RouteContext] = None,
 ) -> tuple:
-    """Step 6: Resolve feature flags and entitlements."""
-    flags = dict(getattr(tenant_ctx, "feature_flags", {}))
-    for k, v in (policy.get("features") or {}).items():
-        if k not in flags:
-            flags[k] = bool(v)
+    """Step 6: Resolve feature flags and entitlements.
+
+    Feature flags merge order (lowest wins first on conflict): policy ``features``
+    → ``TenantContext.feature_flags`` → sandbox/preview overlay from
+    ``policy_overrides['feature_flags']`` or ``policy_overrides['sandbox_feature_flags']``
+    when ``route.is_sandbox`` or ``route.is_preview`` (see ``merge_feature_flags_by_runtime_precedence``).
+    """
+    policy_features = policy.get("features") or {}
+    if not isinstance(policy_features, dict):
+        policy_features = {}
+    sandbox_overlay: Dict[str, Any] = {}
+    if route is not None and (
+        getattr(route, "is_sandbox", False) or getattr(route, "is_preview", False)
+    ):
+        po = getattr(tenant_ctx, "policy_overrides", None) or {}
+        if isinstance(po, dict):
+            raw = po.get("feature_flags") or po.get("sandbox_feature_flags")
+            if isinstance(raw, dict):
+                sandbox_overlay = raw
+    tenant_flags = getattr(tenant_ctx, "feature_flags", None) or {}
+    if not isinstance(tenant_flags, dict):
+        tenant_flags = {}
+    merged_flags = merge_feature_flags_by_runtime_precedence(
+        policy_features=policy_features,
+        tenant_feature_flags=tenant_flags,
+        sandbox_feature_flags=sandbox_overlay,
+    )
+    flags = merged_flags
     ent = policy.get("entitlements") or {}
     if not ent and school:
         plan = getattr(school, "plan", None) or getattr(school, "plan_id", None)
         if plan and hasattr(plan, "modules"):
             ent = {"modules": getattr(plan, "modules", [])}
     return (
-        FlagsContext(flags=flags),
+        FlagsContext(flags=dict(flags)),
         EntitlementsContext(
             modules=ent.get("modules", []),
             max_students=ent.get("max_students"),
@@ -764,7 +791,9 @@ def build_tenant_runtime(
     trace.append("5:policy")
 
     # Step 6
-    flags, entitlements = _step6_flags_entitlements(tenant_ctx, policy, school)
+    flags, entitlements = _step6_flags_entitlements(
+        tenant_ctx, policy, school, route=route
+    )
     trace.append("6:flags_entitlements")
 
     # Step 7

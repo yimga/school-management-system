@@ -226,6 +226,31 @@ def audit_template_markers(failures: list[str]) -> None:
             "Install with confidence.",
             "Install to sandbox",
             "Rollback expectations",
+            "data-phase9-ecosystem-hub",
+            "Migration & interoperability hub",
+            "data-phase9-listing-trust",
+            "data-listing-compatibility",
+            "catalog-placeholder.svg",
+        ],
+        "templates/accounts/migration_wizard.html": [
+            "data-decision-engine",
+            "Staged rollout & safety",
+            "Migration run history",
+            "data-migration-source-detection",
+            "data-migration-confidence",
+        ],
+        "templates/marketplace/app_catalog.html": [
+            "Install with trust, not guesswork.",
+            "data-phase9-listing-trust",
+            "data-listing-compatibility",
+        ],
+        "templates/accounts/district_lms_interop.html": [
+            "data-phase9-interop-workbench",
+            "data-phase9-connector-health",
+        ],
+        "templates/siteconfig/installed_packages_rollback.html": [
+            "data-phase9-pack-staged-rollout",
+            "Staged rollout",
         ],
         "templates/marketing/marketing_migrate_page.html": [
             "Migration cloud",
@@ -252,10 +277,22 @@ def audit_template_markers(failures: list[str]) -> None:
             "Role home mockup",
             "Why this role should switch",
         ],
+        "templates/schools/marketing_landing.html": [
+            "data-phase10-marketing-narrative",
+            "mkt-narrative-phase10",
+            "Why schools switch",
+            "Studio OS — one shell for every mode",
+            "Marketplace & packs",
+            "data-phase10-role-visuals",
+        ],
         "static/marketing/css/proof-pages.css": [
             ".proof-page",
             ".proof-hero",
             ".proof-card-grid",
+        ],
+        "templates/finance/dashboard.html": [
+            "decision_engine_surface.html",
+            "phase7_de",
         ],
     }
 

@@ -1,0 +1,56 @@
+/**
+ * Shared left-rail link chrome for Studio OS modes (Experience, Output, Automation, Launch).
+ * Phase 2: tokens only.
+ */
+.studio-os__experience-rail a.experience-rail-link,
+.studio-os__output-rail a.output-rail-link,
+.studio-os__automation-rail a.automation-rail-link,
+.studio-os__launch-rail a.launch-rail-link {
+  display: block;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--token-radius-sm, 4px);
+  color: var(--ds-text-muted, var(--color-base-700));
+  text-decoration: none;
+}
+.studio-os__output-rail a.output-rail-link:hover,
+.studio-os__automation-rail a.automation-rail-link:hover,
+.studio-os__launch-rail a.launch-rail-link:hover {
+  background: var(--ds-surface-muted, var(--color-base-100));
+  color: var(--ds-text, var(--color-base-900));
+}
+.studio-os__experience-rail a.experience-rail-link.active,
+.studio-os__output-rail a.output-rail-link.active,
+.studio-os__automation-rail a.automation-rail-link.active,
+.studio-os__launch-rail a.launch-rail-link.active {
+  background: var(--ds-info-bg, var(--color-primary-50));
+  color: var(--color-primary-700);
+  font-weight: 500;
+}
+.studio-os__experience-rail a.experience-rail-link:focus-visible,
+.studio-os__output-rail a.output-rail-link:focus-visible,
+.studio-os__automation-rail a.automation-rail-link:focus-visible,
+.studio-os__launch-rail a.launch-rail-link:focus-visible {
+  outline: 2px solid var(--focus-ring-color, var(--color-primary-500));
+  outline-offset: 2px;
+}
+
+/* §6.1 Output Studio: horizontal tab row (mirrors left rail; scroll on narrow viewports). */
+.studio-os__output-tabs .nav-tabs {
+  border-bottom-color: var(--ds-border-muted, var(--color-base-200));
+}
+.studio-os__output-tabs .nav-link {
+  color: var(--ds-text-muted, var(--color-base-700));
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.studio-os__output-tabs .nav-link:hover {
+  color: var(--ds-text, var(--color-base-900));
+  border-bottom-color: var(--ds-border, var(--color-base-300));
+}
+.studio-os__output-tabs .nav-link.active {
+  color: var(--color-primary-700);
+  font-weight: 500;
+  border-bottom-color: var(--color-primary-500);
+  background: transparent;
+}

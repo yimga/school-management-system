@@ -8,181 +8,283 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.marketplace.models import (
+    AppScope,
+    AppVersionCompat,
     MarketplaceApp,
     MarketplaceListing,
     PublisherOrganization,
 )
 
+# Phase 9: governed compatibility defaults merged into listing JSON (idempotent).
+PHASE9_DEFAULT_COMPAT = {
+    "countries": ["US", "CA", "CM"],
+    "plan_tiers": ["standard", "enterprise"],
+    "blueprint_families": ["k12_core"],
+    "workflow_families": ["operations_default"],
+    "recommended_sectors": ["PUBLIC", "PRIVATE_K12"],
+    "min_rmc_version": "2025.03",
+    "sandbox_recommended": True,
+    "rollback_summary": (
+        "Sandbox-first app install; uninstall from Installed apps; metadata packs use Pack rollback."
+    ),
+}
+
+
+def _phase9_enrich_catalog(stdout, style) -> None:
+    """Scopes from manifest, compatibility matrix, and platform min version hints."""
+    pub = PublisherOrganization.objects.filter(slug="runmycampus-first-party").first()
+    if not pub:
+        return
+    touched = 0
+    for app in MarketplaceApp.objects.filter(publisher=pub, is_active=True):
+        manifest = app.manifest or {}
+        scopes = manifest.get("scopes") or []
+        if isinstance(scopes, list):
+            for code in scopes:
+                if not code:
+                    continue
+                c = str(code).strip()[:80]
+                sensitive = c.lower() in ("ai", "identity", "evals", "migration_import")
+                _, created = AppScope.objects.get_or_create(
+                    app=app,
+                    scope_code=c,
+                    defaults={
+                        "description": f"Declared in manifest ({app.slug})",
+                        "sensitive": sensitive,
+                    },
+                )
+                if created:
+                    touched += 1
+        listing = getattr(app, "listing", None)
+        if listing:
+            cur = (
+                dict(listing.compatibility)
+                if isinstance(listing.compatibility, dict)
+                else {}
+            )
+            merged = {**PHASE9_DEFAULT_COMPAT, **cur}
+            if merged != cur:
+                listing.compatibility = merged
+                listing.save(update_fields=["compatibility", "updated_at"])
+                touched += 1
+        if not AppVersionCompat.objects.filter(app=app).exists():
+            AppVersionCompat.objects.create(
+                app=app,
+                platform_min_version="2025.03",
+                app_version_min=app.version or "1.0",
+                app_version_max="",
+                notes="Phase 9 seed — compatibility matrix",
+            )
+            touched += 1
+    if touched:
+        stdout.write(
+            style.SUCCESS(
+                f"Phase 9 catalog enrichment: {touched} create/update operations."
+            )
+        )
+
 
 # First-party apps to show in App catalog (installable after seed)
+# manifest.wedge_ids: every value 1–45 must appear in at least one app (replication engine / kit tagging).
 FIRST_PARTY_APPS = [
+    {
+        "slug": "international-k12-core-starter",
+        "name": "International K–12 core starter",
+        "description": "First-party international school starter: DNA alignment, region-aware defaults, and spine links to LMS and migration.",
+        "version": "1.0",
+        "manifest": {
+            "scopes": ["setup", "academics", "communication"],
+            "widgets": [],
+            "wedge_ids": [1, 17],
+        },
+    },
     {
         "slug": "advanced-analytics-pack",
         "name": "Advanced Analytics Pack",
         "description": "First-party analytics and reporting enhancements for dashboards and exports.",
         "version": "1.0",
-        "manifest": {"scopes": [], "widgets": []},
+        "manifest": {"scopes": [], "widgets": [], "wedge_ids": [1, 4, 31]},
     },
     {
         "slug": "ai-grading-assistant",
         "name": "AI Grading Assistant",
         "description": "First-party AI-assisted grading and feedback for assessments.",
         "version": "1.0",
-        "manifest": {"scopes": ["evals", "ai"], "widgets": []},
+        "manifest": {"scopes": ["evals", "ai"], "widgets": [], "wedge_ids": [26, 27, 28, 39]},
     },
     {
         "slug": "executive-insights",
         "name": "Executive Insights",
         "description": "First-party executive dashboards and KPI summaries.",
         "version": "1.0",
-        "manifest": {"scopes": ["analytics"], "widgets": []},
+        "manifest": {"scopes": ["analytics"], "widgets": [], "wedge_ids": [1, 4, 5, 41]},
     },
     {
         "slug": "compliance-export",
         "name": "Compliance Export",
         "description": "First-party compliance reporting and export for audits.",
         "version": "1.0",
-        "manifest": {"scopes": ["compliance"], "widgets": []},
+        "manifest": {"scopes": ["compliance"], "widgets": [], "wedge_ids": [4, 20]},
     },
     {
         "slug": "sso-identity",
         "name": "SSO / Identity",
         "description": "First-party SSO and identity provider integration (OIDC, SAML).",
         "version": "1.0",
-        "manifest": {"scopes": ["identity"], "widgets": []},
+        "manifest": {"scopes": ["identity"], "widgets": [], "wedge_ids": [2, 44, 45]},
     },
     {
         "slug": "advanced-workflow-builder",
         "name": "Advanced Workflow Builder",
         "description": "First-party advanced workflow design and automation.",
         "version": "1.0",
-        "manifest": {"scopes": ["workflow"], "widgets": []},
+        "manifest": {"scopes": ["workflow"], "widgets": [], "wedge_ids": [14, 16, 21, 22]},
     },
     {
         "slug": "migration-connector-pack",
         "name": "Migration Connector Pack",
         "description": "First-party migration and import connectors for CSV/XLSX and legacy data.",
         "version": "1.0",
-        "manifest": {"scopes": ["migration_import"], "widgets": []},
+        "manifest": {"scopes": ["migration_import"], "widgets": [], "wedge_ids": [1, 44]},
     },
     {
         "slug": "premium-communication-pack",
         "name": "Premium Communication Pack",
         "description": "First-party communication and announcement enhancements.",
         "version": "1.0",
-        "manifest": {"scopes": ["communication"], "widgets": []},
+        "manifest": {
+            "scopes": ["communication"],
+            "widgets": [],
+            "wedge_ids": [1, 5, 15, 24, 25],
+        },
     },
     {
         "slug": "transport-bus-tracker",
         "name": "Transport / Bus Tracker",
         "description": "First-party transport and bus tracking module.",
         "version": "1.0",
-        "manifest": {"scopes": ["transport"], "widgets": []},
+        "manifest": {"scopes": ["transport"], "widgets": [], "wedge_ids": [14, 33]},
     },
     {
         "slug": "district-pack",
         "name": "District Pack",
         "description": "First-party district and multi-school governance and reporting.",
         "version": "1.0",
-        "manifest": {"scopes": ["district"], "widgets": []},
+        "manifest": {"scopes": ["district"], "widgets": [], "wedge_ids": [4, 22]},
     },
     {
         "slug": "private-school-pack",
         "name": "Private School Pack",
         "description": "First-party private-school lifecycle and family engagement.",
         "version": "1.0",
-        "manifest": {"scopes": ["admissions", "finance"], "widgets": []},
+        "manifest": {"scopes": ["admissions", "finance"], "widgets": [], "wedge_ids": [15]},
     },
     {
         "slug": "admissions-lead-tracker",
         "name": "Admissions Lead Tracker",
         "description": "First-party admissions pipeline and lead management.",
         "version": "1.0",
-        "manifest": {"scopes": ["admissions"], "widgets": []},
+        "manifest": {"scopes": ["admissions"], "widgets": [], "wedge_ids": [1, 17, 38]},
     },
     {
         "slug": "billing-fees-pack",
         "name": "Billing & Fees Pack",
         "description": "First-party fee schedules, payment plans, and collections.",
         "version": "1.0",
-        "manifest": {"scopes": ["finance"], "widgets": []},
+        "manifest": {"scopes": ["finance"], "widgets": [], "wedge_ids": [1, 15, 32, 36]},
     },
     {
         "slug": "parent-engagement-pack",
         "name": "Parent Engagement Pack",
         "description": "First-party parent portal, notices, and consent workflows.",
         "version": "1.0",
-        "manifest": {"scopes": ["communication"], "widgets": []},
+        "manifest": {"scopes": ["communication"], "widgets": [], "wedge_ids": [1, 19, 35]},
     },
     {
         "slug": "analytics-insights-pack",
         "name": "Analytics & Insights Pack",
         "description": "First-party analytics and BI for academics and operations.",
         "version": "1.0",
-        "manifest": {"scopes": ["analytics"], "widgets": []},
+        "manifest": {
+            "scopes": ["analytics"],
+            "widgets": [],
+            "wedge_ids": [7, 8, 9, 10, 11, 12, 13, 31],
+        },
     },
     {
         "slug": "attendance-intervention-pack",
         "name": "Attendance Intervention Pack",
         "description": "First-party attendance alerts and intervention workflows.",
         "version": "1.0",
-        "manifest": {"scopes": ["attendance", "workflow"], "widgets": []},
+        "manifest": {
+            "scopes": ["attendance", "workflow"],
+            "widgets": [],
+            "wedge_ids": [23, 25, 30, 31, 40],
+        },
     },
     {
         "slug": "grade-publishing-pack",
         "name": "Grade Publishing Pack",
         "description": "First-party grade approval and publishing workflows.",
         "version": "1.0",
-        "manifest": {"scopes": ["evals"], "widgets": []},
+        "manifest": {"scopes": ["evals"], "widgets": [], "wedge_ids": [2, 29, 31]},
     },
     {
         "slug": "compliance-audit-pack",
         "name": "Compliance & Audit Pack",
         "description": "First-party compliance reporting and audit trails.",
         "version": "1.0",
-        "manifest": {"scopes": ["compliance"], "widgets": []},
+        "manifest": {
+            "scopes": ["compliance"],
+            "widgets": [],
+            "wedge_ids": [4, 9, 14, 20, 42],
+        },
     },
     {
         "slug": "ai-skills-pack",
         "name": "AI Skills Pack",
         "description": "First-party AI-assisted workflows and recommendations.",
         "version": "1.0",
-        "manifest": {"scopes": ["ai"], "widgets": []},
+        "manifest": {"scopes": ["ai"], "widgets": [], "wedge_ids": [31, 34, 37]},
     },
     {
         "slug": "reporting-export-pack",
         "name": "Reporting & Export Pack",
         "description": "First-party report builder and data export.",
         "version": "1.0",
-        "manifest": {"scopes": ["reports"], "widgets": []},
+        "manifest": {"scopes": ["reports"], "widgets": [], "wedge_ids": [1, 3, 20, 31]},
     },
     {
         "slug": "portal-themes-pack",
         "name": "Portal Themes Pack",
         "description": "First-party portal and marketing theme templates.",
         "version": "1.0",
-        "manifest": {"scopes": ["brand"], "widgets": []},
+        "manifest": {"scopes": ["brand"], "widgets": [], "wedge_ids": [1, 17, 18]},
     },
     {
         "slug": "onboarding-wizard-pack",
         "name": "Onboarding Wizard Pack",
         "description": "First-party school and tenant onboarding flows.",
         "version": "1.0",
-        "manifest": {"scopes": ["setup"], "widgets": []},
+        "manifest": {"scopes": ["setup"], "widgets": [], "wedge_ids": [1]},
     },
     {
         "slug": "api-webhooks-pack",
         "name": "API & Webhooks Pack",
         "description": "First-party API and webhook integration tools.",
         "version": "1.0",
-        "manifest": {"scopes": ["integrations"], "widgets": []},
+        "manifest": {"scopes": ["integrations"], "widgets": [], "wedge_ids": [4, 44, 45]},
     },
     {
         "slug": "student-360-pack",
         "name": "Student 360 Pack",
         "description": "First-party holistic student view and intervention dashboard.",
         "version": "1.0",
-        "manifest": {"scopes": ["academics", "people"], "widgets": []},
+        "manifest": {
+            "scopes": ["academics", "people"],
+            "widgets": [],
+            "wedge_ids": [1, 6, 31, 43],
+        },
     },
 ]
 
@@ -237,6 +339,11 @@ class Command(BaseCommand):
                     created_listings += 1
                 continue
 
+            manifest = dict(app_def.get("manifest") or {})
+            prev = MarketplaceApp.objects.filter(slug=slug).first()
+            if prev and isinstance(prev.manifest, dict):
+                manifest = {**prev.manifest, **manifest}
+
             app, app_created = MarketplaceApp.objects.update_or_create(
                 slug=slug,
                 defaults={
@@ -244,7 +351,7 @@ class Command(BaseCommand):
                     "description": app_def.get("description", ""),
                     "kind": MarketplaceApp.AppKind.FIRST_PARTY,
                     "version": app_def.get("version", "1.0"),
-                    "manifest": app_def.get("manifest", {}),
+                    "manifest": manifest,
                     "is_active": True,
                     "publisher": publisher,
                 },
@@ -283,3 +390,5 @@ class Command(BaseCommand):
                 f"Listings approved: {created_listings}."
             )
         )
+        if not dry_run:
+            _phase9_enrich_catalog(self.stdout, self.style)

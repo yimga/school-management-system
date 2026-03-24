@@ -12,7 +12,7 @@ These already have super views; admin is only for raw CRUD fallback.
 
 | Area | Super URL/name | Admin equivalent |
 |------|----------------|-------------------|
-| System config (bounded) | `/siteconfig/console/` — System config | siteconfig console domains |
+| Configuration Control Center (bounded) | `/siteconfig/console/` — Configuration Control Center | siteconfig console domains |
 | Registries | `/super/registries/` | registries.* |
 | Blueprints | `/super/blueprints/` | policies.BlueprintPack, etc. |
 | Policies | `/super/policies/` | policies.* (platform) |
@@ -36,7 +36,7 @@ These already have super views; admin is only for raw CRUD fallback.
   - **Plans & addons** → link to Phase 4 (or admin for now).
   - **Feature toggles** → link to Phase 5 (or admin for now).
   - **AI / model registry** → link to Phase 6 (or admin for now).
-  - **System config (bounded)** → existing `siteconfig:console_domains_hub`.
+  - **Configuration Control Center (bounded)** → existing `siteconfig:console_domains_hub`.
   - **Advanced backoffice** → `admin:index` (full Django admin).
 - [ ] In `control_plane_nav.py`, change “Configuration Engine” from `admin:index` to `super:config_hub`.
 

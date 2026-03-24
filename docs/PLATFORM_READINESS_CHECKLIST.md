@@ -28,7 +28,7 @@ Use this checklist to ensure the platform is properly linked, error-free, and re
 
 ## 4. Config hub and super pages
 
-- [ ] **Config hub** (`/super/config/`): Renders with cards for Site settings, Regions & grading, Plans, Feature toggles, AI/model registry, System config, Advanced backoffice; operational links (Schools list, Incidents list, Pulse, Billing accounts, Billing, Migration runs, Migration). All links resolve or show "Coming soon" / hidden when URL is None.
+- [ ] **Config hub** (`/super/config/`): Renders with cards for Site settings, Regions & grading, Plans, Feature toggles, AI/model registry, Configuration Control Center, Advanced backoffice; operational links (Schools list, Incidents list, Pulse, Billing accounts, Billing, Migration runs, Migration). All links resolve or show "Coming soon" / hidden when URL is None.
 - [ ] **Schools list** (`/super/schools/`): Pagination, filters (q, is_active, country_code); breadcrumb to Control Plane; "Open in backoffice" when admin changelist exists.
 - [ ] **Site settings, Regions, Grading, Plans, Feature toggles:** List (and edit where applicable) pages render; breadcrumbs include dashboard and config hub; backoffice links when available.
 - [ ] **Incidents list, Billing accounts list, Migration runs list:** Optional Phase 8 list views render; links to Pulse/Billing/Migration and admin when applicable.
