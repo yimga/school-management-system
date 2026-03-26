@@ -1,0 +1,92 @@
+# Playwright UX visual QA with Postgres + django-tenants so tenant-host tests run (not skipped).
+# Full smoke remains in smoke.yml; this job is heavier than SQLite gate tests.
+#
+# Local parity (Docker, same DB name as CI):
+#   docker run -d --rm --name pg-ci-visual -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ci_visual_qa -p 5432:5432 postgres:15
+#   export SECRET_KEY=local-dev-only-not-for-production-64chars_____________________
+#   export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/ci_visual_qa
+#   export MULTI_TENANT_BASE_DOMAIN=runmycampus.com USE_DJANGO_TENANTS=1 ADMIN_PASSWORD=VisualQaPass123!
+#   bash scripts/ci_setup_postgres_tenants_for_visual_qa.sh && bash scripts/run_visual_qa.sh
+# Optional skips on the setup script: CI_VISUAL_QA_SKIP_BACKFILL_SCHOOLDOMAIN=1, CI_VISUAL_QA_SKIP_TENANT_RUNTIME_CHECK=1
+name: Playwright tenant (Postgres)
+
+on:
+  workflow_dispatch: {}
+  # Path-filtered PRs: full smoke.yml still uses SQLite for visual QA (tenant tests skipped).
+  pull_request:
+    branches: [main]
+    paths:
+      - "tests/e2e/**"
+      - "scripts/run_visual_qa.sh"
+      - "scripts/ci_setup_postgres_tenants_for_visual_qa.sh"
+      - ".github/workflows/playwright-tenant-postgres.yml"
+
+jobs:
+  playwright-tenant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ci_visual_qa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ci_visual_qa"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      SECRET_KEY: "ci-playwright-tenant-not-for-production-64chars__________________________"
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ci_visual_qa
+      MULTI_TENANT_BASE_DOMAIN: runmycampus.com
+      USE_DJANGO_TENANTS: "1"
+      DEBUG: "0"
+      ADMIN_PASSWORD: VisualQaPass123!
+      VISUAL_QA_TENANT_PASSWORD: VisualQaPass123!
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+
+      - name: Install Playwright Chromium
+        run: |
+          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Migrate Postgres + seed tenant users
+        run: bash scripts/ci_setup_postgres_tenants_for_visual_qa.sh
+
+      - name: UX visual QA (includes tenant portal tests)
+        run: bash scripts/run_visual_qa.sh
+
+      - name: Upload visual QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-tenant-postgres-artifacts
+          path: |
+            artifacts/visual-qa
+            test-results
+            playwright-report
+          if-no-files-found: ignore
+          retention-days: 14

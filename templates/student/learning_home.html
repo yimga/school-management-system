@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static i18n %}
+{% load static i18n phase8_tags %}
 {% block title %}{% trans "Student home" %}{% endblock %}
 {% block body_extra_class %}dashboard-page-student{% endblock %}
 {% block extrastyle %}
@@ -8,6 +8,7 @@
 {% endblock %}
 {% block content %}
 <div class="container-lg py-3" data-page-archetype="role-home">
+  {% phase8_dashboard_declaration "student/learning_home.html" %}
   {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
   <p class="text-muted small mb-0">{% trans "Need the family view?" %} <a href="{% url 'accounts:logout' %}?next={% url 'accounts:login' %}">{% trans "Switch account" %}</a></p>
 </div>

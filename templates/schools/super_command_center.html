@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static i18n %}
+{% load static i18n phase8_tags %}
 {% load region_format %}
 
 {% block cp_title %}Mission Queues{% endblock %}
@@ -19,7 +19,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench" data-decision-engine="surface">
+{% phase8_dashboard_declaration "schools/super_command_center.html" %}
   <section class="cp-hero cp-hero-compact mb-4">
     <div class="cp-hero-grid">
       <div>
@@ -72,6 +73,17 @@
       <strong class="cp-overview-value">{{ billing_watchlist|length }}</strong>
       <span class="cp-overview-meta">Past due and suspended subscriptions</span>
     </article>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      {% url 'api:ai-control-plane-intelligence' as api_cp_intel %}
+      {% include "components/ai_json_api_card.html" with api_url=api_cp_intel card_title=_("Control-plane intelligence (JSON)") card_hint=_('POST {"query":"..."}. Operator runbook hints and config summaries (RAG over help/config). Staff-only task type admin_copilot.') field_id="cmdCtrCpIntelJson" default_body='{"query":"What should we verify first when mission queues show provisioning SLA breaches?"}' %}
+    </div>
+    <div class="col-lg-6">
+      {% url 'api:ai-support-assistant' as api_support_asst %}
+      {% include "components/ai_json_api_card.html" with api_url=api_support_asst card_title=_("Support response draft (JSON)") card_hint=_('POST {"query":"..."} with the support scenario (no secrets). Returns a suggested reply string in JSON.') field_id="cmdCtrSupportJson" default_body='{"query":"Draft a professional reply to a school admin asking why tenant provisioning is delayed"}' %}
+    </div>
   </div>
 
   <div class="row g-4">

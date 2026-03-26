@@ -6,7 +6,7 @@
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Home" %}</a></li>
     <li class="breadcrumb-item"><a href="{{ advancement_hub_url }}">{% trans "Advancement" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Phase 2" %}</li>
   </ol>
@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="setup-flow">
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold text-white">{% trans "Phase 2: Donors & gifts (CRM v1)" %}</h1>
     <p class="text-white-50 small mb-0">{% trans "Per-school donors and gift lines; campaigns/receipts workflow next." %}</p>

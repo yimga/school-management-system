@@ -34,6 +34,8 @@ def main() -> None:
     py = sys.executable
     run([py, "scripts/lint_tenant_settings.py", "--check-get-solo-only"], "Phase 5: lint_tenant_settings")
     run([py, "scripts/lint_gilead_residue.py"], "Phase 11: lint_gilead_residue")
+    run([py, "scripts/lint_raw_sql_usage.py"], "Premium maturity: lint_raw_sql_usage (allowlisted)")
+    run([py, "scripts/lint_csrf_exempt_usage.py"], "Premium maturity: lint_csrf_exempt_usage (allowlisted)")
     run([py, "scripts/lint_secret_exposure.py"], "Phase 8: lint_secret_exposure")
     run([py, "scripts/verify_sot_pillar_evidence.py"], "SOT pillar evidence (cross-phase)")
     run([py, "scripts/verify_45_wedge_scorecard.py"], "Wedge scorecard: 45 rows (Phase 2 tracker)")
@@ -54,6 +56,18 @@ def main() -> None:
     )
     run([py, "scripts/verify_beachhead_checklists.py"], "Operator checklists: wedges 1–45")
     run([py, "scripts/phase_h_audit.py"], "Phase 8: phase_h_audit (static)")
+    run(
+        [py, "scripts/verify_program_phase10_phase11_gates.py"],
+        "Program Phase 10 (ecosystem) + Phase 11 (marketing narrative) static gates",
+    )
+    run(
+        [py, "scripts/verify_repo_wide_ecosystem_marketing_audit.py"],
+        "Repo-wide Phase 10/11 inventory + spine audit (apps, templates, urls, routing glue)",
+    )
+    run(
+        [py, "scripts/verify_ui_wiring_audit.py"],
+        "UI wiring: template {% url %} literals vs urlconf union + href hazard scan",
+    )
     print("verify_phases_3_11_gates: all non-DB gates passed.")
 
 

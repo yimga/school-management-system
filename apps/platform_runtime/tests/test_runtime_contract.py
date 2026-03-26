@@ -16,6 +16,7 @@ from apps.platform_runtime.helpers import (
     get_effective_site_settings,
     get_effective_support_contact_settings,
     get_platform_site_settings_record,
+    invalidate_effective_site_settings_cache,
 )
 from apps.platform_runtime.models import RuntimeDefaults
 from apps.runtime_blueprints.models import ReportCardStyle as OwnedReportCardStyle
@@ -42,8 +43,20 @@ from apps.siteconfig.models import SiteSettings, build_platform_default_site_set
 
 
 def _persist_runtime_test_state(**payload_updates: object) -> None:
-    """Phase B: behavioral keys live in RuntimeDefaults.payload, not SiteSettings columns."""
+    """Phase B: behavioral keys persist via SiteSettings bridge; platform truth syncs to RuntimeDefaults."""
     from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
+
+    site = get_platform_site_settings_record(create=True)
+    concrete_fields = {
+        f.name for f in SiteSettings._meta.concrete_fields if not getattr(f, "primary_key", False)
+    }
+    update_fields: list[str] = []
+    for key, value in payload_updates.items():
+        if key in concrete_fields:
+            setattr(site, key, value)
+            update_fields.append(key)
+    if update_fields:
+        site.save(update_fields=update_fields)
 
     SiteSettings._persist_runtime_payload_updates(payload_updates)
     invalidate_effective_site_settings_cache()
@@ -281,8 +294,11 @@ class RuntimeHelperResolutionTests(TestCase):
             owners=("runtime_blueprints", "policies_rules"),
         )
 
-        self.assertIn("default_dashboard_view", runtime_defaults.payload)
-        self.assertIn("backend_feature_flags", runtime_defaults.payload)
+        self.assertEqual(runtime_defaults.default_dashboard_view, "ACADEMICS")
+        self.assertEqual(
+            runtime_defaults.backend_feature_flags,
+            {"enable_api_center": True},
+        )
         self.assertNotIn("site_name", runtime_defaults.payload)
 
     def test_backfill_runtime_defaults_command_creates_platform_payload(self):
@@ -299,10 +315,8 @@ class RuntimeHelperResolutionTests(TestCase):
 
         runtime_defaults = RuntimeDefaults.get_singleton()
         self.assertIsNotNone(runtime_defaults)
-        self.assertEqual(
-            runtime_defaults.payload["site_name"], "Command Synced Platform"
-        )
-        self.assertTrue(runtime_defaults.payload["enable_offline_mode"])
+        self.assertEqual(runtime_defaults.site_name, "Command Synced Platform")
+        self.assertTrue(runtime_defaults.enable_offline_mode)
         out = stdout.getvalue().lower()
         self.assertTrue(
             "created" in out or "updated" in out,
@@ -321,6 +335,9 @@ class RuntimeHelperResolutionTests(TestCase):
         RuntimeDefaults.objects.update_or_create(
             pk=1,
             defaults={
+                "site_name": "Brand Baseline",
+                "default_dashboard_view": "OVERVIEW",
+                "backend_feature_flags": {"enable_api_center": False},
                 "payload": {
                     "site_name": "Brand Baseline",
                     "default_dashboard_view": "OVERVIEW",
@@ -338,11 +355,9 @@ class RuntimeHelperResolutionTests(TestCase):
             owners=("policies_rules",),
         )
 
-        self.assertEqual(runtime_defaults.payload["site_name"], "Brand Baseline")
-        self.assertEqual(runtime_defaults.payload["default_dashboard_view"], "OVERVIEW")
-        self.assertEqual(
-            runtime_defaults.payload["backend_feature_flags"]["enable_api_center"], True
-        )
+        self.assertEqual(runtime_defaults.site_name, "Brand Baseline")
+        self.assertEqual(runtime_defaults.default_dashboard_view, "OVERVIEW")
+        self.assertEqual(runtime_defaults.backend_feature_flags["enable_api_center"], True)
 
     def test_site_settings_save_auto_syncs_runtime_defaults_for_changed_owner_domains(
         self,
@@ -361,10 +376,8 @@ class RuntimeHelperResolutionTests(TestCase):
         runtime_defaults = RuntimeDefaults.get_singleton()
 
         self.assertIsNotNone(runtime_defaults)
-        self.assertEqual(runtime_defaults.payload["site_name"], "Auto Synced Brand")
-        self.assertEqual(
-            runtime_defaults.payload["backend_feature_flags"]["enable_api_center"], True
-        )
+        self.assertEqual(runtime_defaults.site_name, "Auto Synced Brand")
+        self.assertEqual(runtime_defaults.backend_feature_flags["enable_api_center"], True)
         self.assertNotIn("maintenance_mode", runtime_defaults.payload)
 
     def test_site_settings_resolve_default_report_style_uses_owner_surface(self):
@@ -389,6 +402,579 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(resolved.pk, style.pk)
         self.assertEqual(resolved._meta.app_label, "runtime_blueprints")
 
+    def test_get_effective_site_settings_first_class_runtime_defaults_override_payload(
+        self,
+    ):
+        """Typed RuntimeDefaults columns win over stale keys left in payload JSON."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "preview_mode_enabled": False,
+                "sms_provider": "legacy",
+                "site_name": "Column Override Fixture",
+            },
+            preview_mode_enabled=True,
+            sms_provider="twilio",
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertTrue(resolved.preview_mode_enabled)
+        self.assertEqual(resolved.sms_provider, "twilio")
+        self.assertEqual(resolved.site_name, "Column Override Fixture")
+
+    def test_public_brand_colors_first_class_override_payload(self):
+        """Public marketing colors on RuntimeDefaults columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "public_brand_primary_color": "#111111",
+                "public_brand_accent_color": "#222222",
+            },
+            public_brand_primary_color="#0f172a",
+            public_brand_accent_color="#f59e0b",
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(
+            getattr(resolved, "public_brand_primary_color", None), "#0f172a"
+        )
+        self.assertEqual(
+            getattr(resolved, "public_brand_accent_color", None), "#f59e0b"
+        )
+
+    def test_meta_description_branded_domain_first_class_override_payload(self):
+        """SEO/domain strings on RuntimeDefaults columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "meta_description": "from payload",
+                "branded_domain": "legacy.example.com",
+            },
+            meta_description="from column",
+            branded_domain="canonical.example.com",
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(getattr(resolved, "meta_description", None), "from column")
+        self.assertEqual(
+            getattr(resolved, "branded_domain", None), "canonical.example.com"
+        )
+
+    def test_tagline_school_code_first_class_override_payload(self):
+        """Tagline and school code on RuntimeDefaults columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "tagline": "Payload tagline",
+                "school_code": "PAY",
+            },
+            tagline="Column tagline",
+            school_code="RMC",
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(getattr(resolved, "tagline", None), "Column tagline")
+        self.assertEqual(getattr(resolved, "school_code", None), "RMC")
+
+    def test_company_identity_first_class_override_payload(self):
+        """Company name/email on RuntimeDefaults columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "company_name": "Payload Company",
+                "company_email": "legacy@example.com",
+            },
+            company_name="Column Company",
+            company_email="column@example.com",
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(getattr(resolved, "company_name", None), "Column Company")
+        self.assertEqual(getattr(resolved, "company_email", None), "column@example.com")
+
+    def test_company_and_geo_strings_first_class_override_payload(self):
+        """Larger identity/geo first-class strings beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "company_phone": "+237111111111",
+                "company_address": "Payload Avenue",
+                "company_slug": "payload-school",
+                "country": "PayloadCountry",
+                "region": "PayloadRegion",
+                "ministry_registration_code": "PAYLOAD-MIN-1",
+            },
+            company_phone="+237699000111",
+            company_address="Column Avenue",
+            company_slug="runmycampus",
+            country="Cameroon",
+            region="North-West",
+            ministry_registration_code="RMC-MIN-01",
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(getattr(resolved, "company_phone", None), "+237699000111")
+        self.assertEqual(getattr(resolved, "company_address", None), "Column Avenue")
+        self.assertEqual(getattr(resolved, "company_slug", None), "runmycampus")
+        self.assertEqual(getattr(resolved, "country", None), "Cameroon")
+        self.assertEqual(getattr(resolved, "region", None), "North-West")
+        self.assertEqual(
+            getattr(resolved, "ministry_registration_code", None), "RMC-MIN-01"
+        )
+
+    def test_registry_strings_first_class_override_payload(self):
+        """Registry string columns beat stale payload keys for global defaults."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "ministry": "Payload Ministry",
+                "default_region": "payload_region",
+                "default_grading_scale": "payload_scale",
+            },
+            ministry="Ministry of Education",
+            default_region="cameroon_anglophone",
+            default_grading_scale="numeric_0_20",
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(getattr(resolved, "ministry", None), "Ministry of Education")
+        self.assertEqual(
+            getattr(resolved, "default_region", None), "cameroon_anglophone"
+        )
+        self.assertEqual(
+            getattr(resolved, "default_grading_scale", None), "numeric_0_20"
+        )
+
+    def test_admissions_and_admin_portal_first_class_override_payload(self):
+        """Admissions defaults + admin portal config columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "admission_number_mode": "PAYLOAD_MODE",
+                "admission_number_pattern": "payload-pattern",
+                "admission_number_strategy": "payload-strategy",
+                "admission_number_template": "payload-template",
+                "admin_portal_stats_config": {
+                    "sections": ["payload"],
+                    "items": {"payload": ["x"]},
+                },
+            },
+            admission_number_mode="AUTO_OR_MANUAL",
+            admission_number_pattern=r"\d{2}[A-Z]{2}\d{4}",
+            admission_number_strategy="FULL",
+            admission_number_template="{year_2digit}{school_code}{seq_4digit}",
+            admin_portal_stats_config={
+                "sections": ["academics", "accounts"],
+                "items": {"academics": ["Students"]},
+            },
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(
+            getattr(resolved, "admission_number_mode", None), "AUTO_OR_MANUAL"
+        )
+        self.assertEqual(
+            getattr(resolved, "admission_number_pattern", None), r"\d{2}[A-Z]{2}\d{4}"
+        )
+        self.assertEqual(getattr(resolved, "admission_number_strategy", None), "FULL")
+        self.assertEqual(
+            getattr(resolved, "admission_number_template", None),
+            "{year_2digit}{school_code}{seq_4digit}",
+        )
+        self.assertEqual(
+            getattr(resolved, "admin_portal_stats_config", None),
+            {
+                "sections": ["academics", "accounts"],
+                "items": {"academics": ["Students"]},
+            },
+        )
+
+    def test_brand_runtime_dashboard_defaults_first_class_override_payload(self):
+        """Brand/runtime dashboard defaults columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "accent_color": "#111111",
+                "danger_color": "#222222",
+                "custom_css": ".payload-only { color: red; }",
+                "admin_use_site_primary": False,
+                "default_sidebar_collapsed": False,
+                "default_dashboard_view": "PAYLOAD",
+                "default_refresh_rate": 15,
+                "default_widgets_per_role": {"ADMIN": ["payload-widget"]},
+            },
+            accent_color="#3b82f6",
+            danger_color="#ef4444",
+            custom_css=".column-value { color: blue; }",
+            admin_use_site_primary=True,
+            default_sidebar_collapsed=True,
+            default_dashboard_view="ACADEMICS",
+            default_refresh_rate=90,
+            default_widgets_per_role={"ADMIN": ["overview", "finance"]},
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(getattr(resolved, "accent_color", None), "#3b82f6")
+        self.assertEqual(getattr(resolved, "danger_color", None), "#ef4444")
+        self.assertEqual(
+            getattr(resolved, "custom_css", None), ".column-value { color: blue; }"
+        )
+        self.assertTrue(getattr(resolved, "admin_use_site_primary", None))
+        self.assertTrue(getattr(resolved, "default_sidebar_collapsed", None))
+        self.assertEqual(getattr(resolved, "default_dashboard_view", None), "ACADEMICS")
+        self.assertEqual(getattr(resolved, "default_refresh_rate", None), 90)
+        self.assertEqual(
+            getattr(resolved, "default_widgets_per_role", None),
+            {"ADMIN": ["overview", "finance"]},
+        )
+
+    def test_portal_feed_defaults_first_class_override_payload(self):
+        """Portal feed defaults (JSON + numeric limit) columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "portal_announcements": [{"title": "Payload announcement"}],
+                "portal_quick_actions": [{"label": "Payload action"}],
+                "portal_recent_grades": [{"label": "Payload grade"}],
+                "portal_upcoming_assessments": [{"title": "Payload assessment"}],
+                "top_students_default_limit": 7,
+            },
+            portal_announcements=[{"title": "Column announcement"}],
+            portal_quick_actions=[{"label": "Column action"}],
+            portal_recent_grades=[{"label": "Column grade"}],
+            portal_upcoming_assessments=[{"title": "Column assessment"}],
+            top_students_default_limit=25,
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(
+            getattr(resolved, "portal_announcements", None),
+            [{"title": "Column announcement"}],
+        )
+        self.assertEqual(
+            getattr(resolved, "portal_quick_actions", None),
+            [{"label": "Column action"}],
+        )
+        self.assertEqual(
+            getattr(resolved, "portal_recent_grades", None),
+            [{"label": "Column grade"}],
+        )
+        self.assertEqual(
+            getattr(resolved, "portal_upcoming_assessments", None),
+            [{"title": "Column assessment"}],
+        )
+        self.assertEqual(getattr(resolved, "top_students_default_limit", None), 25)
+
+    def test_brand_palette_social_defaults_first_class_override_payload(self):
+        """Brand palette + social links columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "site_name": "Payload School",
+                "primary_color": "#111111",
+                "success_color": "#222222",
+                "warning_color": "#333333",
+                "social_links": [{"platform": "Payload", "url": "https://payload.example"}],
+            },
+            site_name="Column School",
+            primary_color="#0d6efd",
+            success_color="#22c55e",
+            warning_color="#f59e0b",
+            social_links=[{"platform": "X", "url": "https://x.example"}],
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(getattr(resolved, "site_name", None), "Column School")
+        self.assertEqual(getattr(resolved, "primary_color", None), "#0d6efd")
+        self.assertEqual(getattr(resolved, "success_color", None), "#22c55e")
+        self.assertEqual(getattr(resolved, "warning_color", None), "#f59e0b")
+        self.assertEqual(
+            getattr(resolved, "social_links", None),
+            [{"platform": "X", "url": "https://x.example"}],
+        )
+
+    def test_portal_theme_policy_defaults_first_class_override_payload(self):
+        """Portal/theme policy defaults columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "use_dark_mode": False,
+                "use_secondary_font_for_headings": False,
+                "default_portal_role_dual_role": "PAYLOAD_ROLE",
+                "enable_parent_portal": False,
+                "enable_teacher_portal": False,
+            },
+            use_dark_mode=True,
+            use_secondary_font_for_headings=True,
+            default_portal_role_dual_role="PARENT_TEACHER",
+            enable_parent_portal=True,
+            enable_teacher_portal=True,
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertTrue(getattr(resolved, "use_dark_mode", None))
+        self.assertTrue(getattr(resolved, "use_secondary_font_for_headings", None))
+        self.assertEqual(
+            getattr(resolved, "default_portal_role_dual_role", None), "PARENT_TEACHER"
+        )
+        self.assertTrue(getattr(resolved, "enable_parent_portal", None))
+        self.assertTrue(getattr(resolved, "enable_teacher_portal", None))
+
+    def test_theme_surface_defaults_first_class_override_payload(self):
+        """Theme-surface defaults columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "backend_console_theme": "payload_theme",
+                "header_bg_color": "#111111",
+                "footer_bg_color": "#222222",
+                "theme_brightness": "payload",
+                "theme_harmony": "payload_harmony",
+            },
+            backend_console_theme="dark",
+            header_bg_color="#0f172a",
+            footer_bg_color="#020617",
+            theme_brightness="system",
+            theme_harmony="polychromatic",
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(getattr(resolved, "backend_console_theme", None), "dark")
+        self.assertEqual(getattr(resolved, "header_bg_color", None), "#0f172a")
+        self.assertEqual(getattr(resolved, "footer_bg_color", None), "#020617")
+        self.assertEqual(getattr(resolved, "theme_brightness", None), "system")
+        self.assertEqual(getattr(resolved, "theme_harmony", None), "polychromatic")
+
+    def test_policy_runtime_toggles_first_class_override_payload(self):
+        """Policy/runtime toggle columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "grade_approval_enabled": False,
+                "grade_approval_auto_validate": False,
+                "enable_practical_assessment": False,
+                "enable_concurrent_mark_uploads": False,
+                "enable_offline_mode": False,
+            },
+            grade_approval_enabled=True,
+            grade_approval_auto_validate=True,
+            enable_practical_assessment=True,
+            enable_concurrent_mark_uploads=True,
+            enable_offline_mode=True,
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertTrue(getattr(resolved, "grade_approval_enabled", None))
+        self.assertTrue(getattr(resolved, "grade_approval_auto_validate", None))
+        self.assertTrue(getattr(resolved, "enable_practical_assessment", None))
+        self.assertTrue(getattr(resolved, "enable_concurrent_mark_uploads", None))
+        self.assertTrue(getattr(resolved, "enable_offline_mode", None))
+
+    def test_reports_themepack_defaults_first_class_override_payload(self):
+        """Maintenance/theme-pack/report defaults columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "maintenance_mode": False,
+                "theme_pack": "legacy-theme",
+                "admin_theme_pack": "legacy-admin",
+                "teacher_theme_pack": "legacy-teacher",
+                "parent_theme_pack": "legacy-parent",
+                "default_term_report_style": "legacy-term",
+                "default_annual_report_style": "legacy-annual",
+                "default_report_preview_type": "legacy-preview",
+                "enable_reports_pdf": False,
+                "reports_require_approved_grades_before_publish": False,
+            },
+            maintenance_mode=True,
+            theme_pack="aurora",
+            admin_theme_pack="aurora-admin",
+            teacher_theme_pack="aurora-teacher",
+            parent_theme_pack="aurora-parent",
+            default_term_report_style="term-modern",
+            default_annual_report_style="annual-modern",
+            default_report_preview_type="pdf",
+            enable_reports_pdf=True,
+            reports_require_approved_grades_before_publish=True,
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertTrue(getattr(resolved, "maintenance_mode", None))
+        self.assertEqual(getattr(resolved, "theme_pack", None), "aurora")
+        self.assertEqual(getattr(resolved, "admin_theme_pack", None), "aurora-admin")
+        self.assertEqual(
+            getattr(resolved, "teacher_theme_pack", None), "aurora-teacher"
+        )
+        self.assertEqual(getattr(resolved, "parent_theme_pack", None), "aurora-parent")
+        self.assertEqual(
+            getattr(resolved, "default_term_report_style", None), "term-modern"
+        )
+        self.assertEqual(
+            getattr(resolved, "default_annual_report_style", None), "annual-modern"
+        )
+        self.assertEqual(getattr(resolved, "default_report_preview_type", None), "pdf")
+        self.assertTrue(getattr(resolved, "enable_reports_pdf", None))
+        self.assertTrue(
+            getattr(resolved, "reports_require_approved_grades_before_publish", None)
+        )
+
+    def test_policy_reports_interval_defaults_first_class_override_payload(self):
+        """Policy/report/reminder defaults columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "require_mfa_all_staff": False,
+                "use_promotion_rule_for_pass": False,
+                "notify_parent_welcome_email": False,
+                "reports_use_approved_grades_only": False,
+                "requests_reminder_interval_hours": 24,
+            },
+            require_mfa_all_staff=True,
+            use_promotion_rule_for_pass=True,
+            notify_parent_welcome_email=True,
+            reports_use_approved_grades_only=True,
+            requests_reminder_interval_hours=8,
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertTrue(getattr(resolved, "require_mfa_all_staff", None))
+        self.assertTrue(getattr(resolved, "use_promotion_rule_for_pass", None))
+        self.assertTrue(getattr(resolved, "notify_parent_welcome_email", None))
+        self.assertTrue(getattr(resolved, "reports_use_approved_grades_only", None))
+        self.assertEqual(getattr(resolved, "requests_reminder_interval_hours", None), 8)
+
+    def test_policy_maps_and_compliance_defaults_first_class_override_payload(self):
+        """Policy maps/compliance/referral columns beat stale payload keys."""
+        get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        RuntimeDefaults.objects.create(
+            pk=1,
+            payload={
+                "backend_feature_flags": {"offline": False},
+                "portal_features": {"student_dashboard": False},
+                "notification_channels": ["email"],
+                "require_mfa_roles": ["ADMIN"],
+                "offline_sync_conflict_resolution": "show_both",
+                "compliance_profile_id": 101,
+                "referral_bonus_amount": "15.50",
+            },
+            backend_feature_flags={"offline": True},
+            portal_features={"student_dashboard": True},
+            notification_channels=["email", "sms"],
+            require_mfa_roles=["ADMIN", "BURSAR"],
+            offline_sync_conflict_resolution="auto_merge",
+            compliance_profile_id=202,
+            referral_bonus_amount="25.00",
+        )
+        invalidate_effective_site_settings_cache()
+
+        resolved = get_effective_site_settings()
+
+        self.assertEqual(
+            getattr(resolved, "backend_feature_flags", None), {"offline": True}
+        )
+        self.assertEqual(
+            getattr(resolved, "portal_features", None), {"student_dashboard": True}
+        )
+        self.assertEqual(
+            getattr(resolved, "notification_channels", None), ["email", "sms"]
+        )
+        self.assertEqual(
+            getattr(resolved, "require_mfa_roles", None), ["ADMIN", "BURSAR"]
+        )
+        self.assertEqual(
+            getattr(resolved, "offline_sync_conflict_resolution", None), "auto_merge"
+        )
+        self.assertEqual(getattr(resolved, "compliance_profile_id", None), 202)
+        self.assertEqual(str(getattr(resolved, "referral_bonus_amount", None)), "25.00")
+
+    def test_runtime_defaults_sync_strips_first_class_keys_into_columns(self):
+        """sync_from_site_settings moves first-class keys off payload onto model fields."""
+        site = get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.all().delete()
+        _persist_runtime_test_state(
+            preview_mode_enabled=True,
+            preview_note="staging",
+            sms_provider="africastalking",
+            sms_sender_id="RMC",
+        )
+        site.refresh_from_db()
+
+        runtime_defaults, _created = RuntimeDefaults.sync_from_site_settings(site)
+
+        self.assertTrue(runtime_defaults.preview_mode_enabled)
+        self.assertEqual(runtime_defaults.preview_note, "staging")
+        self.assertEqual(runtime_defaults.sms_provider, "africastalking")
+        self.assertEqual(runtime_defaults.sms_sender_id, "RMC")
+        self.assertNotIn("preview_mode_enabled", runtime_defaults.payload)
+        self.assertNotIn("preview_note", runtime_defaults.payload)
+        self.assertNotIn("sms_provider", runtime_defaults.payload)
+        self.assertNotIn("sms_sender_id", runtime_defaults.payload)
+
     def test_get_effective_site_settings_prefers_runtime_defaults_over_legacy_singleton(
         self,
     ):
@@ -402,6 +988,8 @@ class RuntimeHelperResolutionTests(TestCase):
         RuntimeDefaults.objects.update_or_create(
             pk=1,
             defaults={
+                "site_name": "Runtime Defaults Platform",
+                "enable_offline_mode": True,
                 "payload": {
                     "site_name": "Runtime Defaults Platform",
                     "enable_offline_mode": True,

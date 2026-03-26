@@ -10,7 +10,11 @@
 | `.django_test_dbs/pre_deploy_gate.sqlite3` | **pre_deploy_gate.sh** uses this path (and **`verify_section7_gate.py`** when `VERIFY_SECTION7_KEEPDB=1`). |
 | §7 step 2 (no `--keepdb`) | **`verify_section7_gate.py`** sets **`DJANGO_TEST_DB_FILE`** to a **unique** `.django_test_dbs/section7_verify_<uuid>.sqlite3` per run (avoids **WinError 32** when Django replaces the test DB). `VERIFY_SECTION7_KEEPDB=1` → reuse `pre_deploy_gate.sqlite3`. `SECTION7_FIXED_TEST_DB=1` → `section7_verify.sqlite3`. `PRE_GATE_FRESH_TEST_DB=1` deletes the current `DJANGO_TEST_DB_FILE` before steps. Ephemeral files are removed by `python scripts/clean_django_test_dbs.py` (default removes all except `pre_deploy_gate.sqlite3`; `--all` removes everything). |
 | `.django_test_dbs/pre_deploy_gate_run.sqlite3` | **Optional** alternate path if `pre_deploy_gate.sqlite3` is **locked** (Windows) or **half-migrated** (`table already exists` during `migrate_gate_test_db`). Set `export DJANGO_TEST_DB_FILE=.django_test_dbs/pre_deploy_gate_run.sqlite3` then run `python scripts/migrate_gate_test_db.py` once before the gate. |
+| `.django_test_dbs/gate_verification_<label>.sqlite3` | **Optional** unique file per agent/CI run (e.g. `gate_verification_20260325.sqlite3`) when the default gate file stays locked despite `PRE_GATE_FRESH_TEST_DB=1`. Set `export DJANGO_TEST_DB_FILE=.django_test_dbs/gate_verification_<label>.sqlite3` for the full `pre_deploy_gate.sh` session. |
 | `.django_test_dbs/wedge_super_premium_gates.sqlite3` | **§0.2.1.6** wedge gates: `bash scripts/run_wedge_super_premium_gates.sh` sets this path, runs `migrate_gate_test_db.py`, then `test_wedge_super_premium_phases` + `test_wedge_world_class_implemented` with `--keepdb` so Windows does not hit `[WinError 32]` on `.django_test_dbs/default.sqlite3`. |
+| `.django_test_dbs/operator_phase1011_e2e.sqlite3` | **`python scripts/verify_operator_phase10_11_e2e.py`**: `migrate_gate_test_db.py` runs **first**; **`DJANGO_TEST_DB_FILE`** points here for **pytest** and UX so the bundle does not use shared `default.sqlite3` (reduces **database is locked** on Windows). **`verify_ux_completion.py`** uses **`DJANGO_UX_AUDIT_USE_GATE_DB=1`**. Override with **`--ux-db-file`**. |
+
+**`verify_ux_completion.py` and the gate file:** With **`DJANGO_UX_AUDIT_USE_GATE_DB=1`**, SQLite’s default connection **`NAME`** is set to **`DJANGO_UX_AUDIT_DB_FILE`** or **`DJANGO_TEST_DB_FILE`** before `django.setup()`. **`pre_deploy_gate.sh`** exports this after **`migrate_gate_test_db.py`** so the UX audit uses **`pre_deploy_gate.sqlite3`**, not the dev working DB.
 
 ## §0.2.1.6 wedge super-premium gates (local)
 
@@ -37,12 +41,16 @@
 
 Fresh checkouts have no stale DB; gate uses `pre_deploy_gate.sqlite3` inside the workspace.
 
+## Local scripts that hit the default DB (not the test runner)
+
+`python scripts/verify_phase_b_execution.py` (and similar verify scripts) use **`DATABASES["default"]`**, not Django’s ephemeral test database. If you see missing-table errors (for example `platform_runtime_phase_b_domain_snapshot`), run **`python manage.py migrate --noinput`** on that default DB, or point `DATABASE_URL` / settings at a DB that has current migrations. **CI** already runs `migrate_gate_test_db.py` before the gate verify steps.
+
 ## Settings
 
 Configured in `config/settings.py`:
 
 - `TEST.NAME` for SQLite aliases from `DJANGO_TEST_DB_FILE` or `.django_test_dbs/{alias}.sqlite3`.
-- `OPTIONS.timeout` (busy timeout) on SQLite to reduce flaky `database is locked` on Windows.
+- `OPTIONS.timeout` (busy timeout) on SQLite to reduce flaky `database is locked` on Windows; during `manage.py test` / unittest, timeout is raised to **at least 90s** on SQLite aliases.
 - When `test` is in `sys.argv`, SQLite engines use **`CONN_MAX_AGE = 0`** so persistent connections do not worsen locks with `--keepdb` / `DJANGO_TEST_DB_FILE`.
 
 `scripts/migrate_gate_test_db.py` runs migrations **outside** `manage.py test`; it lowers `django.db.backends` log levels to **WARNING** so DEBUG builds do not emit full SQL (huge I/O and log bloat during long migrates).

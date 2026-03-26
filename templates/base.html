@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en"{% if is_rtl %} dir="rtl"{% endif %}
+      {% if HIGH_CONTRAST_MODE or REDUCED_MOTION %}class="{% if HIGH_CONTRAST_MODE %}pref-high-contrast{% endif %}{% if REDUCED_MOTION %} pref-reduced-motion{% endif %}"{% endif %}
       data-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ USER_THEME_PREFERENCE|default:SITE.theme_brightness|default:'system'|lower }}{% endif %}"
       data-admin-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ SITE.theme_brightness|default:'system'|lower }}{% endif %}"
       data-simple-mode="{% if simple_mode %}true{% else %}false{% endif %}">
@@ -99,114 +100,25 @@
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
 
-    <style>
-                              {% if PUBLIC_BRAND_MODE %}
-                              :root {
-                                --school-primary: var(--public-brand-school-primary, #0B0E14);
-                                --school-accent: var(--public-brand-school-accent, #d4af37);
-                                --platform-navy: var(--public-brand-platform-navy, #0B0E14);
-                                --platform-gold: var(--public-brand-platform-gold, #d4af37);
-                              }
-                              {% elif SITE %}
-                              :root {
-                                {% if SITE_PRIMARY_COLOR or SITE.primary_color %}--school-primary: {{ SITE_PRIMARY_COLOR|default:SITE.primary_color }};{% endif %}
-                                {% if SITE_ACCENT_COLOR or SITE.accent_color %}--school-accent: {{ SITE_ACCENT_COLOR|default:SITE.accent_color }};{% endif %}
-                                {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
-                                {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
-                                {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
-                              }
-                              {% endif %}
-                              {% if HIGH_CONTRAST_MODE %}
-                              html, body, .app-container {
-                                background: black !important;
-                                color: white !important;
-                              }
-                              .card, .navbar, .alert, .btn, .form-control {
-                                background: color-mix(in srgb, black 92%, var(--admin-content-bg)) !important;
-                                color: white !important;
-                                border-color: white !important;
-                              }
-                              .app-container::before {
-                                filter: grayscale(1) contrast(2);
-                              }
-                              {% endif %}
-
-                              {% if REDUCED_MOTION %}
-                              .app-container::before, video, object {
-                                animation: none !important;
-                                transition: none !important;
-                                filter: grayscale(1) brightness(0.7);
-                              }
-                              video, object {
-                                display: none !important;
-                              }
-                              {% endif %}
-                        /* Mobile optimization: hide or reduce logo background on small screens */
-                        @media (max-width: 767px) {
-                          .app-container::before {
-                            opacity: 0.08 !important;
-                          }
-                        }
-                        @media (max-width: 575px) {
-                          .app-container::before {
-                            background-image: none !important;
-                            opacity: 0 !important;
-                          }
-                        }
-                  /*
-                    Best Practices for Logo Background:
-                    - Supports PNG/SVG for transparency.
-                    - Uses ::before pseudo-element for non-intrusive background.
-                    - Opacity is set via SITE_LOGO_OPACITY (admin-configurable).
-                    - Fallback: If no logo, background-image is 'none'.
-                    - Accessibility: Main content remains fully opaque and accessible.
-                    - If using SVG, ensure viewBox and preserveAspectRatio are set for scaling.
-                    - For high-contrast/low-vision users, keep opacity moderate and avoid interfering with text contrast.
-                  */
-      /* Keep all content in frame: no horizontal spill. */
-      html { overflow-x: clip; }
-      body { overflow-x: clip; }
-      .app-container {
-        position: relative;
-        width: 100%;
-        min-height: 100vh;
-        z-index: 1;
-        overflow-x: clip;
+    <style id="root-base-theme-vars">
+      {% if PUBLIC_BRAND_MODE %}
+      :root {
+        --school-primary: var(--public-brand-school-primary, #0b0e14);
+        --school-accent: var(--public-brand-school-accent, #d4af37);
+        --platform-navy: var(--public-brand-platform-navy, #0b0e14);
+        --platform-gold: var(--public-brand-platform-gold, #d4af37);
+        --school-font: Inter, system-ui, sans-serif;
+        --base-font-size: 1rem;
       }
-      /* Full-width contract: module pages should not be artificially boxed. */
-      body.layout-boxed .app-container {
-        max-width: none;
-        margin-left: 0;
-        margin-right: 0;
-        box-shadow: none;
+      {% elif SITE %}
+      :root {
+        {% if SITE_PRIMARY_COLOR or SITE.primary_color %}--school-primary: {{ SITE_PRIMARY_COLOR|default:SITE.primary_color }};{% endif %}
+        {% if SITE_ACCENT_COLOR or SITE.accent_color %}--school-accent: {{ SITE_ACCENT_COLOR|default:SITE.accent_color }};{% endif %}
+        {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
+        {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
+        {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
       }
-      .app-container::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: none;
-        opacity: 0;
-        z-index: -1;
-        pointer-events: none;
-      }
-      /* Overflow safety contract for base pages. */
-      .app-container [class*="col-"],
-      .app-container .card,
-      .app-container .card .card-body,
-      .app-container .table-responsive {
-        min-width: 0;
-      }
-      .app-container .card-title,
-      .app-container .table td,
-      .app-container .table th,
-      .app-container .badge,
-      #main-content .btn {
-        overflow-wrap: anywhere;
-        word-break: break-word;
-      }
+      {% endif %}
       {% if not PUBLIC_BRAND_MODE %}
       {% with theme=SITE_THEME %}
       :root {
@@ -227,100 +139,10 @@
       {% if SITE_USE_SECONDARY_FONT_HEADINGS and SITE_SECONDARY_FONT %}
       h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--school-font), system-ui, sans-serif; }
       {% endif %}
-
-      body {
-        font-family: var(--school-font), system-ui, sans-serif;
-        {% if SITE_BASE_FONT_SIZE %}font-size: var(--base-font-size);{% endif %}
-        background: linear-gradient(135deg, var(--base-body-bg-start, rgba(13,110,253,.08)), var(--base-body-bg-end, rgba(25,135,84,.05)));
-        color: var(--admin-content-text);
-      }
-      body.host-kind-manager {
-        background: radial-gradient(circle at 15% 20%, var(--manager-body-accent-a, rgba(52, 211, 153, 0.16)), transparent 35%),
-                    radial-gradient(circle at 85% 0%, var(--manager-body-accent-b, rgba(14, 165, 233, 0.14)), transparent 30%),
-                    var(--manager-body-bg, rgb(15 23 42));
-        color: var(--manager-body-fg, rgb(226 232 240));
-      }
-
-      .navbar {
-        background: var(--statement-header-bg, var(--header-brand-bg));
-        color: var(--statement-header-fg, var(--header-brand-fg));
-      }
-
-      .navbar-brand img {
-        height: 32px;
-        width: auto;
-        min-height: 28px;
-      }
-
-      .base-topbar {
-        flex-wrap: nowrap;
-        gap: 0.5rem;
-      }
-
-      .base-topbar-actions {
-        margin-left: auto;
-      }
-
-      @media (max-width: 767px) {
-        .base-topbar {
-          flex-wrap: wrap;
-        }
-        .base-topbar-actions {
-          order: 2;
-          width: 100%;
-          justify-content: flex-end;
-        }
-
-        .base-topbar-weather {
-          order: 3;
-          width: 100%;
-        }
-      }
-
-      @media (max-width: 575px) {
-        .base-topbar-weather {
-          display: none;
-        }
-
-        .base-topbar-actions .btn {
-          padding: 0.2rem 0.4rem;
-        }
-      }
-
-      .skip-link {
-        position: absolute;
-        left: -999px;
-        top: 0;
-        padding: 0.5rem 0.75rem;
-        background: var(--skip-link-bg, rgb(15 23 42));
-        color: var(--skip-link-fg, rgb(249 250 251));
-        z-index: 2000;
-      }
-      .skip-link:focus {
-        left: 0.5rem;
-        top: 0.5rem;
-        border-radius: 999px;
-      }
-
-      .card {
-        border: 0;
-        border-radius: 16px;
-        transition: transform .2s ease, box-shadow .2s ease;
-        background: var(--base-card-bg, rgba(255, 255, 255, 0.95));
-      }
-
-      .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 20px var(--base-card-hover-shadow, rgba(0,0,0,.10));
-      }
-
-      /* Make alerts readable in dark mode */
-      {% if SITE and SITE.use_dark_mode %}
-      .alert {
-        color: var(--admin-content-text);
-      }
-      {% endif %}
     </style>
+    <link rel="stylesheet" href="{% static 'css/root-base-shell.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
     {% if SITE and SITE.custom_css %}
     <style data-site-custom-css>
@@ -330,7 +152,7 @@
     {% block extrastyle %}{% endblock %}
   </head>
 
-  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }} {% block body_class %}{% endblock %}">
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}">
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     <!--
       .app-container wraps all content for background logo/video/svg effect.

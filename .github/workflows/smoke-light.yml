@@ -1,0 +1,44 @@
+# Lighter checks when full smoke.yml (pre_deploy_gate) is too slow for manual runs.
+# Static Phase H audit + URL smoke tests; no Playwright, no theme matrix, no long gate.
+name: Smoke light
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # 06:00 UTC — disable by removing `schedule` if not wanted
+    - cron: "0 6 * * *"
+
+jobs:
+  smoke-light:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ruff (unused imports / variables)
+        run: python -m ruff check apps --select F401,F841
+
+      - name: Django system check
+        env:
+          SECRET_KEY: "ci-smoke-light-not-for-production-use-64chars____________________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+        run: python manage.py check
+
+      - name: Phase H static audit
+        run: python scripts/phase_h_audit.py
+
+      - name: Smoke URL resolution (no DB)
+        env:
+          SECRET_KEY: "ci-smoke-light-not-for-production-use-64chars____________________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+        run: python manage.py test apps.accounts.tests.test_smoke_urls -v 1

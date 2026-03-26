@@ -1,0 +1,77 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Fleet governed changes" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Fleet governed changes" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4 content-max-1200" data-page-archetype="operational-workbench">
+  <header class="mb-4 d-flex flex-wrap align-items-start justify-content-between gap-3">
+    <div class="min-w-0">
+      <p class="text-uppercase small text-white-50 mb-1">{% trans "Control plane" %}</p>
+      <h1 class="h2 text-white mb-2">{% trans "Fleet governed changes" %}</h1>
+      <p class="text-white-50 mb-0">
+        {% blocktrans %}Draft → approval → apply spine (§2.1). Execution stays on existing rollout/staging UIs; use the apply path on each row, then update status in platform admin.{% endblocktrans %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% if admin_bridge_url %}
+      <a href="{{ admin_bridge_url }}" class="btn btn-outline-light btn-sm">{% trans "Open in platform admin" %}</a>
+      {% endif %}
+      <a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Config center" %}</a>
+    </div>
+  </header>
+
+  {% if not changes %}
+  <div class="alert alert-secondary border-secondary">
+    {% trans "No records yet. Create one from platform admin (Fleet governed changes), or use the admin bridge above." %}
+  </div>
+  {% else %}
+  <div class="table-responsive border border-secondary rounded">
+    <table class="table table-dark table-sm table-striped mb-0 align-middle">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "ID" %}</th>
+          <th scope="col">{% trans "Title / type" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Apply" %}</th>
+          <th scope="col">{% trans "Created" %}</th>
+          <th scope="col">{% trans "Admin" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in changes %}
+        <tr>
+          <td class="text-nowrap">{{ row.pk }}</td>
+          <td>
+            <div class="fw-semibold text-white">{{ row.title|default:row.change_type }}</div>
+            <div class="small text-white-50">{{ row.change_type }}</div>
+          </td>
+          <td><span class="badge bg-secondary">{{ row.status }}</span></td>
+          <td class="small">
+            {% if row.apply_surface_url %}
+            <a class="link-light text-break" href="{{ row.apply_surface_url }}">{{ row.apply_surface_url|truncatechars:48 }}</a>
+            {% else %}
+            <span class="text-white-50">—</span>
+            {% endif %}
+          </td>
+          <td class="text-nowrap small text-white-50">{{ row.created_at }}</td>
+          <td class="text-nowrap">
+            <a class="btn btn-sm btn-outline-light" href="{% url 'admin:platform_runtime_fleetgovernedchange_change' row.pk %}">{% trans "Edit" %}</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

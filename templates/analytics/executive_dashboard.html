@@ -1,8 +1,9 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n phase8_tags %}
 {% block title %}Executive Dashboard{% endblock %}
 {% block content %}
 <div class="container-fluid" data-page-archetype="role-home" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "analytics/executive_dashboard.html" %}
   <h4 class="mb-3">{% trans "Executive Dashboard" %}</h4>
   <p class="text-muted small">Unified view: Finance + HR + student outcomes. Use the links below for detailed dashboards.</p>
   <div class="row">

@@ -1,12 +1,13 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
 {% load region_format %}
-{% load static %}
+{% load static phase8_tags %}
 
 {% block title %}{% trans "Invoices" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface">
+{% phase8_dashboard_declaration "finance/invoices.html" %}
 {% trans "Back to Finance" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 

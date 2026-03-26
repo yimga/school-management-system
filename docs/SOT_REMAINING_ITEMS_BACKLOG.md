@@ -43,7 +43,8 @@ Optional broader: `apps/schools/tests/test_school_cli_resolution.py`, `apps/api/
 |------|----------|--------|
 | Native **iOS / Android** App Store / Play releases | External | Builds, signing, store listing |
 | **SOC 2 Type II / ISO** certificate on file | External | Auditor + evidence room |
-| **Clever / ClassLink native** vendor APIs | Blocked | Partnership; BR-11 substitutes in repo |
+| **KB/FAQ + LibreOffice T4 production sign-off** | Blocked | Owner: Platform Ops + Release Manager. Internal preflight now code-gated via `scripts/release_readiness_check.sh` (`verify_kb_libreoffice_stack.py` always; live `verify_collabora_wopi_smoke.py` when `APP_BASE_URL` + `COLLABORA_BASE_URL` are set). Remaining blocker is external-only: real Collabora ingress/TLS + `WOPI_SHARED_SECRET` env wiring + authenticated operator/tenant browser edit-save validation in staging/prod; execute `docs/execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md` and attach evidence to autonomous log before SOT status moves to DONE. |
+| **Clever / ClassLink native** vendor APIs | Blocked | Internal readiness now code-gated via `scripts/release_readiness_check.sh` (`verify_clever_classlink_readiness.py` + `apps/interop/tests/test_clever_classlink_client.py`), plus OAuth exchange path covered in tests. Remaining blocker is external-only: district/vendor partnership approval + production credentials/tokens + live district endpoint sign-off. |
 | **24/7 vendor NOC** / dedicated on-call bench | OPS | Staffing / contract |
 | **Third-party WCAG** formal certification audit | COMPLIANCE | External auditor |
 | **Z-reports / multi-register** full fiscal depth beyond POS exports | PRODUCT | Roadmap + accounting |
@@ -66,4 +67,4 @@ Prior incremental closures (2026-03) are preserved in git history before this co
 2. **External milestones:** track outside git; do not flip SOT `[x]` until the real milestone (e.g. certificate on file).  
 3. Do **not** spawn duplicate strategy docs or new “plan / stock take / queue status” markdown files; extend the [single source of truth](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md), **[docs/README.md](README.md)**, and this registry only.
 
-**Related:** [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [PROGRAM_EXECUTION_REMAINING.md](PROGRAM_EXECUTION_REMAINING.md).
+**Related:** [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [PROGRAM_EXECUTION_REMAINING.md](PROGRAM_EXECUTION_REMAINING.md). **In-product + automation:** [BACKLOG_UNLOCK_AUTOMATION.md](BACKLOG_UNLOCK_AUTOMATION.md) (`super:backlog_unlock_center`, `evaluate_backlog_unlocks`).

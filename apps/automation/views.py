@@ -4,7 +4,7 @@ Surfaces MigrationRun and AutomationExecutionLog results for operators; no profi
 """
 
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -24,7 +24,9 @@ def outcomes_console(request):
     No raw settings (profiles, playbooks); read-only outcome summary.
     """
     school = getattr(request, "school", None)
-    base_runs = MigrationRun.objects.all().select_related("triggered_by", "school")
+    base_runs = MigrationRun.objects.all().select_related(
+        "triggered_by", "school"
+    ).annotate(quarantine_record_count=Count("quarantine_records"))
     base_logs = AutomationExecutionLog.objects.all().select_related(
         "triggered_by", "school"
     )

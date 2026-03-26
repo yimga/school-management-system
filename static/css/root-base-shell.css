@@ -1,0 +1,204 @@
+/**
+ * Root `base.html` layout — static rules only (Phase 2).
+ * Django :root theme injection, tenant branding vars, and secondary heading font stay in-template.
+ * Preference flags use classes on <html>: .pref-high-contrast, .pref-reduced-motion
+ * Dark-mode alert readability: .base-tenant-dark-alerts on <body> when SITE.use_dark_mode
+ */
+
+@media (max-width: 767px) {
+  .app-container::before {
+    opacity: 0.08 !important;
+  }
+}
+
+@media (max-width: 575px) {
+  .app-container::before {
+    background-image: none !important;
+    opacity: 0 !important;
+  }
+}
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+}
+
+.app-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  z-index: 1;
+  overflow-x: clip;
+}
+
+body.layout-boxed .app-container {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  box-shadow: none;
+}
+
+.app-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: none;
+  opacity: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.app-container [class*="col-"],
+.app-container .card,
+.app-container .card .card-body,
+.app-container .table-responsive {
+  min-width: 0;
+}
+
+.app-container .card-title,
+.app-container .table td,
+.app-container .table th,
+.app-container .badge,
+#main-content .btn {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+body {
+  font-family: var(--school-font), system-ui, sans-serif;
+  font-size: var(--base-font-size, 1rem);
+  background: linear-gradient(
+    135deg,
+    var(--base-body-bg-start, rgba(13, 110, 253, 0.08)),
+    var(--base-body-bg-end, rgba(25, 135, 84, 0.05))
+  );
+  color: var(--admin-content-text);
+}
+
+body.host-kind-manager {
+  background:
+    radial-gradient(circle at 15% 20%, var(--manager-body-accent-a, rgba(52, 211, 153, 0.16)), transparent 35%),
+    radial-gradient(circle at 85% 0%, var(--manager-body-accent-b, rgba(14, 165, 233, 0.14)), transparent 30%),
+    var(--manager-body-bg, rgb(15 23 42));
+  color: var(--manager-body-fg, rgb(226 232 240));
+}
+
+.navbar {
+  background: var(--statement-header-bg, var(--header-brand-bg));
+  color: var(--statement-header-fg, var(--header-brand-fg));
+}
+
+.navbar-brand img {
+  height: 32px;
+  width: auto;
+  min-height: 28px;
+}
+
+.base-topbar {
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+
+.base-topbar-actions {
+  margin-left: auto;
+}
+
+@media (max-width: 767px) {
+  .base-topbar {
+    flex-wrap: wrap;
+  }
+
+  .base-topbar-actions {
+    order: 2;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .base-topbar-weather {
+    order: 3;
+    width: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .base-topbar-weather {
+    display: none;
+  }
+
+  .base-topbar-actions .btn {
+    padding: 0.2rem 0.4rem;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  padding: 0.5rem 0.75rem;
+  background: var(--skip-link-bg, rgb(15 23 42));
+  color: var(--skip-link-fg, rgb(249 250 251));
+  z-index: 2000;
+}
+
+.skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  border-radius: 999px;
+}
+
+.card {
+  border: 0;
+  border-radius: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--base-card-bg, rgba(255, 255, 255, 0.95));
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px var(--base-card-hover-shadow, rgba(0, 0, 0, 0.1));
+}
+
+body.base-tenant-dark-alerts .alert {
+  color: var(--admin-content-text);
+}
+
+/* Accessibility preferences (classes on <html> from base.html) */
+html.pref-high-contrast,
+html.pref-high-contrast body,
+html.pref-high-contrast .app-container {
+  background: black !important;
+  color: white !important;
+}
+
+html.pref-high-contrast .card,
+html.pref-high-contrast .navbar,
+html.pref-high-contrast .alert,
+html.pref-high-contrast .btn,
+html.pref-high-contrast .form-control {
+  background: color-mix(in srgb, black 92%, var(--admin-content-bg)) !important;
+  color: white !important;
+  border-color: white !important;
+}
+
+html.pref-high-contrast .app-container::before {
+  filter: grayscale(1) contrast(2);
+}
+
+html.pref-reduced-motion .app-container::before,
+html.pref-reduced-motion video,
+html.pref-reduced-motion object {
+  animation: none !important;
+  transition: none !important;
+  filter: grayscale(1) brightness(0.7);
+}
+
+html.pref-reduced-motion video,
+html.pref-reduced-motion object {
+  display: none !important;
+}

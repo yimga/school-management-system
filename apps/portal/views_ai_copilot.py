@@ -470,9 +470,6 @@ def ai_copilot_config(request):
         if provider == "ollama" and provider_state.get("configured"):
             model = provider_state.get("model")
             break
-        if provider == "gemini" and provider_state.get("configured"):
-            model = provider_state.get("model")
-            break
         if provider == "rules":
             model = "rules-fallback"
             break

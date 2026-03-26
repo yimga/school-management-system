@@ -1,9 +1,10 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n %}
-{% load region_format %}
+{% load region_format phase8_tags %}
 {% block cp_title %}Customer Success{% endblock %}
 {% block cp_content %}
 <div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "customersuccess/super_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with title="Benchmark & Customer Success" subtitle="Section 11.3 Benchmark intelligence • 11.4 Customer success (health, risk alerts, interventions, workflow failures)." action_url=dashboard_url action_text="Back to dashboard" %}
 
   <div class="row g-3 mb-4">
@@ -41,6 +42,8 @@
     </div>
   </div>
 
+  <details class="de-secondary-collapsible mb-2">
+  <summary>{% trans "Expand alert, workflow, and health tables" %}</summary>
   <div class="row g-3">
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm">
@@ -145,6 +148,7 @@
       </div>
     </div>
   </div>
+  </details>
 
   <div class="mt-3 small text-muted">
     APIs: <code>GET /super/customer-success/api/tenant-health/</code>,

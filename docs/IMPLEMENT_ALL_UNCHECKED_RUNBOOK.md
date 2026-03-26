@@ -1,8 +1,10 @@
 # Implement All Unchecked SOT Items — Runbook
 
-**Purpose:** Implement **every** remaining `[ ]` in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) and mark each as `[x]` **only after verification**. **All plans referenced in the SOT must be implemented; nothing missed.** Those plans include: SOT itself, [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), [N/A_BLOCKERS_AND_RESOLUTION.md](N/A_BLOCKERS_AND_RESOLUTION.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [docs_truth_ledger.md](docs_truth_ledger.md), [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md), [OPERATING_DISCIPLINE_LAYERS.md](OPERATING_DISCIPLINE_LAYERS.md), [CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md), [DECISION_ARCHITECTURE_CHECKLIST.md](DECISION_ARCHITECTURE_CHECKLIST.md), [RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md](RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md), SOT §12 evidence table, and **[SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md](SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md)**. **Every gap in the gap audit must be closed** — implement each gap item in §2 "Phase GAP" below; do not skip any. **Do not leave any item as N/A.** Items annotated "N/A — product 2026-03-12" are in scope—implement them. **Do not just mark [x]:** every item must be **verified, audited, tested, and confirmed working** before marking; **nothing can be assumed.** Run **uninterrupted** until everything is **completely done** (or context limits, then resume via session state). Verify the codebase first, then work section by section; fix issues and continue until every [ ] is [x], each [x] has been verified, and **every gap in the gap audit is closed**. **Resumable:** Use [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md) so each run continues from where the last one stopped.
+> **Coordination (streamlined SOT):** **§12**, **§7**, and **Phase I** program bars are **MET**. **§6** is **[x]** at the **repo behavioral** bar — the SOT is no longer a hundred-line open `[ ]` ledger. Use this runbook to ship **§11.4** slices (log A–F), burn down **PATH_TO_100** **Action** rows for your slice, close any **explicit** remaining SOT `[ ]`, and run **Phase GAP** if items reopen. **Live status:** SOT **At a glance** + **§11.4**. Entry: [WHATS_NOT_DONE_AND_HOW_TO_START.md](WHATS_NOT_DONE_AND_HOW_TO_START.md).
 
-**Authority:** SOT is the single source of truth. This runbook is the procedure only. Do not create new plan files; update only SOT, BACKLOG, docs_truth_ledger, NEXT_50, and N/A_BLOCKERS_AND_RESOLUTION.
+**Purpose:** **Verify, then mark done** for work the SOT still tracks: **explicit `[ ]`**, **§11.4** depth queue, linked plans, and (when active) **Phase GAP** in [SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md](SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md). Plans in scope include: SOT, [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), [N/A_BLOCKERS_AND_RESOLUTION.md](N/A_BLOCKERS_AND_RESOLUTION.md), [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md), [docs_truth_ledger.md](docs_truth_ledger.md), [OPERATING_DISCIPLINE_LAYERS.md](OPERATING_DISCIPLINE_LAYERS.md), [CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md), [DECISION_ARCHITECTURE_CHECKLIST.md](DECISION_ARCHITECTURE_CHECKLIST.md), [RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md](RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md), SOT §12 evidence. [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) is **historical (all DONE)** — not the primary queue. **Do not mark [x] without verification** (test, lint, audit, or explicit UI/API check). **Resumable:** [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md).
+
+**Authority:** SOT is the single source of truth. This runbook is procedure only. Do not create new plan files; update SOT (**especially §11.4**), BACKLOG, docs_truth_ledger, N/A_BLOCKERS, and autonomous log when you ship slices.
 
 ---
 
@@ -22,9 +24,9 @@ Follow SOT §11.3 logical order **and** close every item in **Phase GAP** (nothi
 |-------|----------|------------|
 | **Phase II** | §2.4, §3.2 | Any remaining [ ] (signature/replay, raw SQL wrap, SiteSettings in tenant paths). Implement → verify/test → then [x]. If none left, skip. |
 | **Phase IIb** | **§10.5 (operating-discipline layers)** | **Run code verification:** `python scripts/verify_section10_5_layers.py`. Must exit 0. For each of 10.5.1–10.5.8 the script checks: doc exists + code evidence (e.g. 10.5.1 structured_logging, 10.5.2 packages/engine rollback, 10.5.4 trust/audit URLs, 10.5.5 data-page-archetype, 10.5.8 phase_h_audit + lints in gate). Fix any failure (add missing doc or implement missing code); do not mark layers done until script passes. No extra doc—code and script only. |
-| **Phase III** | §6.1 → §6.24 | For each [ ]: implement (including "N/A — product 2026-03-12") → run tests/lint → verify/audit → confirm working → then [x]. If blocked, do "Unblock by" in N/A_BLOCKERS first. Nothing assumed. |
+| **Phase III** | §6.1 → §6.24 | SOT **§6** spine is **[x]** — use PATH_TO phase-III **Action** rows for **depth** only. For each row you schedule: implement → verify → update **§11.4** / log; mark SOT `[x]` only if that line still exists. |
 | **Phase IV** | §4.5, §5.1 → §5.9 | Same: implement → verify/test → confirm working → then [x]. Use N/A_BLOCKERS when needed. Nothing assumed. |
-| **Phase V** | §7, §11 Phase H | §7: run `python scripts/verify_section7_gate.py`; implement → verify → [x]. Phase H: run scripts (run_phase_h_verification.sh, pre_deploy_gate.sh); implement and verify any remaining Phase H items; document manual pass if still needed. |
+| **Phase V** | §7, §11 Phase H | §7: **MET** at repo gate — run `python scripts/verify_section7_gate.py` when changing marketplace/seed surfaces. Phase H: **per release** — `run_phase_h_verification.sh`, `pre_deploy_gate.sh`, manual BR-13 per [PHASE_H_UX_VERIFICATION.md](PHASE_H_UX_VERIFICATION.md). |
 | **Phase GAP** | **SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md** | **Close every gap in the gap audit.** Work through §2.1 below in order (GAP.1 → GAP.N). For each: implement in code → verify (test/lint/UI) → mark done in session state and (optionally) in gap audit §8/§9. Do not skip any gap. Run uninterrupted until all gaps are closed. |
 
 ---
@@ -55,7 +57,7 @@ Follow SOT §11.3 logical order **and** close every item in **Phase GAP** (nothi
 
 ---
 
-## 3. For each unchecked `[ ]` (loop) — implement, then verify, then mark
+## 3. For each open item (explicit `[ ]`, PATH_TO **Action** row, or GAP.n) — implement, verify, then mark
 
 1. **Locate** the item in SOT (section and line) or in **Phase GAP** (§2.1: GAP.1–GAP.15). Items annotated "N/A — product 2026-03-12" are **in scope**—implement them. Cross-check [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), [SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md](SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md), and any plan referenced in that section so **nothing is missed**.
 2. **Implement:**
@@ -89,8 +91,8 @@ This way the next agent run (or new chat) can continue without redoing work and 
 ## 5. Rules (do not break)
 
 - **Ultra high-end without compromise:** Every implementation must be **ultra high-end** — no shortcuts, no "good enough," no placeholder-quality UI or copy. If something would lower the bar (e.g. generic styling, weak empty states, inconsistent tokens, or non-responsive layout), improve it to meet the bar; do not ship it as-is. SOT §8.0 and §8.0.11 define this bar; apply it to every page and surface.
-- **Single tracking:** Status and "what's left" stay in SOT only (§11.4). Do not add status to PATH_TO_100, PLAN_AND_BACKLOG_STOCK_TAKE, or other plan docs.
-- **No new plan files:** Do not create new strategy/roadmap/remediation plan files. All updates go to SOT, BACKLOG, docs_truth_ledger, NEXT_50, N/A_BLOCKERS.
+- **Single tracking:** Status and "what's left" stay in SOT **§11.4** + At a glance. PATH_TO_100 holds **slice Actions** and N/A detail — not a second global status dashboard.
+- **No new plan files:** Do not create new strategy/roadmap/remediation plan files. All updates go to SOT, BACKLOG, docs_truth_ledger, N/A_BLOCKERS, autonomous log.
 - **Do not mark [x] without verification:** Every [x] must be backed by a run test, lint, or explicit manual/audit check. Confirm the item is working before marking. **Nothing can be assumed.**
 - **Visible after deploy:** Every [x] you add must be verifiable (UI, API, or doc/lint/test). Add a short note if not obvious.
 - **Implement all; no N/A:** Every [ ] must be implemented, verified, and then marked [x]. Do not leave items as N/A. Use N/A_BLOCKERS only for unblock steps (implement dependency, then item).
@@ -101,7 +103,7 @@ This way the next agent run (or new chat) can continue without redoing work and 
 
 ## 6. When "everything" is done
 
-- Every `[ ]` in SOT is `[x]`, and **each [x] has been verified** (test, lint, or audit/manual check)—nothing assumed.
+- Every **required** explicit `[ ]` in the SOT is resolved (`[x]` or documented N/A), and **each [x] has been verified** (test, lint, or audit/manual check)—nothing assumed. **§6** consolidated rows do not need re-litigating as open spine failures.
 - **Every gap in [SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md](SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md) is closed** (GAP.1–GAP.15 implemented and verified).
 - Run full gate: `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` (and optionally E2E when available). Fix any failures.
 - Record gate output per RELEASE_CHECKLIST: `bash scripts/record_pre_deploy_gate_output.sh`.
@@ -114,7 +116,7 @@ This way the next agent run (or new chat) can continue without redoing work and 
 |------|--------|-----------|
 | 1 | Verify codebase | `bash scripts/run_phase_h_verification.sh` passes (or `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh`) |
 | 2 | **§10.5 layers (code)** | `python scripts/verify_section10_5_layers.py` exits 0 (all 8 layers: doc + code). |
-| 3 | All SOT [ ] → [x] | No unchecked items in SOT; each [x] verified (test/lint/audit). |
+| 3 | SOT explicit items closed | No **required** open `[ ]` left without `[x]` or registered N/A; §11.4 + gates aligned; each `[x]` verified (test/lint/audit). |
 | 4 | **All gap audit items closed** | GAP.1–GAP.15 in §2.1 implemented and verified; session state "Next gap to close" = "All gaps closed". |
 | 5 | Full gate | `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` passes. |
 | 6 | Record gate output | `bash scripts/record_pre_deploy_gate_output.sh`; output in docs/generated/pre_deploy_gate_run.txt. |
@@ -139,23 +141,19 @@ Use this prompt to have an agent (or yourself) implement and verify everything w
 
 **Prompt:**
 
-Execute docs/IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md against docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md. All plans referenced in the SOT (PATH_TO_100, N/A_BLOCKERS, BACKLOG, docs_truth_ledger, NEXT_50, OPERATING_DISCIPLINE_LAYERS, CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL, DECISION_ARCHITECTURE_CHECKLIST, RunMyCampus_Enterprise_Architecture_Audit, §12 evidence, and **SOT_DOCUMENTS_VS_CODE_GAP_AUDIT**) must be implemented and verified; nothing missed.
+Execute docs/IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md against docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md. **Streamlined SOT:** **§6** spine **[x]**; live queue = **§11.4** + explicit `[ ]` + PATH_TO **Action** rows for slices you take. Supporting plans: PATH_TO_100, N/A_BLOCKERS, BACKLOG, docs_truth_ledger, OPERATING_DISCIPLINE_LAYERS, CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL, DECISION_ARCHITECTURE_CHECKLIST, RunMyCampus_Enterprise_Architecture_Audit, §12 evidence, **SOT_DOCUMENTS_VS_CODE_GAP_AUDIT** (Phase GAP when active). **NEXT_50** = historical DONE.
 
 (1) **Verify codebase first:** Run `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` or `bash scripts/run_phase_h_verification.sh` and fix any failures before implementing.
 
 (2) **§10.5 operating-discipline layers (do not skip):** Run `python scripts/verify_section10_5_layers.py`. Must pass (exit 0). The script checks all eight layers (10.5.1–10.5.8): doc exists + code evidence. If it fails, fix the missing code or doc; do not add unnecessary doc—implement what the script expects (see OPERATING_DISCIPLINE_LAYERS.md completion gates). Then proceed.
 
-(3) **For each [ ] in SOT** (in order: §2.4, §3.2, §6.1→§6.24, §4.5, §5.1→§5.9, §7, §11 Phase H):  
-- Implement the item in the codebase (use docs/PATH_TO_100_PERCENT_EXECUTION_PLAN.md and docs/N/A_BLOCKERS_AND_RESOLUTION.md for "Unblock by" when blocked).  
-- **Verify:** Run the relevant tests, lint, or a manual/audit check.  
-- **Confirm working:** Do not mark [x] until you have verified the item is working. Nothing can be assumed.  
-- Only then change [ ] to [x] in the SOT. Items annotated "N/A — product 2026-03-12" are in scope—implement and verify them the same way.
+(3) **§11.4 + explicit items:** Pick work from SOT **§11.4** and **At a glance**; use docs/PATH_TO_100_PERCENT_EXECUTION_PLAN.md for **Action** detail. For each slice: implement → **verify** (tests/lint/manual) → update SOT **§11.4** + RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG; mark `[x]` only when a matching SOT checkbox still exists. **§7 MET** — run `verify_section7_gate.py` when changing seeds/catalog. **Phase H** = per release.
 
-(4) **Phase GAP — close every gap in SOT_DOCUMENTS_VS_CODE_GAP_AUDIT (do not skip):** Work through runbook §2.1 in order (GAP.1 → GAP.15). For each: implement in code → verify (test/lint/UI) → update docs/SOT_IMPLEMENTATION_SESSION_STATE.md "Last closed gap" / "Next gap to close". Do not skip any gap. All 15 gaps must be closed before "everything" is done.
+(4) **Phase GAP (if gaps reopen):** Work through runbook §2.1 (GAP.1 → GAP.15). For each: implement → verify → update SOT_IMPLEMENTATION_SESSION_STATE.md. (As of 2026-03-23, GAP.1–GAP.15 are **closed** — confirm before redoing.)
 
 (5) **After each phase** run verification (run_phase_h_verification.sh or pre_deploy_gate.sh) and fix failures. Update docs/SOT_IMPLEMENTATION_SESSION_STATE.md so the next run can resume.
 
-(6) **Run uninterrupted** until every [ ] is [x], each [x] has been verified, and **all GAP.1–GAP.15 are closed**. Do not stop until everything is completely done unless you hit context limits—then update session state and resume in the next run. When all phases and all gaps are complete, run the full gate once and record output per docs/RELEASE_CHECKLIST.md.
+(6) **Run uninterrupted** within the **chosen slice** until verified and logged. Do not assume "every historical `[ ]` in a mega-SOT" remains open. On context limits, update session state and resume.
 
 ---
 

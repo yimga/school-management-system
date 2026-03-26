@@ -20,7 +20,7 @@
 | `phase7_de` (view context) | Headline, metrics, urgent queue, next actions (max 3), activity rows |
 | `data-decision-engine="surface"` | Portal / control-plane shells where partial is not inlined |
 
-**Tests / gate:** `apps/dashboard/tests/test_phase7_decision_surface.py`, `apps/dashboard/tests/test_role_home_engine.py` (`SUPERADMIN` → `platform_ops`) — both in `scripts/pre_deploy_gate.sh` `TARGETED_HARDENING_TESTS`. **Template contract:** `scripts/verify_phase7_dashboard_markers.py` (same gate) — every path in §7 must contain `phase7_de`, `decision_engine_surface.html`, or `data-decision-engine=`.
+**Tests / gate:** `apps/dashboard/tests/test_phase7_decision_surface.py`, `apps/dashboard/tests/test_role_home_engine.py` (`SUPERADMIN` → `platform_ops`) — both in `scripts/pre_deploy_gate.sh` `TARGETED_HARDENING_TESTS`. **Template contract:** `scripts/verify_phase7_dashboard_markers.py` (same gate) — every path in §7 must contain `phase7_de`, `decision_engine_surface.html`, or `data-decision-engine=`. **Control-plane closure:** `scripts/verify_control_plane_hub_registry_drift.py` + `apps/dashboard/tests/test_control_plane_hub_registry_drift.py`.
 
 ---
 
@@ -89,12 +89,20 @@
 
 ## 7. Full-page dashboard template registry (enforced)
 
-**Source of truth:** `PHASE7_DASHBOARD_TEMPLATES` in `scripts/verify_phase7_dashboard_markers.py` (pre-deploy gate). Paths are under `templates/`.
+**Source of truth:** `apps/dashboard/phase7_dashboard_templates.py` (`PHASE7_DASHBOARD_TEMPLATES`); enforced by `scripts/verify_phase7_dashboard_markers.py` (pre-deploy gate). **Control-plane closure:** every `control_plane_base.html` extend is either in this registry or in `EXEMPT_CONTROL_PLANE_TEMPLATES` (`apps/dashboard/control_plane_hub_scan.py`), verified by `scripts/verify_control_plane_hub_registry_drift.py`. Paths are under `templates/`.
 
 | Path |
 |------|
 | `accounts/backend_dashboard.html` |
+| `accounts/certification_home.html` |
+| `accounts/district_lms_interop.html` |
+| `accounts/entity_console.html` |
+| `accounts/import_hub.html` |
+| `accounts/migration_wizard.html` |
 | `accounts/rbac_dashboard.html` |
+| `accounts/security_trust_hub.html` |
+| `accounts/tenant_impersonation_audit.html` |
+| `accounts/workflow_center.html` |
 | `admin/admin_dashboard.html` |
 | `analytics/at_risk_dashboard.html` |
 | `analytics/dashboard.html` |
@@ -105,22 +113,50 @@
 | `emis/dashboard.html` |
 | `evals/compliance_dashboard.html` |
 | `finance/dashboard.html` |
+| `finance/invoices.html` |
+| `marketplace/app_catalog.html` |
+| `marketplace/governance_console.html` |
 | `marketplace/incident_dashboard.html` |
+| `marketplace/installation_health.html` |
+| `marketplace/package_rollout.html` |
+| `marketplace/sandbox_inspector.html` |
+| `metadata/lineage_graph.html` |
+| `observability/platform_incidents.html` |
 | `observability/slo_dashboard.html` |
 | `parent/dashboard.html` |
 | `payroll/dashboard.html` |
 | `people/employer_dashboard.html` |
 | `requests/dashboard.html` |
+| `schoolops/ops_library.html` |
 | `schools/billing_dashboard.html` |
 | `schools/marketing_funnel_dashboard.html` |
 | `schools/parent_tenant_dashboard.html` |
+| `schools/super_backlog_unlock_center.html` |
+| `schools/super_command_center.html` |
+| `schools/super_control_health.html` |
 | `schools/super_dashboard.html` |
 | `schools/super_dashboard_packs.html` |
+| `schools/super_he_pack.html` |
+| `schools/super_analytics_overview.html` |
+| `schools/super_metadata_catalog.html` |
+| `schools/super_migration_cloud.html` |
+| `schools/super_native_roster_connectors.html` |
+| `schools/super_policy_diff.html` |
+| `schools/super_platform_operator_hub.html` |
+| `schools/super_pulse.html` |
+| `schools/super_runtime_truth_hub.html` |
 | `schools/super_support_dashboard.html` |
+| `schools/super_tenant_360.html` |
+| `schools/super_trust_center.html` |
+| `schools/super_wedge_index.html` |
+| `schools/super_wedge_operator_detail.html` |
+| `siteconfig/console_domains_hub.html` |
+| `siteconfig/console_domains_hub_control_plane.html` |
+| `siteconfig/feature_control_panel.html` |
 | `siteconfig/dashboard_configuration_hub.html` |
 | `siteconfig/dashboard_hub.html` |
 | `student/learning_home.html` |
-| `studio_os/experience_dashboard_visual_packs.html` |
+| `studio_os/partials/subpages/experience_dashboard_visual_packs.html` |
 | `teacher/dashboard.html` |
 
 **Adding a new full-page dashboard:** extend `PHASE7_DASHBOARD_TEMPLATES` and ship one of the three markers above before merge.

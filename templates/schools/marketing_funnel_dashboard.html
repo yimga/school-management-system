@@ -1,5 +1,5 @@
 {% extends "marketing/base_marketing.html" %}
-{% load i18n static %}
+{% load i18n static phase8_tags %}
 {% block title %}{% trans "Marketing funnel dashboard" %} | RunMyCampus{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
@@ -7,6 +7,7 @@
 {% endblock %}
 {% block content %}
 <div class="container py-4" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/marketing_funnel_dashboard.html" %}
   <h1 class="mb-4">{% trans "Conversion funnel" %}</h1>
   <p class="text-muted">{% trans "Visit → Discovery → Signup → Activation. Staff only." %}</p>
 
@@ -48,6 +49,8 @@
     </div>
   </section>
 
+  <details class="de-secondary-collapsible mb-3">
+  <summary>{% trans "Expand period breakdowns and channel metrics" %}</summary>
   <section class="mb-4">
     <h2 class="h5 mb-3">{% trans "Last 7 days" %}</h2>
     <div class="row g-3">
@@ -100,5 +103,6 @@
     </div>
   </section>
   {% endif %}
+  </details>
 </div>
 {% endblock %}

@@ -90,4 +90,12 @@ if [[ -f "scripts/release/run_health_check.sh" ]]; then
   bash scripts/release/run_health_check.sh
 fi
 
+
+# Optional Collabora readiness ping during predeploy (non-blocking unless enabled).
+if [[ "${RUN_COLLABORA_READINESS_CHECK:-0}" == "1" ]]; then
+  if [[ -n "${COLLABORA_BASE_URL:-}" ]]; then
+    run python scripts/verify_collabora_wopi_smoke.py \n      --app-base "${APP_BASE_URL:-}" \n      --collabora-base "${COLLABORA_BASE_URL}"
+  fi
+fi
+
 echo "[predeploy] complete"

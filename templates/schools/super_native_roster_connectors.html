@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n phase8_tags %}
 
 {% block cp_title %}{% trans "Native Clever / ClassLink console" %} — Manager{% endblock %}
 
@@ -14,7 +14,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="catalog" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/super_native_roster_connectors.html" %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold text-white">{% trans "Clever API v3.1 & ClassLink OneRoster host" %}</h1>
     <p class="text-white-50 small mb-0">{% trans "POST runs real HTTPS calls when tokens are valid. Do not paste production secrets on shared screens." %}</p>

@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n phase8_tags %}
 
 {% block cp_title %}{% trans "Policy diff" %}{% endblock %}
 
@@ -14,7 +14,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+  {% phase8_dashboard_declaration "schools/super_policy_diff.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Policy diff") subtitle=_("Compare platform default, country/region, blueprint, school override, temporary override.") action_url=dashboard_url action_text=_("Back to dashboard") %}
 
   {% if bundles_sample %}

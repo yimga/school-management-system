@@ -49,11 +49,19 @@ class PhaseBDomainSnapshotTests(TestCase):
         from apps.platform_runtime.models import RuntimeDefaults
 
         rd = RuntimeDefaults.get_singleton()
+        if rd:
+            rd.requests_reminder_interval_hours = None
         if rd and isinstance(rd.payload, dict):
             pl_rt = dict(rd.payload)
             pl_rt.pop("requests_reminder_interval_hours", None)
             rd.payload = pl_rt
-            rd.save(update_fields=["payload", "updated_at"])
+            rd.save(
+                update_fields=[
+                    "requests_reminder_interval_hours",
+                    "payload",
+                    "updated_at",
+                ]
+            )
         invalidate_effective_site_settings_cache()
         eff = get_effective_site_settings(request=None, school=None)
         self.assertEqual(getattr(eff, "requests_reminder_interval_hours", None), 99)

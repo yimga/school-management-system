@@ -1,0 +1,42 @@
+/**
+ * Studio OS control mode canvas — from studio_os/partials/control_mode_canvas.html (Phase 2).
+ */
+
+.studio-os__control-rail a.control-rail-link {
+  display: block;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--token-radius-sm, 0.375rem);
+  color: var(--color-base-700, #334155);
+  text-decoration: none;
+}
+
+.studio-os__control-rail a.control-rail-link:hover {
+  background: var(--color-base-100, #f1f5f9);
+  color: var(--color-base-900, #0f172a);
+}
+
+.studio-os__control-rail a.control-rail-link.active {
+  background: var(--color-primary-50, #eff6ff);
+  color: var(--color-primary-700, #1d4ed8);
+  font-weight: 500;
+}
+
+.studio-os__control-rail a.control-rail-link:focus-visible {
+  outline: 2px solid var(--color-primary-500, #3b82f6);
+  outline-offset: 2px;
+}
+
+.cp-outcome-pill {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.studio-os__control-rail--sized {
+  width: min(12.5rem, 100%);
+  min-width: 0;
+}
+
+.studio-os__platform-outcomes-label {
+  letter-spacing: 0.04em;
+}

@@ -3,6 +3,7 @@ Admin configuration for automation models.
 """
 
 from django.contrib import admin
+from django.db.models import Count
 from config.admin import platform_admin_site
 from unfold.admin import ModelAdmin
 from .models import (
@@ -163,6 +164,7 @@ class MigrationPlaybookAdmin(ModelAdmin):
 class MigrationQuarantineRecordAdmin(ModelAdmin):
     list_display = (
         "id",
+        "migration_run",
         "domain",
         "row_index",
         "issue_class",
@@ -170,8 +172,9 @@ class MigrationQuarantineRecordAdmin(ModelAdmin):
         "school",
         "created_at",
     )
-    list_filter = ("domain", "issue_class", "status")
-    search_fields = ("issue_class",)
+    list_filter = ("domain", "issue_class", "status", "migration_run")
+    search_fields = ("issue_class", "migration_run__migration_type")
+    raw_id_fields = ("migration_run",)
     readonly_fields = ("created_at",)
     list_per_page = 50
 
@@ -183,6 +186,7 @@ class MigrationRunAdmin(ModelAdmin):
         "school",
         "dry_run",
         "status",
+        "quarantine_record_count",
         "row_count",
         "created_count",
         "updated_count",
@@ -204,6 +208,15 @@ class MigrationRunAdmin(ModelAdmin):
     )
     list_per_page = 50
     actions = ["trigger_rollback_action"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(_quarantine_count=Count("quarantine_records"))
+
+    def quarantine_record_count(self, obj):
+        return getattr(obj, "_quarantine_count", 0)
+
+    quarantine_record_count.short_description = "Quarantine rows"
 
     def can_rollback_display(self, obj):
         if obj.migration_type == "rollback":

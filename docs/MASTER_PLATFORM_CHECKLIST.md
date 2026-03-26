@@ -29,7 +29,7 @@
 | `csrf_exempt` decorator hits | 13 total matches across 7 files; machine-classified by allowlist |
 | `cursor.execute(` hits | 349 total matches across 89 files; non-migration usage is machine-classified by allowlist |
 | Broad `except Exception` hits | 1,025 total matches across 333 files; high-risk files are baseline-enforced and ratcheted down |
-| `gilead` references | 54 files / 177 matches, now concentrated in docs, migrations, and approved residue paths |
+| `gilead` references | Full-repo grep still hits docs/migrations/tests/management commands; **runtime bar** = `python scripts/lint_gilead_residue.py` **PASS** on `apps/` (incl. JSON), `templates/`, `config/`, etc. (see [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md)) |
 | Client secret leak | Previously present via `GEMINI_API_KEY` in template context; removed in this hardening pass |
 | Tracked repo-root files | 21 allowlisted operational files; historical root docs moved to `docs/archive/root_history/` |
 | Root DB/runtime artifacts | Root SQLite snapshots moved to `artifacts/db_snapshots/`; `celerybeat-schedule` and tracked SBOM moved under `artifacts/` |

@@ -1,0 +1,183 @@
+/**
+ * Admin manager/tenant shell — rules migrated from templates/admin/base_site.html.
+ * Server-resolved --brand-success|--brand-warning|--brand-danger remain in-template (one small <style>).
+ */
+
+:root {
+  --platform-navy: #0b0e14;
+  --platform-gold: #d4af37;
+  --brand-primary: #d4af37;
+  --brand-accent: #d4af37;
+  --surface-deep: #0b0e14;
+  --admin-sidebar-active-border: #d4af37;
+}
+
+body,
+#content {
+  --color-primary: var(--brand-primary);
+  --color-primary-500: var(--brand-primary);
+  --color-primary-600: var(--brand-primary);
+}
+
+#container,
+#content,
+.dashboard-container,
+.main-content,
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+#container,
+#content {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+body.admin-index #content .container,
+body[data-dashboard-page] #content .container {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  padding: 0.4rem 0.75rem;
+  background: var(--color-base-900);
+  color: var(--color-base-50);
+  z-index: 2000;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.skip-link:focus {
+  left: 0.75rem;
+  top: 0.5rem;
+}
+
+.preview-cue {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--color-base-200, #e2e8f0);
+  font-size: 0.92rem;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-base-900, #0f172a);
+  margin-top: 12px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.45);
+}
+
+.preview-cue--active {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: #f97316;
+  color: #f97316;
+}
+
+.preview-cue--ready {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.preview-cue-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.preview-cue-actions a {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid currentcolor;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.preview-cue-actions a:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Critical: sidebar left of main (rem layout). */
+#page {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+}
+
+#page .admin-sidebar-column {
+  flex: 0 0 18rem !important;
+  width: 18rem !important;
+  max-width: min(18rem, 100%) !important;
+  min-width: 0 !important;
+}
+
+#page > #main {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+@media (max-width: 1279px) {
+  #page .admin-sidebar-column {
+    flex: 0 0 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Fallback if sidebar CSS is stale/cached. */
+#nav-sidebar ul,
+#nav-sidebar ol,
+#nav-sidebar-apps ul,
+#nav-sidebar-apps ol,
+#nav-sidebar .admin-sidebar-quick-list,
+#nav-sidebar .admin-sidebar-model-list,
+#nav-sidebar-apps .admin-sidebar-quick-list,
+#nav-sidebar-apps .admin-sidebar-model-list {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#nav-sidebar li,
+#nav-sidebar-apps li {
+  list-style: none !important;
+}
+
+#nav-sidebar .admin-sidebar-link,
+#nav-sidebar .admin-sidebar-model-link,
+#nav-sidebar .admin-sidebar-app-title a,
+#nav-sidebar-apps .admin-sidebar-link,
+#nav-sidebar-apps .admin-sidebar-model-link,
+#nav-sidebar-apps .admin-sidebar-app-title a {
+  text-decoration: none !important;
+}
+
+#nav-sidebar .admin-sidebar-app-title,
+#nav-sidebar-apps .admin-sidebar-app-title {
+  margin: 0.625rem 0.75rem 0.25rem !important;
+  line-height: 1.2 !important;
+}
+
+#nav-sidebar .admin-sidebar-app-title a,
+#nav-sidebar-apps .admin-sidebar-app-title a {
+  font-size: 1.0625rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+#nav-sidebar .admin-sidebar-model-link,
+#nav-sidebar-apps .admin-sidebar-model-link {
+  display: block !important;
+  padding: 0.3rem 0.9rem !important;
+  font-size: 0.95rem !important;
+  line-height: 1.35 !important;
+}

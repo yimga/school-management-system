@@ -90,6 +90,18 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             )
         except NoReverseMatch:
             context["integrations_changelist_url"] = None
+        context["admin_outcome_deck"] = None
+        if getattr(request, "user", None) and request.user.is_authenticated:
+            try:
+                from apps.siteconfig.admin_model_outcomes import (
+                    build_admin_outcome_deck_context,
+                )
+
+                context["admin_outcome_deck"] = build_admin_outcome_deck_context(
+                    request, is_platform_site=self.is_platform_site()
+                )
+            except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+                context["admin_outcome_deck"] = None
         return context
 
     def login(self, request, extra_context=None):

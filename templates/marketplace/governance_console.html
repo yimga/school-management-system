@@ -1,6 +1,8 @@
 {% extends "control_plane_base.html" %}
 {% load static %}
+{% load i18n %}
 {% load region_format %}
+{% load phase8_tags %}
 
 {% block cp_title %}Marketplace Governance{% endblock %}
 
@@ -10,7 +12,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell" data-page-archetype="catalog">
+<div class="container-fluid py-4 control-plane-shell" data-page-archetype="catalog" data-decision-engine="surface">
+{% phase8_dashboard_declaration "marketplace/governance_console.html" %}
   <section class="cp-hero cp-hero-compact mb-4">
     <div class="cp-hero-grid">
       <div>
@@ -72,6 +75,17 @@
       <strong class="cp-overview-value">{{ metrics.third_party_apps }}</strong>
       <span class="cp-overview-meta">{{ metrics.pending_security_reviews }} still awaiting security review</span>
     </article>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      {% url 'api:ai-marketplace-recommend' as api_mkt_rec %}
+      {% include "components/ai_json_api_card.html" with api_url=api_mkt_rec card_title=_("Marketplace recommendation (JSON)") card_hint=_('POST {"query":"..."} or {"institution_type":"..."}. Response includes recommendations and rationale (JSON).') field_id="govMktJson" default_body='{"query":"K-12 district prioritizing SIS interoperability and attendance dashboards"}' %}
+    </div>
+    <div class="col-lg-6">
+      {% url 'api:ai-trust-compliance-assistant' as api_ai_trust_gov %}
+      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust_gov card_title=_("Trust & compliance assistant") card_hint=_("Listing review, security reviews, and obligations — advisory only; not legal advice.") field_id="govTrustAiQ" %}
+    </div>
   </div>
 
   <div class="row g-4">

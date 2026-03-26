@@ -2,7 +2,7 @@
 
 **Purpose:** §4.1 of [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Measurable list of shared shell requirements.
 
-**Status:** **Spine DONE** — shell, all five mode hubs, cross-host deep links, preview/publish/rollback, activity, recommendations, role preview, and control-plane canvas parity (`shell_control_plane.html` + `partials/shell_main_content.html`) are implemented. **Product PARTIAL (SOT §4.1 / §1.7):** retire remaining legacy tool URLs; full uniform pack tooling — see [LEGACY_PATH_INVENTORY.md](LEGACY_PATH_INVENTORY.md).
+**Status:** **Spine DONE (§4 MET)** — shell, all five mode hubs, cross-host deep links, preview/publish/rollback, activity, recommendations, role preview, and control-plane canvas parity (`shell_control_plane.html` + `partials/shell_main_content.html`) are implemented. **§11.4 (continuous):** subtractive legacy URL retirement + pack-tooling depth per [LEGACY_PATH_INVENTORY.md](LEGACY_PATH_INVENTORY.md) — not a **PARTIAL** Studio spine vs §12.
 
 **Validation:** [STUDIO_OS_PHASE4_VALIDATION.md](STUDIO_OS_PHASE4_VALIDATION.md) — `python -m pytest apps/studio_os/tests/ -q`; line-by-line audit §7.
 

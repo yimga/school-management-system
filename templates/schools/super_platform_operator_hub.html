@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static i18n %}
+{% load static i18n phase8_tags %}
 
 {% block cp_title %}{% trans "Platform operator hub" %} — RunMyCampus Manager{% endblock %}
 
@@ -17,7 +17,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-1200 cp-operator-hub" data-page-archetype="catalog">
+<div class="container-fluid py-3 content-max-1200 cp-operator-hub" data-page-archetype="catalog" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/super_platform_operator_hub.html" %}
   <div class="cpoh-hero">
     <div class="cpoh-hero-inner">
       <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">

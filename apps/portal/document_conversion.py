@@ -21,6 +21,22 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+CONVERSION_TIMEOUT_SECONDS = int(os.getenv("LIBREOFFICE_CONVERSION_TIMEOUT_SECONDS", "120"))
+
+
+def _is_safe_source_path(source_path: str) -> bool:
+    """Allow conversion only from media/tmp/workspace roots."""
+    ap = os.path.abspath(source_path)
+    roots = [
+        os.path.abspath(os.getenv("MEDIA_ROOT", "media")),
+        os.path.abspath(os.getenv("TMPDIR", tempfile.gettempdir())),
+        os.path.abspath("."),
+    ]
+    try:
+        return any(ap.startswith(root) for root in roots)
+    except Exception:
+        return False
+
 
 def _find_soffice() -> str | None:
     """Locate LibreOffice/soffice binary across common install paths."""
@@ -76,6 +92,8 @@ def _convert_with_libreoffice(source_path: str, target_ext: str) -> bytes:
     source_path = os.path.abspath(source_path)
     if not os.path.isfile(source_path):
         raise RuntimeError(f"Source file not found: {source_path}")
+    if not _is_safe_source_path(source_path):
+        raise RuntimeError("Unsafe source path for conversion; path must be under approved roots.")
 
     soffice = _find_soffice()
     if not soffice:
@@ -99,7 +117,7 @@ def _convert_with_libreoffice(source_path: str, target_ext: str) -> bytes:
             ],
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=CONVERSION_TIMEOUT_SECONDS,
         )
         if result.returncode != 0:
             err = result.stderr or result.stdout or "unknown error"
@@ -177,3 +195,35 @@ def convert_html_to_docx(html_content: str, title: str = "Document") -> bytes:
         odt_path = Path(tmp_dir) / "input.odt"
         odt_path.write_bytes(odt_bytes)
         return convert_to_docx(str(odt_path))
+
+
+# Calc conversions
+def convert_calc_to_pdf(source_path: str) -> bytes:
+    """Convert spreadsheet sources (ODS/XLS/XLSX/CSV) to PDF."""
+    return _convert_with_libreoffice(source_path, "pdf")
+
+
+def convert_calc_to_xlsx(source_path: str) -> bytes:
+    """Convert spreadsheet sources to XLSX."""
+    return _convert_with_libreoffice(source_path, "xlsx")
+
+
+def convert_calc_to_ods(source_path: str) -> bytes:
+    """Convert spreadsheet sources to ODS."""
+    return _convert_with_libreoffice(source_path, "ods")
+
+
+# Impress conversions
+def convert_impress_to_pdf(source_path: str) -> bytes:
+    """Convert presentation sources (ODP/PPT/PPTX) to PDF."""
+    return _convert_with_libreoffice(source_path, "pdf")
+
+
+def convert_impress_to_pptx(source_path: str) -> bytes:
+    """Convert presentation sources to PPTX."""
+    return _convert_with_libreoffice(source_path, "pptx")
+
+
+def convert_impress_to_odp(source_path: str) -> bytes:
+    """Convert presentation sources to ODP."""
+    return _convert_with_libreoffice(source_path, "odp")

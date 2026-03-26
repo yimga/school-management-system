@@ -26,6 +26,14 @@ run_django_tests() {
 echo "[pre_deploy_gate] No committed .env / .env.local"
 bash scripts/check_no_committed_env.sh
 
+if [[ "${RUN_ENV_CONTRACT_GATE:-0}" = "1" ]]; then
+  echo "[pre_deploy_gate] Environment contract (render-core + optional collabora)"
+  python scripts/verify_env_contract.py --profile render-core
+  if [[ "${RUN_COLLABORA_ENV_CONTRACT_GATE:-0}" = "1" ]]; then
+    python scripts/verify_env_contract.py --profile render-collabora
+  fi
+fi
+
 echo "[pre_deploy_gate] Repo hygiene (no conflict markers, backup files)"
 python scripts/check_repo_hygiene.py
 
@@ -72,6 +80,8 @@ echo "[pre_deploy_gate] Phase 5 SiteSettings / siteconfig dismantling (docs + do
 python scripts/verify_phase_5_siteconfig.py
 echo "[pre_deploy_gate] Phase B Batch 3 burn-in (no SiteSettings ORM writes to removed branding FK columns)"
 python scripts/lint_phase_b_batch3_sitesettings_fk_writes.py
+echo "[pre_deploy_gate] SiteSettings.objects singleton choke point (models.py + helpers.py only)"
+python scripts/lint_sitesettings_orm_singleton.py --base .
 python scripts/lint_csrf_exempt_usage.py
 python scripts/lint_allow_any_usage.py
 python scripts/lint_raw_sql_usage.py
@@ -102,6 +112,7 @@ python scripts/validate_wedge_super_premium_phases.py --phase all
 
 echo "[pre_deploy_gate] Phase 7 dashboard surface markers (full registry)"
 python scripts/verify_phase7_dashboard_markers.py
+python scripts/verify_control_plane_hub_registry_drift.py
 
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
 python manage.py makemigrations --check --dry-run
@@ -118,8 +129,16 @@ python manage.py audit_tenant_models --strict
 echo "[pre_deploy_gate] Smoke URLs + Phase H URL reverse"
 run_django_tests apps.accounts.tests.test_smoke_urls apps.accounts.tests.test_phase_h_ux_verification.PhaseHUrlReverseTests
 
+echo "[pre_deploy_gate] Phase 3 tenant admin changelist + portal role smoke + crawl_portal_role_urls command"
+run_django_tests \
+  apps.siteconfig.tests.test_admin_model_outcomes \
+  apps.portal.tests.test_portal_role_smoke_crawl \
+  apps.portal.tests.test_crawl_portal_role_urls_command
+
 echo "[pre_deploy_gate] Phase H static audit (viewport, error templates, control-plane errors)"
 python scripts/phase_h_audit.py
+echo "[pre_deploy_gate] Phases 3–11 aggregated gate (nav/marketplace/Phase H static + pytest slice)"
+python scripts/verify_phases_3_11_gates.py
 echo "[pre_deploy_gate] §8.0.6 responsive lint (fixed-px layout; advisory, no fail)"
 python scripts/lint_section8_responsive.py || true
 echo "[pre_deploy_gate] §8.0.11 template audit (inline px / placeholders; advisory)"
@@ -128,6 +147,9 @@ echo "[pre_deploy_gate] North star a11y (accessibility.css in bases)"
 python scripts/lint_north_star_a11y.py || true
 echo "[pre_deploy_gate] North star i18n (key templates)"
 python scripts/lint_north_star_i18n.py || true
+
+echo "[pre_deploy_gate] i18n catalog drift (scanned strings vs locale/en/LC_MESSAGES/django.po)"
+python scripts/verify_i18n_catalog_fresh.py
 
 echo "[pre_deploy_gate] Targeted hardening regressions"
 TARGETED_HARDENING_TESTS=(
@@ -162,6 +184,7 @@ TARGETED_HARDENING_TESTS=(
   apps.schools.tests.test_provisioning_dispatch
   apps.setup_studio.tests
   apps.siteconfig.tests.test_world_engine_jit_broadcast_syllabus
+  apps.siteconfig.tests.test_i18n_catalog_builder
   apps.api.tests.test_api_v1_route_contract
   apps.api.tests.test_api_v1_manifest
   apps.api.tests.test_api_v1_contract_smoke
@@ -173,6 +196,7 @@ TARGETED_HARDENING_TESTS=(
   apps.platform_runtime.tests.test_rum_aggregate
   apps.schools.tests.test_super_beyond_reach
   apps.schools.tests.test_wedge_super_premium_phases
+  apps.schools.tests.test_premium_maturity_signals_report
   apps.schools.tests.test_advancement_tenant_crud
   apps.schoolops.tests.test_tenant_ops_wave4
   apps.schoolops.tests.test_tenant_ops_wave15_substitutes
@@ -205,7 +229,8 @@ run_django_tests apps.siteconfig.tests.test_admin_ui_smoke apps.api.tests.test_d
 echo "[pre_deploy_gate] Phase 7 core workflow regression (qa.md, automation.md)"
 python manage.py test_core_workflows --keepdb --noinput
 
-echo "[pre_deploy_gate] UX completion audit"
+echo "[pre_deploy_gate] UX completion audit (same migrated gate SQLite as migrate_gate_test_db — not db_working)"
+export DJANGO_UX_AUDIT_USE_GATE_DB=1
 python scripts/verify_ux_completion.py
 
 echo "[pre_deploy_gate] Browser visual QA"
@@ -250,6 +275,20 @@ fi
 echo "[pre_deploy_gate] Platform inventory refresh (post-steps, §7 alignment)"
 python scripts/generate_platform_inventory.py --write
 python scripts/generate_platform_inventory.py --check
+
+if [[ "${RUN_BACKLOG_UNLOCK_EVAL:-0}" = "1" ]]; then
+  echo "[pre_deploy_gate] Backlog unlock registry (cache + optional PlatformEventLog transitions)"
+  SLA_FLAG=()
+  if [[ "${BACKLOG_UNLOCK_FAIL_ON_SLA_BREACH:-0}" = "1" ]]; then
+    SLA_FLAG=(--fail-on-sla-breach)
+  fi
+  python manage.py evaluate_backlog_unlocks --profile full --update-cache --emit-events --quiet --timeout 600 "${SLA_FLAG[@]}"
+fi
+
+if [[ "${RUN_RELEASE_READINESS_GATE:-1}" = "1" ]]; then
+  echo "[pre_deploy_gate] Release readiness checklist gate (A/B/C/D)"
+  bash scripts/release_readiness_check.sh
+fi
 
 echo "[pre_deploy_gate] PASSED"
 exit 0

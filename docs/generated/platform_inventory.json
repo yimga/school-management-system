@@ -1,22 +1,22 @@
 {
   "baseline_counts": {
-    "allow_any": 67,
-    "csrf_exempt": 146,
-    "cursor_execute": 352,
-    "except_exception": 229,
-    "get_solo": 187,
-    "gilead": 734,
-    "gilead_files": 142,
-    "html_files": 602,
-    "management_commands": 146,
-    "markdown_files": 1003,
-    "migration_files": 642,
-    "print_calls": 586,
-    "python_files": 2143,
-    "site_settings": 1294
+    "allow_any": 66,
+    "csrf_exempt": 153,
+    "cursor_execute": 353,
+    "except_exception": 240,
+    "get_solo": 194,
+    "gilead": 784,
+    "gilead_files": 147,
+    "html_files": 616,
+    "management_commands": 155,
+    "markdown_files": 1031,
+    "migration_files": 663,
+    "print_calls": 680,
+    "python_files": 2260,
+    "site_settings": 1378
   },
   "doc_drift": {
-    "actual_installed_app_count": 41,
+    "actual_installed_app_count": 42,
     "documented_app_count": 38,
     "is_stale": true,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
@@ -53,12 +53,12 @@
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 97079,
-      "lines": 2798,
+      "bytes": 97210,
+      "lines": 2802,
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 91721,
+      "bytes": 94210,
       "lines": 2457,
       "path": "apps/siteconfig/views.py"
     },
@@ -68,18 +68,18 @@
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 73246,
-      "lines": 1897,
+      "bytes": 83859,
+      "lines": 2092,
       "path": "apps/studio_os/views.py"
     },
     {
-      "bytes": 64003,
-      "lines": 1497,
-      "path": "apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py"
+      "bytes": 68960,
+      "lines": 1870,
+      "path": "apps/portal/views_ai_gateway.py"
     },
     {
-      "bytes": 61639,
-      "lines": 1382,
+      "bytes": 65486,
+      "lines": 1471,
       "path": "config/settings.py"
     }
   ],
@@ -466,8 +466,23 @@
     },
     {
       "app": "platform_runtime",
+      "command": "evaluate_backlog_unlocks",
+      "path": "apps/platform_runtime/management/commands/evaluate_backlog_unlocks.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "platform_inventory",
       "path": "apps/platform_runtime/management/commands/platform_inventory.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "suggest_next_runtime_defaults_fields",
+      "path": "apps/platform_runtime/management/commands/suggest_next_runtime_defaults_fields.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "sync_ollama_models",
+      "path": "apps/platform_runtime/management/commands/sync_ollama_models.py"
     },
     {
       "app": "policies",
@@ -483,6 +498,11 @@
       "app": "portal",
       "command": "cleanup_photo_upload_tokens",
       "path": "apps/portal/management/commands/cleanup_photo_upload_tokens.py"
+    },
+    {
+      "app": "portal",
+      "command": "crawl_portal_role_urls",
+      "path": "apps/portal/management/commands/crawl_portal_role_urls.py"
     },
     {
       "app": "portal",
@@ -503,6 +523,11 @@
       "app": "portal",
       "command": "seed_kb_articles",
       "path": "apps/portal/management/commands/seed_kb_articles.py"
+    },
+    {
+      "app": "portal",
+      "command": "seed_office_documents",
+      "path": "apps/portal/management/commands/seed_office_documents.py"
     },
     {
       "app": "portal",
@@ -621,6 +646,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "ai_quality_scorecard",
+      "path": "apps/siteconfig/management/commands/ai_quality_scorecard.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "audit_tenant_models",
       "path": "apps/siteconfig/management/commands/audit_tenant_models.py"
     },
@@ -678,6 +708,11 @@
       "app": "siteconfig",
       "command": "compile_translations",
       "path": "apps/siteconfig/management/commands/compile_translations.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "crawl_admin_changelists",
+      "path": "apps/siteconfig/management/commands/crawl_admin_changelists.py"
     },
     {
       "app": "siteconfig",
@@ -756,6 +791,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "seed_cursor_twelve_phases",
+      "path": "apps/siteconfig/management/commands/seed_cursor_twelve_phases.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "seed_global_brand_registry",
       "path": "apps/siteconfig/management/commands/seed_global_brand_registry.py"
     },
@@ -793,6 +833,11 @@
       "app": "siteconfig",
       "command": "seed_workflow_dashboard_packs",
       "path": "apps/siteconfig/management/commands/seed_workflow_dashboard_packs.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "sync_i18n_catalog",
+      "path": "apps/siteconfig/management/commands/sync_i18n_catalog.py"
     },
     {
       "app": "siteconfig",
@@ -836,10 +881,11 @@
         "learning_institution",
         "marketing_leads",
         "north_star_api",
-        "platform_observability"
+        "platform_observability",
+        "portal_office_wopi"
       ],
-      "reviewed_endpoints": 34,
-      "reviewed_files": 12
+      "reviewed_endpoints": 36,
+      "reviewed_files": 13
     }
   },
   "site_settings_fields": [

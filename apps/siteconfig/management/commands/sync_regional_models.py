@@ -10,6 +10,7 @@ from typing import List
 
 from django.core.management.base import BaseCommand
 
+from apps.platform_runtime.ollama_model_sync import is_allowed_ollama_model_id
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.siteconfig.models import AIModelRegistry
 
@@ -27,6 +28,13 @@ _SYNC_REGIONAL_MODELS_ERRORS = (
 
 def _pull_model(model_id: str, cluster: str) -> None:
     """Run ollama pull in subprocess; log result."""
+    if not is_allowed_ollama_model_id(model_id):
+        logger.warning(
+            "Skipping pull: model_id failed allowlist (cluster=%s): %r",
+            cluster,
+            (model_id or "")[:80],
+        )
+        return
     try:
         logger.info("Pulling %s for cluster %s...", model_id, cluster)
         subprocess.run(

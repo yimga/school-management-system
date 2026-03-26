@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format tenant_hook %}
+{% load region_format tenant_hook phase8_tags %}
 {% load static %}
 {% block title %}Finance Dashboard{% endblock %}
 
@@ -17,6 +17,7 @@
 
 {% block content %}
 <div class="container-fluid py-2" data-page-archetype="role-home">
+{% phase8_dashboard_declaration "finance/dashboard.html" %}
 {% if finance_requests_count %}
   <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
     <div>

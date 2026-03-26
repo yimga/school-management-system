@@ -43,6 +43,11 @@ class RoleHomeEngineTests(TestCase):
         self.assertEqual(role_home["key"], "platform_ops")
         self.assertEqual(role_home["active_intent"], "executive")
 
+    def test_resolve_role_home_comms_maps_to_support(self):
+        role_home = resolve_role_home("COMMS_STAFF", None)
+        self.assertEqual(role_home["key"], "support")
+        self.assertIn("dashboard_type", role_home)
+
     def test_resolve_role_home_unknown_role_falls_back_to_principal(self):
         role_home = resolve_role_home("UNKNOWN_ROLE", None)
         self.assertEqual(role_home["key"], "principal")

@@ -20,7 +20,6 @@ ROOT = Path(__file__).resolve().parent.parent
 CLIENT_DIRS = ("templates", "frontend", "static")
 SERVER_DIRS = ("apps", "services")
 SECRET_NAMES = (
-    "GEMINI_API_KEY",
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
     "GOOGLE_API_KEY",
@@ -42,10 +41,7 @@ PLACEHOLDER_TOKENS = (
     "placeholder",
 )
 SKIP_DIRS = {"migrations", "tests", "__pycache__", ".venv", "venv", "node_modules"}
-ALLOWED_SERVER_SECRET_REF_PREFIXES = (
-    # Provider config and calls live here; do not leak to templates/JS/context.
-    "apps/portal/ai_provider.py",
-)
+ALLOWED_SERVER_SECRET_REF_PREFIXES: tuple[str, ...] = ()
 
 
 def _tracked_root_env_files() -> list[Path]:

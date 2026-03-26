@@ -14,7 +14,8 @@
 | Document generation | `apps/portal/document_generation.py` | subprocess.run, timeout=90 | Fixed command list |
 | Receipt OCR | `apps/finance/receipt_verification.py` | tesseract subprocess | Timeout; stderr captured |
 | Diagram | `apps/siteconfig/management/commands/generate_models_diagram.py` | graph_models subprocess | Timeout; management only |
-| Regional sync | `apps/siteconfig/management/commands/sync_regional_models.py` | ollama pull subprocess | Management only |
+| Regional sync | `apps/siteconfig/management/commands/sync_regional_models.py` | ollama pull subprocess | Management only; model_id allowlist |
+| Ollama env sync | `apps/platform_runtime/management/commands/sync_ollama_models.py` | ollama pull subprocess | Management + optional Celery beat; argv list, timeout, allowlist |
 | Tests | platform_runtime tests, test_theme_studio | run linters / subprocess | Test-only |
 
 ---

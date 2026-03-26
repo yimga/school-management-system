@@ -1,7 +1,7 @@
 # SOT Plan vs Code — Gap Audit
 
 > **Status (2026-03-23):** **Phase GAP (GAP.1–GAP.15)** is **closed** per [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md). §0.1.5 **internal** queue is **closed** per [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) (**Internal — CLOSED**).  
-> Sections **1–8 below** are a **historical snapshot (2026-03-16)** of plan-vs-code differences for **product UX / marketing / optional depth** — they are **not** duplicate open “internal backlog” rows. New work: scoped tickets + updates to [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) only.
+> Sections **1–8 below** are a **historical snapshot (2026-03-16)** of plan-vs-code differences for **product UX / marketing / §11.4 depth gaps** — they are **not** duplicate open “internal backlog” rows. Remaining gaps are **non-negotiable** sequenced work under SOT §11.4 unless **BLOCKED** or **external-only**. New work: scoped slices + updates to [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) only.
 
 **Purpose:** Items that appeared in plan documents but were **not fully implemented** at audit time. Use for discovery; **live status** = SOT §11.4 + external backlog.
 
@@ -49,7 +49,7 @@
 | **PATH_TO_100** III.67 (§6.23 observability) | **Request/runtime/workflow/package/migration tracing**. | No unified tracing implementation found across request/runtime/workflow/package/migration. |
 | **PATH_TO_100** III.22–III.25 (§6.10 marketplace) | Richer listing metadata; **previews/screenshots**; **trust markers**; **scope/permission visibility** in app listing and install flow. | Not audited line-by-line; doc says "Implement"; if any of these are missing in marketplace UI, they count as "in doc but not coded." |
 
-*Note:* PATH_TO_100 lists ~100+ items; this table samples high-impact or clearly absent items. A full audit would check each Phase III/IV/V row against code.
+*Note:* [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md) holds **slice-level Implement/N/A rows** for **§11.4** product depth — not a duplicate “open SOT checkbox count.” This table samples high-impact or clearly absent items; a full pass would walk each Phase II–V **Action** row against code when that slice is scheduled.
 
 ---
 

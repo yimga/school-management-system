@@ -933,3 +933,59 @@ body.control-plane-shell .cp-navbar {
 .cp-sidebar-col.cp-sidebar-compact {
   max-width: 4rem;
 }
+
+/* ========== Phase 2: control_plane_base.html — tokenized surfaces (was inline style=) ========== */
+body.control-plane-shell .cp-navbar.cp-navbar--surface {
+  background: var(--cp-bg, var(--platform-navy, var(--color-base-900)));
+  border-bottom: 1px solid rgba(125, 152, 187, 0.18);
+}
+.cp-header-search.cp-topbar-search-wrap {
+  min-width: min(100%, 220px);
+  max-width: 100%;
+}
+.cp-topbar-search-input {
+  min-width: 0;
+}
+#cpSearchResults.cp-search-results-panel--sized {
+  min-width: min(100vw - 2rem, 320px);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.cp-sidebar-inner.cp-sidebar-inner--surface {
+  background: var(--cp-panel-bg, rgba(8, 16, 30, 0.78));
+  border: 1px solid var(--cp-panel-border);
+}
+.cp-sidebar-offcanvas.cp-sidebar-offcanvas--surface {
+  background: var(--cp-panel-bg, rgba(8, 16, 30, 0.98));
+  border-right: 1px solid var(--cp-panel-border);
+}
+.cp-navbar-brand-img {
+  object-fit: contain;
+}
+
+/* Keyboard shortcuts overlay (control_plane_base + admin manager footer script) */
+.cp-keyboard-help-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.cp-keyboard-help-panel {
+  min-width: 280px;
+  max-width: 400px;
+}
+
+/* Tour FAB above Bootstrap offcanvas/backdrop where needed */
+.cp-tour-fab {
+  z-index: 1035;
+}
+
+/* Manager admin nav bridge (components/admin_nav_bridge.html) */
+.admin-cp-navbar-unified .cp-header-search .cp-topbar-search-input {
+  min-width: min(100%, 220px);
+}

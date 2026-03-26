@@ -3,7 +3,7 @@ URL patterns for FAQ and Knowledge Base
 """
 
 from django.urls import path
-from . import views_kb
+from . import views_kb, views_office
 
 app_name = "kb"
 
@@ -43,6 +43,24 @@ urlpatterns = [
         name="kb_comment_add",
     ),
     path("article/submit/", views_kb.kb_article_submit, name="kb_article_submit"),
+
+    # Office docs / Collabora (T4)
+    path("office/", views_office.office_document_list, name="office_document_list"),
+    path(
+        "office/<int:document_id>/open/",
+        views_office.office_document_open,
+        name="office_document_open",
+    ),
+    path(
+        "wopi/files/<int:document_id>",
+        views_office.wopi_check_file_info,
+        name="wopi_check_file_info",
+    ),
+    path(
+        "wopi/files/<int:document_id>/contents",
+        views_office.wopi_file_contents,
+        name="wopi_file_contents",
+    ),
     # Search
     path("search/", views_kb.kb_search, name="kb_search"),
     # User contributions

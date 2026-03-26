@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load admin_health i18n static region_format %}
+{% load admin_health i18n static region_format phase8_tags %}
 
 {% block backend_title %}Backend Dashboard{% endblock %}
 {% block body_extra_class %}
@@ -306,6 +306,7 @@ backend-shell dashboard-page-backend
 
 {% block content %}
   {% admin_health as health %}
+  {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
 
   {# Optional: load status strip via HTMX so initial render does not wait on this data #}
   <div class="backend-dashboard-content" data-decision-engine="surface">
@@ -604,64 +605,17 @@ backend-shell dashboard-page-backend
                 </div>
               </div>
             </div>
-            <div class="backend-role-home-grid">
-              <section class="backend-role-home-panel" aria-label="{{ role_home.queue_label }}">
-                <h4>{{ role_home.queue_label }}</h4>
-                <div class="backend-role-home-list">
-                  {% for item in dashboard_priority_queue %}
-                  <a class="backend-role-home-list-item text-decoration-none text-reset" href="{{ item.url|default:'#' }}">
-                    <div>
-                      <strong>{{ item.label }}</strong>
-                      <small class="text-muted">{{ item.meta|default:"Highest-friction item in the current queue." }}</small>
-                    </div>
-                    <span class="backend-role-home-pill {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">{{ item.value }}</span>
-                  </a>
-                  {% endfor %}
-                </div>
-              </section>
-              <section class="backend-role-home-panel" aria-label="{{ role_home.next_label }}">
-                <h4>{{ role_home.next_label }}</h4>
-                <div class="backend-role-home-list">
-                  {% for step in dashboard_next_best_actions %}
-                  <a class="backend-role-home-list-item text-decoration-none text-reset" href="{{ step.url }}">
-                    <div>
-                      <strong>{% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}</strong>
-                      <small class="text-muted">{{ step.reason|default:"Platform-guided next best action." }}</small>
-                    </div>
-                    <span class="backend-role-home-pill">{{ step.category|default:"Next" }}</span>
-                  </a>
-                  {% empty %}
-                  <div>
-                    <strong>No pending workflow steps</strong>
-                    <a class="backend-role-home-empty-link text-decoration-none" href="{% url 'studio_os:workflow_center' %}">
-                      <i class="bi bi-arrow-right"></i> Open workflow center
-                    </a>
-                  </div>
-                  {% endfor %}
-                </div>
-              </section>
-              <section class="backend-role-home-panel" aria-label="{{ role_home.recent_label }}">
-                <h4>{{ role_home.recent_label }}</h4>
-                <div class="backend-role-home-list">
-                  {% for item in dashboard_recent_activity %}
-                  <div class="backend-role-home-list-item">
-                    <div>
-                      <strong>{{ item.title|truncatechars:34 }}</strong>
-                      <small class="text-muted">{{ item.actor }} • {{ item.action }}</small>
-                    </div>
-                    <span class="backend-role-home-pill">{{ item.time_ago }}</span>
-                  </div>
-                  {% empty %}
-                  <div>
-                    <strong>No recent activity yet</strong>
-                    <a class="backend-role-home-empty-link text-decoration-none" href="{% url 'studio_os:workflow_center' %}">
-                      <i class="bi bi-arrow-right"></i> Start with workflow center
-                    </a>
-                  </div>
-                  {% endfor %}
-                </div>
-              </section>
+            {% if phase7_de and role_home_declaration %}
+            <div class="backend-role-home-decision card border-0 shadow-sm p-3 mt-2 mb-2" data-phase8-role-home="1" data-dashboard-type="{{ role_home_declaration.dashboard_type }}">
+              <p class="small text-muted mb-2">
+                <span class="badge text-bg-secondary me-2 text-uppercase">{{ role_home_declaration.dashboard_type }}</span>
+                {{ role_home_declaration.main_question }}
+              </p>
+              <p class="small mb-3 text-body-secondary"><strong>{% trans "Job to be done" %}:</strong> {{ role_home_declaration.jtbd }}</p>
+              <p class="visually-hidden" id="role-home-main-action-hint">{{ role_home_declaration.main_action }}</p>
+              {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
             </div>
+            {% endif %}
             <div class="backend-role-home-destinations">
               {% for destination in role_home_destinations %}
               <a class="backend-role-home-destination" href="{{ destination.url }}">
@@ -733,6 +687,8 @@ backend-shell dashboard-page-backend
     </div>
   </div>
 
+  <details class="de-secondary-collapsible mb-2">
+  <summary>{% trans "Expand modular workspace & planner rail" %}</summary>
   <div class="backend-v2-workspace {% if not backend_show_workspace_rail %}backend-v2-workspace--single{% endif %}">
     <div
       id="dashboard-layout"
@@ -1061,6 +1017,7 @@ backend-shell dashboard-page-backend
     </aside>
     {% endif %}
   </div>
+  </details>
   {{ command_palette|json_script:"backend-command-palette-data" }}
   <div id="backendCommandPalette" class="backend-cmd-palette" aria-hidden="true">
     <div class="backend-cmd-overlay" data-cmd-close></div>

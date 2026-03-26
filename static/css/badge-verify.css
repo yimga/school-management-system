@@ -1,0 +1,19 @@
+/**
+ * Standalone badge verification page (templates/portal/badge_verify.html).
+ */
+
+.verify-valid {
+  color: var(--school-accent);
+}
+
+.verify-invalid {
+  color: #dc3545;
+}
+
+.badge-verify-icon {
+  font-size: 3rem;
+}
+
+.badge-verify-card {
+  max-width: 28rem;
+}

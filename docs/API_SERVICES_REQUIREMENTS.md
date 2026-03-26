@@ -271,39 +271,19 @@ This document lists all APIs and external services needed to run the platform, i
 
 ## 7. **AI/ML SERVICES** 🤖
 
-### **Required for:** AI Copilot feature (optional)
+### **Required for:** AI Copilot / internal chat (optional)
 
-### **Options:**
+### **Default (RunMyCampus): self-hosted Ollama**
 
-#### **A. Google Gemini** (Freemium) ✅ Currently Used
-- **Provider:** Google
-- **Platform:** https://makersuite.google.com/app/apikey
-- **Free Tier:** 60 requests/minute, 1,500 requests/day
-- **Paid:** Pay-as-you-go after free tier
-- **Setup:** Requires `GEMINI_API_KEY`
-- **Best for:** Free tier is generous, good for school systems
+- **Product chat** (`general_chat`) uses **Ollama + rules fallback** only — no Google Gemini in code paths.
+- **Setup:** Install [Ollama](https://ollama.com), `ollama pull <model>`, set `OLLAMA_ENDPOINT` and `OLLAMA_MODEL` (see `.env.example` and `docs/OLLAMA_OPERATIONS_AND_UPDATES.md`).
+- **Cost:** Infrastructure you operate; no per-token bill to Google for copilot.
+- **Optional gateway tasks** (workflow draft, etc.) may use **vLLM** or **LiteLLM** proxy if configured — separate from copilot chat.
 
-#### **B. OpenAI GPT** (Paid)
-- **Provider:** OpenAI
-- **Platform:** https://openai.com/api
-- **Free Tier:** None (but $5 credit for new users)
-- **Paid:** $0.002-0.06 per 1K tokens
-- **Best for:** Best quality, but expensive
+### **Alternatives (not required for copilot)**
 
-#### **C. Anthropic Claude** (Paid)
-- **Provider:** Anthropic
-- **Platform:** https://anthropic.com
-- **Free Tier:** None
-- **Paid:** $0.008-0.024 per 1K tokens
-- **Best for:** High-quality responses
-
-#### **D. Free Alternatives:**
-- **Disable AI Copilot** (Free)
-  - Feature can be disabled
-  - **Cost:** FREE
-  - **Use:** If budget is tight
-
-**Recommendation:** Use Google Gemini free tier (already configured), disable if not needed.
+- **Disable AI** — set `AI_GATEWAY_ENABLED=0` or leave Ollama down; rules fallback may still respond if enabled.
+- Third-party SaaS LLMs are **not** wired for in-product chat in this repository.
 
 ---
 
@@ -428,7 +408,7 @@ This document lists all APIs and external services needed to run the platform, i
 | **Payments** | ⚠️ Optional | **Manual Entry** ✅ | MTN MoMo/Orange Money API | **Start with Manual Entry (FREE)** - No API fees! |
 | **Database** | ✅ Yes | SQLite (dev) | PostgreSQL (prod) | SQLite dev, PostgreSQL (Supabase free) prod |
 | **Cache/Redis** | ⚠️ Optional | LocMemCache | Redis Cloud | Start with LocMemCache (free), add Redis later |
-| **AI Copilot** | ⚠️ Optional | Disable | Google Gemini (free tier) | Use Gemini free tier (60 req/min) or disable |
+| **AI Copilot** | ⚠️ Optional | Disable | Self-hosted Ollama | Run Ollama on your network or disable; see `docs/OLLAMA_OPERATIONS_AND_UPDATES.md` |
 | **Monitoring** | ✅ Recommended | Prometheus (free) | Sentry (free tier) | Use Prometheus + Sentry free tier |
 | **Static Files** | ✅ Yes | WhiteNoise | Cloudflare R2 | Keep WhiteNoise (free), migrate to R2 later |
 | **GeoIP** | ✅ Yes | MaxMind GeoLite2 | - | Use MaxMind (free, already integrated) |
@@ -444,7 +424,7 @@ For a school in Buea, Cameroon to run the platform with **zero API costs**:
 3. **Payments:** **Manual Payment Entry** (free) - Parents pay via MTN MoMo/Orange Money, admin records payment
 4. **Database:** SQLite (dev) or PostgreSQL (Supabase free tier - 500MB)
 5. **Cache:** LocMemCache (free) - Built into Django
-6. **AI:** Disable AI Copilot (free) - Or use Google Gemini free tier (60 req/min)
+6. **AI:** Disable AI Copilot (free) — or run **Ollama** on your own hardware (no Google API key)
 7. **Monitoring:** Prometheus (free, self-hosted) - Already integrated
 8. **Static Files:** WhiteNoise (free) - Already configured
 9. **GeoIP:** MaxMind GeoLite2 (free) - Already integrated
@@ -487,7 +467,7 @@ For a production deployment in Buea, Cameroon with reliability:
    - **Note:** You can use BOTH - parents choose their preferred mobile money
 4. **Database:** PostgreSQL on Supabase (free tier) or Railway ($5/month)
 5. **Cache:** Redis on Upstash (free tier) or Railway ($5/month)
-6. **AI:** Google Gemini (free tier)
+6. **AI:** Self-hosted **Ollama** or disable
 7. **Monitoring:** Sentry (free tier) + Prometheus (free)
 8. **Static Files:** WhiteNoise (free) or Cloudflare R2 (free tier)
 9. **GeoIP:** MaxMind GeoLite2 (free)
@@ -501,8 +481,7 @@ For a production deployment in Buea, Cameroon with reliability:
 ## WHERE TO GET API KEYS
 
 ### **Free Services:**
-1. **Google Gemini:** https://makersuite.google.com/app/apikey
-2. **Supabase (PostgreSQL):** https://supabase.com
+1. **Supabase (PostgreSQL):** https://supabase.com
 3. **Upstash (Redis):** https://upstash.com
 4. **MaxMind GeoLite2:** https://dev.maxmind.com/geoip/geolite2-free-geoip-database
 5. **SendGrid (100 emails/day):** https://sendgrid.com
@@ -565,8 +544,9 @@ DATABASE_URL=postgres://user:pass@host:5432/dbname
 # Redis (Optional - Free tier available)
 REDIS_URL=redis://host:6379/0
 
-# AI Copilot (Google Gemini - Free tier)
-GEMINI_API_KEY=
+# AI Copilot (self-hosted Ollama — see docs/OLLAMA_OPERATIONS_AND_UPDATES.md)
+OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+OLLAMA_MODEL=llama3
 
 # Monitoring (Sentry - Free tier)
 SENTRY_DSN=

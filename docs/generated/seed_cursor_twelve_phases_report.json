@@ -1,0 +1,38 @@
+{
+  "from_phase": 10,
+  "to_phase": 10,
+  "dry_run": true,
+  "continue_on_error": true,
+  "steps": [
+    {
+      "phase": 10,
+      "phase_title": "Marketplace / packs / migration",
+      "command": "seed_marketplace_apps",
+      "status": "ok",
+      "elapsed_ms": 34
+    },
+    {
+      "phase": 10,
+      "phase_title": "Marketplace / packs / migration",
+      "command": "seed_provider_registry",
+      "status": "ok",
+      "elapsed_ms": 3
+    },
+    {
+      "phase": 10,
+      "phase_title": "Marketplace / packs / migration",
+      "command": "seed_migration_profiles",
+      "status": "ok",
+      "elapsed_ms": 9
+    },
+    {
+      "phase": 10,
+      "phase_title": "Marketplace / packs / migration",
+      "command": "seed_finance_defaults",
+      "status": "ok",
+      "elapsed_ms": 1
+    }
+  ],
+  "elapsed_ms": 77,
+  "status": "ok"
+}

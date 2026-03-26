@@ -24,7 +24,10 @@ class TaskTiersTests(SimpleTestCase):
         self.assertIn(TaskType.CONFIG_EXPLAIN.value, tiers)
         self.assertIn(TaskType.WORKFLOW_DRAFT.value, tiers)
         self.assertIn("ollama", tiers.get(TaskType.CONFIG_EXPLAIN.value, []))
-        self.assertIn("rules", tiers.get(TaskType.GENERAL_CHAT.value, [])[-1:] or ["rules"])
+        self.assertEqual(
+            tiers.get(TaskType.GENERAL_CHAT.value, []),
+            ["ollama", "rules"],
+        )
 
 
 class InvokeTests(TestCase):

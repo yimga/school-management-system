@@ -19,7 +19,7 @@ Single source for allowed technology choices and the **no-paid-API** rule. No co
 
 ## No-API rule
 
-**No external SaaS APIs for core features; self-hosted only.** Tenant data and core workflows (grading, attendance, finance, AI-assisted support, reports) must not depend on paid or third-party SaaS APIs. Opt-in paid APIs (e.g. Gemini) are allowed only when the tenant has explicitly approved and the provider is configured; the default and recommended path is the sovereign stack above.
+**No external SaaS APIs for core features; self-hosted only.** Tenant data and core workflows (grading, attendance, finance, AI-assisted support, reports) must not depend on paid or third-party SaaS APIs. **In-product chat uses self-hosted Ollama** (see `docs/OLLAMA_OPERATIONS_AND_UPDATES.md`). Optional **LiteLLM** proxy for specific gateway tasks is separate and subject to data-tier rules in `docs/architecture/ai_orchestration.md`.
 
 ## Vector store (AI memory)
 

@@ -12,6 +12,8 @@ from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
+from django.core.exceptions import SuspiciousOperation
+from django.core.signing import BadSignature
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -25,6 +27,13 @@ from apps.accounts.security_health import (
 )
 from apps.accounts.security_audit import lockdown_user_account, log_security_event
 from apps.accounts.models import SecurityAuditLog
+
+_SECURITY_SESSION_DECODE_ERRORS = (
+    ValueError,
+    TypeError,
+    SuspiciousOperation,
+    BadSignature,
+)
 
 
 @login_required
@@ -59,9 +68,10 @@ def api_security_activity(request):
     user = request.user
     school = getattr(request, "school", None)
     limit = min(int(request.GET.get("limit", 30)), 100)
-    qs = SecurityAuditLog.objects.filter(user=user).order_by("-created_at")[:limit]
+    qs = SecurityAuditLog.objects.filter(user=user)
     if school:
         qs = qs.filter(school=school)
+    qs = qs.order_by("-created_at")[:limit]
     events = []
     for e in qs:
         events.append(

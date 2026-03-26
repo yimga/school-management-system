@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load static %}
+{% load static phase8_tags %}
 {# §8.3 Page archetype: Operational Workbench — operator workflow steps and links #}
 {% block backend_title %}Workflow Center{% endblock %}
 
@@ -14,5 +14,7 @@
 {% endblock %}
 
 {% block content %}
+<span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
+{% phase8_dashboard_declaration "accounts/workflow_center.html" %}
 {% include "accounts/partials/workflow_center_main.html" %}
 {% endblock %}

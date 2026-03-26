@@ -1,5 +1,5 @@
-{% load i18n %}
-<div class="container-fluid py-2 px-0 px-md-2" style="max-width: 100%; width: 100%; min-width: 0; overflow-x: clip;" data-page-archetype="operational-workbench">
+{% load i18n static %}
+<div class="container-fluid py-2 px-0 px-md-2" style="max-width: 100%; width: 100%; min-width: 0; overflow-x: clip;" data-page-archetype="{% if current_mode == 'control' %}decision-console{% else %}studio-workspace{% endif %}">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
   {# Primary 8-pill nav is on control_plane_base (manager); do not duplicate here. #}
   <div class="d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}">
@@ -20,6 +20,9 @@
     </h1>
   </div>
 
+  {% url 'api:ai-studio-os-assistant' as api_studio_ai %}
+  {% include "components/ai_guided_assistant_card.html" with api_url=api_studio_ai card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Experience, Automation, Outputs, Launch, and Control. Publishing still requires explicit preview and human confirmation.") studio_mode=current_mode|default:"" field_id="studioOsAiQ" %}
+
   <div class="studio-os">
     <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation">
       <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>
@@ -32,7 +35,9 @@
     </nav>
 
     <main class="studio-os__canvas" id="studio-canvas" role="main" tabindex="-1">
-        {% if not current_mode %}
+        {% if studio_native_canvas_partial %}
+          {% include studio_native_canvas_partial %}
+        {% elif not current_mode %}
           <p class="text-muted mb-3">{% trans "One workspace for experience, automation, outputs, launch, and control. Choose a mode to start." %}</p>
           {% if request.public_host_kind == 'manager' %}
           <p class="small text-muted mb-3">{% trans "On the manager host, open a mode below to use Theme & colors, Workflow hub, Report library, Launch checklist, or Feature control. Select a school from the dashboard for embedded preview in the canvas." %}</p>

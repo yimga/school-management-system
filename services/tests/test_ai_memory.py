@@ -81,3 +81,28 @@ class AIMemoryServiceTests(TestCase):
             {row["conversation_id"] for row in staff_results},
             {"staff-config", "general-help"},
         )
+
+    def test_policy_scope_prefers_tenant_row_over_global_at_equal_embedding(self):
+        school_id = uuid4()
+        # Same embedding vector → equal cosine; tenant-specific policy should rank first.
+        AIEmbeddingStore.objects.create(
+            school_id=None,
+            conversation_id="global-policy",
+            scope="policy",
+            text_hash="global-policy",
+            embedding=[1.0, 0.0],
+            metadata={"source": "PolicyBundle", "visibility": "tenant"},
+        )
+        AIEmbeddingStore.objects.create(
+            school_id=school_id,
+            conversation_id="tenant-policy",
+            scope="policy",
+            text_hash="tenant-policy",
+            embedding=[1.0, 0.0],
+            metadata={"source": "PolicyBundle", "visibility": "tenant"},
+        )
+        results = AIMemoryService.search_similar(
+            str(school_id), "policy", [1.0, 0.0], limit=5
+        )
+        self.assertGreaterEqual(len(results), 2)
+        self.assertEqual(results[0]["conversation_id"], "tenant-policy")

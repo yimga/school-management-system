@@ -27,15 +27,19 @@ PLATFORM_DEFAULT_SITE_NAME = "RunMyCampus"
 PLATFORM_DEFAULT_SCHOOL_CODE = "RMC"
 PLATFORM_DEFAULT_TAGLINE = "Education management for every school."
 PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL = "support@runmycampus.com"
-LEGACY_PLACEHOLDER_REPORT_DOMAINS = {"".join(["g", "ilead", "tech", ".", "edu"])}
-LEGACY_PLACEHOLDER_SITE_NAMES = {"", "School System"}
-LEGACY_PLACEHOLDER_SCHOOL_CODES = {"", "GIL"}
-LEGACY_PLACEHOLDER_TAGLINES = {
-    "",
-    "Knowledge ƒ?› Technology ƒ?› Excellence",
-    "Knowledge > Technology > Excellence",
-}
-LEGACY_PLACEHOLDER_REPORT_PHONES = {"", "+237 670 000 000"}
+# Empty or vendor demo seeds → platform defaults (normalization in models_support).
+_DEMO_SEED_REPORT_EMAIL_DOMAIN = "".join(["g", "ilead", "tech", ".", "edu"])
+PLATFORM_SCRUB_REPORT_PREVIEW_EMAIL_DOMAINS = frozenset({_DEMO_SEED_REPORT_EMAIL_DOMAIN})
+PLATFORM_SCRUB_SITE_NAMES = frozenset({"", "School System"})
+PLATFORM_SCRUB_SCHOOL_CODES = frozenset({"", "GIL"})
+PLATFORM_SCRUB_TAGLINES = frozenset(
+    {
+        "",
+        "Knowledge ƒ?› Technology ƒ?› Excellence",
+        "Knowledge > Technology > Excellence",
+    }
+)
+PLATFORM_SCRUB_REPORT_PREVIEW_PHONES = frozenset({"", "+237 670 000 000"})
 
 
 def _tenant_upload_to(subpath):
@@ -132,16 +136,32 @@ class SiteSettings(models.Model):
         verbose_name_plural = "Site Settings"
 
     def __getattr__(self, name: str):
-        """Phase B: behavioral columns removed from this table; read from RuntimeDefaults.payload."""
+        """Phase B: behavioral columns removed from this table; read from RuntimeDefaults."""
         if name.startswith("_"):
             raise AttributeError(name)
         try:
             from apps.platform_runtime.models import RuntimeDefaults
+            from apps.platform_runtime.runtime_defaults_first_class import (
+                RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES,
+                RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES,
+                runtime_defaults_first_class_string_is_blank,
+            )
 
             rt = RuntimeDefaults.get_singleton()
-            pl = rt.payload if rt and isinstance(rt.payload, dict) else {}
-            if name in pl:
-                return pl[name]
+            if rt is not None:
+                # Typed columns win over stale JSON payload (same order as resolver merge).
+                if name in RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES:
+                    val = getattr(rt, name, None)
+                    if name in RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES:
+                        if val is not None and not runtime_defaults_first_class_string_is_blank(
+                            val
+                        ):
+                            return val
+                    elif val is not None:
+                        return val
+                pl = rt.payload if isinstance(rt.payload, dict) else {}
+                if name in pl:
+                    return pl[name]
         except (AttributeError, ImportError, TypeError, ValueError):
             pass
         if is_runtime_payload_shadow_key(name):
@@ -158,13 +178,31 @@ class SiteSettings(models.Model):
         if not updates:
             return
         from apps.platform_runtime.models import RuntimeDefaults
+        from apps.platform_runtime.runtime_defaults_first_class import (
+            RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES,
+            RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES,
+        )
 
         obj, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
         merged = dict(obj.payload or {})
+        first_class_names = set(RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES)
+        update_fields = ["payload", "updated_at"]
         for key, value in updates.items():
-            merged[key] = _site_settings_json_safe(value)
+            safe_value = _site_settings_json_safe(value)
+            if key in first_class_names:
+                if (
+                    key in RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES
+                    and isinstance(safe_value, str)
+                    and not safe_value.strip()
+                ):
+                    safe_value = None
+                setattr(obj, key, safe_value)
+                merged.pop(key, None)
+                update_fields.append(key)
+            else:
+                merged[key] = safe_value
         obj.payload = merged
-        obj.save(update_fields=["payload", "updated_at"])
+        obj.save(update_fields=list(dict.fromkeys(update_fields)))
 
     @classmethod
     def _ensure_preview_columns(cls) -> None:
@@ -468,11 +506,28 @@ class SiteSettings(models.Model):
         exclude_owners: set[str] | None = None,
     ) -> dict[str, object]:
         """Return JSON-safe SiteSettings payload filtered to one ownership domain or exclusion set."""
+        runtime_defaults = None
+        first_class_keys: set[str] = set()
+        try:
+            from apps.platform_runtime.models import RuntimeDefaults
+            from apps.platform_runtime.runtime_defaults_first_class import (
+                RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES,
+            )
+
+            runtime_defaults = RuntimeDefaults.get_singleton()
+            first_class_keys = set(RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES)
+        except Exception:
+            runtime_defaults = None
+            first_class_keys = set()
+
         if owner and owner not in OWNERSHIP_DOMAINS:
             raise ValueError(f"Unknown SiteSettings ownership domain: {owner}")
         excluded = set(exclude_owners or set())
         payload: dict[str, object] = {}
         for name in self.owned_field_names(owner=owner, exclude_owners=excluded):
+            if runtime_defaults is not None and name in first_class_keys:
+                payload[name] = _site_settings_json_safe(getattr(runtime_defaults, name, None))
+                continue
             try:
                 field = self._meta.get_field(name)
             except FieldDoesNotExist:

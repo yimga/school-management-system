@@ -2,7 +2,8 @@
 <!DOCTYPE html>
 <html lang="{{ request.LANGUAGE_CODE|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %}
       data-surface="marketing"
-      data-theme="{% if PUBLIC_BRAND_MODE %}system{% else %}light{% endif %}">
+      data-theme="{% if PUBLIC_BRAND_MODE %}system{% else %}light{% endif %}"
+      {% if PUBLIC_BRAND_MODE %}style="--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:'#0f172a' }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:'#f59e0b' }};"{% endif %}>
 <head>
   <meta charset="utf-8">
   <script>
@@ -36,16 +37,9 @@
   <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
+  <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
   <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
-  {% if PUBLIC_BRAND_MODE %}
-  <style>
-    :root{
-      --mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:"#0f172a" }};
-      --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:"#0f172a" }};
-      --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:"#f59e0b" }};
-    }
-  </style>
-  {% endif %}
+  {# Public brand CSS variables on html[style] when PUBLIC_BRAND_MODE (Phase 2). #}
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
   <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-fluid-everywhere.css' %}">

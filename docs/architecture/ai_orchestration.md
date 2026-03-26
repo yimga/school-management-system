@@ -5,10 +5,10 @@ All LLM usage goes through a single orchestration layer. **No browser or front-e
 ## AI Gateway (task-based routing)
 
 - **Entry:** `services.ai_gateway.invoke(task_type, prompt, user_query=..., metadata=..., response_schema=...)` → `(result, meta)`.
-- **Task types:** config_explain, setup_recommend, workflow_draft, policy_explain, doc_classify, semantic_search, migration_mapping, admin_copilot, support_suggest, narrative, general_chat.
+- **Task types:** config_explain, setup_recommend, workflow_draft, policy_explain, doc_classify, semantic_search, migration_mapping (plus migration_fingerprint, migration_parity), admin_copilot, support_suggest, narrative, general_chat, and domain-guided tasks: interop_assistant, runtime_config_explain, observability_assistant, billing_usage_explain, trust_compliance_assistant, studio_os_assistant (see `TaskType` in `services/ai_gateway.py`).
 - **Tiers:** Ollama (lightweight/private), vLLM (structured JSON, throughput), LiteLLM (routing, fallback, premium), rules (fallback). Routing table: `AI_GATEWAY_TASK_TIERS` or defaults in `services/ai_gateway.py`.
 - **Structured output:** For workflow_draft, policy_explain, migration_mapping, doc_classify the gateway validates responses via `services.ai_schemas` and returns typed objects or fallback text.
-- **Audit:** Every invoke logs task_type, tier, model, latency_ms, tenant_id, school_id, outcome (success/failure/fallback). Data-tier check: premium (LiteLLM/Gemini) is skipped when sensitivity disallows it or the prompt payload contains detected PII.
+- **Audit:** Every invoke logs task_type, tier, model, latency_ms, tenant_id, school_id, outcome (success/failure/fallback). Data-tier check: premium (**LiteLLM** only) is skipped when sensitivity disallows it or the prompt payload contains detected PII. **`general_chat` uses Ollama + rules only** (no Google Gemini or other cloud LLM in that path).
 
 ## Single entry points
 
@@ -23,12 +23,11 @@ All LLM usage goes through a single orchestration layer. **No browser or front-e
 
 ## Provider order and adapters
 
-- **Gateway first:** When AI_GATEWAY_ENABLED, `generate_ai_response` uses `invoke("general_chat", ...)` which applies task-tier routing (Ollama → vLLM → LiteLLM → Gemini → rules).
-- **Preference (legacy path):** `AI_PROVIDER_PREFERENCE` (e.g. `ollama,gemini,rules`). Default: `ollama`, then `rules`.
-- **Ollama:** `services.inference.OllamaInferenceService` (region, dossier, cache, fallback, PII stripping). Used by gateway and ai_provider.
+- **Gateway first:** When AI_GATEWAY_ENABLED, `generate_ai_response` uses `invoke("general_chat", ...)` with tiers **`["ollama", "rules"]`** only (policy-aligned with internal chat).
+- **Preference (status UI):** `AI_PROVIDER_PREFERENCE` defaults to `ollama,rules`. Tokens such as `gemini` are **ignored** if present in env (legacy cleanup).
+- **Ollama:** `services.inference.OllamaInferenceService` (region, dossier, cache, fallback, PII stripping). Used by gateway and `apps.portal.ai_provider` for delegation. Set `OLLAMA_ENDPOINT`, `OLLAMA_MODEL`. Operations: [OLLAMA_OPERATIONS_AND_UPDATES.md](../OLLAMA_OPERATIONS_AND_UPDATES.md).
 - **vLLM:** `services.ai_gateway._call_vllm` (OpenAI-compatible completions; optional `response_format: json_object`). Set `VLLM_ENDPOINT`, `VLLM_MODEL`.
-- **LiteLLM:** `services.ai_gateway._call_litellm` (proxy URL). Set `LITELLM_PROXY_URL`, `LITELLM_MODEL`.
-- **Gemini:** `apps.portal.ai_provider._call_gemini` (REST). Key from env; gateway may route general_chat to gemini when allowed.
+- **LiteLLM:** `services.ai_gateway._call_litellm` (proxy URL). Set `LITELLM_PROXY_URL`, `LITELLM_MODEL`. Used for tasks that list `litellm` in `DEFAULT_TASK_TIERS` — **not** for `general_chat`.
 - **Rules fallback:** When no live provider returns, `_rules_fallback`; no external call.
 
 ## Prompts, RAG, audit
@@ -43,16 +42,16 @@ All LLM usage goes through a single orchestration layer. **No browser or front-e
 
 - **portal/views_ai_copilot:** Uses `generate_ai_response` only.
 - **communication/narrative_feedback:** Uses `generate_ai_response` only.
-- **portal/tasks:** Uses `OllamaInferenceService.infer` (internal); async path does not call Gemini directly.
-- **api/consumers:** Uses `OllamaInferenceService.infer` only.
-- **portal/ai_provider:** Contains the only Gemini call (`_call_gemini`) and Ollama delegation (`_call_ollama` → OllamaInferenceService).
+- **portal/tasks:** Uses `OllamaInferenceService.infer` (internal).
+- **api/consumers:** Uses gateway / inference paths only (no direct browser provider calls).
+- **portal/ai_provider:** Ollama status + `generate_ai_response` → gateway; **no** Google Generative Language API.
 
-No `openai`, `anthropic`, or `google.generativeai` SDK imports in app code; Gemini is invoked via REST in ai_provider.
+No `openai`, `anthropic`, or `google.generativeai` SDK imports in app code for copilot chat; cloud premium is optional **LiteLLM proxy** only where a task tier lists it.
 
 ## Embeddings and semantic search
 
 - **Router:** `services.embeddings.get_embedding_provider()` returns Ollama or OpenAI-compatible provider per `AI_EMBEDDING_BACKEND`.
-- **Retrieval guardrails:** `AIMemoryService.search_similar(...)` includes tenant scoping, global fallback for shared knowledge, and metadata-based role/staff visibility filtering for indexed content.
+- **Retrieval guardrails:** `AIMemoryService.search_similar(...)` includes tenant scoping, global fallback for shared knowledge, metadata-based role/staff visibility filtering, and for **`policy`** scope a **tenant-first ranking boost** when `school_id` is set (school-specific policy bundles rank above global rows at equal embedding similarity).
 - **Storage:** `services.ai_memory.AIMemoryService` uses the router for `store`; `get_embedding_for_text()` for query embedding. Index: policies, blueprints, docs, config (per blueprint).
 
 ### Retrieval indexing (ingestion)
@@ -69,11 +68,39 @@ Ingest the following into the embedding store (scoped by tenant where applicable
 
 Run: `python manage.py index_ai_knowledge` (optionally `--scope policy`, `--school-id <uuid>`, `--dry-run`). Use after catalog changes or on a schedule. RAG for setup_assistant, policy_explain, and admin_copilot uses these scopes.
 
+### Scheduled RAG indexing (Celery beat, opt-in)
+
+When `ENABLE_AI_KNOWLEDGE_INDEX_BEAT=1` in the environment that runs **Celery beat and workers**, `config.settings.CELERY_BEAT_SCHEDULE` registers **`siteconfig.index_ai_knowledge_beat`** on a **daily** interval (same pattern as other opt-in beats). The task runs `python manage.py index_ai_knowledge` via `call_command`. **Requirements:** embedding provider must work from the worker host (`AI_EMBEDDING_*`). If embeddings are unavailable, the management command exits early (no crash). Disable the env flag to turn the schedule off.
+
+### AI quality scorecard loop (review metrics)
+
+- `POST /api/ai/feedback/` captures review-loop signals (`accepted`, `manual_correction`) for task+tier.
+- `python manage.py aggregate_ai_metrics` upserts request + review buckets into `AIGatewayMetric`.
+- `python manage.py ai_quality_scorecard --days 7` prints task-level rates (`acceptance_rate`, `manual_correction_rate`, `schema_fail_rate`, `failure_rate`) for operator review.
+- Optional weekly beat: `ENABLE_AI_QUALITY_SCORECARD_BEAT=1` runs `siteconfig.ai_quality_scorecard_beat` (aggregate + scorecard).
+
+### Migration playbooks (data plane, not LLM)
+
+`apps.automation.playbook_executor.execute_playbook` runs migration profiles in order. **Semantics:** **`FAILED`** stops the sequence on the first failed step (no automatic step retries — operators re-run a profile or playbook after fixing data). **`PARTIAL`** means at least one step completed with errors while the run continued; overall playbook status stays **`PARTIAL`** if any step was partial.
+
+Before execution, a **preflight confidence score** is computed from payload quality signals:
+
+- `required_field_coverage`
+- `duplicate_risk`
+- `rollback_readiness`
+- `quarantine_risk`
+
+If score is below `MIGRATION_PLAYBOOK_MIN_CONFIDENCE_SCORE` (default `70`), execution is blocked unless `override_reason` is explicitly provided by operator flow.
+
+Each `execute_playbook` call writes one **`AutomationExecutionLog`** row (`task_name=automation.playbook.execute`) with step summaries for audit (`failed_steps`, `partial_steps`, per-step `quarantine_count`) plus `preflight_confidence_score`, threshold, signal breakdown, and override metadata.
+
+**Quarantine:** `MigrationQuarantineRecord.migration_run` links rows to `MigrationRun` (`related_name=quarantine_records`). Platform admin lists quarantine counts on runs; the staff **Automation outcomes** console (`automation:outcomes_console`) shows **`quarantine_record_count`** per recent run.
+
 ## Data-tier matrix and per-feature data boundary
 
 - **Data-tier matrix:** Which data may be sent to which inference tier.
   - **Internal-only (Ollama / vLLM on-prem):** Any tenant data, PII (after stripping if configured), policies, config, workflow definitions, support context.
-  - **Premium / external (LiteLLM, Gemini):** Only non-PII, non–tenant-identifying content. Do not send: raw student/parent names, IDs, grades, invoices, or tenant-specific policy text that could re-identify. Allowed: anonymized summaries, public docs, generic workflow templates, migration field names (no row data).
+  - **Premium / external (LiteLLM proxy only):** Only non-PII, non–tenant-identifying content. Do not send: raw student/parent names, IDs, grades, invoices, or tenant-specific policy text that could re-identify. Allowed: anonymized summaries, public docs, generic workflow templates, migration field names (no row data).
 - **Enforcement:** Gateway uses `metadata.sensitivity_class` and `metadata.disallow_external_model`. When `sensitivity_class == "high"` or `disallow_external_model` is set, premium tiers are skipped. Per-feature boundaries below are enforced in the productized views (what is included in the prompt and what is retrieved from RAG).
 
 | Feature | Allowed tenant data | External routing | Retrieval required | Structured output | Retention (prompts/responses) |
@@ -91,7 +118,7 @@ Run: `python manage.py index_ai_knowledge` (optionally `--scope policy`, `--scho
 
 Callers may pass the following in `metadata` to influence routing and behaviour (all optional):
 
-- **sensitivity_class** (`"low"` \| `"medium"` \| `"high"`): When `"high"`, premium (LiteLLM/Gemini) is disabled for this request.
+- **sensitivity_class** (`"low"` \| `"medium"` \| `"high"`): When `"high"`, premium (**LiteLLM**) is disabled for this request.
 - **latency_target** (int, seconds): Hint for timeout; gateway caps provider timeout to this value when set (e.g. 5–90).
 - **output_type** (`"text"` \| `"json"`): Informational; can be used to prefer JSON-capable backends (e.g. vLLM with `response_format: json_object`).
 - **allowed_backends** (list of str): If set, only these tiers are tried (e.g. `["ollama", "rules"]` for internal-only). Order is respected; must be subset of configured tiers.
@@ -103,12 +130,14 @@ These are documented in `services.ai_gateway.invoke` and applied in routing/tier
 - **Persisted metrics:** `AIGatewayMetric` aggregates request volume, latency, failure rate, schema-validation failures, `cost_class`, `review_count`, `accepted_count`, and `manual_correction_count`.
 - **Metric sources:** `services.ai_gateway.invoke(...)` writes request buckets; `services.ai_gateway.record_feedback(...)` writes review-loop buckets; `python manage.py aggregate_ai_metrics` materializes both into the table.
 - **Feedback capture:** Product UIs can POST `/api/ai/feedback/` with `task_type`, `tier`, `request_id`, `request_date`, `accepted`, and `manual_correction` so operator acceptance rate and manual correction rate are queryable instead of inferred.
-- **Operator surfaces:** Platform admin exposes prompt registry, embedding store, and AI gateway metrics so prompt approval, indexed knowledge, and AI quality signals are visible from the control plane.
+- **Operator surfaces:** Platform admin exposes prompt registry, embedding store, and AI gateway metrics so prompt approval, indexed knowledge, and AI quality signals are visible from the control plane. **In-product API consoles** (guided + JSON cards and `super:ai_gateway_console`) are documented in the **In-browser operator surfaces** section above and in [AI_DOMAIN_ASSISTANT_REGISTRY.md](../AI_DOMAIN_ASSISTANT_REGISTRY.md).
 
 ## References
 
+- [OLLAMA_OPERATIONS_AND_UPDATES.md](../OLLAMA_OPERATIONS_AND_UPDATES.md) (self-hosted Ollama upgrades and verification)
 - `apps/portal/ai_provider.py`
 - `services/ai_gateway.py`, `services/ai_schemas.py`, `services/embeddings.py`
 - `services/inference.py`
+- `docs/AI_DOMAIN_ASSISTANT_REGISTRY.md` (HTTP AI endpoints + UI embedding inventory)
 - `docs/architecture/ai_tiered_ollama.md` (north-star stack; this plan is the single blueprint)
 - `docs/architecture/SERVICE_CATALOG.md` (Zone B AI adapter)

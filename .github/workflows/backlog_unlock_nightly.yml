@@ -1,0 +1,45 @@
+# Nightly: run backlog unlock matrix (registry scripts + pytest rows) so drift is caught even without a main push.
+# SLA calendar timers are tracked on deployments with persistent Django cache (super Refresh, Celery beat, post-deploy eval).
+name: Backlog unlock matrix (nightly)
+
+on:
+  schedule:
+    - cron: "20 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Migrate gate SQLite (pytest criteria in registry)
+        env:
+          DJANGO_TEST_DB_FILE: .django_test_dbs/nightly_backlog_unlock.sqlite3
+        run: python scripts/migrate_gate_test_db.py
+
+      - name: Full backlog evaluation
+        env:
+          DEBUG: "0"
+          LOG_LEVEL: WARNING
+          DJANGO_TEST_DB_FILE: .django_test_dbs/nightly_backlog_unlock.sqlite3
+        run: |
+          python manage.py evaluate_backlog_unlocks --profile full --timeout 600 --quiet --json > backlog_eval_snapshot.json
+
+      - name: Upload evaluation snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: backlog-eval-snapshot
+          path: backlog_eval_snapshot.json
+          retention-days: 14

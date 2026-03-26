@@ -6,6 +6,7 @@ reads from here when present, falling back to SiteSettings for file fields and l
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.db import models
 
 
@@ -25,17 +26,456 @@ class RuntimeDefaults(models.Model):
     """
     Platform-level default settings (migrated from SiteSettings).
     id=1 singleton; payload = JSON of attribute names -> values (JSON-serializable only).
-    Step 4 ownership: first-class columns (e.g. cache_rankings_interval_minutes) override payload
-    and SiteSettings when set; backfill via sync_from_site_settings / backfill_runtime_defaults.
+    First-class columns (see ``runtime_defaults_first_class``) override payload for those keys;
+    ``sms_api_key`` remains payload-only. Backfill via sync_from_site_settings / migrations.
     """
 
     payload = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # Step 4: first-class ownership; when non-null, get_effective_site_settings uses this.
     cache_rankings_interval_minutes = models.PositiveIntegerField(
         null=True,
         blank=True,
-        help_text="Owned by platform_runtime. When set, resolver uses this instead of SiteSettings.",
+        help_text="When set, resolver uses this instead of payload/SiteSettings.",
+    )
+    preview_mode_enabled = models.BooleanField(null=True, blank=True)
+    preview_note = models.TextField(blank=True, null=True)
+    skip_theme_publish_guard = models.BooleanField(null=True, blank=True)
+    sms_provider = models.CharField(max_length=64, blank=True, null=True)
+    sms_sender_id = models.CharField(max_length=64, blank=True, null=True)
+    email_from_address = models.CharField(max_length=255, blank=True, null=True)
+    whatsapp_support_number = models.CharField(max_length=64, blank=True, null=True)
+    whatsapp_admissions_number = models.CharField(max_length=64, blank=True, null=True)
+    enable_whatsapp_parent_portal = models.BooleanField(null=True, blank=True)
+    enable_whatsapp_staff_portal = models.BooleanField(null=True, blank=True)
+    marksheet_ocr_command = models.CharField(max_length=512, blank=True, null=True)
+    company_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Public company/school display name for branded shells and comms.",
+    )
+    company_email = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Public contact email shown on branded surfaces.",
+    )
+    company_phone = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="Public contact phone shown on branded surfaces.",
+    )
+    company_address = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Public mailing/address line used on branded pages and exports.",
+    )
+    company_slug = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Public short slug/identifier for links and headers.",
+    )
+    country = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="Platform default country code/name for public context.",
+    )
+    region = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="Platform default region label for public context.",
+    )
+    ministry_registration_code = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Public ministry registration identifier when applicable.",
+    )
+    ministry = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Platform default ministry label for public and registry-facing surfaces.",
+    )
+    default_region = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Platform default region profile key used by runtime/global registries.",
+    )
+    default_grading_scale = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Platform default grading scale key for runtime/global registries.",
+    )
+    admission_number_mode = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default admissions numbering mode (AUTO, MANUAL, AUTO_OR_MANUAL).",
+    )
+    admission_number_pattern = models.CharField(
+        max_length=1024,
+        blank=True,
+        null=True,
+        help_text="Default regex pattern for validating generated/admitted numbers.",
+    )
+    admission_number_strategy = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="Default admissions numbering strategy key.",
+    )
+    admission_number_template = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Default admissions numbering template with placeholders.",
+    )
+    admin_portal_stats_config = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default admin portal statistics configuration map.",
+    )
+    accent_color = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default accent color for runtime-resolved surfaces.",
+    )
+    danger_color = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default danger color token for runtime-resolved surfaces.",
+    )
+    custom_css = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Default custom CSS applied on runtime-resolved branded shells.",
+    )
+    admin_use_site_primary = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Whether admin shell should reuse site primary color by default.",
+    )
+    default_sidebar_collapsed = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default sidebar collapse preference for shells.",
+    )
+    default_dashboard_view = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="Default dashboard view key for runtime dashboards.",
+    )
+    default_refresh_rate = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Default dashboard auto-refresh interval in seconds.",
+    )
+    default_widgets_per_role = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default per-role dashboard widgets map.",
+    )
+    portal_announcements = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default portal announcements cards list.",
+    )
+    portal_quick_actions = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default portal quick action items list.",
+    )
+    portal_recent_grades = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default portal recent grades cards list.",
+    )
+    portal_upcoming_assessments = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default portal upcoming assessments cards list.",
+    )
+    top_students_default_limit = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Default top-students list limit for runtime dashboards.",
+    )
+    site_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Default public site/school display name.",
+    )
+    primary_color = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default primary brand color for runtime-resolved surfaces.",
+    )
+    success_color = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default success color token for runtime-resolved surfaces.",
+    )
+    warning_color = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default warning color token for runtime-resolved surfaces.",
+    )
+    social_links = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default public social links collection.",
+    )
+    use_dark_mode = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default dark-mode preference for runtime-resolved branded surfaces.",
+    )
+    use_secondary_font_for_headings = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Whether secondary font is used for headings by default.",
+    )
+    default_portal_role_dual_role = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="Default dual-role portal preference key.",
+    )
+    enable_parent_portal = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default parent portal enabled toggle.",
+    )
+    enable_teacher_portal = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default teacher portal enabled toggle.",
+    )
+    backend_console_theme = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="Default backend console theme mode.",
+    )
+    header_bg_color = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default header background color token.",
+    )
+    footer_bg_color = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default footer background color token.",
+    )
+    theme_brightness = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default theme brightness mode.",
+    )
+    theme_harmony = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="Default theme harmony palette mode.",
+    )
+    grade_approval_enabled = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default grade-approval workflow toggle.",
+    )
+    grade_approval_auto_validate = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default grade-approval auto-validation toggle.",
+    )
+    enable_practical_assessment = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default practical-assessment toggle.",
+    )
+    enable_concurrent_mark_uploads = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default concurrent mark-upload toggle.",
+    )
+    enable_offline_mode = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default offline mode toggle.",
+    )
+    maintenance_mode = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default platform maintenance mode toggle.",
+    )
+    theme_pack = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Default theme pack slug for runtime shells.",
+    )
+    admin_theme_pack = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Default admin-shell theme pack slug.",
+    )
+    teacher_theme_pack = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Default teacher-shell theme pack slug.",
+    )
+    parent_theme_pack = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Default parent-shell theme pack slug.",
+    )
+    default_term_report_style = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Default report style key for term reports.",
+    )
+    default_annual_report_style = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Default report style key for annual reports.",
+    )
+    default_report_preview_type = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        help_text="Default report preview type key.",
+    )
+    enable_reports_pdf = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default reports PDF generation toggle.",
+    )
+    reports_require_approved_grades_before_publish = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default reports publish policy requiring approved grades.",
+    )
+    require_mfa_all_staff = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default policy requiring MFA setup for all staff roles.",
+    )
+    use_promotion_rule_for_pass = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default grading policy flag for promotion-rule pass logic.",
+    )
+    notify_parent_welcome_email = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default toggle for parent welcome-email notification.",
+    )
+    reports_use_approved_grades_only = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default report policy to use approved grades only.",
+    )
+    requests_reminder_interval_hours = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Default request reminder interval in hours (0 disables reminders).",
+    )
+    backend_feature_flags = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default backend feature-flag map.",
+    )
+    portal_features = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default portal feature-flag map.",
+    )
+    notification_channels = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default enabled notification channels list.",
+    )
+    require_mfa_roles = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Default role codes requiring MFA setup.",
+    )
+    offline_sync_conflict_resolution = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Default offline-sync conflict strategy (for example: show_both).",
+    )
+    compliance_profile_id = models.PositiveBigIntegerField(
+        blank=True,
+        null=True,
+        help_text="Default compliance profile pointer id (finance.ComplianceProfile).",
+    )
+    referral_bonus_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Default referral bonus amount.",
+    )
+    tagline = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text="Public marketing / platform tagline (short phrase).",
+    )
+    school_code = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Short institution code (e.g. stock ticker style) for labels and integrations.",
+    )
+    meta_description = models.CharField(
+        max_length=320,
+        blank=True,
+        null=True,
+        help_text="Default meta description for public marketing shells.",
+    )
+    branded_domain = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Canonical branded hostname for public links (no scheme).",
+    )
+    public_brand_primary_color = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="Marketing / control-plane navbar + hero (e.g. #0f172a).",
+    )
+    public_brand_accent_color = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        help_text="CTAs and links on public shells (e.g. #f59e0b).",
     )
 
     class Meta:
@@ -79,14 +519,20 @@ class RuntimeDefaults(models.Model):
         Callers must pass site_settings (e.g. SiteSettings.get_solo() in commands, self in SiteSettings.save).
         B1 allowlist shrink: no get_solo() in this module."""
         owner_set = set(owners or [])
+        from apps.platform_runtime.runtime_defaults_first_class import (
+            RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES,
+            collect_first_class_values_from_site_settings,
+            strip_runtime_defaults_first_class_keys_from_dict,
+        )
+
         payload = cls.build_payload_from_site_settings(
             site_settings,
             owners=owner_set,
             exclude_owners=exclude_owners,
         )
-        # Step 4: backfill first-class owned field from SiteSettings
-        cache_mins = getattr(site_settings, "cache_rankings_interval_minutes", None)
-        defaults = {"payload": payload, "cache_rankings_interval_minutes": cache_mins}
+        strip_runtime_defaults_first_class_keys_from_dict(payload)
+        fc_values = collect_first_class_values_from_site_settings(site_settings)
+        defaults: dict = {"payload": payload, **fc_values}
         obj, created = cls.objects.get_or_create(
             pk=1,
             defaults=defaults,
@@ -98,16 +544,16 @@ class RuntimeDefaults(models.Model):
                     for field_name in site_settings.owned_field_names(owner=owner):
                         merged_payload.pop(field_name, None)
                 merged_payload.update(payload)
+                strip_runtime_defaults_first_class_keys_from_dict(merged_payload)
                 obj.payload = merged_payload
             else:
+                strip_runtime_defaults_first_class_keys_from_dict(payload)
                 obj.payload = payload
-            obj.cache_rankings_interval_minutes = cache_mins
+            for fname in RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES:
+                setattr(obj, fname, fc_values.get(fname))
             obj.save(
-                update_fields=[
-                    "payload",
-                    "cache_rankings_interval_minutes",
-                    "updated_at",
-                ]
+                update_fields=list(RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES)
+                + ["payload", "updated_at"]
             )
         return obj, created
 
@@ -180,3 +626,79 @@ class PlatformEventLog(models.Model):
         verbose_name = "Platform event log"
         verbose_name_plural = "Platform event logs"
         ordering = ["-created_at"]
+
+
+class FleetGovernedChange(models.Model):
+    """
+    WHATS_LEFT §2.1 — auditable fleet change record (thin slice).
+
+    State machine coordinates operator intent; execution uses existing apply UIs
+    (staged activation, package rollout, feature control, etc.) linked via ``apply_surface_url``.
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        PENDING_APPROVAL = "PENDING_APPROVAL", "Pending approval"
+        SCHEDULED = "SCHEDULED", "Scheduled"
+        APPLYING = "APPLYING", "Applying"
+        SUCCEEDED = "SUCCEEDED", "Succeeded"
+        FAILED = "FAILED", "Failed"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    title = models.CharField(max_length=200, blank=True, default="")
+    change_type = models.CharField(
+        max_length=64,
+        db_index=True,
+        help_text="Logical class of change, e.g. PACKAGE_ROLLOUT, FEATURE_FLAG.",
+    )
+    status = models.CharField(
+        max_length=32,
+        choices=Status.choices,
+        default=Status.DRAFT,
+        db_index=True,
+    )
+    scope = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Target scope (tenant ids, segments, school keys, etc.).",
+    )
+    payload = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Apply hints / parameters for the operator completing work downstream.",
+    )
+    apply_surface_url = models.CharField(
+        max_length=512,
+        blank=True,
+        default="",
+        help_text="Named URL path or absolute link to the apply UI (staged activation, rollout, …).",
+    )
+    notes = models.TextField(blank=True, default="")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="fleet_governed_changes_created",
+    )
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="fleet_governed_changes_approved",
+    )
+    applied_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        verbose_name = "Fleet governed change"
+        verbose_name_plural = "Fleet governed changes"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        label = (self.title or "").strip() or self.change_type or "change"
+        return f"{label} ({self.pk})" if self.pk else label

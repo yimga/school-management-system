@@ -9,7 +9,7 @@
 ## 1. Backend-only AI gateway
 
 - **Single entry point:** `services.ai_gateway.invoke(task_type, prompt, ...)`. All AI tasks (config explain, setup recommend, workflow draft, policy explain, doc classify, migration mapping, admin copilot, support suggest, narrative, general chat) go through this gateway.
-- **No browser calls to providers.** Portal and admin call backend views that use `services.ai_gateway.invoke()` or `apps.portal.ai_provider.generate_ai_response()` (which delegates to the gateway). No GEMINI_API_KEY or other provider secrets in templates or client JS.
+- **No browser calls to providers.** Portal and admin call backend views that use `services.ai_gateway.invoke()` or `apps.portal.ai_provider.generate_ai_response()` (which delegates to the gateway). No provider API keys in templates or client JS (`lint_secret_exposure.py` enforces common secret names server-side).
 - **Audit:** `services.ai_gateway` logs invokes and records feedback; audit trail via `ai_gateway_invoke` and related events.
 
 ---
@@ -17,7 +17,7 @@
 ## 2. Capability flags exposed to UI
 
 - **Status endpoint:** `apps.portal.ai_provider.get_public_ai_provider_status()` returns a dict safe for templates: provider name, availability, model info. No API keys or secrets.
-- **Context processor:** `apps.siteconfig.context_processors.ai_copilot_settings()` exposes e.g. `AI_PROVIDER_NAME`, `AI_AVAILABLE` (or equivalent) to templates. Verified by `apps.siteconfig.tests.test_ai_copilot_context`: no `GEMINI_API_KEY` in context or rendered HTML.
+- **Context processor:** `apps.siteconfig.context_processors.ai_copilot_settings()` exposes e.g. `AI_PROVIDER_NAME`, `AI_AVAILABLE` (or equivalent) to templates. Verified by `apps.siteconfig.tests.test_ai_copilot_context`: no provider secret names (e.g. `OPENAI_API_KEY`) in context or rendered HTML.
 - **Lint:** `scripts/lint_secret_exposure.py` fails if provider secret names appear in client-rendered code or context processors.
 
 ---

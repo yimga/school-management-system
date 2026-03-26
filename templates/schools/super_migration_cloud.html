@@ -1,11 +1,12 @@
 {% extends "control_plane_base.html" %}
-{% load static i18n %}
+{% load static i18n phase8_tags %}
 {% load region_format %}
 
 {% block cp_title %}Migration Cloud{% endblock %}
 
 {% block cp_content %}
-  <div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+    {% phase8_dashboard_declaration "schools/super_migration_cloud.html" %}
     {% include "studio_os/components/page_header.html" with title="Migration cloud" subtitle="Govern connector profiles, recent runs, parity, and rollback readiness from the control plane." action_url=dashboard_url action_text="Back to dashboard" %}
     {% include "schools/partials/wedge_super_premium_proof.html" %}
     {% if registry_url %}
@@ -60,6 +61,17 @@
             <div class="fs-3 fw-semibold text-danger">{{ summary.quarantine_pending }}</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-lg-6">
+        {% url 'api:ai-migration-suggest' as api_mig_suggest %}
+        {% include "components/ai_json_api_card.html" with api_url=api_mig_suggest card_title=_("Migration mapping suggest (JSON API)") card_hint=_("POST JSON with source_fields and target_fields (or source_sample / target_schema). Use generic column names only; do not paste live PII.") field_id="cpMigMapJson" default_body='{"source_fields":["StudentId","LastName","GradeLevel"],"target_fields":["external_id","family_name","grade_code"]}' %}
+      </div>
+      <div class="col-lg-6">
+        {% url 'api:ai-trust-compliance-assistant' as api_ai_trust_mig %}
+        {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust_mig card_title=_("Trust & compliance (migration context)") card_hint=_("Structured guidance for governed exports, audit posture, and operator checklists. Not legal advice.") field_id="cpMigTrustAiQ" %}
       </div>
     </div>
 
@@ -225,7 +237,7 @@
                     <td colspan="10" class="p-0">
                       <div class="py-3 px-2">
                         {% load i18n %}
-                        {% url 'super:super_migration_cloud' as cloud_url %}
+                        {% url 'super:migration_cloud' as cloud_url %}
                         {% include "components/dashboard_empty_state.html" with icon="bi-cloud-arrow-up" title=_("No migration runs recorded yet.") message=_("Start a migration from a profile to see runs here.") action_url=cloud_url action_text=_("Migration cloud") %}
                       </div>
                     </td>

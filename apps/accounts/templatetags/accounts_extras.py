@@ -58,3 +58,11 @@ def has_any_role(user, codes):
     except (DatabaseError, TransactionManagementError, AttributeError, TypeError):
         _reset_db_state()
         return False
+
+
+@register.filter
+def tenant_operator_hub_visible(user):
+    """True when tenant portal should show operator strip + studio product rail."""
+    from apps.accounts.permissions import tenant_operator_hub_eligible
+
+    return tenant_operator_hub_eligible(user)

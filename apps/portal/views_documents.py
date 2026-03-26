@@ -26,7 +26,7 @@ from apps.people.models import StudentGuardian
 from .document_lifecycle import DOCUMENT_LIFECYCLE_CHOICES
 from .models import PortalFeatureItem, FormSignature
 from .forms_documents import DocumentUploadForm, SignatureRequestForm
-from .document_conversion import convert_to_pdf
+from .document_service import convert_document
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     request_context_for_log,
@@ -350,7 +350,7 @@ def document_download_pdf(request, document_id):
             ) as tmp:
                 tmp.write(document.file.read())
                 path = tmp.name
-        pdf_bytes = convert_to_pdf(path)
+        pdf_bytes = convert_document(path, target="pdf", family="writer")
         base = os.path.splitext(os.path.basename(document.file.name))[0]
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{base}.pdf"'

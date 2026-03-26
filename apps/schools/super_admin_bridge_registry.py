@@ -10,9 +10,9 @@ policies, registries, schools, etc. Operators use ``super:admin_bridge`` instead
 of hardcoded ``/admin/...`` paths.
 
 Used by ``super_admin_bridge`` (302) and ``super_platform_operator_hub`` tiles.
-Nav can reference ``super:admin_bridge`` with ``kwargs={"bridge_key": "<slug>"}``.
-Legacy URL names (``super:admin_bridge_integrations``, etc.) and paths under
-``/super/admin-bridge/…`` are kept in ``super_urls`` and delegate to the same targets.
+Nav must use ``reverse("super:admin_bridge", kwargs={"bridge_key": "<slug>"})``.
+Legacy **paths** (e.g. ``…/integrations-marketplace/``) remain in ``super_urls`` and
+**301** to the canonical slug URL, then 302 to platform admin.
 """
 
 from __future__ import annotations
@@ -33,8 +33,11 @@ PLATFORM_ADMIN_BRIDGE_ORDER: list[str] = [
     "packages_installed",
     "experience_packs",
     "runtime_defaults",
+    "phase_b_domain_snapshots",
+    "fleet_governed_changes",
     "ai_model_registry",
     "global_brand_registry",
+    "platform_global_branding",
     # Packages — remainder
     "document_packs",
     "package_versions",
@@ -159,12 +162,41 @@ PLATFORM_ADMIN_BRIDGES: dict[str, dict[str, object]] = {
     "runtime_defaults": {
         "admin_url": "admin:platform_runtime_runtimedefaults_changelist",
         "label": _("Runtime defaults (platform admin)"),
-        "description": _("platform_runtime.RuntimeDefaults — resolver baselines"),
+        "description": _(
+            "platform_runtime.RuntimeDefaults — resolver baselines, preview flags, "
+            "and non-secret integration defaults (SMS/WhatsApp identity fields; secrets stay in JSON)"
+        ),
         "icon": "bi-speedometer2",
         "show_in_nav": True,
         "nav_id": "cp_admin_bridge_runtime_defaults",
         "nav_label": _("Runtime defaults (admin)"),
         "nav_icon": "bi-speedometer2",
+    },
+    "phase_b_domain_snapshots": {
+        "admin_url": "admin:platform_runtime_platformphasebdomainsnapshot_changelist",
+        "label": _("Phase B domain snapshots (platform admin)"),
+        "description": _(
+            "platform_runtime.PlatformPhaseBDomainSnapshot — owned JSON per domain "
+            "(policies, marketplace_integrations, metadata_governance, …). Prefer this over "
+            "bulk SiteSettings for cross-domain coordination."
+        ),
+        "icon": "bi-diagram-2",
+        "show_in_nav": True,
+        "nav_id": "cp_admin_bridge_phase_b_domain_snapshots",
+        "nav_label": _("Phase B domain snapshots (admin)"),
+        "nav_icon": "bi-diagram-2",
+    },
+    "fleet_governed_changes": {
+        "admin_url": "admin:platform_runtime_fleetgovernedchange_changelist",
+        "label": _("Fleet governed changes (platform admin)"),
+        "description": _(
+            "Draft → approval → schedule → apply records; execution uses existing rollout/staging UIs"
+        ),
+        "icon": "bi-clipboard-check",
+        "show_in_nav": True,
+        "nav_id": "cp_admin_bridge_fleet_governed_changes",
+        "nav_label": _("Fleet governed changes (admin)"),
+        "nav_icon": "bi-clipboard-check",
     },
     "ai_model_registry": {
         "admin_url": "admin:siteconfig_aimodelregistry_changelist",
@@ -185,6 +217,18 @@ PLATFORM_ADMIN_BRIDGES: dict[str, dict[str, object]] = {
         "nav_id": "cp_admin_bridge_global_brand_registry",
         "nav_label": _("Global brand registry (admin)"),
         "nav_icon": "bi-palette-fill",
+    },
+    "platform_global_branding": {
+        "admin_url": "admin:brand_experience_platformglobalbranding_changelist",
+        "label": _("Platform global branding (platform admin)"),
+        "description": _(
+            "brand_experience.PlatformGlobalBranding — active fleet branding defaults"
+        ),
+        "icon": "bi-palette",
+        "show_in_nav": True,
+        "nav_id": "cp_admin_bridge_platform_global_branding",
+        "nav_label": _("Platform global branding (admin)"),
+        "nav_icon": "bi-palette",
     },
     # --- Hub-first (large set; avoid sidebar overflow) ---
     "document_packs": {

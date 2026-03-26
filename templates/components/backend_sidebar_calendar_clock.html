@@ -2,27 +2,7 @@
   Backend sidebar: local calendar + clock (uses browser timezone / location).
   Uses Intl API for locale-aware date/time.
 {% endcomment %}
-<style>
-  .backend-calendar-dow, .backend-calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1.15rem);
-    gap: 1px;
-    justify-content: center;
-  }
-  .backend-cal-dow-cell {
-    text-align: center;
-    font-size: 0.6rem;
-    color: var(--bs-secondary, #6c757d);
-    font-weight: 600;
-  }
-  .backend-cal-cell {
-    text-align: center;
-    font-size: 0.65rem;
-    min-width: 1.15rem;
-  }
-  .backend-cal-empty { opacity: 0.3; }
-  .backend-cal-today { border-radius: 3px; background: var(--bs-primary); color: #fff; }
-</style>
+
 <div class="card shadow-sm mb-3 backend-sidebar-calendar-clock backend-sidebar-calendar-clock--compact">
   <div class="card-body backend-sidebar-calendar-clock-body">
     <div class="text-center mb-1">

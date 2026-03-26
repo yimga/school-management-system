@@ -1,0 +1,23 @@
+{% load i18n %}
+{% if operator_quick_links %}
+<section class="card border-secondary bg-body-secondary mb-3" role="region" aria-labelledby="op-console-strip-h" data-decision-console="operator-strip">
+  <div class="card-body py-3 px-3">
+    <h2 id="op-console-strip-h" class="h6 mb-2">{% trans "Operator tools — trace, impact, ship" %}</h2>
+    <p class="small text-muted mb-3">{{ why_enabled_summary }}</p>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      {% for link in operator_quick_links %}
+      <span class="d-inline-flex align-items-center gap-1 flex-wrap">
+        <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}">{{ link.label }}</a>
+        {% if link.stability == "danger" %}
+        <span class="badge text-bg-danger">{% trans "danger" %}</span>
+        {% elif link.stability == "beta" %}
+        <span class="badge text-bg-warning text-dark">{% trans "beta" %}</span>
+        {% else %}
+        <span class="badge text-bg-secondary">{% trans "stable" %}</span>
+        {% endif %}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}

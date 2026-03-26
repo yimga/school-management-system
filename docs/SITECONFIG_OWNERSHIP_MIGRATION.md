@@ -2,7 +2,7 @@
 
 **Goal:** Move database and behavioral ownership out of `siteconfig` into bounded contexts so tenant behavior is resolved from runtime, registries, and packs—not from a single giant settings domain.
 
-**Status:** **Phase 5 (repository) COMPLETE** — behavioral truth is runtime-first; bounded-context surfaces + CI gates + inventory/`domain_ownership` alignment. **Remaining:** **Phase B** below — state-safe Django migrations to move columns/tables off `SiteSettings` incrementally (ordering in [RESOLVER_MIGRATE_DELETE_ORDERING.md](RESOLVER_MIGRATE_DELETE_ORDERING.md)); does not reopen Phase 5 ZIP closure in the SOT.
+**Status:** **Phase 5 (repository) COMPLETE** — behavioral truth is runtime-first; bounded-context surfaces + CI gates + inventory/`domain_ownership` alignment. **Phase B batches 0–13 (schema / snapshots) COMPLETE** in this repository — see the batch table below; migration artifacts are enforced by `scripts/verify_phase_5_siteconfig.py` (part of `scripts/verify_cursor_phase6_siteconfig_sitesettings.py`). **After migrate**, run `scripts/verify_phase_b_execution.py` on the target database. First-class tables per payload key and similar **§11.4** depth are **non-negotiable sequenced** work (SOT + execution log)—not an excuse to skip Phase 6 inventory/`domain_ownership` discipline.
 
 ## Done
 
@@ -11,22 +11,16 @@
 - Live app/test imports cut over to brand, runtime, plans, registries, marketplace, policies where applicable.
 - Six unused legacy `apps/siteconfig/models_*` compatibility shims deleted.
 - §2.1 resolver migration: `evals/caching.py` — `SiteSettings.load()` replaced with `get_cached_site_settings(school=)`; `lint_tenant_settings.py` now flags `SiteSettings.load()` in tenant apps; `docs/domain_ownership.md` added; allowlist includes `platform_runtime/management/`.
-- Optional get_solo shrink: `backfill_runtime_defaults` uses `get_platform_site_settings_record(create=True)` instead of `SiteSettings.get_solo()`; get_solo remains only in `platform_runtime/helpers` (see SITESETTINGS_GET_SOLO_ALLOWLIST).
+- **Non-negotiable** get_solo shrink path: `backfill_runtime_defaults` uses `get_platform_site_settings_record(create=True)` instead of `SiteSettings.get_solo()`; get_solo remains only in `platform_runtime/helpers` (see SITESETTINGS_GET_SOLO_ALLOWLIST).
 
-## Remaining
+## Phase 2 plan items (satisfied by Phase B + guardrails)
 
-1. **Identify owned models** — **Done (1.1).**
-   **Concrete move (example):** `theme_pack` / `admin_theme_pack` — resolved via runtime branding (get_effective_site_settings → RuntimeDefaults/branding); tenant-facing reads already use get_effective_site_settings. Legacy path to delete after verification: direct SiteSettings.theme_pack in any non-allowlisted tenant view (lint_tenant_settings enforces).  
-   Full assignment in `docs/SITECONFIG_OWNED_MODELS.md`; Python registry in `apps/siteconfig/owned_models_registry.py` (`get_target_app_for_model`, `OWNED_MODELS_TARGET`). Every siteconfig model (models.py, models_dashboard.py, models_workflow.py) has a target bounded context.
+These original objectives are **addressed in-repo** (not a deferred backlog):
 
-2. **State-safe migrations**  
-   Create Django migrations that move tables or add FK to new app without breaking existing code: e.g. add `runtime.Defaults` and backfill from `SiteSettings`; switch reads to resolver; then deprecate direct `SiteSettings` for tenant behavior.
-
-3. **Delete legacy paths**  
-   After all call sites use new surfaces, remove deprecated accessors and, where applicable, old tables or columns. Enforce via CI (no new tenant-facing `get_solo()` except allowlisted path-to-10).
-
-4. **Deprecation markers**  
-   Mark legacy access paths with `# DEPRECATED: use apps.platform_runtime.helpers.get_effective_site_settings` (or equivalent) and target removal date.
+1. **Owned models** — `docs/SITECONFIG_OWNED_MODELS.md`, `apps/siteconfig/owned_models_registry.py`, `domain_ownership.py`; branding/theme paths via `get_effective_site_settings` and `PlatformGlobalBranding`.
+2. **State-safe migrations** — `siteconfig.0162` / `0163`, `brand_experience.0002`, `platform_runtime.0007`, resolver-first reads per [RESOLVER_MIGRATE_DELETE_ORDERING.md](RESOLVER_MIGRATE_DELETE_ORDERING.md).
+3. **Legacy path removal** — Mirrored branding columns dropped from `SiteSettings`; tenant `get_solo()` / `SiteSettings.objects` / `school.settings` guardrails in `lint_tenant_settings.py`; Batch 3 FK write lint.
+4. **Deprecation discipline** — New work must use runtime helpers and bounded contexts; allowlists in `docs/SITESETTINGS_GET_SOLO_ALLOWLIST.md`.
 
 **Rule:** No new tenant behavior may be sourced from `SiteSettings` or other siteconfig singletons; use runtime resolvers and bounded-context services. See `docs/SITESETTINGS_GET_SOLO_ALLOWLIST.md` and `scripts/lint_tenant_settings.py --report-allowlisted`. **Ordering (nothing left behind):** [RESOLVER_MIGRATE_DELETE_ORDERING.md](RESOLVER_MIGRATE_DELETE_ORDERING.md) — resolver first, then migrate, then delete; phases 1–3 checklist.
 
@@ -36,14 +30,22 @@
 
 **Goal:** SiteSettings eventually contains only **safe platform defaults**; all behavioral and tenant-facing fields move to bounded contexts and are read via runtime resolvers.
 
-### Stay in SiteSettings (safe platform defaults only)
+### Stay on the `SiteSettings` **database row** (Phase B slim table)
 
-| Field | Reason |
-|-------|--------|
-| `maintenance_mode` | Platform-wide operational toggle; no tenant override. |
-| `cache_rankings_interval_minutes` | Platform cache tuning; already mirrored to RuntimeDefaults where tenant override is needed; singleton default is sufficient. |
+| Column | Reason |
+|--------|--------|
+| `maintenance_mode` | Platform-wide operational toggle; real column on `siteconfig_sitesettings`. |
+| `updated_at` | Row metadata. |
 
-These are the only fields that remain as **safe platform defaults** in the singleton. All other fields are classified in `apps/siteconfig/domain_ownership.py` (EXACT_FIELD_OWNERS, PREFIX_FIELD_OWNERS) and have a target owner (brand_experience, runtime_blueprints, policies_rules, global_registries, marketplace_integrations, reports, documents, preview_platform, etc.).
+**No other product columns** live on `SiteSettings` after migration **0162** — behavioral keys were removed from the table and copied into `RuntimeDefaults.payload` (virtual reads via `SiteSettings.__getattr__`). **Regression guard:** `apps/siteconfig/sitesettings_slim_contract.py` + `scripts/verify_phase_b_execution.py` assert (1) the ORM only exposes `id`, `maintenance_mode`, `updated_at` as local concrete fields, and (2) when the `siteconfig_sitesettings` table exists, **introspected DB columns** match that same set (half-applied migrations or manual DDL).
+
+### `cache_rankings_interval_minutes` (platform cache tuning)
+
+- **Not** a column on `SiteSettings` after **0162** (removed with other behavioral fields).
+- **Authoritative store:** first-class nullable column `RuntimeDefaults.cache_rankings_interval_minutes` (`platform_runtime` migrations **0004** / **0005**), edited in platform admin **Runtime defaults** alongside payload.
+- **Read path:** `get_effective_site_settings` / `_build_platform_site_settings_base` prefers the RuntimeDefaults column when set; payload snapshot may still contain the key from historical merges.
+
+All other logical fields remain classified in `apps/siteconfig/domain_ownership.py` (EXACT_FIELD_OWNERS, PREFIX_FIELD_OWNERS) with target owners (brand_experience, runtime_blueprints, policies_rules, global_registries, marketplace_integrations, reports, documents, preview_platform, etc.).
 
 ### To migrate (by owner)
 
@@ -79,6 +81,6 @@ Shrink is **incremental**: each field move = add column (or model) in bounded co
 | **12** | **runtime_blueprints** — snapshot row | **COMPLETE** | Blueprints / portal defaults / admission fields owned slice |
 | **13** | **policies_rules** — snapshot row (portal flags, MFA, grade approval toggles, etc.) | **COMPLETE** | Last merge order **within** the snapshot combine step; globally **`RuntimeDefaults.payload` overrides snapshot keys** when both set. `get_effective_policy` backfills from `get_effective_site_settings`; `invalidate_all_tenant_policy_caches` on snapshot sync when `POLICY_CACHE_TTL` is set |
 
-**Optional product depth (not Phase B):** Full Report Platform SKUs, full config diff UI, full workflow simulation productization, and similar items live under **SOT §11.4** “optional cadence” and **§5.x** “when prioritized” notes.
+**Post–Phase B product depth (non-negotiable, sequenced):** Full Report Platform SKUs, full config diff UI, full workflow simulation productization, and similar items are **required** work under **SOT §11.4** and **§5.x**—executed in **scoped slices** with tests + [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md](RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md) blocks; **not** skippable “optional cadence.” Align wording with SOT **§11.4 execution queue** subsection.
 
 **Verification:** `python scripts/verify_phase_5_siteconfig.py` (artifacts 0162 + 0163 + 0002 + `0007_platform_phase_b_domain_snapshots`); `python scripts/lint_phase_b_batch3_sitesettings_fk_writes.py` (no `site.save(update_fields=[...])` / `SiteSettings.objects.create(..., theme_pack=...)` for removed FKs); after DB migrate, `python scripts/verify_phase_b_execution.py`; `pre_deploy_gate.sh` runs these. Targeted tests: `apps.brand_experience.tests.test_platform_global_branding`, `apps.platform_runtime.tests.test_phase_b_domain_snapshots`.

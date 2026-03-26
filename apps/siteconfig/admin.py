@@ -366,7 +366,11 @@ class SiteSettingsAdmin(ModelAdmin):
 
     # Only allow ONE row
     def has_add_permission(self, request):
-        return self._is_site_admin(request.user) and not SiteSettings.objects.exists()
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
+
+        return self._is_site_admin(request.user) and (
+            get_platform_site_settings_record(create=False) is None
+        )
 
     def has_delete_permission(self, request, obj=None):
         return False

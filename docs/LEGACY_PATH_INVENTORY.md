@@ -22,7 +22,7 @@
 | Path | Type | Status | Replacement | Notes |
 |------|------|--------|-------------|--------|
 | `ensure_gilead_admin` (management command) | Command | **REMOVED** | `ensure_default_tenant_admin` | Same args. Documented in SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
-| `ensure_superadmin` (management command) | Command | **REMOVED** | `ensure_superuser` | Removed 2026-03-12. Use: `python manage.py ensure_superuser` (ADMIN_PASSWORD, --username, --password). SUBTRACTIVE_CLEANUP_RELEASE_NOTES. |
+| `ensure_superadmin` (management command) | Command | **KEEP (thin alias)** | `ensure_superuser` | **Not removed:** `apps/accounts/management/commands/ensure_superadmin.py` delegates to `ensure_superuser` with fixed `admin`/`admin` for deploy scripts. Prefer `ensure_superuser` when you need custom credentials. Tests: `apps/accounts/tests/test_ensure_superadmin_command.py`. |
 | `/admin/siteconfig/customizer/` | URL | **REDIRECT** | `studio_os:experience` (`/studio/experience/`) | config/urls.py `admin_siteconfig_customizer_redirect`. Optional: remove URL when product confirms bookmarks migrated. |
 | `/siteconfig/customizer/` | URL | **REDIRECT** | `studio_os:experience` (`/studio/experience/`) | Phase B: redirect added in config/urls.py, config/tenant_urls.py, config/manager_urls.py. |
 | `siteconfig.webhook_delivery` (code) | Module ref | **REMOVED** | `apps.events.webhooks` | Callers use events.webhooks. |
@@ -35,6 +35,7 @@
 | `siteconfig.views.customizer` | View | **REMOVED** | — | All callers use `studio_os:experience`; config-level redirect for `/siteconfig/customizer/` only. LEGACY_PATH_INVENTORY §2. |
 | `siteconfig.views.report_library` | View | **REMOVED** | — | All callers use `studio_os:output`; config-level redirect for `/siteconfig/reports/` and `/siteconfig/report-library/`. |
 | `siteconfig.views_dashboard_config.workflow_hub` | View | **REMOVED** | — | All callers use `studio_os:automation`; config-level redirect for `/siteconfig/workflow-hub/`. |
+| `super:admin_bridge_integrations` (and 7 sibling URL **names**) | URL name | **REMOVED** | `super:admin_bridge` + `kwargs={"bridge_key": "…"}` | Legacy **paths** (e.g. `/super/admin-bridge/integrations-marketplace/`) **301** to canonical slug; `reverse("super:admin_bridge_*")` raises `NoReverseMatch`. Tests: `test_legacy_admin_bridge_paths_redirect_to_canonical_slug`, `test_legacy_admin_bridge_named_urls_removed`. |
 
 ---
 
@@ -50,9 +51,28 @@
 
 ---
 
-## 4. Policy (nothing left behind)
+## 4. Automated validation (replacement + purge discipline)
 
-- Before deleting a legacy path: grep for references (URLs, imports, redirects); ensure replacement is live and linked.
+Run after changes that touch redirects, admin bridges, or outcome-center links:
+
+```bash
+python -m pytest apps/studio_os/tests/test_phase_05_legacy_redirects.py \
+  apps/schools/tests/test_super_config_migration_urls.py \
+  apps/siteconfig/tests/test_control_outcome_center.py \
+  apps/schools/tests/test_platform_admin_bridge_completeness.py -q
+```
+
+Or use the bundled script (same tests):
+
+```bash
+python scripts/validate_legacy_replacements.py
+```
+
+**In-app reverse():** Only `super:admin_bridge` with `kwargs={"bridge_key": "…"}` — legacy URL names were removed (2026-03-25). Bookmark **paths** under `/super/admin-bridge/…` still work via **301** to the slug route.
+
+## 5. Policy (nothing left behind; non-negotiable)
+
+- Before deleting a legacy path: grep for references (URLs, imports, redirects); ensure replacement is live and linked. **CANDIDATE** rows are **not** permanent deferrals—each must become REMOVED, REDIRECT, or KEEP with justification, per SOT §11.4 queue discipline.
 - After each deletion: update this inventory, add a row to SUBTRACTIVE_CLEANUP_RELEASE_NOTES, and run CI (lint_tenant_settings, manage.py check).
 - New legacy paths (e.g. from future migrations) must be added here with status CANDIDATE until removed or redirected.
 
@@ -60,7 +80,7 @@
 
 ---
 
-## 5. Structural split (BR-12)
+## 6. Structural split (BR-12)
 
 | Module | Status | Notes |
 |--------|--------|-------|

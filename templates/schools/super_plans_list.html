@@ -1,12 +1,12 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n control_console %}
 
 {% block cp_title %}{% trans "Plans & add-ons" %} — RunMyCampus Manager{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Home" %}</a></li>
     <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "Config center" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Plans & add-ons" %}</li>
   </ol>
@@ -14,7 +14,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console">
+  {% operator_console_strip %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>

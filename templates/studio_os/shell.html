@@ -31,6 +31,9 @@
     </h1>
   </div>
 
+  {% url 'api:ai-studio-os-assistant' as api_studio_ai %}
+  {% include "components/ai_guided_assistant_card.html" with api_url=api_studio_ai card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Studio modes. Apply packages and automations only through existing preview and rollback flows.") studio_mode=current_mode|default:"" field_id="studioOsAiQShell" %}
+
   <div class="studio-os">
     <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation">
       <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>

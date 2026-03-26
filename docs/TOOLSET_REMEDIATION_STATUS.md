@@ -6,6 +6,8 @@
 
 **Rule:** Update this file when completing toolset actions; keep in sync with RUNMYCAMPUS §5 and BACKLOG_AND_DEFERRED_CLOSURE.md.
 
+**Status column:** Prefer **DONE**, **NOT DONE**, **BLOCKED**, or **§11.4 depth** (shipped baseline + remaining product excellence). Do **not** use **PARTIAL** as a §12 merge-blocker label — SOT **§12** is **MET**; this table tracks **maturity toward 11/10**, not spine failure.
+
 ---
 
 ## 5.1 Theme & Experience (Current 6.9/10 → Target 11/10)
@@ -14,9 +16,9 @@
 |--------|--------|----------|
 | Move ownership into `brand_experience` | NOT DONE | Pending bounded-context ownership move. |
 | Create `ExperiencePack` | NOT DONE | Optional per §11.1; model exists in packages. |
-| Unify theme/layout/portal/dashboard visual systems | PARTIAL | Theme tokens, shell; full unification in progress. |
+| Unify theme/layout/portal/dashboard visual systems | §11.4 depth | Theme tokens, shell; full unification in progress. |
 | Add role/device preview everywhere | DONE | get_studio_role_preview_entries; setup_studio role_previews; theme_studio device preview. |
-| Add compare/publish/rollback | PARTIAL | Theme publish/rollback; package engine preview/apply/rollback. |
+| Add compare/publish/rollback | §11.4 depth | Theme publish/rollback; package engine preview/apply/rollback. |
 | Purge Gilead theme defaults | DONE | Migration 0155; ThemePack runmycampus-gradient. |
 
 ---
@@ -36,9 +38,9 @@
 
 | Action | Status | Evidence |
 |--------|--------|----------|
-| Convert into Report Platform inside Output Studio | PARTIAL | report_library view; Output Studio rail links with embed=1; redirect when not embed. |
+| Convert into Report Platform inside Output Studio | §11.4 depth | report_library view; Output Studio rail links with embed=1; redirect when not embed. |
 | Add ReportPack | DONE | apps.reports.report_packs; list_active_report_packs; build_report_pack_preview. |
-| Add sample-data preview | PARTIAL | report_pack_preview in report_library view. |
+| Add sample-data preview | §11.4 depth | report_pack_preview in report_library view. |
 | Add dependency mapping | DONE | normalize_report_pack_dependencies; report_pack_dependencies in report_library. |
 | Add policy/registry compatibility | NOT DONE | — |
 | Add style inheritance/versioning | NOT DONE | — |
@@ -49,7 +51,7 @@
 
 | Action | Status | Evidence |
 |--------|--------|----------|
-| Convert into Document & Compliance Content Platform | PARTIAL | document_library_manage; redirect to Studio Output when not embed; pane=documents. |
+| Convert into Document & Compliance Content Platform | §11.4 depth | document_library_manage; redirect to Studio Output when not embed; pane=documents. |
 | Add lifecycle states | DONE | document_lifecycle.py; DOCUMENT_LIFECYCLE_*; PortalFeatureItem.lifecycle_state; transitions. |
 | Add retention/archive policy | DONE | retention_review_at; DocumentPack retention_rule; document_lifecycle normalize_document_retention_rule. |
 | Add role-aware access | DONE | PortalFeatureItem.can_view(user); visible_to_roles; manage view docstring. |
@@ -66,9 +68,9 @@
 | Split into Document Design Studio and Experience Design Studio | NOT DONE | — |
 | Add layout builder | NOT DONE | — |
 | Add section/block system | NOT DONE | — |
-| Add responsive preview | PARTIAL | Theme/setup previews. |
+| Add responsive preview | §11.4 depth | Theme/setup previews. |
 | Add inheritance/versioning | NOT DONE | — |
-| Add publish / rollback | PARTIAL | Theme publish/rollback; package engine. |
+| Add publish / rollback | §11.4 depth | Theme publish/rollback; package engine. |
 
 ---
 
@@ -77,7 +79,7 @@
 | Action | Status | Evidence |
 |--------|--------|----------|
 | Standardize preview for themes, blueprints, policies, packs, etc. | DONE | studio_preview; get_studio_preview_url; STUDIO_MODE_EMBED_TARGETS; mode=experience delegates to preview_from_form. |
-| Add before/after | PARTIAL | Theme compare; package preview_diff. |
+| Add before/after | §11.4 depth | Theme compare; package preview_diff. |
 | Add role/device switcher | DONE | get_studio_role_preview_entries; Launch role_previews; theme device preview. |
 | Add impact summary | DONE | get_studio_preview_context(mode=launch); studio_preview JSON returns impact_summary, health_summary, recommended_next. |
 | Add dependency warnings | DONE | get_studio_preview_context; studio_preview JSON returns dependency_warnings (launch_blockers). |
@@ -90,7 +92,7 @@
 |--------|--------|----------|
 | Build simulation engine | NOT DONE | — |
 | Build visual builder | NOT DONE | — |
-| Add AI workflow generation | PARTIAL | AI gateway; workflow clues/suggestions. |
+| Add AI workflow generation | §11.4 depth | AI gateway; workflow clues/suggestions. |
 | Add dependency graph | NOT DONE | — |
 | Add conflict detection | NOT DONE | — |
 | Add staged activation | NOT DONE | — |
@@ -104,10 +106,10 @@
 | Action | Status | Evidence |
 |--------|--------|----------|
 | Build backend AI gateway | DONE | services.ai_gateway; AI_GATEWAY_AND_CAPABILITY_FLAGS.md. |
-| Add AI permissions/audit | PARTIAL | AI_audit_trail_and_permissions; services/ai_permissions. |
-| Use AI for setup/workflow/migration/policy/search/support | PARTIAL | AI gateway used in portal/setup/workflow flows. |
-| Turn API Center into integration governance console | NOT DONE | apicenter_integration_governance.md. |
-| Add contract testing across API/runtime/packages/events | PARTIAL | test_runtime_contract; test_precedence; platform_runtime tests. |
+| Add AI permissions/audit | §11.4 depth | AI_audit_trail_and_permissions; services/ai_permissions. |
+| Use AI for setup/workflow/migration/policy/search/support | §11.4 depth | AI gateway used in portal/setup/workflow flows. |
+| Turn API Center into integration governance console | MET (baseline) | apicenter_integration_governance.md — dashboard + quotas + audit + `test_governance_contract`; interop workbench still NOT DONE. |
+| Add contract testing across API/runtime/packages/events | MET (baseline) | test_runtime_contract; test_precedence; platform_runtime tests; broaden per §11.4. |
 
 ---
 
@@ -115,10 +117,10 @@
 
 | Action | Status | Evidence |
 |--------|--------|----------|
-| Total decomposition into bounded consoles | PARTIAL | domain_ownership; bounded-context surfaces; SITECONFIG_OWNERSHIP_MIGRATION. |
-| Reclassify every settings field | PARTIAL | Inventory; allowlists. |
+| Total decomposition into bounded consoles | §11.4 depth | domain_ownership; bounded-context surfaces; SITECONFIG_OWNERSHIP_MIGRATION. |
+| Reclassify every settings field | §11.4 depth | Inventory; allowlists. |
 | Move tenant behavior out of SiteSettings | DONE | get_effective_site_settings runtime-first; no tenant get_solo in app code; lint_tenant_settings pass; §12 gate MET. RUNMYCAMPUS §5.9 [x]. |
-| Add preview/diff/rollback and impact summaries | PARTIAL | Runtime inspector; package preview. |
+| Add preview/diff/rollback and impact summaries | §11.4 depth | Runtime inspector; package preview. |
 | Remove Gilead defaults from settings-driven surfaces | DONE | Migration 0155_normalize_gilead_residue_runmycampus; ThemePack runmycampus-gradient; lint_gilead_residue. RUNMYCAMPUS §5.9 [x]. |
 
 ---

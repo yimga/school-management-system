@@ -278,3 +278,10 @@ class PlaybookExecutorTests(TestCase):
             self.assertTrue(run.execution_summary.get("playbook_slug") == "exec_test")
             self.assertIn("step_index", run.execution_summary)
             self.assertIn("profile_slug", run.execution_summary)
+        from apps.automation.models import AutomationExecutionLog
+
+        logs = AutomationExecutionLog.objects.filter(
+            task_name="automation.playbook.execute"
+        )
+        self.assertEqual(logs.count(), 1)
+        self.assertEqual(logs.first().status, AutomationExecutionLog.Status.SUCCESS)

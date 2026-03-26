@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n static %}
+{% load i18n static phase8_tags %}
 
 {% block cp_title %}{% trans "Analytics & Observability" %}{% endblock %}
 
@@ -13,7 +13,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/super_analytics_overview.html" %}
   {% include "studio_os/components/page_header.html" with title="Analytics & Observability" subtitle="School health, adoption, feature usage, workflow success/failure, migration success, marketplace usage." action_url=dashboard_url action_text="Back to dashboard" %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-body">

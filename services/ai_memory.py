@@ -110,7 +110,17 @@ class AIMemoryService:
             if school_id:
                 qs = qs.filter(Q(school_id=school_id) | Q(school_id__isnull=True))
             qs = qs.order_by("-created_at")[:500]
-            rows = list(qs.values("id", "conversation_id", "text_hash", "metadata", "embedding", "created_at"))
+            rows = list(
+                qs.values(
+                    "id",
+                    "school_id",
+                    "conversation_id",
+                    "text_hash",
+                    "metadata",
+                    "embedding",
+                    "created_at",
+                )
+            )
             # Simple cosine similarity (no pgvector operator)
             def cos_sim(a, b):
                 if not a or not b or len(a) != len(b):
@@ -131,7 +141,17 @@ class AIMemoryService:
                     actor_is_superuser=actor_is_superuser,
                 )
             ]
-            scored = [(cos_sim(row["embedding"], embedding), row) for row in visible_rows]
+            def rank_score(row: dict[str, Any]) -> float:
+                base = cos_sim(row["embedding"], embedding)
+                # Policy RAG: when a tenant context is present, prefer that school's bundle
+                # over global (null school_id) rows at equal vector similarity.
+                if scope == "policy" and school_id:
+                    rid = row.get("school_id")
+                    if rid is not None and str(rid) == str(school_id):
+                        return base + 0.25
+                return base
+
+            scored = [(rank_score(row), row) for row in visible_rows]
             scored.sort(key=lambda x: -x[0])
             return [r for _, r in scored[:limit]]
         except Exception as e:

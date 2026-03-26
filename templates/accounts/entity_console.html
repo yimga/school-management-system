@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load static i18n %}
+{% load static i18n phase8_tags %}
 
 {% block backend_title %}Entity Console{% endblock %}
 
@@ -13,6 +13,8 @@
 {% endblock %}
 
 {% block content %}
+  <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
+  {% phase8_dashboard_declaration "accounts/entity_console.html" %}
   {% include 'components/admin_nav_bridge.html' %}
   <div class="mb-4">
     <h2 class="fw-bold mb-1">Entity Console</h2>

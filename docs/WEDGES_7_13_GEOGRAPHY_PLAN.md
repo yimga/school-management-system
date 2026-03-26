@@ -139,7 +139,7 @@ To make the Geography wedge **world-class** (same bar as wedges 1–6 in [WEDGE_
 |-------------|-------------|--------|
 | **"What's in this pack"** | On Geography page, per continent show: currency, language(s), grading scale, data residency, privacy framework (from pack defaults). | **Done** — super_geography passes pack details; template shows Currency, Language, Grading, Data residency, Privacy. |
 | **Choose region → Create School** | Link "Create school" with region or pack pre-selected (e.g. query param or Create School step 1 default from geography). | **Done** — Geography per-pack "Create school (this pack)" links with `?pack=CODE`; wizard pre-selects country and shows initial_pack; SOT and BEYOND_REACH recorded. |
-| **Compare packs** | Optional: side-by-side or expandable "Compare region packs" (e.g. US vs CAN vs GBR). | Not done. |
+| **Compare packs** | Expandable **Compare key region packs (US · Canada · UK)** on `/super/geography/` — table + per-row Create school deep link. | **Done** (2026-03-25). |
 | **Performance and a11y** | Geography page in performance budgets (advisory); ensure template uses content-max, i18n, and accessibility.css. | **Done** — Super geography in check_performance_budgets.py and PERFORMANCE_BUDGETS.md; template has role="main", aria-label, i18n. |
 
 ### RTL and regional UX (N22)
@@ -178,6 +178,7 @@ To make the Geography wedge **world-class** (same bar as wedges 1–6 in [WEDGE_
 4. **Done:** RTL/MENA: MENA pack defaults.rtl=True; is_rtl set in tenant config; Geography shows RTL badge.
 5. **Done:** Asia and Canada documented as "extend when needed for sales"; placeholders in moe_presets.
 6. **Done:** Choose region → Create School: per-pack links and wizard pre-select (see table above).
+7. **Done:** Compare key packs (US · CAN · GBR) expandable table + Trust center → Geography primary button on Data residency card.
 
 ---
 

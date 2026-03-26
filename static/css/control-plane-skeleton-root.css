@@ -1,0 +1,23 @@
+/**
+ * Phase 2 — control_plane_skeleton.html (manager host).
+ * Replaces inline <style> blocks: brand bridge + horizontal overflow contract.
+ * Depends on design-tokens.css (color-base scale).
+ */
+html[data-surface="control-plane"] {
+  --school-primary: var(--color-base-900, #0b0e14);
+  --school-accent: #d4af37;
+  --platform-navy: var(--color-base-900, #0b0e14);
+  --platform-gold: #d4af37;
+}
+
+html[data-surface="control-plane"],
+html[data-surface="control-plane"] body {
+  overflow-x: clip;
+}
+
+html[data-surface="control-plane"] body .container,
+html[data-surface="control-plane"] body main,
+html[data-surface="control-plane"] body [role="main"] {
+  max-width: 100%;
+  min-width: 0;
+}

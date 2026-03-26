@@ -16,6 +16,52 @@ STAFF_ONLY_TASKS = frozenset({
     "policy_explain",
 })
 
+# Tenant Studio / district surfaces: staff OR configured tenant role with a school context
+TENANT_STUDIO_AI_TASKS = frozenset({
+    "interop_assistant",
+    "runtime_config_explain",
+    "studio_os_assistant",
+})
+
+# Fleet / control-plane only (no tenant PII in prompts; still rate-limited)
+FLEET_STAFF_AI_TASKS = frozenset({
+    "observability_assistant",
+    "trust_compliance_assistant",
+})
+
+# Billing / usage narrative: staff or finance-capable tenant role with school
+BILLING_USAGE_AI_TASKS = frozenset({
+    "billing_usage_explain",
+})
+
+
+def _user_is_tenant_config_role(user: Any) -> bool:
+    role = getattr(user, "role", None) or ""
+    return role in {
+        "ADMIN",
+        "IT_ADMIN",
+        "LEADERSHIP",
+        "PROPRIETOR",
+        "PRINCIPAL",
+        "VICE_PRINCIPAL",
+    }
+
+
+def _user_is_finance_role(user: Any) -> bool:
+    role = getattr(user, "role", None) or ""
+    return role in {
+        "BURSAR",
+        "FINANCE_STAFF",
+        "ACCOUNTANT",
+        "ADMIN",
+        "PROPRIETOR",
+        "LEADERSHIP",
+    }
+
+
+def _staff_or_super(user: Any) -> bool:
+    return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
+
 
 def get_ai_permission_for_user(
     user: Any,
@@ -32,6 +78,18 @@ def get_ai_permission_for_user(
     if task in STAFF_ONLY_TASKS:
         if not getattr(user, "is_staff", False):
             return False
-    # Optional: check feature flag or entitlement for school (e.g. AI_SETUP_RECOMMEND enabled for plan)
-    # if school and not get_effective_flags(school).get("ai_setup_recommend", False): return False
+    if task in TENANT_STUDIO_AI_TASKS:
+        if _staff_or_super(user):
+            return True
+        if school is not None and _user_is_tenant_config_role(user):
+            return True
+        return False
+    if task in FLEET_STAFF_AI_TASKS:
+        return _staff_or_super(user)
+    if task in BILLING_USAGE_AI_TASKS:
+        if _staff_or_super(user):
+            return True
+        if school is not None and _user_is_finance_role(user):
+            return True
+        return False
     return True

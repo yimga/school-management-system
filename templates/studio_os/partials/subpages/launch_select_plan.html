@@ -1,0 +1,8 @@
+{% load i18n static %}
+<div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-3">{% trans "Choose your school's plan and entitlements. Plan selection will be available here when plans are productized." %}</p>
+    <p class="mb-0 text-muted">{% trans "Until then, use Guided onboarding and Launch checklist to prepare for go-live." %}</p>
+  </div>
+</div>

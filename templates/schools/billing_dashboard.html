@@ -1,15 +1,29 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
-{% load region_format %}
+{% load i18n static %}
+{% load region_format phase8_tags %}
 {% block cp_title %}{% trans "Platform billing" %}{% endblock %}
 {% block cp_content %}
 {% url 'super:dashboard' as dashboard_url %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/billing_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Platform billing") subtitle=_("Platform-side accounts, subscriptions, usage, and ledger activity across all schools.") action_url=dashboard_url action_text=_("Back to dashboard") %}
   <div class="d-flex flex-wrap gap-2 mb-3" style="margin-top: -0.5rem;">
     <a href="{{ usage_url }}" class="btn btn-outline-primary btn-sm">{% trans "Usage API" %}</a>
   </div>
 
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      {% url 'api:ai-billing-usage-explain' as api_ai_bill_dash %}
+      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_bill_dash card_title=_("Billing & usage explainer") card_hint=_("SKUs, entitlements, and usage concepts. Do not paste payment card or bank data.") field_id="billDashAiQ" %}
+    </div>
+    <div class="col-lg-6">
+      {% url 'api:ai-data-quality-assistant' as api_ai_dq %}
+      {% include "components/ai_json_api_card.html" with api_url=api_ai_dq card_title=_("Data quality assistant (JSON)") card_hint=_('POST body must include {"query":"..."}. Suggests checks and remediation hints from config/help RAG.') field_id="billDashDqJson" default_body='{"query":"What data quality checks should we run before month-end billing closes?"}' %}
+    </div>
+  </div>
+
+  <details class="de-secondary-collapsible mb-2">
+  <summary>{% trans "Expand billing KPIs, breakdowns, and ledger tables" %}</summary>
   <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="card shadow-sm h-100">
@@ -281,5 +295,6 @@
       </div>
     </div>
   </div>
+  </details>
 </div>
 {% endblock %}

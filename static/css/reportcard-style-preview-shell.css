@@ -1,0 +1,73 @@
+/**
+ * Report card style preview layout (templates/siteconfig/reportcard_style_preview.html).
+ * :root --preview-primary / --preview-accent stay in-template (Django).
+ */
+
+.preview-header {
+  border-radius: 14px;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.9), rgba(124, 58, 237, 0.95));
+  color: white;
+}
+
+.preview-header .tagline {
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.style-details {
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.style-preview {
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--preview-primary), var(--preview-accent));
+  color: white;
+}
+
+.style-preview .watermark {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+.report-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.report-table th,
+.report-table td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0.65rem;
+  font-size: 0.85rem;
+}
+
+.report-table th {
+  background: #f7f7fc;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.summary-card {
+  border-radius: 12px;
+  padding: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
+}

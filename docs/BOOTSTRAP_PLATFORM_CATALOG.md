@@ -11,6 +11,14 @@ After running migrations, run **one** of the following so the platform is not a 
 
 That populates all catalogs (blueprint packs, marketplace apps, registries, workflow/dashboard packs, provider registry, migration profiles, portal FAQs/KB, finance defaults, compliance baseline). Idempotent; safe for local, staging, and production.
 
+### Cursor twelve-phase seed (audit / greenfield)
+
+For **strict phase-by-phase** ordering aligned with [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (phase_checklists 1–12), run:
+
+`python manage.py seed_cursor_twelve_phases`
+
+Optional: `--from-phase N`, `--to-phase M`, `--dry-run`, `--skip-gilead-lint`, `--strict-gilead-lint`. This command sequences the same idempotent seeds as bootstrap where applicable, plus `seed_render_users`, `backfill_runtime_defaults`, `normalize_ui_config`, `seed_phase9_first_party_packages`, `seed_compliance_baseline`, and a final `lint_gilead_residue.py` check (warning unless `--strict-gilead-lint`). It does **not** replace `bootstrap_platform_catalog --all` for minimal dependency ordering on catalogs alone.
+
 ## One-command bootstrap
 
 | Command | Purpose |

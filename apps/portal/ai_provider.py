@@ -2,13 +2,18 @@
 AI provider abstraction for sovereign/local-first execution.
 
 Priority order is configurable and defaults to:
-    ollama -> rules (local-first). Gemini is opt-in per tenant via AI_PROVIDER_PREFERENCE.
+    ollama -> rules (local-first).
 
-Set AI_PROVIDER_PREFERENCE to include "gemini" (e.g. "ollama,gemini,rules") only when
-a tenant has explicitly approved use of the paid API.
+All generative chat for the product goes through ``services.ai_gateway.invoke`` when
+``AI_GATEWAY_ENABLED`` is true; this module supplies Ollama delegation and status for
+operators. External cloud LLMs (removed: former Gemini path) are not used — use
+self-hosted Ollama and optional vLLM/LiteLLM via the gateway for structured tasks.
+
+Set ``AI_PROVIDER_PREFERENCE`` to e.g. ``ollama,rules`` (default). Legacy values
+mentioning ``gemini`` are ignored.
 
 `metadata` is intentionally not appended to model prompts so tenant identifiers
-or internal IDs are not sent to external providers.
+or internal IDs are not sent to inference backends.
 
 Sync vs async: Use generate_ai_response (sync) for single-turn copilot only. For bulk
 or long-running (syllabus sync, bulk support suggestion, report-card remarks), use
@@ -17,11 +22,8 @@ apps.portal.tasks.generate_ai_response_async and poll cache key ai:async_result:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
-import urllib.error
-import urllib.request
 from typing import Any
 
 from django.conf import settings
@@ -40,8 +42,9 @@ _AI_GATEWAY_INVOKE_ERRORS = (
     ImportError,
 )
 
-# Local-first default: ollama then rules. Add "gemini" only when tenant has approved.
+# Local-first default: Ollama then rules only.
 DEFAULT_PROVIDER_ORDER = ["ollama", "rules"]
+_DISALLOWED_PREFERENCE_TOKENS = frozenset({"gemini"})
 PROMPT_INJECTION_PATTERNS = (
     "ignore previous instructions",
     "ignore all previous instructions",
@@ -61,6 +64,7 @@ def _provider_preference() -> list[str]:
         or ",".join(DEFAULT_PROVIDER_ORDER)
     )
     items = [p.strip().lower() for p in str(raw).split(",") if p.strip()]
+    items = [p for p in items if p not in _DISALLOWED_PREFERENCE_TOKENS]
     deduped: list[str] = []
     for item in items:
         if item not in deduped:
@@ -96,14 +100,6 @@ def _ollama_config() -> tuple[str, str]:
     return endpoint, model
 
 
-def _gemini_model() -> str:
-    return (
-        getattr(settings, "GEMINI_MODEL", None)
-        or os.environ.get("GEMINI_MODEL")
-        or "gemini-pro"
-    ).strip()
-
-
 def _call_ollama(prompt: str, metadata: dict[str, Any] | None = None) -> str | None:
     """
     Single Ollama entry point: delegates to OllamaInferenceService (region, dossier, cache, fallback).
@@ -120,66 +116,6 @@ def _call_ollama(prompt: str, metadata: dict[str, Any] | None = None) -> str | N
         country_code=md.get("country_code"),
     )
     return text
-
-
-def _call_gemini(prompt: str) -> str | None:
-    api_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
-    if not api_key:
-        return None
-    model = _gemini_model()
-    if not model:
-        return None
-    url = (
-        f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{model}:generateContent?key={api_key}"
-    )
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.4,
-            "maxOutputTokens": 500,
-        },
-        "safetySettings": [
-            {
-                "category": "HARM_CATEGORY_HARASSMENT",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-            {
-                "category": "HARM_CATEGORY_HATE_SPEECH",
-                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-            },
-        ],
-    }
-    request = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(
-            request, timeout=_request_timeout_seconds()
-        ) as response:
-            data = json.loads(response.read().decode("utf-8"))
-    except urllib.error.URLError:
-        return None
-    except (
-        OSError,
-        TimeoutError,
-        ValueError,
-        TypeError,
-        json.JSONDecodeError,
-        UnicodeDecodeError,
-    ):
-        logger.exception("Gemini call failed")
-        return None
-    return (
-        data.get("candidates", [{}])[0]
-        .get("content", {})
-        .get("parts", [{}])[0]
-        .get("text")
-        or None
-    )
 
 
 def _rules_fallback(user_query: str) -> str:
@@ -201,10 +137,8 @@ def _is_policy_denied(user_query: str) -> bool:
 
 def get_ai_provider_status() -> dict[str, Any]:
     endpoint, ollama_model = _ollama_config()
-    gemini_model = _gemini_model()
-    gemini_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
     rules_enabled = bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True))
-    has_live = bool(endpoint and ollama_model) or bool(gemini_key)
+    has_live = bool(endpoint and ollama_model)
     return {
         "preference": _provider_preference(),
         "has_live_provider": has_live,
@@ -213,10 +147,6 @@ def get_ai_provider_status() -> dict[str, Any]:
             "configured": bool(endpoint and ollama_model),
             "endpoint": endpoint,
             "model": ollama_model or None,
-        },
-        "gemini": {
-            "configured": bool(gemini_key),
-            "model": gemini_model or None,
         },
     }
 
@@ -239,11 +169,6 @@ def get_public_ai_provider_status() -> dict[str, Any]:
                 "configured": bool(status.get("ollama", {}).get("configured")),
                 "model": status.get("ollama", {}).get("model"),
                 "exposure": "local",
-            },
-            "gemini": {
-                "configured": bool(status.get("gemini", {}).get("configured")),
-                "model": status.get("gemini", {}).get("model"),
-                "exposure": "external",
             },
         },
     }
@@ -369,6 +294,8 @@ def suggest_support_ticket_response(
     World Engine: FAISS/Llama support-ticket agent — suggest category/priority/response from ticket text.
     Uses AI gateway (support_suggest) when enabled. Returns (suggestions_dict, meta).
     """
+    import json
+
     prompt = (
         f"Support ticket — Subject: {subject[:200]}. Body: {body[:800]}.\n"
         'Respond with a short JSON only: {"category": "...", "priority": "LOW|NORMAL|HIGH|URGENT", "suggested_reply": "..."}. '

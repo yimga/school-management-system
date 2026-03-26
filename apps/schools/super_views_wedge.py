@@ -678,6 +678,28 @@ def super_geography(request):
                 "description": item["description"],
             }
         )
+    # Side-by-side compare (Wedges 7–13 world-class): anchor English-speaking North Atlantic + UK
+    compare_codes = ("US", "CAN", "GBR")
+    pack_compare_rows = []
+    for c in compare_codes:
+        if c not in REGIONAL_POLICY_PACKS:
+            continue
+        raw = REGIONAL_POLICY_PACKS[c]
+        defs = raw.get("defaults") or {}
+        pack_compare_rows.append(
+            {
+                "code": c,
+                "name": raw.get("name", c),
+                "currency": defs.get("currency", "—"),
+                "language": defs.get("default_language", "—"),
+                "grading_scale": defs.get("grading_scale", "—"),
+                "data_residency": defs.get("data_residency_region", "—"),
+                "privacy_framework": defs.get("privacy_framework", "—"),
+                "create_school_with_pack_url": (
+                    (create_school_url + "?pack=" + quote(c)) if create_school_url else None
+                ),
+            }
+        )
     setup_studio_url = _safe_reverse("siteconfig:guided_onboarding")
     curriculum_packs_url = _safe_reverse("super:curriculum_packs")
     trust_center_url = _safe_reverse("super:trust_center")
@@ -710,6 +732,7 @@ def super_geography(request):
                 hi=13,
                 label_for_wedge=geo_labels,
             ),
+            "pack_compare_rows": pack_compare_rows,
         },
     )
 

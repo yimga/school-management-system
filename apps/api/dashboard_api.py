@@ -414,7 +414,7 @@ class AcademicDashboardAPI(View):
             from apps.academics.models import Classroom
 
             # Total classes
-            total_classes = Classroom.objects.filter(is_active=True).count()
+            total_classes = Classroom.objects.count()
 
             # Average class performance
             avg_performance = 0.0  # Implement based on your evaluation model

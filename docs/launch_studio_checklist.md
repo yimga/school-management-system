@@ -1,6 +1,6 @@
 # Launch Studio Checklist (§4.5)
 
-**Purpose:** §4.5 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Map Launch Studio requirements to current implementation so PARTIAL status is measurable. Nothing deferred.
+**Purpose:** §4.5 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Map Launch Studio requirements to current implementation with measurable DONE vs follow-up depth (§11.4). Nothing deferred.
 
 **Status:** Step 34 DONE (staging run + sign-off recorded 2026-03-17). **Platform not ready for launch yet** — still developing; checklists are ready for when we launch. Checklist below tracks each item.
 
@@ -41,9 +41,9 @@
 
 **Rule:** Checklist rows above are marked **DONE** only when verified in staging (not just local/dev).
 
-**Step 34 closure:** Step 34 is **DONE** when a row with **Environment = staging** and **Sign-off** is added below. Until then Step 34 remains **PARTIAL**. **Dependency:** Staging environment access; run the 10-point checklist in staging before production deploy per [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) Pre-release.
+**Step 34 closure:** **DONE** — staging row **2026-03-17** with sign-off is recorded below (aligned with [docs_truth_ledger.md](docs_truth_ledger.md) and SOT §4.5). **Before each production deploy:** re-run the 10-point checklist in staging per [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) Pre-release and add a new table row if policy requires a fresh audit trail.
 
-**Readiness:** All 10 items have implementation (create school, select plan, recommend blueprint, import branding, starter stack, migration path, preview by role, launch checklist, health score, launch confidence summary). Step 34 moves to DONE only after the 10-point run in staging and this §4 table is filled.
+**Readiness:** All 10 items have implementation (create school, select plan, recommend blueprint, import branding, starter stack, migration path, preview by role, launch checklist, health score, launch confidence summary). Staging verification history is in the table below.
 
 Before release, in **staging** run through:
 
@@ -67,7 +67,13 @@ Document any failure or gap; mark row DONE only after successful staging run.
 | 2026-03-13 | local/CI | Automated verification | 10-point checklist: all items have implementation verified (create school, select plan, recommend blueprint, import branding, starter stack, migration path, preview by role, launch checklist, health score, launch confidence). lint_secret_exposure, lint_broad_except, lint_raw_sql, manage.py check pass; smoke URL tests pass. Step 34 DONE. Re-run in staging before prod deploy per RELEASE_CHECKLIST. |
 | 2026-03-17 | staging | Release sign-off | Launch 10-point run in staging completed: create school, select plan, recommend blueprint, import branding, starter stack, migration path, preview by role, launch checklist, health score, launch confidence. Step 34 DONE. |
 
-**To unblock Step 34 and release sign-off:** (1) Run the 10 items above in a **staging** environment. (2) Add a row to this table with Date, Environment=staging, Sign-off=(name or "Release manager"), Notes=any gaps. (3) In [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) complete the "Release sign-off" section. Once both are filled, the plan can be declared done per SOT §11.4.
+**Copy-paste row (after each new staging 10-point run):** duplicate the line below into the table above, replace placeholders, and keep the numbered checklist (1–10 in this section) as the procedure.
+
+`| YYYY-MM-DD | staging | <name or team> | Staging Launch 10-point: PASS (or list gaps). Cross-check RELEASE_CHECKLIST Pre-release. |`
+
+**CI note:** Tenant-host Playwright checks (teacher/parent portals) run in GitHub Actions when Postgres + domains are wired — workflow **Playwright tenant (Postgres)** (`.github/workflows/playwright-tenant-postgres.yml`). Default SQLite / local gate runs still skip those two tests unless `TENANT_BASE_URL` is set (see `scripts/run_visual_qa.sh`).
+
+**For future production deploys:** (1) Re-run the 10 items in **staging** when policy requires a fresh audit trail. (2) Add a new table row (Date, Environment=staging, Sign-off, Notes). (3) Complete [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) **Release sign-off** for that cut. Step 34 is **already DONE** for the 2026-03-17 staging sign-off above.
 
 ---
 

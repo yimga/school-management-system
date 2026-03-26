@@ -1,0 +1,25 @@
+# Records the current RepoDigest for ollama/ollama:latest in the Actions summary.
+# Use it to pin infra (Kubernetes, Compose) to a digest after review; does not auto-commit.
+name: Ollama container digest (weekly)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull and report digest
+        run: |
+          set -e
+          docker pull ollama/ollama:latest
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ollama/ollama:latest)
+          {
+            echo "## ollama/ollama:latest"
+            echo "Use this digest in your pinned deployments after you verify release notes:"
+            echo "\`\`\`"
+            echo "$DIGEST"
+            echo "\`\`\`"
+          } >> "$GITHUB_STEP_SUMMARY"

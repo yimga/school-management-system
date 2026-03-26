@@ -1,34 +1,31 @@
-# Path to 100% — Execution Plan for All Unchecked SOT Items
+# Path to 100% — Execution plan (slice-level depth after SOT gates)
 
-**Authority:** This document is the implementation plan for every remaining `- [ ]` item in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). It is referenced by SOT §11.2. **Status and "what's left" live only in SOT §11.4 — do not add status columns or "where we stand" here; use SOT §11.4 for tracking.**
+**Authority:** Item-level **Actions** (implement / N/A) for depth work; referenced by SOT **§11.2**. The SOT **§6** app ledger is **consolidated [x]** at repo behavioral bar—use this file for **slice-level** steps, N/A justifications, and historical row detail. **Status and "what's left"** live in SOT **§11.4** (and **At a glance**)—do not add parallel “where we stand” sections here.
 
 **Rule:** For each unchecked item, either (1) **Implement** it and then mark `[x]` in the SOT, or (2) document it as **N/A** with owner, date, and justification, and record that in the SOT (e.g. "N/A — see PATH_TO_100_PERCENT_EXECUTION_PLAN.md §…"). No item remains unchecked without one of these actions. N/A is temporary until product unblocks; when unblocked, implement and mark [x]. **Why N/A and how to unblock:** [N/A_BLOCKERS_AND_RESOLUTION.md](N/A_BLOCKERS_AND_RESOLUTION.md).
 
 **Visible after deployment:** Every implementation must be verifiable post-deploy—in UI, API, or documented behavior (lint/test/ledger). When marking [x], note how to verify (e.g. "redirect from /siteconfig/customizer/ to Studio OS Experience"). See SOT §11.3.
 
-**Execution order:** Phase I → Phase II → Phase III → Phase IV → Phase V. Phase I: wedges 1→2→3→4→5→6 in order (see SOT Phase I section). Within Phase III, strict section order: §6.1 → §6.2 → … → §6.24. Within each section, complete Actions in order. See SOT §11.3 for full logical order and legacy replacement status.
+**Execution order:** **Phase I DONE** (SOT §11). Then Phase II → Phase III → Phase IV → Phase V for **depth** (§6 spine is [x] at repo bar — use Phase III sections for slice actions, not as “open ledger”). Within Phase III, prefer strict section order §6.1 → … → §6.24 when burning down PATH_TO rows. See SOT §11.3 for logical order and legacy replacement status.
 
 ---
 
 ## Phase I — Core wedges 1–6 (§0.2.1)
 
-**Authority:** The authoritative checklist for Phase I (wedges 1–6) is in **SOT §11 Phase I**. Do not duplicate tracking here. Use [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) Phase I for scope, codebase evidence, gaps, and per-wedge checklist items. Complete wedges in order 1→2→3→4→5→6; within each wedge, complete all checklist items before moving to the next.
+**Authority:** Phase I (wedges 1–6) is **DONE** in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§11**; evidence in wedge/scorecard docs. This file keeps **slice actions** and N/A detail—do not treat it as the live status table.
 
 ---
 
-## Summary: Unchecked counts by phase
+## Summary: Work queues (aligned with streamlined SOT)
 
-| Phase | Scope | Item count | Notes |
-|-------|--------|------------|--------|
-| **Phase I** | §0.2.1 (wedges 1–6) | 6 wedges | Core wedges: K–12 SIS, LMS, UK, District, Advancement, HE. See SOT Phase I. |
-| **Phase II** | §2.4, §3.2 | 3 | Unblock and high-impact security/runtime |
-| **Phase III** | §6.1–6.24 | 58 | App-by-app ledger |
-| **Phase IV** | §5.1–5.9, §4.5 | 35 | Toolset and productization |
-| **Phase V** | §6.14–6.22, §7, Phase H | 17 | People/reports/migration/analytics/observability; §7 seeding; Phase H manual |
-| **Phase H (manual)** | §11 Phase H | 3 | Full codebase/UX verification; deploy visibility; full test suite |
-| **§7 seeding** | §7 | 11 | Minimum targets + completion gate (can be N/A or implement per product) |
-
-**Total:** ~100 unchecked items. Each must be addressed per the rule above.
+| Queue | Scope | Notes |
+|-------|--------|--------|
+| **Phase I** | Wedges 1–6 | **DONE** — SOT §11 + [RUNMYCAMPUS_45_WEDGE_SCORECARD.md](RUNMYCAMPUS_45_WEDGE_SCORECARD.md) |
+| **Phase II** | §2.4, §3.2 | Repo gate **MET**; rows below = deepen or verify |
+| **Phase III** | §6.1–6.24 | SOT **§6** = **[x]** spine; use sections below for **depth** only |
+| **Phase IV** | §5, §4.5 | §5 spine **[x]**; §4.5 select plan **N/A** until productized |
+| **Phase V** | §7, Phase H | §7 **MET**; Phase H **manual per release** |
+| **§11.4** | Product depth | Track in SOT **§11.4** + [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md](RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md) |
 
 ---
 
@@ -352,11 +349,11 @@ Work through apps in order. For each item: implement and mark [x], or N/A with o
 
 ## How to use this plan
 
-1. **Sync with SOT:** Before starting a phase, open RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md and locate each `- [ ]` for that phase.
-2. **Implement:** Do the work; then change the corresponding `- [ ]` to `- [x]` in the SOT and add a brief completion note (e.g. "DONE — see …").
-3. **N/A:** If an item is not to be implemented now, add under the item in the SOT: "N/A — [owner], [date], [reason]. See PATH_TO_100_PERCENT_EXECUTION_PLAN.md §…"
-4. **Cross-check:** Use BACKLOG_AND_DEFERRED_CLOSURE.md §1, NEXT_50_EXECUTION_STEPS.md, OPERATING_DISCIPLINE_LAYERS.md, and DECISION_ARCHITECTURE_CHECKLIST.md so no required work is omitted.
-5. **Update this doc:** When an item is marked N/A, add the owner/date/reason in the table above so the plan stays the single place to see status.
+1. **Sync with SOT:** Before starting a phase, read SOT **§11.4** and **At a glance** for the live queue. The streamlined SOT may have **no** per-line `- [ ]` for **§6** (spine **[x]**); use **this file’s phase tables** for **Action** rows and update **§11.4** / autonomous log when you ship a slice.
+2. **Implement:** Do the work; if the SOT still has a matching `- [ ]`, change it to `- [x]` with a brief note; otherwise record completion in **§11.4** and [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md](RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md).
+3. **N/A:** If an item is not to be implemented now, record **N/A** with owner, date, and reason in the SOT or [NA_REGISTER_PATH_TO_100.md](NA_REGISTER_PATH_TO_100.md) and pointer to this file §…
+4. **Cross-check:** Use BACKLOG_AND_DEFERRED_CLOSURE.md §1, OPERATING_DISCIPLINE_LAYERS.md, and DECISION_ARCHITECTURE_CHECKLIST.md so no required work is omitted. (NEXT_50 is **historical DONE** — not the primary queue.)
+5. **Update this doc:** When an item is marked N/A, add the owner/date/reason in the table above so **slice-level** N/A detail stays traceable — **program status** remains SOT **§11.4** only.
 
 ---
 

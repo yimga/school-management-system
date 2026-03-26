@@ -1,6 +1,6 @@
 # Plan and Backlog — Where We Stand
 
-> **2026-03-23 — Read this instead for live status:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (§0.1.5, §11.4, §12) and [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) (external OPEN only). **[docs/README.md](README.md)** lists the minimal doc set. This file is a **historical snapshot**; do not update it for new execution state — update the SOT.
+> **Live status:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) — start with **At a glance**, then **§11.4** and **§12**. External OPEN only: [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). **[docs/README.md](README.md)** lists the minimal doc set. This file is a **historical snapshot**; do not update it for new execution state — update the SOT.
 
 **Purpose:** Archived snapshot of plan/backlog alignment. **Authority:** Always [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md).
 

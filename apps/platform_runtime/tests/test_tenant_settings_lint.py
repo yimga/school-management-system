@@ -100,3 +100,41 @@ class TenantSettingsLintTests(unittest.TestCase):
             0,
             f"verify_phase_5_siteconfig failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
         )
+
+    def test_cursor_phase6_siteconfig_bundle_passes(self):
+        """Cursor Phase 6: ZIP verify + tenant lints + Batch3 FK lint + audit artifacts."""
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        script = root / "scripts" / "verify_cursor_phase6_siteconfig_sitesettings.py"
+        if not script.is_file():
+            self.skipTest("scripts/verify_cursor_phase6_siteconfig_sitesettings.py not found")
+        result = subprocess.run(
+            [sys.executable, str(script)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"verify_cursor_phase6_siteconfig_sitesettings failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+        )
+
+    def test_lint_sitesettings_orm_singleton_passes(self):
+        """SiteSettings.objects.* only in siteconfig/models.py + platform_runtime/helpers.py."""
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        script = root / "scripts" / "lint_sitesettings_orm_singleton.py"
+        if not script.is_file():
+            self.skipTest("scripts/lint_sitesettings_orm_singleton.py not found")
+        result = subprocess.run(
+            [sys.executable, str(script), "--base", str(root)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"lint_sitesettings_orm_singleton failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+        )

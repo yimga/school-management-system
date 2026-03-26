@@ -19,9 +19,20 @@ from apps.platform_runtime.structured_logging import (
 
 logger = logging.getLogger(__name__)
 
+from apps.portal.kb_context import (
+    filter_by_target_roles,
+    filter_faqs_by_region,
+    filter_faqs_for_host,
+    filter_kb_articles_by_region,
+    filter_kb_articles_for_host,
+    is_operator_help_request,
+    kb_categories_for_request,
+)
+
 from .models_kb import (
     FAQCategory,
     FAQ,
+    HelpAudience,
     KBCategory,
     KBArticle,
     KBComment,
@@ -79,25 +90,31 @@ def _get_kb_region(request):
     return (country_code or "", plan_tier or "")
 
 
-def _filter_kb_articles_by_region(queryset, country_code, plan_tier=""):
-    """
-    Filter KB article queryset to prefer region/plan; include global (blank) and matching region.
-    """
-    if not country_code and not plan_tier:
-        return queryset
-    # Global articles (no region) always shown; optionally boost region-matched
-    q_global = Q(country_code="") & Q(education_type="") & Q(plan_tier="")
-    q_country = Q(country_code=country_code) if country_code else Q(pk__in=[])
-    q_plan = Q(plan_tier=plan_tier) if plan_tier else Q(pk__in=[])
-    return queryset.filter(q_global | q_country | q_plan)
+def _published_kb_for_request(request):
+    country, plan = _get_kb_region(request)
+    is_op = is_operator_help_request(request)
+    qs = KBArticle.objects.filter(status="PUBLISHED")
+    qs = filter_kb_articles_for_host(qs, is_operator=is_op)
+    qs = filter_kb_articles_by_region(qs, country, plan)
+    qs = filter_by_target_roles(qs, request)
+    return qs
 
+
+def _approved_faq_for_request(request):
+    country, plan = _get_kb_region(request)
+    is_op = is_operator_help_request(request)
+    qs = FAQ.objects.filter(status="APPROVED")
+    qs = filter_faqs_for_host(qs, is_operator=is_op)
+    qs = filter_faqs_by_region(qs, country, plan)
+    qs = filter_by_target_roles(qs, request)
+    return qs
 
 def faq_list(request):
     """Display all FAQs organized by category"""
     category_slug = request.GET.get("category")
     search_query = request.GET.get("q")
 
-    faqs = FAQ.objects.filter(status="APPROVED")
+    faqs = _approved_faq_for_request(request)
 
     if category_slug:
         faqs = faqs.filter(category__slug=category_slug)
@@ -110,8 +127,8 @@ def faq_list(request):
         )
 
     categories = FAQCategory.objects.filter(is_active=True)
-    featured_faqs = faqs.filter(is_featured=True)[:5]
-    popular_faqs = faqs.order_by("-view_count")[:5]
+    featured_faqs = list(faqs.filter(is_featured=True)[:5])
+    popular_faqs = list(faqs.order_by("-view_count")[:5])
 
     paginator = Paginator(faqs, 20)
     page_number = request.GET.get("page")
@@ -122,6 +139,7 @@ def faq_list(request):
 
     context = {
         "page_obj": page_obj,
+        "is_operator_help": is_operator_help_request(request),
         "categories": categories,
         "featured_faqs": featured_faqs,
         "popular_faqs": popular_faqs,
@@ -134,16 +152,17 @@ def faq_list(request):
 
 def faq_detail(request, faq_id):
     """Display single FAQ with vote options"""
-    faq = get_object_or_404(FAQ, id=faq_id, status="APPROVED")
+    faq = get_object_or_404(_approved_faq_for_request(request), id=faq_id)
     faq.increment_view_count()
 
-    related_faqs = FAQ.objects.filter(category=faq.category, status="APPROVED").exclude(
+    related_faqs = _approved_faq_for_request(request).filter(category=faq.category).exclude(
         id=faq.id
     )[:5]
 
     context = {
         "faq": faq,
         "related_faqs": related_faqs,
+        "is_operator_help": is_operator_help_request(request),
     }
     return render(request, "portal/faq_detail.html", context)
 
@@ -201,6 +220,7 @@ def faq_submit(request):
                 tags=tags,
                 submitted_by=request.user,
                 status="PENDING",
+                help_audience=(HelpAudience.OPERATOR if is_operator_help_request(request) else HelpAudience.TENANT),
             )
 
             # Award points
@@ -214,44 +234,47 @@ def faq_submit(request):
             messages.success(
                 request, "Thank you! Your FAQ has been submitted for review."
             )
-            return redirect("portal:faq_list")
+            return redirect("kb:faq_list")
         else:
             messages.error(request, "Please fill in all required fields.")
 
     categories = FAQCategory.objects.filter(is_active=True)
-    context = {"categories": categories}
+    context = {
+        "categories": categories,
+        "is_operator_help": is_operator_help_request(request),
+    }
     return render(request, "portal/faq_submit.html", context)
 
 
 def kb_home(request):
     """Knowledge Base home page"""
     country_code, plan_tier = _get_kb_region(request)
-    base = KBArticle.objects.filter(status="PUBLISHED")
-    featured_articles = _filter_kb_articles_by_region(
-        base.filter(is_featured=True), country_code, plan_tier
-    )[:6]
-    recent_articles = _filter_kb_articles_by_region(
-        base.order_by("-published_at"), country_code, plan_tier
-    )[:10]
-    popular_articles = _filter_kb_articles_by_region(
-        base.order_by("-view_count"), country_code, plan_tier
-    )[:10]
-    categories = KBCategory.objects.filter(is_active=True, parent=None)
+    base = _published_kb_for_request(request)
+    featured_articles = base.filter(is_featured=True)[:6]
+    recent_articles = base.order_by("-published_at")[:10]
+    popular_articles = base.order_by("-view_count")[:10]
+    categories = kb_categories_for_request(request, country_code, plan_tier)
 
     context = {
         "featured_articles": featured_articles,
         "recent_articles": recent_articles,
         "popular_articles": popular_articles,
         "categories": categories,
+        "is_operator_help": is_operator_help_request(request),
     }
     return render(request, "portal/kb_home.html", context)
 
 
 def kb_category(request, category_slug):
     """Display articles in a category"""
-    category = get_object_or_404(KBCategory, slug=category_slug, is_active=True)
+    category = get_object_or_404(
+        filter_by_target_roles(
+            KBCategory.objects.filter(is_active=True), request
+        ),
+        slug=category_slug,
+    )
 
-    articles = KBArticle.objects.filter(category=category, status="PUBLISHED").order_by(
+    articles = _published_kb_for_request(request).filter(category=category).order_by(
         "-is_featured", "display_order", "-view_count"
     )
 
@@ -269,13 +292,16 @@ def kb_category(request, category_slug):
         "page_obj": page_obj,
         "subcategories": subcategories,
         "pagination_extra_query": pagination_extra_query,
+        "is_operator_help": is_operator_help_request(request),
     }
     return render(request, "portal/kb_category.html", context)
 
 
 def kb_article(request, article_slug):
     """Display single KB article"""
-    article = get_object_or_404(KBArticle, slug=article_slug, status="PUBLISHED")
+    article = get_object_or_404(
+        _published_kb_for_request(request), slug=article_slug
+    )
     article.increment_view_count()
 
     # Get approved comments
@@ -284,24 +310,30 @@ def kb_article(request, article_slug):
     )
 
     # Related articles
-    related_articles = article.related_articles.filter(status="PUBLISHED")[:4]
+    related_articles = article.related_articles.filter(
+        pk__in=_published_kb_for_request(request).values_list("pk", flat=True)
+    )[:4]
     if not related_articles.exists():
-        # Fallback to same category
-        related_articles = KBArticle.objects.filter(
-            category=article.category, status="PUBLISHED"
-        ).exclude(id=article.id)[:4]
+        related_articles = (
+            _published_kb_for_request(request)
+            .filter(category=article.category)
+            .exclude(id=article.id)[:4]
+        )
 
     context = {
         "article": article,
         "comments": comments,
         "related_articles": related_articles,
+        "is_operator_help": is_operator_help_request(request),
     }
     return render(request, "portal/kb_article.html", context)
 
 
 def kb_article_download_odt(request, article_slug):
     """Download KB article as LibreOffice ODT (same visibility as viewing the article)."""
-    article = get_object_or_404(KBArticle, slug=article_slug, status="PUBLISHED")
+    article = get_object_or_404(
+        _published_kb_for_request(request), slug=article_slug
+    )
     if not article.odt_file:
         return redirect("kb:kb_article", article_slug=article_slug)
     try:
@@ -325,12 +357,14 @@ def kb_article_download_odt(request, article_slug):
 
 def kb_article_download_docx(request, article_slug):
     """Download KB article as Word DOCX (converted from ODT via LibreOffice headless)."""
-    article = get_object_or_404(KBArticle, slug=article_slug, status="PUBLISHED")
+    article = get_object_or_404(
+        _published_kb_for_request(request), slug=article_slug
+    )
     if not article.odt_file:
         return redirect("kb:kb_article", article_slug=article_slug)
     import tempfile
     import os
-    from .document_conversion import convert_to_docx
+    from .document_service import convert_document
 
     path = None
     try:
@@ -340,7 +374,7 @@ def kb_article_download_docx(request, article_slug):
             with tempfile.NamedTemporaryFile(suffix=".odt", delete=False) as tmp:
                 tmp.write(article.odt_file.read())
                 path = tmp.name
-        docx_bytes = convert_to_docx(path)
+        docx_bytes = convert_document(path, target="docx", family="writer")
         response = HttpResponse(
             docx_bytes,
             content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -375,7 +409,7 @@ def kb_article_download_pdf(request, article_slug):
         return redirect("kb:kb_article", article_slug=article_slug)
     import tempfile
     import os
-    from .document_conversion import convert_to_pdf
+    from .document_service import convert_document
 
     path = None
     try:
@@ -385,7 +419,7 @@ def kb_article_download_pdf(request, article_slug):
             with tempfile.NamedTemporaryFile(suffix=".odt", delete=False) as tmp:
                 tmp.write(article.odt_file.read())
                 path = tmp.name
-        pdf_bytes = convert_to_pdf(path)
+        pdf_bytes = convert_document(path, target="pdf", family="writer")
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{article.slug}.pdf"'
         return response
@@ -506,6 +540,7 @@ def kb_article_submit(request):
                 tags=tags,
                 author=request.user,
                 status="PENDING",
+                help_audience=(HelpAudience.OPERATOR if is_operator_help_request(request) else HelpAudience.TENANT),
             )
 
             # Award points
@@ -523,8 +558,11 @@ def kb_article_submit(request):
         else:
             messages.error(request, "Please fill in all required fields.")
 
-    categories = KBCategory.objects.filter(is_active=True)
-    context = {"categories": categories}
+    categories = filter_by_target_roles(KBCategory.objects.filter(is_active=True), request)
+    context = {
+        "categories": categories,
+        "is_operator_help": is_operator_help_request(request),
+    }
     return render(request, "portal/kb_article_submit.html", context)
 
 
@@ -533,21 +571,14 @@ def kb_search(request):
     query = request.GET.get("q", "")
     if not query:
         return redirect("kb:kb_home")
-    country_code, plan_tier = _get_kb_region(request)
-    # Search articles
-    articles = _filter_kb_articles_by_region(
-        KBArticle.objects.filter(status="PUBLISHED").filter(
-            Q(title__icontains=query)
-            | Q(summary__icontains=query)
-            | Q(content__icontains=query)
-            | Q(tags__icontains=query)
-        ),
-        country_code,
-        plan_tier,
+    articles = _published_kb_for_request(request).filter(
+        Q(title__icontains=query)
+        | Q(summary__icontains=query)
+        | Q(content__icontains=query)
+        | Q(tags__icontains=query)
     )
 
-    # Search FAQs
-    faqs = FAQ.objects.filter(status="APPROVED").filter(
+    faqs = _approved_faq_for_request(request).filter(
         Q(question__icontains=query)
         | Q(answer__icontains=query)
         | Q(tags__icontains=query)
@@ -563,6 +594,7 @@ def kb_search(request):
         "query": query,
         "articles_page": articles_page,
         "faqs_page": faqs_page,
+        "is_operator_help": is_operator_help_request(request),
     }
     return render(request, "portal/kb_search.html", context)
 

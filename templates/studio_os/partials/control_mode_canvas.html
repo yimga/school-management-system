@@ -1,11 +1,4 @@
 {% load i18n %}
-<style>
-  .studio-os__control-rail a.control-rail-link { display: block; padding: 0.35rem 0.5rem; border-radius: var(--token-radius-sm); color: var(--color-base-700, #334155); text-decoration: none; }
-  .studio-os__control-rail a.control-rail-link:hover { background: var(--color-base-100, #f1f5f9); color: var(--color-base-900, #0f172a); }
-  .studio-os__control-rail a.control-rail-link.active { background: var(--color-primary-50, #eff6ff); color: var(--color-primary-700, #1d4ed8); font-weight: 500; }
-  .studio-os__control-rail a.control-rail-link:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
-  .cp-outcome-pill { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em; }
-</style>
 
 {% if control_outcome_sections %}
 <div class="studio-os__card mb-3 py-3 px-3" role="region" aria-labelledby="control-studio-outcomes-heading">
@@ -56,7 +49,7 @@
 
 <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__control-wrap">
   {% if control_left_rail %}
-  <nav class="studio-os__control-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Control' %}" style="width: min(12.5rem, 100%); min-width: 0;">
+  <nav class="studio-os__control-rail studio-os__control-rail--sized flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Control' %}">
     <div class="studio-os__card py-2">
       <div class="h6 mb-2">{% trans "Governance" %}</div>
       <ul class="list-unstyled small mb-0" id="control-rail-list">

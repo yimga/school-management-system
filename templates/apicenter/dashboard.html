@@ -1,6 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n static %}
-{% load region_format %}
+{% load region_format phase8_tags %}
 
 {% block title %}{% trans "API Center" %}{% endblock %}
 {% block backend_title %}{% trans "API Center" %}{% endblock %}
@@ -12,6 +12,7 @@
 
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% phase8_dashboard_declaration "apicenter/dashboard.html" %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   {% if phase7_de %}
   {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}

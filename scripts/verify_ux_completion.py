@@ -7,6 +7,16 @@ This script verifies the core contract rather than relying on historical docs:
 - Setup Studio product payload
 - required private-surface template markers
 - required public proof-page route markers
+
+Gate / E2E database (SQLite): when **DJANGO_UX_AUDIT_USE_GATE_DB=1**, the default connection
+uses **DJANGO_UX_AUDIT_DB_FILE** or **DJANGO_TEST_DB_FILE** (same discipline as
+``migrate_gate_test_db.py``) so this audit runs against a migrated file-backed DB instead
+of an unmigrated dev ``db_working.sqlite3``. Example::
+
+    export DJANGO_UX_AUDIT_USE_GATE_DB=1
+    export DJANGO_TEST_DB_FILE=.django_test_dbs/operator_phase1011_e2e.sqlite3
+    python scripts/migrate_gate_test_db.py
+    python scripts/verify_ux_completion.py
 """
 
 from __future__ import annotations
@@ -23,6 +33,22 @@ if str(ROOT) not in sys.path:
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 import django
+from django.conf import settings
+
+_use_gate = (os.environ.get("DJANGO_UX_AUDIT_USE_GATE_DB") or "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+_raw_gate = (os.environ.get("DJANGO_UX_AUDIT_DB_FILE") or os.environ.get("DJANGO_TEST_DB_FILE") or "").strip()
+if _use_gate and _raw_gate:
+    _engine = settings.DATABASES.get("default", {}).get("ENGINE", "")
+    if _engine == "django.db.backends.sqlite3":
+        _path = Path(os.path.expanduser(os.path.expandvars(_raw_gate)))
+        if not _path.is_absolute():
+            _path = ROOT / _path
+        _path.parent.mkdir(parents=True, exist_ok=True)
+        settings.DATABASES["default"]["NAME"] = str(_path)
 
 django.setup()
 

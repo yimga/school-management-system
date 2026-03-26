@@ -112,6 +112,16 @@
       "replay_protection": "rate_limit_per_ip_cache",
       "verdict": "keep_with_hardening"
     },
+    "apps/portal/views_office.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "wopi_hmac_access_token",
+      "expected_count": 2,
+      "notes": "WOPI endpoints accept Collabora server callbacks without CSRF; guarded by document-scoped HMAC token and auth context.",
+      "owner": "portal_office_wopi",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "shared_secret_hmac_token",
+      "verdict": "keep_with_hardening"
+    },
     "apps/schools/section8_views.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "external_tool_callback",
@@ -133,7 +143,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-03-23T17:12:31.839849+00:00",
+  "generated_at": "2026-03-26T11:21:08.155449+00:00",
   "raw_sql": {
     "apps/accounts/management/commands/seed_render_users.py": {
       "expected_count": 1,
@@ -188,7 +198,7 @@
   },
   "summary": {
     "allow_any_files": 1,
-    "csrf_exempt_files": 12,
+    "csrf_exempt_files": 13,
     "raw_sql_files": 11
   }
 }

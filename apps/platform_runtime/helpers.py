@@ -598,20 +598,30 @@ def _build_platform_site_settings_base() -> Any:
 
     if payload:
         apply_payload_dict_to_site_settings_shallow_base(base, payload)
-    # Step 4: first-class owned columns override payload when set
+    # First-class RuntimeDefaults columns override payload when set (non-null).
     try:
-        if (
-            rt_defaults is not None
-            and getattr(rt_defaults, "cache_rankings_interval_minutes", None)
-            is not None
-        ):
-            if hasattr(base, "cache_rankings_interval_minutes"):
-                setattr(
-                    base,
-                    "cache_rankings_interval_minutes",
-                    rt_defaults.cache_rankings_interval_minutes,
-                )
-    except (AttributeError, TypeError, ValueError):
+        from apps.platform_runtime.runtime_defaults_first_class import (
+            RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES,
+            RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES,
+            runtime_defaults_first_class_string_is_blank,
+        )
+
+        if rt_defaults is not None:
+            for fname in RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES:
+                val = getattr(rt_defaults, fname, None)
+                if val is None:
+                    continue
+                if fname in RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES:
+                    if runtime_defaults_first_class_string_is_blank(val):
+                        continue
+                if hasattr(base, fname):
+                    setattr(base, fname, val)
+                else:
+                    try:
+                        object.__setattr__(base, fname, val)
+                    except (TypeError, AttributeError):
+                        pass
+    except (AttributeError, ImportError, TypeError, ValueError):
         pass
     try:
         base._sanitize_foreign_keys(persist=False)

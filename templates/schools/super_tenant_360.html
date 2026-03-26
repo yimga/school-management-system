@@ -1,6 +1,7 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
 {% load region_format %}
+{% load phase8_tags %}
 
 {% block cp_title %}{% trans "School 360" %}: {{ school.name }}{% endblock %}
 
@@ -19,7 +20,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="record-detail">
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/super_tenant_360.html" %}
   {% include "studio_os/components/page_header.html" with title=_("School 360") subtitle=school.name action_url=dashboard_url action_text=_("Back to Dashboard") %}
   <div class="row">
     <div class="col-md-6">

@@ -53,26 +53,119 @@ def _primary_nav_is_current(request_path: str, item_id: str) -> bool:
     p = (request_path or "").split("?", 1)[0]
     if not p.endswith("/"):
         p = p + "/"
+
+    def _starts(*prefixes: str) -> bool:
+        return any(p.startswith(pref) for pref in prefixes)
+
     if item_id == "primary_home":
-        return p.startswith("/super/dashboard/") or p == "/super/"
+        if p == "/super/" or p.startswith("/super/dashboard/"):
+            return True
+        # Platform Overview siblings (sidebar): AI consoles stay under Home pill.
+        if p.startswith("/super/ai-gateway-console/"):
+            return True
+        if p.startswith("/super/ai-model-hub/"):
+            return True
+        if p.startswith("/super/global-ai-version/"):
+            return True
+        if p.startswith("/super/trust/"):
+            return True
+        if p.startswith("/super/compliance/"):
+            return True
+        if p.startswith("/super/operator-policy/"):
+            return True
+        # Tenants, provisioning, and geography — same mental model as dashboard / overview.
+        return _starts(
+            "/super/schools/",
+            "/super/create/",
+            "/super/curriculum-packs/",
+            "/super/learning-delivery-packs/",
+            "/super/district-enterprise/",
+            "/super/geography/",
+            "/super/wedge/",
+            "/super/native-roster-connectors/",
+            "/super/education-systems/",
+            "/super/group-campuses/",
+            "/super/one-sis-any-lms/",
+            "/super/advancement/",
+            "/super/he-pack/",
+            "/super/tenants/",
+            "/super/health/",
+        )
     if item_id == "primary_studio":
-        return p.startswith("/studio/") and not p.startswith("/studio/control/")
+        if p.startswith("/studio/") and not p.startswith("/studio/control/"):
+            return True
+        # Tenant / manager siteconfig paths aligned with Studio OS (Experience, Outputs, Launch, Automation).
+        return _starts(
+            "/siteconfig/theme-colors/",
+            "/siteconfig/template-gallery/",
+            "/siteconfig/theme-experience/",
+            "/siteconfig/preview-from-form/",
+            "/siteconfig/preview/toggle/",
+            "/siteconfig/act-as/",
+            "/siteconfig/reports/",
+            "/siteconfig/customizer/",
+            "/siteconfig/dashboard-hub/",
+            "/siteconfig/workflow-gallery/",
+            "/siteconfig/guided-onboarding/",
+            "/siteconfig/support-copilot/",
+            "/siteconfig/feedback-roadmap/",
+            "/siteconfig/preferences/",
+        )
     if item_id == "primary_operations":
-        return p.startswith("/super/command-center/")
+        return _starts("/super/command-center/", "/super/orchestration/")
     if item_id == "primary_marketplace":
-        return p.startswith("/super/marketplace/")
+        if p.startswith("/super/marketplace/"):
+            return True
+        return p.startswith("/siteconfig/app-sandbox/")
     if item_id == "primary_analytics":
-        return (
-            p.startswith("/super/analytics/")
-            or p.startswith("/super/usage/")
-            or p.startswith("/super/pulse/")
+        return _starts(
+            "/super/analytics/",
+            "/super/usage/",
+            "/super/pulse/",
+            "/super/billing/",
+            "/super/customer-success/",
         )
     if item_id == "primary_migration":
         return p.startswith("/super/migration")
     if item_id == "primary_support":
         return p.startswith("/super/support")
     if item_id == "primary_control":
-        return "/studio/control/" in p
+        if "/studio/control/" in p:
+            return True
+        # Configuration Control Center + feature control (manager / tenant).
+        if _starts(
+            "/siteconfig/console/",
+            "/siteconfig/feature-control/",
+            "/siteconfig/grading-settings/",
+            "/siteconfig/modules/",
+            "/siteconfig/installed-packages/",
+            "/siteconfig/dashboard-configuration/",
+            "/siteconfig/get-blueprints/",
+            "/siteconfig/sync-center/",
+            "/siteconfig/school-theme/",
+            "/siteconfig/tag-manager/",
+            "/siteconfig/domains/",
+            "/siteconfig/request-waiver/",
+            "/siteconfig/request-custom-requirement/",
+            "/siteconfig/maintenance/",
+            "/siteconfig/impersonation-consent/",
+        ):
+            return True
+        # Super governance surfaces mirrored in Control Studio outcome registry.
+        return _starts(
+            "/super/blueprints/",
+            "/super/policies/",
+            "/super/workflow-packs/",
+            "/super/dashboard-packs/",
+            "/super/registries/",
+            "/super/metadata-catalog/",
+            "/super/runtime-inspector/",
+            "/super/runtime-truth-hub/",
+            "/super/policy-diff/",
+            "/super/workflow-simulator/",
+            "/super/platform-operator-hub/",
+            "/super/config/",
+        )
     return False
 
 
@@ -155,6 +248,89 @@ def build_primary_control_plane_nav(request):
     return out
 
 
+def _tenant_operator_primary_is_current(request_path: str, item_id: str) -> bool:
+    """Highlight tenant operator primary pills (paths are tenant / default urlconf)."""
+    p = (request_path or "").split("?", 1)[0]
+    if not p.endswith("/"):
+        p = p + "/"
+    if item_id == "tenant_backend":
+        return p.startswith("/accounts/backend") or p.startswith(
+            "/authentication/backend"
+        )
+    if item_id == "tenant_studio":
+        return p.startswith("/studio/")
+    if item_id == "tenant_ccc":
+        return p.startswith("/siteconfig/console/")
+    if item_id == "tenant_audit":
+        return p.startswith("/siteconfig/feature-control/audit/")
+    if item_id == "tenant_feature":
+        if p.startswith("/siteconfig/feature-control/audit/"):
+            return False
+        return p.startswith("/siteconfig/feature-control/")
+    return False
+
+
+def build_tenant_operator_primary_nav(request):
+    """
+    Horizontal primary nav for school operators on tenant hosts (Django admin bridge + portal).
+    Only includes URLs that resolve on the active request urlconf; mirrors manager spine where applicable.
+    """
+    urlconf = getattr(request, "urlconf", None)
+    path = getattr(request, "path", "") or ""
+    raw = [
+        {
+            "id": "tenant_backend",
+            "label": "Backend",
+            "url_name": "accounts:backend_dashboard",
+            "icon": "bi-grid-1x2",
+        },
+        {
+            "id": "tenant_studio",
+            "label": "Studio",
+            "url_name": "studio_os:shell",
+            "icon": "bi-window-stack",
+        },
+        {
+            "id": "tenant_ccc",
+            "label": "Config center",
+            "url_name": "siteconfig:console_domains_hub",
+            "icon": "bi-gear-wide-connected",
+        },
+        {
+            "id": "tenant_feature",
+            "label": "Feature control",
+            "url_name": "siteconfig:feature_control_panel",
+            "icon": "bi-sliders",
+        },
+        {
+            "id": "tenant_audit",
+            "label": "Audit",
+            "url_name": "siteconfig:feature_control_audit",
+            "icon": "bi-journal-check",
+        },
+    ]
+    out = []
+    for row in raw:
+        url = _safe_reverse(
+            row["url_name"],
+            urlconf=urlconf,
+            kwargs=row.get("kwargs"),
+            args=row.get("args"),
+        )
+        if not url:
+            continue
+        out.append(
+            {
+                "id": row["id"],
+                "label": row["label"],
+                "url": url,
+                "icon": row["icon"],
+                "is_current": _tenant_operator_primary_is_current(path, row["id"]),
+            }
+        )
+    return out
+
+
 def build_control_plane_nav(request):
     """
     Return list of groups, each with "label" (optional section heading) and "items"
@@ -205,16 +381,34 @@ def build_control_plane_nav(request):
                 "url_name": "super:command_center",
                 "icon": "bi-list-check",
             },
+            {
+                "id": "super_ai_gateway_console",
+                "label": "AI gateway console",
+                "url_name": "super:ai_gateway_console",
+                "icon": "bi-stars",
+            },
         ],
     )
     add_group(
         "Studio OS",
         [
             {
+                "id": "studio_os_shell",
+                "label": "Studio home",
+                "url_name": "studio_os:shell",
+                "icon": "bi-grid-3x3-gap",
+            },
+            {
                 "id": "studio_os",
-                "label": "Studio OS",
+                "label": "Studio Experience",
                 "url_name": "studio_os:experience",
-                "icon": "bi-window-stack",
+                "icon": "bi-palette",
+            },
+            {
+                "id": "studio_os_control",
+                "label": "Control Studio",
+                "url_name": "studio_os:control",
+                "icon": "bi-sliders",
             },
         ],
     )
@@ -247,7 +441,7 @@ def build_control_plane_nav(request):
             },
             {
                 "id": "super_education_systems",
-                "label": "Education systems (14–22)",
+                "label": "Education systems",
                 "url_name": "super:education_systems",
                 "icon": "bi-building-add",
             },
@@ -265,7 +459,7 @@ def build_control_plane_nav(request):
             },
             {
                 "id": "super_district_enterprise",
-                "label": "District & enterprise (wedge 4)",
+                "label": "District & enterprise",
                 "url_name": "super:district_enterprise",
                 "icon": "bi-buildings",
             },
@@ -300,7 +494,7 @@ def build_control_plane_nav(request):
             },
             {
                 "id": "super_wedge_index",
-                "label": "Wedge index (1–45)",
+                "label": "Wedge index",
                 "url_name": "super:wedge_index",
                 "icon": "bi-grid-3x3-gap",
             },
@@ -369,7 +563,7 @@ def build_control_plane_nav(request):
             },
             {
                 "id": "super_blueprint_marketplace",
-                "label": "Blueprints",
+                "label": "Blueprint marketplace",
                 "url_name": "super:blueprint_marketplace",
                 "icon": "bi-collection",
             },
@@ -504,6 +698,18 @@ def build_control_plane_nav(request):
             "icon": "bi-shield-check",
         },
         {
+            "id": "super_backlog_unlock_center",
+            "label": "Backlog unlock center",
+            "url_name": "super:backlog_unlock_center",
+            "icon": "bi-unlock",
+        },
+        {
+            "id": "super_fleet_governed_changes",
+            "label": "Fleet governed changes",
+            "url_name": "super:fleet_governed_changes",
+            "icon": "bi-clipboard-check",
+        },
+        {
             "id": "config_console",
             "label": "Config center",
             "url_name": "siteconfig:console_domains_hub",
@@ -517,7 +723,7 @@ def build_control_plane_nav(request):
         },
         {
             "id": "cp_feature_control",
-            "label": "Feature Control",
+            "label": "Feature control",
             "url_name": "siteconfig:feature_control_panel",
             "icon": "bi-toggle2-on",
         },
@@ -526,12 +732,6 @@ def build_control_plane_nav(request):
             "label": "Advanced Django admin (model CRUD)",
             "url_name": "admin:index",
             "icon": "bi-database",
-        },
-        {
-            "id": "cp_integrations_super",
-            "label": "Integrations (SIS / LMS)",
-            "url_name": "super:one_sis_any_lms",
-            "icon": "bi-plug",
         },
     ]
     _platform_settings_admin.extend(_platform_admin_bridge_nav_items())

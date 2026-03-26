@@ -1,8 +1,9 @@
+import os
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 
-from apps.portal.ai_provider import generate_ai_response
+from apps.portal.ai_provider import generate_ai_response, get_ai_provider_status
 
 
 class AiProviderTests(SimpleTestCase):
@@ -79,3 +80,15 @@ class AiProviderTests(SimpleTestCase):
             user_query="Need attendance insight",
             metadata={"tenant_id": "school-a", "school_id": 99},
         )
+
+    @patch.dict(os.environ, {"OLLAMA_ENDPOINT": "http://localhost:11434/api/generate"})
+    def test_ollama_configured_from_env(self):
+        st = get_ai_provider_status()
+        self.assertTrue(st["ollama"]["configured"])
+        self.assertIn("ollama", st["preference"])
+
+    @override_settings(AI_PROVIDER_PREFERENCE="ollama,gemini,rules")
+    def test_legacy_gemini_token_stripped_from_preference(self):
+        from apps.portal import ai_provider
+
+        self.assertEqual(ai_provider._provider_preference(), ["ollama", "rules"])

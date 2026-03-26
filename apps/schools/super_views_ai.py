@@ -14,6 +14,21 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 
+def super_ai_gateway_console(request):
+    """
+    Control plane: one page of JSON POST consoles for every productized /api/ai/* endpoint
+    that is not embedded elsewhere (plus shared review-loop feedback).
+    """
+    return render(
+        request,
+        "schools/super_ai_gateway_console.html",
+        {
+            "dashboard_url": reverse("super:dashboard"),
+            "ai_model_hub_url": reverse("super:ai_model_hub"),
+        },
+    )
+
+
 def ai_model_hub(request):
     """
     Super Admin: list regions with default_model, fallback_model, last_health_check_at, status.
@@ -37,6 +52,7 @@ def ai_model_hub(request):
             "configs": configs,
             "dashboard_url": reverse("super:dashboard"),
             "global_ai_version_url": reverse("super:global_ai_version"),
+            "ai_gateway_console_url": reverse("super:ai_gateway_console"),
         },
     )
 

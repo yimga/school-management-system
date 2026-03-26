@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n static %}
+{% load i18n static phase8_tags %}
 
 {% block title %}{% trans "Parent tenant dashboard" %} – {{ parent_school.name }}{% endblock %}
 {% block backend_title %}{% trans "Parent tenant dashboard" %}{% endblock %}
@@ -11,6 +11,7 @@
 
 {% block content %}
   <div class="container-fluid py-4" data-decision-engine="surface">
+    {% phase8_dashboard_declaration "schools/parent_tenant_dashboard.html" %}
     <h1 class="h4 mb-3">{% trans "Child schools" %} ({{ parent_school.name }})</h1>
     <div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
       <div class="card shadow-sm text-center">

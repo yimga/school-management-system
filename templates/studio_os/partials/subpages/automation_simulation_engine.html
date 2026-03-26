@@ -1,0 +1,10 @@
+{% load i18n static %}
+<div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-3">{% trans "Run workflow simulations before going live. The simulation engine lets you verify behavior, check side effects, and see impact without activating. Run simulations from the Workflow hub, then activate when ready." %}</p>
+    {% if workflow_hub_url %}
+    <p class="mb-0"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Run simulations and activate workflows." %}</p>
+    {% endif %}
+  </div>
+</div>

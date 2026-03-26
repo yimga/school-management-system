@@ -13,7 +13,7 @@
 
 ## Phase 1 — shell + navigation — **COMPLETE** (execution-plan Phase 1)
 
-**Status tracking:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) — section **§0 → “ZIP execution plan — Phase 1”** (line-by-line tasks + acceptance). This matrix is the **implementation** reference.
+**Status tracking:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§0** — ZIP **Phase 1** (shell + navigation) is **COMPLETE**; verify commands point here + this matrix. Granular tasks: [phase_checklists/phase_01_authenticated_shell.md](phase_checklists/phase_01_authenticated_shell.md).
 
 All Phase 1 acceptance items below are implemented in **code**; four surfaces still use four bases by architecture (see matrix above).
 

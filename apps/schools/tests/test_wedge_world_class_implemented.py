@@ -9,8 +9,11 @@ Wedge 1–6 world-class: verify all shipped items are implemented (not backlog/d
 
 from pathlib import Path
 
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+
+User = get_user_model()
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -92,6 +95,30 @@ class WedgeWorldClassImplementedTests(TestCase):
             "Resilience", text, "Trust center must have Resilience & BCP card"
         )
         self.assertIn("District", text, "Trust center must have District & ERP card")
+        self.assertIn(
+            "geography_url",
+            text,
+            "Trust center Data residency card must link to Geography when URL resolves",
+        )
+
+    def test_super_geography_pack_compare_section(self):
+        """Geography hub exposes US/CAN/GBR compare table (Wedges 7–13 deepening)."""
+        admin = User.objects.create_user(
+            username="geo_compare_su",
+            password="x",
+            is_staff=True,
+            is_superuser=True,
+        )
+        client = Client()
+        client.force_login(admin)
+        with self.settings(ROOT_URLCONF="config.manager_urls"):
+            url = reverse("super:geography")
+            response = client.get(url, HTTP_HOST="manager.runmycampus.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Compare key region packs", html=False)
+        for code in ("US", "CAN", "GBR"):
+            with self.subTest(code=code):
+                self.assertContains(response, code, html=False)
 
     def test_wedge_templates_exist(self):
         """All four wedge page templates must exist."""

@@ -8,7 +8,7 @@
 |------|--------|----------|
 | Single entry `services.ai_gateway.invoke(task_type, prompt, ...)` | Done | `services/ai_gateway.py` |
 | Task types: config_explain, setup_recommend, workflow_draft, policy_explain, doc_classify, semantic_search, migration_*, admin_copilot, support_suggest, narrative, general_chat | Done | `TaskType` enum |
-| Tier routing (Ollama, vLLM, LiteLLM, Gemini, rules) with fallback | Done | `DEFAULT_TASK_TIERS`, loop in `invoke()` |
+| Tier routing (Ollama, vLLM, LiteLLM, rules) with fallback; `general_chat` = Ollama+rules only | Done | `DEFAULT_TASK_TIERS`, loop in `invoke()` |
 | Request metadata: sensitivity_class, latency_target, output_type, allowed_backends | Done | Doc in ai_orchestration.md; filtering and timeout in `invoke()` |
 | Budget enforcement: per-tenant daily request cap | Done | `_check_and_consume_budget()`, `AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY`, 429 on exceed |
 | Schema validation failure recorded for observability | Done | `schema_validation_failed` in `out_meta`, `_record_metric()` |

@@ -51,11 +51,12 @@ def super_runtime_truth_hub(request):
     """
     Read-only platform summary: RuntimeDefaults singleton + slim SiteSettings row.
 
-    Uses direct ORM lookups (no SiteSettings.get_solo()) to avoid cache/side effects
-    while still reflecting the Phase B bridge (payload + slim columns).
+    Uses ``get_platform_site_settings_record`` (platform_runtime.helpers) — same
+    canonical singleton accessor as Studio rollback and backfill commands — no ad-hoc
+    ORM access to the platform singleton in this view.
     """
+    from apps.platform_runtime.helpers import get_platform_site_settings_record
     from apps.platform_runtime.models import RuntimeDefaults
-    from apps.siteconfig.models import SiteSettings
 
     rt = RuntimeDefaults.get_singleton()
     payload = rt.payload if rt and isinstance(rt.payload, dict) else {}
@@ -84,7 +85,7 @@ def super_runtime_truth_hub(request):
             extra = s if len(s) <= 64 else s[:61] + "…"
         preview.append({"key": key, "kind": kind, "extra": extra})
 
-    ss = SiteSettings.objects.filter(pk=1).first()
+    ss = get_platform_site_settings_record(create=False)
     site_settings_summary = None
     if ss is not None:
         site_settings_summary = {

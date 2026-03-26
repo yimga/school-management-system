@@ -1,6 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load static i18n %}
-{% load region_format %}
+{% load region_format phase8_tags %}
 
 {% block title %}Admin Dashboard{% endblock %}
 
@@ -33,6 +33,7 @@
 }
 </style>
 
+{% phase8_dashboard_declaration "admin/admin_dashboard.html" %}
 <div class="admin-dash" data-decision-engine="surface" data-health-endpoint="{% url 'api_health' %}" data-weather-endpoint="{% url 'api_admin_weather' %}">
   <div class="admin-dash__inner">
 

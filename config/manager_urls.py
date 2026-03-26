@@ -26,6 +26,7 @@ from config.admin import platform_admin_site
 
 # Reuse main urlconf error handlers and Phase B legacy redirects.
 from config.urls import (
+    admin_siteconfig_customizer_redirect,
     page_not_found as handler404_view,
     permission_denied as handler403_view,
     server_error as handler500_view,
@@ -90,7 +91,9 @@ def manager_search_api(request):
         results = []
         static_catalog = _manager_search_static_catalog()
         if not query_lower:
-            results = static_catalog[:10]
+            # Empty query: show a broader intent strip (BR-02 / §8.0.4); catalog includes
+            # geography, trust, policy, backlog, fleet, operator hub — not only the first legacy ten.
+            results = static_catalog[:22]
         else:
             for item in static_catalog:
                 haystack = f"{item['title']} {item['description']} {' '.join(item['meta'])}".lower()
@@ -255,6 +258,48 @@ def _manager_search_static_catalog():
             "type": "student",
             "meta": ["Provisioning"],
         },
+        {
+            "title": "Geography (region packs)",
+            "description": "Wedges 7–13 continent packs, compare US/CAN/GBR, Create school with pack.",
+            "url": reverse("super:geography"),
+            "type": "class",
+            "meta": ["Geography", "Region packs", "Wedges", "GTM"],
+        },
+        {
+            "title": "Trust center",
+            "description": "Security & trust hub; residency, compliance, audit export, platform events.",
+            "url": reverse("super:trust_center"),
+            "type": "class",
+            "meta": ["Trust", "Security", "Compliance"],
+        },
+        {
+            "title": "Operator policy",
+            "description": "Governance, break-glass, change classes, metrics and automation API pointers.",
+            "url": reverse("super:operator_policy"),
+            "type": "class",
+            "meta": ["Policy", "Governance", "Control plane"],
+        },
+        {
+            "title": "Backlog unlock center",
+            "description": "Machine-evaluated gates and program tracks; refresh after merges or CI.",
+            "url": reverse("super:backlog_unlock_center"),
+            "type": "class",
+            "meta": ["Backlog", "Gates", "CI"],
+        },
+        {
+            "title": "Fleet governed changes",
+            "description": "Cross-tenant change records and legal status transitions.",
+            "url": reverse("super:fleet_governed_changes"),
+            "type": "class",
+            "meta": ["Fleet", "Governance", "Change"],
+        },
+        {
+            "title": "Platform operator hub",
+            "description": "Curated super URLs plus platform-admin changelists in one screen (single-pane entry).",
+            "url": reverse("super:platform_operator_hub"),
+            "type": "class",
+            "meta": ["Operator hub", "Super", "Platform admin"],
+        },
     ]
 
 
@@ -266,6 +311,7 @@ urlpatterns = [
     path("support/", manager_support_request, name="manager_support_request"),
     path("feedback/", manager_feedback, name="manager_feedback"),
     path("notifications/", manager_notifications, name="manager_notifications"),
+    path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
     path("admin/", platform_admin_site.urls),
     path(
         "authentication/",
@@ -392,13 +438,14 @@ urlpatterns = [
         manager_legacy_surface_redirect,
         {"surface": "communication"},
     ),
+    path("kb/", include(("apps.portal.urls_kb", "kb"), namespace="kb")),
     path(
-        "kb/",
+        "legacy-kb/",
         manager_legacy_surface_redirect,
         {"surface": "kb"},
         name="manager_legacy_kb",
     ),
-    path("kb/<path:remaining>", manager_legacy_surface_redirect, {"surface": "kb"}),
+    path("legacy-kb/<path:remaining>", manager_legacy_surface_redirect, {"surface": "kb"}),
     path(
         "analytics/",
         manager_legacy_surface_redirect,

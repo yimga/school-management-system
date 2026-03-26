@@ -4,6 +4,25 @@
  * Tokens: design-tokens.css / design-system-unified (inherited via portal_base / control_plane_skeleton).
  */
 
+/* Phase 1/2: deep-linked Studio subpages (partials/subpages/*) inside shell canvas */
+.studio-os-subpage-canvas {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.studio-os-subpage-canvas .studio-os__card {
+  border-radius: var(--ds-radius-md, var(--token-radius-md));
+  border: 1px solid var(--ds-border, var(--color-base-200));
+  background: var(--ds-surface-raised, var(--color-base-50));
+  box-shadow: var(--ds-shadow-sm, none);
+}
+
+html[data-theme="dark"] .studio-os-subpage-canvas .studio-os__card,
+html[data-bs-theme="dark"] .studio-os-subpage-canvas .studio-os__card {
+  background: var(--ds-surface-muted, var(--color-base-800));
+  border-color: var(--ds-border, var(--color-base-700));
+}
+
 /* Primary product spine (8 pills) inside Studio canvas — same tokens as /super/ */
 .studio-os-primary-spine .cp-primary-nav {
   border-radius: var(--studio-radius, 0.5rem);
@@ -309,4 +328,44 @@
 
 [data-theme="dark"] .studio-os__card {
   background: var(--color-base-800);
+}
+
+/* Phase 5 — Experience Studio: explicit 3-pane workbench inside canvas (section rail | primary | related tools). */
+.studio-os__experience-workbench {
+  display: grid;
+  grid-template-columns: min(12.5rem, 100%) minmax(0, 1fr) min(13.5rem, 100%);
+  gap: clamp(0.75rem, 2vw, 1rem);
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+}
+
+.studio-os__experience-workbench .studio-os__experience-context {
+  min-width: 0;
+}
+
+.studio-os__experience-workbench--two-col {
+  grid-template-columns: min(12.5rem, 100%) minmax(0, 1fr);
+}
+
+@media (max-width: 991.98px) {
+  .studio-os__experience-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-os__experience-workbench--two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-os__experience-workbench .studio-os__experience-context {
+    order: 3;
+  }
+
+  .studio-os__experience-workbench .studio-os__experience-rail {
+    order: 1;
+  }
+
+  .studio-os__experience-workbench .studio-os__experience-primary {
+    order: 2;
+  }
 }

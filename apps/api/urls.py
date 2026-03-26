@@ -104,6 +104,12 @@ from apps.portal.views_ai_gateway import (
     api_marketplace_recommend,
     api_control_plane_intelligence,
     api_ai_feedback,
+    api_interop_assistant,
+    api_runtime_config_explain,
+    api_observability_assistant,
+    api_billing_usage_explain,
+    api_trust_compliance_assistant,
+    api_studio_os_assistant,
 )
 from apps.api.lead_capture_api import LeadCaptureAPI
 from apps.api.rosetta_views import RosettaStoneConvertAPI, RosettaStoneScalesAPI
@@ -489,6 +495,32 @@ urlpatterns = [
         "ai/control-plane-intelligence/",
         api_control_plane_intelligence,
         name="ai-control-plane-intelligence",
+    ),
+    path("ai/interop-assistant/", api_interop_assistant, name="ai-interop-assistant"),
+    path(
+        "ai/runtime-config-explain/",
+        api_runtime_config_explain,
+        name="ai-runtime-config-explain",
+    ),
+    path(
+        "ai/observability-assistant/",
+        api_observability_assistant,
+        name="ai-observability-assistant",
+    ),
+    path(
+        "ai/billing-usage-explain/",
+        api_billing_usage_explain,
+        name="ai-billing-usage-explain",
+    ),
+    path(
+        "ai/trust-compliance-assistant/",
+        api_trust_compliance_assistant,
+        name="ai-trust-compliance-assistant",
+    ),
+    path(
+        "ai/studio-os-assistant/",
+        api_studio_os_assistant,
+        name="ai-studio-os-assistant",
     ),
     path("ai/feedback/", api_ai_feedback, name="ai-feedback"),
     # Scheduling (Wave 5): conflict check

@@ -68,6 +68,11 @@ def super_trust_center(request):
         district_enterprise_url = reverse("super:district_enterprise")
     except NoReverseMatch:
         pass
+    geography_url = ""
+    try:
+        geography_url = reverse("super:geography")
+    except NoReverseMatch:
+        pass
     from apps.platform_runtime.identity_graph_rollups import (
         compute_platform_identity_rollups,
     )
@@ -90,6 +95,7 @@ def super_trust_center(request):
             "slo_dashboard_url": reverse("api_operational_slo_dashboard")
             + "?format=html&hours=168",
             "district_enterprise_url": district_enterprise_url,
+            "geography_url": geography_url,
             "platform_rollups": compute_platform_identity_rollups(),
             "tenant_identity_graph_api_path": "/api/learning/identity-graph-summary/",
             "tenant_statutory_extract_api_path": "/api/learning/statutory-extract/",

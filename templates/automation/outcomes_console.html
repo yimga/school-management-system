@@ -23,6 +23,7 @@
               <th>{% trans "Created" %}</th>
               <th>{% trans "Updated" %}</th>
               <th>{% trans "Errors" %}</th>
+              <th>{% trans "Quarantine" %}</th>
               <th>{% trans "Started" %}</th>
               <th>{% trans "By" %}</th>
             </tr>
@@ -36,8 +37,9 @@
               <td>{{ r.created_count }}</td>
               <td>{{ r.updated_count }}</td>
               <td>{{ r.error_count }}</td>
+              <td>{{ r.quarantine_record_count|default:0 }}</td>
               <td>{{ r.started_at|date:"Y-m-d H:i" }}</td>
-              <td>{{ r.triggered_by.get_full_name|default:r.triggered_by.username|default:"—" }}</td>
+              <td>{% if r.triggered_by %}{{ r.triggered_by.get_full_name|default:r.triggered_by.username }}{% else %}—{% endif %}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -78,7 +80,7 @@
               <td>{{ log.records_processed }}</td>
               <td>{{ log.records_failed }}</td>
               <td>{{ log.started_at|date:"Y-m-d H:i" }}</td>
-              <td>{{ log.triggered_by.get_full_name|default:log.triggered_by.username|default:"—" }}</td>
+              <td>{% if log.triggered_by %}{{ log.triggered_by.get_full_name|default:log.triggered_by.username }}{% else %}—{% endif %}</td>
             </tr>
             {% endfor %}
           </tbody>

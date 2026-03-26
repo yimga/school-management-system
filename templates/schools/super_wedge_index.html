@@ -1,19 +1,20 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n phase8_tags %}
 
 {% block cp_title %}{% trans "Wedges 1–45 (canonical URLs)" %} — Manager{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Home" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Wedge index" %}</li>
   </ol>
 </nav>
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="catalog" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/super_wedge_index.html" %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold text-white">{% trans "Canonical wedge operator URLs" %}</h1>
     <p class="text-white-50 small mb-0">{% trans "Each wedge has a stable path /super/wedge/&lt;id&gt;/ (registry + checklist + deep links). Grouped surfaces still support ?wedge= for bulk pages." %}</p>

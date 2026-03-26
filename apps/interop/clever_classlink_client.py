@@ -11,6 +11,7 @@ tokens, performs real HTTPS calls to vendor endpoints (Clever v3.1, ClassLink On
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import urllib.error

@@ -156,6 +156,19 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         """§3.2.2 Phase 8: control-plane trust hub URL must reverse."""
         self.assertEqual(reverse("super:trust_center"), "/super/trust/")
 
+    def test_super_ai_gateway_console_resolves(self):
+        """Control plane: consolidated JSON consoles for API-only AI endpoints."""
+        self.assertEqual(
+            reverse("super:ai_gateway_console"),
+            "/super/ai-gateway-console/",
+        )
+
+    def test_super_billing_and_trust_paths_resolve(self):
+        """Primary nav uses these prefixes for Analytics (billing) and Home (trust)."""
+        self.assertEqual(reverse("super:billing_dashboard"), "/super/billing/")
+        self.assertEqual(reverse("super:trust_center"), "/super/trust/")
+        self.assertEqual(reverse("super:compliance_overview"), "/super/compliance/")
+
     def test_tenant_security_trust_hub_resolves(self):
         """§3.2.2 Phase 8: tenant Security & trust hub."""
         self.assertEqual(
@@ -177,6 +190,15 @@ class SmokeUrlResolutionTests(SimpleTestCase):
             "/settings/app-catalog/",
         )
 
+    def test_backend_teacher_detail_resolves(self):
+        """People backend: teacher detail linked from backend_teacher_list."""
+        url = reverse("accounts:backend_teacher_detail", kwargs={"teacher_id": 1})
+        self.assertTrue(
+            url.startswith("/authentication/backend/teachers/"),
+            msg=url,
+        )
+        self.assertIn("1", url)
+
     def test_studio_os_all_modes_resolve(self):
         """Studio OS shell and all five mode URLs must reverse correctly."""
         modes = [
@@ -190,3 +212,37 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         for name, expected in modes:
             with self.subTest(url_name=name):
                 self.assertEqual(reverse(name), expected)
+
+    def test_all_ai_gateway_api_paths_resolve(self):
+        """Every productized AI gateway route under namespace api: must reverse (registry + UI cards)."""
+        expected = {
+            "api:ai-setup-assistant": "/api/ai/setup-assistant/",
+            "api:ai-workflow-draft": "/api/ai/workflow-draft/",
+            "api:ai-policy-explain": "/api/ai/policy-explain/",
+            "api:ai-document-classify": "/api/ai/document-classify/",
+            "api:ai-semantic-search": "/api/ai/semantic-search/",
+            "api:ai-migration-suggest": "/api/ai/migration-suggest/",
+            "api:ai-admin-copilot": "/api/ai/admin-copilot/",
+            "api:ai-theme-recommend": "/api/ai/theme-recommend/",
+            "api:ai-feature-control-explain": "/api/ai/feature-control-explain/",
+            "api:ai-report-recommend": "/api/ai/report-recommend/",
+            "api:ai-design-studio-draft": "/api/ai/design-studio-draft/",
+            "api:ai-live-preview-explain": "/api/ai/live-preview-explain/",
+            "api:ai-system-config-explain": "/api/ai/system-config-explain/",
+            "api:ai-dashboard-pack-recommend": "/api/ai/dashboard-pack-recommend/",
+            "api:ai-support-assistant": "/api/ai/support-assistant/",
+            "api:ai-tenant-maturity": "/api/ai/tenant-maturity/",
+            "api:ai-data-quality-assistant": "/api/ai/data-quality-assistant/",
+            "api:ai-marketplace-recommend": "/api/ai/marketplace-recommend/",
+            "api:ai-control-plane-intelligence": "/api/ai/control-plane-intelligence/",
+            "api:ai-interop-assistant": "/api/ai/interop-assistant/",
+            "api:ai-runtime-config-explain": "/api/ai/runtime-config-explain/",
+            "api:ai-observability-assistant": "/api/ai/observability-assistant/",
+            "api:ai-billing-usage-explain": "/api/ai/billing-usage-explain/",
+            "api:ai-trust-compliance-assistant": "/api/ai/trust-compliance-assistant/",
+            "api:ai-studio-os-assistant": "/api/ai/studio-os-assistant/",
+            "api:ai-feedback": "/api/ai/feedback/",
+        }
+        for name, path in expected.items():
+            with self.subTest(url_name=name):
+                self.assertEqual(reverse(name), path)

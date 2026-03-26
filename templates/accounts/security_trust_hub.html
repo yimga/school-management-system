@@ -1,10 +1,11 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n phase8_tags %}
 
 {% block title %}{% trans "Security & trust" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+{% phase8_dashboard_declaration "accounts/security_trust_hub.html" %}
   <h1 class="h4 mb-1">{% trans "Security & trust" %}</h1>
   <p class="text-muted small mb-4">{% blocktrans with s=school.name %}Posture and controls for your account and <strong>{{ s }}</strong>. Provider credentials and AI keys stay server-side only.{% endblocktrans %}</p>
 

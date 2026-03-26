@@ -22,51 +22,6 @@
   <div class="backend-dtw__line backend-dtw__location" id="backendDtwLocation">{{ HEADER_WEATHER_LABEL|default:"Weather" }}</div>
 </div>
 
-<style>
-  .backend-dtw {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    margin-top: 0.4rem;
-    margin-bottom: 0.35rem;
-    border-top: 1px solid var(--admin-border, #cbd5e1);
-    padding-top: 0.4rem;
-  }
-  .backend-dtw__line {
-    line-height: 1.25;
-  }
-  .backend-dtw__month-year {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--admin-text, #0f172a);
-  }
-  .backend-dtw__time {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--admin-text, #0f172a);
-  }
-  .backend-dtw__weather {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.9rem;
-  }
-  .backend-dtw__weather-icon {
-    font-size: 1.1rem;
-    color: var(--admin-text, #0f172a);
-  }
-  .backend-dtw__temp {
-    font-weight: 700;
-    color: var(--admin-text, #0f172a);
-  }
-  .backend-dtw__location {
-    font-size: 0.78rem;
-    color: var(--admin-muted, #64748b);
-  }
-</style>
-
 <script>
 (function() {
   "use strict";

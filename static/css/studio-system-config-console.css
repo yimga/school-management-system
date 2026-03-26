@@ -1,0 +1,68 @@
+/**
+ * Studio OS — Configuration Control Center (system config console) surfaces.
+ * Phase 2: tokens only; loaded via shell_extrastyle + embed template.
+ */
+
+.sysconf-hero {
+  background: linear-gradient(
+    135deg,
+    var(--color-base-900, #0f172a) 0%,
+    color-mix(in srgb, var(--color-primary-900, #1e3a5f) 85%, var(--color-base-900)) 45%,
+    color-mix(in srgb, var(--stat-admin, #312e81) 70%, var(--color-base-900)) 100%
+  );
+  color: var(--color-base-50, #f8fafc);
+  border-radius: var(--ds-radius-lg, var(--token-radius-lg, 12px));
+  padding: var(--token-space-5, 1.25rem) var(--token-space-6, 1.5rem);
+  margin-bottom: var(--token-space-5, 1.25rem);
+}
+
+.sysconf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--token-space-3, 0.75rem);
+}
+
+.sysconf-card {
+  border: 1px solid var(--ds-border, var(--bs-border-color, #e2e8f0));
+  border-radius: var(--ds-radius-md, var(--token-radius-md, 10px));
+  padding: var(--token-space-4, 1rem);
+  background: var(--ds-surface-raised, var(--bs-body-bg, #fff));
+  transition: box-shadow var(--ds-motion-content, 0.15s) ease,
+    border-color var(--ds-motion-content, 0.15s) ease;
+}
+
+.sysconf-card:hover {
+  box-shadow: var(--ds-shadow-md, 0 4px 20px rgba(15, 23, 42, 0.08));
+  border-color: color-mix(in srgb, var(--color-primary-500, #6366f1) 35%, transparent);
+}
+
+.sysconf-card a.primary-link {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--color-primary-600, #4f46e5);
+}
+
+.sysconf-card .hint {
+  font-size: 0.8rem;
+  color: var(--ds-text-muted, var(--bs-secondary-color));
+  margin-top: 0.35rem;
+}
+
+.sysconf-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.outcome-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+html[data-theme="dark"] .sysconf-card,
+html[data-bs-theme="dark"] .sysconf-card {
+  background: var(--ds-surface-raised, var(--color-base-800, #1e293b));
+}

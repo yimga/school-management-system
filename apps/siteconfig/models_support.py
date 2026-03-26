@@ -511,15 +511,15 @@ def _site_settings_json_safe(value):
 
 def _platform_placeholder_defaults() -> dict[str, object]:
     from .models import (
-        LEGACY_PLACEHOLDER_REPORT_DOMAINS,
-        LEGACY_PLACEHOLDER_REPORT_PHONES,
-        LEGACY_PLACEHOLDER_SCHOOL_CODES,
-        LEGACY_PLACEHOLDER_SITE_NAMES,
-        LEGACY_PLACEHOLDER_TAGLINES,
         PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL,
         PLATFORM_DEFAULT_SCHOOL_CODE,
         PLATFORM_DEFAULT_SITE_NAME,
         PLATFORM_DEFAULT_TAGLINE,
+        PLATFORM_SCRUB_REPORT_PREVIEW_EMAIL_DOMAINS,
+        PLATFORM_SCRUB_REPORT_PREVIEW_PHONES,
+        PLATFORM_SCRUB_SCHOOL_CODES,
+        PLATFORM_SCRUB_SITE_NAMES,
+        PLATFORM_SCRUB_TAGLINES,
     )
 
     return {
@@ -527,46 +527,46 @@ def _platform_placeholder_defaults() -> dict[str, object]:
         "school_code": PLATFORM_DEFAULT_SCHOOL_CODE,
         "tagline": PLATFORM_DEFAULT_TAGLINE,
         "report_preview_email": PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL,
-        "legacy_site_names": LEGACY_PLACEHOLDER_SITE_NAMES,
-        "legacy_school_codes": LEGACY_PLACEHOLDER_SCHOOL_CODES,
-        "legacy_taglines": LEGACY_PLACEHOLDER_TAGLINES,
-        "legacy_report_domains": LEGACY_PLACEHOLDER_REPORT_DOMAINS,
-        "legacy_report_phones": LEGACY_PLACEHOLDER_REPORT_PHONES,
+        "scrub_site_names": PLATFORM_SCRUB_SITE_NAMES,
+        "scrub_school_codes": PLATFORM_SCRUB_SCHOOL_CODES,
+        "scrub_taglines": PLATFORM_SCRUB_TAGLINES,
+        "scrub_report_email_domains": PLATFORM_SCRUB_REPORT_PREVIEW_EMAIL_DOMAINS,
+        "scrub_report_phones": PLATFORM_SCRUB_REPORT_PREVIEW_PHONES,
     }
 
 
 def _normalized_site_name(value: object) -> str:
     defaults = _platform_placeholder_defaults()
     text = str(value or "").strip()
-    return defaults["site_name"] if text in defaults["legacy_site_names"] else text
+    return defaults["site_name"] if text in defaults["scrub_site_names"] else text
 
 
 def _normalized_school_code(value: object) -> str:
     defaults = _platform_placeholder_defaults()
     text = str(value or "").strip().upper()
-    return defaults["school_code"] if text in defaults["legacy_school_codes"] else text
+    return defaults["school_code"] if text in defaults["scrub_school_codes"] else text
 
 
 def _normalized_tagline(value: object) -> str:
     defaults = _platform_placeholder_defaults()
     text = str(value or "").strip()
-    return defaults["tagline"] if text in defaults["legacy_taglines"] else text
+    return defaults["tagline"] if text in defaults["scrub_taglines"] else text
 
 
 def _normalized_report_preview_email(value: object) -> str:
     defaults = _platform_placeholder_defaults()
     text = str(value or "").strip().lower()
     local_part, _, domain = text.partition("@")
-    is_legacy_placeholder = not text or (
-        local_part == "reports" and domain in defaults["legacy_report_domains"]
+    is_scrub_match = not text or (
+        local_part == "reports" and domain in defaults["scrub_report_email_domains"]
     )
-    return defaults["report_preview_email"] if is_legacy_placeholder else text
+    return defaults["report_preview_email"] if is_scrub_match else text
 
 
 def _normalized_report_preview_phone(value: object) -> str:
     defaults = _platform_placeholder_defaults()
     text = str(value or "").strip()
-    return "" if text in defaults["legacy_report_phones"] else text
+    return "" if text in defaults["scrub_report_phones"] else text
 
 
 def _payload_or_attr(

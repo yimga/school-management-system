@@ -12,6 +12,7 @@ Phase B Batch 0: asserts ``0162_phase_b_slim_sitesettings.py`` exists.
 Phase B Batch 1: asserts ``brand_experience/0002_platform_global_branding.py`` exists.
 Phase B Batch 3: asserts ``siteconfig/0163_phase_b_batch3_drop_sitesettings_branding_columns.py`` exists.
 Batches 4-13: asserts ``platform_runtime/0007_platform_phase_b_domain_snapshots.py`` exists.
+RuntimeDefaults first-class columns: asserts ``0009`` through ``0025`` migration artifacts exist.
 Table/singleton after migrate: ``scripts/verify_phase_b_execution.py``.
 Exit 0 = gate MET; non-zero = fix before release.
 """
@@ -55,6 +56,125 @@ PHASE_B_DOMAIN_SNAPSHOT_MIGRATION = (
     / "platform_runtime"
     / "migrations"
     / "0007_platform_phase_b_domain_snapshots.py"
+)
+RUNTIMEDEFAULTS_FIRST_CLASS_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0009_runtimedefaults_preview_integration_columns.py"
+)
+RUNTIMEDEFAULTS_PUBLIC_BRAND_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0010_runtimedefaults_public_brand_colors.py"
+)
+RUNTIMEDEFAULTS_META_DOMAIN_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0011_runtimedefaults_meta_description_branded_domain.py"
+)
+RUNTIMEDEFAULTS_TAGLINE_SCHOOL_CODE_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0012_runtimedefaults_tagline_school_code.py"
+)
+RUNTIMEDEFAULTS_COMPANY_IDENTITY_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0013_runtimedefaults_company_identity_strings.py"
+)
+RUNTIMEDEFAULTS_IDENTITY_GEO_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0014_runtimedefaults_identity_and_geo_strings.py"
+)
+RUNTIMEDEFAULTS_REGISTRY_STRINGS_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0015_runtimedefaults_registry_strings_batch.py"
+)
+RUNTIMEDEFAULTS_ADMISSION_ADMIN_PORTAL_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0016_runtimedefaults_admission_and_admin_portal_defaults.py"
+)
+RUNTIMEDEFAULTS_BRAND_RUNTIME_DASHBOARD_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0017_runtimedefaults_brand_runtime_dashboard_batch.py"
+)
+RUNTIMEDEFAULTS_PORTAL_FEED_BATCH_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0018_runtimedefaults_portal_feed_batch.py"
+)
+RUNTIMEDEFAULTS_BRAND_PALETTE_SOCIAL_BATCH_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0019_runtimedefaults_brand_palette_and_social_batch.py"
+)
+RUNTIMEDEFAULTS_PORTAL_THEME_POLICY_BATCH_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0020_runtimedefaults_portal_theme_policy_batch.py"
+)
+RUNTIMEDEFAULTS_THEME_SURFACE_BATCH_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0021_runtimedefaults_theme_surface_batch.py"
+)
+RUNTIMEDEFAULTS_POLICY_RUNTIME_TOGGLES_BATCH_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0022_runtimedefaults_policy_runtime_toggles_batch.py"
+)
+RUNTIMEDEFAULTS_REPORTS_THEMEPACK_BATCH_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0023_runtimedefaults_reports_themepack_batch.py"
+)
+RUNTIMEDEFAULTS_POLICY_REPORTS_INTERVAL_BATCH_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0024_runtimedefaults_policy_reports_interval_batch.py"
+)
+RUNTIMEDEFAULTS_POLICY_MAPS_COMPLIANCE_BATCH_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0025_runtimedefaults_policy_maps_and_compliance_batch.py"
 )
 
 
@@ -125,6 +245,102 @@ def main() -> int:
             "(PlatformGlobalBranding singleton)."
         )
 
+    if not PHASE_B_DOMAIN_SNAPSHOT_MIGRATION.is_file():
+        errors.append(
+            "Phase B domain snapshot migration missing: "
+            f"{PHASE_B_DOMAIN_SNAPSHOT_MIGRATION.relative_to(ROOT)}"
+        )
+
+    if not RUNTIMEDEFAULTS_FIRST_CLASS_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults first-class columns migration missing: "
+            f"{RUNTIMEDEFAULTS_FIRST_CLASS_MIGRATION.relative_to(ROOT)}"
+        )
+
+    if not PHASE_B_BATCH3_MIGRATION.is_file():
+        errors.append(
+            "Phase B Batch 3 migration missing: "
+            f"{PHASE_B_BATCH3_MIGRATION.relative_to(ROOT)} "
+            "(drop mirrored SiteSettings branding columns)."
+        )
+
+    if not RUNTIMEDEFAULTS_META_DOMAIN_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults meta_description/branded_domain migration missing: "
+            f"{RUNTIMEDEFAULTS_META_DOMAIN_MIGRATION.relative_to(ROOT)}"
+        )
+
+    if not RUNTIMEDEFAULTS_TAGLINE_SCHOOL_CODE_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults tagline/school_code migration missing: "
+            f"{RUNTIMEDEFAULTS_TAGLINE_SCHOOL_CODE_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_COMPANY_IDENTITY_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults company identity migration missing: "
+            f"{RUNTIMEDEFAULTS_COMPANY_IDENTITY_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_IDENTITY_GEO_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults identity/geo migration missing: "
+            f"{RUNTIMEDEFAULTS_IDENTITY_GEO_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_REGISTRY_STRINGS_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults registry strings migration missing: "
+            f"{RUNTIMEDEFAULTS_REGISTRY_STRINGS_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_ADMISSION_ADMIN_PORTAL_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults admission/admin-portal migration missing: "
+            f"{RUNTIMEDEFAULTS_ADMISSION_ADMIN_PORTAL_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_BRAND_RUNTIME_DASHBOARD_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults brand/runtime dashboard migration missing: "
+            f"{RUNTIMEDEFAULTS_BRAND_RUNTIME_DASHBOARD_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_PORTAL_FEED_BATCH_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults portal-feed batch migration missing: "
+            f"{RUNTIMEDEFAULTS_PORTAL_FEED_BATCH_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_BRAND_PALETTE_SOCIAL_BATCH_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults brand palette/social batch migration missing: "
+            f"{RUNTIMEDEFAULTS_BRAND_PALETTE_SOCIAL_BATCH_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_PORTAL_THEME_POLICY_BATCH_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults portal/theme policy batch migration missing: "
+            f"{RUNTIMEDEFAULTS_PORTAL_THEME_POLICY_BATCH_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_THEME_SURFACE_BATCH_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults theme-surface batch migration missing: "
+            f"{RUNTIMEDEFAULTS_THEME_SURFACE_BATCH_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_POLICY_RUNTIME_TOGGLES_BATCH_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults policy/runtime toggles batch migration missing: "
+            f"{RUNTIMEDEFAULTS_POLICY_RUNTIME_TOGGLES_BATCH_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_REPORTS_THEMEPACK_BATCH_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults reports/themepack batch migration missing: "
+            f"{RUNTIMEDEFAULTS_REPORTS_THEMEPACK_BATCH_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_POLICY_REPORTS_INTERVAL_BATCH_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults policy/reports/interval batch migration missing: "
+            f"{RUNTIMEDEFAULTS_POLICY_REPORTS_INTERVAL_BATCH_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_POLICY_MAPS_COMPLIANCE_BATCH_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults policy maps/compliance batch migration missing: "
+            f"{RUNTIMEDEFAULTS_POLICY_MAPS_COMPLIANCE_BATCH_MIGRATION.relative_to(ROOT)}"
+        )
+
     inv = ROOT / "docs" / "site_settings_usage_inventory.md"
     if inv.is_file():
         lines = inv.read_text(encoding="utf-8", errors="replace").splitlines()[:30]
@@ -148,7 +364,7 @@ def main() -> int:
 
     print(
         "Phase 5 siteconfig verification OK (docs + domain_ownership + get_solo + ORM lint "
-        "+ Phase B Batch 0-1 + Batch 3 + Batches 4-13 migration artifacts)."
+        "+ Phase B Batch 0-1 + Batch 3 + Batches 4-13 + RuntimeDefaults 0009-0025 migration artifacts)."
     )
     return 0
 

@@ -10,7 +10,7 @@ Status of the improvements that reduce paid APIs and external dependencies.
 | Item | Status | Notes |
 |------|--------|--------|
 | **Remove external QR API** | Done | Digital IDs use local `_qr_png_data_uri()` in `apps/portal/views.py` with `qrcode[pil]` (no api.qrserver.com). |
-| **Make AI strictly local-first by default** | Done | `DEFAULT_PROVIDER_ORDER` in `apps/portal/ai_provider.py` is now `["ollama", "rules"]`. Gemini only when tenant sets `AI_PROVIDER_PREFERENCE` (e.g. `ollama,gemini,rules`). |
+| **Make AI strictly local-first by default** | Done | `DEFAULT_PROVIDER_ORDER` is `["ollama", "rules"]`; `general_chat` gateway tiers are `["ollama", "rules"]` only; legacy `gemini` in `AI_PROVIDER_PREFERENCE` is ignored. |
 | **Default virtual classes to Jitsi** | Done | `VirtualClassroom.provider` and `VideoConferenceService` default to Jitsi. Migration `0013_virtualclassroom_default_jitsi.py` updates DB default. Zoom remains optional. |
 | **Fix Zoom integration health check** | Done | `ZoomIntegration.get_token()` added in `apps/communication/integrations.py`; `check_health()` now uses it instead of calling a missing method. |
 | **Enforce free OCR first** | Done | Receipt verification defaults to `pattern` in `apps/siteconfig/models.py` and `apps/finance/receipt_verification.py`. Paid cloud OCR is opt-in. |

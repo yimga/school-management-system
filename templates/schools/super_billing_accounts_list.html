@@ -1,12 +1,12 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n control_console %}
 
 {% block cp_title %}{% trans "Billing accounts" %}{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Home" %}</a></li>
     <li class="breadcrumb-item"><a href="{{ system_config_url }}">{% trans "Config center" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Billing accounts" %}</li>
   </ol>
@@ -14,7 +14,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2">
+{% operator_console_strip %}
+<div class="container-fluid py-2" data-page-archetype="decision-console">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
     <h1 class="h5 mb-0">{% trans "Billing accounts" %}</h1>
     <div class="d-flex gap-2">

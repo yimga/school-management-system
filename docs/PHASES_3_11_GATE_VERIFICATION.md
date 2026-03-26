@@ -22,7 +22,19 @@
 python scripts/verify_phases_3_11_gates.py
 ```
 
-Runs: `lint_tenant_settings`, `lint_gilead_residue`, `lint_secret_exposure`, `verify_sot_pillar_evidence`, `phase_h_audit` (static).
+Runs: `lint_tenant_settings`, `lint_gilead_residue`, `lint_secret_exposure`, `verify_sot_pillar_evidence`, wedge scripts, `phase_h_audit` (static), `verify_program_phase10_phase11_gates.py`, **`verify_repo_wide_ecosystem_marketing_audit.py`**, **`verify_ui_wiring_audit.py`** (every template `{% url %}` literal vs union of root/tenant/manager/public urlconfs + HTML href hazard scan; report `docs/phase_audit/UI_WIRING_AUDIT_LATEST.md`).
+
+**Operator Phase 10 + 11 (ecosystem + marketing) — DB-backed end-to-end slice** (pytest + migrated gate SQLite + `verify_ux_completion.py`):
+
+```bash
+python scripts/verify_operator_phase10_11_e2e.py
+```
+
+Static + pytest only (skip UX audit and gate migrate):
+
+```bash
+python scripts/verify_operator_phase10_11_e2e.py --skip-ux-completion
+```
 
 ## DB-backed tests (full gate)
 

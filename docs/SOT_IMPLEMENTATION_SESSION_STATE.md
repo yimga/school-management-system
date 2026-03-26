@@ -1,8 +1,8 @@
 # SOT implementation session state (resumable runs)
 
-**Purpose:** So an agent (or human) can continue "implement all unchecked until 11/10" from where the last run stopped. Read this at **start** of a run; update it at **end** of each phase or every few sections. Runbook policy: for every N/A/blocked/backlog item, find out why; if a dependency, unblock by implementing it; look at all referenced docs and consolidate into SOT.
+**Purpose:** Resumable **session handoff** for §11.4 slices, gap-audit work, and any **explicit** SOT `[ ]` that remains. The streamlined SOT has **§6** spine **[x]** and **§12 MET** — you are **not** grinding “every line-item `[ ]` in a mega-SOT.” Read at **start** of a run; update at **end** of each slice. Consolidate outcomes into SOT **§11.4** + [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md](RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md).
 
-**Runbook:** [IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md](IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md) (target: 11/10)
+**Runbook:** [IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md](IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md) — verify-then-ship; **structural 11/10 bar MET**; **market depth** = continuous §11.4 cadence.
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Field | Value |
 |-------|--------|
-| **Current goal** | 11 (all SOT [ ] implemented and marked [x]); **all gap audit items (GAP.1–GAP.15) closed**; runbook §6 checklist + continuous improvement |
+| **Current goal** | **§11.4** sequenced slices + per-release **Phase H**; gap audit **GAP.1–GAP.15 closed** (2026-03-23); any new explicit SOT `[ ]` closed with verify-then-[x]; continuous improvement §1.8 |
 | **Last completed** | **Evidence + gap audit alignment (2026-03-23):** [SOT_0155_EVIDENCE_REGISTER.md](SOT_0155_EVIDENCE_REGISTER.md) rewritten (Repo vs Ext; matches SOT §0.1.5); [SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md](SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md) — Phase GAP closed banner + §9 no longer mandates open audit as blocking. **`verify_sot_pillar_evidence` OK (104)**; **`pytest apps/portal/tests/` 135 passed**. §0.1.5 internal **CLOSED**; [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **External** only. |
 | **Next section** | **External-only OPEN** — [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **External** table. **§6 / §11** ledgers and narrative `[ ]` references elsewhere in the SOT follow existing runbooks (not §0.1.5 Wave 8 queue). **Continuous:** §1.8, §12 gates. |
 | **Date (UTC)** | 2026-03-23 |
@@ -27,8 +27,8 @@
 
 ## How to use
 
-- **When starting a run:** Read **Current goal** (9.5 | 10 | 11) and **Next section**. Begin from that section (or Stage A if fresh).
-- **When finishing a phase (or every 2–3 sections):** Update "Last completed", "Next section", "Date", "Done this session". Advance **Current goal** to 10 or 11 only when that goal’s definition of done (runbook §1) is met.
-- **When all stages are done (11/10):** Set "Current goal" to `11`, "Next section" to `All phases complete — 11/10` and the date.
+- **When starting a run:** Read **Current goal** and **Next section** (or §11.4 slice you picked). Begin from that slice / gap / explicit `[ ]`.
+- **When finishing a phase (or every 2–3 sections):** Update "Last completed", "Next section", "Date", "Done this session".
+- **When structural gates are satisfied:** **§12 / 11/10 repo bar** is already **MET** — session state tracks **depth** and **release** work, not re-closing consolidated §6 rows.
 
 Do not delete this file; it is the resumability state for the SOT implementation run.

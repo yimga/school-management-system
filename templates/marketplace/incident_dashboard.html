@@ -1,6 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% load static %}
-{% load region_format %}
+{% load region_format phase8_tags %}
 
 {% block cp_title %}Marketplace incidents{% endblock %}
 
@@ -12,6 +12,7 @@
 {% block cp_content %}
 <div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% load i18n %}
+  {% phase8_dashboard_declaration "marketplace/incident_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Marketplace incidents") subtitle=_("Central place for marketplace-related incidents. Use the support dashboard for full incident queue.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
   <div class="d-flex flex-wrap gap-2 mb-3">
     <a href="{{ support_url }}" class="btn btn-outline-secondary btn-sm">Support dashboard</a>

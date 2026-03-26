@@ -1,8 +1,11 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static phase8_tags %}
 
+{% block page_archetype %}decision-console{% endblock %}
 {% block title %}Feature Control Panel{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-decision-engine="surface"></div>
+{% phase8_dashboard_declaration "siteconfig/feature_control_panel.html" %}
 {% include "siteconfig/feature_control_panel_content.html" %}
 {% endblock %}

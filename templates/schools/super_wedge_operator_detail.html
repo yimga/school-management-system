@@ -1,12 +1,12 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n phase8_tags %}
 
 {% block cp_title %}{% blocktrans with n=wedge_id %}Wedge {{ n }}{% endblocktrans %} — {{ wedge.name }} — Manager{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Home" %}</a></li>
     {% if wedge_index_url %}<li class="breadcrumb-item"><a href="{{ wedge_index_url }}">{% trans "Wedge index" %}</a></li>{% endif %}
     <li class="breadcrumb-item active" aria-current="page">{% trans "Wedge" %} {{ wedge_id }}</li>
   </ol>
@@ -14,7 +14,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="catalog" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/super_wedge_operator_detail.html" %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold text-white">{% trans "Wedge" %} {{ wedge_id }}: {{ wedge.name }}</h1>
     <p class="text-white-50 small mb-1">{% trans "Tier" %} <span class="badge bg-secondary">{{ wedge.tier }}</span> · {% trans "Execution phase" %} {{ wedge.phase }}</p>

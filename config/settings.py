@@ -151,6 +151,7 @@ INSTALLED_APPS = [
     "apps.schools",
     "apps.schoolops.apps.SchoolOpsConfig",
     "apps.analytics",
+    "apps.dashboard.apps.DashboardConfig",
     "apps.finance",
     "apps.payroll",
     "apps.compliance.apps.ComplianceConfig",
@@ -397,6 +398,14 @@ for _alias, _db_config in DATABASES.items():
     # on Windows when many tests hit the same file-backed test DB (--keepdb).
     _db_config.setdefault("OPTIONS", {})
     _db_config["OPTIONS"].setdefault("timeout", 30.0)
+
+# Longer busy timeout during unittest / manage.py test reduces flaky "database is locked" on
+# Windows with file-backed SQLite + --keepdb (pre_deploy_gate, local agents).
+if "test" in sys.argv:
+    for _db_config in DATABASES.values():
+        if _db_config.get("ENGINE") == "django.db.backends.sqlite3":
+            _opts = _db_config.setdefault("OPTIONS", {})
+            _opts["timeout"] = max(float(_opts.get("timeout", 30.0)), 90.0)
 
 # PERFORMANCE: Enable persistent database connections (600 seconds = 10 minutes)
 # Reduces overhead of creating new connection for each request
@@ -957,6 +966,73 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# Backlog unlock matrix: refresh Django cache + emit PlatformEventLog on dependency transitions.
+# Opt-in — runs multiple repo gate scripts (CPU + minutes). See docs/BACKLOG_UNLOCK_AUTOMATION.md.
+if os.getenv("ENABLE_BACKLOG_UNLOCK_BEAT", "").strip().lower() in ("1", "true", "yes"):
+    CELERY_BEAT_SCHEDULE["backlog-unlock-evaluate-cache"] = {
+        "task": "platform_runtime.backlog_unlock_eval_and_cache",
+        "schedule": 86400.0,
+        "options": {"expires": 3600},
+    }
+
+# Open-source AI ops: refresh local Ollama weights on a schedule (requires Ollama on worker host).
+if os.getenv("ENABLE_OLLAMA_MODEL_SYNC_BEAT", "").strip().lower() in ("1", "true", "yes"):
+    CELERY_BEAT_SCHEDULE["ollama-model-sync-weekly"] = {
+        "task": "platform_runtime.sync_ollama_models_beat",
+        "schedule": 604800.0,
+        "options": {"expires": 7200},
+    }
+
+# RAG: refresh AI embedding index (requires working embedding provider on worker host).
+if os.getenv("ENABLE_AI_KNOWLEDGE_INDEX_BEAT", "").strip().lower() in ("1", "true", "yes"):
+    CELERY_BEAT_SCHEDULE["index-ai-knowledge-daily"] = {
+        "task": "siteconfig.index_ai_knowledge_beat",
+        "schedule": 86400.0,
+        "options": {"expires": 3600},
+    }
+
+# Platform health: operator-visible Celery+DB ticks (non-migration).
+if os.getenv("ENABLE_OPERATOR_VISIBILITY_HEARTBEAT_BEAT", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+):
+    CELERY_BEAT_SCHEDULE["operator-visibility-heartbeat-daily"] = {
+        "task": "platform_runtime.operator_visibility_heartbeat",
+        "schedule": 86400.0,
+        "options": {"expires": 600},
+    }
+if os.getenv("ENABLE_DATABASE_CONNECTIVITY_HEARTBEAT_BEAT", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+):
+    CELERY_BEAT_SCHEDULE["database-connectivity-heartbeat-daily"] = {
+        "task": "platform_runtime.database_connectivity_heartbeat",
+        "schedule": 86400.0,
+        "options": {"expires": 300},
+    }
+if os.getenv("ENABLE_AUTOMATION_FAILURE_TREND_BEAT", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+):
+    CELERY_BEAT_SCHEDULE["automation-failure-trend-daily"] = {
+        "task": "platform_runtime.automation_failure_trend_signal",
+        "schedule": 86400.0,
+        "options": {"expires": 600},
+    }
+if os.getenv("ENABLE_AI_QUALITY_SCORECARD_BEAT", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+):
+    CELERY_BEAT_SCHEDULE["ai-quality-scorecard-weekly"] = {
+        "task": "siteconfig.ai_quality_scorecard_beat",
+        "schedule": 604800.0,
+        "options": {"expires": 3600},
+    }
+
 # --- Logging Configuration ---
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
@@ -1217,6 +1293,7 @@ PLATFORM_DEFAULT_GRADING_SCALE = (
 
 # --- AI Gateway (RunMyCampus Open-Source AI Adoption Blueprint) ---
 # All product AI goes through services.ai_gateway. No browser calls Ollama/vLLM/LiteLLM directly.
+# In-product chat (general_chat): Ollama + rules only — Google Gemini removed; see docs/OLLAMA_OPERATIONS_AND_UPDATES.md.
 AI_GATEWAY_ENABLED = os.getenv("AI_GATEWAY_ENABLED", "1").strip().lower() in (
     "1",
     "true",
@@ -1233,6 +1310,14 @@ AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY = int(
 # Request metadata: sensitivity_class, latency_target, output_type, allowed_backends (see ai_orchestration.md)
 # Optional: internal Open WebUI URL for Control Plane "AI Ops" link (env: OPEN_WEBUI_URL)
 OPEN_WEBUI_URL = os.getenv("OPEN_WEBUI_URL", "").strip() or None
+
+# Ollama CLI: guarded pulls (sync_ollama_models command; optional Celery beat — opt-in).
+OLLAMA_CLI_PATH = (os.getenv("OLLAMA_CLI_PATH", "ollama") or "ollama").strip()
+try:
+    _pull_to = int(os.getenv("OLLAMA_PULL_TIMEOUT_SECONDS", "3600"))
+except ValueError:
+    _pull_to = 3600
+OLLAMA_PULL_TIMEOUT_SECONDS = max(60, min(_pull_to, 86400))
 
 # --- Application Version ---
 APP_VERSION = "3.2.1"  # System version for dashboard footer
@@ -1319,6 +1404,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         # Public-schema runtime state (RuntimeDefaults, PlatformEventLog, phase-B snapshots). Must be in SHARED_APPS
         # so migrate_schemas --shared loads these migrations; siteconfig.0162+ depend on this app.
         "apps.platform_runtime.apps.PlatformRuntimeConfig",
+        "apps.dashboard.apps.DashboardConfig",
     ]
     TENANT_APPS = [
         "apps.portal",

@@ -34,6 +34,24 @@ class OutputNativeReportCardBuilderTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-studio-output-native="credentials"')
 
+    def test_output_pane_documents_renders_native_marker(self):
+        url = reverse("studio_os:output") + "?pane=documents"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-studio-output-native="documents"')
+
+    def test_output_pane_branding_renders_native_marker(self):
+        url = reverse("studio_os:output") + "?pane=branding"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-studio-output-native="branding"')
+
+    def test_output_pane_policy_renders_native_marker(self):
+        url = reverse("studio_os:output") + "?pane=policy"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-studio-output-native="policy"')
+
     def test_output_studio_horizontal_tabs_and_dependency_native(self):
         response = self.client.get(reverse("studio_os:output") + "?pane=dependency")
         self.assertEqual(response.status_code, 200)

@@ -30,15 +30,15 @@ class AiCopilotContextTests(TestCase):
         request = self._request()
         with self.settings(AI_ALLOW_RULES_FALLBACK=True):
             ctx = ai_copilot_settings(request)
-        self.assertNotIn("GEMINI_API_KEY", ctx)
+        self.assertNotIn("OPENAI_API_KEY", ctx)
         self.assertIn("AI_BACKEND_ENABLED", ctx)
         self.assertIn("AI_PROVIDER_NAME", ctx)
         self.assertIn("AI_PERMISSIONS", ctx)
 
     def test_ai_copilot_template_never_renders_provider_secret(self):
         request = self._request()
-        os.environ["GEMINI_API_KEY"] = "gemini-secret-should-not-render"
-        self.addCleanup(os.environ.pop, "GEMINI_API_KEY", None)
+        os.environ["OPENAI_API_KEY"] = "openai-secret-should-not-render"
+        self.addCleanup(os.environ.pop, "OPENAI_API_KEY", None)
 
         context = {
             **ai_copilot_settings(request),
@@ -48,6 +48,6 @@ class AiCopilotContextTests(TestCase):
             "components/ai_copilot.html", context=context, request=request
         )
 
-        self.assertNotIn("gemini-secret-should-not-render", rendered)
-        self.assertNotIn("GEMINI_API_KEY", rendered)
+        self.assertNotIn("openai-secret-should-not-render", rendered)
+        self.assertNotIn("OPENAI_API_KEY", rendered)
         self.assertIn("AI_BACKEND_ENABLED", rendered)

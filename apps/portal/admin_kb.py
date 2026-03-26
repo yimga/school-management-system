@@ -16,6 +16,7 @@ from .models_kb import (
     KBArticleAttachment,
     KBComment,
     UserContribution,
+    HostedOfficeDocument,
 )
 
 
@@ -45,6 +46,7 @@ class FAQAdmin(admin.ModelAdmin):
     list_display = [
         "question_short",
         "category",
+        "help_audience",
         "status",
         "submitted_by",
         "view_count",
@@ -52,7 +54,7 @@ class FAQAdmin(admin.ModelAdmin):
         "is_featured",
         "created_at",
     ]
-    list_filter = ["status", "category", "is_featured", "created_at"]
+    list_filter = ["status", "category", "help_audience", "country_code", "plan_tier", "is_featured", "created_at"]
     search_fields = ["question", "answer", "tags"]
     readonly_fields = [
         "view_count",
@@ -61,13 +63,13 @@ class FAQAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     ]
-    list_editable = ["status", "is_featured"]
+    list_editable = ["status", "is_featured", "help_audience"]
     actions = ["approve_faqs", "reject_faqs", "feature_faqs"]
 
     fieldsets = (
         (
             _("Basic Information"),
-            {"fields": ("category", "question", "answer", "answer_html", "tags")},
+            {"fields": ("category", "question", "answer", "answer_html", "tags", "help_audience")},
         ),
         (
             _("Status & Review"),
@@ -82,6 +84,7 @@ class FAQAdmin(admin.ModelAdmin):
             },
         ),
         (_("Display Settings"), {"fields": ("is_featured", "display_order")}),
+        (_("Targeting"), {"fields": ("country_code", "education_type", "plan_tier", "target_roles")}),
         (
             _("Engagement Metrics"),
             {
@@ -190,7 +193,7 @@ class KBArticleAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     ]
-    list_editable = ["status", "is_featured"]
+    list_editable = ["status", "is_featured", "help_audience"]
     filter_horizontal = ["related_articles", "contributors"]
     actions = ["publish_articles", "archive_articles", "feature_articles"]
     inlines = [KBArticleAttachmentInline]
@@ -216,6 +219,7 @@ class KBArticleAdmin(admin.ModelAdmin):
                     "difficulty",
                     "estimated_read_time",
                     "tags",
+                    "help_audience",
                     "related_articles",
                 )
             },
@@ -359,3 +363,11 @@ class UserContributionAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+@admin.register(HostedOfficeDocument)
+class HostedOfficeDocumentAdmin(admin.ModelAdmin):
+    list_display = ["title", "help_audience", "school", "updated_at", "created_by"]
+    list_filter = ["help_audience", "school", "updated_at"]
+    search_fields = ["title", "file"]
+    readonly_fields = ["created_at", "updated_at"]

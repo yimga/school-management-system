@@ -38,7 +38,7 @@
 
 | Topic | Doc | Notes |
 |-------|-----|--------|
-| SOT unchecked items | docs/IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md | Implement every [ ] in SOT; verify then [x]; resumable. |
+| SOT / §11.4 execution slices | docs/IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md | Verify-then-ship for **explicit SOT `[ ]`**, **§11.4** depth, PATH_TO **Action** rows, and Phase GAP; resumable via session state. **Status:** SOT **At a glance** + **§11.4**. |
 | Improvements (gates, scroll, nav, a11y) | docs/IMPROVEMENTS_RUNBOOK.md | Execute steps 1.1–6.1 without interruption; session state in IMPROVEMENTS_RUNBOOK_SESSION_STATE.md. |
 
 ## References

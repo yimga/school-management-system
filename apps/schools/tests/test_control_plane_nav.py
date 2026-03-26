@@ -22,18 +22,21 @@ class ControlPlaneNavParityTests(SimpleTestCase):
         required = {
             "super_platform_operator_hub",
             "super_operator_policy",
+            "super_backlog_unlock_center",
+            "super_fleet_governed_changes",
             "config_console",
             "cp_theme_experience",
             "cp_feature_control",
             "cp_platform_backoffice",
-            "cp_integrations_super",
             "cp_admin_bridge_integrations",
             "cp_admin_bridge_marketplace_apps",
             "cp_admin_bridge_packages_installed",
             "cp_admin_bridge_experience_packs",
             "cp_admin_bridge_runtime_defaults",
+            "cp_admin_bridge_phase_b_domain_snapshots",
             "cp_admin_bridge_ai_model_registry",
             "cp_admin_bridge_global_brand_registry",
+            "cp_admin_bridge_platform_global_branding",
             "cp_report_library",
         }
         missing = required - set(all_ids)
@@ -41,4 +44,10 @@ class ControlPlaneNavParityTests(SimpleTestCase):
             missing,
             msg="Control plane nav missing admin-parity entries: %s. Got ids: %s"
             % (missing, sorted(all_ids)),
+        )
+        # One SIS / LMS lives under Integrations only (not duplicated under Platform settings).
+        self.assertIn(
+            "super_one_sis_any_lms",
+            all_ids,
+            msg="Integrations entry super_one_sis_any_lms must remain in sidebar",
         )

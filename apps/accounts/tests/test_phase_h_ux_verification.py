@@ -149,6 +149,14 @@ class PhaseHUrlReverseTests(SimpleTestCase):
     def test_super_dashboard_reverse(self):
         self.assertEqual(reverse("super:dashboard"), "/super/")
 
+    def test_super_backlog_unlock_center_reverse(self):
+        url = reverse("super:backlog_unlock_center")
+        self.assertIn("/super/backlog-unlock-center/", url)
+
+    def test_super_fleet_governed_changes_reverse(self):
+        url = reverse("super:fleet_governed_changes")
+        self.assertIn("/super/fleet-governed-changes/", url)
+
     def test_studio_experience_reverse(self):
         self.assertEqual(reverse("studio_os:experience"), "/studio/experience/")
 

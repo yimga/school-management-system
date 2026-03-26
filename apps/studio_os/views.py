@@ -40,6 +40,30 @@ from .services import (
     studio_save_draft,
 )
 
+STUDIO_MODES = [
+    {
+        "id": "experience",
+        "label": "Experience",
+        "description": "Shape branding, theme, and portals",
+    },
+    {
+        "id": "automation",
+        "label": "Automation",
+        "description": "Workflows, approvals, and automation",
+    },
+    {
+        "id": "output",
+        "label": "Outputs",
+        "description": "Reports, documents, and exports",
+    },
+    {"id": "launch", "label": "Launch", "description": "Setup and go live"},
+    {
+        "id": "control",
+        "label": "Control",
+        "description": "Capabilities, policies, and runtime",
+    },
+]
+
 
 def _automation_studio_base_url() -> str:
     try:
@@ -48,7 +72,7 @@ def _automation_studio_base_url() -> str:
         return ""
 
 
-def _resolve_automation_iframe_src(request, pane: str) -> str:
+def _resolve_automation_iframe_src(pane: str) -> str:
     """Automation Studio: iframe only for heavy / external surfaces; default pane is native."""
     from apps.studio_os.deep_links import resolve_studio_href
 
@@ -62,7 +86,7 @@ def _resolve_automation_iframe_src(request, pane: str) -> str:
     if key not in mapping:
         return ""
     vn, emb = mapping[key]
-    return resolve_studio_href(vn, embed=emb, request=request) or ""
+    return resolve_studio_href(vn, embed=emb) or ""
 
 
 def _automation_explainer_context(pane: str):
@@ -144,7 +168,7 @@ def _automation_explainer_context(pane: str):
     }
 
 
-def _resolve_launch_iframe_src(request, pane: str) -> str:
+def _resolve_launch_iframe_src(_request, pane: str) -> str:
     """Launch Studio: iframe for wizards; overview/plan are native."""
     from apps.studio_os.deep_links import resolve_studio_href
 
@@ -159,7 +183,7 @@ def _resolve_launch_iframe_src(request, pane: str) -> str:
     if key not in mapping:
         return ""
     vn, emb = mapping[key]
-    return resolve_studio_href(vn, embed=emb, request=request) or ""
+    return resolve_studio_href(vn, embed=emb) or ""
 
 
 @never_cache
@@ -252,10 +276,12 @@ def studio_system_config_console(request):
         build_outcome_groups_for_request,
     )
 
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/system_config_console.html",
-        {
+        canvas_partial="studio_os/partials/subpages/system_config_console.html",
+        embed_title=_("Configuration Control Center") + " · " + str(_("Control")),
+        shell_title=_("Configuration Control Center") + " · " + str(_("Control")),
+        page_context={
             "page_title": _("Configuration Control Center"),
             "page_subtitle": _(
                 "Outcome-based surfaces — runtime, packs, policy, entitlements, overrides. "
@@ -268,6 +294,8 @@ def studio_system_config_console(request):
             "action_url": reverse("studio_os:control"),
             "action_text": _("Back to Control"),
         },
+        current_mode="control",
+        extra_css="css/studio-system-config-console.css",
     )
 
 
@@ -279,10 +307,12 @@ def studio_control_impact(request):
     if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     preview_ctx = get_studio_preview_context("control", request)
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/control_impact.html",
-        {
+        canvas_partial="studio_os/partials/subpages/control_impact.html",
+        embed_title=_("Diff / impact summary") + " · " + str(_("Control")),
+        shell_title=_("Diff / impact summary") + " · " + str(_("Control")),
+        page_context={
             "impact_summary": preview_ctx.get("impact_summary") or "",
             "dependency_warnings": preview_ctx.get("dependency_warnings") or [],
             "page_title": _("Diff / impact summary"),
@@ -292,6 +322,7 @@ def studio_control_impact(request):
             "action_url": reverse("studio_os:control"),
             "action_text": _("Back to Control"),
         },
+        current_mode="control",
     )
 
 
@@ -303,10 +334,12 @@ def studio_ai_cleanup(request):
     if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     recs = get_studio_recommendations(request, "control")
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/ai_cleanup.html",
-        {
+        canvas_partial="studio_os/partials/subpages/ai_cleanup.html",
+        embed_title=_("AI cleanup suggestions") + " · " + str(_("Control")),
+        shell_title=_("AI cleanup suggestions") + " · " + str(_("Control")),
+        page_context={
             "recommendations": recs,
             "page_title": _("AI cleanup suggestions"),
             "page_subtitle": _(
@@ -315,6 +348,7 @@ def studio_ai_cleanup(request):
             "action_url": reverse("studio_os:control"),
             "action_text": _("Back to Control"),
         },
+        current_mode="control",
     )
 
 
@@ -326,16 +360,19 @@ def studio_experience_recommendations(request):
     if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     recs = get_studio_recommendations(request, "experience")
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/experience_recommendations.html",
-        {
+        canvas_partial="studio_os/partials/subpages/experience_recommendations.html",
+        embed_title=_("AI recommendations") + " · " + str(_("Experience")),
+        shell_title=_("AI recommendations") + " · " + str(_("Experience")),
+        page_context={
             "recommendations": recs,
             "page_title": _("AI recommendations"),
             "page_subtitle": _("Experience-mode suggestions for theme and branding."),
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
+        current_mode="experience",
     )
 
 
@@ -347,17 +384,23 @@ def studio_experience_compare(request):
     if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
     compare_ctx = get_studio_compare_context(request, "experience")
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/experience_compare.html",
-        {
+        canvas_partial="studio_os/partials/subpages/experience_compare.html",
+        embed_title=_("Compare (before / after)") + " · " + str(_("Experience")),
+        shell_title=_("Compare (before / after)") + " · " + str(_("Experience")),
+        page_context={
             "before_entries": compare_ctx.get("before_entries") or [],
             "after_entries": compare_ctx.get("after_entries") or [],
             "has_before": compare_ctx.get("has_before", False),
-            "page_title": "Compare (before / after)",
-            "page_subtitle": "Publish a theme change to see before/after comparison.",
+            "page_title": _("Compare (before / after)"),
+            "page_subtitle": _(
+                "Publish a theme change to see before/after comparison."
+            ),
             "action_url": reverse("studio_os:experience"),
+            "action_text": _("Back to Experience"),
         },
+        current_mode="experience",
     )
 
 
@@ -373,10 +416,12 @@ def studio_experience_theme_tokens(request):
         theme_url = reverse("siteconfig:theme_colors") + "?embed=1"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/experience_theme_tokens.html",
-        {
+        canvas_partial="studio_os/partials/subpages/experience_theme_tokens.html",
+        embed_title=_("Theme tokens") + " · " + str(_("Experience")),
+        shell_title=_("Theme tokens") + " · " + str(_("Experience")),
+        page_context={
             "theme_colors_url": theme_url,
             "page_title": _("Theme tokens"),
             "page_subtitle": _(
@@ -385,6 +430,7 @@ def studio_experience_theme_tokens(request):
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
+        current_mode="experience",
     )
 
 
@@ -400,10 +446,12 @@ def studio_experience_portal_shell_layouts(request):
         customizer_url = reverse("studio_os:experience") + "?embed=1"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/experience_portal_shell_layouts.html",
-        {
+        canvas_partial="studio_os/partials/subpages/experience_portal_shell_layouts.html",
+        embed_title=_("Portal shell layouts") + " · " + str(_("Experience")),
+        shell_title=_("Portal shell layouts") + " · " + str(_("Experience")),
+        page_context={
             "customizer_url": customizer_url,
             "page_title": _("Portal shell layouts"),
             "page_subtitle": _(
@@ -412,6 +460,7 @@ def studio_experience_portal_shell_layouts(request):
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
+        current_mode="experience",
     )
 
 
@@ -432,10 +481,12 @@ def studio_experience_dashboard_visual_packs(request):
         customizer_url = reverse("studio_os:experience") + "?embed=1"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/experience_dashboard_visual_packs.html",
-        {
+        canvas_partial="studio_os/partials/subpages/experience_dashboard_visual_packs.html",
+        embed_title=_("Dashboard visual packs") + " · " + str(_("Experience")),
+        shell_title=_("Dashboard visual packs") + " · " + str(_("Experience")),
+        page_context={
             "dashboard_url": dashboard_url,
             "customizer_url": customizer_url,
             "page_title": _("Dashboard visual packs"),
@@ -445,6 +496,7 @@ def studio_experience_dashboard_visual_packs(request):
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
+        current_mode="experience",
     )
 
 
@@ -465,10 +517,12 @@ def studio_experience_school_website_blocks(request):
         customizer_url = reverse("studio_os:experience") + "?embed=1"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/experience_school_website_blocks.html",
-        {
+        canvas_partial="studio_os/partials/subpages/experience_school_website_blocks.html",
+        embed_title=_("School website blocks") + " · " + str(_("Experience")),
+        shell_title=_("School website blocks") + " · " + str(_("Experience")),
+        page_context={
             "marketing_url": marketing_url,
             "customizer_url": customizer_url,
             "page_title": _("School website blocks"),
@@ -478,6 +532,7 @@ def studio_experience_school_website_blocks(request):
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
+        current_mode="experience",
     )
 
 
@@ -493,10 +548,12 @@ def studio_experience_communication_style_packs(request):
         customizer_url = reverse("studio_os:experience") + "?embed=1"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/experience_communication_style_packs.html",
-        {
+        canvas_partial="studio_os/partials/subpages/experience_communication_style_packs.html",
+        embed_title=_("Communication style packs") + " · " + str(_("Experience")),
+        shell_title=_("Communication style packs") + " · " + str(_("Experience")),
+        page_context={
             "customizer_url": customizer_url,
             "page_title": _("Communication style packs"),
             "page_subtitle": _(
@@ -505,6 +562,7 @@ def studio_experience_communication_style_packs(request):
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
+        current_mode="experience",
     )
 
 
@@ -557,10 +615,12 @@ def studio_experience_packs(request):
             package_impact_fetch_url = "/api/internal/north-star/package-impact/"
     if school and effective_pack:
         experience_graph_package_id = f"exp-pack:{effective_pack.code}"
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/experience_experience_packs.html",
-        {
+        canvas_partial="studio_os/partials/subpages/experience_experience_packs.html",
+        embed_title=_("Experience packs") + " · " + str(_("Experience")),
+        shell_title=_("Experience packs") + " · " + str(_("Experience")),
+        page_context={
             "effective_pack": effective_pack,
             "pack_count": pack_count,
             "theme_colors_url": theme_colors_url,
@@ -575,6 +635,7 @@ def studio_experience_packs(request):
             "action_url": reverse("studio_os:experience"),
             "action_text": _("Back to Experience"),
         },
+        current_mode="experience",
     )
 
 
@@ -589,17 +650,23 @@ def studio_output_dependency_graph(request):
     out_base = reverse("studio_os:output")
     pack_preview_cards = get_output_report_pack_preview_cards(out_base=out_base)
     focus = (request.GET.get("pack") or "").strip()[:160]
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/output_dependency_graph.html",
-        {
+        canvas_partial="studio_os/partials/subpages/output_dependency_graph.html",
+        embed_title=_("Dependency graph") + " · " + str(_("Outputs")),
+        shell_title=_("Dependency graph") + " · " + str(_("Outputs")),
+        page_context={
             "graph": graph,
             "pack_preview_cards": pack_preview_cards,
             "focus_pack_code": focus,
-            "page_title": "Dependency graph",
-            "page_subtitle": "Report packs and their dependencies (fields, policies, templates).",
+            "page_title": _("Dependency graph"),
+            "page_subtitle": _(
+                "Report packs and their dependencies (fields, policies, templates)."
+            ),
             "action_url": reverse("studio_os:output"),
+            "action_text": _("Back to Outputs"),
         },
+        current_mode="output",
     )
 
 
@@ -615,10 +682,12 @@ def studio_output_branding_inheritance(request):
         theme_url = reverse("siteconfig:theme_colors") + "?embed=1"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/output_branding_inheritance.html",
-        {
+        canvas_partial="studio_os/partials/subpages/output_branding_inheritance.html",
+        embed_title=_("Branding inheritance") + " · " + str(_("Outputs")),
+        shell_title=_("Branding inheritance") + " · " + str(_("Outputs")),
+        page_context={
             "theme_colors_url": theme_url,
             "page_title": _("Branding inheritance"),
             "page_subtitle": _(
@@ -627,6 +696,7 @@ def studio_output_branding_inheritance(request):
             "action_url": reverse("studio_os:output"),
             "action_text": _("Back to Outputs"),
         },
+        current_mode="output",
     )
 
 
@@ -652,10 +722,12 @@ def studio_output_policy_registry(request):
         report_library_url = reverse("studio_os:output") + "?pane=reports"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/output_policy_registry.html",
-        {
+        canvas_partial="studio_os/partials/subpages/output_policy_registry.html",
+        embed_title=_("Policy & registry") + " · " + str(_("Outputs")),
+        shell_title=_("Policy & registry") + " · " + str(_("Outputs")),
+        page_context={
             "page_title": _("Policy & registry"),
             "page_subtitle": _(
                 "Reports and report packs align with policy (blueprints, grading, terms) and metadata registry (lineage, fields). Use Output Studio · Report library & letters; Control for policy and lineage."
@@ -666,6 +738,7 @@ def studio_output_policy_registry(request):
             "lineage_url": lineage_url,
             "report_library_url": report_library_url,
         },
+        current_mode="output",
     )
 
 
@@ -676,10 +749,12 @@ def studio_launch_select_plan(request):
     """§4.5 Launch Studio: Select plan. Placeholder when plans not productized; rail entry and view wired for when plan product ships."""
     if not user_can_access_studio_on_request(request):
         return redirect(reverse("accounts:backend_dashboard"))
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/launch_select_plan.html",
-        {
+        canvas_partial="studio_os/partials/subpages/launch_select_plan.html",
+        embed_title=_("Select plan") + " · " + str(_("Launch")),
+        shell_title=_("Select plan") + " · " + str(_("Launch")),
+        page_context={
             "page_title": _("Select plan"),
             "page_subtitle": _(
                 "Choose your school's plan and entitlements. Full plan picker when productized."
@@ -687,6 +762,7 @@ def studio_launch_select_plan(request):
             "action_url": reverse("studio_os:launch"),
             "action_text": _("Back to Launch"),
         },
+        current_mode="launch",
     )
 
 
@@ -702,10 +778,12 @@ def studio_automation_conflict_detection(request):
         workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/automation_conflict_detection.html",
-        {
+        canvas_partial="studio_os/partials/subpages/automation_conflict_detection.html",
+        embed_title=_("Conflict detection") + " · " + str(_("Automation")),
+        shell_title=_("Conflict detection") + " · " + str(_("Automation")),
+        page_context={
             "workflow_hub_url": workflow_hub_url,
             "page_title": _("Conflict detection"),
             "page_subtitle": _(
@@ -714,6 +792,7 @@ def studio_automation_conflict_detection(request):
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
         },
+        current_mode="automation",
     )
 
 
@@ -729,10 +808,12 @@ def studio_automation_staged_activation(request):
         workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/automation_staged_activation.html",
-        {
+        canvas_partial="studio_os/partials/subpages/automation_staged_activation.html",
+        embed_title=_("Staged activation") + " · " + str(_("Automation")),
+        shell_title=_("Staged activation") + " · " + str(_("Automation")),
+        page_context={
             "workflow_hub_url": workflow_hub_url,
             "page_title": _("Staged activation"),
             "page_subtitle": _(
@@ -741,6 +822,7 @@ def studio_automation_staged_activation(request):
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
         },
+        current_mode="automation",
     )
 
 
@@ -761,10 +843,12 @@ def studio_automation_replay_rollback(request):
         rollback_url = reverse("studio_os:rollback") + "?mode=automation"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/automation_replay_rollback.html",
-        {
+        canvas_partial="studio_os/partials/subpages/automation_replay_rollback.html",
+        embed_title=_("Replay / rollback") + " · " + str(_("Automation")),
+        shell_title=_("Replay / rollback") + " · " + str(_("Automation")),
+        page_context={
             "workflow_hub_url": workflow_hub_url,
             "rollback_url": rollback_url,
             "page_title": _("Replay / rollback"),
@@ -774,11 +858,12 @@ def studio_automation_replay_rollback(request):
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
         },
+        current_mode="automation",
     )
 
 
 def _automation_explainer_view(
-    request, template_name: str, page_title: str, page_subtitle: str
+    request, canvas_partial: str, page_title: str, page_subtitle: str
 ):
     """Shared helper for Automation Studio explainer pages (staff-only, workflow_hub_url, action back to automation)."""
     if not user_can_access_studio_on_request(request):
@@ -788,16 +873,19 @@ def _automation_explainer_view(
         workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        template_name,
-        {
+        canvas_partial=canvas_partial,
+        embed_title=f"{page_title} · {str(_('Automation'))}",
+        shell_title=f"{page_title} · {str(_('Automation'))}",
+        page_context={
             "workflow_hub_url": workflow_hub_url,
             "page_title": page_title,
             "page_subtitle": page_subtitle,
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
         },
+        current_mode="automation",
     )
 
 
@@ -808,7 +896,7 @@ def studio_automation_visual_builder(request):
     """§4.3 Automation Studio optional: Visual builder. Explains drag-and-drop workflow building; links to Workflow hub."""
     return _automation_explainer_view(
         request,
-        "studio_os/automation_visual_builder.html",
+        "studio_os/partials/subpages/automation_visual_builder.html",
         _("Visual builder"),
         _(
             "Build workflows visually with drag-and-drop; connect steps and conditions. Manage flows from the Workflow hub."
@@ -823,7 +911,7 @@ def studio_automation_natural_language_workflow(request):
     """§4.3 Automation Studio optional: Natural-language workflow generation. Explains NL-to-workflow; links to Workflow hub."""
     return _automation_explainer_view(
         request,
-        "studio_os/automation_natural_language_workflow.html",
+        "studio_os/partials/subpages/automation_natural_language_workflow.html",
         _("Natural-language workflow"),
         _(
             "Describe workflows in plain language; the system suggests or generates flow steps. Refine and activate from the Workflow hub."
@@ -838,7 +926,7 @@ def studio_automation_simulation_engine(request):
     """§4.3 Automation Studio optional: Simulation engine. Explains run-before-activate; links to Workflow hub."""
     return _automation_explainer_view(
         request,
-        "studio_os/automation_simulation_engine.html",
+        "studio_os/partials/subpages/automation_simulation_engine.html",
         _("Simulation engine"),
         _(
             "Run workflow simulations before going live. Verify behavior and impact from the Workflow hub, then activate when ready."
@@ -858,15 +946,21 @@ def studio_automation_dependency_graph(request):
         auto_back = reverse("studio_os:automation") + "?pane=dependency"
     except NoReverseMatch:
         auto_back = reverse("studio_os:automation")
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/automation_dependency_graph.html",
-        {
+        canvas_partial="studio_os/partials/subpages/automation_dependency_graph.html",
+        embed_title=_("Dependency graph") + " · " + str(_("Automation")),
+        shell_title=_("Dependency graph") + " · " + str(_("Automation")),
+        page_context={
             "graph": graph,
-            "page_title": "Dependency graph",
-            "page_subtitle": "Workflow packs and their templates (pack → templates).",
+            "page_title": _("Dependency graph"),
+            "page_subtitle": _(
+                "Workflow packs and their templates (pack → templates)."
+            ),
             "action_url": auto_back,
+            "action_text": _("Back to Automation"),
         },
+        current_mode="automation",
     )
 
 
@@ -885,10 +979,12 @@ def studio_automation_workflow_health(request):
         workflow_center_pane_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
-    return render(
+    return _render_studio_subpage(
         request,
-        "studio_os/automation_workflow_health.html",
-        {
+        canvas_partial="studio_os/partials/subpages/automation_workflow_health.html",
+        embed_title=_("Workflow health metrics") + " · " + str(_("Automation")),
+        shell_title=_("Workflow health metrics") + " · " + str(_("Automation")),
+        page_context={
             "pack_count": summary.get("pack_count", 0),
             "template_count": summary.get("template_count", 0),
             "workflow_center_pane_url": workflow_center_pane_url,
@@ -899,62 +995,33 @@ def studio_automation_workflow_health(request):
             "action_url": reverse("studio_os:automation"),
             "action_text": _("Back to Automation"),
         },
+        current_mode="automation",
     )
-
-
-STUDIO_MODES = [
-    {
-        "id": "experience",
-        "label": "Experience",
-        "description": "Shape branding, theme, and portals",
-    },
-    {
-        "id": "automation",
-        "label": "Automation",
-        "description": "Workflows, approvals, and automation",
-    },
-    {
-        "id": "output",
-        "label": "Outputs",
-        "description": "Reports, documents, and exports",
-    },
-    {"id": "launch", "label": "Launch", "description": "Setup and go live"},
-    {
-        "id": "control",
-        "label": "Control",
-        "description": "Capabilities, policies, and runtime",
-    },
-]
 
 
 def _resolve_legacy_urls(request):
     """Links to current tools; each name resolved independently (manager vs tenant URLconf)."""
     from apps.studio_os.deep_links import studio_legacy_urls_map, studio_resolve_url
 
-    legacy = studio_legacy_urls_map(request=request)
+    legacy = studio_legacy_urls_map()
     for name, url_name in [
         ("approval_hub", "studio_os:approval_hub"),
         ("workflow_center", "studio_os:workflow_center"),
         ("import_hub", "studio_os:import_hub"),
     ]:
         if name not in legacy or not legacy.get(name):
-            u = studio_resolve_url(url_name, request=request)
+            u = studio_resolve_url(url_name)
             if u:
                 legacy[name] = u
     return legacy
 
 
 def _studio_rail_append(
-    rail: list,
-    label: str,
-    viewname: str,
-    *,
-    embed: bool = False,
-    request=None,
+    rail: list, label: str, viewname: str, *, embed: bool = False
 ) -> None:
     from apps.studio_os.deep_links import resolve_studio_href
 
-    u = resolve_studio_href(viewname, embed=embed, request=request)
+    u = resolve_studio_href(viewname, embed=embed)
     if u:
         rail.append({"label": label, "url": u, "embed": embed})
 
@@ -965,6 +1032,101 @@ def _resolve_embed_urls(request):
         mode: get_studio_preview_url(mode, request)
         for mode in ("experience", "automation", "output", "launch", "control")
     }
+
+
+def _request_wants_studio_embed(request) -> bool:
+    return (request.GET.get("embed") or "").strip().lower() in ("1", "true", "yes")
+
+
+def _studio_subpage_context(request, current_mode: str | None) -> dict:
+    legacy_urls = _resolve_legacy_urls(request)
+    activity_feed = get_studio_activity_feed(request)
+    recommendations = get_studio_recommendations(request, current_mode)
+    command_palette_entries = get_studio_command_palette_entries(request)
+    rollback_available = (
+        studio_rollback_available(current_mode, request) if current_mode else False
+    )
+    preview_from_form_url = ""
+    studio_preview_url = ""
+    studio_publish_url = ""
+    try:
+        preview_from_form_url = reverse("siteconfig:preview_from_form")
+    except NoReverseMatch:
+        pass
+    try:
+        studio_preview_url = reverse("studio_os:preview")
+    except NoReverseMatch:
+        studio_preview_url = preview_from_form_url
+    try:
+        studio_publish_url = reverse("studio_os:publish")
+    except NoReverseMatch:
+        pass
+    ctx: dict = {
+        "studio_modes": STUDIO_MODES,
+        "current_mode": current_mode,
+        "legacy_urls": legacy_urls,
+        "embed_url": None,
+        "school": getattr(request, "school", None),
+        "studio_activity_feed": activity_feed,
+        "studio_recommendations": recommendations,
+        "studio_command_palette_entries": command_palette_entries,
+        "studio_role_preview_entries": get_studio_role_preview_entries(request),
+        "studio_show_bottom_bar": False,
+        "studio_bottom_bar_actions": [],
+        "studio_rollback_available": rollback_available,
+        "studio_preview_from_form_url": studio_preview_url,
+        "studio_preview_url": studio_preview_url,
+        "studio_publish_url": studio_publish_url,
+        "studio_rollback_url": "",
+    }
+    if rollback_available and current_mode:
+        try:
+            ctx["studio_rollback_url"] = (
+                reverse("studio_os:rollback") + "?mode=" + current_mode
+            )
+        except NoReverseMatch:
+            pass
+    if current_mode == "automation":
+        try:
+            from apps.studio_os.services import get_automation_workflow_health_summary
+
+            ctx["automation_health_summary"] = get_automation_workflow_health_summary()
+        except (ImportError, AttributeError, TypeError, ValueError):
+            ctx["automation_health_summary"] = {}
+        ctx["automation_simulation_summary"] = _(
+            "Run simulation from Workflow center to see impact before activating."
+        )
+    return ctx
+
+
+def _render_studio_subpage(
+    request,
+    *,
+    canvas_partial: str,
+    embed_title: str,
+    shell_title: str,
+    page_context: dict,
+    current_mode: str | None,
+    extra_css: str | None = None,
+):
+    """
+    Full Studio chrome (rail + command palette + context rail) unless ?embed=1
+    (portal-only body for iframes and embedded rail links).
+    """
+    if _request_wants_studio_embed(request):
+        emb = dict(page_context)
+        emb["studio_embed_title"] = embed_title
+        emb["studio_subpage_canvas_partial"] = canvas_partial
+        emb["studio_subpage_extra_css"] = extra_css or ""
+        return render(request, "studio_os/studio_subpage_embed.html", emb)
+
+    ctx = _studio_subpage_context(request, current_mode)
+    ctx.update(page_context)
+    ctx["studio_subpage_title"] = shell_title
+    ctx["studio_native_canvas_partial"] = canvas_partial
+    if use_control_plane_shell(request):
+        return render(request, "studio_os/shell_control_plane.html", ctx)
+    return render(request, "studio_os/shell_subpage_wrap.html", ctx)
 
 
 @never_cache
@@ -1085,6 +1247,29 @@ def studio_shell(request, mode=None):
         ):
             _studio_rail_append(experience_rail, label, vn, embed=True)
         context["experience_left_rail"] = experience_rail
+        experience_context_tool_links = []
+        for vn, lbl in (
+            ("studio_os:experience_compare", _("Compare themes")),
+            ("studio_os:experience_recommendations", _("AI recommendations")),
+            ("studio_os:experience_packs", _("Experience packs")),
+            ("studio_os:experience_theme_tokens", _("Theme tokens")),
+            ("studio_os:experience_portal_shell_layouts", _("Portal shell layouts")),
+            ("studio_os:experience_dashboard_visual_packs", _("Dashboard visual packs")),
+            ("studio_os:experience_school_website_blocks", _("School website blocks")),
+            (
+                "studio_os:experience_communication_style_packs",
+                _("Communication style packs"),
+            ),
+            ("siteconfig:school_theme_settings", _("School theme")),
+            ("siteconfig:brand_import_from_url", _("Import from website")),
+        ):
+            try:
+                experience_context_tool_links.append(
+                    {"label": lbl, "url": reverse(vn)}
+                )
+            except NoReverseMatch:
+                pass
+        context["experience_context_tool_links"] = experience_context_tool_links
 
     if mode == "launch" and school:
         try:
@@ -1203,8 +1388,11 @@ def studio_shell(request, mode=None):
         )
         automation_pane = pane_raw if pane_raw in allowed_auto else "overview"
         context["automation_pane"] = automation_pane
+        context["automation_conflict_pane_url"] = (
+            f"{auto_base}?pane=conflict" if auto_base else ""
+        )
         context["automation_iframe_src"] = _resolve_automation_iframe_src(
-            request, automation_pane
+            automation_pane
         )
         graph = get_automation_dependency_graph()
         context["automation_dependency_graph"] = graph
@@ -1529,88 +1717,46 @@ def studio_shell(request, mode=None):
         from apps.studio_os.deep_links import resolve_studio_href
 
         _studio_rail_append(
-            control_rail,
-            _("Config center"),
-            "studio_os:system_config_console",
-            embed=True,
-            request=request,
+            control_rail, _("Config center"), "studio_os:system_config_console", embed=True
         )
         _studio_rail_append(
-            control_rail,
-            "Capabilities",
-            "siteconfig:feature_control_panel",
-            embed=True,
-            request=request,
+            control_rail, _("Feature control"), "siteconfig:feature_control_panel", embed=True
         )
-        u_audit = resolve_studio_href(
-            "siteconfig:feature_control_audit", embed=False, request=request
-        )
+        u_audit = resolve_studio_href("siteconfig:feature_control_audit", embed=False)
         if u_audit:
             control_rail.append(
-                {"label": "Audit log", "url": u_audit, "embed": True}
+                {"label": _("Audit log"), "url": u_audit, "embed": True}
             )
         _studio_rail_append(
-            control_rail,
-            "Runtime inspector",
-            "super:runtime_inspector",
-            embed=False,
-            request=request,
+            control_rail, _("Runtime inspector"), "super:runtime_inspector", embed=False
         )
         _studio_rail_append(
             control_rail,
-            "Metadata governance",
+            _("Metadata governance"),
             "metadata:metadata_governance",
             embed=False,
-            request=request,
         )
         _studio_rail_append(
             control_rail,
-            "Lineage & registry",
+            _("Lineage & registry"),
             "metadata:metadata_lineage_graph",
             embed=True,
-            request=request,
         )
         _studio_rail_append(
-            control_rail,
-            "Integrations",
-            "apicenter:dashboard",
-            embed=False,
-            request=request,
+            control_rail, _("Integrations"), "apicenter:dashboard", embed=False
         )
         _studio_rail_append(
-            control_rail,
-            "Blueprints & policy packs",
-            "siteconfig:get_blueprints",
-            embed=True,
-            request=request,
+            control_rail, _("Blueprints & policy packs"), "siteconfig:get_blueprints", embed=True
+        )
+        _studio_rail_append(control_rail, _("Policy diff"), "super:policy_diff", embed=True)
+        _studio_rail_append(
+            control_rail, _("Plans & entitlements"), "super:billing_dashboard", embed=True
         )
         _studio_rail_append(
-            control_rail,
-            "Policy diff",
-            "super:policy_diff",
-            embed=True,
-            request=request,
+            control_rail, _("Diff / impact summary"), "studio_os:control_impact", embed=True
         )
         _studio_rail_append(
-            control_rail,
-            "Plans & entitlements",
-            "super:billing_dashboard",
-            embed=True,
-            request=request,
-        )
-        _studio_rail_append(
-            control_rail,
-            "Diff / impact summary",
-            "studio_os:control_impact",
-            embed=True,
-            request=request,
-        )
-        _studio_rail_append(
-            control_rail,
-            "AI cleanup suggestions",
-            "studio_os:ai_cleanup",
-            embed=True,
-            request=request,
+            control_rail, _("AI cleanup suggestions"), "studio_os:ai_cleanup", embed=True
         )
         context["control_left_rail"] = control_rail
         # Phase 3 — outcome groups (manager + tenant: fallback urlconf resolves super:)
@@ -1730,11 +1876,11 @@ def studio_rollback(request):
             return redirect(reverse("studio_os:experience"))
 
         from django.utils import timezone
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
         from apps.siteconfig.forms import THEME_EXPERIENCE_FIELD_NAMES
-        from apps.siteconfig.models import SiteSettings
 
-        # Persist on the real SiteSettings row — not get_effective_site_settings() (shallow copy / resolver shell).
-        site = SiteSettings.objects.order_by("pk").first()
+        # Persist on the real platform singleton row — not get_effective_site_settings() (shallow resolver shell).
+        site = get_platform_site_settings_record(create=False)
         if site is None:
             if _wants_json():
                 return JsonResponse(

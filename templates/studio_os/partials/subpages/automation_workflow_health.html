@@ -1,0 +1,5 @@
+{% load i18n static %}
+<div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  {% include "studio_os/partials/automation_workflow_health_body.html" with pack_count=pack_count template_count=template_count workflow_center_pane_url=workflow_center_pane_url %}
+</div>

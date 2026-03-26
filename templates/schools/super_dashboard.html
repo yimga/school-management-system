@@ -1,6 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static i18n %}
-{% load region_format %}
+{% load static i18n region_format phase8_tags %}
 
 {% block cp_title %}Control Plane{% endblock %}
 
@@ -19,6 +18,7 @@
 
 {% block cp_content %}
 <div class="container-fluid py-4" data-page-archetype="role-home" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+  {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
   <section class="cp-hero mb-4" data-decision-zone="headline">
     <div class="cp-hero-grid">
       <div>
@@ -83,6 +83,22 @@
     <a href="#cp-readiness" class="cp-section-link">Readiness</a>
     <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="cp-customize-layout-btn" aria-label="Customize section order">Customize layout</button>
   </nav>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-4">
+      {% url 'api:ai-observability-assistant' as api_ai_obs %}
+      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_obs card_title=_("Observability & SLO assistant") card_hint=_("For operators: health endpoints, SLO dashboard, and runbook-style hints. No live secrets.") field_id="cpObsAiQ" %}
+    </div>
+    <div class="col-lg-4">
+      {% url 'api:ai-billing-usage-explain' as api_ai_bill %}
+      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_bill card_title=_("Billing & usage explainer") card_hint=_("SKUs, entitlements, and usage concepts. Do not paste payment card or bank data.") field_id="cpBillAiQ" %}
+    </div>
+    <div class="col-lg-4">
+      {% url 'api:ai-trust-compliance-assistant' as api_ai_trust %}
+      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust card_title=_("Trust & compliance assistant") card_hint=_("High-level trust-center and audit posture. Not legal advice.") field_id="cpTrustAiQ" %}
+    </div>
+  </div>
+
   <div class="modal fade" id="cp-layout-modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content bg-dark border-secondary">

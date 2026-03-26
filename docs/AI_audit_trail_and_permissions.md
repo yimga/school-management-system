@@ -2,7 +2,7 @@
 
 **Purpose:** §2.3 "Add AI usage audit trail" and "Add AI permission model by role/task/tenant" in the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md).
 
-**Status:** PARTIAL — audit trail implemented; permission model to deepen.
+**Status:** **MET (repo baseline)** — `log_ai_action`, gateway + copilot surfaces, `get_ai_permission_for_user`; richer policy matrices and third-party review = §11.4.
 
 ---
 

@@ -7,41 +7,9 @@ MANAGER_PLATFORM_BASE_URL — manager origin for super/* from tenant.
 from __future__ import annotations
 
 from typing import Any
-from urllib.parse import urlparse
 
 from django.conf import settings
 from django.urls import NoReverseMatch, reverse
-
-
-def _norm_hostname(host: str) -> str:
-    if not host:
-        return ""
-    return host.split(":")[0].strip().lower()
-
-
-def _combine_origin_path(request: Any | None, absolute_base: str, path: str) -> str:
-    """
-    If absolute_base points at the same host as the current request, return a
-    same-origin path so Studio iframes do not load a second origin (avoids
-    connection/mixed-content issues when MANAGER_PLATFORM_BASE_URL matches the
-    page host).
-    """
-    if not path.startswith("/"):
-        path = "/" + path
-    base = (absolute_base or "").strip().rstrip("/")
-    if not base:
-        return path
-    if request is None or not hasattr(request, "get_host"):
-        return f"{base}{path}"
-    try:
-        req_host = _norm_hostname(request.get_host())
-    except Exception:
-        return f"{base}{path}"
-    parsed = urlparse(base)
-    base_host = _norm_hostname(parsed.hostname or "")
-    if base_host and req_host == base_host:
-        return path
-    return f"{base}{path}"
 
 # Paths are suffixes; siteconfig gets tenant base when set, else same-origin relative.
 _PATHS: dict[str, str] = {
@@ -83,6 +51,7 @@ _PATHS: dict[str, str] = {
     "marketing_landing": "/marketing/",
     "super:analytics_overview": "/super/analytics/",
     "super:dashboard": "/super/",
+    "super:ai_gateway_console": "/super/ai-gateway-console/",
     "super:create_school_wizard": "/super/create/",
     "super:runtime_inspector": "/super/runtime-inspector/",
     "super:policy_diff": "/super/policy-diff/",
@@ -139,19 +108,12 @@ def _manager_base() -> str:
 
 
 def studio_resolve_url(
-    viewname: str,
-    *,
-    args: Any = None,
-    kwargs: Any = None,
-    request: Any | None = None,
+    viewname: str, *, args: Any = None, kwargs: Any = None
 ) -> str:
     """
     Prefer reverse(); then path rules. siteconfig:* uses tenant base when set.
     super:* / admin:* / marketing_landing use manager base when set.
     Other paths are returned relative (same origin).
-
-    When ``request`` is set and the configured base URL matches the request
-    host, returns a relative path so Studio iframes stay same-origin.
     """
     args = args or ()
     kwargs = kwargs or {}
@@ -165,13 +127,11 @@ def studio_resolve_url(
     if viewname.startswith("siteconfig:"):
         tb = _tenant_base()
         if tb:
-            return _combine_origin_path(request, tb, path)
+            return f"{tb}{path}"
         return ""
     if viewname.startswith("super:") or viewname.startswith("admin:"):
         mb = _manager_base()
-        if mb:
-            return _combine_origin_path(request, mb, path)
-        return path
+        return f"{mb}{path}" if mb else path
     if viewname.startswith(
         (
             "portal:",
@@ -186,17 +146,13 @@ def studio_resolve_url(
         )
     ):
         tb = _tenant_base()
-        if tb:
-            return _combine_origin_path(request, tb, path)
-        return path
+        return f"{tb}{path}" if tb else path
     return path
 
 
-def resolve_studio_href(
-    viewname: str, *, embed: bool = False, request: Any | None = None
-) -> str | None:
+def resolve_studio_href(viewname: str, *, embed: bool = False) -> str | None:
     """URL for Studio rails; None if unresolvable. Optional ?embed=1."""
-    u = studio_resolve_url(viewname, request=request)
+    u = studio_resolve_url(viewname)
     if not u:
         return None
     if embed:
@@ -204,7 +160,7 @@ def resolve_studio_href(
     return u
 
 
-def studio_legacy_urls_map(request: Any | None = None) -> dict[str, str]:
+def studio_legacy_urls_map() -> dict[str, str]:
     """Legacy shell keys with best-effort URLs."""
     out: dict[str, str] = {}
     pairs = [
@@ -226,7 +182,7 @@ def studio_legacy_urls_map(request: Any | None = None) -> dict[str, str]:
         ("announcement_create", "communication:announcement_create"),
     ]
     for key, viewname in pairs:
-        u = studio_resolve_url(viewname, request=request)
+        u = studio_resolve_url(viewname)
         if u:
             out[key] = u
     # §4.4 / §6.1: canonical “report library” lands on Output Studio hub pane, not default graph only.

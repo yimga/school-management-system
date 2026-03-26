@@ -31,6 +31,7 @@ TENANT_APPS = (
     "apps/student360",
     "apps/compliance",
     "apps/academics",
+    "apps/studio_os",
 )
 
 # Paths to skip entirely.
@@ -46,15 +47,14 @@ SKIP_DIRS = {
 }
 SKIP_FILES = {"lint_tenant_settings.py"}
 
-# Paths where SiteSettings.get_solo() is allowed (platform-default layer, control-plane, or shims).
+# Paths where SiteSettings.get_solo() is allowed (singleton definition + canonical helpers only).
+# Management commands are not exempt: under apps/finance/ and apps/reports/ they live in tenant
+# app trees and must use get_platform_site_settings_record / get_effective_site_settings.
+# siteconfig/platform_runtime management packages are outside TENANT_APPS and are not scanned
+# for get_solo violations; they still must not call SiteSettings.get_solo() in new code.
 ALLOWED_GET_SOLO_PREFIXES = (
     "apps/siteconfig/models.py",
     "apps/platform_runtime/helpers.py",
-    # apps/policies/resolver.py removed (1.3): uses get_effective_site_settings(school=) only
-    "apps/siteconfig/management/",
-    "apps/platform_runtime/management/",
-    "apps/finance/management/",
-    "apps/reports/management/",
 )
 
 # Paths where direct school.settings / school.features reads are allowed (canonical readers/writers only).

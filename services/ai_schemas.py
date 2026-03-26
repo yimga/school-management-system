@@ -259,6 +259,51 @@ def validate_marketplace_recommend(raw: dict[str, Any]) -> MarketplaceRecommendS
     }
 
 
+# --- Guided assistant (shared JSON shape for domain copilots: Studio, interop, runtime, etc.) ---
+
+
+class GuidedAssistantAction(TypedDict, total=False):
+    title: str
+    detail: str
+
+
+class GuidedAssistantSchema(TypedDict, total=False):
+    summary: str
+    actions: list[GuidedAssistantAction]
+    cautions: list[str]
+    references: list[str]
+
+
+def validate_guided_assistant(raw: dict[str, Any]) -> GuidedAssistantSchema:
+    if not isinstance(raw, dict):
+        raise ValueError("guided_assistant must be a JSON object")
+    summary = str(raw.get("summary", ""))[:4000]
+    actions_in = raw.get("actions")
+    if not isinstance(actions_in, list):
+        actions_in = []
+    actions: list[GuidedAssistantAction] = []
+    for a in actions_in[:25]:
+        if isinstance(a, dict):
+            actions.append({
+                "title": str(a.get("title", ""))[:256],
+                "detail": str(a.get("detail", ""))[:1500],
+            })
+    cautions_in = raw.get("cautions")
+    if not isinstance(cautions_in, list):
+        cautions_in = []
+    cautions = [str(c)[:512] for c in cautions_in[:15] if isinstance(c, (str, int, float))]
+    refs_in = raw.get("references")
+    if not isinstance(refs_in, list):
+        refs_in = []
+    references = [str(r)[:512] for r in refs_in[:15] if isinstance(r, (str, int, float))]
+    return {
+        "summary": summary,
+        "actions": actions,
+        "cautions": cautions,
+        "references": references,
+    }
+
+
 # --- JSON extraction from model response (prose + JSON) ---
 
 

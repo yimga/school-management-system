@@ -148,6 +148,16 @@ class SuperCommandCenterTests(TestCase):
         self.assertContains(response, "Platform incidents")
         self.assertContains(response, "Schools needing intervention")
 
+    def test_super_ai_gateway_console_route_renders(self):
+        response = self.client.get(
+            "/super/ai-gateway-console/", HTTP_HOST="manager.runmycampus.com"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "AI gateway console")
+        self.assertContains(response, "Setup assistant")
+        self.assertContains(response, "Mission queues")
+        self.assertContains(response, "Trust center")
+
     def test_super_metadata_catalog_route_renders(self):
         response = self.client.get(
             "/super/metadata-catalog/", HTTP_HOST="manager.runmycampus.com"

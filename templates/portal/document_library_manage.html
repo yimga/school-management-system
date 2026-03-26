@@ -5,15 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<style>
-  /* §8.0.6 fluid layout; design tokens from portal_base (design-tokens.css) */
-  .doc-library-page { max-width: 100%; min-width: 0; }
-  .doc-library-page .text-muted { color: var(--color-base-600, #475569) !important; }
-  .doc-library-page .card { border-radius: var(--studio-radius, 0.5rem); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-  .doc-library-page .table-responsive { min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .doc-library-page .btn:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
-  .doc-library-page a:focus-visible { outline: 2px solid var(--color-primary-500, #3b82f6); outline-offset: 2px; }
-</style>
+
 {% endblock %}
 
 {% block content %}

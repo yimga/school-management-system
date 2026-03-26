@@ -1,0 +1,13 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ studio_embed_title }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+{% if studio_subpage_extra_css %}<link rel="stylesheet" href="{% static studio_subpage_extra_css %}">{% endif %}
+{% endblock %}
+
+{% block content %}
+{% include studio_subpage_canvas_partial %}
+{% endblock %}

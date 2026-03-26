@@ -216,6 +216,8 @@ urlpatterns = [
     path("offline/", offline_page, name="offline"),
     # Language switcher (Django i18n; POST language then redirect)
     path("i18n/setlang/", set_language, name="set_language"),
+    # Must be before path("admin/", ...) so the redirect runs (Phase 5 / Studio OS spine).
+    path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
     # Admin interfaces - /admin/ only for superuser/staff
     path("admin/", platform_admin_site.urls),
     # API schema (RBAC-protected; same as schema UI)
@@ -283,8 +285,6 @@ urlpatterns = [
     path("api/ai-copilot/limits/", ai_copilot_limits, name="ai_copilot_limits"),
     path("api/ai-copilot/config/", ai_copilot_config, name="ai_copilot_config"),
     path("api/ai-copilot/audit/", ai_copilot_audit_feed, name="ai_copilot_audit"),
-    # Back-compat shortcut
-    path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
     # Step 6 / Phase B: Legacy siteconfig paths → Studio OS (product-confirmed paths)
     path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
     path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
@@ -696,11 +696,6 @@ urlpatterns = [
         marketing_page,
         {"page_slug": "trust-center-ferpa"},
         name="marketing_trust_ferpa",
-    ),
-    # Legacy slug (bots / old links): /trust-center-gdpr/ → canonical /trust-center/gdpr/
-    path(
-        "trust-center-gdpr/",
-        lambda request: redirect("marketing_trust_gdpr", permanent=False),
     ),
     path(
         "trust-center/gdpr/",

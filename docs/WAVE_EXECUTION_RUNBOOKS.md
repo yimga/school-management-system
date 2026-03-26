@@ -9,7 +9,7 @@ Single reference for operators and engineers executing the beyond-reach plan. **
 | Topic | Runbook / action |
 |-------|------------------|
 | Payment webhooks | `apps/finance/views_payments.py` — `payment_provider_webhook` is `@csrf_exempt`; enforce provider signature + rate limit in gateway code. |
-| Secrets in templates | `scripts/lint_secret_exposure.py` in CI; `apps/siteconfig/tests/test_ai_copilot_context.py` asserts no `GEMINI_API_KEY` in context. |
+| Secrets in templates | `scripts/lint_secret_exposure.py` in CI; `apps/siteconfig/tests/test_ai_copilot_context.py` asserts no provider API key names in context. |
 | Tenant isolation | `docs/TENANT_ISOLATION_SECURITY_REPORT.md`; every query uses `request.tenant_ctx` / RLS. |
 | Migration rollback | Super **Migration cloud** → rollback queue; `MigrationRun.rollback_snapshot`; phase8 doc. |
 | External API fallback | See **External provider fallback** below. |
@@ -23,7 +23,7 @@ Single reference for operators and engineers executing the beyond-reach plan. **
 |----------------|------------------|-------------------|
 | SMS (Twilio, etc.) | No config or API error | Email + in-app notification (`communication.notification_service`). |
 | Payment gateway | Webhook delayed | Manual payment recording in Finance; idempotent webhook replay. |
-| AI (Gemini/Ollama) | No key / timeout | Feature off or degraded message; no 500 on copilot entry. |
+| AI (Ollama) | No server / timeout | Rules fallback or degraded message; no 500 on copilot entry. |
 | OCR | Tesseract/cloud down | Staff manual entry path; queue retry. |
 | OpenSearch | DSN unset or cluster down | DB fallback search or empty result with message (`search_read_layer`). |
 

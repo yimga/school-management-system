@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  collabora:
+    image: collabora/code:latest
+    container_name: rmc-collabora
+    restart: unless-stopped
+    environment:
+      - domain=localhost|.*\.runmycampus\.com
+      - username=${COLLABORA_ADMIN_USER:-admin}
+      - password=${COLLABORA_ADMIN_PASSWORD:-adminpass}
+      - extra_params=--o:ssl.enable=false --o:ssl.termination=true --o:storage.wopi.host[0]=.*
+    ports:
+      - "9980:9980"
+    cap_add:
+      - MKNOD
+    networks:
+      - rmc-net
+
+networks:
+  rmc-net:
+    driver: bridge

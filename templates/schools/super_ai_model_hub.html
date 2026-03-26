@@ -1,22 +1,36 @@
-{% extends "admin/base_site.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
-{% block title %}AI Model Hub{% endblock %}
-{% block content %}
-<div class="container-fluid" data-page-archetype="operational-workbench">
-  {% include "studio_os/components/page_header.html" with title="AI Model Hub" subtitle="Per-region Ollama config and health. Single source: RegionalAIConfig + cache health." action_url=dashboard_url action_text=_("Back to dashboard") %}
-  {% if global_ai_version_url %}<p class="mb-2"><a href="{{ global_ai_version_url }}">{% trans "Global AI version upgrade" %}</a></p>{% endif %}
+
+{% block cp_title %}{% trans "AI Model Hub" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "AI Model Hub" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=_("AI Model Hub") subtitle=_("Per-region Ollama config and health. Single source: RegionalAIConfig + cache health.") action_url=dashboard_url action_text=_("Back to dashboard") %}
+  <p class="mb-2">
+    {% if ai_gateway_console_url %}<a href="{{ ai_gateway_console_url }}" class="fw-semibold me-3">{% trans "AI gateway console" %}</a>{% endif %}
+    {% if global_ai_version_url %}<a href="{{ global_ai_version_url }}">{% trans "Global AI version upgrade" %}</a>{% endif %}
+  </p>
   <div class="card shadow-sm">
-    <div class="card-header">Regions</div>
+    <div class="card-header">{% trans "Regions" %}</div>
     <div class="card-body p-0">
       <table class="table table-sm mb-0">
         <thead>
           <tr>
-            <th>Region</th>
-            <th>Ollama URL</th>
-            <th>Default model</th>
-            <th>Fallback model</th>
-            <th>Health</th>
-            <th>Last check</th>
+            <th>{% trans "Region" %}</th>
+            <th>{% trans "Ollama URL" %}</th>
+            <th>{% trans "Default model" %}</th>
+            <th>{% trans "Fallback model" %}</th>
+            <th>{% trans "Health" %}</th>
+            <th>{% trans "Last check" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -30,7 +44,7 @@
             <td>{{ c.last_health_check_at|default:"—" }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="6">No regional configs. Add in Django admin (RegionalAIConfig).</td></tr>
+          <tr><td colspan="6">{% trans "No regional configs. Add in Django admin (RegionalAIConfig)." %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

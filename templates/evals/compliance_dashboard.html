@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static i18n %}
+{% load static i18n phase8_tags %}
 
 {% block title %}Grading Compliance Dashboard{% endblock %}
 
@@ -16,6 +16,7 @@
 
 {% block content %}
 <div class="container-fluid mt-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+    {% phase8_dashboard_declaration "evals/compliance_dashboard.html" %}
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">

@@ -1,8 +1,10 @@
 # Verification Gates Index
 
-**Purpose:** Single index of how to verify §12 completion gates, Phase H, lints, and key ledgers so teams know what to run and where to look. Authority: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §12, §11 Phase H.
+**Purpose:** Single index of how to verify §12 completion gates, Phase H, lints, and key ledgers so teams know what to run and where to look. Authority: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§12**, **§11** (Phase H), **§11.4** (release rows). The SOT is **streamlined**—this file is the operator index for commands; SOT **At a glance** points here and to `pre_deploy_gate`.
 
 **§12 engineering gate (9.5/10): MET** for the recorded program (SOT §11.4). **Per release:** re-run evidence below and record output. Do not claim **12/10+ market leadership** without SOT **§0.2** evidence.
+
+**Each future production deploy:** Operator runbook (gates → record output → staging 10-point → security log → sign-off row) lives in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) — *Each future production deploy (repeat this runbook)*. **Completed local train (2026-03-25):** see RELEASE_CHECKLIST **Verification run log** + **2026-03-25 follow-up** (`run_visual_qa.sh`, `verify_phases_3_11_gates.py`); staging/prod steps remain OPS.
 
 ---
 
@@ -24,6 +26,8 @@
 
 **One-liner:** `bash scripts/pre_deploy_gate.sh` runs all CI checks above that are marked "Yes."
 
+**Operator Phase 10/11 E2E (marketplace + marketing slice):** `python scripts/verify_operator_phase10_11_e2e.py` — dedicated SQLite via `--ux-db-file` when needed; see script docstring.
+
 **Record output:** `bash scripts/record_pre_deploy_gate_output.sh` → docs/generated/pre_deploy_gate_run.txt (RELEASE_CHECKLIST).
 
 ---
@@ -41,6 +45,8 @@
 | Full Phase H script | `bash scripts/run_phase_h_verification.sh` |
 | Manual checklist | [PHASE_H_MANUAL_CHECKLIST.md](PHASE_H_MANUAL_CHECKLIST.md) |
 | Execution log | [PHASE_H_EXECUTION_LOG.md](PHASE_H_EXECUTION_LOG.md) |
+
+**Playwright UX (pre-prod):** `bash scripts/run_visual_qa.sh` — requires Node + `npm ci` (Playwright). Starts `runserver` on `VISUAL_QA_PORT` (default **8010**); exercises `tests/e2e/ux-visual-qa.spec.js`. Wired into `pre_deploy_gate.sh` when **`SKIP_VISUAL_QA` is unset**. On SQLite-only dev DB, tenant-host cases may **skip** (full tenant slice needs Postgres + tenant domain). **Last local PASS:** 2026-03-25 — 7 passed, 2 skipped.
 
 ---
 

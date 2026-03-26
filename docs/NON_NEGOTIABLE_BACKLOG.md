@@ -1,6 +1,6 @@
 # Non-negotiable backlog (former optionals)
 
-**Purpose:** All items previously marked optional or Path-to-11 are **non-negotiable** and must be **implemented**. No closure or deferral without a formal policy change. Ledger: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §14.
+**Purpose:** All items previously marked optional or Path-to-11 are **non-negotiable** and must be **implemented**. No closure or deferral without a formal policy change. Program authority: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **§11.4** (same as **§14** alias in that file).
 
 **Policy:** All optionals must be treated as non-negotiable. Everything in the plans/blueprints below is required.
 
@@ -19,7 +19,7 @@ Every deliverable in these documents is required. No item may be closed or defer
 | **RunMyCampus_Technical_Refactor_Map_and_Tenant_Blueprint_Integration.md** | important doc | Architecture alignment; Tenant Blueprint Registry; Policy Registry; Runtime Resolver (request.tenant_runtime); Workflow Engine; Dashboard System (DashboardTemplate, DashboardWidget, DashboardAssignment) |
 | **RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md** | docs/ | Phases 1–6; every checkbox; operational sources of truth |
 | **runmycampus_11_10_execution_plan_f2bb7263.plan.md** | .cursor/plans | Scope, Phases A–G, ledger coverage, §12 gate, all named artifacts |
-| **RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md** | docs/ | Sections 0–14; §12 gate; all DONE/PARTIAL/NOT DONE resolved |
+| **RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md** | docs/ | Streamlined SOT: §0–§13 + §14 alias → **§11.4**; §12 gate; status in **At a glance** + §11.4 |
 
 ---
 
@@ -170,4 +170,4 @@ Every deliverable in these documents is required. No item may be closed or defer
 
 - **Total items:** 63. **Closure 2026-03-12:** All items are DONE (implemented or reconciled with evidence). No NOT DONE remaining.
 - **Rule:** New work is tracked in PHASE_10_BACKLOG; this backlog is the non-negotiable scope with full closure.
-- **Ledger:** RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md §14.
+- **Ledger:** RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md **§11.4** (§14 alias).

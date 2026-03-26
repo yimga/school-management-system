@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static i18n %}
+{% load static i18n phase8_tags %}
 
 {% block title %}{% trans "Dashboard Hub" %}{% endblock %}
 
@@ -11,6 +11,7 @@
 
 {% block content %}
 <div class="container-fluid py-4 hub-page professional-page" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "siteconfig/dashboard_hub.html" %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
   <div class="hub-cards">

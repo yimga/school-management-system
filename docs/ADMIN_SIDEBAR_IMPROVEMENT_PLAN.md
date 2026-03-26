@@ -40,7 +40,7 @@
 
 ### Issue B: Header Logo Not Visible (Image 1)
 
-**What you’re seeing:** On the “updated” sidebar (Image 1), the logo and “Gilead School Management” are missing. Only the avatar block and “Configuration” appear.
+**What you’re seeing:** On the “updated” sidebar (Image 1), the logo and platform brand line (e.g. “RunMyCampus”) are missing. Only the avatar block and “Configuration” appear.
 
 **Likely cause:** The **navigation_header** (Unfold) and our **admin-sidebar-header** (custom) are two different blocks:
 
@@ -52,7 +52,7 @@
 If `branding` is empty or complex, or if `site_logo`/`site_icon` fails to render, the navigation_header can appear empty. Our admin-sidebar-header has no logo; it’s user-only.
 
 **Fix steps:**
-1. **Show logo + brand in header:** Always render logo and “Gilead School Management” in the top area, either by:
+1. **Show logo + brand in header:** Always render logo and the configured site / platform brand line in the top area, either by:
    - Making navigation_header robust when `branding` is heavy (e.g. only show `site_header` text, not full branding block), or
    - Adding an explicit logo + brand block above our admin-sidebar-header in `admin/app_list.html`.
 2. **Use SITE_ADMIN_LOGO_URL:** Use the configured admin logo from context instead of relying only on Unfold’s SITE_ICON.
@@ -64,7 +64,7 @@ If `branding` is empty or complex, or if `site_logo`/`site_icon` fails to render
 
 **What you’re seeing:**  
 - **Image 1:** “Updated” sidebar – no logo, avatar + Quick Access + app groups.  
-- **Image 2:** “Old” sidebar – logo, “Gilead School Management”, “Gilead Tech High School”, standard Unfold layout.
+- **Image 2:** “Old” sidebar – logo, full branding line, example tenant name, standard Unfold layout.
 
 **Likely cause:** Two different app_list paths:
 
@@ -108,7 +108,7 @@ Text colors come from:
 | # | Task | File(s) |
 |---|------|---------|
 | 1 | Broaden no-watermark coverage for admin sidebar | `static/css/no-watermark.css` |
-| 2 | Add logo + “Gilead School Management” to sidebar top | `templates/admin/app_list.html`, `templates/unfold/helpers/navigation_header.html` |
+| 2 | Add logo + site/platform brand to sidebar top | `templates/admin/app_list.html`, `templates/unfold/helpers/navigation_header.html` |
 | 3 | Use SITE_ADMIN_LOGO_URL in admin sidebar when available | Context + navigation_header or app_list |
 | 4 | Ensure branding in sidebar uses simple text, not full branding block | `site_icon.html` or new sidebar branding partial |
 | 5 | Unify header so logo appears consistently on index and app pages | navigation_header + app_list coordination |

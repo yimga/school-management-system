@@ -1,0 +1,12 @@
+{% load i18n %}
+{% if experience_context_tool_links %}
+<aside class="studio-os__card py-2 studio-os__experience-context" aria-labelledby="experience-context-heading">
+  <h2 id="experience-context-heading" class="h6 mb-2">{% trans "Related tools" %}</h2>
+  <p class="small text-muted mb-2">{% trans "Jump to native Studio pages in this shell (no embedded school site)." %}</p>
+  <ul class="list-unstyled small mb-0">
+    {% for link in experience_context_tool_links %}
+    <li class="mb-1"><a href="{{ link.url }}">{{ link.label }}</a></li>
+    {% endfor %}
+  </ul>
+</aside>
+{% endif %}

@@ -1,6 +1,6 @@
 {% load i18n %}
 {# Shared main body: Workflow Center (full backend page + Studio embed). #}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" id="workflow-main">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface" id="workflow-main">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
   <section class="workflow-hero mt-3" aria-labelledby="workflow-hero-desc">

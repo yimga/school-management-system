@@ -1,10 +1,11 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n phase8_tags %}
 
 {% block title %}{% trans "Support impersonation log" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+{% phase8_dashboard_declaration "accounts/tenant_impersonation_audit.html" %}
   <h1 class="h4 mb-1">{% trans "Support impersonation log" %}</h1>
   <p class="text-muted small mb-4">{% blocktrans with s=school.name %}Recorded platform-operator impersonation for <strong>{{ s }}</strong>.{% endblocktrans %}</p>
 

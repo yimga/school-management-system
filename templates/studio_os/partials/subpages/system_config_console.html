@@ -1,0 +1,56 @@
+{% load i18n static %}
+<div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="decision-console">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="sysconf-hero">
+    <h2 class="h5 mb-1">{% trans "Why enabled?" %}</h2>
+    <p class="mb-0 small opacity-90">{% if why_enabled_summary %}{{ why_enabled_summary }}{% else %}{{ page_subtitle }}{% endif %}</p>
+  </div>
+
+  {% if operator_control_model %}
+  <div class="mb-4 border rounded p-3 bg-body-secondary bg-opacity-25">
+    {% include "siteconfig/partials/configuration_control_center_operator_model.html" with compact=1 %}
+  </div>
+  {% endif %}
+
+  {% if outcome_groups %}
+  <h3 class="h6 text-uppercase text-muted mb-3">{% trans "Outcomes" %}</h3>
+  <div class="sysconf-grid mb-4">
+    {% for group in outcome_groups %}
+    <div class="sysconf-card">
+      <div class="fw-semibold mb-1">{{ group.title }}</div>
+      <p class="small text-muted mb-2">{{ group.subtitle }}</p>
+      {% for link in group.links %}
+      <div class="outcome-link-row">
+        <a class="primary-link" href="{{ link.url }}">{{ link.label }}</a>
+        {% if link.stability == 'danger' %}
+        <span class="badge bg-danger sysconf-badge">{% trans "danger" %}</span>
+        {% elif link.stability == 'beta' %}
+        <span class="badge bg-warning text-dark sysconf-badge">{% trans "beta" %}</span>
+        {% else %}
+        <span class="badge bg-secondary sysconf-badge">{% trans "stable" %}</span>
+        {% endif %}
+      </div>
+      {% if link.sources %}
+      <div class="hint mb-1">{% trans "Sources" %}: {{ link.sources|join:", " }}</div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <h3 class="h6 text-uppercase text-muted mb-3">{% trans "Quick links" %}</h3>
+  <div class="sysconf-grid">
+    {% for item in config_links %}
+    <div class="sysconf-card">
+      {% if item.external %}
+      <span class="badge bg-warning text-dark sysconf-badge mb-2">{% trans "External" %}</span>
+      {% endif %}
+      <a class="primary-link" href="{{ item.url }}" {% if item.external %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ item.label }}</a>
+      {% if item.hint %}<div class="hint">{{ item.hint }}</div>{% endif %}
+    </div>
+    {% empty %}
+    <p class="text-muted">{% trans "No config surfaces resolved for this host. Set MANAGER_PLATFORM_BASE_URL for manager links." %}</p>
+    {% endfor %}
+  </div>
+</div>

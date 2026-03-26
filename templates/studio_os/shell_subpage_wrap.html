@@ -1,0 +1,8 @@
+{% extends "studio_os/shell.html" %}
+{% load i18n %}
+
+{% block title %}{{ studio_subpage_title }} · {% trans "Studio" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block studio_canvas %}
+{% include studio_native_canvas_partial %}
+{% endblock %}

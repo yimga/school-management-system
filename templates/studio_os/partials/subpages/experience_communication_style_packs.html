@@ -1,0 +1,10 @@
+{% load i18n static %}
+<div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-2">{% trans "Communication style packs define tone, templates, and notification styles for parent and staff communications. Configure default tone (formal, friendly), email and in-app notification templates, and branding in the Customizer so messages stay consistent with your school's voice." %}</p>
+    {% if customizer_url %}
+    <p class="mb-0"><a href="{{ customizer_url }}">{% trans "Customizer" %}</a> — {% trans "Adjust communication tone and notification styles." %}</p>
+    {% endif %}
+  </div>
+</div>

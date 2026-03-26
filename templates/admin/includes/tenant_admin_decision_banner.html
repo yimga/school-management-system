@@ -1,0 +1,21 @@
+{% load i18n %}
+{# Tenant Django admin (Unfold): decision-console framing — prefer CCC / Feature control over raw changelists. #}
+<div
+  class="mb-3 rounded-lg border border-primary-500/30 bg-primary-500/10 px-3 py-2 text-sm text-base-800 dark:text-base-100 dark:border-primary-400/40 dark:bg-primary-500/15"
+  role="region"
+  aria-label="{% trans 'Operator workflow hint' %}"
+  data-admin-tenant-decision-banner="1"
+>
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <p class="mb-0 flex-grow min-w-0">
+      <strong>{% trans "Decision console" %}:</strong>
+      {% trans "Prefer Configuration Control Center and Feature control for explainable, staged changes. Use model pages below when you need raw row access." %}
+    </p>
+    <div class="flex flex-wrap items-center gap-2 shrink-0">
+      <a href="{% url 'siteconfig:console_domains_hub' %}" class="inline-flex items-center rounded-md bg-primary-600 px-2 py-1 text-xs font-semibold text-white hover:bg-primary-700">{% trans "Config center" %}</a>
+      <a href="{% url 'siteconfig:feature_control_panel' %}" class="inline-flex items-center rounded-md border border-base-300 px-2 py-1 text-xs font-medium dark:border-base-600">{% trans "Feature control" %}</a>
+      <a href="{% url 'siteconfig:feature_control_audit' %}" class="inline-flex items-center rounded-md border border-base-300 px-2 py-1 text-xs font-medium dark:border-base-600">{% trans "Audit" %}</a>
+      <a href="{% url 'studio_os:shell' %}" class="inline-flex items-center rounded-md border border-base-300 px-2 py-1 text-xs font-medium dark:border-base-600">{% trans "Studio" %}</a>
+    </div>
+  </div>
+</div>

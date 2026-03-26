@@ -42,7 +42,7 @@ Use this checklist to ensure the platform is properly linked, error-free, and re
 ## 6. Seeding and bootstrap
 
 - [ ] **First-time deploy:** Run `python manage.py bootstrap_runmycampus_platform` or `python manage.py bootstrap_platform_catalog --all` after migrations so platform catalogs (regions, plans, feature toggles, marketplace, registries, etc.) are populated. See [BOOTSTRAP_PLATFORM_CATALOG.md](BOOTSTRAP_PLATFORM_CATALOG.md).
-- [ ] **Default school/tenant:** Seed or migration provides at least one default school/tenant where required (e.g. Gilead default per migration `0012_seed_default_gilead_school`).
+- [ ] **Default school/tenant:** Seed or migration provides at least one default school/tenant where required (historical migration `0012_seed_default_gilead_school`; display strings normalized by `0155_normalize_gilead_residue_runmycampus` — slug may remain for DB continuity).
 
 ## 7. Tests and automation
 

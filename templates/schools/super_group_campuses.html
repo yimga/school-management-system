@@ -6,7 +6,7 @@
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Home" %}</a></li>
     {% if education_systems_url %}<li class="breadcrumb-item"><a href="{{ education_systems_url }}">{% trans "Education systems (14–22)" %}</a></li>{% endif %}
     <li class="breadcrumb-item active" aria-current="page">{% trans "Group & campuses" %}</li>
   </ol>
@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960" role="main" aria-label="{% trans 'Group and campuses hierarchy' %}">
+<div class="container-fluid py-3 content-max-960" role="main" aria-label="{% trans 'Group and campuses hierarchy' %}" data-page-archetype="catalog">
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold text-white">{% trans "Group & campuses (Wedge 22)" %}</h1>
     <p class="text-white-50 small mb-0">{% trans "Schools can be organized in a hierarchy: a group (parent) and its campuses (children). Use parent_school_id and hierarchy_path for roll-up reporting." %}</p>

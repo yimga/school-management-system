@@ -28,6 +28,17 @@ REQUIRED_STATIC = [
     "static/css/theme-toggle-component.css",
     "static/css/studio-mode-rail.css",
     "static/css/studio-shell-layout.css",
+    "static/css/studio-system-config-console.css",
+    "static/css/control-plane-skeleton-root.css",
+    "static/css/admin-base-site-shell.css",
+    "static/css/portal-base-shell.css",
+    "static/css/admin-nav-bridge-tenant.css",
+    "static/css/studio-control-mode-canvas.css",
+    "static/css/root-base-shell.css",
+    "static/css/portal-ui-components.css",
+    "static/css/phase2-static-templates-bundle.css",
+    "static/css/badge-verify.css",
+    "static/css/reportcard-style-preview-shell.css",
 ]
 
 CANONICAL_BASES = [

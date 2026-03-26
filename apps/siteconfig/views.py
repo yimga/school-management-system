@@ -14,7 +14,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.management import CommandError, call_command
 from django.db.models import Count
-from django.db.utils import ProgrammingError
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -567,43 +566,32 @@ def build_reportcard_builder_context(
     }
     for style in styles:
         style.assignment_count = style_assignment_counts.get(style.id, 0)
-    assignments: list = []
-    all_classrooms: list = []
-    sample_students: dict = {}
-    preview_students: list = []
-    try:
-        assignments = list(
-            ReportCardStyleAssignment.objects.select_related(
-                "classroom", "style"
-            ).order_by("classroom__name")
+    assignments = list(
+        ReportCardStyleAssignment.objects.select_related("classroom", "style").order_by(
+            "classroom__name"
         )
-        all_classrooms = list(Classroom.objects.order_by("name"))
-        classroom_ids = [assignment.classroom_id for assignment in assignments]
-        if classroom_ids:
-            sample_candidates = (
-                StudentProfile.objects.filter(
-                    classroom_id__in=classroom_ids, is_active=True
-                )
-                .defer("passport")
-                .order_by("classroom_id", "last_name", "first_name")
+    )
+    all_classrooms = list(Classroom.objects.order_by("name"))
+    sample_students = {}
+    classroom_ids = [assignment.classroom_id for assignment in assignments]
+    if classroom_ids:
+        sample_candidates = (
+            StudentProfile.objects.filter(
+                classroom_id__in=classroom_ids, is_active=True
             )
-            for student in sample_candidates:
-                sample_students.setdefault(student.classroom_id, student)
-        for assignment in assignments:
-            assignment.sample_student = sample_students.get(assignment.classroom_id)
-        preview_students = list(
-            StudentProfile.objects.filter(is_active=True)
             .defer("passport")
-            .select_related("classroom")
-            .order_by("last_name", "first_name")[:40]
+            .order_by("classroom_id", "last_name", "first_name")
         )
-    except ProgrammingError as exc:
-        log_view_exception(
-            request,
-            "Report card builder skipped classroom-linked queries (schema drift).",
-            exc_info=False,
-            extra={"error": str(exc)},
-        )
+        for student in sample_candidates:
+            sample_students.setdefault(student.classroom_id, student)
+    for assignment in assignments:
+        assignment.sample_student = sample_students.get(assignment.classroom_id)
+    preview_students = list(
+        StudentProfile.objects.filter(is_active=True)
+        .defer("passport")
+        .select_related("classroom")
+        .order_by("last_name", "first_name")[:40]
+    )
     default_style = settings_obj.resolve_default_report_style(
         ReportCard.Type.TERM
     ) or settings_obj.resolve_default_report_style(ReportCard.Type.ANNUAL)
@@ -1269,7 +1257,7 @@ def bulk_letters(request):
         )
     if include_pdf:
         try:
-            from apps.portal.document_conversion import convert_to_pdf
+            from apps.portal.document_service import convert_document
         except ImportError:
             messages.error(
                 request, "PDF option requires the portal document_conversion module."
@@ -1315,7 +1303,7 @@ def bulk_letters(request):
                     os.write(fd, odt_bytes)
                     os.close(fd)
                     fd = None
-                    pdf_bytes = convert_to_pdf(odt_path)
+                    pdf_bytes = convert_document(odt_path, target="pdf", family="writer")
                     zf.writestr(f"letter_{safe_name}.pdf", pdf_bytes)
                 except RuntimeError as e:
                     pdf_skipped.append(f"{last_name} {first_name} - {e}")

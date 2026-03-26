@@ -119,6 +119,16 @@
       "rate_limiting": "implemented",
       "audit_logging": "implemented",
       "notes": "RUM POST; token in JSON body for sendBeacon; PlatformEventLog rum_web_vitals."
+    },
+    "apps/portal/views_office.py": {
+      "expected_count": 2,
+      "owner": "portal_office_wopi",
+      "verdict": "keep_with_hardening",
+      "auth_model": "wopi_hmac_access_token",
+      "replay_protection": "shared_secret_hmac_token",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "WOPI endpoints accept Collabora server callbacks without CSRF; guarded by document-scoped HMAC token and auth context."
     }
   }
 }

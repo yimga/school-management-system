@@ -1,8 +1,12 @@
 # Documentation — read this first
 
-**Execution and “what’s left”:** one file — **[RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md)** (`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`). **ZIP plan Phase 1** (shell + navigation) status is **§0 → “ZIP execution plan — Phase 1”** in that file (implementation detail: [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md)).
+**Execution and “what’s left”:** one file — **[RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md)**. Start with **At a glance** and **§11.4** (release + depth queue); **§12** = engineering gate checklist.
 
-**Scores / gates:** Authoritative table in SOT **§0**; **§12 engineering (9.5/10)** + **Wave 8 / Phase I.5 (11/10 structural)** = **MET** per **§11.4**. Strategy docs (e.g. NORTH_STAR, PATH_TO_10) must match **§0**—no stale “until §12” lines.
+**How to start a slice:** [WHATS_NOT_DONE_AND_HOW_TO_START.md](WHATS_NOT_DONE_AND_HOW_TO_START.md) (coordinates with §11.4; not a second status home). **Implement/N/A row detail:** [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md).
+
+**ZIP / shell:** Phases **1, 3, 5** are **COMPLETE** in SOT **§0** (summary table). Implementation detail: [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md), [docs/phase_checklists/](phase_checklists/).
+
+**Scores / gates:** **§0** (tiers), **§12** (checkboxes), **§11.4** (what’s left). Strategy docs must match **§0**—no stale “until §12” lines if §12 is MET.
 
 **Backlog (external / vendor / certification only):** [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md).
 

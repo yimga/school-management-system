@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load admin_health evals_extras static region_format i18n %}
+{% load admin_health evals_extras static region_format i18n phase8_tags %}
 {% block title %}Teacher Dashboard{% endblock %}
 {% block body_extra_class %}dashboard-page-teacher{% endblock %}
 
@@ -29,6 +29,7 @@
 {% block content %}
 {% with widgets=display_widgets %}
 <div class="tdm-bg" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "teacher/dashboard.html" %}
   <div class="tdm-shell">
     <section class="tdm-hero card-glass" data-decision-zone="headline">
       <div class="tdm-hero__text">

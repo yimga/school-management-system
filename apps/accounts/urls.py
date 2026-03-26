@@ -472,6 +472,13 @@ urlpatterns = [
     )
     if BACKEND_PEOPLE_AVAILABLE
     else None,
+    path(
+        "backend/teachers/<int:teacher_id>/",
+        backend_teacher_detail,
+        name="backend_teacher_detail",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
     path("backend/guardians/", backend_guardian_list, name="backend_guardian_list")
     if BACKEND_PEOPLE_AVAILABLE
     else None,

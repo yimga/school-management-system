@@ -2,33 +2,7 @@
   Backend Admin Portal: mini calendar grid only (no clock). Use beside datetime/weather in .backend-dtw-and-calendar.
   Uses same grid styling as backend_sidebar_calendar_clock; client-side only.
 {% endcomment %}
-<style>
-  .backend-dtw-and-calendar .backend-calendar-dow,
-  .backend-dtw-and-calendar .backend-calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1.1rem);
-    gap: 1px;
-    justify-content: center;
-  }
-  .backend-dtw-and-calendar .backend-cal-dow-cell {
-    text-align: center;
-    font-size: 0.58rem;
-    color: var(--admin-muted, #64748b);
-    font-weight: 600;
-  }
-  .backend-dtw-and-calendar .backend-cal-cell {
-    text-align: center;
-    font-size: 0.62rem;
-    min-width: 1.1rem;
-    color: var(--admin-text, #0f172a);
-  }
-  .backend-dtw-and-calendar .backend-cal-empty { opacity: 0.35; }
-  .backend-dtw-and-calendar .backend-cal-today {
-    border-radius: 3px;
-    background: var(--school-primary, var(--bs-primary));
-    color: #fff;
-  }
-</style>
+
 <div class="backend-mini-calendar" id="backendMiniCalendar" aria-label="Current month calendar">
   <div class="backend-calendar-dow" id="backendMiniCalDOW"></div>
   <div class="backend-calendar-grid" id="backendMiniCalGrid"></div>

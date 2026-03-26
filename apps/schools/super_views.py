@@ -38,6 +38,7 @@ from .super_views_ai import (
     ai_model_hub,
     global_ai_version,
     global_ai_version_progress,
+    super_ai_gateway_console,
 )
 from .super_views_impersonation import switch_to_tenant
 from .super_views_runtime_ops import (
@@ -79,6 +80,7 @@ from .super_views_create_school_wizard import create_school_wizard
 # Listed in ``__all__`` so Ruff F401 does not flag intentional namespace exports.
 __all__ = (
     "ai_model_hub",
+    "super_ai_gateway_console",
     "api_approve_school",
     "api_super_dashboard_layout",
     "billing_dashboard",

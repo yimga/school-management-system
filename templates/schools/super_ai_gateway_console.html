@@ -1,0 +1,145 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+
+{% block cp_title %}{% trans "AI gateway console" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "AI gateway console" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% trans "Productized /api/ai/* endpoints" as gw_subtitle %}
+  {% include "studio_os/components/page_header.html" with title=_("AI gateway console") subtitle=gw_subtitle action_url=dashboard_url action_text=_("Back to dashboard") %}
+  <p class="small text-muted mb-2">
+    {% trans "Each card POSTs JSON to the gateway (CSRF, same-origin). Staff-only and tenant-scoped rules apply per endpoint — see docs/AI_DOMAIN_ASSISTANT_REGISTRY.md." %}
+    {% if ai_model_hub_url %}
+    <a href="{{ ai_model_hub_url }}" class="fw-semibold">{% trans "AI model hub" %}</a>
+    {% endif %}
+  </p>
+  <div class="d-flex flex-wrap gap-2 mb-4" aria-label="{% trans 'Related control-plane surfaces' %}">
+    <a href="{% url 'super:command_center' %}" class="btn btn-outline-secondary btn-sm">{% trans "Mission queues" %}</a>
+    <a href="{% url 'super:trust_center' %}" class="btn btn-outline-secondary btn-sm">{% trans "Trust center" %}</a>
+    <a href="{% url 'super:compliance_overview' %}" class="btn btn-outline-secondary btn-sm">{% trans "Compliance" %}</a>
+    <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Platform billing" %}</a>
+    <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-secondary btn-sm">{% trans "Migration cloud" %}</a>
+    <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-secondary btn-sm">{% trans "Marketplace governance" %}</a>
+  </div>
+
+  <div class="accordion" id="ai-gw-accordion">
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ai-gw-setup" aria-expanded="true" aria-controls="ai-gw-setup">
+          {% trans "Setup, maturity & workflows" %}
+        </button>
+      </h2>
+      <div id="ai-gw-setup" class="accordion-collapse collapse show" data-bs-parent="#ai-gw-accordion">
+        <div class="accordion-body">
+          <div class="row g-3">
+            <div class="col-lg-6">
+              {% url 'api:ai-setup-assistant' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Setup assistant") card_hint=_('POST {"query":"..."} — setup tips / config explain + citations.') field_id="gwSetup" default_body='{"query":"What should a new school enable first in Setup Studio?"}' include_script=False %}
+            </div>
+            <div class="col-lg-6">
+              {% url 'api:ai-tenant-maturity' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Tenant maturity") card_hint=_("POST empty object {} or any JSON — score is computed server-side (no LLM).") field_id="gwMaturity" default_body="{}" include_script=False %}
+            </div>
+            <div class="col-lg-12">
+              {% url 'api:ai-workflow-draft' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Workflow draft") card_hint=_('POST {"description":"..."} or {"query":"..."} — structured workflow JSON.') field_id="gwWorkflow" default_body='{"description":"When a student misses three consecutive days, notify homeroom and parent."}' include_script=False %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ai-gw-search" aria-expanded="false" aria-controls="ai-gw-search">
+          {% trans "Search, documents & admin copilot" %}
+        </button>
+      </h2>
+      <div id="ai-gw-search" class="accordion-collapse collapse" data-bs-parent="#ai-gw-accordion">
+        <div class="accordion-body">
+          <div class="row g-3">
+            <div class="col-lg-6">
+              {% url 'api:ai-semantic-search' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Semantic search") card_hint=_('POST {"query":"...","scope":"default|help|config|policy"} — retrieval + optional summary.') field_id="gwSemantic" default_body='{"query":"parent portal password reset","scope":"help"}' include_script=False %}
+            </div>
+            <div class="col-lg-6">
+              {% url 'api:ai-document-classify' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Document classify") card_hint=_('POST {"text":"..."} — excerpt only; PII stripped server-side.') field_id="gwDoc" default_body='{"text":"Quarterly attendance summary for Grade 9 homerooms."}' include_script=False %}
+            </div>
+            <div class="col-lg-12">
+              {% url 'api:ai-admin-copilot' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Admin copilot") card_hint=_('POST {"query":"..."} — staff-only; RAG over help/config + citations.') field_id="gwCopilot" default_body='{"query":"Where do operators configure regional clusters for AI?"}' include_script=False %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ai-gw-experience" aria-expanded="false" aria-controls="ai-gw-experience">
+          {% trans "Theme, feature control, reports & design" %}
+        </button>
+      </h2>
+      <div id="ai-gw-experience" class="accordion-collapse collapse" data-bs-parent="#ai-gw-accordion">
+        <div class="accordion-body">
+          <div class="row g-3">
+            <div class="col-lg-6">
+              {% url 'api:ai-theme-recommend' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Theme recommend") card_hint=_('POST {"query":"..."} — suggestions + rationale JSON.') field_id="gwTheme" default_body='{"query":"Calmer contrast for accessibility in parent portal"}' include_script=False %}
+            </div>
+            <div class="col-lg-6">
+              {% url 'api:ai-feature-control-explain' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Feature control explain") card_hint=_('POST {"query":"..."} — staff-only config_explain.') field_id="gwFeat" default_body='{"query":"When should we enable the advanced attendance grid?"}' include_script=False %}
+            </div>
+            <div class="col-lg-6">
+              {% url 'api:ai-report-recommend' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Report recommend") card_hint=_('POST {"query":"..."} — library recommendations JSON.') field_id="gwReport" default_body='{"query":"Board-ready summary of literacy progress by grade"}' include_script=False %}
+            </div>
+            <div class="col-lg-6">
+              {% url 'api:ai-design-studio-draft' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Design studio draft") card_hint=_('POST {"query":"..."} — layout suggestions + components JSON.') field_id="gwDesign" default_body='{"query":"Hero section with enrollment CTA and trust badges"}' include_script=False %}
+            </div>
+            <div class="col-lg-6">
+              {% url 'api:ai-live-preview-explain' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Live preview explain") card_hint=_('POST {"query":"..."} — how preview behaves.') field_id="gwLive" default_body='{"query":"What is the difference between preview and publish for theme changes?"}' include_script=False %}
+            </div>
+            <div class="col-lg-6">
+              {% url 'api:ai-system-config-explain' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("System config explain") card_hint=_('POST {"query":"..."} — Configuration Control Center style help.') field_id="gwSysCfg" default_body='{"query":"How should we explain effective settings vs pack overrides to a principal?"}' include_script=False %}
+            </div>
+            <div class="col-lg-12">
+              {% url 'api:ai-dashboard-pack-recommend' as u %}
+              {% include "components/ai_json_api_card.html" with api_url=u card_title=_("Dashboard / pack recommend") card_hint=_('POST {"query":"..."} — dashboards, packs, rationale JSON.') field_id="gwDash" default_body='{"query":"High school leadership team wants at-a-glance attendance and interventions"}' include_script=False %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ai-gw-feedback" aria-expanded="false" aria-controls="ai-gw-feedback">
+          {% trans "Review loop (feedback)" %}
+        </button>
+      </h2>
+      <div id="ai-gw-feedback" class="accordion-collapse collapse" data-bs-parent="#ai-gw-accordion">
+        <div class="accordion-body">
+          {% url 'api:ai-feedback' as u %}
+          {% include "components/ai_json_api_card.html" with api_url=u card_title=_("AI feedback") card_hint=_('POST requires task_type, tier, and accepted or manual_correction (bool). Records metrics — not a chat endpoint.') field_id="gwFeedback" default_body='{"task_type":"config_explain","tier":"ollama","accepted":true}' include_script=False %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/rmc_ai_json_api_card.js' %}" defer></script>
+{% endblock %}

@@ -2,7 +2,7 @@
 
 **Purpose:** During this critical phase, track **only** the items in §1 below. All other plan/strategy/roadmap docs are superseded or reference-only; completion authority is RUNMYCAMPUS §12 and the four canonical docs. This file is the **only index** you need to avoid missing, overlooking, or duplicating work. **§6** is the single place to see how every external plan or directive (Cursor master prompt, Cursor implementation plan, 12 layers, UX directive, scroll-storytelling) maps into the SOT and where progress is tracked.
 
-**Status lives in one place only:** **All "where we stand" and "what's left" status** is written and read in **[RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4.** Do not add status or "what's left" to PATH_TO_100, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or this file. When reconciling, update SOT §11.4 first; then sync BACKLOG and (optionally) the stock take. See SOT §11.4 "Where to read/write what" table.
+**Status lives in one place only:** **All "where we stand" and "what's left" status** is written and read in **[RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4** (and **§14** = same authority for historical links). Do not add status or "what's left" to PATH_TO_100, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or this file. When reconciling, update SOT §11.4 first; then sync BACKLOG and (optionally) the stock take. The SOT **At a glance** table lists where to read each kind of status.
 
 **For all agents:** Strategy and completion updates go **only** to the four canonical docs (§1). Do not create new strategy or roadmap files. When given a Cursor prompt, pasted implementation plan, or "12 layers" / UX / marketing directive, use **§6** to see where it lives and where to record progress; then update RUNMYCAMPUS, BACKLOG, docs_truth_ledger, or NEXT_50 as appropriate.
 
@@ -12,7 +12,7 @@
 
 | # | Document | Role |
 |---|----------|------|
-| 1 | [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) | **Single execution source of truth.** §12 gates; evidence table §12.1; phases A–I; all remediation must map here. |
+| 1 | [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) | **Single execution source of truth** (streamlined: **At a glance**, §0–§14). §12 gates + §12.1 evidence; §11 execution order; **§11.4** = consolidated tracking. Detail: phase_checklists + enterprise audit. |
 | 2 | [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md) | **Backlog/closure.** Every unchecked/deferred item has status (DONE/PARTIAL/NOT DONE/BLOCKED) + closure note. §2e = next logical steps. |
 | 3 | [docs_truth_ledger.md](docs_truth_ledger.md) | **Completion ledger.** Item → DONE / PARTIAL / NOT DONE. Snapshot of where we stand. |
 | 4 | [NEXT_50_EXECUTION_STEPS.md](NEXT_50_EXECUTION_STEPS.md) | **Numbered checklist.** Implementation order; status per step. |
@@ -89,7 +89,7 @@ Use this section to see where every named plan, directive, or "12 layers" style 
 |---------------|-----------------------------|---------------------|
 | **12 operating-discipline layers** (edge-case, pack versioning, service/support, trust product, dashboard taxonomy, content/terminology, design-system behavior, boring excellence) | RUNMYCAMPUS §10.5; [OPERATING_DISCIPLINE_LAYERS.md](OPERATING_DISCIPLINE_LAYERS.md) | RUNMYCAMPUS §11 Phase I; BACKLOG §2e row 13 |
 | **Decision architecture** (seven questions: who, what question, what state, next action, confidence, wrong-path, fallback) | RUNMYCAMPUS §1.8; OPERATING_DISCIPLINE_LAYERS (meta-layer); [DECISION_ARCHITECTURE_CHECKLIST.md](DECISION_ARCHITECTURE_CHECKLIST.md) | §8.0 enforcement; DASHBOARD_TAXONOMY_AND_REGISTRY; DESIGN_SYSTEM_BEHAVIOR |
-| **Cursor Master Prompt / North Star** (one shell, Studio OS, dashboard doctrine, security, marketplace, marketing, boring excellence) | RUNMYCAMPUS (full plan: §2 objectives, §8.0 UX, §10 security, §4 Studio OS, §11 phases) | §11 Phases A–I; BACKLOG §2e; NEXT_50 |
+| **Cursor Master Prompt / North Star** (one shell, Studio OS, dashboard doctrine, security, marketplace, marketing, boring excellence) | RUNMYCAMPUS **§0–§11** + linked runbooks (SOT is the index; long narrative in enterprise audit + phase_checklists) | §11 Phases A–I; BACKLOG §2e; NEXT_50 |
 | **Cursor Implementation Plan** (Phase 1 stop bleeding → … → Phase 9 boring excellence) | RUNMYCAMPUS §11 Phases A–I (same execution order) | §11; BACKLOG §2e; NEXT_50 |
 | **UX ultra-high-end / dashboard directive** (one shell, one design system, dashboard doctrine, control-plane restructuring, 5-second rule, inverted pyramid, role-home) | RUNMYCAMPUS §8.0; [CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md](CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL.md) | §8.0; BACKLOG §2e row 8 |
 | **Scroll-storytelling marketing directive** (chapter narrative, pinned product frame, motion rules, marketing/product one family) | RUNMYCAMPUS §8 (marketing); [MARKETING_FRONT_PLACEHOLDER.md](MARKETING_FRONT_PLACEHOLDER.md); CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL | Phase F; BACKLOG |

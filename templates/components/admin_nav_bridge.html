@@ -1,14 +1,14 @@
-{% load static i18n %}
+{% load static i18n control_console %}
 <!-- Admin Navigation Bridge: on manager host use same navbar as /super/ for unified high-end UX -->
 
 {% if is_manager_host %}
-<nav class="navbar navbar-expand-lg navbar-dark cp-navbar admin-cp-navbar-unified" style="background: var(--cp-bg, var(--platform-navy, var(--color-base-900))); border-bottom: 1px solid rgba(125,152,187,0.18);">
+<nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface admin-cp-navbar-unified">
   <div class="container-fluid px-3">
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white" href="{% url 'super:dashboard' %}">
       {% if PUBLIC_BRAND_FAVICON_URL %}
-        <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async" style="object-fit: contain;">
+        <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async" class="cp-navbar-brand-img">
       {% else %}
-        <img src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async" style="object-fit: contain;">
+        <img src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async" class="cp-navbar-brand-img">
       {% endif %}
       <span>RunMyCampus Manager</span>
     </a>
@@ -18,8 +18,8 @@
     <div class="collapse navbar-collapse" id="adminCpNavbarContent">
       <div class="d-flex align-items-center gap-3 ms-lg-auto">
         <div class="cp-header-search d-none d-md-block position-relative">
-          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="{% trans 'Search schools, incidents…' %} (Ctrl+K)" aria-label="{% trans 'Search' %} (Ctrl+K)" id="cpSearchInputAdmin" style="min-width: 220px;" autocomplete="off">
-          <div id="cpSearchResultsAdmin" class="dropdown-menu position-absolute start-0 mt-1 shadow" style="min-width: 280px; max-height: 70vh; overflow-y: auto;" aria-label="Search results"></div>
+          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white cp-topbar-search-input" placeholder="{% trans 'Search schools, incidents…' %} (Ctrl+K)" aria-label="{% trans 'Search' %} (Ctrl+K)" id="cpSearchInputAdmin" autocomplete="off">
+          <div id="cpSearchResultsAdmin" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel--sized" aria-label="Search results"></div>
         </div>
         <button type="button" class="btn btn-sm btn-outline-light d-inline-flex align-items-center flex-shrink-0" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts (?)' %}"><span aria-hidden="true">?</span><span class="ms-1 d-none d-lg-inline">{% trans "Shortcuts" %}</span></button>
         {% if request.user.is_authenticated %}
@@ -56,212 +56,8 @@
     </div>
   </div>
 </nav>
-{# Same 8-pill spine as /super/* + Studio — context: site_settings → PRIMARY_CONTROL_PLANE_NAV #}
-{% if PRIMARY_CONTROL_PLANE_NAV %}
-{% include "partials/control_plane_primary_nav.html" %}
-{% endif %}
 {% else %}
-<style>
-.admin-nav-bridge {
-    position: sticky;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: var(--header-brand-bg, linear-gradient(120deg, #0f172a 0%, #1e293b 55%, #334155 100%));
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 0.55rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.admin-nav-bridge__row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    width: 100%;
-}
-
-.admin-nav-bridge__brand {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: white;
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.admin-nav-bridge__brand-icon {
-    width: 32px;
-    height: 32px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-}
-
-.admin-nav-bridge__location {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.9rem;
-    font-weight: 400;
-}
-
-.admin-nav-bridge__actions {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.75rem;
-}
-
-.admin-nav-bridge__switch-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--color-base-900);
-    border: none;
-    border-radius: 999px;
-    min-height: 2.05rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.admin-nav-bridge__switch-btn:hover {
-    background: var(--admin-content-bg);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    color: var(--color-base-900);
-    text-decoration: none;
-}
-
-.admin-nav-bridge__switch-btn svg {
-    width: 18px;
-    height: 18px;
-}
-
-.admin-nav-bridge__home-btn {
-    padding: 0.44rem 0.8rem;
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 999px;
-    min-height: 2.05rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.admin-nav-bridge__home-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
-    color: white;
-    text-decoration: none;
-}
-
-.admin-nav-bridge__stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.75rem;
-    width: 100%;
-}
-
-.admin-nav-bridge__title {
-    font-size: 1rem;
-    color: var(--header-brand-fg, #fff);
-    line-height: 1.1;
-}
-
-.admin-nav-bridge__stat-card {
-    background: rgba(15, 23, 42, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    padding: 0.6rem 0.75rem;
-    color: rgba(255, 255, 255, 0.92);
-}
-
-.admin-nav-bridge__stat-title {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.75);
-    margin-bottom: 0.35rem;
-}
-
-.admin-nav-bridge__stat-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    padding: 0.15rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.admin-nav-bridge__stat-row:first-of-type {
-    border-top: none;
-}
-
-.admin-nav-bridge__stat-value {
-    font-weight: 600;
-    color: #ffffff;
-}
-
-/* Top-left logout button, aligned near brand */
-.admin-nav-bridge__logout-left {
-    margin-left: 1rem;
-    padding: 0.4rem 0.8rem;
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 999px;
-    min-height: 2.05rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.admin-nav-bridge__logout-left:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
-    color: white;
-    text-decoration: none;
-}
-
-@media (max-width: 768px) {
-    .admin-nav-bridge {
-        padding: 0.55rem 0.75rem;
-    }
-    
-    .admin-nav-bridge__row {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .admin-nav-bridge__actions {
-        width: 100%;
-        justify-content: space-between;
-    }
-    
-    .admin-nav-bridge__brand {
-        width: 100%;
-        justify-content: center;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}">
 
 <div class="admin-nav-bridge">
     <div class="admin-nav-bridge__row">
@@ -323,5 +119,14 @@
         {% endfor %}
     </div>
     {% endif %}
+</div>
+{% endif %}
+{# Same primary pill spine as manager /super/* when PRIMARY_CONTROL_PLANE_NAV is populated (manager or tenant operator). #}
+{% if PRIMARY_CONTROL_PLANE_NAV %}
+{% include "partials/control_plane_primary_nav.html" %}
+{% endif %}
+{% if PRIMARY_CONTROL_PLANE_NAV and not is_manager_host %}
+<div class="px-3 pb-2">
+  {% operator_console_strip %}
 </div>
 {% endif %}

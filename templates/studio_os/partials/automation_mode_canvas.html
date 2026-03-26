@@ -14,6 +14,11 @@
           {% endfor %}
         </ul>
         <p class="small text-muted mt-2 mb-0">{{ automation_simulation_summary }}</p>
+        {% if automation_conflict_pane_url and automation_pane != "conflict" %}
+        <p class="small mb-0 mt-2">
+          <a href="{{ automation_conflict_pane_url }}">{% trans "Review conflict detection" %}</a>
+        </p>
+        {% endif %}
       </div>
     </nav>
     <div class="flex-grow-1 min-w-0">

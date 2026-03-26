@@ -5,8 +5,9 @@ Nine outcome groups map ZIP Phase 3 to resolvable URLs. Each link may carry:
 - stability: stable | beta | danger (operator risk signal)
 - sources: which layers can explain “why enabled” (runtime, pack, policy, entitlement, override)
 
-The six-step ``build_operator_control_model_for_request()`` path ships the full operator journey:
-capability families → grouped controls → impact → source tracing → staged changes → publish/rollback.
+The six-step ``build_operator_control_model_for_request()`` path ships the full operator journey
+(capability families → grouped controls → impact → source tracing → staged changes → publish/rollback).
+Step ``related`` URLs support ``LinkTarget`` (e.g. ``super:admin_bridge`` kwargs), same as the nine-group registry.
 """
 
 from __future__ import annotations
@@ -17,6 +18,9 @@ from typing import Any
 from django.urls import NoReverseMatch, reverse
 
 logger = logging.getLogger(__name__)
+
+# Outcome link target: plain URL name, or (viewname, reverse kwargs) for admin bridges, etc.
+LinkTarget = str | tuple[str, dict[str, Any]]
 
 
 def _rev(url_name: str, request=None) -> str | None:
@@ -39,6 +43,34 @@ def _rev(url_name: str, request=None) -> str | None:
             continue
     logger.debug("control_outcome_center: %r: %s", url_name, last_exc)
     return None
+
+
+def _rev_with_kwargs(
+    url_name: str, kwargs: dict[str, Any], request=None
+) -> str | None:
+    """Like ``_rev`` but passes ``kwargs`` to ``reverse`` (e.g. ``super:admin_bridge``)."""
+    primary = getattr(request, "urlconf", None) if request is not None else None
+    fallbacks: list[str] = []
+    if primary:
+        fallbacks.append(primary)
+    if "config.manager_urls" not in fallbacks:
+        fallbacks.append("config.manager_urls")
+    last_exc: Exception | None = None
+    for urlconf in fallbacks:
+        try:
+            return reverse(url_name, kwargs=kwargs, urlconf=urlconf)
+        except NoReverseMatch as e:
+            last_exc = e
+            continue
+    logger.debug("control_outcome_center: %r %r: %s", url_name, kwargs, last_exc)
+    return None
+
+
+def _resolve_link_url(url_ref: LinkTarget, request) -> str | None:
+    if isinstance(url_ref, str):
+        return _rev(url_ref, request)
+    viewname, kw = url_ref
+    return _rev_with_kwargs(viewname, kw, request)
 
 
 # Nine outcome groups — Phase 3 ZIP plan (1:1 with operator mental model)
@@ -77,6 +109,24 @@ OUTCOME_GROUP_SPECS: list[dict[str, Any]] = [
             ("Diff / impact summary", "studio_os:control_impact", "stable", ("policy", "runtime")),
             ("Feature control", "siteconfig:feature_control_panel", "danger", ("policy", "tenant override")),
             ("Feature audit", "siteconfig:feature_control_audit", "stable", ("policy",)),
+            (
+                "Runtime defaults (platform admin)",
+                ("super:admin_bridge", {"bridge_key": "runtime_defaults"}),
+                "stable",
+                ("runtime",),
+            ),
+            (
+                "Phase B domain snapshots (admin)",
+                ("super:admin_bridge", {"bridge_key": "phase_b_domain_snapshots"}),
+                "stable",
+                ("runtime", "policy", "metadata"),
+            ),
+            (
+                "Policy compatibility rules (admin)",
+                ("super:admin_bridge", {"bridge_key": "policies_policycompatibilityrule"}),
+                "stable",
+                ("policy",),
+            ),
             ("Rollback (Control)", "studio_os:rollback", "beta", ("policy", "tenant override")),
         ],
     },
@@ -90,6 +140,24 @@ OUTCOME_GROUP_SPECS: list[dict[str, Any]] = [
             ("Staged activation", "studio_os:automation_staged_activation", "beta", ("pack", "policy")),
             ("Marketplace governance", "super:marketplace_governance", "stable", ("policy",)),
             ("Blueprint marketplace", "super:blueprint_marketplace", "stable", ("pack",)),
+            (
+                "Fleet governed changes",
+                ("super:admin_bridge", {"bridge_key": "fleet_governed_changes"}),
+                "beta",
+                ("runtime", "policy"),
+            ),
+            (
+                "Runtime defaults (preview & integration defaults)",
+                ("super:admin_bridge", {"bridge_key": "runtime_defaults"}),
+                "stable",
+                ("runtime", "pack"),
+            ),
+            (
+                "Fleet governed (super list)",
+                "super:fleet_governed_changes",
+                "beta",
+                ("runtime",),
+            ),
         ],
     },
     {
@@ -97,6 +165,18 @@ OUTCOME_GROUP_SPECS: list[dict[str, Any]] = [
         "title": "Brand & Experience",
         "subtitle": "Themes, Studio Experience, outputs",
         "links": [
+            (
+                "Platform global branding (admin)",
+                ("super:admin_bridge", {"bridge_key": "platform_global_branding"}),
+                "stable",
+                ("runtime", "pack"),
+            ),
+            (
+                "Global brand registry (admin)",
+                ("super:admin_bridge", {"bridge_key": "global_brand_registry"}),
+                "stable",
+                ("registry",),
+            ),
             ("Studio OS", "studio_os:shell", "stable", ("runtime", "pack")),
             ("Studio Experience", "studio_os:experience", "stable", ("pack", "tenant override")),
             ("Theme & colors", "siteconfig:theme_colors", "stable", ("tenant override",)),
@@ -137,6 +217,12 @@ OUTCOME_GROUP_SPECS: list[dict[str, Any]] = [
         "subtitle": "Metadata, registries, regional defaults",
         "links": [
             ("Registries overview", "super:registries_overview", "stable", ("registry", "policy")),
+            (
+                "Country registry (admin)",
+                ("super:admin_bridge", {"bridge_key": "registries_countryregistry"}),
+                "stable",
+                ("registry",),
+            ),
             ("Metadata catalog", "super:metadata_catalog", "stable", ("metadata",)),
         ],
     },
@@ -189,11 +275,12 @@ def build_outcome_groups_for_request(request) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for spec in OUTCOME_GROUP_SPECS:
         links_out = []
-        for label, url_name, stability, sources in spec["links"]:
-            url = _rev(url_name, request)
+        for label, url_ref, stability, sources in spec["links"]:
+            url = _resolve_link_url(url_ref, request)
             if not url:
                 continue
-            extra = URL_SUFFIX_BY_NAME.get(url_name)
+            suffix_key = url_ref if isinstance(url_ref, str) else url_ref[0]
+            extra = URL_SUFFIX_BY_NAME.get(suffix_key)
             if extra:
                 q = extra[1:] if extra.startswith("?") else extra
                 url = f"{url}{'&' if '?' in url else '?'}{q}"
@@ -223,6 +310,64 @@ def build_control_studio_rail_sections(request) -> list[dict[str, Any]]:
     Full nine-group outcome registry for Control Studio (same data as CCC; different chrome).
     """
     return build_outcome_groups_for_request(request)
+
+
+# Horizontal strip on Feature Control + super fleet config pages (impact / audit / rollout).
+# Second element: URL name or (name, reverse kwargs) for admin bridges.
+FEATURE_CONTROL_OPERATOR_QUICK_LINKS: tuple[tuple[str, LinkTarget, str], ...] = (
+    ("Control Studio", "studio_os:control", "stable"),
+    ("Configuration Control Center", "siteconfig:console_domains_hub", "stable"),
+    ("Diff / impact summary", "studio_os:control_impact", "stable"),
+    ("Runtime inspector", "super:runtime_inspector", "stable"),
+    (
+        "Runtime defaults (admin)",
+        ("super:admin_bridge", {"bridge_key": "runtime_defaults"}),
+        "stable",
+    ),
+    (
+        "Platform global branding (admin)",
+        ("super:admin_bridge", {"bridge_key": "platform_global_branding"}),
+        "stable",
+    ),
+    (
+        "Phase B domain snapshots (admin)",
+        ("super:admin_bridge", {"bridge_key": "phase_b_domain_snapshots"}),
+        "stable",
+    ),
+    ("Staged activation", "studio_os:automation_staged_activation", "beta"),
+    ("Package rollout", "super:package_rollout", "danger"),
+    ("Rollback (Control)", "studio_os:rollback", "beta"),
+    ("Feature audit", "siteconfig:feature_control_audit", "stable"),
+)
+
+
+def build_feature_control_operator_quick_links(request) -> list[dict[str, Any]]:
+    """
+    Resolved tool strip for Feature Control and manager config grids.
+    Omits ``super:`` targets on non-manager hosts so links are not dead on tenant subdomains.
+    """
+    host = getattr(request, "public_host_kind", None)
+    out: list[dict[str, Any]] = []
+    for label, url_ref, stability in FEATURE_CONTROL_OPERATOR_QUICK_LINKS:
+        super_ref = (
+            url_ref.startswith("super:")
+            if isinstance(url_ref, str)
+            else str(url_ref[0]).startswith("super:")
+        )
+        if host not in (None, "manager") and super_ref:
+            continue
+        if isinstance(url_ref, str):
+            url = _rev(url_ref, request)
+            suffix_key = url_ref
+        else:
+            viewname, kw = url_ref
+            url = _rev_with_kwargs(viewname, kw, request)
+            suffix_key = viewname
+        if not url:
+            continue
+        url = _apply_url_suffix(url, suffix_key)
+        out.append({"label": label, "url": url, "stability": stability})
+    return out
 
 
 def _apply_url_suffix(url: str, url_name: str) -> str:
@@ -262,6 +407,11 @@ def build_operator_control_model_for_request(request) -> list[dict[str, Any]]:
             ),
             "related": (
                 (_("Plans & entitlements"), "super:billing_dashboard", "stable"),
+                (
+                    _("Integrations registry (admin)"),
+                    ("super:admin_bridge", {"bridge_key": "integrations"}),
+                    "stable",
+                ),
             ),
         },
         {
@@ -310,6 +460,11 @@ def build_operator_control_model_for_request(request) -> list[dict[str, Any]]:
             ),
             "related": (
                 (_("Feature audit"), "siteconfig:feature_control_audit", "stable"),
+                (
+                    _("Runtime defaults"),
+                    ("super:admin_bridge", {"bridge_key": "runtime_defaults"}),
+                    "stable",
+                ),
             ),
         },
         {
@@ -353,11 +508,14 @@ def build_operator_control_model_for_request(request) -> list[dict[str, Any]]:
             continue
         purl = _apply_url_suffix(purl, pname)
         related_out: list[dict[str, Any]] = []
-        for rlabel, rname, rstab in spec.get("related") or ():
-            ru = _rev(rname, request)
+        for rlabel, rurl_ref, rstab in spec.get("related") or ():
+            ru = _resolve_link_url(rurl_ref, request)
             if not ru:
                 continue
-            ru = _apply_url_suffix(ru, rname)
+            suffix_key = (
+                rurl_ref if isinstance(rurl_ref, str) else str(rurl_ref[0])
+            )
+            ru = _apply_url_suffix(ru, suffix_key)
             related_out.append(
                 {"label": rlabel, "url": ru, "stability": rstab}
             )

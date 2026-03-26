@@ -2,7 +2,7 @@
 
 **Purpose:** §5.2 "Convert long-lived toggles into capability registry entries" and "Show why enabled?" in the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md).
 
-**Status:** PARTIAL — FeatureToggleDefinition/State and get_effective_flags in use; runtime inspector deepens "why enabled?".
+**Status:** **MET (repo)** — FeatureToggleDefinition/State, `get_effective_flags`, **runtime inspector** + feature audit, staged activation, and ledger UI (`siteconfig:feature_control_ledger`) match SOT §5 / §12; deeper per-flag UX = §11.4.
 
 ---
 

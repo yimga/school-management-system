@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n control_console %}
 
 {% block cp_title %}{{ page_title }} — RunMyCampus Manager{% endblock %}
 
@@ -15,7 +15,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console">
+  {% operator_console_strip %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>

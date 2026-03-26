@@ -66,3 +66,54 @@ class AIFeedbackEndpointTests(SimpleTestCase):
         self.assertEqual(
             mock_audit_create.call_args.kwargs["action"], AuditLog.Action.APPROVE
         )
+
+    @patch("apps.portal.views_ai_gateway.AuditLog.objects.create")
+    @patch("apps.portal.views_ai_gateway.record_feedback")
+    @patch("apps.portal.views_ai_gateway._check_rate_limit")
+    def test_feedback_reject_action_when_not_accepted(
+        self,
+        mock_rate_limit,
+        mock_record_feedback,
+        mock_audit_create,
+    ):
+        mock_rate_limit.return_value = (True, 0)
+        mock_record_feedback.return_value = {
+            "task_type": "doc_classify",
+            "tier": "ollama",
+            "cost_class": "self_hosted",
+            "tenant_id": "11",
+            "school_id": "11",
+            "accepted": False,
+            "manual_correction": True,
+            "request_date": "2026-03-12",
+            "request_id": "req-2",
+        }
+
+        request = self.factory.post(
+            "/api/ai/feedback/",
+            data=json.dumps(
+                {
+                    "task_type": "doc_classify",
+                    "tier": "ollama",
+                    "accepted": False,
+                    "manual_correction": True,
+                    "request_id": "req-2",
+                    "request_date": "2026-03-12",
+                }
+            ),
+            content_type="application/json",
+        )
+        request.user = self.user
+        request.school = SimpleNamespace(id=11)
+        request.META["REMOTE_ADDR"] = "127.0.0.1"
+        request.META["HTTP_USER_AGENT"] = "test-agent"
+
+        raw_view = api_ai_feedback.__wrapped__.__wrapped__.__wrapped__
+        response = raw_view(request)
+
+        self.assertEqual(response.status_code, 200)
+        payload = json.loads(response.content)
+        self.assertTrue(payload["success"])
+        self.assertEqual(
+            mock_audit_create.call_args.kwargs["action"], AuditLog.Action.REJECT
+        )

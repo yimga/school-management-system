@@ -54,6 +54,14 @@ class FAQCategory(models.Model):
         super().save(*args, **kwargs)
 
 
+class HelpAudience(models.TextChoices):
+    """Who may see this help item on which host."""
+
+    TENANT = "TENANT", _("Tenant / school users")
+    OPERATOR = "OPERATOR", _("Platform operators (manager host)")
+    BOTH = "BOTH", _("All audiences")
+
+
 class FAQ(models.Model):
     """Frequently Asked Questions with support for user contributions"""
 
@@ -114,6 +122,42 @@ class FAQ(models.Model):
         _("Is Featured"), default=False, help_text="Featured FAQs appear first"
     )
 
+    help_audience = models.CharField(
+        _("Help audience"),
+        max_length=20,
+        choices=HelpAudience.choices,
+        default=HelpAudience.BOTH,
+        help_text=_(
+            "TENANT: school-facing hosts only. OPERATOR: manager host only. BOTH: everywhere."
+        ),
+    )
+    country_code = models.CharField(
+        _("Country code"),
+        max_length=2,
+        blank=True,
+        help_text=_("ISO 3166-1 alpha-2. Blank = global (all regions)."),
+    )
+    education_type = models.CharField(
+        _("Education type"),
+        max_length=80,
+        blank=True,
+        help_text=_("Optional region/education pack key for filtering."),
+    )
+    plan_tier = models.CharField(
+        _("Plan tier"),
+        max_length=40,
+        blank=True,
+        help_text=_("Optional plan slug restriction; blank = all plans."),
+    )
+    target_roles = models.JSONField(
+        _("Target roles"),
+        default=list,
+        blank=True,
+        help_text=_(
+            "If non-empty, only users with at least one of these role codes see this FAQ."
+        ),
+    )
+
     # Timestamps
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
@@ -126,6 +170,8 @@ class FAQ(models.Model):
         indexes = [
             models.Index(fields=["status", "category"]),
             models.Index(fields=["is_featured", "-view_count"]),
+            models.Index(fields=["help_audience", "status"]),
+            models.Index(fields=["country_code"]),
         ]
 
     def __str__(self):
@@ -291,6 +337,14 @@ class KBArticle(models.Model):
     is_featured = models.BooleanField(_("Is Featured"), default=False)
     display_order = models.PositiveIntegerField(_("Display Order"), default=0)
 
+    help_audience = models.CharField(
+        _("Help audience"),
+        max_length=20,
+        choices=HelpAudience.choices,
+        default=HelpAudience.BOTH,
+        help_text=_("TENANT: school-facing hosts. OPERATOR: manager host help center. BOTH: all."),
+    )
+
     # Regional metadata: filter help content by tenant or GeoIP region (e.g. Cameroon vs Canada)
     country_code = models.CharField(
         _("Country code"),
@@ -332,6 +386,7 @@ class KBArticle(models.Model):
             models.Index(fields=["is_featured", "-view_count"]),
             models.Index(fields=["-published_at"]),
             models.Index(fields=["country_code"]),
+            models.Index(fields=["help_audience", "status"]),
         ]
 
     def __str__(self):
@@ -487,3 +542,46 @@ class UserContribution(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.get_contribution_type_display()}"
+
+
+class HostedOfficeDocument(models.Model):
+    """Documents opened via Collabora/LibreOffice Online (WOPI)."""
+
+    title = models.CharField(_("Title"), max_length=200)
+    file = models.FileField(_("File"), upload_to="office_docs/%Y/%m/")
+    mime_type = models.CharField(_("MIME type"), max_length=120, blank=True)
+    help_audience = models.CharField(
+        _("Help audience"),
+        max_length=20,
+        choices=HelpAudience.choices,
+        default=HelpAudience.BOTH,
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="office_documents",
+        help_text=_("Optional school scoping. Blank = global document."),
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_office_documents",
+    )
+    updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
+    created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Hosted Office Document")
+        verbose_name_plural = _("Hosted Office Documents")
+        ordering = ["-updated_at"]
+        indexes = [
+            models.Index(fields=["help_audience", "updated_at"]),
+            models.Index(fields=["school"]),
+        ]
+
+    def __str__(self):
+        return self.title

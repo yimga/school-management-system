@@ -10,6 +10,7 @@ from services.ai_schemas import (
     validate_design_studio,
     extract_json_from_text,
     validate_doc_classify,
+    validate_guided_assistant,
     validate_marketplace_recommend,
     validate_migration_mapping,
     validate_policy_explain,
@@ -23,6 +24,8 @@ class TaskTiersTests(SimpleTestCase):
     def test_default_task_tiers_include_ollama_rules(self):
         tiers = _task_tiers()
         self.assertIn(TaskType.CONFIG_EXPLAIN.value, tiers)
+        self.assertIn(TaskType.INTEROP_ASSISTANT.value, tiers)
+        self.assertIn(TaskType.STUDIO_OS_ASSISTANT.value, tiers)
         self.assertIn(TaskType.WORKFLOW_DRAFT.value, tiers)
         self.assertIn("ollama", tiers.get(TaskType.CONFIG_EXPLAIN.value, []))
         self.assertIn(
@@ -31,6 +34,8 @@ class TaskTiersTests(SimpleTestCase):
 
 
 class InvokeTests(SimpleTestCase):
+    databases = {"default"}
+
     @override_settings(AI_GATEWAY_ENABLED=True)
     @patch(
         "services.ai_gateway._call_ollama",
@@ -115,6 +120,27 @@ class InvokeTests(SimpleTestCase):
         )
         self.assertTrue(meta.get("schema_validation_failed"))
 
+    @patch(
+        "services.ai_gateway._call_vllm",
+        return_value=("not-json", {"provider": "vllm", "tier": "vllm"}),
+    )
+    def test_invoke_returns_safe_default_on_guided_schema_failure(self, _mock_vllm):
+        result, meta = invoke(
+            TaskType.INTEROP_ASSISTANT,
+            "Assist",
+            response_schema="guided_assistant",
+        )
+        self.assertEqual(
+            result,
+            {
+                "summary": "",
+                "actions": [],
+                "cautions": [],
+                "references": [],
+            },
+        )
+        self.assertTrue(meta.get("schema_validation_failed"))
+
 
 class SchemaTests(SimpleTestCase):
     def test_validate_workflow_draft(self):
@@ -139,6 +165,18 @@ class SchemaTests(SimpleTestCase):
         self.assertEqual(out["summary"], "Short")
         self.assertEqual(len(out["differences"]), 1)
         self.assertEqual(out["warnings"], ["w1"])
+
+    def test_validate_guided_assistant(self):
+        raw = {
+            "summary": "Do X",
+            "actions": [{"title": "Step 1", "detail": "Open hub"}],
+            "cautions": ["No secrets"],
+            "references": ["/docs/a"],
+        }
+        out = validate_guided_assistant(raw)
+        self.assertEqual(out["summary"], "Do X")
+        self.assertEqual(len(out["actions"]), 1)
+        self.assertEqual(out["actions"][0]["title"], "Step 1")
 
     def test_validate_migration_mapping(self):
         raw = [

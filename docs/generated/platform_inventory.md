@@ -1,24 +1,24 @@
 # Platform Inventory
 
-- Installed app modules: `41`
-- Python files: `2143`
-- HTML templates: `602`
-- Markdown files: `1003`
-- Migration files: `642`
-- Management commands: `146` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs: `1294`
-- `get_solo()` refs: `187`
-- `except Exception`: `229`
-- `cursor.execute()`: `352`
-- `csrf_exempt`: `146`
-- `AllowAny`: `67`
-- `print()`: `586`
-- `gilead` matches: `734` across `142` files
+- Installed app modules: `42`
+- Python files: `2260`
+- HTML templates: `616`
+- Markdown files: `1031`
+- Migration files: `663`
+- Management commands: `155` (full list in JSON key `management_commands_list`)
+- `SiteSettings` refs: `1378`
+- `get_solo()` refs: `194`
+- `except Exception`: `240`
+- `cursor.execute()`: `353`
+- `csrf_exempt`: `153`
+- `AllowAny`: `66`
+- `print()`: `680`
+- `gilead` matches: `784` across `147` files
 
 
 ## Management Commands (full list)
 
-Total: `146` commands. First 25 by app/command:
+Total: `155` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -45,12 +45,12 @@ Total: `146` commands. First 25 by app/command:
 - `billing` / `import_platform_billing_snapshot` — `apps/billing/management/commands/import_platform_billing_snapshot.py`
 - `billing` / `run_platform_billing_lifecycle` — `apps/billing/management/commands/run_platform_billing_lifecycle.py`
 - `billing` / `run_revenue_share_payouts` — `apps/billing/management/commands/run_revenue_share_payouts.py`
-- … and 121 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 130 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
-- Reviewed `csrf_exempt` files: `12`
-- Reviewed `csrf_exempt` endpoints: `34`
+- Reviewed `csrf_exempt` files: `13`
+- Reviewed `csrf_exempt` endpoints: `36`
 - Reviewed `AllowAny` files: `1`
 - Reviewed `AllowAny` occurrences: `2`
 
@@ -75,16 +75,16 @@ Total: `146` commands. First 25 by app/command:
 - `apps/evals/views.py`: `3100` lines / `114435` bytes
 - `apps/api/views_v1.py`: `2468` lines / `103258` bytes
 - `apps/finance/models.py`: `2807` lines / `98407` bytes
-- `apps/siteconfig/admin.py`: `2798` lines / `97079` bytes
-- `apps/siteconfig/views.py`: `2457` lines / `91721` bytes
+- `apps/siteconfig/admin.py`: `2802` lines / `97210` bytes
+- `apps/siteconfig/views.py`: `2457` lines / `94210` bytes
 - `apps/finance/tasks.py`: `2069` lines / `84718` bytes
-- `apps/studio_os/views.py`: `1897` lines / `73246` bytes
-- `apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py`: `1497` lines / `64003` bytes
-- `config/settings.py`: `1382` lines / `61639` bytes
+- `apps/studio_os/views.py`: `2092` lines / `83859` bytes
+- `apps/portal/views_ai_gateway.py`: `1870` lines / `68960` bytes
+- `config/settings.py`: `1471` lines / `65486` bytes
 
 ## Documentation Drift
 
 - Legacy documented app count: `38`
-- Actual installed app count: `41`
+- Actual installed app count: `42`
 - Drift detected: `True`
 

@@ -1,0 +1,32 @@
+{% load i18n static %}
+{# Reusable guided-assistant card; requires api_url, optional studio_mode for Studio OS. #}
+<div
+  class="card border-0 shadow-sm mb-3"
+  data-rmc-ai-guided
+  data-ai-url="{{ api_url }}"
+  {% if studio_mode %}data-studio-mode="{{ studio_mode }}"{% endif %}
+>
+  <div class="card-header py-2 d-flex align-items-center gap-2">
+    <i class="bi bi-stars text-primary" aria-hidden="true"></i>
+    <span class="fw-semibold small">{{ card_title }}</span>
+  </div>
+  <div class="card-body small">
+    <p class="text-muted mb-2">{{ card_hint }}</p>
+    <label class="form-label visually-hidden" for="{{ field_id }}">{% trans "Question" %}</label>
+    <textarea
+      id="{{ field_id }}"
+      class="form-control form-control-sm mb-2"
+      rows="2"
+      data-rmc-ai-query
+      placeholder="{% trans 'What should we verify or do next?' %}"
+    ></textarea>
+    <button type="button" class="btn btn-primary btn-sm" data-rmc-ai-run>{% trans "Ask assistant" %}</button>
+    <pre
+      class="small bg-light text-dark p-2 mt-2 rounded border mb-0"
+      style="max-height: 16rem; overflow: auto; white-space: pre-wrap;"
+      data-rmc-ai-out
+      aria-live="polite"
+    ></pre>
+  </div>
+</div>
+<script src="{% static 'js/rmc_ai_guided_assistant.js' %}" defer></script>

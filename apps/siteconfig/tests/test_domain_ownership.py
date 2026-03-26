@@ -2,6 +2,103 @@ from django.test import SimpleTestCase
 
 from apps.siteconfig.domain_ownership import classify_site_settings_field
 
+# Every key with an explicit branch in models_support.virtual_site_setting_default
+# must classify to a bounded owner (not metadata_governance) so runtime_sync_owners
+# and Phase B snapshots stay aligned with site_settings_usage_inventory.md §2.1.
+_VIRTUAL_SITE_SETTING_DEFAULT_EXPLICIT_KEYS: frozenset[str] = frozenset(
+    {
+        "backend_feature_flags",
+        "portal_features",
+        "social_links",
+        "admin_portal_stats_config",
+        "portal_quick_actions",
+        "portal_announcements",
+        "portal_recent_grades",
+        "portal_upcoming_assessments",
+        "grade_approval_roles",
+        "grade_post_roles",
+        "syllabus_approval_roles",
+        "delegation_role_mapping",
+        "notification_channels",
+        "require_mfa_roles",
+        "default_widgets_per_role",
+        "site_name",
+        "school_code",
+        "tagline",
+        "meta_description",
+        "company_name",
+        "company_address",
+        "company_phone",
+        "company_email",
+        "company_slug",
+        "branded_domain",
+        "custom_css",
+        "backend_console_theme",
+        "primary_color",
+        "accent_color",
+        "success_color",
+        "warning_color",
+        "danger_color",
+        "header_bg_color",
+        "footer_bg_color",
+        "theme_brightness",
+        "theme_harmony",
+        "secondary_font",
+        "default_dashboard_view",
+        "default_report_preview_type",
+        "offline_sync_conflict_resolution",
+        "report_preview_contact_email",
+        "report_preview_contact_phone",
+        "sms_provider",
+        "sms_api_key",
+        "sms_sender_id",
+        "email_from_address",
+        "whatsapp_support_number",
+        "whatsapp_admissions_number",
+        "marksheet_ocr_command",
+        "admission_number_mode",
+        "admission_number_pattern",
+        "admission_number_strategy",
+        "admission_number_template",
+        "country",
+        "region",
+        "ministry",
+        "default_region",
+        "default_grading_scale",
+        "ministry_registration_code",
+        "cache_rankings_interval_minutes",
+        "requests_reminder_interval_hours",
+        "teacher_reminder_time_of_day",
+        "top_students_default_limit",
+        "default_refresh_rate",
+        "base_font_size",
+        "compliance_profile_id",
+        "referral_bonus_amount",
+        "enable_parent_portal",
+        "enable_teacher_portal",
+        "enable_concurrent_mark_uploads",
+        "enable_reports_pdf",
+        "notify_parent_welcome_email",
+        "preview_mode_enabled",
+        "use_dark_mode",
+        "default_sidebar_collapsed",
+        "use_secondary_font_for_headings",
+        "admin_use_site_primary",
+        "skip_theme_publish_guard",
+        "default_portal_role_dual_role",
+        "grade_approval_enabled",
+        "enable_practical_assessment",
+        "require_mfa_all_staff",
+        "use_promotion_rule_for_pass",
+        "enable_offline_mode",
+        "auto_tag_photos_from_exif",
+        "reports_require_approved_grades_before_publish",
+        "reports_use_approved_grades_only",
+        "enable_whatsapp_parent_portal",
+        "enable_whatsapp_staff_portal",
+    }
+)
+
 
 class SiteSettingsDomainOwnershipTests(SimpleTestCase):
     def test_brand_experience_fields_are_classified_explicitly(self):
@@ -49,3 +146,18 @@ class SiteSettingsDomainOwnershipTests(SimpleTestCase):
             classify_site_settings_field("skip_theme_publish_guard"), "preview_platform"
         )
         self.assertEqual(classify_site_settings_field("updated_at"), "delete")
+
+    def test_virtual_site_setting_default_keys_map_to_bounded_owners(self):
+        for key in sorted(_VIRTUAL_SITE_SETTING_DEFAULT_EXPLICIT_KEYS):
+            with self.subTest(key=key):
+                owner = classify_site_settings_field(key)
+                self.assertNotEqual(
+                    owner,
+                    "metadata_governance",
+                    msg=(
+                        f"{key!r} falls through to metadata_governance; add EXACT_FIELD_OWNERS "
+                        "or PREFIX_FIELD_OWNERS in domain_ownership.py (see "
+                        "site_settings_usage_inventory.md §2.1)."
+                    ),
+                )
+                self.assertNotEqual(owner, "delete")

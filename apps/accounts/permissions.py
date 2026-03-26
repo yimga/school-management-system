@@ -715,6 +715,34 @@ def _role_rank(role: str | None) -> int:
     return ROLE_RANK.get(role, 0)
 
 
+TENANT_OPERATOR_EXCLUDED_STANDALONE_ROLES = frozenset(
+    {"PARENT", "STUDENT", "EMPLOYER", "TEACHER"}
+)
+
+
+def tenant_operator_hub_eligible(user) -> bool:
+    """
+    Tenant portal / admin: show operator control-plane affordances (studio strip, console strip,
+    primary product pills). End-user portal roles stay on operational UX only.
+    """
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    try:
+        if hasattr(user, "has_feature_permission") and user.has_feature_permission(
+            "settings.manage"
+        ):
+            return True
+    except (AttributeError, TypeError, ValueError):
+        pass
+    role = getattr(user, "role", None) or ""
+    code = str(role).strip().upper()
+    if code in TENANT_OPERATOR_EXCLUDED_STANDALONE_ROLES:
+        return False
+    return bool(getattr(user, "is_staff", False))
+
+
 def has_role(user, role: str) -> bool:
     """Check if user has a specific role (including via temporary grant)."""
     if not user.is_authenticated:

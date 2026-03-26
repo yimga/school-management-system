@@ -1,5 +1,6 @@
 # Core
 Django>=5.0,<6.0
+polib>=1.2.0
 python-dotenv>=1.0
 pytz>=2024.1
 pycountry>=24.6.1

@@ -511,6 +511,11 @@ urlpatterns = [
         name="ai_model_hub",
     ),
     path(
+        "ai-gateway-console/",
+        require_super_access_with_host(super_views.super_ai_gateway_console),
+        name="ai_gateway_console",
+    ),
+    path(
         "global-ai-version/",
         require_super_access_with_host(super_views.global_ai_version),
         name="global_ai_version",
@@ -557,76 +562,92 @@ urlpatterns = [
         require_super_access_with_host(super_views_config.super_operator_policy),
         name="operator_policy",
     ),
-    # Legacy admin-bridge paths / URL names → canonical super:admin_bridge (bookmarks & reverse).
+    path(
+        "backlog-unlock-center/",
+        require_super_access_with_host(
+            super_views_config.super_backlog_unlock_center
+        ),
+        name="backlog_unlock_center",
+    ),
+    path(
+        "fleet-governed-changes/",
+        require_super_access_with_host(
+            super_views_config.super_fleet_governed_changes
+        ),
+        name="fleet_governed_changes",
+    ),
+    # Legacy pretty paths only (no URL names). 301 → canonical slug; bookmarks keep working.
     path(
         "admin-bridge/integrations-marketplace/",
         require_super_access_with_host(
             partial(
-                super_views_config.super_admin_bridge_legacy_redirect,
+                super_views_config.super_admin_bridge_legacy_path_redirect,
                 bridge_key="integrations",
             )
         ),
-        name="admin_bridge_integrations",
     ),
     path(
         "admin-bridge/marketplace-apps/",
         require_super_access_with_host(
             partial(
-                super_views_config.super_admin_bridge_legacy_redirect,
+                super_views_config.super_admin_bridge_legacy_path_redirect,
                 bridge_key="marketplace_apps",
             )
         ),
-        name="admin_bridge_marketplace_apps",
     ),
     path(
         "admin-bridge/packages/installed/",
         require_super_access_with_host(
             partial(
-                super_views_config.super_admin_bridge_legacy_redirect,
+                super_views_config.super_admin_bridge_legacy_path_redirect,
                 bridge_key="packages_installed",
             )
         ),
-        name="admin_bridge_packages_installed",
     ),
     path(
         "admin-bridge/packages/experience-packs/",
         require_super_access_with_host(
             partial(
-                super_views_config.super_admin_bridge_legacy_redirect,
+                super_views_config.super_admin_bridge_legacy_path_redirect,
                 bridge_key="experience_packs",
             )
         ),
-        name="admin_bridge_experience_packs",
     ),
     path(
         "admin-bridge/runtime-defaults/",
         require_super_access_with_host(
             partial(
-                super_views_config.super_admin_bridge_legacy_redirect,
+                super_views_config.super_admin_bridge_legacy_path_redirect,
                 bridge_key="runtime_defaults",
             )
         ),
-        name="admin_bridge_runtime_defaults",
+    ),
+    path(
+        "admin-bridge/fleet-governed-changes/",
+        require_super_access_with_host(
+            partial(
+                super_views_config.super_admin_bridge_legacy_path_redirect,
+                bridge_key="fleet_governed_changes",
+            )
+        ),
     ),
     path(
         "admin-bridge/ai-model-registry/",
         require_super_access_with_host(
             partial(
-                super_views_config.super_admin_bridge_legacy_redirect,
+                super_views_config.super_admin_bridge_legacy_path_redirect,
                 bridge_key="ai_model_registry",
             )
         ),
-        name="admin_bridge_ai_model_registry",
     ),
     path(
         "admin-bridge/global-brand-registry/",
         require_super_access_with_host(
             partial(
-                super_views_config.super_admin_bridge_legacy_redirect,
+                super_views_config.super_admin_bridge_legacy_path_redirect,
                 bridge_key="global_brand_registry",
             )
         ),
-        name="admin_bridge_global_brand_registry",
     ),
     path(
         "admin-bridge/<slug:bridge_key>/",

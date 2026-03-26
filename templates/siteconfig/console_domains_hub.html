@@ -1,10 +1,12 @@
 {% extends "portal_base.html" %}
-{% load static i18n %}
+{% load static i18n phase8_tags %}
 
+{% block page_archetype %}decision-console{% endblock %}
 {% block title %}{% trans "Configuration Control Center" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 content-max-960" data-page-archetype="decision-console">
+<div class="container-fluid py-4 content-max-960" data-page-archetype="decision-console" data-decision-engine="surface">
+{% phase8_dashboard_declaration "siteconfig/console_domains_hub.html" %}
   <header class="mb-4 pb-3 border-bottom">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>

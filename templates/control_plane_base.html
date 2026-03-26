@@ -5,13 +5,13 @@
 
 {% block content %}
 <div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0">
-<nav class="navbar navbar-expand-lg navbar-dark cp-navbar statement-header flex-shrink-0" style="background: var(--cp-bg, var(--platform-navy, var(--color-base-900))); border-bottom: 1px solid rgba(125,152,187,0.18);">
+<nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0">
   <div class="container-fluid px-3 d-flex flex-wrap align-items-center gap-2">
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white statement-logo" href="{% url 'super:dashboard' %}">
       {% if PUBLIC_BRAND_FAVICON_URL %}
-        <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async" style="object-fit: contain;">
+        <img class="cp-navbar-brand-img" src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async">
       {% else %}
-        <img src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async" style="object-fit: contain;">
+        <img class="cp-navbar-brand-img" src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async">
       {% endif %}
       <span>RunMyCampus Manager</span>
     </a>
@@ -20,9 +20,9 @@
     </button>
     {# Always show topbar actions (no collapse below lg) so search, shortcuts, and user menu work on mobile #}
     <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 ms-lg-auto justify-content-end cp-topbar-actions w-100 w-lg-auto mt-2 mt-lg-0" id="cpNavbarContent">
-      <div class="cp-header-search position-relative flex-grow-1 flex-lg-grow-0" style="min-width: min(100%, 220px); max-width: 100%;">
-          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white w-100" placeholder="{% trans 'Search schools, incidents…' %} (Ctrl+K)" aria-label="{% trans 'Search' %} (Ctrl+K)" id="cpSearchInput" style="min-width: 0;" autocomplete="off">
-          <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel" style="min-width: min(100vw - 2rem, 320px); max-height: 70vh; overflow-y: auto;" aria-label="Search results"></div>
+      <div class="cp-header-search cp-topbar-search-wrap position-relative flex-grow-1 flex-lg-grow-0">
+          <input type="search" class="cp-topbar-search-input form-control form-control-sm bg-dark border-secondary text-white w-100" placeholder="{% trans 'Search schools, incidents…' %} (Ctrl+K)" aria-label="{% trans 'Search' %} (Ctrl+K)" id="cpSearchInput" autocomplete="off">
+          <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" aria-label="Search results"></div>
         </div>
         <button type="button" class="btn btn-sm btn-outline-light d-inline-flex align-items-center flex-shrink-0" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts (?)' %}"><span aria-hidden="true">?</span><span class="ms-1 d-none d-lg-inline">{% trans "Shortcuts" %}</span></button>
         {% if request.user.is_authenticated %}
@@ -56,13 +56,13 @@
 <div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column">
   <div class="row g-3 flex-grow-1 min-h-0">
     <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col">
-      <div class="cp-sidebar-inner p-3 rounded" style="background: var(--cp-panel-bg, rgba(8,16,30,0.78)); border: 1px solid var(--cp-panel-border);">
+      <div class="cp-sidebar-inner cp-sidebar-inner--surface p-3 rounded">
         {% block control_plane_sidebar %}
           {% include "partials/control_plane_sidebar.html" %}
         {% endblock %}
       </div>
     </aside>
-    <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10" role="main">
+    <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10" role="main" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="manager-control-plane">
       {% if messages %}
         <div class="mb-3">
           {% for message in messages %}
@@ -87,7 +87,7 @@
 </div>{# end .cp-shell-content #}
 
 {# Mobile sidebar (offcanvas) — same nav as desktop #}
-<div class="offcanvas offcanvas-start d-lg-none cp-sidebar-offcanvas" tabindex="-1" id="cpSidebarOffcanvas" aria-labelledby="cpSidebarOffcanvasLabel" style="background: var(--cp-panel-bg, rgba(8,16,30,0.98)); border-right: 1px solid var(--cp-panel-border);">
+<div class="offcanvas offcanvas-start d-lg-none cp-sidebar-offcanvas cp-sidebar-offcanvas--surface" tabindex="-1" id="cpSidebarOffcanvas" aria-labelledby="cpSidebarOffcanvasLabel">
   <div class="offcanvas-header border-secondary">
     <h5 class="offcanvas-title text-white" id="cpSidebarOffcanvasLabel">{% trans "Menu" %}</h5>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-label="{% trans 'Close' %}"></button>
@@ -308,15 +308,15 @@
   var helpEl = null;
   function showHelp() {
     if (helpEl) {
-      helpEl.style.display = 'block';
+      helpEl.style.display = 'flex';
       return;
     }
     helpEl = document.createElement('div');
     helpEl.id = 'cp-keyboard-help';
+    helpEl.className = 'cp-keyboard-help-overlay';
     helpEl.setAttribute('role', 'dialog');
     helpEl.setAttribute('aria-label', 'Keyboard shortcuts');
-    helpEl.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;';
-    var t = '<div class="rounded shadow-lg p-4 bg-dark text-white" style="min-width:280px;max-width:400px;">';
+    var t = '<div class="rounded shadow-lg p-4 bg-dark text-white cp-keyboard-help-panel">';
     t += '<h3 class="h6 mb-3">Keyboard shortcuts</h3>';
     t += '<p class="small text-muted mb-2">Press <kbd>g</kbd> then one of:</p><ul class="list-unstyled small mb-0">';
     for (var k in shortcuts) {
@@ -366,7 +366,7 @@
   });
 })();
 </script>
-<div id="cpTourFab" class="d-none position-fixed bottom-0 end-0 p-3" style="z-index:1035;">
+<div id="cpTourFab" class="cp-tour-fab d-none position-fixed bottom-0 end-0 p-3">
   <button type="button" class="btn btn-warning btn-sm shadow" id="cpTourStartBtn" aria-label="{% trans 'Start page tour' %}">{% trans "Page tour" %}</button>
 </div>
 <script src="{% static 'js/control-plane-tour.js' %}" defer data-tour-api="{% url 'siteconfig:tour_steps_api' %}"></script>

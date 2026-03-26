@@ -1,5 +1,6 @@
 # Smoke test: pre-deploy gate (check, migrations, smoke URLs, theme matrix, phase checks).
 # Runs on push/PR to main so merges are validated.
+# Manual run: GitHub → Actions → "Smoke test" → Run workflow (workflow_dispatch).
 name: Smoke test
 
 on:
@@ -7,6 +8,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch: {}
 
 jobs:
   smoke:
@@ -68,10 +70,12 @@ jobs:
           retention-days: 90
 
       - name: Pre-deploy gate (check, migrations, smoke, theme matrix, phase checks)
-        timeout-minutes: 25
+        timeout-minutes: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 55 || 30 }}
         env:
           DEBUG: "0"
           LOG_LEVEL: WARNING
+          # After a green main merge, refresh backlog unlock snapshot + transition events (shared cache in prod when gate runs there).
+          RUN_BACKLOG_UNLOCK_EVAL: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '1' || '0' }}
         run: bash scripts/pre_deploy_gate.sh
 
       - name: i18n (makemessages + compilemessages)

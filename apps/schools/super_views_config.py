@@ -9,7 +9,7 @@ from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_http_methods, require_GET
+from django.views.decorators.http import require_GET, require_http_methods
 
 from .super_admin_bridge_registry import (
     PLATFORM_ADMIN_BRIDGE_ORDER,
@@ -44,13 +44,18 @@ def super_admin_bridge(request, bridge_key: str):
 
 
 @require_GET
-def super_admin_bridge_legacy_redirect(request, bridge_key: str):
+def super_admin_bridge_legacy_path_redirect(request, bridge_key: str):
     """
-    Same target as :func:`super_admin_bridge` for ``bridge_key`` (single 302 to
-    platform admin). Preserves legacy ``admin-bridge/.../`` paths and
-    ``super:admin_bridge_*`` URL names without chaining through the canonical slug URL.
+    301 to canonical ``/super/admin-bridge/<bridge_key>/``.
+
+    Old pretty paths (e.g. ``…/integrations-marketplace/``) stay registered for
+    bookmarks; URL names ``super:admin_bridge_*`` were removed — use
+    ``reverse("super:admin_bridge", kwargs={"bridge_key": ...})``.
     """
-    return super_admin_bridge(request, bridge_key)
+    return redirect(
+        reverse("super:admin_bridge", kwargs={"bridge_key": bridge_key}),
+        permanent=True,
+    )
 
 
 @require_GET
@@ -78,6 +83,20 @@ def super_platform_operator_hub(request):
             _("Operator policy & governance"),
             _("Super-first vs break-glass admin; change classes; metrics & automation API"),
             "bi-shield-check",
+            "super",
+        ),
+        (
+            "super:backlog_unlock_center",
+            _("Backlog unlock center"),
+            _("Gates + program tracks; refresh when criteria may have been met"),
+            "bi-unlock",
+            "super",
+        ),
+        (
+            "super:fleet_governed_changes",
+            _("Fleet governed changes"),
+            _("Cross-tenant change records — open apply URL, then advance status in admin"),
+            "bi-clipboard-check",
             "super",
         ),
         ("super:schools_list", _("Schools"), _("Directory, lifecycle, exports"), "bi-building", "super"),
@@ -434,5 +453,184 @@ def super_migration_runs_list(request):
             **_config_context(request),
             "runs": runs,
             "migration_cloud_url": migration_cloud_url,
+        },
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def super_backlog_unlock_center(request):
+    """
+    Operator-facing backlog unlock matrix: verifiable gates + program/external tags.
+
+    Snapshot is populated by ``manage.py evaluate_backlog_unlocks --update-cache``
+    (cron/CI) or the Refresh button (same as pre-deploy for the chosen profile:
+    ``--update-cache --emit-events``, in-process — can take minutes).
+    """
+    import json
+    from io import StringIO
+
+    from django.core.cache import cache
+    from django.core.management import call_command
+
+    from apps.platform_runtime.backlog_unlock_engine import (
+        PROFILE_FULL,
+        PROFILE_SMOKE,
+        load_registry,
+        normalize_profile,
+        snapshot_cache_key,
+    )
+
+    def _prof_from_request() -> str:
+        if request.method == "POST":
+            return normalize_profile(request.POST.get("profile"))
+        return normalize_profile(request.GET.get("profile"))
+
+    active_profile = _prof_from_request()
+
+    if request.method == "POST":
+        buf = StringIO()
+        err = StringIO()
+        try:
+            call_command(
+                "evaluate_backlog_unlocks",
+                profile=active_profile,
+                update_cache=True,
+                emit_events=True,
+                timeout=600,
+                stdout=buf,
+                stderr=err,
+            )
+            out = buf.getvalue()
+            er = err.getvalue()
+            if er.strip():
+                messages.warning(request, er.strip()[:500])
+            if out.strip():
+                messages.info(request, out.strip()[:500])
+            else:
+                messages.success(
+                    request,
+                    _("Backlog evaluation finished; snapshot updated."),
+                )
+        except Exception as exc:
+            messages.error(request, str(exc)[:500])
+
+    snap_key = snapshot_cache_key(active_profile)
+    raw = cache.get(snap_key)
+    if raw is None and active_profile == PROFILE_FULL:
+        raw = cache.get("backlog_unlock:evaluation_snapshot:v1")
+    data = None
+    if isinstance(raw, str):
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            data = None
+
+    recent_events = []
+    try:
+        from apps.platform_runtime.models import PlatformEventLog
+
+        recent_events = list(
+            PlatformEventLog.objects.filter(event_type="backlog_dependency_met")
+            .order_by("-created_at")[:15]
+        )
+    except Exception:
+        recent_events = []
+
+    policy_url = None
+    try:
+        policy_url = reverse("super:operator_policy")
+    except NoReverseMatch:
+        pass
+
+    profile_help: dict = {}
+    if isinstance(data, dict):
+        raw_help = data.get("evaluation_profiles_help")
+        if isinstance(raw_help, dict):
+            profile_help = raw_help
+    if not profile_help:
+        reg = load_registry()
+        ep = reg.get("evaluation_profiles")
+        if isinstance(ep, dict):
+            profile_help = ep
+
+    sections = []
+    if isinstance(data, dict) and isinstance(data.get("items"), list):
+        order = (
+            (
+                "ready",
+                _("All automated criteria pass — proceed with linked work"),
+                "success",
+            ),
+            (
+                "ready_attention",
+                _("Program tracks — gates green; human depth still required (SOT PARTIAL)"),
+                "info",
+            ),
+            (
+                "waiting",
+                _("Waiting on failing gate(s)"),
+                "warning",
+            ),
+            (
+                "blocked_external",
+                _("External / organizational — not completable in repo alone"),
+                "secondary",
+            ),
+        )
+        for status_key, title, badge in order:
+            sections.append(
+                {
+                    "status_key": status_key,
+                    "title": title,
+                    "badge": badge,
+                    "items": [
+                        it for it in data["items"] if it.get("display_status") == status_key
+                    ],
+                }
+            )
+
+    return render(
+        request,
+        "schools/super_backlog_unlock_center.html",
+        {
+            **_config_context(request),
+            "evaluation": data,
+            "evaluation_sections": sections,
+            "evaluation_profile": active_profile,
+            "profile_smoke": PROFILE_SMOKE,
+            "profile_full": PROFILE_FULL,
+            "recent_unlock_events": recent_events,
+            "operator_policy_url": policy_url,
+            "automation_doc": "docs/BACKLOG_UNLOCK_AUTOMATION.md",
+            "evaluation_profiles_help": profile_help,
+        },
+    )
+
+
+@require_GET
+def super_fleet_governed_changes(request):
+    """
+    Super-first list of FleetGovernedChange rows (read-mostly); add/edit in platform admin.
+    """
+    from apps.platform_runtime.models import FleetGovernedChange
+
+    changes = (
+        FleetGovernedChange.objects.select_related("created_by", "approved_by")
+        .order_by("-created_at")[:150]
+    )
+    admin_bridge_url = None
+    try:
+        admin_bridge_url = reverse(
+            "super:admin_bridge", kwargs={"bridge_key": "fleet_governed_changes"}
+        )
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "schools/super_fleet_governed_changes.html",
+        {
+            **_config_context(request),
+            "changes": changes,
+            "admin_bridge_url": admin_bridge_url,
         },
     )

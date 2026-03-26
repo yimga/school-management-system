@@ -8,6 +8,10 @@ Phase B execution verification (batches 1+ wiring).
 - Batches 4-13: platform_runtime.PlatformPhaseBDomainSnapshot; when SiteSettings
   exists, one row per PHASE_B_SNAPSHOT_DOMAINS after migrations + save sync.
 
+``migration_artifact_errors()`` and ``orm_phase_b_execution_errors()`` are importable
+for in-process tests (migrated DB). ORM + **physical** ``siteconfig_sitesettings``
+column check via ``sitesettings_slim_db_errors``. CLI: ``python scripts/verify_phase_b_execution.py``.
+
 Exit 0 = OK; non-zero = fix migrations or backfill.
 """
 
@@ -31,9 +35,9 @@ MIGRATION_0007 = (
 )
 
 
-def main() -> int:
+def migration_artifact_errors() -> list[str]:
+    """Repository-side checks (no Django required)."""
     errors: list[str] = []
-
     if not MIGRATION_0002.is_file():
         errors.append(
             f"Missing Phase B Batch 1 migration: {MIGRATION_0002.relative_to(ROOT)}"
@@ -43,23 +47,18 @@ def main() -> int:
             "Missing Phase B Batches 4-13 migration: "
             f"{MIGRATION_0007.relative_to(ROOT)}"
         )
+    return errors
 
-    sys.path.insert(0, str(ROOT))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-    import django
-    from django.conf import settings
 
-    gate_file = (os.environ.get("DJANGO_TEST_DB_FILE") or "").strip()
-    if gate_file and settings.DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3":
-        gpath = Path(gate_file)
-        if not gpath.is_absolute():
-            gpath = ROOT / gpath
-        settings.DATABASES["default"]["NAME"] = str(gpath)
-
-    django.setup()
-
+def orm_phase_b_execution_errors() -> list[str]:
+    """
+    Database checks after django.setup() against the active default connection.
+    Used by CLI and by Django tests (migrated test DB).
+    """
     from django.apps import apps
     from django.db import connection
+
+    errors: list[str] = []
 
     try:
         model = apps.get_model("brand_experience", "PlatformGlobalBranding")
@@ -110,6 +109,45 @@ def main() -> int:
     except Exception as exc:
         errors.append(f"ORM consistency check failed: {exc}")
 
+    try:
+        from django.db import connection
+
+        from apps.siteconfig.sitesettings_slim_contract import (
+            sitesettings_slim_db_errors,
+            sitesettings_slim_model_errors,
+        )
+
+        errors.extend(sitesettings_slim_model_errors())
+        errors.extend(sitesettings_slim_db_errors(connection))
+    except Exception as exc:
+        errors.append(f"SiteSettings slim contract check failed: {exc}")
+
+    return errors
+
+
+def main() -> int:
+    errors = migration_artifact_errors()
+    if errors:
+        print("Phase B execution verification FAILED (artifacts):", file=sys.stderr)
+        for e in errors:
+            print(f"  - {e}", file=sys.stderr)
+        return 1
+
+    sys.path.insert(0, str(ROOT))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+    import django
+    from django.conf import settings
+
+    gate_file = (os.environ.get("DJANGO_TEST_DB_FILE") or "").strip()
+    if gate_file and settings.DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3":
+        gpath = Path(gate_file)
+        if not gpath.is_absolute():
+            gpath = ROOT / gpath
+        settings.DATABASES["default"]["NAME"] = str(gpath)
+
+    django.setup()
+
+    errors = orm_phase_b_execution_errors()
     if errors:
         print("Phase B execution verification FAILED:", file=sys.stderr)
         for e in errors:

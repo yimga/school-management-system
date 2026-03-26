@@ -103,6 +103,9 @@ class Command(BaseCommand):
                     "id": b.id,
                     "name": b.name,
                     "visibility": "tenant",
+                    "scope": "policy",
+                    "school_id": str(b.school_id) if b.school_id else None,
+                    "bundle_code": (b.code or "")[:120],
                 }
                 if not dry_run:
                     if AIMemoryService.store(

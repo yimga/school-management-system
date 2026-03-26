@@ -258,3 +258,36 @@ def global_ai_upgrade_run(self, run_id: str, model_id: str):
     for c in clusters:
         sync_regional_models_for_cluster.delay(c, run_id)
     return {"run_id": run_id, "regions_total": len(clusters)}
+
+
+@shared_task(name="siteconfig.index_ai_knowledge_beat")
+def index_ai_knowledge_beat() -> str:
+    """
+    Daily when ENABLE_AI_KNOWLEDGE_INDEX_BEAT=1: run index_ai_knowledge for RAG.
+
+    See docs/architecture/ai_orchestration.md.
+    """
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    out = StringIO()
+    err = StringIO()
+    call_command("index_ai_knowledge", stdout=out, stderr=err)
+    return (out.getvalue() + err.getvalue())[-4000:]
+
+
+@shared_task(name="siteconfig.ai_quality_scorecard_beat")
+def ai_quality_scorecard_beat() -> str:
+    """
+    Weekly when ENABLE_AI_QUALITY_SCORECARD_BEAT=1: aggregate metrics and print scorecard.
+    """
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    out = StringIO()
+    err = StringIO()
+    call_command("aggregate_ai_metrics", stdout=out, stderr=err)
+    call_command("ai_quality_scorecard", "--days", "7", stdout=out, stderr=err)
+    return (out.getvalue() + err.getvalue())[-4000:]

@@ -25,7 +25,7 @@ Tested and supported versions for the RunMyCampus stack. All items due and in sc
 | SMS | Twilio, AfricasTalking | SiteSettings.sms_provider, api_key, sender_id |
 | Email | Django backend | EMAIL_*; SiteSettings.email_from_address |
 | Payments | Finance gateways | Policy payment_gateways |
-| AI | Ollama, Gemini (REST) | AI_PROVIDER_PREFERENCE, GEMINI_API_KEY, OLLAMA_* |
+| AI | Ollama (internal chat); optional vLLM/LiteLLM (gateway tasks) | `OLLAMA_*`, `AI_GATEWAY_*`, `LITELLM_*`, `VLLM_*` |
 
 ## Pinning policy
 

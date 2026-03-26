@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n static %}
+{% load i18n static phase8_tags %}
 
 {% block cp_title %}App catalog{% endblock %}
 
@@ -10,7 +10,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell proof-page" data-page-archetype="catalog" data-ux-qa-marker="app-catalog"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<div class="container-fluid py-4 control-plane-shell proof-page" data-page-archetype="catalog" data-ux-qa-marker="app-catalog" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+{% phase8_dashboard_declaration "marketplace/app_catalog.html" %}
   <section class="proof-hero">
     <div class="proof-hero-grid">
       <div>

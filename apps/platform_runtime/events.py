@@ -133,6 +133,31 @@ EVENT_CATALOG = {
         "description": "Client-reported Web Vitals / performance beacon (RUM)",
         "payload": ["path", "metrics", "navigation_type"],
     },
+    "backlog_dependency_met": {
+        "description": "Backlog unlock registry: automated criteria moved from waiting to ready/ready_attention",
+        "payload": ["item_id", "title", "category", "display_status", "evaluation_profile"],
+    },
+    "fleet_governed_change_transitioned": {
+        "description": "Fleet governed change (§2.1) status transition",
+        "payload": [
+            "change_id",
+            "from_status",
+            "to_status",
+            "change_type",
+            "actor_id",
+            "error_message",
+        ],
+    },
+    "fleet_governed_change_created": {
+        "description": "Fleet governed change (§2.1) record created",
+        "payload": [
+            "change_id",
+            "change_type",
+            "status",
+            "created_by_id",
+            "title",
+        ],
+    },
 }
 
 

@@ -1,9 +1,10 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
-{% load region_format %}
+{% load region_format phase8_tags %}
 {% block title %}Employer portal — Apprentice progress{% endblock %}
 {% block content %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "people/employer_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Apprentice progress") subtitle=_("View and confirm apprentice placements") %}
   <div class="card shadow-sm">
     <div class="card-body">

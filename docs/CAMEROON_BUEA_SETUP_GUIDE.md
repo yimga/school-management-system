@@ -131,7 +131,7 @@ These are ready to use once you get API keys from MTN/Orange Cameroon.
 | **SMS** | Twilio (~$0.0075/SMS) | WhatsApp Deep Links | ✅ FREE |
 | **Database** | PostgreSQL ($5/month) | SQLite or Supabase free | ✅ FREE |
 | **Cache** | Redis ($5/month) | LocMemCache | ✅ FREE |
-| **AI** | OpenAI ($0.002/token) | Google Gemini free tier | ✅ FREE |
+| **AI** | OpenAI ($0.002/token) | Self-hosted Ollama | ✅ FREE (your infra) |
 | **Monitoring** | Sentry ($26/month) | Prometheus (free) | ✅ FREE |
 | **Static Files** | Cloudflare R2 | WhiteNoise | ✅ FREE |
 
@@ -179,8 +179,9 @@ ORANGE_MONEY_API_SECRET=
 # Database (SQLite for dev, or PostgreSQL free tier)
 DATABASE_URL=  # Leave empty for SQLite, or use Supabase free tier
 
-# AI Copilot (Optional - Google Gemini free tier)
-GEMINI_API_KEY=  # Get from https://makersuite.google.com/app/apikey
+# AI Copilot (Optional - self-hosted Ollama; see docs/OLLAMA_OPERATIONS_AND_UPDATES.md)
+OLLAMA_ENDPOINT=http://localhost:11434/api/generate
+OLLAMA_MODEL=llama3
 
 # Everything else can be left empty - platform works without them!
 ```

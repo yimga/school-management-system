@@ -1,19 +1,20 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n phase8_tags %}
 
 {% block cp_title %}{% trans "Higher education pack" %} — RunMyCampus Manager{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Home" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "HE pack" %}</li>
   </ol>
 </nav>
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="catalog" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/super_he_pack.html" %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold text-white">{% trans "Higher education pack" %}</h1>
     <p class="text-white-50 small mb-0">{% trans "Catalog, enrollment, degree audit; semester/term; months-not-years implementation. All target continents." %}</p>

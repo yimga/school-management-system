@@ -1,11 +1,11 @@
 {% extends "control_plane_base.html" %}
 
-{% load region_format %}
+{% load region_format i18n phase8_tags %}
 {% block cp_title %}Platform Incidents{% endblock %}
 
 {% block cp_content %}
-<div class="container py-4" data-page-archetype="operational-workbench">
-  {% load i18n %}
+<div class="container py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+{% phase8_dashboard_declaration "observability/platform_incidents.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Platform incident console") subtitle=_("Shared control-plane incidents for availability, security, billing, integrations, and data integrity.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
   <div class="alert alert-light border small mb-3" role="region" aria-label="{% trans 'Operator documentation' %}">
     <strong>{% trans "Runbooks (repository paths for operators)" %}:</strong>

@@ -1,0 +1,33 @@
+{% load i18n static %}
+{# POST raw JSON body to an /api/ai/* endpoint. default_body is optional pre-filled JSON (string). #}
+<div
+  class="card border-0 shadow-sm mb-3"
+  data-rmc-ai-json-api
+  data-ai-url="{{ api_url }}"
+>
+  <div class="card-header py-2 d-flex align-items-center gap-2">
+    <i class="bi bi-code-slash text-secondary" aria-hidden="true"></i>
+    <span class="fw-semibold small">{{ card_title }}</span>
+  </div>
+  <div class="card-body small">
+    <p class="text-muted mb-2">{{ card_hint }}</p>
+    <label class="form-label visually-hidden" for="{{ field_id }}">{% trans "JSON body" %}</label>
+    <textarea
+      id="{{ field_id }}"
+      class="form-control form-control-sm font-monospace mb-2"
+      rows="6"
+      data-rmc-ai-json-body
+      spellcheck="false"
+    >{{ default_body|default:"{}" }}</textarea>
+    <button type="button" class="btn btn-outline-primary btn-sm" data-rmc-ai-json-run>{% trans "Run API" %}</button>
+    <pre
+      class="small bg-dark text-light p-2 mt-2 rounded mb-0"
+      style="max-height: 18rem; overflow: auto; white-space: pre-wrap;"
+      data-rmc-ai-json-out
+      aria-live="polite"
+    ></pre>
+  </div>
+</div>
+{% if include_script|default:True %}
+<script src="{% static 'js/rmc_ai_json_api_card.js' %}" defer></script>
+{% endif %}

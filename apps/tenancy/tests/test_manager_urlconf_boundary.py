@@ -52,6 +52,25 @@ class ManagerUrlconfBoundaryTests(TestCase):
             payload,
         )
 
+    def test_manager_search_empty_q_includes_operator_intents(self):
+        """Ctrl+K focus: static catalog includes geography, trust, policy, backlog, fleet (BR-02)."""
+        self.client.force_login(self.user)
+        response = self.client.get(
+            "/api/search/?q=", HTTP_HOST="manager.runmycampus.com"
+        )
+        self.assertEqual(response.status_code, 200)
+        titles = [item.get("title") for item in response.json().get("results", [])]
+        for needle in (
+            "Geography (region packs)",
+            "Trust center",
+            "Operator policy",
+            "Backlog unlock center",
+            "Fleet governed changes",
+            "Platform operator hub",
+        ):
+            with self.subTest(needle=needle):
+                self.assertIn(needle, titles)
+
     def test_manager_search_api_denies_tenant_staff(self):
         self.client.force_login(self.tenant_staff)
         response = self.client.get(

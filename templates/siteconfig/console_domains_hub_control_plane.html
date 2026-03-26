@@ -1,19 +1,21 @@
 {% extends "control_plane_base.html" %}
-{% load static i18n %}
+{% load static i18n control_console phase8_tags %}
 
 {% block cp_title %}{% trans "Configuration Control Center" %} — RunMyCampus Manager{% endblock %}
 
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Dashboard" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Configuration Control Center" %}</li>
   </ol>
 </nav>
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console" aria-labelledby="ccc-heading" aria-describedby="ccc-desc">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console" data-decision-engine="surface" aria-labelledby="ccc-heading" aria-describedby="ccc-desc">
+  {% phase8_dashboard_declaration "siteconfig/console_domains_hub_control_plane.html" %}
+  {% operator_console_strip %}
   <h1 id="ccc-heading" class="visually-hidden">{% trans "Configuration Control Center" %}</h1>
   <p id="ccc-desc" class="visually-hidden">{% trans "Nine outcome groups, operational hubs, and domain shortcuts. Staged publish and rollback live in Studio Control and Feature audit." %}</p>
 
@@ -134,8 +136,4 @@
   {% endif %}
 </div>
 
-<style>
-.sysconfig-hub-list .sysconfig-hub-link { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
-.sysconfig-hub-list .sysconfig-hub-link:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); color: #fff; }
-</style>
 {% endblock %}

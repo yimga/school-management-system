@@ -1,6 +1,8 @@
 # Next 50 execution steps (high standard)
 
 **Source:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) only.  
+**Coordination:** Numbered steps below are **historical** (all DONE at last reconciliation). **Current “what’s next”** for the program lives in SOT **§11.4** and [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md](RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md). Add new numbered rows here only if the program explicitly revives this list — do not treat this file as the primary open queue.
+
 **No new philosophy** — numbered checklist for implementation order; status uses DONE | PARTIAL | NOT DONE.
 
 **For all agents:** This file is one of four canonical strategy/backlog docs. Before starting any step, check [docs_truth_ledger.md](docs_truth_ledger.md) and this file for current status to avoid duplicate or conflicting work. Named plan: [RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md](RUNMYCAMPUS_11_10_NORTH_STAR_COMPLETION_PLAN.md). Single execution source of truth: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Backlog: [BACKLOG_AND_DEFERRED_CLOSURE.md](BACKLOG_AND_DEFERRED_CLOSURE.md). Do not create new overlapping strategy or roadmap files.

@@ -12,6 +12,14 @@ class PlatformRuntimeConfig(AppConfig):
 
     def ready(self) -> None:
         try:
+            from apps.platform_runtime import fleet_signals  # noqa: F401 — register receivers
+
+        except Exception:
+            logger.debug(
+                "Fleet governed change signals not connected at Django ready",
+                exc_info=True,
+            )
+        try:
             from apps.platform_runtime.celery_task_events import (
                 connect_celery_platform_task_signals,
             )

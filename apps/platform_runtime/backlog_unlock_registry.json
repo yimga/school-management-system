@@ -1,0 +1,579 @@
+{
+  "registry_version": 4,
+  "description": "Machine-readable backlog items. Criterion types: script_exit_zero, pytest_exit_zero. Optional profiles per item: [\"smoke\",\"full\"] or default [\"full\"] only. Optional per-item max_days_in_waiting / max_days_in_ready_attention. See docs/BACKLOG_UNLOCK_AUTOMATION.md.",
+  "sla": {
+    "default_max_days_in_waiting": 21,
+    "default_max_days_in_ready_attention": 45,
+    "docs": "Calendar days since the item entered that column (per profile), persisted in Django cache. Remove or fix failing gates; shrink registry when work is done. CI can use --fail-on-sla-breach on scheduled workflows."
+  },
+  "items": [
+    {
+      "id": "gate_phase6_siteconfig_sitesettings",
+      "title": "Phase 6 \u2014 Siteconfig / SiteSettings verification bundle",
+      "category": "verification_gates",
+      "kind": "verification",
+      "sot_refs": [
+        "RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md Phase 6"
+      ],
+      "doc_href": "docs/phase_audit/PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md",
+      "action_hint": "python scripts/verify_cursor_phase6_siteconfig_sitesettings.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_cursor_phase6_siteconfig_sitesettings.py",
+          "args": [],
+          "timeout_seconds": 420
+        }
+      ]
+    },
+    {
+      "id": "gate_phase7_runtime_granular",
+      "title": "Phase 7 \u2014 Runtime-first granular gate (singleton ORM + contract tests)",
+      "category": "verification_gates",
+      "kind": "verification",
+      "sot_refs": [
+        "RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md Phase 7"
+      ],
+      "doc_href": "docs/phase_audit/PHASE_07_RUNTIME_FIRST_AUDIT.md",
+      "action_hint": "python scripts/verify_cursor_phase7_granular.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_cursor_phase7_granular.py",
+          "args": [],
+          "timeout_seconds": 420
+        }
+      ]
+    },
+    {
+      "id": "gate_phase5_siteconfig_zip",
+      "title": "Phase 5 \u2014 Siteconfig / SiteSettings ZIP gate",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/phase_audit/PHASE_05_SITECONFIG_ZIP_AUDIT.md",
+      "action_hint": "python scripts/verify_phase_5_siteconfig.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_phase_5_siteconfig.py",
+          "args": [],
+          "timeout_seconds": 180
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_sot_pillar_evidence",
+      "title": "SOT \u00a70.3 pillar evidence registry",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/SOT_0155_EVIDENCE_REGISTER.md",
+      "action_hint": "python scripts/verify_sot_pillar_evidence.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_sot_pillar_evidence.py",
+          "args": [],
+          "timeout_seconds": 180
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_sitesettings_singleton_orm_lint",
+      "title": "SiteSettings.objects choke point (models.py + helpers.py only)",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/SITESETTINGS_GET_SOLO_ALLOWLIST.md",
+      "action_hint": "python scripts/lint_sitesettings_orm_singleton.py --base .",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/lint_sitesettings_orm_singleton.py",
+          "args": [
+            "--base",
+            "."
+          ],
+          "timeout_seconds": 120
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_tenant_settings_get_solo_lint",
+      "title": "Tenant trees \u2014 no SiteSettings.get_solo()",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/SITESETTINGS_GET_SOLO_ALLOWLIST.md",
+      "action_hint": "python scripts/lint_tenant_settings.py --check-get-solo-only --base .",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/lint_tenant_settings.py",
+          "args": [
+            "--check-get-solo-only",
+            "--base",
+            "."
+          ],
+          "timeout_seconds": 120
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_lint_tenant_sitesettings_orm_in_apps",
+      "title": "Tenant app trees \u2014 no SiteSettings.objects.* (Phase 5 lint)",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/SITESETTINGS_GET_SOLO_ALLOWLIST.md",
+      "action_hint": "python scripts/lint_tenant_settings.py --check-sitesettings-orm-in-tenant-apps --base .",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/lint_tenant_settings.py",
+          "args": [
+            "--check-sitesettings-orm-in-tenant-apps",
+            "--base",
+            "."
+          ],
+          "timeout_seconds": 120
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_lint_tenant_school_settings_features",
+      "title": "Tenant apps \u2014 no raw school.settings / school.features reads",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/SITESETTINGS_GET_SOLO_ALLOWLIST.md",
+      "action_hint": "python scripts/lint_tenant_settings.py --check-school-settings-features --base .",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/lint_tenant_settings.py",
+          "args": [
+            "--check-school-settings-features",
+            "--base",
+            "."
+          ],
+          "timeout_seconds": 120
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_lint_phase_b_batch3_sitesettings_fk_writes",
+      "title": "Phase B Batch 3 \u2014 no ORM writes to removed SiteSettings branding FK columns",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/SITECONFIG_OWNERSHIP_MIGRATION.md",
+      "action_hint": "python scripts/lint_phase_b_batch3_sitesettings_fk_writes.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/lint_phase_b_batch3_sitesettings_fk_writes.py",
+          "args": [],
+          "timeout_seconds": 120
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_platform_inventory_check",
+      "title": "Platform inventory JSON/Markdown committed artifacts match repo (generate --check)",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/generated/platform_inventory.md",
+      "action_hint": "python scripts/generate_platform_inventory.py --check",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/generate_platform_inventory.py",
+          "args": [
+            "--check"
+          ],
+          "timeout_seconds": 180
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_phase_b_execution",
+      "title": "Phase B execution \u2014 PlatformGlobalBranding table + singleton wiring",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/SITECONFIG_OWNERSHIP_MIGRATION.md",
+      "action_hint": "python scripts/verify_phase_b_execution.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_phase_b_execution.py",
+          "args": [],
+          "timeout_seconds": 300
+        }
+      ]
+    },
+    {
+      "id": "gate_phase7_dashboard_markers",
+      "title": "Phase 7 \u2014 dashboard surface markers registry",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "docs/PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md",
+      "action_hint": "python scripts/verify_phase7_dashboard_markers.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_phase7_dashboard_markers.py",
+          "args": [],
+          "timeout_seconds": 240
+        }
+      ]
+    },
+    {
+      "id": "gate_phases_3_11_static_bundle",
+      "title": "Phases 3\u201311 static bundle (tenant lint, rebrand-residue lint, secrets, SOT pillars, wedges, marketplace pytest)",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "scripts/verify_phases_3_11_gates.py",
+      "action_hint": "python scripts/verify_phases_3_11_gates.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_phases_3_11_gates.py",
+          "args": [],
+          "timeout_seconds": 900
+        }
+      ]
+    },
+    {
+      "id": "gate_operating_discipline_docs",
+      "title": "\u00a710.5 \u2014 operating-discipline doc references (role_home_engine *_DOC \u2192 docs/)",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "scripts/verify_operating_discipline_docs.py",
+      "action_hint": "python scripts/verify_operating_discipline_docs.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_operating_discipline_docs.py",
+          "args": [],
+          "timeout_seconds": 120
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_section10_5_layers",
+      "title": "\u00a710.5 \u2014 operating-discipline layers (doc + code wiring)",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "scripts/verify_section10_5_layers.py",
+      "action_hint": "python scripts/verify_section10_5_layers.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_section10_5_layers.py",
+          "args": [],
+          "timeout_seconds": 180
+        }
+      ]
+    },
+    {
+      "id": "gate_design_system_phase2",
+      "title": "Design system Phase 2 enforcement gate",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "scripts/verify_design_system_phase2.py",
+      "action_hint": "python scripts/verify_design_system_phase2.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_design_system_phase2.py",
+          "args": [],
+          "timeout_seconds": 300
+        }
+      ]
+    },
+    {
+      "id": "gate_ai_blueprint_completion",
+      "title": "AI blueprint contract completion script",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "scripts/verify_ai_blueprint_completion.py",
+      "action_hint": "python scripts/verify_ai_blueprint_completion.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_ai_blueprint_completion.py",
+          "args": [],
+          "timeout_seconds": 240
+        }
+      ]
+    },
+    {
+      "id": "gate_i18n_catalog_fresh",
+      "title": "i18n catalog \u2014 scanned strings vs locale/en/LC_MESSAGES/django.po",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "scripts/verify_i18n_catalog_fresh.py",
+      "action_hint": "python scripts/verify_i18n_catalog_fresh.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_i18n_catalog_fresh.py",
+          "args": [],
+          "timeout_seconds": 180
+        }
+      ]
+    },
+    {
+      "id": "gate_wedge_super_premium_phases",
+      "title": "\u00a70.2.1.5\u2013\u00a70.2.1.6 wedge super-premium phased validation",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "scripts/validate_wedge_super_premium_phases.py",
+      "action_hint": "python scripts/validate_wedge_super_premium_phases.py --phase all",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/validate_wedge_super_premium_phases.py",
+          "args": [
+            "--phase",
+            "all"
+          ],
+          "timeout_seconds": 240
+        }
+      ]
+    },
+    {
+      "id": "gate_phase_h_audit_static",
+      "title": "Phase H \u2014 static UX audit (templates / responsive markers)",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "scripts/phase_h_audit.py",
+      "action_hint": "python scripts/phase_h_audit.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/phase_h_audit.py",
+          "args": [],
+          "timeout_seconds": 180
+        }
+      ]
+    },
+    {
+      "id": "gate_verify_ux_completion",
+      "title": "UX completion audit (Django; uses configured DATABASE_URL \u2014 run in CI/staging, not casually on prod)",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "scripts/verify_ux_completion.py",
+      "action_hint": "python scripts/verify_ux_completion.py",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_ux_completion.py",
+          "args": [],
+          "timeout_seconds": 420
+        }
+      ]
+    },
+    {
+      "id": "gate_pytest_control_plane_bridge_manifest",
+      "title": "Pytest \u2014 control-plane bridge manifest API contract",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "apps/api/tests/test_control_plane_bridge_manifest_api.py",
+      "action_hint": "python -m pytest apps/api/tests/test_control_plane_bridge_manifest_api.py -q --no-header",
+      "criteria": [
+        {
+          "type": "pytest_exit_zero",
+          "targets": [
+            "apps/api/tests/test_control_plane_bridge_manifest_api.py"
+          ],
+          "args": [
+            "-q",
+            "--no-header"
+          ],
+          "timeout_seconds": 240
+        }
+      ],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "gate_pytest_tenant_settings_lint_bundle",
+      "title": "Pytest \u2014 tenant SiteSettings / phase gates lint bundle",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "apps/platform_runtime/tests/test_tenant_settings_lint.py",
+      "action_hint": "python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q --no-header",
+      "criteria": [
+        {
+          "type": "pytest_exit_zero",
+          "targets": [
+            "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+          ],
+          "args": [
+            "-q",
+            "--no-header"
+          ],
+          "timeout_seconds": 300
+        }
+      ]
+    },
+    {
+      "id": "gate_pytest_runtime_contract_slice",
+      "title": "Pytest \u2014 runtime precedence + contract + Phase7 runtime gate",
+      "category": "verification_gates",
+      "kind": "verification",
+      "doc_href": "apps/platform_runtime/tests/",
+      "action_hint": "python -m pytest apps/platform_runtime/tests/test_precedence.py apps/platform_runtime/tests/test_runtime_contract.py apps/platform_runtime/tests/test_phase7_runtime_gate.py -q --no-header",
+      "criteria": [
+        {
+          "type": "pytest_exit_zero",
+          "targets": [
+            "apps/platform_runtime/tests/test_precedence.py",
+            "apps/platform_runtime/tests/test_runtime_contract.py",
+            "apps/platform_runtime/tests/test_phase7_runtime_gate.py"
+          ],
+          "args": [
+            "-q",
+            "--no-header"
+          ],
+          "timeout_seconds": 300
+        }
+      ]
+    },
+    {
+      "id": "program_partial_control_plane_audit",
+      "title": "Control plane \u2014 audit expectations on high-stakes surfaces (SOT \u00a72.1.1 PARTIAL)",
+      "category": "control_plane_program",
+      "kind": "program_partial",
+      "sot_refs": [
+        "RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md \u00a72.1.1"
+      ],
+      "doc_href": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
+      "action_hint": "When pillar evidence gate is green, schedule deeper audit work; no automatic product completion.",
+      "criteria": [
+        {
+          "type": "script_exit_zero",
+          "script": "scripts/verify_sot_pillar_evidence.py",
+          "args": [],
+          "timeout_seconds": 180
+        }
+      ]
+    },
+    {
+      "id": "program_partial_rollback_undo",
+      "title": "Control plane \u2014 fleet-wide rollback / undo universality (SOT \u00a72.1.1 PARTIAL)",
+      "category": "control_plane_program",
+      "kind": "program_partial",
+      "doc_href": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
+      "action_hint": "Track per domain; use pack/marketplace rollback paths where shipped.",
+      "criteria": [],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "program_partial_emergency_kill_switches",
+      "title": "Emergency / kill switches productization (SOT \u00a72.1.1 PARTIAL)",
+      "category": "control_plane_program",
+      "kind": "program_partial",
+      "doc_href": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
+      "action_hint": "Feature control + incidents exist; productize per flag with operator policy.",
+      "criteria": [],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "schema_sitesettings_physical_migration",
+      "title": "Full SiteSettings row-level DB decomposition (Phase B program)",
+      "category": "schema_program",
+      "kind": "program_partial",
+      "doc_href": "docs/SITECONFIG_OWNERSHIP_MIGRATION.md",
+      "action_hint": "Follow Phase B batch tracker; behavioral gates are separate from physical column moves.",
+      "criteria": [],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "external_soc2_iso_certificate",
+      "title": "SOC 2 Type II / ISO certificate on file",
+      "category": "external_org",
+      "kind": "external_blocker",
+      "doc_href": "docs/SOT_REMAINING_ITEMS_BACKLOG.md",
+      "action_hint": "External auditor + evidence room; cannot close in repo alone.",
+      "criteria": [],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "external_mobile_app_stores",
+      "title": "Native iOS / Android App Store / Play releases",
+      "category": "external_org",
+      "kind": "external_blocker",
+      "doc_href": "docs/SOT_REMAINING_ITEMS_BACKLOG.md",
+      "action_hint": "Builds, signing, store listings \u2014 outside git scope.",
+      "criteria": [],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    },
+    {
+      "id": "external_clever_classlink_native",
+      "title": "Clever / ClassLink native vendor APIs",
+      "category": "external_org",
+      "kind": "external_blocker",
+      "doc_href": "docs/SOT_REMAINING_ITEMS_BACKLOG.md",
+      "action_hint": "Partnership-dependent; BR-11 substitutes in repo.",
+      "criteria": [],
+      "profiles": [
+        "smoke",
+        "full"
+      ]
+    }
+  ],
+  "evaluation_profiles": {
+    "smoke": "Fast path (~minutes): core SiteSettings/tenant lints, inventory --check, SOT pillar evidence, Phase 5 ZIP, bridge-manifest pytest, plus all program/external rows for visibility. Excludes Phase 6/7 bundles, verify_phases_3_11, UX completion, and other heavy gates.",
+    "full": "Complete matrix: every row in this file (CI / pre_deploy / deep operator refresh). Expect overlap between Phase 6/7 bundles and verify_phases_3_11 / pytest slices by design."
+  }
+}

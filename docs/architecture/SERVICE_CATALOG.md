@@ -27,7 +27,7 @@ Internal-first platform: Zone A = internal services and contracts; Zone B = exte
 | WhatsApp | `communication.channels.WhatsAppProvider` | Meta Graph API | Tenant integration (whatsapp) |
 | Payments (tenant) | `finance.gateways.base.BasePaymentGateway` | Stripe, PayStack, etc. | Policy payment_gateways |
 | Platform billing | `billing.processors` base | Stripe Connect | Processor config |
-| AI | Single orchestration → provider adapter | OpenAI, Azure, Gemini, etc. | Settings / tenant |
+| AI | Single orchestration → gateway | Ollama (chat), optional vLLM/LiteLLM (tasks) | Settings / env |
 
 ## Internal API governance
 

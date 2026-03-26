@@ -1,0 +1,10 @@
+{% load i18n static %}
+<div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    <p class="mb-2">{% trans "Portal shell layouts define the structure of parent, teacher, and student portals: sidebar navigation, header, and main content area. Layout and visibility are controlled by School theme and Customizer so branding and shell stay consistent." %}</p>
+    {% if customizer_url %}
+    <p class="mb-0"><a href="{{ customizer_url }}">{% trans "Customizer" %}</a> — {% trans "Adjust portal shell layout and visibility." %}</p>
+    {% endif %}
+  </div>
+</div>

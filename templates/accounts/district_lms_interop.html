@@ -1,9 +1,10 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
+{% load i18n static phase8_tags %}
 {# Phase 9: connector health + schema / webhook workbench links #}
 {% block backend_title %}{% trans "District & LMS interoperability" %}{% endblock %}
 {% block content %}
-<div class="container-fluid py-4" data-page-archetype="setup-flow">
+<div class="container-fluid py-4" data-page-archetype="setup-flow" data-decision-engine="surface">
+{% phase8_dashboard_declaration "accounts/district_lms_interop.html" %}
   <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
@@ -140,6 +141,11 @@
       {% endif %}
     </div>
   </div>
+
+  {% url 'api:ai-interop-assistant' as api_ai_interop %}
+  {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_interop card_title=_("Interop guided assistant") card_hint=_("Structured guidance for OneRoster, LTI, SSO discovery, and native vendor flows. Never paste API secrets here.") field_id="distInteropAiQ" %}
+  {% url 'api:ai-runtime-config-explain' as api_ai_rt %}
+  {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_rt card_title=_("Runtime & feature flags") card_hint=_("Explains effective configuration using non-secret context from this school when available.") field_id="distRuntimeAiQ" %}
 
   <div class="card border-0 shadow-sm mb-3">
     <div class="card-header fw-semibold">{% trans "Security: webhooks, IP allowlist, scopes, export profile" %}</div>

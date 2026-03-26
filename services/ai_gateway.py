@@ -1,7 +1,8 @@
 """
 RunMyCampus AI Gateway: single entry point for all AI. Task-based routing, tier selection
-(Ollama / vLLM / LiteLLM), structured output validation, audit, fallback. No browser calls
-providers directly; all traffic goes through this gateway.
+(Ollama / vLLM / LiteLLM / rules), structured output validation, audit, fallback.
+General in-product chat uses Ollama + rules only (no Google Gemini or other cloud LLM in
+that path). No browser calls providers directly; all traffic goes through this gateway.
 """
 from __future__ import annotations
 
@@ -104,7 +105,8 @@ DEFAULT_TASK_TIERS: dict[str, list[str]] = {
     TaskType.ADMIN_COPILOT: ["ollama", "vllm", "rules"],
     TaskType.SUPPORT_SUGGEST: ["ollama", "vllm", "rules"],
     TaskType.NARRATIVE: ["ollama", "rules"],
-    TaskType.GENERAL_CHAT: ["ollama", "gemini", "rules"],
+    # Internal chat: Ollama (self-hosted) only, then rules — no cloud LLM tier.
+    TaskType.GENERAL_CHAT: ["ollama", "rules"],
 }
 
 
@@ -145,7 +147,7 @@ def _cost_class_for_tier(tier: str | None) -> str:
         return "no_cost"
     if tier_name in {"ollama", "vllm"}:
         return "self_hosted"
-    if tier_name in {"litellm", "gemini"}:
+    if tier_name == "litellm":
         return "premium"
     return "unclassified"
 
@@ -377,12 +379,6 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
         return None, {"provider": "litellm", "error": "timeout"}
 
 
-def _call_gemini(prompt: str) -> tuple[str | None, dict[str, Any]]:
-    from apps.portal.ai_provider import _call_gemini as _gemini
-    text = _gemini(prompt)
-    return text, {"provider": "gemini", "tier": "gemini"} if text else (None, {"provider": "gemini", "error": "unavailable"})
-
-
 def _rules_fallback(user_query: str) -> str:
     from apps.portal.ai_provider import _rules_fallback as _rules
     return _rules(user_query)
@@ -427,7 +423,7 @@ def _payload_contains_pii(*texts: Any) -> bool:
 
 
 def _data_tier_allows_premium(metadata: dict[str, Any] | None, *, prompt: str = "", user_query: str = "") -> bool:
-    """If payload has PII or tenant disallows external, we must not use premium (litellm/gemini) for sensitive data."""
+    """If payload has PII or tenant disallows external, we must not use premium (litellm) for sensitive data."""
     if not metadata:
         return not _payload_contains_pii(prompt, user_query)
     if metadata.get("sensitivity_class") == "high" or metadata.get("disallow_external_model"):
@@ -578,7 +574,7 @@ def invoke(
     start = time.perf_counter()
 
     for tier in backends:
-        if tier == "litellm" or tier == "gemini":
+        if tier == "litellm":
             if not allow_premium:
                 errors[tier] = "data_tier_disallowed"
                 continue
@@ -607,8 +603,6 @@ def invoke(
             )
         elif tier == "litellm":
             text, meta = _call_litellm(prompt, metadata=md, timeout_sec=timeout_sec)
-        elif tier == "gemini":
-            text, meta = _call_gemini(prompt)
         elif tier == "rules":
             elapsed_ms = (time.perf_counter() - start) * 1000
             result = _rules_fallback(user_query or prompt[:200])

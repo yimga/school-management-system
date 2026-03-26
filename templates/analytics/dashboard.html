@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n static region_format %}
+{% load i18n static region_format phase8_tags %}
 
 {% block title %}Analytics Dashboard{% endblock %}
 
@@ -16,6 +16,7 @@
 {% endblock %}
 
 {% block content %}
+{% phase8_dashboard_declaration "analytics/dashboard.html" %}
 <div class="container-fluid py-2" data-page-archetype="role-home">
 {% if phase7_de %}
 {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}

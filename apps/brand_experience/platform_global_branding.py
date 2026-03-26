@@ -148,12 +148,12 @@ class PlatformGlobalBranding(models.Model):
         except (AttributeError, ImportError, TypeError, ValueError):
             pass
         try:
-            from apps.siteconfig.models import SiteSettings
+            from apps.platform_runtime.helpers import get_platform_site_settings_record
             from apps.platform_runtime.phase_b_domain_snapshots import (
                 sync_phase_b_domain_snapshots_from_site,
             )
 
-            site = SiteSettings.objects.order_by("pk").first()
+            site = get_platform_site_settings_record(create=False)
             if site is not None:
                 sync_phase_b_domain_snapshots_from_site(site)
         except (AttributeError, ImportError, TypeError, ValueError, DatabaseError):

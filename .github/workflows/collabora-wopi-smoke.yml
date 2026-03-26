@@ -1,0 +1,36 @@
+name: Collabora WOPI smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_base_url:
+        description: "App base URL (e.g. https://staging.runmycampus.com)"
+        required: true
+      collabora_base_url:
+        description: "Collabora base URL (e.g. https://collabora-staging.runmycampus.com)"
+        required: true
+      office_doc_id:
+        description: "Optional HostedOfficeDocument id"
+        required: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install requests
+        run: python -m pip install requests
+
+      - name: Run Collabora/WOPI smoke
+        env:
+          APP_BASE_URL: ${{ github.event.inputs.app_base_url }}
+          COLLABORA_BASE_URL: ${{ github.event.inputs.collabora_base_url }}
+          WOPI_OFFICE_DOC_ID: ${{ github.event.inputs.office_doc_id }}
+          APP_SESSION_COOKIE: ${{ secrets.APP_SESSION_COOKIE || '' }}
+        run: |
+          python scripts/verify_collabora_wopi_smoke.py             --app-base "$APP_BASE_URL"             --collabora-base "$COLLABORA_BASE_URL"             --office-doc-id "$WOPI_OFFICE_DOC_ID"             --session-cookie "$APP_SESSION_COOKIE"

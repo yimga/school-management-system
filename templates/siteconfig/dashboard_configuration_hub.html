@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static phase8_tags %}
 
 {% block title %}Dashboard Configuration Hub{% endblock %}
 
@@ -10,6 +10,7 @@
 
 {% block content %}
 <div class="container-fluid py-4 professional-page" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "siteconfig/dashboard_configuration_hub.html" %}
   <div class="card shadow-sm border-0">
     <div class="card-header bg-light border-bottom py-3 px-4">
       <h1 class="h5 mb-1 fw-semibold">Dashboard Configuration Hub</h1>

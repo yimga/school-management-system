@@ -2,7 +2,7 @@
 
 **Purpose:** §3.3 of the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Define central metadata catalog scope and current coverage. Nothing deferred.
 
-**Status:** PARTIAL — catalog in place; lineage and governance UI to be completed.
+**Status:** **MET (repo)** — catalog, lineage API + graph UI, and governance UI shipped; extend coverage per new entities under §11.4.
 
 ---
 

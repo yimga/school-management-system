@@ -71,9 +71,7 @@ def _workflow_progress(year):
     if not year:
         return {}
     try:
-        classrooms = Classroom.objects.filter(
-            academic_year=year, is_active=True
-        ).count()
+        classrooms = Classroom.objects.filter(academic_year=year).count()
         students = StudentProfile.objects.filter(
             academic_year=year, is_active=True
         ).count()

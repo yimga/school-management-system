@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n static phase8_tags %}
 
 {% block cp_title %}{% trans "Security & Trust" %}{% endblock %}
 
@@ -13,7 +13,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="decision-console">
+<div class="container-fluid py-2" data-page-archetype="decision-console" data-decision-engine="surface">
+{% phase8_dashboard_declaration "schools/super_trust_center.html" %}
   {% trans "Security & Trust" as page_title %}
   {% trans "MFA, sessions, admin activity, audit export, and integrations. §10.5.4 Trust product (TRUST_PRODUCT_SURFACES.md)." as page_subtitle %}
   {% trans "Open Compliance" as page_action %}
@@ -25,6 +26,16 @@
   </div>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
   {% include "schools/partials/beachhead_operator_checklist.html" %}
+  <div class="row g-3 mb-3">
+    <div class="col-lg-6">
+      {% url 'api:ai-trust-compliance-assistant' as api_ai_trust_cp %}
+      {% include "components/ai_guided_assistant_card.html" with api_url=api_ai_trust_cp card_title=_("Trust & compliance guided assistant") card_hint=_("MFA, audit export, API governance — high-level operator guidance. Not legal advice.") field_id="trustCenterAiQ" %}
+    </div>
+    <div class="col-lg-6">
+      {% url 'api:ai-policy-explain' as api_policy_explain %}
+      {% include "components/ai_json_api_card.html" with api_url=api_policy_explain card_title=_("Policy explain (JSON)") card_hint=_('POST {"query":"..."} or {"policy_text":"..."}. Returns explanation object and citations.') field_id="trustCenterPolicyJson" default_body='{"query":"Summarize retention and data minimization themes operators should communicate to schools"}' %}
+    </div>
+  </div>
   <div class="row g-3 mt-1" data-tour="cp-trust-cards">
     <div class="col-md-6 col-lg-4">
       <div class="card h-100 shadow-sm border-secondary">
@@ -86,8 +97,8 @@
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
           <h6 class="card-title"><span class="bi bi-geo-alt me-2" aria-hidden="true"></span>{% trans "Data residency & sovereignty" %}</h6>
-          <p class="card-text small text-secondary">{% trans "Where data lives; region-specific compliance (GDPR, FERPA). Region packs define default data residency per continent; see Geography." %}</p>
-          <span class="badge bg-secondary">{% trans "Docs" %}</span>
+          <p class="card-text small text-secondary">{% trans "Where data lives; region-specific compliance (GDPR, FERPA). Region packs define default data residency per continent." %}</p>
+          {% if geography_url %}<a href="{{ geography_url }}" class="btn btn-outline-primary btn-sm">{% trans "Geography & region packs" %}</a>{% else %}<span class="badge bg-secondary">{% trans "Docs" %}</span>{% endif %}
         </div>
       </div>
     </div>

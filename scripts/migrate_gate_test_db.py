@@ -40,22 +40,47 @@ if settings.DATABASES["default"]["ENGINE"] != "django.db.backends.sqlite3":
 
 # Point default DB at the gate test file so migrate runs against it
 settings.DATABASES["default"]["NAME"] = str(path)
+# Windows / parallel tools often hit transient "database is locked"; wait before failing.
+settings.DATABASES["default"].setdefault("OPTIONS", {}).setdefault("timeout", 60)
 
 django.setup()
 
 # This script is not invoked via `manage.py test`, so settings would otherwise
 # leave django.db at DEBUG when DEBUG=True — massive SQL spam and I/O slowdown.
 import logging
+import time
 
 for _name in ("django.db.backends", "django.db.backends.schema"):
     logging.getLogger(_name).setLevel(logging.WARNING)
 
 from django.core.management import call_command
+from django.db import connection, connections
+from django.db.utils import OperationalError
 
+# Reduce Windows SQLite lock contention vs DELETE journal (default for Django test DB files).
+connections.close_all()
 try:
-    call_command("migrate", "--run-syncdb", verbosity=1)
-except Exception as e:
-    print(f"migrate_gate_test_db: migrate failed: {e}", file=sys.stderr)
-    sys.exit(1)
-print("migrate_gate_test_db: gate test DB migrated.")
-sys.exit(0)
+    connection.ensure_connection()
+    with connection.cursor() as cursor:
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA busy_timeout=60000")
+finally:
+    connection.close()
+    connections.close_all()
+
+for attempt in range(8):
+    connections.close_all()
+    try:
+        call_command("migrate", "--run-syncdb", verbosity=1)
+        print("migrate_gate_test_db: gate test DB migrated.")
+        sys.exit(0)
+    except OperationalError as e:
+        msg = str(e).lower()
+        if "locked" in msg and attempt < 7:
+            time.sleep(1.5 + float(attempt))
+            continue
+        print(f"migrate_gate_test_db: migrate failed: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"migrate_gate_test_db: migrate failed: {e}", file=sys.stderr)
+        sys.exit(1)

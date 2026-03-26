@@ -5,7 +5,7 @@ RUNBOOK_ADMIN_TO_SUPER_MIGRATION final checklist. Requires superuser on manager 
 
 from django.core.cache import cache
 from django.test import TestCase, override_settings
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 from apps.accounts.models import User
 from apps.schools.super_admin_bridge_registry import (
@@ -185,30 +185,43 @@ class SuperConfigMigrationUrlTests(TestCase):
         r = self._get("super:admin_bridge", kwargs={"bridge_key": "no-such-bridge"})
         self.assertEqual(r.status_code, 404)
 
-    def test_legacy_admin_bridge_named_urls_match_canonical_target(self):
-        """Old ``super:admin_bridge_*`` names still resolve; same 302 target as slug route."""
-        legacy_pairs = (
-            ("super:admin_bridge_integrations", "integrations"),
-            ("super:admin_bridge_marketplace_apps", "marketplace_apps"),
-            ("super:admin_bridge_packages_installed", "packages_installed"),
-            ("super:admin_bridge_experience_packs", "experience_packs"),
-            ("super:admin_bridge_runtime_defaults", "runtime_defaults"),
-            ("super:admin_bridge_ai_model_registry", "ai_model_registry"),
-            ("super:admin_bridge_global_brand_registry", "global_brand_registry"),
+    def test_legacy_admin_bridge_paths_redirect_to_canonical_slug(self):
+        """Old pretty paths 301 to ``/super/admin-bridge/<bridge_key>/``; then 302 to admin."""
+        legacy = (
+            ("/super/admin-bridge/integrations-marketplace/", "integrations"),
+            ("/super/admin-bridge/marketplace-apps/", "marketplace_apps"),
+            ("/super/admin-bridge/packages/installed/", "packages_installed"),
+            ("/super/admin-bridge/packages/experience-packs/", "experience_packs"),
+            ("/super/admin-bridge/runtime-defaults/", "runtime_defaults"),
+            ("/super/admin-bridge/fleet-governed-changes/", "fleet_governed_changes"),
+            ("/super/admin-bridge/ai-model-registry/", "ai_model_registry"),
+            ("/super/admin-bridge/global-brand-registry/", "global_brand_registry"),
         )
-        for url_name, bridge_key in legacy_pairs:
-            with self.subTest(url_name=url_name):
-                legacy = self._get(url_name)
-                canonical = self._get(
+        for path, bridge_key in legacy:
+            with self.subTest(path=path):
+                r1 = self.client.get(path, HTTP_HOST=self.host)
+                self.assertEqual(r1.status_code, 301, path)
+                canonical = reverse(
                     "super:admin_bridge", kwargs={"bridge_key": bridge_key}
                 )
-                self.assertEqual(legacy.status_code, 302, url_name)
-                self.assertEqual(canonical.status_code, 302, bridge_key)
-                self.assertEqual(
-                    legacy.get("Location", ""),
-                    canonical.get("Location", ""),
-                    msg=f"{url_name} vs canonical {bridge_key}",
+                loc = r1.get("Location", "")
+                self.assertIn(
+                    canonical,
+                    loc,
+                    msg=f"Expected {canonical} in Location, got {loc!r}",
                 )
+                r2 = self.client.get(canonical, HTTP_HOST=self.host)
+                self.assertEqual(r2.status_code, 302, bridge_key)
+
+    def test_legacy_admin_bridge_named_urls_removed(self):
+        """``super:admin_bridge_*`` URL names were dropped; use ``super:admin_bridge`` + kwargs."""
+        for name in (
+            "super:admin_bridge_integrations",
+            "super:admin_bridge_fleet_governed_changes",
+        ):
+            with self.subTest(name=name):
+                with self.assertRaises(NoReverseMatch):
+                    reverse(name)
 
     def test_super_config_crud_forms_get_200(self):
         """Platform catalog CRUD in super (not platform /admin/)."""

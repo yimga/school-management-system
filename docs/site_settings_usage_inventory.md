@@ -57,7 +57,7 @@ Classification from `apps/siteconfig/domain_ownership.py`. Each field should mov
 
 | Owner | Fields (examples) |
 |-------|-------------------|
-| safe_platform_default | maintenance_mode, cache_rankings_interval_minutes |
+| safe_platform_default | maintenance_mode (column on `SiteSettings`); `cache_rankings_interval_minutes` stored on `RuntimeDefaults` column + resolver (logical owner unchanged in `domain_ownership`) |
 | brand_experience | site_name, tagline, meta_description, primary_color, theme_pack, admin_theme_pack, favicon, custom_css, ... |
 | runtime_blueprints | admin_portal_stats_config, default_widgets_per_role, school_code, admission_number_* |
 | policies_rules | backend_feature_flags, portal_features, grade_approval_enabled, require_mfa_*, ... |

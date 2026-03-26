@@ -8,6 +8,8 @@ entitlement/plan gate -> tenant override -> sandbox/preview override
 
 from __future__ import annotations
 
+from typing import Any
+
 PRECEDENCE_ORDER = [
     "platform_default",
     "registry_default",

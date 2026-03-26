@@ -1,13 +1,24 @@
-{% extends "admin/base_site.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
-{% block title %}Upgrade progress{% endblock %}
-{% block content %}
-<div class="container-fluid" data-page-archetype="operational-workbench">
+
+{% block cp_title %}{% trans "Upgrade progress" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Upgrade progress" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
   {% include "studio_os/components/page_header.html" with title=_("Global AI upgrade progress") subtitle=_("Upgrade run in progress. Run ID below.") action_url=dashboard_url action_text=_("Back to dashboard") %}
   <div class="card shadow-sm">
     <div class="card-body">
-      <p id="progress-text">Loading…</p>
-      <p class="small text-muted">Run ID: {{ run_id }}</p>
+      <p id="progress-text">{% trans "Loading…" %}</p>
+      <p class="small text-muted">{% trans "Run ID:" %} {{ run_id }}</p>
     </div>
   </div>
   <script>

@@ -11,7 +11,7 @@
 | SOT ref | Item | N/A |
 |---------|------|-----|
 | §6.1 | Migrate ownership | DONE — next batch in domain_ownership §5; incremental. |
-| §6.1 | Delete legacy behavior paths | DONE — ensure_superadmin removed; LEGACY_PATH_INVENTORY + SUBTRACTIVE_CLEANUP. |
+| §6.1 | Delete legacy behavior paths | DONE — LEGACY_PATH_INVENTORY + SUBTRACTIVE_CLEANUP; `ensure_superadmin` = thin alias to `ensure_superuser` (inventory §2). |
 | §6.1 | Replace giant admin pages with bounded consoles | DONE — Configuration Control Center console (studio_os:system_config_console) + Control rail. |
 | §6.2 | Enforce runtime everywhere | DONE — lint_tenant_settings pass; runtime-only in tenant paths. |
 | §6.2 | Add runtime tracing | DONE — runtime_resolution_complete in runtime_resolver (DEBUG log). |

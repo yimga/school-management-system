@@ -6,17 +6,7 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/report-card-print.css' %}">
-<style>
-  .results-page { max-width: 56rem; margin: 0 auto; }
-  .results-actions { gap: 0.5rem; flex-wrap: wrap; }
-  .results-student-card { border-left: 4px solid var(--school-primary, #0d6efd); }
-  .results-summary-card { height: 100%; border-radius: 8px; }
-  .results-table-card { border-radius: 8px; overflow: hidden; }
-  @media (max-width: 576px) {
-    .results-actions .btn-group { width: 100%; }
-    .results-actions .dropdown-menu { position: static; width: 100%; }
-  }
-</style>
+
 {% endblock %}
 
 {% block content %}

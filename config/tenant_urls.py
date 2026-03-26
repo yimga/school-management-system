@@ -165,6 +165,8 @@ handler500 = server_error
 urlpatterns = [
     path("", home, name="home"),
     path("favicon.ico", favicon_redirect),
+    # Before path("admin/", …) so legacy customizer hits Studio OS (Phase 5).
+    path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
     path("admin/", tenant_admin_site.urls),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
@@ -212,7 +214,6 @@ urlpatterns = [
     path("api/ai-copilot/limits/", ai_copilot_limits, name="ai_copilot_limits"),
     path("api/ai-copilot/config/", ai_copilot_config, name="ai_copilot_config"),
     path("api/ai-copilot/audit/", ai_copilot_audit_feed, name="ai_copilot_audit"),
-    path("admin/siteconfig/customizer/", admin_siteconfig_customizer_redirect),
     path("siteconfig/customizer/", legacy_siteconfig_customizer_redirect),
     path("siteconfig/workflow-hub/", legacy_workflow_hub_redirect),
     path("siteconfig/report-library/", legacy_report_library_redirect),

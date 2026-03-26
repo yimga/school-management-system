@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n static %}
+{% load i18n static phase8_tags %}
 
 {% block cp_title %}{% trans "Runtime truth hub" %}{% endblock %}
 
@@ -13,7 +13,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+{% phase8_dashboard_declaration "schools/super_runtime_truth_hub.html" %}
   {% include "studio_os/components/page_header.html" with title="Runtime truth hub" subtitle="Read-only view of platform RuntimeDefaults.payload and the slim SiteSettings singleton (Phase B bridge)." action_url=dashboard_url action_text="Back to dashboard" %}
 
   <div class="alert alert-secondary border-0 shadow-sm mb-3" role="note">

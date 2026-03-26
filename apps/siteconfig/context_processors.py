@@ -718,6 +718,16 @@ def site_settings(request):
         ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
         ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
         ctx["PINNED_CONTROL_PLANE_IDS"] = set()
+        try:
+            from apps.accounts.permissions import tenant_operator_hub_eligible
+            from apps.schools.control_plane_nav import build_tenant_operator_primary_nav
+
+            if tenant_operator_hub_eligible(getattr(request, "user", None)):
+                ctx["PRIMARY_CONTROL_PLANE_NAV"] = build_tenant_operator_primary_nav(
+                    request
+                )
+        except OPTIONAL_CONTEXT_ERRORS:
+            ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
     ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"
     ctx["PUBLIC_BRAND_DOMAIN"] = "runmycampus.com"
     ctx["PUBLIC_BRAND_TAGLINE"] = (
@@ -731,10 +741,20 @@ def site_settings(request):
         from apps.platform_runtime.models import RuntimeDefaults
 
         rd = RuntimeDefaults.get_singleton()
-        payload = (getattr(rd, "payload", None) or {}) if rd else {}
-        if isinstance(payload, dict):
-            _primary = str(payload.get("public_brand_primary_color") or "").strip()
-            _accent = str(payload.get("public_brand_accent_color") or "").strip()
+        if rd is not None:
+            _primary = str(getattr(rd, "public_brand_primary_color", None) or "").strip()
+            _accent = str(getattr(rd, "public_brand_accent_color", None) or "").strip()
+            if not _primary or not _accent:
+                payload = getattr(rd, "payload", None) or {}
+                if isinstance(payload, dict):
+                    if not _primary:
+                        _primary = str(
+                            payload.get("public_brand_primary_color") or ""
+                        ).strip()
+                    if not _accent:
+                        _accent = str(
+                            payload.get("public_brand_accent_color") or ""
+                        ).strip()
     except OPTIONAL_CONTEXT_ERRORS:
         pass
     ctx["PUBLIC_BRAND_PRIMARY_COLOR"] = _primary or os.getenv(

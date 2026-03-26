@@ -1,0 +1,76 @@
+# Ollama — operations, updates, and patching
+
+RunMyCampus **in-product chat** (`general_chat` / copilot / WebSocket) uses **Ollama** (self-hosted) and **rules** fallback only. This document is the operator workflow for keeping that stack current and safe.
+
+## What you configure
+
+| Variable | Role |
+|----------|------|
+| `OLLAMA_ENDPOINT` | Base URL for Ollama’s generate API (default in code: `http://localhost:11434/api/generate`). |
+| `OLLAMA_MODEL` | Tag pulled in Ollama (default in code: `llama3`). |
+| `AI_GATEWAY_ENABLED` | Default `1` — keep on so all AI goes through `services.ai_gateway`. |
+| `AI_PROVIDER_PREFERENCE` | Default `ollama,rules`. Legacy token `gemini` is **ignored**. |
+
+Optional: `AI_GATEWAY_TASK_TIERS` overrides per-task backends; do **not** add `gemini` (removed from product).
+
+### Open-source posture (product defaults)
+
+- **Required inference for in-product chat:** self-hosted **Ollama** (+ deterministic **rules** fallback). Do not route required school workflows through closed SaaS APIs unless you have an explicit compliance exception.
+- **Embeddings:** prefer `AI_EMBEDDING_BACKEND=ollama` and open models (e.g. `nomic-embed-text`). `openai_compatible` is optional for self-hosted OpenAI-compatible endpoints only.
+- **Optional tiers** (`vllm`, `litellm` in `AI_GATEWAY_TASK_TIERS`): use **self-hosted** endpoints you control; avoid sending regulated payloads to third-party clouds without review.
+- **Scheduled RAG re-indexing** (embedding store; typically **Ollama** embeddings when `AI_EMBEDDING_BACKEND=ollama`): opt-in Celery beat **`ENABLE_AI_KNOWLEDGE_INDEX_BEAT`** and task **`siteconfig.index_ai_knowledge_beat`** — see [architecture/ai_orchestration.md](architecture/ai_orchestration.md).
+- **AI quality scorecards:** opt-in beat **`ENABLE_AI_QUALITY_SCORECARD_BEAT`** runs `aggregate_ai_metrics` and `ai_quality_scorecard` weekly for task-level acceptance/manual-correction/schema-fail rates.
+
+## Automated model pulls (guarded)
+
+The management command **`sync_ollama_models`** runs `ollama pull` for:
+
+- `OLLAMA_MODEL` (chat),
+- `AI_EMBEDDING_OLLAMA_MODEL` when `AI_EMBEDDING_BACKEND` is `ollama` (default),
+- comma-separated `OLLAMA_SYNC_EXTRA_MODELS`,
+- and, if enabled, active rows in **`AIModelRegistry`** (`--include-registry` or `OLLAMA_SYNC_INCLUDE_REGISTRY=1`).
+
+Model names are **allowlisted** (alphanumeric plus safe punctuation for Ollama library IDs); anything else is skipped. The subprocess uses a **fixed argv** (no shell), with **`OLLAMA_PULL_TIMEOUT_SECONDS`** (default 3600, clamped 60–86400 in settings).
+
+**Manual:** `python manage.py sync_ollama_models --dry-run` then without `--dry-run`.
+
+**Celery Beat (opt-in):** set `ENABLE_OLLAMA_MODEL_SYNC_BEAT=1` on the environment that runs **both** beat and a worker **on a host that has the Ollama CLI** (same machine as Ollama, or your ops pattern). Schedule: **weekly** (604800s). Registry inclusion follows `OLLAMA_SYNC_INCLUDE_REGISTRY`.
+
+| Variable | Role |
+|----------|------|
+| `ENABLE_OLLAMA_MODEL_SYNC_BEAT` | `1` / `true` / `yes` adds the weekly beat entry. |
+| `OLLAMA_CLI_PATH` | Path to `ollama` binary (default `ollama`). |
+| `OLLAMA_PULL_TIMEOUT_SECONDS` | Per-pull timeout (seconds). |
+| `OLLAMA_SYNC_EXTRA_MODELS` | Extra models to pull, comma-separated. |
+| `OLLAMA_SYNC_INCLUDE_REGISTRY` | If `1`, include `AIModelRegistry` active `model_id` values. |
+
+**Container image digest:** workflow [ollama-image-digest-weekly.yml](../.github/workflows/ollama-image-digest-weekly.yml) logs `ollama/ollama:latest` **RepoDigest** weekly for operators who pin images.
+
+## Keeping Ollama updated
+
+1. **Ollama server**
+   - Follow [Ollama release notes](https://github.com/ollama/ollama/releases) for your OS/package manager.
+   - In production: pin a **known-good** Ollama version in your image or package manifest; upgrade on a **schedule** (e.g. monthly) after reading release notes.
+
+2. **Model weights**
+   - `ollama pull <OLLAMA_MODEL>` after you change `OLLAMA_MODEL` or when upstream publishes security/critical fixes for that tag.
+   - Prefer **immutable tags** (e.g. manifest digest or explicit version) in serious deployments; avoid floating `latest` for production without a rollback plan.
+
+3. **RunMyCampus app**
+   - This repo controls **routing and prompts**, not Ollama binaries. Ship app updates via your normal **CI + `pre_deploy_gate.sh`** process.
+
+## Verification
+
+- Health: from the app host, `curl` your `OLLAMA_ENDPOINT` or use Ollama’s own health patterns; confirm copilot returns model text when Ollama is up.
+- Degraded: stop Ollama briefly — UI should fall back to **rules** (if `AI_ALLOW_RULES_FALLBACK` is true), not 500.
+- Code policy: there is **no** `GEMINI_API_KEY` or `_call_gemini` in `apps/` / `services/` for chat; optional `rg -i "generativelanguage\\.googleapis"` should find no app references.
+
+## Security notes
+
+- Do **not** expose Ollama to the public internet without authentication; bind to internal network or use your platform’s API layer only.
+- Chat prompts may contain sensitive school context; keeping inference **on-prem** (Ollama) aligns with the internal-first data tier in `docs/architecture/ai_orchestration.md`.
+
+## Related docs
+
+- [architecture/ai_orchestration.md](architecture/ai_orchestration.md) — gateway, tiers, PII / premium rules.
+- [AI_GATEWAY_AND_CAPABILITY_FLAGS.md](AI_GATEWAY_AND_CAPABILITY_FLAGS.md) — capability flags and template safety.

@@ -31,19 +31,10 @@
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
-    <style>
-      :root {
-        --school-primary: #0B0E14;
-        --school-accent: #d4af37;
-        --platform-navy: #0B0E14;
-        --platform-gold: #d4af37;
-      }
-    </style>
-    <style>
-      /* Keep all content in frame: no horizontal spill (same contract as base.html). */
-      html, body { overflow-x: clip; }
-      body .container, body main, body [role="main"] { max-width: 100%; min-width: 0; }
-    </style>
+    {# Phase H: overflow containment for this shell is enforced in control-plane-skeleton-root.css (overflow-x: clip on html/body). #}
+    <link rel="stylesheet" href="{% static 'css/control-plane-skeleton-root.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
   <body class="control-plane-shell cp-surface">

@@ -2,7 +2,7 @@
 
 **Purpose:** §3.3 "Add lineage/dependency graph" in the [embedded remediation plan](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md).
 
-**Status:** PARTIAL — usage registry and package lineage exist; **unified lineage API** at `/api/internal/metadata/lineage/`; **lineage graph UI** at `/api/internal/metadata/lineage/graph/` (form, downstream table, blast radius, packages, SVG graph).
+**Status:** **MET (repo baseline)** — usage registry, pack lineage, **unified lineage API** at `/api/internal/metadata/lineage/`, **lineage graph UI** at `/api/internal/metadata/lineage/graph/` (form, downstream table, blast radius, packages, SVG graph), governance UI. **N/A (continuous)** — automatic lineage on every new surface on day one = §11.4 product cadence, not an open spine **PARTIAL** row vs §12.
 
 ---
 

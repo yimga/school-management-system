@@ -10,6 +10,10 @@ from django.db import DatabaseError, OperationalError
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
+from apps.dashboard.decision_surface_context import (
+    build_backend_dashboard_phase7_de,
+    build_role_home_declaration,
+)
 from apps.dashboard.role_home_engine import select_kpis_for_intent
 from apps.dashboard.services.role_home_service import build_role_home_context
 from apps.platform_runtime.helpers import (
@@ -891,6 +895,17 @@ def build_dashboard_extras(
         "recent_count": len(dashboard_recent_activity),
     }
 
+    phase7_de = build_backend_dashboard_phase7_de(
+        role_home=role_home,
+        kpi_strip_cards=kpi_strip_cards,
+        dashboard_priority_queue=dashboard_priority_queue,
+        dashboard_next_best_actions=dashboard_next_best_actions,
+        role_home_primary_action=role_home_primary_action,
+        role_home_supporting_actions=role_home_supporting_actions,
+        dashboard_recent_activity=dashboard_recent_activity,
+    )
+    role_home_declaration = build_role_home_declaration(role_home)
+
     operations_watch = operations_watch[:max_items]
     quick_links = quick_links[:max_items]
     welcome_action_grid = welcome_action_grid[: max(6, max_items + 2)]
@@ -931,4 +946,6 @@ def build_dashboard_extras(
         "dashboard_recent_activity": dashboard_recent_activity,
         "dashboard_next_best_actions": dashboard_next_best_actions,
         "dashboard_contract": dashboard_contract,
+        "phase7_de": phase7_de,
+        "role_home_declaration": role_home_declaration,
     }

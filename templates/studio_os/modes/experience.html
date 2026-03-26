@@ -8,8 +8,9 @@
 
 {% block studio_canvas %}
   {% if use_experience_in_page and form %}
-  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
-    <nav class="studio-os__experience-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Experience' %}" style="width: min(12.5rem, 100%); min-width: 0;">
+  {# Phase 5: three-pane workbench inside canvas — section rail | theme editor | related native tools #}
+  <div class="studio-os__experience-workbench{% if not experience_context_tool_links %} studio-os__experience-workbench--two-col{% endif %}">
+    <nav class="studio-os__experience-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Experience sections' %}" style="width: min(12.5rem, 100%); min-width: 0;">
       <div class="studio-os__card py-2 mb-2">
         <div class="h6 mb-1">{% trans "Brand identity" %}</div>
         <ul class="list-unstyled small mb-0">
@@ -42,12 +43,13 @@
       </div>
       {% endif %}
     </nav>
-    <div class="flex-grow-1 min-w-0">
+    <div class="studio-os__experience-primary min-w-0">
       {% include "siteconfig/partials/theme_colors_content.html" %}
     </div>
+    {% include "studio_os/partials/experience_workbench_context.html" %}
   </div>
   {% elif experience_left_rail %}
-  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__experience-wrap">
+  <div class="studio-os__experience-workbench studio-os__experience-wrap{% if not experience_context_tool_links %} studio-os__experience-workbench--two-col{% endif %}">
     <nav class="studio-os__experience-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Experience' %}" style="width: min(12.5rem, 100%); min-width: 0;">
       <div class="studio-os__card py-2">
         <div class="h6 mb-2">{% trans "Experience" %}</div>
@@ -62,10 +64,11 @@
         <p class="small text-muted mt-2 mb-0">{% trans "Theme, customizer, and school theme." %}</p>
       </div>
     </nav>
-    <div class="flex-grow-1 min-w-0">
+    <div class="studio-os__experience-primary flex-grow-1 min-w-0">
       <iframe id="studio-experience-iframe" class="studio-os-iframe" title="{% trans 'Experience' %}"
               src="{{ experience_left_rail.0.url }}"></iframe>
     </div>
+    {% include "studio_os/partials/experience_workbench_context.html" %}
   </div>
   <script>
   (function() {

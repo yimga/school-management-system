@@ -1479,6 +1479,241 @@ def api_control_plane_intelligence(request):
         )
 
 
+def _runtime_snapshot_context(request) -> str:
+    school = getattr(request, "school", None)
+    if not school:
+        return (
+            "No tenant school on this request. Explain RunMyCampus runtime precedence "
+            "(global → region → tenant packs → feature flags) without inventing this tenant's values."
+        )
+    try:
+        from apps.platform_runtime.helpers import get_effective_flags_for_school
+
+        flags = get_effective_flags_for_school(school) or {}
+        keys = sorted(str(k) for k in flags.keys())[:60]
+        return (
+            f"Tenant id (opaque): {getattr(school, 'pk', '')}. "
+            f"Sample effective feature-flag keys (names only): {', '.join(keys) or 'none'}."
+        )
+    except OPTIONAL_GATEWAY_ERRORS:
+        return "Runtime snapshot unavailable; explain precedence conceptually only."
+
+
+def _append_json_snapshot(context_block: str, snapshot: Any, *, label: str) -> str:
+    if snapshot is None:
+        return context_block
+    try:
+        blob = json.dumps(snapshot, default=str)[:3500]
+    except (TypeError, ValueError):
+        blob = str(snapshot)[:3500]
+    return f"{context_block}\n{label}: {blob}"
+
+
+def _api_guided_domain_assistant(
+    request,
+    *,
+    task_type: Any,
+    audit_feature: str,
+    prompt_key: str,
+    context_block: str,
+) -> JsonResponse:
+    from services.ai_permissions import get_ai_permission_for_user
+
+    rate_err = _gateway_rate_limit(request)
+    if rate_err:
+        return rate_err
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+    query = (body.get("query") or "").strip()[:2000]
+    if not query:
+        return JsonResponse({"success": False, "error": "query required"}, status=400)
+    task_key = (
+        task_type.value if hasattr(task_type, "value") else str(task_type or "")
+    )
+    school = getattr(request, "school", None)
+    if not get_ai_permission_for_user(request.user, task_key, school):
+        return _gateway_permission_denied_response(
+            {"outcome": "permission_denied", "error": "AI permission denied for this task"}
+        )
+    ctx = context_block
+    if audit_feature == "studio_os_assistant":
+        mode = str(body.get("studio_mode") or "").strip()[:64]
+        ctx = f"{ctx}\nUser studio_mode hint: {mode or 'unknown'}."
+    ctx = _append_json_snapshot(
+        ctx,
+        body.get("context_snapshot"),
+        label="Optional user-supplied snapshot (must not contain secrets)",
+    )
+    prompt = (
+        get_prompt_template(
+            prompt_key,
+            {"query": query, "context_block": ctx},
+        )
+        or ""
+    ).strip() or (
+        "You are a precise product assistant. Use CONTEXT for facts; do not invent URLs or secrets.\n\n"
+        "Respond with JSON only:\n"
+        '{"summary": "string", "actions": [{"title": "string", "detail": "string"}], '
+        '"cautions": ["string"], "references": ["string"]}\n\n'
+        f"CONTEXT:\n{ctx}\n\nQUESTION:\n{query}\n"
+    )
+    try:
+        result, meta = _gateway_response(
+            request,
+            task_type,
+            prompt,
+            user_query=query,
+            response_schema="guided_assistant",
+        )
+        if meta.get("outcome") == "permission_denied":
+            return _gateway_permission_denied_response(meta)
+        if meta.get("budget_exceeded"):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "AI request budget exceeded for this tenant.",
+                    "meta": meta,
+                },
+                status=429,
+            )
+        _log_gateway_audit(request, audit_feature, str(task_type), "success", meta)
+        out = result if isinstance(result, dict) else {}
+        return JsonResponse(
+            {
+                "success": True,
+                "guided": {
+                    "summary": out.get("summary", ""),
+                    "actions": out.get("actions", []),
+                    "cautions": out.get("cautions", []),
+                    "references": out.get("references", []),
+                },
+                "meta": meta,
+            }
+        )
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(
+            request,
+            f"portal.views_ai_gateway: {audit_feature} failed",
+            extra={"error": str(e)},
+        )
+        _log_gateway_audit(
+            request, audit_feature, str(task_type), "error", {"error": str(e)[:200]}
+        )
+        return JsonResponse({"success": False, "error": "Service unavailable"}, status=503)
+
+
+# --- Domain-guided assistants (Studio, interop, runtime, observability, billing, trust) ---
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+@login_required
+def api_interop_assistant(request):
+    """POST: { query, context_snapshot? } → structured guidance for district/LMS interop (no secret echo)."""
+    ctx = (
+        "Grounding: Tenant District & LMS interop hub lives at /authentication/backend/district-lms-interop/. "
+        "OneRoster consumer API: /api/oneroster/v1p1/ with school_slug. Readiness: /api/interop/oneroster/, "
+        "/api/interop/lti13/. Clever/ClassLink native HTTP uses district-provisioned bearer tokens only via hub forms; "
+        "never ask users to paste tokens into chat."
+    )
+    return _api_guided_domain_assistant(
+        request,
+        task_type=TaskType.INTEROP_ASSISTANT,
+        audit_feature="interop_assistant",
+        prompt_key="interop_assistant",
+        context_block=ctx,
+    )
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+@login_required
+def api_runtime_config_explain(request):
+    """POST: { query, context_snapshot? } → structured guidance using effective-flag key sample when tenant bound."""
+    ctx = _runtime_snapshot_context(request)
+    return _api_guided_domain_assistant(
+        request,
+        task_type=TaskType.RUNTIME_CONFIG_EXPLAIN,
+        audit_feature="runtime_config_explain",
+        prompt_key="runtime_config_explain",
+        context_block=ctx,
+    )
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+@login_required
+def api_observability_assistant(request):
+    """POST: { query, context_snapshot? } → SLO/runbook-style guidance for operators (staff/superuser)."""
+    ctx = (
+        "Audience: platform operators. Prefer citing internal routes: /api/observability/slo-dashboard/, "
+        "/api/health/, /metrics/, PlatformEventLog patterns. Do not fabricate incident IDs."
+    )
+    return _api_guided_domain_assistant(
+        request,
+        task_type=TaskType.OBSERVABILITY_ASSISTANT,
+        audit_feature="observability_assistant",
+        prompt_key="observability_assistant",
+        context_block=ctx,
+    )
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+@login_required
+def api_billing_usage_explain(request):
+    """POST: { query, context_snapshot? } → billing/SKU/usage explanations; finance or staff only."""
+    ctx = (
+        "Explain entitlements, usage meters, and plan concepts. Do not output card numbers or full invoice lines. "
+        "If context_snapshot includes aggregates only, reference them cautiously."
+    )
+    return _api_guided_domain_assistant(
+        request,
+        task_type=TaskType.BILLING_USAGE_EXPLAIN,
+        audit_feature="billing_usage_explain",
+        prompt_key="billing_usage_explain",
+        context_block=ctx,
+    )
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+@login_required
+def api_trust_compliance_assistant(request):
+    """POST: { query, context_snapshot? } → trust center / compliance checklist style guidance (staff)."""
+    ctx = (
+        "Ground with published trust and compliance docs only; remind that AI text is not legal advice. "
+        "Reference FERPA/GDPR themes at high level; point operators to trust center pages for canonical wording."
+    )
+    return _api_guided_domain_assistant(
+        request,
+        task_type=TaskType.TRUST_COMPLIANCE_ASSISTANT,
+        audit_feature="trust_compliance_assistant",
+        prompt_key="trust_compliance_assistant",
+        context_block=ctx,
+    )
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+@login_required
+def api_studio_os_assistant(request):
+    """POST: { query, context_snapshot?, studio_mode? } → next steps across Studio OS modes (preview/apply still manual)."""
+    ctx = (
+        "Studio OS modes: experience, automation, output, launch, control. "
+        "Recommend verify → preview → publish/rollback; packages/engine apply is authoritative."
+    )
+    return _api_guided_domain_assistant(
+        request,
+        task_type=TaskType.STUDIO_OS_ASSISTANT,
+        audit_feature="studio_os_assistant",
+        prompt_key="studio_os_assistant",
+        context_block=ctx,
+    )
+
+
 @require_http_methods(["POST"])
 @csrf_protect
 @login_required

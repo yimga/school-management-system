@@ -176,6 +176,7 @@
                         <p class="card-text mb-0 opacity-90 small">Check our FAQ for commonly asked questions.</p>
                     </div>
                     <a href="{% url 'kb:faq_list' %}" class="btn btn-light"><i class="bi bi-arrow-right"></i> View FAQ</a>
+                    {% if user.is_authenticated %}<a href="{% url 'kb:office_document_list' %}" class="btn btn-outline-light"><i class="bi bi-file-earmark-richtext"></i> Office Docs</a>{% endif %}
                 </div>
             </div>
         </div>

@@ -1,0 +1,19 @@
+{% load i18n static %}
+<div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <div class="studio-os__card py-3 px-3">
+    {% if impact_summary %}
+    <p class="mb-2 text-muted">{{ impact_summary }}</p>
+    {% else %}
+    <p class="mb-2 text-muted">{% trans "Review feature toggles and runtime state before publishing. Use Runtime inspector for impact and source tracing." %}</p>
+    {% endif %}
+    {% if dependency_warnings %}
+    <ul class="small mb-0">
+      {% for w in dependency_warnings %}
+      <li>{{ w.label|default:w.key }}: {{ w.detail|default:"" }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <p class="small mb-0 mt-2"><a href="{% url 'super:runtime_inspector' %}">{% trans "Open Runtime inspector" %}</a></p>
+  </div>
+</div>

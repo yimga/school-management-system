@@ -19,6 +19,11 @@ class ControlPlaneA11yBaselineTests(SimpleTestCase):
         self.assertIn("<h1", text)
         self.assertIn("bridge_manifest_path", text)
 
+    def test_backlog_unlock_center_uses_control_plane_base(self):
+        text = self._read("templates", "schools", "super_backlog_unlock_center.html")
+        self.assertIn("control_plane_base.html", text)
+        self.assertIn('data-page-archetype="operational-workbench"', text)
+
     def test_platform_operator_hub_uses_control_plane_base(self):
         text = self._read("templates", "schools", "super_platform_operator_hub.html")
         self.assertIn('extends "control_plane_base.html"', text)
