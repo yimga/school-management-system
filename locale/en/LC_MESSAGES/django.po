@@ -13697,3 +13697,201 @@ msgstr ""
 "platform_runtime.PlatformPhaseBDomainSnapshot — owned JSON per domain "
 "(policies, marketplace_integrations, metadata_governance, …). Prefer this "
 "over bulk SiteSettings for cross-domain coordination."
+
+msgid "Configuration hub"
+msgstr "Configuration hub"
+
+msgid "Dashboard configuration"
+msgstr "Dashboard configuration"
+
+msgid "End-user preferences and layout tools live outside this admin form."
+msgstr "End-user preferences and layout tools live outside this admin form."
+
+msgid ""
+"Guided workflows live outside this form. Use this page when you need every "
+"advanced field."
+msgstr ""
+"Guided workflows live outside this form. Use this page when you need every "
+"advanced field."
+
+msgid "Product control plane"
+msgstr "Product control plane"
+
+msgid "Report builder"
+msgstr "Report builder"
+
+msgid ""
+"Report styling workflows live outside this form. Use this page for every "
+"advanced field."
+msgstr ""
+"Report styling workflows live outside this form. Use this page for every "
+"advanced field."
+
+msgid "Studio · Dashboard visual packs"
+msgstr "Studio · Dashboard visual packs"
+
+msgid "Studio · Output"
+msgstr "Studio · Output"
+
+msgid ""
+"Toggle and audit integrations from feature control and the API Center; use "
+"this form for raw fields."
+msgstr ""
+"Toggle and audit integrations from feature control and the API Center; use "
+"this form for raw fields."
+
+msgid "User preferences"
+msgstr "User preferences"
+
+msgid ""
+"Widget catalog is editable here; guided layout and packs live in the "
+"dashboard hubs and Studio."
+msgstr ""
+"Widget catalog is editable here; guided layout and packs live in the "
+"dashboard hubs and Studio."
+
+msgid "Studio — unified experience, automation, and outputs workspace"
+msgstr "Studio — unified experience, automation, and outputs workspace"
+
+msgid "All domains match stored snapshots."
+msgstr "All domains match stored snapshots."
+
+msgid "Compare Phase B snapshot rows to live ownership slices:"
+msgstr "Compare Phase B snapshot rows to live ownership slices:"
+
+msgid "In sync"
+msgstr "In sync"
+
+msgid ""
+"In sync means canonical JSON fingerprint matches. If drift appears after "
+"SiteSettings.save, run sync or open"
+msgstr ""
+"In sync means canonical JSON fingerprint matches. If drift appears after "
+"SiteSettings.save, run sync or open"
+
+msgid "Live keys"
+msgstr "Live keys"
+
+msgid "No textual diff (payloads are identical)."
+msgstr "No textual diff (payloads are identical)."
+
+msgid "One domain is out of sync.{% plural %}{{ c }} domains are out of sync."
+msgstr ""
+"One domain is out of sync.{% plural %}{{ c }} domains are out of sync."
+
+msgid "Phase B snapshot diff"
+msgstr "Phase B snapshot diff"
+
+msgid "Phase B snapshots (admin)"
+msgstr "Phase B snapshots (admin)"
+
+msgid "Snapshot updated"
+msgstr "Snapshot updated"
+
+msgid "Stored keys"
+msgstr "Stored keys"
+
+msgid "Typed index"
+msgstr "Typed index"
+
+msgid "Unified diff"
+msgstr "Unified diff"
+
+msgid "Unified diff: {{ d }}"
+msgstr "Unified diff: {{ d }}"
+
+msgid ""
+"platform_runtime.PlatformPhaseBDomainSnapshot — owned JSON per domain "
+"(policies, marketplace_integrations, metadata_governance, …). Control-plane "
+"diff: super:phase_b_snapshot_diff (live owned_payload vs materialized "
+"checksum)."
+msgstr ""
+"platform_runtime.PlatformPhaseBDomainSnapshot — owned JSON per domain "
+"(policies, marketplace_integrations, metadata_governance, …). Control-plane "
+"diff: super:phase_b_snapshot_diff (live owned_payload vs materialized "
+"checksum)."
+
+msgid "Changed keys"
+msgstr "Changed keys"
+
+msgid ""
+"In sync means whole-row canonical JSON fingerprint matches. Key-level table "
+"shows top-level fields that differ. If drift appears after "
+"SiteSettings.save, use the button above or open"
+msgstr ""
+"In sync means whole-row canonical JSON fingerprint matches. Key-level table "
+"shows top-level fields that differ. If drift appears after "
+"SiteSettings.save, use the button above or open"
+
+msgid "Key diff & unified diff"
+msgstr "Key diff & unified diff"
+
+msgid "Key-level drift: {{ d }}"
+msgstr "Key-level drift: {{ d }}"
+
+msgid "No platform SiteSettings row; nothing to sync."
+msgstr "No platform SiteSettings row; nothing to sync."
+
+msgid "Only on live"
+msgstr "Only on live"
+
+msgid "Only on snapshot row"
+msgstr "Only on snapshot row"
+
+msgid "Re-materialize all snapshots from live SiteSettings"
+msgstr "Re-materialize all snapshots from live SiteSettings"
+
+msgid "Re-materialized all Phase B domain snapshots from live SiteSettings."
+msgstr "Re-materialized all Phase B domain snapshots from live SiteSettings."
+
+msgid "Same key, different value"
+msgstr "Same key, different value"
+
+msgid ""
+"Top-level payload keys only (nested structures compared by canonical JSON "
+"fingerprint per key)."
+msgstr ""
+"Top-level payload keys only (nested structures compared by canonical JSON "
+"fingerprint per key)."
+
+msgid ""
+"platform_runtime.PlatformPhaseBDomainSnapshot — owned JSON per domain "
+"(policies, marketplace_integrations, metadata_governance, …). Use the "
+"control-plane “Phase B snapshot diff” page to compare live owned_payload "
+"fingerprints to stored rows."
+msgstr ""
+"platform_runtime.PlatformPhaseBDomainSnapshot — owned JSON per domain "
+"(policies, marketplace_integrations, metadata_governance, …). Use the "
+"control-plane “Phase B snapshot diff” page to compare live owned_payload "
+"fingerprints to stored rows."
+
+msgid "Announcements inbox"
+msgstr "Announcements inbox"
+
+msgid "Backend console"
+msgstr "Backend console"
+
+msgid ""
+"Communication workflows (approvals, feeds) live outside this legacy form."
+msgstr ""
+"Communication workflows (approvals, feeds) live outside this legacy form."
+
+msgid ""
+"Document library and portal packs are managed from product UIs; use this "
+"form for edge cases."
+msgstr ""
+"Document library and portal packs are managed from product UIs; use this "
+"form for edge cases."
+
+msgid "Governance and console workflows live outside this form."
+msgstr "Governance and console workflows live outside this form."
+
+msgid "Knowledge base"
+msgstr "Knowledge base"
+
+msgid ""
+"Policies and trust content are easier to validate from product surfaces when"
+" available."
+msgstr ""
+"Policies and trust content are easier to validate from product surfaces when"
+" available."

@@ -12704,3 +12704,172 @@ msgid ""
 "(policies, marketplace_integrations, metadata_governance, …). Prefer this "
 "over bulk SiteSettings for cross-domain coordination."
 msgstr ""
+
+msgid "Configuration hub"
+msgstr ""
+
+msgid "Dashboard configuration"
+msgstr ""
+
+msgid "End-user preferences and layout tools live outside this admin form."
+msgstr ""
+
+msgid ""
+"Guided workflows live outside this form. Use this page when you need every "
+"advanced field."
+msgstr ""
+
+msgid "Product control plane"
+msgstr ""
+
+msgid "Report builder"
+msgstr ""
+
+msgid ""
+"Report styling workflows live outside this form. Use this page for every "
+"advanced field."
+msgstr ""
+
+msgid "Studio · Dashboard visual packs"
+msgstr ""
+
+msgid "Studio · Output"
+msgstr ""
+
+msgid ""
+"Toggle and audit integrations from feature control and the API Center; use "
+"this form for raw fields."
+msgstr ""
+
+msgid "User preferences"
+msgstr ""
+
+msgid ""
+"Widget catalog is editable here; guided layout and packs live in the "
+"dashboard hubs and Studio."
+msgstr ""
+
+msgid "Studio — unified experience, automation, and outputs workspace"
+msgstr ""
+
+msgid "All domains match stored snapshots."
+msgstr ""
+
+msgid "Compare Phase B snapshot rows to live ownership slices:"
+msgstr ""
+
+msgid "In sync"
+msgstr ""
+
+msgid ""
+"In sync means canonical JSON fingerprint matches. If drift appears after "
+"SiteSettings.save, run sync or open"
+msgstr ""
+
+msgid "Live keys"
+msgstr ""
+
+msgid "No textual diff (payloads are identical)."
+msgstr ""
+
+msgid "One domain is out of sync.{% plural %}{{ c }} domains are out of sync."
+msgstr ""
+
+msgid "Phase B snapshot diff"
+msgstr ""
+
+msgid "Phase B snapshots (admin)"
+msgstr ""
+
+msgid "Snapshot updated"
+msgstr ""
+
+msgid "Stored keys"
+msgstr ""
+
+msgid "Typed index"
+msgstr ""
+
+msgid "Unified diff"
+msgstr ""
+
+msgid "Unified diff: {{ d }}"
+msgstr ""
+
+msgid ""
+"platform_runtime.PlatformPhaseBDomainSnapshot — owned JSON per domain "
+"(policies, marketplace_integrations, metadata_governance, …). Control-plane "
+"diff: super:phase_b_snapshot_diff (live owned_payload vs materialized "
+"checksum)."
+msgstr ""
+
+msgid "Changed keys"
+msgstr ""
+
+msgid ""
+"In sync means whole-row canonical JSON fingerprint matches. Key-level table "
+"shows top-level fields that differ. If drift appears after "
+"SiteSettings.save, use the button above or open"
+msgstr ""
+
+msgid "Key diff & unified diff"
+msgstr ""
+
+msgid "Key-level drift: {{ d }}"
+msgstr ""
+
+msgid "No platform SiteSettings row; nothing to sync."
+msgstr ""
+
+msgid "Only on live"
+msgstr ""
+
+msgid "Only on snapshot row"
+msgstr ""
+
+msgid "Re-materialize all snapshots from live SiteSettings"
+msgstr ""
+
+msgid "Re-materialized all Phase B domain snapshots from live SiteSettings."
+msgstr ""
+
+msgid "Same key, different value"
+msgstr ""
+
+msgid ""
+"Top-level payload keys only (nested structures compared by canonical JSON "
+"fingerprint per key)."
+msgstr ""
+
+msgid ""
+"platform_runtime.PlatformPhaseBDomainSnapshot — owned JSON per domain "
+"(policies, marketplace_integrations, metadata_governance, …). Use the "
+"control-plane “Phase B snapshot diff” page to compare live owned_payload "
+"fingerprints to stored rows."
+msgstr ""
+
+msgid "Announcements inbox"
+msgstr ""
+
+msgid "Backend console"
+msgstr ""
+
+msgid ""
+"Communication workflows (approvals, feeds) live outside this legacy form."
+msgstr ""
+
+msgid ""
+"Document library and portal packs are managed from product UIs; use this "
+"form for edge cases."
+msgstr ""
+
+msgid "Governance and console workflows live outside this form."
+msgstr ""
+
+msgid "Knowledge base"
+msgstr ""
+
+msgid ""
+"Policies and trust content are easier to validate from product surfaces when"
+" available."
+msgstr ""

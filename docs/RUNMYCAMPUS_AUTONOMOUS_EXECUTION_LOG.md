@@ -4,6 +4,50 @@
 
 **Policy (2026-03-26):** **Gaps, improvements, §11.4 depth, and legacy CANDIDATE rows** are **non-negotiable**. They ship in **scoped slices** (inventory → implementation → validation → re-audit → acceptance) with **A–F blocks below** per slice. **“Optional,” “when prioritized,” and “cadence-only”** are **void** unless an item is **BLOCKED** (owner + reason in SOT/backlog) or **external-only** per [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). See SOT **§11.4 execution queue** and §0 “literal English vs SOT completion.”
 
+## P2 Phase B per-key checksums + resync POST (2026-03-27)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Extend typed metadata on `PlatformPhaseBDomainSnapshot` **without** new per-field tables; deepen operator diff + safe re-sync. |
+| **B. Implementation** | **`0027`**: `payload_key_checksums`; `phase_b_top_level_key_fingerprints` / `diff_top_level_payload_keys`; UI **changed keys** + three-column key drift; POST **`resync_all_snapshots`**; admin **Key FP map** column. |
+| **C. Validation** | `pytest` `test_phase_b_domain_snapshots` + `test_super_phase_b_snapshot_diff` **PASS**. |
+| **D. Note** | First-class relational columns per payload key remain **§11.4 / ownership** sequencing (see SITECONFIG_OWNERSHIP_MIGRATION). |
+
+## P2 Phase B snapshot metadata + diff UI; P0 security allowlist verify (2026-03-27)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Merge-sized **P2**: typed index on `PlatformPhaseBDomainSnapshot` + operator diff vs live `owned_payload`. **P0**: deliberate allowlist **last_reviewed** + verify script in deploy train. |
+| **B. Finding** | Snapshots were JSON-only; operators could not see checksum drift without diffing admin vs SiteSettings. CSRF/AllowAny/raw SQL allowlists lacked an explicit review-date contract beyond lint counts. |
+| **C. Implementation** | `0026` + `phase_b_payload_metadata`; `super_phase_b_snapshot_diff`; `verify_security_allowlists.py`; allowlist JSON **`last_reviewed`: 2026-03-27**; `pre_deploy_gate` + targeted tests + `phase8_security_ledger` regen; i18n for new template. |
+| **D. Validation** | `pytest` `test_phase_b_domain_snapshots`, `test_security_allowlists_verify`, `test_super_phase_b_snapshot_diff` **PASS**; `verify_security_allowlists.py` **PASS**. |
+| **E. Acceptance** | **PASS** for this slice; full `pre_deploy_gate.sh` after commit. |
+| **F. Next** | Further **first-class tables per domain** remain sequenced §11.4 / SITECONFIG ownership (not this migration). |
+
+## Deploy train + shell / ops neutral naming (2026-03-27)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Close **pre_deploy_gate** on record; fix **i18n catalog drift**; merge **P4 shell** (control-plane Studio in topbar), **admin/portal skip-link i18n**, **neutral JSON/CLI** (`runtime_branding_residue_corpus`, `seed_cursor_twelve_phases` residue-lint flags), tests without literal vendor email in source. |
+| **B. Finding** | Prior gate run ended **EXIT=1** on missing `django.po` msgids (siteconfig admin escape-hatch copy). Full train re-run after `sync_i18n_catalog --compile` → **EXIT=0** in `docs/generated/pre_deploy_gate_run.txt`. |
+| **C. Implementation** | `control_plane_base.html` Studio button; `admin/base_site.html` + `portal_base.html` `{% trans %}` skip links; `report_premium_maturity_signals.py` JSON key rename; `seed_cursor_twelve_phases.py` phase title + `--strict-residue-lint` / `--skip-residue-lint` (+ deprecated aliases); marketing URL derivation test uses `demo-tenant`; runtime contract test uses fragment-joined scrub domain. `locale/**` refreshed. |
+| **D. Validation** | Targeted pytest (premium maturity report, marketing derivation, runtime helper) **PASS**; `lint_gilead_residue.py` + `verify_i18n_catalog_fresh.py` **PASS**. |
+| **E. Acceptance** | **PASS** for this slice; **full** `pre_deploy_gate.sh` re-run recommended after merge if inventory/locale drift. |
+| **F. Legacy** | Historical **migrations** and default demo slug `gilead-school` remain DB history; SOT §11.4 states lint bar vs gross corpus. |
+
+## SOT sweep — compliance profile + finance split tests (2026-03-27)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | SOT §11.4 actionable queue: close **runtime-first** gap for platform default `ComplianceProfile` (Phase B first-class `compliance_profile_id`) and repair finance tests/commands still assuming a `SiteSettings` concrete FK column. |
+| **B. Finding** | `SiteSettings.compliance_profile` setter wrote payload only; getter cleared cache when `compliance_profile_id` was not on the slim row; `_active_profile` used `getattr(site, "compliance_profile")` only (merged effective settings expose **id**, not FK). Split tests used `save(update_fields=["compliance_profile_id"])` on `SiteSettings`. `makemigrations` wanted `0054` for `PaymentReminder.reminder_channels` help_text drift. |
+| **C. Implementation** | `apps/siteconfig/models.py` — getter/setter + cache invalidation; `apps/finance/views_common.py` — `_active_profile` id resolution; `test_split_billing` / `test_split_allocation` / `seed_finance_defaults` fixes; invoice list test uses `assertContains` (Client stack yields non-template `HttpResponse` without `context`). |
+| **D. Validation** | `pytest apps/finance/tests/test_split_billing.py apps/finance/tests/test_split_allocation.py -q` **PASS**; `verify_siteconfig_decomposition_depth.py` + `verify_shell_architecture_matrix.py` **PASS**; `makemigrations --check --dry-run` **No changes**; `generate_platform_inventory.py --write`. |
+| **E. Acceptance** | **PASS** — platform compliance profile persists and resolves through runtime merge; finance split flows covered again. |
+| **F. Legacy / docs** | SOT §11.4 new slice; full `pre_deploy_gate.sh` still per release train; optional: run `record_pre_deploy_gate_output.sh` for `docs/generated/pre_deploy_gate_run.txt`. |
+
+---
+
 **Updated:** 2026-03-25 — **Progress:** `verify_ui_wiring_audit` + `audit_phase3_phase4_surfaces` + `verify_operator_phase10_11_e2e` (dedicated SQLite) **PASS**; **smoke.yml** `workflow_dispatch`; [CONTRIBUTING.md](../CONTRIBUTING.md) pre-merge section. **Proceed:** full `pre_deploy_gate.sh` **PASS** on `.django_test_dbs/proceed_gate_20260326.sqlite3` + Phase 6 granular/siteconfig + Phase 8 ledger / AllowAny / raw SQL lints (see **“Proceed — full pre_deploy_gate”**); inventory regen noted there. **RELEASE_CHECKLIST local train:** `pre_deploy_gate.sh` **PASS** (`SKIP_VISUAL_QA=1`, `DJANGO_TEST_DB_FILE=.django_test_dbs/gate_verification_20260325.sqlite3`); `sync_i18n_catalog --compile`; `docs/generated/pre_deploy_gate_run.txt`; `PHASE_H_SKIP_LIVE=1` Phase H slice **PASS**; **`run_visual_qa.sh` + `verify_phases_3_11_gates.py` follow-up PASS**; RELEASE_CHECKLIST Verification run log + SECURITY_REVIEW_LOG row (see **“Release runbook — local train”** + **2026-03-25 follow-up**). **Continue pulse:** `verify_phases_3_11_gates` + `verify_design_system_phase2` + `verify_phase7_dashboard_markers` + `verify_wedge_line_registry` + `report_template_inline_styles` + `verify_cursor_phase7_granular` — all **PASS** (see **“Continue — validation pulse”**). **Rerun full chain — alignment:** Phase 6/7/8/5 gates + `report_template_inline_styles` (0 non-exempt) + `test_phase_b_execution_gate` + `test_runtime_contract` + `verify_phases_3_11_gates` + `verify_ui_wiring_audit` + `verify_operator_phase10_11_e2e` (`.django_test_dbs/rerun_closure_20260325.sqlite3`) + `audit_phase3_phase4_surfaces` — all **PASS**. SOT §0 crosswalk + premium row + [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) updated to match. See **“Rerun full chain — alignment (2026-03-25)”** and **“Wave closure sweep”** at file end. Earlier sweeps and phase logs unchanged in substance.
 
 **Granular line-by-line register (Phases 1–2):** [phase_audit/PHASE_01_02_GRANULAR_AUDIT.md](phase_audit/PHASE_01_02_GRANULAR_AUDIT.md) (shell DOM, CSS load order, PASS/FAIL per acceptance bullet).
@@ -1012,7 +1056,7 @@ No new violations detected by **`build_phase8_security_ledger.py --check`** or t
 | Item | Disposition |
 |------|-------------|
 | Historical migrations / slugs (`gilead-school`, etc.) | **Migration-only** — unchanged per classification; data normalization via **0155** already documented in SOT |
-| `seed_gilead_demo_users` | **DEPRECATED** — already delegates with warning; skipped by lint path rules |
+| `seed_gilead_demo_users` | **REMOVED** — use `seed_demo_tenant_users` only (see `docs/GILEAD_REFERENCE_CLASSIFICATION.md`). |
 | Full-repo `gilead` counts in `docs/generated/platform_inventory.md` | **Tooling metric** — not the same bar as `lint_gilead_residue.py`; regen may still show doc/migration-heavy counts |
 
 ---
@@ -1623,3 +1667,620 @@ Residual external blocker (SOT-compliant):
 - Updated `.env.example` for Collabora/WOPI keys and CSRF origin guidance aligned with runmycampus domains.
 - Added `docs/execution/RENDER_ENV_OPERATIONS.md` mapping Render key ownership, sensitive-value handling, and portability across platforms.
 - Linked env-contract verification into release and Collabora rollout checklists.
+
+---
+
+## Phase 1 slice — SiteSettings/settings gravity audit gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Enforce a mechanical Phase 1 gate for touched singleton/settings gravity flows: classification coverage + tenant guardrails + `get_solo()` drift check. |
+| **B. Findings** | Existing decomposition artifacts already present (`domain_ownership`, usage inventory, migration map), but there was no single script asserting **all Phase 1 touched invariants together**. |
+| **C. Implementation** | Added `scripts/verify_phase1_settings_gravity.py` to validate: required owner classes in `apps/siteconfig/domain_ownership.py`, required docs (`docs/site_settings_usage_inventory.md`, `docs/SITECONFIG_OWNERSHIP_MIGRATION.md`), tenant lints (`--check-get-solo-only`, `--check-school-settings-features`, `--check-sitesettings-orm-in-tenant-apps`), and `--report-allowlisted` drift (`Total allowlisted` must be `0`). Added CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase1_settings_gravity_passes`. |
+| **D. Validation** | `python scripts/lint_tenant_settings.py --report-allowlisted --base .` → `Total allowlisted: 0`; `python scripts/verify_phase1_settings_gravity.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase1_settings_gravity -q` → **PASS**. |
+| **E. Acceptance** | **PASS (Phase 1 touched slice)** — touched tenant behavior guardrails are enforced by code; migration map artifacts are required by gate; singleton drift on touched paths (`get_solo` allowlist) is blocked. |
+| **F. Legacy deprecated/removed** | No runtime behavior removed in this slice; this closes a **verification/guardrail gap** to prevent re-growth of `siteconfig` mega-domain patterns on touched paths. |
+
+---
+
+## Phase 2 slice — Authenticated shell continuity on `/admin` manager host (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Normalize manager-host `/admin/*` shell identity and cross-surface continuity so `/admin`, `/super/`, and `/studio/*` share one authenticated navigation memory model on touched paths. |
+| **B. Findings** | `/super/*` and control-plane shell tracked recent cross-surface navigation (`/super`, `/studio`, `/admin`) while manager-host `/admin/*` did not push/render that same recent list, causing continuity gaps when moving between surfaces. |
+| **C. Implementation** | Updated `templates/admin/base.html` to set `data-authenticated-surface="manager-control-plane"` on manager host (instead of generic `django-admin`). Added shared recent-navigation sync logic in `templates/admin/base_site.html` (manager host only) using the same `sessionStorage` key (`runmycampus-cp-recent`) and tracked-path rule used by control-plane shell, so `cpNavRecentList` remains continuous across `/admin`, `/super/`, and `/studio/*`. |
+| **D. Validation** | `python -m pytest apps/accounts/tests/test_context_processors_helpers.py -q` → **PASS**; template lint diagnostics → no errors. |
+| **E. Acceptance** | **PASS (Phase 2 touched slice)** — authenticated manager surfaces now maintain one continuity model for recent navigation across `/admin`, `/super/`, and `/studio/*` on touched pages. |
+| **F. Legacy deprecated/removed** | No route removals in this slice; this is a shell-parity/continuity normalization to reduce duplicate behavior drift. |
+
+---
+
+## Phase 2 slice — Shared manager shell script for `/super/*` + manager `/admin/*` (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Remove duplicate manager shell JS behavior and centralize command/search + recent-navigation continuity for high-traffic manager surfaces (`/super/*` and manager-host `/admin/*`). |
+| **B. Findings** | `templates/control_plane_base.html` and `templates/admin/base_site.html` both implemented near-identical search (`Ctrl+K` + `/api/search`) and recent-navigation session logic separately, increasing drift risk. |
+| **C. Implementation** | Added `static/js/authenticated-shell-manager.js` as shared behavior module: unified manager search wiring (`cpSearchInput`/`cpSearchInputAdmin` + result panels), shared `Ctrl+K` focus handling, and shared recent-navigation continuity via `runmycampus-cp-recent`. Replaced duplicate inline search and recent scripts in `templates/control_plane_base.html` and `templates/admin/base_site.html` with shared script include. |
+| **D. Validation** | `python -m pytest apps/siteconfig/tests/test_admin_ui_smoke.py -q` → **PASS**; duplicate inline markers grep (`cpSearchInput`/`runmycampus-cp-recent`) in templates → no stale duplicate blocks found; template/js lint diagnostics → no errors. |
+| **E. Acceptance** | **PASS (Phase 2 touched route batch)** — `/super/*` and manager `/admin/*` now use one shared shell behavior module for command/search and navigation continuity on touched surfaces. |
+| **F. Legacy deprecated/removed** | Removed duplicated inline shell logic blocks from both templates; functional behavior preserved via shared static module. |
+
+---
+
+## Phase 2 slice — `/studio/*` manager-host parity with control-plane shell contract (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Bring Studio routes on manager host into the same authenticated shell contract used by `/super/*` and manager `/admin/*` for surface identity and contextual right-rail parity. |
+| **B. Findings** | `portal_base` always marked `data-authenticated-surface="tenant-portal"` even for manager-host routes, and Studio shell did not include the shared manager contextual drawer surface when operating on manager host. |
+| **C. Implementation** | Updated `templates/portal_base.html` so `data-authenticated-surface` resolves to `manager-control-plane` on manager host and `tenant-portal` otherwise. Updated `templates/studio_os/shell.html` to include `partials/cp_context_drawer_shell.html` on manager host, giving Studio manager views the same contextual drawer contract as `/super/*` and manager `/admin/*`. |
+| **D. Validation** | `python -m pytest apps/studio_os/tests/test_phase_05_legacy_redirects.py -q` → **PASS**; `python -m pytest apps/siteconfig/tests/test_admin_ui_smoke.py -q` → **PASS**; template lint diagnostics → no errors. |
+| **E. Acceptance** | **PASS (Phase 2 touched route batch)** — manager-host Studio pages now align with unified authenticated shell identity and contextual right-rail parity on touched paths. |
+| **F. Legacy deprecated/removed** | No route removals in this slice; this closes shell contract drift between manager-host Studio and existing manager control-plane surfaces. |
+
+---
+
+## Phase 2 slice — Template-by-template authenticated shell conformance gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add a stricter scripted gate to prevent shell regression across authenticated templates (`/super/*`, Studio OS shell hierarchy, and control-plane skeleton usage). |
+| **B. Findings** | Without a dedicated conformance script, shell drift could reappear silently (wrong base template, missing shell marker contracts, or uncontrolled direct `control_plane_skeleton` usage). |
+| **C. Implementation** | Added `scripts/verify_phase2_authenticated_shell_conformance.py` with checks for: (1) base marker contracts in `portal_base`, `control_plane_base`, and `admin/base`; (2) all non-fragment `templates/schools/super_*.html` must extend `control_plane_base.html` and include explicit archetype marker (`data-page-archetype` or `cp_page_archetype`); (3) Studio hierarchy (`studio_os/shell.html` extends `portal_base`, mode templates extend `studio_os/shell.html`); (4) direct `control_plane_skeleton.html` extends restricted to allowlisted wrappers/pages. Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase2_authenticated_shell_conformance_passes`. |
+| **D. Validation** | `python scripts/verify_phase2_authenticated_shell_conformance.py` → **PASS**; focused lint diagnostics on script and updated test file → no errors. |
+| **E. Acceptance** | **PASS (Phase 2 gate slice)** — authenticated shell conformance is now mechanically enforced and fails fast on template hierarchy/marker regressions. |
+| **F. Legacy deprecated/removed** | No runtime feature removal; this is a preventive quality gate to keep shell unification stable as templates evolve. |
+
+---
+
+## Phase 3 slice — Navigation + command conformance gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add a strict scripted check for canonical primary navigation IA and command palette/search contracts on authenticated manager and Studio shells. |
+| **B. Findings** | Existing navigation and command behavior was implemented, but there was no dedicated mechanical gate to block regressions in canonical labels, shared manager search entry points, or Studio command palette markers. |
+| **C. Implementation** | Added `scripts/verify_phase3_navigation_command_conformance.py` to enforce: canonical nav labels in `templates/partials/control_plane_primary_nav.html` (Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Control); manager shell search/shortcut contracts in `templates/control_plane_base.html` + `templates/components/admin_nav_bridge.html`; shared manager script coverage in `static/js/authenticated-shell-manager.js`; Studio command palette markers and trigger contract in `templates/studio_os/shell.html`. Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase3_navigation_command_conformance_passes`. |
+| **D. Validation** | `python scripts/verify_phase3_navigation_command_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase3_navigation_command_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
+| **E. Acceptance** | **PASS (Phase 3 gate slice)** — navigation IA and command/search contracts are now mechanically enforced to prevent drift on authenticated surfaces. |
+| **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventative regression gate for Phase 3 behavior. |
+
+---
+
+## Phase 4 slice — Control-plane decision-console conformance gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add a strict scripted gate for touched control-plane decision-console surfaces, enforcing outcome grouping, source tracing, and publish/rollback affordance contracts. |
+| **B. Findings** | Decision-console pieces existed across templates and `control_outcome_center.py`, but there was no single mechanical guard to prevent future drift in the operator model (source tracing + staged/publish/rollback path). |
+| **C. Implementation** | Added `scripts/verify_phase4_control_plane_decision_console.py` to enforce: (1) both touched CCC templates (`siteconfig/console_domains_hub.html`, `siteconfig/console_domains_hub_control_plane.html`) include the shared outcomes partial and declare `decision-console` archetype; (2) outcomes partial renders grouped links and source labels; (3) operator-model partial renders `operator_control_model` and stability signals; (4) `apps/siteconfig/control_outcome_center.py` has at least nine outcome groups, required source-label keys, and operator-model tokens for source tracing + publish/rollback (`source_tracing`, `publish_rollback`, `Runtime inspector`, `Rollback (Control)`, `Package rollout`). Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase4_control_plane_decision_console_passes`. |
+| **D. Validation** | `python scripts/verify_phase4_control_plane_decision_console.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase4_control_plane_decision_console -q` → **PASS**; lint diagnostics on touched files → no errors. |
+| **E. Acceptance** | **PASS (Phase 4 gate slice)** — touched control-plane templates and registry contracts now fail fast on decision-console regressions. |
+| **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive Phase 4 control-plane quality gate. |
+
+---
+
+## Phase 5 slice — Studio OS conformance gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add strict Studio OS gate for mode contracts, legacy redirect coverage, and native Output Studio path constraints. |
+| **B. Findings** | Existing Phase 5 mechanical checks covered redirects and route reverses, but lacked one consolidated guard that verifies Studio mode contract integrity plus native Output pane constraints in one pass. |
+| **C. Implementation** | Added `scripts/verify_phase5_studio_os_conformance.py` to enforce: (1) `STUDIO_MODES` ids are exactly `experience/automation/output/launch/control`; (2) canonical mode routes exist in `apps/studio_os/urls.py`; (3) legacy identity coverage remains in `apps/studio_os/deep_links.py` (`customizer`, `workflow_hub`, `report_library` with forced `?pane=reports`); (4) Output native-pane constraints in `apps/studio_os/views.py` and `templates/studio_os/partials/output_mode_canvas.html` (explicit branches for dependency/reports/documents/builder/credentials/branding/policy and native-first iframe-clearing behavior). Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase5_studio_os_conformance_passes`. |
+| **D. Validation** | `python scripts/verify_phase5_studio_os_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase5_studio_os_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
+| **E. Acceptance** | **PASS (Phase 5 gate slice)** — Studio OS contract drift now fails fast on touched mode/redirect/native-output constraints. |
+| **F. Legacy deprecated/removed** | No runtime removal in this slice; this is a preventive conformance gate for Phase 5 behavior. |
+
+---
+
+## Phase 6 slice — Runtime-first conformance gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add a strict runtime-first conformance gate for touched resolver flows, enforcing deterministic precedence contract and banning singleton fallback anti-patterns. |
+| **B. Findings** | Runtime/tenant policy logic already had key runtime-first pieces (`tenant_compiled_config` merge, runtime resolver using `get_effective_policy`), but no single gate asserted all precedence and fallback constraints together on touched flow files. |
+| **C. Implementation** | Added `scripts/verify_phase6_runtime_first_conformance.py` to enforce: (1) canonical precedence markers/order for `compile_effective_tenant_config` docstring + implementation in `apps/siteconfig/tenant_config.py`; (2) runtime resolver contract in `apps/platform_runtime/runtime_resolver.py` (`get_effective_policy` import + call path); (3) policy precedence in `apps/policies/resolver.py` ensuring `tenant_compiled_config` merge occurs before raw `School.settings` merge; (4) fallback bans on touched flow files (`SiteSettings.get_solo`, `SiteSettings.load`, `SiteSettings.objects.*`). Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase6_runtime_first_conformance_passes`. |
+| **D. Validation** | `python scripts/verify_phase6_runtime_first_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
+| **E. Acceptance** | **PASS (Phase 6 gate slice)** — touched runtime-first resolver contracts now fail fast on precedence regressions and singleton fallback drift. |
+| **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive quality gate to sustain runtime-first behavior on touched flows. |
+
+---
+
+## Phase 6 slice — Runtime-first extension gate for high-risk downstream consumers (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add a narrow extension gate that protects runtime-first behavior on a small allowlisted set of high-risk policy-consumer entrypoints (admissions/gradebook/finance). |
+| **B. Findings** | Core resolver precedence is now enforced, but downstream policy consumers remained a regression risk if they reintroduced direct `school.settings`/singleton fallback reads in feature entrypoints. |
+| **C. Implementation** | Added `scripts/verify_phase6_runtime_first_extension.py` to enforce contracts on allowlisted files: `apps/siteconfig/identifier_policy_service.py`, `apps/evals/runtime_gradebook.py`, `apps/finance/runtime_helpers.py`, `apps/policies/section_10_helpers.py`. Checks include required runtime/policy read paths (`request.tenant_runtime.policy`, `get_effective_policy(...)`, `runtime.modules.gradebook`) and fallback-ban patterns (`SiteSettings.get_solo`, `SiteSettings.load`, `SiteSettings.objects.*`, `school.settings`, `school.features`). Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase6_runtime_first_extension_passes`. |
+| **D. Validation** | `python scripts/verify_phase6_runtime_first_extension.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_extension -q` → **PASS**; lint diagnostics on touched files → no errors. |
+| **E. Acceptance** | **PASS (Phase 6 extension slice)** — allowlisted downstream policy consumers now fail fast on runtime-first contract and fallback regression drift. |
+| **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive downstream hardening gate. |
+
+---
+
+## Phase 6 slice — Runtime-first allowlist expansion pass (API entrypoints, low-noise) (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Expand the Phase 6 extension gate with a narrow set of concrete API entrypoints while preserving low-noise contract checks. |
+| **B. Findings** | Dedicated admissions API-view modules were not present by filename; concrete high-risk API entrypoints available for this pass were in `apps/finance/api_views.py` and policy-backed `apps/schools/api_views.py`. |
+| **C. Implementation** | Updated `scripts/verify_phase6_runtime_first_extension.py` allowlist to include `apps/finance/api_views.py` and `apps/schools/api_views.py`. Added narrow contracts: finance API must retain tenant-scoping helper/tokens (`_request_school`, school-scoped queryset filters), and school config API must keep policy-backed feature resolution (`get_effective_policy(...)`). Existing fallback bans (`SiteSettings.get_solo/load/objects`, direct `school.settings/features`) now also apply to these API entrypoints. |
+| **D. Validation** | `python scripts/verify_phase6_runtime_first_extension.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_extension -q` → **PASS**; lint diagnostics on touched files → no errors. |
+| **E. Acceptance** | **PASS (Phase 6 allowlist expansion slice)** — runtime-first anti-fallback protections now cover additional concrete API entrypoints with constrained, low-noise checks. |
+| **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive gate expansion only. |
+
+---
+
+## Phase 6 slice — Discovery guard for admissions API-view introductions (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add a low-noise discovery guard so newly introduced admissions API-view files cannot bypass Phase 6 runtime-first review. |
+| **B. Findings** | Existing extension gate covered concrete allowlisted files but did not detect future admissions API-view file introductions automatically. |
+| **C. Implementation** | Updated `scripts/verify_phase6_runtime_first_extension.py` with discovery guard constants: `ADMISSIONS_API_VIEW_DISCOVERY_GLOBS` and `JUSTIFIED_ADMISSIONS_API_VIEW_FILES`. The gate now discovers admissions API-view path-pattern matches and fails when any discovered file is neither in the explicit allowlist nor in the justification set, forcing explicit review. |
+| **D. Validation** | `python scripts/verify_phase6_runtime_first_extension.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_extension -q` → **PASS**; lint diagnostics on touched files → no errors. |
+| **E. Acceptance** | **PASS (Phase 6 discovery-guard slice)** — admissions API-view introductions now fail fast unless explicitly allowlisted or justified. |
+| **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive drift-detection hardening step. |
+
+---
+
+## Phase 7 slice — Runtime-first mechanical gate wired into tenant-settings lint suite (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Align Phase 7 runtime-first enforcement with Phases 1–6 by exposing the narrow mechanical gate in `apps/platform_runtime/tests/test_tenant_settings_lint.py` without nesting a second full pytest session on every run. |
+| **B. Findings** | Phase 7 checklist is MET in-repo per `docs/phase_checklists/phase_07_runtime_first.md`, but the same automation file that runs Phase 1–6 conformance gates did not invoke Phase 7’s narrow mechanical bundle. |
+| **C. Implementation** | Added `TenantSettingsLintTests::test_verify_cursor_phase7_runtime_first_mechanical_passes`, which runs `scripts/verify_cursor_phase7_runtime_first.py` with `PHASE7_RUNTIME_FIRST_SKIP_PYTEST=1` so CI enforces precedence order, resolver registry coverage, required paths, and Phase 07 audit doc sections via Django setup—while contract pytest modules remain the responsibility of `verify_cursor_phase7_granular.py` / pre-deploy / dedicated sessions. |
+| **D. Validation** | `PHASE7_RUNTIME_FIRST_SKIP_PYTEST=1 python scripts/verify_cursor_phase7_runtime_first.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k cursor_phase7_runtime_first_mechanical -q` → **PASS**; lint diagnostics on touched file → no errors. |
+| **E. Acceptance** | **PASS (Phase 7 CI wiring slice)** — mechanical Phase 7 runtime-first invariants run alongside Phase 1–6 gates in the shared lint test module. |
+| **F. Legacy deprecated/removed** | No runtime behavior change; nested pytest is intentionally skipped in this test to avoid redundant SQLite contention and long CI tail (see script docstring). |
+
+---
+
+## Phase 8 slice — Dashboard + role homes structural conformance gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add a narrow mechanical gate for Phase 8 dashboards/role homes (template + registry + role-home test contracts) without duplicating the existing collapsible density law. |
+| **B. Findings** | Phase 8 density is already enforced by `verify_phase8_dashboard_density.py` / `test_phase8_dashboard_density.py`; there was no single script in the Phase 1–7 gate style for role-home + decision-surface marker contracts. |
+| **C. Implementation** | Added `scripts/verify_phase8_dashboard_role_homes_conformance.py` to assert: required paths exist (`templates/schools/super_dashboard.html`, `templates/components/decision_engine_surface.html`, `apps/dashboard/role_home_engine.py`, `apps/dashboard/tests/test_role_home_engine.py`); super dashboard keeps control-plane extend + `role-home` archetype + Phase 8 declaration / decision-engine markers; decision surface keeps headline / queue / next-best-actions / activity-trend zones; `PHASE7_DASHBOARD_TEMPLATES` includes `schools/super_dashboard.html`. Wired CI/unit entrypoint `test_tenant_settings_lint.py::test_verify_phase8_dashboard_role_homes_conformance_passes`. |
+| **D. Validation** | `python scripts/verify_phase8_dashboard_role_homes_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase8_dashboard_role_homes_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
+| **E. Acceptance** | **PASS (Phase 8 structural slice)** — role-home and decision-engine template contracts fail fast alongside other phase gates. |
+| **F. Legacy deprecated/removed** | Collapsible high-card density remains on `verify_phase8_dashboard_density` / dashboard tests; not merged into this gate to avoid duplicate work per run. |
+
+---
+
+## Phase 9 slice — Security / trust structural conformance gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add a narrow mechanical gate for Phase 9 trust surfaces and security allowlist artifacts, without duplicating ledger `--check` or CSRF/AllowAny/raw-SQL lints. |
+| **B. Findings** | `apps/dashboard/tests/test_phase9_security_gates.py` already runs ledger check and three lints via subprocess; there was no Phase 1–8-style script for trust template + allowlist JSON presence contracts. |
+| **C. Implementation** | Added `scripts/verify_phase9_security_trust_conformance.py` to assert: `templates/schools/super_trust_center.html` and `templates/accounts/security_trust_hub.html` retain control-plane / portal extend, decision-console or workbench archetype, Phase 8 declaration strings, and operator/tenant trust markers (`data-tour` on super trust, `server-side only` on tenant hub); `scripts/build_phase8_security_ledger.py` and the three `scripts/allowlists/*.json` files exist. Wired `test_tenant_settings_lint.py::test_verify_phase9_security_trust_conformance_passes`. |
+| **D. Validation** | `python scripts/verify_phase9_security_trust_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase9_security_trust_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
+| **E. Acceptance** | **PASS (Phase 9 structural slice)** — trust hub contracts and allowlist inputs are pinned in the shared gate module alongside earlier phases. |
+| **F. Legacy deprecated/removed** | Ledger freshness and allowlist lints remain on `test_phase9_security_gates` / pre-deploy; not merged here to avoid duplicate subprocess cost. |
+
+---
+
+## Phase 10 + 11 slice — Program static gates wired into lint test suite (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Run the existing no-DB Phase 10 (marketplace / packs / migration / interop) and Phase 11 (marketing narrative) static acceptance script from the same `test_tenant_settings_lint` harness used for Phases 1–9 narrow gates. |
+| **B. Findings** | `scripts/verify_program_phase10_phase11_gates.py` already encoded template/CSS/engine markers per `phase_10_marketplace_packs_migration.md` and `phase_11_marketing_front.md`, but was not invoked from `test_tenant_settings_lint.py`. |
+| **C. Implementation** | Added `TenantSettingsLintTests::test_verify_program_phase10_phase11_static_gates_passes` to subprocess `python scripts/verify_program_phase10_phase11_gates.py` with 120s timeout. E2E and UX-completion paths remain on `verify_operator_phase10_11_e2e.py` / pre-deploy. |
+| **D. Validation** | `python scripts/verify_program_phase10_phase11_gates.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k program_phase10_phase11_static -q` → **PASS**; lint diagnostics on touched file → no errors. |
+| **E. Acceptance** | **PASS (Phase 10+11 CI wiring slice)** — ecosystem + marketing static contracts fail fast alongside earlier phase gates. |
+| **F. Legacy deprecated/removed** | No change to marker sets or product surfaces; operator E2E is unchanged and still the deeper gate. |
+
+---
+
+## Phase 12 slice — Gilead residue lint wired into lint test suite (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Surface `scripts/lint_gilead_residue.py` in the shared `test_tenant_settings_lint` module so Phase 12 runtime-visible residue checks run with other narrow CI gates. |
+| **B. Findings** | Phase 12 checklist marks the lint **PASS** in-repo, but the gate was not invoked from the same harness as Phases 1–11 additions. |
+| **C. Implementation** | Added `TenantSettingsLintTests::test_lint_gilead_residue_passes` subprocess wrapper (180s timeout). Classification docs and migration-only paths remain out of scope per the script’s skip rules. |
+| **D. Validation** | `python scripts/lint_gilead_residue.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k lint_gilead_residue -q` → **PASS**; lint diagnostics on touched file → no errors. |
+| **E. Acceptance** | **PASS (Phase 12 wiring slice)** — runtime-visible Gilead residue regressions fail in the consolidated gate module. |
+| **F. Legacy deprecated/removed** | No change to scan roots or allowlist behavior; documentation-only and migration archives stay excluded by existing skip logic. |
+
+---
+
+## Trust maturity slice — Secret exposure lint wired into lint test suite (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Align local/CI `test_tenant_settings_lint` with the non-DB `verify_phases_3_11_gates.py` row for provider secret exposure (`lint_secret_exposure.py`). |
+| **B. Findings** | Phase 9 dashboard tests already ran CSRF / AllowAny / raw-SQL lints; secret exposure was only guaranteed when engineers ran the full phases 3–11 script or pre-deploy. |
+| **C. Implementation** | Added `TenantSettingsLintTests::test_lint_secret_exposure_passes` subprocess wrapper (180s timeout). |
+| **D. Validation** | `python scripts/lint_secret_exposure.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k lint_secret_exposure -q` → **PASS**; lint diagnostics on touched file → no errors. |
+| **E. Acceptance** | **PASS** — provider secret identifier drift in client surfaces and tracked env is blocked in the consolidated gate module. |
+| **F. Legacy deprecated/removed** | Full `verify_phases_3_11_gates.py` remains the superset (wedges, marketplace pytest, UI wiring audit, etc.); this slice only pulls one high-signal check into the lightweight harness. |
+
+---
+
+## ZIP master prompt — eleven-phase audit vs mechanical gates (2026-03-26)
+
+**A. Scope** | Cross-check this chat’s “Phases 1–11” prompt against the repo’s **canonical** phase index in `docs/phase_checklists/*` and the **consolidated CI harness** `apps/platform_runtime/tests/test_tenant_settings_lint.py` (plus referenced scripts). **No new parallel strategy doc** — this row extends the autonomous log only.
+
+**B. Phase mapping (prompt → repo checklist / primary gate)**
+
+| Prompt phase | Theme (prompt) | Repo checklist / gate | Notes |
+|--------------|----------------|----------------------|--------|
+| 1 | Settings gravity | `phase_06_siteconfig_sitesettings.md` + `scripts/verify_phase1_settings_gravity.py`, `scripts/lint_tenant_settings.py`, `docs/site_settings_usage_inventory.md`, `docs/SITECONFIG_OWNERSHIP_MIGRATION.md` | Tenant-facing singleton / direct settings guardrails are mechanical; **full repo** `SiteSettings` reference count is not the acceptance bar. |
+| 2 | Authenticated shell | `phase_01_authenticated_shell.md` + `scripts/verify_phase2_authenticated_shell_conformance.py`, shared `static/js/authenticated-shell-manager.js`, `portal_base` / `control_plane_base` / manager `admin` | Continuity and hierarchy are gated; not every legacy template is rewired in one pass. |
+| 3 | Nav / command / archetypes | `phase_03_navigation_command_archetypes.md` + `scripts/verify_phase3_navigation_command_conformance.py` | IA + palette contracts on touched shells. |
+| 4 | Control plane | `phase_04_control_plane.md` + `scripts/verify_phase4_control_plane_decision_console.py` | Outcome / source / publish–rollback contracts on touched CCC surfaces. |
+| 5 | Studio OS | `phase_05_studio_os.md` + `scripts/verify_phase5_studio_os_conformance.py` | Mode / redirect / native output contracts. |
+| 6 | Runtime-first | `phase_07_runtime_first.md` + `scripts/verify_phase6_runtime_first_conformance.py`, `scripts/verify_phase6_runtime_first_extension.py` | Precedence + downstream consumer + API entrypoint guards; **full** contract pytest via `verify_cursor_phase7_granular.py` / pre-deploy. |
+| 7 | Dashboards + role homes (prompt) | `phase_08_dashboards_role_homes.md` + `scripts/verify_phase8_dashboard_role_homes_conformance.py`, `scripts/verify_phase8_dashboard_density.py`, `apps/dashboard/tests/test_role_home_engine.py` | Prompt “Phase 7” aligns with repo **Phase 8** dashboard checklist index. |
+| 8 | Security / trust / endpoints (prompt) | `phase_09_security_trust.md` + `scripts/verify_phase9_security_trust_conformance.py`, `apps/dashboard/tests/test_phase9_security_gates.py`, `scripts/lint_secret_exposure.py`, plus `lint_csrf_exempt_usage.py` / `lint_allow_any_usage.py` / `lint_raw_sql_usage.py` in `test_tenant_settings_lint` | Prompt “Phase 8” aligns with repo **Phase 9** security checklist; ledger `--check` and full `verify_phases_3_11` remain pre-deploy / dedicated. |
+| 9 | Marketplace / packs / migration (prompt) | `phase_10_marketplace_packs_migration.md` + `scripts/verify_program_phase10_phase11_gates.py` (Phase 10 markers), `verify_operator_phase10_11_e2e.py` (deep) | Static markers in lint harness; **DB/E2E** remains pre-deploy / dedicated. |
+| 10 | Marketing front (prompt) | `phase_11_marketing_front.md` + same `verify_program_phase10_phase11_gates.py` (Phase 11 markers) | Same split: static in harness, depth in E2E/UX runs. |
+| 11 | Gilead + docs discipline (prompt) | `phase_12_gilead_docs_discipline.md` + `scripts/lint_gilead_residue.py`, `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` | Prompt “Phase 11” aligns with repo **Phase 12**; **628** `gilead` corpus hits include migrations/docs/tests skipped by lint scope. |
+
+**C. Findings** | Zip-level inventory signals (e.g. 1339 `SiteSettings`, 328 `cursor.execute`) describe **whole-repo** surface area. **Acceptance** for this execution stream remains: **mechanical gates PASS on touched guardrails**, canonical **SOT** unchanged as single execution source, **migration map + inventory** present for settings domain.
+
+**D. Implementation (this audit slice)** | No code change required beyond verification: ran full `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **19 passed** in ~20s (includes Phase 1–6 gates, Phase 7 mechanical, Phase 8–9 structural, Phase 10+11 static, Gilead lint, secret exposure lint, plus legacy siteconfig/tenant lint tests).
+
+**E. Acceptance** | **PASS (mechanical alignment)** for the consolidated lint-module row above. **PARTIAL (honest)** on full prompt prose: line-by-line eradication of all admin gravity / raw SQL / broad `except` across **2260** Python files is explicitly **out of scope** for this harness; track depth in `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` and `scripts/verify_phases_3_11_gates.py` / `scripts/pre_deploy_gate.sh`.
+
+**F. Legacy / next runs** | For release fidelity, continue to run **`bash scripts/pre_deploy_gate.sh`** (and `verify_phases_3_11_gates.py` when iterating non-DB wedges). This log entry does not replace those supersets.
+
+---
+
+## Premium maturity slice — CSRF / AllowAny / raw-SQL allowlist lints wired into lint test suite (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Run the same allowlisted endpoint/SQL drift scripts from `scripts/verify_phases_3_11_gates.py` inside `apps/platform_runtime/tests/test_tenant_settings_lint.py`, so the consolidated gate module matches more of the non-DB bundle without pulling in wedge/marketplace/audit steps. |
+| **B. Findings** | `lint_csrf_exempt_usage.py`, `lint_allow_any_usage.py`, and `lint_raw_sql_usage.py` already **PASS** locally (~4.5s combined) but were only guaranteed together with Phase 9 dashboard subprocess tests or the full phases 3–11 script—not when running `test_tenant_settings_lint` alone. |
+| **C. Implementation** | Added `test_lint_csrf_exempt_usage_passes`, `test_lint_allow_any_usage_passes`, and `test_lint_raw_sql_usage_passes` (each 180s timeout). |
+| **D. Validation** | The three scripts → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **22 passed** (~23s); lint diagnostics on touched file → no errors. |
+| **E. Acceptance** | **PASS** — public-endpoint and raw-SQL allowlist discipline is enforced in the shared lightweight harness alongside secret exposure and trust structural gates. |
+| **F. Legacy deprecated/removed** | `apps/dashboard/tests/test_phase9_security_gates.py` remains a valid alternate entrypoint; duplicate subprocess cost is intentional for clearer module ownership (`platform_runtime` CI lane vs `dashboard` tests). |
+
+---
+
+## SOT + Phase H slice — Pillar evidence + static UX audit wired into lint test suite (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Pull two fast `verify_phases_3_11_gates.py` rows into `apps/platform_runtime/tests/test_tenant_settings_lint.py`: foundation path inventory and Phase H static shell checks (no `phase_h_audit.py --live`). |
+| **B. Findings** | `verify_sot_pillar_evidence.py` (~104 path existence checks) and default `phase_h_audit.py` completed in **under 1s** combined but were not part of the consolidated lint module. |
+| **C. Implementation** | Added `test_verify_sot_pillar_evidence_passes` and `test_phase_h_audit_static_passes` (120s timeouts each). |
+| **D. Validation** | `python scripts/verify_sot_pillar_evidence.py` → **PASS**; `python scripts/phase_h_audit.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **24 passed** (~27s); lint diagnostics on touched file → no errors. |
+| **E. Acceptance** | **PASS** — SOT-listed artifact presence and Phase H static responsive/frame contracts are enforced beside the other narrow gates. |
+| **F. Legacy deprecated/removed** | URL reverse / live Phase H checks remain `phase_h_audit.py --live` / pre-deploy; not duplicated here. |
+
+---
+
+## Wedge execution slice — Scorecard + beachhead + registry + bounded-context lint (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Extend `test_tenant_settings_lint` with remaining **fast** rows from `verify_phases_3_11_gates.py` that govern the 45-wedge execution spine (marketplace pytest + repo-wide audit wired in a **later** slice below). |
+| **B. Findings** | `verify_45_wedge_scorecard.py` + `verify_beachhead_checklists.py` ~4.5s; `verify_wedge_line_registry.py` ~5s (Django); `lint_bounded_context_imports.py` ~1.6s — none were wired into the consolidated module. |
+| **C. Implementation** | Added `test_verify_45_wedge_scorecard_passes`, `test_verify_beachhead_checklists_passes`, `test_verify_wedge_line_registry_passes`, `test_lint_bounded_context_imports_passes`. |
+| **D. Validation** | Each script → **PASS** standalone; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **28 passed** (~29s wall time this run); lint diagnostics on touched file → no errors. |
+| **E. Acceptance** | **PASS** — doc table integrity, operator checklist coverage, code registry, and bounded-context lint move with the same CI lane as other narrow gates. |
+| **F. Legacy deprecated/removed** | **`validate_wedges_phase` + `verify_ui_wiring_audit`:** see **CI lane — validate_wedges_phase + UI wiring** (2026-03-26). **Marketplace + repo-wide audit:** see **CI lane — marketplace wedge + ecosystem audit** (2026-03-26). |
+
+---
+
+## CI lane slice — validate_wedges_phase (all) + UI wiring audit (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Close the gap called out vs `verify_phases_3_11_gates.py`: run `validate_wedges_phase.py --phase all` and `verify_ui_wiring_audit.py` from `apps/platform_runtime/tests/test_tenant_settings_lint.py` with **separate** subprocess timeouts so CI wall time stays predictable. |
+| **B. Findings** | Local timing (single dev machine): `validate_wedges_phase.py --phase all` **~24s**; `verify_ui_wiring_audit.py` **~4s**. |
+| **C. Implementation** | Added `test_validate_wedges_phase_all_passes` (`subprocess` timeout **120s**) and `test_verify_ui_wiring_audit_passes` (**60s**). |
+| **D. Validation** | Both scripts **PASS** standalone; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **30 passed** in **~57s** (this run; includes wedge validator + UI wiring). |
+| **E. Acceptance** | **PASS** — wedge phase validators 1–5 and template URL wiring audit ride the same consolidated lane as other narrow gates without sharing one timeout bucket. |
+| **F. Legacy deprecated/removed** | **`verify_phases_3_11_gates.py`:** the **non-DB** steps are mirrored in `test_tenant_settings_lint.py` (see marketplace + ecosystem slice). **`pre_deploy_gate.sh`** still owns migrated DB work, visual QA, and other release rows; see **CI / pre-deploy — dedupe + smoke-light** below for the **removed duplicate** `verify_phases_3_11_gates.py` invocation. |
+
+---
+
+## CI lane slice — marketplace wedge pytest + repo-wide ecosystem audit (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Close the last `scripts/verify_phases_3_11_gates.py` **non-DB** gaps: `apps/marketplace/tests/test_marketplace_wedge_coverage.py` and `scripts/verify_repo_wide_ecosystem_marketing_audit.py`, each with its own subprocess timeout. |
+| **B. Findings** | Local timing: marketplace pytest **~9s**; repo-wide ecosystem/marketing audit **~1.4s**. |
+| **C. Implementation** | Added `test_marketplace_wedge_coverage_passes` (**180s**; Django/pytest headroom) and `test_verify_repo_wide_ecosystem_marketing_audit_passes` (**120s**). |
+| **D. Validation** | `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **32 passed** in **~63s** (this run). |
+| **E. Acceptance** | **PASS** — consolidated lint module now matches the **non-DB** bundle order of `verify_phases_3_11_gates.py` (plus additional phase slices already in the module). |
+| **F. Legacy deprecated/removed** | Operator E2E (`verify_operator_phase10_11_e2e.py`) and broader Phase 10 pytest suites stay on dedicated runners; **`pre_deploy_gate.sh`** includes this module via **Targeted hardening** (`test_tenant_settings_lint`), not as a separate process list. |
+
+---
+
+## CI / pre-deploy slice — dedupe `verify_phases_3_11_gates` + smoke-light parity (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | After `test_tenant_settings_lint.py` achieved parity with `verify_phases_3_11_gates.py` (non-DB), remove redundant work from **`pre_deploy_gate.sh`** and align **`smoke-light.yml`** so the lighter workflow still runs the consolidated bundle. |
+| **B. Findings** | `pre_deploy_gate.sh` ran `verify_phases_3_11_gates.py` **then** `manage.py test … test_tenant_settings_lint`, duplicating scorecard/wedge/marketplace/Phase H static/program/ecosystem/UI steps (and many linters already run earlier in the shell script). |
+| **C. Implementation** | Dropped the `python scripts/verify_phases_3_11_gates.py` step; replaced with an echo pointing at **Targeted hardening** / `test_tenant_settings_lint`. Added a **Phases 3–11 mechanical bundle** step to **`.github/workflows/smoke-light.yml`** (`pytest` consolidated module). **SOT** verification row + **`verify_phases_3_11_gates.py` docstring** document the split (standalone script vs pre-deploy pytest path). |
+| **D. Validation** | `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` **PASS** after edits. |
+| **E. Acceptance** | **PASS** — pre-deploy loses one full duplicate pass of the phases 3–11 bundle; smoke-light gains mechanical coverage without full `pre_deploy_gate.sh`. |
+| **F. Legacy deprecated/removed** | Developers can still run `python scripts/verify_phases_3_11_gates.py` locally; it is **not** deleted. |
+
+
+---
+
+## Shell triad slice — matrix verifier + gate wiring (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Advance the SOT **Shell triad (`/admin`, `/super`, `/studio`) PARTIAL** row with a dedicated, reusable mechanical verifier (not only indirect checks spread across nav and shell scripts). |
+| **B. Findings** | Existing checks were distributed (`verify_phase2_authenticated_shell_conformance.py`, nav tests, `verify_ui_wiring_audit.py`) but there was no single shell-matrix contract script anchored to `docs/SHELL_ARCHITECTURE_MATRIX.md`. |
+| **C. Implementation** | Added `scripts/verify_shell_architecture_matrix.py` (docs/test-file presence + surface token checks): marketing surface marker + marketing CSS without control-plane CSS; control-plane surface marker + control-plane shell CSS without marketing CSS; tenant `base.html` keeps design-system core and forbids marketing/control-plane shell CSS; admin manager bridge/context drawer/authenticated-shell-manager includes. Wired into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_verify_shell_architecture_matrix_passes`, timeout 120s). |
+| **D. Validation** | `python scripts/verify_shell_architecture_matrix.py` **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **33 passed** in ~60s (this run). |
+| **E. Acceptance** | **PASS** — shell triad has an explicit matrix gate that fails on cross-surface CSS regressions and missing admin/control-plane bridge contracts. |
+| **F. Legacy deprecated/removed** | This does **not** replace deeper UX/behavior tests; it adds a deterministic shell-boundary contract alongside existing navigation and runtime checks. |
+
+
+---
+
+## AI/provider slice — blueprint verifier promoted to shared gate lanes (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Reduce **AI/provider scatter** risk by moving the existing AI blueprint verifier from pre-deploy-only usage into both consolidated non-DB gate entrypoints used during iterative work. |
+| **B. Findings** | `scripts/verify_ai_blueprint_completion.py` already validated gateway adapters, schema routes, AI endpoints, prompt registry families, metrics/admin registrations, and architecture docs; it was not wired into `verify_phases_3_11_gates.py` or `test_tenant_settings_lint.py`. |
+| **C. Implementation** | Added `verify_ai_blueprint_completion.py` execution to `scripts/verify_phases_3_11_gates.py`; added `test_verify_ai_blueprint_completion_passes` (timeout 120s) to `apps/platform_runtime/tests/test_tenant_settings_lint.py`. Updated SOT §0 premium blocker hook row for AI/provider with this script. |
+| **D. Validation** | `python scripts/verify_ai_blueprint_completion.py` **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **34 passed** in ~73s (this run). |
+| **E. Acceptance** | **PASS** — AI gateway/prompt/endpoint/documentation contract drift now fails both standalone non-DB gate flow and consolidated lint-module CI lane. |
+| **F. Legacy deprecated/removed** | This is a structural completeness gate, not a replacement for runtime quality/latency policy tests or operator E2E checks. |
+
+---
+
+## Siteconfig decomposition slice — static depth gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Mechanize **siteconfig decomposition depth** invariants so `domain_ownership`, Phase B snapshot domains, slim SiteSettings contract, and RuntimeDefaults first-class module cannot drift apart without CI surfacing it. |
+| **B. Findings** | ZIP Phase 5 / Phase B artifacts were already enforced by `verify_phase_5_siteconfig.py` and DB gates, but there was no **cross-module static** check that `PHASE_B_SNAPSHOT_DOMAINS` ⊆ `OWNERSHIP_DOMAINS`, merge order (`policies_rules` last), exclusion of `brand_experience` from snapshots, or prefix-map owner consistency. |
+| **C. Implementation** | Added `scripts/verify_siteconfig_decomposition_depth.py` (importlib load of `domain_ownership.py` + `phase_b_domain_snapshots.py`; file checks for `sitesettings_slim_contract.py` and `runtime_defaults_first_class.py`). Wired into `scripts/verify_phases_3_11_gates.py` and `test_verify_siteconfig_decomposition_depth_passes` in `apps/platform_runtime/tests/test_tenant_settings_lint.py` (120s). SOT §0 **siteconfig decomposition** hook row references this script. |
+| **D. Validation** | `python scripts/verify_siteconfig_decomposition_depth.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **35 passed** in ~65s (this run). |
+| **E. Acceptance** | **PASS** — static Phase B spine alignment is enforced in both `verify_phases_3_11_gates.py` and the consolidated lint module. |
+| **F. Legacy deprecated/removed** | Does not replace `verify_phase_5_siteconfig.py`, `verify_phase_b_execution.py` (migrated DB), or slim ORM tests; complements them with **static spine** alignment. |
+
+
+
+---
+
+## Raw SQL / endpoints slice — ledger parity in shared gate flows (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Tighten the **Raw SQL / endpoints PARTIAL** blocker by ensuring shared non-DB gate entrypoints enforce the same allowlist/ledger parity used in pre-deploy for security endpoint discipline. |
+| **B. Findings** | `verify_phases_3_11_gates.py` still missed `lint_allow_any_usage.py` and `build_phase8_security_ledger.py --check` even though `test_tenant_settings_lint.py` already carried individual lints; merged ledger parity was not present in the consolidated lint module. |
+| **C. Implementation** | Added `lint_allow_any_usage.py` and `build_phase8_security_ledger.py --check` to `scripts/verify_phases_3_11_gates.py`; added `test_build_phase8_security_ledger_check_passes` (timeout 180s) to `apps/platform_runtime/tests/test_tenant_settings_lint.py`; updated SOT §0 premium blocker hook row for raw SQL/endpoints with explicit commands. |
+| **D. Validation** | `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **36 passed** in ~72s (this run). |
+| **E. Acceptance** | **PASS** — shared gate flows now enforce raw SQL + csrf/AllowAny allowlist drift and merged Phase 8/9 security ledger parity together, not only in pre-deploy shell path. |
+| **F. Legacy deprecated/removed** | This does not replace broader security review artifacts or operator E2E checks; it closes mechanical parity drift between gate entrypoints. |
+
+
+---
+
+## Gilead full-tree slice — classified corpus gate in shared flows (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Advance the **Gilead residue (full tree) PARTIAL** blocker by adding a deterministic full-tree classifier gate (beyond runtime-only lint scope) and wiring it into shared non-DB gate entrypoints. |
+| **B. Findings** | Existing `lint_gilead_residue.py` enforces runtime-visible surfaces only; no shared gate asserted that remaining repository-wide references stay in documented historical/tooling buckets from `docs/GILEAD_REFERENCE_CLASSIFICATION.md`. |
+| **C. Implementation** | Added `scripts/verify_gilead_full_tree_classification.py` (requires classification doc sections; scans text-like files for `gilead`; allows only classified buckets: docs, migrations, tests, management commands, scripts/tooling, `.cursor`; skips generated/transient artifacts like `.tmp/`, `.django_test_dbs/`, `logs/`, `backups/`). Wired into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_verify_gilead_full_tree_classification_passes`). Updated SOT §0 hook row. |
+| **D. Validation** | `python scripts/verify_gilead_full_tree_classification.py` **PASS** (`files_with_hit=143`); `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **37 passed** in ~81s (this run). |
+| **E. Acceptance** | **PASS** — full-tree references are now constrained to explicit classified buckets, while runtime surfaces remain separately enforced by `lint_gilead_residue.py`. |
+| **F. Legacy deprecated/removed** | This does not rewrite historical migrations/docs; it prevents unclassified new spread and keeps Phase 12 discipline explicit in gate lanes used during iteration. |
+
+
+---
+
+## Docs/plan density slice — single-source non-growth gate (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Harden the final **Doc / plan density PARTIAL** blocker with a mechanical, low-noise gate that prevents silent growth of overlapping plan/roadmap/remediation/master documents. |
+| **B. Findings** | The repo already contains many historical/subordinate plan docs; policy is “no new overlapping master plans,” but there was no deterministic cap to prevent density growth across routine slices. |
+| **C. Implementation** | Added `scripts/verify_doc_plan_density_discipline.py`: verifies required single-source artifacts exist (`RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`, autonomous log, `.cursor` rule) and enforces non-growth thresholds for `docs/**/*.md` / `docs/*.md` filenames matching `(plan|roadmap|remediation|master)` (baseline 2026-03-26: total=144, root=114). Wired into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_verify_doc_plan_density_discipline_passes`). Updated SOT §0 hook row. |
+| **D. Validation** | `python scripts/verify_doc_plan_density_discipline.py` **PASS** (`matching_docs_total=144`, `matching_docs_root=114`); `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **38 passed** in ~72s (this run). |
+| **E. Acceptance** | **PASS** — future plan/roadmap/remediation/master doc growth now trips shared gate lanes and requires explicit baseline re-alignment instead of silent sprawl. |
+| **F. Legacy deprecated/removed** | This gate does not delete historical docs; it freezes density growth and reinforces the SOT + A–F execution-log discipline. |
+
+
+---
+
+## Docs maintainability slice — generated gate-map appendix from single config (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Prevent drift in `docs/PHASES_3_11_GATE_VERIFICATION.md` appendix by generating it from one canonical config source instead of manual table edits. |
+| **B. Findings** | Manual appendix updates are error-prone as new verifiers are added across `verify_phases_3_11_gates.py`, `test_tenant_settings_lint.py`, and pre-deploy path. |
+| **C. Implementation** | Added `docs/gate_map_appendix_config.json` (single source list) and `scripts/generate_gate_map_appendix.py` (`--write` / `--check`) using markers in `docs/PHASES_3_11_GATE_VERIFICATION.md` (`<!-- GATE_MAP_APPENDIX:START --> ... <!-- GATE_MAP_APPENDIX:END -->`). Wired `generate_gate_map_appendix.py --check` into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_generate_gate_map_appendix_check_passes`). |
+| **D. Validation** | `python scripts/generate_gate_map_appendix.py --write` + `--check` **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **39 passed** in ~62s (this run). |
+| **E. Acceptance** | **PASS** — gate-map appendix now has deterministic generation + CI drift check, reducing maintenance overhead and stale docs risk. |
+| **F. Legacy deprecated/removed** | Manual appendix editing remains possible but is now guarded; use config + generator as the default path. |
+
+---
+
+## Doc sync slice — authoritative bundle prose + gate-map self row (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Stop drift between `docs/PHASES_3_11_GATE_VERIFICATION.md` and `scripts/verify_phases_3_11_gates.py` by removing a partial hard-coded "Runs:" list and documenting the appendix generator itself in the same config that feeds CI. |
+| **B. Findings** | The audit doc still listed an outdated subset of steps; the generated appendix did not yet enumerate `generate_gate_map_appendix.py --check` as a first-class maintainer hook. |
+| **C. Implementation** | Replaced inline "Runs:" prose with pointers to `verify_phases_3_11_gates.py` `main()` + `docs/gate_map_appendix_config.json` / `--write` workflow; added a config row for `scripts/generate_gate_map_appendix.py --check`; regenerated appendix; extended SOT **Verification commands** with the `--check` one-liner. |
+| **D. Validation** | `python scripts/generate_gate_map_appendix.py --write` + `--check` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q -k generate_gate_map` → **1 passed** (this run). |
+| **E. Acceptance** | **PASS** — bundle documentation stays anchored to executable source order and the gate-map appendix is self-consistent. |
+| **F. Legacy deprecated/removed** | Full inventory of steps remains in code; the appendix stays a curated subset for onboarding, not a second execution plan. |
+
+
+---
+
+## A–D execution slice — Phase H, security density, Phase B AST alignment, observability contract (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Execute one concrete end-to-end hardening slice per requested lane: **A** Phase H UX integrity, **B** security allowlist tightening, **C** deeper siteconfig Phase B guard, **D** observability/logging contract enforcement. |
+| **B. Findings** | Existing gates covered broad behavior but lacked (1) skip-link target integrity in shell inheritance, (2) explicit non-growth cap across security allowlists, (3) AST-level wiring check between `phase_b_domain_snapshots.py` and migration `0007`, and (4) static contract check that structured logging tokens/middleware remain configured. |
+| **C. Implementation** | Added scripts: `verify_phase_h_skiplink_targets.py`, `verify_security_allowlist_density.py`, `verify_phase_b_snapshot_migration_alignment.py`, `verify_structured_logging_contract.py`. Wired all into `scripts/verify_phases_3_11_gates.py` and into `apps/platform_runtime/tests/test_tenant_settings_lint.py` via new tests: `test_verify_phase_h_skiplink_targets_passes`, `test_verify_security_allowlist_density_passes`, `test_verify_phase_b_snapshot_migration_alignment_passes`, `test_verify_structured_logging_contract_passes`. |
+| **D. Validation** | New scripts all **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **43 passed** in ~67s (this run). |
+| **E. Acceptance** | **PASS** — all four requested lanes now have deterministic mechanical checks in both shared non-DB entrypoints. |
+| **F. Legacy deprecated/removed** | These gates complement (not replace) DB-backed, Phase H live/manual, and pre-deploy full-train validations. |
+
+
+---
+
+## A–D v2 execution slice — stricter depth per lane (same scripts, 2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Deepen the four consolidated lanes without new CI entrypoints: **A** Phase H across portal/admin/marketing/studio shells, **B** allowlist density + ledger summary parity, **C** Phase B canonical domain tuple + migration `CreateModel` fields, **D** observability (`RequestContextFilter` module, handler wiring, middleware order). |
+| **B. Findings** | v1 skipped heterogenous shells (Unfold admin `#content`, marketing shell, Studio canvas), did not detect stale `phase8_security_ledger.json`, allowed snapshot domain drift short of a loose minimum count, and logging contract was string-token-only. |
+| **C. Implementation** | Extended `verify_phase_h_skiplink_targets.py` (six shell specs + admin/base companion IDs), `verify_security_allowlist_density.py` (ledger `summary.*_files` vs live JSON), `verify_phase_b_snapshot_migration_alignment.py` (`EXPECTED_PHASE_B_DOMAINS` sequence + AST `CreateModel` field names), `verify_structured_logging_contract.py` (`logging_context.py` class, `LOGGING_HANDLERS` console filter regex, explicit middleware order token positions). |
+| **D. Validation** | Four scripts **PASS**; `python -m pytest …::test_verify_phase_h_skiplink_targets_passes …::test_verify_structured_logging_contract_passes -q` → **4 passed** (spot). |
+| **E. Acceptance** | **PASS** — A–D mechanical depth increased while keeping a single subprocess per lane in `test_tenant_settings_lint.py`. |
+| **F. Legacy deprecated/removed** | **B** v2 requires a committed/generated `scripts/generated/phase8_security_ledger.json`; refresh via `python scripts/build_phase8_security_ledger.py --write` after allowlist edits (already standard for `--check`). |
+
+
+---
+
+## Pre-deploy parity slice — §10.5 doc refs + Phase 2 design system in non-DB bundle (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Close a real gap: `pre_deploy_gate.sh` already ran `verify_operating_discipline_docs.py`, `verify_section10_5_layers.py`, and `verify_design_system_phase2.py`, but `scripts/verify_phases_3_11_gates.py` and `test_tenant_settings_lint.py` did not — contributors using only the non-DB bundle could miss broken `*_DOC` pointers or Phase 2 shell/CSS regressions. |
+| **B. Findings** | `verify_design_system_phase2.py` already delegates to `verify_section10_5_layers.py`; wiring Phase 2 alone covers the design-system layer check without a duplicate explicit step. |
+| **C. Implementation** | Inserted `verify_operating_discipline_docs.py` and `verify_design_system_phase2.py` into `verify_phases_3_11_gates.py` (after gate-map `--check`). Added pytest: `test_verify_operating_discipline_docs_passes`, `test_verify_design_system_phase2_passes`. Extended `docs/gate_map_appendix_config.json` + regenerated appendix; SOT verification commands note now states pytest mirrors these pre-deploy hooks. |
+| **D. Validation** | `python scripts/generate_gate_map_appendix.py --write` + `--check` **PASS**; spot pytest on the two new tests **PASS**. |
+| **E. Acceptance** | **PASS** — non-DB consolidated lane now matches more of the “full train” discipline docs + ZIP Phase 2 bar without re-listing `verify_section10_5_layers` as its own subprocess (still exercised inside Phase 2). |
+| **F. Legacy deprecated/removed** | `pre_deploy_gate.sh` remains authoritative for ordering of the full train; this slice aligns the **developer one-shot** bundle and **TARGETED_HARDENING** pytest module. |
+
+
+---
+
+## Pre-deploy parity slice — super-premium wedges + Phase 7 markers + CP hub registry (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Align `verify_phases_3_11_gates.py` / `test_tenant_settings_lint.py` with the same **static / Django-light** block `pre_deploy_gate.sh` runs immediately after `verify_sot_pillar_evidence.py`: super-premium wedge phases, full Phase 7 dashboard marker audit, and control-plane hub registry drift. |
+| **B. Findings** | `validate_wedges_phase.py` and scorecard checks were already in the non-DB bundle; **super-premium** proof bar and **Phase 7 registry + CP closure** were still pre-deploy-only, so narrow workflows could miss regressions. |
+| **C. Implementation** | Inserted `validate_wedge_super_premium_phases.py --phase all`, `verify_phase7_dashboard_markers.py`, and `verify_control_plane_hub_registry_drift.py` after `verify_sot_pillar_evidence` in `verify_phases_3_11_gates.py`. Added pytest: `test_validate_wedge_super_premium_phases_all_passes` (300s), `test_verify_phase7_dashboard_markers_passes`, `test_verify_control_plane_hub_registry_drift_passes`. Extended `gate_map_appendix_config.json` + regenerated appendix; updated SOT verification-command prose. |
+| **D. Validation** | Three scripts **PASS** from repo root (~8s super-premium on this machine); `generate_gate_map_appendix.py --write` + `--check` **PASS**; spot pytest on the three new tests **PASS**. |
+| **E. Acceptance** | **PASS** — consolidated bundle now tracks the wedge super-premium + dashboard surface + hub-registry slice without duplicating DB migration steps. |
+| **F. Legacy deprecated/removed** | `apps/schools/tests/test_wedge_super_premium_phases.py` remains a focused `SimpleTestCase` duplicate for schools CI; platform_runtime lint module now also covers the script for **TARGETED_HARDENING** trains. |
+
+
+---
+
+## Pre-deploy parity slice — hygiene, root allowlist, marketing nav, i18n catalog (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Bring `verify_phases_3_11_gates.py` / `test_tenant_settings_lint.py` closer to early/late `pre_deploy_gate.sh` checks that were still train-only: `check_repo_hygiene.py`, `check_root_clutter.py`, `lint_marketing_nav_no_overflow.py`, and `verify_i18n_catalog_fresh.py`. |
+| **B. Findings** | `check_root_clutter` failed locally because `docker-compose.collabora.yml` was tracked at repo root but missing from `scripts/allowlists/tracked_root_allowlist.json` — fixed by allowlisting the file (Collabora/WOPI ops surface). |
+| **C. Implementation** | Inserted the four scripts into `verify_phases_3_11_gates.py` (hygiene + root first; marketing nav after Phase 2 gate; i18n after `phase_h_audit.py`). Added matching pytest methods with subprocess timeouts. Extended `gate_map_appendix_config.json` + regenerated appendix; SOT §11.4 verification prose updated. |
+| **D. Validation** | `check_root_clutter` / marketing nav / i18n **PASS**; spot pytest on the four new tests **PASS**. |
+| **E. Acceptance** | **PASS** — narrow “phases 3–11” workflows now catch the same repo clutter and i18n drift signals as the full pre-deploy opener and pre-hardening block. |
+| **F. Legacy deprecated/removed** | Superseded by the slice below: env/git, `manage.py check`, and `makemigrations --check` now run in the consolidated bundle; **migrate / gate DB / smoke** steps remain full-train only. |
+
+
+---
+
+## Consolidated bundle slice — env/git check + Django check + makemigrations --check (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Close the gap called out in the prior log: surface **full-train-openers** inside `verify_phases_3_11_gates.py` / `test_tenant_settings_lint` where they need **no DB apply** — tracked env files, `manage.py check`, `makemigrations --check --dry-run`. |
+| **B. Findings** | `check_no_committed_env.sh` was bash-only; a portable **`scripts/check_no_committed_env.py`** keeps one contract for Windows/Linux and for subprocess-based pytest. The `.sh` wrapper now delegates to Python so `pre_deploy_gate.sh` behavior stays aligned. |
+| **C. Implementation** | Added `check_no_committed_env.py`; rewrote `check_no_committed_env.sh` to invoke it. Inserted env → `manage.py check` → `makemigrations --check --dry-run` immediately after root-clutter in `verify_phases_3_11_gates.py`. New tests: `test_check_no_committed_env_passes`, `test_manage_py_check_passes`, `test_makemigrations_check_dry_run_passes`. Gate-map config + appendix regenerated; SOT §11.4 verification prose updated (**full train** still lists ruff, inventory `--write`, migrated DB, smoke, etc.). |
+| **D. Validation** | `python scripts/check_no_committed_env.py`, `manage.py check`, `makemigrations --check --dry-run` **PASS**; spot pytest on three new tests **PASS**. |
+| **E. Acceptance** | **PASS** — “bundle vs full train” is now honest: bundle covers **system check + migration graph drift** without `migrate` or dedicated gate DB. |
+| **F. Legacy deprecated/removed** | `showmigrations packages setup_studio`, `migrate_gate_test_db.py`, `verify_phase_b_execution.py`, `audit_tenant_models`, and smoke `manage.py test` slices remain **pre_deploy only**. |
+
+
+---
+
+## Pre-deploy parity slice — policy linters + ruff + inventory --check (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Add the next pre_deploy **static** block after `makemigrations --check`: bounded-context `--strict`, siteconfig legacy imports, repo secret-pattern scan, print-ban, ruff F401/F841, `check_no_hardcoding --allow-tests`, Phase B batch-3 FK write lint, broad-except strict, **`generate_platform_inventory.py --check`**. |
+| **B. Findings** | `generate_platform_inventory --check` failed until **`--write`** refreshed `docs/generated/platform_inventory.json` + `.md`. `test_lint_bounded_context_imports_passes` (non-strict) duplicated work; removed in favor of **`test_lint_bounded_context_imports_strict_passes`** matching pre_deploy. |
+| **C. Implementation** | Patched `verify_phases_3_11_gates.py` + nine pytest methods; gate-map appendix; SOT §11.4 verification + bundle-vs-train lines updated. |
+| **D. Validation** | Nine-test pytest spot run **PASS**; `generate_gate_map_appendix --check` **PASS**. |
+| **E. Acceptance** | **PASS** — bundle aligns with most early policy gates; **`--write`** + **`lint_mega_files`** remain full-train per SOT. |
+| **F. Legacy deprecated/removed** | None. |
+
+
+---
+
+## Bundle parity slice — Phase 5 script + SiteSettings singleton + north-star strict (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Close remaining **pre_deploy** gaps that pytest already covered but **`verify_phases_3_11_gates.py` did not**: `verify_phase_5_siteconfig.py`, `lint_sitesettings_orm_singleton.py --base .`, and **strict** north-star **a11y** / **i18n** linters (pre_deploy runs them advisory `|| true`; bundle uses **`--strict`** so failures block the one-shot script). |
+| **B. Findings** | Phase 5 and singleton tests existed in `test_tenant_settings_lint` but developers running **only** `verify_phases_3_11_gates.py` skipped those gates. |
+| **C. Implementation** | Inserted phase-5 + singleton after `lint_tenant_settings --check-get-solo-only`. Inserted `lint_north_star_a11y.py --strict` and `lint_north_star_i18n.py --strict` after `phase_h_audit.py` and before `verify_i18n_catalog_fresh.py`. Added pytest `test_lint_north_star_a11y_strict_passes` and `test_lint_north_star_i18n_strict_passes`. Gate-map rows + appendix; SOT verification line nudge. |
+| **D. Validation** | North-star scripts **PASS** with `--strict`; spot pytest on two new tests **PASS**. |
+| **E. Acceptance** | **PASS** — mirrored lane is closer to **meaningful** pre_deploy policy without duplicating advisory `lint_section8_responsive` / `|| true` steps. |
+| **F. Legacy deprecated/removed** | Optional **`lint_north_star_a11y --touch`** touch-target heuristic remains **not** in the bundle (noisy); strict mode covers base-shell **accessibility.css** contract only. |
+
+---
+
+## Follow-up verification — consolidated gates + pytest (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Re-run **`python scripts/verify_phases_3_11_gates.py`** and **`python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q`** after doc/config drift. |
+| **B. Findings** | **`generate_gate_map_appendix.py --check`** failed in pytest until **`--write`** refreshed `docs/PHASES_3_11_GATE_VERIFICATION.md`. **`generate_platform_inventory.py --check`** then failed until a **second** **`--write`**: the inventory generator scans docs, so regenerating the gate appendix alone leaves `docs/generated/platform_inventory.*` stale. |
+| **C. Implementation** | Operational sequencing only: when gate-map config or appendix changes, run **`generate_gate_map_appendix.py --write`** then **`generate_platform_inventory.py --write`** before expecting **`--check`** lanes to pass. |
+| **D. Validation** | Full **`verify_phases_3_11_gates.py`** **PASS**; **`test_tenant_settings_lint`** **65 passed**. |
+| **E. Acceptance** | **PASS** — local bundle + pytest mirror are green with regenerated artifacts. |
+| **F. Legacy deprecated/removed** | Full train still owns explicit **`migrate`**, gate DB, smoke **`manage.py test`** slices, and optional **`lint_mega_files`** per SOT. |
+
+---
+
+## Structural remediation — P0–P6 stack + scoped inventory (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | User mandate to **prioritize fixing** admin gravity, SiteSettings gravity, shell triad, repo sprawl, SQL/CSRF/print posture, and Gilead residue—without pretending multi-quarter architecture is one PR. |
+| **B. Findings** | Gross `baseline_counts` overstated **product** risk (migrations + broad file pool). Security linters (**P0**) and **P1** Gilead lint already **PASS** in-repo; remaining work is **P2–P6** execution slices. |
+| **C. Implementation** | Added **§0 — Structural remediation stack (P0–P6)** and **§11.4** pointer in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Extended `generate_platform_inventory.py` with **`scoped_gravity_counts`** and refreshed `docs/generated/platform_inventory.{json,md}`. |
+| **D. Validation** | `python scripts/generate_platform_inventory.py --check` **PASS**; `lint_csrf_exempt_usage`, `lint_raw_sql_usage`, `lint_gilead_residue` **PASS**. |
+| **E. Acceptance** | **PASS** — canonical **priority order** + honest metrics for trending; execution proceeds as §11.4 slices against **P2–P4** especially. |
+| **F. Legacy deprecated/removed** | None; gross `baseline_counts` retained for repo-scale snapshots only. |
+
+---
+
+## Collabora T4 blocker documentation — OSS self-host + DNS misroute (2026-03-26)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Align SOT/backlog/audit with production reality: `collabora.runmycampus.com` returned **302** to Django (`school-not-found`) on `/hosting/discovery` — WOPI host not wired to Collabora. User constraint: avoid implying proprietary SaaS; prefer **self-hosted OSS** on own infra. |
+| **B. Findings** | Env vars can be correct while Tier 4 still fails; `HostedOfficeDocument` may live in **tenant** schema only (`tenant_command seed_office_documents`). |
+| **C. Implementation** | Updated [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4 row; [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md); [KB_FAQ_LIBREOFFICE_EXECUTION_AUDIT.md](KB_FAQ_LIBREOFFICE_EXECUTION_AUDIT.md) (policy + tenant seed); [execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md](execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md) (OSS scope + tenant note); [execution/RENDER_ENV_OPERATIONS.md](execution/RENDER_ENV_OPERATIONS.md) (discovery routing check). |
+| **D. Validation** | Doc-only change; re-validate prod with `curl -I https://<collabora-host>/hosting/discovery` → **200** after infra fix. |
+| **E. Acceptance** | **PARTIAL** — governance accurate; T4 remains **BLOCKED** until Collabora host routes correctly. |
+| **F. Unblock** | Dedicated Collabora service (e.g. `collabora/code`) + custom domain DNS to that service; then smoke + browser sign-off. |
+
+---
+
+## P3 admin escape hatches (compliance + portal) + P4 matrix spot + P1 hygiene (2026-03-27)
+
+| Step | Detail |
+|------|--------|
+| **A. Scope** | Continue **P3** tenant `ModelAdmin` change forms still lacking control-plane links; confirm **P4** `verify_shell_architecture_matrix`; confirm **P1** decomposition / Gilead tree / AI blueprint scripts; keep **P2** Phase B depth explicitly **queued** (no fake first-class tables slice in this train). |
+| **B. Findings** | `verify_shell_architecture_matrix.py`, `verify_siteconfig_decomposition_depth.py`, `verify_gilead_full_tree_classification.py`, `verify_ai_blueprint_completion.py` already **PASS**. New `{% trans %}` strings required `sync_i18n_catalog --compile` for `verify_i18n_catalog_fresh.py`. |
+| **C. Implementation** | Added `form_before` sections to compliance (`compliancerule`, `legaldocument`) and portal (`portalfeatureitem`, `announcement`) admin change templates; four tests in `apps/siteconfig/tests/test_admin_ui_smoke.py`; SOT §11.4 bullets for P3/P4/P2 queue; locale catalogs updated. |
+| **D. Validation** | `pytest apps/siteconfig/tests/test_admin_ui_smoke.py` **13 passed**; `verify_i18n_catalog_fresh.py` **PASS**; `verify_shell_architecture_matrix.py` **PASS**. |
+| **E. Acceptance** | **PASS** — `SKIP_VISUAL_QA=1 PRE_GATE_FRESH_TEST_DB=1 bash scripts/pre_deploy_gate.sh` **PASS** (~18.8 min); `docs/generated/pre_deploy_gate_run.txt` ends with `[pre_deploy_gate] PASSED` + appended `[gate-finished] EXIT=0`. Visual QA skipped; BR-13 / live Phase H per [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). |
+| **F. Legacy** | **Phase H / BR-13 / visual QA** remain per-release; not automated here. |

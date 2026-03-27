@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
-    "allow_any": 66,
-    "csrf_exempt": 153,
-    "cursor_execute": 353,
-    "except_exception": 240,
-    "get_solo": 194,
-    "gilead": 784,
-    "gilead_files": 147,
-    "html_files": 616,
-    "management_commands": 155,
+    "allow_any": 76,
+    "csrf_exempt": 161,
+    "cursor_execute": 355,
+    "except_exception": 244,
+    "get_solo": 197,
+    "gilead": 838,
+    "gilead_files": 145,
+    "html_files": 618,
+    "management_commands": 154,
     "markdown_files": 1031,
-    "migration_files": 663,
-    "print_calls": 680,
-    "python_files": 2260,
-    "site_settings": 1378
+    "migration_files": 666,
+    "print_calls": 764,
+    "python_files": 2285,
+    "site_settings": 1415
   },
   "doc_drift": {
     "actual_installed_app_count": 42,
@@ -48,7 +48,7 @@
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 98407,
+      "bytes": 98412,
       "lines": 2807,
       "path": "apps/finance/models.py"
     },
@@ -611,11 +611,6 @@
     },
     {
       "app": "schools",
-      "command": "seed_gilead_demo_users",
-      "path": "apps/schools/management/commands/seed_gilead_demo_users.py"
-    },
-    {
-      "app": "schools",
       "command": "tenant_health_check",
       "path": "apps/schools/management/commands/tenant_health_check.py"
     },
@@ -887,6 +882,15 @@
       "reviewed_endpoints": 36,
       "reviewed_files": 13
     }
+  },
+  "scoped_gravity_counts": {
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 36,
+    "cursor_execute_apps_config_py_excl_migrations": 26,
+    "gilead_line_hits_apps_templates_config_excl_migrations_tests": 13,
+    "print_calls_apps_py_excl_migrations_tests_management": 0,
+    "print_calls_scripts_py": 673,
+    "site_settings_refs_apps_py_excl_migrations": 267,
+    "site_settings_refs_apps_py_excl_migrations_tests": 210
   },
   "site_settings_fields": [
     {
