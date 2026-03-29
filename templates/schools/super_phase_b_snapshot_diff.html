@@ -1,0 +1,142 @@
+{% extends "control_plane_base.html" %}
+{% load i18n phase8_tags %}
+
+{% block cp_title %}{% trans "Phase B snapshot diff" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ runtime_truth_hub_url }}">{% trans "Runtime truth hub" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Phase B snapshot diff" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#phase-b-snapshot-diff-main">{% trans "Skip to Phase B snapshot diff content" %}</a>
+<div id="phase-b-snapshot-diff-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="decision-console" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+  {% phase8_dashboard_declaration "schools/super_phase_b_snapshot_diff.html" %}
+  {% include "studio_os/components/page_header.html" with title=_("Phase B snapshot diff") subtitle=_("Live SiteSettings ownership slice vs materialized snapshots: whole-row checksum, per-key fingerprints, unified diff.") action_url=dashboard_url action_text=_("Back to dashboard") %}
+
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <form method="post" action="{{ phase_b_snapshot_diff_url }}" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="resync_all_snapshots">
+      {% if focus_domain %}<input type="hidden" name="focus_domain" value="{{ focus_domain }}">{% endif %}
+      <button type="submit" class="btn btn-sm btn-primary">{% trans "Re-materialize all snapshots from live SiteSettings" %}</button>
+    </form>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ phase_b_snapshot_diff_url }}?export=json">{% trans "Export drift summary (JSON)" %}</a>
+  </div>
+
+  <div class="alert alert-secondary border-0 shadow-sm mb-3" role="note">
+    {% trans "In sync means whole-row canonical JSON fingerprint matches. Key-level table shows top-level fields that differ. The Scope column summarizes each payload slice for operators (aligned with domain ownership — not a substitute for first-class tables per field)." %}
+    {% trans "If drift appears after SiteSettings.save, use the button above or open" %}
+    <a href="{{ snapshot_admin_list }}">{% trans "Phase B snapshots (admin)" %}</a>.
+  </div>
+
+  {% if drift_count %}
+  <div class="alert alert-warning border-0 shadow-sm mb-3" role="status">
+    {% blocktrans count c=drift_count %}One domain is out of sync.{% plural %}{{ c }} domains are out of sync.{% endblocktrans %}
+  </div>
+  {% else %}
+  <div class="alert alert-success border-0 shadow-sm mb-3" role="status">
+    {% trans "All domains match stored snapshots." %}
+  </div>
+  {% endif %}
+
+  {% if operator_phase_b_links %}
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary mb-2">{% trans "Platform-admin rows (PlatformOperatorPhaseBLink); add or reorder in platform admin." %}</p>
+      <ul class="list-unstyled mb-0 d-flex flex-wrap gap-2">
+        {% for link in operator_phase_b_links %}
+        <li><a class="btn btn-sm btn-outline-secondary" href="{{ link.href }}">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="table-responsive mb-4">
+    <table class="table table-sm table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">{% trans "Domain" %}</th>
+          <th scope="col">{% trans "Scope" %}</th>
+          <th scope="col">{% trans "In sync" %}</th>
+          <th scope="col">{% trans "Changed keys" %}</th>
+          <th scope="col">{% trans "Live keys" %}</th>
+          <th scope="col">{% trans "Stored keys" %}</th>
+          <th scope="col">{% trans "Snapshot updated" %}</th>
+          <th scope="col">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in domain_rows %}
+        <tr class="{% if not r.in_sync %}table-warning{% endif %}">
+          <td><code class="small">{{ r.domain }}</code></td>
+          <td class="small">
+            <div class="fw-semibold">{{ r.operator_title }}</div>
+            <div class="text-secondary">{{ r.operator_summary }}</div>
+          </td>
+          <td>{% if r.in_sync %}<span class="text-success">{% trans "Yes" %}</span>{% else %}<span class="text-danger">{% trans "No" %}</span>{% endif %}</td>
+          <td>{{ r.changed_key_count }}</td>
+          <td>{{ r.live_key_count }}</td>
+          <td>{{ r.stored_key_count }}</td>
+          <td class="small">{{ r.row_updated_at|default:"—" }}</td>
+          <td>
+            <a class="btn btn-sm btn-outline-primary" href="?domain={{ r.domain|urlencode }}">{% trans "Key diff & unified diff" %}</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if detail_domain and key_detail %}
+  <div class="card shadow-sm border-secondary mb-3">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <span>{% blocktrans with d=detail_domain %}Key-level drift: {{ d }}{% endblocktrans %}</span>
+      <a class="btn btn-sm btn-outline-secondary" href="?export=json&amp;domain={{ detail_domain|urlencode }}">{% trans "Export detail (JSON)" %}</a>
+    </div>
+    <div class="card-body">
+      <p class="small text-secondary mb-2">
+        {% trans "Top-level payload keys only (nested structures compared by canonical JSON fingerprint per key)." %}
+      </p>
+      <div class="row g-2 small">
+        <div class="col-md-4">
+          <strong>{% trans "Only on live" %}</strong>
+          <ul class="mb-0 mt-1">{% for k in key_detail.only_live %}<li><code>{{ k }}</code></li>{% empty %}<li>—</li>{% endfor %}</ul>
+        </div>
+        <div class="col-md-4">
+          <strong>{% trans "Only on snapshot row" %}</strong>
+          <ul class="mb-0 mt-1">{% for k in key_detail.only_stored %}<li><code>{{ k }}</code></li>{% empty %}<li>—</li>{% endfor %}</ul>
+        </div>
+        <div class="col-md-4">
+          <strong>{% trans "Same key, different value" %}</strong>
+          <ul class="mb-0 mt-1">{% for k in key_detail.value_mismatch %}<li><code>{{ k }}</code></li>{% empty %}<li>—</li>{% endfor %}</ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if detail_domain %}
+  <div class="card shadow-sm border-secondary">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <span>{% blocktrans with d=detail_domain %}Unified diff: {{ d }}{% endblocktrans %}</span>
+      <a class="btn btn-sm btn-outline-secondary" href="?export=json&amp;domain={{ detail_domain|urlencode }}">{% trans "Export detail (JSON)" %}</a>
+    </div>
+    <div class="card-body">
+      {% if diff_text %}
+      <pre class="small bg-light border rounded p-2 mb-0" style="max-height: 28rem; overflow: auto;">{{ diff_text }}</pre>
+      {% else %}
+      <p class="text-secondary mb-0">{% trans "No textual diff (payloads are identical)." %}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

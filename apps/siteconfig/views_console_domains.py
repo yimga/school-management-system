@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
@@ -94,6 +95,7 @@ CONSOLE_DOMAINS = [
         "name": "Runtime & blueprints",
         "outcome": "Blueprints, dashboards, workflows",
         "links": [
+            ("Effective runtime & tenant settings", "siteconfig:tenant_runtime_configuration_hub"),
             ("Dashboard hub", "siteconfig:dashboard_hub"),
             ("Automation Studio", "studio_os:automation"),
             ("Output Studio", "studio_os:output"),
@@ -327,7 +329,7 @@ def _build_operational_hubs_context(request: HttpRequest) -> list[dict[str, Any]
     return hubs
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def console_domains_hub(request: HttpRequest) -> HttpResponse:
     """Single bounded console: operational hubs + configuration domains + (manager) platform config + operational links. Backoffice merged here; one UI."""
     domains = _build_console_domains_context(request)

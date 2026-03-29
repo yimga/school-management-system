@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
 from unfold.admin import ModelAdmin
@@ -9,7 +10,26 @@ from .fleet_apply_surfaces import (
     fleet_apply_surface_preset_choices,
     resolve_fleet_apply_surface,
 )
-from .models import FleetGovernedChange, PlatformPhaseBDomainSnapshot, RuntimeDefaults
+from .models import (
+    FleetGovernedChange,
+    PlatformIntegrationWebhookEvent,
+    PlatformOperatorCommandCenterLink,
+    PlatformOperatorMigrationCloudLink,
+    PlatformOperatorOrchestrationWorkbenchLink,
+    PlatformOperatorPlatformHubLink,
+    PlatformOperatorSuperDashboardLink,
+    PlatformOperatorSuperAnalyticsOverviewLink,
+    PlatformOperatorSuperSchoolsListLink,
+    PlatformOperatorPhaseBLink,
+    PlatformOperatorPlaybookLink,
+    PlatformOperatorSupportDashboardLink,
+    PlatformOperatorTenantHealthLink,
+    PlatformOperatorTruthHubLink,
+    PlatformOperatorWorkflowSimulatorLink,
+    PlatformPhaseBDomainSnapshot,
+    PlatformReportPlatformSkuDefault,
+    RuntimeDefaults,
+)
 from .runtime_defaults_first_class import strip_runtime_defaults_first_class_keys_from_dict
 
 
@@ -82,6 +102,7 @@ class RuntimeDefaultsBrandForm(forms.ModelForm):
             "use_promotion_rule_for_pass",
             "notify_parent_welcome_email",
             "reports_use_approved_grades_only",
+            "report_downloads_enabled",
             "requests_reminder_interval_hours",
             "backend_feature_flags",
             "portal_features",
@@ -103,11 +124,18 @@ class RuntimeDefaultsBrandForm(forms.ModelForm):
             "sms_provider",
             "sms_sender_id",
             "email_from_address",
+            "smtp_password",
+            "webhook_signing_secret",
+            "marketplace_partner_client_secret",
             "whatsapp_support_number",
             "whatsapp_admissions_number",
             "enable_whatsapp_parent_portal",
             "enable_whatsapp_staff_portal",
             "marksheet_ocr_command",
+            "marksheet_ocr_api_key",
+            "ai_provider_api_key",
+            "sms_api_key",
+            "whatsapp_api_token",
             "payload",
         ]
         widgets = {
@@ -116,6 +144,26 @@ class RuntimeDefaultsBrandForm(forms.ModelForm):
             ),
             "public_brand_accent_color": forms.TextInput(
                 attrs={"placeholder": "#f59e0b"}
+            ),
+            "sms_api_key": forms.PasswordInput(
+                render_value=True,
+                attrs={"autocomplete": "off"},
+            ),
+            "marksheet_ocr_api_key": forms.PasswordInput(
+                render_value=True,
+                attrs={"autocomplete": "off"},
+            ),
+            "smtp_password": forms.PasswordInput(
+                render_value=True,
+                attrs={"autocomplete": "off"},
+            ),
+            "webhook_signing_secret": forms.PasswordInput(
+                render_value=True,
+                attrs={"autocomplete": "off"},
+            ),
+            "marketplace_partner_client_secret": forms.PasswordInput(
+                render_value=True,
+                attrs={"autocomplete": "off"},
             ),
         }
 
@@ -150,26 +198,18 @@ class RuntimeDefaultsAdmin(ModelAdmin):
             },
         ),
         (
-            "Runtime blueprint defaults",
+            "Runtime blueprint defaults (domain_ownership: runtime_blueprints)",
             {
+                "description": (
+                    "Admission defaults, admin stats JSON, and portal/dashboard shell defaults "
+                    "owned by the runtime_blueprints slice."
+                ),
                 "fields": (
                     "admission_number_mode",
                     "admission_number_pattern",
                     "admission_number_strategy",
                     "admission_number_template",
                     "admin_portal_stats_config",
-                )
-            },
-        ),
-        (
-            "Brand/runtime dashboard UX defaults",
-            {
-                "fields": (
-                    "accent_color",
-                    "danger_color",
-                    "custom_css",
-                    "admin_use_site_primary",
-                    "default_sidebar_collapsed",
                     "default_dashboard_view",
                     "default_refresh_rate",
                     "default_widgets_per_role",
@@ -178,6 +218,22 @@ class RuntimeDefaultsAdmin(ModelAdmin):
                     "portal_recent_grades",
                     "portal_upcoming_assessments",
                     "top_students_default_limit",
+                ),
+            },
+        ),
+        (
+            "Brand & theme (domain_ownership: brand_experience)",
+            {
+                "description": (
+                    "Typed columns mirroring brand_experience ownership; theme packs and "
+                    "Platform global branding remain the deep surface for media."
+                ),
+                "fields": (
+                    "accent_color",
+                    "danger_color",
+                    "custom_css",
+                    "admin_use_site_primary",
+                    "default_sidebar_collapsed",
                     "site_name",
                     "primary_color",
                     "success_color",
@@ -185,33 +241,44 @@ class RuntimeDefaultsAdmin(ModelAdmin):
                     "social_links",
                     "use_dark_mode",
                     "use_secondary_font_for_headings",
-                    "default_portal_role_dual_role",
-                    "enable_parent_portal",
-                    "enable_teacher_portal",
                     "backend_console_theme",
                     "header_bg_color",
                     "footer_bg_color",
                     "theme_brightness",
                     "theme_harmony",
+                    "theme_pack",
+                    "admin_theme_pack",
+                    "teacher_theme_pack",
+                    "parent_theme_pack",
+                ),
+            },
+        ),
+        (
+            "Platform operations (domain_ownership: safe_platform_default)",
+            {
+                "fields": ("maintenance_mode",),
+            },
+        ),
+        (
+            "Policies & portal gates (domain_ownership: policies_rules)",
+            {
+                "description": (
+                    "Typed defaults for policy-heavy toggles. Prefer Feature Control for "
+                    "audited toggles where product exposes it; JSON blobs here remain the "
+                    "platform default floor."
+                ),
+                "fields": (
+                    "default_portal_role_dual_role",
+                    "enable_parent_portal",
+                    "enable_teacher_portal",
                     "grade_approval_enabled",
                     "grade_approval_auto_validate",
                     "enable_practical_assessment",
                     "enable_concurrent_mark_uploads",
                     "enable_offline_mode",
-                    "maintenance_mode",
-                    "theme_pack",
-                    "admin_theme_pack",
-                    "teacher_theme_pack",
-                    "parent_theme_pack",
-                    "default_term_report_style",
-                    "default_annual_report_style",
-                    "default_report_preview_type",
-                    "enable_reports_pdf",
-                    "reports_require_approved_grades_before_publish",
                     "require_mfa_all_staff",
                     "use_promotion_rule_for_pass",
                     "notify_parent_welcome_email",
-                    "reports_use_approved_grades_only",
                     "requests_reminder_interval_hours",
                     "backend_feature_flags",
                     "portal_features",
@@ -220,7 +287,21 @@ class RuntimeDefaultsAdmin(ModelAdmin):
                     "offline_sync_conflict_resolution",
                     "compliance_profile_id",
                     "referral_bonus_amount",
-                )
+                ),
+            },
+        ),
+        (
+            "Reports defaults (domain_ownership: reports)",
+            {
+                "fields": (
+                    "default_term_report_style",
+                    "default_annual_report_style",
+                    "default_report_preview_type",
+                    "enable_reports_pdf",
+                    "reports_require_approved_grades_before_publish",
+                    "reports_use_approved_grades_only",
+                    "report_downloads_enabled",
+                ),
             },
         ),
         (
@@ -246,7 +327,22 @@ class RuntimeDefaultsAdmin(ModelAdmin):
                     "enable_whatsapp_staff_portal",
                     "marksheet_ocr_command",
                 ),
-                "description": "Secrets (e.g. sms_api_key) stay in JSON payload only.",
+                "description": "Provider identifiers and non-secret integration defaults.",
+            },
+        ),
+        (
+            "Integrations (secret)",
+            {
+                "fields": (
+                    "ai_provider_api_key",
+                    "sms_api_key",
+                    "whatsapp_api_token",
+                    "marksheet_ocr_api_key",
+                    "smtp_password",
+                    "webhook_signing_secret",
+                    "marketplace_partner_client_secret",
+                ),
+                "description": "Stored as typed columns (not duplicated in JSON payload); excluded from Phase B marketplace snapshots.",
             },
         ),
         ("Owned runtime fields", {"fields": ("cache_rankings_interval_minutes",)}),
@@ -261,6 +357,162 @@ class RuntimeDefaultsAdmin(ModelAdmin):
 
 
 register_platform_admin(RuntimeDefaults, RuntimeDefaultsAdmin)
+
+
+class PlatformOperatorPlaybookLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(PlatformOperatorPlaybookLink, PlatformOperatorPlaybookLinkAdmin)
+
+
+class PlatformOperatorTruthHubLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(PlatformOperatorTruthHubLink, PlatformOperatorTruthHubLinkAdmin)
+
+
+class PlatformOperatorPhaseBLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(PlatformOperatorPhaseBLink, PlatformOperatorPhaseBLinkAdmin)
+
+
+class PlatformOperatorWorkflowSimulatorLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorWorkflowSimulatorLink, PlatformOperatorWorkflowSimulatorLinkAdmin
+)
+
+
+class PlatformOperatorSupportDashboardLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorSupportDashboardLink, PlatformOperatorSupportDashboardLinkAdmin
+)
+
+
+class PlatformOperatorTenantHealthLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorTenantHealthLink, PlatformOperatorTenantHealthLinkAdmin
+)
+
+
+class PlatformOperatorCommandCenterLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorCommandCenterLink, PlatformOperatorCommandCenterLinkAdmin
+)
+
+
+class PlatformOperatorOrchestrationWorkbenchLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorOrchestrationWorkbenchLink,
+    PlatformOperatorOrchestrationWorkbenchLinkAdmin,
+)
+
+
+class PlatformOperatorSuperDashboardLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorSuperDashboardLink,
+    PlatformOperatorSuperDashboardLinkAdmin,
+)
+
+
+class PlatformOperatorSuperSchoolsListLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorSuperSchoolsListLink,
+    PlatformOperatorSuperSchoolsListLinkAdmin,
+)
+
+
+class PlatformOperatorSuperAnalyticsOverviewLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorSuperAnalyticsOverviewLink,
+    PlatformOperatorSuperAnalyticsOverviewLinkAdmin,
+)
+
+
+class PlatformOperatorPlatformHubLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorPlatformHubLink,
+    PlatformOperatorPlatformHubLinkAdmin,
+)
+
+
+class PlatformOperatorMigrationCloudLinkAdmin(ModelAdmin):
+    list_display = ("slug", "label", "category", "sort_order", "updated_at")
+    list_editable = ("sort_order",)
+    ordering = ("sort_order", "slug")
+    search_fields = ("slug", "label", "href", "category")
+
+
+register_platform_admin(
+    PlatformOperatorMigrationCloudLink,
+    PlatformOperatorMigrationCloudLinkAdmin,
+)
 
 
 class FleetGovernedChangeAdminForm(forms.ModelForm):
@@ -382,18 +634,110 @@ register_platform_admin(FleetGovernedChange, FleetGovernedChangeAdmin)
 class PlatformPhaseBDomainSnapshotAdmin(ModelAdmin):
     """
     Bounded-context payload rows (Batches 4–13): edit per-domain JSON here instead of
-    treating siteconfig as the only coordination surface. Sync still runs from SiteSettings.save.
+    treating siteconfig as the only coordination surface. Sync still runs when the platform site settings row saves.
     """
 
-    list_display = ["domain", "updated_at"]
+    list_display = [
+        "domain",
+        "payload_key_count",
+        "payload_key_map_size",
+        "payload_checksum_short",
+        "updated_at",
+    ]
     search_fields = ["domain"]
-    readonly_fields = ["updated_at"]
+    readonly_fields = [
+        "payload_key_count",
+        "payload_checksum",
+        "payload_key_checksums",
+        "updated_at",
+    ]
     ordering = ["domain"]
 
     fieldsets = (
         (None, {"fields": ("domain", "payload")}),
+        (
+            _("Typed index"),
+            {"fields": ("payload_key_count", "payload_checksum", "payload_key_checksums")},
+        ),
         (_("Timestamps"), {"fields": ("updated_at",)}),
     )
 
+    @admin.display(description=_("Key FP map"))
+    def payload_key_map_size(self, obj):
+        m = obj.payload_key_checksums if isinstance(obj.payload_key_checksums, dict) else {}
+        n = len(m)
+        return n if n else "—"
+
+    @admin.display(description=_("Checksum"))
+    def payload_checksum_short(self, obj):
+        c = (obj.payload_checksum or "").strip()
+        if len(c) <= 14:
+            return c or "—"
+        return c[:12] + "…"
+
+    def save_model(self, request, obj, form, change):
+        obj.refresh_payload_metadata()
+        super().save_model(request, obj, form, change)
+
 
 register_platform_admin(PlatformPhaseBDomainSnapshot, PlatformPhaseBDomainSnapshotAdmin)
+
+
+class PlatformReportPlatformSkuDefaultAdmin(ModelAdmin):
+    """Singleton: operator default report-platform bundle for manifest plan_entitlements."""
+
+    list_display = ["id", "default_bundle_slug", "updated_at"]
+    fields = ["default_bundle_slug", "updated_at"]
+    readonly_fields = ["updated_at"]
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return not PlatformReportPlatformSkuDefault.objects.exists()
+
+    def save_model(self, request, obj, form, change):
+        obj.pk = 1
+        super().save_model(request, obj, form, change)
+
+
+register_platform_admin(
+    PlatformReportPlatformSkuDefault, PlatformReportPlatformSkuDefaultAdmin
+)
+
+
+class PlatformIntegrationWebhookEventAdmin(ModelAdmin):
+    """Append-only audit of inbound integration webhooks (metadata only)."""
+
+    list_display = [
+        "received_at",
+        "verified",
+        "event_type",
+        "client_ip",
+        "body_sha256_short",
+    ]
+    list_filter = ["verified"]
+    search_fields = ["event_type", "body_sha256", "client_ip"]
+    readonly_fields = [
+        "received_at",
+        "verified",
+        "event_type",
+        "body_sha256",
+        "client_ip",
+    ]
+    ordering = ["-received_at"]
+
+    @admin.display(description=_("Body sha256"))
+    def body_sha256_short(self, obj):
+        c = (obj.body_sha256 or "").strip()
+        if len(c) <= 16:
+            return c or "—"
+        return c[:14] + "…"
+
+    def has_add_permission(self, request):
+        return False
+
+
+register_platform_admin(
+    PlatformIntegrationWebhookEvent, PlatformIntegrationWebhookEventAdmin
+)

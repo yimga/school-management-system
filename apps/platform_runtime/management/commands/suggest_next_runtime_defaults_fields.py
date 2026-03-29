@@ -2,7 +2,7 @@
 Suggest next RuntimeDefaults first-class candidates from domain_ownership.
 
 This command intentionally filters to short, non-FK/non-media string keys so we keep
-shrinking SiteSettings payload without duplicating PlatformGlobalBranding media/FKs.
+shrinking the slim tenant site-settings payload without duplicating PlatformGlobalBranding media/FKs.
 """
 
 from __future__ import annotations

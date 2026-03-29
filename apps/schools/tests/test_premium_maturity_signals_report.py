@@ -33,7 +33,7 @@ class PremiumMaturitySignalsReportTests(SimpleTestCase):
         self.assertIn("raw_sql_non_migration", data)
         self.assertIn("csrf_exempt", data)
         self.assertIn("litellm_api_key_string", data)
-        self.assertIn("gilead_corpus", data)
+        self.assertIn("runtime_branding_residue_corpus", data)
         for key in (
             "cursor_execute_hits",
             "files_with_hits",

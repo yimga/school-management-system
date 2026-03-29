@@ -18,6 +18,8 @@
 - **N/A** until multi-plan checkout is productized; document in N/A register when applicable.
 
 ### §11.4 — product depth (the real “not done” queue)
+**Mechanical gates:** SOT **§0** footnote + §11.4 slice **“Mechanical verification train”** record which hygiene scripts **PASS** and when inventory was regenerated; that is **not** the same as closing every **PARTIAL** premium row (Phase B relational work, manual shell sign-off, product depth remain queued).
+
 Ongoing work is **depth and polish**, not reopening §12. Examples (non-exhaustive — pick from SOT §11.4, [PATH_TO_100_PERCENT_EXECUTION_PLAN.md](PATH_TO_100_PERCENT_EXECUTION_PLAN.md), [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md)):
 - **siteconfig / ownership:** Phase B batches; bounded consoles; legacy path removal per sign-off.
 - **platform_runtime / observability:** Tracing, tenant health surfaces, structured logging expansion.

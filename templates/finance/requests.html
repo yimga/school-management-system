@@ -1,21 +1,22 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 {% load region_format %}
 {% load static %}
-{% block title %}Finance Access Requests{% endblock %}
+{% block title %}{% trans "Finance Access Requests" %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-2" data-page-archetype="operational-workbench">
 {% trans "Back to Finance" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div class="badge bg-warning text-dark">Unread {{ unread_count }}</div>
+  <div class="badge bg-warning text-dark">{% trans "Unread" %} {{ unread_count }}</div>
 </div>
 
 <form method="post" id="finance-requests-inbox-form" data-draft-key="finance_requests_inbox_{{ request.user.id }}" data-draft-max-age-hours="24">
   {% csrf_token %}
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-    <div class="btn-group" role="group" aria-label="Finance inbox view">
-    <div class="btn-group" role="group" aria-label="Severity filter">
+    <div class="btn-group" role="group" aria-label="{% trans 'Finance inbox view' %}">
+    <div class="btn-group" role="group" aria-label="{% trans 'Severity filter' %}">
       {% for option in severity_options %}
         <a class="btn btn-sm {% if severity_filter == option.key %}btn-primary{% else %}btn-outline-secondary{% endif %}" href="{% url 'finance:requests' %}?view={{ view_mode }}&severity={{ option.param }}">
           {{ option.label }} <span class="badge bg-light text-dark">{{ option.count }}</span>
@@ -23,11 +24,11 @@
       {% endfor %}
     </div>
 
-      <a href="{% url 'finance:requests' %}?view=all" class="btn btn-sm {% if view_mode != 'unread' %}btn-outline-dark active{% else %}btn-outline-secondary{% endif %}">All</a>
-      <a href="{% url 'finance:requests' %}?view=unread" class="btn btn-sm {% if view_mode == 'unread' %}btn-dark active{% else %}btn-outline-secondary{% endif %}">Unread only</a>
+      <a href="{% url 'finance:requests' %}?view=all" class="btn btn-sm {% if view_mode != 'unread' %}btn-outline-dark active{% else %}btn-outline-secondary{% endif %}">{% trans "All" %}</a>
+      <a href="{% url 'finance:requests' %}?view=unread" class="btn btn-sm {% if view_mode == 'unread' %}btn-dark active{% else %}btn-outline-secondary{% endif %}">{% trans "Unread only" %}</a>
     </div>
     {% if unread_count %}
-    <button type="submit" name="mark_all_unread" value="1" class="btn btn-sm btn-outline-danger">Mark all unread as read</button>
+    <button type="submit" name="mark_all_unread" value="1" class="btn btn-sm btn-outline-danger">{% trans "Mark all unread as read" %}</button>
     {% endif %}
   </div>
   <div class="card shadow-sm mb-4">
@@ -38,10 +39,10 @@
             <thead>
               <tr>
                 <th scope="col">#</th>
-                <th scope="col">Details</th>
-                <th scope="col">Status</th>
-                <th scope="col">Received</th>
-                <th scope="col">Mark read</th>
+                <th scope="col">{% trans "Details" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col">{% trans "Received" %}</th>
+                <th scope="col">{% trans "Mark read" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -54,17 +55,17 @@
                   </td>
                   <td>
                     {% if notif.is_read %}
-                      <span class="badge bg-success">Read</span>
+                      <span class="badge bg-success">{% trans "Read" %}</span>
                     {% else %}
-                      <span class="badge bg-warning text-dark">Unread</span>
+                      <span class="badge bg-warning text-dark">{% trans "Unread" %}</span>
                     {% endif %}
                   </td>
                   <td>{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</td>
                   <td>
                     {% if not notif.is_read %}
-                      <input type="checkbox" name="notification_id" value="{{ notif.id }}" aria-label="Mark notification read">
+                      <input type="checkbox" name="notification_id" value="{{ notif.id }}" aria-label="{% trans 'Mark notification read' %}">
                     {% else %}
-                      <span class="text-muted small">Already read</span>
+                      <span class="text-muted small">{% trans "Already read" %}</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -74,7 +75,7 @@
         </div>
       {% else %}
         <div class="alert alert-info mb-0">
-          No finance access requests at the moment.
+          {% trans "No finance access requests at the moment." %}
         </div>
       {% endif %}
       {% if page_obj and page_obj.paginator.num_pages > 1 %}
@@ -83,8 +84,8 @@
     </div>
   </div>
   <div class="d-flex justify-content-between align-items-center">
-    <div class="form-text text-muted">Select requests and click “Mark read” to archive them.</div>
-    <button type="submit" class="btn btn-primary" {% if unread_count == 0 %}disabled{% endif %}>Mark read</button>
+    <div class="form-text text-muted">{% trans "Select requests and click “Mark read” to archive them." %}</div>
+    <button type="submit" class="btn btn-primary" {% if unread_count == 0 %}disabled{% endif %}>{% trans "Mark read" %}</button>
   </div>
 </form>
 {% if finance_request_audits %}
@@ -101,11 +102,11 @@
         <table class="table table-sm table-hover align-middle mb-0">
           <thead>
             <tr>
-              <th scope="col">Action</th>
-              <th scope="col">User</th>
-              <th scope="col">Details</th>
-              <th scope="col">Notification</th>
-              <th scope="col">When</th>
+              <th scope="col">{% trans "Action" %}</th>
+              <th scope="col">{% trans "User" %}</th>
+              <th scope="col">{% trans "Details" %}</th>
+              <th scope="col">{% trans "Notification" %}</th>
+              <th scope="col">{% trans "When" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -116,7 +117,7 @@
                   {% if audit.user %}
                     {{ audit.user.get_full_name|default:audit.user.username }}
                   {% else %}
-                    System
+                    {% trans "System" %}
                   {% endif %}
                 </td>
                 <td class="text-muted small">{{ audit.details|default:"-"|truncatechars:90 }}</td>

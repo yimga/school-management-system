@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
@@ -65,6 +66,7 @@ def parent_contact_school(request: HttpRequest):
         contact = ContactRequest.objects.create(
             parent=request.user,
             student=student,
+            school=getattr(request, "school", None),
             contact_name=form.cleaned_data["contact_name"],
             contact_phone=form.cleaned_data.get("contact_phone", ""),
             contact_whatsapp=form.cleaned_data.get("contact_whatsapp", ""),
@@ -103,7 +105,7 @@ def _can_triage(user: User) -> bool:
     return user.roles.filter(code__in=list(TRIAGE_ROLES)).exists()
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def staff_contact_request_list(request: HttpRequest):
     if not _can_triage(request.user):
         return HttpResponseForbidden(
@@ -116,6 +118,9 @@ def staff_contact_request_list(request: HttpRequest):
     qs = ContactRequest.objects.select_related(
         "parent", "student", "desired_staff", "assigned_to", "triage_owner"
     )
+    school = getattr(request, "school", None)
+    if school is not None:
+        qs = qs.filter(school_id=school.id)
     if status_filter:
         qs = qs.filter(status=status_filter)
     if mine == "1":
@@ -133,19 +138,20 @@ def staff_contact_request_list(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def staff_contact_request_detail(request: HttpRequest, request_id):
     if not _can_triage(request.user):
         return HttpResponseForbidden(
             "You are not authorized to manage contact requests."
         )
 
-    ticket = get_object_or_404(
-        ContactRequest.objects.select_related(
-            "parent", "student", "desired_staff", "assigned_to", "triage_owner"
-        ),
-        id=request_id,
+    base = ContactRequest.objects.select_related(
+        "parent", "student", "desired_staff", "assigned_to", "triage_owner"
     )
+    school = getattr(request, "school", None)
+    if school is not None:
+        base = base.filter(school_id=school.id)
+    ticket = get_object_or_404(base, id=request_id)
 
     assign_form = ContactRequestAssignForm(request.POST or None, instance=ticket)
     status_form = ContactRequestUpdateStatusForm(request.POST or None, instance=ticket)

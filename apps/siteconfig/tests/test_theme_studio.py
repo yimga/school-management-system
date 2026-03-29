@@ -265,7 +265,8 @@ class ThemeStudioAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "theme-pack-catalog-scroll")
         self.assertContains(response, "theme-pack-catalog-hint")
-        self.assertContains(response, "min(44vh, 340px)")
+        # Scroll cap lives in linked `admin-color-preview.css` (not inlined in HTML).
+        self.assertContains(response, "admin-color-preview.css")
 
     def test_theme_studio_catalog_shows_active_site_and_admin_labels(self):
         self.client.login(username="theme-manager", password="password")

@@ -37,7 +37,7 @@ OPTIONAL_STORAGE_ERRORS = (AttributeError, OSError, RuntimeError, TypeError, Val
 
 
 def _safe_site_attr(site, name: str, default=None):
-    """Phase B: slim SiteSettings — virtual keys use __getattr__ and may raise AttributeError."""
+    """Phase B: slim tenant settings row — virtual keys use __getattr__ and may raise AttributeError."""
     try:
         return getattr(site, name)
     except AttributeError:

@@ -5,6 +5,9 @@ ZIP Phase 5 — SiteSettings / siteconfig dismantling (repository gate).
 Verifies:
 - Canonical docs exist and reference the ownership / inventory discipline
 - domain_ownership module defines field classification (inventory + code stay aligned)
+- ``verify_domain_ownership_exact_storage.py``: every ``EXACT_FIELD_OWNERS`` key is a
+  RuntimeDefaults first-class column, registered virtual-only, or row-metadata delete bucket;
+  every first-class column has an explicit ``EXACT_FIELD_OWNERS`` row
 - lint_tenant_settings: no get_solo() in tenant-facing app trees
 
 Includes get_solo lint and SiteSettings.objects.* lint in tenant app trees.
@@ -12,7 +15,19 @@ Phase B Batch 0: asserts ``0162_phase_b_slim_sitesettings.py`` exists.
 Phase B Batch 1: asserts ``brand_experience/0002_platform_global_branding.py`` exists.
 Phase B Batch 3: asserts ``siteconfig/0163_phase_b_batch3_drop_sitesettings_branding_columns.py`` exists.
 Batches 4-13: asserts ``platform_runtime/0007_platform_phase_b_domain_snapshots.py`` exists.
-RuntimeDefaults first-class columns: asserts ``0009`` through ``0025`` migration artifacts exist.
+RuntimeDefaults first-class columns: asserts ``0009`` through ``0034`` migration artifacts exist
+(including Phase B snapshot metadata extensions and marketplace secret column splits).
+Also asserts ``0035_platform_integration_webhook_event`` (Phase B–style inbound webhook audit),
+``0036_platform_report_platform_sku_default`` (operator default report-platform bundle singleton),
+``0037_runtimedefaults_marketplace_partner_client_secret_first_class``,
+``0038_platform_operator_playbook_link`` (typed operator deep-link table),
+``0039_platform_operator_truth_hub_link`` (Runtime truth hub curated links), and
+``0040_platform_operator_phase_b_link`` (Phase B snapshot diff curated links), and
+``0041_platform_operator_workflow_simulator_link`` (workflow simulator curated links), and
+``0042_platform_operator_support_dashboard_link`` (support dashboard curated links), and
+``0043_platform_operator_tenant_health_link`` (tenant health monitor curated links), and
+``0044_platform_operator_command_center_link`` (mission / command center curated links), and
+``0045_platform_operator_orchestration_workbench_link`` (orchestration workbench curated links).
 Table/singleton after migrate: ``scripts/verify_phase_b_execution.py``.
 Exit 0 = gate MET; non-zero = fix before release.
 """
@@ -176,6 +191,181 @@ RUNTIMEDEFAULTS_POLICY_MAPS_COMPLIANCE_BATCH_MIGRATION = (
     / "migrations"
     / "0025_runtimedefaults_policy_maps_and_compliance_batch.py"
 )
+PHASE_B_SNAPSHOT_TYPED_METADATA_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0026_platformphasebdomainsnapshot_typed_metadata.py"
+)
+PHASE_B_SNAPSHOT_KEY_CHECKSUMS_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0027_platformphasebdomainsnapshot_key_checksums.py"
+)
+RUNTIMEDEFAULTS_REPORT_DOWNLOADS_ENABLED_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0028_runtimedefaults_report_downloads_enabled.py"
+)
+RUNTIMEDEFAULTS_SMS_API_KEY_FIRST_CLASS_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0029_runtimedefaults_sms_api_key_first_class.py"
+)
+RUNTIMEDEFAULTS_AI_PROVIDER_API_KEY_FIRST_CLASS_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0030_runtimedefaults_ai_provider_api_key_first_class.py"
+)
+RUNTIMEDEFAULTS_WHATSAPP_API_TOKEN_FIRST_CLASS_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0031_runtimedefaults_whatsapp_api_token_first_class.py"
+)
+RUNTIMEDEFAULTS_MARKSHEET_OCR_API_KEY_FIRST_CLASS_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0032_runtimedefaults_marksheet_ocr_api_key_first_class.py"
+)
+RUNTIMEDEFAULTS_SMTP_PASSWORD_FIRST_CLASS_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0033_runtimedefaults_smtp_password_first_class.py"
+)
+RUNTIMEDEFAULTS_WEBHOOK_SIGNING_SECRET_FIRST_CLASS_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0034_runtimedefaults_webhook_signing_secret_first_class.py"
+)
+PLATFORM_INTEGRATION_WEBHOOK_EVENT_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0035_platform_integration_webhook_event.py"
+)
+PLATFORM_REPORT_PLATFORM_SKU_DEFAULT_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0036_platform_report_platform_sku_default.py"
+)
+RUNTIMEDEFAULTS_MARKETPLACE_PARTNER_CLIENT_SECRET_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0037_runtimedefaults_marketplace_partner_client_secret_first_class.py"
+)
+PLATFORM_OPERATOR_PLAYBOOK_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0038_platform_operator_playbook_link.py"
+)
+PLATFORM_OPERATOR_TRUTH_HUB_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0039_platform_operator_truth_hub_link.py"
+)
+PLATFORM_OPERATOR_PHASE_B_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0040_platform_operator_phase_b_link.py"
+)
+PLATFORM_OPERATOR_WORKFLOW_SIMULATOR_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0041_platform_operator_workflow_simulator_link.py"
+)
+PLATFORM_OPERATOR_SUPPORT_DASHBOARD_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0042_platform_operator_support_dashboard_link.py"
+)
+PLATFORM_OPERATOR_TENANT_HEALTH_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0043_platform_operator_tenant_health_link.py"
+)
+PLATFORM_OPERATOR_COMMAND_CENTER_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0044_platform_operator_command_center_link.py"
+)
+PLATFORM_OPERATOR_ORCHESTRATION_WORKBENCH_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0045_platform_operator_orchestration_workbench_link.py"
+)
+PLATFORM_OPERATOR_SUPER_DASHBOARD_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0046_platform_operator_super_dashboard_link.py"
+)
+PLATFORM_OPERATOR_SUPER_SCHOOLS_LIST_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0047_platform_operator_super_schools_list_link.py"
+)
+PLATFORM_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0048_platform_operator_super_analytics_overview_link.py"
+)
+PLATFORM_OPERATOR_PLATFORM_HUB_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0049_platform_operator_platform_hub_link.py"
+)
+PLATFORM_OPERATOR_MIGRATION_CLOUD_LINK_MIGRATION = (
+    ROOT
+    / "apps"
+    / "platform_runtime"
+    / "migrations"
+    / "0050_platform_operator_migration_cloud_link.py"
+)
 
 
 def main() -> int:
@@ -229,6 +419,27 @@ def main() -> int:
                 "lint_tenant_settings --check-sitesettings-orm-in-tenant-apps failed:\n"
                 + (r2.stdout or "")
                 + (r2.stderr or "")
+            )
+
+    verify_exact_storage = ROOT / "scripts" / "verify_domain_ownership_exact_storage.py"
+    if not verify_exact_storage.is_file():
+        errors.append(
+            "scripts/verify_domain_ownership_exact_storage.py missing "
+            "(EXACT_FIELD_OWNERS ↔ RuntimeDefaults first-class registry gate)."
+        )
+    else:
+        r_storage = subprocess.run(
+            [sys.executable, str(verify_exact_storage)],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if r_storage.returncode != 0:
+            errors.append(
+                "verify_domain_ownership_exact_storage failed:\n"
+                + (r_storage.stdout or "")
+                + (r_storage.stderr or "")
             )
 
     if not PHASE_B_BATCH0_MIGRATION.is_file():
@@ -340,6 +551,131 @@ def main() -> int:
             "RuntimeDefaults policy maps/compliance batch migration missing: "
             f"{RUNTIMEDEFAULTS_POLICY_MAPS_COMPLIANCE_BATCH_MIGRATION.relative_to(ROOT)}"
         )
+    if not PHASE_B_SNAPSHOT_TYPED_METADATA_MIGRATION.is_file():
+        errors.append(
+            "Phase B snapshot typed metadata migration missing: "
+            f"{PHASE_B_SNAPSHOT_TYPED_METADATA_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PHASE_B_SNAPSHOT_KEY_CHECKSUMS_MIGRATION.is_file():
+        errors.append(
+            "Phase B snapshot key checksums migration missing: "
+            f"{PHASE_B_SNAPSHOT_KEY_CHECKSUMS_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_REPORT_DOWNLOADS_ENABLED_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults report_downloads_enabled migration missing: "
+            f"{RUNTIMEDEFAULTS_REPORT_DOWNLOADS_ENABLED_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_SMS_API_KEY_FIRST_CLASS_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults sms_api_key first-class migration missing: "
+            f"{RUNTIMEDEFAULTS_SMS_API_KEY_FIRST_CLASS_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_AI_PROVIDER_API_KEY_FIRST_CLASS_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults ai_provider_api_key first-class migration missing: "
+            f"{RUNTIMEDEFAULTS_AI_PROVIDER_API_KEY_FIRST_CLASS_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_WHATSAPP_API_TOKEN_FIRST_CLASS_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults whatsapp_api_token first-class migration missing: "
+            f"{RUNTIMEDEFAULTS_WHATSAPP_API_TOKEN_FIRST_CLASS_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_MARKSHEET_OCR_API_KEY_FIRST_CLASS_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults marksheet_ocr_api_key first-class migration missing: "
+            f"{RUNTIMEDEFAULTS_MARKSHEET_OCR_API_KEY_FIRST_CLASS_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_SMTP_PASSWORD_FIRST_CLASS_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults smtp_password first-class migration missing: "
+            f"{RUNTIMEDEFAULTS_SMTP_PASSWORD_FIRST_CLASS_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_WEBHOOK_SIGNING_SECRET_FIRST_CLASS_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults webhook_signing_secret first-class migration missing: "
+            f"{RUNTIMEDEFAULTS_WEBHOOK_SIGNING_SECRET_FIRST_CLASS_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_INTEGRATION_WEBHOOK_EVENT_MIGRATION.is_file():
+        errors.append(
+            "Platform integration webhook event migration missing: "
+            f"{PLATFORM_INTEGRATION_WEBHOOK_EVENT_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_REPORT_PLATFORM_SKU_DEFAULT_MIGRATION.is_file():
+        errors.append(
+            "Platform report platform SKU default migration missing: "
+            f"{PLATFORM_REPORT_PLATFORM_SKU_DEFAULT_MIGRATION.relative_to(ROOT)}"
+        )
+    if not RUNTIMEDEFAULTS_MARKETPLACE_PARTNER_CLIENT_SECRET_MIGRATION.is_file():
+        errors.append(
+            "RuntimeDefaults marketplace_partner_client_secret first-class migration missing: "
+            f"{RUNTIMEDEFAULTS_MARKETPLACE_PARTNER_CLIENT_SECRET_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_PLAYBOOK_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorPlaybookLink migration missing: "
+            f"{PLATFORM_OPERATOR_PLAYBOOK_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_TRUTH_HUB_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorTruthHubLink migration missing: "
+            f"{PLATFORM_OPERATOR_TRUTH_HUB_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_PHASE_B_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorPhaseBLink migration missing: "
+            f"{PLATFORM_OPERATOR_PHASE_B_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_WORKFLOW_SIMULATOR_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorWorkflowSimulatorLink migration missing: "
+            f"{PLATFORM_OPERATOR_WORKFLOW_SIMULATOR_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_SUPPORT_DASHBOARD_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorSupportDashboardLink migration missing: "
+            f"{PLATFORM_OPERATOR_SUPPORT_DASHBOARD_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_TENANT_HEALTH_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorTenantHealthLink migration missing: "
+            f"{PLATFORM_OPERATOR_TENANT_HEALTH_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_COMMAND_CENTER_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorCommandCenterLink migration missing: "
+            f"{PLATFORM_OPERATOR_COMMAND_CENTER_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_ORCHESTRATION_WORKBENCH_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorOrchestrationWorkbenchLink migration missing: "
+            f"{PLATFORM_OPERATOR_ORCHESTRATION_WORKBENCH_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_SUPER_DASHBOARD_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorSuperDashboardLink migration missing: "
+            f"{PLATFORM_OPERATOR_SUPER_DASHBOARD_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_SUPER_SCHOOLS_LIST_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorSuperSchoolsListLink migration missing: "
+            f"{PLATFORM_OPERATOR_SUPER_SCHOOLS_LIST_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorSuperAnalyticsOverviewLink migration missing: "
+            f"{PLATFORM_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_PLATFORM_HUB_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorPlatformHubLink migration missing: "
+            f"{PLATFORM_OPERATOR_PLATFORM_HUB_LINK_MIGRATION.relative_to(ROOT)}"
+        )
+    if not PLATFORM_OPERATOR_MIGRATION_CLOUD_LINK_MIGRATION.is_file():
+        errors.append(
+            "PlatformOperatorMigrationCloudLink migration missing: "
+            f"{PLATFORM_OPERATOR_MIGRATION_CLOUD_LINK_MIGRATION.relative_to(ROOT)}"
+        )
 
     inv = ROOT / "docs" / "site_settings_usage_inventory.md"
     if inv.is_file():
@@ -363,8 +699,9 @@ def main() -> int:
         return 1
 
     print(
-        "Phase 5 siteconfig verification OK (docs + domain_ownership + get_solo + ORM lint "
-        "+ Phase B Batch 0-1 + Batch 3 + Batches 4-13 + RuntimeDefaults 0009-0025 migration artifacts)."
+        "Phase 5 siteconfig verification OK (docs + domain_ownership + exact-storage registry "
+        "+ get_solo + ORM lint + Phase B Batch 0-1 + Batch 3 + Batches 4-13 + "
+        "RuntimeDefaults 0009-0035 + 0036-0050 platform_runtime migration artifacts)."
     )
     return 0
 

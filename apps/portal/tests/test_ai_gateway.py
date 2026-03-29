@@ -31,6 +31,12 @@ class TaskTiersTests(SimpleTestCase):
         self.assertIn(
             "rules", tiers.get(TaskType.GENERAL_CHAT.value, [])[-1:] or ["rules"]
         )
+        for task_key, backends in tiers.items():
+            self.assertEqual(
+                backends,
+                ["ollama", "rules"],
+                msg=f"task {task_key} should default to Ollama + rules only",
+            )
 
 
 class InvokeTests(SimpleTestCase):
@@ -105,10 +111,10 @@ class InvokeTests(SimpleTestCase):
         mock_litellm.assert_not_called()
 
     @patch(
-        "services.ai_gateway._call_vllm",
-        return_value=("not-json", {"provider": "vllm", "tier": "vllm"}),
+        "services.ai_gateway._call_ollama",
+        return_value=("not-json", {"provider": "ollama", "tier": "ollama"}),
     )
-    def test_invoke_returns_safe_default_on_schema_failure(self, _mock_vllm):
+    def test_invoke_returns_safe_default_on_schema_failure(self, _mock_ollama):
         result, meta = invoke(
             TaskType.WORKFLOW_DRAFT,
             "Generate workflow",
@@ -121,10 +127,10 @@ class InvokeTests(SimpleTestCase):
         self.assertTrue(meta.get("schema_validation_failed"))
 
     @patch(
-        "services.ai_gateway._call_vllm",
-        return_value=("not-json", {"provider": "vllm", "tier": "vllm"}),
+        "services.ai_gateway._call_ollama",
+        return_value=("not-json", {"provider": "ollama", "tier": "ollama"}),
     )
-    def test_invoke_returns_safe_default_on_guided_schema_failure(self, _mock_vllm):
+    def test_invoke_returns_safe_default_on_guided_schema_failure(self, _mock_ollama):
         result, meta = invoke(
             TaskType.INTEROP_ASSISTANT,
             "Assist",
@@ -140,6 +146,23 @@ class InvokeTests(SimpleTestCase):
             },
         )
         self.assertTrue(meta.get("schema_validation_failed"))
+
+    @patch(
+        "services.ai_gateway._call_ollama",
+        return_value=(
+            '{"summary":"ok","actions":[{"title":"a","detail":"b"}],"cautions":[],"references":[]}',
+            {"provider": "ollama", "tier": "ollama", "model": "m"},
+        ),
+    )
+    def test_invoke_validates_guided_assistant_json(self, _mock_ollama):
+        result, meta = invoke(
+            TaskType.INTEROP_ASSISTANT,
+            "Assist",
+            response_schema="guided_assistant",
+        )
+        self.assertEqual(result["summary"], "ok")
+        self.assertEqual(len(result["actions"]), 1)
+        self.assertFalse(meta.get("schema_validation_failed"))
 
 
 class SchemaTests(SimpleTestCase):

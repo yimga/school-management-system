@@ -1,48 +1,60 @@
 {
+  "manifest_last_reviewed": "2026-03-29",
   "files": {
     "apps/customers/repositories/schema_provisioning_repository.py": {
       "expected_count": 2,
-      "reason": "§2.4 Tenant schema provisioning: SELECT information_schema.schemata, CREATE SCHEMA IF NOT EXISTS; staff-only."
+      "reason": "§2.4 Tenant schema provisioning: SELECT information_schema.schemata, CREATE SCHEMA IF NOT EXISTS; staff-only.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/observability/db_liveness.py": {
       "expected_count": 1,
-      "reason": "§2.4 Database liveness SELECT 1; monitoring + views (healthz, api_health) use check_db_liveness()."
+      "reason": "§2.4 Database liveness SELECT 1; monitoring + views (healthz, api_health) use check_db_liveness().",
+      "last_reviewed": "2026-03-28"
     },
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
-      "reason": "§2.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only."
+      "reason": "§2.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/siteconfig/repositories/migrations_repository.py": {
       "expected_count": 1,
-      "reason": "§2.4 Migration state: single SELECT on django_migrations; portal.onboarding_verification delegates; staff/onboarding only."
+      "reason": "§2.4 Migration state: single SELECT on django_migrations; portal.onboarding_verification delegates; staff/onboarding only.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/schools/repositories/health_repository.py": {
       "expected_count": 5,
-      "reason": "§2.4 Tenant health PG catalog + check_table_exists/count_table_rows for tenant_health_check; staff-only; tested."
+      "reason": "§2.4 Tenant health PG catalog + check_table_exists/count_table_rows for tenant_health_check; staff-only; tested.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/schools/repositories/rls_repository.py": {
       "expected_count": 1,
-      "reason": "§2.4 RLS verification: single SELECT on pg_class/pg_namespace for verify_tenant_rls."
+      "reason": "§2.4 RLS verification: single SELECT on pg_class/pg_namespace for verify_tenant_rls.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/schools/repositories/tenant_schema_repository.py": {
       "expected_count": 1,
-      "reason": "§2.4 Tenant schema drop (onboarding kill-switch); single DROP SCHEMA."
+      "reason": "§2.4 Tenant schema drop (onboarding kill-switch); single DROP SCHEMA.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/schools/rls_context.py": {
       "expected_count": 6,
-      "reason": "§2.4 RLS session variable management (set/reset app.current_school_id + rls_school/rls_bypass context managers)."
+      "reason": "§2.4 RLS session variable management (set/reset app.current_school_id + rls_school/rls_bypass context managers).",
+      "last_reviewed": "2026-03-28"
     },
     "apps/siteconfig/cache_utils.py": {
       "expected_count": 1,
-      "reason": "§2.4 Keep: current_setting('app.current_school_id', true) read-only; no ORM equivalent."
+      "reason": "§2.4 Keep: current_setting('app.current_school_id', true) read-only; no ORM equivalent.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/siteconfig/repositories/database_recovery_repository.py": {
       "expected_count": 1,
-      "reason": "§2.4 SQLite PRAGMA integrity_check for recover_database command; staff-only."
+      "reason": "§2.4 SQLite PRAGMA integrity_check for recover_database command; staff-only.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/accounts/management/commands/seed_render_users.py": {
       "expected_count": 1,
-      "reason": "§2.4 Render predeploy: ALTER TABLE people_teacherprofile ADD COLUMN IF NOT EXISTS updated_at per tenant schema; defensive fix when migration state is out of sync."
+      "reason": "§2.4 Render predeploy: ALTER TABLE people_teacherprofile ADD COLUMN IF NOT EXISTS updated_at per tenant schema; defensive fix when migration state is out of sync.",
+      "last_reviewed": "2026-03-28"
     }
   }
 }

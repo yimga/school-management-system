@@ -157,7 +157,7 @@ INSTALLED_APPS = [
     "apps.compliance.apps.ComplianceConfig",
     "apps.communication",
     "apps.requests",
-    "apps.observability",  # Observability/monitoring
+    "apps.observability.apps.ObservabilityConfig",  # Observability/monitoring
     "apps.customersuccess",  # Section 11: Benchmark intelligence, customer success, health
     "apps.api",
     "apps.apicenter",
@@ -239,6 +239,11 @@ MIDDLEWARE += [
 ROOT_URLCONF = "config.urls"
 PUBLIC_SCHEMA_URLCONF = "config.public_urls"
 TENANT_SCHEMA_URLCONF = "config.tenant_urls"
+# Django 6.0: forms.URLField default scheme becomes https; opt in to match production URLs and
+# silence RemovedInDjango60Warning (e.g. platform admin webhook URL fields). Set FORMS_URLFIELD_ASSUME_HTTPS=0 to revert.
+FORMS_URLFIELD_ASSUME_HTTPS = os.getenv(
+    "FORMS_URLFIELD_ASSUME_HTTPS", "1"
+).strip().lower() in ("1", "true", "yes")
 # Keep tenant model identifiers available even in non-tenant mode; some background
 # integrations import django-tenants helpers unconditionally.
 TENANT_MODEL = "customers.Client"
@@ -265,6 +270,7 @@ TEMPLATES = [
                 "apps.accounts.context_processors.sidebar_record_context",
                 "apps.schools.context_processors.marketing_base_url",  # MARKETING_BASE_URL for cross-host links
                 "apps.portal.context_processors.announcements",  # Global announcements banner
+                "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
                 "apps.platform_runtime.context_processors.rum_ingest_context",
@@ -486,6 +492,12 @@ if DEFENDER_ENABLED:
 
 # --- Site behavior ---
 MAINTENANCE_MODE = False
+
+# --- Metadata: Batch 14 legacy siteconfig DynamicField* bridge (retired Phase 5b) ---
+# siteconfig.0168 removed siteconfig_dynamicfield*; these flags are kept as no-ops for
+# env compatibility. Do not enable — fallback/dual-read/write paths were deleted.
+METADATA_DYNAMICFIELD_SITECONFIG_FALLBACK = False
+METADATA_DYNAMICFIELD_DUAL_WRITE_FROM_SITECONFIG = False
 
 # Render terminates TLS at the edge. Internal platform probes may hit HTTP
 # without X-Forwarded-Proto and get redirected, which can break startup scans.
@@ -1051,7 +1063,7 @@ if USE_FILE_LOGGING:
         # If we can't create the directory, disable file logging
         USE_FILE_LOGGING = False
 
-# Build handlers list (request_context filter adds request_id, tenant_id, user_id to each log record — A4)
+# Build handlers list (request_context filter adds request_id, tenant_id, user_id, school_id — A4)
 LOGGING_HANDLERS = {
     "console": {
         "class": "logging.StreamHandler",
@@ -1095,11 +1107,44 @@ LOGGING = {
             "style": "{",
         },
         "verbose_request": {
-            "format": "%(levelname)s %(asctime)s request_id=%(request_id)s tenant_id=%(tenant_id)s user_id=%(user_id)s %(message)s",
+            "format": (
+                "%(levelname)s %(asctime)s request_id=%(request_id)s tenant_id=%(tenant_id)s "
+                "user_id=%(user_id)s school_id=%(school_id)s http_method=%(http_method)s "
+                "request_path=%(request_path)s remote_addr=%(remote_addr)s "
+                "http_referer=%(http_referer)s http_user_agent=%(http_user_agent)s "
+                "http_host=%(http_host)s content_type=%(content_type)s "
+                "accept_language=%(accept_language)s accept_encoding=%(accept_encoding)s "
+                "x_forwarded_for=%(x_forwarded_for)s x_forwarded_proto=%(x_forwarded_proto)s "
+                "x_forwarded_host=%(x_forwarded_host)s "
+                "content_length=%(content_length)s "
+                "http_origin=%(http_origin)s "
+                "query_string=%(query_string)s "
+                "server_protocol=%(server_protocol)s "
+                "request_scheme=%(request_scheme)s "
+                "server_name=%(server_name)s "
+                "%(message)s"
+            ),
         },
         "json": {
             "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-            "fmt": "%(levelname)s %(asctime)s %(name)s %(module)s %(process)d %(thread)d %(message)s",
+            "fmt": (
+                "%(levelname)s %(asctime)s %(name)s %(module)s %(process)d %(thread)d "
+                "request_id=%(request_id)s tenant_id=%(tenant_id)s user_id=%(user_id)s "
+                "school_id=%(school_id)s http_method=%(http_method)s "
+                "request_path=%(request_path)s remote_addr=%(remote_addr)s "
+                "http_referer=%(http_referer)s http_user_agent=%(http_user_agent)s "
+                "http_host=%(http_host)s content_type=%(content_type)s "
+                "accept_language=%(accept_language)s accept_encoding=%(accept_encoding)s "
+                "x_forwarded_for=%(x_forwarded_for)s x_forwarded_proto=%(x_forwarded_proto)s "
+                "x_forwarded_host=%(x_forwarded_host)s "
+                "content_length=%(content_length)s "
+                "http_origin=%(http_origin)s "
+                "query_string=%(query_string)s "
+                "server_protocol=%(server_protocol)s "
+                "request_scheme=%(request_scheme)s "
+                "server_name=%(server_name)s "
+                "%(message)s"
+            ),
         },
     },
     "handlers": LOGGING_HANDLERS,
@@ -1303,13 +1348,53 @@ AI_GATEWAY_ENABLED = os.getenv("AI_GATEWAY_ENABLED", "1").strip().lower() in (
 AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY = int(
     os.getenv("AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY", "0")
 )
-# Task-to-tier mapping: override via AI_GATEWAY_TASK_TIERS dict (e.g. workflow_draft -> ["vllm","ollama","rules"])
-# VLLM_ENDPOINT, VLLM_MODEL: OpenAI-compatible vLLM server for structured outputs
-# LITELLM_PROXY_URL, LITELLM_MODEL: LiteLLM proxy for routing/fallback/premium
-# Embeddings: AI_EMBEDDING_BACKEND=ollama|openai_compatible; AI_EMBEDDING_ENDPOINT, AI_EMBEDDING_MODEL, AI_EMBEDDING_API_KEY
+# Default gateway inference: Ollama then rules for every task (services.ai_gateway.DEFAULT_TASK_TIERS).
+# Optional: merge vLLM/LiteLLM per task via settings.AI_GATEWAY_TASK_TIERS dict (not env string).
+# VLLM_ENDPOINT, VLLM_MODEL / LITELLM_PROXY_URL, LITELLM_MODEL only apply when those tiers are enabled.
+# Embeddings default to Ollama when AI_EMBEDDING_BACKEND is unset (services/embeddings.py).
+# AI_EMBEDDING_BACKEND=ollama|openai_compatible; AI_EMBEDDING_ENDPOINT, AI_EMBEDDING_MODEL, AI_EMBEDDING_API_KEY
 # Request metadata: sensitivity_class, latency_target, output_type, allowed_backends (see ai_orchestration.md)
 # Optional: internal Open WebUI URL for Control Plane "AI Ops" link (env: OPEN_WEBUI_URL)
 OPEN_WEBUI_URL = os.getenv("OPEN_WEBUI_URL", "").strip() or None
+
+# Support ticket AI: prepend tenant KB/FAQ excerpts to ``support_suggest`` prompts (1 = on).
+SUPPORT_AI_KB_CONTEXT = os.getenv("SUPPORT_AI_KB_CONTEXT", "1").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+# After portal support form creates a GlobalSupportTicket, enqueue async triage (Celery worker required).
+SUPPORT_AI_AUTO_TRIAGE_ON_CREATE = os.getenv(
+    "SUPPORT_AI_AUTO_TRIAGE_ON_CREATE", "0"
+).strip().lower() in ("1", "true", "yes")
+# New GlobalSupportTicket: email all IT_ADMIN / fallback operator pool (1 = on).
+SUPPORT_TICKET_NOTIFY_EMAIL = os.getenv(
+    "SUPPORT_TICKET_NOTIFY_EMAIL", "1"
+).strip().lower() in ("1", "true", "yes")
+# Additional in-app Messages to operators (excluding primary Message recipient).
+SUPPORT_TICKET_NOTIFY_INAPP = os.getenv(
+    "SUPPORT_TICKET_NOTIFY_INAPP", "1"
+).strip().lower() in ("1", "true", "yes")
+# When true, create one Message per operator (noisy). Default off: operators rely on digest email.
+SUPPORT_TICKET_INAPP_FANOUT_OPERATORS = os.getenv(
+    "SUPPORT_TICKET_INAPP_FANOUT_OPERATORS", "0"
+).strip().lower() in ("1", "true", "yes")
+# Email tenant submitter when an operator posts a SUBMITTER_VISIBLE reply (not when they add their own follow-up).
+SUPPORT_TICKET_NOTIFY_SUBMITTER_ON_VISIBLE_REPLY = os.getenv(
+    "SUPPORT_TICKET_NOTIFY_SUBMITTER_ON_VISIBLE_REPLY", "1"
+).strip().lower() in ("1", "true", "yes")
+# Best-effort push (requires tenant push integration + device token on user). Off by default.
+SUPPORT_TICKET_PUSH_SUBMITTER_ON_VISIBLE_REPLY = os.getenv(
+    "SUPPORT_TICKET_PUSH_SUBMITTER_ON_VISIBLE_REPLY", "0"
+).strip().lower() in ("1", "true", "yes")
+SUPPORT_TICKET_PUSH_OPERATORS_ON_CREATE = os.getenv(
+    "SUPPORT_TICKET_PUSH_OPERATORS_ON_CREATE", "0"
+).strip().lower() in ("1", "true", "yes")
+# Optional signed POST (HMAC SHA256 header X-RunMyCampus-Signature) for integrations.
+SUPPORT_TICKET_WEBHOOK_URL = os.getenv("SUPPORT_TICKET_WEBHOOK_URL", "").strip()
+SUPPORT_TICKET_WEBHOOK_SECRET = os.getenv(
+    "SUPPORT_TICKET_WEBHOOK_SECRET", ""
+).strip()
 
 # Ollama CLI: guarded pulls (sync_ollama_models command; optional Celery beat — opt-in).
 OLLAMA_CLI_PATH = (os.getenv("OLLAMA_CLI_PATH", "ollama") or "ollama").strip()
@@ -1382,7 +1467,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.global_registries.apps.GlobalRegistriesConfig",  # Proxy-owner for RegionConfig; required by compliance
         "apps.registries",
         "apps.compliance",
-        "apps.observability",
+        "apps.observability.apps.ObservabilityConfig",
         "apps.api",
         "apps.apicenter",
         "apps.automation",

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Support ticket update</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.5; color: #222;">
+  <p>Hello{% if ticket.user %} {{ ticket.user.get_short_name|default:ticket.user.username }}{% endif %},</p>
+  <p>There is a <strong>new reply</strong> on your support ticket at <strong>{{ school.name }}</strong>.</p>
+  <p><strong>{{ ticket.subject }}</strong><br>
+  <span style="color:#555;">Ticket ID: {{ ticket.pk }}</span></p>
+  <div style="background:#f4f4f5; padding:12px 16px; border-radius:6px; white-space:pre-wrap;">{{ reply_body }}</div>
+  <p style="margin-top:20px;">Open your portal <strong>Help &amp; support</strong> hub to view the full thread.</p>
+</body>
+</html>

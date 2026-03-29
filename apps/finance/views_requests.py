@@ -4,6 +4,7 @@ Finance notifications and requests inbox views (§6.15 app-by-app split — subd
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import models
@@ -17,7 +18,7 @@ from .models import Notification, FinanceRequestAudit
 from .views_common import _active_profile
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def notifications(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
@@ -49,7 +50,7 @@ def notifications(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def finance_requests(request: HttpRequest):
     base_qs = Notification.objects.filter(
         recipient=request.user,

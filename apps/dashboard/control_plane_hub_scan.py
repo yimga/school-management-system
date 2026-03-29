@@ -70,7 +70,6 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "schools/super_site_settings_list.html",
         "schools/super_sync_repair.html",
         "schools/super_tenant_health.html",
-        "schools/super_usage.html",
         "schools/super_workflow_packs.html",
         "schools/super_workflow_simulator.html",
         "siteconfig/theme_colors_control_plane.html",

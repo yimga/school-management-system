@@ -133,7 +133,7 @@ def backend_student_create(request):
                                 request,
                                 f"Parent account created. Please send login credentials to {parent_email}",
                             )
-                            # Phase 2.1: Optional welcome email when parent account is created (runtime flags or SiteSettings fallback)
+                            # Phase 2.1: Optional welcome email when parent account is created (runtime flags or effective tenant platform settings fallback)
                             try:
                                 from apps.platform_runtime.helpers import (
                                     get_site_display_name,

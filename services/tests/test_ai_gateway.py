@@ -111,8 +111,36 @@ class InvokeTests(TestCase):
         self.assertEqual(meta.get("errors", {}).get("litellm"), "data_tier_disallowed")
         mock_litellm.assert_not_called()
 
-    @patch("services.ai_gateway._call_vllm", return_value=("not-json", {"provider": "vllm", "tier": "vllm"}))
-    def test_invoke_returns_safe_default_on_schema_failure(self, _mock_vllm):
+    @override_settings(AI_GATEWAY_TASK_TIERS={"general_chat": ["litellm", "rules"]})
+    @patch("services.ai_gateway._call_litellm", return_value=("premium answer", {"provider": "litellm", "tier": "litellm"}))
+    def test_invoke_blocks_premium_when_disallow_external_model(self, mock_litellm):
+        result, meta = invoke(
+            TaskType.GENERAL_CHAT,
+            "System prompt",
+            user_query="Hello",
+            metadata={"disallow_external_model": True},
+        )
+        self.assertIsInstance(result, str)
+        self.assertEqual(meta.get("provider"), "rules")
+        self.assertEqual(meta.get("errors", {}).get("litellm"), "data_tier_disallowed")
+        mock_litellm.assert_not_called()
+
+    @override_settings(AI_GATEWAY_TASK_TIERS={"general_chat": ["litellm", "rules"]})
+    @patch("services.ai_gateway._call_litellm", return_value=("premium answer", {"provider": "litellm", "tier": "litellm"}))
+    def test_invoke_blocks_premium_when_sensitivity_class_high(self, mock_litellm):
+        result, meta = invoke(
+            TaskType.GENERAL_CHAT,
+            "System prompt",
+            user_query="Hello",
+            metadata={"sensitivity_class": "high"},
+        )
+        self.assertIsInstance(result, str)
+        self.assertEqual(meta.get("provider"), "rules")
+        self.assertEqual(meta.get("errors", {}).get("litellm"), "data_tier_disallowed")
+        mock_litellm.assert_not_called()
+
+    @patch("services.ai_gateway._call_ollama", return_value=("not-json", {"provider": "ollama", "tier": "ollama"}))
+    def test_invoke_returns_safe_default_on_schema_failure(self, _mock_ollama):
         result, meta = invoke(
             TaskType.WORKFLOW_DRAFT,
             "Generate workflow",

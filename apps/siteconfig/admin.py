@@ -22,8 +22,7 @@ from apps.brand_experience.models import (
 
 # Import from concrete submodules so admin loads when siteconfig.models is only partially loaded.
 from apps.academics.models import HolidayCalendar, ReportCardStyleAssignment
-from .models import SiteSettings
-from .models_metadata_catalog import DynamicFieldDefinition, DynamicFieldValue
+import apps.siteconfig.models as _siteconfig_models
 from .models_platform_catalog import (
     BillingWaiverAuditLog,
     CustomFeatureTicket,
@@ -50,8 +49,11 @@ from .models_global_experience import (
 from .models_feature_controls import (
     FeatureToggleDefinition,
     FeatureToggleState,
-    TourStep,
     FeatureUsageEvent,
+    GlobalSupportTicket,
+    GlobalSupportTicketReply,
+    GlobalSupportTicketWebhookEndpoint,
+    TourStep,
 )
 from .models_ai import (
     AIGatewayMetric,
@@ -73,6 +75,7 @@ from apps.academics.models import AcademicYear
 from apps.accounts.models import User
 from apps.schools.models import School
 
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 # ==========================
 # SITE CUSTOMIZER (CORE)
@@ -111,7 +114,7 @@ class DashboardUserPreferenceForm(forms.ModelForm):
 
 
 class SiteSettingsForm(forms.ModelForm):
-    """Phase B: only columns that remain on SiteSettings; compliance_profile stored in RuntimeDefaults."""
+    """Phase B: only columns that remain on the tenant settings singleton; compliance_profile stored in RuntimeDefaults."""
 
     compliance_profile = forms.TypedChoiceField(
         required=False,
@@ -123,10 +126,10 @@ class SiteSettingsForm(forms.ModelForm):
     )
 
     class Meta:
-        model = SiteSettings
+        model = _TenantSettingsModel
         fields = [
             f.name
-            for f in SiteSettings._meta.concrete_fields
+            for f in _TenantSettingsModel._meta.concrete_fields
             if not getattr(f, "primary_key", False) and getattr(f, "editable", True)
         ] + ["compliance_profile"]
 
@@ -656,11 +659,16 @@ class SiteSettingsAdmin(ModelAdmin):
         except NoReverseMatch:
             url = ""
         return format_html(
-            "<p><strong>Phase B — SiteSettings slim row</strong></p>"
-            "<p>Most behavioral settings (portal copy, policies, finance automation, SMS, "
+            "<p><strong>Phase B — tenant settings slim row</strong></p>"
+            "<p>Most behavioral settings (portal copy, policies, finance automation, "
             "feature flags JSON, etc.) are stored in <code>platform_runtime.RuntimeDefaults.payload</code>. "
             "Edit them via the button below or the Configuration Control Center / Feature Control.</p>"
-            '<p><a class="button" href="{}">Runtime defaults (JSON)</a></p>',
+            "<p><strong>Typed marketplace / integration secrets</strong> (SMS, AI, WhatsApp, SMTP password, "
+            "webhook signing, marksheet OCR API key, marketplace partner client secret) live as "
+            "<em>first-class columns</em> on the same Runtime defaults admin change page—not inside JSON "
+            "exports or Phase B marketplace snapshots. Use <strong>Integrations &amp; API Center</strong> "
+            "below for per-integration installs.</p>"
+            '<p><a class="button" href="{}">Runtime defaults (payload + typed fields)</a></p>',
             url or "#",
         )
 
@@ -727,6 +735,10 @@ class SiteSettingsAdmin(ModelAdmin):
             return format_html(
                 '<p class="mb-2 text-sm">Integrations & API Center: manage external integrations (email, SMS, payments, portal links) and turn them on/off with required reason and audit log.</p>'
                 '<p class="mb-2 text-sm">Add or edit integration config here; enable/disable with audit on the API Center page.</p>'
+                '<p class="mb-2 text-sm text-muted">Platform-wide SMS / AI / WhatsApp / SMTP / webhook / OCR API keys and partner client secrets are '
+                "<strong>typed columns on Runtime defaults</strong> (see <em>Runtime defaults</em> above)—not bulk JSON. "
+                "Tenant code should call <code>get_effective_marketplace_integration_settings</code> from "
+                "<code>apps.platform_runtime.helpers</code>, not read ad-hoc tenant settings handles.</p>"
                 '<a href="{}" class="btn btn-outline-primary btn-sm me-2">Manage Integrations (Configuration Engine)</a>'
                 '<a href="{}" class="btn btn-primary btn-sm">Open API Center</a>',
                 integrations_url,
@@ -813,12 +825,13 @@ class SiteSettingsAdmin(ModelAdmin):
             summary = (
                 ", ".join(form.changed_data) if form and form.changed_data else "saved"
             )
-            self.log_change(request, obj, f"Updated SiteSettings ({summary})")
+            self.log_change(request, obj, f"Updated tenant site settings ({summary})")
         else:
             self.log_addition(request, obj, {"added": True})
 
 
 class UserPreferenceAdmin(ModelAdmin):
+    change_form_template = "admin/siteconfig/userpreference/change_form.html"
     list_display = (
         "user",
         "dashboard_view",
@@ -1175,22 +1188,6 @@ class RegionConfigAdmin(ModelAdmin):
         else:
             self.log_addition(request, obj, {"added": True})
 
-    def _is_site_admin(self, user) -> bool:
-        role = (getattr(user, "role", "") or "").upper()
-        return bool(
-            user.is_superuser
-            or (user.is_staff and role in {User.Role.ADMIN, User.Role.SUPERADMIN})
-        )
-
-    def has_view_permission(self, request, obj=None):
-        return self._is_site_admin(request.user)
-
-    def has_change_permission(self, request, obj=None):
-        return self._is_site_admin(request.user)
-
-    def has_module_permission(self, request):
-        return self._is_site_admin(request.user)
-
     def code_display(self, obj):
         """Display region code with flag emoji."""
         flags = {
@@ -1402,7 +1399,9 @@ class RegionConfigAdmin(ModelAdmin):
             try:
                 from apps.registries.services import is_known_currency_code
             except (AttributeError, ImportError, TypeError, ValueError):
-                is_known_currency_code = lambda code: bool((code or "").strip())
+
+                def is_known_currency_code(code):
+                    return bool((code or "").strip())
             if not is_known_currency_code(region.default_currency):
                 issues.append(
                     f"⚠️  {region.name}: Unknown currency '{region.default_currency}'"
@@ -1941,6 +1940,7 @@ class EducationSystemProfileAdmin(ModelAdmin):
 
 
 class FeatureToggleDefinitionAdmin(ModelAdmin):
+    change_form_template = "admin/siteconfig/featuretoggledefinition/change_form.html"
     list_display = (
         "key",
         "label",
@@ -1958,6 +1958,7 @@ class FeatureToggleDefinitionAdmin(ModelAdmin):
 
 
 class FeatureToggleStateAdmin(ModelAdmin):
+    change_form_template = "admin/siteconfig/featuretogglestate/change_form.html"
     list_display = ("definition", "school", "is_enabled", "updated_by", "updated_at")
     list_filter = ("is_enabled", "school")
     search_fields = ("definition__key", "definition__label", "school__name")
@@ -1966,6 +1967,7 @@ class FeatureToggleStateAdmin(ModelAdmin):
 
 # Section 22: Tenant admission number policy
 class TenantAdmissionNumberPolicyAdmin(ModelAdmin):
+    change_form_template = "admin/siteconfig/tenantadmissionnumberpolicy/change_form.html"
     list_display = (
         "school",
         "strategy",
@@ -1981,7 +1983,7 @@ class TenantAdmissionNumberPolicyAdmin(ModelAdmin):
 
 # Register: both = platform backoffice + tenant config; platform = manager only; tenant = tenant only
 # Platform operators use super:site_settings_list / super:site_settings_edit only (not platform /admin/).
-register_tenant_admin(SiteSettings, SiteSettingsAdmin)
+register_tenant_admin(_TenantSettingsModel, SiteSettingsAdmin)
 register_tenant_admin(TenantAdmissionNumberPolicy, TenantAdmissionNumberPolicyAdmin)
 register_tenant_admin(UserPreference, UserPreferenceAdmin)
 register_both(ReportTemplate, ReportTemplateAdmin)
@@ -1994,6 +1996,7 @@ register_both(FeatureToggleState, FeatureToggleStateAdmin)
 
 
 class TourStepAdmin(ModelAdmin):
+    change_form_template = "admin/siteconfig/tourstep/change_form.html"
     list_display = ("code", "title", "school")
     list_filter = ("school",)
     search_fields = ("code", "title")
@@ -2574,43 +2577,7 @@ class ServiceIntegrationAdmin(ModelAdmin):
     ordering = ("school", "service_name")
 
 
-# Section 15.2: DynamicFieldDefinition, DynamicFieldValue (custom attributes per entity)
-class DynamicFieldDefinitionAdmin(ModelAdmin):
-    list_display = (
-        "entity_type",
-        "field_key",
-        "label",
-        "data_type",
-        "required",
-        "is_active",
-        "school",
-        "created_at",
-    )
-    list_filter = ("entity_type", "data_type", "is_active")
-    search_fields = ("entity_type", "field_key", "label")
-    raw_id_fields = ("school",)
-    ordering = ("school", "entity_type", "field_key")
-
-
-class DynamicFieldValueAdmin(ModelAdmin):
-    list_display = (
-        "entity_type",
-        "object_id",
-        "field_key",
-        "school",
-        "value_text",
-        "value_number",
-        "value_date",
-    )
-    list_filter = ("entity_type",)
-    search_fields = ("entity_type", "object_id", "field_key")
-    raw_id_fields = ("school",)
-    ordering = ("school", "entity_type", "object_id", "field_key")
-
-
-register_tenant_admin(DynamicFieldDefinition, DynamicFieldDefinitionAdmin)
-register_tenant_admin(DynamicFieldValue, DynamicFieldValueAdmin)
-
+# Section 15.2 legacy DynamicField* (siteconfig_dynamicfield*): removed Batch 14 Phase 5b — use metadata app.
 
 # World Engine: GlobalSyllabus, LearningPassport, BreakGlassOverride, BroadcastCampaign
 class GlobalSyllabusAdmin(ModelAdmin):
@@ -2686,6 +2653,51 @@ class BlogPostAdmin(ModelAdmin):
 
 
 register_platform_admin(BlogPost, BlogPostAdmin)
+
+
+class GlobalSupportTicketReplyInline(admin.TabularInline):
+    model = GlobalSupportTicketReply
+    extra = 0
+    raw_id_fields = ("author",)
+    readonly_fields = ("created_at",)
+
+
+class GlobalSupportTicketAdmin(ModelAdmin):
+    list_display = (
+        "subject",
+        "school",
+        "status",
+        "priority",
+        "user",
+        "assigned_to",
+        "created_at",
+    )
+    list_filter = ("status", "priority")
+    search_fields = ("subject", "body", "school__name", "user__email")
+    raw_id_fields = ("school", "user", "assigned_to")
+    readonly_fields = ("id", "created_at", "updated_at")
+    inlines = [GlobalSupportTicketReplyInline]
+
+
+class GlobalSupportTicketReplyAdmin(ModelAdmin):
+    list_display = ("ticket", "visibility", "author", "created_at")
+    list_filter = ("visibility",)
+    search_fields = ("body", "ticket__subject")
+    raw_id_fields = ("ticket", "author")
+    readonly_fields = ("created_at",)
+
+
+class GlobalSupportTicketWebhookEndpointAdmin(ModelAdmin):
+    list_display = ("name", "url", "is_active", "created_at")
+    list_filter = ("is_active",)
+    search_fields = ("name", "url")
+
+
+register_platform_admin(GlobalSupportTicket, GlobalSupportTicketAdmin)
+register_platform_admin(GlobalSupportTicketReply, GlobalSupportTicketReplyAdmin)
+register_platform_admin(
+    GlobalSupportTicketWebhookEndpoint, GlobalSupportTicketWebhookEndpointAdmin
+)
 
 
 # ============================================================================

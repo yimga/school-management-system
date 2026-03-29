@@ -423,6 +423,11 @@ urlpatterns = [
         name="package_promote",
     ),
     path(
+        "phase-b-snapshot-diff/",
+        require_super_access_with_host(super_views.super_phase_b_snapshot_diff),
+        name="phase_b_snapshot_diff",
+    ),
+    path(
         "policy-diff/",
         require_super_access_with_host(super_views.super_policy_diff),
         name="policy_diff",
@@ -486,6 +491,16 @@ urlpatterns = [
         name="support_dashboard",
     ),
     path(
+        "support/export.csv",
+        require_super_access_with_host(super_views.super_support_tickets_export_csv),
+        name="support_tickets_export_csv",
+    ),
+    path(
+        "support/csat/",
+        require_super_access_with_host(super_views.super_support_csat_dashboard),
+        name="support_csat_dashboard",
+    ),
+    path(
         "support/queue/",
         require_super_access_with_host(super_views.support_queue_fragment),
         name="support_queue_fragment",
@@ -494,6 +509,11 @@ urlpatterns = [
         "support/assign/",
         require_super_access_with_host(super_views.support_assign_ticket),
         name="support_assign_ticket",
+    ),
+    path(
+        "support/ticket/<uuid:ticket_id>/",
+        require_super_access_with_host(super_views.super_support_ticket_detail),
+        name="support_ticket_detail",
     ),
     path(
         "switch-to-tenant/",
@@ -539,6 +559,11 @@ urlpatterns = [
         "workflow-simulator/",
         require_super_access_with_host(super_views.super_workflow_simulator),
         name="workflow_simulator",
+    ),
+    path(
+        "playbook-operator-hub/",
+        require_super_access_with_host(super_views.super_playbook_operator_hub),
+        name="playbook_operator_hub",
     ),
     path(
         "orchestration/",

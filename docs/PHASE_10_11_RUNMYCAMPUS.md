@@ -42,7 +42,7 @@ Canonical ledger: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_
 | Area | Change |
 |------|--------|
 | **Demo seed** | `apps/schools/demo_user_seeding.py`, `management/commands/seed_demo_tenant_users.py` |
-| **Deprecated** | `management/commands/seed_gilead_demo_users.py` → delegates + warning |
+| **Removed** | Legacy `seed_*_demo_users` alias removed — use `seed_demo_tenant_users` only. |
 | **Docs** | `docs/GILEAD_REFERENCE_CLASSIFICATION.md`, SOT §3.2.5 |
 | **Lint** | Existing `scripts/lint_gilead_residue.py` remains the gate (PASS) |
 
@@ -52,5 +52,5 @@ Canonical ledger: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_
 
 ### D. Cleanup / deprecation
 - **Use** `python manage.py seed_demo_tenant_users` for new environments.
-- **Avoid** `seed_gilead_demo_users` except legacy scripts (prints deprecation).
+- **Use** `seed_demo_tenant_users` for demo accounts (`--school-slug`, `--username-prefix`).
 - Historical **migrations** with “gilead” in filenames: **do not delete**; classify as **DEPRECATED/ARCHIVE** only.

@@ -4,7 +4,7 @@ GAP.12 / PATH_TO_100 IV.2–IV.3: Unified theme/layout token resolution.
 Single entry point for portal, dashboard, and admin to read theme/experience tokens
 so they share one design system. Uses ``get_effective_site_settings``, which merges
 ``RuntimeDefaults`` and **``PlatformGlobalBranding``** (singleton) over the legacy
-``SiteSettings`` row for authoritative platform branding (Phase B Batch 1).
+slim tenant settings row for authoritative platform branding (Phase B Batch 1).
 """
 
 from __future__ import annotations

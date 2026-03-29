@@ -11,6 +11,7 @@ from .views import (
     preview_from_form,
     download_report,
     bulk_letters,
+    scheduled_reports_delivery_hub,
     reportcard_builder,
     reportcard_style_preview,
     reportcard_style_embed_preview,
@@ -69,6 +70,7 @@ from .views_form_draft import form_draft_api
 from .views import feedback_roadmap
 from .views_package_rollback import tenant_installed_packages_rollback
 from .views_console_domains import console_domains_hub
+from .views_tenant_runtime_hub import tenant_runtime_configuration_hub
 from .views_tour import tour_steps_api
 from apps.schools.views_domains import custom_domain_wizard
 
@@ -77,6 +79,11 @@ app_name = "siteconfig"
 urlpatterns = [
     path("maintenance/", maintenance_view, name="maintenance"),
     path("console/", console_domains_hub, name="console_domains_hub"),
+    path(
+        "configuration/runtime/",
+        tenant_runtime_configuration_hub,
+        name="tenant_runtime_configuration_hub",
+    ),
     path("grading-settings/", grading_settings, name="grading_settings"),
     path("modules/", module_market, name="module_market"),
     path(
@@ -105,6 +112,11 @@ urlpatterns = [
     path("preferences/theme/", update_theme, name="update_theme"),
     path("reports/download/<slug:slug>/", download_report, name="report_download"),
     path("reports/bulk-letters/", bulk_letters, name="bulk_letters"),
+    path(
+        "reports/scheduled/",
+        scheduled_reports_delivery_hub,
+        name="scheduled_reports_delivery_hub",
+    ),
     path("reports/builder/", reportcard_builder, name="reportcard_builder"),
     path(
         "reports/preview/<slug:slug>/",

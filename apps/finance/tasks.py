@@ -41,7 +41,10 @@ from apps.apicenter.gating import is_integration_allowed
 from apps.global_registries.models import RegionConfig
 from apps.integrations_marketplace.models import Integration
 from apps.people.models import StudentGuardian
-from apps.platform_runtime.helpers import get_effective_flags_for_school
+from apps.platform_runtime.helpers import (
+    get_effective_flags_for_school,
+    get_effective_marketplace_integration_settings,
+)
 from apps.automation.models import AutomationExecutionLog, AutomationApprovalQueue
 from apps.automation.helpers import (
     get_cached_site_settings,
@@ -206,17 +209,6 @@ def _get_finance_runtime_config(site_settings) -> dict[str, object]:
         ),
         "reminder_max_retries": int(
             getattr(site_settings, "finance_reminder_max_retries", 2) or 2
-        ),
-    }
-
-
-def _get_marketplace_integration_settings(site_settings) -> dict[str, object]:
-    getter = getattr(site_settings, "get_marketplace_integration_settings", None)
-    if callable(getter):
-        return getter()
-    return {
-        "marksheet_ocr_command": str(
-            getattr(site_settings, "marksheet_ocr_command", "") or ""
         ),
     }
 
@@ -1490,9 +1482,10 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
         proof_upload.status = PaymentProofUpload.Status.VERIFYING
         proof_upload.save(update_fields=["status"])
 
-        site_settings = get_cached_site_settings(school=_resolve_school(proof_upload))
+        school = _resolve_school(proof_upload)
+        site_settings = get_cached_site_settings(school=school)
         finance_settings = _get_finance_runtime_config(site_settings)
-        integration_settings = _get_marketplace_integration_settings(site_settings)
+        integration_settings = get_effective_marketplace_integration_settings(school=school)
         verification_method = finance_settings["receipt_verification_method"]
         auto_apply_threshold = finance_settings["receipt_auto_apply_threshold"]
         auto_apply_enabled = finance_settings["receipt_auto_apply_enabled"]

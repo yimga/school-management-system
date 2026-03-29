@@ -316,11 +316,15 @@ class BankStatementImportService:
 
         total = Decimal("0.00")
         parsed_allocations: list[tuple[Invoice, Decimal]] = []
+        positive_invoice_ids: set[int] = set()
         for row in allocations:
             invoice_id = int(row["invoice_id"])
             amount = self._to_decimal(row["amount"])
             if amount <= 0:
                 continue
+            if invoice_id in positive_invoice_ids:
+                raise ValueError("Duplicate invoice_id in allocations is not allowed.")
+            positive_invoice_ids.add(invoice_id)
             invoice = Invoice.objects.select_related("student").get(pk=invoice_id)
             parsed_allocations.append((invoice, amount))
             total += amount

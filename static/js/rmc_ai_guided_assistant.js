@@ -64,7 +64,19 @@
             return;
           }
           var g = res.data.guided || {};
+          var meta = res.data.meta || {};
+          var cites = res.data.citations;
           var lines = [];
+          if (meta.schema_validation_failed) {
+            lines.push(
+              "! Model output did not match the expected format; showing a safe empty structure. Try rephrasing or check AI service logs."
+            );
+          }
+          if (cites && cites.length) {
+            lines.push(
+              "(Grounded with " + cites.length + " retrieved memory snippet(s), same catalog as the floating AI chat.)"
+            );
+          }
           lines.push(g.summary || "");
           (g.actions || []).forEach(function (a) {
             lines.push("- " + (a.title || "") + ": " + (a.detail || ""));

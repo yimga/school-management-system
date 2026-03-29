@@ -178,6 +178,22 @@
     </div>
   </section>
   {% endif %}
+  {% if admissions_flow %}
+  <section id="admissions-pipeline" class="mkt-section mkt-reveal" aria-label="{% trans 'Admissions pipeline' %}">
+    <div class="container">
+      <h2 class="mkt-section-heading">{% trans "Admissions pipeline, end to end" %}</h2>
+      <p class="mkt-section-lead">{% trans "From first enquiry to enrolled student—one connected flow on one platform." %}</p>
+      <ol class="mkt-journey-steps">
+        {% for step in admissions_flow %}
+        <li>
+          <strong>{{ step.title }}</strong>
+          <span>{{ step.body }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+  </section>
+  {% endif %}
   {% if marketing_apac_story %}
   <section id="apac-growth" class="mkt-section mkt-reveal" aria-label="{% trans 'Asia-Pacific' %}">
     <div class="container">
@@ -594,7 +610,7 @@
     </div>
     {% if review_badges %}
     <p class="text-center small text-muted mt-2">
-      {% for badge in review_badges %}<span class="me-3">{{ badge.name }} {{ badge.stars }}★ ({{ badge.reviews }} {% trans "reviews" %})</span>{% endfor %}
+      {% for badge in review_badges %}<span class="me-3">{% if badge.url %}<a href="{{ badge.url }}" target="_blank" rel="noopener noreferrer">{{ badge.name }}</a>{% else %}{{ badge.name }}{% endif %} {{ badge.stars }}★ ({{ badge.reviews }} {% trans "reviews" %})</span>{% endfor %}
     </p>
     {% endif %}
     <p class="text-center mt-3">
@@ -638,6 +654,21 @@
     </p>
     {% endif %}
   </section>
+
+  {% if post_enrollment_revenue %}
+  <section id="post-enrollment-revenue" class="mkt-section mkt-reveal" aria-label="{% trans 'Post enrollment revenue' %}">
+    <h2 class="mkt-section-heading">{% trans "Revenue beyond tuition" %}</h2>
+    <p class="mkt-section-lead">{% trans "Events, courses, and alumni programs—monetized without bolt-on tools." %}</p>
+    <div class="mkt-platform-grid">
+      {% for item in post_enrollment_revenue %}
+      <article class="mkt-platform-card rmc-glass-surface">
+        <h3>{{ item.title }}</h3>
+        <p class="mb-0">{{ item.body }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 
   {# Awards & recognition #}
   {% if awards_recognition %}
@@ -700,6 +731,23 @@
     <p class="text-center">
       <a href="{{ ten_reasons_page_path }}" class="btn btn-outline-primary">{% trans "Read 10 reasons" %}</a>
     </p>
+  </section>
+  {% endif %}
+
+  {% if what_you_get %}
+  <section id="what-you-get" class="mkt-section mkt-reveal" aria-label="{% trans 'What you get' %}">
+    <h2 class="mkt-section-heading">{% trans "What you get" %}</h2>
+    <p class="mkt-section-lead">{% trans "Enterprise expectations, school-sized clarity." %}</p>
+    <div class="row g-3">
+      {% for item in what_you_get %}
+      <div class="col-md-4">
+        <div class="mkt-platform-card rmc-glass-surface h-100">
+          <h3>{{ item.title }}</h3>
+          <p class="small mb-0">{{ item.body }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
   </section>
   {% endif %}
 

@@ -318,7 +318,7 @@ def default_delegation_role_mapping():
 
 def virtual_site_setting_default(name: str) -> object:
     """
-    Safe defaults for legacy SiteSettings keys that live in RuntimeDefaults.payload when the key
+    Safe defaults for legacy tenant-settings payload keys that live in RuntimeDefaults.payload when the key
     is absent. Keeps templates and owned_payload(getattr) from raising or returning unusable nulls.
     """
     from decimal import Decimal
@@ -385,11 +385,17 @@ def virtual_site_setting_default(name: str) -> object:
         "report_preview_contact_phone": "",
         "sms_provider": "",
         "sms_api_key": "",
+        "ai_provider_api_key": "",
+        "whatsapp_api_token": "",
         "sms_sender_id": "",
         "email_from_address": "",
+        "smtp_password": "",
+        "webhook_signing_secret": "",
+        "marketplace_partner_client_secret": "",
         "whatsapp_support_number": "",
         "whatsapp_admissions_number": "",
         "marksheet_ocr_command": "",
+        "marksheet_ocr_api_key": "",
         "admission_number_mode": "",
         "admission_number_pattern": "",
         "admission_number_strategy": "",
@@ -853,15 +859,17 @@ def resolve_dashboard_widgets(
 
 
 def build_platform_default_site_settings():
+    import apps.siteconfig.models as _siteconfig_models
+
     from .models import (
         PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL,
         PLATFORM_DEFAULT_SCHOOL_CODE,
         PLATFORM_DEFAULT_SITE_NAME,
         PLATFORM_DEFAULT_TAGLINE,
-        SiteSettings,
     )
 
-    site = SiteSettings()
+    _TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
+    site = _TenantSettingsModel()
     site.pk = 1
     object.__setattr__(site, "site_name", PLATFORM_DEFAULT_SITE_NAME)
     object.__setattr__(site, "school_code", PLATFORM_DEFAULT_SCHOOL_CODE)

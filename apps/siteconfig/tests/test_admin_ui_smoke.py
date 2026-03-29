@@ -1,24 +1,54 @@
 import unittest
+import uuid
 from datetime import date
 from html.parser import HTMLParser
+from pathlib import Path
 from urllib.parse import urlsplit
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.utils import OperationalError
 from django.test import RequestFactory
 from django.test import TestCase
 from django.urls import reverse, set_urlconf
+from django.utils import timezone
 
 from apps.accounts.models import Permission
-from apps.compliance.models import ComplianceRule, LegalDocument
+from apps.automation.models import MigrationRun
+from apps.compliance.models import (
+    ComplianceRule,
+    ConsentRecord,
+    ConsentRequest,
+    LegalDocument,
+)
 from apps.global_registries.models import RegionConfig
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.platform_runtime.models import RuntimeDefaults
 from apps.siteconfig.context_processors import site_settings
-from apps.integrations_marketplace.models import Integration
-from apps.portal.models import Announcement, PortalFeatureItem
+from apps.integrations_marketplace.models import (
+    AppInstallation,
+    AppScope,
+    Integration,
+    MarketplaceApp,
+    MarketplaceListing,
+    ScopeGrant,
+    ServiceIntegration,
+)
+from apps.portal.models import Announcement, DocumentCategory, Event, PortalFeatureItem
+from apps.portal.models_kb import FAQ, FAQCategory, KBArticle, KBCategory
 from apps.runtime_blueprints.models import DashboardWidget
+from apps.schools.models import School
+from apps.siteconfig.models import RegionConfig as TenantRegionConfig
 from apps.siteconfig.models import ReportCardStyle, SiteSettings
 from apps.siteconfig.models_dashboard import DashboardUserPreference
+from apps.siteconfig.models_feature_controls import (
+    FeatureToggleDefinition,
+    FeatureToggleState,
+    TourStep,
+)
+from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
+from apps.siteconfig.models_platform_catalog import TenantAdmissionNumberPolicy
+from apps.siteconfig.models_tooling import UserPreference
 from apps.siteconfig.tests.test_admin import _admin_request_with_session_and_messages
 from config.admin import tenant_admin_site
 
@@ -427,6 +457,26 @@ class AdminUiSmokeTests(TestCase):
         finally:
             set_urlconf(None)
 
+    def test_themepack_change_form_template_has_product_escape_links(self):
+        """ThemePack admin redirects to Studio; template remains the P3 escape contract (batch 14 #138)."""
+        from pathlib import Path
+
+        tpl = (
+            Path(__file__).resolve().parents[3]
+            / "templates"
+            / "admin"
+            / "siteconfig"
+            / "themepack"
+            / "change_form.html"
+        )
+        self.assertTrue(tpl.is_file(), msg="themepack change_form template missing")
+        body = tpl.read_text(encoding="utf-8")
+        self.assertIn("themepack-cp-escape-heading", body)
+        self.assertIn("siteconfig:theme_colors", body)
+        self.assertIn("studio_os:experience", body)
+        self.assertIn("studio_os:output", body)
+        self.assertIn("siteconfig:console_domains_hub", body)
+
     def test_compliancerule_change_form_links_to_control_plane_surfaces(self):
         """P3: compliance ComplianceRule admin → configuration hub + feature control + KB."""
         rule = ComplianceRule.objects.create(
@@ -597,3 +647,888 @@ class AdminUiSmokeTests(TestCase):
                 )
         finally:
             set_urlconf(None)
+
+    def test_portal_event_change_form_links_to_control_plane_surfaces(self):
+        """P3: portal Event admin → unified calendar + backend + feature control."""
+        start = timezone.now()
+        ev = Event.objects.create(
+            title="Admin UI smoke event",
+            start_at=start,
+            end_at=start,
+        )
+        model_admin = tenant_admin_site._registry[Event]
+        path = reverse(
+            "admin:portal_event_change",
+            args=[ev.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(ev.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("portal-event-cp-escape-heading", body)
+            expectations = {
+                reverse("portal:unified_calendar"),
+                reverse("accounts:backend_dashboard"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("siteconfig:console_domains_hub"),
+            }
+            for expect_path in expectations:
+                self.assertIn(
+                    expect_path,
+                    body,
+                    msg=f"missing control-plane link target {expect_path}",
+                )
+        finally:
+            set_urlconf(None)
+
+    def test_portal_documentcategory_change_form_links_to_control_plane_surfaces(self):
+        """P3: portal DocumentCategory → document library + feature control + Studio Output."""
+        cat = DocumentCategory.objects.create(
+            name="Admin UI smoke doc category",
+            slug="admin-ui-smoke-doc-cat",
+        )
+        model_admin = tenant_admin_site._registry[DocumentCategory]
+        path = reverse(
+            "admin:portal_documentcategory_change",
+            args=[cat.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(cat.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("portal-document-category-cp-escape-heading", body)
+            expectations = {
+                reverse("portal:document_library_manage"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("studio_os:output"),
+                reverse("siteconfig:console_domains_hub"),
+            }
+            for expect_path in expectations:
+                self.assertIn(
+                    expect_path,
+                    body,
+                    msg=f"missing control-plane link target {expect_path}",
+                )
+        finally:
+            set_urlconf(None)
+
+    def test_portal_kbarticle_change_form_links_to_control_plane_surfaces(self):
+        """P3: portal KBArticle → KB home + submit flow + configuration hub."""
+        kb_cat = KBCategory.objects.create(
+            name="Admin UI smoke KB category",
+            slug="admin-ui-smoke-kb-cat",
+        )
+        article = KBArticle.objects.create(
+            title="Admin UI smoke KB article",
+            slug="admin-ui-smoke-kb-article",
+            category=kb_cat,
+            summary="Smoke summary for escape hatch test.",
+            content="Smoke content.",
+        )
+        model_admin = tenant_admin_site._registry[KBArticle]
+        path = reverse(
+            "admin:portal_kbarticle_change",
+            args=[article.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(article.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("portal-kb-article-cp-escape-heading", body)
+            expectations = {
+                reverse("kb:kb_home"),
+                reverse("kb:kb_article_submit"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("siteconfig:console_domains_hub"),
+            }
+            for expect_path in expectations:
+                self.assertIn(
+                    expect_path,
+                    body,
+                    msg=f"missing control-plane link target {expect_path}",
+                )
+        finally:
+            set_urlconf(None)
+
+    def test_compliance_consentrequest_change_form_links_to_control_plane_surfaces(self):
+        """P3: compliance ConsentRequest → hub + feature control + backend + KB."""
+        region = TenantRegionConfig.objects.create(
+            code="P3CR",
+            name="Admin smoke region consent",
+            timezone="UTC",
+            date_format="YYYY-MM-DD",
+            grading_scale="0-20",
+            default_currency="USD",
+            academic_year_start_month=9,
+            term_count_per_year=3,
+        )
+        school = School.objects.create(
+            name="Admin UI smoke school consent",
+            slug="admin-ui-smoke-school-cr",
+            subdomain="admin-ui-smoke-cr",
+            is_active=True,
+            default_region=region,
+            settings={},
+        )
+        cr = ConsentRequest.objects.create(
+            school=school,
+            title="Admin UI smoke consent request",
+        )
+        model_admin = tenant_admin_site._registry[ConsentRequest]
+        path = reverse(
+            "admin:compliance_consentrequest_change",
+            args=[cr.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(cr.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("compliance-consent-request-cp-escape-heading", body)
+            expectations = {
+                reverse("siteconfig:console_domains_hub"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("accounts:backend_dashboard"),
+                reverse("kb:kb_home"),
+            }
+            for expect_path in expectations:
+                self.assertIn(
+                    expect_path,
+                    body,
+                    msg=f"missing control-plane link target {expect_path}",
+                )
+        finally:
+            set_urlconf(None)
+
+    def test_portal_faqcategory_change_form_links_to_control_plane_surfaces(self):
+        """P3: portal FAQCategory → FAQ directory + KB + feature control."""
+        cat = FAQCategory.objects.create(
+            name="Admin UI smoke FAQ category",
+            slug="admin-ui-smoke-faq-cat",
+        )
+        model_admin = tenant_admin_site._registry[FAQCategory]
+        path = reverse(
+            "admin:portal_faqcategory_change",
+            args=[cat.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(cat.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("portal-faq-category-cp-escape-heading", body)
+            expectations = {
+                reverse("kb:faq_list"),
+                reverse("kb:kb_home"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("siteconfig:console_domains_hub"),
+            }
+            for expect_path in expectations:
+                self.assertIn(
+                    expect_path,
+                    body,
+                    msg=f"missing control-plane link target {expect_path}",
+                )
+        finally:
+            set_urlconf(None)
+
+    def test_portal_faq_change_form_links_to_control_plane_surfaces(self):
+        """P3: portal FAQ → public FAQ list + submit + KB home."""
+        faq_cat = FAQCategory.objects.create(
+            name="Admin UI smoke FAQ cat for FAQ",
+            slug="admin-ui-smoke-faq-cat-faq",
+        )
+        faq = FAQ.objects.create(
+            category=faq_cat,
+            question="Admin UI smoke FAQ question?",
+            answer="Admin UI smoke FAQ answer.",
+        )
+        model_admin = tenant_admin_site._registry[FAQ]
+        path = reverse(
+            "admin:portal_faq_change",
+            args=[faq.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(faq.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("portal-faq-cp-escape-heading", body)
+            expectations = {
+                reverse("kb:faq_list"),
+                reverse("kb:faq_submit"),
+                reverse("kb:kb_home"),
+                reverse("siteconfig:console_domains_hub"),
+            }
+            for expect_path in expectations:
+                self.assertIn(
+                    expect_path,
+                    body,
+                    msg=f"missing control-plane link target {expect_path}",
+                )
+        finally:
+            set_urlconf(None)
+
+    def test_portal_kbcategory_change_form_links_to_control_plane_surfaces(self):
+        """P3: portal KBCategory → KB home + article submit + hub."""
+        cat = KBCategory.objects.create(
+            name="Admin UI smoke KB category standalone",
+            slug="admin-ui-smoke-kb-cat-standalone",
+        )
+        model_admin = tenant_admin_site._registry[KBCategory]
+        path = reverse(
+            "admin:portal_kbcategory_change",
+            args=[cat.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(cat.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("portal-kb-category-cp-escape-heading", body)
+            expectations = {
+                reverse("kb:kb_home"),
+                reverse("kb:kb_article_submit"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("siteconfig:console_domains_hub"),
+            }
+            for expect_path in expectations:
+                self.assertIn(
+                    expect_path,
+                    body,
+                    msg=f"missing control-plane link target {expect_path}",
+                )
+        finally:
+            set_urlconf(None)
+
+    def _smoke_school(self, *, slug_suffix: str) -> School:
+        region = TenantRegionConfig.objects.create(
+            code=f"P3{uuid.uuid4().hex[:8].upper()}",
+            name=f"Admin smoke region {slug_suffix}",
+            timezone="UTC",
+            date_format="YYYY-MM-DD",
+            grading_scale="0-20",
+            default_currency="USD",
+            academic_year_start_month=9,
+            term_count_per_year=3,
+        )
+        return School.objects.create(
+            name=f"Admin UI smoke school {slug_suffix}",
+            slug=f"admin-ui-smoke-{slug_suffix}",
+            subdomain=f"admin-smoke-{slug_suffix}"[:60],
+            is_active=True,
+            default_region=region,
+            settings={},
+        )
+
+    def test_featuretoggledefinition_change_form_links_to_control_plane_surfaces(self):
+        """P3: FeatureToggleDefinition admin → feature control + audit + hub."""
+        definition = FeatureToggleDefinition.objects.create(
+            key="p3-admin-smoke-toggle",
+            label="P3 admin smoke toggle",
+            category="smoke",
+        )
+        model_admin = tenant_admin_site._registry[FeatureToggleDefinition]
+        path = reverse(
+            "admin:siteconfig_featuretoggledefinition_change",
+            args=[definition.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(definition.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("feature-toggle-def-cp-escape-heading", body)
+            for expect_path in (
+                reverse("siteconfig:feature_control_panel"),
+                reverse("siteconfig:feature_control_audit"),
+                reverse("siteconfig:console_domains_hub"),
+                reverse("accounts:backend_dashboard"),
+            ):
+                self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+        finally:
+            set_urlconf(None)
+
+    def test_featuretogglestate_change_form_links_to_control_plane_surfaces(self):
+        """P3: FeatureToggleState admin → feature control + ledger."""
+        definition = FeatureToggleDefinition.objects.create(
+            key="p3-admin-smoke-toggle-state",
+            label="P3 smoke state",
+        )
+        school = self._smoke_school(slug_suffix="ft-state")
+        state = FeatureToggleState.objects.create(
+            definition=definition,
+            school=school,
+            is_enabled=True,
+        )
+        model_admin = tenant_admin_site._registry[FeatureToggleState]
+        path = reverse(
+            "admin:siteconfig_featuretogglestate_change",
+            args=[state.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(state.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("feature-toggle-state-cp-escape-heading", body)
+            for expect_path in (
+                reverse("siteconfig:feature_control_panel"),
+                reverse("siteconfig:feature_control_ledger"),
+                reverse("siteconfig:console_domains_hub"),
+            ):
+                self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+        finally:
+            set_urlconf(None)
+
+    def test_tenantadmissionnumberpolicy_change_form_links_to_control_plane_surfaces(self):
+        """P3: TenantAdmissionNumberPolicy → blueprints + workflow + feature control."""
+        school = self._smoke_school(slug_suffix="adm-pol")
+        policy = TenantAdmissionNumberPolicy.objects.create(school=school)
+        model_admin = tenant_admin_site._registry[TenantAdmissionNumberPolicy]
+        path = reverse(
+            "admin:siteconfig_tenantadmissionnumberpolicy_change",
+            args=[policy.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(policy.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("tenant-admission-policy-cp-escape-heading", body)
+            for expect_path in (
+                reverse("siteconfig:get_blueprints"),
+                reverse("siteconfig:workflow_flow_gallery"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("siteconfig:console_domains_hub"),
+            ):
+                self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+        finally:
+            set_urlconf(None)
+
+    def test_dynamicfielddefinition_change_form_links_to_control_plane_surfaces(self):
+        """P3 / Batch 14: metadata.DynamicFieldDefinition → control plane + Studio."""
+        school = self._smoke_school(slug_suffix="dyn-def")
+        definition = DynamicFieldDefinition.objects.create(
+            school=school,
+            entity_type="Student",
+            field_key="p3_smoke_attr",
+            label="P3 smoke attribute",
+        )
+        model_admin = tenant_admin_site._registry[DynamicFieldDefinition]
+        path = reverse(
+            "admin:metadata_dynamicfielddefinition_change",
+            args=[definition.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(definition.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("dynamic-field-def-cp-escape-heading", body)
+            for expect_path in (
+                reverse("siteconfig:tag_manager"),
+                reverse("siteconfig:console_domains_hub"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("studio_os:output"),
+            ):
+                self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+        finally:
+            set_urlconf(None)
+
+    def test_dynamicfieldvalue_change_form_links_to_control_plane_surfaces(self):
+        """P3 / Batch 14: metadata.DynamicFieldValue → control plane + backend."""
+        school = self._smoke_school(slug_suffix="dyn-val")
+        value = DynamicFieldValue.objects.create(
+            school=school,
+            entity_type="Student",
+            entity_id="1",
+            field_key="p3_smoke_val",
+            value_json={"v": "x"},
+        )
+        model_admin = tenant_admin_site._registry[DynamicFieldValue]
+        path = reverse(
+            "admin:metadata_dynamicfieldvalue_change",
+            args=[value.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(value.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("dynamic-field-value-cp-escape-heading", body)
+            for expect_path in (
+                reverse("siteconfig:tag_manager"),
+                reverse("siteconfig:console_domains_hub"),
+                reverse("accounts:backend_dashboard"),
+            ):
+                self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+        finally:
+            set_urlconf(None)
+
+    def test_tourstep_change_form_links_to_control_plane_surfaces(self):
+        """P3: TourStep admin → guided onboarding + tour API + preferences."""
+        school = self._smoke_school(slug_suffix="tour-step")
+        step = TourStep.objects.create(
+            school=school,
+            code="p3_admin_smoke_tour",
+            title="P3 smoke tour step",
+        )
+        model_admin = tenant_admin_site._registry[TourStep]
+        path = reverse(
+            "admin:siteconfig_tourstep_change",
+            args=[step.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(step.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("tour-step-cp-escape-heading", body)
+            for expect_path in (
+                reverse("siteconfig:guided_onboarding"),
+                reverse("siteconfig:tour_steps_api"),
+                reverse("siteconfig:console_domains_hub"),
+                reverse("siteconfig:user_preferences"),
+            ):
+                self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+        finally:
+            set_urlconf(None)
+
+    def test_userpreference_change_form_links_to_control_plane_surfaces(self):
+        """P3: UserPreference admin → preferences + dashboard hubs."""
+        pref, _ = UserPreference.objects.get_or_create(user=self.superuser)
+        model_admin = tenant_admin_site._registry[UserPreference]
+        path = reverse(
+            "admin:siteconfig_userpreference_change",
+            args=[pref.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(pref.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("user-preference-cp-escape-heading", body)
+            for expect_path in (
+                reverse("siteconfig:user_preferences"),
+                reverse("siteconfig:dashboard_hub"),
+                reverse("siteconfig:dashboard_configuration_hub"),
+                reverse("siteconfig:console_domains_hub"),
+            ):
+                self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+        finally:
+            set_urlconf(None)
+
+    def test_compliance_consentrecord_change_form_links_to_control_plane_surfaces(self):
+        """P3: compliance ConsentRecord → hub + feature control + backend + KB."""
+        region = TenantRegionConfig.objects.create(
+            code="P3REC",
+            name="Admin smoke region consent record",
+            timezone="UTC",
+            date_format="YYYY-MM-DD",
+            grading_scale="0-20",
+            default_currency="USD",
+            academic_year_start_month=9,
+            term_count_per_year=3,
+        )
+        school = School.objects.create(
+            name="Admin UI smoke school consent record",
+            slug="admin-ui-smoke-school-rec",
+            subdomain="admin-ui-smoke-rec",
+            is_active=True,
+            default_region=region,
+            settings={},
+        )
+        rec = ConsentRecord.objects.create(
+            school=school,
+            user=self.superuser,
+            title="Admin UI smoke consent record",
+            document_hash="a" * 64,
+        )
+        model_admin = tenant_admin_site._registry[ConsentRecord]
+        path = reverse(
+            "admin:compliance_consentrecord_change",
+            args=[rec.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(rec.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+            self.assertIn("compliance-consent-record-cp-escape-heading", body)
+            expectations = {
+                reverse("siteconfig:console_domains_hub"),
+                reverse("siteconfig:feature_control_panel"),
+                reverse("accounts:backend_dashboard"),
+                reverse("kb:kb_home"),
+            }
+            for expect_path in expectations:
+                self.assertIn(
+                    expect_path,
+                    body,
+                    msg=f"missing control-plane link target {expect_path}",
+                )
+        finally:
+            set_urlconf(None)
+
+    def test_runtimedefaults_change_form_links_to_control_plane_surfaces(self):
+        """P3: platform RuntimeDefaults admin links to super operator shells (batch 28 #338)."""
+        rd = RuntimeDefaults.get_singleton()
+        self.client.force_login(self.superuser)
+        path = reverse("admin:platform_runtime_runtimedefaults_change", args=[rd.pk])
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("runtime-defaults-cp-escape-heading", body)
+        for expect_path in (
+            reverse("super:dashboard"),
+            reverse("super:schools_list"),
+            reverse("super:usage"),
+        ):
+            self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+
+    def test_marketplaceapp_change_form_links_to_control_plane_surfaces(self):
+        """P3: platform MarketplaceApp admin links to super operator shells (batch 29 #353)."""
+        app = MarketplaceApp.objects.create(
+            slug="p3-marketplace-app-smoke",
+            name="P3 Marketplace App smoke",
+            version="1.0.0",
+        )
+        self.client.force_login(self.superuser)
+        path = reverse("admin:integrations_marketplace_marketplaceapp_change", args=[app.pk])
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("marketplace-app-cp-escape-heading", body)
+        for expect_path in (
+            reverse("super:dashboard"),
+            reverse("super:schools_list"),
+            reverse("super:usage"),
+        ):
+            self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+
+    def test_marketplacelisting_change_form_links_to_control_plane_surfaces(self):
+        """P3: platform MarketplaceListing admin links to super operator shells (batch 31 #383)."""
+        app = MarketplaceApp.objects.create(
+            slug="p3-marketplace-listing-smoke",
+            name="P3 Marketplace Listing smoke",
+            version="1.0.0",
+        )
+        listing = MarketplaceListing.objects.create(
+            app=app,
+            status=MarketplaceListing.Status.DRAFT,
+        )
+        self.client.force_login(self.superuser)
+        path = reverse(
+            "admin:integrations_marketplace_marketplacelisting_change", args=[listing.pk]
+        )
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("marketplace-listing-cp-escape-heading", body)
+        for expect_path in (
+            reverse("super:dashboard"),
+            reverse("super:schools_list"),
+            reverse("super:usage"),
+        ):
+            self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+
+    def test_serviceintegration_change_form_links_to_control_plane_surfaces(self):
+        """P3: platform ServiceIntegration admin links to super operator shells (batch 30 #368)."""
+        region = TenantRegionConfig.objects.create(
+            code="P3SVCINT",
+            name="Admin smoke region service integration",
+            timezone="UTC",
+            date_format="YYYY-MM-DD",
+            grading_scale="0-20",
+            default_currency="USD",
+            academic_year_start_month=9,
+            term_count_per_year=3,
+        )
+        school = School.objects.create(
+            name="Admin UI smoke school service integration",
+            slug="admin-ui-smoke-school-svcint",
+            subdomain="admin-ui-smoke-svcint",
+            is_active=True,
+            default_region=region,
+            settings={},
+        )
+        si = ServiceIntegration.objects.create(
+            school=school,
+            service_name="P3 smoke service integration",
+            service_type=ServiceIntegration.ServiceType.LTI,
+        )
+        self.client.force_login(self.superuser)
+        path = reverse(
+            "admin:integrations_marketplace_serviceintegration_change", args=[si.pk]
+        )
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("service-integration-cp-escape-heading", body)
+        for expect_path in (
+            reverse("super:dashboard"),
+            reverse("super:schools_list"),
+            reverse("super:usage"),
+        ):
+            self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+
+    def test_scopegrant_change_form_links_to_control_plane_surfaces(self):
+        """P3: platform ScopeGrant admin links to super operator shells (batch 35 #443)."""
+        region = TenantRegionConfig.objects.create(
+            code="P3SCOPE",
+            name="Admin smoke region scope grant",
+            timezone="UTC",
+            date_format="YYYY-MM-DD",
+            grading_scale="0-20",
+            default_currency="USD",
+            academic_year_start_month=9,
+            term_count_per_year=3,
+        )
+        school = School.objects.create(
+            name="Admin UI smoke school scope grant",
+            slug="admin-ui-smoke-school-scope",
+            subdomain="admin-ui-smoke-scope",
+            is_active=True,
+            default_region=region,
+            settings={},
+        )
+        app = MarketplaceApp.objects.create(
+            slug="p3-scope-smoke-app",
+            name="P3 Scope smoke app",
+            version="1.0.0",
+        )
+        scope = AppScope.objects.create(
+            app=app, scope_code="read:grades", description="Read grades"
+        )
+        inst = AppInstallation.objects.create(
+            school=school,
+            app=app,
+            status=AppInstallation.Status.ACTIVE,
+        )
+        grant = ScopeGrant.objects.create(
+            installation=inst,
+            scope=scope,
+            status=ScopeGrant.GrantStatus.GRANTED,
+        )
+        self.client.force_login(self.superuser)
+        path = reverse(
+            "admin:integrations_marketplace_scopegrant_change", args=[grant.pk]
+        )
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("scope-grant-cp-escape-heading", body)
+        for expect_path in (
+            reverse("super:platform_operator_hub"),
+            reverse("super:dashboard"),
+            reverse("super:schools_list"),
+            reverse("super:usage"),
+        ):
+            self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+
+    def test_appinstallation_change_form_links_to_control_plane_surfaces(self):
+        """P3: platform AppInstallation admin links to super operator shells (batch 41 §11.4)."""
+        region = TenantRegionConfig.objects.create(
+            code="P3APPINST",
+            name="Admin smoke region app installation",
+            timezone="UTC",
+            date_format="YYYY-MM-DD",
+            grading_scale="0-20",
+            default_currency="USD",
+            academic_year_start_month=9,
+            term_count_per_year=3,
+        )
+        school = School.objects.create(
+            name="Admin UI smoke school app installation",
+            slug="admin-ui-smoke-school-appinst",
+            subdomain="admin-ui-smoke-appinst",
+            is_active=True,
+            default_region=region,
+            settings={},
+        )
+        app = MarketplaceApp.objects.create(
+            slug="p3-appinst-smoke-app",
+            name="P3 AppInstallation smoke app",
+            version="1.0.0",
+        )
+        inst = AppInstallation.objects.create(
+            school=school,
+            app=app,
+            status=AppInstallation.Status.ACTIVE,
+        )
+        self.client.force_login(self.superuser)
+        path = reverse(
+            "admin:integrations_marketplace_appinstallation_change", args=[inst.pk]
+        )
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("app-installation-cp-escape-heading", body)
+        for expect_path in (
+            reverse("super:platform_operator_hub"),
+            reverse("super:dashboard"),
+            reverse("super:schools_list"),
+            reverse("super:migration_cloud"),
+            reverse("super:usage"),
+        ):
+            self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+
+    def test_automation_migrationrun_change_form_links_to_control_plane_surfaces(self):
+        """P3: platform MigrationRun admin escape hatch (batch 35 #443)."""
+        run = MigrationRun.objects.create(
+            migration_type="p3-admin-smoke",
+            dry_run=True,
+            status=MigrationRun.Status.PENDING,
+        )
+        self.client.force_login(self.superuser)
+        path = reverse("admin:automation_migrationrun_change", args=[run.pk])
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore")
+        self.assertIn("automation-migration-run-cp-escape-heading", body)
+        for expect_path in (
+            reverse("super:dashboard"),
+            reverse("super:migration_cloud"),
+            reverse("super:runtime_truth_hub"),
+            reverse("siteconfig:tenant_runtime_configuration_hub"),
+        ):
+            self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
+
+    def test_admin_change_form_templates_with_form_before_include_p3_escape_markers(self):
+        """Batch 23 #263: tenant ``change_form`` templates that define ``form_before`` keep P3 escape hatch hints."""
+        base = Path(settings.BASE_DIR) / "templates" / "admin"
+        for path in sorted(base.rglob("change_form.html")):
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if "{% block form_before %}" not in text:
+                continue
+            rel = path.relative_to(settings.BASE_DIR).as_posix()
+            self.assertTrue(
+                "cp-escape-heading" in text
+                or "console_domains_hub" in text
+                or "feature_control_panel" in text,
+                msg=f"{rel}: expected P3 escape marker (heading id or siteconfig URL name)",
+            )

@@ -69,7 +69,7 @@ SEMANTIC_URLS = {
 
 # URL Structure Strategy (Phase 7 Task 4): semantic paths, consistency (list/detail/create),
 # SEO (hyphens, full words, canonical tags). See URL_MIGRATIONS and SEMANTIC_URLS above.
-# Removed module-level print() to avoid runtime output; use docs or logging if needed.
+# No module-level stdout prints; use logging or docs for diagnostics.
 """
 URL Structure Strategy for Phase 7 Task 4 (reference only; not executed):
 

@@ -15,10 +15,10 @@ Alignment of the internet-facing marketing page with the full design in RUNMYCAM
 |---------------------|--------|--------|
 | Header / Nav: About, Features, Blog, Contact | Done | In definitions and public_urls. |
 | Hero: Global features list (Multi-Language, Multi-Currency, etc.) | Done | "Trusted for:" line using global_features in marketing_landing.html (Phase 1). |
-| Post-enrollment revenue (Events, Online Courses, Alumni) | Done | Section on landing; post_enrollment_revenue in marketing_views. |
+| Post-enrollment revenue (Events, Online Courses, Alumni) | Done | **`post_enrollment_revenue`** + **#post-enrollment-revenue** section on **`marketing_landing.html`**; same pytest as admissions / what-you-get. |
 | Three key features (AI Co-pilot, Real-time Analytics, Customizable Workflows) | Done | product/features segments and product FAQs in MARKETING_PAGE_EXTRAS (Phase 1). |
-| Admissions and enrollment | Partial | Solutions/product copy; ensure admissions_flow in context. |
-| What you get (Data Security, 24/7 Support, Customizable Branding) | Partial | security-compliance, product segments. |
+| Admissions and enrollment | Done | **`admissions_flow`** in **`_marketing_context`** + **#admissions-pipeline** on **`marketing_landing.html`** (steps rendered); **`test_landing_renders_admissions_flow_post_enrollment_and_what_you_get`**. |
+| What you get (Data Security, 24/7 Support, Customizable Branding) | Done | **`what_you_get`** trio in **`marketing_views`** + **#what-you-get** section before security; compliance detail remains in **`trust_controls`** / **#security-compliance**. |
 | How the platform scales globally | Done | Migration section lead includes "195+ country-ready profiles, multi-currency, and data residency options" (Phase 1). |
 | Pricing (Basic, Premium, Enterprise) | Done | /pricing/ page and definition. |
 | Compliance and data security | Done | /security-compliance/. |

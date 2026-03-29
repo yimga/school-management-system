@@ -1,0 +1,16 @@
+{% extends "admin/change_form.html" %}
+{% load i18n unfold %}
+
+{% block form_before %}
+  {# P3: MarketplaceListing is platform-admin; link control-plane shells (batch 31 #383). #}
+  <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="marketplace-listing-cp-escape-heading">
+    <h2 id="marketplace-listing-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% trans "Product control plane" %}</h2>
+    <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Listings tie catalog apps to review and certification. Use operator hubs for cross-tenant posture instead of editing JSON metadata alone." %}</p>
+    <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
+      <li><a href="{% url 'siteconfig:tenant_runtime_configuration_hub' %}" class="text-primary-600 hover:underline font-medium">{% trans "Effective runtime summary" %}</a></li>
+      <li><a href="{% url 'super:dashboard' %}" class="text-primary-600 hover:underline font-medium">{% trans "Schools dashboard" %}</a></li>
+      <li><a href="{% url 'super:schools_list' %}" class="text-primary-600 hover:underline">{% trans "Schools list" %}</a></li>
+      <li><a href="{% url 'super:usage' %}" class="text-primary-600 hover:underline">{% trans "API usage & quotas" %}</a></li>
+    </ul>
+  </section>
+{% endblock %}

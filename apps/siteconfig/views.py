@@ -7,8 +7,10 @@ import os
 import tempfile
 import time
 import zipfile
+from typing import Any
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -60,7 +62,6 @@ from .forms import (
 from .models import (
     DashboardView,
     ReportCardStyleAssignment,
-    SiteSettings,
     build_platform_default_site_settings,
     UserPreference,
     RegionConfig,
@@ -283,7 +284,7 @@ def _snapshot_theme_field_values(instance, field_names):
     return snapshot
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def preview_from_form(request):
     """
     Accept POST with current Site Settings (or theme) form data; validate and stash in session,
@@ -357,7 +358,7 @@ def preview_from_form(request):
     return JsonResponse({"redirect_url": redirect_url})
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def maintenance_view(request):
     return render(request, "siteconfig/maintenance.html")
 
@@ -623,7 +624,7 @@ def build_reportcard_builder_context(
         workflow_step = "style"
 
     return {
-        # Effective SiteSettings for builder UI (avoid template name `settings`: confusable with django.conf).
+        # Effective tenant settings row for builder UI (avoid template name `settings`: confusable with django.conf).
         "site_settings": settings_obj,
         "settings": settings_obj,
         "styles": styles,
@@ -691,7 +692,44 @@ def reportcard_builder(request):
     return render(request, "siteconfig/reportcard_builder.html", ctx)
 
 
-def _build_style_metadata(site: SiteSettings) -> dict:
+@permission_required("settings.manage")
+def scheduled_reports_delivery_hub(request):
+    """
+    Tenant-facing hub for scheduled report delivery (entitlement: reports_scheduled_delivery or reports).
+    """
+    school = getattr(request, "school", None)
+    schedules = []
+    if school:
+        from apps.reports.models import TenantReportSchedule
+
+        schedules = list(
+            TenantReportSchedule.objects.filter(school=school).order_by("next_run")[:100]
+        )
+    ctx = {"school": school, "schedules": schedules}
+    user = getattr(request, "user", None)
+    if user is not None and getattr(user, "is_authenticated", False) and getattr(
+        user, "is_staff", False
+    ):
+        try:
+            ctx["tenant_report_schedule_admin_url"] = reverse(
+                "admin:reports_tenantreportschedule_changelist"
+            )
+        except NoReverseMatch:
+            ctx["tenant_report_schedule_admin_url"] = None
+    else:
+        ctx["tenant_report_schedule_admin_url"] = None
+    try:
+        ctx["reports_scheduled_api_list_url"] = reverse("api_v1:reports-scheduled-list")
+    except NoReverseMatch:
+        ctx["reports_scheduled_api_list_url"] = None
+    return render(
+        request,
+        "siteconfig/scheduled_reports_delivery_hub.html",
+        ctx,
+    )
+
+
+def _build_style_metadata(site: Any) -> dict:
     if callable(getattr(site, "get_brand_metadata", None)):
         return site.get_brand_metadata()
     return {
@@ -704,7 +742,7 @@ def _build_style_metadata(site: SiteSettings) -> dict:
     }
 
 
-def _get_preview_platform_config(site: SiteSettings) -> dict[str, object]:
+def _get_preview_platform_config(site: Any) -> dict[str, object]:
     if callable(getattr(site, "get_preview_platform_config", None)):
         return site.get_preview_platform_config()
     return {
@@ -713,7 +751,7 @@ def _get_preview_platform_config(site: SiteSettings) -> dict[str, object]:
     }
 
 
-def _get_theme_experience_settings(site: SiteSettings) -> dict[str, object]:
+def _get_theme_experience_settings(site: Any) -> dict[str, object]:
     if callable(getattr(site, "get_theme_experience_settings", None)):
         return site.get_theme_experience_settings()
     return {
@@ -1407,7 +1445,7 @@ def theme_colors_page(request):
     admin_theme_packs_by_group = build_theme_pack_groups(
         admin_theme_packs, THEME_PALETTE_GROUPS
     )
-    # Slim SiteSettings: ThemeColorsForm.Meta.fields is empty; guard/compare all experience fields.
+    # Slim tenant settings row: ThemeColorsForm.Meta.fields is empty; guard/compare all experience fields.
     tracked_theme_fields = list(THEME_EXPERIENCE_FIELD_NAMES)
 
     if request.method == "POST":
@@ -1754,7 +1792,7 @@ def theme_experience_redirect(request):
 @permission_required("settings.manage")
 def brand_import_from_url_view(request):
     """
-    POST url + consent: fetch URL, parse brand (theme-color, og:image, title), apply primary_color and site_name to SiteSettings.
+    POST url + consent: fetch URL, parse brand (theme-color, og:image, title), apply primary_color and site_name to the tenant settings singleton.
     Non-negotiable: Website/competitor import — HOW_WE_SCOPE_WEBSITE_IMPORT implemented.
     """
     if request.method != "POST":
@@ -1926,7 +1964,7 @@ def template_gallery_page(request):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def toggle_preview_mode(request):
     enabled = bool(request.session.get(PREVIEW_MODE_SESSION_KEY))
     request.session[PREVIEW_MODE_SESSION_KEY] = not enabled
@@ -1938,7 +1976,7 @@ def toggle_preview_mode(request):
     return redirect(next_url)
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def set_act_as_role(request):
     if request.method != "POST":
         next_url = _safe_next_url(
@@ -2128,7 +2166,7 @@ def _render_report_pdf_response(
 # ==========================
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def region_validation_dashboard(request):
     """
     Dashboard showing regional configuration status and validation warnings.
@@ -2251,7 +2289,7 @@ def region_validation_dashboard(request):
     return render(request, "admin/region_validation_dashboard.html", context)
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def region_comparison_view(request):
     """
     Comparison view for regional configurations.
@@ -2283,7 +2321,7 @@ def region_comparison_view(request):
     return render(request, "admin/region_comparison.html", context)
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def region_grading_scales_view(request):
     """
     Detailed view of all grading scales across all regions.
@@ -2426,7 +2464,7 @@ def admission_number_preview_api(request):
 
 
 @login_required
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def feedback_roadmap(request):
     """Product feedback roadmap: Planned / In Development / Released (tagged by region/module)."""
     from .models import ProductFeedback

@@ -341,6 +341,38 @@ def ai_copilot_query(request):
         # Build contextual prompt and call configured provider chain
         permissions = get_ai_permissions(request.user)
         prompt = build_contextual_prompt(request.user, user_query)
+        rag_block = ""
+        try:
+            from services.ai_memory import AIMemoryService, get_embedding_for_text
+
+            from apps.portal.views_ai_gateway import _retrieval_kwargs, _school_id
+
+            sid = _school_id(request)
+            if sid:
+                emb = get_embedding_for_text(user_query, max_tokens=512)
+                if emb:
+                    parts: list[str] = []
+                    for scope in ("help", "config", "default"):
+                        for r in AIMemoryService.search_similar(
+                            sid, scope, emb, limit=2, **_retrieval_kwargs(request)
+                        ):
+                            parts.append(str(r.get("metadata", ""))[:400])
+                    rag_block = "\n".join(parts)[:1200]
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            DatabaseError,
+        ):
+            rag_block = ""
+        if rag_block:
+            prompt = (
+                "Use the following retrieved internal snippets when they are relevant "
+                "(do not invent facts beyond them or the user's question):\n"
+                f"{rag_block}\n\n"
+                f"{prompt}"
+            )
         response_text, provider_meta = generate_ai_response(
             prompt,
             user_query=user_query,

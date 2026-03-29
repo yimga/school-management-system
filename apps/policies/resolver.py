@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def _safe_effective_site_attr(site: Any, name: str, default: Any = None) -> Any:
-    """Phase B SiteSettings: virtual attrs may raise AttributeError; never use bare getattr(..., default)."""
+    """Phase B: effective site façade may omit virtual keys; use try/getattr, not defaulting getattr."""
     try:
         val = getattr(site, name)
     except AttributeError:
@@ -30,7 +30,7 @@ def _backfill_admissions_from_platform_site_settings(
     out: Dict[str, Any], school: Any
 ) -> None:
     """
-    Merge admission number defaults from platform SiteSettings / RuntimeDefaults.
+    Merge admission number defaults from platform effective settings (resolver façade + RuntimeDefaults).
     Required for school=None callers (catalog preview) and when school.settings omits admissions.
     """
     if not out.get("admissions") or not isinstance(out.get("admissions"), dict):
@@ -73,7 +73,7 @@ def _backfill_admissions_from_platform_site_settings(
             "school_code": code or default_school_code_for(school),
         }
     except (AttributeError, LookupError, TypeError, ValueError) as e:
-        logger.debug("Admissions backfill from SiteSettings failed: %s", e)
+        logger.debug("Admissions backfill from platform effective settings failed: %s", e)
         out["admissions"].setdefault("admission_number_mode", "AUTO_OR_MANUAL")
         out["admissions"].setdefault("admission_number_strategy", "FULL")
         out["admissions"].setdefault("admission_number_template", "")
@@ -179,7 +179,7 @@ _POLICY_CACHE_BUST_ERRORS = (
 def invalidate_all_tenant_policy_caches() -> None:
     """
     Drop cached ``get_effective_policy`` entries for every school when platform defaults
-    change (Phase B domain snapshots / SiteSettings). No-op when POLICY_CACHE_TTL unset.
+    change (Phase B domain snapshots / platform defaults). No-op when POLICY_CACHE_TTL unset.
     """
     try:
         from django.conf import settings as django_settings
@@ -346,7 +346,7 @@ def get_effective_policy(
         _backfill_admissions_from_platform_site_settings(out, school=None)
         return out
 
-    # Prefer compiled tenant config when present (decouple from raw SiteSettings; single source from tenant_config).
+    # Prefer compiled tenant config when present (decouple from uncached platform row reads; single source from tenant_config).
     settings = getattr(school, "settings", None)
     if isinstance(settings, dict):
         compiled = settings.get("tenant_compiled_config")
@@ -573,7 +573,7 @@ def get_effective_policy(
             extra={"section": "policy:effective"},
         )
 
-    # Admissions: if not set from school.settings, backfill from SiteSettings (single-tenant / backward compat)
+    # Admissions: if not set from school.settings, backfill from platform effective settings (single-tenant / backward compat)
     _backfill_admissions_from_platform_site_settings(out, school)
     # Section 22: TenantAdmissionNumberPolicy overrides when present for this school
     if school is not None:
@@ -609,7 +609,7 @@ def get_effective_policy(
         except _POLICY_MERGE_ERRORS as e:
             logger.debug("TenantAdmissionNumberPolicy merge failed: %s", e)
 
-    # Grade approval (evals): backfill from SiteSettings when not in school.settings (Phase 1)
+    # Grade approval (evals): backfill from get_effective_site_settings when not in school.settings (Phase 1)
     if not out.get("grade_approval") or not isinstance(out.get("grade_approval"), dict):
         out["grade_approval"] = out.get("grade_approval") or {}
     if not any(
@@ -644,7 +644,7 @@ def get_effective_policy(
                 ),
             }
         except (AttributeError, ImportError, LookupError, TypeError, ValueError) as e:
-            logger.debug("Grade approval backfill from SiteSettings failed: %s", e)
+            logger.debug("Grade approval backfill from effective site settings failed: %s", e)
             from apps.siteconfig.models import (
                 default_grade_approval_roles,
                 default_grade_post_roles,

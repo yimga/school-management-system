@@ -94,6 +94,7 @@ class WebhookDeadLetterTests(TestCase):
             WebhookLog.objects.create(
                 provider="dl_provider",
                 reference_id=ref,
+                idempotency_bucket=ref,
                 client_ip="127.0.0.1",
                 status=WebhookLog.Status.FAILED,
             )

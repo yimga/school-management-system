@@ -68,6 +68,9 @@
     <a href="{% url 'accounts:institution_profile_wizard' %}" class="btn btn-outline-light btn-sm">{% trans "Institution profile wizard" %}</a>
   </div>
 
+  <details class="de-secondary-collapsible mb-3">
+  <summary class="small fw-semibold">{% trans "Expand integration reference (readiness, LTI/SSO, vendors, security, endpoints)" %}</summary>
+
   <div class="card border-0 shadow-sm mb-3">
     <div class="card-header fw-semibold">{% trans "Integration readiness" %}</div>
     <div class="card-body small row">
@@ -221,6 +224,8 @@
       <a href="{{ readiness_lti }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">{% trans "LTI 1.3 readiness" %}</a>
     </div>
   </div>
+
+  </details>
 
   <p class="small text-muted mb-0">{% trans "SSO: configure OIDC/SAML under Integrations. LTI: register tools per tenant. Native Clever/ClassLink HTTP clients are available above when the district provisions tokens." %}</p>
 </div>

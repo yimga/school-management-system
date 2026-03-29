@@ -1,4 +1,5 @@
 {
+  "manifest_last_reviewed": "2026-03-29",
   "files": {
     "apps/accounts/views_saml.py": {
       "expected_count": 1,
@@ -8,7 +9,8 @@
       "replay_protection": "idp_assertion_validity_window",
       "rate_limiting": "not_applicable",
       "audit_logging": "manual_review_required",
-      "notes": "SAML ACS callback accepts IdP POST without browser session CSRF token."
+      "notes": "SAML ACS callback accepts IdP POST without browser session CSRF token.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/api/lead_capture_api.py": {
       "expected_count": 1,
@@ -18,7 +20,8 @@
       "replay_protection": "not_applicable",
       "rate_limiting": "implemented",
       "audit_logging": "implemented",
-      "notes": "Public lead capture; rate limiting + audit logging (lead_capture_created/lead_capture_duplicate)."
+      "notes": "Public lead capture; rate limiting + audit logging (lead_capture_created/lead_capture_duplicate).",
+      "last_reviewed": "2026-03-28"
     },
     "apps/api/scim_views.py": {
       "expected_count": 4,
@@ -28,7 +31,8 @@
       "replay_protection": "token_auth_only_manual_review_required",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "Bearer-token SCIM provisioning mutation and detail endpoints."
+      "notes": "Bearer-token SCIM provisioning mutation and detail endpoints.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/billing/api_views.py": {
       "expected_count": 1,
@@ -38,7 +42,8 @@
       "replay_protection": "provider_signature_timestamp_manual_review_required",
       "rate_limiting": "not_applicable",
       "audit_logging": "manual_review_required",
-      "notes": "Billing webhook callback."
+      "notes": "Billing webhook callback.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/finance/views_payments.py": {
       "expected_count": 1,
@@ -48,7 +53,8 @@
       "replay_protection": "provider_signature_timestamp_manual_review_required",
       "rate_limiting": "not_applicable",
       "audit_logging": "manual_review_required",
-      "notes": "Payment provider webhook callback (payment_provider_webhook)."
+      "notes": "Payment provider webhook callback (payment_provider_webhook).",
+      "last_reviewed": "2026-03-28"
     },
     "apps/schools/section8_views.py": {
       "expected_count": 5,
@@ -58,7 +64,8 @@
       "replay_protection": "tool_signature_manual_review_required",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "Cross-origin LTI callback and service endpoints that still accept external tool traffic."
+      "notes": "Cross-origin LTI callback and service endpoints that still accept external tool traffic.",
+      "last_reviewed": "2026-03-28"
     },
     "config/graphql_view.py": {
       "expected_count": 1,
@@ -68,7 +75,8 @@
       "replay_protection": "not_applicable",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "GraphQL endpoint still supports non-browser API clients."
+      "notes": "GraphQL endpoint still supports non-browser API clients.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/api/br_northstar_views.py": {
       "expected_count": 11,
@@ -78,17 +86,19 @@
       "replay_protection": "session_csrf_bypass_internal_json",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "Internal JSON APIs for BR north-star; called from control plane with session or Bearer."
+      "notes": "Internal JSON APIs for BR north-star; called from control plane with session or Bearer.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/api/oneroster_roster_webhook.py": {
-      "expected_count": 1,
+      "expected_count": 2,
       "owner": "interop_webhook",
       "verdict": "keep",
       "auth_model": "hmac_signature_roster_webhook",
       "replay_protection": "hmac_x_roster_webhook_signature",
       "rate_limiting": "manual_review_required",
       "audit_logging": "implemented",
-      "notes": "Incoming OneRoster roster webhook; verified by school-scoped secret (school.settings or ONEROSTER_WEBHOOK_SECRET)."
+      "notes": "OneRoster roster webhook (school-scoped secret) + platform marketplace integration webhook (RuntimeDefaults.webhook_signing_secret; X-RunMyCampus-Integration-Signature; PlatformIntegrationWebhookEvent audit).",
+      "last_reviewed": "2026-03-28"
     },
     "apps/api/learning_institution_api.py": {
       "expected_count": 2,
@@ -98,7 +108,8 @@
       "replay_protection": "internal_api",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "Learning pack install + pack rollback (ROLLBACK keyword); session staff + school context."
+      "notes": "Learning pack install + pack rollback (ROLLBACK keyword); session staff + school context.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/api/north_star_api_views.py": {
       "expected_count": 5,
@@ -108,7 +119,8 @@
       "replay_protection": "internal_api",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "Event catalog, wedge playbook, RUM web vitals summary (staff), upcoming deadlines (N28), package-impact internal JSON."
+      "notes": "Event catalog, wedge playbook, RUM web vitals summary (staff), upcoming deadlines (N28), package-impact internal JSON.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/platform_runtime/views_rum.py": {
       "expected_count": 1,
@@ -118,7 +130,8 @@
       "replay_protection": "rate_limit_per_ip_cache",
       "rate_limiting": "implemented",
       "audit_logging": "implemented",
-      "notes": "RUM POST; token in JSON body for sendBeacon; PlatformEventLog rum_web_vitals."
+      "notes": "RUM POST; token in JSON body for sendBeacon; PlatformEventLog rum_web_vitals.",
+      "last_reviewed": "2026-03-28"
     },
     "apps/portal/views_office.py": {
       "expected_count": 2,
@@ -128,7 +141,8 @@
       "replay_protection": "shared_secret_hmac_token",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "WOPI endpoints accept Collabora server callbacks without CSRF; guarded by document-scoped HMAC token and auth context."
+      "notes": "WOPI endpoints accept Collabora server callbacks without CSRF; guarded by document-scoped HMAC token and auth context.",
+      "last_reviewed": "2026-03-28"
     }
   }
 }

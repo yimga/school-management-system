@@ -1,7 +1,7 @@
 """
 Tier A beachheads (wedges 1–6): resolved operator checklists for control-plane templates.
 
-No SiteSettings coupling — URL names only; callers pass _safe_reverse from super_views_wedge.
+No siteconfig singleton coupling — URL names only; callers pass _safe_reverse from super_views_wedge.
 """
 
 from __future__ import annotations
@@ -260,7 +260,7 @@ def _bootstrap_registry_wedges(raw: dict[int, tuple[tuple[str, str, str | None, 
         ),
         (
             "Runtime truth hub",
-            "Platform RuntimeDefaults.payload + slim SiteSettings (read-only).",
+            "Platform RuntimeDefaults.payload + slim tenant settings row (read-only).",
             "super:runtime_truth_hub",
             None,
         ),

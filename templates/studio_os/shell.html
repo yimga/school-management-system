@@ -394,4 +394,7 @@
   });
 })();
 </script>
+{% if request.public_host_kind == 'manager' %}
+{% include "partials/cp_context_drawer_shell.html" %}
+{% endif %}
 {% endblock %}

@@ -14,7 +14,21 @@
 
 {% block cp_content %}
 {% operator_console_strip %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-schools-list-main">{% trans "Skip to schools list" %}</a>
+<div id="super-schools-list-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench">
+  {% if operator_super_schools_list_links %}
+  <div class="card shadow-sm border-0 page-family-content-card mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary mb-2">{% trans "Platform-admin rows (PlatformOperatorSuperSchoolsListLink); add or reorder in platform admin." %}</p>
+      <ul class="list-unstyled mb-0 d-flex flex-wrap gap-2">
+        {% for link in operator_super_schools_list_links %}
+        <li><a class="btn btn-sm btn-outline-secondary" href="{{ link.href }}">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
     <h1 class="h5 mb-0">{% trans "Schools" %}</h1>
     {% if admin_schools_url %}

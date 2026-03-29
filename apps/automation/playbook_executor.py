@@ -128,8 +128,19 @@ def _estimate_preflight_confidence(
             str(k).strip() for k, v in (mapping.items() if isinstance(mapping, dict) else [])
             if str(k).strip() and str(v).strip()
         }
+        row_keys: set[str] = set()
+        if isinstance(rows, list):
+            for row in rows:
+                if isinstance(row, dict):
+                    row_keys.update(str(k).strip() for k in row.keys() if str(k).strip())
         if required_list:
-            covered = len([r for r in required_list if r in mapped_targets])
+            covered = len(
+                [
+                    r
+                    for r in required_list
+                    if r in mapped_targets or r in row_keys
+                ]
+            )
             coverage_values.append(covered / len(required_list))
         else:
             coverage_values.append(1.0)

@@ -46,8 +46,9 @@ def _normalize_roles(raw_roles: Iterable[str]) -> list[str]:
 
 
 def get_grade_approval_policy(school=None, policy=None):
-    """Phase 1: Single read path for grade approval config. Use policy when provided/school set else SiteSettings.
-    Prefer policy from request.tenant_runtime.policy when in request context."""
+    """Phase 1: Single read path for grade approval config. Use policy when provided/school set else
+    effective tenant site settings (via get_effective_site_settings). Prefer policy from
+    request.tenant_runtime.policy when in request context."""
     if policy is not None and isinstance(policy, dict):
         ga = policy.get("grade_approval")
         if isinstance(ga, dict) and ga:

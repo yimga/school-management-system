@@ -6,8 +6,9 @@ Priority order is configurable and defaults to:
 
 All generative chat for the product goes through ``services.ai_gateway.invoke`` when
 ``AI_GATEWAY_ENABLED`` is true; this module supplies Ollama delegation and status for
-operators. External cloud LLMs (removed: former Gemini path) are not used — use
-self-hosted Ollama and optional vLLM/LiteLLM via the gateway for structured tasks.
+operators. External cloud LLMs (removed: former Gemini path) are not used — inference
+defaults to self-hosted Ollama via the gateway, then rules. vLLM/LiteLLM are optional
+only when enabled per-task in Django ``AI_GATEWAY_TASK_TIERS``.
 
 Set ``AI_PROVIDER_PREFERENCE`` to e.g. ``ollama,rules`` (default). Legacy values
 mentioning ``gemini`` are ignored.
@@ -291,16 +292,24 @@ def suggest_support_ticket_response(
     school: Any = None,
 ) -> tuple[dict | None, dict]:
     """
-    World Engine: FAISS/Llama support-ticket agent — suggest category/priority/response from ticket text.
-    Uses AI gateway (support_suggest) when enabled. Returns (suggestions_dict, meta).
+    World Engine: support-ticket agent — suggest category/priority/response from ticket text.
+    Optionally prepends tenant KB/FAQ excerpts (``SUPPORT_AI_KB_CONTEXT``) then calls
+    AI gateway (``support_suggest``; Ollama-first). Returns (suggestions_dict, meta).
     """
     import json
 
-    prompt = (
+    from apps.portal.support_ai_context import build_kb_context_block
+
+    kb_block = build_kb_context_block(subject, body, school)
+    core = (
         f"Support ticket — Subject: {subject[:200]}. Body: {body[:800]}.\n"
         'Respond with a short JSON only: {"category": "...", "priority": "LOW|NORMAL|HIGH|URGENT", "suggested_reply": "..."}. '
         "Keep suggested_reply under 200 words."
     )
+    if kb_block:
+        prompt = f"{kb_block}\n\n{core}"
+    else:
+        prompt = core
     if not getattr(settings, "AI_GATEWAY_ENABLED", True):
         return None, {"gateway": False, "error": "disabled"}
     text = None
@@ -308,11 +317,14 @@ def suggest_support_ticket_response(
     try:
         from services.ai_gateway import invoke
 
+        md_ai: dict[str, Any] = {"country_code": country_code, "school": school}
+        if school is not None and getattr(school, "pk", None) is not None:
+            md_ai["school_id"] = school.pk
         result, meta = invoke(
             "support_suggest",
             prompt,
             user_query=subject[:200],
-            metadata={"country_code": country_code, "school": school},
+            metadata=md_ai,
         )
         text = (
             result

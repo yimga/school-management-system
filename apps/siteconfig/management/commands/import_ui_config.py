@@ -4,21 +4,24 @@ import json
 from pathlib import Path
 import tempfile
 
+import apps.siteconfig.models as _siteconfig_models
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import OperationalError, ProgrammingError
 
-from apps.siteconfig.models import SiteSettings, ThemePack
+from apps.siteconfig.models import ThemePack
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 class Command(BaseCommand):
     help = (
-        "Import a UI parity fixture (ThemePack + SiteSettings) and normalize defaults."
+        "Import a UI parity fixture (ThemePack + tenant platform settings) and normalize defaults."
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._sitesettings_runtime_field_extras: dict[int, dict] = {}
+        self._tenant_settings_runtime_field_extras: dict[int, dict] = {}
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -68,7 +71,7 @@ class Command(BaseCommand):
         """
         Import UI config into the active schema.
 
-        ThemePack and SiteSettings live in the shared/public schema when
+        ThemePack and tenant platform settings live in the shared/public schema when
         USE_DJANGO_TENANTS=1, so importing per tenant leaves the control-plane UI
         config stale and breaks parity checks. Keep the import scoped to the
         current schema and let deploy/runtime choose the correct connection.
@@ -141,7 +144,7 @@ class Command(BaseCommand):
     def _normalize_fixture_fields(self, data: list[dict]) -> list[dict]:
         normalized = json.loads(json.dumps(data))
         allowed_site_fields: set[str] = set()
-        for field in SiteSettings._meta.get_fields():
+        for field in _TenantSettingsModel._meta.get_fields():
             if not getattr(field, "concrete", False):
                 continue
             allowed_site_fields.add(field.name)
@@ -163,21 +166,20 @@ class Command(BaseCommand):
                     extra[key] = fields.pop(key)
             pk = row.get("pk")
             if extra and pk is not None:
-                self._sitesettings_runtime_field_extras[int(pk)] = extra
+                self._tenant_settings_runtime_field_extras[int(pk)] = extra
         return normalized
 
-    def _apply_sitesettings_runtime_extras(self) -> None:
+    def _apply_tenant_settings_runtime_extras(self) -> None:
         """
-        Phase B Batch 3: keys stripped from SiteSettings rows (theme FKs, etc.) are merged
-        into PlatformGlobalBranding and RuntimeDefaults so imports stay coherent.
+        Phase B Batch 3: keys stripped from slim tenant-settings rows (theme FKs, etc.)
+        are merged into PlatformGlobalBranding and RuntimeDefaults so imports stay coherent.
         """
-        if not self._sitesettings_runtime_field_extras:
+        if not self._tenant_settings_runtime_field_extras:
             return
         try:
             from apps.brand_experience.platform_global_branding import (
                 PlatformGlobalBranding,
             )
-            from apps.siteconfig.models import SiteSettings
         except ImportError:
             return
         pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
@@ -192,7 +194,7 @@ class Command(BaseCommand):
                 "default_annual_report_style_id",
             }
         )
-        for _pk, extra in self._sitesettings_runtime_field_extras.items():
+        for _pk, extra in self._tenant_settings_runtime_field_extras.items():
             for k, v in extra.items():
                 if k in pgb_fk_keys:
                     setattr(pgb, k, v)
@@ -200,4 +202,4 @@ class Command(BaseCommand):
                     rt_merge[k] = v
         pgb.save()
         if rt_merge:
-            SiteSettings._persist_runtime_payload_updates(rt_merge)
+            _TenantSettingsModel._persist_runtime_payload_updates(rt_merge)

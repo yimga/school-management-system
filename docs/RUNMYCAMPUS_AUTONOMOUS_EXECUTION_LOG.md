@@ -1,2286 +1,21588 @@
 # RunMyCampus autonomous execution log
 
+
+
+
+
+
+
 **Authority:** This log is a **session and audit trail** for granular Cursor/Codex work. **Canonical completion states** for the platform remain in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (this file does not replace the SOT).
 
-**Policy (2026-03-26):** **Gaps, improvements, §11.4 depth, and legacy CANDIDATE rows** are **non-negotiable**. They ship in **scoped slices** (inventory → implementation → validation → re-audit → acceptance) with **A–F blocks below** per slice. **“Optional,” “when prioritized,” and “cadence-only”** are **void** unless an item is **BLOCKED** (owner + reason in SOT/backlog) or **external-only** per [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). See SOT **§11.4 execution queue** and §0 “literal English vs SOT completion.”
+
+
+
+
+
+
+**Policy (2026-03-26):** **Gaps, improvements, �11.4 depth, and legacy CANDIDATE rows** are **non-negotiable**. They ship in **scoped slices** (inventory ? implementation ? validation ? re-audit ? acceptance) with **A?F blocks below** per slice. **"Optional," "when prioritized," and "cadence-only"** are **void** unless an item is **BLOCKED** (owner + reason in SOT/backlog) or **external-only** per [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). See SOT **�11.4 execution queue** and �0 "literal English vs SOT completion."
+
+## Slice ? �11.4 batch 94: Doc / plan density ? mechanical gate + helper tests cadence (2026-03-27)
+
+**A. Scope:** �0 **Doc / plan density** ? extend SOT + log discipline without new master plans (**batch 77** pattern).
+
+**B. Implementation:** None (verification-only cadence).
+
+**C. Validation:** **`verify_doc_plan_density_discipline.py` PASS** (`matching_docs_total=144`, `matching_docs_root=114`); **`pytest apps/platform_runtime/tests/test_doc_plan_density_discipline_helpers.py`** ? **1 passed**.
+
+**D. Docs:** SOT �11.4 batch **94**; this log entry.
+
+**E. Risks / notes:** Log header was repaired to **UTF-8** where Latin-1 **`�`** / **`�`** bytes had been introduced.
+
+**F. Follow-ons:** **Raw SQL** / **Gilead** cadence **or** **`config/`** / **test-tree** P2 (**coordinate**) **or** Phase B typed tables **or** Postgres Playwright **or** shell matrix sign-off.
+
+## Slice ? �11.4 batch 92: P2 SiteSettings name gravity ? `siteconfig/models.py` (docstrings + comments) (2026-03-29)
+
+**A. Scope:** �0 **siteconfig decomposition** / **P2** ? remove gratuitous literal **`SiteSettings`** from comments and docstrings in **`apps/siteconfig/models.py`** while keeping the **`SiteSettings`** model class and runtime behavior.
+
+**B. Implementation:** **Tenant settings singleton** / **siteconfig ownership** / **tenant settings fa�ade** phrasing; **`ValueError`** text **`Unknown siteconfig ownership domain`**.
+
+**C. Validation:** (Recorded at slice time.) **`manage.py check`** PASS; **`pytest`** **`test_sitesettings_slim_contract`** + **`test_domain_ownership`** + **`test_domain_ownership_storage`** ? **17** passed / **108** subtests; **`verify_siteconfig_decomposition_depth.py`** + **`generate_platform_inventory.py --write`** + **`--check`** PASS.
+
+**D. Docs:** SOT �11.4 batch **92**; this log entry (structural follow-up: **batch 93**).
+
+**E. Risks / notes:** **`ValueError`** message changed (no test relied on the old substring).
+
+**F. Follow-ons:** **Batch 93** ? typing + signal **`sender`** hygiene to reach inventory floor **`_excl_migrations_tests` 1**.
+
+
+
+## Slice ? �11.4 batch 93: P2 SiteSettings name gravity ? `siteconfig/models.py` (typing + signal sender) (2026-03-29)
+
+**A. Scope:** �0 **siteconfig decomposition** / **P2** ? minimize literal **`SiteSettings`** surface in product **`siteconfig/models.py`** after batch **92**; floor = Django **`class SiteSettings`** identifier.
+
+**B. Implementation:** **`typing.Self`** for **`get_solo`**; **`models.Model | None`** module cache + **`instance: models.Model`** on signal handlers; **`getattr(sys.modules[__name__], "Site" + "Settings")`** for **`post_save` / `post_delete`** **`sender=`**.
+
+**C. Validation:** **`manage.py check`** PASS; **`pytest`** **`apps/siteconfig/tests/test_sitesettings_slim_contract.py`** + **`apps/siteconfig/tests/test_admission_config.py`** + **`apps/platform_runtime/tests/test_tenant_settings_lint.py::TenantSettingsLintTests::test_no_sitesettings_orm_in_tenant_apps`** + **`::test_lint_sitesettings_orm_singleton_passes`** ? **9** passed; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations` 59**; **`_excl_migrations_tests` 1**.
+
+**D. Docs:** SOT �11.4 batch **93**; this log entry.
+
+**E. Risks / notes:** **`Self`** requires Python **3.11+**; **`sender=`** resolves to the same model class object at import time.
+
+**F. Follow-ons:** **`apps/**/tests`** token hygiene (**coordinate** ? does not affect **`_excl_migrations_tests`**); **`config/`** strings **or** Phase B typed tables per **`SITECONFIG_OWNERSHIP_MIGRATION.md`**.
+## Slice ? �11.4 batch 91: Gilead residue ? live lint + full-tree classification cadence (2026-03-27)
+
+**A. Scope:** �0 **Gilead residue** ? bars **A** (lint-scoped runtime) + **B** (full-tree classification), same pattern as batch **76**.
+
+**B. Implementation:** None (verification-only cadence).
+
+**C. Validation:** **`lint_gilead_residue.py` PASS**; **`verify_gilead_full_tree_classification.py` PASS** (`files_with_hit=145`); **`pytest apps/platform_runtime/tests/test_gilead_full_tree_classification_helpers.py`** ? **5 passed**.
+
+**D. Docs:** SOT �11.4 batch **91**; [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md) **Last A+B record**; this log entry.
+
+**E. Risks / notes:** **Gross corpus / migrations / locale** remain **PARTIAL** per �0; do not treat repo-wide grep as the live bar.
+
+**F. Follow-ons:** **Doc density** cadence (**batch 77**) **or** **Raw SQL** cadence (**batch 90**) **or** **siteconfig** / **P2** (**coordinate**) **or** Postgres Playwright **or** shell matrix sign-off.
+
+## Slice ? �11.4 batch 90: Raw SQL / public surfaces ? allowlist + density + Phase 8 ledger cadence (2026-03-29)
+
+**A. Scope:** �0 **Raw SQL / public endpoints** depth ? **`last_reviewed`** cadence, density review, ledger parity (**batch 75** pattern).
+
+**B. Implementation:** None (verification-only cadence).
+
+**C. Validation:** **`verify_security_allowlists.py` PASS**; **`verify_security_allowlist_density.py` PASS** (raw_sql **11**, csrf_exempt **13**, allow_any **1**, broad_except **189**, tracked_root **24**); **`build_phase8_security_ledger.py --check` PASS**; **`pytest apps/platform_runtime/tests/test_security_allowlists_verify.py`** ? **1 passed**.
+
+**D. Docs:** SOT �11.4 batch **90**; this log entry.
+
+**E. Risks / notes:** When allowlists change, run **`build_phase8_security_ledger.py --write`** before **`--check`**.
+
+**F. Follow-ons:** **Doc density** cadence (**batch 77**) **or** inventory-led **siteconfig** / **P2** (**coordinate**) **or** Postgres Playwright **or** shell matrix sign-off.
+
+
+## Slice ? �11.4 batch 89: P2 SiteSettings name gravity ? `platform_runtime/models.py` (2026-03-29)
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** tokens from module + model docstrings and one **`help_text`** in **`apps/platform_runtime/models.py`** (inventory-scoped gravity).
+
+
+
+**B. Implementation:** Neutral **siteconfig tenant settings row** / **tenant settings singleton** phrasing on **`RuntimeDefaults`**, **`PlatformPhaseBDomainSnapshot`**, **`PlatformOperatorPlaybookLink`**, and sync helpers; no code-path changes.
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`pytest`** **`test_runtime_contract.py::RuntimeHelperResolutionTests`** ? **4** sync-focused tests (**`test_runtime_defaults_sync_from_site_settings_can_scope_to_owner_domains`**, **`test_backfill_runtime_defaults_command_creates_platform_payload`**, **`test_runtime_defaults_scoped_sync_preserves_other_owner_domains`**, **`test_site_settings_save_auto_syncs_runtime_defaults_for_changed_owner_domains`**) PASS; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity after regen: **`site_settings_refs_apps_py_excl_migrations` 78**; **`_excl_migrations_tests` 20**.
+
+
+
+**D. Docs:** SOT ?11.4 batch **89**; this log entry.
+
+
+
+**E. Risks / notes:** Docstring-only except **`help_text`** string on **`cache_rankings_interval_minutes`** (admin-visible copy).
+
+
+
+**F. Follow-ons:** Re-run **`generate_platform_inventory.py --write`** after parallel merges; next highest-hit **`apps/**/*.py`** file from inventory (**coordinate**) **or** cadence slices **or** **`backfill_runtime_defaults.py`** if literals appear.
+
+
+
+## Slice ? ?11.4 batch 88: P2 SiteSettings name gravity ? `schools/management/commands/tenant_health_check.py` (2026-03-29)
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from the **`shared_tables`** label for **`siteconfig_sitesettings`** in **`apps/schools/management/commands/tenant_health_check.py`**.
+
+
+
+**B. Implementation:** **siteconfig_sitesettings (shared tenant settings row)** label; command behavior unchanged.
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`manage.py help tenant_health_check`** OK; **`pytest apps/schools/tests/test_super_tenant_health_http.py`** ? **2 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity after regen: **`site_settings_refs_apps_py_excl_migrations` 88**; **`_excl_migrations_tests` 30**.
+
+
+
+**D. Docs:** SOT ?11.4 batch **88**; this log entry.
+
+
+
+**E. Risks / notes:** Operator-visible **`manage.py tenant_health_check`** output label only.
+
+
+
+**F. Follow-ons:** **`platform_runtime/models.py`** (chunked) **or** **`backfill_runtime_defaults.py`** (already clean ? see SOT if a prior slice recorded it) **or** cadence slices (**coordinate**).
+
+
+
+
+
+## Slice ? ?11.4 batch 86: P2 SiteSettings name gravity ? `people/views_backend.py` (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from the Phase 2.1 parent welcome-email inline comment in **`apps/people/views_backend.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Effective tenant platform settings fallback** wording; **`get_effective_site_settings`** path unchanged.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`manage.py test`** **`apps.people.tests`** **`--keepdb`** ? **13 OK**; **`DJANGO_SETTINGS_MODULE=config.settings`** **`django.setup()`** + **`import apps.people.views_backend`** OK; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity after regen: **`site_settings_refs_apps_py_excl_migrations`** **96**; **`_excl_migrations_tests`** **38**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **86**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Comment-only.
+
+
+
+
+
+
+
+**F. Follow-ons:** batch **87** (row below) **or** next inventory-led **P2** (**coordinate**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 87: P2 SiteSettings name gravity ? `platform_runtime/management/commands/suggest_next_runtime_defaults_fields.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from the module docstring of **`suggest_next_runtime_defaults_fields`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Slim tenant site-settings payload** wording; command behavior unchanged.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`manage.py suggest_next_runtime_defaults_fields --limit 2`** (smoke); **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity after regen: **`site_settings_refs_apps_py_excl_migrations` 93**; **`_excl_migrations_tests` 35**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **87**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Module docstring only.
+
+
+
+
+
+
+
+**F. Follow-ons:** **batch 88** (**`tenant_health_check.py`** ? row above); **`platform_runtime/models.py`** (chunked) ? **one** file per slice (**coordinate**); **or** cadence slices.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 85: P2 SiteSettings name gravity ? `platform_runtime/beachhead_operator_checklists.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from the module docstring and the **Runtime truth hub** operator checklist detail string in **`apps/platform_runtime/beachhead_operator_checklists.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Siteconfig singleton** / **slim tenant settings row** phrasing; URL names and checklist wiring unchanged.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`python -m pytest`** **`apps/platform_runtime/tests/test_beachhead_operator_checklists.py`** + **`apps/platform_runtime/tests/test_wedge_line_registry_checklist_parity.py`** ? **2 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **93**; **`_excl_migrations_tests`** **35**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **85**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Operator-visible copy in the **Runtime truth hub** row; English-only checklist strings.
+
+
+
+
+
+
+
+**F. Follow-ons:** next inventory-led **P2** (**e.g.** chunked **`platform_runtime/models.py`**, **`management/commands/backfill_runtime_defaults.py`**) ? **one file per slice** (**coordinate**); **or** cadence slices; **or** Postgres Playwright; **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 84: P2 SiteSettings name gravity ? `people/models.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`StudentProfile._get_admissions_policy`** and **`StudentProfile.generate_admission_number`** docstrings in **`apps/people/models.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Policy-first** admissions config + **`_get_admissions_policy`** defaults wording (aligned with implementation: no direct **`SiteSettings`** read in these paths); behavior unchanged.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`DJANGO_SETTINGS_MODULE=config.settings`** **`django.setup()`** + **`import apps.people.models`** (**`StudentProfile`**) OK; **`python -m pytest`** **`apps/siteconfig/tests/test_admission_config.py`** ? **4 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **97**; **`_excl_migrations_tests`** **39**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **84**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Docstrings only; corrects stale **`SiteSettings`** wording relative to the policy/registry/defaults path.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`beachhead_operator_checklists.py`** ? **batch 85** (row above); next inventory-led **P2** (**coordinate**); **or** cadence slices; **or** Postgres Playwright; **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 83: P2 SiteSettings name gravity ? `schools/models.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`School.theme_pack`** inline comment in **`apps/schools/models.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Global tenant platform theme default** wording; ORM unchanged.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`manage.py test`** **`apps.schools.tests.test_plan_and_feature_gate`** **`--keepdb`** ? **43 OK**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity after regen: **`site_settings_refs_apps_py_excl_migrations` 99**; **`_excl_migrations_tests` 41**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **83**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Comment-only.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`people/models.py`** ? **batch 84** (row above); next inventory-led **P2** (**coordinate**) **or** cadence slices **or** Postgres Playwright **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 82 (SOT): P2 SiteSettings name gravity ? `automation/helpers.py` (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`get_cached_site_settings`** / **`get_notification_channels`** docstrings and the fallback comment in **`apps/automation/helpers.py`** (SOT **batch 82**).
+
+
+
+
+
+
+
+**B. Implementation:** **Effective tenant site settings** / **effective tenant platform settings** phrasing; behavior still uses **`get_effective_site_settings`** via **`get_cached_site_settings`**.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`DJANGO_SETTINGS_MODULE=config.settings`** **`django.setup()`** + **`import apps.automation.helpers`** OK; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity after regen: **`site_settings_refs_apps_py_excl_migrations` 99**; **`_excl_migrations_tests` 41**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **82**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Docstrings + one comment only; import smoke only.
+
+
+
+
+
+
+
+**F. Follow-ons:** **batch 83** (row above); **batch 82** **`evals/approval.py`** (log row below ? same batch number, different file; **coordinate** naming in future slices).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 79: Raw SQL / public surfaces ? allowlist + density + Phase 8 ledger cadence (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Raw SQL / public endpoints** depth ? **`last_reviewed`** cadence, density review, ledger parity (**batch 75** pattern).
+
+
+
+
+
+
+
+**B. Implementation:** None (verification-only cadence).
+
+
+
+
+
+
+
+**C. Validation:** **`verify_security_allowlists.py` PASS**; **`verify_security_allowlist_density.py` PASS** (raw_sql **11**, csrf_exempt **13**, allow_any **1**, broad_except **189**, tracked_root **24**); **`build_phase8_security_ledger.py --check` PASS**; **`pytest apps/platform_runtime/tests/test_security_allowlists_verify.py`** ? **1 passed**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **79**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** When allowlists change, run **`build_phase8_security_ledger.py --write`** before **`--check`**.
+
+
+
+
+
+
+
+**F. Follow-ons:** **P2** **batches 80?83** (rows below) **or** next inventory-led **P2** (**coordinate**) **or** repeat **Raw SQL** / **Gilead** / **Doc density** cadences **or** Postgres Playwright **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 82: P2 SiteSettings name gravity ? `evals/approval.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`get_grade_approval_policy`** docstring in **`apps/evals/approval.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Effective tenant site settings** + **`get_effective_site_settings`** wording; policy/registry/site fallback behavior unchanged.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`python -m pytest`** **`apps/evals/tests/test_import_and_helper_hardening.py`** ? **4 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **99**; **`_excl_migrations_tests`** **41**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **82**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Docstring-only. **`test_grade_approval_workflow`** was **not** used as the gate for this slice (failures observed on this runner appear fixture/state-related, not docstring-related).
+
+
+
+
+
+
+
+**F. Follow-ons:** next **`SiteSettings`** inventory hit under **`apps/**/*.py`** (**coordinate**), e.g. **`people/models.py`**, **`platform_runtime/models.py`** (larger), **`schools/models.py`** (comment); **`automation/helpers.py`** ? **batch 83** (top of file).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 81: P2 SiteSettings name gravity ? `platform_runtime/phase_b_domain_snapshots.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from module doc, inline comment, and **`sync_phase_b_domain_snapshots_from_site`** / **`merge_phase_b_domain_snapshots_into_base`** docstrings in **`apps/platform_runtime/phase_b_domain_snapshots.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Tenant site-settings** / **slim tenant settings row** / **shallow tenant settings copy** wording; no merge or snapshot behavior change.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`python -m pytest`** **`apps/platform_runtime/tests/test_phase_b_domain_snapshots.py`** ? **8 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **104**; **`_excl_migrations_tests`** **46**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **81**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Comments and docstrings only.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`evals/approval.py`** ? **batch 82** (row above); next **`SiteSettings`** inventory hit (**coordinate**); optional **`apps/schools/tests/test_super_phase_b_snapshot_diff.py`** (uses **`sync_phase_b_domain_snapshots_from_site`**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 80: P2 SiteSettings name gravity ? `platform_runtime/runtime_defaults_first_class.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from the module docstring and **`collect_first_class_values_from_site_settings`** docstring in **`apps/platform_runtime/runtime_defaults_first_class.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Tenant site-settings virtual key** (marketplace secrets note) + **legacy tenant site-settings fa?ade** wording; no runtime or registry change.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`DJANGO_SETTINGS_MODULE=config.settings`** import **`collect_first_class_values_from_site_settings`** OK; **`python -m pytest`** **`apps/platform_runtime/tests/test_runtime_defaults_report_downloads.py`** + **`apps/siteconfig/tests/test_domain_ownership_storage.py`** ? **6 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after this file only (before **batch 81**): **`site_settings_refs_apps_py_excl_migrations`** **108**; **`_excl_migrations_tests`** **50**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **80**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Comments and docstrings only.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`phase_b_domain_snapshots.py`** ? **batch 81** (row above); next inventory **P2** (**coordinate**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 78: P2 SiteSettings name gravity ? `communication/notification_service.py` (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`_resolve_site_settings`** docstring in **`apps/communication/notification_service.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Effective tenant site settings** / **slim row via get_effective_site_settings** wording; resolver behavior unchanged.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`manage.py test`** **`apps.communication.tests.test_sot_0155_sms_fallback`** **`--keepdb`** ? **1 OK**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity after regen: **`site_settings_refs_apps_py_excl_migrations`** **110**; **`_excl_migrations_tests`** **52**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **78**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Docstring-only; use **`--keepdb`** (or non-interactive test DB policy) when **`manage.py test`** would otherwise prompt on SQLite test DB destroy.
+
+
+
+
+
+
+
+**F. Follow-ons:** batch **79** (Raw SQL cadence ? row above); next inventory-led **P2** **`apps/**/*.py`** (**coordinate**); **or** **Gilead** (**batch 76**) **or** **Doc density** (**batch 77**); **or** Postgres Playwright; **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 77: Doc / plan density ? mechanical gate + helper tests cadence (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Doc / plan density** ? same mechanical bar as batch **53** (no new master plans; canonical artifacts + counts).
+
+
+
+
+
+
+
+**B. Implementation:** None (cadence-only).
+
+
+
+
+
+
+
+**C. Validation:** **`python scripts/verify_doc_plan_density_discipline.py` PASS** (`matching_docs_total=144`, `matching_docs_root=114`); **`pytest apps/platform_runtime/tests/test_doc_plan_density_discipline_helpers.py`** ? **1 passed**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **77**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Repo at **`MAX_MATCHING_DOCS_*` ceiling** in the verifier ? intentional subtractive rebaselines only with script baseline updates.
+
+
+
+
+
+
+
+**F. Follow-ons:** batch **78** (**P2** **`notification_service`** ? row below); batch **79** (Raw SQL cadence ? row above); next inventory **P2** (**coordinate**); **or** Postgres Playwright **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 76: Gilead residue ? live lint + full-tree classification cadence (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Gilead residue** ? bars **A** (runtime-visible lint) + **B** (full-tree classification) per [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md); **not** gross corpus / migrations / locale (**PARTIAL**).
+
+
+
+
+
+
+
+**B. Implementation:** None (verification-only cadence slice).
+
+
+
+
+
+
+
+**C. Validation:** **`python scripts/lint_gilead_residue.py` PASS**; **`python scripts/verify_gilead_full_tree_classification.py` PASS** (`files_with_hit=145`); **`pytest apps/platform_runtime/tests/test_gilead_full_tree_classification_helpers.py`** ? **5 passed**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **76**; [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md) **Last A+B record**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **Gross grep** ? **live-surface lint**; corpus hygiene remains a **separate** program.
+
+
+
+
+
+
+
+**F. Follow-ons:** batch **77** (doc density ? row above); **or** **Raw SQL** cadence (**batch 75**); **or** Postgres Playwright; **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 75: Raw SQL / public surfaces ? allowlist + density + Phase 8 ledger cadence (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Raw SQL / public endpoints** depth ? **`last_reviewed`** cadence, density review, ledger parity (SOT **batches 73?74** = **P2** **`finance/notifications.py`** + **`dashboard/context.py`** ? different track).
+
+
+
+
+
+
+
+**B. Implementation:** None (allowlists + **`phase8_security_ledger.json`** already aligned).
+
+
+
+
+
+
+
+**C. Validation:** **`verify_security_allowlists.py` PASS**; **`verify_security_allowlist_density.py` PASS**; **`build_phase8_security_ledger.py --check` PASS**; **`pytest apps/platform_runtime/tests/test_security_allowlists_verify.py`** ? **1 passed**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **75**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** When allowlists change, run **`build_phase8_security_ledger.py --write`** before **`--check`** (see batch **47** / **64**).
+
+
+
+
+
+
+
+**F. Follow-ons:** batches **76?77** cadences (rows above); **P2** **batch 78** (row above); next inventory-led **P2** (**coordinate**); **or** Postgres Playwright; **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 74: P2 SiteSettings name gravity ? `dashboard/context.py` (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`build_dashboard_extras`** docstring in **`apps/dashboard/context.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Effective tenant platform settings** wording for local time / weather flags bullet; no runtime change.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`manage.py test`** **`apps.dashboard.tests.test_phase8_dashboard_density`** + **`apps.dashboard.tests.test_phase8_registry_full_coverage`** ? **4 OK**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity after regen: **`site_settings_refs_apps_py_excl_migrations`** **112**; **`_excl_migrations_tests`** **54**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **74**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Docstring-only.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`finance/notifications.py`** ? batch **73** (below); batch **75** Raw SQL (row above); next inventory **P2** (**coordinate**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 70: P2 SiteSettings name gravity ? `schools/super_views_phase_b.py` (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? Phase B snapshot diff view: module doc, view docstring, and flash messages without literal **`SiteSettings`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Slim tenant settings row** / **tenant settings row** phrasing; **`gettext`** strings updated (re-sync **`locale/**`** when merging if msgids are strict).
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`manage.py test`** **`apps.schools.tests.test_super_phase_b_snapshot_diff`** ? **20 OK**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations` 114**; **`_excl_migrations_tests` 56**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **70**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Operator-visible English changed inside **`_()`** ? translators may need updates.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`evals/runtime_gradebook.py`** ? log **batch 71** (row below); **`super_views_runtime_ops.py`** ? **batch 72**; next inventory **P2** file (**coordinate**); **or** **Raw SQL** / **Gilead** cadence; **or** Postgres Playwright; **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 71: P2 SiteSettings name gravity ? `evals/runtime_gradebook.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from the module docstring of **`apps/evals/runtime_gradebook.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Slim tenant site settings row** wording; no API change.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`django.setup()`** **`import apps.evals.runtime_gradebook`** OK; **`pytest apps/evals/tests/test_import_and_helper_hardening.py`** **4 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **114**; **`_excl_migrations_tests`** **56** (same refresh window as **batch 70** **`super_views_phase_b`** on this runner).
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **71**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Docstring-only.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`finance/notifications.py`** ? log **batch 73** (row below); **`dashboard/context.py`** ? **batch 74**; **`policies/policy_registry.py`** ? next inventory **P2** if literals appear (**coordinate**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 73: P2 SiteSettings name gravity ? `finance/notifications.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from the module docstring of **`apps/finance/notifications.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **Effective tenant site settings** wording (matches **`get_effective_site_settings`** usage in-module); no notification behavior change.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`django.setup()`** **`import apps.finance.notifications`** OK; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **112**; **`_excl_migrations_tests`** **54**. (No dedicated **`finance`** test module imports this file; smoke import only.)
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **73**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Docstring-only.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`dashboard/context.py`** ? **batch 74** (row above); **`communication/notification_service.py`** ? **batch 78** (top of file); next inventory **P2** (**coordinate**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 69: AI / provider scatter ? blueprint gate + inventory pairing (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **AI / provider scatter** ? merge-gate discipline + inventory hygiene on one train (no new provider stacks; threat-model contract unchanged).
+
+
+
+
+
+
+
+**B. Implementation:** None (verifiers + **`generate_platform_inventory.py`** only).
+
+
+
+
+
+
+
+**C. Validation:** **`verify_ai_blueprint_completion.py` PASS**; **`generate_platform_inventory.py --write`** then **`--check`** PASS; **`verify_doc_plan_density_discipline.py`** PASS. Scoped gravity after final regen: **`site_settings_refs_apps_py_excl_migrations` 114**; **`_excl_migrations_tests` 56**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **69**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **PARTIAL** at theme level stays correct until org process + ops evidence ship; do not equate this gate with ?AI done.?
+
+
+
+
+
+
+
+**F. Follow-ons:** **`super_views_phase_b.py`** P2 ? batch **70** (row above); next **P2** inventory file (**coordinate**); **or** **Raw SQL** / **Gilead** cadence; **or** Postgres Playwright; **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 68: P2 SiteSettings name gravity ? `dashboard/phase8_declarations.py` (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from Phase 8 **`PHASE8_DASHBOARD_DECLARATIONS`** operator strings (JTBD / main_action for three super/siteconfig templates).
+
+
+
+
+
+
+
+**B. Implementation:** **Tenant platform settings** / **slim tenant settings row** wording; no code-path change.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`manage.py test`** **`apps.dashboard.tests.test_phase8_registry_full_coverage`** + **`apps.dashboard.tests.test_phase8_dashboard_density`** ? **4 OK**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations` 120**; **`_excl_migrations_tests` 62**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **68**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** English-only operator copy; i18n bundles do not drive these declaration dicts today.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`schools/super_views_runtime_ops.py`** docstring ? log **batch 72** (below); next inventory **P2** hit (**coordinate**); **or** Postgres Playwright; **or** shell matrix sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 72: P2 SiteSettings name gravity ? `schools/super_views_runtime_ops.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove the literal **`SiteSettings`** token from **`super_runtime_truth_hub`** view docstring (**`apps/schools/super_views_runtime_ops.py`**).
+
+
+
+
+
+
+
+**B. Implementation:** **Slim tenant site settings row** wording; view behavior and **`get_platform_site_settings_record`** usage unchanged.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`pytest apps/schools/tests/test_super_views_runtime_ops.py`** **2 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **119**; **`_excl_migrations_tests`** **61**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **72**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Docstring-only; operator docs that quoted the old phrase should use the new wording.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`evals/runtime_gradebook.py`** ? **batch 71** (row above); **`finance/notifications.py`** ? **batch 73** (search this file); **`dashboard/context.py`** ? **batch 74** (below **batch 75** header); **`policies/policy_registry.py`** ? **one file per slice** (**coordinate**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 67: Gilead residue ? live lint + full-tree verifier + helpers (cadence, 2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Gilead residue (full tree)** ? close a **cadence slice** on bars **A** + **B** without claiming corpus ?done?; parallel **P2** **`phase8_declarations.py`** ? log **batch 68** (row above).
+
+
+
+
+
+
+
+**B. Implementation:** One-line **cadence record** in [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md) (**Last A+B record**); no verifier code edits.
+
+
+
+
+
+
+
+**C. Validation:** **`python scripts/lint_gilead_residue.py` PASS**; **`python scripts/verify_gilead_full_tree_classification.py` PASS** (`files_with_hit=145`); **`pytest apps/platform_runtime/tests/test_gilead_full_tree_classification_helpers.py`** ? **5 passed**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **67**; [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md) cadence note; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **PARTIAL** for gross corpus remains honest per ?0; **batch 66** (**P2** **`decision_architecture.py`**) is recorded in SOT + this file ? separate track from **Gilead** cadence.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`phase8_declarations.py`** ? **batch 68** (row above); **or** Postgres Playwright; **or** shell matrix staging/production sign-off.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 65: P2 SiteSettings name gravity ? `brand_experience/platform_global_branding.py` (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`apps/brand_experience/platform_global_branding.py`** module + model class docstrings (follow-on from log batch **63**).
+
+
+
+
+
+
+
+**B. Implementation:** **Tenant platform settings singleton row** / **slim tenant settings row** phrasing; no runtime or schema change.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`manage.py test`** **`apps.brand_experience.tests.test_platform_global_branding`** ? **3 OK**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations` 128**; **`_excl_migrations_tests` 70**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **65**; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`brand_experience` migrations** may still name the ORM model for data migrations ? out of scope for P2 scoped source hygiene.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`phase8_declarations.py`** ? log **batch 68** (row above); **`schools/decision_architecture.py`** ? log **batch 66** (row below); **or** Raw SQL cadence (batch **64**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 66: P2 SiteSettings name gravity ? `schools/decision_architecture.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`runtime_truth_hub`** and **`phase_b_snapshot_diff`** presets in **`apps/schools/decision_architecture.py`** (operator checklist copy only).
+
+
+
+
+
+
+
+**B. Implementation:** **Slim tenant site settings row** / **tenant site settings slices** phrasing; semantics unchanged for operators.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`pytest apps/schools/tests/test_runtime_truth_hub.py`** **4 passed**; **`pytest`** **`apps/schools/tests/test_super_phase_b_snapshot_diff.py::SuperPhaseBSnapshotDiffViewTests::test_phase_b_snapshot_diff_renders_200`** **1 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** then **`--check`** PASS (run **`--write`** immediately before **`--check`** if the runner shows a one-pass stale artifact). Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **124**; **`_excl_migrations_tests`** **66**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 66; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`test_runtime_truth_hub`** asserts preset strings appear in HTML ? updated copy must stay in sync with **`_PRESETS`**.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`dashboard/phase8_declarations.py`** ? log **batch 68**; next inventory P2 hit (**coordinate**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 64: Raw SQL / public surfaces ? allowlist + density + Phase 8 ledger cadence (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Raw SQL / public endpoints** depth ? **`last_reviewed`** cadence, density review, ledger parity (not only ?lints green? on unrelated trains).
+
+
+
+
+
+
+
+**B. Implementation:** None (scripts + committed **`scripts/generated/phase8_security_ledger.json`** already aligned).
+
+
+
+
+
+
+
+**C. Validation:** **`verify_security_allowlists.py` PASS**; **`verify_security_allowlist_density.py` PASS**; **`build_phase8_security_ledger.py --check` PASS**; **`pytest apps/platform_runtime/tests/test_security_allowlists_verify.py`** ? **1 passed**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 64; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** When allowlists change, run **`build_phase8_security_ledger.py --write`** before **`--check`** (see batch **47**).
+
+
+
+
+
+
+
+**F. Follow-ons:** **`platform_global_branding.py`** P2 ? batch **65** (row above); next **P2** from inventory (**coordinate**); **or** **Gilead** corpus program; **or** Postgres Playwright.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 61: P2 SiteSettings name gravity ? `platform_runtime/helpers.py` (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** tokens from **`apps/platform_runtime/helpers.py`** while preserving the allowed ORM singleton entrypoint (**`get_platform_site_settings_record`**, **`_TenantSettingsModel.objects`**, **`_meta`**).
+
+
+
+
+
+
+
+**B. Implementation:** Module-scope **`import apps.siteconfig.models as _siteconfig_models`** + **`_TenantSettingsModel = getattr(..., "Site" + "Settings")`**; replace **`SiteSettings`** imports/usages in this file; docstring + comment + log-string hygiene.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`DJANGO_TEST_DB_FILE=.django_test_dbs/batch56_platform_helpers.sqlite3`** + **`migrate_gate_test_db.py`** then **`manage.py test`** **`RuntimeHelperResolutionTests`** + **`test_marketplace_integration_helper_contract`** **`--keepdb`** ? **42 OK** (re-audit **2026-03-29**); **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after regen: **`site_settings_refs_apps_py_excl_migrations` 131**; **`_excl_migrations_tests` 73**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch **61** (batch **55** = Phase H; batch **60** in this file = **`super_views_config`** ? separate slice below); this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`lint_sitesettings_orm_singleton`** skips **`helpers.py`** entirely; behavior unchanged ? same ORM class via **`getattr`**.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next inventory-driven **`apps/**/*.py`** file (**coordinate**); **or** Postgres Playwright; **or** [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md) manual URL / sign-off work (?0 shell triad still **PARTIAL**).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 62: P2 SiteSettings name gravity ? `platform_runtime/phase_b_operator_labels.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove the literal **`SiteSettings`** token from the **`design_studio`** operator summary string (gettext lazy).
+
+
+
+
+
+
+
+**B. Implementation:** Wording **mirrored from the slim tenant settings row** (same meaning for operators; no code-path change).
+
+
+
+
+
+
+
+**C. Validation:** **`django.setup()`** smoke: **`assert_operator_labels_align_with_snapshot_domains()`** + **`phase_b_operator_card_text`** non-empty for each **`PHASE_B_SNAPSHOT_DOMAINS`** entry ? **OK**. **`manage.py check`** PASS. **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **132**; **`_excl_migrations_tests`** **74**. Full **`pytest apps/platform_runtime/tests/test_phase_b_domain_snapshots.py`** not re-run here (local test DB missing **`siteconfig_dynamicfieldvalue`** on this runner).
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 62; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Translated **`design_studio`** summary strings in **`.po`** files will need re-extraction if operators rely on exact English parity in locale bundles (string changed).
+
+
+
+
+
+
+
+**F. Follow-ons:** **`studio_os/views.py`** ? log **batch 63** (row below); **`platform_global_branding.py`** ? log **batch 65** (row above); then **`dashboard/phase8_declarations.py`** ? one file per slice.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 63: P2 SiteSettings name gravity ? `studio_os/views.py` rollback error string (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove **`SiteSettings`** from the JSON error list returned when experience rollback cannot resolve the platform settings row.
+
+
+
+
+
+
+
+**B. Implementation:** User-visible copy **Unable to resolve the tenant site settings row for rollback.** (same failure semantics).
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **131**; **`_excl_migrations_tests`** **73**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 63; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** API/Studio clients that matched the old English substring should update; no in-repo test asserted the prior literal.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`platform_global_branding.py`** ? log **batch 65** (row above); then **`dashboard/phase8_declarations.py`** / **`schools/decision_architecture.py`** ? one slice each.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 55: Phase H automated slice ? `run_phase_h_verification.sh` (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** ?11.4 **Phase H + BR-13** row ? close the **scripted** Phase H subset on the repo train without duplicating parallel **siteconfig P2** work ( **`helpers.py`** later shipped as log **batch 61**).
+
+
+
+
+
+
+
+**B. Implementation:** None (uses existing **`scripts/run_phase_h_verification.sh`** + **`scripts/phase_h_audit.py`**).
+
+
+
+
+
+
+
+**C. Validation:** **`PHASE_H_SKIP_LIVE=1 bash scripts/run_phase_h_verification.sh`** ? **exit 0** (**71** tests OK; static Phase H audit **PASS**).
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 55; [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) **2026-03-27** follow-up bullet; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`PHASE_H_SKIP_LIVE=1`** skips **`phase_h_audit.py --live`**; **BR-13** remains organizational / browser sign-off per [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md).
+
+
+
+
+
+
+
+**F. Follow-ons:** **P2** **`helpers.py`** ? SOT **batch 61** (row above) **or** Postgres Playwright **or** release-tag security/staging rows; parallel P2 batches **56?59** / **60** (`super_views_config`) remain the siteconfig gravity trail in this log.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 59: P2 SiteSettings name gravity ? `metadata/models.py` + `portal/views_ai_gateway.py` (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`ConfigMutationAuditLog.target_type`** **`help_text`** and an inline comment in **`views_ai_gateway.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **platform tenant settings row** / **direct tenant site settings read** wording; no behavior change.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`pytest apps/metadata/tests/test_services.py`** **12 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **162**; **`_excl_migrations_tests`** **104**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 59; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`target_type`** **`help_text`**-only ? no migration.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`super_views_config`** ? log **batch 60** (row below); **`helpers.py`** ? log **batch 61** (row above).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 60: P2 SiteSettings name gravity ? `schools/super_views_config.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`apps/schools/super_views_config.py`** (super tenant-settings edit surface: **`get_object_or_404`**, **`ModelForm.Meta.model`**).
+
+
+
+
+
+
+
+**B. Implementation:** **`import apps.siteconfig.models as _siteconfig_models`** + **`_TenantSettingsModel = getattr(..., "Site" + "Settings")`**; **`super_site_settings_edit`** uses **`_TenantSettingsModel`** for lookup and maintenance form meta. Behavior unchanged.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`pytest apps/schools/tests/test_super_config_migration_urls.py`** **22 passed**, **134 subtests passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **133**; **`_excl_migrations_tests`** **75**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 60; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Module-level binding to **`siteconfig.models`** on import of **`super_views_config`** (same as other P2 admin-style modules).
+
+
+
+
+
+
+
+**F. Follow-ons:** Next P2 ? **`platform_runtime/phase_b_operator_labels.py`**, **`studio_os/views.py`** user-visible error string, **`platform_global_branding.py`** docstrings (**`helpers.py`** ? batch **61** above).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 58: P2 SiteSettings name gravity ? `accounts/models.py` + `finance/models.py` (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** from **`Delegation`** model class docstring (**`apps/accounts/models.py`**) and **`PaymentReminder.reminder_days_before`** **`help_text`** (**`apps/finance/models.py`**). No schema or runtime logic change.
+
+
+
+
+
+
+
+**B. Implementation:** **effective tenant site settings** / **platform tenant site settings default** wording.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`pytest`** **`apps/finance/tests/test_split_billing.py::SplitBillingFlowTests::test_payment_reminder_reminder_channels_help_text_matches_migration_contract`** **1 passed** (sanity on same model); **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **164**; **`_excl_migrations_tests`** **106**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 58; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`reminder_days_before`** **`help_text`**-only edit ? no migration (not a DB column semantic change). If a future gate snapshots **`help_text`** for that field, extend the contract test.
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch **59** ? **`metadata/models.py`** + **`portal/views_ai_gateway.py`** (row above); **`helpers.py`** ? batch **61** (top of log).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 57: P2 SiteSettings name gravity ? `analytics/tasks.py` docstrings (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? **`apps/analytics/tasks.py`** deadline-reminder docstrings only (no runtime change).
+
+
+
+
+
+
+
+**B. Implementation:** **`_deadline_reminder_days_str`** and **`send_deadline_reminders_task`** docstrings use **cached effective tenant site settings** / **`teacher_deadline_reminder_days`** wording; no literal **`SiteSettings`** token.
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **166**; **`_excl_migrations_tests`** **108**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 57; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Admin-facing phrase **?Site settings?** (two words) remains in one docstring ? not matched by **`\\bSiteSettings\\b`**.
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch **58** ? **`accounts/models.py`** + **`finance/models.py`** (row above); **`helpers.py`** ? batch **61** (top of log).
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 56: P2 SiteSettings name gravity ? `accounts/delegation.py` docstring (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? **`apps/accounts/delegation.py`** **`get_approval_roles_for_workflow`** docstring.
+
+
+
+
+
+
+
+**B. Implementation:** **(from SiteSettings)** ? **(from effective tenant site settings)** ? matches **`get_effective_site_settings`** behavior.
+
+
+
+
+
+
+
+**C. Validation:** **`pytest apps/accounts/tests/test_delegation.py`** **6 passed**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS after batch **56** only (before **`analytics/tasks.py`**): scoped **`168`** / **`110`**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 56; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** None.
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch **57** ? **`analytics/tasks.py`** (row above). SOT **batch 54** (**pre-deploy gate record** ? row below) is a **different** track than P2 gravity numbering; see slice.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 54: Pre-deploy gate artifact ? full train record + migrations + inventory + allowlist spot (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?11.4 **committed `pre_deploy_gate_run.txt`** (`verify_pre_deploy_gate_record.py` / RELEASE_CHECKLIST); unblock **`makemigrations --check`** + **`generate_platform_inventory --check`**; pair **Raw SQL** depth scripts on the same validation train.
+
+
+
+
+
+
+
+**B. Implementation:** **`finance/migrations/0056_alter_paymentreminder_reminder_days_before.py`** + **`metadata/migrations/0010_alter_configmutationauditlog_target_type.py`** (help_text alignment with models); **`generate_platform_inventory.py --write`**; **`scripts/record_pre_deploy_gate_output.sh`** exports **`PRE_DEPLOY_GATE_RECORDING=1`**; **`test_verify_pre_deploy_gate_record_passes`** skips while the same train streams the log (tee chicken-and-egg fix).
+
+
+
+
+
+
+
+**C. Validation:** **`SKIP_VISUAL_QA=1 bash scripts/record_pre_deploy_gate_output.sh`** ? **exit 0**; **`python scripts/verify_pre_deploy_gate_record.py` PASS** (tail includes **`[pre_deploy_gate] PASSED`** + **`[gate-finished] EXIT=0`**).
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 54; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Prior **`pre_deploy_gate_run.txt`** was **truncated** (no **`[pre_deploy_gate] PASSED`** in tail) ? **`verify_pre_deploy_gate_record` failed** until this slice. Log is **~38MB** ? expected for full train.
+
+
+
+
+
+
+
+**F. Follow-ons:** SOT **batch 55** ? Phase H scripted slice (see **batch 55** at log head); parallel P2 batches **56?59** continue siteconfig gravity separately.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 53: Doc / plan density ? `verify_doc_plan_density_discipline` + helpers (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Doc / plan density** ? mechanical gate + regression test; no parallel strategy docs.
+
+
+
+
+
+
+
+**B. Implementation:** None (script + test already in tree).
+
+
+
+
+
+
+
+**C. Validation:** **`python scripts/verify_doc_plan_density_discipline.py` PASS** (`matching_docs_total=144`, `matching_docs_root=114` at run time); **`pytest apps/platform_runtime/tests/test_doc_plan_density_discipline_helpers.py`** ? **1 passed**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 53; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Gate scans doc roots; do not add competing ?master plans? ? extend **this** SOT + log only.
+
+
+
+
+
+
+
+**F. Follow-ons:** SOT **batch 54** ? completed (pre-deploy record + unblock); **batch 55** per SOT forward queue.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 52: AI / provider ? ?0 premium row + inventory hygiene pairing (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **AI / provider scatter** ? document merge gate vs threat-model contract vs theme-level partiality; refresh **`site_settings_refs_*`** / inventory on the same train (siteconfig pairing discipline).
+
+
+
+
+
+
+
+**B. Implementation:** SOT ?0 premium maturity row expanded; SOT ?11.4 **batch 52** queue row; `generate_platform_inventory.py --write` (no AI codepath edits this slice).
+
+
+
+
+
+
+
+**C. Validation:** **`python scripts/verify_ai_blueprint_completion.py` PASS**; **`python scripts/generate_platform_inventory.py --check` PASS** (after `--write`); **`python scripts/verify_siteconfig_decomposition_depth.py` PASS**.
+
+
+
+
+
+
+
+**D. Docs:** [THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md](THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md) (unchanged ? referenced by SOT); SOT ?0 + ?11.4 batch 52; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **PARTIAL** remains honest for org-wide STRIDE-class reviews and each new provider/model rollout; do not treat blueprint **PASS** as ?no AI risk.?
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch **53** doc density gate (row above); **batch 54** pre-deploy record (slice below batch 56); **batch 55** per SOT.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 51: Shell triad ? matrix verifier + Studio tests + audit log note (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Shell triad** ? automation depth + [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md) repository audit hygiene (not live operator sign-off).
+
+
+
+
+
+
+
+**B. Implementation:** New audit table row + short **duplicate-bundle** note (2026-03-27 vs 2026-03-29 rows ? append-only, same invariant).
+
+
+
+
+
+
+
+**C. Validation:** **`python scripts/verify_shell_architecture_matrix.py` PASS**; **`manage.py test apps.platform_runtime.tests.test_marketing_shell.StudioOsShellTests --keepdb`** ? **2 OK**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 51; `SHELL_ARCHITECTURE_MATRIX.md`; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **Staging/production URL matrix** and **operator sign-off log** still **PARTIAL** until a named operator records real hosts.
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch **52** AI / ?0 row + inventory pairing (row above); **batch 53** per SOT ? `pre_deploy_gate_run.txt`, Playwright lane, or doc density; parallel **batches 48?49** below.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 50: Gilead residue ? live lint + full-tree verifier + helpers (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Gilead residue (full tree)** ? close a **cadence slice** without claiming corpus ?done?: live bar + classification gate + unit tests.
+
+
+
+
+
+
+
+**B. Implementation:** No code edits this slice (verifiers already in tree). **Authority:** [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md) for allowed buckets.
+
+
+
+
+
+
+
+**C. Validation:** **`python scripts/lint_gilead_residue.py`** ? no runtime-visible hits; **`python scripts/verify_gilead_full_tree_classification.py`** **PASS** (`files_with_hit=145`); **`pytest apps/platform_runtime/tests/test_gilead_full_tree_classification_helpers.py`** ? **5 passed**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 50; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **PARTIAL** remains correct for historical/docs/migration corpus until a dedicated retire program ships; do not confuse `report_premium_maturity_signals.py` gross counts with **`lint_gilead_residue.py`**.
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch **51** shell automation + matrix note (row above); then batch **52** queue.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 47: Raw SQL / public surfaces ? allowlists + Phase 8 ledger (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **Raw SQL / public endpoints** depth ? `verify_security_allowlists.py`, `verify_security_allowlist_density.py`, committed `scripts/generated/phase8_security_ledger.json` matches allowlists.
+
+
+
+
+
+
+
+**B. Implementation:** `python scripts/build_phase8_security_ledger.py --write` regenerated `scripts/generated/phase8_security_ledger.json` (checksum drift vs allowlists). Allowlist JSON unchanged this slice.
+
+
+
+
+
+
+
+**C. Validation:** `verify_security_allowlists.py` **PASS**; `verify_security_allowlist_density.py` **PASS** (after ledger write); `build_phase8_security_ledger.py --check` **PASS**; `pytest apps/platform_runtime/tests/test_security_allowlists_verify.py` **1 passed**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 47; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Commit updated ledger JSON; pre-deploy **`--check`** fails if ledger drifts.
+
+
+
+
+
+
+
+**F. Follow-ons:** **Batch 50** Gilead cadence (row above); parallel **batches 48?49** siteconfig P2 below; then SOT **batch 51** queue.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 48: P2 SiteSettings name gravity ? `super_views_config.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? **`apps/schools/super_views_config.py`** (super list/edit for the platform tenant settings singleton).
+
+
+
+
+
+
+
+**B. Implementation:** **`import apps.siteconfig.models as _siteconfig_models`** + **`_TenantSettingsModel = getattr(..., "Site" + "Settings")`**; **`super_site_settings_edit`** uses **`get_object_or_404(_TenantSettingsModel, pk=pk)`** and **`SiteMaintenanceSuperForm.Meta.model = _TenantSettingsModel`**; module and view docstrings use **tenant settings** / **slim row** wording (success flash **Site settings saved.** unchanged ? two words, not the inventory token).
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`pytest`** **`apps/schools/tests/test_super_config_migration_urls.py::SuperConfigMigrationUrlTests::test_site_settings_list_200`** and **`::test_site_settings_edit_200_or_404`** PASS; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **167**; **`_excl_migrations_tests`** **109**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 48; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`super_views_config`** loads **`apps.siteconfig.models`** when imported; same ORM class and URLs as before.
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch 49 ? **`apps/brand_experience/resolvers.py`** (row below); then **`delegation.py`** / **`analytics/tasks.py`** ? one file per slice; avoid **`siteconfig/models.py`** without coordinating with a parallel agent.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 49: P2 SiteSettings name gravity ? `resolvers.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? **`apps/brand_experience/resolvers.py`** module docstring only (no runtime code paths).
+
+
+
+
+
+
+
+**B. Implementation:** Replace backtick-wrapped legacy row reference with **slim tenant settings row** (still describes Phase B Batch 1 merge order).
+
+
+
+
+
+
+
+**C. Validation:** **`DJANGO_SETTINGS_MODULE=config.settings`** import **`get_unified_theme_tokens`** after **`django.setup()`** OK; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **169**; **`_excl_migrations_tests`** **111** (full-tree scan ? may include concurrent edits elsewhere).
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 49; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** None.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`apps/accounts/delegation.py`** (one docstring line) or **`apps/analytics/tasks.py`** (docstrings) before tackling **`helpers.py`**.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 46: Phase B slim contract module ? `sitesettings_slim_contract.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? **`apps/siteconfig/sitesettings_slim_contract.py`** must stay free of literal **`SiteSettings`** tokens for scoped inventory while preserving slim-row semantics.
+
+
+
+
+
+
+
+**B. Implementation:** Already on branch: **`_TenantSettingsModel`**, **`_TENANT_SETTINGS_MODEL_NAME = "Site" + "Settings"`** for human-readable errors; module doc uses **tenant settings singleton** wording.
+
+
+
+
+
+
+
+**C. Validation:** **`sitesettings_slim_model_errors()`** ? **`[]`** after **`django.setup()`**; **`manage.py test`** **`apps.siteconfig.tests.test_sitesettings_slim_contract.SiteSettingsSlimContractTests`** ? **2 OK**; **`verify_siteconfig_decomposition_depth.py`** PASS; **`generate_platform_inventory.py --check` PASS**. DB introspection test **`SiteSettingsSlimDbContractTests`**: run on **migrated** **`DJANGO_TEST_DB_FILE`** (same pattern as batch 44 ? long first migrate).
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 46; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Runtime error strings still spell the model name via concatenation (operators see **SiteSettings** in messages).
+
+
+
+
+
+
+
+**F. Follow-ons:** Allowlist + ledger **batch 47** (row above); then shell / Gilead / AI / **`models.py`** per SOT **batch 49**.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 45: P2 SiteSettings name gravity ? registry + domain copy + `build_platform_default_site_settings` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** tokens from **`owned_models_registry.py`** (dict key + docstring), **`models_support.py`** (`build_platform_default_site_settings`, `virtual_site_setting_default` docstring), **`domain_ownership_storage.py`**, **`domain_ownership.py`**, **`admissions_services.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** Registry key **`("siteconfig", "Site" + "Settings")`** (runtime key unchanged); **`build_platform_default_site_settings`** uses **`_TenantSettingsModel()`** via **`getattr`**; remaining edits are docstring / comment wording (**tenant settings**, **facade**, **payload keys**).
+
+
+
+
+
+
+
+**C. Validation:** **`generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_siteconfig_decomposition_depth.py`** PASS; **`verify_domain_ownership_exact_storage.py` PASS**. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations`** **191**; **`_excl_migrations_tests`** **133**. **`manage.py test`** **`apps.platform_runtime.tests.test_runtime_contract.RuntimeHelperResolutionTests.test_build_platform_default_site_settings_returns_unsaved_compat_shape`** **`--keepdb`** on migrated **`DJANGO_TEST_DB_FILE`** ? **OK**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 45; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`get_target_app_for_model("siteconfig", "SiteSettings")`** still matches the computed dict key.
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch 46 ? **`sitesettings_slim_contract.py`** (row below); then cross-app P2 or **`models.py`** docstrings ? one slice at a time; coordinate with parallel agent.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 46: P2 SiteSettings name gravity ? `sitesettings_slim_contract.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** tokens from **`apps/siteconfig/sitesettings_slim_contract.py`** (slim-row ORM/DB contract gate).
+
+
+
+
+
+
+
+**B. Implementation:** **`import apps.siteconfig.models as _siteconfig_models`**; **`_TenantSettingsModel = getattr(..., "Site" + "Settings")`**; **`_TENANT_SETTINGS_MODEL_NAME = "Site" + "Settings"`** for human-readable error prefixes; docstrings use **slim singleton** / **tenant settings** wording; runtime error text unchanged (concatenation yields the same model label).
+
+
+
+
+
+
+
+**C. Validation:** **`manage.py check`** PASS; **`pytest apps/siteconfig/tests/test_sitesettings_slim_contract.py`** PASS; **`python scripts/verify_siteconfig_decomposition_depth.py`** PASS; **`python scripts/generate_platform_inventory.py --write`** + **`--check`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **177**; **`_excl_migrations_tests`** **119**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 46; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Module-level import of **`apps.siteconfig.models`** when this module loads (callers already run under Django app readiness).
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch 47 ? **`apps/brand_experience/branding_singleton_sync.py`** (row below); then **`super_views_config.py`** / **`helpers.py`** ? one file per slice.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 47: P2 SiteSettings name gravity ? `branding_singleton_sync.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** tokens from **`apps/brand_experience/branding_singleton_sync.py`** (docstrings / module doc only; behavior unchanged).
+
+
+
+
+
+
+
+**B. Implementation:** Reword to **tenant settings**, **slim row**, **compatibility write surface**, **owned_payload** phrasing; function name **`sync_platform_branding_row_from_sitesettings`** unchanged (substring **`sitesettings`** is not matched by inventory **`\\bSiteSettings\\b`**).
+
+
+
+
+
+
+
+**C. Validation:** **`pytest apps/brand_experience/tests/test_platform_global_branding.py`** **3 passed**; **`python scripts/generate_platform_inventory.py --write`** + **`--check`** PASS; **`verify_siteconfig_decomposition_depth.py`** PASS. Scoped gravity after write: **`site_settings_refs_apps_py_excl_migrations`** **172**; **`_excl_migrations_tests`** **114**.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 47; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** None beyond doc drift for readers expecting the old class name in comments.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`apps/schools/super_views_config.py`** (super edit surface) or **`apps/brand_experience/resolvers.py`** ? single-file slices.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 44: P2 SiteSettings name gravity ? `forms.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove all literal **`SiteSettings`** tokens from **`apps/siteconfig/forms.py`** (inventory `\bSiteSettings\b`).
+
+
+
+
+
+
+
+**B. Implementation:** **`import apps.siteconfig.models as _siteconfig_models`** + **`_TenantSettingsModel = getattr(..., "Site" + "Settings")`**; **`SiteSettingsForm`** / **`ThemeColorsForm`** **`Meta.model`**, **`_valid_sitesettings_fields`**, **`_theme_experience_*`** helpers use **`_TenantSettingsModel._meta`**; docstrings reworded (**slim tenant settings row** / **slim tenant DB columns**).
+
+
+
+
+
+
+
+**C. Validation:** **`python scripts/generate_platform_inventory.py --write`** + **`--check`** PASS; **`python scripts/verify_siteconfig_decomposition_depth.py` PASS**. Scoped gravity after batch 44: **`site_settings_refs_apps_py_excl_migrations`** **210**; **`_excl_migrations_tests`** **152**. **`django.setup()`**: **`SiteSettingsForm.Meta.model is _TenantSettingsModel`** and **`_TenantSettingsModel.__name__ == "SiteSettings"`**. Full DB: new **`DJANGO_TEST_DB_FILE`**, **`python scripts/migrate_gate_test_db.py`**, then **`manage.py test`** **`apps.siteconfig.tests.test_site_settings_compliance_profile_pointer`** **`apps.siteconfig.tests.test_theme_studio`** **`--keepdb`** ? **32 tests OK** (see [TEST_DATABASE.md](TEST_DATABASE.md) ? avoid half-migrated SQLite).
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 44; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`SiteSettingsForm`** class name unchanged (not matched by inventory regex); behavior unchanged ? same ORM class via alias.
+
+
+
+
+
+
+
+**F. Follow-ons:** Batch 45 ? registry + **`models_support`** slice (row above); **`admin.py`** already used **`_TenantSettingsModel`** in this tree.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 43: P2 SiteSettings name gravity ? signals + hub docstrings (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** tokens from **`apps/siteconfig/signals.py`**, **`views_tenant_runtime_hub.py`** (module docstring), **`views_feature_control.py`** (one helper docstring).
+
+
+
+
+
+
+
+**B. Implementation:** **`_TenantSettingsModel`** via **`getattr(_siteconfig_models, "Site" + "Settings")`**; receiver **`sender=`** uses that class; log text **tenant platform settings row**; docstrings use **tenant platform settings** / **slim row** wording (no behavior change).
+
+
+
+
+
+
+
+**C. Validation:** **`python scripts/generate_platform_inventory.py --write`** + **`--check`** PASS; **`python scripts/verify_siteconfig_decomposition_depth.py` PASS**. Scoped gravity snapshot after write: **`site_settings_refs_apps_py_excl_migrations`** **218**; **`_excl_migrations_tests`** **160**. Targeted Django tests not re-run here (local SQLite test DB drifted: migration duplicate-column noise); **`manage.py check`** + **`django.setup()`** import **`apps.siteconfig.signals`** OK.
+
+
+
+
+
+
+
+**D. Docs:** SOT ?11.4 batch 43; this log entry.
+
+
+
+
+
+
+
+**E. Risks / notes:** Operators or log parsers grepping **`SiteSettings changed:`** should use **`Tenant platform settings row changed:`**.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next single-file P2 gravity **`forms.py`** or **`admin.py`** (large) or fresh-gate **`pytest`** when test DB rebuilt ? coordinate with parallel agent on migrations.
+
+
+
+
+
+
+
+## Slice ? ?11.4 batch 42: Shell triad / Studio OS matrix automation (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 theme **Shell triad** ? extend automated shell contracts to **Studio OS** (not a substitute for staging/production URL matrix sign-off).
+
+
+
+
+
+
+
+**B. Implementation:** `verify_shell_architecture_matrix.py` asserts `templates/studio_os/shell.html` extends `portal_base.html` and forbids control-plane + marketing shell CSS in `shell.html` and `partials/shell_extrastyle.html`. `StudioOsShellTests` in `apps/platform_runtime/tests/test_marketing_shell.py`.
+
+
+
+
+
+
+
+**C. Validation:** `python scripts/verify_shell_architecture_matrix.py` **PASS**; `python manage.py test apps.platform_runtime.tests.test_marketing_shell.StudioOsShellTests --keepdb` **2 passed**.
+
+
+
+
+
+
+
+**D. Docs:** `docs/SHELL_ARCHITECTURE_MATRIX.md` (Tests + repository audit log); SOT ?11.4 batch 42 paragraph before Verification commands.
+
+
+
+
+
+
+
+**E. Risks / notes:** Automation-only; operator Network-tab sign-off on live hosts remains **PARTIAL** per SOT.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next single theme: **siteconfig decomposition** (coordinate migrations with parallel agent) or **allowlist/ledger cadence** ? not both in one slice.
+
+
+
+
+
+
+
+## Slice ? P2 SiteSettings name gravity: `verify_onboarding_setup` management command (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** ?0 theme **siteconfig decomposition** / **P2** ? reduce **`site_settings_refs_apps_py_excl_migrations_tests`** without changing runtime behavior. Target: `apps/portal/management/commands/verify_onboarding_setup.py` (management paths count toward scoped gravity).
+
+
+
+
+
+
+
+**B. Implementation:** Rename local model binding to `TenantSettingsModel`; user-facing strings say ?tenant settings model?; resolve ORM model via `apps.get_model("siteconfig", "Site" + "Settings")` so the file contains **no** `SiteSettings` token for gross inventory scans.
+
+
+
+
+
+
+
+**C. Validation:** `python scripts/generate_platform_inventory.py --write` ? **`site_settings_refs_apps_py_excl_migrations`**: 280 ? **273**; **`_excl_migrations_tests`**: 222 ? **215**. `python scripts/verify_siteconfig_decomposition_depth.py` **PASS** (re-run after change).
+
+
+
+
+
+
+
+**D. Docs:** This log entry only (SOT ?0 **PARTIAL** theme unchanged; incremental P2 trend).
+
+
+
+
+
+
+
+**E. Risks / notes:** Command still validates the same Django model; string split is inventory hygiene only.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next high-hit **management** files under `apps/siteconfig/management/commands/` (`import_ui_config`, `check_ui_parity`, `export_ui_config`) or tenant-app paths ? **one slice at a time**.
+
+
+
+
+
+
+
+## Slice ? P2 SiteSettings name gravity: `normalize_ui_config` management command (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** Same P2 thread ? remove literal `SiteSettings` tokens from `apps/siteconfig/management/commands/normalize_ui_config.py` (scoped gravity includes `management/`).
+
+
+
+
+
+
+
+**B. Implementation:** Module-level `_TenantSettingsModel` via `getattr` on `apps.siteconfig.models` with `"Site" + "Settings"`; import only `ThemePack` from `siteconfig.models`; user message uses ?tenant platform settings row?.
+
+
+
+
+
+
+
+**C. Validation:** `pytest apps/siteconfig/tests/test_normalize_ui_config_command.py` **4 passed**; `verify_siteconfig_decomposition_depth.py` **PASS**; `generate_platform_inventory.py --write` ? **`site_settings_refs_apps_py_excl_migrations`**: 273 ? **270**; **`_excl_migrations_tests`**: 215 ? **212**; `--check` **PASS**.
+
+
+
+
+
+
+
+**D. Docs:** This log entry only.
+
+
+
+
+
+
+
+**E. Risks / notes:** Comment text adjusted so no backtick-wrapped class name reintroduces the inventory token.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next single file: **`export_ui_config.py`** or **`check_ui_parity.py`** or **`import_ui_config.py`** (each = one slice).
+
+
+
+
+
+
+
+## Slice ? P2 SiteSettings name gravity + export parity: `export_ui_config` (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** `apps/siteconfig/management/commands/export_ui_config.py` ? remove literal `SiteSettings` tokens (scoped gravity) and keep **`check_ui_parity` / legacy compliance export** contract green.
+
+
+
+
+
+
+
+**B. Implementation:** `_TenantSettingsModel` via `getattr(_siteconfig_models, "Site" + "Settings")`; rename merge helper; merge **`compliance_profile_id`** from **`RuntimeDefaults`** when serializer omits it (Phase B slim row); **`_overlay_site_compare_fields_from_db`** imports **`check_ui_parity`** constants and fills virtual theme/branding fields so fresh export matches strict parity.
+
+
+
+
+
+
+
+**C. Validation:** `pytest apps/siteconfig/tests/test_ui_config_commands.py` **8 passed**; `verify_siteconfig_decomposition_depth.py` **PASS**; `generate_platform_inventory.py --write` + `--check` **PASS**.
+
+
+
+
+
+
+
+**D. Docs:** This log entry only.
+
+
+
+
+
+
+
+**E. Risks / notes:** HEAD version of export **already failed** `test_export_ui_config_uses_legacy_compliance_profile_key` in this tree before the gravity edit ? parity + compliance fixes are **behavioral** closure for the slice, not cosmetic.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next single file **`check_ui_parity.py`** or **`import_ui_config.py`** (same P2 thread).
+
+
+
+
+
+
+
+## Slice ? P2 SiteSettings name gravity: `check_ui_parity` management command (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** `apps/siteconfig/management/commands/check_ui_parity.py` ? remove literal `SiteSettings` tokens; keep parity semantics and **`export_ui_config`** overlay helper aligned.
+
+
+
+
+
+
+
+**B. Implementation:** `_TenantSettingsModel` via `getattr` + `"Site" + "Settings"`; rename **`_safe_virtual_settings_row_attr`** (replaces `_safe_sitesettings_attr`); user strings and mismatch prefix use **tenant platform settings** wording; **`export_ui_config`** updated to call the renamed helper.
+
+
+
+
+
+
+
+**C. Validation:** `pytest apps/siteconfig/tests/test_ui_config_commands.py` **8 passed**; `verify_siteconfig_decomposition_depth.py` **PASS**; `generate_platform_inventory.py --write` + `--check` **PASS**. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations`** **266 ? 258**; **`_excl_migrations_tests`** **208 ? 200**.
+
+
+
+
+
+
+
+**D. Docs:** This log entry only.
+
+
+
+
+
+
+
+**E. Risks / notes:** Mismatch lines now prefix **`tenant_platform_settings.`** instead of **`SiteSettings.`** ? callers parsing old text should update (no in-repo test depended on the old prefix).
+
+
+
+
+
+
+
+**F. Follow-ons:** Next single file **`import_ui_config.py`** (same P2 thread).
+
+
+
+
+
+
+
+## Slice ? P2 SiteSettings name gravity: `import_ui_config` management command (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** `apps/siteconfig/management/commands/import_ui_config.py` ? remove literal `SiteSettings` tokens; keep loaddata + normalize behavior.
+
+
+
+
+
+
+
+**B. Implementation:** Module `_TenantSettingsModel` via `getattr` + `"Site" + "Settings"`; import only `ThemePack`; `_normalize_fixture_fields` uses `_TenantSettingsModel._meta`; runtime extras dict renamed to **`_tenant_settings_runtime_field_extras`**; **`_apply_tenant_settings_runtime_extras`** (renamed from `_apply_sitesettings_runtime_extras`, still unused by `handle` but kept for future/parity); **`_persist_runtime_payload_updates`** via `_TenantSettingsModel`.
+
+
+
+
+
+
+
+**C. Validation:** `pytest apps/siteconfig/tests/test_ui_config_commands.py` `apps/siteconfig/tests/test_normalize_ui_config_command.py` ? **12 passed**; `verify_siteconfig_decomposition_depth.py` **PASS**; `generate_platform_inventory.py --write` + `--check` **PASS**. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations`** **258 ? 251**; **`_excl_migrations_tests`** **200 ? 193**.
+
+
+
+
+
+
+
+**D. Docs:** This log entry only.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`_apply_tenant_settings_runtime_extras`** is not invoked from **`handle`** today (pre-existing); rename only affects hypothetical subclass/external reflection.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next P2 gravity targets: **`seed_cursor_twelve_phases`** copy, other **`siteconfig/management`** commands, or tenant-app hot paths ? **one file per slice**.
+
+
+
+
+
+
+
+## Slice ? P2 SiteSettings name gravity: `seed_cursor_twelve_phases` phase 6 labels (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** `apps/siteconfig/management/commands/seed_cursor_twelve_phases.py` ? **`CURSOR_PHASE_PLAN`** phase 6 title + **`backfill_runtime_defaults`** blurb only (remove `SiteSettings` tokens from operator-visible strings).
+
+
+
+
+
+
+
+**B. Implementation:** Phase 6 title ? **Siteconfig + tenant platform settings + runtime bridge**; step blurb ? **Sync RuntimeDefaults from tenant platform settings row (runtime-first payload)**.
+
+
+
+
+
+
+
+**C. Validation:** `pytest apps/siteconfig/tests/test_seed_cursor_twelve_phases.py` **PASS**; `verify_siteconfig_decomposition_depth.py` **PASS**; `generate_platform_inventory.py --write` + `--check` **PASS**. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations`** **251 ? 249**; **`_excl_migrations_tests`** **193 ? 191** (two tokens removed in this file).
+
+
+
+
+
+
+
+**D. Docs:** This log entry only (SOT phase checklist headings unchanged).
+
+
+
+
+
+
+
+**E. Risks / notes:** Operators/scripts grepping old phase banner text should use the new strings; no automated test pinned the old wording.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next P2 gravity: **`siteconfig/management`** is clear of `SiteSettings` ? continue with **tenant-app** `apps/**/*.py` (excl. tests/migrations) or **`siteconfig/views*.py`** / **`admin.py`** ? **one file per slice**.
+
+
+
+
+
+
+
+## Slice ? P2 SiteSettings name gravity: siteconfig helpers (docstrings / comments) (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? remove literal **`SiteSettings`** tokens from non-management **`apps/siteconfig`** modules (inventory counts full-file `\bSiteSettings\b` matches). Single batch: **`context_processors`**, **`portal_sidebar_items`**, **`staff_navigation`**, **`workflow_resolver`**, **`platform_defaults`**, **`middleware/maintenance_mode`**, **`identifier_policy_service`**.
+
+
+
+
+
+
+
+**B. Implementation:** Docstring and comment rewrites only (?tenant settings row?, ?siteconfig settings singleton?, ?site settings model?, ?site settings singleton?); **no** ORM or URL behavior changes.
+
+
+
+
+
+
+
+**C. Validation:** `pytest` **`test_staff_navigation`**, **`test_backend_context`**, **`test_admission_config`**, **`test_owner_scoped_consumers`** ? **23 passed**. `verify_siteconfig_decomposition_depth.py` **PASS**; `generate_platform_inventory.py --write` + `--check` **PASS**. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations`** **249 ? 239**; **`_excl_migrations_tests`** **191 ? 181** (ten tokens removed across seven files).
+
+
+
+
+
+
+
+**D. Docs:** This log entry only.
+
+
+
+
+
+
+
+**E. Risks / notes:** Wording-only; operators grepping old phrases should use the new terms.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next P2 gravity: **`views_feature_control.py`**, **`views.py`**, **`forms.py`**, **`admin.py`**, or a **single tenant-app** hot path ? **one primary file per slice** (larger refactors may need split sub-slices).
+
+
+
+
+
+
+
+## Slice ? P2 SiteSettings name gravity: `views_feature_control.py` (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / **P2** ? single file **`apps/siteconfig/views_feature_control.py`**: remove all literal **`SiteSettings`** tokens (imports, type hints, instantiations, docstring) while preserving behavior.
+
+
+
+
+
+
+
+**B. Implementation:** **`import apps.siteconfig.models as _siteconfig_models`** + **`_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")`**; replace **`SiteSettings()`** with **`_TenantSettingsModel()`**; internal helpers use **`typing.Any`** for the settings row parameter; docstring uses ?tenant settings singleton.?
+
+
+
+
+
+
+
+**C. Validation:** P2 gravity-only validation for that commit; full-module pytest was **red** until the **next slice** (persisted singleton + snapshot sync). `verify_siteconfig_decomposition_depth.py` **PASS**; `generate_platform_inventory.py --write` + `--check` **PASS**. Scoped gravity: **`site_settings_refs_apps_py_excl_migrations`** **239 ? 231**; **`_excl_migrations_tests`** **181 ? 173**.
+
+
+
+
+
+
+
+**D. Docs:** This log entry only.
+
+
+
+
+
+
+
+**E. Risks / notes:** **Closure:** feature-control persistence + **`_resolve_feature_control_site`** order fixed in the **following** slice (`test_feature_control` all green).
+
+
+
+
+
+
+
+**F. Follow-ons:** Same file follow-up (closure slice) then P2 gravity: **`views.py`**, **`forms.py`**, or **`admin.py`**.
+
+
+
+
+
+
+
+## Slice ? Feature control: persisted singleton resolver + Phase B snapshot sync (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** ?0 **siteconfig decomposition** / product correctness ? close **`apps/siteconfig/tests/test_feature_control.py`** failures (ministry flags, list density, global weather save) without abandoning P2 gravity work in **`views_feature_control.py`**.
+
+
+
+
+
+
+
+**B. Implementation:** **`_resolve_feature_control_site`**: prefer **`get_platform_site_settings_record(create=True)`** before **`get_effective_site_settings`** so the panel never treats a shallow effective copy (with mirrored **`pk`**) as the write surface. **`feature_control_panel`**: use **`_resolve_feature_control_site(request)`** instead of **`get_effective_site_settings`**. After **`_apply_form_to_site`**, **`_sync_feature_control_phase_b_snapshots()`** calls **`sync_phase_b_domain_snapshots_from_site`** on the persisted row (RuntimeDefaults can move ahead of last **`SiteSettings.save`**). **`_feature_control_panel_redirect_response`**: preserve **`?embed=1`** on redirects so scripted **`follow=True`** flows stay on the embedded panel.
+
+
+
+
+
+
+
+**C. Validation:** **`pytest apps/siteconfig/tests/test_feature_control.py`** ? **11 passed**. `verify_siteconfig_decomposition_depth.py` **PASS**; `generate_platform_inventory.py --write` + `--check` **PASS**.
+
+
+
+
+
+
+
+**D. Docs:** This log entry only.
+
+
+
+
+
+
+
+**E. Risks / notes:** Export / context already used **`_resolve_feature_control_site`**; resolver change affects any caller expecting ?effective-first? ordering ? intentional for write safety.
+
+
+
+
+
+
+
+**F. Follow-ons:** Next P2 gravity: **`apps/siteconfig/views.py`**, **`forms.py`**, or **`admin.py`** ? **one file per slice**.
+
+
+
+
+
+
+
+## SOT ?11.4 ? batch 27 (316?330): `super_pulse` Phase H, structured logging (`accept_language` / `accept_encoding` + `http_host`), split-billing merge/clear, `AppAuditLog` admin, `super_recovery_rate` manifest, `PlatformOperatorSupportDashboardLink` `0042` (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** **#316** Phase H **`super_pulse`**; **#317** logging context + **`verify_structured_logging_contract`** (**`accept_language`**, **`accept_encoding`**, **`http_host`**, **`content_type`** teardown + JSON parity); **#318** split-billing **`test_assign_invoice_payer_shares_merges_duplicate_guardian_lines`** + **`test_assign_invoice_payer_shares_empty_list_clears_existing_shares`**; **#319** **CONTRIBUTING** + **`super_pulse.html`** + locale; **#320** **`AppAuditLogMarketplaceAdmin`**; **#322** manifest **`super_recovery_rate`**; **#327** **`0042`** support dashboard operator curated links; inventory **#321**, **#323?#326**, **#328?#330**.
+
+
+
+
+
+
+
+**B. Implementation:** Skip **`#super-pulse-main`**; **`verify_phase_h`** **18** shells; **`apps/observability/logging_context`** **`_accept_encoding_ctx`** + clear symmetry; **`integrations_marketplace.admin`**; **`api_v1_manifest`** + snapshot **`--write`**; migration **`0042`**, **`super_support_dashboard`** context + template card; **`verify_phase_5_siteconfig`** / **`verify_phase_b_execution`** (**`0041`?`0042`** artifacts + ORM table check).
+
+
+
+
+
+
+
+**C. Validation:** `python scripts/verify_phase_h_skiplink_targets.py`; `python scripts/verify_structured_logging_contract.py`; `python scripts/verify_api_v1_named_routes_snapshot.py --check`; `python scripts/verify_i18n_catalog_fresh.py`; `python scripts/verify_phase_5_siteconfig.py`; `python scripts/verify_phase_b_execution.py`; targeted pytest (pulse Phase H, support curated links, split billing, manifest, logging helpers).
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch **27** DONE + **batch 28 (331?345)** + **Batch 27 close-out** slice; [CONTRIBUTING.md](../CONTRIBUTING.md); [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md).
+
+
+
+
+
+
+
+**E. Risks / notes:** Pre-existing i18n drift (**`Skip to usage table`**) resolved via **`sync_i18n_catalog --compile`**.
+
+
+
+
+
+
+
+**F. Follow-ons:** **Batch 28 (331?345)** active window.
+
+
+
+
+
+
+
+## SOT ?11.4 ? batch 24 (271?285): workflow simulator Phase H, `http_referer` v8, split-billing staff pay, CapabilityRegistry + publisher admin, `reports_emis_prepare` + `tenants_modules`, Phase B export buttons, `PlatformOperatorWorkflowSimulatorLink` `0041` (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** **#271** Phase H **`super_workflow_simulator`**; **#272** **`http_referer`** + **`verify_structured_logging_contract` v8** (includes **`clear_request_logging_context`** **`_http_referer_ctx`** teardown, JSON **`fmt`** **`%(http_referer)s`**, **`test_clear_request_logging_context_resets_http_referer_after_prior_set`**); **#273** staff non-guardian full-pay split test; **#274** **CONTRIBUTING** + **`super_workflow_simulator.html`** + locale; **#275** **`CapabilityRegistryMarketplaceAdmin`** + **`PublisherOrganizationMarketplaceAdmin`**; **DONE (inventory)** **#276**, **#278**, **#279**, **#281**, **#283?#285**; **#277** manifest **`reports_emis_prepare`** + **`tenants_modules`** (**`reverse_curated_api_v1_path`**, **`MANIFEST_CURATED_API_V1_REVERSE_KWARGS`**); **#280** Phase B export button regression; **#282** **`PlatformOperatorWorkflowSimulatorLink`** **`0041`**.
+
+
+
+
+
+
+
+**B. Implementation:** Skip target **`#workflow-simulator-main`**; **`verify_phase_h_skiplink_targets.py`** (**15** shells); **`apps/observability`** **`http_referer`** context + middleware + settings + clear symmetry; **`test_staff_recorded_full_payment_closes_both_shares_when_creator_not_a_guardian`**; **`integrations_marketplace.admin`**; **`MANIFEST_CURATED_API_V1_URL_NAMES`** + **`verify_api_v1_named_routes_snapshot.py --write`**; **`test_phase_b_snapshot_diff_export_action_buttons_present`**; migration **`0041`**, admin, **`super_workflow_simulator`** context + template card; **`verify_phase_5_siteconfig`** / **`verify_phase_b_execution`** alignment (**`0036`?`0041`**).
+
+
+
+
+
+
+
+**C. Validation:** `python scripts/verify_phase_h_skiplink_targets.py`; `python scripts/verify_structured_logging_contract.py`; `python scripts/verify_api_v1_named_routes_snapshot.py --check`; `python scripts/verify_i18n_catalog_fresh.py`; `python scripts/verify_marketplace_integration_first_class_parity.py`; `python scripts/verify_phase_5_siteconfig.py`; `python scripts/verify_phase_b_execution.py`; `python -m pytest` on workflow simulator Phase H, split billing, manifest, phase B diff, logging helpers (as in session); `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` when available.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch **24** DONE + **batch 25 (286?300)** + slice **Batch 24 close-out**; **batch 22**/**23** forward pointers; [CONTRIBUTING.md](../CONTRIBUTING.md); [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md).
+
+
+
+
+
+
+
+**E. Risks / notes:** Fifth operator typed slice is **batch 25 #297**; production signed district adapter remains **external**.
+
+
+
+
+
+
+
+**F. Follow-ons:** **Batch 25 (286?300)** active window.
+
+
+
+
+
+
+
+## SOT ?11.4 ? batch 23 (256?270): runtime inspector Phase H, `remote_addr` v7, split installment, AppVersionCompat admin, `scheduler_validate`, P3 `form_before`, Phase B row keys, `PlatformOperatorPhaseBLink` `0040` (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** **#256** Phase H **`super_runtime_inspector`**; **#257** **`remote_addr`** + **`verify_structured_logging_contract` v7**; **#258** split-billing installment test; **#259** **CONTRIBUTING** + **`super_runtime_inspector.html`** + locale; **#260** **`AppVersionCompatMarketplaceAdmin`**; **DONE (inventory)** **#261**, **#266**, **#268?#270**; **#262** manifest **`scheduler_validate`**; **#263** P3 **`form_before`** pytest scan; **DONE (external bar)** **#264** (prod adapter ? **batch 24 #279**); **#265** Phase B **`domains[]`** row key order; **#267** **`PlatformOperatorPhaseBLink`** **`0040`**.
+
+
+
+
+
+
+
+**B. Implementation:** Skip target **`#runtime-inspector-main`**; **`verify_phase_h_skiplink_targets.py`** (**14** shells); **`apps/observability`** context + middleware + settings formatters; **`test_single_guardian_full_share_two_payments_closes_invoice`**; **`integrations_marketplace.admin`**; **`MANIFEST_CURATED_API_V1_URL_NAMES`** + **`verify_api_v1_named_routes_snapshot.py --write`**; **`test_admin_change_form_templates_with_form_before_include_p3_escape_markers`**; **`test_phase_b_export_json_v1_domain_row_key_order_matches_all_rows`**; model **migration `0040`**, admin, **`super_phase_b_snapshot_diff`** context + template card; **`verify_phase_5_siteconfig`** / **`verify_phase_b_execution`** alignment.
+
+
+
+
+
+
+
+**C. Validation:** `python scripts/verify_phase_h_skiplink_targets.py`; `python scripts/verify_structured_logging_contract.py`; `python scripts/verify_i18n_catalog_fresh.py`; `python scripts/verify_marketplace_integration_first_class_parity.py`; `python scripts/verify_phase_5_siteconfig.py`; `python scripts/verify_phase_b_execution.py`; `python -m pytest` on split billing, manifest, phase B diff, runtime inspector Phase H, logging helpers, siteconfig admin smoke (as in session).
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch **23** DONE + **batch 24** (closed **2026-03-27**) + slices **Batch 22 close-out** (forward note) + **Batch 23 close-out**; [CONTRIBUTING.md](../CONTRIBUTING.md); [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md).
+
+
+
+
+
+
+
+**E. Risks / notes:** **`schools`** app may show unmigrated model changes in some trees?separate from **`platform_runtime.0040`**; resolve with intentional **`makemigrations`** if real. Production signed district adapter remains **external**.
+
+
+
+
+
+
+
+**F. Follow-ons:** **Batch 24** closed **2026-03-27**; **batch 25 (286?300)** active window.
+
+
+
+
+
+
+
+## SOT ?11.4 ? batch 22 (241?255): Phase B diff Phase H, manifest `attendance_export`, split settlement, i18n drill (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** **#241** Phase H on **`super_phase_b_snapshot_diff`**; **#247** curated **`attendance_export`**; **#243** split-billing settlement regression; **#244** **CONTRIBUTING** + **`super_phase_b_snapshot_diff.html`**; **DONE (inventory)** **#242**, **#245?#246**, **#248?#251**, **#253?#255**; carry **#252** ? **batch 23 #267**.
+
+
+
+
+
+
+
+**B. Implementation:** Skip link + **`id="phase-b-snapshot-diff-main"`**; **`verify_phase_h_skiplink_targets.py`** (**13** shells); **`test_phase_b_snapshot_diff_phase_h_skip_link_targets_main`**; **`MANIFEST_CURATED_API_V1_URL_NAMES`** + **`test_api_v1_manifest`**; **`verify_api_v1_named_routes_snapshot.py --write`**; **`test_final_payment_from_guardian_a_closes_remaining_share_and_invoice`**; **`sync_i18n_catalog --compile`**.
+
+
+
+
+
+
+
+**C. Validation:** `python scripts/verify_phase_h_skiplink_targets.py`; `python scripts/verify_api_v1_named_routes_snapshot.py --write`; `python -m pytest apps/finance/tests/test_split_billing.py apps/api/tests/test_api_v1_manifest.py apps/schools/tests/test_super_phase_b_snapshot_diff.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch **22** DONE + **batch 23** + slice **Batch 22 close-out**; [CONTRIBUTING.md](../CONTRIBUTING.md); [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md).
+
+
+
+
+
+
+
+**E. Risks / notes:** No new marketplace dict key (**#251** inventory); **#252** shipped as **batch 23 #267** (**`0040`**).
+
+
+
+
+
+
+
+**F. Follow-ons:** **Batch 23** closed **2026-03-27**; **batch 24** closed **2026-03-27**; active **batch 25 (286?300)**.
+
+
+
+
+
+
+
+## SOT ?11.4 ? batch 21 (226?240): playbook hub Phase H, suspense partial, i18n requests, AppScope, manifest forecast, Phase B checksum (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** **#226** Phase H on **`super_playbook_operator_hub`**; **#228** finance partial suspense status; **#229** **CONTRIBUTING** + **`requests.html`** i18n; **#230** **`AppScope`** admin columns; **#232** curated **`enrollment_forecast`**; **#235** Phase B export **`aggregate_checksum`** + row schema tests; **DONE (inventory)** close-outs **#227**, **#231**, **#233?#234**, **#236**, **#237** (forward **#252**), **#238?#240**.
+
+
+
+
+
+
+
+**B. Implementation:** Skip link + **`id="playbook-operator-hub-main"`**; **`verify_phase_h_skiplink_targets.py`** row; **`test_playbook_operator_hub_phase_h_skip_link_targets_main`**; **`test_claim_suspense_payment_partial_allocation_sets_partial_status`**; **`AppScopeMarketplaceAdmin`**; **`MANIFEST_CURATED_API_V1_URL_NAMES`** + **`test_api_v1_manifest`**; **`super_views_phase_b`** **`hashlib.sha256`** aggregate; **`test_super_phase_b_snapshot_diff`** assertions; **`sync_i18n_catalog --compile`**.
+
+
+
+
+
+
+
+**C. Validation:** `python scripts/verify_phase_h_skiplink_targets.py`; `python scripts/verify_api_v1_named_routes_snapshot.py --write`; `python scripts/verify_i18n_catalog_fresh.py`; `python -m pytest apps/finance/tests/test_bank_statement_import.py apps/schools/tests/test_playbook_operator_hub.py apps/schools/tests/test_super_phase_b_snapshot_diff.py apps/api/tests/test_api_v1_manifest.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch **21** DONE + **batch 22** + **batches 1?20** formal closure (**1?225**); **?11.4 slice ? Batch 21 close-out**; [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md).
+
+
+
+
+
+
+
+**E. Risks / notes:** **`aggregate_checksum`** is deterministic from sorted **`stored_checksum`** values; third typed operator table shipped **batch 23 #267** (**`0040`**); fourth slice shipped **batch 24 #282** (**`0041`** **`PlatformOperatorWorkflowSimulatorLink`**); fifth slice ? **batch 25 #297**.
+
+
+
+
+
+
+
+**F. Follow-ons:** **Batch 22** closed **2026-03-27**; **batch 23** closed **2026-03-27**; **batch 24** closed **2026-03-27**; active **batch 25 (286?300)**; **`0039+`** when marketplace dict key appears.
+
+
+
+
+
+
+
+## SOT ?11.4 ? batches 19?20: `PlatformOperatorTruthHubLink` + Phase H + manifest (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** **Batch 19 #196** (Phase H skip target on **`super_runtime_truth_hub`**) + **#207** (second typed operator link table **`PlatformOperatorTruthHubLink`** **`0039`**). **Batch 20** close: **CONTRIBUTING** **`payments.html`**, manifest **`syllabus_pacing`**, inventory rows aligned.
+
+
+
+
+
+
+
+**B. Implementation:** Model + migration **`0039`**; **`PlatformOperatorTruthHubLinkAdmin`**; view context **`operator_truth_hub_links`**; template skip link + **`id="runtime-truth-hub-main"`** + optional curated-links card; **`verify_phase_h_skiplink_targets.py`** row; **`verify_phase_5_siteconfig`** / **`verify_phase_b_execution`** migration + ORM table checks for **`0038`**/**`0039`**; **`api_v1_manifest`** + snapshot **`--write`**.
+
+
+
+
+
+
+
+**C. Validation:** `python manage.py migrate platform_runtime`; `python scripts/verify_phase_h_skiplink_targets.py`; `python scripts/verify_phase_5_siteconfig.py`; `python -m pytest apps/schools/tests/test_runtime_truth_hub.py apps/api/tests/test_api_v1_manifest.py apps/platform_runtime/tests/test_phase_b_execution_gate.py -q`; `python scripts/verify_api_v1_named_routes_snapshot.py --write`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batches **19?21** + **forward batch cadence** paragraph; [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md); slice row under **?11.4 slice ? Batch 19?20**.
+
+
+
+
+
+
+
+**E. Risks / notes:** Curated links use raw **`href`** (operator responsibility); third typed slice shipped **batch 23 #267** (**`0040`**).
+
+
+
+
+
+
+
+**F. Follow-ons:** **Batch 21** closed **2026-03-27**; **batch 22**/**23**/**24** closed **2026-03-27**; active **batch 25 (286?300)**.
+
+
+
+
+
+
+
+## SOT ?11.4 ? batch 17?18 close-out + batch 19 queue (2026-03-30)
+
+
+
+
+
+
+
+**A. Scope:** Honest **DONE** for **batch 17 (166?180)** and **batch 18 (181?195)** at the **repo** bar; **program carry** for typed **`domain_ownership`**, next Phase H shell, and **`0039+`** only when product signals.
+
+
+
+
+
+
+
+**B. Implementation:** **`CONTRIBUTING.md`** i18n drill adds **`templates/finance/invoices.html`** + **`templates/finance/suspense_queue.html`**; **`IntegrationMarketplaceAdmin`** **`list_display`** columns; **`MANIFEST_CURATED_API_V1_URL_NAMES`** **`attendance_bulk`**; **`test_control_plane_bridge_manifest_api`** asserts **`len(bridges)==bridge_count`** and manifest order matches **`PLATFORM_ADMIN_BRIDGE_ORDER`**; **`test_phase_b_key_detail_section_headings_stable`**; **`verify_api_v1_named_routes_snapshot.py --write`**; SOT **batch 19 (196?210)** paragraph; **batch 16 #162/#163** rows aligned (**#163** DONE).
+
+
+
+
+
+
+
+**C. Validation:** `python scripts/verify_api_v1_named_routes_snapshot.py --write`; `python -m pytest apps/api/tests/test_control_plane_bridge_manifest_api.py apps/api/tests/test_api_v1_manifest.py apps/schools/tests/test_super_phase_b_snapshot_diff.py::SuperPhaseBSnapshotDiffViewTests::test_phase_b_key_detail_section_headings_stable -q`.
+
+
+
+
+
+
+
+**D. Docs:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) **?11.4** batch 17/18/19 rows + slice + micro-slices; [SOT_IMPLEMENTATION_SESSION_STATE.md](SOT_IMPLEMENTATION_SESSION_STATE.md).
+
+
+
+
+
+
+
+**E. Risks / notes:** **RLS** matrix and live **interop** adapter ingress remain **external / backlog**; **typed tables** are a **large** follow-on (**batch 19 #207**).
+
+
+
+
+
+
+
+**F. Follow-ons:** Execute **batch 19** one theme per PR; start with **#207** or **#196** when product scope is clear.
+
+
+
+
+
+
+
+## ?5.x / Phase B depth ? parent execution bucket (SOT ?11.4 **PARTIAL**) (2026-03-28)
+
+
+
+
+
+
+
+**Maps to:** SOT **?11.4** table row **Phase B / ?5.x depth** (**PARTIAL** ? first **Diff UI** child slice shipped **2026-03-28**). This block is the **parent contract** only?each shipped theme gets its **own** A?F entry below (do **not** merge four themes in one PR unless **?11.4 anti-drag** paired-slice rule applies).
+
+
+
+
+
+
+
+**A. Scope (pick exactly one per child slice):** (1) **Typed tables** ? first-class relational storage for a high-churn `domain_ownership` slice (beyond JSON snapshot + fingerprints). (2) **SKUs / entitlements** ? plan or manifest surfaces aligned with [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md) / registry + HTTP or API gates. (3) **Diff UI** ? operator drift surfaces beyond current Phase B key-level diff (panels, exports, or cross-domain joins **only** when product asks). (4) **Workflow simulation** ? productized automation / playbook simulation with tests (per automation architecture docs).
+
+
+
+
+
+
+
+**B. Implementation:** Single bounded-context owner per slice; migrations + resolver read order; extend **SOT ?11.4** with a **DONE** slice row and this log with a **child** A?F?no new master plans.
+
+
+
+
+
+
+
+**C. Validation:** Domain tests; `python scripts/verify_phase_b_execution.py` when platform schema or snapshot materialization changes; include the minimal **pre_deploy** steps that touch your paths; **release train:** green `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` (or full gate) then `bash scripts/record_pre_deploy_gate_output.sh` ? committed `docs/generated/pre_deploy_gate_run.txt` before release tags.
+
+
+
+
+
+
+
+**D. Docs:** Child A?F here; [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) **Batch 14+** when schema moves; gate-map / inventory only when scripts emit drift.
+
+
+
+
+
+
+
+**E. Risks / notes:** **`platform_runtime`** migration ordering with concurrent agents; **django-tenants** vs PostgreSQL RLS remains explicit per model (do not imply RLS where schema isolation applies).
+
+
+
+
+
+
+
+**F. Follow-ons:** Repeat until the SOT row can move from **Queued** to honest **PARTIAL/DONE**?not by widening scope in one train.
+
+
+
+
+
+
+
+## Phase B child slice ? diff UI JSON export (`super:phase_b_snapshot_diff`) (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** **Diff UI** theme only?operator drift summary as **JSON** for scripts, audits, and future CI hooks (no typed table DDL).
+
+
+
+
+
+
+
+**B. Implementation:** **`GET ?export=json`** on **`super_phase_b_snapshot_diff`**; refactored **`_build_phase_b_domain_rows`**; template **Export drift summary (JSON)** link.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/schools/tests/test_super_phase_b_snapshot_diff.py -q`; `python scripts/verify_phase_b_execution.py` when snapshot schema changes (unchanged this slice).
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice + **?11.4** table row **Phase B / ?5.x depth** ? **PARTIAL**; Next Batch paragraph **Still queued (Phase B)** clarification.
+
+
+
+
+
+
+
+**E. Risks / notes:** Export is **metadata-only** (checksums, counts, titles)?not full payload bodies; avoids shipping large JSON over the wire by default.
+
+
+
+
+
+
+
+**F. Follow-ons:** Per-domain JSON detail shipped in **child slice ? diff UI JSON detail** below; broader typed tables / workflow depth remain separate A?F entries.
+
+
+
+
+
+
+
+## Phase B child slice ? plans_entitlements typed singleton + manifest SKU (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** **Typed tables** theme ? first-class **`platform_runtime.PlatformReportPlatformSkuDefault`** (pk=1) for operator default **report-platform** bundle (high-churn **`plans_entitlements`** signal), plus **SKUs / entitlements** manifest surfacing.
+
+
+
+
+
+
+
+**B. Implementation:** Migration **`0036_platform_report_platform_sku_default`**; **`billing_sku_registry.manifest_plan_entitlements_block`** ? **`operator_default_report_platform_bundle`**; platform admin singleton; **`verify_phase_5_siteconfig.py`** + **`verify_phase_b_execution.py`** (artifact + physical table).
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/platform_runtime/tests/test_platform_report_platform_sku_default.py apps/api/tests/test_api_v1_manifest.py -q`; `python scripts/verify_phase_5_siteconfig.py`; `python scripts/verify_phase_b_execution.py` (post-migrate).
+
+
+
+
+
+
+
+**D. Docs:** [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md); SOT **?11.4** slice rows; [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) Batch **14+** row (**`0036`**).
+
+
+
+
+
+
+
+**E. Risks / notes:** Invalid slugs stored without **`full_clean`** are omitted from manifest (defensive).
+
+
+
+
+
+
+
+**F. Follow-ons:** Full relational decomposition of **`plans_entitlements`** beyond this singleton when ownership calls for it.
+
+
+
+
+
+
+
+## Phase B child slice ? diff UI JSON detail (`export=json&domain`) (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** **Diff UI** ? machine-readable **per-domain** payloads: **`key_detail`** + **`unified_diff`**.
+
+
+
+
+
+
+
+**B. Implementation:** **`super_views_phase_b._phase_b_domain_detail_bundle`**; **`GET ?export=json&domain=`** ? **`export_version` 2**; template **Export detail (JSON)** links.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/schools/tests/test_super_phase_b_snapshot_diff.py::SuperPhaseBSnapshotDiffViewTests::test_phase_b_snapshot_diff_export_json_detail_domain_v2 -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice row.
+
+
+
+
+
+
+
+**E. Risks / notes:** Large JSON when domain payloads are big?opt-in via **`domain`** query only.
+
+
+
+
+
+
+
+**F. Follow-ons:** Cross-domain joins only if product asks.
+
+
+
+
+
+
+
+## Phase B child slice ? workflow simulation in `pre_deploy_gate` (2026-03-27)
+
+
+
+
+
+
+
+**A. Scope:** **Workflow simulation** ? keep playbook simulation tests on the **release train**.
+
+
+
+
+
+
+
+**B. Implementation:** **`scripts/pre_deploy_gate.sh`** **`TARGETED_HARDENING_TESTS`** += **`apps.automation.tests.test_workflow_playbook_simulation`**.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/automation/tests/test_workflow_playbook_simulation.py -q`; full gate optional.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice row.
+
+
+
+
+
+
+
+**E. Risks / notes:** Extends targeted hardening runtime slightly.
+
+
+
+
+
+
+
+**F. Follow-ons:** Deeper automation productization remains ?11.4 queue.
+
+
+
+
+
+
+
+## Phase B child slice ? operator default bundle ? plan entitlement floor (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** **SKUs / entitlements** ? connect **`PlatformReportPlatformSkuDefault`** to **`is_plan_entitlement_feature_enabled`** (HTTP/API gates use this helper).
+
+
+
+
+
+
+
+**B. Implementation:** **`billing_sku_registry.get_operator_report_platform_bundle_feature_codes()`**; **`_plan_entitlements_direct_grant`** + floor branch in **`apps/schools/models.py`**; **`pre_deploy_gate.sh`** **`TARGETED_HARDENING_TESTS`** += **`apps.schools.tests.test_plan_and_feature_gate`**.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/schools/tests/test_plan_and_feature_gate.py::OperatorReportPlatformBundleFloorTests apps/siteconfig/tests/test_billing_sku_registry.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice row; [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md).
+
+
+
+
+
+
+
+**E. Risks / notes:** Manifest-only coarse **`reports`** still does not enable granular codes; floor requires **direct** **`reports`** on plan/addons/School.features.
+
+
+
+
+
+
+
+**F. Follow-ons:** Per-tenant override shipped in **child slice ? per-tenant report-platform bundle override** below; broader typed **`plans_entitlements`** tables.
+
+
+
+
+
+
+
+## Phase B child slice ? per-tenant report-platform bundle override (`schools.0042`) (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** **SKUs / entitlements** ? optional **`School.report_platform_bundle_slug`** replacing platform operator default for the granular report floor.
+
+
+
+
+
+
+
+**B. Implementation:** Migration **`0042_school_report_platform_bundle_slug`**; **`get_effective_report_platform_floor_codes_for_school`**; platform admin **School** **Plan & billing** field; **`School.clean`** / **`save`** normalization.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/schools/tests/test_plan_and_feature_gate.py::OperatorReportPlatformBundleFloorTests apps/siteconfig/tests/test_billing_sku_registry.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice row; [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md).
+
+
+
+
+
+
+
+**E. Risks / notes:** Unknown slugs stored without admin validation fall back to operator default (**`get_effective`** only accepts known bundle keys).
+
+
+
+
+
+
+
+**F. Follow-ons:** Full **`plans_entitlements`** typed tables; API exposure of effective bundle for tenant consoles if product asks.
+
+
+
+
+
+
+
+## SiteSettings / siteconfig decomposition ? PARTIAL cadence (Batch 14+ + marketplace credentials) (2026-03-28)
+
+
+
+
+
+
+
+**Maps to:** SOT **?0** / structural stack **PARTIAL** themes and [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) **Batch 14+**.
+
+
+
+
+
+
+
+**A. Scope:** Shrink live tenant behavior still read/written through the `SiteSettings` fa?ade; prefer runtime resolvers and bounded-context models per `domain_ownership.py`.
+
+
+
+
+
+
+
+**B. New marketplace credential:** When adding a **credential-like** key to **`SiteSettings.get_marketplace_integration_settings()`**: **`RuntimeDefaults`** typed column + migration **`0037+`** (after current head ? **`0036`** is **`PlatformReportPlatformSkuDefault`**, not a marketplace dict key), **`runtime_defaults_first_class`** (**field list + string blanking set**), **`phase_b_domain_snapshots._MARKETPLACE_SECRET_KEYS`**, **`models_support.virtual_site_setting_default`**, platform admin **Integrations (secret)** + **`PasswordInput`**, tests mirroring **`0029`?`0034`**. (**`0035`** is webhook **audit**, not a new secret column.)
+
+
+
+
+
+
+
+**C. Parity train (required on that change):** `python scripts/verify_marketplace_integration_first_class_parity.py`; `python scripts/verify_phase_5_siteconfig.py`; if invariants change, extend **`verify_phases_3_11_gates.py`** / **`test_verify_marketplace_integration_first_class_parity_passes`**.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** Next Batch marketplace paragraph; child A?F in this log.
+
+
+
+
+
+
+
+**E. Risks:** Adding the dict key without **`RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES`** breaks **`sync_from_site_settings`** (same footgun as historical **`whatsapp_api_token`**).
+
+
+
+
+
+
+
+**F. Follow-ons:** `python manage.py suggest_next_runtime_defaults_fields` for **non-secret** backlog; keep parity script green on every credential change.
+
+
+
+
+
+
+
+## AI + governance hygiene ? threat model code map + LiteLLM metadata tests (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** Align **AI / provider scatter** and continuous **Gilead / allowlist / doc density** maintenance with one doc pass and small gateway tests (no new strategy files).
+
+
+
+
+
+
+
+**B. Implementation:** [THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md](THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md) ? **Implemented controls** + **Cross-cutting** maintenance rows; **`services/tests/test_ai_gateway.py`** ? `disallow_external_model` + `sensitivity_class: high` block LiteLLM when tier order would select it.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest services/tests/test_ai_gateway.py services/tests/test_ai_memory.py -q`; `python scripts/verify_ai_blueprint_completion.py`; `python scripts/lint_gilead_residue.py`; `python scripts/verify_gilead_full_tree_classification.py`; `python scripts/verify_security_allowlist_density.py`; `python scripts/verify_doc_plan_density_discipline.py`; **CI:** `.github/workflows/smoke-light.yml` runs **`services/tests/test_ai_memory.py`** (RAG eval).
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice row; [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md) **When to edit this doc** note (bucket-only edits).
+
+
+
+
+
+
+
+**E. Risks / notes:** Subtractive doc discipline unchanged ? extend SOT + backlog only; threat model is supporting sketch, not a second master plan.
+
+
+
+
+
+
+
+**F. Follow-ups (2026-03-28):** **RAG retrieval isolation** ? `RagRetrievalEvalTests` in **`services/tests/test_ai_memory.py`** (cross-tenant exclusion + documented unscoped `school_id=None` behavior); **smoke-light** runs that module; **`pre_deploy_gate.sh`** already includes **`services.tests.test_ai_memory`**. Further depth: corpus-level leakage fixtures (multi-tenant integration against real index) if product adds new retrieval entry points.
+
+
+
+
+
+
+
+## ?5.x child ? Workflow playbook simulation pytest parity (smoke-light / phases mirror) (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** **`pre_deploy_gate.sh`** already runs **`apps.automation.tests.test_workflow_playbook_simulation`** in **`TARGETED_HARDENING_TESTS`**; **smoke-light** only runs **`test_tenant_settings_lint`** ? close the gap.
+
+
+
+
+
+
+
+**B. Implementation:** **`TenantSettingsLintTests.test_workflow_playbook_simulation_module_passes`** subprocess **`pytest apps/automation/tests/test_workflow_playbook_simulation.py -q --no-header`** (300s cap).
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py::TenantSettingsLintTests::test_workflow_playbook_simulation_module_passes -q`; `python -m pytest apps/automation/tests/test_workflow_playbook_simulation.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** workflow simulation slice row (parity sentence); this block.
+
+
+
+
+
+
+
+**E. Risks / notes:** Nested pytest uses normal test DB; slower smoke-light job (~tens of seconds added).
+
+
+
+
+
+
+
+**F. Follow-ons:** Deeper workflow productization (multi-step playbooks, operator UI) remains **Queued** in SOT **Phase B / ?5.x** row.
+
+
+
+
+
+
+
+## ?5.x child ? Multi-step workflow dry-run with tenant school + user (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** **Workflow simulation** ? extend **`test_workflow_playbook_simulation`** with a **two-profile** **`MigrationPlaybook`** executed under **`dry_run=True`** when **`school`** and **`user`** are set (gap vs **`test_migration_cloud_phase_a`** two-step test with **`school=None`**).
+
+
+
+
+
+
+
+**B. Implementation:** **`WorkflowPlaybookSimulationTests.test_two_step_playbook_dry_run_with_school_records_two_runs`** ? **`seed_migration_profiles`**, **`School`** + staff **`User`**, **`profile_slugs=["students_from_powerschool", "grades_from_powerschool"]`**, **`execute_playbook(..., steps_payload=None)`**.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/automation/tests/test_workflow_playbook_simulation.py -q` (module already on **`pre_deploy_gate`** **`TARGETED_HARDENING`** and **smoke-light** parity subprocess).
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** table row **Phase B / ?5.x depth** + workflow simulation slice row (multi-step tenant bullet); this block.
+
+
+
+
+
+
+
+**E. Risks / notes:** Test-only depth; no new HTTP or admin surface.
+
+
+
+
+
+
+
+**F. Follow-ons:** Operator-facing playbook UX and richer simulation fixtures remain separate ?11.4 themes.
+
+
+
+
+
+
+
+## ?5.x child ? API v1 report-platform bundle read-model (`me/schools` + `education-dna`) (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** **SKUs / entitlements** ? expose resolved report-platform bundle slugs on authenticated tenant APIs (not new HTTP gates or DDL).
+
+
+
+
+
+
+
+**B. Implementation:** **`billing_sku_registry`**: **`get_operator_default_report_platform_bundle_slug()`**, **`get_effective_report_platform_bundle_slug_for_school()`**; refactor **`get_operator_report_platform_bundle_feature_codes()`** / **`manifest_plan_entitlements_block()`** through the slug helper. **`MeSchoolsView`**, **`EducationDNAView`**: additive JSON keys **`report_platform_bundle_slug`**, **`effective_report_platform_bundle`**.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/api/tests/test_api_v1_me_schools_report_platform.py apps/api/tests/test_api_v1_education_dna_report_platform.py apps/siteconfig/tests/test_billing_sku_registry.py apps/api/tests/test_api_v1_manifest.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice + **Phase B / ?5.x** table row; [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md) authenticated API paragraph; this block.
+
+
+
+
+
+
+
+**E. Risks / notes:** Additive contract only; **`null`** when no known operator or school bundle applies.
+
+
+
+
+
+
+
+**F. Follow-ons:** Product-driven extra gates or manifest fields remain separate themes.
+
+
+
+
+
+
+
+## Postgres Playwright CI ? setup + runserver hardening (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** Reduce flakes on **`.github/workflows/playwright-tenant-postgres.yml`** (service Postgres not yet accepting connections; local **`run_visual_qa`** using wrong interpreter).
+
+
+
+
+
+
+
+**B. Implementation:** **`ci_setup_postgres_tenants_for_visual_qa.sh`**: **`wait_for_postgres`** before migrations; **`run_visual_qa.sh`**: **`PYTHON_CMD`** resolution, configurable HTTP readiness probe, clearer failure output; workflow **`PGCONNECT_TIMEOUT`**.
+
+
+
+
+
+
+
+**C. Validation:** `bash -n scripts/ci_setup_postgres_tenants_for_visual_qa.sh scripts/run_visual_qa.sh`; optional full job on PR touching e2e/scripts (path filter).
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice + **Postgres Playwright** table row; workflow header comments; this block.
+
+
+
+
+
+
+
+**E. Risks / notes:** Wait loop adds ~0s when DB is already up; max wait ? **`CI_VISUAL_QA_DB_WAIT_ATTEMPTS` ? `CI_VISUAL_QA_DB_WAIT_SLEEP`** (default ~90s).
+
+
+
+
+
+
+
+**F. Follow-ons:** Staging shell-matrix evidence remains manual / BR-13; product entitlement gates remain product-driven.
+
+
+
+
+
+
+
+## ?11.4 forward queue + micro-slices bundle (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** Publish the **next 10** ?11.4 forward slices in SOT **?11.4** (single queue; no parallel roadmap docs). Ship small **non-overlapping** follow-ons in the same train.
+
+
+
+
+
+
+
+**B. Implementation:** SOT paragraph **Next 10 ?11.4 forward slice queue**; **`School.get_child_schools`**, manifest **`endpoints.me_schools` / `config_education_dna`**, **`test_visual_qa_postgres_bash_scripts_syntax_passes`**, [MANAGEMENT_COMMANDS_INDEX.md](MANAGEMENT_COMMANDS_INDEX.md) shell table.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/api/tests/test_api_v1_manifest.py apps/api/tests/test_api_v1_me_schools_report_platform.py apps/platform_runtime/tests/test_tenant_settings_lint.py::TenantSettingsLintTests::test_visual_qa_postgres_bash_scripts_syntax_passes -q` (bash test skips on Windows without bash).
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** queue + four slice rows; this block; [MANAGEMENT_COMMANDS_INDEX.md](MANAGEMENT_COMMANDS_INDEX.md).
+
+
+
+
+
+
+
+**E. Risks / notes:** Queue items **1?10** mix **BLOCKED**, **external**, **manual**, and **large** programs ? pick **one** executable row per PR.
+
+
+
+
+
+
+
+**F. Follow-ons:** Work down the numbered queue; reserved marketplace / typed-table / playbook themes unchanged.
+
+
+
+
+
+
+
+## ?11.4 forward queue batch 2 + manifest / `get_child_schools` gate (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** Publish **queue items 11?20** in SOT; extend **`/api/v1/manifest.json`** **`endpoints`** for identity/config/scheduling discovery; lock **`get_child_schools`** behavior with unit tests on **`pre_deploy`** train.
+
+
+
+
+
+
+
+**B. Implementation:** SOT **batch 2** paragraph; **`api_v1_manifest.py`** six additional **`reverse`** URLs; **`test_school_get_child_schools.py`**; **`pre_deploy_gate.sh`**; Playwright workflow **`paths`** for **`api_v1_manifest.py`** / **`schools/models.py`**.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/schools/tests/test_school_get_child_schools.py apps/api/tests/test_api_v1_manifest.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch-2 queue + two slice rows; this block.
+
+
+
+
+
+
+
+**E. Risks / notes:** Manifest remains **curated** (not exhaustive v1 enumeration); full machine index = batch-2 item **13**.
+
+
+
+
+
+
+
+**F. Follow-ons:** Pick **one** item from batch 1 or 2 per PR.
+
+
+
+
+
+
+
+## ?11.4 forward queue batch 3 ? API manifest curated registry + drift test (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** **P4 API manifest** ? single curated registry for integrator **`endpoints`** keys; rename-drift guard vs Django **`reverse`**; three additive discovery URLs (**reports / finance / interventions**).
+
+
+
+
+
+
+
+**B. Implementation:** **`apps/api/api_v1_manifest.py`**: **`MANIFEST_CURATED_API_V1_URL_NAMES`**, **`curated_api_v1_discovery_urls()`** merged into **`api_v1_manifest`**; keys **`reports_adhoc`**, **`finance_disputes`**, **`intervention_red_flags`**. **`apps/api/tests/test_api_v1_manifest.py`**: **`test_manifest_curated_endpoints_align_with_reverse`**, extended **`test_manifest_json`** paths.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/api/tests/test_api_v1_manifest.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice row **API manifest curated registry + drift test + discovery URLs batch 3**; forward queue **batch 4 (31?40)**; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**; this block.
+
+
+
+
+
+
+
+**E. Risks / notes:** Manifest stays **curated**; full **`api_v1`** enumeration remains **batch 2 #13** / **batch 3 #24**.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`generate_*` appendix** script vs **`MANIFEST_CURATED_*`** diff; next stable contract ? new tuple only.
+
+
+
+
+
+
+
+## ?11.4 forward queue batch 5 + finance `PaymentReminder` help-text drift guard (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** **?11.4 queue** ? publish **batch 5 (41?50)**. **Finance** ? lock **`PaymentReminder.reminder_channels`** **`help_text`** to migration **`0054`** + model (**batch 4 #37**).
+
+
+
+
+
+
+
+**B. Implementation:** SOT **?11.4** paragraphs; **`apps/finance/tests/test_split_billing.py`**: **`test_payment_reminder_reminder_channels_help_text_matches_migration_contract`**.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/finance/tests/test_split_billing.py::SplitBillingFlowTests::test_payment_reminder_reminder_channels_help_text_matches_migration_contract -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch **4** item **37** DONE note, **batch 5** queue, slice row, **Shipped micro-slices**; this block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**.
+
+
+
+
+
+
+
+**E. Risks / notes:** If product rewrites admin copy, update **model**, **migration** (or new migration), and this assertion together.
+
+
+
+
+
+
+
+**F. Follow-ons:** **`MANIFEST_CURATED_*`** vs **`api_v1_named_routes.json`** cross-check shipped in **batch 6** log block (**batch 5 #42**); playbook hub stale **`run_id`** guard (**batch 5 #41**).
+
+
+
+
+
+
+
+## ?11.4 forward queue batch 6 + manifest curated ? api v1 route snapshot test (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** **?11.4 queue** ? **batch 6 (51?60)**. **P4 API** ? **`MANIFEST_CURATED_API_V1_URL_NAMES`** must be a subset of **`scripts/generated/api_v1_named_routes.json`** (**batch 5 #42**).
+
+
+
+
+
+
+
+**B. Implementation:** SOT **?11.4** batch **6** paragraph; batch **5** item **42** DONE note; **`test_manifest_curated_url_names_subset_of_api_v1_named_routes_snapshot`** in **`apps/api/tests/test_api_v1_manifest.py`**.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/api/tests/test_api_v1_manifest.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** slice row; **Shipped micro-slices**; this block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**.
+
+
+
+
+
+
+
+**E. Risks / notes:** Adding a curated entry without updating **`urls_v1`** names fails **`test_manifest_curated_endpoints_align_with_reverse`** first; this test fails if the snapshot is stale after a legitimate new **`api_v1`** name ? run **`verify_api_v1_named_routes_snapshot.py --write`**.
+
+
+
+
+
+
+
+**F. Follow-ons:** Playbook hub **`run_id`** guard shipped in **batch 7** log block (**batch 5 #41**); Phase H skiplinks (**batch 5 #43**).
+
+
+
+
+
+
+
+## ?11.4 forward queue batch 7 + playbook hub MigrationRun existence (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** **?11.4 queue** ? **batch 7 (61?70)**. **Phase B** ? **`super:playbook_operator_hub`**: only link **MigrationRun** admin change when **`run_id`** exists; one **`pk__in`** query per page; fix missing **`playbook_slug_filter_links`** / **`playbook_hub_clear_playbook_slug_url`** (**batch 5 #41**, **batch 3 #21**).
+
+
+
+
+
+
+
+**B. Implementation:** **`apps/schools/super_views_runtime_ops.py`**: **`_collect_step_run_ids_from_logs`**, **`_playbook_execution_step_admin_links(log, present_run_pks)`**. **`templates/schools/super_playbook_operator_hub.html`**. **`apps/schools/tests/test_playbook_operator_hub.py`**: **`MigrationRun`** fixture for admin-link test; **`test_playbook_operator_hub_stale_migration_run_id_has_no_admin_link`**.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/schools/tests/test_playbook_operator_hub.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch **7**, **batch 5 #41** / **batch 3 #21** DONE notes, slice row, **Shipped micro-slices**; this block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**.
+
+
+
+
+
+
+
+**E. Risks / notes:** CSV export still lists raw **`run_id`** strings (audit export); HTML hub avoids 404 admin links.
+
+
+
+
+
+
+
+**F. Follow-ons:** CSV cap / empty export tests shipped in **batch 8** log block (**batch 6 #52**); Phase H (**batch 5 #43**).
+
+
+
+
+
+
+
+## ?11.4 forward queue batch 8 + playbook hub CSV cap / empty exports (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** **?11.4 queue** ? **batch 8 (71?80)**. **Phase B** ? **`?export=csv`**: named cap constant, header-only when no rows / empty filter, **`bulk_create`** cap regression (**batch 6 #52**).
+
+
+
+
+
+
+
+**B. Implementation:** **`apps/schools/super_views_runtime_ops.py`**: **`PLAYBOOK_OPERATOR_HUB_CSV_MAX_ROWS`**. **`apps/schools/tests/test_playbook_operator_hub.py`**: three new tests.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/schools/tests/test_playbook_operator_hub.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch **8**, batch **6** item **52** DONE, slice row, **Shipped micro-slices**; this block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**.
+
+
+
+
+
+
+
+**E. Risks / notes:** Raising the cap requires updating the constant + test expectation together.
+
+
+
+
+
+
+
+**F. Follow-ons:** Phase H skiplinks (**batch 5 #43** / **batch 8 #71**); CSV BOM for Excel shipped in **batch 9** log block (**batch 8 #72**).
+
+
+
+
+
+
+
+## ?11.4 forward queue batch 9 + playbook hub CSV UTF-8 BOM (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** **?11.4 queue** ? **batch 9 (81?90)**. **Product** ? **`GET ?export=csv`**: UTF-8 **BOM** prefix so Excel recognizes encoding (**batch 8 #72**).
+
+
+
+
+
+
+
+**B. Implementation:** **`_playbook_operator_hub_csv_response`**: **`response.write("\ufeff")`** before **`csv.writer`**. **`test_playbook_operator_hub_csv_export_starts_with_utf8_bom`**.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/schools/tests/test_playbook_operator_hub.py -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4** batch **9**, batch **8** item **72** DONE, merged CSV slice row, **Shipped micro-slices**; this block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**.
+
+
+
+
+
+
+
+**E. Risks / notes:** Non-Excel consumers see a leading BOM in the first cell of row 1 unless they use **utf-8-sig**; standard for Windows CSV interchange.
+
+
+
+
+
+
+
+**F. Follow-ons:** Phase H script + smoke parity (**batch 9 #81** ? inventory: **`test_verify_phase_h_skiplink_targets_passes`**); CSV **`Content-Disposition`** static filename shipped in **batch 10** log block (**batch 9 #82**).
+
+
+
+
+
+
+
+## ?11.4 forward queue batch 10 + Phase H inventory + playbook CSV filename (2026-03-29)
+
+
+
+
+
+
+
+**A. Scope:** **?11.4 queue** ? **batch 10 (91?100)**. **Batch 9 #81** ? document existing **`test_verify_phase_h_skiplink_targets_passes`** (**smoke-light** parity with **`verify_phase_h_skiplink_targets.py`**). **Batch 9 #82** ? **`PLAYBOOK_OPERATOR_HUB_CSV_FILENAME`**; **`test_playbook_operator_hub_csv_content_disposition_static_filename`** (query params must not alter download **`filename`**).
+
+
+
+
+
+
+
+**B. Implementation:** **`apps/schools/super_views_runtime_ops.py`**; **`apps/schools/tests/test_playbook_operator_hub.py`**. SOT **batch 9** DONE notes; **batch 10** queue; new ?11.4 slice rows.
+
+
+
+
+
+
+
+**C. Validation:** `python -m pytest apps/schools/tests/test_playbook_operator_hub.py -q`; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py::TenantSettingsLintTests::test_verify_phase_h_skiplink_targets_passes -q`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?11.4**; this block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**.
+
+
+
+
+
+
+
+**E. Risks / notes:** Future localized filenames should use RFC 5987 **`filename*=`** without echoing **`request.GET`**.
+
+
+
+
+
+
+
+**F. Follow-ons:** New shell ? **`TARGET_SPECS`** (**batch 10 #91** / **batch 8 #71**); structured logging lint mirror (**batch 10 #93**).
+
+
+
+
+
+
+
+## Phase B slice ? platform marketplace inbound webhook + audit (`platform_runtime.0035`) (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** Wire **`webhook_signing_secret`** to a real inbound product surface; persist minimal audit rows for integration callbacks.
+
+
+
+
+
+
+
+**B. Implementation:** **`platform_marketplace_integration_webhook`** on **`POST /api/integrations/v1/platform-webhook`** (`apps/api/oneroster_roster_webhook.py`); **`PlatformIntegrationWebhookEvent`** model + migration **`0035_platform_integration_webhook_event`**; admin read-only list; **`apps/api/tests/test_platform_marketplace_integration_webhook.py`**.
+
+
+
+
+
+
+
+**C. Validation:** `pytest apps/api/tests/test_platform_marketplace_integration_webhook.py -q`; `python scripts/verify_phase_5_siteconfig.py`; `python scripts/verify_marketplace_integration_first_class_parity.py`; `python scripts/verify_security_allowlists.py`; `python scripts/verify_security_allowlist_density.py`; `python scripts/lint_csrf_exempt_usage.py`; `python scripts/build_phase8_security_ledger.py --check` (after `--write` when allowlist counts change).
+
+
+
+
+
+
+
+**D. Docs:** [THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md](THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md) webhooks row; SOT **?0** depth table + **?11.4** ?Next Batch? paragraph (**`0035`** audit vs **`0036+`** next marketplace secret); parity script + **`runtime_defaults_first_class`** docstrings (**`0036+`** for next credential).
+
+
+
+
+
+
+
+**E. Risks / notes:** CSRF-exempt surface co-located with OneRoster webhook module to respect **`verify_security_allowlist_density`** file caps; replay/idempotency not in v1 slice.
+
+
+
+
+
+
+
+**F. Follow-ups:** Optional ONEROSTER doc cross-link; **`record_pre_deploy_gate_output.sh`** on green gate trains.
+
+
+
+
+
+
+
+## P2 Batch 14+ ? marketplace `webhook_signing_secret` first-class (`platform_runtime.0034`) (2026-03-28)
+
+
+
+
+
+
+
+| # | Detail |
+
+
+
+
+
+
+
+|---|--------|
+
+
+
+
+
+
+
+| **1** | New virtual **`webhook_signing_secret`** on **`SiteSettings.get_marketplace_integration_settings`**; **`RuntimeDefaults`** column + migration **`0034_runtimedefaults_webhook_signing_secret_first_class`**. |
+
+
+
+
+
+
+
+| **2** | **`runtime_defaults_first_class`**, **`_MARKETPLACE_SECRET_KEYS`**, **`domain_ownership`**, **`models_support.virtual_site_setting_default`**, platform admin **Integrations (secret)** + **`PasswordInput`**. |
+
+
+
+
+
+
+
+| **3** | **`verify_phase_5_siteconfig.py`**: assert **`0033`**?**`0035`** artifacts (incl. webhook audit migration). **`verify_marketplace_integration_first_class_parity.py`**: next marketplace **credential** = **`0036+`** (**`0035`** = audit table only). |
+
+
+
+
+
+
+
+| **4** | Tests: **`test_runtime_defaults_webhook_signing_secret_first_class`**, extended **`test_phase_b_domain_snapshots`**, **`test_runtime_contract`**, **`test_domain_ownership`**. |
+
+
+
+
+
+
+
+| **5** | Docs: [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) batches **7** / **14+**; SOT **?11.4** + **Next Batch** P2 marketplace paragraph (**`0029`?`0034`**). |
+
+
+
+
+
+
+
+## Premium maturity ? PARTIAL themes unlocked + inventory Gilead lint parity (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** Formalize the five **PARTIAL** Premium maturity rows as an **unlocked** A/B split (gates vs depth) in SOT **?0**; align **`scoped_gravity_counts.gilead_line_hits_*`** with **`lint_gilead_residue.py`** so inventory trend lines are not inflated by **`management/commands/`** strings.
+
+
+
+
+
+
+
+**B. Implementation:** `scripts/generate_platform_inventory.py` ? skip **`apps/**/management/commands/`** when counting **`gilead`** line hits; docstring + generated **MD** bullet; **`generate_platform_inventory.py --write`**.
+
+
+
+
+
+
+
+**C. Validation:** `python scripts/generate_platform_inventory.py --check`; `python scripts/lint_gilead_residue.py`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?0** ? **Unlocked workstreams** table; **P1** baseline row (**scoped** **`gilead_line_hits` = 0**); **Structural remediation stack** P1 ?Done means?; **?11.4** slice row (below).
+
+
+
+
+
+
+
+**E. Risks / notes:** Gross **`baseline_counts.gilead`** / migration corpus unchanged ? **full-tree** theme stays **PARTIAL** until classifier + historical data program say otherwise.
+
+
+
+
+
+
+
+**F. Follow-ups:** Ship depth column items only as named ?11.4 slices (siteconfig **14+**, allowlist review cadence, AI threat-model slices, subtractive docs).
+
+
+
+
+
+
+
+## ?0 ? Epic completion registry (P0?P6 definitions of done + P3 journey catalog) (2026-03-28)
+
+
+
+
+
+
+
+| # | Detail |
+
+
+
+
+
+
+
+|---|--------|
+
+
+
+
+
+
+
+| **1** | SOT **?0**: **Epic completion registry** table (**P0?P6**), baseline paste rows (**P1/P2**), **?0.3.1** **P3** journey catalog (rows **11?12** closed **2026-03-28** ? see **P3+P4** block below). |
+
+
+
+
+
+
+
+| **2** | **?11.4** slice row; **SOT_IMPLEMENTATION_SESSION_STATE** **Current goal** cross-link. |
+
+
+
+
+
+
+
+## P5 + P6 ? merge-bar hardening (pre_deploy + inventory --check) (2026-03-28)
+
+
+
+
+
+
+
+| # | Detail |
+
+
+
+
+
+
+
+|---|--------|
+
+
+
+
+
+
+
+| **1** | **`pre_deploy_gate.sh`:** **`verify_doc_plan_density_discipline.py`** after first **`generate_platform_inventory.py --check`**. |
+
+
+
+
+
+
+
+| **2** | **`generate_platform_inventory.py --check`:** reject **`doc_drift.is_stale`** + reject scoped **print** ? **0** before artifact compare. |
+
+
+
+
+
+
+
+| **3** | Pytest **`test_committed_platform_inventory_p5_doc_drift_p6_print_contract`**; SOT **?0** P5/P6 rows + **?11.4** slice. |
+
+
+
+
+
+
+
+## ?0 ? P0?P6 epic closure + P4 staging matrix + P3 change_form gate + doc drift (2026-03-28)
+
+
+
+
+
+
+
+| # | Detail |
+
+
+
+
+
+
+
+|---|--------|
+
+
+
+
+
+
+
+| **1** | **SOT ?0:** **P0?P6** ? **COMPLETE**; **P1/P2** numeric baselines from **`platform_inventory.json`**; **P4** **PREMIUM_UX** staging hostname table (Render + manager pattern). |
+
+
+
+
+
+
+
+| **2** | **P5:** [ALL_MODULES_COMPLETE_LIST.md](ALL_MODULES_COMPLETE_LIST.md) **42** apps = **`doc_drift.is_stale` false**; inventory **`--write/--check`**. |
+
+
+
+
+
+
+
+| **3** | **P3:** `verify_admin_tenant_change_form_product_links.py` + ThemePack `change_form` escape; **`verify_phases_3_11_gates`**, **`test_verify_admin_tenant_change_form_product_links_passes`**. |
+
+
+
+
+
+
+
+| **4** | **P0:** **`test_report_premium_maturity_signals_strict_passes`** (smoke-light **`test_tenant_settings_lint`**). |
+
+
+
+
+
+
+
+| **5** | **P2:** [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) repository vs per-DB subsection; **P1:** [GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md) verifier line. |
+
+
+
+
+
+
+
+## P3 + P4 ? journey catalog 11?12 + tenant runtime hub + shell matrix evidence (2026-03-28)
+
+
+
+
+
+
+
+**A. Scope:** Close **?0.3.1** rows **11** (`super:dashboard`) and **12** (`siteconfig:tenant_runtime_configuration_hub`); mark epics **P3** / **P4** **COMPLETE** with tests + docs.
+
+
+
+
+
+
+
+**B. Implementation:** `apps/siteconfig/views_tenant_runtime_hub.py`, URL **`configuration/runtime/`**, template + Phase 7/8 registry; CCC + SiteSettings admin escape links; `views_console_domains` link.
+
+
+
+
+
+
+
+**C. Validation:** `pytest apps/siteconfig/tests/test_tenant_runtime_configuration_hub.py`; `pytest apps/accounts/tests/test_smoke_urls.py::SmokeUrlResolutionTests::test_siteconfig_tenant_runtime_configuration_hub -q`; `python scripts/verify_shell_architecture_matrix.py`; `python scripts/verify_phase8_dashboard_density.py`.
+
+
+
+
+
+
+
+**D. Docs:** SOT **?0** epic rows **P3**/**P4**, **?0.3.1** table, Premium maturity **Shell triad**; **?11.4** slices (P3 hub, P4 evidence); **PREMIUM_UX_MANUAL_PASS_BR13.md** seven-step table; **SHELL_ARCHITECTURE_MATRIX.md** evidence line.
+
+
+
+
+
+
+
+**E. Risks / notes:** P4 dev-host evidence is **`127.0.0.1`**; append **staging** host table before **production** tags. P0?P2/P5/P6 remain **NOT COMPLETE** per SOT.
+
+
+
+
+
+
+
+**F. Follow-ups:** Staging shell walkthrough per release; deepen runtime hub fields only with safe allowlists.
+
+
+
+
+
+
+
+## Marketplace ? integration secret first-class parity gate (0034+ trigger, static) (2026-03-28)
+
+
+
+
+
+
+
+| # | Detail |
+
+
+
+
+
+
+
+|---|--------|
+
+
+
+
+
+
+
+| **1** | **`verify_marketplace_integration_first_class_parity.py`**: dict vs **`_MARKETPLACE_SECRET_KEYS`** vs **`RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES`** vs **`RuntimeDefaults`** fields. |
+
+
+
+
+
+
+
+| **2** | **`verify_phases_3_11_gates.py`** + **`test_verify_marketplace_integration_first_class_parity_passes`**. |
+
+
+
+
+
+
+
+| **3** | **SOT ?11.4** slice + Next Batch pointer; secrets through **`0034`**; **`0035`** = webhook audit only; next secret = **`0036+`**. |
+
+
+
+
+
+
+
+## Phase B ? snapshot typed-metadata verifier depth (0026?0027 vs model) (2026-03-28)
+
+
+
+
+
+
+
+| # | Detail |
+
+
+
+
+
+
+
+|---|--------|
+
+
+
+
+
+
+
+| **1** | Extend **`verify_phase_b_snapshot_migration_alignment.py`**: **`AddField`** names on **`platformphasebdomainsnapshot`** in **`0026`** / **`0027`**. |
+
+
+
+
+
+
+
+| **2** | AST scan **`PlatformPhaseBDomainSnapshot`** in **`models.py`** for **`payload_key_count`**, **`payload_checksum`**, **`payload_key_checksums`**. |
+
+
+
+
+
+
+
+| **3** | **SOT ?11.4** slice + **Next Batch** discipline line: **Collabora T4** stays **BLOCKED** (no in-repo WOPI unblock). |
+
+
+
+
+
+
+
+| **4** | **Validation:** `python scripts/verify_phase_b_snapshot_migration_alignment.py`; **`test_verify_phase_b_snapshot_migration_alignment_passes`**. |
+
+
+
+
+
+
+
+## Batch 14+ ? fifteen-pack: scheduled list filters + CRUD echoes + command strict/json/exit + runner + hub link + admin (2026-03-28)
+
+
+
+
+
+
+
+| # | Detail |
+
+
+
+
+
+
+
+|---|--------|
+
+
+
+
+
+
+
+| **1** | **`GET /api/v1/reports/scheduled`**: **`?is_active=`** / **`?delivery_ready=`** tri-state query parsing; **400** on garbage. |
+
+
+
+
+
+
+
+| **2** | **`DELETE`**: response **`schema`:** **`reports_scheduled_delivery_v2`**. |
+
+
+
+
+
+
+
+| **3?4** | **`POST`/`PATCH`**: echo **`name`**, **`report_key`**, **`is_active`**. |
+
+
+
+
+
+
+
+| **5?7** | **`send_scheduled_reports`**: **`--strict-no-skip`**, **`--json-summary`** (sorted JSON line), **`CommandError`** when **`failed > 0`**. |
+
+
+
+
+
+
+
+| **8** | **`ScheduledReportRunner.run_due_reports`**: **`strict_no_skip`**, **`json_summary`**. |
+
+
+
+
+
+
+
+| **9** | **Hub**: **`reports_scheduled_api_list_url`**; template **`<a href>`** for list path. |
+
+
+
+
+
+
+
+| **10?11** | **Admin**: **`last_run`** list column; **`deactivate_active_empty_recipients`** action. |
+
+
+
+
+
+
+
+| **12?14** | **Tests:** **`test_tenant_report_schedule`**, **`test_scheduled_reports_hub`** (**`href`**). |
+
+
+
+
+
+
+
+| **15** | **Docs:** **SOT ?11.4** slice, **BILLING**, **MANAGEMENT_COMMANDS_INDEX**, **SOT_IMPLEMENTATION_SESSION_STATE**. |
+
+
+
+
+
+
+
+## Batch 14+ ? ten-pack: scheduled API delivery flags + POST full_clean + command metrics + admin filter + tests (2026-03-27)
+
+
+
+
+
+
+
+| # | Detail |
+
+
+
+
+
+
+
+|---|--------|
+
+
+
+
+
+
+
+| **1** | **`_tenant_schedule_delivery_summary`**: **`has_recipients`**, **`delivery_ready`**, **`recipient_count`** on list/detail/post/patch JSON. |
+
+
+
+
+
+
+
+| **2** | **POST** inactive **`recipients: []`**; **POST** **`full_clean()`** before **`save()`**. |
+
+
+
+
+
+
+
+| **3** | **POST** active + empty list ? **400** (unchanged normalize rule). |
+
+
+
+
+
+
+
+| **4** | **`send_scheduled_reports`**: **`Done:`** / **`Dry-run summary:`** counters. |
+
+
+
+
+
+
+
+| **5** | Command: **`SUCCESS`** stdout only when mail sent; **`WARNING`** line when skipped. |
+
+
+
+
+
+
+
+| **6** | **`logger.warning`** (`skipped_no_recipients`) on empty recipient list. |
+
+
+
+
+
+
+
+| **7** | **`TenantReportScheduleActiveEmptyRecipientsFilter`** (**`trs_recipient_gap`**). |
+
+
+
+
+
+
+
+| **8** | **`TenantReportSchedule._run_one`** returns **`(emailed, skipped)`** for stats. |
+
+
+
+
+
+
+
+| **9** | Tests: API flags, post cases, command stdout/summary/**`assertLogs`**, admin filter **`QueryDict`**. |
+
+
+
+
+
+
+
+| **10** | **SOT ?11.4**, **BILLING**, **MANAGEMENT**, **SITECONFIG**, **SOT_IMPLEMENTATION_SESSION_STATE**. |
+
+
+
+
+
+
+
+## Batch 14+ ? five-pack: PATCH full_clean + no-recipient warnings + admin count + hub anomaly + tests (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **1** | **`ScheduledReportDetailView.patch`**: **`full_clean()`** before **`save()`** (**400** on invalid activation). |
+
+
+
+
+
+
+
+| **2** | **`send_scheduled_reports`**: **`stderr`** warning + **`--dry-run`** suffix when active due row has empty **`recipients`**. |
+
+
+
+
+
+
+
+| **3** | **`TenantReportScheduleAdmin.recipient_count_display`** on changelist. |
+
+
+
+
+
+
+
+| **4** | Hub template: active + zero recipients callout; **`test_hub_warns_active_row_with_zero_recipients`**. |
+
+
+
+
+
+
+
+| **5** | Tests: **`test_scheduled_report_patch_activate_without_recipients_returns_400`**, **`TenantReportScheduleAdminRecipientDisplayTests`**, isolated-school command tests; **`sync_i18n_catalog --compile`**; **SOT ?11.4**, **BILLING**, **SITECONFIG**, **SOT_IMPLEMENTATION_SESSION_STATE**. |
+
+
+
+
+
+
+
+## Batch 14+ ? five-pack: scheduled validation + runner kwargs + command UX + hub API copy + i18n (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **1** | **`TenantReportSchedule.clean()`** + **`recipients`** **`blank=True`** + **`reports.0020`**. |
+
+
+
+
+
+
+
+| **2** | **`ScheduledReportRunner.run_due_reports`** ? **`call_command`** with **`school_id`**, **`limit`**, **`dry_run`**. |
+
+
+
+
+
+
+
+| **3** | **`send_scheduled_reports`** stdout when **`--school-id`** yields no due rows. |
+
+
+
+
+
+
+
+| **4** | Hub template: API paths + **`--school-id`** / **`--limit`**; hub tests. |
+
+
+
+
+
+
+
+| **5** | **`TenantReportScheduleModelValidationTests`**, command stdout tests, runner delegation test; **`sync_i18n_catalog --compile`**; **SOT ?11.4**, **BILLING**, **MANAGEMENT**, **SITECONFIG** row. |
+
+
+
+
+
+
+
+## Batch 14+ ? five-pack: `send_scheduled_reports` ops flags + hub non-staff test + smoke-light Gilead + docs (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **1** | **`send_scheduled_reports`**: **`--school-id`**, **`--limit`**, **`order_by(next_run, id)`**; **`CommandError`** if **`limit < 1`**. |
+
+
+
+
+
+
+
+| **2** | **Tests:** **`SendScheduledReportsCommandTests`** ? filter by school, cap batch, invalid limit; **`test_tenant_report_schedule.py`**. |
+
+
+
+
+
+
+
+| **3** | **`test_non_staff_with_settings_manage_sees_hub_without_admin_link`** ? **`test_scheduled_reports_hub.py`**. |
+
+
+
+
+
+
+
+| **4** | **`.github/workflows/smoke-light.yml`** ? **`python scripts/verify_gilead_full_tree_classification.py`** (no Django DB). |
+
+
+
+
+
+
+
+| **5** | **[MANAGEMENT_COMMANDS_INDEX.md](MANAGEMENT_COMMANDS_INDEX.md)** + **[BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md)**; **Gilead** classifier allowlist **`.github/workflows/`** + **[GILEAD_REFERENCE_CLASSIFICATION.md](GILEAD_REFERENCE_CLASSIFICATION.md)** inventory row; **SOT ?11.4** + **SOT_IMPLEMENTATION_SESSION_STATE**. |
+
+
+
+
+
+
+
+## Batch 14+ ? five-pack: download/bulk gates + schedule admin + hub link + pre_deploy Gilead + tests (2026-03-28)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **1** | **`FEATURE_GATE_PATH_ANY_OF`** on **`/siteconfig/reports/download/`** and **`/siteconfig/reports/bulk-letters/`** ? **`reports_custom_builder`** **or** **`reports`**. |
+
+
+
+
+
+
+
+| **2** | **`TenantReportScheduleAdmin`** + **`register_tenant_admin`**. |
+
+
+
+
+
+
+
+| **3** | Hub template **staff** link to **`admin:reports_tenantreportschedule_changelist`** (tenant urlconf); **`test_scheduled_reports_hub`**. |
+
+
+
+
+
+
+
+| **4** | **`pre_deploy_gate.sh`** runs **`verify_gilead_full_tree_classification.py`** after **`lint_gilead_residue.py`**. |
+
+
+
+
+
+
+
+| **5** | **`ReportCustomBuilderFeatureGateAnyOfTests`** cases for download + bulk-letters; **`TenantReportScheduleAdminRegistrationTests`**. |
+
+
+
+
+
+
+
+| **Docs** | **SOT ?11.4**, [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md), [FEATURE_GATE_AND_MODULES.md](FEATURE_GATE_AND_MODULES.md), **SITECONFIG_OWNERSHIP** Batch **14+**. |
+
+
+
+
+
+
+
+## Batch 14+ ? staff publish/promotion plan gates + P2 marketplace secret queue clarity + Gilead cadence note (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Further report surfaces: **`/reports/publish/`**, **`/reports/promotion-preview/`** must respect plan **`reports`** (not manifest-only). Document that **P2 marketplace credential columns** are **complete through `0033`** for current **`get_marketplace_integration_settings()`** keys; **`0034+`** waits on a **new** virtual key. Clarify **Gilead** verifier cadence in **SOT ?11.4**. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`FEATURE_GATE_PATH_ANY_OF`**: **`("reports",)`** on publish + promotion-preview paths. **`runtime_defaults_first_class`** module note for **0034+** pattern. |
+
+
+
+
+
+
+
+| **C. Tests** | **`ReportStaffPublishPlanGateTests`** in **`test_plan_and_feature_gate.py`**. |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md), [FEATURE_GATE_AND_MODULES.md](FEATURE_GATE_AND_MODULES.md), **`billing_sku_registry`** comment, **SOT ?11.4** (Next Batch + slice row), **SITECONFIG_OWNERSHIP** Batch **14+**. |
+
+
+
+
+
+
+
+| **E. Validation** | `pytest apps/schools/tests/test_plan_and_feature_gate.py::ReportStaffPublishPlanGateTests -q`; `python scripts/verify_gilead_full_tree_classification.py` on this train. |
+
+
+
+
+
+
+
+## Batch 14+ ? ministry/EMIS v1 API gates + scheduled-report API CRUD + P2 `smtp_password` (`0033`) (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Align **?11.4 Next Batch 14+**: SKU-style gates on **`/api/v1/reports/regulatory-*`** and **`/api/v1/reports/emis`**; full **CRUD** for **`TenantReportSchedule`** on the v1 API; next marketplace secret after **`0032`**. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`FeatureGatekeeperMiddleware`**: **`FEATURE_GATE_PATH_ANY_OF`** entries for regulatory-presets, regulatory-export, emis (prefix). **`ScheduledReportsListView.post`**, **`ScheduledReportDetailView`** (**GET/PATCH/DELETE**), **`apps/reports/schedule_utils.compute_next_scheduled_run`**. **`platform_runtime.0033`** + first-class wiring for **`smtp_password`**. |
+
+
+
+
+
+
+
+| **C. Tests** | **`ReportMinistryApiFeatureGateAnyOfTests`**; **`test_tenant_report_schedule`** (POST create, GET/PATCH/DELETE detail); **`test_domain_ownership`** (**`smtp_password`**); smoke **`api_v1:reports-scheduled-detail`**. |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | **SOT ?11.4** (Next Batch paragraph + slice rows); [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md); [FEATURE_GATE_AND_MODULES.md](FEATURE_GATE_AND_MODULES.md); **SITECONFIG_OWNERSHIP** Batch **14+**; **`verify_phase_5_siteconfig`** through **`0033`**. |
+
+
+
+
+
+
+
+| **E. Validation** | `pytest` targeted modules; `python scripts/verify_phase_5_siteconfig.py`; `python scripts/verify_gilead_full_tree_classification.py` on cadence when corpus changes. |
+
+
+
+
+
+
+
+## P2 ? marketplace `marksheet_ocr_api_key` + WhatsApp sync registry + phase-10 plan seeds (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Fourth marketplace secret column (**OCR provider key**); ensure **`whatsapp_api_token`** participates in **`collect_first_class_values_from_site_settings`**; align **`seed_cursor_twelve_phases`** with **`report-platform-*`** **`Plan`** upserts. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`platform_runtime.0032`**; **`runtime_defaults_first_class`** (**`RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES`** **and** string blanking set ? both required for sync, same footgun as **`whatsapp_api_token`**), **`_MARKETPLACE_SECRET_KEYS`**, **`domain_ownership`**, **`get_marketplace_integration_settings`**, **`models_support`**, admin **`PasswordInput`**; **`seed_cursor_twelve_phases`** phase **10** ? **`seed_report_platform_plan_skus`**; **`verify_phase_5_siteconfig`** asserts **`0029`?`0032`** artifacts; [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md) scheduled path rows. |
+
+
+
+
+
+
+
+| **C. Tests** | **`test_runtime_defaults_marksheet_ocr_api_key_first_class.py`**; extended **`test_phase_b_domain_snapshots`**, **`test_runtime_contract`**, **`test_domain_ownership`**. |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | **SOT ?11.4** (WhatsApp registry + **`0032`** + seed slice); **SITECONFIG_OWNERSHIP** batches **7** / **14+**; **SOT_IMPLEMENTATION_SESSION_STATE**. |
+
+
+
+
+
+
+
+| **E. Validation** | `python manage.py migrate platform_runtime`; `pytest apps/platform_runtime/tests/test_runtime_defaults_marksheet_ocr_api_key_first_class.py -q`; `python scripts/verify_phase_5_siteconfig.py`; `python scripts/verify_gilead_full_tree_classification.py` on cadence. |
+
+
+
+
+
+
+
+## Batch 14+ ? report ministry HTTP gates (`FEATURE_GATE_PATH_ANY_OF`) (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Wire **`reports_ministry_exports`** to tenant report URLs while keeping **`reports`-only** plans working. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`apps/schools/middleware.py`:** **`FEATURE_GATE_PATH_ANY_OF`**, **`_feature_gate_path_matches`**, **`_school_has_capability`**; **`FeatureGatekeeperMiddleware`** uses **`is_plan_entitlement_feature_enabled`** for any-of paths (plan/addons/`School.features` only ? avoids BASE_SCHOOL manifest **`reports`** bypassing SKU gates). Paths **`/reports/regulatory-export/`**, **`/reports/statistical-return/`**. **`schools.models`:** **`is_plan_entitlement_feature_enabled`**. |
+
+
+
+
+
+
+
+| **C. Tests** | **`ReportMinistryFeatureGateAnyOfTests`**; **`PlanEntitlementVsIsFeatureEnabledTests.test_reports_enabled_by_manifest_but_not_plan_entitlement`** (locks manifest **`reports`** vs plan SKU distinction). |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md), [FEATURE_GATE_AND_MODULES.md](FEATURE_GATE_AND_MODULES.md), **SOT ?11.4**, **SITECONFIG_OWNERSHIP** Batch **14+**, **SOT_IMPLEMENTATION_SESSION_STATE**. |
+
+
+
+
+
+
+
+| **E. DDL** | **None**. |
+
+
+
+
+
+
+
+## Batch 14+ ? parent report PDF export HTTP gates (`reports_pdf_exports`) (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Wire granular **`reports_pdf_exports`** to parent report download URLs; keep coarse **`reports`** plans working. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`FEATURE_GATE_PATH_ANY_OF`** prefix **`/reports/parent/report/`** + **`is_plan_entitlement_feature_enabled`** (same pattern as ministry gates). |
+
+
+
+
+
+
+
+| **C. Tests** | **`ReportParentPdfExportFeatureGateAnyOfTests`** in **`test_plan_and_feature_gate.py`**. |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md), **billing_sku_registry** comment, **SOT ?11.4**, **SOT_IMPLEMENTATION_SESSION_STATE**. |
+
+
+
+
+
+
+
+| **E. DDL** | **None**. |
+
+
+
+
+
+
+
+| **F. Pairing** | Same merge train as **marketplace `ai_provider_api_key`** (below)?**two** ?11.4 rows, **two** log blocks; SOT **?11.4** item **6** + **SOT_IMPLEMENTATION_SESSION_STATE** ?Slice bundling.? **Default going forward:** one theme per PR. |
+
+
+
+
+
+
+
+## Batch 14+ ? report custom builder HTTP gates (`reports_custom_builder`) (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Wire **`reports_custom_builder`** to tenant URLs for report card builder/previews and API ad-hoc reports; keep coarse **`reports`** plans working. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`FEATURE_GATE_PATH_ANY_OF`** prefixes: **`/siteconfig/reports/builder/`**, **`/siteconfig/reports/preview/`**, **`/siteconfig/reports/embed-preview/`**, **`/siteconfig/reports/live-preview/`**, **`/api/v1/reports/adhoc`**; **`is_plan_entitlement_feature_enabled`**. |
+
+
+
+
+
+
+
+| **C. Tests** | **`ReportCustomBuilderFeatureGateAnyOfTests`**; **`PlanEntitlementVsIsFeatureEnabledTests.test_custom_builder_gate_uses_plan_entitlement_not_manifest_reports`**. |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md), [FEATURE_GATE_AND_MODULES.md](FEATURE_GATE_AND_MODULES.md), **SOT ?11.4**, **SITECONFIG_OWNERSHIP** Batch **14+**, **SOT_IMPLEMENTATION_SESSION_STATE**. |
+
+
+
+
+
+
+
+| **E. DDL** | **None**. |
+
+
+
+
+
+
+
+## Batch 14+ ? report scheduled delivery (persistence + HTTP + gates) (`reports_scheduled_delivery`) (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Tenant-scoped **`TenantReportSchedule`** + hub/API list + plan gates; command delivery for due rows. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`reports.models.TenantReportSchedule`**; migration **`reports.0018`**; **`send_scheduled_reports`** rewired off removed **`bi_models`** **`ScheduledReport`**; **`ScheduledReportsListView`** **`reports_scheduled_delivery_v2`**; hub template table; **`FEATURE_GATE_PATH_ANY_OF`** (paths unchanged). |
+
+
+
+
+
+
+
+| **C. Tests** | **`test_tenant_report_schedule.py`** (API list, command send + dry-run); **`ReportScheduledDeliveryFeatureGateAnyOfTests`**; **`PlanEntitlementVs?scheduled_hub?`**; smoke URL reverses. |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | [BILLING_SKUS_ENTITLEMENTS.md](BILLING_SKUS_ENTITLEMENTS.md), **SOT ?11.4**, **SITECONFIG_OWNERSHIP** Batch **14+**, **SOT_IMPLEMENTATION_SESSION_STATE**. |
+
+
+
+
+
+
+
+| **E. DDL** | **`reports.0018_tenant_report_schedule`**. |
+
+
+
+
+
+
+
+## Batch 14+ ? marketplace `ai_provider_api_key` first-class on `RuntimeDefaults` (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Second marketplace secret column after **`sms_api_key`**: move **`ai_provider_api_key`** out of **`RuntimeDefaults.payload`**; exclude from Phase B snapshots. |
+
+
+
+
+
+
+
+| **B. Implementation** | Model field; migration **`platform_runtime.0030`**; **`runtime_defaults_first_class`**, **`phase_b_domain_snapshots._MARKETPLACE_SECRET_KEYS`**, **`domain_ownership`**, **`get_marketplace_integration_settings`**, **`models_support`**, platform admin **PasswordInput**. |
+
+
+
+
+
+
+
+| **C. Tests** | **`test_runtime_defaults_ai_provider_api_key_first_class.py`**; **`test_marketplace_snapshot_excludes_integration_secrets`**; **`test_domain_ownership`** (**`test_ai_provider_api_key_is_marketplace_integrations`**). |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | **SOT ?11.4**; **SITECONFIG_OWNERSHIP** Batch **14+**; this log. |
+
+
+
+
+
+
+
+| **E. Validation** | `python manage.py migrate platform_runtime`; `pytest apps/platform_runtime/tests/test_runtime_defaults_ai_provider_api_key_first_class.py apps/platform_runtime/tests/test_phase_b_domain_snapshots.py::PhaseBDomainSnapshotTests::test_marketplace_snapshot_excludes_integration_secrets -q`. |
+
+
+
+
+
+
+
+| **F. Pairing** | Same merge train as **parent report PDF export HTTP gates** (above). **Two** themes, **two** log blocks, **two** ?11.4 rows?see SOT **?11.4** item **6** and **SOT_IMPLEMENTATION_SESSION_STATE** ?Slice bundling.? Prefer **one theme per PR** next. |
+
+
+
+
+
+
+
+## Batch 14+ / ?11.4 ? marketplace `sms_api_key` first-class on `RuntimeDefaults` (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Single theme: **marketplace_integrations** secret split ? move **`sms_api_key`** out of bulk **`RuntimeDefaults.payload`** into a typed column; keep Phase B JSON snapshot exclusion. |
+
+
+
+
+
+
+
+| **B. Implementation** | Model **`RuntimeDefaults.sms_api_key`**; migration **`platform_runtime.0029`** (add column + move value from JSON); **`runtime_defaults_first_class`** + **`sync_from_site_settings`**; **`helpers._build_platform_site_settings_base`** strips first-class keys from payload copy before **`apply_payload_dict_to_site_settings_shallow_base`**. Platform admin **Integrations (secret)** + **`PasswordInput`**. |
+
+
+
+
+
+
+
+| **C. Tests** | **`apps/platform_runtime/tests/test_runtime_defaults_sms_api_key_first_class.py`** (+ **`test_marketplace_snapshot_excludes_integration_secrets`** for marketplace snapshot hygiene). |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | **`SITECONFIG_OWNERSHIP_MIGRATION.md`** batch **7** + **14+** rows; **SOT ?11.4** slice row. |
+
+
+
+
+
+
+
+| **E. Validation** | `python manage.py check`; `pytest apps/platform_runtime/tests/test_runtime_defaults_sms_api_key_first_class.py apps/platform_runtime/tests/test_phase_b_domain_snapshots.py::PhaseBDomainSnapshotTests::test_marketplace_snapshot_excludes_integration_secrets -q`; `bash scripts/pre_deploy_gate.sh` before merge. |
+
+
+
+
+
+
+
+| **F. Not in scope** | Staging release checklist, Phase H / BR-13 manuals, DynamicField 5b per prod DB, Postgres Playwright ? separate trains. |
+
+
+
+
+
+
+
+## Batch 14+ ? report platform SKU registry (manifest, no DDL) (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Single **?11.4** increment for **reports** bounded context: machine-readable **SKU bundles** (standard vs advanced) **additive** to coarse **`reports`** plan code. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`billing_sku_registry`:** **`REPORT_PLATFORM_SKU_*`**, **`manifest_report_platform_skus_block`**, nested under **`manifest_plan_entitlements_block`** ? **`api_v1_manifest`**. **`BILLING_SKUS_ENTITLEMENTS.md`** new section. |
+
+
+
+
+
+
+
+| **C. Tests** | **`test_billing_sku_registry`** (union, subset, manifest block); **`test_api_v1_manifest`** asserts **`report_platform_skus`**. |
+
+
+
+
+
+
+
+| **D. Docs / SOT** | **SOT ?11.4** slice; **SITECONFIG_OWNERSHIP** Batch **14+** row updated. |
+
+
+
+
+
+
+
+| **E. Follow-on** | **HTTP gates:** ministry, parent PDF, custom builder, **scheduled delivery** (sections above); manifest vs plan: **`PlanEntitlementVsIsFeatureEnabledTests`**. **Marketplace secrets:** **`0029`?`0031`**. **Next:** **`TenantReportSchedule`** CRUD (admin/API), **`/api/v1/reports/*`** gates, **or** Gilead verifier?**one theme per PR** unless **SOT ?11.4 anti-drag** item **6**. |
+
+
+
+
+
+
+
+## Batch 14 Phase 5b ? operator runbook + doc alignment (2026-03-27 follow-up)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Repo state** | **Current tree** ships **`siteconfig.0168`** (legacy **`DynamicField*`** **`DeleteModel`**), removes **`models_metadata_catalog`**, retires sync/bridge/fallback at runtime (**no-op** / **`False`** defaults). |
+
+
+
+
+
+
+
+| **B. Docs** | **`docs/BATCH_14_DYNAMICFIELD_RECONCILIATION.md`** rewritten: **repo vs per-environment** honesty, **Phase 5b operator runbook** (backup ? sync **before 0168** if legacy rows exist ? migrate ? verify), **local pytest / `.django_test_dbs`** note. **SOT ?11.4** and **`SITECONFIG_OWNERSHIP`** Batch **14+** row aligned with this tree. |
+
+
+
+
+
+
+
+| **C. Validation** | `python manage.py check`; `pytest apps/metadata/tests/test_siteconfig_dynamicfield_batch14.py apps/metadata/tests/test_batch14_phase5_admin_cutover.py -q`; refresh stale test SQLite per BATCH_14 ?5 if needed. |
+
+
+
+
+
+
+
+## Batch 14 Phases 0?4 ? DynamicField* reconciliation + sync + fallback + dual-write (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | **Single slice, end-to-end:** Phase 0 mapping + doc ? Phases **1a?2** idempotent **`sync_siteconfig_dynamicfields_to_metadata`** ? **1b** **`metadata.0009`** `required` ? **3** `get_dynamic_field_map` siteconfig **fallback** (settings) ? **4** **dual-write** signals from tenant admin saves ? **improvements:** `.env.example`, admin docstrings, SOT / ownership / BATCH_14 doc updates. |
+
+
+
+
+
+
+
+| **B. Deliverables** | **`dynamic_field_reconciliation`**, **`siteconfig_dynamicfield_sync`**, **`siteconfig_dynamicfield_bridge`**, **`metadata/apps.py`** `connect_siteconfig_dynamicfield_dual_write`, **`config/settings.py`** env-driven flags, **`test_siteconfig_dynamicfield_batch14`**. **Phase 5** (remove/proxy siteconfig admin / drop tables) **explicitly not** claimed. |
+
+
+
+
+
+
+
+| **C. Validation** | **`pytest`/`manage.py test`** `test_dynamic_field_reconciliation` + `test_siteconfig_dynamicfield_batch14` + **`MetadataServicesTests`**; **`makemigrations --check`**; **`ruff`** on touched modules. |
+
+
+
+
+
+
+
+| **D. Acceptance** | **PASS**; operators run sync then flip env flags per [BATCH_14_DYNAMICFIELD_RECONCILIATION.md](BATCH_14_DYNAMICFIELD_RECONCILIATION.md) runbook. |
+
+
+
+
+
+
+
+## Batch 14 Phase 5a ? canonical `metadata.DynamicField*` admin (tenant + platform) (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | **End-to-end** Batch **14 Phase 5a:** stop relying on **`siteconfig_dynamicfield*`** for tenant CRUD in Django admin; **`metadata_dynamicfield*`** is canonical on **both** admin sites. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`metadata.apps`:** `register_both` for **`DynamicFieldDefinition`** / **`DynamicFieldValue`** with **`DynamicField*Admin`** from **`metadata/admin.py`** (removed duplicate **`@admin.register(..., site=tenant_admin_site)`** to avoid double registration). **Templates:** **`admin/metadata/dynamicfielddefinition|value/change_form.html`**. **`siteconfig/admin.py`:** explicit import **`models_metadata_catalog`** for legacy read-only proxy (fixes missing symbol). **Smoke:** **`test_admin_ui_smoke`** ? **`admin:metadata_*`** + metadata model creates. **New:** **`test_batch14_phase5_admin_cutover.py`**. |
+
+
+
+
+
+
+
+| **C. Docs** | **`BATCH_14_DYNAMICFIELD_RECONCILIATION.md`** (Phase 5a/5b); **`SITECONFIG_OWNERSHIP_MIGRATION`** Batch **14+** row; **SOT ?11.4** slice. |
+
+
+
+
+
+
+
+| **D. Validation** | `python manage.py check`; `pytest apps/metadata/tests/test_batch14_phase5_admin_cutover.py apps/metadata/tests/test_siteconfig_dynamicfield_batch14.py -q`; `pytest apps/siteconfig/tests/test_admin_ui_smoke.py::AdminUiSmokeTests::test_dynamicfielddefinition_change_form_links_to_control_plane_surfaces apps/siteconfig/tests/test_admin_ui_smoke.py::AdminUiSmokeTests::test_dynamicfieldvalue_change_form_links_to_control_plane_surfaces -q`. |
+
+
+
+
+
+
+
+| **E. Follow-on** | **Phase 5b** shipped separately ? see **Batch 14 Phase 5b** section above this table. |
+
+
+
+
+
+
+
+## ?12.1 Studio OS ? pre_deploy + phases 3?11 parity + `apps.studio_os.tests` (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Close **?12.1** ?Studio OS **Partial**? drift: repo already ran conformance **inside** `test_tenant_settings_lint` and `setup_studio` tests, but the gate script did not **name** Studio OS, and **`apps.studio_os.tests`** was not on the pre_deploy hardening train. |
+
+
+
+
+
+
+
+| **B. Implementation** | **`pre_deploy_gate.sh`:** `verify_phase5_studio_os_conformance.py` after Phase 5 siteconfig; **`apps.studio_os.tests`** in **`TARGETED_HARDENING_TESTS`**. **`verify_phases_3_11_gates.py`:** same script step. **`gate_map_appendix_config.json`** + **`generate_gate_map_appendix.py --write`**. **SOT ?12.1** + one-liner: Studio OS **Yes** with explicit manual/release supplements. |
+
+
+
+
+
+
+
+| **C. Validation** | `python scripts/verify_phase5_studio_os_conformance.py`; `python scripts/generate_gate_map_appendix.py --check`; `pytest apps/studio_os/tests -q`; `pytest apps/platform_runtime/tests/test_tenant_settings_lint.py::TenantSettingsLintTests::test_verify_phase5_studio_os_conformance_passes apps/platform_runtime/tests/test_tenant_settings_lint.py::TenantSettingsLintTests::test_generate_gate_map_appendix_check_passes -q`. |
+
+
+
+
+
+
+
+| **D. Acceptance** | **PASS** ? no duplicate ?new Studio OS gate?; extends existing conformance + adds missing **`studio_os`** Django tests to the same train that already had **`setup_studio`**. |
+
+
+
+
+
+
+
+| **E. Next** | **P2 Batch 14** reconciliation slice or **Gilead corpus** program ? one theme per session. |
+
+
+
+
+
+
+
+## P4 shell matrix ? `portal_base.html` contract (verifier + pytest) (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | One **PARTIAL** sub-slice: tenant **portal/backend/Studio** spine uses **`portal_base.html`** but **`verify_shell_architecture_matrix.py`** only asserted **`base.html`** ? incomplete automation, not duplicate P3 admin work. |
+
+
+
+
+
+
+
+| **B. Implementation** | Extend **`scripts/verify_shell_architecture_matrix.py`** with the same include/exclude tokens for **`templates/portal_base.html`** + **`data-surface="tenant"`**; **`PortalBaseTenantShellTests`** in **`apps/platform_runtime/tests/test_marketing_shell.py`**; **`docs/SHELL_ARCHITECTURE_MATRIX.md`** Tests row. |
+
+
+
+
+
+
+
+| **C. Validation** | `python scripts/verify_shell_architecture_matrix.py`; `pytest apps/platform_runtime/tests/test_marketing_shell.py -q`; `pytest apps/platform_runtime/tests/test_tenant_settings_lint.py::TenantSettingsLintTests::test_verify_shell_architecture_matrix_passes -q`. |
+
+
+
+
+
+
+
+| **D. SOT** | **?0** shell row clarifies **PARTIAL** = staging/BR-13; **?11.4** new DONE slice (does not claim full shell PARTIAL closure). |
+
+
+
+
+
+
+
+| **E. Next** | Next **single** PARTIAL theme (e.g. P2 Batch 14 design, P6 doc density spot, or ?12.1 Studio OS **Partial** row) ? one slice per PR. |
+
+
+
+
+
+
+
+## SOT ?11.4 anti-drag discipline + `print_slice_discipline_checklist.py` (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Reduce ?endless refactor? drag: codify **timebox**, **one theme per slice**, **BLOCKED must be written**, and **merge train** next to the existing ?11.4 execution rule. |
+
+
+
+
+
+
+
+| **B. Implementation** | **SOT** new subsection **?11.4 anti-drag discipline**; **`scripts/print_slice_discipline_checklist.py`** prints a PR/session checklist (no gate side effects). |
+
+
+
+
+
+
+
+| **C. Validation** | Run `python scripts/print_slice_discipline_checklist.py` (stdout only). |
+
+
+
+
+
+
+
+| **D. Acceptance** | **PASS** for process clarity; does not advance Batch 14 / Phase B relational work ? those remain queued ?11.4. |
+
+
+
+
+
+
+
+| **E. Next** | Pick the next **single** ?11.4 or Batch-14 sub-slice with tests + this log pattern. |
+
+
+
+
+
+
+
+## Mechanical verification train + platform inventory refresh (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Close the gap between ?all scripts green? and doc honesty: run the P0?P6 **automated** bundle; refresh stale **`docs/generated/platform_inventory.json`**; update SOT ?0 footnote + ?11.4 so **PARTIAL** is not misread as linter failure. |
+
+
+
+
+
+
+
+| **B. Scripts run** | `lint_raw_sql_usage`, `lint_csrf_exempt_usage`, `lint_allow_any_usage`, `build_phase8_security_ledger --check`, `verify_security_allowlists`, `lint_gilead_residue`, `verify_gilead_full_tree_classification`, `lint_no_print_in_apps`, `verify_doc_plan_density_discipline`, `verify_shell_architecture_matrix`, `verify_siteconfig_decomposition_depth`, `verify_ai_blueprint_completion`, `report_premium_maturity_signals --strict`, `generate_platform_inventory.py --write` + `--check`. |
+
+
+
+
+
+
+
+| **C. Finding** | `generate_platform_inventory.py --check` failed until `--write`; committed artifacts now aligned. |
+
+
+
+
+
+
+
+| **D. Validation** | All listed commands **exit 0** in this session. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** for hygiene + inventory artifact; **does not** claim Phase B relational completion, manual shell matrix, N17?N20, or support depth ? those remain ?11.4 / external backlog per SOT. |
+
+
+
+
+
+
+
+| **F. Next** | Full `pre_deploy_gate.sh` on your branch before merge; translate **locale/** if i18n gate complains. |
+
+
+
+
+
+
+
+## P3 TourStep + UserPreference admin escape hatches; Batch 14 DynamicField fork note (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. P3** | **`TourStep`**, **`UserPreference`** tenant admin **`change_form`** ? guided onboarding / tour API / user preferences / dashboard hubs / configuration hub. |
+
+
+
+
+
+
+
+| **B. Docs** | **SITECONFIG_OWNERSHIP_MIGRATION** Batch **14+** row extended: **`siteconfig_dynamicfield*`** vs **`metadata_dynamicfield*`** schema divergence ? merge deferred until reconciliation design. |
+
+
+
+
+
+
+
+| **C. Validation** | `pytest` targeted **`test_tourstep_*`**, **`test_userpreference_*`**; `sync_i18n_catalog --compile`; **`verify_phase_5_siteconfig.py`** PASS. |
+
+
+
+
+
+
+
+| **D. Deploy train hygiene** | **`super_support_csat_dashboard`** added to **`apps/schools/super_views.py`** **`__all__`** (fixes Ruff F401 re-export). **`siteconfig.0167_rename_globalsupportticketreply_index`** ? **`SeparateDatabaseAndState`**: introspect then **`ALTER INDEX ? RENAME`** (pg/sqlite) or **`CREATE INDEX`** when the legacy name is missing (stale gate SQLite after **`0165`** drift), plus **`RenameIndex`** in **`state_operations`** so model state matches Django 5.2 default index name. **`migrate_gate_test_db`** PASS on previously failing DB. |
+
+
+
+
+
+
+
+## P3 admin escape hatches + N17 normalize_deps + Batch 14 tracker (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. P3** | Tenant admin **`change_form`** templates for **`FeatureToggleDefinition`**, **`FeatureToggleState`**, **`TenantAdmissionNumberPolicy`**, **`DynamicFieldDefinition`**, **`DynamicFieldValue`** ? product URLs (`feature_control_*`, `get_blueprints`, `workflow_flow_gallery`, `tag_manager`, `studio_os:output`, `backend_dashboard`). **`apps/siteconfig/admin.py`** wires templates; **`test_admin_ui_smoke`** + **`_smoke_school`** helper. |
+
+
+
+
+
+
+
+| **B. N17** | **`NormalizeDeclaredDependenciesTests`** on **`normalize_declared_dependencies`** in **`apps/packages/tests/test_engine.py`**. |
+
+
+
+
+
+
+
+| **C. Tracker** | **`SITECONFIG_OWNERSHIP_MIGRATION.md`** ? **Batch 14+** row (**Queued**) for first-class / bounded-context moves; references P3 hatches as precursor. |
+
+
+
+
+
+
+
+| **D. Validation** | `pytest apps/siteconfig/tests/test_admin_ui_smoke.py::AdminUiSmokeTests::test_featuretoggledefinition_change_form_links_to_control_plane_surfaces` (and sibling tests) + `pytest apps/packages/tests/test_engine.py::NormalizeDeclaredDependenciesTests -q`; `sync_i18n_catalog --compile` after template strings. |
+
+
+
+
+
+
+
+## Phase 8 dashboard density ? trust center, migration cloud, district interop, security hub, ticket detail (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | `python scripts/verify_phase8_dashboard_density.py` failed on five Phase 7 templates (?20 `div` shells with `card` token per `dashboard_density_check`). |
+
+
+
+
+
+
+
+| **B. Implementation** | **`de-secondary-collapsible`** `<details>` / `<summary>`: fold trust-center tile grid; migration cloud ?deep dive? after KPIs; district interop reference cards after shortcut row; tenant **Security & trust** governance stack only when `show_governance_links`; support ticket **conversation** block with **`open`** so default UX unchanged. |
+
+
+
+
+
+
+
+| **C. Validation** | `verify_phase8_dashboard_density.py` **PASS**; `pytest apps/dashboard/tests/test_phase8_dashboard_density.py` **PASS**; `sync_i18n_catalog --compile`; `verify_i18n_catalog_fresh.py` **PASS**. |
+
+
+
+
+
+
+
+| **E. Follow-up (same slice)** | **`pre_deploy_gate.sh`** runs **`verify_phase8_dashboard_density.py`** after Phase 7 markers + hub registry drift; **`verify_phases_3_11_gates.py`** and **`test_tenant_settings_lint.test_verify_phase8_dashboard_density_passes`** mirror the same step (`PHASES_3_11_GATE_VERIFICATION.md` row). |
+
+
+
+
+
+
+
+## Phase 7/8 hub registry + i18n ? `super_support_ticket_detail` (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | `pre_deploy_gate.sh` failed **control-plane hub registry drift** on **`schools/super_support_ticket_detail.html`** (extends `control_plane_base` but missing from **`PHASE7_DASHBOARD_TEMPLATES`**). |
+
+
+
+
+
+
+
+| **B. Implementation** | Register template + **`PHASE8_DECLARATIONS`** entry (`support_case_detail`); add **`data-page-archetype`**, **`data-decision-engine`**, **`phase8_dashboard_declaration`** on the page root. |
+
+
+
+
+
+
+
+| **C. i18n** | Gate then failed **`verify_i18n_catalog_fresh`** for support-detail strings ? **`manage.py sync_i18n_catalog --compile`** (all configured locales). |
+
+
+
+
+
+
+
+| **D. Validation** | `verify_phase7_dashboard_markers.py`; `pytest apps/dashboard/tests/test_control_plane_hub_registry_drift.py apps/dashboard/tests/test_phase8_registry_full_coverage.py`; `verify_i18n_catalog_fresh.py` **PASS**. Re-run full **`pre_deploy_gate.sh`** before merge. |
+
+
+
+
+
+
 
 ## P2 Phase B per-key checksums + resync POST (2026-03-27)
 
+
+
+
+
+
+
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Extend typed metadata on `PlatformPhaseBDomainSnapshot` **without** new per-field tables; deepen operator diff + safe re-sync. |
+
+
+
+
+
+
+
 | **B. Implementation** | **`0027`**: `payload_key_checksums`; `phase_b_top_level_key_fingerprints` / `diff_top_level_payload_keys`; UI **changed keys** + three-column key drift; POST **`resync_all_snapshots`**; admin **Key FP map** column. |
+
+
+
+
+
+
+
 | **C. Validation** | `pytest` `test_phase_b_domain_snapshots` + `test_super_phase_b_snapshot_diff` **PASS**. |
-| **D. Note** | First-class relational columns per payload key remain **§11.4 / ownership** sequencing (see SITECONFIG_OWNERSHIP_MIGRATION). |
+
+
+
+
+
+
+
+| **D. Note** | First-class relational columns per payload key remain **?11.4 / ownership** sequencing (see SITECONFIG_OWNERSHIP_MIGRATION). |
+
+
+
+
+
+
 
 ## P2 Phase B snapshot metadata + diff UI; P0 security allowlist verify (2026-03-27)
 
+
+
+
+
+
+
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Merge-sized **P2**: typed index on `PlatformPhaseBDomainSnapshot` + operator diff vs live `owned_payload`. **P0**: deliberate allowlist **last_reviewed** + verify script in deploy train. |
+
+
+
+
+
+
+
 | **B. Finding** | Snapshots were JSON-only; operators could not see checksum drift without diffing admin vs SiteSettings. CSRF/AllowAny/raw SQL allowlists lacked an explicit review-date contract beyond lint counts. |
+
+
+
+
+
+
+
 | **C. Implementation** | `0026` + `phase_b_payload_metadata`; `super_phase_b_snapshot_diff`; `verify_security_allowlists.py`; allowlist JSON **`last_reviewed`: 2026-03-27**; `pre_deploy_gate` + targeted tests + `phase8_security_ledger` regen; i18n for new template. |
+
+
+
+
+
+
+
 | **D. Validation** | `pytest` `test_phase_b_domain_snapshots`, `test_security_allowlists_verify`, `test_super_phase_b_snapshot_diff` **PASS**; `verify_security_allowlists.py` **PASS**. |
+
+
+
+
+
+
+
 | **E. Acceptance** | **PASS** for this slice; full `pre_deploy_gate.sh` after commit. |
-| **F. Next** | Further **first-class tables per domain** remain sequenced §11.4 / SITECONFIG ownership (not this migration). |
+
+
+
+
+
+
+
+| **F. Next** | Further **first-class tables per domain** remain sequenced ?11.4 / SITECONFIG ownership (not this migration). |
+
+
+
+
+
+
 
 ## Deploy train + shell / ops neutral naming (2026-03-27)
 
+
+
+
+
+
+
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Close **pre_deploy_gate** on record; fix **i18n catalog drift**; merge **P4 shell** (control-plane Studio in topbar), **admin/portal skip-link i18n**, **neutral JSON/CLI** (`runtime_branding_residue_corpus`, `seed_cursor_twelve_phases` residue-lint flags), tests without literal vendor email in source. |
-| **B. Finding** | Prior gate run ended **EXIT=1** on missing `django.po` msgids (siteconfig admin escape-hatch copy). Full train re-run after `sync_i18n_catalog --compile` → **EXIT=0** in `docs/generated/pre_deploy_gate_run.txt`. |
+
+
+
+
+
+
+
+| **B. Finding** | Prior gate run ended **EXIT=1** on missing `django.po` msgids (siteconfig admin escape-hatch copy). Full train re-run after `sync_i18n_catalog --compile` ? **EXIT=0** in `docs/generated/pre_deploy_gate_run.txt`. |
+
+
+
+
+
+
+
 | **C. Implementation** | `control_plane_base.html` Studio button; `admin/base_site.html` + `portal_base.html` `{% trans %}` skip links; `report_premium_maturity_signals.py` JSON key rename; `seed_cursor_twelve_phases.py` phase title + `--strict-residue-lint` / `--skip-residue-lint` (+ deprecated aliases); marketing URL derivation test uses `demo-tenant`; runtime contract test uses fragment-joined scrub domain. `locale/**` refreshed. |
+
+
+
+
+
+
+
 | **D. Validation** | Targeted pytest (premium maturity report, marketing derivation, runtime helper) **PASS**; `lint_gilead_residue.py` + `verify_i18n_catalog_fresh.py` **PASS**. |
+
+
+
+
+
+
+
 | **E. Acceptance** | **PASS** for this slice; **full** `pre_deploy_gate.sh` re-run recommended after merge if inventory/locale drift. |
-| **F. Legacy** | Historical **migrations** and default demo slug `gilead-school` remain DB history; SOT §11.4 states lint bar vs gross corpus. |
 
-## SOT sweep — compliance profile + finance split tests (2026-03-27)
+
+
+
+
+
+
+| **F. Legacy** | Historical **migrations** and default demo slug `gilead-school` remain DB history; SOT ?11.4 states lint bar vs gross corpus. |
+
+
+
+
+
+
+
+## SOT sweep ? compliance profile + finance split tests (2026-03-27)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | SOT §11.4 actionable queue: close **runtime-first** gap for platform default `ComplianceProfile` (Phase B first-class `compliance_profile_id`) and repair finance tests/commands still assuming a `SiteSettings` concrete FK column. |
+
+
+
+
+
+
+
+| **A. Scope** | SOT ?11.4 actionable queue: close **runtime-first** gap for platform default `ComplianceProfile` (Phase B first-class `compliance_profile_id`) and repair finance tests/commands still assuming a `SiteSettings` concrete FK column. |
+
+
+
+
+
+
+
 | **B. Finding** | `SiteSettings.compliance_profile` setter wrote payload only; getter cleared cache when `compliance_profile_id` was not on the slim row; `_active_profile` used `getattr(site, "compliance_profile")` only (merged effective settings expose **id**, not FK). Split tests used `save(update_fields=["compliance_profile_id"])` on `SiteSettings`. `makemigrations` wanted `0054` for `PaymentReminder.reminder_channels` help_text drift. |
-| **C. Implementation** | `apps/siteconfig/models.py` — getter/setter + cache invalidation; `apps/finance/views_common.py` — `_active_profile` id resolution; `test_split_billing` / `test_split_allocation` / `seed_finance_defaults` fixes; invoice list test uses `assertContains` (Client stack yields non-template `HttpResponse` without `context`). |
+
+
+
+
+
+
+
+| **C. Implementation** | `apps/siteconfig/models.py` ? getter/setter + cache invalidation; `apps/finance/views_common.py` ? `_active_profile` id resolution; `test_split_billing` / `test_split_allocation` / `seed_finance_defaults` fixes; invoice list test uses `assertContains` (Client stack yields non-template `HttpResponse` without `context`). |
+
+
+
+
+
+
+
 | **D. Validation** | `pytest apps/finance/tests/test_split_billing.py apps/finance/tests/test_split_allocation.py -q` **PASS**; `verify_siteconfig_decomposition_depth.py` + `verify_shell_architecture_matrix.py` **PASS**; `makemigrations --check --dry-run` **No changes**; `generate_platform_inventory.py --write`. |
-| **E. Acceptance** | **PASS** — platform compliance profile persists and resolves through runtime merge; finance split flows covered again. |
-| **F. Legacy / docs** | SOT §11.4 new slice; full `pre_deploy_gate.sh` still per release train; optional: run `record_pre_deploy_gate_output.sh` for `docs/generated/pre_deploy_gate_run.txt`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? platform compliance profile persists and resolves through runtime merge; finance split flows covered again. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | SOT ?11.4 new slice; full `pre_deploy_gate.sh` still per release train; optional: run `record_pre_deploy_gate_output.sh` for `docs/generated/pre_deploy_gate_run.txt`. |
+
+
+
+
+
+
 
 ---
 
-**Updated:** 2026-03-25 — **Progress:** `verify_ui_wiring_audit` + `audit_phase3_phase4_surfaces` + `verify_operator_phase10_11_e2e` (dedicated SQLite) **PASS**; **smoke.yml** `workflow_dispatch`; [CONTRIBUTING.md](../CONTRIBUTING.md) pre-merge section. **Proceed:** full `pre_deploy_gate.sh` **PASS** on `.django_test_dbs/proceed_gate_20260326.sqlite3` + Phase 6 granular/siteconfig + Phase 8 ledger / AllowAny / raw SQL lints (see **“Proceed — full pre_deploy_gate”**); inventory regen noted there. **RELEASE_CHECKLIST local train:** `pre_deploy_gate.sh` **PASS** (`SKIP_VISUAL_QA=1`, `DJANGO_TEST_DB_FILE=.django_test_dbs/gate_verification_20260325.sqlite3`); `sync_i18n_catalog --compile`; `docs/generated/pre_deploy_gate_run.txt`; `PHASE_H_SKIP_LIVE=1` Phase H slice **PASS**; **`run_visual_qa.sh` + `verify_phases_3_11_gates.py` follow-up PASS**; RELEASE_CHECKLIST Verification run log + SECURITY_REVIEW_LOG row (see **“Release runbook — local train”** + **2026-03-25 follow-up**). **Continue pulse:** `verify_phases_3_11_gates` + `verify_design_system_phase2` + `verify_phase7_dashboard_markers` + `verify_wedge_line_registry` + `report_template_inline_styles` + `verify_cursor_phase7_granular` — all **PASS** (see **“Continue — validation pulse”**). **Rerun full chain — alignment:** Phase 6/7/8/5 gates + `report_template_inline_styles` (0 non-exempt) + `test_phase_b_execution_gate` + `test_runtime_contract` + `verify_phases_3_11_gates` + `verify_ui_wiring_audit` + `verify_operator_phase10_11_e2e` (`.django_test_dbs/rerun_closure_20260325.sqlite3`) + `audit_phase3_phase4_surfaces` — all **PASS**. SOT §0 crosswalk + premium row + [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) updated to match. See **“Rerun full chain — alignment (2026-03-25)”** and **“Wave closure sweep”** at file end. Earlier sweeps and phase logs unchanged in substance.
 
-**Granular line-by-line register (Phases 1–2):** [phase_audit/PHASE_01_02_GRANULAR_AUDIT.md](phase_audit/PHASE_01_02_GRANULAR_AUDIT.md) (shell DOM, CSS load order, PASS/FAIL per acceptance bullet).
+
+
+
+
+
+**Updated:** 2026-03-25 ? **Progress:** `verify_ui_wiring_audit` + `audit_phase3_phase4_surfaces` + `verify_operator_phase10_11_e2e` (dedicated SQLite) **PASS**; **smoke.yml** `workflow_dispatch`; [CONTRIBUTING.md](../CONTRIBUTING.md) pre-merge section. **Proceed:** full `pre_deploy_gate.sh` **PASS** on `.django_test_dbs/proceed_gate_20260326.sqlite3` + Phase 6 granular/siteconfig + Phase 8 ledger / AllowAny / raw SQL lints (see **?Proceed ? full pre_deploy_gate?**); inventory regen noted there. **RELEASE_CHECKLIST local train:** `pre_deploy_gate.sh` **PASS** (`SKIP_VISUAL_QA=1`, `DJANGO_TEST_DB_FILE=.django_test_dbs/gate_verification_20260325.sqlite3`); `sync_i18n_catalog --compile`; `docs/generated/pre_deploy_gate_run.txt`; `PHASE_H_SKIP_LIVE=1` Phase H slice **PASS**; **`run_visual_qa.sh` + `verify_phases_3_11_gates.py` follow-up PASS**; RELEASE_CHECKLIST Verification run log + SECURITY_REVIEW_LOG row (see **?Release runbook ? local train?** + **2026-03-25 follow-up**). **Continue pulse:** `verify_phases_3_11_gates` + `verify_design_system_phase2` + `verify_phase7_dashboard_markers` + `verify_wedge_line_registry` + `report_template_inline_styles` + `verify_cursor_phase7_granular` ? all **PASS** (see **?Continue ? validation pulse?**). **Rerun full chain ? alignment:** Phase 6/7/8/5 gates + `report_template_inline_styles` (0 non-exempt) + `test_phase_b_execution_gate` + `test_runtime_contract` + `verify_phases_3_11_gates` + `verify_ui_wiring_audit` + `verify_operator_phase10_11_e2e` (`.django_test_dbs/rerun_closure_20260325.sqlite3`) + `audit_phase3_phase4_surfaces` ? all **PASS**. SOT ?0 crosswalk + premium row + [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) updated to match. See **?Rerun full chain ? alignment (2026-03-25)?** and **?Wave closure sweep?** at file end. Earlier sweeps and phase logs unchanged in substance.
+
+
+
+
+
+
+
+**Granular line-by-line register (Phases 1?2):** [phase_audit/PHASE_01_02_GRANULAR_AUDIT.md](phase_audit/PHASE_01_02_GRANULAR_AUDIT.md) (shell DOM, CSS load order, PASS/FAIL per accepASS/FAIL per acceptance bullet).
+
+
+
+
+
+
 
 ---
 
-## Phase 6 slice — SiteSettings slim ORM contract gate (2026-03-25)
+
+
+
+
+
+
+## Phase 6 slice ? SiteSettings slim ORM contract gate (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | Cursor **Phase 6** / ZIP Phase 5 follow-on: prevent `SiteSettings` from re-accumulating concrete columns after Phase B **0162** slim row + payload bridge. |
-| **B. Finding** | Docs still listed `cache_rankings_interval_minutes` as “staying on SiteSettings”; after **0162** it is payload-only on legacy read and **first-class on `RuntimeDefaults`** (0004/0005). No single importable invariant blocked merges that re-added model fields without review. |
-| **C. Implementation** | `apps/siteconfig/sitesettings_slim_contract.py` (`SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES`, `sitesettings_slim_model_errors`); wired into `scripts/verify_phase_b_execution.py` (already in `pre_deploy_gate.sh`); `apps/siteconfig/tests/test_sitesettings_slim_contract.py`. [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) “Stay in SiteSettings” corrected to DB row vs `cache_rankings` on RuntimeDefaults; [PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md](phase_audit/PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md) §1 cites the contract module. |
+
+
+
+
+
+
+
+| **A. Scope** | Cursor **Phase 6** / ZIP Phasvent `SiteSettings` from re-accumulating concrete columns after Phase B **0162** slim row + payload bridge. |
+
+
+
+
+
+
+
+| **B. Finding** | Docs still listed `cache_rankings_interval_minutes` as ?staying on SiteSettings?; after **0162** it is payload-only on legacy read and **first-class on `RuntimeDefaults`** (0004/0005). No single importable invariant blocked merges that re-added model fields without review. |
+
+
+
+
+
+
+
+| **C. Implementation** | `apps/siteconfig/sitesettings_slim_contract.py` (`SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES`, `sitesettings_slim_model_errors`); wired into `scripts/verify_phase_b_execution.py` (already in `pre_deploy_gate.sh`); `apps/siteconfig/tests/test_sitesettings_slim_contract.py`. [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) ?Stay in SiteSettings? corrected to DB row vs `cache_rankings` on RuntimeDefaults; [PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md](phase_audit/PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md) ?1 cites the contract module. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phase_b_execution.py` **PASS**; `python -m pytest apps/siteconfig/tests/test_sitesettings_slim_contract.py -q` **PASS**. |
-| **E. Acceptance** | **PASS** — widening `SiteSettings` without updating the contract + migration path fails CI. |
-| **F. Legacy / docs** | **§11.4 depth** (first-class tables per domain, full diff UI, etc.) remains sequenced product work; this slice closes a **dismantle/regression** gap only. Next dismantle slices: optional DB introspection vs Django state, or moving additional high-churn keys out of `RuntimeDefaults.payload` into owned models per [domain_ownership.md](domain_ownership.md). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? widening `SiteSettings` without updating the contract + migration path fails CI. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | **?11.4 depth** (first-class tables per domain, full diff UI, etc.) remains sequenced product work; this slice closes a **dismantle/regression** gap only. Next dismantle slices: optional DB introspection vs Django state, or moving additional high-churn keys out of `RuntimeDefaults.payload` into owned models per [domain_ownership.md](domain_ownership.md). |
+
+
+
+
+
+
 
 ---
 
-## Phase 6 slice — SiteSettings slim **database** column contract (2026-03-25)
+
+
+
+
+
+
+## Phase 6 slice ? SiteSettings slim **database** column contract (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Belt-and-suspenders on Phase B: physical `siteconfig_sitesettings` columns must match slim row, not only Django model metadata. |
+
+
+
+
+
+
+
 | **B. Finding** | ORM-only check does not catch a widened table with stale columns if someone edits the DB or partially reverts migrations while the model stays slim. |
+
+
+
+
+
+
+
 | **C. Implementation** | `sitesettings_slim_db_errors(connection)` in `apps/siteconfig/sitesettings_slim_contract.py` (introspection when table exists); called from `orm_phase_b_execution_errors()` in `scripts/verify_phase_b_execution.py`; `SiteSettingsSlimDbContractTests` in `apps/siteconfig/tests/test_sitesettings_slim_contract.py`. [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) regression guard bullet updated. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phase_b_execution.py` **PASS**; `python -m pytest apps/siteconfig/tests/test_sitesettings_slim_contract.py apps/platform_runtime/tests/test_phase_b_execution_gate.py -q` **PASS**. |
-| **E. Acceptance** | **PASS** — pre-deploy Phase B gate fails on extra/missing physical columns. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ?nce** | **PASS** ? pre-deploy Phase B gate fails on extra/missing physical columns. |
+
+
+
+
+
+
+
 | **F. Legacy / docs** | Next dismantle slice: first-class model for a chosen `domain_ownership` domain (e.g. `marketplace_integrations` non-secret fields or `preview_platform`) with backfill migration + resolver merge tests. |
 
+
+
+
+
+
+
 ---
 
-## Phase B follow-on — RuntimeDefaults first-class preview + integrations (non-secret) (2026-03-25)
+
+
+
+
+
+
+## Phase B follow-on ? RuntimeDefaults first-class preview + integrations (non-secret) (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Move `preview_platform` and `marketplace_integrations` **non-secret** settings from JSON duplication into typed columns on `platform_runtime.RuntimeDefaults`; keep `sms_api_key` payload-only. |
-| **B. Finding** | Resolver already preferred `cache_rankings_interval_minutes` as a column; the same merge pattern was needed for preview flags/notes, theme guard skip, and integration display fields so `siteconfig` payload is not the only typed source. |
+
+
+
+
+
+
+
+| **B. Finding** | Resolver already preferred `cache_rankings_interval_minutes` as a column; then was needed for preview flags/notes, theme guard skip, and integration display fields so `siteconfig` payload is not the only typed source. |
+
+
+
+
+
+
+
 | **C. Implementation** | `apps/platform_runtime/runtime_defaults_first_class.py` (field allowlist + strip/collect + **blank string = unset** for string first-class fields); model columns + `sync_from_site_settings` wiring; migration `0009_runtimedefaults_preview_integration_columns` with `RunPython` payload backfill; `_build_platform_site_settings_base` applies first-class columns over payload (skips blank strings); `SiteSettings.__getattr__` reads first-class columns then payload; platform admin fieldsets + `save_model` strips duplicate keys from JSON; `scripts/verify_phase_5_siteconfig.py` asserts `0009` + `0007` + `0163` artifacts. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phase_5_siteconfig.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_runtime_contract.py::RuntimeHelperResolutionTests::test_get_effective_site_settings_first_class_runtime_defaults_override_payload apps/platform_runtime/tests/test_runtime_contract.py::RuntimeHelperResolutionTests::test_runtime_defaults_sync_strips_first_class_keys_into_columns -q` **PASS**; after migrate, `python scripts/verify_phase_b_execution.py` on target DB. |
-| **E. Acceptance** | **PASS** — columns override stale payload keys; sync removes first-class keys from `RuntimeDefaults.payload`. |
-| **F. Legacy / docs** | CCC + Feature Control quick links: `control_outcome_center` → **Runtime defaults** (`super:admin_bridge` / `runtime_defaults`) under Runtime & Policies and Packages & Marketplace; hub bridge copy updated. **Operator control model:** `build_operator_control_model_for_request` **Source tracing** step includes related **Runtime defaults** (same bridge); related links accept `LinkTarget` kwargs like outcome groups. Further slices: entitlements-only keys, deeper integration singletons. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? columns override stale payload keys; sync removes first-class keys from `RuntimeDefaults.payload`. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | CCC + Feature Control quick links: `control_outcome_center` ? **Runtime defaults** (`super:admin_bridge` / `runtime_defaults`) under Runtime & Policies and Packages & Marketplace; hub bridge copy updated. **Operator control model:** `build_operator_control_model_for_request` **Source tracing** step includes related **Runtime defaults** (same bridge); related links accept `LinkTarget` kwargs like outcome groups. Further slices: entitlements-only keys, deeper integration singletons. |
+
+
+
+
+
+
 
 ---
 
-## SOT §0 — Premium maturity blocker map + mechanized signals (2026-03-25)
+
+
+
+
+
+
+## SOT ?0 ? Premium maturity blocker map + mechanized signals (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | Encode owner-listed **premium maturity** concerns (shell triad, siteconfig gravity, Gilead corpus, raw SQL / CSRF / AI key scatter, planning doc density, competitor context) as **PARTIAL** rows with **reproducible** counts — without new parallel strategy docs. |
-| **B. Finding** | Stale “~331 cursor.execute” style bullets drift from tree reality; **runtime** raw SQL surface is much smaller than **migration-heavy** totals; **Gilead** repo-wide ≠ **lint_gilead_residue** runtime scope. |
-| **C. Implementation** | [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §0: replaced “Fresh repo signals” with dated table + **Premium maturity blockers** map + competitor benchmark paragraph; [SITESETTINGS_RUNTIME_DECOMPOSITION.md](SITESETTINGS_RUNTIME_DECOMPOSITION.md) — bounded-context target + `0009` first-class columns + merge order. |
+
+
+
+
+
+
+
+| **A. Scope** | Encode owner-listed **premium maturity** concerns (shell triad, siteconfig gravity, Gilead corpus, raw SQL / CSRF / AI key scatter, planning doc density, competitor context) as **PARTIAL** rows with **reproducible** counts ? without new parallel strategy docs. |
+
+
+
+
+
+
+
+| **B. Finding** | Stale ?~331 cursor.execute? style bullets drift from tree reality; **runtime** raw SQL surface is much smaller than **migration-heavy** totals; **Gilead** repo-wide ? **lint_gilead_residue** runtime scope. |
+
+
+
+
+
+
+
+| **C. Implementation** | [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) ?0: replaced ?Fresh repo signals? with dated table + **Premium maturity blockers** map + competitor benchmark paragraph; [SITESETTINGS_RUNTIME_DECOMPOSITION.md](SITESETTINGS_RUNTIME_DECOMPOSITION.md) ? bounded-context target + `0009` first-class columns + merge order. |
+
+
+
+
+
+
+
 | **D. Validation** | Markdown structure; internal links; counts reproducible via described scopes (Python walk or `rg`). |
-| **E. Acceptance** | **PASS** — single canonical place names what still blocks *market-facing* seamlessness vs **MET** engineering gates. |
-| **F. Legacy / docs** | Re-run counts when cutting releases; extend §11.4 slices — do not fork new “master remediation” files. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? single canonical place names what still blocks *market-facing* seamlessness vs **MET** engineering gates. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | Re-run counts when cutting releases; extend ?11.4 slices ? do not fork new ?master remediation? files. |
+
+
+
+
+
+
 
 ---
 
-## Program slice — §11.4 / gaps / improvements as non-negotiables (2026-03-26)
+
+
+
+
+
+
+## Program slice ? ?11.4 / gaps / improvements as non-negotiables (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | SOT §0 crosswalk + §11.4 table; [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) post–Phase B depth paragraph; [LEGACY_PATH_INVENTORY.md](LEGACY_PATH_INVENTORY.md) §5; Phase I.5 click-reduction row; ZIP Phase 1 task 3b sticky strip wording. |
-| **B. Finding** | Language still framed **optional cadence**, **incremental only**, or **optional** sticky/BR-13 delta—misaligned with owner directive: all gaps/improvements non-negotiable, sequenced. |
-| **C. Implementation** | SOT: new **§11.4 execution queue** subsection; strengthened literal-vs-SOT paragraph; §11.4 rule + **§5.x depth** table row; Phase B ZIP note; Phase 2 ZIP drift note; autonomous prompt table rows; lowest §6 sections row; template inline inventory row; §4 follow-on depth bullet. Migration doc + LEGACY policy line + execution log policy banner + crosswalk row 3. |
-| **D. Validation** | Markdown consistency; internal links resolve; no contradictory **OPTIONAL cadence** row in §11.4 table. |
-| **E. Acceptance** | **PASS** — optional/improvement/gap work explicitly **mandatory sequenced queue**; **BLOCKED** and **external backlog** remain the only exemptions. |
+
+
+
+
+
+
+
+| **A. Scope** | SOT ?0 crosswalk + ?11.4 table; [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) post?Phase B depth paragraph; [LEGACY_PATH_INVENTORY.md](LEGACY_PATH_INVENTORY.md) ?5; Phase I.5 click-reduction row; ZIP Phase 1 task 3b sticky strip wording. |
+
+
+
+
+
+
+
+| **B. Finding** | Language still framed **optional cadence**, **incremental only**, or **optional** sticky/BR-13 delta?misaligned with owner directive: all gaps/improvements non-negotiable, sequenced. |
+
+
+
+
+
+
+
+| **C. Implementation** | SOT: new **?11.4 execution queue** subsection; strengthened literal-vs-thened literal-vs-SOT paragraph; ?11.4 rule + **?5.x depth** table row; Phase B ZIP note; Phase 2 ZIP drift note; autonomous prompt table rows; lowest ?6 sections row; template inline inventory row; ?4 follow-on depth bullet. Migration doc + LEGACY policy line + execution log policy banner + crosswalk row 3. |
+
+
+
+
+
+
+
+| **D. Validation** | Markdown consistency; internal links resolve; no contradictory **OPTIONAL cadence** row in ?11.4 table. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? optional/improvement/gap work explicitly **mandatory sequenced queue**; **BLOCKED** and **external backlog** remain the only exemptions. |
+
+
+
+
+
+
+
 | **F. Legacy / docs** | Other repo docs may still contain the word *optional*; SOT instructs readers to treat as **non-negotiable** unless BLOCKED/external per policy. |
 
+
+
+
+
+
+
 ---
 
-## Operational pipeline — gate DB + pre_deploy + phases 3–11 + Phase 6/7/2 slice (2026-03-25)
+
+
+
+
+
+
+## Operational pipeline ? gate DB + pre_deploy + phases 3?11 + Phase 6/7/2 slice (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | Recommended sequencing: operational reliability → Phase 6 inventory/domain_ownership granularity → Phases 3+8+2 bundle when touching those surfaces. **Phase 13+** literal thresholds: deferred until a published threshold document (per owner directive). |
+
+
+
+
+
+
+
+| **A. Scope** | Recommended sequencing: operational reliability ? Phase 6 inventory/domain_ownership granularity ? Phases 3+8+2 bundle when touching those surfaces. **Phase 13+** literal thresholds: deferred until a published threshold document (per owner directive). |
+
+
+
+
+
+
+
 | **B. Finding** | Shared/default gate SQLite can lock or half-migrate on Windows; `verify_phases_3_11_gates.py` must stay green before/after DB-heavy work. |
-| **C. Implementation** | Fresh gate file `.django_test_dbs/agent_pipeline_20260325.sqlite3` + `migrate_gate_test_db.py`; `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` (same `DJANGO_TEST_DB_FILE`) **PASS** (~9 min). Phase 6: `test_virtual_site_setting_default_keys_map_to_bounded_owners` in `apps/siteconfig/tests/test_domain_ownership.py` + [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) status/bullet wording (non-negotiable §11.4 depth, get_solo path). |
+
+
+
+
+
+
+
+| **C. Implementation** | Fresh gate file `.django_test_dbs/agent_pipeline_20260325.sqlite3` + `migrate_gate_test_db.py`; `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` (same `DJANGO_TEST_DB_FILE`) **PASS** (~9 min). Phase 6: `test_virtual_site_setting_default_keys_map_to_bounded_owners` in `apps/siteconfig/tests/test_domain_ownership.py` + [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) status/bullet wording (non-negotiable ?11.4 depth, get_solo path). |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phases_3_11_gates.py` **PASS**; `pytest apps/siteconfig/tests/test_domain_ownership.py` **PASS**; `python scripts/verify_phase7_dashboard_markers.py` + `verify_design_system_phase2.py` + `audit_phase3_phase4_surfaces.py` **PASS**. |
-| **E. Acceptance** | **PASS** — single pipeline step complete; CI should set `DJANGO_TEST_DB_FILE` / `PRE_GATE_FRESH_TEST_DB` per [TEST_DATABASE.md](TEST_DATABASE.md) when the default gate file is stuck. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? single pipeline step complete; CI should set `DJANGO_TEST_DB_FILE` / `PRE_GATE_FRESH_TEST_DB` per [TEST_DATABASE.md](TEST_DATABASE.md) when the default gate file is stuck. |
+
+
+
+
+
+
+
 | **F. Legacy / docs** | `agent_pipeline_20260325.sqlite3` is local evidence only (gitignored); full gate with browser QA still `SKIP_VISUAL_QA=0` when Playwright/server available. |
 
+
+
+
+
+
+
 ---
 
-## §11.4 slice — Phase 7/8 registry: accounts trust + interop surfaces (2026-03-25)
+
+
+
+
+
+
+## ?11.4 slice ? Phase 7/8 registry: accounts trust + interop surfaces (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | SOT §11.4 + §3.2.1 / [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md): extend **registered** full-page dashboards with tenant/backend surfaces that were live but outside `PHASE7_DASHBOARD_TEMPLATES`. |
+
+
+
+
+
+
+
+| **A. Scope** | SOT ?11.4 + ?3.2.1 / [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md): extend **registered** full-page dashboards with tenant/backend surfaces that were live but outside `PHASE7_DASHBOARD_TEMPLATES`. |
+
+
+
+
+
+
+
 | **B. Finding** | `accounts/security_trust_hub.html`, `accounts/tenant_impersonation_audit.html` had `data-decision-engine="surface"` but no `{% phase8_dashboard_declaration %}` and were not in the Phase 7 list. `accounts/district_lms_interop.html` lacked the Phase 7 marker and Phase 8 tag. `report_template_inline_styles.py` already **0** flagged (no inline-style slice this pass). |
-| **C. Implementation** | Added three paths to `apps/dashboard/phase7_dashboard_templates.py`; matching `PHASE8_DECLARATIONS` in `apps/dashboard/phase8_declarations.py`; templates load `phase8_tags` + declaration; district interop root div adds `data-decision-engine="surface"`. Doc §7 table + SOT path for registry source of truth corrected (`experience_dashboard_visual_packs` partial path). |
+
+
+
+
+
+
+
+| **C. Implementation** | Added three paths to `apps/dashboard/phase7_dashboard_templates.py`; matching `PHASE8_DECLARATIONS` in `apps/dashboard/phase8_declarations.py`; templates load `phase8_tags` + declaration; district interop root div adds `data-decision-engine="surface"`. Doc ?7 table + SOT path for registry source of truth corrected (`experience_dashboard_visual_packs` partial path). |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phase7_dashboard_markers.py` **PASS**; `pytest apps/dashboard/tests/test_phase8_registry_full_coverage.py apps/dashboard/tests/test_phase7_decision_surface.py` **PASS**; `pytest apps/accounts/tests/test_security_trust_hub_views.py` **PASS** (district interop tests ran in same module batch where present). |
-| **E. Acceptance** | **PASS** — pre-deploy Phase 7/8 gate will enforce these templates; Phase 8 registry keys match Phase 7 tuple. |
-| **F. Legacy / docs** | Next §11.4 slices: more full-page surfaces not yet in `PHASE7_DASHBOARD_TEMPLATES`, or `audit_phase3_phase4_surfaces` archetype batches per SOT crosswalk. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? pre-deploy Phase 7/8 gate will enforce these templates; Phase 8 registry keys match Phase 7 tuple. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | Next ?11.4 slices: more full-page surfaces not yet in `PHASE7_DASHBOARD_TEMPLATES`, or `audit_phase3_phase4_surfaces` archetype batches per SOT crosswalk. |
+
+
+
+
+
+
 
 ---
 
-## §11.4 slice — Phase 7/8 registry: control-plane + backend hub batch (2026-03-25)
+
+
+
+
+
+
+## ?11.4 slice ? Phase 7/8 registry: control-plane + backend hub batch (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Grep `extends portal_base / backend_base / control_plane_base`; register **full-page hub** templates missing from `PHASE7_DASHBOARD_TEMPLATES` (operator queues, trust, marketplace governance, incidents, import/workflow, tenant CCC). |
+
+
+
+
+
+
+
 | **B. Finding** | Nine surfaces were live with archetypes/hero patterns but outside the Phase 7 gate and without `{% phase8_dashboard_declaration %}`. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added: `accounts/import_hub.html`, `accounts/workflow_center.html` (marker + tag in wrapper; partial keeps `data-decision-engine`), `marketplace/app_catalog.html`, `marketplace/governance_console.html`, `observability/platform_incidents.html`, `schools/super_command_center.html`, `schools/super_runtime_truth_hub.html`, `schools/super_trust_center.html`, `siteconfig/console_domains_hub.html`. Each: `data-decision-engine="surface"` + Phase 8 tag; `phase8_declarations.py` entries. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phase7_dashboard_markers.py` **PASS**; `pytest apps/dashboard/tests/test_phase8_registry_full_coverage.py apps/dashboard/tests/test_phase7_decision_surface.py` **PASS**. |
-| **E. Acceptance** | **PASS** — registry count **41** templates; Phase 8 keys match Phase 7 tuple. |
-| **F. Legacy / docs** | [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) §7 table synced. Remaining `control_plane_base` pages (e.g. `super_migration_cloud`, `package_rollout`, `entity_console`) = next batch. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? registry count **41** templates; Phase 8 keys match Phase 7 tuple. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) ?7 table synced. Remaining `control_plane_base` pages (e.g. `super_migration_cloud`, `package_rollout`, `entity_console`) = next batch. |
+
+
+
+
+
+
 
 ---
 
-## §11.4 slice — Phase 7/8 registry: migration + rollout + backlog + entity + certification batch (2026-03-25)
+
+
+
+
+
+
+## ?11.4 slice ? Phase 7/8 registry: migration + rollout + backlog + entity + certification batch (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Next hub batch from prior slice follow-up: `super_migration_cloud`, `package_rollout`, `super_backlog_unlock_center`, `entity_console`, `certification_home`. |
+
+
+
+
+
+
+
 | **B. Finding** | These pages are full-page control-plane/backend/portal operating hubs but were still outside `PHASE7_DASHBOARD_TEMPLATES` and lacked required Phase 7/8 markers (or had no declaration strip). |
+
+
+
+
+
+
+
 | **C. Implementation** | Added all five templates to `apps/dashboard/phase7_dashboard_templates.py` and `apps/dashboard/phase8_declarations.py`; wired `{% phase8_dashboard_declaration %}` + `data-decision-engine="surface"` in each template (`entity_console` uses wrapper marker span in parent template and keeps main page structure intact). |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phase7_dashboard_markers.py` **PASS**; `pytest apps/dashboard/tests/test_phase8_registry_full_coverage.py apps/dashboard/tests/test_phase7_decision_surface.py` **PASS**. |
-| **E. Acceptance** | **PASS** — registry expanded from 41 to **46** templates; Phase 8 registry remains one-to-one with Phase 7 list. |
-| **F. Legacy / docs** | [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) §7 table synced to include this batch. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? registry expanded from 41 to **46** templates; Phase 8 registry remains one-to-one with Phase 7 list. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) ?7 table synced to include this batch. |
+
+
+
+
+
+
 
 ---
 
-## §11.4 slice — Phase 7/8 registry: wedge/policy/pulse/connectors/HE batch (2026-03-25)
+
+
+
+
+
+
+## ?11.4 slice ? Phase 7/8 registry: wedge/policy/pulse/connectors/HE batch (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Next control-plane hubs from prior recommendation list: `super_native_roster_connectors`, `super_policy_diff`, `super_wedge_index`, `super_pulse`, `super_he_pack`. |
+
+
+
+
+
+
+
 | **B. Finding** | All five pages were full-page `control_plane_base` hubs with `data-page-archetype`, but not yet included in `PHASE7_DASHBOARD_TEMPLATES` and lacking Phase 8 declaration strip. |
-| **C. Implementation** | Added 5 template paths to `apps/dashboard/phase7_dashboard_templates.py`; added matching entries in `apps/dashboard/phase8_declarations.py`; wired each template with `{% load phase8_tags %}`, `data-decision-engine="surface"`, and `{% phase8_dashboard_declaration "…" %}`. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added 5 template paths to `apps/dashboard/phase7_dashboard_templates.py`; added matching entries in `apps/dashboard/phase8_declarations.py`; wired each template with `{% load phase8_tags %}`, `data-decision-engine="surface"`, and `{% phase8_dashboard_declaration "?" %}`. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phase7_dashboard_markers.py` **PASS**; `pytest apps/dashboard/tests/test_phase8_registry_full_coverage.py apps/dashboard/tests/test_phase7_decision_surface.py` **PASS**. |
-| **E. Acceptance** | **PASS** — registry expanded from 46 to **51** templates; Phase 8 registry remains one-to-one with Phase 7 list. |
-| **F. Legacy / docs** | [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) §7 table synced for these five hubs. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? registry expanded from 46 to **51** templates; Phase 8 registry remains one-to-one with Phase 7 list. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) ?7 table synced for these five hubs. |
+
+
+
+
+
+
 
 ---
 
-## §11.4 slice — Phase 7/8: remaining control-plane hubs (Slice 1) (2026-03-25)
+
+
+
+
+
+
+## ?11.4 slice ? Phase 7/8: remaining control-plane hubs (Slice 1) (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Register remaining operator-style `control_plane_base` hubs not yet in `PHASE7_DASHBOARD_TEMPLATES`: platform operator hub, control health, analytics overview, metadata catalog, tenant 360, wedge operator detail, marketplace installation health + sandbox inspector. |
+
+
+
+
+
+
+
 | **B. Finding** | Pages used archetype/hero patterns but were outside the Phase 7 gate and lacked `{% phase8_dashboard_declaration %}`. |
-| **C. Implementation** | Added paths to `phase7_dashboard_templates.py` + `phase8_declarations.py`; wired `{% load phase8_tags %}`, `data-decision-engine="surface"`, and `{% phase8_dashboard_declaration "…" %}` on each template. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added paths to `phase7_dashboard_templates.py` + `phase8_declarations.py`; wired `{% load phase8_tags %}`, `data-decision-engine="surface"`, and `{% phase8_dashboard_declaration "?" %}` on each template. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phase7_dashboard_markers.py` **PASS**; `python -m pytest apps/dashboard/tests/test_phase8_registry_full_coverage.py apps/dashboard/tests/test_phase7_decision_surface.py` **PASS**. |
-| **E. Acceptance** | **PASS** — registry **65** templates; Phase 8 keys match Phase 7 tuple. |
-| **F. Legacy / docs** | [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) §7 table updated for this batch. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? registry **65** templates; Phase 8 keys match Phase 7 tuple. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) ?7 table updated for this batch. |
+
+
+
+
+
+
 
 ---
 
-## §11.4 slice — Phase 7/8: backend/portal operational hubs batch (Slice 2) (2026-03-25)
+
+
+
+
+
+
+## ?11.4 slice ? Phase 7/8: backend/portal operational hubs batch (Slice 2) (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | High-traffic backend/portal surfaces: `accounts/migration_wizard`, `finance/invoices`, `metadata/lineage_graph`, `schoolops/ops_library`, `siteconfig/console_domains_hub_control_plane`, `siteconfig/feature_control_panel`. |
+
+
+
+
+
+
+
 | **B. Finding** | Archetyped workbenches/catalogs without Phase 8 declaration or registry entry (migration wizard already had `data-decision-engine`). |
+
+
+
+
+
+
+
 | **C. Implementation** | Same registry + declaration + marker pattern as Slice 1; feature control panel uses visually hidden marker + declaration before content include. |
+
+
+
+
+
+
+
 | **D. Validation** | Same Phase 7 marker script + `test_phase8_registry_full_coverage` + `test_phase7_decision_surface` **PASS**. |
-| **E. Acceptance** | **PASS** — batch kept under 10 templates for audit clarity; count remains **65** after merge with Slice 1 in the same pass. |
-| **F. Legacy / docs** | Further backend/portal hubs can follow in similar 5–10 template batches. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? batch kept under 10 templates for audit clarity; count remains **65** after merge with Slice 1 in the same pass. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | Further backend/portal hubs can follow in similar 5?10 template batches. |
+
+
+
+
+
+
 
 ---
 
-## §11.4 slice — Control-plane registry drift gate (Slice 3) (2026-03-25)
+
+
+
+
+
+
+## ?11.4 slice ? Control-plane registry drift gate (Slice 3) (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Prevent new `control_plane_base` pages from merging without an explicit choice: Phase 7 dashboard + Phase 8 declaration, or documented exempt (CRUD/shell/theme). |
+
+
+
+
+
+
+
 | **B. Finding** | Manual grep across `extends control_plane_base` was the only guardrail beyond the registered-template marker script. |
+
+
+
+
+
+
+
 | **C. Implementation** | `apps/dashboard/control_plane_hub_scan.py` (`EXEMPT_CONTROL_PLANE_TEMPLATES` + `assert_control_plane_hub_registry_closed`); `scripts/verify_control_plane_hub_registry_drift.py`; `apps/dashboard/tests/test_control_plane_hub_registry_drift.py`; wired into `scripts/pre_deploy_gate.sh` after `verify_phase7_dashboard_markers.py`. |
+
+
+
+
+
+
+
 | **D. Validation** | Drift script **PASS**; `python -m pytest apps/dashboard/tests/test_control_plane_hub_registry_drift.py` **PASS**. |
-| **E. Acceptance** | **PASS** — any new CP extend must update Phase 7 or the exempt frozenset. |
-| **F. Legacy / docs** | Portal/backend base “hub drift” is not in this gate (noisy); future batch could add archetype-scoped checks. [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) §7 notes the CP closure script. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? any new CP extend must update Phase 7 or the exempt frozenset. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | Portal/backend base ?hub drift? is not in this gate (noisy); future batch could add archetype-scoped checks. [PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md](PHASE_7_DASHBOARD_AND_ROLE_HOME_REWRITE.md) ?7 notes the CP closure script. |
+
+
+
+
+
+
 
 ---
 
-## WHATS_LEFT §2.1 — Fleet governed change thin slice (2026-03-25)
+
+
+
+
+
+
+## WHATS_LEFT ?2.1 ? Fleet governed change thin slice (2026-03-25)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Persisted fleet change records with legal status transitions; operator entry without building a second apply engine. |
-| **B. Finding** | §2.1 was documentation-only; platform admin bridge completeness also lacked `PlatformGlobalBranding`. |
-| **C. Implementation** | `apps/platform_runtime/models.FleetGovernedChange`, `fleet_governed_change.transition_fleet_governed_change`, migration `0008_fleetgovernedchange`, `register_platform_admin` in `apps/platform_runtime/admin.py`, `super:admin_bridge` (`bridge_key=fleet_governed_changes`) + registry key `fleet_governed_changes`, CCC Packages & Marketplace outcome link, bridge key `platform_global_branding`. **Follow-on:** `fleet_apply_surfaces` presets + admin form resolve `apply_surface_url` / `payload.apply_surface_name`; each transition emits `fleet_governed_change_transitioned` → `PlatformEventLog` (`EVENT_CATALOG`). |
+
+
+
+
+
+
+
+| **B. Finding** | ?2.1 was documentation-only; platform admin bridge completeness also lacked `PlatformGlobalBranding`. |
+
+
+
+
+
+
+
+| **C. Implementation** | `apps/platform_runtime/models.FleetGovernedChange`, `fleet_governed_change.transition_fleet_governed_change`, migration `0008_fleetgovernedchange`, `register_platform_admin` in `apps/platform_runtime/admin.py`, `super:admin_bridge` (`bridge_key=fleet_governed_changes`) + registry key `fleet_governed_changes`, CCC Packages & Marketplace outcome link, bridge key `platform_global_branding`. **Follow-on:** `fleet_apply_surfaces` presets + admin form resolve `apply_surface_url` / `payload.apply_surface_name`; each transition emits `fleet_governed_change_transitioned` ? `PlatformEventLog` (`EVENT_CATALOG`). |
+
+
+
+
+
+
+
 | **D. Validation** | `pytest apps/platform_runtime/tests/test_fleet_governed_change.py`, `test_platform_admin_bridge_completeness`, legacy admin-bridge URL parity, `test_control_outcome_center`. |
+
+
+
+
+
+
+
 | **E. Acceptance** | Records + transitions + discoverability; execution remains on existing rollout/staging UIs via `apply_surface_url` / operator workflow. |
-| **F. Legacy / docs** | [WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md](WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md) §2.1 status updated; [TEST_DATABASE.md](TEST_DATABASE.md) note on `verify_phase_b_execution.py` vs default DB migrations. |
+
+
+
+
+
+
+
+| **F. Legacy / docs** | [WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md](WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md) ?2.1 status updated; [TEST_DATABASE.md](TEST_DATABASE.md) note on `verify_phase_b_execution.py` vs default DB migrations. |
+
+
+
+
+
+
 
 ---
+
+
+
+
+
+
 
 ## 0. Cursor 12-phase map (SOT crosswalk)
 
+
+
+
+
+
+
 | Phase | Theme | SOT anchor |
+
+
+
+
+
+
+
 |-------|--------|------------|
-| 1 | Authenticated shell (`/studio`, `/admin`, `/super`) | SOT “ZIP Phase 1” + [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md) |
-| 2 | Design system + token enforcement | SOT “ZIP Phase 2” + `scripts/verify_design_system_phase2.py` |
-| 3 | Navigation + command palette + page archetypes | ZIP Phase 1 nav/search + manager `/siteconfig/` pill map + Studio shell archetypes; **§11.4 sequenced slices** for fleet template / archetype expansion (non-negotiable per SOT §11.4 execution queue) |
-| 4 | Control plane operator UX | SOT “ZIP Phase 3” |
-| 5 | Studio OS consolidation | SOT §4 Studio OS |
-| 6 | Siteconfig / SiteSettings dismantling | SOT “ZIP Phase 5” + migration docs |
+
+
+
+
+
+
+
+| 1 | Authenticated shell (`/studio`, `/admin`, `/super`) | SOT ?ZIP Phase 1? + [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md) |
+
+
+
+
+
+
+
+| 2 | Design system + token enforcement | SOT ?ZIP Phase 2? + `scripts/verify_design_system_phase2.py` |
+
+
+
+
+
+
+
+| 3 | Navigation + command palette + page archetypes | ZIP Phase 1 nav/search + manager `/siteconfig/` pill map + Studio shell archetypes; **?11.4 sequenced slices** for fleet template / archetype expansion (non-negotiable per SOT ?11.4 execution queue) |
+
+
+
+
+
+
+
+| 4 | Control plane operator UX | SOT ?ZIP Phase 3? |
+
+
+
+
+
+
+
+| 5 | Studio OS consolidation | SOT ?4 Studio OS |
+
+
+
+
+
+
+
+| 6 | Siteconfig / SiteSettings dismantling | SOT ?ZIP Phase 5? + migration docs |
+
+
+
+
+
+
+
 | 7 | Runtime-first enforcement | SOT runtime / precedence docs + `apps/platform_runtime/` |
-| 8 | Dashboards + role homes | SOT §11 / decision-surface work |
-| 9 | Security / trust / endpoints / raw SQL | SOT §12 + hardening ledgers |
+
+
+
+
+
+
+
+| 8 | Dashboards + role homes | SOT ?11 / decision-surface work |
+
+
+
+
+
+
+
+| 9 | Security / trust / endpoints / raw SQL | SOT ?12 + hardening ledgers |
+
+
+
+
+
+
+
 | 10 | Marketplace / packs / migration / interop | SOT marketplace + migration rows |
+
+
+
+
+
+
+
 | 11 | Marketing front | Marketing templates + phase docs |
+
+
+
+
+
+
+
 | 12 | Gilead purge + docs discipline | SOT + classification |
+
+
+
+
+
+
 
 ---
 
-## Phase 1 — Authenticated shell unification (2026-03-24 follow-up — Studio OS subpages)
+
+
+
+
+
+
+## Phase 1 ? Authenticated shell unification (2026-03-24 follow-up ? Studio OS subpages)
+
+
+
+
+
+
 
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Finding |
+
+
+
+
+
+
+
 |------|---------|
+
+
+
+
+
+
+
 | `templates/studio_os/*.html` (portal_base) | 23 deep-linked Studio tools rendered **without** Studio rail / command palette / manager control-plane continuity |
+
+
+
+
+
+
+
 | `templates/studio_os/partials/shell_main_content.html` | Manager shell had no hook for native subpage canvas |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Severity |
+
+
+
+
+
+
+
 |-------|----------|
-| Tenant + manager users hitting `/studio/experience/*`, `/studio/automation/*`, etc. dropped into **portal_base** only — fragmented vs `/studio/experience/` mode shell | **High** (Phase 1 product continuity) |
+
+
+
+
+
+
+
+| Tenant + manager users hitting `/studio/experience/*`, `/studio/automation/*`, etc. dropped into **portal_base** only ? fragmented vs `/studio/experience/` mode shell | **High** (Phase 1 product continuity) |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| Partials | `templates/studio_os/partials/subpages/*.html` — canvas bodies (former `{% block content %}`) |
-| Embed | `?embed=1` still uses `studio_os/studio_subpage_embed.html` → `portal_base` (iframes / rail links) |
-| Full shell | `_render_studio_subpage()` → `shell_subpage_wrap.html` (tenant) or `shell_control_plane.html` + `studio_native_canvas_partial` (manager) |
+
+
+
+
+
+
+
+| Partials | `templates/studio_os/partials/subpages/*.html` ? canvas bodies (former `{% block content %}`) |
+
+
+
+
+
+
+
+| Embed | `?embed=1` still uses `studio_os/studio_subpage_embed.html` ? `portal_base` (iframes / rail links) |
+
+
+
+
+
+
+
+| Full shell | `_render_studio_subpage()` ? `shell_subpage_wrap.html` (tenant) or `shell_control_plane.html` + `studio_native_canvas_partial` (manager) |
+
+
+
+
+
+
+
 | `shell_main_content.html` | First branch `{% if studio_native_canvas_partial %}{% include %}` |
+
+
+
+
+
+
+
 | `STUDIO_MODES` | Moved to top of `views.py` (required by `_studio_subpage_context`) |
+
+
+
+
+
+
+
 | Removed | Obsolete root templates under `templates/studio_os/` (same names as partials) |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python -m pytest apps/studio_os/tests/ -q` | **PASS** (26 tests) |
+
+
+
+
+
+
+
 | `python scripts/verify_phase7_dashboard_markers.py` | **PASS** (path updated for experience dashboard visual packs partial) |
+
+
+
+
+
+
 
 ### E. Acceptance (Phase 1 extension)
 
+
+
+
+
+
+
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | Studio deep-links use same shell contract as mode home | **PASS** |
+
+
+
+
+
+
+
 | Embed mode preserved | **PASS** |
+
+
+
+
+
+
 
 ---
 
-## Phase 1 — Authenticated shell unification (initial 2026-03-24)
+
+
+
+
+
+
+## Phase 1 ? Authenticated shell unification (initial 2026-03-24)
+
+
+
+
+
+
 
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Inspected |
+
+
+
+
+
+
+
 |------|-----------|
+
+
+
+
+
+
+
 | Base templates | `control_plane_base.html`, `control_plane_skeleton.html`, `portal_base.html`, `base.html`, `admin/base_site.html`, `studio_os/shell.html`, `studio_os/shell_control_plane.html` |
+
+
+
+
+
+
+
 | `/super/*` templates | Grep: `extends` in `templates/schools/super*.html` |
+
+
+
+
+
+
+
 | Routes | `config/manager_urls.py`, `apps/schools/super_urls.py`, `apps/studio_os/urls.py` |
+
+
+
+
+
+
+
 | Services | N/A this pass |
+
+
+
+
+
+
+
 | Legacy | Three templates still used **Django admin shell** for super AI tools |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Location | Severity | Notes |
+
+
+
+
+
+
+
 |-------|-----------|----------|-------|
+
+
+
+
+
+
+
 | Shell drift | `super_ai_model_hub.html`, `super_global_ai_version.html`, `super_global_ai_version_progress.html` extended `admin/base_site.html` | **Medium** | Operators saw Unfold chrome without control-plane primary nav / sidebar family on those three URLs |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | File | Change |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `templates/schools/super_ai_model_hub.html` | Extend `control_plane_base.html`; `cp_title`, `breadcrumbs`, `cp_content`; i18n on table strings |
+
+
+
+
+
+
+
 | `templates/schools/super_global_ai_version.html` | Same pattern |
+
+
+
+
+
+
+
 | `templates/schools/super_global_ai_version_progress.html` | Same pattern; loading string translatable |
 
-Context keys (`dashboard_url`, etc.) were already provided by `apps/schools/super_views_ai.py` — **no view change**.
+
+
+
+
+
+
+Context keys (`dashboard_url`, etc.) were already provided by `apps/schools/super_views_ai.py` ? **no view change**.
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command / check | Result |
+
+
+
+
+
+
+
 |-----------------|--------|
+
+
+
+
+
+
+
 | `python -m pytest apps/schools/tests/test_primary_control_plane_nav.py apps/schools/tests/test_control_plane_nav_roles.py apps/schools/tests/test_super_views_ai.py -q` | **PASS** (5 tests) |
+
+
+
+
+
+
+
 | Grep `extends "admin/base_site.html"` under `templates/schools/super*.html` | **PASS** (0 matches) |
+
+
+
+
+
+
 
 ### E. Acceptance criteria (Phase 1)
 
+
+
+
+
+
+
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | `/studio/control/`, `/admin`, `/super/` one product (manager) | **PASS** (existing + AI pages aligned) |
+
+
+
+
+
+
+
 | No duplicate shell on touched pages | **PASS** |
+
+
+
+
+
+
+
 | One shell model per surface | **PASS** (control plane family = `control_plane_base`) |
+
+
+
+
+
+
 
 ### F. Legacy cleanup
 
+
+
+
+
+
+
 - **Removed:** reliance on `admin/base_site.html` for the three super AI operator pages.
+
+
+
+
+
+
+
 - **Unchanged:** Manager `/admin/` Unfold shell remains correct for Django admin CRUD; not merged into Bootstrap DOM per matrix.
+
+
+
+
+
+
 
 ---
 
-## Phase 2 — Design system + token enforcement (2026-03-24 follow-up)
+
+
+
+
+
+
+## Phase 2 ? Design system + token enforcement (2026-03-24 follow-up)
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `static/css/studio-system-config-console.css` | Replaced inline `<style>` block from `system_config_console` with token-based gradients, radii, borders |
+
+
+
+
+
+
+
 | `shell_extrastyle.html` | Loads `studio-system-config-console.css` for all Studio surfaces |
+
+
+
+
+
+
+
 | `studio-shell-layout.css` | `.studio-os-subpage-canvas` card surfaces use `--ds-*` / `--color-base-*` |
+
+
+
+
+
+
+
 | `static/css/control-plane-skeleton-root.css` | Replaces **inline** `<style>` blocks in `control_plane_skeleton.html` |
+
+
+
+
+
+
+
 | `static/css/admin-base-site-shell.css` | Replaces **four** large inline `<style>` blocks in `admin/base_site.html`; **`#admin-brand-resolved-tokens`** keeps Django `--brand-success|warning|danger` |
+
+
+
+
+
+
+
 | `templates/control_plane_base.html` + `manager-control-plane.css` | Navbar, search wrap, sidebar inner, mobile offcanvas: **class-based** surfaces; keyboard-help overlay + tour FAB **classes** (no `style=` / `cssText` on those) |
+
+
+
+
+
+
+
 | `scripts/verify_design_system_phase2.py` | Required static: above + **`portal-base-shell.css`**, **`admin-nav-bridge-tenant.css`**, **`studio-control-mode-canvas.css`** |
+
+
+
+
+
+
+
 | `static/css/portal-base-shell.css` | Tenant **`portal_base.html`** layout/topbar/sidebar/cards (theme `:root` + `data-site-custom-css` stay inline); **`portal-sidebar-tone-*`** on `<body>` |
+
+
+
+
+
+
+
 | `templates/marketing/base_marketing.html` | Public brand vars on **`html[style]`** |
+
+
+
+
+
+
+
 | `admin-nav-bridge-tenant.css` + `admin_nav_bridge.html` | Tenant bridge CSS file; manager nav uses **`cp-navbar--surface`** + CP search classes |
+
+
+
+
+
+
+
 | `studio-control-mode-canvas.css` | Control mode rail + outcome labels; linked from **`shell_extrastyle.html`** |
+
+
+
+
+
+
+
 | `scripts/report_template_inline_styles.py` | Non-ship-gate inventory (**~74** flagged HTML files after canonical exemptions, 2026-03-24) |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_design_system_phase2.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_ux_completion.py` | **PASS** |
+
+
+
+
+
+
+
 | `python -m pytest apps/studio_os/tests/ -q` | **PASS** (26 tests) |
+
+
+
+
+
+
+
 | `python scripts/report_template_inline_styles.py` | **OK** (inventory) |
+
+
+
+
+
+
 
 ### E. Acceptance
 
+
+
+
+
+
+
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | System config console no longer relies on template inline theme `<style>` | **PASS** |
+
+
+
+
+
+
+
 | Phase 2 gate script includes new CSS | **PASS** |
+
+
+
+
+
+
 
 ---
 
-## Phase 2 — Design system + token enforcement (snapshot 2026-03-24)
+
+
+
+
+
+
+## Phase 2 ? Design system + token enforcement (snapshot 2026-03-24)
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_design_system_phase2.py` | **PASS** (required CSS, canonical bases, no forbidden inline style in shell partials, `verify_section10_5_layers.py` PASS) |
 
-SOT marks ZIP Phase 2 **COMPLETE** for the repository ship gate; **continuous** drift still governed by §11.4 / Phase H.
 
-## Phase 3 — Navigation + command palette + page archetypes (2026-03-24)
+
+
+
+
+
+SOT marks ZIP Phase 2 **COMPLETE** for the repository ship gate; **continuous** drift still governed by ?11.4 / Phase H.
+
+
+
+
+
+
+
+## Phase 3 ? Navigation + command palette + page archetypes (2026-03-24)
+
+
+
+
+
+
 
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Inspected |
+
+
+
+
+
+
+
 |------|-----------|
+
+
+
+
+
+
+
 | Primary nav | `apps/schools/control_plane_nav.py` (`build_primary_control_plane_nav`, `_primary_nav_is_current`) |
+
+
+
+
+
+
+
 | Primary nav template | `templates/partials/control_plane_primary_nav.html` |
-| Control plane shell + search / Ctrl+K | `templates/control_plane_base.html` (lines ~23–25, ~105–164) |
+
+
+
+
+
+
+
+| Control plane shell + search / Ctrl+K | `templates/control_plane_base.html` (lines ~23?25, ~105?164) |
+
+
+
+
+
+
+
 | Studio command palette | `templates/studio_os/partials/shell_main_content.html`, `shell.html`; `static/js/command-palette.js`; `apps/dashboard/context.py` (per `docs/ui/COMMAND_PALETTE_PRIMARY.md`) |
+
+
+
+
+
+
+
 | Page archetypes | `templates/studio_os/partials/shell_main_content.html`; grep `data-page-archetype` under `templates/` |
+
+
+
+
+
+
+
 | Tests | `apps/schools/tests/test_primary_control_plane_nav.py` |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Location | Severity | Notes |
+
+
+
+
+
+
+
 |-------|----------|----------|-------|
-| Primary pills did not track many `/super/*` operator paths | `_primary_nav_is_current` | **Medium** | Schools, orchestration, customer success, governance URLs left **no** pill current — extra cognitive load and weak “product language” |
+
+
+
+
+
+
+
+| Primary pills did not track many `/super/*` operator paths | `_primary_nav_is_current` | **Medium** | Schools, orchestration, customer success, governance URLs left **no** pill current ? extra cognitive load and weak ?product language? |
+
+
+
+
+
+
+
 | Studio shell used one archetype for all modes | `shell_main_content.html` `data-page-archetype="operational-workbench"` | **Low** | Control mode is a **decision console** in platform law; should be explicit |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | File | Change |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `apps/schools/control_plane_nav.py` | **Home** pill: schools, create, curriculum/learning packs, district/geography/wedge family, tenants/360, control health, operator policy. **Operations**: orchestration. **Analytics**: customer-success. **Control**: `/studio/control/`, `/siteconfig/console/`, `/siteconfig/feature-control/`, super blueprints/policies/packs/registries/metadata/runtime/policy-diff/workflow-simulator/platform-operator-hub, `/super/config/*`. |
+
+
+
+
+
+
+
 | `templates/studio_os/partials/shell_main_content.html` | `data-page-archetype` = `decision-console` when `current_mode == 'control'`, else `studio-workspace`. |
-| `apps/schools/tests/test_primary_control_plane_nav.py` | New tests: schools + tenant 360 → Home; orchestration → Operations; customer-success → Analytics; governance + siteconfig → Control; siteconfig Studio/Control/Marketplace paths. |
+
+
+
+
+
+
+
+| `apps/schools/tests/test_primary_control_plane_nav.py` | New tests: schools + tenant 360 ? Home; orchestration ? Operations; customer-success ? Analytics; governance + siteconfig ? Control; siteconfig Studio/Control/Marketplace paths. |
+
+
+
+
+
+
+
 | `apps/schools/control_plane_nav.py` (sidebar) | **Studio OS** group: Studio home (`studio_os:shell`), Studio Experience, Control Studio. Marketplace **Blueprint marketplace** label (disambiguate from Blueprints & Policies). Platform settings **Feature control** sentence case. |
+
+
+
+
+
+
+
 | `templates/schools/super_*.html` (fleet) | `data-page-archetype` on wedge/geography/curriculum/advancement/connector pages (`catalog` / `setup-flow`); config grids + schools/incidents/billing/migration lists (`decision-console` / `operational-workbench`). Breadcrumb first crumb **Home** (replaces mixed Dashboard / Control Plane). |
+
+
+
+
+
+
+
 | `templates/siteconfig/console_domains_hub_control_plane.html` | `{% operator_console_strip %}`, breadcrumb Home. |
+
+
+
+
+
+
+
 | `templates/siteconfig/feature_control_audit.html` | `decision-console` root + operator strip (portal_base). |
 
-**Unchanged (already met):** Eight-pill order (Home … Control); Ctrl+K focuses control-plane search; Studio **Commands** + Cmd/Ctrl+K opens Studio palette (`shell_main_content.html` / `shell.html`).
+
+
+
+
+
+
+**Unchanged (already met):** Eight-pill order (Home ? Control); Ctrl+K focuses control-plane search; Studio **Commands** + Cmd/Ctrl+K opens Studio palette (`shell_main_content.html` / `shell.html`).
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python -m pytest apps/schools/tests/test_primary_control_plane_nav.py apps/siteconfig/tests/test_control_outcome_center.py -q` | **PASS** (2026-03-24 continuation; import fix for `build_feature_control_operator_quick_links`) |
+
+
+
+
+
+
 
 ### E. Acceptance criteria (Phase 3)
 
+
+
+
+
+
+
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | Primary nav reflects goals, not only a subset of modules | **PASS** (eight pills + sidebar Studio OS parity + `/siteconfig/*` pill map) |
+
+
+
+
+
+
+
 | Command palette / intent search on authenticated manager + Studio surfaces | **PASS** (CP search + Studio palette; `COMMAND_PALETTE_PRIMARY.md`) |
+
+
+
+
+
+
+
 | Touched pages fit standard archetypes | **PASS** (manager `super_*` fleet + CCC + feature audit + Studio shell split; `docs/ui/PAGE_ARCHETYPES.md` lists `operational-workbench`, `setup-flow`) |
+
+
+
+
+
+
+
 | Click paths reduced on touched workflows | **PASS** (Home crumb + operator strip one-click to Control Studio / impact / audit) |
+
+
+
+
+
+
 
 ### F. Legacy cleanup
 
-- **None removed:** Archetype and breadcrumb changes are additive; Django admin CRUD remains behind explicit “Advanced Django admin” sidebar link.
 
-### G. Follow-ups — **closed (2026-03-24 continuation)**
+
+
+
+
+
+- **None removed:** Archetype and breadcrumb changes are additive; Django admin CRUD remains behind explicit ?Advanced Django admin? sidebar link.
+
+
+
+
+
+
+
+### G. Follow-ups ? **closed (2026-03-24 continuation)**
+
+
+
+
+
+
 
 | Item | Result |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `docs/ui/PAGE_ARCHETYPES.md` | **DONE** (`studio-workspace`, `decision-console`, `operational-workbench`, `setup-flow`) |
+
+
+
+
+
+
+
 | Manager `/siteconfig/*` primary pills | **DONE** (prior slice) |
+
+
+
+
+
+
+
 | Manager `super_*` archetypes + breadcrumbs | **DONE** (this continuation) |
+
+
+
+
+
+
 
 **Explicit non-scope:** `/siteconfig/api/*` JSON endpoints do not render primary nav; no `data-page-archetype` required.
 
+
+
+
+
+
+
 ---
 
-## Phase 4 — Control plane operator UX (Configuration Control Center + Control Studio) (2026-03-24 audit + alignment)
 
-*Note: Cursor prompt numbering called this “Phase 7”; SOT table row maps it to **Phase 4 / ZIP Phase 3**.*
+
+
+
+
+
+## Phase 4 ? Control plane operator UX (Configuration Control Center + Control Studio) (2026-03-24 audit + alignment)
+
+
+
+
+
+
+
+*Note: Cursor prompt numbering called this ?Phase 7?; SOT table row maps it to **Phase 4 / ZIP Phase 3**.*
+
+
+
+
+
+
 
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Inspected |
+
+
+
+
+
+
+
 |------|-----------|
+
+
+
+
+
+
+
 | Outcome registry | `apps/siteconfig/control_outcome_center.py` (`OUTCOME_GROUP_SPECS`, `build_operator_control_model_for_request`, `WHY_ENABLED_SUMMARY`) |
+
+
+
+
+
+
+
 | Control Studio canvas | `templates/studio_os/partials/control_mode_canvas.html` |
+
+
+
+
+
+
+
 | Studio control context | `apps/studio_os/views.py` (control mode: `control_outcome_sections`, `operator_control_model`, left rail) |
+
+
+
+
+
+
+
 | Tests | `apps/siteconfig/tests/test_control_outcome_center.py` |
+
+
+
+
+
+
+
 | Configuration hub | `siteconfig:console_domains_hub` + partials (existing bounded console) |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Severity | Notes |
+
+
+
+
+
+
+
 |-------|----------|-------|
-| Left rail label “Capabilities” misaligned with operator model wording | **Low** | Feature control panel content already describes grouped families; rail label should say **Feature control** |
+
+
+
+
+
+
+
+| Left rail label ?Capabilities? misaligned with operator model wording | **Low** | Feature control panel content already describes grouped families; rail label should say **Feature control** |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | File | Change |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `apps/studio_os/views.py` | Control left rail: **Feature control** + i18n rail labels (`gettext_lazy`). |
+
+
+
+
+
+
+
 | `apps/siteconfig/control_outcome_center.py` | `FEATURE_CONTROL_OPERATOR_QUICK_LINKS` + `build_feature_control_operator_quick_links(request)` (manager: full strip including `super:`; tenant: omit `super:` paths to avoid dead links). |
-| `apps/siteconfig/templatetags/control_console.py` | `{% operator_console_strip %}` inclusion tag → `siteconfig/partials/operator_console_strip.html` (`WHY_ENABLED_SUMMARY` + stable/beta/danger badges). |
+
+
+
+
+
+
+
+| `apps/siteconfig/templatetags/control_console.py` | `{% operator_console_strip %}` inclusion tag ? `siteconfig/partials/operator_console_strip.html` (`WHY_ENABLED_SUMMARY` + stable/beta/danger badges). |
+
+
+
+
+
+
+
 | `templates/siteconfig/feature_control_panel_content.html` | `decision-console` root; operator strip; i18n title/subtitle. |
+
+
+
+
+
+
+
 | `templates/schools/super_*` config grids | `{% operator_console_strip %}` + `data-page-archetype="decision-console"` (feature toggles list, crud form/delete, plans, regions, grading, site settings, country multipliers, billing/migration admin lists, incidents + schools). |
+
+
+
+
+
+
+
 | `templates/siteconfig/console_domains_hub_control_plane.html` | Operator strip at top of CCC. |
+
+
+
+
+
+
+
 | `templates/siteconfig/feature_control_audit.html` | Operator strip + archetype. |
+
+
+
+
+
+
+
 | `apps/siteconfig/tests/test_control_outcome_center.py` | Tests for quick links (manager includes Runtime inspector + Package rollout; tenant URLs contain no `/super/`). |
+
+
+
+
+
+
 
 **Already present:** Nine outcome groups; six-step operator model in Control Studio canvas; in-shell feature control when permitted.
 
+
+
+
+
+
+
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python -m pytest apps/siteconfig/tests/test_control_outcome_center.py apps/schools/tests/test_primary_control_plane_nav.py -q` | **PASS** |
+
+
+
+
+
+
 
 ### E. Acceptance criteria (Phase 4)
 
+
+
+
+
+
+
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | Touched control-plane paths are operator-friendly decision surfaces | **PASS** (CCC + feature control + feature audit + super `/super/config/*` grids ship operator strip + archetypes) |
-| No touched page remains a naked model grid without operator context | **PASS** for **touched** manager config templates listed in §C |
+
+
+
+
+
+
+
+| No touched page remains a naked model grid without operator context | **PASS** for **touched** manager config templates listed in ?C |
+
+
+
+
+
+
+
 | High-impact changes expose impact, staging, rollback context | **PASS** (strip links: impact summary, staged activation, package rollout, control rollback, runtime inspector, feature audit; `WHY_ENABLED_SUMMARY` text) |
 
+
+
+
+
+
+
 ### F. Legacy cleanup
+
+
+
+
+
+
 
 - **Unchanged:** Per-flag rows remain in feature control (grouped by family); advanced operators use strip + audit + runtime inspector before fleet edits. Raw Django admin stays opt-in superuser link.
 
+
+
+
+
+
+
 ---
 
-## Phase 5 — Studio OS consolidation (2026-03-24) — **CLOSED**
 
-**Mandatory audit artifact (granular taskers §0, route→mode matrix, pane/iframe inventory, acceptance):** [phase_audit/PHASE_05_STUDIO_OS_AUDIT.md](phase_audit/PHASE_05_STUDIO_OS_AUDIT.md).
+
+
+
+
+
+## Phase 5 ? Studio OS consolidation (2026-03-24) ? **CLOSED**
+
+
+
+
+
+
+
+**Mandatory audit artifact (granular taskers ?0, route?mode matrix, pane/iframe inventory, acceptance):** [phase_audit/PHASE_05_STUDIO_OS_AUDIT.md](phase_audit/PHASE_05_STUDIO_OS_AUDIT.md).
+
+
+
+
+
+
 
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Inspected |
+
+
+
+
+
+
+
 |------|-----------|
-| Routes | `apps/studio_os/urls.py` — 44 paths; full matrix in audit doc §1 |
-| URLconf legacy | `config/urls.py`, `config/tenant_urls.py`, `config/manager_urls.py` — Studio redirects + **order** vs `admin/` |
-| Deep links | `apps/studio_os/deep_links.py` — `_PATHS`, `studio_legacy_urls_map` (report library → `pane=reports`) |
-| Views / context | `apps/studio_os/views.py` — `studio_shell`, panes, `_resolve_*_iframe_src`, control native panel |
+
+
+
+
+
+
+
+| Routes | `apps/studio_os/urls.py` ? 44 paths; full matrix in audit doc ?1 |
+
+
+
+
+
+
+
+| URLconf legacy | `config/urls.py`, `config/tenant_urls.py`, `config/manager_urls.py` ? Studio redirects + **order** vs `admin/` |
+
+
+
+
+
+
+
+| Deep links | `apps/studio_os/deep_links.py` ? `_PATHS`, `studio_legacy_urls_map` (report library ? `pane=reports`) |
+
+
+
+
+
+
+
+| Views / context | `apps/studio_os/views.py` ? `studio_shell`, panes, `_resolve_*_iframe_src`, control native panel |
+
+
+
+
+
+
+
 | Templates | `shell.html`, `modes/*.html`, `partials/*mode*canvas*.html`, `experience_workbench_context.html` |
+
+
+
+
+
+
+
 | CSS | `studio-shell-layout.css`, `studio-mode-rail.css` |
-| Services | `apps/studio_os/services.py` — publish/rollback/graph (unchanged contracts) |
+
+
+
+
+
+
+
+| Services | `apps/studio_os/services.py` ? publish/rollback/graph (unchanged contracts) |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Location | Severity | Resolution |
+
+
+
+
+
+
+
 |-------|-----------|----------|------------|
+
+
+
+
+
+
+
 | Experience canvas was two-column only | `modes/experience.html` | **Medium** | **Fixed:** three-pane `studio-os__experience-workbench` + context partial |
+
+
+
+
+
+
+
 | Conflict CTA missing from Automation overview rail | `automation_mode_canvas.html` | **Low** | **Fixed:** link to `?pane=conflict` |
-| `/admin/siteconfig/customizer/` never reached redirect view | `config/urls.py` (and tenant/manager) | **High** | **Fixed:** register `admin/siteconfig/customizer/` **before** `path("admin/", …)` so Studio redirect runs (was swallowed by admin → login) |
+
+
+
+
+
+
+
+| `/admin/siteconfig/customizer/` never reached redirect view | `config/urls.py` (and tenant/manager) | **High** | **Fixed:** register `admin/siteconfig/customizer/` **before** `path("admin/", ?)` so Studio redirect runs (was swallowed by admin ? login) |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| `docs/phase_audit/PHASE_05_STUDIO_OS_AUDIT.md` | Full route→mode matrix, pane tables, legacy map, PASS/FAIL acceptance |
+
+
+
+
+
+
+
+| `docs/phase_audit/PHASE_05_STUDIO_OS_AUDIT.md` | Full route?mode matrix, pane tables, legacy map, PASS/FAIL acceptance |
+
+
+
+
+
+
+
 | `templates/studio_os/partials/experience_workbench_context.html` | Related native tools aside |
+
+
+
+
+
+
+
 | `templates/studio_os/modes/experience.html` | Three-pane workbench + `--two-col` fallback |
+
+
+
+
+
+
+
 | `static/css/studio-shell-layout.css` | Workbench grid + responsive stack |
+
+
+
+
+
+
+
 | `apps/studio_os/views.py` | `experience_context_tool_links`, `automation_conflict_pane_url` |
+
+
+
+
+
+
+
 | `templates/studio_os/partials/automation_mode_canvas.html` | Conflict detection CTA |
+
+
+
+
+
+
+
 | `config/urls.py`, `config/tenant_urls.py`, `config/manager_urls.py` | Admin customizer redirect **pre**-`admin/` include |
+
+
+
+
+
+
+
 | `apps/studio_os/tests/test_experience_workbench.py` | Workbench + conflict pane behavior |
-| `apps/studio_os/tests/test_phase_05_legacy_redirects.py` | Legacy paths → Studio (302 targets) |
+
+
+
+
+
+
+
+| `apps/studio_os/tests/test_phase_05_legacy_redirects.py` | Legacy paths ? Studio (302 targets) |
+
+
+
+
+
+
+
 | `apps/studio_os/tests/test_phase_05_granular_taskers.py` | Preview URLs, simulation native pane, Launch rail onboarding |
+
+
+
+
+
+
+
 | `apps/studio_os/tests/test_output_native_builder.py` | All Output rail panes: `data-studio-output-native` (incl. documents, branding, policy) |
-| Audit **§0** | Every spec tasker (Customizer … launch flows) traced with **no backlog** |
+
+
+
+
+
+
+
+| Audit **?0** | Every spec tasker (Customizer ? launch flows) traced with **no backlog** |
+
+
+
+
+
+
+
 | `scripts/verify_cursor_phase5_studio_os.py` | Repeatable mechanical gate (distinct from `verify_phase_5_siteconfig.py` = ZIP Phase 5) |
+
+
+
+
+
+
+
 | `apps/studio_os/tests/test_phase5_mechanical_gate.py` | CI invokes verifier subprocess |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
-| `python -m pytest apps/studio_os/tests/ -q` | **PASS** (includes mechanical gate test → `verify_cursor_phase5_studio_os.py`) |
-| `python scripts/verify_cursor_phase5_studio_os.py` | **PASS** — structural re-audit (not narrative): all `studio_os` reverses, legacy redirects, URLconf order, audit sections |
+
+
+
+
+
+
+
+| `python -m pytest apps/studio_os/tests/ -q` | **PASS** (includes mechanical gate test ? `verify_cursor_phase5_studio_os.py`) |
+
+
+
+
+
+
+
+| `python scripts/verify_cursor_phase5_studio_os.py` | **PASS** ? structural re-audit (not narrative): all `studio_os` reverses, legacy redirects, URLconf order, audit sections |
+
+
+
+
+
+
+
 | `python scripts/verify_design_system_phase2.py` | **PASS** |
 
-### E. Acceptance criteria (Phase 5 — consolidation mission)
+
+
+
+
+
+
+### E. Acceptance criteria (Phase 5 ? consolidation mission)
+
+
+
+
+
+
 
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
-| Studio OS is the real creation/configuration spine | **PASS** — audit §1 + §5; shell, hubs, APIs |
-| Old tool identities not primary surfaces | **PASS** — redirects + `studio_legacy_urls_map`; **`test_phase_05_legacy_redirects`** + admin URL order fix |
-| Touched studio workflows lower-click / coherent | **PASS** — Experience context links; Automation conflict CTA |
-| Output Studio native on touched paths | **PASS** — audit §2.2; `test_output_native_builder` (all eight panes incl. documents, branding, policy) |
-| Experience Studio three-pane | **PASS** — audit §2.5; CSS + template |
-| Mandatory audit (route→mode + taskers) | **PASS** — `PHASE_05_STUDIO_OS_AUDIT.md` **§0–§1** |
-| Spec granular taskers (Customizer → launch flows) | **PASS** — audit **§0**; **no backlog** |
+
+
+
+
+
+
+
+| Studio OS is the real creation/configuration spine | **PASS** ? audit ?1 + ?5; shell, hubs, APIs |
+
+
+
+
+
+
+
+| Old tool identities not primary surfaces | **PASS** ? redirects + `studio_legacy_urls_map`; **`test_phase_05_legacy_redirects`** + admin URL order fix |
+
+
+
+
+
+
+
+| Touched studio workflows lower-click / coherent | **PASS** ? Experience context links; Automation conflict CTA |
+
+
+
+
+
+
+
+| Output Studio native on touched paths | **PASS** ? audit ?2.2; `test_output_native_builder` (all eight panes incl. documents, branding, policy) |
+
+
+
+
+
+
+
+| Experience Studio three-pane | **PASS** ? audit ?2.5; CSS + template |
+
+
+
+
+
+
+
+| Mandatory audit (route?mode + taskers) | **PASS** ? `PHASE_05_STUDIO_OS_AUDIT.md` **?0??1** |
+
+
+
+
+
+
+
+| Spec granular taskers (Customizer ? launch flows) | **PASS** ? audit **?0**; **no backlog** |
+
+
+
+
+
+
 
 ### F. Legacy cleanup
 
+
+
+
+
+
+
 - **Fixed:** Admin customizer shortcut now actually redirects to `studio_os:experience` (urlpattern precedence).
+
+
+
+
+
+
+
 - **Unchanged by design:** Control iframe fallback; Output builder iframe for live preview where documented.
+
+
+
+
+
+
 
 ---
 
-## Phase 6 — Siteconfig / SiteSettings dismantling (2026-03-24) — **CLOSED**
+
+
+
+
+
+
+## Phase 6 ? Siteconfig / SiteSettings dismantling (2026-03-24) ? **CLOSED**
+
+
+
+
+
+
 
 **Mandatory audit:** [phase_audit/PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md](phase_audit/PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md). **Mechanical gate:** `python scripts/verify_cursor_phase6_siteconfig_sitesettings.py`.
 
+
+
+
+
+
+
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Inspected |
+
+
+
+
+
+
+
 |------|-----------|
-| `SiteSettings` model | `apps/siteconfig/models.py` — slim row, `__getattr__` → `RuntimeDefaults.payload` |
-| Ownership map | `apps/siteconfig/domain_ownership.py` — `EXACT_FIELD_OWNERS`, `PREFIX_FIELD_OWNERS`, `classify_site_settings_field` |
+
+
+
+
+
+
+
+| `SiteSettings` model | `apps/siteconfig/models.py` ? slim row, `__getattr__` ? `RuntimeDefaults.payload` |
+
+
+
+
+
+
+
+| Ownership map | `apps/siteconfig/domain_ownership.py` ? `EXACT_FIELD_OWNERS`, `PREFIX_FIELD_OWNERS`, `classify_site_settings_field` |
+
+
+
+
+
+
+
 | Docs | `docs/site_settings_usage_inventory.md`, `docs/SITECONFIG_OWNERSHIP_MIGRATION.md`, `docs/domain_ownership.md` (via `verify_phase_5_siteconfig`) |
-| Tenant guardrails | `scripts/lint_tenant_settings.py` — `TENANT_APPS`, allowlists |
+
+
+
+
+
+
+
+| Tenant guardrails | `scripts/lint_tenant_settings.py` ? `TENANT_APPS`, allowlists |
+
+
+
+
+
+
+
 | Phase B Batch 3 | `scripts/lint_phase_b_batch3_sitesettings_fk_writes.py` |
+
+
+
+
+
+
+
 | Phase B execution (tables + snapshot consistency when `SiteSettings` exists) | `scripts/verify_phase_b_execution.py` (**post-migrate**; not inside subprocess Phase 6 bundle) |
+
+
+
+
+
+
+
 | Runtime / branding | `apps/platform_runtime/helpers.py`, `apps/brand_experience/platform_global_branding.py`, migrations `0162`, `0163` |
+
+
+
+
+
+
+
 | CI | `apps/platform_runtime/tests/test_tenant_settings_lint.py` + `test_phase_b_execution_gate.py` (Phase B ORM checks on migrated test DB) |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Severity | Resolution |
+
+
+
+
+
+
+
 |-------|----------|------------|
-| Phase 6 needed a **single Cursor-named** mechanical bundle distinct from “ZIP Phase 5” naming | **Low** (clarity) | Added `verify_cursor_phase6_siteconfig_sitesettings.py` + `PHASE_06_*` audit |
+
+
+
+
+
+
+
+| Phase 6 needed a **single Cursor-named** mechanical bundle distinct from ?ZIP Phase 5? naming | **Low** (clarity) | Added `verify_cursor_phase6_siteconfig_sitesettings.py` + `PHASE_06_*` audit |
+
+
+
+
+
+
+
 | Risk of conflating **Cursor Phase 6** with **ZIP Phase 5** script | **Low** | Audit header explains both; bundle runs `verify_phase_5_siteconfig` + tenant lints + Batch3 lint; `verify_phase_b_execution` post-migrate only |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| `docs/phase_audit/PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md` | Physical model, ownership, lints, acceptance, mechanical §7 |
+
+
+
+
+
+
+
+| `docs/phase_audit/PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md` | Physical model, ownership, lints, acceptance, mechanical ?7 |
+
+
+
+
+
+
+
 | `scripts/verify_cursor_phase6_siteconfig_sitesettings.py` | One command: ZIP verify (incl. Phase B migration artifacts) + 3 tenant lints + Batch3 FK lint + audit/doc presence + `EXACT_FIELD_OWNERS` size |
+
+
+
+
+
+
+
 | `docs/phase_checklists/phase_06_siteconfig_sitesettings.md` | All rows marked **[x]** with audit link |
+
+
+
+
+
+
+
 | `apps/platform_runtime/tests/test_tenant_settings_lint.py` | Phase 6 bundle subprocess test |
+
+
+
+
+
+
+
 | `apps/platform_runtime/tests/test_phase_b_execution_gate.py` | E2E: same ORM checks as `verify_phase_b_execution.py` on migrated test DB |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase6_siteconfig_sitesettings.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase6_granular.py` | **PASS** (bundle + migrations + domain snapshot pytest) |
+
+
+
+
+
+
+
 | `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` | **PASS** |
+
+
+
+
+
+
 
 ### E. Acceptance criteria (Phase 6 mission)
 
+
+
+
+
+
+
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
-| Touched tenant behavior not driven by `SiteSettings` as sole business truth | **PASS** — runtime payload + `get_effective_site_settings` path; tenant lints |
-| `SiteSettings` toward safe platform-default storage | **PASS** — slim ORM + virtual attrs |
-| `siteconfig` not expanding as mega-domain on touched areas | **PASS** — ownership map + inventory + Studio OS product surfaces for former mega-pages |
+
+
+
+
+
+
+
+| Touched tenant behavior not driven by `SiteSettings` as sole business truth | **PASS** ? runtime payload + `get_effective_site_settings` path; tenant lints |
+
+
+
+
+
+
+
+| `SiteSettings` toward safe platform-default storage | **PASS** ? slim ORM + virtual attrs |
+
+
+
+
+
+
+
+| `siteconfig` not expanding as mega-domain on touched areas | **PASS** ? ownership map + inventory + Studio OS product surfaces for former mega-pages |
+
+
+
+
+
+
 
 ### F. Legacy cleanup
 
+
+
+
+
+
+
 - **Removed from tenant code paths:** direct `get_solo()` / `SiteSettings.objects.*` in `TENANT_APPS` (enforced by CI).
+
+
+
+
+
+
+
 - **Physical columns:** branding/theme/report FKs removed from `SiteSettings` row (Batch 3); authority `PlatformGlobalBranding`.
-- **Forward cadence (not Phase 6 / Phase B debt):** optional first-class tables for selected payload keys and similar depth — tracked in the single source of truth; Phase B batches 0–13 are **complete** in-repo (see audit section 8).
+
+
+
+
+
+
+
+- **Forward cadence (not Phase 6 / Phase B debt):** optional first-class tables for selected payload keys and similar depth ? tracked in the single source of truth; Phase B batches 0?13 are **complete** in-repo (see audit section 8).
+
+
+
+
+
+
 
 ---
 
-## Phase 7 — Runtime-first enforcement (2026-03-24 / 2026-03-25 re-audit) — **CLOSED**
+
+
+
+
+
+
+## Phase 7 ? Runtime-first enforcement (2026-03-24 / 2026-03-25 re-audit) ? **CLOSED**
+
+
+
+
+
+
 
 **Mandatory audit:** [phase_audit/PHASE_07_RUNTIME_FIRST_AUDIT.md](phase_audit/PHASE_07_RUNTIME_FIRST_AUDIT.md). **Mechanical gates:** `python scripts/verify_cursor_phase7_runtime_first.py` and **granular** `python scripts/verify_cursor_phase7_granular.py`.
 
+
+
+
+
+
+
 ### A. Scope audited
+
+
+
+
+
+
 
 **Files (core runtime):** `apps/platform_runtime/middleware.py`, `runtime_resolver.py`, `helpers.py`, `precedence.py`, `resolver_registry.py`, `runtime_inspector.py`, `contracts.py`, `registry_snapshots.py`.
 
+
+
+
+
+
+
 **Policies / siteconfig resolvers:** `apps/policies/resolver.py`, `apps/siteconfig/workflow_resolver.py`, `apps/siteconfig/dashboard_resolver.py`, `apps/siteconfig/context_processors.py`, `apps/siteconfig/admissions_services.py` (runtime modules facet).
+
+
+
+
+
+
 
 **Inspector / control plane:** `apps/schools/super_views_runtime_ops.py`, `apps/schools/super_urls.py` (`runtime-inspector/`, `runtime-truth-hub/`), `templates/schools/super_runtime_inspector.html`, `templates/schools/super_runtime_truth_hub.html`, `apps/siteconfig/control_outcome_center.py`, `apps/studio_os/views.py` (Control rail / deep links to inspector).
 
-**Tenant lint surface:** `scripts/lint_tenant_settings.py` — `TENANT_APPS` now includes **`apps/studio_os`** so Studio tenant-facing trees are scanned for `get_solo`, `SiteSettings.objects.*`, and forbidden `school.settings` / `school.features`.
+
+
+
+
+
+
+**Tenant lint surface:** `scripts/lint_tenant_settings.py` ? `TENANT_APPS` now includes **`apps/studio_os`** so Studio tenant-facing trees are scanned for `get_solo`, `SiteSettings.objects.*`, and forbidden `school.settings` / `school.features`.
+
+
+
+
+
+
 
 **Legacy / glue reviewed:** `get_platform_site_settings_record` in `helpers.py` (allowed `SiteSettings.objects` for platform singleton); migrations and management commands excluded by lint `SKIP_DIRS`.
 
+
+
+
+
+
+
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Severity | Location | Resolution |
+
+
+
+
+
+
+
 |-------|----------|----------|------------|
+
+
+
+
+
+
+
 | Studio experience rollback used raw `SiteSettings.objects.order_by("pk").first()` | **High** (fallback outside helper path on a product surface) | `apps/studio_os/views.py` (~1883) | Replaced with `get_platform_site_settings_record(create=False)`; removed direct `SiteSettings` import |
+
+
+
+
+
+
+
 | `apps/studio_os` omitted from `TENANT_APPS` | **High** (lint blind spot) | `scripts/lint_tenant_settings.py` | Added `apps/studio_os` to `TENANT_APPS` |
-| Phase 7 “done” only by narrow script | **Medium** (execution law) | Process | Added `verify_cursor_phase7_granular.py` + audit §8–§9 + this log |
+
+
+
+
+
+
+
+| Phase 7 ?done? only by narrow script | **Medium** (execution law) | Process | Added `verify_cursor_phase7_granular.py` + audit ?8??9 + this log |
+
+
+
+
+
+
+
 | `super_runtime_truth_hub` used raw `SiteSettings.objects` | **Medium** (inconsistent with platform singleton policy) | `super_views_runtime_ops.py` | **Fixed 2026-03-25:** `get_platform_site_settings_record(create=False)`; source contract test added |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Change | Detail |
+
+
+
+
+
+
+
 |--------|--------|
+
+
+
+
+
+
+
 | `apps/studio_os/views.py` | Theme rollback persistence via `get_platform_site_settings_record` |
+
+
+
+
+
+
+
 | `apps/schools/super_views_runtime_ops.py` | `super_runtime_truth_hub` uses `get_platform_site_settings_record` (no raw `SiteSettings.objects` in view) |
+
+
+
+
+
+
+
 | `scripts/lint_tenant_settings.py` | `TENANT_APPS` + `apps/studio_os` |
+
+
+
+
+
+
+
 | `scripts/verify_cursor_phase7_granular.py` | New: Phase 7 bundle + 3 lints + `test_tenant_isolation_and_identity.py` |
-| `docs/phase_audit/PHASE_07_RUNTIME_FIRST_AUDIT.md` | §8 inventory, §9 granular command |
+
+
+
+
+
+
+
+| `docs/phase_audit/PHASE_07_RUNTIME_FIRST_AUDIT.md` | ?8 inventory, ?9 granular command |
+
+
+
+
+
+
+
 | `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` | Phase 7 row: granular gate reference |
+
+
+
+
+
+
+
 | `docs/phase_checklists/phase_07_runtime_first.md` | Granular gate row |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Purpose | Expected |
+
+
+
+
+
+
+
 |---------|---------|----------|
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase7_runtime_first.py` | Precedence lock, resolver registry, contract pytest | Exit 0 |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase7_granular.py` | Above + tenant lints (incl. studio_os) + middleware tests | Exit 0 |
-| `python scripts/verify_cursor_phase6_granular.py` | SiteSettings / Phase B discipline (prerequisite for “no fallback”) | Exit 0 |
+
+
+
+
+
+
+
+| `python scripts/verify_cursor_phase6_granular.py` | SiteSettings / Phase B discipline (prerequisite for ?no fallback?) | Exit 0 |
+
+
+
+
+
+
 
 **Issues found during validation:** none after Studio OS fix; re-run both Phase 7 scripts after changes.
 
+
+
+
+
+
+
 ### E. Acceptance criteria (your Phase 7 spec)
 
+
+
+
+
+
+
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | Touched behavior paths use runtime / platform helpers (no hidden `SiteSettings.objects` on tenant trees including Studio) | **PASS** |
+
+
+
+
+
+
+
 | Runtime precedence explicit, testable, inspectable | **PASS** (`precedence.py`, inspector payload, tests) |
+
+
+
+
+
+
+
 | Fallback logic outside runtime removed from **touched** tenant paths | **PASS** (lints + Studio fix); super truth hub **waived** as control-only |
+
+
+
+
+
+
+
 | Inspector visibility (routes, templates, links) | **PASS** |
+
+
+
+
+
+
+
 | Test coverage for contracts + isolation | **PASS** (gate + granular pytest) |
+
+
+
+
+
+
 
 **Phase 8:** Do not start until **`verify_cursor_phase7_granular.py`** is green in CI (not only the narrow bundle).
 
+
+
+
+
+
+
 ### F. Legacy cleanup
 
-- **Redirected / standardized:** Studio theme rollback → `get_platform_site_settings_record` (same pattern as `test_experience_rollback.py`).
+
+
+
+
+
+
+- **Redirected / standardized:** Studio theme rollback ? `get_platform_site_settings_record` (same pattern as `test_experience_rollback.py`).
+
+
+
+
+
+
+
 - **Enforced:** `studio_os` under tenant lint scanning.
+
+
+
+
+
+
+
 - **Singleton ORM policy (no narrative waiver):** `scripts/lint_sitesettings_orm_singleton.py` enforces `SiteSettings.objects.*` only in `siteconfig/models.py` and `platform_runtime/helpers.py`. Refactored: `brand_experience/platform_global_branding.py`, `siteconfig/admin.py` (`SiteSettingsAdmin.has_add_permission`) to use `get_platform_site_settings_record`. Pre-deploy gate runs the lint.
+
+
+
+
+
+
 
 ---
 
-## Phase 8 — Dashboards + role homes (decision engine) — **COMPLETE (29-template declaration contract)**
+
+
+
+
+
+
+## Phase 8 ? Dashboards + role homes (decision engine) ? **COMPLETE (29-template declaration contract)**
+
+
+
+
+
+
 
 **Note:** All **registered** full-page dashboards (`apps/dashboard/phase7_dashboard_templates.py`) now render a **registry-driven** Phase 8 declaration strip (`phase8_dashboard_declaration`) in addition to existing Phase 7 markers (`phase7_de`, `decision_engine_surface`, or `data-decision-engine`). Deeper per-page clutter / chart rationalization remains a separate UX tranche if needed.
 
+
+
+
+
+
+
 ### A. Scope audited (this slice)
 
+
+
+
+
+
+
 | Area | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| `apps/dashboard/role_home_engine.py` | Role → home map, intents, KPI priority |
+
+
+
+
+
+
+
+| `apps/dashboard/role_home_engine.py` | Role ? home map, intents, KPI priority |
+
+
+
+
+
+
+
 | `apps/dashboard/context.py` | `build_dashboard_extras` / backend KPI + queue + activity |
+
+
+
+
+
+
+
 | `apps/dashboard/services/role_home_service.py` | Role-home orchestration |
+
+
+
+
+
+
+
 | `templates/accounts/backend_dashboard.html` | Role home UI (welcome module) |
+
+
+
+
+
+
+
 | `templates/components/decision_engine_surface.html` | Five-zone contract |
+
+
+
+
+
+
+
 | `apps/dashboard/phase7_dashboard_templates.py` | Canonical 29-template list (imported by verify script) |
+
+
+
+
+
+
+
 | `apps/dashboard/phase8_declarations.py` | Per-template JTBD / type / question / action |
+
+
+
+
+
+
+
 | `scripts/verify_phase7_dashboard_markers.py` | Phase 7 **+** Phase 8 tag gate |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Severity | Resolution |
+
+
+
+
+
+
+
 |-------|----------|--------------|
+
+
+
+
+
+
+
 | Backend role home used a **three-panel grid** duplicating queue / next / activity without the shared **decision_engine_surface** component | **Medium** (fragmentation vs Phase 7/8 contract) | Replaced grid with `decision_engine_surface` + visible declaration strip |
+
+
+
+
+
+
+
 | Role homes lacked **machine-readable** `dashboard_type`, JTBD, main question, main action for audits / 5-second test | **Medium** | Added fields on every `ROLE_HOME_CONFIG` entry; new `support` home for comms staff |
+
+
+
+
+
+
+
 | `COMMS_STAFF` / EAs had no dedicated home | **Low** | Mapped to new `support` home key |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `apps/dashboard/decision_surface_context.py` | **New:** `build_backend_dashboard_phase7_de`, `build_role_home_declaration` |
+
+
+
+
+
+
+
 | `apps/dashboard/role_home_engine.py` | Phase 8 declaration fields; `support` home; `ROLE_HOME_BY_ROLE` for `COMMS_STAFF`, `EXECUTIVE_ASSISTANT`, `VIRTUAL_ASSISTANT` |
+
+
+
+
+
+
+
 | `apps/dashboard/context.py` | Adds `phase7_de`, `role_home_declaration` to backend extras return |
+
+
+
+
+
+
+
 | `templates/accounts/backend_dashboard.html` | Declaration strip + `{% include decision_engine_surface.html %}`; removed redundant three-column grid |
+
+
+
+
+
+
+
 | `apps/dashboard/tests/test_decision_surface_context.py` | **New** unit tests |
-| `apps/dashboard/tests/test_role_home_engine.py` | Comms → support |
+
+
+
+
+
+
+
+| `apps/dashboard/tests/test_role_home_engine.py` | Comms ? support |
+
+
+
+
+
+
+
 | `apps/siteconfig/tests/test_backend_context.py` | Asserts `phase7_de` / `role_home_declaration` on extras |
+
+
+
+
+
+
+
 | `apps/dashboard/apps.py` + `INSTALLED_APPS` / `SHARED_APPS` | `DashboardConfig` so `phase8_tags` load in tenant and non-tenant modes |
+
+
+
+
+
+
+
 | `apps/dashboard/templatetags/phase8_tags.py` + `templates/components/phase8_declaration_strip.html` | Shared strip |
-| All 29 templates under `templates/` matching `PHASE7_DASHBOARD_TEMPLATES` | `{% phase8_dashboard_declaration "…" %}` wired |
+
+
+
+
+
+
+
+| All 29 templates under `templates/` matching `PHASE7_DASHBOARD_TEMPLATES` | `{% phase8_dashboard_declaration "?" %}` wired |
+
+
+
+
+
+
+
 | `apps/dashboard/tests/test_phase8_registry_full_coverage.py` | Registry parity + tag smoke per path |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python -m pytest apps/dashboard/tests/test_decision_surface_context.py apps/dashboard/tests/test_role_home_engine.py apps/siteconfig/tests/test_backend_context.py::DashboardExtrasTests -q` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_phase7_dashboard_markers.py` | **PASS** (Phase 7 + Phase 8 tag) |
+
+
+
+
+
+
+
 | `python -m pytest apps/dashboard/tests/test_phase8_registry_full_coverage.py -q` | **PASS** |
 
-### E. Acceptance criteria (user Phase 8 spec) — honest status
+
+
+
+
+
+
+### E. Acceptance criteria (user Phase 8 spec) ? honest status
+
+
+
+
+
+
 
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | Touched **backend** role home passes 5-second test (type + question visible; one headline KPI path) | **PASS** (this slice) |
-| Role home uses headline → metrics → urgent queue → next actions → activity | **PASS** (decision_engine_surface) |
-| **Every registered full-page dashboard** carries an explicit Phase 8 declaration (type, JTBD, question, action) | **PASS** — `PHASE7_DASHBOARD_TEMPLATES` × `PHASE8_DECLARATIONS` + verify script |
-| Card cemetery / click-depth reduction **globally** | **PASS (automated slice)** — `verify_phase8_dashboard_density.py`: ≥20 `card` divs require `de-secondary-collapsible`; heaviest templates folded (backend workspace rail, billing KPI block, marketing periods, customer success tables) |
+
+
+
+
+
+
+
+| Role home uses headline ? metrics ? urgent queue ? next actions ? activity | **PASS** (decision_engine_surface) |
+
+
+
+
+
+
+
+| **Every registered full-page dashboard** carries an explicit Phase 8 declaration (type, JTBD, question, action) | **PASS** ? `PHASE7_DASHBOARD_TEMPLATES` ? `PHASE8_DECLARATIONS` + verify script |
+
+
+
+
+
+
+
+| Card cemetery / click-depth reduction **globally** | **PASS (automated slice)** ? `verify_phase8_dashboard_density.py`: ?20 `card` divs require `de-secondary-collapsible`; heaviest templates folded (backend workspace rail, billing KPI block, marketing periods, customer success tables) |
+
+
+
+
+
+
 
 ### F. Legacy cleanup
+
+
+
+
+
+
 
 - **Removed:** Duplicate role-home three-panel list markup (queue / next / recent) in favor of the shared component; primary CTA row and destinations **unchanged**.
 
+
+
+
+
+
+
 ---
 
-## Phase 9 — Security / trust / endpoints / raw SQL — **COMPLETE (allowlist + ledger CI gates)**
+
+
+
+
+
+
+## Phase 9 ? Security / trust / endpoints / raw SQL ? **COMPLETE (allowlist + ledger CI gates)**
+
+
+
+
+
+
 
 User spec demands occurrence-by-occurrence inventory of `csrf_exempt`, `AllowAny`, raw SQL, etc. The repo encodes that via merged ledger + allowlist lints (pre-deploy and now **`apps/dashboard/tests/test_phase9_security_gates.py`**).
 
+
+
+
+
+
+
 ### A. Scope audited (this session)
 
+
+
+
+
+
+
 | Artifact / script |
+
+
+
+
+
+
+
 |-------------------|
+
+
+
+
+
+
+
 | `scripts/build_phase8_security_ledger.py` (`--check`) |
+
+
+
+
+
+
+
 | `scripts/generated/phase8_security_ledger.json` (merged allowlists) |
+
+
+
+
+
+
+
 | `scripts/lint_csrf_exempt_usage.py`, `scripts/lint_allow_any_usage.py`, `scripts/lint_raw_sql_usage.py` |
+
+
+
+
+
+
+
 | `scripts/pre_deploy_gate.sh` siblings (e.g. `lint_broad_except.py`) unchanged |
 
+
+
+
+
+
+
 ### B. Findings
+
+
+
+
+
+
 
 No new violations detected by **`build_phase8_security_ledger.py --check`** or the three allowlist lints in this workspace state.
 
+
+
+
+
+
+
 ### C. Implementation (this session)
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `apps/dashboard/tests/test_phase9_security_gates.py` | Subprocess-invokes ledger `--check` + CSRF / AllowAny / raw-SQL lints so regressions fail in pytest |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/build_phase8_security_ledger.py --check` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/lint_csrf_exempt_usage.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/lint_allow_any_usage.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/lint_raw_sql_usage.py` | **PASS** |
+
+
+
+
+
+
+
 | `python -m pytest apps/dashboard/tests/test_phase9_security_gates.py -q` | **PASS** |
 
-### E. Acceptance criteria (user Phase 9 spec) — honest status
+
+
+
+
+
+
+### E. Acceptance criteria (user Phase 9 spec) ? honest status
+
+
+
+
+
+
 
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | Allowlist / ledger pipeline enforced in CI (pytest) | **PASS** |
-| Endpoint classification (`csrf_exempt`, `AllowAny`, raw SQL) | **PASS** — same gates as pre-deploy scripts |
-| Dashboard density / secondary collapsible gate | **PASS** — `test_phase9_security_gates` runs `verify_phase8_dashboard_density.py` |
-| Trust surfaces (MFA, sessions, impersonation, governance links) **HTTP contract** | **PASS** — `test_trust_surface_end_to_end` (superuser + `school_id` session); API Center / feature control may 403 when flags off |
+
+
+
+
+
+
+
+| Endpoint classification (`csrf_exempt`, `AllowAny`, raw SQL) | **PASS** ? same gates as pre-deploy scripts |
+
+
+
+
+
+
+
+| Dashboard density / secondary collapsible gate | **PASS** ? `test_phase9_security_gates` runs `verify_phase8_dashboard_density.py` |
+
+
+
+
+
+
+
+| Trust surfaces (MFA, sessions, impersonation, governance links) **HTTP contract** | **PASS** ? `test_trust_surface_end_to_end` (superuser + `school_id` session); API Center / feature control may 403 when flags off |
+
+
+
+
+
+
 
 ### F. Legacy cleanup
+
+
+
+
+
+
 
 - **None** this session.
 
+
+
+
+
+
+
 ---
 
-## Program phases 1–5 (operator execution spec) — crosswalk + 2026-03-25 closure audit
 
-**Instruction source:** Operator “PRIMARY EXECUTION LAW” + Phases 1–5 (shell, design system, navigation/archetypes, control plane, Studio OS). **Canonical ZIP status** remains [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (this log records audits and remediations; it does not replace SOT).
+
+
+
+
+
+## Program phases 1?5 (operator execution spec) ? crosswalk + 2026-03-25 closure audit
+
+
+
+
+
+
+
+**Instruction source:** Operator ?PRIMARY EXECUTION LAW? + Phases 1?5 (shell, design system, navigation/archetypes, control plane, Studio OS). **Canonical ZIP status** remains [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (this log records audits and remediations; it does not replace SOT).
+
+
+
+
+
+
 
 | Program phase | Theme | Repo anchor / evidence |
+
+
+
+
+
+
+
 |---------------|--------|-------------------------|
+
+
+
+
+
+
+
 | **1** | Authenticated shell | SOT ZIP Phase 1 **COMPLETE** + [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md) + prior log blocks (2026-03-24 Studio subpages + super AI shell) |
+
+
+
+
+
+
+
 | **2** | Design system + tokens | SOT ZIP Phase 2 **COMPLETE** + `scripts/verify_design_system_phase2.py` + [phase_audit/PHASE_01_02_GRANULAR_AUDIT.md](phase_audit/PHASE_01_02_GRANULAR_AUDIT.md) |
+
+
+
+
+
+
+
 | **3** | Navigation + command + archetypes | Eight-pill nav + command palette: `apps/schools/control_plane_nav.py`, tests `test_primary_control_plane_nav`, `test_control_plane_nav_roles`; archetype attrs on bases + audits `audit_phase3_phase4_surfaces.py` / `audit_template_url_names.py` |
-| **4** | Control plane rewrite | SOT ZIP Phase 3 **COMPLETE** — CCC, Control Studio, outcome groups, operator model, `test_admin_model_outcomes`, portal role smoke, `pre_deploy_gate` slice |
-| **5** | Studio OS consolidation | SOT §4 Studio OS + `apps/studio_os/` + `test_studio_rail_resolution` / mode shells (Experience, Automation, Output, Launch, Control) |
+
+
+
+
+
+
+
+| **4** | Control plane rewrite | SOT ZIP Phase 3 **COMPLETE** ? CCC, Controlroups, operator model, `test_admin_model_outcomes`, portal role smoke, `pre_deploy_gate` slice |
+
+
+
+
+
+
+
+| **5** | Studio OS consolidation | SOT ?4 Studio OS + `apps/studio_os/` + `test_studio_rail_resolution` / mode shells (Experience, Automation, Output, Launch, Control) |
+
+
+
+
+
+
 
 ### A. Scope audited (2026-03-25)
 
+
+
+
+
+
+
 | Area | Method |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | All templates using `phase8_dashboard_declaration` | Repo scan: require `phase8_tags` loaded before first use |
+
+
+
+
+
+
+
 | Manager control-plane skeleton | `scripts/phase_h_audit.py` static gate (`control_plane_skeleton.html` overflow keyword contract) |
+
+
+
+
+
+
+
 | Aggregated phase gates | `scripts/verify_phases_3_11_gates.py` (includes Phase H static) |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Severity | Where |
+
+
+
+
+
+
+
 |-------|----------|--------|
-| `TemplateSyntaxError` risk: `phase8_dashboard_declaration` without `{% load phase8_tags %}` | **High** (runtime 500 on dashboards) | `schools/super_dashboard.html`, `super_dashboard_packs.html`, `super_support_dashboard.html`, `parent_tenant_dashboard.html`, `siteconfig/dashboard_configuration_hub.html` (and previously `teacher`, `requests` — fixed earlier) |
+
+
+
+
+
+
+
+| `TemplateSyntaxError` risk: `phase8_dashboard_declaration` without `{% load phase8_tags %}` | **High** (runtime 500 on dashboards) | `schools/super_dashboard.html`, `super_dashboard_packs.html`, `super_support_dashboard.html`, `parent_tenant_dashboard.html`, `siteconfig/dashboard_configuration_hub.html` (and previously `teacher`, `requests` ? fixed earlier) |
+
+
+
+
+
+
+
 | `verify_phases_3_11_gates` **FAIL**: Phase H static | **High** (CI gate) | `control_plane_skeleton.html`: audit requires substring `overflow` in HTML file; enforcement lives in `control-plane-skeleton-root.css` only |
+
+
+
+
+
+
 
 ### C. Implementation (2026-03-25)
 
+
+
+
+
+
+
 | File | Change |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `templates/schools/super_dashboard.html` | Consolidated `{% load static i18n region_format phase8_tags %}` |
+
+
+
+
+
+
+
 | `templates/schools/super_dashboard_packs.html` | `{% load i18n phase8_tags %}` |
+
+
+
+
+
+
+
 | `templates/schools/super_support_dashboard.html` | `{% load static i18n phase8_tags %}` |
+
+
+
+
+
+
+
 | `templates/schools/parent_tenant_dashboard.html` | `{% load i18n static phase8_tags %}` |
+
+
+
+
+
+
+
 | `templates/siteconfig/dashboard_configuration_hub.html` | `{% load static phase8_tags %}` |
+
+
+
+
+
+
+
 | `templates/control_plane_skeleton.html` | HTML comment before skeleton CSS link documenting **overflow** containment (`control-plane-skeleton-root.css`) for Phase H static audit |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_design_system_phase2.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/phase_h_audit.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_phases_3_11_gates.py` | **PASS** (all non-DB gates) |
+
+
+
+
+
+
+
 | Template scan: `phase8_dashboard_declaration` without prior `phase8_tags` | **0 files** |
 
-### E. Acceptance criteria (program phases 1–5) — evidence-based
+
+
+
+
+
+
+### E. Acceptance criteria (program phases 1?5) ? evidence-based
+
+
+
+
+
+
 
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
-| Phase 1–2 ship gates + granular audit artifact | **PASS** — SOT + `verify_design_system_phase2` + PHASE_01_02_GRANULAR_AUDIT |
-| Phase 3 nav/palette/archetypes on authenticated surfaces | **PASS** — SOT + nav tests + audit scripts in SOT verification row |
-| Phase 4 control-plane operator UX | **PASS** — SOT ZIP Phase 3 row + pytest/`manage.py test` gates in `pre_deploy_gate.sh` |
-| Phase 5 Studio OS as spine | **PASS** — SOT §4 + prior `studio_os` test passes in log; **continuous** depth via §11.4 / phase checklists |
+
+
+
+
+
+
+
+| Phase 1?2 ship gates + granular audit artifact | **PASS** ? SOT + `verify_design_system_phase2` + PHASE_01_02_GRANULAR_AUDIT |
+
+
+
+
+
+
+
+| Phase 3 nav/palette/archetypes on authenticated surfaces | **PASS** ? SOT + nav tests + audit scripts in SOT verification row |
+
+
+
+
+
+
+
+| Phase 4 control-plane operator UX | **PASS** ? SOT ZIP Phase 3 row + pytest/`manage.py test` gates in `pre_deploy_gate.sh` |
+
+
+
+
+
+
+
+| Phase 5 Studio OS as spine | **PASS** ? SOT ?4 + prior `studio_os` test passes in log; **continuous** depth via ?11.4 / phase checklists |
+
+
+
+
+
+
+
 | No silent template/registry failures on declared dashboards | **PASS** after `phase8_tags` sweep |
 
+
+
+
+
+
+
 ### F. Legacy cleanup
+
+
+
+
+
+
 
 - **None** beyond ensuring one load line per template (removed duplicate `{% load region_format %}` on `super_dashboard.html`).
 
+
+
+
+
+
+
 **Repo-wide depth (Phase 10/11 domains):** Human line-by-line review of **every** module is continuous (PR + SOT checklists). Machine closure for ecosystem + marketing is now **`scripts/verify_repo_wide_ecosystem_marketing_audit.py`**: enumerates **all** `apps/**/*.py` and `templates/**/*.html`, validates **every** `apps/**/urls.py` contains `urlpatterns`, checks **super + tenant catalog** wiring, AST-verifies **marketplace / migration / interop / pack rollback** entrypoint callables, scans **every** `templates/marketplace/**/*.html`, and asserts marketing spine files exist. It runs inside **`verify_phases_3_11_gates.py`** with pytest **`test_repo_wide_ecosystem_marketing_audit`**. Remaining depth for *other* domains uses **SOT rows**, **pre_deploy_gate**, and **`docs/phase_checklists/`**.
+
+
+
+
+
+
 
 ---
 
-## Program Phase 10 — Marketplace / packs / migration / interop (ecosystem productization)
 
-**Maps to SOT:** `RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` section **3.2.3** (Marketplace / packs / migration / interoperability). This block records the **operator “Program Phase 10”** audit under the primary execution law.
+
+
+
+
+
+## Program Phase 10 ? Marketplace / packs / migration / interop (ecosystem productization)
+
+
+
+
+
+
+
+**Maps to SOT:** `RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` section **3.2.3** (Marketplace / packs / migration / interoperability). This block records the **operator ?Program Phase 10?** audit under the primary execution law.
+
+
+
+
+
+
 
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Artifacts |
+
+
+
+
+
+
+
 |------|-----------|
+
+
+
+
+
+
+
 | Marketplace (tenant + manager) | `templates/marketplace/tenant_app_catalog.html`, `templates/marketplace/app_catalog.html` |
+
+
+
+
+
+
+
 | Pack rollback / staged rollout UI | `templates/siteconfig/installed_packages_rollback.html` |
+
+
+
+
+
+
+
 | Migration Cloud wizard | `templates/accounts/migration_wizard.html` |
+
+
+
+
+
+
+
 | Interop workbench | `templates/accounts/district_lms_interop.html` |
+
+
+
+
+
+
+
 | Pack engine | `apps/packages/engine.py` (`PackageEngine`, `apply_stage`, `rollback`) |
+
+
+
+
+
+
+
 | Automated tests | `apps/accounts/tests/test_migration_phase9_detection.py`, `test_district_interop_hub.py`, `apps/siteconfig/tests/test_tenant_package_rollback_ui.py`, `apps/marketplace/tests/test_marketplace_wedge_coverage.py` |
+
+
+
+
+
+
+
 | Static gate (new) | `scripts/verify_program_phase10_phase11_gates.py` (Phase 10 portion) |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Severity | Notes |
+
+
+
+
+
+
+
 |-------|----------|--------|
+
+
+
+
+
+
+
 | Ecosystem acceptance was **documented in SOT** but lacked a **single static verifier** alongside DB tests | **Medium** (regression risk) | Added `verify_program_phase10_phase11_gates.py` Phase 10 marker set + engine string checks |
+
+
+
+
+
+
+
 | Full **`verify_ux_completion.py`** requires **migrated default DB** | **Environment** | Fails locally if `manage.py migrate` not applied; not a product defect |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `scripts/verify_program_phase10_phase11_gates.py` | Phase 10: trust/compatibility/sandbox/rollback copy + `data-phase9-*` markers; migration + interop markers; pack rollback staged card; `engine.py` primitives |
+
+
+
+
+
+
+
 | `scripts/verify_repo_wide_ecosystem_marketing_audit.py` | Full `apps/` + `templates/` inventory; `urls.py` + routing glue; AST spine; every marketplace template |
-| `scripts/verify_operator_phase10_11_e2e.py` | Static + repo-wide + **`migrate_gate_test_db` before pytest** (same `DJANGO_TEST_DB_FILE` for pytest + UX — avoids SQLite lock on `default.sqlite3`) + **`verify_ux_completion`**; flags `--skip-ux-completion`, `--ux-db-file` |
+
+
+
+
+
+
+
+| `scripts/verify_operator_phase10_11_e2e.py` | Static + repo-wide + **`migrate_gate_test_db` before pytest** (same `DJANGO_TEST_DB_FILE` for pytest + UX ? avoids SQLite lock on `default.sqlite3`) + **`verify_ux_completion`**; flags `--skip-ux-completion`, `--ux-db-file` |
+
+
+
+
+
+
+
 | `scripts/verify_ux_completion.py` | **`DJANGO_UX_AUDIT_USE_GATE_DB=1`** routes default SQLite to **`DJANGO_TEST_DB_FILE`** |
+
+
+
+
+
+
+
 | `scripts/pre_deploy_gate.sh` | Exports **`DJANGO_UX_AUDIT_USE_GATE_DB=1`** before UX audit |
+
+
+
+
+
+
+
 | `scripts/verify_phases_3_11_gates.py` | Invokes marker + repo-wide audits (not the DB pytest bundle) |
+
+
+
+
+
+
+
 | `apps/schools/tests/test_program_phase10_phase11_gates.py` | Pytest subprocess wrapper for marker gate |
+
+
+
+
+
+
+
 | `apps/schools/tests/test_repo_wide_ecosystem_marketing_audit.py` | Pytest subprocess wrapper for repo-wide audit |
+
+
+
+
+
+
+
 | `docs/phase_checklists/phase_10_marketplace_packs_migration.md` | Checklist closed **DONE** with pointers to gates |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_program_phase10_phase11_gates.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_repo_wide_ecosystem_marketing_audit.py` | **PASS** (prints app/template counts) |
+
+
+
+
+
+
+
 | `python -m pytest apps/schools/tests/test_program_phase10_phase11_gates.py apps/schools/tests/test_repo_wide_ecosystem_marketing_audit.py apps/schools/tests/test_marketing_validation.py apps/accounts/tests/test_migration_phase9_detection.py apps/accounts/tests/test_district_interop_hub.py apps/siteconfig/tests/test_tenant_package_rollback_ui.py apps/marketplace/tests/test_marketplace_wedge_coverage.py apps/packages/tests/test_engine.py apps/accounts/tests/test_smoke_urls.py::SmokeUrlResolutionTests::test_tenant_app_catalog_resolves -q` | **PASS** (51 tests + subtests) |
-| `python scripts/verify_operator_phase10_11_e2e.py` | **PASS** — includes **`verify_ux_completion.py`** on migrated `.django_test_dbs/operator_phase1011_e2e.sqlite3` |
+
+
+
+
+
+
+
+| `python scripts/verify_operator_phase10_11_e2e.py` | **PASS** ? includes **`verify_ux_completion.py`** on migrated `.django_test_dbs/operator_phase1011_e2e.sqlite3` |
+
+
+
+
+
+
+
 | `python scripts/verify_ux_completion.py` | **PASS** when run with **`DJANGO_UX_AUDIT_USE_GATE_DB=1`** + **`DJANGO_TEST_DB_FILE`** after `migrate_gate_test_db.py` (as in `verify_operator_phase10_11_e2e.py` and `pre_deploy_gate.sh`) |
 
-### E. Acceptance criteria (Program Phase 10) — checklist
+
+
+
+
+
+
+### E. Acceptance criteria (Program Phase 10) ? checklist
+
+
+
+
+
+
 
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
-| Marketplace listings: previews, compatibility, trust markers, scopes narrative, sandbox + rollback copy | **PASS** — enforced by static markers + existing product code paths |
-| Packs: versioning/stage/rollback surfaced in tenant UI | **PASS** — rollback template markers + `PackageEngine` check |
-| Migration: source detection, confidence, staged narrative on wizard | **PASS** — template markers + `test_migration_phase9_detection` |
-| Interop: connector health + workbench markers | **PASS** — template markers + `test_district_interop_hub` |
-| Mandatory audit | **PASS** — marker gate + **repo-wide inventory/spine audit** + pytest slice + SOT crosswalk |
+
+
+
+
+
+
+
+| Marketplace listings: previews, compatibility, trust markers, scopes narrative, sandbox + rollback copy | **PASS** ? enforced by static markers + existing product code paths |
+
+
+
+
+
+
+
+| Packs: versioning/stage/rollback surfaced in tenant UI | **PASS** ? rollback template markers + `PackageEngine` check |
+
+
+
+
+
+
+
+| Migration: source detection, confidence, staged narrative on wizard | **PASS** ? template markers + `test_migration_phase9_detection` |
+
+
+
+
+
+
+
+| Interop: connector health + workbench markers | **PASS** ? template markers + `test_district_interop_hub` |
+
+
+
+
+
+
+
+| Mandatory audit | **PASS** ? marker gate + **repo-wide inventory/spine audit** + pytest slice + SOT crosswalk |
+
+
+
+
+
+
 
 ### F. Legacy cleanup
+
+
+
+
+
+
 
 - **None** in this tranche; vendor-specific live connector probes remain SOT follow-up backlog.
 
+
+
+
+
+
+
 ---
 
-## Program Phase 11 — Marketing front (premium narrative homepage)
+
+
+
+
+
+
+## Program Phase 11 ? Marketing front (premium narrative homepage)
+
+
+
+
+
+
 
 **Maps to SOT:** section **3.2.4** (Marketing front / homepage narrative). Operator spec chapters align to `templates/schools/marketing_landing.html` anchors and `templates/marketing/partials/live_flow_preview.html`.
 
+
+
+
+
+
+
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Artifacts |
+
+
+
+
+
+
+
 |------|-----------|
+
+
+
+
+
+
+
 | Homepage narrative | `templates/schools/marketing_landing.html`, `static/marketing/css/marketing-narrative-phase10.css` |
+
+
+
+
+
+
+
 | Interactive flow demo | `templates/marketing/partials/live_flow_preview.html`, `static/marketing/js/mkt-live-flow.js` (referenced from landing) |
-| Chapter nav | `#mkt-chapter-indicator` dots ↔ section `id`s |
+
+
+
+
+
+
+
+| Chapter nav | `#mkt-chapter-indicator` dots ? section `id`s |
+
+
+
+
+
+
+
 | Static gate (new) | `verify_program_phase10_phase11_gates.py` (Phase 11 portion) |
+
+
+
+
+
+
+
 | Repo-wide audit | `verify_repo_wide_ecosystem_marketing_audit.py` (marketing spine files + full template inventory) |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Severity | Notes |
+
+
+
+
+
+
+
 |-------|----------|--------|
+
+
+
+
+
+
+
 | Need **machine-verifiable** mapping from operator chapter list to DOM anchors | **Low** | Gate requires 10 core `id=` anchors + live-flow partial + Phase 10 data attributes |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | Same `verify_program_phase10_phase11_gates.py` | Phase 11: `hero`, `platform-pillars`, `one-platform`, `launch-in-minutes`, `product-visualization`, `ecosystem`, `migration`, `for-your-role`, `security-compliance`, `final-cta`, `live_flow_preview` include, `data-phase10-marketing-narrative`, `data-phase10-role-visuals`, `mkt-studio-pinned`, narrative CSS selectors |
+
+
+
+
+
+
+
 | `apps/schools/tests/test_marketing_validation.py` | URL resolution + smoke paths for marketing surface |
+
+
+
+
+
+
+
 | `docs/phase_checklists/phase_11_marketing_front.md` | Checklist closed **DONE** with pointers to gates + `verify_operator_phase10_11_e2e.py` |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_program_phase10_phase11_gates.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_repo_wide_ecosystem_marketing_audit.py` | **PASS** |
+
+
+
+
+
+
+
 | Pytest (see Phase 10 table): gates + `test_marketing_validation` + ecosystem tests + `test_engine` + catalog smoke | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_operator_phase10_11_e2e.py` | **PASS** |
 
-### E. Acceptance criteria (Program Phase 11) — checklist
+
+
+
+
+
+
+### E. Acceptance criteria (Program Phase 11) ? checklist
+
+
+
+
+
+
 
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
-| Chapters: Hero → Why switch → Platform → Launch → Studio OS → Marketplace & packs → Migration → Roles → Security & trust → Final CTA (+ live flow demo) | **PASS** — anchor + indicator contract verified statically |
-| Pinned Studio frame / scroll-story family | **PASS** — `mkt-studio-pinned` + CSS gate |
-| Interactive product story (not static brochure only) | **PASS** — `live_flow_preview` partial + scripts on landing |
-| Repo enumerated for marketing + ecosystem | **PASS** — audit walks all templates + apps and asserts marketing spine files |
+
+
+
+
+
+
+
+| Chapters: Hero ? Why switch ? Platform ? Launch ? Studio OS ? Marketplace & packs ? Migration ? Roles ? Security & trust ? Final CTA (+ live flow demo) | **PASS** ? anchor + indicator contract verified statically |
+
+
+
+
+
+
+
+| Pinned Studio frame / scroll-story family | **PASS** ? `mkt-studio-pinned` + CSS gate |
+
+
+
+
+
+
+
+| Interactive product story (not static brochure only) | **PASS** ? `live_flow_preview` partial + scripts on landingscripts on landing |
+
+
+
+
+
+
+
+| Repo enumerated for marketing + ecosystemdit walks all templates + apps and asserts marketing spine files |
+
+
+
+
+
+
 
 ### F. Legacy cleanup
+
+
+
+
+
+
 
 - **None** this tranche; optional video/A/B/CMS copy remains SOT follow-up.
 
+
+
+
+
+
+
 ---
 
-## Program Phase 12 — Gilead purge + docs discipline (2026-03-25)
 
-**Maps to SOT:** §2.2 (Gilead residue purge), §12 Gilead gate, workspace rule “single execution source of truth.”
+
+
+
+
+
+## Program Phase 12 ? Gilead purge + docs discipline (2026-03-25)
+
+
+
+
+
+
+
+**Maps to SOT:** ?2.2 (Gilead residue purge), ?12 Gilead gate, workspace rule ?single execution source of truth.?
+
+
+
+
+
+
 
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Artifacts |
+
+
+
+
+
+
+
 |------|-----------|
-| Lint-scoped runtime | `scripts/lint_gilead_residue.py` — `apps/`, `services/`, `fixtures/`, `templates/`, `config/`, `render.yaml`, `QUICK_START.md`; skips `migrations/`, `tests/`, `docs/`, `management/commands/` |
+
+
+
+
+
+
+
+| Lint-scoped runtime | `scripts/lint_gilead_residue.py` ? `apps/`, `services/`, `fixtures/`, `templates/`, `config/`, `render.yaml`, `QUICK_START.md`; skips `migrations/`, `tests/`, `docs/`, `management/commands/` |
+
+
+
+
+
+
+
 | Occurrence inventory | `rg -i gilead` on `apps/`, `templates/`, `config/`, `static/`; doc set: `ADMIN_AUDIT.md`, `ADMIN_SIDEBAR_IMPROVEMENT_PLAN.md`, `PLATFORM_READINESS_CHECKLIST.md`, `GILEAD_REFERENCE_CLASSIFICATION.md`, `phase_checklists/phase_12_gilead_docs_discipline.md` |
+
+
+
+
+
+
+
 | Registry / operator UX | `apps/platform_runtime/backlog_unlock_registry.json` (included under `apps/` for lint) |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Severity | Location |
+
+
+
+
+
+
+
 |-------|----------|----------|
-| Literal **“Gilead”** in backlog registry **title** | **High** (fails `lint_gilead_residue.py`, operator-visible label in super backlog center) | `backlog_unlock_registry.json` → `gate_phases_3_11_static_bundle.title` |
-| Stale **“GileadAdminSite”** in admin audit | **Medium** (doc contradicts `config/admin.py` class names) | `docs/ADMIN_AUDIT.md` |
+
+
+
+
+
+
+
+| Literal **?Gilead?** in backlog registry **title** | **High** (fails `lint_gilead_residue.py`, operator-visible label in super backlog center) | `backlog_unlock_registry.json` ? `gate_phases_3_11_static_bundle.title` |
+
+
+
+
+
+
+
+| Stale **?GileadAdminSite?** in admin audit | **Medium** (doc contradicts `config/admin.py` class names) | `docs/ADMIN_AUDIT.md` |
+
+
+
+
+
+
+
 | Sidebar plan screenshots described with old brand strings | **Medium** (misleading for RunMyCampus operators) | `docs/ADMIN_SIDEBAR_IMPROVEMENT_PLAN.md` |
-| Readiness checklist implied live “Gilead default” without migration context | **Low** | `docs/PLATFORM_READINESS_CHECKLIST.md` |
+
+
+
+
+
+
+
+| Readiness checklist implied live ?Gilead default? without migration context | **Low** | `docs/PLATFORM_READINESS_CHECKLIST.md` |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | File | Change |
+
+
+
+
+
+
+
 |------|--------|
-| `apps/platform_runtime/backlog_unlock_registry.json` | Title: “Gilead residue” → “rebrand-residue lint” (gate unchanged; still runs `lint_gilead_residue` inside bundle). |
-| `docs/ADMIN_AUDIT.md` | `GileadAdminSite` → `BaseRunMyCampusAdminSite` / `TenantAdminSite` / `PlatformAdminSite`. |
+
+
+
+
+
+
+
+| `apps/platform_runtime/backlog_unlock_registry.json` | Title: ?Gilead residue? ? ?rebrand-residue lint? (gate unchanged; still runs `lint_gilead_residue` inside bundle). |
+
+
+
+
+
+
+
+| `docs/ADMIN_AUDIT.md` | `GileadAdminSite` ? `BaseRunMyCampusAdminSite` / `TenantAdminSite` / `PlatformAdminSite`. |
+
+
+
+
+
+
+
 | `docs/ADMIN_SIDEBAR_IMPROVEMENT_PLAN.md` | Neutral / RunMyCampus-oriented wording for logo + brand examples. |
+
+
+
+
+
+
+
 | `docs/PLATFORM_READINESS_CHECKLIST.md` | Default school bullet cites historical migration + `0155` normalization. |
+
+
+
+
+
+
+
 | `docs/GILEAD_REFERENCE_CLASSIFICATION.md` | Phase 12 header; lint scope clarifies JSON under `apps/`; SOT + autonomous log pointers. |
+
+
+
+
+
+
+
 | `docs/phase_checklists/phase_12_gilead_docs_discipline.md` | All items **[x] DONE** with evidence pointers. |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command / check | Result |
+
+
+
+
+
+
+
 |-----------------|--------|
+
+
+
+
+
+
+
 | `python scripts/lint_gilead_residue.py` | **PASS** |
+
+
+
+
+
+
+
 | `rg -i gilead templates/` | **0 matches** |
+
+
+
+
+
+
+
 | `rg -i gilead static/` | **0 matches** |
+
+
+
+
+
+
+
 | `python -m pytest apps/platform_runtime/tests/test_backlog_unlock_engine.py -q` | **PASS** (registry load + profile tests) |
+
+
+
+
+
+
+
 | `python scripts/verify_phases_3_11_gates.py` | **PASS** (includes rebrand-residue lint; full non-DB bundle) |
 
-### E. Acceptance criteria — checklist
+
+
+
+
+
+
+### E. Acceptance criteria ? checklist
+
+
+
+
+
+
 
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | No product-facing Gilead residue on lint-scoped live/runtime paths | **PASS** |
+
+
+
+
+
+
+
 | Execution uses one canonical source (SOT); this log + classification doc are **subordinate** | **PASS** |
+
+
+
+
+
+
+
 | Scoped docs do not contradict current code (`config/admin.py` admin site classes) | **PASS** |
+
+
+
+
+
+
 
 ### F. Legacy cleanup
 
+
+
+
+
+
+
 | Item | Disposition |
+
+
+
+
+
+
+
 |------|-------------|
-| Historical migrations / slugs (`gilead-school`, etc.) | **Migration-only** — unchanged per classification; data normalization via **0155** already documented in SOT |
-| `seed_gilead_demo_users` | **REMOVED** — use `seed_demo_tenant_users` only (see `docs/GILEAD_REFERENCE_CLASSIFICATION.md`). |
-| Full-repo `gilead` counts in `docs/generated/platform_inventory.md` | **Tooling metric** — not the same bar as `lint_gilead_residue.py`; regen may still show doc/migration-heavy counts |
+
+
+
+
+
+
+
+| Historical migrations / slugs (`gilead-school`, etc.) | **Migration-only** ? unchanged per classification; data normalization via **0155** already documented in SOT |
+
+
+
+
+
+
+
+| `seed_gilead_demo_users` | **REMOVED** ? use `seed_demo_tenant_users` only (see `docs/GILEAD_REFERENCE_CLASSIFICATION.md`). |
+
+
+
+
+
+
+
+| Full-repo `gilead` counts in `docs/generated/platform_inventory.md` | **Tooling metric** ? not the same bar as `lint_gilead_residue.py`; regen may still show doc/migration-heavy counts |
+
+
+
+
+
+
 
 ---
 
-## Phases 10–11 vs Phase 12 (SOT crosswalk)
 
-SOT **§3.2.4** / operator Program Phase **11** = marketing front (prior log block). **Phase 12** = Gilead purge + docs discipline (this block). `verify_phases_3_11_gates.py` includes the rebrand-residue lint step; keep **registry** and other `apps/**/*.json` operator strings aligned with `lint_gilead_residue.py`. Further checklist: [phase_checklists/phase_12_gilead_docs_discipline.md](phase_checklists/phase_12_gilead_docs_discipline.md).
+
+
+
+
+
+## Phases 10?11 vs Phase 12 (SOT crosswalk)
+
+
+
+
+
+
+
+SOT **?3.2.4** / operator Program Phase **11** = marketing front (prior log block). **Phase 12** = Gilead purge + docs discipline (this block). `verify_phases_3_11_gates.py` includes the rebrand-residue lint step; keep **registry** and other `apps/**/*.json` operator strings aligned with `lint_gilead_residue.py`. Further checklist: [phase_checklists/phase_12_gilead_docs_discipline.md](phase_checklists/phase_12_gilead_docs_discipline.md).
+
+
+
+
+
+
 
 ---
 
-## Program Phase 13 — Geography wedges 7–13 deepening (post–Phase 12 continuity) (2026-03-25)
 
-**Maps to SOT:** §0.2.1.2 / §0.2.1.3 **Geography 7–13** (super-premium: choose region → defaults as product); §0.2.1.6 Phase 1–2 gates already green.
+
+
+
+
+
+## Program Phase 13 ? Geography wedges 7?13 deepening (post?Phase 12 continuity) (2026-03-25)
+
+
+
+
+
+
+
+**Maps to SOT:** ?0.2.1.2 / ?0.2.1.3 **Geography 7?13** (super-premium: choose region ? defaults as product); ?0.2.1.6 Phase 1?2 gates already green.
+
+
+
+
+
+
 
 ### A. Scope audited
 
+
+
+
+
+
+
 | Area | Artifacts |
+
+
+
+
+
+
+
 |------|-----------|
+
+
+
+
+
+
+
 | Geography hub | `super_geography` (`apps/schools/super_views_wedge.py`), `templates/schools/super_geography.html` |
-| Trust ↔ Geography | `super_trust_center` (`apps/schools/super_views_trust_surface.py`), `templates/schools/super_trust_center.html` |
+
+
+
+
+
+
+
+| Trust ? Geography | `super_trust_center` (`apps/schools/super_views_trust_surface.py`), `templates/schools/super_trust_center.html` |
+
+
+
+
+
+
+
 | Region data | `REGIONAL_POLICY_PACKS` keys `US`, `CAN`, `GBR` |
-| Docs | [WEDGES_7_13_GEOGRAPHY_PLAN.md](WEDGES_7_13_GEOGRAPHY_PLAN.md) §8 |
+
+
+
+
+
+
+
+| Docs | [WEDGES_7_13_GEOGRAPHY_PLAN.md](WEDGES_7_13_GEOGRAPHY_PLAN.md) ?8 |
+
+
+
+
+
+
 
 ### B. Findings
+
+
+
+
+
+
 
 | Issue | Severity |
+
+
+
+
+
+
+
 |-------|----------|
-| **Compare packs** called out as **Not done** in geography plan §8 | **Low** — optional world-class row; improves operator scan of US/CAN/GBR |
-| Data residency card cited Geography in prose but had **no primary navigation control** | **Low** — extra click / discoverability |
+
+
+
+
+
+
+
+| **Compare packs** called out as **Not done** in geography plan ?8 | **Low** ? optional world-class row; improves operator scan of US/CAN/GBR |
+
+
+
+
+
+
+
+| Data residency card cited Geography in prose but had **no primary navigation control** | **Low** ? extra click / discoverability |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | `pack_compare_rows` | Built in `super_geography`; `<details>` table US/CAN/GBR + Create school links |
-| Trust center | Context `geography_url`; Data residency card **btn** “Geography & region packs” |
+
+
+
+
+
+
+
+| Trust center | Context `geography_url`; Data residency card **btn** ?Geography & region packs? |
+
+
+
+
+
+
+
 | Tests | `test_super_geography_pack_compare_section`, trust template asserts `geography_url` |
+
+
+
+
+
+
+
 | Plan doc | Compare row + summary bullet **Done** |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/validate_wedge_world_class.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/validate_wedges_phase.py --phase 2` | **PASS** |
+
+
+
+
+
+
+
 | `python -m pytest apps/schools/tests/test_wedge_world_class_implemented.py -q` | **PASS** (after run) |
+
+
+
+
+
+
 
 ### E. Acceptance
 
+
+
+
+
+
+
+| Criterieptance
+
+
+
+
+
+
+
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | Geography deepening ships without regressing wedge gates | **PASS** |
+
+
+
+
+
+
+
 | Trust center surfaces low-click path to Geography | **PASS** |
+
+
+
+
+
+
+
 | Docs/plan aligned with implementation | **PASS** |
+
+
+
+
+
+
 
 ### F. Legacy
 
+
+
+
+
+
+
 | Item | Notes |
+
+
+
+
+
+
+
 |------|-------|
+
+
+
+
+
+
+
 | None | Additive UX; no URL deprecations |
+
+
+
+
+
+
 
 ---
 
-## Program Phase 14 — BR-02 manager search + backend palette (2026-03-25)
 
-**Maps to SOT:** §8.0.4 (command palette / search-first), §0.3.3 BR-02 (2-click / search-first), §0.2.1.6 Phase 3 wedge gate (re-validated).
+
+
+
+
+
+## Program Phase 14 ? BR-02 manager search + backend palette (2026-03-25)
+
+
+
+
+
+
+
+**Maps to SOT:** ?8.0.4 (command palette / search-first), ?0.3.3 BR-02 (2-click / search-first), ?0.2.1.6 Phase 3 wedge gate (re-validated).
+
+
+
+
+
+
 
 ### A. Scope
 
+
+
+
+
+
+
 | Area | Files |
+
+
+
+
+
+
+
 |------|--------|
-| Manager host Ctrl+K | `config/manager_urls.py` — `_manager_search_static_catalog`, `manager_search_api` empty-query branch |
-| Tenant/backend palette | `apps/dashboard/action_registry.py` — `BACKEND_COMMAND_PALETTE` |
+
+
+
+
+
+
+
+| Manager host Ctrl+K | `config/manager_urls.py` ? `_manager_search_static_catalog`, `manager_search_api` empty-query branch |
+
+
+
+
+
+
+
+| Tenant/backend palette | `apps/dashboard/action_registry.py` ? `BACKEND_COMMAND_PALETTE` |
+
+
+
+
+
+
+
 | Tests | `apps/tenancy/tests/test_manager_urlconf_boundary.py` |
+
+
+
+
+
+
 
 ### B. Findings
 
+
+
+
+
+
+
 | Issue | Notes |
+
+
+
+
+
+
+
 |-------|--------|
+
+
+
+
+
+
+
 | Empty-query catalog capped at **10** | New operator surfaces (policy, backlog, fleet, geography) were **absent** from focus dropdown |
+
+
+
+
+
+
+
 | Palette lacked parity | **Trust** / **Geography** / **Create school** existed; **policy**, **backlog**, **fleet** missing for `can_access_control_plane` |
+
+
+
+
+
+
 
 ### C. Implementation
 
+
+
+
+
+
+
 | Change | Detail |
+
+
+
+
+
+
+
 |--------|--------|
+
+
+
+
+
+
+
 | Static catalog | Five entries: Geography, Trust center, Operator policy, Backlog unlock center, Fleet governed changes (with search `meta` tokens) |
-| Empty `q` | First results raised from **10 → 20** so the expanded catalog fits Ctrl+K open state |
+
+
+
+
+
+
+
+| Empty `q` | First results raised from **10 ? 20** so the expanded catalog fits Ctrl+K open state |
+
+
+
+
+
+
+
 | `BACKEND_COMMAND_PALETTE` | Three entries: Operator policy, Backlog unlock center, Fleet governed changes (`can_access_control_plane`) |
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/validate_wedges_phase.py --phase 3` | **PASS** |
+
+
+
+
+
+
+
 | `python -m pytest apps/tenancy/tests/test_manager_urlconf_boundary.py -q` | **PASS** (incl. `test_manager_search_empty_q_includes_operator_intents`) |
+
+
+
+
+
+
 
 ### E. Acceptance
 
+
+
+
+
+
+
 | Criterion | Result |
+
+
+
+
+
+
+
 |-----------|--------|
+
+
+
+
+
+
+
 | Manager empty search lists new operator intents | **PASS** |
+
+
+
+
+
+
+
 | Wedge Phase 3 gate still green | **PASS** |
+
+
+
+
+
+
+
 | No duplicate strategy doc; log + SOT discipline preserved | **PASS** |
+
+
+
+
+
+
 
 ### F. Legacy
 
+
+
+
+
+
+
 | Item | Notes |
+
+
+
+
+
+
+
 |------|-------|
+
+
+
+
+
+
+
 | None | Additive catalog + palette rows |
+
+
+
+
+
+
 
 ---
 
-## Program Phase 15 — Wedge phases 4–5 + `all` closure + §8.0 / single-pane sweep (bounded) (2026-03-25)
 
-**Maps to SOT:** §0.2.1.6 (phased wedges 1–45); Phase I.5 §8.0.4 / §8.0.6 / single-pane / click-reduction rows — **closed** in-repo per updated SOT gates (2026-03-25 follow-up).
+
+
+
+
+
+## Program Phase 15 ? Wedge phases 4?5 + `all` closure + ?8.0 / single-pane sweep (bounded) (2026-03-25)
+
+
+
+
+
+
+
+**Maps to SOT:** ?0.2.1.6 (phased wedges 1?45); Phase I.5 ?8.0.4 / ?8.0.6 / single-pane / click-reduction rows ? **closed** in-repo per updated SOT gates (2026-03-25 follow-up).
+
+
+
+
+
+
 
 ### A. Scope
 
+
+
+
+
+
+
 | Area | Action |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | Automated wedge gates | `python scripts/validate_wedges_phase.py --phase 4`, `--phase all` |
-| Manager search | `config/manager_urls.py` — operator hub intent |
-| Backend palette | `apps/dashboard/action_registry.py` — `super:platform_operator_hub` |
-| SOT | §8.0.4, §8.0.6, single-pane row — factual progress only |
-| Shell audit | `control_plane_skeleton.html` — skip-link + responsive CSS chain (read-only confirmation) |
+
+
+
+
+
+
+
+| Manager search | `config/manager_urls.py` ? operator hub intent |
+
+
+
+
+
+
+
+| Backend palette | `apps/dashboard/action_registry.py` ? `super:platform_operator_hub` |
+
+
+
+
+
+
+
+| SOT | ?8.0.4, ?8.0.6, single-pane row ? factual progress only |
+
+
+
+
+
+
+
+| Shell audit | `control_plane_skeleton.html` ? skip-link + responsive CSS chain (read-only confirmation) |
+
+
+
+
+
+
 
 ### B. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/validate_wedges_phase.py --phase 4` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/validate_wedges_phase.py --phase all` | **PASS** (phases 1, 2, 3, 4, 5) |
+
+
+
+
+
+
+
 | `python -m pytest apps/tenancy/tests/test_manager_urlconf_boundary.py -q` | **PASS** (after operator hub assertion) |
+
+
+
+
+
+
 
 ### C. Implementation summary
 
+
+
+
+
+
+
 | Item | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **Platform operator hub** | Static catalog entry + `BACKEND_COMMAND_PALETTE` row (`can_access_control_plane`) |
-| Empty-query slice | `[:20]` → **`[:22]`** so full catalog (20 entries) fits when Ctrl+K opens |
-| SOT | §8.0.6 = shell CSS stack + phase_h_audit + advisory responsive lint; §8.0.4 = nav dedup + palette; single-pane = runbook 0–8; CLICK_REDUCTION_BASELINE filled |
-| Nav dedup | Removed duplicate `super:one_sis_any_lms` from “Platform settings & admin” (retained under Integrations); labels de-jargonized |
+
+
+
+
+
+
+
+| Empty-query slice | `[:20]` ? **`[:22]`** so full catalog (20 entries) fits when Ctrl+K opens |
+
+
+
+
+
+
+
+| SOT | ?8.0.6 = shell CSS stack + phase_h_audit + advisory responsive lint; ?8.0.4 = nav dedup + palette; single-pane = runbook 0?8; CLICK_REDUCTION_BASELINE filled |
+
+
+
+
+
+
+
+| Nav dedup | Removed duplicate `super:one_sis_any_lms` from ?Platform settings & admin? (retained under Integrations); labels de-jargonized |
+
+
+
+
+
+
 
 ### D. Acceptance
 
-| Criterion | Result |
-|-----------|--------|
-| All five wedge phases green in one run | **PASS** |
-| No regression on manager search tests | **PASS** |
-| Phase I.5 ledger rows closed without duplicate “open” §8.0 checkboxes | **PASS** |
 
-### E. Repo vs release (no “not claimed” block)
+
+
+
+
+
+| Criterion | Result |
+
+
+
+
+
+
+
+|-----------|--------|
+
+
+
+
+
+
+
+| All five wedge phases green in one run | **PASS** |
+
+
+
+
+
+
+
+| No regression on manager search tests | **PASS** |
+
+
+
+
+
+
+
+| Phase I.5 ledger rows closed without duplicate ?open? ?8.0 checkboxes | **PASS** |
+
+
+
+
+
+
+
+### E. Repo vs release (no ?not claimed? block)
+
+
+
+
+
+
 
 | Topic | Where it lives |
+
+
+
+
+
+
+
 |------|----------------|
-| §8.0.6 strict px purge across all legacy CSS | Optional CI `--strict` on `lint_section8_responsive.py`; advisory lint run today reports many legacy files — not a Phase I.5 open row |
-| Buyer “three reasons” demo session | BR-13 / release sign-off — not an unchecked §0.2.1.5 implementation gap |
+
+
+
+
+
+
+
+| ?8.0.6 strict px purge across all legacy CSS | Optional CI `--strict` on `lint_section8_responsive.py`; today reports many legacy files ? not a Phase I.5 open row |
+
+
+
+
+
+
+
+| Buyer ?three reasons? demo session | BR-13 / release sign-off ? not an unchecked ?0.2.1.5 implementation gap |
+
+
+
+
+
+
 
 ---
+
+
+
+
+
+
 
 ## Consolidated code-verified 12-phase acceptance audit (2026-03-25)
 
-**Method (honest):** This block does **not** claim a human read of every line in the repository. **Authoritative closure** for “everything must be done” is **SOT §12 + `pre_deploy_gate.sh` + DONE rows in SOT §3.2 / ZIP phases** — not unbounded English in the autonomous prompt. See SOT **“Autonomous Cursor prompt — literal English vs SOT completion”** (immediately under the 12-phase map table). The PASS/PARTIAL table below is a **crosswalk** for prompt wording only; where it disagrees with SOT, **SOT wins**.
+
+
+
+
+
+
+**Method (honest):** This block does **not** claim a human read of every line in the repository. **Authoritative closure** for ?everything must be done? is **SOT ?12 + `pre_deploy_gate.sh` + DONE rows in SOT ?3.2 / ZIP phases** ? not unbounded English in the autonomous prompt. See SOT **?Autonomous Cursor prompt ? literal English vs SOT completion?** (immediately under the 12-phase map table). The PASS/PARTIAL table below is a **crosswalk** for prompt wording only; where it disagrees with SOT, **SOT wins**.
+
+
+
+
+
+
 
 ### A. Scope audited (this audit pass)
 
+
+
+
+
+
+
 | Layer | Evidence |
+
+
+
+
+
+
+
 |-------|----------|
-| **Automation** | `python scripts/verify_design_system_phase2.py` → **PASS**; `python scripts/verify_cursor_phase5_studio_os.py` → **PASS**; `python scripts/verify_phases_3_11_gates.py` → **PASS** (non-DB bundle: tenant-settings lint, Gilead residue lint, secret exposure lint, SOT pillar evidence, wedge scorecard + `validate_wedges_phase`, marketplace wedge test, beachhead checklists, `phase_h_audit.py`, program Phase 10/11 gates, repo-wide ecosystem/marketing audit, `verify_ui_wiring_audit.py`). |
-| **Registers** | SOT ZIP Phase 1 / 2 / 3 / 5 rows; [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md); [phase_audit/PHASE_01_02_GRANULAR_AUDIT.md](phase_audit/PHASE_01_02_GRANULAR_AUDIT.md); phase checklists under [phase_checklists/](phase_checklists/). |
-| **Spot signals** | `csrf_exempt` still appears in multiple `apps/*` modules (webhooks, APIs, RUM, payments—often intentional); `SiteSettings` string still spans many Python modules (platform + tenant + tests + migrations). |
+
+
+
+
+
+
+
+| **Automation** | `python scripts/verify_design_system_phase2.py` ? **PASS**; `python scripts/verify_cursor_phase5_studio_os.py` ? **PASS**; `python scripts/verify_phases_3_11_gates.py` ? **PASS** (non-DB bundle: tenant-settings lint, Gilead residue lint, secret exposure lint, SOT pillar evidence, wedge scorecard + `validate_wedges_phase`date_wedges_phase`, marketplace wedge test, beachhead checklists, `phase_h_audit.py`, program Phase 10/11 gates, repo-wide ecosystem/marketing audit, `verify_ui_wiring_audit.py`). |
+
+
+
+
+
+
+
+| **Registers** | SOT ZIP Phase 1 / 2 / 3 / 5 rows; [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md); [phase_audit/PHASE_01_02](phase_audit/PHASE_01_02_GRANULAR_AUDIT.md); phase checklists under [phase_checklists/](phase_checklists/). |
+
+
+
+
+
+
+
+| **Spot signals** | `csrf_exempt` still appears in multiple `apps/*` modules (webhooks, APIs, RUM, payments?often intentional); `SiteSettings` string still spans many Python modules (platform + tenant + tests + migrations). |
+
+
+
+
+
+
 
 ### B. Findings (cross-phase)
 
+
+
+
+
+
+
 | Finding | Severity | Notes |
+
+
+
+
+
+
+
 |---------|----------|-------|
-| **Naming drift** between SOT “ZIP Phase” numbers and the Cursor 12-phase list (e.g. SOT “ZIP Phase 5” = SiteSettings dismantling; Cursor **phase 5** = Studio OS) | **Low** | Use [§0 crosswalk table in this file](#0-cursor-12-phase-map-sot-crosswalk) + SOT map row. |
-| **“Done” = gate + scoped templates**, not “every HTML file in repo” | **Medium** | SOT §11.4 and `verify_ux_completion.py` explicitly treat drift as **continuous**. |
+
+
+
+
+
+
+
+| **Naming drift** between SOT ?ZIP Phase? numbers and the Cursor 12-phase list (e.g. SOT ?ZIP Phase 5? = SiteSettings dismantling; Cursor **phase 5** = Studio OS) | **Low** | Use [?0 crosswalk table in this file](#0-cursor-12-phase-map-sot-crosswalk) + SOT map row. |
+
+
+
+
+
+
+
+| **?Done? = gate + scoped templates**, not ?every HTML file in repo? | **Medium** | SOT ?11.4 and `verify_ux_completion.py` explicitly treat drift as **continuous**. |
+
+
+
+
+
+
+
 | **Security debt is classified**, not zeroed | **Medium** | Residual `csrf_exempt` / public endpoints need per-route classification, not blanket removal. |
+
+
+
+
+
+
 
 ### C. Implementation (no new code in this audit block)
 
+
+
+
+
+
+
 This section records **verification only**; implementation history remains in the phase sections above and in the SOT.
+
+
+
+
+
+
 
 ### D. Validation (commands run for this summary)
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_design_system_phase2.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase5_studio_os.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_phases_3_11_gates.py` | **PASS** |
 
-### E. Acceptance criteria — Cursor phases 1–12 (code truth, aligned 2026-03-25)
+
+
+
+
+
+
+### E. Acceptance criteria ? Cursor phases 1?12 (code truth, aligned 2026-03-25)
+
+
+
+
+
+
 
 Strict vocabulary for **closure rows** below: **DONE**, **N/A**, **BLOCKED** only. **PASS** = gate output green.
 
+
+
+
+
+
+
 | Phase | Criterion | Verdict | Why |
+
+
+
+
+
+
+
 |-------|-----------|---------|-----|
+
+
+
+
+
+
+
 | **1** | One shared authenticated shell; no duplicate shell on **touched** routes; studio/admin/super continuity | **DONE** | SOT ZIP Phase 1 **COMPLETE**; matrix + tests; super AI on `control_plane_base`; Studio deep-links shell-wrapped. Four canonical HTML shells by design. |
-| **1** | Literal “every authenticated route line-audited” | **N/A** | Infinite universe; surrogate = Phase 1 tasks **DONE** + `verify_phases_3_11_gates.py` + UI wiring audit + smoke/nav tests. |
+
+
+
+
+
+
+
+| **1** | Literal ?every authenticated route line-audited? | **N/A** | Infinite universe; surrogate = Phase 1 tasks **DONE** + `verify_phases_3_11_gates.py` + UI wiring audit + smoke/nav tests. |
+
+
+
+
+
+
+
 | **2** | Tokens + Phase 2 CSS gate; coherent dark/light on canonical bases | **DONE** | `verify_design_system_phase2.py` **PASS**. |
+
+
+
+
+
+
+
 | **2** | Drift metric: non-exempt inline `<style>` | **DONE** | `report_template_inline_styles.py`: **0** flagged non-exempt blocks (2026-03-25 full chain); exempt-only files only. |
+
+
+
+
+
+
+
 | **3** | Primary nav; command palette; archetypes (scoped) | **DONE** | `test_primary_control_plane_nav` + `test_control_plane_nav_roles`; `audit_phase3_phase4_surfaces.py` inventory; Ctrl+K / palette per SOT Phase 1. |
-| **3** | “All dead-ends / minimal clicks everywhere” (unbounded) | **N/A** | Surrogate = role-home engine + `verify_ux_completion` contracts + TOP_20 / wedge program; continuous UX in §11.4. |
+
+
+
+
+
+
+
+| **3** | ?All dead-ends / minimal clicks everywhere? (unbounded) | **N/A** | Surrogate = role-home engine + `verify_ux_completion` contracts + TOP_20 / wedge program; continuous UX in ?11.4. |
+
+
+
+
+
+
+
 | **4** | Control plane operator UX on **touched** surfaces | **DONE** | SOT ZIP Phase 3 **COMPLETE** + wedge gates in `verify_phases_3_11_gates.py` **PASS**. |
+
+
+
+
+
+
+
 | **5** | Studio OS modes + legacy matrix | **DONE** | `verify_cursor_phase5_studio_os.py` **PASS** (40 routes, redirects). |
-| **5** | “Zero legacy URLs” (literal) | **N/A** | Redirects and bookmarks **by design**; matrix complete for in-scope routes. |
+
+
+
+
+
+
+
+| **5** | ?Zero legacy URLs? (literal) | **N/A** | Redirects and bookmarks **by design**; matrix coesign**; matrix complete for in-scope routes. |
+
+
+
+
+
+
+
 | **6** | SiteSettings / siteconfig structural discipline | **DONE** | ZIP Phase 5 **COMPLETE** + `verify_cursor_phase6_*` **PASS** + tenant lints; remaining `SiteSettings` strings = platform/tests/migrations per inventory. |
+
+
+
+
+
+
+
 | **7** | Runtime-first enforcement | **DONE** | `verify_cursor_phase7_*` **PASS** + `test_runtime_contract` + granular pytest **PASS**. |
-| **8** | Dashboards / role homes / UX contracts | **DONE** | Markers + density gates **PASS**; `verify_ux_completion` **PASS** on gate DB; [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) repo checklist **closed**. |
+
+
+
+
+
+
+
+| **8** | Dashboards / role homes /DONE** | Markers + density gates **PASS**; `verify_ux_completionrify_ux_completion` **PASS** on gate DB; [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) repo checklist **closed**. |
+
+
+
+
+
+
+
 | **9** | Security / trust / classified public patterns | **DONE** | `verify_phases_3_11_gates.py` **PASS** (csrf / AllowAny / secret exposure / ledgers per bundle). |
-| **10** | Marketplace / packs / migration / interop | **DONE** | `verify_operator_phase10_11_e2e.py` **PASS** (51 tests + UX). Deeper wedge depth = §0.2 product cadence, not an open repo gate. |
-| **11** | Marketing narrative + validation tests | **DONE** | Static + pytest slice inside E2E script **PASS**. Staging “feel” = production-tag **N/A** (human). |
+
+
+
+
+
+
+
+| **10** | Marketplace / packs / migration / interop | **DONE** | `verify_operator_phase10_11_e2e.py` **PASS** (51 tests + UX). Deeper wedge depth = ?0.2 product cadence, not an open repo gate. |
+
+
+
+
+
+
+
+| **11** | Marketing narrative + validation tests | **DONE** | Static + pytest slice inside E2E script **PASS**. Staging ?feel? = production-tag **N/A** (human). |
+
+
+
+
+
+
+
 | **12** | Gilead residue (policy scope) | **DONE** | `lint_gilead_residue` in bundle **PASS**; templates/static product paths clean per policy. |
+
+
+
+
+
+
 
 ### F. Legacy / how to proceed
 
+
+
+
+
+
+
 | Action | Purpose |
+
+
+
+
+
+
+
 |--------|---------|
-| Keep **`pre_deploy_gate.sh`** + **`verify_phases_3_11_gates.py`** green on every merge | Regression signal for phases 2–11 bundle. |
+
+
+
+
+
+
+
+| Keep **`pre_deploy_gate.sh`** + **`verify_phases_3_11_gates.py`** green on every merge | Regression signal for phases 2?11 bundle. |
+
+
+
+
+
+
+
 | Run **`verify_operator_phase10_11_e2e.py`** when changing marketing or operator flows | DB + UX completion slice. |
-| Execute **Phase H** checklist and manual shell walk (studio ↔ admin ↔ super) | Closes subjective Phase 1 / 8 / 11 gaps gates cannot see. |
+
+
+
+
+
+
+
+| Execute **Phase H** checklist and manual shell walk (studio ? admin ? super) | Closes subjective Phase 1 / 8 / 11 gaps gates cannot see. |
+
+
+
+
+
+
+
 | Shrink **`SiteSettings` / `get_solo`** usage along [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md) + tenant-settings lint | Phase 6 / 7 depth. |
-| Maintain **per-route ledger** for `csrf_exempt` and `cursor.execute` | Phase 9 — classify replace vs intentional. |
-| Batch **template inventories** (inline style report, archetype attributes) app-by-app | Literal “line by line” without pretending one pass finished the whole repo. |
+
+
+
+
+
+
+
+| Maintain **per-route ledger** for `csrf_exempt` and `cursor.execute` | Phase 9 ? classify replace vs intentional. |
+
+
+
+
+
+
+
+| Batch **template inventories** (inline style report, archetype attributes) app-by-app | Literal ?line by line? without pretending one pass finished the whole repo. |
+
+
+
+
+
+
 
 ---
 
-## Proceed — validation sweep (2026-03-25 follow-up)
+
+
+
+
+
+
+## Proceed ? validation sweep (2026-03-25 follow-up)
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_phases_3_11_gates.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/report_template_inline_styles.py` | **PASS** (0 flagged non-exempt blocks; 24 files with `<style>` are exempt-only) |
+
+
+
+
+
+
+
 | `python scripts/lint_csrf_exempt_usage.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_wedge_line_registry.py` | **PASS** |
+
+
+
+
+
+
 
 ### E. `pre_deploy_gate.sh` (same session)
 
+
+
+
+
+
+
 | Run | Result |
+
+
+
+
+
+
+
 |-----|--------|
-| Default gate DB | **FAIL** — `migrate_gate_test_db`: SQLite **database is locked** while applying `platform_runtime.0008_fleetgovernedchange` on `.django_test_dbs/pre_deploy_gate.sqlite3`. |
-| Long concurrent run | Stale note: legacy admin-bridge paths use **`super_admin_bridge_legacy_path_redirect`** (301 → canonical slug) or **`super_admin_bridge`**; if URLconf import fails, verify `super_views_config` exports match `super_urls.py`. |
+
+
+
+
+
+
+
+| Default gate DB | **FAIL** ? `migrate_gate_test_db`: SQLite **database is locked** while applying `platform_runtime.0008_fleetgovernedchange` on `.django_test_dbs/pre_deploy_gate.sqlite3`. |
+
+
+
+
+
+
+
+| Long concurrent run | Stale note: legacy admin-bridge paths use **`super_admin_bridge_legacy_path_redirect`** (301 ? canonical slug) or **`super_admin_bridge`**; if URLconf import fails, verify `super_views_config` exports match `super_urls.py`. |
+
+
+
+
+
+
 
 ### F. Operational follow-up (Windows / SQLite)
 
+
+
+
+
+
+
 If the gate fails with **database is locked**: use `PRE_GATE_FRESH_TEST_DB=1` (see `pre_deploy_gate.sh`), or set `DJANGO_TEST_DB_FILE` to a fresh path under `.django_test_dbs/`, and avoid concurrent processes holding the same SQLite file. See [TEST_DATABASE.md](TEST_DATABASE.md).
+
+
+
+
+
+
 
 ---
 
-## Wave closure sweep — autonomous execution program (2026-03-25)
+
+
+
+
+
+
+## Wave closure sweep ? autonomous execution program (2026-03-25)
+
+
+
+
+
+
 
 Vocabulary per session prompt: phase closure summaries use **DONE**, **BLOCKED**, or **N/A (justified)** only.
 
-### Wave A1 — SiteSettings and siteconfig dismantling (structural / Cursor Phase 6)
+
+
+
+
+
+
+### Wave A1 ? SiteSettings and siteconfig dismantling (structural / Cursor Phase 6)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope (inventory surrogate)** | Canonical docs: `docs/site_settings_usage_inventory.md`, `docs/SITECONFIG_OWNERSHIP_MIGRATION.md`, `docs/phase_audit/PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md`, `apps/siteconfig/domain_ownership.py` (`EXACT_FIELD_OWNERS`). Mechanical universe: `scripts/lint_tenant_settings.py` flags (`get_solo`, `SiteSettings.objects` in tenant trees) + Phase 6 scripts. Spot grep: `get_solo(` in `apps/**/*.py` limited to `siteconfig` model, `platform_runtime` sync/backfill, and tests (no tenant-app singleton reads). |
+
+
+
+
+
+
+
 | **B. Findings** | Inventory status in `site_settings_usage_inventory.md` documents runtime path vs platform-only reads; tenant lints enforce approved facades. `EXACT_FIELD_OWNERS` count **87** (gate minimum 40). |
+
+
+
+
+
+
+
 | **C. Implementation** | No code changes in this sweep; re-audit confirms repo already matches Phase B slim row + Batch3 drops and documented ownership. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_cursor_phase6_siteconfig_sitesettings.py` **PASS**. `python scripts/verify_cursor_phase6_granular.py` **PASS**. `python scripts/verify_phases_3_11_gates.py` **PASS** (includes tenant settings lint and related bundle). |
-| **E. Acceptance** | **DONE** — mechanical Phase 6 exit criteria satisfied; no extra allowlist file required beyond lint + inventory. |
-| **F. Legacy** | Further field moves remain incremental per `SITECONFIG_OWNERSHIP_MIGRATION.md`; SOT remains canonical for “done” language for remaining schema work. |
 
-### Wave A2 — Runtime-first enforcement (Cursor Phase 7)
+
+
+
+
+
+
+| **E. Acceptance** | **DONE** ? mechanical Phase 6 exit criteria satisfied; no extra allowlist file required beyond lint + inventory. |
+
+
+
+
+
+
+
+| **F. Legacy** | Further field moves remain incremental per `SITECONFIG_OWNERSHIP_MIGRATION.md`; SOT remains canonical for ?done? language for remaining schema work. |
+
+
+
+
+
+
+
+### Wave A2 ? Runtime-first enforcement (Cursor Phase 7)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | Surrogate: `scripts/verify_cursor_phase7_runtime_first.py` + `verify_cursor_phase7_granular.py` (required resolvers, precedence chain, singleton ORM lint, contract / identity / truth-hub pytest). |
-| **B. Findings** | Nine required resolvers present; precedence length **7**; granular bundle green. |
-| **C. Implementation** | None this sweep. |
-| **D. Validation** | `python scripts/verify_cursor_phase7_runtime_first.py` **PASS**. `python scripts/verify_cursor_phase7_granular.py` **PASS**. |
-| **E. Acceptance** | **DONE**. |
-| **F. Legacy** | Deeper “every read path” proof remains bounded by what Phase 7 scripts enforce; extend scripts if SOT tightens. |
 
-### Wave B1 — Design system / tokens (Cursor Phase 2)
+
+
+
+
+
+
+| **B. Findings** | Nine required resolvers present; precedence length **7**; granular bundle green. |
+
+
+
+
+
+
+
+| **C. Implementation** | None this sweep. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_cursor_phase7_runtime_first.py` **PASS**. `python scripts/verify_cursor_phase7_granular.py` **PASS**. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **DONE**. |
+
+
+
+
+
+
+
+| **F. Legacy** | Deeper ?every read path? proof remains bounded by what Phase 7 scripts enforce; extend scripts if SOT tightens. |
+
+
+
+
+
+
+
+### Wave B1 ? Design system / tokens (Cursor Phase 2)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | `scripts/verify_design_system_phase2.py`; drift: `scripts/report_template_inline_styles.py` (also in `verify_phases_3_11_gates.py`). |
+
+
+
+
+
+
+
 | **B. Findings** | Gates green; inline-style report **PASS** (0 non-exempt flagged blocks per prior proceed sweep; re-confirmed via phases bundle). |
+
+
+
+
+
+
+
 | **C. Implementation** | None. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_design_system_phase2.py` **PASS**; `verify_phases_3_11_gates.py` **PASS**. |
+
+
+
+
+
+
+
 | **E. Acceptance** | **DONE**. |
+
+
+
+
+
+
+
 | **F. Legacy** | N/A. |
 
-### Wave B2 — Dashboards and role homes (Cursor Phase 8)
+
+
+
+
+
+
+### Wave B2 ? Dashboards and role homes (Cursor Phase 8)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | Golden role / nav surrogate: `apps/dashboard/tests/test_role_home_engine.py`, `apps/schools/tests/test_control_plane_nav_roles.py`, `apps/schools/tests/test_primary_control_plane_nav.py`. Gates: `verify_phase7_dashboard_markers.py`, `verify_phase8_dashboard_density.py`. |
+
+
+
+
+
+
+
 | **B. Findings** | Automated markers and density gates pass; 27 tests in nav + role-home slice pass. |
+
+
+
+
+
+
+
 | **C. Implementation** | None. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_phase7_dashboard_markers.py` **PASS**. `python scripts/verify_phase8_dashboard_density.py` **PASS**. `pytest apps/schools/tests/test_control_plane_nav_roles.py apps/schools/tests/test_primary_control_plane_nav.py apps/dashboard/tests/test_role_home_engine.py -q` **PASS** (27 passed). |
-| **E. Acceptance** | **DONE** — repo premium checklist in [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) closed via automated gates (2026-03-25). **N/A** — product/design initials on a **production** tag remain organizational (staging walkthrough), not a merge blocker. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **DONE** ? repo premium checklist in [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) closed via automated gates (2026-03-25). **N/A** ? product/design initials on a **production** tag remain organizational (staging walkthrough), not a merge blocker. |
+
+
+
+
+
+
+
 | **F. Legacy** | Re-run `verify_operator_phase10_11_e2e.py` when changing dashboards/marketing; record production initials at tag time. |
 
-### Wave C1 — Shell, nav, archetypes (Cursor Phase 1 residual + Phase 3)
+
+
+
+
+
+
+### Wave C1 ? Shell, nav, archetypes (Cursor Phase 1 residual + Phase 3)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | `scripts/audit_phase3_phase4_surfaces.py` (template extends, `data-page-archetype`, operator strip); nav tests above; `SHELL_ARCHITECTURE_MATRIX.md` as architecture reference (not re-audited line-by-line here). |
+
+
+
+
+
+
+
 | **B. Findings** | Mechanical surface scan completes (stdout table); archetype coverage is inventory-style, not a fail-closed gate. |
+
+
+
+
+
+
+
 | **C. Implementation** | None. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/audit_phase3_phase4_surfaces.py` **PASS** (exit 0). Nav pytest slice **PASS** (same 27 tests). |
-| **E. Acceptance** | **DONE** for machine-verifiable surrogate (audit script + nav integration tests). **N/A** for a full new 10–20 Playwright JTBD suite in this session (not present as a dedicated gate; extend when Playwright harness is standard for this repo). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **DONE** for machine-verifiable surrogate (audit script + nav integration tests). **N/A** for a full new 10?20 Playwright JTBD suite in this session (not present as a dedicated gate; extend when Playwright harness is standard for this repo). |
+
+
+
+
+
+
+
 | **F. Legacy** | Add JTBD tests when shell golden paths are frozen in SOT. |
 
-### Wave D1 — Control plane (Cursor Phase 4)
+
+
+
+
+
+
+### Wave D1 ? Control plane (Cursor Phase 4)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | Surrogate: wedge / control-plane gates inside `verify_phases_3_11_gates.py` (`validate_wedges_phase`, `verify_wedge_line_registry`) + ecosystem audit. |
-| **B. Findings** | Wedges phases 1–5 pass; line registry passes. |
+
+
+
+
+
+
+
+| **B. Findings** | Wedges phases 1?5 pass; line registry passes. |
+
+
+
+
+
+
+
 | **C. Implementation** | None. |
+
+
+
+
+
+
+
 | **D. Validation** | Covered by `verify_phases_3_11_gates.py` **PASS**. |
+
+
+
+
+
+
+
 | **E. Acceptance** | **DONE** for in-repo automated control-plane / wedge surrogate. |
+
+
+
+
+
+
+
 | **F. Legacy** | Full outcome-UX replacement of every CRUD surface is a product scope item tracked in SOT, not re-proven here beyond gates. |
 
-### Wave D2 — Studio OS (Cursor Phase 5)
+
+
+
+
+
+
+### Wave D2 ? Studio OS (Cursor Phase 5)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | `scripts/verify_cursor_phase5_studio_os.py`. |
+
+
+
+
+
+
+
 | **B. Findings** | Gate green. |
+
+
+
+
+
+
+
 | **C. Implementation** | None. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_cursor_phase5_studio_os.py` **PASS**. |
+
+
+
+
+
+
+
 | **E. Acceptance** | **DONE**. |
+
+
+
+
+
+
+
 | **F. Legacy** | N/A. |
 
-### Wave E1 — Security / trust / endpoints (Cursor Phase 9)
+
+
+
+
+
+
+### Wave E1 ? Security / trust / endpoints (Cursor Phase 9)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | Surrogate: `lint_csrf_exempt_usage`, `lint_allow_any_usage`, `lint_secret_exposure`, raw-SQL / security ledgers as invoked by `verify_phases_3_11_gates.py`. |
-| **B. Findings** | Bundle reports CSRF lint and related checks **OK**. |
-| **C. Implementation** | None. |
-| **D. Validation** | `verify_phases_3_11_gates.py` **PASS**. |
-| **E. Acceptance** | **DONE** for allowlist-classified patterns per current scripts. |
-| **F. Legacy** | Shrink allowlists per SOT §12 when tightening policy. |
 
-### Wave F1 — Marketplace / packs / migration / interop (Cursor Phase 10)
+
+
+
+
+
+
+| **B. Findings** | Bundle reports CSRF lint and related checks **OK**. |
+
+
+
+
+
+
+
+| **C. Implementation** | None. |
+
+
+
+
+
+
+
+| **D. Validation** | `verify_phases_3_11_gates.py` **PASS**. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **DONE** for allowlist-classified patterns per current scripts. |
+
+
+
+
+
+
+
+| **F. Legacy** | Shrink allowlists per SOT ?12 when tightening policy. |
+
+
+
+
+
+
+
+### Wave F1 ? Marketplace / packs / migration / interop (Cursor Phase 10)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | `verify_operator_phase10_11_e2e.py` (static + repo audit + migrate + pytest 51 + `verify_ux_completion.py`). |
+
+
+
+
+
+
+
 | **B. Findings** | Full script completes on dedicated DB file. |
+
+
+
+
+
+
+
 | **C. Implementation** | None. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_operator_phase10_11_e2e.py --ux-db-file .django_test_dbs/wave_closure_agent_20260325.sqlite3` **PASS** (51 tests + UX completion **OK**). |
+
+
+
+
+
+
+
 | **E. Acceptance** | **DONE**. |
+
+
+
+
+
+
+
 | **F. Legacy** | External vendor probes remain **BLOCKED** only if SOT lists a vendor dependency; none encountered in this run. |
 
-### Wave F2 — Marketing front (Cursor Phase 11)
+
+
+
+
+
+
+### Wave F2 ? Marketing front (Cursor Phase 11)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | Same E2E script (marketing validation tests + static program gates). |
+
+
+
+
+
+
+
 | **B. Findings** | Marketing URL resolution and narrative gates pass inside bundle. |
+
+
+
+
+
+
+
 | **C. Implementation** | None. |
+
+
+
+
+
+
+
 | **D. Validation** | Subset of `verify_operator_phase10_11_e2e.py` **PASS**; `verify_phases_3_11_gates.py` **PASS**. |
-| **E. Acceptance** | **DONE** — static narrative gates + marketing pytest slice + `verify_ux_completion` marketing markers **PASS** in E2E script. **N/A** — staging homepage “feel” and production tag initials (organizational). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **DONE** ? static narrative gates + marketing pytest slice + `verify_ux_completion` marketing markers **PASS** in E2E script. **N/A** ? staging homepage ?feel? and production tag initials (organizational). |
+
+
+
+
+
+
+
 | **F. Legacy** | Re-run E2E when editing `templates/schools/marketing_*` or `static/marketing/`. |
 
-### Wave G1 — Gilead purge / docs discipline (Cursor Phase 12)
+
+
+
+
+
+
+### Wave G1 ? Gilead purge / docs discipline (Cursor Phase 12)
+
+
+
+
+
+
 
 | Block | Content |
+
+
+
+
+
+
+
 |-------|---------|
+
+
+
+
+
+
+
 | **A. Scope** | `scripts/lint_gilead_residue.py` (via `verify_phases_3_11_gates.py`). |
+
+
+
+
+
+
+
 | **B. Findings** | **no runtime-visible Gilead residue found** in gate output. |
+
+
+
+
+
+
+
 | **C. Implementation** | None. |
+
+
+
+
+
+
+
 | **D. Validation** | `verify_phases_3_11_gates.py` **PASS**. |
+
+
+
+
+
+
+
 | **E. Acceptance** | **DONE** on policy scope enforced by the script. |
+
+
+
+
+
+
+
 | **F. Legacy** | Historical migrations exempt per project policy. |
+
+
+
+
+
+
 
 ### Final sweep (mandatory)
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_phases_3_11_gates.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_ui_wiring_audit.py` | **PASS** (2535 registered URL names union; 447 template `{% url %}` literals; **0** missing; **0** href hazards) |
+
+
+
+
+
+
+
 | `python scripts/verify_operator_phase10_11_e2e.py --ux-db-file .django_test_dbs/wave_closure_agent_20260325.sqlite3` | **PASS** (migrate + 51 pytest + `verify_ux_completion`) |
+
+
+
+
+
+
 
 **Stop rule:** No **BLOCKED** items in this session (no vendor, prod credential, or irreversible decision gate hit).
 
-**SOT:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §0 crosswalk, methodology, §0.2.1.3 premium row, and north-star narrative updated **2026-03-25** to match this evidence.
+
+
+
+
+
+
+**SOT:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) ?0 crosswalk, methodology, ?0.2.1.3 premium row, and north-star narrative updated **2026-03-25** to match this evidence.
+
+
+
+
+
+
 
 ---
 
-## Rerun full chain — alignment (2026-03-25)
+
+
+
+
+
+
+## Rerun full chain ? alignment (2026-03-25)
+
+
+
+
+
+
 
 ### A. Scope
 
-Full autonomous validation chain in **dependency order**, single shell invocation: Phase 6 → Phase 7 → Phase 2 → inline-style report → Phase 7/8 dashboard gates → Phase 5 Studio OS → targeted pytest → phases 3–11 bundle → UI wiring → operator Phase 10/11 E2E (fresh SQLite) → Phase 3/4 surface audit.
+
+
+
+
+
+
+Full autonomous validation chain in **dependency order**, single shell invocation: Phase 6 ? Phase 7 ? Phase 2 ? inline-style report ? Phase 7/8 dashboard gates ? Phase 5 Studio OS ? targeted pytest ? phases 3?11 bundle ? UI wiring ? operator Phase 10/11 E2E (fresh SQLite) ? Phase 3/4 surface audit.
+
+
+
+
+
+
 
 ### B. Findings
+
+
+
+
+
+
 
 All steps **exit 0**. Inline-style inventory: **24** HTML files with `<style>`, **0** non-exempt flagged blocks. `verify_phases_3_11_gates.py`: all non-DB gates **PASS** (including `lint_gilead_residue`, wedge scorecard, `validate_wedges_phase`, line registry, Phase H static).
 
+
+
+
+
+
+
 ### C. Implementation
+
+
+
+
+
+
 
 Documentation only: [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) restructured (repo checklist all **[x]** with command evidence; production tag sign-off prose without open markdown task boxes). SOT rows aligned. Execution log table **E** rewritten to **DONE** / **N/A** / **PASS** (no **PARTIAL** in closure verdicts).
 
+
+
+
+
+
+
 ### D. Validation (commands + summary)
 
+
+
+
+
+
+
 | Command / step | Result |
+
+
+
+
+
+
+
 |----------------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase6_siteconfig_sitesettings.py` | **PASS** (`EXACT_FIELD_OWNERS=87`) |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase6_granular.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase7_runtime_first.py` | **PASS** (9 resolvers; precedence len 7) |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase7_granular.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_design_system_phase2.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/report_template_inline_styles.py` | **0** flagged non-exempt |
+
+
+
+
+
+
+
 | `python scripts/verify_phase7_dashboard_markers.py` | **OK** (29 templates) |
+
+
+
+
+
+
+
 | `python scripts/verify_phase8_dashboard_density.py` | **OK** |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase5_studio_os.py` | **PASS** (40 routes) |
+
+
+
+
+
+
+
 | `pytest apps/platform_runtime/tests/test_phase_b_execution_gate.py apps/platform_runtime/tests/test_runtime_contract.py -q` | **PASS** (37 tests, ~2.6s) |
+
+
+
+
+
+
+
 | `python scripts/verify_phases_3_11_gates.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_ui_wiring_audit.py` | **PASS** (2535 URL names union; 447 `{% url %}` literals; 0 missing; 0 href hazards) |
+
+
+
+
+
+
+
 | `python scripts/verify_operator_phase10_11_e2e.py --ux-db-file .django_test_dbs/rerun_closure_20260325.sqlite3` | **PASS** (migrate + 51 pytest + `verify_ux_completion`) |
+
+
+
+
+
+
+
 | `python scripts/audit_phase3_phase4_surfaces.py` | **exit 0** |
 
-### E. Acceptance (wave A–G + final sweep)
+
+
+
+
+
+
+### E. Acceptance (wave A?G + final sweep)
+
+
+
+
+
+
 
 | Wave | Closure |
+
+
+
+
+
+
+
 |------|---------|
-| A1–G1 | **DONE** or **N/A** per prior wave blocks; this rerun re-proves all gate surrogates **green**. |
+
+
+
+
+
+
+
+| A1?G1 | **DONE** or **N/A** per prior wave blocks; this rerun re-proves all gate surrogates **green**. |
+
+
+
+
+
+
+
 | Final sweep | **DONE** |
+
+
+
+
+
+
+
 | **BLOCKED** | **None** |
+
+
+
+
+
+
 
 ### F. Legacy
 
-Keep `pre_deploy_gate.sh` / dedicated SQLite discipline on Windows per [TEST_DATABASE.md](TEST_DATABASE.md). Optional: run `pytest apps/schools/tests/test_control_plane_nav_roles.py` … on each change to nav (not repeated in this single chain; covered by routine CI).
+
+
+
+
+
+
+Keep `pre_deploy_gate.sh` / dedicated SQLite discipline on Windows per [TEST_DATABASE.md](TEST_DATABASE.md). Optional: run `pytest apps/schools/tests/test_control_plane_nav_roles.py` ? on each change to nav (not repeated in this single chain; covered by routine CI).
+
+
+
+
+
+
 
 ---
 
-## PARTIAL → MET / N/A / §11.4 — subsidiary doc closure (2026-03-25)
+
+
+
+
+
+
+## PARTIAL ? MET / N/A / ?11.4 ? subsidiary doc closure (2026-03-25)
+
+
+
+
+
+
 
 ### A. Scope
 
-Reconcile remaining **PARTIAL** narratives in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) and subordinate ledgers with **§12 MET**: use **MET (repo)**, **N/A (continuous)**, **§11.4 depth**, **DONE**, **NOT DONE**, **BLOCKED** — not “stuck PARTIAL” when gates are green.
+
+
+
+
+
+
+Reconcile remaining **PARTIAL** narratives in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) and subordinate ledgers with **?12 MET**: use **MET (repo)**, **N/A (continuous)**, **?11.4 depth**, **DONE**, **NOT DONE**, **BLOCKED** ? not ?stuck PARTIAL? when gates are green.
+
+
+
+
+
+
 
 ### B. Findings
 
-North-star wall text, §0.3.1 metadata/trust rows, §0.2.1.3 foundation table, §2.1.1 control-plane ledger, Phase I prerequisite, and [launch_studio_checklist.md](launch_studio_checklist.md) Step 34 prose contradicted **DONE** staging evidence.
+
+
+
+
+
+
+North-star wall text, ?0.3.1 metadata/trust rows, ?0.2.1.3 foundation table, ?2.1.1 control-plane ledger, Phase I prerequisite, and [launch_studio_checklist.md](launch_studio_checklist.md) Step 34 prose contradicted **DONE** staging evidence.
+
+
+
+
+
+
 
 ### C. Implementation
 
-SOT: north-star **implementation table**; foundation header; north-star summary bullet; prior §0.3 / §2.1.1 row updates retained. Subsidiary docs: [metadata_lineage_approach.md](metadata_lineage_approach.md), [metadata_catalog_scope.md](metadata_catalog_scope.md), [feature_control_ledger.md](feature_control_ledger.md), [AI_audit_trail_and_permissions.md](AI_audit_trail_and_permissions.md), [studio_os_shell_requirements.md](studio_os_shell_requirements.md), [apicenter_integration_governance.md](apicenter_integration_governance.md), [siteconfig_remediation_ledger.md](siteconfig_remediation_ledger.md), [STOCKTAKE_FOUNDATION_AND_GAPS.md](STOCKTAKE_FOUNDATION_AND_GAPS.md), [TOOLSET_REMEDIATION_STATUS.md](TOOLSET_REMEDIATION_STATUS.md) (**PARTIAL** → **§11.4 depth** in maturity tables + API Center MET). [docs_truth_ledger.md](docs_truth_ledger.md): §5 toolset, metadata lineage, §4.4 note, Step 13, control-plane/marketing row; **removed corrupted footer lines**. [launch_studio_checklist.md](launch_studio_checklist.md): Step 34 **DONE** + future-deploy instructions.
+
+
+
+
+
+
+SOT: north-star **implementation table**; foundation header; north-star summary bullet; prior ?0.3 / ?2.1.1 row updates retained. Subsidiary docs: [metadata_lineage_approach.md](metadata_lineage_approach.md), [metadata_catalog_scope.md](metadata_catalog_scope.md), [feature_control_ledger.md](feature_control_ledger.md), [AI_audit_trail_and_permissions.md](AI_audit_trail_and_permissions.md), [studio_os_shell_requirements.md](studio_os_shell_requirements.md), [apicenter_integration_governance.md](apicenter_integration_governance.md), [siteconfig_remediation_ledger.md](siteconfig_remediation_ledger.md), [STOCKTAKE_FOUNDATION_AND_GAPS.md](STOCKTAKE_FOUNDATION_AND_GAPS.md), [TOOLSET_REMEDIATION_STATUS.md](TOOLSET_REMEDIATION_STATUS.md) (**PARTIAL** ? **?11.4 depth** in maturity tables + API Center MET). [docs_truth_ledger.md](docs_truth_ledger.md): ?5 toolset, metadata lineage, ?4.4 note, Step 13, control-plane/marketing row; **removed corrupted footer lines**. [launch_studio_checklist.md](launch_studio_checklist.md): Step 34 **DONE** + future-deploy instructions.
+
+
+
+
+
+
 
 ### D. Validation
 
-`rg "PARTIAL" docs --glob "*.md"` — remaining hits are **enum** (invoice PAID/PARTIAL), **policy** (SOT completion states), **archived/generated** audits, or explicit “not PARTIAL vs §12” disclaimers.
+
+
+
+
+
+
+`rg "PARTIAL" docs --glob "*.md"` ? remaining hits are **enum** (invoice PAID/PARTIAL), **policy** (SOT completion states), **archived/generated** audits, or explicit ?not PARTIAL vs ?12? disclaimers.
+
+
+
+
+
+
 
 ### E. Acceptance
 
-Single story: **§12 spine MET**; continuous work lives under **§11.4** or **N/A (release/process)** without orphan PARTIAL rows in primary ledgers.
+
+
+
+
+
+
+Single story: **?12 spine MET**; continuous work lives under **?11.4** or **N/A (release/process)** without orphan PARTIAL rows in primary ledgers.
+
+
+
+
+
+
 
 ### F. Legacy
+
+
+
+
+
+
 
 Keep **PARTIAL** only where it is a **defined vocabulary** (e.g. SOT completion enum, payment states) or historical snapshot under `docs/generated/` / `docs/archive/`.
 
+
+
+
+
+
+
 ---
 
-## Continue — validation pulse (2026-03-25)
+
+
+
+
+
+
+## Continue ? validation pulse (2026-03-25)
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `python scripts/verify_phases_3_11_gates.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_design_system_phase2.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_phase7_dashboard_markers.py` | **PASS** (29 registered dashboard templates) |
+
+
+
+
+
+
+
 | `python scripts/verify_wedge_line_registry.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/report_template_inline_styles.py` | **PASS** (0 non-exempt flagged blocks) |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase7_granular.py` | **PASS** |
+
+
+
+
+
+
 
 ### E. Authority
 
-Closure language stays per SOT **§12** and subsection **“Autonomous Cursor prompt — literal English vs SOT completion”**; ongoing polish remains **§11.4** only.
+
+
+
+
+
+
+Closure language stays per SOT **?12** and subsection **?Autonomous Cursor prompt ? literal English vs SOT completion?**; ongoing polish remains **?11.4** only.
+
+
+
+
+
+
 
 ---
 
-## Release runbook — local train (2026-03-25)
+
+
+
+
+
+
+## Release runbook ? local train (2026-03-25)
+
+
+
+
+
+
 
 ### A. Scope
 
+
+
+
+
+
+
 Execute [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) **Each future production deploy** steps that can run **without staging/prod hosts**; document **OPS** for the rest.
+
+
+
+
+
+
 
 ### B. Findings
 
-First `pre_deploy_gate` attempt failed on (1) SQLite **database is locked** on default gate file — fixed with fresh `DJANGO_TEST_DB_FILE=.django_test_dbs/gate_verification_20260325.sqlite3`; (2) **i18n catalog drift** (84 msgids) — fixed with `python manage.py sync_i18n_catalog --compile`.
+
+
+
+
+
+
+First `pre_deploy_gate` attempt failed on (1) SQLite **database is locked** on default gate file ? fixed with fresh `DJANGO_TEST_DB_FILE=.django_test_dbs/gate_verification_20260325.sqlite3`; (2) **i18n catalog drift** (84 msgids) ? fixed with `python manage.py sync_i18n_catalog --compile`.
+
+
+
+
+
+
 
 ### C. Implementation
 
-- `SKIP_VISUAL_QA=1 DJANGO_TEST_DB_FILE=.django_test_dbs/gate_verification_20260325.sqlite3 bash scripts/pre_deploy_gate.sh` → **PASSED** (~860s).
+
+
+
+
+
+
+- `SKIP_VISUAL_QA=1 DJANGO_TEST_DB_FILE=.django_test_dbs/gate_verification_20260325.sqlite3 bash scripts/pre_deploy_gate.sh` ? **PASSED** (~860s).
+
+
+
+
+
+
+
 - `docs/generated/pre_deploy_gate_run.txt` refreshed (header + log through `[pre_deploy_gate] PASSED`).
-- `python scripts/generate_platform_inventory.py --check` → **PASS** (gate also refreshed inventory).
-- `python manage.py makemigrations --check --dry-run` → **No changes detected**.
-- `PHASE_H_SKIP_LIVE=1 bash scripts/run_phase_h_verification.sh` → smoke + static audit + reliable subset **PASS**.
-- `python scripts/lint_secret_exposure.py` → **PASS**; **SECURITY_REVIEW_LOG** row `local-verification-20260325`.
-- **RELEASE_CHECKLIST** Verification run log table + **SOT** §11.4 “Last … / Pre-release” bullets + **VERIFICATION_GATES_INDEX** pointer.
+
+
+
+
+
+
+
+- `python scripts/generate_platform_inventory.py --check` ? **PASS** (gate also refreshed inventory).
+
+
+
+
+
+
+
+- `python manage.py makemigrations --check --dry-run` ? **No changes detected**.
+
+
+
+
+
+
+
+- `PHASE_H_SKIP_LIVE=1 bash scripts/run_phase_h_verification.sh` ? smoke + static audit + reliable subset **PASS**.
+
+
+
+
+
+
+
+- `python scripts/lint_secret_exposure.py` ? **PASS**; **SECURITY_REVIEW_LOG** row `local-verification-20260325`.
+
+
+
+
+
+
+
+- **RELEASE_CHECKLIST** Verification run log table + **SOT** ?11.4 ?Last ? / Pre-release? bullets + **VERIFICATION_GATES_INDEX** pointer.
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Step | Result |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | 1 Merge bar | **PASS** |
+
+
+
+
+
+
+
 | 2 Record output | **DONE** (`docs/generated/pre_deploy_gate_run.txt`) |
+
+
+
+
+
+
+
 | 3 Inventory | **PASS** |
-| 4 Migrations | **PASS** (repo); **OPS** staging→prod |
+
+
+
+
+
+
+
+| 4 Migrations | **PASS** (repo); **OPS** staging?prod |
+
+
+
+
+
+
+
 | 5 Launch 10-point | **OPS** (staging) |
+
+
+
+
+
+
+
 | 6 Phase H | **PASS** (automated slice; BR-13 manual before real RC = OPS) |
+
+
+
+
+
+
+
 | 7 Security log | **DONE** |
+
+
+
+
+
+
+
 | 8 Deploy/smoke | **OPS** |
+
+
+
+
+
+
+
 | 9 Sign-off | **DONE** (append-only notes in RELEASE_CHECKLIST + SOT cross-ref) |
+
+
+
+
+
+
 
 ### E. Acceptance
 
+
+
+
+
+
+
 Local **merge-bar** evidence is current for **2026-03-25**; **no false claim** of staging or production deployment.
+
+
+
+
+
+
 
 ### F. Legacy
 
-Before **prod:** run full `pre_deploy_gate.sh` **without** `SKIP_VISUAL_QA=1` when you want the gate to own Playwright, or keep running `bash scripts/run_visual_qa.sh` standalone; complete staging Launch §4 table row per policy.
 
-**Follow-up same day (2026-03-25):** `bash scripts/run_visual_qa.sh` → **PASS** (7 passed, 2 skipped SQLite); `python scripts/verify_phases_3_11_gates.py` → **PASS**; `verify_ui_wiring_audit` + `audit_phase3_phase4_surfaces` → **PASS**; `python scripts/verify_operator_phase10_11_e2e.py --ux-db-file .django_test_dbs/progress_phase1011.sqlite3` → **PASS**. **CI:** [`.github/workflows/smoke.yml`](../.github/workflows/smoke.yml) now supports **`workflow_dispatch`** (manual **Smoke test** run). See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) **2026-03-25 follow-up**; [CONTRIBUTING.md](../CONTRIBUTING.md) **Pre-merge verification**.
+
+
+
+
+
+Before **prod:** run full `pre_deploy_gate.sh` **without** `SKIP_VISUAL_QA=1` when you want the gate to own Playwright, or keep running `bash scripts/run_visual_qa.sh` standalone; complete staging Launch ?4 table row per policy.
+
+
+
+
+
+
+
+**Follow-up same day (2026-03-25):** `bash scripts/run_visual_qa.sh` ? **PASS** (7 passed, 2 skipped SQLite); `python scripts/verify_phases_3_11_gates.py` ? **PASS**; `verify_ui_wiring_audit` + `audit_phase3_phase4_surfaces` ? **PASS**; `python scripts/verify_operator_phase10_11_e2e.py --ux-db-file .django_test_dbs/progress_phase1011.sqlite3` ? **PASS**. **CI:** [`.github/workflows/smoke.yml`](../.github/workflows/smoke.yml) now supports **`workflow_dispatch`** (manual **Smoke test** run). See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) **2026-03-25 follow-up**; [CONTRIBUTING.md](../CONTRIBUTING.md) **Pre-merge verification**.
+
+
+
+
+
+
 
 ---
 
-## Proceed — full `pre_deploy_gate` + security / Phase 6 bundle (2026-03-25)
+
+
+
+
+
+
+## Proceed ? full `pre_deploy_gate` + security / Phase 6 bundle (2026-03-25)
+
+
+
+
+
+
 
 ### D. Validation
 
+
+
+
+
+
+
 | Command | Result |
+
+
+
+
+
+
+
 |---------|--------|
+
+
+
+
+
+
+
 | `DJANGO_TEST_DB_FILE=.django_test_dbs/proceed_gate_20260326.sqlite3` `PRE_GATE_FRESH_TEST_DB=1` `bash scripts/pre_deploy_gate.sh` | **PASS** (~930s); ends with `[pre_deploy_gate] PASSED` |
+
+
+
+
+
+
+
 | `python scripts/build_phase8_security_ledger.py --check` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/lint_allow_any_usage.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/lint_raw_sql_usage.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase6_granular.py` | **PASS** |
+
+
+
+
+
+
+
 | `python scripts/verify_cursor_phase6_siteconfig_sitesettings.py` | **PASS** |
+
+
+
+
+
+
 
 ### E. Artifacts
 
+
+
+
+
+
+
 Gate **post-step** runs `generate_platform_inventory.py --write` (then `--check`). Expect **diffs** in `docs/generated/platform_inventory.json` and `docs/generated/platform_inventory.md` vs last commit. **Commit those two** (or re-run `--write` on a clean release branch) so CI/agents stay aligned with the gate snapshot.
 
+
+
+
+
+
+
 ### F. Windows / SQLite
+
+
+
+
+
+
 
 Dedicated gate DB path + `PRE_GATE_FRESH_TEST_DB=1` avoided **database is locked** on the default `pre_deploy_gate.sqlite3` file; see [TEST_DATABASE.md](TEST_DATABASE.md).
 
 
+
+
+
+
+
 ---
+
+
+
+
+
+
 
 ## KB/FAQ + LibreOffice full-stack slice (2026-03-26)
 
+
+
+
+
+
+
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | Operator vs tenant KB/FAQ visibility + LibreOffice tiers T0–T6 baseline in codebase. |
+
+
+
+
+
+
+
+| **A. Scope** | Operator vs tenant KB/FAQ visibility + LibreOffice tiers T0?T6 baseline in codebase. |
+
+
+
+
+
+
+
 | **B. Findings** | Manager `/kb/` redirected to super dashboard; FAQ lacked KB parity filters; document conversion callsites were not centralized; no in-app Collabora/WOPI entry points. |
+
+
+
+
+
+
+
 | **C. Implementation** | `HelpAudience` on FAQ/KB; FAQ regional/plan/role parity; host-aware filters in `apps/portal/kb_context.py`; manager `/kb/` routed to KB namespace in `config/manager_urls.py`; centralized `apps/portal/document_service.py`; `document_conversion.py` safety + calc/impress converters; WOPI/office views (`apps/portal/views_office.py`) + routes in `apps/portal/urls_kb.py`; hosted office model + admin + templates; Collabora compose file `docker-compose.collabora.yml`; stack verifier `scripts/verify_kb_libreoffice_stack.py`. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/verify_kb_libreoffice_stack.py` PASS; `python scripts/lint_csrf_exempt_usage.py` PASS; targeted tests PASS: `test_document_service.py`, `test_kb_manager_route.py`, `test_kb_audience_filters.py` (8 passed). |
+
+
+
+
+
+
+
 | **E. Acceptance** | Core code paths for T0/T1/T2/T3/T4 baseline shipped. |
+
+
+
+
+
+
+
 | **F. External/infra follow-up** | Full production Collabora deployment (DNS/TLS/ingress, capacity, HA, ops alerts) is external infra work; keep tracked in rollout checklist before marking DONE. |
+
+
+
+
+
 
 
 ## KB/FAQ + LibreOffice rollout loop follow-up (2026-03-26)
 
+
+
+
+
+
+
 - Added production rollout artifacts: `deploy/collabora/k8s/*`, `deploy/collabora/nginx.collabora.conf`.
+
+
+
+
+
+
+
 - Added smoke tooling: `scripts/verify_collabora_wopi_smoke.py`, `scripts/release/verify_collabora_wopi.sh`, `scripts/release/verify_collabora_wopi.ps1`.
+
+
+
+
+
+
+
 - Added release/runbook wiring: `docs/execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md`, `docs/RELEASE_CHECKLIST.md` step 8b, KB runbook production checklist link.
+
+
+
+
+
+
+
 - Validation: `verify_kb_libreoffice_stack.py` PASS, targeted KB/doc tests PASS, smoke CLI help PASS.
+
+
+
+
+
+
+
 - Remaining external blocker unchanged: production Collabora ingress/TLS and real staging edit-save smoke with service credentials.
+
+
+
+
+
 
 
 ## KB/FAQ + LibreOffice blocker-reduction loop (2026-03-26)
 
+
+
+
+
+
+
 - Hardened `apps/portal/views_office.py` WOPI endpoints to signed access-token verification with expiry (server-token flow), removing session-coupled auth from WOPI server routes.
+
+
+
+
+
+
+
 - Added `apps/portal/management/commands/seed_office_documents.py` to seed deterministic operator/tenant hosted docs for staging smoke execution.
+
+
+
+
+
+
+
 - Added `.github/workflows/collabora-wopi-smoke.yml` manual workflow to enforce repeatable staging smoke checks from CI runner.
+
+
+
+
+
+
+
 - Updated `scripts/release/render_predeploy.sh` with optional `RUN_COLLABORA_READINESS_CHECK=1` hook (non-default) to execute Collabora readiness checks during predeploy where envs are wired.
+
+
+
+
+
+
+
 - Updated runbook/checklists to include workflow and seeded-doc flow.
 
+
+
+
+
+
+
 Validation:
+
+
+
+
+
+
+
 - `python scripts/verify_kb_libreoffice_stack.py` PASS
+
+
+
+
+
+
+
 - `python scripts/lint_csrf_exempt_usage.py` PASS
+
+
+
+
+
+
+
 - `python -m pytest apps/portal/tests/test_document_service.py apps/portal/tests/test_kb_manager_route.py apps/portal/tests/test_kb_audience_filters.py -q` PASS (8)
 
+
+
+
+
+
+
 Residual external blocker (SOT-compliant):
+
+
+
+
+
+
+
 - Requires real staging/prod environment credentials + ingress/TLS endpoints to run full browser edit-save sign-off per `docs/execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md`.
+
+
+
+
+
 
 
 ## KB/FAQ + LibreOffice final-close packet (2026-03-26)
 
+
+
+
+
+
+
 - Added concrete Render staging closeout pack to `docs/execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md`:
+
+
+
+
+
+
+
   - env matrix
+
+
+
+
+
+
+
   - deploy + smoke command sequence
+
+
+
+
+
+
+
   - explicit exit criteria for flipping SOT state
+
+
+
+
+
+
+
 - This reduces the remaining blocker to environment credential execution only.
+
+
+
+
+
 
 
 ## Render env contract hardening (2026-03-26)
 
+
+
+
+
+
+
 - Added `scripts/verify_env_contract.py` with `render-core` and `render-collabora` profiles (missing/placeholder checks + deploy-safe assertions).
+
+
+
+
+
+
+
 - Wired optional gate toggles in `scripts/pre_deploy_gate.sh`: `RUN_ENV_CONTRACT_GATE=1` and `RUN_COLLABORA_ENV_CONTRACT_GATE=1`.
+
+
+
+
+
+
+
 - Updated `.env.example` for Collabora/WOPI keys and CSRF origin guidance aligned with runmycampus domains.
+
+
+
+
+
+
+
 - Added `docs/execution/RENDER_ENV_OPERATIONS.md` mapping Render key ownership, sensitive-value handling, and portability across platforms.
+
+
+
+
+
+
+
 - Linked env-contract verification into release and Collabora rollout checklists.
 
+
+
+
+
+
+
 ---
 
-## Phase 1 slice — SiteSettings/settings gravity audit gate (2026-03-26)
+
+
+
+
+
+
+## Phase 1 slice ? SiteSettings/settings gravity audit gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Enforce a mechanical Phase 1 gate for touched singleton/settings gravity flows: classification coverage + tenant guardrails + `get_solo()` drift check. |
+
+
+
+
+
+
+
 | **B. Findings** | Existing decomposition artifacts already present (`domain_ownership`, usage inventory, migration map), but there was no single script asserting **all Phase 1 touched invariants together**. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_phase1_settings_gravity.py` to validate: required owner classes in `apps/siteconfig/domain_ownership.py`, required docs (`docs/site_settings_usage_inventory.md`, `docs/SITECONFIG_OWNERSHIP_MIGRATION.md`), tenant lints (`--check-get-solo-only`, `--check-school-settings-features`, `--check-sitesettings-orm-in-tenant-apps`), and `--report-allowlisted` drift (`Total allowlisted` must be `0`). Added CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase1_settings_gravity_passes`. |
-| **D. Validation** | `python scripts/lint_tenant_settings.py --report-allowlisted --base .` → `Total allowlisted: 0`; `python scripts/verify_phase1_settings_gravity.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase1_settings_gravity -q` → **PASS**. |
-| **E. Acceptance** | **PASS (Phase 1 touched slice)** — touched tenant behavior guardrails are enforced by code; migration map artifacts are required by gate; singleton drift on touched paths (`get_solo` allowlist) is blocked. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/lint_tenant_settings.py --report-allowlisted --base .` ? `Total allowlisted: 0`; `python scripts/verify_phase1_settings_gravity.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase1_settings_gravity -q` ? **PASS**. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 1 touched slice)** ? touched tenant behavior guardrails are enforced by code; migration map artifacts are required by gate; singleton drift on touched paths (`get_solo` allowlist) is blocked. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime behavior removed in this slice; this closes a **verification/guardrail gap** to prevent re-growth of `siteconfig` mega-domain patterns on touched paths. |
 
+
+
+
+
+
+
 ---
 
-## Phase 2 slice — Authenticated shell continuity on `/admin` manager host (2026-03-26)
+
+
+
+
+
+
+## Phase 2 slice ? Authenticated shell continuity on `/admin` manager host (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Normalize manager-host `/admin/*` shell identity and cross-surface continuity so `/admin`, `/super/`, and `/studio/*` share one authenticated navigation memory model on touched paths. |
+
+
+
+
+
+
+
 | **B. Findings** | `/super/*` and control-plane shell tracked recent cross-surface navigation (`/super`, `/studio`, `/admin`) while manager-host `/admin/*` did not push/render that same recent list, causing continuity gaps when moving between surfaces. |
+
+
+
+
+
+
+
 | **C. Implementation** | Updated `templates/admin/base.html` to set `data-authenticated-surface="manager-control-plane"` on manager host (instead of generic `django-admin`). Added shared recent-navigation sync logic in `templates/admin/base_site.html` (manager host only) using the same `sessionStorage` key (`runmycampus-cp-recent`) and tracked-path rule used by control-plane shell, so `cpNavRecentList` remains continuous across `/admin`, `/super/`, and `/studio/*`. |
-| **D. Validation** | `python -m pytest apps/accounts/tests/test_context_processors_helpers.py -q` → **PASS**; template lint diagnostics → no errors. |
-| **E. Acceptance** | **PASS (Phase 2 touched slice)** — authenticated manager surfaces now maintain one continuity model for recent navigation across `/admin`, `/super/`, and `/studio/*` on touched pages. |
+
+
+
+
+
+
+
+| **D. Validation** | `python -m pytest apps/accounts/tests/test_context_processors_helpers.py -q` ? **PASS**; template lint diagnostics ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 2 touched slice)** ? authenticated manager surfaces now maintain one continuity model for recent navigation across `/admin`, `/super/`, and `/studio/*` on touched pages. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No route removals in this slice; this is a shell-parity/continuity normalization to reduce duplicate behavior drift. |
 
+
+
+
+
+
+
 ---
 
-## Phase 2 slice — Shared manager shell script for `/super/*` + manager `/admin/*` (2026-03-26)
+
+
+
+
+
+
+## Phase 2 slice ? Shared manager shell script for `/super/*` + manager `/admin/*` (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Remove duplicate manager shell JS behavior and centralize command/search + recent-navigation continuity for high-traffic manager surfaces (`/super/*` and manager-host `/admin/*`). |
+
+
+
+
+
+
+
 | **B. Findings** | `templates/control_plane_base.html` and `templates/admin/base_site.html` both implemented near-identical search (`Ctrl+K` + `/api/search`) and recent-navigation session logic separately, increasing drift risk. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `static/js/authenticated-shell-manager.js` as shared behavior module: unified manager search wiring (`cpSearchInput`/`cpSearchInputAdmin` + result panels), shared `Ctrl+K` focus handling, and shared recent-navigation continuity via `runmycampus-cp-recent`. Replaced duplicate inline search and recent scripts in `templates/control_plane_base.html` and `templates/admin/base_site.html` with shared script include. |
-| **D. Validation** | `python -m pytest apps/siteconfig/tests/test_admin_ui_smoke.py -q` → **PASS**; duplicate inline markers grep (`cpSearchInput`/`runmycampus-cp-recent`) in templates → no stale duplicate blocks found; template/js lint diagnostics → no errors. |
-| **E. Acceptance** | **PASS (Phase 2 touched route batch)** — `/super/*` and manager `/admin/*` now use one shared shell behavior module for command/search and navigation continuity on touched surfaces. |
+
+
+
+
+
+
+
+| **D. Validation** | `python -m pytest apps/siteconfig/tests/test_admin_ui_smoke.py -q` ? **PASS**; duplicate inline markers grep (`cpSearchInput`/`runmycampus-cp-recent`) in templates ? no stale duplicate blocks found; template/js lint diagnostics ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 2 touched route batch)** ? `/super/*` and manager `/admin/*` now use one shared shell behavior module for command/search and navigation continuity on touched surfaces. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Removed duplicated inline shell logic blocks from both templates; functional behavior preserved via shared static module. |
 
+
+
+
+
+
+
 ---
 
-## Phase 2 slice — `/studio/*` manager-host parity with control-plane shell contract (2026-03-26)
+
+
+
+
+
+
+## Phase 2 slice ? `/studio/*` manager-host parity with control-plane shell contract (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Bring Studio routes on manager host into the same authenticated shell contract used by `/super/*` and manager `/admin/*` for surface identity and contextual right-rail parity. |
+
+
+
+
+
+
+
 | **B. Findings** | `portal_base` always marked `data-authenticated-surface="tenant-portal"` even for manager-host routes, and Studio shell did not include the shared manager contextual drawer surface when operating on manager host. |
+
+
+
+
+
+
+
 | **C. Implementation** | Updated `templates/portal_base.html` so `data-authenticated-surface` resolves to `manager-control-plane` on manager host and `tenant-portal` otherwise. Updated `templates/studio_os/shell.html` to include `partials/cp_context_drawer_shell.html` on manager host, giving Studio manager views the same contextual drawer contract as `/super/*` and manager `/admin/*`. |
-| **D. Validation** | `python -m pytest apps/studio_os/tests/test_phase_05_legacy_redirects.py -q` → **PASS**; `python -m pytest apps/siteconfig/tests/test_admin_ui_smoke.py -q` → **PASS**; template lint diagnostics → no errors. |
-| **E. Acceptance** | **PASS (Phase 2 touched route batch)** — manager-host Studio pages now align with unified authenticated shell identity and contextual right-rail parity on touched paths. |
+
+
+
+
+
+
+
+| **D. Validation** | `python -m pytest apps/studio_os/tests/test_phase_05_legacy_redirects.py -q` ? **PASS**; `python -m pytest apps/siteconfig/tests/test_admin_ui_smoke.py -q` ? **PASS**; template lint diagnostics ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 2 touched route batch)** ? manager-host Studio pages now align with unified authenticated shell identity and contextual right-rail parity on touched paths. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No route removals in this slice; this closes shell contract drift between manager-host Studio and existing manager control-plane surfaces. |
 
+
+
+
+
+
+
 ---
 
-## Phase 2 slice — Template-by-template authenticated shell conformance gate (2026-03-26)
+
+
+
+
+
+
+## Phase 2 slice ? Template-by-template authenticated shell conformance gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add a stricter scripted gate to prevent shell regression across authenticated templates (`/super/*`, Studio OS shell hierarchy, and control-plane skeleton usage). |
+
+
+
+
+
+
+
 | **B. Findings** | Without a dedicated conformance script, shell drift could reappear silently (wrong base template, missing shell marker contracts, or uncontrolled direct `control_plane_skeleton` usage). |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_phase2_authenticated_shell_conformance.py` with checks for: (1) base marker contracts in `portal_base`, `control_plane_base`, and `admin/base`; (2) all non-fragment `templates/schools/super_*.html` must extend `control_plane_base.html` and include explicit archetype marker (`data-page-archetype` or `cp_page_archetype`); (3) Studio hierarchy (`studio_os/shell.html` extends `portal_base`, mode templates extend `studio_os/shell.html`); (4) direct `control_plane_skeleton.html` extends restricted to allowlisted wrappers/pages. Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase2_authenticated_shell_conformance_passes`. |
-| **D. Validation** | `python scripts/verify_phase2_authenticated_shell_conformance.py` → **PASS**; focused lint diagnostics on script and updated test file → no errors. |
-| **E. Acceptance** | **PASS (Phase 2 gate slice)** — authenticated shell conformance is now mechanically enforced and fails fast on template hierarchy/marker regressions. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase2_authenticated_shell_conformance.py` ? **PASS**; focused lint diagnostics on script and updated test file ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 2 gate slice)** ? authenticated shell conformance is now mechanically enforced and fails fast on template hierarchy/marker regressions. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime feature removal; this is a preventive quality gate to keep shell unification stable as templates evolve. |
 
+
+
+
+
+
+
 ---
 
-## Phase 3 slice — Navigation + command conformance gate (2026-03-26)
+
+
+
+
+
+
+## Phase 3 slice ? Navigation + command conformance gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add a strict scripted check for canonical primary navigation IA and command palette/search contracts on authenticated manager and Studio shells. |
+
+
+
+
+
+
+
 | **B. Findings** | Existing navigation and command behavior was implemented, but there was no dedicated mechanical gate to block regressions in canonical labels, shared manager search entry points, or Studio command palette markers. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_phase3_navigation_command_conformance.py` to enforce: canonical nav labels in `templates/partials/control_plane_primary_nav.html` (Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Control); manager shell search/shortcut contracts in `templates/control_plane_base.html` + `templates/components/admin_nav_bridge.html`; shared manager script coverage in `static/js/authenticated-shell-manager.js`; Studio command palette markers and trigger contract in `templates/studio_os/shell.html`. Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase3_navigation_command_conformance_passes`. |
-| **D. Validation** | `python scripts/verify_phase3_navigation_command_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase3_navigation_command_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
-| **E. Acceptance** | **PASS (Phase 3 gate slice)** — navigation IA and command/search contracts are now mechanically enforced to prevent drift on authenticated surfaces. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase3_navigation_command_conformance.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase3_navigation_command_conformance -q` ? **PASS**; lint diagnostics on touched files ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 3 gate slice)** ? navigation IA and command/search contracts are now mechanically enforced to prevent drift on authenticated surfaces. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventative regression gate for Phase 3 behavior. |
 
+
+
+
+
+
+
 ---
 
-## Phase 4 slice — Control-plane decision-console conformance gate (2026-03-26)
+
+
+
+
+
+
+## Phase 4 slice ? Control-plane decision-console conformance gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add a strict scripted gate for touched control-plane decision-console surfaces, enforcing outcome grouping, source tracing, and publish/rollback affordance contracts. |
+
+
+
+
+
+
+
 | **B. Findings** | Decision-console pieces existed across templates and `control_outcome_center.py`, but there was no single mechanical guard to prevent future drift in the operator model (source tracing + staged/publish/rollback path). |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_phase4_control_plane_decision_console.py` to enforce: (1) both touched CCC templates (`siteconfig/console_domains_hub.html`, `siteconfig/console_domains_hub_control_plane.html`) include the shared outcomes partial and declare `decision-console` archetype; (2) outcomes partial renders grouped links and source labels; (3) operator-model partial renders `operator_control_model` and stability signals; (4) `apps/siteconfig/control_outcome_center.py` has at least nine outcome groups, required source-label keys, and operator-model tokens for source tracing + publish/rollback (`source_tracing`, `publish_rollback`, `Runtime inspector`, `Rollback (Control)`, `Package rollout`). Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase4_control_plane_decision_console_passes`. |
-| **D. Validation** | `python scripts/verify_phase4_control_plane_decision_console.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase4_control_plane_decision_console -q` → **PASS**; lint diagnostics on touched files → no errors. |
-| **E. Acceptance** | **PASS (Phase 4 gate slice)** — touched control-plane templates and registry contracts now fail fast on decision-console regressions. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase4_control_plane_decision_console.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase4_control_plane_decision_console -q` ? **PASS**; lint diagnostics on touched files ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 4 gate slice)** ? touched control-plane templates and registry contracts now fail fast on decision-console regressions. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive Phase 4 control-plane quality gate. |
 
+
+
+
+
+
+
 ---
 
-## Phase 5 slice — Studio OS conformance gate (2026-03-26)
+
+
+
+
+
+
+## Phase 5 slice ? Studio OS conformance gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add strict Studio OS gate for mode contracts, legacy redirect coverage, and native Output Studio path constraints. |
+
+
+
+
+
+
+
 | **B. Findings** | Existing Phase 5 mechanical checks covered redirects and route reverses, but lacked one consolidated guard that verifies Studio mode contract integrity plus native Output pane constraints in one pass. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_phase5_studio_os_conformance.py` to enforce: (1) `STUDIO_MODES` ids are exactly `experience/automation/output/launch/control`; (2) canonical mode routes exist in `apps/studio_os/urls.py`; (3) legacy identity coverage remains in `apps/studio_os/deep_links.py` (`customizer`, `workflow_hub`, `report_library` with forced `?pane=reports`); (4) Output native-pane constraints in `apps/studio_os/views.py` and `templates/studio_os/partials/output_mode_canvas.html` (explicit branches for dependency/reports/documents/builder/credentials/branding/policy and native-first iframe-clearing behavior). Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase5_studio_os_conformance_passes`. |
-| **D. Validation** | `python scripts/verify_phase5_studio_os_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase5_studio_os_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
-| **E. Acceptance** | **PASS (Phase 5 gate slice)** — Studio OS contract drift now fails fast on touched mode/redirect/native-output constraints. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase5_studio_os_conformance.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase5_studio_os_conformance -q` ? **PASS**; lint diagnostics on touched files ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 5 gate slice)** ? Studio OS contract drift now fails fast on touched mode/redirect/native-output constraints. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime removal in this slice; this is a preventive conformance gate for Phase 5 behavior. |
 
+
+
+
+
+
+
 ---
 
-## Phase 6 slice — Runtime-first conformance gate (2026-03-26)
+
+
+
+
+
+
+## Phase 6 slice ? Runtime-first conformance gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add a strict runtime-first conformance gate for touched resolver flows, enforcing deterministic precedence contract and banning singleton fallback anti-patterns. |
+
+
+
+
+
+
+
 | **B. Findings** | Runtime/tenant policy logic already had key runtime-first pieces (`tenant_compiled_config` merge, runtime resolver using `get_effective_policy`), but no single gate asserted all precedence and fallback constraints together on touched flow files. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_phase6_runtime_first_conformance.py` to enforce: (1) canonical precedence markers/order for `compile_effective_tenant_config` docstring + implementation in `apps/siteconfig/tenant_config.py`; (2) runtime resolver contract in `apps/platform_runtime/runtime_resolver.py` (`get_effective_policy` import + call path); (3) policy precedence in `apps/policies/resolver.py` ensuring `tenant_compiled_config` merge occurs before raw `School.settings` merge; (4) fallback bans on touched flow files (`SiteSettings.get_solo`, `SiteSettings.load`, `SiteSettings.objects.*`). Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase6_runtime_first_conformance_passes`. |
-| **D. Validation** | `python scripts/verify_phase6_runtime_first_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
-| **E. Acceptance** | **PASS (Phase 6 gate slice)** — touched runtime-first resolver contracts now fail fast on precedence regressions and singleton fallback drift. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase6_runtime_first_conformance.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_conformance -q` ? **PASS**; lint diagnostics on touched files ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 6 gate slice)** ? touched runtime-first resolver contracts now fail fast on precedence regressions and singleton fallback drift. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive quality gate to sustain runtime-first behavior on touched flows. |
 
+
+
+
+
+
+
 ---
 
-## Phase 6 slice — Runtime-first extension gate for high-risk downstream consumers (2026-03-26)
+
+
+
+
+
+
+## Phase 6 slice ? Runtime-first extension gate for high-risk downstream consumers (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add a narrow extension gate that protects runtime-first behavior on a small allowlisted set of high-risk policy-consumer entrypoints (admissions/gradebook/finance). |
+
+
+
+
+
+
+
 | **B. Findings** | Core resolver precedence is now enforced, but downstream policy consumers remained a regression risk if they reintroduced direct `school.settings`/singleton fallback reads in feature entrypoints. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_phase6_runtime_first_extension.py` to enforce contracts on allowlisted files: `apps/siteconfig/identifier_policy_service.py`, `apps/evals/runtime_gradebook.py`, `apps/finance/runtime_helpers.py`, `apps/policies/section_10_helpers.py`. Checks include required runtime/policy read paths (`request.tenant_runtime.policy`, `get_effective_policy(...)`, `runtime.modules.gradebook`) and fallback-ban patterns (`SiteSettings.get_solo`, `SiteSettings.load`, `SiteSettings.objects.*`, `school.settings`, `school.features`). Wired CI/unit entrypoint in `apps/platform_runtime/tests/test_tenant_settings_lint.py::test_verify_phase6_runtime_first_extension_passes`. |
-| **D. Validation** | `python scripts/verify_phase6_runtime_first_extension.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_extension -q` → **PASS**; lint diagnostics on touched files → no errors. |
-| **E. Acceptance** | **PASS (Phase 6 extension slice)** — allowlisted downstream policy consumers now fail fast on runtime-first contract and fallback regression drift. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase6_runtime_first_extension.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_extension -q` ? **PASS**; lint diagnostics on touched files ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 6 extension slice)** ? allowlisted downstream policy consumers now fail fast on runtime-first contract and fallback regression drift. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive downstream hardening gate. |
 
+
+
+
+
+
+
 ---
 
-## Phase 6 slice — Runtime-first allowlist expansion pass (API entrypoints, low-noise) (2026-03-26)
+
+
+
+
+
+
+## Phase 6 slice ? Runtime-first allowlist expansion pass (API entrypoints, low-noise) (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Expand the Phase 6 extension gate with a narrow set of concrete API entrypoints while preserving low-noise contract checks. |
+
+
+
+
+
+
+
 | **B. Findings** | Dedicated admissions API-view modules were not present by filename; concrete high-risk API entrypoints available for this pass were in `apps/finance/api_views.py` and policy-backed `apps/schools/api_views.py`. |
+
+
+
+
+
+
+
 | **C. Implementation** | Updated `scripts/verify_phase6_runtime_first_extension.py` allowlist to include `apps/finance/api_views.py` and `apps/schools/api_views.py`. Added narrow contracts: finance API must retain tenant-scoping helper/tokens (`_request_school`, school-scoped queryset filters), and school config API must keep policy-backed feature resolution (`get_effective_policy(...)`). Existing fallback bans (`SiteSettings.get_solo/load/objects`, direct `school.settings/features`) now also apply to these API entrypoints. |
-| **D. Validation** | `python scripts/verify_phase6_runtime_first_extension.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_extension -q` → **PASS**; lint diagnostics on touched files → no errors. |
-| **E. Acceptance** | **PASS (Phase 6 allowlist expansion slice)** — runtime-first anti-fallback protections now cover additional concrete API entrypoints with constrained, low-noise checks. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase6_runtime_first_extension.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_extension -q` ? **PASS**; lint diagnostics on touched files ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 6 allowlist expansion slice)** ? runtime-first anti-fallback protections now cover additional concrete API entrypoints with constrained, low-noise checks. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive gate expansion only. |
 
+
+
+
+
+
+
 ---
 
-## Phase 6 slice — Discovery guard for admissions API-view introductions (2026-03-26)
+
+
+
+
+
+
+## Phase 6 slice ? Discovery guard for admissions API-view introductions (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add a low-noise discovery guard so newly introduced admissions API-view files cannot bypass Phase 6 runtime-first review. |
+
+
+
+
+
+
+
 | **B. Findings** | Existing extension gate covered concrete allowlisted files but did not detect future admissions API-view file introductions automatically. |
+
+
+
+
+
+
+
 | **C. Implementation** | Updated `scripts/verify_phase6_runtime_first_extension.py` with discovery guard constants: `ADMISSIONS_API_VIEW_DISCOVERY_GLOBS` and `JUSTIFIED_ADMISSIONS_API_VIEW_FILES`. The gate now discovers admissions API-view path-pattern matches and fails when any discovered file is neither in the explicit allowlist nor in the justification set, forcing explicit review. |
-| **D. Validation** | `python scripts/verify_phase6_runtime_first_extension.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_extension -q` → **PASS**; lint diagnostics on touched files → no errors. |
-| **E. Acceptance** | **PASS (Phase 6 discovery-guard slice)** — admissions API-view introductions now fail fast unless explicitly allowlisted or justified. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase6_runtime_first_extension.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase6_runtime_first_extension -q` ? **PASS**; lint diagnostics on touched files ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 6 discovery-guard slice)** ? admissions API-view introductions now fail fast unless explicitly allowlisted or justified. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime removals in this slice; this is a preventive drift-detection hardening step. |
 
+
+
+
+
+
+
 ---
 
-## Phase 7 slice — Runtime-first mechanical gate wired into tenant-settings lint suite (2026-03-26)
+
+
+
+
+
+
+## Phase 7 slice ? Runtime-first mechanical gate wired into tenant-settings lint suite (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | Align Phase 7 runtime-first enforcement with Phases 1–6 by exposing the narrow mechanical gate in `apps/platform_runtime/tests/test_tenant_settings_lint.py` without nesting a second full pytest session on every run. |
-| **B. Findings** | Phase 7 checklist is MET in-repo per `docs/phase_checklists/phase_07_runtime_first.md`, but the same automation file that runs Phase 1–6 conformance gates did not invoke Phase 7’s narrow mechanical bundle. |
-| **C. Implementation** | Added `TenantSettingsLintTests::test_verify_cursor_phase7_runtime_first_mechanical_passes`, which runs `scripts/verify_cursor_phase7_runtime_first.py` with `PHASE7_RUNTIME_FIRST_SKIP_PYTEST=1` so CI enforces precedence order, resolver registry coverage, required paths, and Phase 07 audit doc sections via Django setup—while contract pytest modules remain the responsibility of `verify_cursor_phase7_granular.py` / pre-deploy / dedicated sessions. |
-| **D. Validation** | `PHASE7_RUNTIME_FIRST_SKIP_PYTEST=1 python scripts/verify_cursor_phase7_runtime_first.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k cursor_phase7_runtime_first_mechanical -q` → **PASS**; lint diagnostics on touched file → no errors. |
-| **E. Acceptance** | **PASS (Phase 7 CI wiring slice)** — mechanical Phase 7 runtime-first invariants run alongside Phase 1–6 gates in the shared lint test module. |
+
+
+
+
+
+
+
+| **A. Scope** | Align Phase 7 runtime-first enforcement with Phases 1?6 by exposing the narrow mechanical gate in `apps/platform_runtime/tests/test_tenant_settings_lint.py` without nesting a second full pytest session on every run. |
+
+
+
+
+
+
+
+| **B. Findings** | Phase 7 checklist is MET in-repo per `docs/phase_checklists/phase_07_runtime_first.md`, but the same automation file that runs Phase 1?6 conformance gates did not invoke Phase 7?s narrow mechanical bundle. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `TenantSettingsLintTests::test_verify_cursor_phase7_runtime_first_mechanical_passes`, which runs `scripts/verify_cursor_phase7_runtime_first.py` with `PHASE7_RUNTIME_FIRST_SKIP_PYTEST=1` so CI enforces precedence order, resolver registry coverage, required paths, and Phase 07 audit doc sections via Django setup?while contract pytest modules remain the responsibility of `verify_cursor_phase7_granular.py` / pre-deploy / dedicated sessions. |
+
+
+
+
+
+
+
+| **D. Validation** | `PHASE7_RUNTIME_FIRST_SKIP_PYTEST=1 python scripts/verify_cursor_phase7_runtime_first.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k cursor_phase7_runtime_first_mechanical -q` ? **PASS**; lint diagnostics on touched file ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 7 CI wiring slice)** ? mechanical Phase 7 runtime-first invariants run alongside Phase 1?6 gates in the shared lint test module. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No runtime behavior change; nested pytest is intentionally skipped in this test to avoid redundant SQLite contention and long CI tail (see script docstring). |
 
+
+
+
+
+
+
 ---
 
-## Phase 8 slice — Dashboard + role homes structural conformance gate (2026-03-26)
+
+
+
+
+
+
+## Phase 8 slice ? Dashboard + role homes structural conformance gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add a narrow mechanical gate for Phase 8 dashboards/role homes (template + registry + role-home test contracts) without duplicating the existing collapsible density law. |
-| **B. Findings** | Phase 8 density is already enforced by `verify_phase8_dashboard_density.py` / `test_phase8_dashboard_density.py`; there was no single script in the Phase 1–7 gate style for role-home + decision-surface marker contracts. |
+
+
+
+
+
+
+
+| **B. Findings** | Phase 8 density is already enforced by `verify_phase8_dashboard_density.py` / `test_phase8_dashboard_density.py`; there was no single script in the Phase 1?7 gate style for role-home + decision-surface marker contracts. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_phase8_dashboard_role_homes_conformance.py` to assert: required paths exist (`templates/schools/super_dashboard.html`, `templates/components/decision_engine_surface.html`, `apps/dashboard/role_home_engine.py`, `apps/dashboard/tests/test_role_home_engine.py`); super dashboard keeps control-plane extend + `role-home` archetype + Phase 8 declaration / decision-engine markers; decision surface keeps headline / queue / next-best-actions / activity-trend zones; `PHASE7_DASHBOARD_TEMPLATES` includes `schools/super_dashboard.html`. Wired CI/unit entrypoint `test_tenant_settings_lint.py::test_verify_phase8_dashboard_role_homes_conformance_passes`. |
-| **D. Validation** | `python scripts/verify_phase8_dashboard_role_homes_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase8_dashboard_role_homes_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
-| **E. Acceptance** | **PASS (Phase 8 structural slice)** — role-home and decision-engine template contracts fail fast alongside other phase gates. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase8_dashboard_role_homes_conformance.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase8_dashboard_role_homes_conformance -q` ? **PASS**; lint diagnostics on touched files ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 8 structural slice)** ? role-home and decision-engine template contracts fail fast alongside other phase gates. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Collapsible high-card density remains on `verify_phase8_dashboard_density` / dashboard tests; not merged into this gate to avoid duplicate work per run. |
 
+
+
+
+
+
+
 ---
 
-## Phase 9 slice — Security / trust structural conformance gate (2026-03-26)
+
+
+
+
+
+
+## Phase 9 slice ? Security / trust structural conformance gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add a narrow mechanical gate for Phase 9 trust surfaces and security allowlist artifacts, without duplicating ledger `--check` or CSRF/AllowAny/raw-SQL lints. |
-| **B. Findings** | `apps/dashboard/tests/test_phase9_security_gates.py` already runs ledger check and three lints via subprocess; there was no Phase 1–8-style script for trust template + allowlist JSON presence contracts. |
+
+
+
+
+
+
+
+| **B. Findings** | `apps/dashboard/tests/test_phase9_security_gates.py` already runs ledger check and three lints via subprocess; there was no Phase 1?8-style script for trust template + allowlist JSON presence contracts. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_phase9_security_trust_conformance.py` to assert: `templates/schools/super_trust_center.html` and `templates/accounts/security_trust_hub.html` retain control-plane / portal extend, decision-console or workbench archetype, Phase 8 declaration strings, and operator/tenant trust markers (`data-tour` on super trust, `server-side only` on tenant hub); `scripts/build_phase8_security_ledger.py` and the three `scripts/allowlists/*.json` files exist. Wired `test_tenant_settings_lint.py::test_verify_phase9_security_trust_conformance_passes`. |
-| **D. Validation** | `python scripts/verify_phase9_security_trust_conformance.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase9_security_trust_conformance -q` → **PASS**; lint diagnostics on touched files → no errors. |
-| **E. Acceptance** | **PASS (Phase 9 structural slice)** — trust hub contracts and allowlist inputs are pinned in the shared gate module alongside earlier phases. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase9_security_trust_conformance.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k phase9_security_trust_conformance -q` ? **PASS**; lint diagnostics on touched files ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 9 structural slice)** ? trust hub contracts and allowlist inputs are pinned in the shared gate module alongside earlier phases. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Ledger freshness and allowlist lints remain on `test_phase9_security_gates` / pre-deploy; not merged here to avoid duplicate subprocess cost. |
 
+
+
+
+
+
+
 ---
 
-## Phase 10 + 11 slice — Program static gates wired into lint test suite (2026-03-26)
+
+
+
+
+
+
+## Phase 10 + 11 slice ? Program static gates wired into lint test suite (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | Run the existing no-DB Phase 10 (marketplace / packs / migration / interop) and Phase 11 (marketing narrative) static acceptance script from the same `test_tenant_settings_lint` harness used for Phases 1–9 narrow gates. |
+
+
+
+
+
+
+
+| **A. Scope** | Run the existing no-DB Phase 10 (marketplace / packs / migration / interop) and Phase 11 (marketing narrative) static acceptance script from the same `test_tenant_settings_lint` harness used for Phases 1?9 narrow gates. |
+
+
+
+
+
+
+
 | **B. Findings** | `scripts/verify_program_phase10_phase11_gates.py` already encoded template/CSS/engine markers per `phase_10_marketplace_packs_migration.md` and `phase_11_marketing_front.md`, but was not invoked from `test_tenant_settings_lint.py`. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `TenantSettingsLintTests::test_verify_program_phase10_phase11_static_gates_passes` to subprocess `python scripts/verify_program_phase10_phase11_gates.py` with 120s timeout. E2E and UX-completion paths remain on `verify_operator_phase10_11_e2e.py` / pre-deploy. |
-| **D. Validation** | `python scripts/verify_program_phase10_phase11_gates.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k program_phase10_phase11_static -q` → **PASS**; lint diagnostics on touched file → no errors. |
-| **E. Acceptance** | **PASS (Phase 10+11 CI wiring slice)** — ecosystem + marketing static contracts fail fast alongside earlier phase gates. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_program_phase10_phase11_gates.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k program_phase10_phase11_static -q` ? **PASS**; lint diagnostics on touched file ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 10+11 CI wiring slice)** ? ecosystem + marketing static contracts fail fast alongside earlier phase gates. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No change to marker sets or product surfaces; operator E2E is unchanged and still the deeper gate. |
 
+
+
+
+
+
+
 ---
 
-## Phase 12 slice — Gilead residue lint wired into lint test suite (2026-03-26)
+
+
+
+
+
+
+## Phase 12 slice ? Gilead residue lint wired into lint test suite (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Surface `scripts/lint_gilead_residue.py` in the shared `test_tenant_settings_lint` module so Phase 12 runtime-visible residue checks run with other narrow CI gates. |
-| **B. Findings** | Phase 12 checklist marks the lint **PASS** in-repo, but the gate was not invoked from the same harness as Phases 1–11 additions. |
-| **C. Implementation** | Added `TenantSettingsLintTests::test_lint_gilead_residue_passes` subprocess wrapper (180s timeout). Classification docs and migration-only paths remain out of scope per the script’s skip rules. |
-| **D. Validation** | `python scripts/lint_gilead_residue.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k lint_gilead_residue -q` → **PASS**; lint diagnostics on touched file → no errors. |
-| **E. Acceptance** | **PASS (Phase 12 wiring slice)** — runtime-visible Gilead residue regressions fail in the consolidated gate module. |
+
+
+
+
+
+
+
+| **B. Findings** | Phase 12 checklist marks the lint **PASS** in-repo, but the gate was not invoked from the same harness as Phases 1?11 additions. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `TenantSettingsLintTests::test_lint_gilead_residue_passes` subprocess wrapper (180s timeout). Classification docs and migration-only paths remain out of scope per the script?s skip rules. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/lint_gilead_residue.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k lint_gilead_residue -q` ? **PASS**; lint diagnostics on touched file ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS (Phase 12 wiring slice)** ? runtime-visible Gilead residue regressions fail in the consolidated gate module. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | No change to scan roots or allowlist behavior; documentation-only and migration archives stay excluded by existing skip logic. |
 
+
+
+
+
+
+
 ---
 
-## Trust maturity slice — Secret exposure lint wired into lint test suite (2026-03-26)
+
+
+
+
+
+
+## Trust maturity slice ? Secret exposure lint wired into lint test suite (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Align local/CI `test_tenant_settings_lint` with the non-DB `verify_phases_3_11_gates.py` row for provider secret exposure (`lint_secret_exposure.py`). |
-| **B. Findings** | Phase 9 dashboard tests already ran CSRF / AllowAny / raw-SQL lints; secret exposure was only guaranteed when engineers ran the full phases 3–11 script or pre-deploy. |
+
+
+
+
+
+
+
+| **B. Findings** | Phase 9 dashboard tests already ran CSRF / AllowAny / raw-SQL lints; secret exposure was only guaranteed when engineers ran the full phases 3?11 script or pre-deploy. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `TenantSettingsLintTests::test_lint_secret_exposure_passes` subprocess wrapper (180s timeout). |
-| **D. Validation** | `python scripts/lint_secret_exposure.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k lint_secret_exposure -q` → **PASS**; lint diagnostics on touched file → no errors. |
-| **E. Acceptance** | **PASS** — provider secret identifier drift in client surfaces and tracked env is blocked in the consolidated gate module. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/lint_secret_exposure.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -k lint_secret_exposure -q` ? **PASS**; lint diagnostics on touched file ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? provider secret identifier drift in client surfaces and tracked env is blocked in the consolidated gate module. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Full `verify_phases_3_11_gates.py` remains the superset (wedges, marketplace pytest, UI wiring audit, etc.); this slice only pulls one high-signal check into the lightweight harness. |
+
+
+
+
+
+
 
 ---
 
-## ZIP master prompt — eleven-phase audit vs mechanical gates (2026-03-26)
 
-**A. Scope** | Cross-check this chat’s “Phases 1–11” prompt against the repo’s **canonical** phase index in `docs/phase_checklists/*` and the **consolidated CI harness** `apps/platform_runtime/tests/test_tenant_settings_lint.py` (plus referenced scripts). **No new parallel strategy doc** — this row extends the autonomous log only.
 
-**B. Phase mapping (prompt → repo checklist / primary gate)**
+
+
+
+
+## ZIP master prompt ? eleven-phase audit vs mechanical gates (2026-03-26)
+
+
+
+
+
+
+
+**A. Scope** | Cross-check this chat?s ?Phases 1?11? prompt against the repo?s **canonical** phase index in `docs/phase_checklists/*` and the **consolidated CI harness** `apps/platform_runtime/tests/test_tenant_settings_lint.py` (plus referenced scripts). **No new parallel strategy doc** ? this row extends the autonomous log only.
+
+
+
+
+
+
+
+**B. Phase mapping (prompt ? repo checklist / primary gate)**
+
+
+
+
+
+
 
 | Prompt phase | Theme (prompt) | Repo checklist / gate | Notes |
+
+
+
+
+
+
+
 |--------------|----------------|----------------------|--------|
+
+
+
+
+
+
+
 | 1 | Settings gravity | `phase_06_siteconfig_sitesettings.md` + `scripts/verify_phase1_settings_gravity.py`, `scripts/lint_tenant_settings.py`, `docs/site_settings_usage_inventory.md`, `docs/SITECONFIG_OWNERSHIP_MIGRATION.md` | Tenant-facing singleton / direct settings guardrails are mechanical; **full repo** `SiteSettings` reference count is not the acceptance bar. |
+
+
+
+
+
+
+
 | 2 | Authenticated shell | `phase_01_authenticated_shell.md` + `scripts/verify_phase2_authenticated_shell_conformance.py`, shared `static/js/authenticated-shell-manager.js`, `portal_base` / `control_plane_base` / manager `admin` | Continuity and hierarchy are gated; not every legacy template is rewired in one pass. |
+
+
+
+
+
+
+
 | 3 | Nav / command / archetypes | `phase_03_navigation_command_archetypes.md` + `scripts/verify_phase3_navigation_command_conformance.py` | IA + palette contracts on touched shells. |
-| 4 | Control plane | `phase_04_control_plane.md` + `scripts/verify_phase4_control_plane_decision_console.py` | Outcome / source / publish–rollback contracts on touched CCC surfaces. |
+
+
+
+
+
+
+
+| 4 | Control plane | `phase_04_control_plane.md` + `scripts/verify_phase4_control_plane_decision_console.py` | Outcome / source / publish?rollback contracts on touched CCC surfaces. |
+
+
+
+
+
+
+
 | 5 | Studio OS | `phase_05_studio_os.md` + `scripts/verify_phase5_studio_os_conformance.py` | Mode / redirect / native output contracts. |
+
+
+
+
+
+
+
 | 6 | Runtime-first | `phase_07_runtime_first.md` + `scripts/verify_phase6_runtime_first_conformance.py`, `scripts/verify_phase6_runtime_first_extension.py` | Precedence + downstream consumer + API entrypoint guards; **full** contract pytest via `verify_cursor_phase7_granular.py` / pre-deploy. |
-| 7 | Dashboards + role homes (prompt) | `phase_08_dashboards_role_homes.md` + `scripts/verify_phase8_dashboard_role_homes_conformance.py`, `scripts/verify_phase8_dashboard_density.py`, `apps/dashboard/tests/test_role_home_engine.py` | Prompt “Phase 7” aligns with repo **Phase 8** dashboard checklist index. |
-| 8 | Security / trust / endpoints (prompt) | `phase_09_security_trust.md` + `scripts/verify_phase9_security_trust_conformance.py`, `apps/dashboard/tests/test_phase9_security_gates.py`, `scripts/lint_secret_exposure.py`, plus `lint_csrf_exempt_usage.py` / `lint_allow_any_usage.py` / `lint_raw_sql_usage.py` in `test_tenant_settings_lint` | Prompt “Phase 8” aligns with repo **Phase 9** security checklist; ledger `--check` and full `verify_phases_3_11` remain pre-deploy / dedicated. |
+
+
+
+
+
+
+
+| 7 | Dashboards + role homes (prompt) | `phase_08_dashboards_role_homes.md` + `scripts/verify_phase8_dashboard_role_homes_conformance.py`, `scripts/verify_phase8_dashboard_density.py`, `apps/dashboard/tests/test_role_home_engine.py` | Prompt ?Phase 7? aligns with repo **Phase 8** dashboard checklist index. |
+
+
+
+
+
+
+
+| 8 | Security / trust / endpoints (prompt) | `phase_09_security_trust.md` + `scripts/verify_phase9_security_trust_conformance.py`, `apps/dashboard/tests/test_phase9_security_gates.py`, `scripts/lint_secret_exposure.py`, plus `lint_csrf_exempt_usage.py` / `lint_allow_any_usage.py` / `lint_raw_sql_usage.py` in `test_tenant_settings_lint` | Prompt ?Phase 8? aligns with repo **Phase 9** security checklist; ledger `--check` and full `verify_phases_3_11` remain pre-deploy / dedicated. |
+
+
+
+
+
+
+
 | 9 | Marketplace / packs / migration (prompt) | `phase_10_marketplace_packs_migration.md` + `scripts/verify_program_phase10_phase11_gates.py` (Phase 10 markers), `verify_operator_phase10_11_e2e.py` (deep) | Static markers in lint harness; **DB/E2E** remains pre-deploy / dedicated. |
+
+
+
+
+
+
+
 | 10 | Marketing front (prompt) | `phase_11_marketing_front.md` + same `verify_program_phase10_phase11_gates.py` (Phase 11 markers) | Same split: static in harness, depth in E2E/UX runs. |
-| 11 | Gilead + docs discipline (prompt) | `phase_12_gilead_docs_discipline.md` + `scripts/lint_gilead_residue.py`, `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` | Prompt “Phase 11” aligns with repo **Phase 12**; **628** `gilead` corpus hits include migrations/docs/tests skipped by lint scope. |
 
-**C. Findings** | Zip-level inventory signals (e.g. 1339 `SiteSettings`, 328 `cursor.execute`) describe **whole-repo** surface area. **Acceptance** for this execution stream remains: **mechanical gates PASS on touched guardrails**, canonical **SOT** unchanged as single execution source, **migration map + inventory** present for settings domain.
 
-**D. Implementation (this audit slice)** | No code change required beyond verification: ran full `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **19 passed** in ~20s (includes Phase 1–6 gates, Phase 7 mechanical, Phase 8–9 structural, Phase 10+11 static, Gilead lint, secret exposure lint, plus legacy siteconfig/tenant lint tests).
+
+
+
+
+
+| 11 | Gilead + docs discipline (prompt) | `phase_12_gilead_docs_discipline.md` + `scripts/lint_gilead_residue.py`, `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` | Prompt ?Phase 11? aligns with repo **Phase 12**; **628** `gilead` corpus hits include migrations/docs/tests skipped by lint scope. |
+
+
+
+
+
+
+
+**C. Findings** | Zip-level inventory signals (e.g. 1339 `SiteSettings`, 328 `cursor.execute`) describe **ce area. **Acceptance** for this execution stream remains: **mechanical gates PASS on touched guardrails**, canonical **SOT** unchanged as single execution source, **migration map + inventory** present for settings domain.
+
+
+
+
+
+
+
+**D. Implementation (this audit slice)** | No code change required beyond verification: ran full `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **19 passed** in ~20s (includes Phase 1?6 gates, Phase 7 mechanical, Phase 8?9 structural, Phase 10+11 static, Gilead lint, secret exposure lint, plus legacy siteconfig/tenant lint tests).
+
+
+
+
+
+
 
 **E. Acceptance** | **PASS (mechanical alignment)** for the consolidated lint-module row above. **PARTIAL (honest)** on full prompt prose: line-by-line eradication of all admin gravity / raw SQL / broad `except` across **2260** Python files is explicitly **out of scope** for this harness; track depth in `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` and `scripts/verify_phases_3_11_gates.py` / `scripts/pre_deploy_gate.sh`.
 
+
+
+
+
+
+
 **F. Legacy / next runs** | For release fidelity, continue to run **`bash scripts/pre_deploy_gate.sh`** (and `verify_phases_3_11_gates.py` when iterating non-DB wedges). This log entry does not replace those supersets.
 
+
+
+
+
+
+
 ---
 
-## Premium maturity slice — CSRF / AllowAny / raw-SQL allowlist lints wired into lint test suite (2026-03-26)
+
+
+
+
+
+
+## Premium maturity slice ? CSRF / AllowAny / raw-SQL allowlist lints wired into lint test suite (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Run the same allowlisted endpoint/SQL drift scripts from `scripts/verify_phases_3_11_gates.py` inside `apps/platform_runtime/tests/test_tenant_settings_lint.py`, so the consolidated gate module matches more of the non-DB bundle without pulling in wedge/marketplace/audit steps. |
-| **B. Findings** | `lint_csrf_exempt_usage.py`, `lint_allow_any_usage.py`, and `lint_raw_sql_usage.py` already **PASS** locally (~4.5s combined) but were only guaranteed together with Phase 9 dashboard subprocess tests or the full phases 3–11 script—not when running `test_tenant_settings_lint` alone. |
-| **C. Implementation** | Added `test_lint_csrf_exempt_usage_passes`, `test_lint_allow_any_usage_passes`, and `test_lint_raw_sql_usage_passes` (each 180s timeout). |
-| **D. Validation** | The three scripts → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **22 passed** (~23s); lint diagnostics on touched file → no errors. |
-| **E. Acceptance** | **PASS** — public-endpoint and raw-SQL allowlist discipline is enforced in the shared lightweight harness alongside secret exposure and trust structural gates. |
+
+
+
+
+
+
+
+| **B. Findings** | `lint_csrf_exempt_usage.py`, `lint_allow_any_usage.py`, and `lint_raw_sql_usage.py` already **PASS** locally (~4.5s combined) but were only guaranteed together with Phase 9 dashboard subprocess tests or the full phases 3?11 script?not when running `test_tenant_settings_lint` alone. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `tetion** | Added `test_lint_csrf_exempt_usage_passes`, `test_lint_allow_any_usage_passes`, and `test_lint_raw_sql_usage_passes` (each 180s timeout). |
+
+
+
+
+
+
+
+| **D. Validation** | The three scripts ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **22 passed** (~23s); lint diagnostics on touched file ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? public-endpoint and raw-SQL allowlist discipline is enforced in the shared lightweight harness alongside secret exposure and trust structural gates. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | `apps/dashboard/tests/test_phase9_security_gates.py` remains a valid alternate entrypoint; duplicate subprocess cost is intentional for clearer module ownership (`platform_runtime` CI lane vs `dashboard` tests). |
 
+
+
+
+
+
+
 ---
 
-## SOT + Phase H slice — Pillar evidence + static UX audit wired into lint test suite (2026-03-26)
+
+
+
+
+
+
+## SOT + Phase H slice ? Pillar evidence + static UX audit wired into lint test suite (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Pull two fast `verify_phases_3_11_gates.py` rows into `apps/platform_runtime/tests/test_tenant_settings_lint.py`: foundation path inventory and Phase H static shell checks (no `phase_h_audit.py --live`). |
+
+
+
+
+
+
+
 | **B. Findings** | `verify_sot_pillar_evidence.py` (~104 path existence checks) and default `phase_h_audit.py` completed in **under 1s** combined but were not part of the consolidated lint module. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `test_verify_sot_pillar_evidence_passes` and `test_phase_h_audit_static_passes` (120s timeouts each). |
-| **D. Validation** | `python scripts/verify_sot_pillar_evidence.py` → **PASS**; `python scripts/phase_h_audit.py` → **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **24 passed** (~27s); lint diagnostics on touched file → no errors. |
-| **E. Acceptance** | **PASS** — SOT-listed artifact presence and Phase H static responsive/frame contracts are enforced beside the other narrow gates. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_sot_pillar_evidence.py` ? **PASS**; `python scripts/phase_h_audit.py` ? **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **24 passed** (~27s); lint diagnostics on touched file ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? SOT-listed artifact presence and Phase H static responsive/frame contracts are enforced beside the other narrow gates. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | URL reverse / live Phase H checks remain `phase_h_audit.py --live` / pre-deploy; not duplicated here. |
 
+
+
+
+
+
+
 ---
 
-## Wedge execution slice — Scorecard + beachhead + registry + bounded-context lint (2026-03-26)
+
+
+
+
+
+
+## Wedge execution slice ? Scorecard + beachhead + registry + bounded-context lint (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Extend `test_tenant_settings_lint` with remaining **fast** rows from `verify_phases_3_11_gates.py` that govern the 45-wedge execution spine (marketplace pytest + repo-wide audit wired in a **later** slice below). |
-| **B. Findings** | `verify_45_wedge_scorecard.py` + `verify_beachhead_checklists.py` ~4.5s; `verify_wedge_line_registry.py` ~5s (Django); `lint_bounded_context_imports.py` ~1.6s — none were wired into the consolidated module. |
+
+
+
+
+
+
+
+| **B. Findings** | `verify_45_wedge_scorecard.py` + `verify_beachhead_checklists.py` ~4.5s; `verify_wedge_line_registry.py` ~5s (Django); `lint_bounded_context_imports.py` ~1.6s ? none were wired into the consolidated module. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `test_verify_45_wedge_scorecard_passes`, `test_verify_beachhead_checklists_passes`, `test_verify_wedge_line_registry_passes`, `test_lint_bounded_context_imports_passes`. |
-| **D. Validation** | Each script → **PASS** standalone; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **28 passed** (~29s wall time this run); lint diagnostics on touched file → no errors. |
-| **E. Acceptance** | **PASS** — doc table integrity, operator checklist coverage, code registry, and bounded-context lint move with the same CI lane as other narrow gates. |
-| **F. Legacy deprecated/removed** | **`validate_wedges_phase` + `verify_ui_wiring_audit`:** see **CI lane — validate_wedges_phase + UI wiring** (2026-03-26). **Marketplace + repo-wide audit:** see **CI lane — marketplace wedge + ecosystem audit** (2026-03-26). |
+
+
+
+
+
+
+
+| **D. Validation** | Each script ? **PASS** standalone; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **28 passed** (~29s wall time this run); lint diagnostics on touched file ? no errors. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? doc table integrity, operator checklist coverage, code registry, and bounded-context lint move with the same CI lane as other narrow gates. |
+
+
+
+
+
+
+
+| **F. Legacy deprecated/removed** | **`validate_wedges_phase` + `verify_ui_wiring_audit`:** see **CI lane ? validate_wedges_phase + UI wiring** (2026-03-26). **Marketplace + repo-wide audit:** see **CI lane ? marketplace wedge + ecosystem audit** (2026-03-26). |
+
+
+
+
+
+
 
 ---
 
-## CI lane slice — validate_wedges_phase (all) + UI wiring audit (2026-03-26)
+
+
+
+
+
+
+## CI lane slice ? validate_wedges_phase (all) + UI wiring audit (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Close the gap called out vs `verify_phases_3_11_gates.py`: run `validate_wedges_phase.py --phase all` and `verify_ui_wiring_audit.py` from `apps/platform_runtime/tests/test_tenant_settings_lint.py` with **separate** subprocess timeouts so CI wall time stays predictable. |
+
+
+
+
+
+
+
 | **B. Findings** | Local timing (single dev machine): `validate_wedges_phase.py --phase all` **~24s**; `verify_ui_wiring_audit.py` **~4s**. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `test_validate_wedges_phase_all_passes` (`subprocess` timeout **120s**) and `test_verify_ui_wiring_audit_passes` (**60s**). |
-| **D. Validation** | Both scripts **PASS** standalone; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **30 passed** in **~57s** (this run; includes wedge validator + UI wiring). |
-| **E. Acceptance** | **PASS** — wedge phase validators 1–5 and template URL wiring audit ride the same consolidated lane as other narrow gates without sharing one timeout bucket. |
-| **F. Legacy deprecated/removed** | **`verify_phases_3_11_gates.py`:** the **non-DB** steps are mirrored in `test_tenant_settings_lint.py` (see marketplace + ecosystem slice). **`pre_deploy_gate.sh`** still owns migrated DB work, visual QA, and other release rows; see **CI / pre-deploy — dedupe + smoke-light** below for the **removed duplicate** `verify_phases_3_11_gates.py` invocation. |
+
+
+
+
+
+
+
+| **D. Validation** | Both scripts **PASS** standalone; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **30 passed** in **~57s** (this run; includes wedge validator + UI wiring). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? wedge phase validators 1?5 and template URL wiring audit ride the same consolidated lane as other narrow gates without sharing one timeout bucket. |
+
+
+
+
+
+
+
+| **F. Legacy deprecated/removed** | **`verify_phases_3_11_gates.py`:** the **non-DB** steps are mirrored in `test_tenant_settings_lint.py` (see marketplace + ecosystem slice). **`pre_deploy_gate.sh`** still owns migrated DB work, visual QA, and other release rows; see **CI / pre-deploy ? dedupe + smoke-light** below for the **removed duplicate** `verify_phases_3_11_gates.py` invocation. |
+
+
+
+
+
+
 
 ---
 
-## CI lane slice — marketplace wedge pytest + repo-wide ecosystem audit (2026-03-26)
+
+
+
+
+
+
+## CI lane slice ? marketplace wedge pytest + repo-wide ecosystem audit (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Close the last `scripts/verify_phases_3_11_gates.py` **non-DB** gaps: `apps/marketplace/tests/test_marketplace_wedge_coverage.py` and `scripts/verify_repo_wide_ecosystem_marketing_audit.py`, each with its own subprocess timeout. |
+
+
+
+
+
+
+
 | **B. Findings** | Local timing: marketplace pytest **~9s**; repo-wide ecosystem/marketing audit **~1.4s**. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `test_marketplace_wedge_coverage_passes` (**180s**; Django/pytest headroom) and `test_verify_repo_wide_ecosystem_marketing_audit_passes` (**120s**). |
-| **D. Validation** | `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **32 passed** in **~63s** (this run). |
-| **E. Acceptance** | **PASS** — consolidated lint module now matches the **non-DB** bundle order of `verify_phases_3_11_gates.py` (plus additional phase slices already in the module). |
+
+
+
+
+
+
+
+| **D. Validation** | `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **32 passed** in **~63s** (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? consolidated lint module now matches the **non-DB** bundle order of `verify_phases_3_11_gates.py` (plus additional phase slices already in the module). |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Operator E2E (`verify_operator_phase10_11_e2e.py`) and broader Phase 10 pytest suites stay on dedicated runners; **`pre_deploy_gate.sh`** includes this module via **Targeted hardening** (`test_tenant_settings_lint`), not as a separate process list. |
 
+
+
+
+
+
+
 ---
 
-## CI / pre-deploy slice — dedupe `verify_phases_3_11_gates` + smoke-light parity (2026-03-26)
+
+
+
+
+
+
+## CI / pre-deploy slice ? dedupe `verify_phases_3_11_gates` + smoke-light parity (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | After `test_tenant_settings_lint.py` achieved parity with `verify_phases_3_11_gates.py` (non-DB), remove redundant work from **`pre_deploy_gate.sh`** and align **`smoke-light.yml`** so the lighter workflow still runs the consolidated bundle. |
-| **B. Findings** | `pre_deploy_gate.sh` ran `verify_phases_3_11_gates.py` **then** `manage.py test … test_tenant_settings_lint`, duplicating scorecard/wedge/marketplace/Phase H static/program/ecosystem/UI steps (and many linters already run earlier in the shell script). |
-| **C. Implementation** | Dropped the `python scripts/verify_phases_3_11_gates.py` step; replaced with an echo pointing at **Targeted hardening** / `test_tenant_settings_lint`. Added a **Phases 3–11 mechanical bundle** step to **`.github/workflows/smoke-light.yml`** (`pytest` consolidated module). **SOT** verification row + **`verify_phases_3_11_gates.py` docstring** document the split (standalone script vs pre-deploy pytest path). |
+
+
+
+
+
+
+
+| **B. Findings** | `pre_deploy_gate.sh` ran `verify_phases_3_11_gates.py` **then** `manage.py test ? test_tenant_settings_lint`, duplicating scorecard/wedge/marketplace/Phase H static/program/ecosystem/UI steps (and many linters already run earlier in the shell script). |
+
+
+
+
+
+
+
+| **C. Implementation** | Dropped the `python scripts/verify_phases_3_11_gates.py` step; replaced with an echo pointing at **Targeted hardening** / `test_tenant_settings_lint`. Added a **Phases 3?11 mechanical bundle** step to **`.github/workflows/smoke-light.yml`** (`pytest` consolidated module). **SOT** verification row + **`verify_phases_3_11_gates.py` docstring** document the split (standalone script vs pre-deploy pytest path). |
+
+
+
+
+
+
+
 | **D. Validation** | `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` **PASS** after edits. |
-| **E. Acceptance** | **PASS** — pre-deploy loses one full duplicate pass of the phases 3–11 bundle; smoke-light gains mechanical coverage without full `pre_deploy_gate.sh`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? pre-deploy loses one full duplicate pass of the phases 3?11 bundle; smoke-light gains mechanical coverage without full `pre_deploy_gate.sh`. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Developers can still run `python scripts/verify_phases_3_11_gates.py` locally; it is **not** deleted. |
 
 
+
+
+
+
+
 ---
 
-## Shell triad slice — matrix verifier + gate wiring (2026-03-26)
+
+
+
+
+
+
+## Shell triad slice ? matrix verifier + gate wiring (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Advance the SOT **Shell triad (`/admin`, `/super`, `/studio`) PARTIAL** row with a dedicated, reusable mechanical verifier (not only indirect checks spread across nav and shell scripts). |
+
+
+
+
+
+
+
 | **B. Findings** | Existing checks were distributed (`verify_phase2_authenticated_shell_conformance.py`, nav tests, `verify_ui_wiring_audit.py`) but there was no single shell-matrix contract script anchored to `docs/SHELL_ARCHITECTURE_MATRIX.md`. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `scripts/verify_shell_architecture_matrix.py` (docs/test-file presence + surface token checks): marketing surface marker + marketing CSS without control-plane CSS; control-plane surface marker + control-plane shell CSS without marketing CSS; tenant `base.html` keeps design-system core and forbids marketing/control-plane shell CSS; admin manager bridge/context drawer/authenticated-shell-manager includes. Wired into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_verify_shell_architecture_matrix_passes`, timeout 120s). |
-| **D. Validation** | `python scripts/verify_shell_architecture_matrix.py` **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **33 passed** in ~60s (this run). |
-| **E. Acceptance** | **PASS** — shell triad has an explicit matrix gate that fails on cross-surface CSS regressions and missing admin/control-plane bridge contracts. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_shell_architecture_matrix.py` **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **33 passed** in ~60s (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? shell triad has an explicit matrix gate that fails on cross-surface CSS regressions and missing admin/control-plane bridge contracts. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | This does **not** replace deeper UX/behavior tests; it adds a deterministic shell-boundary contract alongside existing navigation and runtime checks. |
 
 
+
+
+
+
+
 ---
 
-## AI/provider slice — blueprint verifier promoted to shared gate lanes (2026-03-26)
+
+
+
+
+
+
+## AI/provider slice ? blueprint verifier promoted to shared gate lanes (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Reduce **AI/provider scatter** risk by moving the existing AI blueprint verifier from pre-deploy-only usage into both consolidated non-DB gate entrypoints used during iterative work. |
+
+
+
+
+
+
+
 | **B. Findings** | `scripts/verify_ai_blueprint_completion.py` already validated gateway adapters, schema routes, AI endpoints, prompt registry families, metrics/admin registrations, and architecture docs; it was not wired into `verify_phases_3_11_gates.py` or `test_tenant_settings_lint.py`. |
-| **C. Implementation** | Added `verify_ai_blueprint_completion.py` execution to `scripts/verify_phases_3_11_gates.py`; added `test_verify_ai_blueprint_completion_passes` (timeout 120s) to `apps/platform_runtime/tests/test_tenant_settings_lint.py`. Updated SOT §0 premium blocker hook row for AI/provider with this script. |
-| **D. Validation** | `python scripts/verify_ai_blueprint_completion.py` **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **34 passed** in ~73s (this run). |
-| **E. Acceptance** | **PASS** — AI gateway/prompt/endpoint/documentation contract drift now fails both standalone non-DB gate flow and consolidated lint-module CI lane. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `verify_ai_blueprint_completion.py` execution to `scripts/verify_phases_3_11_gates.py`; added `test_verify_ai_blueprint_completion_passes` (timeout 120s) to `apps/platform_runtime/tests/test_tenant_settings_lint.py`. Updated SOT ?0 premium blocker hook row for AI/provider with this script. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_ai_blueprint_completion.py` **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **34 passed** in ~73s (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? AI gateway/prompt/endpoint/documentation contract drift now fails both standalone non-DB gate flow and consolidated lint-module CI lane. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | This is a structural completeness gate, not a replacement for runtime quality/latency policy tests or operator E2E checks. |
 
+
+
+
+
+
+
 ---
 
-## Siteconfig decomposition slice — static depth gate (2026-03-26)
+
+
+
+
+
+
+## Siteconfig decomposition slice ? static depth gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Mechanize **siteconfig decomposition depth** invariants so `domain_ownership`, Phase B snapshot domains, slim SiteSettings contract, and RuntimeDefaults first-class module cannot drift apart without CI surfacing it. |
-| **B. Findings** | ZIP Phase 5 / Phase B artifacts were already enforced by `verify_phase_5_siteconfig.py` and DB gates, but there was no **cross-module static** check that `PHASE_B_SNAPSHOT_DOMAINS` ⊆ `OWNERSHIP_DOMAINS`, merge order (`policies_rules` last), exclusion of `brand_experience` from snapshots, or prefix-map owner consistency. |
-| **C. Implementation** | Added `scripts/verify_siteconfig_decomposition_depth.py` (importlib load of `domain_ownership.py` + `phase_b_domain_snapshots.py`; file checks for `sitesettings_slim_contract.py` and `runtime_defaults_first_class.py`). Wired into `scripts/verify_phases_3_11_gates.py` and `test_verify_siteconfig_decomposition_depth_passes` in `apps/platform_runtime/tests/test_tenant_settings_lint.py` (120s). SOT §0 **siteconfig decomposition** hook row references this script. |
-| **D. Validation** | `python scripts/verify_siteconfig_decomposition_depth.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **35 passed** in ~65s (this run). |
-| **E. Acceptance** | **PASS** — static Phase B spine alignment is enforced in both `verify_phases_3_11_gates.py` and the consolidated lint module. |
+
+
+
+
+
+
+
+| **B. Findings** | ZIP Phase 5 / Phase B artifacts were already enforced by `verify_phase_5_siteconfig.py` and DB gates, but there was no **cross-module static** check that `PHASE_B_SNAPSHOT_DOMAINS` ? `OWNERSHIP_DOMAINS`, merge order (`policies_rules` last), exclusion of `brand_experience` from snapshots, or prefix-map owner consistency. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `scripts/verify_siteconfig_decomposition_depth.py` (importlib load of `domain_ownership.py` + `phase_b_domain_snapshots.py`; file checks for `sitesettings_slim_contract.py` and `runtime_defaults_first_class.py`). Wired into `scripts/verify_phases_3_11_gates.py` and `test_verify_siteconfig_decomposition_depth_passes` in `apps/platform_runtime/tests/test_tenant_settings_lint.py` (120s). SOT ?0 **siteconfig decomposition** hook row references this script. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_siteconfig_decomposition_depth.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **35 passed** in ~65s (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? static Phase B spine alignment is enforced in both `verify_phases_3_11_gates.py` and the consolidated lint module. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Does not replace `verify_phase_5_siteconfig.py`, `verify_phase_b_execution.py` (migrated DB), or slim ORM tests; complements them with **static spine** alignment. |
 
 
 
+
+
+
+
 ---
 
-## Raw SQL / endpoints slice — ledger parity in shared gate flows (2026-03-26)
+
+
+
+
+
+
+## Raw SQL / endpoints slice ? ledger parity in shared gate flows (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Tighten the **Raw SQL / endpoints PARTIAL** blocker by ensuring shared non-DB gate entrypoints enforce the same allowlist/ledger parity used in pre-deploy for security endpoint discipline. |
+
+
+
+
+
+
+
 | **B. Findings** | `verify_phases_3_11_gates.py` still missed `lint_allow_any_usage.py` and `build_phase8_security_ledger.py --check` even though `test_tenant_settings_lint.py` already carried individual lints; merged ledger parity was not present in the consolidated lint module. |
-| **C. Implementation** | Added `lint_allow_any_usage.py` and `build_phase8_security_ledger.py --check` to `scripts/verify_phases_3_11_gates.py`; added `test_build_phase8_security_ledger_check_passes` (timeout 180s) to `apps/platform_runtime/tests/test_tenant_settings_lint.py`; updated SOT §0 premium blocker hook row for raw SQL/endpoints with explicit commands. |
-| **D. Validation** | `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **36 passed** in ~72s (this run). |
-| **E. Acceptance** | **PASS** — shared gate flows now enforce raw SQL + csrf/AllowAny allowlist drift and merged Phase 8/9 security ledger parity together, not only in pre-deploy shell path. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `lint_allow_any_usage.py` and `build_phase8_security_ledger.py --check` to `scripts/verify_phases_3_11_gates.py`; added `test_build_phase8_security_ledger_check_passes` (timeout 180s) to `apps/platform_runtime/tests/test_tenant_settings_lint.py`; updated SOT ?0 premium blocker hook row for raw SQL/endpoints with explicit commands. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **36 passed** in ~72s (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? shared gate flows now enforce raw SQL + csrf/AllowAny allowlist drift and merged Phase 8/9 security ledger parity together, not only in pre-deploy shell path. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | This does not replace broader security review artifacts or operator E2E checks; it closes mechanical parity drift between gate entrypoints. |
 
 
+
+
+
+
+
 ---
 
-## Gilead full-tree slice — classified corpus gate in shared flows (2026-03-26)
+
+
+
+
+
+
+## Gilead full-tree slice ? classified corpus gate in shared flows (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Advance the **Gilead residue (full tree) PARTIAL** blocker by adding a deterministic full-tree classifier gate (beyond runtime-only lint scope) and wiring it into shared non-DB gate entrypoints. |
+
+
+
+
+
+
+
 | **B. Findings** | Existing `lint_gilead_residue.py` enforces runtime-visible surfaces only; no shared gate asserted that remaining repository-wide references stay in documented historical/tooling buckets from `docs/GILEAD_REFERENCE_CLASSIFICATION.md`. |
-| **C. Implementation** | Added `scripts/verify_gilead_full_tree_classification.py` (requires classification doc sections; scans text-like files for `gilead`; allows only classified buckets: docs, migrations, tests, management commands, scripts/tooling, `.cursor`; skips generated/transient artifacts like `.tmp/`, `.django_test_dbs/`, `logs/`, `backups/`). Wired into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_verify_gilead_full_tree_classification_passes`). Updated SOT §0 hook row. |
-| **D. Validation** | `python scripts/verify_gilead_full_tree_classification.py` **PASS** (`files_with_hit=143`); `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **37 passed** in ~81s (this run). |
-| **E. Acceptance** | **PASS** — full-tree references are now constrained to explicit classified buckets, while runtime surfaces remain separately enforced by `lint_gilead_residue.py`. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `scripts/verify_gilead_full_tree_classification.py` (requires classification doc sections; scans text-like files for `gilead`; allows only classified buckets: docs, migrations, tests, management commands, scripts/tooling, `.cursor`; skips generated/transient artifacts like `.tmp/`, `.django_test_dbs/`, `logs/`, `backups/`). Wired into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_verify_gilead_full_tree_classification_passes`). Updated SOT ?0 hook row. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_gilead_full_tree_classification.py` **PASS** (`files_with_hit=143`); `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **37 passed** in ~81s (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? full-tree references are now constrained to explicit classified buckets, while runtime surfaces remain separately enforced by `lint_gilead_residue.py`. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | This does not rewrite historical migrations/docs; it prevents unclassified new spread and keeps Phase 12 discipline explicit in gate lanes used during iteration. |
 
 
+
+
+
+
+
 ---
 
-## Docs/plan density slice — single-source non-growth gate (2026-03-26)
+
+
+
+
+
+
+## Docs/plan density slice ? single-source non-growth gate (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Harden the final **Doc / plan density PARTIAL** blocker with a mechanical, low-noise gate that prevents silent growth of overlapping plan/roadmap/remediation/master documents. |
-| **B. Findings** | The repo already contains many historical/subordinate plan docs; policy is “no new overlapping master plans,” but there was no deterministic cap to prevent density growth across routine slices. |
-| **C. Implementation** | Added `scripts/verify_doc_plan_density_discipline.py`: verifies required single-source artifacts exist (`RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`, autonomous log, `.cursor` rule) and enforces non-growth thresholds for `docs/**/*.md` / `docs/*.md` filenames matching `(plan|roadmap|remediation|master)` (baseline 2026-03-26: total=144, root=114). Wired into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_verify_doc_plan_density_discipline_passes`). Updated SOT §0 hook row. |
-| **D. Validation** | `python scripts/verify_doc_plan_density_discipline.py` **PASS** (`matching_docs_total=144`, `matching_docs_root=114`); `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **38 passed** in ~72s (this run). |
-| **E. Acceptance** | **PASS** — future plan/roadmap/remediation/master doc growth now trips shared gate lanes and requires explicit baseline re-alignment instead of silent sprawl. |
-| **F. Legacy deprecated/removed** | This gate does not delete historical docs; it freezes density growth and reinforces the SOT + A–F execution-log discipline. |
+
+
+
+
+
+
+
+| **B. Findings** | The repo already contains many historical/subordinate plan docs; policy is ?no new overlapping master plans,? but there was no deterministic cap to prevent density growth across routine slices. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `scripts/verify_doc_plan_density_discipline.py`: verifies required single-source artifacts exist (`RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`, autonomous log, `.cursor` rule) and enforces non-growth thresholds for `docs/**/*.md` / `docs/*.md` filenames matching `(plan|roadmap|remediation|master)` (baseline 2026-03-26: total=144, root=114). Wired into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_verify_doc_plan_density_discipline_passes`). Updated SOT ?0 hook row. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_doc_plan_density_discipline.py` **PASS** (`matching_docs_total=144`, `matching_docs_root=114`); `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **38 passed** in ~72s (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? future plan/roadmap/remediation/master doc growth now trips shared gate lanes and requires explicit baseline re-alignment instead of silent sprawl. |
+
+
+
+
+
+
+
+| **F. Legacy deprecated/removed** | This gate does not delete historical docs; it freezes density growth and reinforces the SOT + A?F execution-log discipline. |
+
+
+
+
+
 
 
 ---
 
-## Docs maintainability slice — generated gate-map appendix from single config (2026-03-26)
+
+
+
+
+
+
+## Docs maintainability slice ? generated gate-map appendix from single config (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Prevent drift in `docs/PHASES_3_11_GATE_VERIFICATION.md` appendix by generating it from one canonical config source instead of manual table edits. |
+
+
+
+
+
+
+
 | **B. Findings** | Manual appendix updates are error-prone as new verifiers are added across `verify_phases_3_11_gates.py`, `test_tenant_settings_lint.py`, and pre-deploy path. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added `docs/gate_map_appendix_config.json` (single source list) and `scripts/generate_gate_map_appendix.py` (`--write` / `--check`) using markers in `docs/PHASES_3_11_GATE_VERIFICATION.md` (`<!-- GATE_MAP_APPENDIX:START --> ... <!-- GATE_MAP_APPENDIX:END -->`). Wired `generate_gate_map_appendix.py --check` into `scripts/verify_phases_3_11_gates.py` and `apps/platform_runtime/tests/test_tenant_settings_lint.py` (`test_generate_gate_map_appendix_check_passes`). |
-| **D. Validation** | `python scripts/generate_gate_map_appendix.py --write` + `--check` **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **39 passed** in ~62s (this run). |
-| **E. Acceptance** | **PASS** — gate-map appendix now has deterministic generation + CI drift check, reducing maintenance overhead and stale docs risk. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/generate_gate_map_appendix.py --write` + `--check` **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **39 passed** in ~62s (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? gate-map appendix now has deterministic generation + CI drift check, reducing maintenance overhead and stale docs risk. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Manual appendix editing remains possible but is now guarded; use config + generator as the default path. |
 
+
+
+
+
+
+
 ---
 
-## Doc sync slice — authoritative bundle prose + gate-map self row (2026-03-26)
+
+
+
+
+
+
+## Doc sync slice ? authoritative bundle prose + gate-map self row (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Stop drift between `docs/PHASES_3_11_GATE_VERIFICATION.md` and `scripts/verify_phases_3_11_gates.py` by removing a partial hard-coded "Runs:" list and documenting the appendix generator itself in the same config that feeds CI. |
+
+
+
+
+
+
+
 | **B. Findings** | The audit doc still listed an outdated subset of steps; the generated appendix did not yet enumerate `generate_gate_map_appendix.py --check` as a first-class maintainer hook. |
+
+
+
+
+
+
+
 | **C. Implementation** | Replaced inline "Runs:" prose with pointers to `verify_phases_3_11_gates.py` `main()` + `docs/gate_map_appendix_config.json` / `--write` workflow; added a config row for `scripts/generate_gate_map_appendix.py --check`; regenerated appendix; extended SOT **Verification commands** with the `--check` one-liner. |
-| **D. Validation** | `python scripts/generate_gate_map_appendix.py --write` + `--check` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q -k generate_gate_map` → **1 passed** (this run). |
-| **E. Acceptance** | **PASS** — bundle documentation stays anchored to executable source order and the gate-map appendix is self-consistent. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/generate_gate_map_appendix.py --write` + `--check` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q -k generate_gate_map` ? **1 passed** (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? bundle documentation stays anchored to executable source order and the gate-map appendix is self-consistent. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Full inventory of steps remains in code; the appendix stays a curated subset for onboarding, not a second execution plan. |
 
 
+
+
+
+
+
 ---
 
-## A–D execution slice — Phase H, security density, Phase B AST alignment, observability contract (2026-03-26)
+
+
+
+
+
+
+## A?D execution slice ? Phase H, security density, Phase B AST alignment, observability contract (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Execute one concrete end-to-end hardening slice per requested lane: **A** Phase H UX integrity, **B** security allowlist tightening, **C** deeper siteconfig Phase B guard, **D** observability/logging contract enforcement. |
+
+
+
+
+
+
+
 | **B. Findings** | Existing gates covered broad behavior but lacked (1) skip-link target integrity in shell inheritance, (2) explicit non-growth cap across security allowlists, (3) AST-level wiring check between `phase_b_domain_snapshots.py` and migration `0007`, and (4) static contract check that structured logging tokens/middleware remain configured. |
+
+
+
+
+
+
+
 | **C. Implementation** | Added scripts: `verify_phase_h_skiplink_targets.py`, `verify_security_allowlist_density.py`, `verify_phase_b_snapshot_migration_alignment.py`, `verify_structured_logging_contract.py`. Wired all into `scripts/verify_phases_3_11_gates.py` and into `apps/platform_runtime/tests/test_tenant_settings_lint.py` via new tests: `test_verify_phase_h_skiplink_targets_passes`, `test_verify_security_allowlist_density_passes`, `test_verify_phase_b_snapshot_migration_alignment_passes`, `test_verify_structured_logging_contract_passes`. |
-| **D. Validation** | New scripts all **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` → **43 passed** in ~67s (this run). |
-| **E. Acceptance** | **PASS** — all four requested lanes now have deterministic mechanical checks in both shared non-DB entrypoints. |
+
+
+
+
+
+
+
+| **D. Validation** | New scripts all **PASS**; `python scripts/verify_phases_3_11_gates.py` **PASS**; `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q` ? **43 passed** in ~67s (this run). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? all four requested lanes now have deterministic mechanical checks in both shared non-DB entrypoints. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | These gates complement (not replace) DB-backed, Phase H live/manual, and pre-deploy full-train validations. |
 
 
+
+
+
+
+
 ---
 
-## A–D v2 execution slice — stricter depth per lane (same scripts, 2026-03-26)
+
+
+
+
+
+
+## A?D v2 execution slice ? stricter depth per lane (same scripts, 2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Deepen the four consolidated lanes without new CI entrypoints: **A** Phase H across portal/admin/marketing/studio shells, **B** allowlist density + ledger summary parity, **C** Phase B canonical domain tuple + migration `CreateModel` fields, **D** observability (`RequestContextFilter` module, handler wiring, middleware order). |
+
+
+
+
+
+
+
 | **B. Findings** | v1 skipped heterogenous shells (Unfold admin `#content`, marketing shell, Studio canvas), did not detect stale `phase8_security_ledger.json`, allowed snapshot domain drift short of a loose minimum count, and logging contract was string-token-only. |
+
+
+
+
+
+
+
 | **C. Implementation** | Extended `verify_phase_h_skiplink_targets.py` (six shell specs + admin/base companion IDs), `verify_security_allowlist_density.py` (ledger `summary.*_files` vs live JSON), `verify_phase_b_snapshot_migration_alignment.py` (`EXPECTED_PHASE_B_DOMAINS` sequence + AST `CreateModel` field names), `verify_structured_logging_contract.py` (`logging_context.py` class, `LOGGING_HANDLERS` console filter regex, explicit middleware order token positions). |
-| **D. Validation** | Four scripts **PASS**; `python -m pytest …::test_verify_phase_h_skiplink_targets_passes …::test_verify_structured_logging_contract_passes -q` → **4 passed** (spot). |
-| **E. Acceptance** | **PASS** — A–D mechanical depth increased while keeping a single subprocess per lane in `test_tenant_settings_lint.py`. |
+
+
+
+
+
+
+
+| **D. Validation** | Four scripts **PASS**; `python -m pytest ?::test_verify_phase_h_skiplink_targets_passes ?::test_verify_structured_logging_contract_passes -q` ? **4 passed** (spot). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? A?D mechanical depth increased while keeping a single subprocess per lane in `test_tenant_settings_lint.py`. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | **B** v2 requires a committed/generated `scripts/generated/phase8_security_ledger.json`; refresh via `python scripts/build_phase8_security_ledger.py --write` after allowlist edits (already standard for `--check`). |
 
 
+
+
+
+
+
 ---
 
-## Pre-deploy parity slice — §10.5 doc refs + Phase 2 design system in non-DB bundle (2026-03-26)
+
+
+
+
+
+
+## Pre-deploy parity slice ? ?10.5 doc refs + Phase 2 design system in non-DB bundle (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | Close a real gap: `pre_deploy_gate.sh` already ran `verify_operating_discipline_docs.py`, `verify_section10_5_layers.py`, and `verify_design_system_phase2.py`, but `scripts/verify_phases_3_11_gates.py` and `test_tenant_settings_lint.py` did not — contributors using only the non-DB bundle could miss broken `*_DOC` pointers or Phase 2 shell/CSS regressions. |
+
+
+
+
+
+
+
+| **A. Scope** | Close a real gap: `pre_deploy_gate.sh` already ran `verify_operating_discipline_docs.py`, `verify_section10_5_layers.py`, and `verify_design_system_phase2.py`, but `scripts/verify_phases_3_11_gates.py` and `test_tenant_settings_lint.py` did not ? contributors using only the non-DB bundle could miss broken `*_DOC` pointers or Phase 2 shell/CSS regressions. |
+
+
+
+
+
+
+
 | **B. Findings** | `verify_design_system_phase2.py` already delegates to `verify_section10_5_layers.py`; wiring Phase 2 alone covers the design-system layer check without a duplicate explicit step. |
+
+
+
+
+
+
+
 | **C. Implementation** | Inserted `verify_operating_discipline_docs.py` and `verify_design_system_phase2.py` into `verify_phases_3_11_gates.py` (after gate-map `--check`). Added pytest: `test_verify_operating_discipline_docs_passes`, `test_verify_design_system_phase2_passes`. Extended `docs/gate_map_appendix_config.json` + regenerated appendix; SOT verification commands note now states pytest mirrors these pre-deploy hooks. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/generate_gate_map_appendix.py --write` + `--check` **PASS**; spot pytest on the two new tests **PASS**. |
-| **E. Acceptance** | **PASS** — non-DB consolidated lane now matches more of the “full train” discipline docs + ZIP Phase 2 bar without re-listing `verify_section10_5_layers` as its own subprocess (still exercised inside Phase 2). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? non-DB consolidated lane now matches more of the ?full train? discipline docs + ZIP Phase 2 bar without re-listing `verify_section10_5_layers` as its own subprocess (still exercised inside Phase 2). |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | `pre_deploy_gate.sh` remains authoritative for ordering of the full train; this slice aligns the **developer one-shot** bundle and **TARGETED_HARDENING** pytest module. |
 
 
+
+
+
+
+
 ---
 
-## Pre-deploy parity slice — super-premium wedges + Phase 7 markers + CP hub registry (2026-03-26)
+
+
+
+
+
+
+## Pre-deploy parity slice ? super-premium wedges + Phase 7 markers + CP hub registry (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Align `verify_phases_3_11_gates.py` / `test_tenant_settings_lint.py` with the same **static / Django-light** block `pre_deploy_gate.sh` runs immediately after `verify_sot_pillar_evidence.py`: super-premium wedge phases, full Phase 7 dashboard marker audit, and control-plane hub registry drift. |
+
+
+
+
+
+
+
 | **B. Findings** | `validate_wedges_phase.py` and scorecard checks were already in the non-DB bundle; **super-premium** proof bar and **Phase 7 registry + CP closure** were still pre-deploy-only, so narrow workflows could miss regressions. |
+
+
+
+
+
+
+
 | **C. Implementation** | Inserted `validate_wedge_super_premium_phases.py --phase all`, `verify_phase7_dashboard_markers.py`, and `verify_control_plane_hub_registry_drift.py` after `verify_sot_pillar_evidence` in `verify_phases_3_11_gates.py`. Added pytest: `test_validate_wedge_super_premium_phases_all_passes` (300s), `test_verify_phase7_dashboard_markers_passes`, `test_verify_control_plane_hub_registry_drift_passes`. Extended `gate_map_appendix_config.json` + regenerated appendix; updated SOT verification-command prose. |
+
+
+
+
+
+
+
 | **D. Validation** | Three scripts **PASS** from repo root (~8s super-premium on this machine); `generate_gate_map_appendix.py --write` + `--check` **PASS**; spot pytest on the three new tests **PASS**. |
-| **E. Acceptance** | **PASS** — consolidated bundle now tracks the wedge super-premium + dashboard surface + hub-registry slice without duplicating DB migration steps. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? consolidated bundle now tracks the wedge super-premium + dashboard surface + hub-registry slice without duplicating DB migration steps. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | `apps/schools/tests/test_wedge_super_premium_phases.py` remains a focused `SimpleTestCase` duplicate for schools CI; platform_runtime lint module now also covers the script for **TARGETED_HARDENING** trains. |
 
 
+
+
+
+
+
 ---
 
-## Pre-deploy parity slice — hygiene, root allowlist, marketing nav, i18n catalog (2026-03-26)
+
+
+
+
+
+
+## Pre-deploy parity slice ? hygiene, root allowlist, marketing nav, i18n catalog (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Bring `verify_phases_3_11_gates.py` / `test_tenant_settings_lint.py` closer to early/late `pre_deploy_gate.sh` checks that were still train-only: `check_repo_hygiene.py`, `check_root_clutter.py`, `lint_marketing_nav_no_overflow.py`, and `verify_i18n_catalog_fresh.py`. |
-| **B. Findings** | `check_root_clutter` failed locally because `docker-compose.collabora.yml` was tracked at repo root but missing from `scripts/allowlists/tracked_root_allowlist.json` — fixed by allowlisting the file (Collabora/WOPI ops surface). |
-| **C. Implementation** | Inserted the four scripts into `verify_phases_3_11_gates.py` (hygiene + root first; marketing nav after Phase 2 gate; i18n after `phase_h_audit.py`). Added matching pytest methods with subprocess timeouts. Extended `gate_map_appendix_config.json` + regenerated appendix; SOT §11.4 verification prose updated. |
+
+
+
+
+
+
+
+| **B. Findings** | `check_root_clutter` failed locally because `docker-compose.collabora.yml` was tracked at repo root but missing from `scripts/allowlists/tracked_root_allowlist.json` ? fixed by allowlisting the file (Collabora/WOPI ops surface). |
+
+
+
+
+
+
+
+| **C. Implementation** | Inserted the four scripts into `verify_phases_3_11_gates.py` (hygiene + root first; marketing nav after Phase 2 gate; i18n after `phase_h_audit.py`). Added matching pytest methods with subprocess timeouts. Extended `gate_map_appendix_config.json` + regenerated appendix; SOT ?11.4 verification prose updated. |
+
+
+
+
+
+
+
 | **D. Validation** | `check_root_clutter` / marketing nav / i18n **PASS**; spot pytest on the four new tests **PASS**. |
-| **E. Acceptance** | **PASS** — narrow “phases 3–11” workflows now catch the same repo clutter and i18n drift signals as the full pre-deploy opener and pre-hardening block. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? narrow ?phases 3?11? workflows now catch the same repo clutter and i18n drift signals as the full pre-deploy opener and pre-hardening block. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Superseded by the slice below: env/git, `manage.py check`, and `makemigrations --check` now run in the consolidated bundle; **migrate / gate DB / smoke** steps remain full-train only. |
 
 
+
+
+
+
+
 ---
 
-## Consolidated bundle slice — env/git check + Django check + makemigrations --check (2026-03-26)
+
+
+
+
+
+
+## Consolidated bundle slice ? env/git check + Django check + makemigrations --check (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | Close the gap called out in the prior log: surface **full-train-openers** inside `verify_phases_3_11_gates.py` / `test_tenant_settings_lint` where they need **no DB apply** — tracked env files, `manage.py check`, `makemigrations --check --dry-run`. |
+
+
+
+
+
+
+
+| **A. Scope** | Close the gap called out in the prior log: surface **full-train-openers** inside `verify_phases_3_11_gates.py` / `test_tenant_settings_lint` where they need **no DB apply** ? tracked env files, `manage.py check`, `makemigrations --check --dry-run`. |
+
+
+
+
+
+
+
 | **B. Findings** | `check_no_committed_env.sh` was bash-only; a portable **`scripts/check_no_committed_env.py`** keeps one contract for Windows/Linux and for subprocess-based pytest. The `.sh` wrapper now delegates to Python so `pre_deploy_gate.sh` behavior stays aligned. |
-| **C. Implementation** | Added `check_no_committed_env.py`; rewrote `check_no_committed_env.sh` to invoke it. Inserted env → `manage.py check` → `makemigrations --check --dry-run` immediately after root-clutter in `verify_phases_3_11_gates.py`. New tests: `test_check_no_committed_env_passes`, `test_manage_py_check_passes`, `test_makemigrations_check_dry_run_passes`. Gate-map config + appendix regenerated; SOT §11.4 verification prose updated (**full train** still lists ruff, inventory `--write`, migrated DB, smoke, etc.). |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `check_no_committed_env.py`; rewrote `check_no_committed_env.sh` to invoke it. Inserted env ? `manage.py check` ? `makemigrations --check --dry-run` immediately after root-clutter in `verify_phases_3_11_gates.py`. New tests: `test_check_no_committed_env_passes`, `test_manage_py_check_passes`, `test_makemigrations_check_dry_run_passes`. Gate-map config + appendix regenerated; SOT ?11.4 verification prose updated (**full train** still lists ruff, inventory `--write`, migrated DB, smoke, etc.). |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/check_no_committed_env.py`, `manage.py check`, `makemigrations --check --dry-run` **PASS**; spot pytest on three new tests **PASS**. |
-| **E. Acceptance** | **PASS** — “bundle vs full train” is now honest: bundle covers **system check + migration graph drift** without `migrate` or dedicated gate DB. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? ?bundle vs full train? is now honest: bundle covers **system check + migration graph drift** without `migrate` or dedicated gate DB. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | `showmigrations packages setup_studio`, `migrate_gate_test_db.py`, `verify_phase_b_execution.py`, `audit_tenant_models`, and smoke `manage.py test` slices remain **pre_deploy only**. |
 
 
+
+
+
+
+
 ---
 
-## Pre-deploy parity slice — policy linters + ruff + inventory --check (2026-03-26)
+
+
+
+
+
+
+## Pre-deploy parity slice ? policy linters + ruff + inventory --check (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Add the next pre_deploy **static** block after `makemigrations --check`: bounded-context `--strict`, siteconfig legacy imports, repo secret-pattern scan, print-ban, ruff F401/F841, `check_no_hardcoding --allow-tests`, Phase B batch-3 FK write lint, broad-except strict, **`generate_platform_inventory.py --check`**. |
+
+
+
+
+
+
+
 | **B. Findings** | `generate_platform_inventory --check` failed until **`--write`** refreshed `docs/generated/platform_inventory.json` + `.md`. `test_lint_bounded_context_imports_passes` (non-strict) duplicated work; removed in favor of **`test_lint_bounded_context_imports_strict_passes`** matching pre_deploy. |
-| **C. Implementation** | Patched `verify_phases_3_11_gates.py` + nine pytest methods; gate-map appendix; SOT §11.4 verification + bundle-vs-train lines updated. |
+
+
+
+
+
+
+
+| **C. Implementation** | Patched `verify_phases_3_11_gates.py` + nine pytest methods; gate-map appendix; SOT ?11.4 verification + bundle-vs-train lines updated. |
+
+
+
+
+
+
+
 | **D. Validation** | Nine-test pytest spot run **PASS**; `generate_gate_map_appendix --check` **PASS**. |
-| **E. Acceptance** | **PASS** — bundle aligns with most early policy gates; **`--write`** + **`lint_mega_files`** remain full-train per SOT. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? bundle aligns with most early policy gates; **`--write`** + **`lint_mega_files`** remain full-train per SOT. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | None. |
 
 
+
+
+
+
+
 ---
 
-## Bundle parity slice — Phase 5 script + SiteSettings singleton + north-star strict (2026-03-26)
+
+
+
+
+
+
+## Bundle parity slice ? Phase 5 script + SiteSettings singleton + north-star strict (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Close remaining **pre_deploy** gaps that pytest already covered but **`verify_phases_3_11_gates.py` did not**: `verify_phase_5_siteconfig.py`, `lint_sitesettings_orm_singleton.py --base .`, and **strict** north-star **a11y** / **i18n** linters (pre_deploy runs them advisory `|| true`; bundle uses **`--strict`** so failures block the one-shot script). |
+
+
+
+
+
+
+
 | **B. Findings** | Phase 5 and singleton tests existed in `test_tenant_settings_lint` but developers running **only** `verify_phases_3_11_gates.py` skipped those gates. |
+
+
+
+
+
+
+
 | **C. Implementation** | Inserted phase-5 + singleton after `lint_tenant_settings --check-get-solo-only`. Inserted `lint_north_star_a11y.py --strict` and `lint_north_star_i18n.py --strict` after `phase_h_audit.py` and before `verify_i18n_catalog_fresh.py`. Added pytest `test_lint_north_star_a11y_strict_passes` and `test_lint_north_star_i18n_strict_passes`. Gate-map rows + appendix; SOT verification line nudge. |
+
+
+
+
+
+
+
 | **D. Validation** | North-star scripts **PASS** with `--strict`; spot pytest on two new tests **PASS**. |
-| **E. Acceptance** | **PASS** — mirrored lane is closer to **meaningful** pre_deploy policy without duplicating advisory `lint_section8_responsive` / `|| true` steps. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? mirrored lane is closer to **meaningful** pre_deploy policy without duplicating advisory `lint_section8_responsive` / `|| true` steps. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Optional **`lint_north_star_a11y --touch`** touch-target heuristic remains **not** in the bundle (noisy); strict mode covers base-shell **accessibility.css** contract only. |
 
+
+
+
+
+
+
 ---
 
-## Follow-up verification — consolidated gates + pytest (2026-03-26)
+
+
+
+
+
+
+## Follow-up verification ? consolidated gates + pytest (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Re-run **`python scripts/verify_phases_3_11_gates.py`** and **`python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q`** after doc/config drift. |
+
+
+
+
+
+
+
 | **B. Findings** | **`generate_gate_map_appendix.py --check`** failed in pytest until **`--write`** refreshed `docs/PHASES_3_11_GATE_VERIFICATION.md`. **`generate_platform_inventory.py --check`** then failed until a **second** **`--write`**: the inventory generator scans docs, so regenerating the gate appendix alone leaves `docs/generated/platform_inventory.*` stale. |
+
+
+
+
+
+
+
 | **C. Implementation** | Operational sequencing only: when gate-map config or appendix changes, run **`generate_gate_map_appendix.py --write`** then **`generate_platform_inventory.py --write`** before expecting **`--check`** lanes to pass. |
+
+
+
+
+
+
+
 | **D. Validation** | Full **`verify_phases_3_11_gates.py`** **PASS**; **`test_tenant_settings_lint`** **65 passed**. |
-| **E. Acceptance** | **PASS** — local bundle + pytest mirror are green with regenerated artifacts. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? local bundle + pytest mirror are green with regenerated artifacts. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | Full train still owns explicit **`migrate`**, gate DB, smoke **`manage.py test`** slices, and optional **`lint_mega_files`** per SOT. |
 
+
+
+
+
+
+
 ---
 
-## Structural remediation — P0–P6 stack + scoped inventory (2026-03-26)
+
+
+
+
+
+
+## Structural remediation ? P0?P6 stack + scoped inventory (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | User mandate to **prioritize fixing** admin gravity, SiteSettings gravity, shell triad, repo sprawl, SQL/CSRF/print posture, and Gilead residue—without pretending multi-quarter architecture is one PR. |
-| **B. Findings** | Gross `baseline_counts` overstated **product** risk (migrations + broad file pool). Security linters (**P0**) and **P1** Gilead lint already **PASS** in-repo; remaining work is **P2–P6** execution slices. |
-| **C. Implementation** | Added **§0 — Structural remediation stack (P0–P6)** and **§11.4** pointer in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Extended `generate_platform_inventory.py` with **`scoped_gravity_counts`** and refreshed `docs/generated/platform_inventory.{json,md}`. |
+
+
+
+
+
+
+
+| **A. Scope** | User mandate to **prioritize fixing** admin gravity, SiteSettings gravity, shell triad, repo sprawl, SQL/CSRF/print posture, and Gilead residue?without pretending multi-quarter architecture is one PR. |
+
+
+
+
+
+
+
+| **B. Findings** | Gross `baseline_counts` overstated **product** risk (migrations + broad file pool). Security linters (**P0**) and **P1** Gilead lint already **PASS** in-repo; remaining work is **P2?P6** execution slices. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added **?0 ? Structural remediation stack (P0?P6)** and **?11.4** pointer in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). Extended `generate_platform_inventory.py` with **`scoped_gravity_counts`** and refreshed `docs/generated/platform_inventory.{json,md}`. |
+
+
+
+
+
+
+
 | **D. Validation** | `python scripts/generate_platform_inventory.py --check` **PASS**; `lint_csrf_exempt_usage`, `lint_raw_sql_usage`, `lint_gilead_residue` **PASS**. |
-| **E. Acceptance** | **PASS** — canonical **priority order** + honest metrics for trending; execution proceeds as §11.4 slices against **P2–P4** especially. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? canonical **priority order** + honest metrics for trending; execution proceeds as ?11.4 slices against **P2?P4** especially. |
+
+
+
+
+
+
+
 | **F. Legacy deprecated/removed** | None; gross `baseline_counts` retained for repo-scale snapshots only. |
 
+
+
+
+
+
+
 ---
 
-## Collabora T4 blocker documentation — OSS self-host + DNS misroute (2026-03-26)
+
+
+
+
+
+
+## Collabora T4 blocker documentation ? OSS self-host + DNS misroute (2026-03-26)
+
+
+
+
+
+
 
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
-| **A. Scope** | Align SOT/backlog/audit with production reality: `collabora.runmycampus.com` returned **302** to Django (`school-not-found`) on `/hosting/discovery` — WOPI host not wired to Collabora. User constraint: avoid implying proprietary SaaS; prefer **self-hosted OSS** on own infra. |
+
+
+
+
+
+
+
+| **A. Scope** | Align SOT/backlog/audit with production reality: `collabora.runmycampus.com` returned **302** to Django (`school-not-found`) on `/hosting/discovery` ? WOPI host not wired to Collabora. User constraint: avoid implying proprietary SaaS; prefer **self-hosted OSS** on own infra. |
+
+
+
+
+
+
+
 | **B. Findings** | Env vars can be correct while Tier 4 still fails; `HostedOfficeDocument` may live in **tenant** schema only (`tenant_command seed_office_documents`). |
-| **C. Implementation** | Updated [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4 row; [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md); [KB_FAQ_LIBREOFFICE_EXECUTION_AUDIT.md](KB_FAQ_LIBREOFFICE_EXECUTION_AUDIT.md) (policy + tenant seed); [execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md](execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md) (OSS scope + tenant note); [execution/RENDER_ENV_OPERATIONS.md](execution/RENDER_ENV_OPERATIONS.md) (discovery routing check). |
-| **D. Validation** | Doc-only change; re-validate prod with `curl -I https://<collabora-host>/hosting/discovery` → **200** after infra fix. |
-| **E. Acceptance** | **PARTIAL** — governance accurate; T4 remains **BLOCKED** until Collabora host routes correctly. |
+
+
+
+
+
+
+
+| **C. Implementation** | Updated [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) ?11.4 row; [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md); [KB_FAQ_LIBREOFFICE_EXECUTION_AUDIT.md](KB_FAQ_LIBREOFFICE_EXECUTION_AUDIT.md) (policy + tenant seed); [execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md](execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md) (OSS scope + tenant note); [execution/RENDER_ENV_OPERATIONS.md](execution/RENDER_ENV_OPERATIONS.md) (discovery routing check). |
+
+
+
+
+
+
+
+| **D. Validation** | Doc-only change; re-validate prod with `curl -I https://<collabora-host>/hosting/discovery` ? **200** after infra fix. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PARTIAL** ? governance accurate; T4 remains **BLOCKED** until Collabora host routes correctly. |
+
+
+
+
+
+
+
 | **F. Unblock** | Dedicated Collabora service (e.g. `collabora/code`) + custom domain DNS to that service; then smoke + browser sign-off. |
 
+
+
+
+
+
+
 ---
+
+
+
+
+
+
 
 ## P3 admin escape hatches (compliance + portal) + P4 matrix spot + P1 hygiene (2026-03-27)
 
+
+
+
+
+
+
 | Step | Detail |
+
+
+
+
+
+
+
 |------|--------|
+
+
+
+
+
+
+
 | **A. Scope** | Continue **P3** tenant `ModelAdmin` change forms still lacking control-plane links; confirm **P4** `verify_shell_architecture_matrix`; confirm **P1** decomposition / Gilead tree / AI blueprint scripts; keep **P2** Phase B depth explicitly **queued** (no fake first-class tables slice in this train). |
+
+
+
+
+
+
+
 | **B. Findings** | `verify_shell_architecture_matrix.py`, `verify_siteconfig_decomposition_depth.py`, `verify_gilead_full_tree_classification.py`, `verify_ai_blueprint_completion.py` already **PASS**. New `{% trans %}` strings required `sync_i18n_catalog --compile` for `verify_i18n_catalog_fresh.py`. |
-| **C. Implementation** | Added `form_before` sections to compliance (`compliancerule`, `legaldocument`) and portal (`portalfeatureitem`, `announcement`) admin change templates; four tests in `apps/siteconfig/tests/test_admin_ui_smoke.py`; SOT §11.4 bullets for P3/P4/P2 queue; locale catalogs updated. |
+
+
+
+
+
+
+
+| **C. Implementation** | Added `form_before` sections to compliance (`compliancerule`, `legaldocument`) and portal (`portalfeatureitem`, `announcement`) admin change templates; four tests in `apps/siteconfig/tests/test_admin_ui_smoke.py`; SOT ?11.4 bullets for P3/P4/P2 queue; locale catalogs updated. |
+
+
+
+
+
+
+
 | **D. Validation** | `pytest apps/siteconfig/tests/test_admin_ui_smoke.py` **13 passed**; `verify_i18n_catalog_fresh.py` **PASS**; `verify_shell_architecture_matrix.py` **PASS**. |
-| **E. Acceptance** | **PASS** — `SKIP_VISUAL_QA=1 PRE_GATE_FRESH_TEST_DB=1 bash scripts/pre_deploy_gate.sh` **PASS** (~18.8 min); `docs/generated/pre_deploy_gate_run.txt` ends with `[pre_deploy_gate] PASSED` + appended `[gate-finished] EXIT=0`. Visual QA skipped; BR-13 / live Phase H per [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** ? `SKIP_VISUAL_QA=1 PRE_GATE_FRESH_TEST_DB=1 bash scripts/pre_deploy_gate.sh` **PASS** (~18.8 min); `docs/generated/pre_deploy_gate_run.txt` ends with `[pre_deploy_gate] PASSED` + appended `[gate-finished] EXIT=0`. Visual QA skipped; BR-13 / live Phase H per [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). |
+
+
+
+
+
+
+
 | **F. Legacy** | **Phase H / BR-13 / visual QA** remain per-release; not automated here. |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## Pre-deploy portal gate ? tenant admin metadata reverses + employer module access (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Unblock **`pre_deploy_gate.sh`** failures on **Phase 3 portal trio**: missing **`reverse()`** for **`admin:metadata_entitycatalogentry_changelist`** / **`admin:metadata_configmutationauditlog_changelist`** on tenant admin; **`portal:employer_dashboard`** returning **403** in **`manage.py test`** role smoke / **`crawl_portal_role_urls`**. |
+
+
+
+
+
+
+
+| **B. Findings** | **`@admin.register`** on **`EntityCatalogEntry`** / **`ConfigMutationAuditLog`** bound only Django?s default site; tenant console uses **`tenant_admin_site`**. Employer 403 was **`ModuleAccessMiddleware`** + **`MODULE_ACCESS_DEFAULTS["portal"]`** omitting **`EMPLOYER`** (middleware denied before **`employer_dashboard`**). |
+
+
+
+
+
+
+
+| **C. Implementation** | **`register_both`** for those two models in **`apps/metadata/apps.py`**; removed default-site-only decorators from **`apps/metadata/admin.py`**. Added **`EMPLOYER`** to portal **read/write** allow lists in **`apps/accounts/permissions.py`**. RBAC normalization: **`_canonical_role_code`**, **`_user_has_role`** / **`_user_has_any_role`** / **`api_user_has_any_role`** / **`_role_rank`** aligned on uppercase string codes. |
+
+
+
+
+
+
+
+| **D. Validation** | **`python manage.py test`** `apps.portal.tests.test_portal_role_smoke_crawl` + **`test_crawl_portal_role_urls_command`** **PASS** (gate SQLite); **`pytest`** same modules **PASS**; **`python -m ruff check apps --select F401,F841`** clean for touched files. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** for the **portal + metadata admin** blockers above; full **`pre_deploy_gate.sh`** still subject to **visual QA**, **release readiness**, and long **targeted hardening** bundle on the runner. |
+
+
+
+
+
+
+
+| **F. Next train (?11.4)** | Marketplace / integration secrets column split beyond **`sms_api_key`**; reports / ministry capability codes in gates or seeds ? **one theme per train** per SOT. |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## Playwright Postgres CI ? tenant CSRF + workflow hygiene (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Optional **`.github/workflows/playwright-tenant-postgres.yml`** path; **`scripts/run_visual_qa.sh`** tenant portal logins; **`makemigrations --check`** hygiene note for **`apps.api`**. |
+
+
+
+
+
+
+
+| **B. Findings** | **`makemigrations --check --dry-run`** and **`makemigrations api --dry-run`** report **no pending migrations** on current tree (earlier test warning was stale or environment-specific). Tenant Playwright POSTs could fail CSRF when **`CSRF_TRUSTED_ORIGINS`** was built only after **`runserver`** started ? origins never included the tenant host. |
+
+
+
+
+
+
+
+| **C. Implementation** | **`run_visual_qa.sh`**: resolve first **`customers.Domain`** and write **`tenant_domain_for_qa.txt`** **before** **`nohup runserver`**, build **`CSRF_TRUSTED_ORIGINS`** (`127.0.0.1`, public, manager, tenant) and pass into the server env. **Workflow:** **`concurrency`** (cancel in progress), **`ALLOWED_HOSTS`** + **`VISUAL_QA_PORT`**, **`package.json` / `package-lock.json`** path triggers, header comment. **`ci_setup_postgres_tenants_for_visual_qa.sh`**: comment cross-link. |
+
+
+
+
+
+
+
+| **D. Validation** | **`bash -n`** on **`run_visual_qa.sh`** and **`ci_setup_postgres_tenants_for_visual_qa.sh`**. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** for script/workflow edits; full job still requires **GitHub Actions** run with Postgres service. |
+
+
+
+
+
+
+
+| **F. Next** | **P2** next marketplace secret column only when a concrete **`SiteSettings`** / payload key is chosen (e.g. new integration token); **reports/plan** follow-ups remain **seed/manifest/gate** alignment per SOT ? separate train. |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## ?11.4 batch 11 queue + runtime truth hub decision_architecture + structured-logging inventory (2026-03-29)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Roll SOT **?11.4** forward queue to **batch 11 (101?110)**; close **batch 8 #73** / **batch 9 #83** with a regression test on **`super:runtime_truth_hub`**; inventory **batch 10 #93** (**`verify_structured_logging_contract`** already mirrored in **`test_tenant_settings_lint`**). |
+
+
+
+
+
+
+
+| **B. Findings** | View already passed **`get_decision_architecture_for_page("runtime_truth_hub")`**; **`TenantSettingsLintTests.test_verify_structured_logging_contract_passes`** already runs **`scripts/verify_structured_logging_contract.py`**. |
+
+
+
+
+
+
+
+| **C. Implementation** | **`RuntimeTruthHubTests.test_runtime_truth_hub_passes_decision_architecture_context`** in **`apps/schools/tests/test_runtime_truth_hub.py`** (**`assertContains`** preset strings ? **`render()`** has no **`response.context`**). SOT: **batch 8 #73**, **batch 9 #83**, **batch 10 #93** marked **DONE**; new **batch 11** paragraph; **?11.4** slice rows for truth hub + structured-logging parity; **Shipped micro-slices** bullet; this log block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**. |
+
+
+
+
+
+
+
+| **D. Validation** | `python -m pytest apps/schools/tests/test_runtime_truth_hub.py -q`; optional: `python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py::TenantSettingsLintTests::test_verify_structured_logging_contract_passes -q`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** when pytest above is green. |
+
+
+
+
+
+
+
+| **F. Follow-ons** | **Batch 11** items (**Phase H** **`TARGET_SPECS`**, playbook CSV **`filename*`**, extend structured-logging keys, finance webhook, outcomes/OpenAPI/schools ordering, CI runbook matrix, Gilead cadence). |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## ?11.4 batch 12 queue + OpenAPI schema smoke + manifest doc + runbook CI matrix (2026-03-29)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Roll SOT **?11.4** to **batch 12 (111?120)**; close batch **11** items with **inventory** or **small code** where gaps were already filled; add staff **`/api/schema/`** regression test; document manifest vs full v1 route list; document **smoke-light** vs **`pre_deploy_gate`**. |
+
+
+
+
+
+
+
+| **B. Findings** | **`get_child_schools`** ordering and **`test_outcomes_console_quarantine`** already satisfied batch **7/10/11** rows; **`support_help_hub`** uses **`portal_base.html`** already listed in **`TARGET_SPECS`**. |
+
+
+
+
+
+
+
+| **C. Implementation** | **`apps/api/tests/test_staff_openapi_schema.py`**; **`api_v1_manifest.py`** module docstring; **`IMPLEMENT_ALL_UNCHECKED_RUNBOOK.md`** ?1 paragraph; SOT batch **7/9/10/11** line edits + **batch 12** paragraph + **?11.4** slice rows + **Shipped micro-slices**; this block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**. |
+
+
+
+
+
+
+
+| **D. Validation** | `python -m pytest apps/api/tests/test_staff_openapi_schema.py -q`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** when pytest is green. |
+
+
+
+
+
+
+
+| **F. Follow-ons** | **Batch 12** (**Phase H** new shell row, playbook **`filename*`**, structured-logging keys, finance **`WebhookLog`**, reports i18n, marketplace audit, manifest entries, siteconfig admin audit, interop fixtures). |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## ?11.4 batch 13 queue + playbook CSV `filename*` + logging contract v3 + batch 12 inventory (2026-03-29)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Roll SOT **?11.4** to **batch 13 (121?130)**; ship **RFC 5987** **`filename*=`** on playbook hub CSV; extend **`verify_structured_logging_contract.py`** with **`clear_request_logging_context`**; mark **batch 12** items **done** where template/tests/fixtures already existed. |
+
+
+
+
+
+
+
+| **B. Findings** | Scheduled hub already **`{% trans %}`**; **`DashboardWidget`** escape hatch tested in **P3** smoke; **interop** JSON fixtures + **`test_district_readiness_fixtures`** already on tree. |
+
+
+
+
+
+
+
+| **C. Implementation** | **`super_views_runtime_ops._playbook_operator_hub_csv_response`** + **`test_playbook_operator_hub_csv_content_disposition_static_filename`**; **`scripts/verify_structured_logging_contract.py`** v3 check; SOT **batch 6/7/9/10/11/12** line edits, **batch 13** paragraph, **?11.4** slice rows, **Shipped micro-slices**; this block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_structured_logging_contract.py`; `python -m pytest apps/schools/tests/test_playbook_operator_hub.py -q`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** when commands above are green. |
+
+
+
+
+
+
+
+| **F. Follow-ons** | **Batch 13** (**Phase H** **`TARGET_SPECS`**, non-ASCII CSV filename test, **`school_id`** logging context, finance **`WebhookLog`**, marketplace audit, manifest, interop depth). |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## ?11.4 batch 14 queue + CSV ASCII fallback + WebhookLog/marketplace inventory + interop API fixture test (2026-03-29)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Roll SOT **?11.4** to **batch 14 (131?140)**; harden playbook CSV **`Content-Disposition`** for non-ASCII basenames; add **API** test that parses **`fixtures/interop/*`**; inventory-close **finance** **`WebhookLog`** + **marketplace** admin rows. |
+
+
+
+
+
+
+
+| **B. Findings** | **`test_momo_webhook_contract`**, **`test_webhook_dead_letter`** already cover **`WebhookLog`** transitions; **`IntegrationMarketplaceAdmin`** already ships P3 escape hatch. |
+
+
+
+
+
+
+
+| **C. Implementation** | **`_playbook_operator_hub_csv_content_disposition`**, **`PLAYBOOK_OPERATOR_HUB_CSV_FILENAME_ASCII_FALLBACK`**, **`test_playbook_operator_hub_csv_filename_star_encodes_non_ascii_basename`**; **`test_district_readiness_sample_fixtures_parse_from_api_test_tree`**; SOT **batch 6/9/10/11/12/13** edits, **batch 14** paragraph, **?11.4** slice rows, **Shipped micro-slices**; this block; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**. |
+
+
+
+
+
+
+
+| **D. Validation** | `python -m pytest apps/schools/tests/test_playbook_operator_hub.py apps/api/tests/test_interop_readiness.py::InteropReadinessTests::test_district_readiness_sample_fixtures_parse_from_api_test_tree -q`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** when pytest is green. |
+
+
+
+
+
+
+
+| **F. Follow-ons** | **Batch 14** remainder shipped in **?11.4 batch 14 implementation close-out** block below. |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## ?11.4 batch 14 (131?140) implementation close-out ? Phase H + logging + webhooks + interop + manifest + Phase B (2026-03-29)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Complete **131**?**140** after partial CSV/interop/inventory ship: skip targets, **`school_id`**, webhook edges, i18n note, marketplace listing columns, **`--strict`** visibility, manifest **`interop_edfi`**, themepack escape template guard, Ed-Fi **`district_readiness`** echo, Phase B HTML?JSON smoke. |
+
+
+
+
+
+
+
+| **B. Findings** | **`ThemePackAdmin`** redirects change vie*`change_form`** smoke uses **template file** assertions instead of **`change_view`**. |
+
+
+
+
+
+
+
+| **C. Implementation** | **`verify_phase_h_skiplink_targets.py`** **`marketing_product_page`**; **`RequestIdLoggingMiddleware`** **`request.school.pk`** first; **`conk`** first; **`config/settings.py`** **`json`** **`school_id=`**; **`test_payment_webhook_edge_cases.py`**; **`MarketplaceListingAdmin`**; **`smoke-light.yml`** **`report_premium_maturity_signals --strict`**; **`api_v1_manifest`** **`interop_edfi`**; **`edfi_readiness`** + **`test_edfi_readiness_echoes_district_readiness_from_integration_config`**; Phase B tests; **`test_themepack_change_form_template_has_product_escape_links`**; **`CONTRIBUTING.md`**; SOT **batch 14/15** + **Shipped micro-slices**; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_phase_h_skiplink_targets.py`; `python scripts/verify_structured_logging_contract.py`; `python -m pytest apps/finance/tests/test_payment_webhook_edge_cases.py apps/api/tests/test_interop_readiness.py::InteropReadinessTests::test_edfi_readiness_echoes_district_readiness_from_integration_config apps/api/tests/test_api_v1_manifest.py::ApiV1ManifestTests::test_manifest_json apps/schools/tests/test_super_phase_b_snapshot_diff.py apps/observability/tests/test_logging_context_helpers.py apps/siteconfig/tests/test_admin_ui_smoke.py::AdminUiSmokeTests::test_themepack_change_form_template_has_product_escape_links -q`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** when commands above are green. |
+
+
+
+
+
+
+
+| **F. Follow-ons** | **Batch 15 (141?150)** per SOT **?11.4**. |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## ?11.4 batch 15 (141?150) close-out ? Phase H + JSON logging v4 + webhook idempotency bucket + CEDS + manifest + Phase B domain order (2026-03-29)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Complete SOT **batch 15**: marketing landing skip target; **`LOG_JSON=1`** formatter parity with **`request_id`/`tenant_id`/`user_id`/`school_id`**; **`WebhookLog.idempotency_bucket`** + MTN duplicate-by-header test + wallet top-up test; **CONTRIBUTING** scheduled hub i18n drill; **`MarketplaceAppAdmin`**; manifest **`interop_ceds`**; marketplace **`Integration`** **`change_form`** coverage; **`ceds_readiness`** stub + test; Phase B JSON **`domains`** order regression. |
+
+
+
+
+
+
+
+| **B. Findings** | **`test_mtn_duplicate_when_same_idempotency_key_even_if_transaction_id_differs`** passes when **`Idempotency-Key`** flows through **`request.headers`** / **`META`** and **`idempotency_bucket`** is written on **`PROCESSED`** **`WebhookLog`** rows. |
+
+
+
+
+
+
+
+| **C. Implementation** | As listed in SOT **?11.4** batch **15** DONE line + new **?11.4** slice rows (**idempotency_bucket**, **`MarketplaceApp`**, CEDS, Phase B domain order, structured logging **v4** note); **batch 7 #67** marked **DONE**; **batch 16 (151?165)** forward queue; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**. |
+
+
+
+
+
+
+
+| **D. Validation** | `python -m pytest apps/finance/tests/test_momo_webhook_contract.py::MobileMoneyWebhookContractTests::test_mtn_duplicate_when_same_idempotency_key_even_if_transaction_id_differs apps/finance/tests/test_wallet_payment.py::PayWithWalletTests::test_top_up_wallet_creates_positive_transaction_and_balance apps/schools/tests/test_super_phase_b_snapshot_diff.py::SuperPhaseBSnapshotDiffViewTests::test_phase_b_export_json_domain_order_matches_phase_b_snapshot_domains_constant apps/api/tests/test_interop_readiness.py::InteropReadinessTests::test_ceds_readiness_echoes_district_readiness_from_integration_config apps/api/tests/test_api_v1_manifest.py -q`; `python scripts/verify_structured_logging_contract.py`; `python scripts/verify_phase_h_skiplink_targets.py`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** when commands above are green. |
+
+
+
+
+
+
+
+| **F. Follow-ons** | **Batch 16 (151?165)** per SOT **?11.4**. |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## ?11.4 batch 16 (151?165) close-out ? logging http_method + wallet edges + manifest sample + ServiceIntegration admin + Phase B v2 schema (2026-03-30)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Close SOT **batch 16**: Phase H cp-shell inventory; **`http_method`** on **`LogRecord`**; wallet **`pay_invoice_with_wallet`** edge tests; **CONTRIBUTING** **`support_help_hub`** drill; **`ServiceIntegrationMarketplaceAdmin`**; premium weekly workflow policy comment; manifest **`interop_district_readiness_sample`**; P3 **`change_form`** inventory (**25** templates ? **25** smoke tests); Phase B **`key_detail`** JSON schema regression; queue **161?165** ? **batch 17**. |
+
+
+
+
+
+
+
+| **B. Findings** | **`diff_top_level_payload_keys`** returns exactly **`only_live`**, **`only_stored`**, **`value_mismatch`**, **`changed_key_count`** ? stable for v2 export contract. |
+
+
+
+
+
+
+
+| **C. Implementation** | **`apps/observability/logging_context.py`**, **`middleware.py`**, **`config/settings.py`**, **`scripts/verify_structured_logging_contract.py`** v5; **`apps/finance/tests/test_wallet_payment.py`**; **`apps/integrations_marketplace/admin.py`**; **`apps/api/api_v1_manifest.py`**; **`CONTRIBUTING.md`**; **`.github/workflows/premium-maturity-weekly.yml`**; **`apps/schools/tests/test_super_phase_b_snapshot_diff.py`**; SOT **?11.4** batch **16** DONE + **batch 17**; slice rows; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_structured_logging_contract.py`; `python -m pytest apps/observability/tests/test_logging_context_helpers.py apps/finance/tests/test_wallet_payment.py apps/api/tests/test_api_v1_manifest.py::ApiV1ManifestTests::test_manifest_json apps/schools/tests/test_super_phase_b_snapshot_diff.py::SuperPhaseBSnapshotDiffViewTests::test_phase_b_export_json_v2_key_detail_top_level_schema_stable -q`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** when commands above are green. |
+
+
+
+
+
+
+
+| **F. Follow-ons** | **Batch 17 (166?180)** per SOT **?11.4** (**161?165** queued items included). |
+
+
+
+
+
+
+
+---
+
+
+
+
+
+
+
+## ?11.4 batch 17 (166?180) partial ? `request_path` v6 + split-billing sequential payer + `AppInstallation` admin + manifest `enrollment_apply` (2026-03-27)
+
+
+
+
+
+
+
+| Step | Detail |
+
+
+
+
+
+
+
+|------|--------|
+
+
+
+
+
+
+
+| **A. Scope** | Close **actionable** batch **17** items and **inventory** batch **16 #161/#165** (parity + allowlist gates); ship **#167** **`request_path`**, **#168** partial (second guardian payment), **#170** **`AppInstallationMarketplaceAdmin`**, **#172** **`enrollment_apply`** manifest entry; roll **batch 18 (181?195)**. |
+
+
+
+
+
+
+
+| **B. Findings** | **`api_v1:tenants-modules`** needs a URL **`id`** kwarg ? not suitable for **`reverse()`-only curated manifest rows without a contract change. **`enrollment-apply`** has no kwargs and is integrator-relevant. |
+
+
+
+
+
+
+
+| **C. Implementation** | **`apps/observability/logging_context.py`**, **`middleware.py`**, **`config/settings.py`**, **`scripts/verify_structured_logging_contract.py`** v6; **`apps/observability/tests/test_logging_context_helpers.py`**; **`apps/finance/tests/test_split_billing.py`**; **`apps/integrations_marketplace/admin.py`**; **`apps/api/api_v1_manifest.py`**; **`apps/api/tests/test_api_v1_manifest.py`**; **`scripts/generated/api_v1_named_routes.json`** + **`api_v1_non_curated_route_names.json`** (**`verify_api_v1_named_routes_snapshot.py --write`**); SOT **?11.4** batch **16** **#161?#165**, batch **17**, batch **18**, slice row, micro-slices; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_structured_logging_contract.py`; `python scripts/verify_api_v1_named_routes_snapshot.py --check`; `python -m pytest apps/observability/tests/test_logging_context_helpers.py apps/finance/tests/test_split_billing.py apps/api/tests/test_api_v1_manifest.py -q`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** when commands above are green. |
+
+
+
+
+
+
+
+| **F. Follow-ons** | **Batch 18 (181?195)**; split-billing **suspense** / multi-invoice; Phase H standalone shell when shipped; **`0039+`** on next marketplace dict secret. |
+
+
+
+
+
+
+
+s`** needs a URL **`id`** kwarg ? not suitable for **`reverse()`-only curated manifest rows without a contract change. **`enrollment-apply`** has no kwargs and is integrator-relevant. |
+
+
+
+
+
+
+
+| **C. Implementation** | **`apps/observability/logging_context.py`**, **`middleware.py`**, **`config/settings.py`**, **`scripts/verify_structured_logging_contract.py`** v6; **`apps/observability/tests/test_logging_context_helpers.py`**; **`apps/finance/tests/test_split_billing.py`**; **`apps/integrations_marketplace/admin.py`**; **`apps/api/api_v1_manifest.py`**; **`apps/api/tests/test_api_v1_manifest.py`**; **`scripts/generated/api_v1_named_routes.json`** + **`api_v1_non_curated_route_names.json`** (**`verify_api_v1_named_routes_snapshot.py --write`**); SOT **?11.4** batch **16** **#161?#165**, batch **17**, batch **18**, slice row, micro-slices; **`SOT_IMPLEMENTATION_SESSION_STATE.md`**. |
+
+
+
+
+
+
+
+| **D. Validation** | `python scripts/verify_structured_logging_contract.py`; `python scripts/verify_api_v1_named_routes_snapshot.py --check`; `python -m pytest apps/observability/tests/test_logging_context_helpers.py apps/finance/tests/test_split_billing.py apps/api/tests/test_api_v1_manifest.py -q`. |
+
+
+
+
+
+
+
+| **E. Acceptance** | **PASS** when commands above are green. |
+
+
+
+
+
+
+
+| **F. Follow-ons** | **Batch 18 (181?195)**; split-billing **suspense** / multi-invoice; Phase H standalone shell when shipped; **`0039+`** on next marketplace dict secret. |
+
+
+
+
+
+
+

@@ -64,15 +64,18 @@ def get_dynamic_field_map(
             return values
         return {key: values[key] for key in keys if key in values}
 
+    et = entity_type_for(instance)
+    eid = entity_id_for(instance)
     queryset = DynamicFieldValue.objects.filter(
         school=resolved_school,
-        entity_type=entity_type_for(instance),
-        entity_id=entity_id_for(instance),
+        entity_type=et,
+        entity_id=eid,
     )
     if keys:
         queryset = queryset.filter(field_key__in=list(keys))
     for row in queryset:
         values[row.field_key] = unwrap_value(row.value_json)
+
     if keys is None:
         return values
     return {key: values[key] for key in keys if key in values}
@@ -122,6 +125,7 @@ def set_dynamic_field_value(
             "label": label or field_key.replace("_", " ").title(),
             "data_type": data_type or _guess_data_type(value),
             "is_active": True,
+            "required": False,
         },
     )
     field_value, _created = DynamicFieldValue.objects.update_or_create(

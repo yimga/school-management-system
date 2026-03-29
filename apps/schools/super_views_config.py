@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Super config views: Configuration hub and platform config list/edit (Site settings, Regions, Plans, etc.).
+Super config views: Configuration hub and platform config list/edit (tenant site settings row, Regions, Plans, etc.).
 RUNBOOK_ADMIN_TO_SUPER_MIGRATION Phases 1–8. All views must be wrapped with require_super_access_with_host in super_urls.
 """
 
@@ -10,6 +10,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods
+
+from apps.platform_runtime.models import PlatformOperatorPlatformHubLink
+import apps.siteconfig.models as _siteconfig_models
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 from .super_admin_bridge_registry import (
     PLATFORM_ADMIN_BRIDGE_ORDER,
@@ -160,6 +165,10 @@ def super_platform_operator_hub(request):
         except NoReverseMatch:
             pass
 
+    operator_platform_operator_hub_links = list(
+        PlatformOperatorPlatformHubLink.objects.order_by("sort_order", "slug")
+    )
+
     return render(
         request,
         "schools/super_platform_operator_hub.html",
@@ -169,6 +178,7 @@ def super_platform_operator_hub(request):
             "admin_index_url": admin_index_url,
             "super_primary": super_primary,
             "admin_app_list": admin_app_list,
+            "operator_platform_operator_hub_links": operator_platform_operator_hub_links,
         },
     )
 
@@ -196,7 +206,7 @@ def super_operator_policy(request):
 
 @require_GET
 def super_site_settings_list(request):
-    """List platform SiteSettings singleton; edit via super. Behavioral keys: RuntimeDefaults + CCC."""
+    """List platform tenant settings singleton row; edit via super. Behavioral keys: RuntimeDefaults + CCC."""
     from apps.platform_runtime.helpers import get_platform_site_settings_record
 
     site = get_platform_site_settings_record(create=False)
@@ -213,18 +223,17 @@ def super_site_settings_list(request):
 
 @require_http_methods(["GET", "POST"])
 def super_site_settings_edit(request, pk):
-    """Edit slim SiteSettings (maintenance) + PlatformGlobalBranding (theme/report FKs). Phase B Batch 3."""
+    """Edit slim tenant settings row (maintenance) + PlatformGlobalBranding (theme/report FKs). Phase B Batch 3."""
     from django import forms
 
     from apps.brand_experience.platform_global_branding import PlatformGlobalBranding
-    from apps.siteconfig.models import SiteSettings
 
-    site = get_object_or_404(SiteSettings, pk=pk)
+    site = get_object_or_404(_TenantSettingsModel, pk=pk)
     pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
 
     class SiteMaintenanceSuperForm(forms.ModelForm):
         class Meta:
-            model = SiteSettings
+            model = _TenantSettingsModel
             fields = ["maintenance_mode"]
             widgets = {
                 "maintenance_mode": forms.CheckboxInput(

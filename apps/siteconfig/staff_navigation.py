@@ -1,7 +1,7 @@
 """
 Staff-facing Site Settings URLs: manager host uses /super/ control plane; tenant host uses Django admin.
 
-SiteSettings is registered only on tenant admin — not on ``platform_admin_site``. This module resolves
+The siteconfig settings model is registered only on tenant admin — not on ``platform_admin_site``. This module resolves
 list/change URLs to ``super:site_settings_*`` on the manager host so operators never depend on a
 non-existent ``admin:siteconfig_sitesettings_*`` on platform backoffice.
 
@@ -32,7 +32,7 @@ def site_settings_list_url(request: HttpRequest | None = None) -> str | None:
         return reverse("admin:siteconfig_sitesettings_changelist")
     except NoReverseMatch:
         pass
-    # Platform URLConf: SiteSettings is not on platform admin — use control plane.
+    # Platform URLConf: site settings model is not on platform admin — use control plane.
     try:
         return reverse("super:site_settings_list")
     except NoReverseMatch:

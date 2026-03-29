@@ -1,12 +1,22 @@
 {% extends "portal_base.html" %}
-{% load static region_format %}
+{% load static i18n region_format %}
+
+{% block page_archetype %}kb-home{% endblock %}
 
 {% block title %}Knowledge Base - Help Center{% endblock %}
 
 {% block content %}
+{# Phase H: KB home read-shell skip target (distinct from portal #main-content). #}
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#kb-main-content" style="z-index: 1080;">{% trans "Skip to Knowledge Base content" %}</a>
+<div
+  id="kb-main-content"
+  class="portal-kb-home-read-shell"
+  data-page-critical-read="kb-home"
+  data-sms-offline-read-cache-key="portal_kb_home"
+  tabindex="-1"
+>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    document.body.dataset.dashboardPage = 'portal-kb';
     document.addEventListener('keydown', function (e) {
       if (e.key === '/' && !/^(input|textarea|select)$/i.test((e.target || {}).tagName) && !e.ctrlKey && !e.metaKey && !e.altKey) {
         var el = document.getElementById('kb-search-input');
@@ -20,7 +30,7 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="h2 mb-2">
+                <h1 class="h2 mb-2" id="kb-home-heading">
                     <i class="bi bi-journal-text"></i> Knowledge Base
                 </h1>
                 <p class="lead mb-0 opacity-90">
@@ -181,5 +191,6 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 {% endblock %}

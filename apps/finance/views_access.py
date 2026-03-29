@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -325,7 +326,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
     return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def finance_access_bulk(request: HttpRequest):
     """
     Staff page to bulk-grant guardian finance access by year/class with

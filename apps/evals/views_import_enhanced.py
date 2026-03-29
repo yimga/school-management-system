@@ -11,6 +11,7 @@ Enhanced Grade Import Views with:
 
 import csv
 
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.contrib import messages
@@ -38,7 +39,7 @@ _EVALS_IMPORT_VIEW_ERRORS = (
 )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @require_http_methods(["GET", "POST"])
 def grade_import_upload_with_tracking(request):
     """
@@ -125,7 +126,7 @@ def grade_import_upload_with_tracking(request):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def grade_import_job_detail(request, job_id):
     """
     Detailed view of a single import job with:
@@ -227,7 +228,7 @@ def grade_import_job_detail(request, job_id):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def grade_import_job_status(request, job_id):
     """
     JSON endpoint for real-time status polling (HTMX/fetch).
@@ -265,7 +266,7 @@ def grade_import_job_status(request, job_id):
     return JsonResponse(data)
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def grade_import_job_list(request):
     """
     List all import jobs with filtering and sorting.
@@ -318,7 +319,7 @@ def grade_import_job_list(request):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @require_http_methods(["POST"])
 def grade_import_retry_job(request, job_id):
     """
@@ -362,7 +363,7 @@ def grade_import_retry_job(request, job_id):
         return redirect("evals:grade_import_job_detail", job_id=job.id)
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def grade_import_generate_template(request):
     """
     Generate CSV template with expected headers and sample data.
@@ -427,7 +428,7 @@ def grade_import_generate_template(request):
     return response
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def grading_analytics_dashboard(request):
     """
     Dashboard showing:

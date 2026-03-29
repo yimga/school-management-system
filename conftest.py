@@ -2,6 +2,11 @@
 Pytest bootstrap: configure Django so tests can use settings, URLs, and static().
 
 CI and local runs use `pytest` without requiring pytest-django.
+
+**SQLite test DB:** `setup_databases` uses a file under `.django_test_dbs/` (see Django test settings).
+`PYTEST_KEEPDB` defaults to `1` (reuse). If migrations moved (e.g. siteconfig DynamicField* retire)
+and you see missing-table errors, set `PYTEST_KEEPDB=0` once or delete `.django_test_dbs/default.sqlite3`
+after closing handles (especially on Windows). See `docs/BATCH_14_DYNAMICFIELD_RECONCILIATION.md` §5.
 """
 
 from __future__ import annotations

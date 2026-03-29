@@ -1,0 +1,166 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static phase8_tags %}
+
+{% block cp_title %}{% trans "Playbook operator hub" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Playbook operator hub" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#playbook-operator-hub-main">{% trans "Skip to playbook operator hub content" %}</a>
+<div id="playbook-operator-hub-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+{% phase8_dashboard_declaration "schools/super_playbook_operator_hub.html" %}
+  {% include "studio_os/components/page_header.html" with title="Playbook operator hub" subtitle="Migration playbooks, execution audit, and curated operator deep links." action_url=dashboard_url action_text="Back to dashboard" %}
+
+  <div class="row mb-3">
+    <div class="col-lg-4 mb-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-dark text-light">{% trans "Summary" %}</div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0 small">
+            <li><strong>{% trans "Migration playbooks" %}:</strong> {{ migration_playbook_count }}</li>
+            <li><strong>{% trans "Playbook execution logs" %}:</strong> {{ automation_playbook_log_count }}</li>
+            <li><strong>{% trans "Task name" %}:</strong> <code class="small">{{ playbook_execution_task_name }}</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8 mb-3">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-dark text-light">{% trans "Actions & admin" %}</div>
+        <div class="card-body d-flex flex-wrap gap-2">
+          <a class="btn btn-sm btn-outline-dark" href="{{ admin_migration_playbook_changelist }}">{% trans "Playbooks (admin)" %}</a>
+          <a class="btn btn-sm btn-outline-dark" href="{{ admin_migration_run_changelist }}">{% trans "Migration runs (admin)" %}</a>
+          <a class="btn btn-sm btn-outline-dark" href="{{ admin_automation_execution_log_changelist }}">{% trans "Execution logs (admin)" %}</a>
+          <a class="btn btn-sm btn-outline-dark" href="{{ admin_operator_playbook_link_changelist }}">{% trans "Curated links (admin)" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ workflow_simulator_url }}">{% trans "Workflow simulator" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ runtime_truth_hub_url }}">{% trans "Runtime truth hub" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ phase_b_snapshot_diff_url }}">{% trans "Phase B snapshot diff" %}</a>
+          {% if studio_automation_url %}
+          <a class="btn btn-sm btn-outline-secondary" href="{{ studio_automation_url }}">{% trans "Studio Automation rail" %}</a>
+          {% endif %}
+          {% if outcomes_console_url %}
+          <a class="btn btn-sm btn-outline-secondary" href="{{ outcomes_console_url }}">{% trans "Staff outcomes console" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if operator_links %}
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-header bg-secondary text-white">{% trans "Curated operator links" %}</div>
+    <div class="card-body">
+      <ul class="list-unstyled mb-0">
+        {% for link in operator_links %}
+        <li class="mb-2">
+          <a href="{{ link.href }}">{{ link.label }}</a>
+          <span class="text-secondary small">({{ link.category }})</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-header">{% trans "Filter playbook execution logs" %}</div>
+    <div class="card-body py-2">
+      <p class="small text-secondary mb-2">{% trans "Query params apply only to rows with task" %} <code class="small">{{ playbook_execution_task_name }}</code>.</p>
+      <div class="d-flex flex-wrap gap-1 align-items-center mb-2">
+        <span class="small text-secondary me-1">{% trans "Status" %}:</span>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:playbook_operator_hub' %}">{% trans "All" %}</a>
+        {% for st in playbook_log_status_choices %}
+        <a class="btn btn-sm {% if playbook_log_status_filter == st %}btn-dark{% else %}btn-outline-secondary{% endif %}" href="{% url 'super:playbook_operator_hub' %}?status={{ st }}">{{ st }}</a>
+        {% endfor %}
+      </div>
+      <div class="d-flex flex-wrap gap-1 align-items-center">
+        <span class="small text-secondary me-1">{% trans "Execution type" %}:</span>
+        <a class="btn btn-sm {% if not playbook_log_execution_type_filter %}btn-dark{% else %}btn-outline-secondary{% endif %}" href="{% url 'super:playbook_operator_hub' %}{% if playbook_log_status_filter %}?status={{ playbook_log_status_filter }}{% endif %}">{% trans "All types" %}</a>
+        {% for et in playbook_log_execution_type_choices %}
+        <a class="btn btn-sm {% if playbook_log_execution_type_filter == et %}btn-dark{% else %}btn-outline-secondary{% endif %}" href="{% url 'super:playbook_operator_hub' %}?{% if playbook_log_status_filter %}status={{ playbook_log_status_filter }}&amp;{% endif %}execution_type={{ et }}">{{ et }}</a>
+        {% endfor %}
+      </div>
+      {% if playbook_slug_filter_links %}
+      <div class="d-flex flex-wrap gap-1 align-items-center mt-2 pt-2 border-top">
+        <span class="small text-secondary me-1">{% trans "Playbook" %}:</span>
+        {% if playbook_hub_clear_playbook_slug_url %}
+        <a class="btn btn-sm btn-outline-secondary" href="{{ playbook_hub_clear_playbook_slug_url }}">{% trans "All playbooks" %}</a>
+        {% endif %}
+        {% for item in playbook_slug_filter_links %}
+        <a class="btn btn-sm {% if playbook_log_playbook_slug_filter == item.slug %}btn-dark{% else %}btn-outline-secondary{% endif %}" href="{{ item.url }}"><code class="small">{{ item.slug }}</code></a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if migration_playbooks %}
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-header">{% trans "Playbook slugs (read-only)" %}</div>
+    <div class="card-body py-2">
+      <p class="small text-secondary mb-2">{% trans "Dry-run and execute flows are driven from platform admin; this list is for quick orientation." %}</p>
+      <ul class="list-inline mb-0 small">
+        {% for pb in migration_playbooks %}
+        <li class="list-inline-item me-2"><code>{{ pb.slug }}</code></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span>{% trans "Recent playbook execution logs" %}</span>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ playbook_hub_export_csv_url }}">{% trans "Export CSV" %}</a>
+    </div>
+    <div class="card-body p-0">
+      {% if recent_logs %}
+      <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0">
+          <thead>
+            <tr>
+              <th>{% trans "Started" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Playbook" %}</th>
+              <th>{% trans "School" %}</th>
+              <th>{% trans "Schema" %}</th>
+              <th>{% trans "Audit" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in recent_logs %}
+            <tr>
+              <td class="small text-nowrap">{{ log.started_at }}</td>
+              <td><span class="badge bg-light text-dark">{{ log.status }}</span></td>
+              <td class="small">{% if log.playbook_slug_short %}<code class="small">{{ log.playbook_slug_short }}</code>{% else %}—{% endif %}</td>
+              <td class="small">{{ log.display_school }}</td>
+              <td class="small"><code>{{ log.schema_name|default:"—" }}</code></td>
+              <td class="small">
+                <a class="d-block" href="{{ log.admin_execution_log_url }}">{% trans "Execution log" %}</a>
+                {% for step in log.playbook_step_admin_links %}
+                  {% if step.admin_url %}
+                  <a class="d-block" href="{{ step.admin_url }}">{% trans "Migration run" %} {{ step.run_id }}{% if step.migration_type %} <span class="text-secondary">({{ step.migration_type }})</span>{% endif %}</a>
+                  {% else %}
+                  <span class="d-block text-secondary small">{% trans "Migration run" %} {{ step.run_id }}{% if step.migration_type %} ({{ step.migration_type }}){% endif %} — {% trans "record removed or unavailable" %}</span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-secondary small mb-0 p-3">{% trans "No playbook execution logs yet. Run a dry-run from tests or the automation executor." %}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

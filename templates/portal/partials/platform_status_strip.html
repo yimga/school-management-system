@@ -1,0 +1,24 @@
+{% load i18n %}
+{% if platform_status_strip.show %}
+<div class="alert alert-warning border-0 shadow-sm mb-3 py-2 px-3" role="status" data-platform-status-strip="1">
+  {% if platform_status_strip.fleet_generic %}
+  <div class="small mb-0">
+    <strong><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>{% trans "Platform notice" %}:</strong>
+    {% trans "Some services may be slower or unavailable. We are working on it." %}
+  </div>
+  {% endif %}
+  {% if platform_status_strip.tenant_items %}
+  <ul class="small mb-0 {% if platform_status_strip.fleet_generic %}mt-2{% endif %} ps-3">
+    {% for row in platform_status_strip.tenant_items %}
+    <li>
+      <span class="fw-medium">{{ row.title|truncatechars:120 }}</span>
+      <span class="text-muted">({{ row.severity }} · {{ row.status }})</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <div class="mt-2 small">
+    <a href="{% url 'portal:support_help_hub' %}">{% trans "Help & support hub" %}</a>
+  </div>
+</div>
+{% endif %}

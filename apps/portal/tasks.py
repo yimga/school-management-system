@@ -88,3 +88,64 @@ def generate_ai_response_async(
         )
         store_result("error", error=str(e))
         return {"status": "error", "task_id": task_id, "error": str(e)}
+
+
+@shared_task(name="portal.apply_support_ticket_ai_triage")
+def apply_support_ticket_ai_triage(ticket_id: str) -> dict[str, Any]:
+    """
+    Load a GlobalSupportTicket (public/shared schema), run ``support_suggest`` with KB context,
+    and persist suggestions under ``metadata["ai_triage"]`` without changing human-set priority.
+    """
+    import uuid
+
+    from django.db import connection
+    from django.utils import timezone
+
+    try:
+        tid = uuid.UUID(str(ticket_id))
+    except (ValueError, TypeError, AttributeError):
+        return {"ok": False, "error": "invalid_ticket_id"}
+
+    from apps.portal.ai_provider import suggest_support_ticket_response
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+    def _run() -> dict[str, Any]:
+        ticket = (
+            GlobalSupportTicket.objects.select_related("school")
+            .filter(pk=tid)
+            .first()
+        )
+        if ticket is None:
+            return {"ok": False, "error": "not_found"}
+        md = dict(ticket.metadata or {})
+        cc = (md.get("country_code") or "")[:2] or None
+        suggestions, meta = suggest_support_ticket_response(
+            ticket.subject,
+            ticket.body,
+            country_code=cc,
+            school=ticket.school,
+        )
+        preview = None
+        if isinstance(suggestions, dict):
+            sr = suggestions.get("suggested_reply")
+            if isinstance(sr, str):
+                preview = sr[:500]
+        md["ai_triage"] = {
+            "at": timezone.now().isoformat(),
+            "suggestions": suggestions,
+            "gateway": meta,
+            "suggested_reply_preview": preview,
+        }
+        GlobalSupportTicket.objects.filter(pk=tid).update(metadata=md)
+        return {"ok": True, "ticket_id": str(tid)}
+
+    schema_name = getattr(connection, "schema_name", None)
+    if schema_name and schema_name != "public":
+        try:
+            from django_tenants.utils import schema_context
+
+            with schema_context("public"):
+                return _run()
+        except ImportError:
+            pass
+    return _run()

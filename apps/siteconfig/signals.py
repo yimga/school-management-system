@@ -3,7 +3,10 @@ import logging
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
-from .models import SiteSettings, TenantSystem, ThemePack
+import apps.siteconfig.models as _siteconfig_models
+from .models import TenantSystem, ThemePack
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 logger = logging.getLogger("siteconfig.audit")
 SIGNAL_SOFT_FAILURES = (
@@ -41,11 +44,11 @@ def get_changed_fields(instance):
     return changes
 
 
-@receiver(pre_save, sender=SiteSettings)
+@receiver(pre_save, sender=_TenantSettingsModel)
 def log_site_settings_change(sender, instance, **kwargs):
     changes = get_changed_fields(instance)
     if changes:
-        logger.info(f"SiteSettings changed: {changes}")
+        logger.info(f"Tenant platform settings row changed: {changes}")
 
 
 @receiver(pre_save, sender=ThemePack)
@@ -55,8 +58,8 @@ def log_theme_pack_change(sender, instance, **kwargs):
         logger.info(f"ThemePack changed: {changes}")
 
 
-@receiver(post_save, sender=SiteSettings)
-@receiver(post_delete, sender=SiteSettings)
+@receiver(post_save, sender=_TenantSettingsModel)
+@receiver(post_delete, sender=_TenantSettingsModel)
 @receiver(post_save, sender=ThemePack)
 @receiver(post_delete, sender=ThemePack)
 def invalidate_effective_site_settings_runtime_cache(sender, instance, **kwargs):

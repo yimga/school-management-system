@@ -684,6 +684,7 @@ def assign_invoice_payer_shares(
 def assign_equal_invoice_payer_shares(invoice: Invoice) -> list[InvoicePayerShare]:
     """
     Equal split across finance-enabled guardians for the invoice student.
+    With a single finance-enabled guardian, the full invoice total is allocated to that payer.
     """
     if not invoice or not invoice.student_id:
         return []

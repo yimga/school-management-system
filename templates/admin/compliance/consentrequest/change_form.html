@@ -1,0 +1,25 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block form_before %}
+  <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="compliance-consent-request-cp-escape-heading">
+    <h2 id="compliance-consent-request-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% trans "Product control plane" %}</h2>
+    <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Consent campaigns are reflected in parental and trust surfaces; use product tools for day-to-day operations where available." %}</p>
+    <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
+      <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline font-medium">{% trans "Configuration hub" %}</a></li>
+      <li><a href="{% url 'siteconfig:feature_control_panel' %}" class="text-primary-600 hover:underline">{% trans "Feature control" %}</a></li>
+      <li><a href="{% url 'accounts:backend_dashboard' %}" class="text-primary-600 hover:underline">{% trans "Backend console" %}</a></li>
+      <li><a href="{% url 'kb:kb_home' %}" class="text-primary-600 hover:underline">{% trans "Knowledge base" %}</a></li>
+    </ul>
+  </section>
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  {% include "admin/components/theme_preview_assets.html" %}
+{% endblock %}
+
+{% block after_field_sets %}
+  {{ block.super }}
+  {% include "admin/components/theme_preview_section.html" %}
+{% endblock %}

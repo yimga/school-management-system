@@ -6,6 +6,8 @@
 
 **Source of truth (code):** `apps/siteconfig/domain_ownership.py` — `classify_site_settings_field()`, `EXACT_FIELD_OWNERS`, `PREFIX_FIELD_OWNERS`, `OWNERSHIP_DOMAINS`.
 
+**Typed column registry (Batch 14+):** `apps/siteconfig/domain_ownership_storage.py` — every `EXACT_FIELD_OWNERS` key is either a `RuntimeDefaults` first-class column (`RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES`), an entry in `VIRTUAL_ONLY_EXACT_FIELDS`, or row metadata (`updated_at` / `delete`). Verified by `scripts/verify_domain_ownership_exact_storage.py` (bundled in `verify_phase_5_siteconfig.py`).
+
 ---
 
 ## 1. Ownership domains

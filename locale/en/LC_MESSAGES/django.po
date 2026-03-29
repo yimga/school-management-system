@@ -13895,3 +13895,978 @@ msgid ""
 msgstr ""
 "Policies and trust content are easier to validate from product surfaces when"
 " available."
+
+msgid ""
+"Calendar and scheduling workflows are easier to review in the unified "
+"calendar and backend console."
+msgstr ""
+"Calendar and scheduling workflows are easier to review in the unified "
+"calendar and backend console."
+
+msgid ""
+"Consent campaigns are reflected in parental and trust surfaces; use product "
+"tools for day-to-day operations where available."
+msgstr ""
+"Consent campaigns are reflected in parental and trust surfaces; use product "
+"tools for day-to-day operations where available."
+
+msgid ""
+"Document library structure is owned by product UIs; use this form for "
+"exceptional fixes."
+msgstr ""
+"Document library structure is owned by product UIs; use this form for "
+"exceptional fixes."
+
+msgid ""
+"Help and KB content is authored and reviewed in product flows when possible."
+msgstr ""
+"Help and KB content is authored and reviewed in product flows when possible."
+
+msgid "Submit an article"
+msgstr "Submit an article"
+
+msgid "Unified calendar"
+msgstr "Unified calendar"
+
+msgid ""
+"FAQ content and approvals are easier to validate from the public help center"
+" and submission flow."
+msgstr ""
+"FAQ content and approvals are easier to validate from the public help center"
+" and submission flow."
+
+msgid "FAQ directory"
+msgstr "FAQ directory"
+
+msgid ""
+"FAQ structure is maintained alongside public help surfaces; prefer product "
+"UIs for routine edits."
+msgstr ""
+"FAQ structure is maintained alongside public help surfaces; prefer product "
+"UIs for routine edits."
+
+msgid ""
+"KB navigation and categories are primarily owned by the knowledge base "
+"experience."
+msgstr ""
+"KB navigation and categories are primarily owned by the knowledge base "
+"experience."
+
+msgid ""
+"Signed consent is an audit artifact; operational context lives in trust and "
+"backend consoles."
+msgstr ""
+"Signed consent is an audit artifact; operational context lives in trust and "
+"backend consoles."
+
+msgid "Submit a FAQ"
+msgstr "Submit a FAQ"
+
+msgid "Country, region, ministry, grading defaults, and locale anchors."
+msgstr "Country, region, ministry, grading defaults, and locale anchors."
+
+msgid ""
+"Dashboards, portal blocks, admission numbering, and blueprint-facing "
+"defaults."
+msgstr ""
+"Dashboards, portal blocks, admission numbering, and blueprint-facing "
+"defaults."
+
+msgid "Default report styles, PDF gates, and grade-publish alignment."
+msgstr "Default report styles, PDF gates, and grade-publish alignment."
+
+msgid "Design Studio"
+msgstr "Design Studio"
+
+msgid "Documents"
+msgstr "Documents"
+
+msgid ""
+"Field catalog and governance keys classified under this ownership slice."
+msgstr ""
+"Field catalog and governance keys classified under this ownership slice."
+
+msgid "Global registries"
+msgstr "Global registries"
+
+msgid "If drift appears after SiteSettings.save, use the button above or open"
+msgstr ""
+"If drift appears after SiteSettings.save, use the button above or open"
+
+msgid ""
+"In sync means whole-row canonical JSON fingerprint matches. Key-level table "
+"shows top-level fields that differ. The Scope column summarizes each payload"
+" slice for operators (aligned with domain ownership — not a substitute for "
+"first-class tables per field)."
+msgstr ""
+"In sync means whole-row canonical JSON fingerprint matches. Key-level table "
+"shows top-level fields that differ. The Scope column summarizes each payload"
+" slice for operators (aligned with domain ownership — not a substitute for "
+"first-class tables per field)."
+
+msgid ""
+"Library defaults, media tagging, and document-adjacent integration hooks."
+msgstr ""
+"Library defaults, media tagging, and document-adjacent integration hooks."
+
+msgid "Marketplace integrations"
+msgstr "Marketplace integrations"
+
+msgid ""
+"Plan, billing, and currency-related defaults routed through this payload."
+msgstr ""
+"Plan, billing, and currency-related defaults routed through this payload."
+
+msgid "Plans and entitlements"
+msgstr "Plans and entitlements"
+
+msgid "Policies and features"
+msgstr "Policies and features"
+
+msgid ""
+"Portal flags, MFA, feature toggles, and compliance profile pointers — merged"
+" last."
+msgstr ""
+"Portal flags, MFA, feature toggles, and compliance profile pointers — merged"
+" last."
+
+msgid "Preview mode, tours, and staging-safe presentation toggles."
+msgstr "Preview mode, tours, and staging-safe presentation toggles."
+
+msgid "Preview platform"
+msgstr "Preview platform"
+
+msgid "Report platform"
+msgstr "Report platform"
+
+msgid ""
+"SMS, email, WhatsApp, and related provider fields — snapshot JSON omits "
+"secrets."
+msgstr ""
+"SMS, email, WhatsApp, and related provider fields — snapshot JSON omits "
+"secrets."
+
+msgid ""
+"Studio themes, tokens, and authoring inputs mirrored from SiteSettings."
+msgstr ""
+"Studio themes, tokens, and authoring inputs mirrored from SiteSettings."
+
+msgid ""
+"Default report styles, PDF gates, grade-publish alignment, and download "
+"toggles."
+msgstr ""
+"Default report styles, PDF gates, grade-publish alignment, and download "
+"toggles."
+
+msgid "Back to help hub"
+msgstr "Back to help hub"
+
+msgid "Back to queue"
+msgstr "Back to queue"
+
+msgid "Contact requests inbox"
+msgstr "Contact requests inbox"
+
+msgid "Control health hub"
+msgstr "Control health hub"
+
+msgid "Escalation"
+msgstr "Escalation"
+
+msgid "Hello, I need help with the school portal."
+msgstr "Hello, I need help with the school portal."
+
+msgid "Help & support"
+msgstr "Help & support"
+
+msgid "Help & support hub"
+msgstr "Help & support hub"
+
+msgid "Incident console"
+msgstr "Incident console"
+
+msgid "Internal notes"
+msgstr "Internal notes"
+
+msgid "Knowledge base, platform requests, and school contact — in one place."
+msgstr "Knowledge base, platform requests, and school contact — in one place."
+
+msgid ""
+"Message the RunMyCampus support queue (also notifies your school IT lead "
+"when configured)."
+msgstr ""
+"Message the RunMyCampus support queue (also notifies your school IT lead "
+"when configured)."
+
+msgid "New support or feedback"
+msgstr "New support or feedback"
+
+msgid "No platform support tickets yet. Use “New support or feedback” above."
+msgstr "No platform support tickets yet. Use “New support or feedback” above."
+
+msgid ""
+"No school context on this request. Sign in from your school portal link to "
+"see your tickets and contacts."
+msgstr ""
+"No school context on this request. Sign in from your school portal link to "
+"see your tickets and contacts."
+
+msgid "Operator actions"
+msgstr "Operator actions"
+
+msgid "Platform notice"
+msgstr "Platform notice"
+
+msgid "Platform support"
+msgstr "Platform support"
+
+msgid "Reach your school office (triage to the right team)."
+msgstr "Reach your school office (triage to the right team)."
+
+msgid "Request"
+msgstr "Request"
+
+msgid "Runbooks"
+msgstr "Runbooks"
+
+msgid "School contact"
+msgstr "School contact"
+
+msgid "School health roster"
+msgstr "School health roster"
+
+msgid ""
+"School-specific messages use “Contact school” (parents) or your usual staff "
+"channels."
+msgstr ""
+"School-specific messages use “Contact school” (parents) or your usual staff "
+"channels."
+
+msgid "Self-serve"
+msgstr "Self-serve"
+
+msgid "Some services may be slower or unavailable. We are working on it."
+msgstr "Some services may be slower or unavailable. We are working on it."
+
+msgid "Staff: triage parent contact requests from the inbox."
+msgstr "Staff: triage parent contact requests from the inbox."
+
+msgid "Status from the operator queue"
+msgstr "Status from the operator queue"
+
+msgid "Submitter"
+msgstr "Submitter"
+
+msgid "Support ticket"
+msgstr "Support ticket"
+
+msgid "Tenant & ops context"
+msgstr "Tenant & ops context"
+
+msgid "Tenant 360"
+msgstr "Tenant 360"
+
+msgid "Triage context — avoid unnecessary PII"
+msgstr "Triage context — avoid unnecessary PII"
+
+msgid "Unknown user"
+msgstr "Unknown user"
+
+msgid "WhatsApp (configured)"
+msgstr "WhatsApp (configured)"
+
+msgid "Your platform requests"
+msgstr "Your platform requests"
+
+msgid ""
+"Your school has not published WhatsApp or a public support email in "
+"settings."
+msgstr ""
+"Your school has not published WhatsApp or a public support email in "
+"settings."
+
+msgid "operators only"
+msgstr "operators only"
+
+msgid "{{ c }} open request{% plural %}{{ c }} open requests"
+msgstr "{{ c }} open request{% plural %}{{ c }} open requests"
+
+msgid "AI triage (suggestions)"
+msgstr "AI triage (suggestions)"
+
+msgid "Linked communication"
+msgstr "Linked communication"
+
+msgid "Open staff Message (tenant admin)"
+msgstr "Open staff Message (tenant admin)"
+
+msgid ""
+"Opens the tenant’s Django admin change view for the Message created when "
+"this ticket was filed."
+msgstr ""
+"Opens the tenant’s Django admin change view for the Message created when "
+"this ticket was filed."
+
+msgid "Suggested category"
+msgstr "Suggested category"
+
+msgid "Suggested priority"
+msgstr "Suggested priority"
+
+msgid "Suggested reply"
+msgstr "Suggested reply"
+
+msgid "Add a follow-up"
+msgstr "Add a follow-up"
+
+msgid "Add reply"
+msgstr "Add reply"
+
+msgid "CSAT"
+msgstr "CSAT"
+
+msgid "Conversation thread"
+msgstr "Conversation thread"
+
+msgid "Conversation thread & replies"
+msgstr "Conversation thread & replies"
+
+msgid "Deep dive: exceptions, profiles, rollback, and recent runs"
+msgstr "Deep dive: exceptions, profiles, rollback, and recent runs"
+
+msgid ""
+"Expand integration reference (readiness, LTI/SSO, vendors, security, "
+"endpoints)"
+msgstr ""
+"Expand integration reference (readiness, LTI/SSO, vendors, security, "
+"endpoints)"
+
+msgid "Expand school governance & platform cards"
+msgstr "Expand school governance & platform cards"
+
+msgid "How did we do?"
+msgstr "How did we do?"
+
+msgid "No threaded replies yet."
+msgstr "No threaded replies yet."
+
+msgid "Operator response…"
+msgstr "Operator response…"
+
+msgid "Original request"
+msgstr "Original request"
+
+msgid "Post reply"
+msgstr "Post reply"
+
+msgid "Rating"
+msgstr "Rating"
+
+msgid "Send follow-up"
+msgstr "Send follow-up"
+
+msgid ""
+"Show all trust center tiles (compliance, API, residency, N11–N26, ecosystem)"
+msgstr ""
+"Show all trust center tiles (compliance, API, residency, N11–N26, ecosystem)"
+
+msgid "Submit feedback"
+msgstr "Submit feedback"
+
+msgid "Thank you — you rated this ticket"
+msgstr "Thank you — you rated this ticket"
+
+msgid ""
+"This ticket is resolved. Please rate your experience (1 = poor, 5 = "
+"excellent)."
+msgstr ""
+"This ticket is resolved. Please rate your experience (1 = poor, 5 = "
+"excellent)."
+
+msgid "Updates from support"
+msgstr "Updates from support"
+
+msgid "Visibility"
+msgstr "Visibility"
+
+msgid "Your message to the support team…"
+msgstr "Your message to the support team…"
+
+msgid "← Back to Help & support"
+msgstr "← Back to Help & support"
+
+msgid ""
+"Admission patterns align with runtime blueprints and workflow tools; preview"
+" APIs live under site configuration."
+msgstr ""
+"Admission patterns align with runtime blueprints and workflow tools; preview"
+" APIs live under site configuration."
+
+msgid "Aggregates from tickets with a submitted 1–5 score (portal flow)."
+msgstr "Aggregates from tickets with a submitted 1–5 score (portal flow)."
+
+msgid "Avg score"
+msgstr "Avg score"
+
+msgid "Back to support queue"
+msgstr "Back to support queue"
+
+msgid "By month"
+msgstr "By month"
+
+msgid "CSAT analytics"
+msgstr "CSAT analytics"
+
+msgid ""
+"Custom attributes are governed with tags and configuration outcomes; prefer "
+"product surfaces when available."
+msgstr ""
+"Custom attributes are governed with tags and configuration outcomes; prefer "
+"product surfaces when available."
+
+msgid "Feature control audit"
+msgstr "Feature control audit"
+
+msgid "Feature ledger"
+msgstr "Feature ledger"
+
+msgid "Global support CSAT"
+msgstr "Global support CSAT"
+
+msgid "Month"
+msgstr "Month"
+
+msgid "No CSAT data yet."
+msgstr "No CSAT data yet."
+
+msgid "Overall average"
+msgstr "Overall average"
+
+msgid ""
+"Per-school overrides are visible in Feature control; use this form only when"
+" you need raw admin access."
+msgstr ""
+"Per-school overrides are visible in Feature control; use this form only when"
+" you need raw admin access."
+
+msgid "Recent responses"
+msgstr "Recent responses"
+
+msgid "Studio output"
+msgstr "Studio output"
+
+msgid "Submitted"
+msgstr "Submitted"
+
+msgid "Tag manager"
+msgstr "Tag manager"
+
+msgid ""
+"Tenant operators usually change flags in Feature control; this admin form is"
+" an escape hatch for registry rows."
+msgstr ""
+"Tenant operators usually change flags in Feature control; this admin form is"
+" an escape hatch for registry rows."
+
+msgid ""
+"Values are usually edited in tenant workflows; this form is for break-glass "
+"data fixes."
+msgstr ""
+"Values are usually edited in tenant workflows; this form is for break-glass "
+"data fixes."
+
+msgid "Workflow gallery"
+msgstr "Workflow gallery"
+
+msgid "{{ n }} responses"
+msgstr "{{ n }} responses"
+
+msgid ""
+"Staff normally change their experience from Preferences and dashboard hubs; "
+"use admin only when supporting a user directly."
+msgstr ""
+"Staff normally change their experience from Preferences and dashboard hubs; "
+"use admin only when supporting a user directly."
+
+msgid ""
+"Tour content is usually edited alongside guided onboarding and the tour API;"
+" this admin form is for break-glass fixes."
+msgstr ""
+"Tour content is usually edited alongside guided onboarding and the tour API;"
+" this admin form is for break-glass fixes."
+
+msgid "Tour steps API"
+msgstr "Tour steps API"
+
+msgid "(detail, update, delete)."
+msgstr "(detail, update, delete)."
+
+msgid "(list/create) and"
+msgstr "(list/create) and"
+
+msgid ""
+"Entitlement: <code>reports_scheduled_delivery</code> or coarse "
+"<code>reports</code>. Operators run <code>python manage.py "
+"send_scheduled_reports</code> (or Celery) to deliver due schedules. Optional"
+" flags: <code>--school-id</code> and <code>--limit</code>."
+msgstr ""
+"Entitlement: <code>reports_scheduled_delivery</code> or coarse "
+"<code>reports</code>. Operators run <code>python manage.py "
+"send_scheduled_reports</code> (or Celery) to deliver due schedules. Optional"
+" flags: <code>--school-id</code> and <code>--limit</code>."
+
+msgid "Frequency"
+msgstr "Frequency"
+
+msgid "Manage rows programmatically via"
+msgstr "Manage rows programmatically via"
+
+msgid "Next run"
+msgstr "Next run"
+
+msgid "No schedules for this tenant yet."
+msgstr "No schedules for this tenant yet."
+
+msgid "Open schedules in tenant admin"
+msgstr "Open schedules in tenant admin"
+
+msgid "Recipients"
+msgstr "Recipients"
+
+msgid "Scheduled report delivery"
+msgstr "Scheduled report delivery"
+
+msgid "add addresses (active schedule)"
+msgstr "add addresses (active schedule)"
+
+msgid "Backend feature flags (enabled keys)"
+msgstr "Backend feature flags (enabled keys)"
+
+msgid "Configuration Control Center (domains & outcomes)"
+msgstr "Configuration Control Center (domains & outcomes)"
+
+msgid "Effective runtime summary"
+msgstr "Effective runtime summary"
+
+msgid "Effective settings (safe fields)"
+msgstr "Effective settings (safe fields)"
+
+msgid "No effective settings resolved for this request."
+msgstr "No effective settings resolved for this request."
+
+msgid "None enabled in the merged effective payload (or not a dict)."
+msgstr "None enabled in the merged effective payload (or not a dict)."
+
+msgid "Open Site Settings in tenant admin (escape hatch)"
+msgstr "Open Site Settings in tenant admin (escape hatch)"
+
+msgid "Product configuration links"
+msgstr "Product configuration links"
+
+msgid ""
+"Read-only snapshot of <code>get_effective_site_settings</code> for this "
+"tenant. Prefer product surfaces below; Django admin is an escape hatch for "
+"rare CRUD."
+msgstr ""
+"Read-only snapshot of <code>get_effective_site_settings</code> for this "
+"tenant. Prefer product surfaces below; Django admin is an escape hatch for "
+"rare CRUD."
+
+msgid "Studio · Experience"
+msgstr "Studio · Experience"
+
+msgid "Tenant runtime configuration"
+msgstr "Tenant runtime configuration"
+
+msgid ""
+"Themes and visual packs are edited in Studio and the theme hub; use this "
+"form for advanced or legacy fields."
+msgstr ""
+"Themes and visual packs are edited in Studio and the theme hub; use this "
+"form for advanced or legacy fields."
+
+msgid "Export drift summary (JSON)"
+msgstr "Export drift summary (JSON)"
+
+msgid "Export detail (JSON)"
+msgstr "Export detail (JSON)"
+
+msgid "Actions & admin"
+msgstr "Actions & admin"
+
+msgid "All playbooks"
+msgstr "All playbooks"
+
+msgid "All types"
+msgstr "All types"
+
+msgid "Curated links (admin)"
+msgstr "Curated links (admin)"
+
+msgid "Curated operator links"
+msgstr "Curated operator links"
+
+msgid ""
+"Dry-run and execute flows are driven from platform admin; this list is for "
+"quick orientation."
+msgstr ""
+"Dry-run and execute flows are driven from platform admin; this list is for "
+"quick orientation."
+
+msgid "Execution log"
+msgstr "Execution log"
+
+msgid "Execution logs (admin)"
+msgstr "Execution logs (admin)"
+
+msgid "Execution logs (platform admin)"
+msgstr "Execution logs (platform admin)"
+
+msgid "Execution type"
+msgstr "Execution type"
+
+msgid "Filter playbook execution logs"
+msgstr "Filter playbook execution logs"
+
+msgid "Latest playbook run started"
+msgstr "Latest playbook run started"
+
+msgid "Migration playbooks"
+msgstr "Migration playbooks"
+
+msgid "Migration playbooks & execution audit"
+msgstr "Migration playbooks & execution audit"
+
+msgid "Migration run"
+msgstr "Migration run"
+
+msgid "Migration runs (admin)"
+msgstr "Migration runs (admin)"
+
+msgid ""
+"No playbook execution logs yet. Run a dry-run from tests or the automation "
+"executor."
+msgstr ""
+"No playbook execution logs yet. Run a dry-run from tests or the automation "
+"executor."
+
+msgid "Platform-admin playbooks write AutomationExecutionLog rows with task"
+msgstr "Platform-admin playbooks write AutomationExecutionLog rows with task"
+
+msgid "Playbook"
+msgstr "Playbook"
+
+msgid "Playbook execution logs"
+msgstr "Playbook execution logs"
+
+msgid "Playbook operator hub"
+msgstr "Playbook operator hub"
+
+msgid "Playbook slugs (read-only)"
+msgstr "Playbook slugs (read-only)"
+
+msgid "Playbooks (admin)"
+msgstr "Playbooks (admin)"
+
+msgid "Playbooks (platform admin)"
+msgstr "Playbooks (platform admin)"
+
+msgid "Query params apply only to rows with task"
+msgstr "Query params apply only to rows with task"
+
+msgid "Recent playbook execution logs"
+msgstr "Recent playbook execution logs"
+
+msgid "Skip to Knowledge Base content"
+msgstr "Skip to Knowledge Base content"
+
+msgid "Staff outcomes console"
+msgstr "Staff outcomes console"
+
+msgid "Studio Automation rail"
+msgstr "Studio Automation rail"
+
+msgid "Task name"
+msgstr "Task name"
+
+msgid "record removed or unavailable"
+msgstr "record removed or unavailable"
+
+msgid "Blueprint pack catalog fingerprint"
+msgstr "Blueprint pack catalog fingerprint"
+
+msgid "Skip to school login discovery"
+msgstr "Skip to school login discovery"
+
+msgid "Already read"
+msgstr "Already read"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Finance Access Requests"
+msgstr "Finance Access Requests"
+
+msgid "Finance inbox view"
+msgstr "Finance inbox view"
+
+msgid "Mark all unread as read"
+msgstr "Mark all unread as read"
+
+msgid "Mark notification read"
+msgstr "Mark notification read"
+
+msgid "Mark read"
+msgstr "Mark read"
+
+msgid "No finance access requests at the moment."
+msgstr "No finance access requests at the moment."
+
+msgid "Notification"
+msgstr "Notification"
+
+msgid "Operator curated links"
+msgstr "Operator curated links"
+
+msgid ""
+"Platform-admin rows (PlatformOperatorTruthHubLink); add or reorder in "
+"platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorTruthHubLink); add or reorder in "
+"platform admin."
+
+msgid "Read"
+msgstr "Read"
+
+msgid "Received"
+msgstr "Received"
+
+msgid "Select requests and click “Mark read” to archive them."
+msgstr "Select requests and click “Mark read” to archive them."
+
+msgid "Severity filter"
+msgstr "Severity filter"
+
+msgid "Skip to playbook operator hub content"
+msgstr "Skip to playbook operator hub content"
+
+msgid "Skip to runtime truth hub content"
+msgstr "Skip to runtime truth hub content"
+
+msgid "Unread"
+msgstr "Unread"
+
+msgid "Unread only"
+msgstr "Unread only"
+
+msgid "Admissions pipeline"
+msgstr "Admissions pipeline"
+
+msgid "Admissions pipeline, end to end"
+msgstr "Admissions pipeline, end to end"
+
+msgid "Enterprise expectations, school-sized clarity."
+msgstr "Enterprise expectations, school-sized clarity."
+
+msgid "Events, courses, and alumni programs—monetized without bolt-on tools."
+msgstr "Events, courses, and alumni programs—monetized without bolt-on tools."
+
+msgid ""
+"From first enquiry to enrolled student—one connected flow on one platform."
+msgstr ""
+"From first enquiry to enrolled student—one connected flow on one platform."
+
+msgid "Post enrollment revenue"
+msgstr "Post enrollment revenue"
+
+msgid "Revenue beyond tuition"
+msgstr "Revenue beyond tuition"
+
+msgid "What you get"
+msgstr "What you get"
+
+msgid "(opens in new tab)"
+msgstr "(opens in new tab)"
+
+msgid "Skip to Phase B snapshot diff content"
+msgstr "Skip to Phase B snapshot diff content"
+
+msgid ""
+"Platform-admin rows (PlatformOperatorPhaseBLink); add or reorder in platform"
+" admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorPhaseBLink); add or reorder in platform"
+" admin."
+
+msgid "Skip to runtime inspector content"
+msgstr "Skip to runtime inspector content"
+
+msgid ""
+"Platform-admin rows (PlatformOperatorWorkflowSimulatorLink); add or reorder "
+"in platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorWorkflowSimulatorLink); add or reorder "
+"in platform admin."
+
+msgid "Skip to workflow simulator content"
+msgstr "Skip to workflow simulator content"
+
+msgid "Skip to support dashboard content"
+msgstr "Skip to support dashboard content"
+
+msgid "Skip to CSAT dashboard content"
+msgstr "Skip to CSAT dashboard content"
+
+msgid ""
+"Platform-admin rows (PlatformOperatorSupportDashboardLink); add or reorder "
+"in platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorSupportDashboardLink); add or reorder "
+"in platform admin."
+
+msgid "Skip to pulse map content"
+msgstr "Skip to pulse map content"
+
+msgid "Skip to usage table"
+msgstr "Skip to usage table"
+
+msgid "API usage & quotas"
+msgstr "API usage & quotas"
+
+msgid ""
+"Platform defaults span many domains. Use operator hubs when you need guided "
+"workflows instead of raw JSON columns."
+msgstr ""
+"Platform defaults span many domains. Use operator hubs when you need guided "
+"workflows instead of raw JSON columns."
+
+msgid "Schools dashboard"
+msgstr "Schools dashboard"
+
+msgid ""
+"Catalog apps span tenant installs and review workflows. Use operator hubs "
+"when you need cross-tenant views instead of raw manifest JSON."
+msgstr ""
+"Catalog apps span tenant installs and review workflows. Use operator hubs "
+"when you need cross-tenant views instead of raw manifest JSON."
+
+msgid "Skip to ticket content"
+msgstr "Skip to ticket content"
+
+msgid ""
+"Platform-admin rows (PlatformOperatorTenantHealthLink); add or reorder in "
+"platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorTenantHealthLink); add or reorder in "
+"platform admin."
+
+msgid ""
+"School-scoped integrations also surface in tenant admin. Use operator hubs "
+"for cross-tenant posture and API usage."
+msgstr ""
+"School-scoped integrations also surface in tenant admin. Use operator hubs "
+"for cross-tenant posture and API usage."
+
+msgid "Skip to school 360 content"
+msgstr "Skip to school 360 content"
+
+msgid "Skip to school health table"
+msgstr "Skip to school health table"
+
+msgid ""
+"Listings tie catalog apps to review and certification. Use operator hubs for"
+" cross-tenant posture instead of editing JSON metadata alone."
+msgstr ""
+"Listings tie catalog apps to review and certification. Use operator hubs for"
+" cross-tenant posture instead of editing JSON metadata alone."
+
+msgid ""
+"Platform-admin rows (PlatformOperatorCommandCenterLink); add or reorder in "
+"platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorCommandCenterLink); add or reorder in "
+"platform admin."
+
+msgid "Skip to operational queues"
+msgstr "Skip to operational queues"
+
+msgid ""
+"Platform-admin rows (PlatformOperatorOrchestrationWorkbenchLink); add or "
+"reorder in platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorOrchestrationWorkbenchLink); add or "
+"reorder in platform admin."
+
+msgid ""
+"Platform-admin rows (PlatformOperatorSuperDashboardLink); add or reorder in "
+"platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorSuperDashboardLink); add or reorder in "
+"platform admin."
+
+msgid "Skip to control plane dashboard"
+msgstr "Skip to control plane dashboard"
+
+msgid "Skip to orchestration runs table"
+msgstr "Skip to orchestration runs table"
+
+msgid ""
+"Platform-admin rows (PlatformOperatorSuperSchoolsListLink); add or reorder "
+"in platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorSuperSchoolsListLink); add or reorder "
+"in platform admin."
+
+msgid "Skip to schools list"
+msgstr "Skip to schools list"
+
+msgid ""
+"Migration runs are audited here; operator workflows for uploads and "
+"scorecards live in the migration cloud."
+msgstr ""
+"Migration runs are audited here; operator workflows for uploads and "
+"scorecards live in the migration cloud."
+
+msgid ""
+"Platform-admin rows (PlatformOperatorPlatformHubLink); add or reorder in "
+"platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorPlatformHubLink); add or reorder in "
+"platform admin."
+
+msgid ""
+"Platform-admin rows (PlatformOperatorSuperAnalyticsOverviewLink); add or "
+"reorder in platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorSuperAnalyticsOverviewLink); add or "
+"reorder in platform admin."
+
+msgid ""
+"Scope grants tie marketplace installs to tenant schools. Use operator hubs "
+"for cross-tenant posture instead of raw admin rows only."
+msgstr ""
+"Scope grants tie marketplace installs to tenant schools. Use operator hubs "
+"for cross-tenant posture instead of raw admin rows only."
+
+msgid "Skip to analytics overview"
+msgstr "Skip to analytics overview"
+
+msgid "Skip to platform operator hub"
+msgstr "Skip to platform operator hub"
+
+msgid ""
+"Platform-admin rows (PlatformOperatorMigrationCloudLink); add or reorder in "
+"platform admin."
+msgstr ""
+"Platform-admin rows (PlatformOperatorMigrationCloudLink); add or reorder in "
+"platform admin."
+
+msgid "Skip to migration cloud"
+msgstr "Skip to migration cloud"
+
+msgid ""
+"Installations tie marketplace apps to tenant schools. Use operator surfaces "
+"for cross-tenant posture, migration tooling, and usage—not this row alone."
+msgstr ""
+"Installations tie marketplace apps to tenant schools. Use operator surfaces "
+"for cross-tenant posture, migration tooling, and usage—not this row alone."

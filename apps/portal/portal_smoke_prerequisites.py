@@ -49,6 +49,32 @@ def portal_crawl_unresolved_host_message(*, host: str) -> str:
     )
 
 
+def ensure_portal_smoke_probe_feature_permissions(users_by_role: dict) -> None:
+    """
+    Grant feature permissions required by ``PORTAL_ROLE_SMOKE_SEEDS`` for synthetic probe users.
+
+    ``accounts:backend_dashboard`` uses ``@permission_required("settings.manage")`` (feature
+    permission code), not only ``is_staff``; principals without that code would hit the login
+    redirect and fail gate crawls.
+    """
+    from apps.accounts.models import Permission, User
+
+    perm, _ = Permission.objects.get_or_create(
+        code="settings.manage",
+        defaults={
+            "name": "Manage settings",
+            "description": "Probe users for portal/backend smoke crawls.",
+        },
+    )
+    for role in (User.Role.ADMIN, User.Role.PRINCIPAL):
+        user = users_by_role.get(role)
+        if user is None:
+            continue
+        if user.has_feature_permission("settings.manage"):
+            continue
+        user.feature_permissions.add(perm)
+
+
 def ensure_portal_smoke_prerequisites(*, school: "School", teacher_user: "User | None" = None) -> None:
     from apps.academics.models import AcademicYear, Term
     from apps.finance.models import ComplianceProfile

@@ -8,6 +8,13 @@ from urllib.error import URLError
 
 from celery import shared_task
 
+_SITECONFIG_SUPPORT_WEBHOOK_RETRY_ERRORS = (
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    URLError,
+)
+
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
 # §2.4: Typed tuples for task exception paths (no broad except).
@@ -83,6 +90,22 @@ def send_welcome_email(school_id: int, contact_email: str = ""):
             extra={"contact_email": email},
         )
         return {"ok": False, "error": "Failed to send welcome email."}
+
+
+@shared_task(
+    bind=True,
+    name="siteconfig.deliver_support_ticket_http_webhook",
+    autoretry_for=_SITECONFIG_SUPPORT_WEBHOOK_RETRY_ERRORS,
+    retry_backoff=30,
+    retry_kwargs={"max_retries": 5},
+)
+def deliver_support_ticket_http_webhook(self, url: str, secret: str, payload: dict):
+    """
+    Deliver signed JSON to an external support integration URL (retries on transport / HTTP 5xx).
+    """
+    from apps.siteconfig.support_webhook_delivery import post_support_ticket_webhook
+
+    post_support_ticket_webhook(url, secret or "", payload)
 
 
 # World Engine: National Syllabus Sync (Ministry API/OCR → LLM 36-week schemes); chunked for 195-country scale.

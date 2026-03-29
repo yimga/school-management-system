@@ -5,13 +5,13 @@ from django.test import RequestFactory, SimpleTestCase
 from apps.finance.tasks import (
     FINANCE_TASK_RETRYABLE_FAILURES,
     _get_finance_runtime_config,
-    _get_marketplace_integration_settings,
     auto_copy_fee_plans_task,
     auto_generate_fee_invoices_task,
     process_payment_receipt_upload_task,
     retry_bank_verification_task,
     update_invoice_statuses_task,
 )
+from apps.platform_runtime.helpers import get_effective_marketplace_integration_settings
 from apps.finance.views_common import _backend_flags, _notification_delivery_settings
 
 
@@ -46,7 +46,7 @@ class FinanceHardeningHelperTests(SimpleTestCase):
         self.assertFalse(config["receipt_upload_enabled"])
         self.assertEqual(config["receipt_allowed_extensions"], "pdf,png")
 
-    def test_marketplace_integration_settings_prefers_owner_accessor(self):
+    def test_effective_marketplace_integration_settings_uses_facade_method(self):
         site = type(
             "SettingsStub",
             (),
@@ -57,9 +57,23 @@ class FinanceHardeningHelperTests(SimpleTestCase):
             },
         )()
 
-        config = _get_marketplace_integration_settings(site)
+        with patch(
+            "apps.platform_runtime.helpers.get_effective_site_settings",
+            return_value=site,
+        ):
+            config = get_effective_marketplace_integration_settings()
 
         self.assertEqual(config["marksheet_ocr_command"], "/usr/bin/tesseract")
+
+    def test_effective_marketplace_integration_settings_defaults_when_no_site(self):
+        with patch(
+            "apps.platform_runtime.helpers.get_effective_site_settings",
+            return_value=None,
+        ):
+            config = get_effective_marketplace_integration_settings()
+        self.assertEqual(config["marksheet_ocr_command"], "")
+        self.assertEqual(config["sms_provider"], "console")
+        self.assertEqual(config["sms_sender_id"], "RUNMYCAMPUS")
 
     def test_notification_delivery_settings_prefers_owner_accessor(self):
         site = type(

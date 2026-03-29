@@ -4,6 +4,7 @@
 {% block title %}{% trans "Security & trust" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
+{# trust-hub-doc-anchors: NORTH_STAR_TRUST_AND_OPS.md THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md (verify_phase9_security_trust_conformance) #}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
 {% phase8_dashboard_declaration "accounts/security_trust_hub.html" %}
   <h1 class="h4 mb-1">{% trans "Security & trust" %}</h1>
@@ -59,7 +60,11 @@
         </div>
       </div>
     </div>
-    {% if show_governance_links %}
+  </div>
+  {% if show_governance_links %}
+  <details class="de-secondary-collapsible mb-3">
+    <summary class="small fw-semibold">{% trans "Expand school governance & platform cards" %}</summary>
+    <div class="row g-3">
     <div class="col-12"><h2 class="h6 text-uppercase text-muted mt-2">{% trans "School governance" %}</h2></div>
     <div class="col-md-6 col-lg-4">
       <div class="card h-100 shadow-sm border-secondary">
@@ -130,8 +135,9 @@
         </div>
       </div>
     </div>
-    {% endif %}
-  </div>
+    </div>
+  </details>
+  {% endif %}
 
   {% if urls.backend_home %}
     <p class="mt-4 mb-0"><a href="{{ urls.backend_home }}" class="small">{% trans "← Back to dashboard" %}</a></p>

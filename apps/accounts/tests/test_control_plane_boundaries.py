@@ -80,6 +80,13 @@ class AdminRegistryBoundaryTests(SimpleTestCase):
         self.assertIn(SiteSettings, tenant_admin_site._registry)
         self.assertNotIn(SiteSettings, platform_admin_site._registry)
 
+    def test_metadata_dynamic_field_models_on_tenant_admin_site(self):
+        """Batch 14 Phase 5: canonical DynamicField* CRUD is on tenant metadata admin."""
+        from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
+
+        self.assertIn(DynamicFieldDefinition, tenant_admin_site._registry)
+        self.assertIn(DynamicFieldValue, tenant_admin_site._registry)
+
 
 class AdminPlaneUrlConfTests(SimpleTestCase):
     @override_settings(ROOT_URLCONF="config.manager_urls")

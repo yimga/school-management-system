@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+"""
+AI blueprint structural gate (gateway, embeddings, portal views, prompts, metrics, docs).
+
+Batch 40 §11.4: settings/runtime first-class secret anchors + hardened check_contains
+(no uncaught FileNotFoundError when a required file is absent).
+"""
+
 from pathlib import Path
 import sys
 
@@ -7,14 +14,14 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def read_text(relative_path: str) -> str:
-    return (ROOT / relative_path).read_text(encoding="utf-8")
-
-
 def check_contains(
     relative_path: str, needle: str, label: str, failures: list[str]
 ) -> None:
-    if needle not in read_text(relative_path):
+    path = ROOT / relative_path
+    if not path.is_file():
+        failures.append(f"{label}: missing file {relative_path}")
+        return
+    if needle not in path.read_text(encoding="utf-8"):
         failures.append(f"{label}: missing `{needle}` in {relative_path}")
 
 
@@ -145,10 +152,14 @@ def main() -> int:
         "ai/control-plane-intelligence/",
         "ai/feedback/",
     ]
-    api_urls = read_text("apps/api/urls.py")
-    for needle in endpoint_needles:
-        if needle not in api_urls:
-            failures.append(f"Missing AI endpoint route: {needle}")
+    urls_path = ROOT / "apps" / "api" / "urls.py"
+    if not urls_path.is_file():
+        failures.append("Missing required file: apps/api/urls.py")
+    else:
+        api_urls = urls_path.read_text(encoding="utf-8")
+        for needle in endpoint_needles:
+            if needle not in api_urls:
+                failures.append(f"Missing AI endpoint route: {needle}")
 
     view_checks = [
         'response_schema="workflow_draft"',
@@ -171,10 +182,14 @@ def main() -> int:
         "record_feedback(",
         '"migration_mapping",',
     ]
-    view_text = read_text("apps/portal/views_ai_gateway.py")
-    for needle in view_checks:
-        if needle not in view_text:
-            failures.append(f"Missing view wiring: {needle}")
+    view_path = ROOT / "apps" / "portal" / "views_ai_gateway.py"
+    if not view_path.is_file():
+        failures.append("Missing required file: apps/portal/views_ai_gateway.py")
+    else:
+        view_text = view_path.read_text(encoding="utf-8")
+        for needle in view_checks:
+            if needle not in view_text:
+                failures.append(f"Missing view wiring: {needle}")
 
     prompt_checks = [
         '"setup_assistant"',
@@ -195,10 +210,14 @@ def main() -> int:
         '"data_quality"',
         '"control_plane_intelligence"',
     ]
-    prompt_registry = read_text("apps/siteconfig/prompt_registry.py")
-    for needle in prompt_checks:
-        if needle not in prompt_registry:
-            failures.append(f"Missing prompt family in registry: {needle}")
+    pr_path = ROOT / "apps" / "siteconfig" / "prompt_registry.py"
+    if not pr_path.is_file():
+        failures.append("Missing required file: apps/siteconfig/prompt_registry.py")
+    else:
+        prompt_registry = pr_path.read_text(encoding="utf-8")
+        for needle in prompt_checks:
+            if needle not in prompt_registry:
+                failures.append(f"Missing prompt family in registry: {needle}")
 
     metric_checks = [
         (
@@ -238,6 +257,26 @@ def main() -> int:
         ),
     ]
     for relative_path, needle, label in metric_checks:
+        check_contains(relative_path, needle, label, failures)
+
+    gateway_discipline_checks = [
+        (
+            "config/settings.py",
+            "AI_GATEWAY_ENABLED",
+            "Settings AI gateway feature flag",
+        ),
+        (
+            "config/settings.py",
+            "services.ai_gateway",
+            "Settings documents single AI gateway entrypoint",
+        ),
+        (
+            "apps/platform_runtime/models.py",
+            "ai_provider_api_key = models.CharField",
+            "RuntimeDefaults first-class AI provider API key column",
+        ),
+    ]
+    for relative_path, needle, label in gateway_discipline_checks:
         check_contains(relative_path, needle, label, failures)
 
     doc_checks = [
@@ -283,6 +322,31 @@ def main() -> int:
         ),
     ]
     for relative_path, needle, label in doc_checks:
+        check_contains(relative_path, needle, label, failures)
+
+    threat_checks = [
+        (
+            "docs/THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md",
+            "scripts/verify_ai_blueprint_completion.py",
+            "Threat model documents blueprint wiring gate",
+        ),
+        (
+            "docs/THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md",
+            "No parallel stacks",
+            "Threat model: single-gateway discipline",
+        ),
+        (
+            "docs/THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md",
+            "services/inference.py",
+            "Threat model: inference tier / data-class gating pointer",
+        ),
+        (
+            "docs/THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md",
+            "AI_GATEWAY_ENABLED",
+            "Threat model: gateway kill-switch ops",
+        ),
+    ]
+    for relative_path, needle, label in threat_checks:
         check_contains(relative_path, needle, label, failures)
 
     if failures:

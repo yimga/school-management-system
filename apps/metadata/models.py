@@ -40,6 +40,10 @@ class DynamicFieldDefinition(models.Model):
         related_name="+",
         help_text="Null = platform-wide definition.",
     )
+    required = models.BooleanField(
+        default=False,
+        help_text="When True, runtime may treat the field as mandatory (aligned with siteconfig EAV).",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -383,7 +387,7 @@ class ConfigMutationAuditLog(models.Model):
     )
     target_type = models.CharField(
         max_length=80,
-        help_text="Config type (e.g. SiteSettings, RegionConfig, blueprint, policy_bundle).",
+        help_text="Config type (e.g. platform tenant settings row, RegionConfig, blueprint, policy_bundle).",
     )
     target_id = models.CharField(max_length=120, blank=True)
     scope = models.CharField(max_length=20, choices=SCOPE_CHOICES, default="tenant")

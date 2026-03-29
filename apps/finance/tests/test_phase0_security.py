@@ -180,6 +180,21 @@ class WebhookSecurityValidatorTest(TestCase):
         result = self.validator.validate_idempotency("mtn_momo", "ref-12345")
         self.assertFalse(result)
 
+    def test_validate_idempotency_matches_idempotency_bucket_column(self):
+        """Dedup finds prior success when only ``idempotency_bucket`` matches (batch 15 #143)."""
+        WebhookLog.objects.create(
+            provider="mtn_momo",
+            reference_id="ext-ref-a",
+            idempotency_bucket="idempotency:shared-key",
+            client_ip="127.0.0.1",
+            signature_valid=True,
+            status=WebhookLog.Status.PROCESSED,
+        )
+        self.assertFalse(
+            self.validator.validate_idempotency("mtn_momo", "idempotency:shared-key")
+        )
+        self.assertTrue(self.validator.validate_idempotency("mtn_momo", "ext-ref-b"))
+
 
 class PaymentValidatorTest(TestCase):
     """Test PaymentValidator functionality."""

@@ -53,6 +53,9 @@ python scripts/scan_repo_secrets.py
 echo "[pre_deploy_gate] Runtime-visible branding residue"
 python scripts/lint_gilead_residue.py
 
+echo "[pre_deploy_gate] Gilead full-tree classification (docs/migrations corpus buckets)"
+python scripts/verify_gilead_full_tree_classification.py
+
 echo "[pre_deploy_gate] No print() in application code"
 python scripts/lint_no_print_in_apps.py
 
@@ -61,6 +64,9 @@ python -m ruff check apps --select F401,F841
 
 echo "[pre_deploy_gate] Django check"
 python manage.py check
+
+echo "[pre_deploy_gate] API v1 named routes snapshot (urls_v1 drift)"
+python scripts/verify_api_v1_named_routes_snapshot.py --check
 
 echo "[pre_deploy_gate] Packages and setup_studio migrations applied"
 python manage.py showmigrations packages setup_studio | grep -E '^\s+\[ \]' && { echo "Unapplied migrations in packages or setup_studio" >&2; exit 1; } || true
@@ -76,8 +82,26 @@ echo "[pre_deploy_gate] Platform inventory refresh"
 python scripts/generate_platform_inventory.py --write
 echo "[pre_deploy_gate] Platform inventory verification"
 python scripts/generate_platform_inventory.py --check
+echo "[pre_deploy_gate] P5 doc plan density discipline (single-source non-growth)"
+python scripts/verify_doc_plan_density_discipline.py
+echo "[pre_deploy_gate] PATH_TO_100 per-app plan spine (SOT section 6.1-6.24)"
+python scripts/verify_path_to_100_plan_discipline.py
+echo "[pre_deploy_gate] Gate map appendix (PHASES_3_11_GATE_VERIFICATION.md markers)"
+python scripts/generate_gate_map_appendix.py --check
 echo "[pre_deploy_gate] Phase 5 SiteSettings / siteconfig dismantling (docs + domain_ownership + get_solo lint)"
 python scripts/verify_phase_5_siteconfig.py
+echo "[pre_deploy_gate] Migration safety doc discipline (NORTH_STAR operator contract)"
+python scripts/verify_migration_safety_doc_discipline.py
+echo "[pre_deploy_gate] Performance targets doc discipline (NORTH_STAR N9/N10 operator contract)"
+python scripts/verify_performance_targets_doc_discipline.py
+echo "[pre_deploy_gate] LMS / SSO doc discipline (NORTH_STAR §0.4 operator contract)"
+python scripts/verify_lms_sso_doc_discipline.py
+echo "[pre_deploy_gate] UK / international packs doc discipline (NORTH_STAR §0.4 operator contract)"
+python scripts/verify_uk_international_packs_doc_discipline.py
+echo "[pre_deploy_gate] Advancement CRM doc discipline (NORTH_STAR §0.4 operator contract)"
+python scripts/verify_advancement_crm_doc_discipline.py
+echo "[pre_deploy_gate] Phase 5 Studio OS conformance (modes, legacy redirects, output canvas contracts)"
+python scripts/verify_phase5_studio_os_conformance.py
 echo "[pre_deploy_gate] Phase B Batch 3 burn-in (no SiteSettings ORM writes to removed branding FK columns)"
 python scripts/lint_phase_b_batch3_sitesettings_fk_writes.py
 echo "[pre_deploy_gate] SiteSettings.objects singleton choke point (models.py + helpers.py only)"
@@ -85,6 +109,8 @@ python scripts/lint_sitesettings_orm_singleton.py --base .
 python scripts/lint_csrf_exempt_usage.py
 python scripts/lint_allow_any_usage.py
 python scripts/lint_raw_sql_usage.py
+python scripts/verify_security_allowlists.py
+python scripts/verify_security_allowlist_density.py
 echo "[pre_deploy_gate] Phase 8 merged security ledger (csrf_exempt + AllowAny + raw SQL allowlists)"
 python scripts/build_phase8_security_ledger.py --check
 python scripts/lint_broad_except.py --allowlist scripts/allowlists/broad_except_allowlist.json --strict
@@ -114,6 +140,9 @@ echo "[pre_deploy_gate] Phase 7 dashboard surface markers (full registry)"
 python scripts/verify_phase7_dashboard_markers.py
 python scripts/verify_control_plane_hub_registry_drift.py
 
+echo "[pre_deploy_gate] Phase 8 dashboard density (high-card surfaces need de-secondary-collapsible)"
+python scripts/verify_phase8_dashboard_density.py
+
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
 python manage.py makemigrations --check --dry-run
 
@@ -137,8 +166,7 @@ run_django_tests \
 
 echo "[pre_deploy_gate] Phase H static audit (viewport, error templates, control-plane errors)"
 python scripts/phase_h_audit.py
-echo "[pre_deploy_gate] Phases 3–11 aggregated gate (nav/marketplace/Phase H static + pytest slice)"
-python scripts/verify_phases_3_11_gates.py
+echo "[pre_deploy_gate] Phases 3–11 non-DB bundle → apps.platform_runtime.tests.test_tenant_settings_lint (Targeted hardening below; avoids duplicate verify_phases_3_11_gates.py)"
 echo "[pre_deploy_gate] §8.0.6 responsive lint (fixed-px layout; advisory, no fail)"
 python scripts/lint_section8_responsive.py || true
 echo "[pre_deploy_gate] §8.0.11 template audit (inline px / placeholders; advisory)"
@@ -156,7 +184,10 @@ TARGETED_HARDENING_TESTS=(
   services.tests.test_ai_gateway
   apps.schools.tests.test_impersonation_dual_control
   apps.schools.tests.test_manager_studio_tenant_boundary
+  apps.studio_os.tests
   apps.schools.tests.test_tenant_host_profile_url_wiring
+  apps.schools.tests.test_plan_and_feature_gate
+  apps.schools.tests.test_school_get_child_schools
   services.tests.test_ai_memory
   apps.siteconfig.tests.test_ai_copilot_context
   apps.siteconfig.tests.test_ai_admin_surfaces
@@ -175,6 +206,10 @@ TARGETED_HARDENING_TESTS=(
   apps.platform_runtime.tests.test_marketplace_catalog_minimums
   apps.brand_experience.tests.test_platform_global_branding
   apps.platform_runtime.tests.test_phase_b_domain_snapshots
+  apps.platform_runtime.tests.test_platform_report_platform_sku_default
+  apps.platform_runtime.tests.test_security_allowlists_verify
+  apps.schools.tests.test_super_phase_b_snapshot_diff
+  apps.automation.tests.test_workflow_playbook_simulation
   apps.marketplace.tests.test_install_impact
   apps.marketplace.tests.test_blueprint_rollback_ack
   apps.marketplace.tests.test_governance
@@ -188,6 +223,7 @@ TARGETED_HARDENING_TESTS=(
   apps.api.tests.test_api_v1_route_contract
   apps.api.tests.test_api_v1_manifest
   apps.api.tests.test_api_v1_contract_smoke
+  apps.api.tests.test_platform_marketplace_integration_webhook
   apps.api.tests.test_ai_chat_consumer_gateway
   apps.api.tests.test_dashboard_api_profile_404
   apps.schools.tests.test_school_data_residency_contract

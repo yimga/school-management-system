@@ -1,0 +1,8 @@
+{
+  "envelope": "district-readiness-v1",
+  "sourceSystem": "edfi",
+  "districtIdentifier": "rmc-fixture-district-001",
+  "nameOfInstitution": "RunMyCampus fixture district (readiness sample)",
+  "stateOrganizationId": "STATE-01",
+  "note": "Minimal Ed-Fi-aligned district envelope for interop readiness tests; not a full API payload."
+}

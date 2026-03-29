@@ -96,6 +96,7 @@ class MobileMoneyWebhookContractTests(TestCase):
         timestamp_value: str | int | None = None,
         content_type: str = "application/json",
         raw_body: bytes | None = None,
+        idempotency_key: str | None = None,
     ):
         encoded_body = (
             raw_body if raw_body is not None else json.dumps(payload).encode("utf-8")
@@ -110,6 +111,8 @@ class MobileMoneyWebhookContractTests(TestCase):
         if timestamp_header:
             ts_key = f"HTTP_{timestamp_header.upper().replace('-', '_')}"
             headers[ts_key] = str(timestamp_value or "")
+        if idempotency_key:
+            headers["HTTP_IDEMPOTENCY_KEY"] = idempotency_key
         return self.client.post(
             reverse("finance:payment_webhook", kwargs={"provider_slug": provider_slug}),
             data=encoded_body,
@@ -155,6 +158,53 @@ class MobileMoneyWebhookContractTests(TestCase):
         self.assertEqual(webhook_log.response_status, 200)
         self.assertEqual(webhook_log.payment, payment)
         self.assertIn('"transaction_id": "mtn-tx-001"', webhook_log.request_body)
+
+    def test_mtn_duplicate_when_same_idempotency_key_even_if_transaction_id_differs(
+        self,
+    ):
+        """Idempotency-Key dedup must not depend on payload transaction_id alone (batch 15 #143)."""
+        secret = "mtn-secret-idem"
+        Integration.objects.create(
+            name="MTN Idem",
+            slug="mtn-payments-idem",
+            provider="payments",
+            enabled=True,
+            config={
+                "provider_slug": "mtn_momo",
+                "webhook_secret": secret,
+            },
+        )
+        base = {
+            "provider": "mtn",
+            "invoiceId": self.invoice.pk,
+            "amount": "50.00",
+            "status": "successful",
+        }
+        idem = "batch15-shared-idempotency-key"
+        first = self._post_webhook(
+            provider_slug="mtn_momo",
+            secret=secret,
+            idempotency_key=idem,
+            payload={**base, "transaction_id": "mtn-tx-idem-a"},
+        )
+        second = self._post_webhook(
+            provider_slug="mtn_momo",
+            secret=secret,
+            idempotency_key=idem,
+            payload={**base, "transaction_id": "mtn-tx-idem-b"},
+        )
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json().get("status"), "ok")
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json().get("status"), "ignored")
+        self.assertEqual(
+            Payment.objects.filter(invoice=self.invoice, method=PaymentMethodCode.MTN_MOMO).count(),
+            1,
+        )
+        processed = WebhookLog.objects.get(
+            provider="mtn_momo", reference_id="mtn-tx-idem-a", status=WebhookLog.Status.PROCESSED
+        )
+        self.assertEqual(processed.idempotency_bucket, f"idempotency:{idem}")
 
     def test_orange_contract_accepts_alias_slug_and_prefixed_signature(self):
         secret = "orange-secret"

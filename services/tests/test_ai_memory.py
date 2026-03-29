@@ -106,3 +106,74 @@ class AIMemoryServiceTests(TestCase):
         )
         self.assertGreaterEqual(len(results), 2)
         self.assertEqual(results[0]["conversation_id"], "tenant-policy")
+
+
+class RagRetrievalEvalTests(TestCase):
+    """
+    Lightweight RAG leakage / isolation checks for CI (no live embedding provider).
+
+    ``AIMemoryService.search_similar`` must not surface another tenant's scoped rows
+    when ``school_id`` is set; global rows (``school_id`` null) remain shared.
+    """
+
+    def test_tenant_retrieval_never_returns_other_school_scoped_rows(self):
+        school_a = uuid4()
+        school_b = uuid4()
+        # Tenant B holds a chunk that matches the query vector better than A's own.
+        AIEmbeddingStore.objects.create(
+            school_id=school_b,
+            conversation_id="secret-b-payroll",
+            scope="help",
+            text_hash="b-only",
+            embedding=[1.0, 0.0, 0.0],
+            metadata={"source": "tenant_b"},
+        )
+        AIEmbeddingStore.objects.create(
+            school_id=school_a,
+            conversation_id="tenant-a-doc",
+            scope="help",
+            text_hash="a-only",
+            embedding=[0.5, 0.5, 0.0],
+            metadata={"source": "tenant_a"},
+        )
+        AIEmbeddingStore.objects.create(
+            school_id=None,
+            conversation_id="global-help",
+            scope="help",
+            text_hash="global",
+            embedding=[0.99, 0.01, 0.0],
+            metadata={"source": "platform"},
+        )
+
+        results = AIMemoryService.search_similar(
+            str(school_a), "help", [1.0, 0.0, 0.0], limit=10
+        )
+        ids = {row["conversation_id"] for row in results}
+
+        self.assertNotIn("secret-b-payroll", ids)
+        self.assertIn("tenant-a-doc", ids)
+        self.assertIn("global-help", ids)
+
+    def test_retrieval_without_school_id_is_unscoped_use_with_care(self):
+        """Operator / no-tenant contexts pass ``school_id=None``; queryset is not school-filtered."""
+        s1 = uuid4()
+        s2 = uuid4()
+        AIEmbeddingStore.objects.create(
+            school_id=s1,
+            conversation_id="only-s1",
+            scope="config",
+            text_hash="h1",
+            embedding=[1.0, 0.0],
+            metadata={},
+        )
+        AIEmbeddingStore.objects.create(
+            school_id=s2,
+            conversation_id="only-s2",
+            scope="config",
+            text_hash="h2",
+            embedding=[1.0, 0.0],
+            metadata={},
+        )
+        results = AIMemoryService.search_similar(None, "config", [1.0, 0.0], limit=10)
+        ids = {row["conversation_id"] for row in results}
+        self.assertEqual(ids, {"only-s1", "only-s2"})

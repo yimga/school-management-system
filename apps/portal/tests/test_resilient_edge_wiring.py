@@ -128,6 +128,15 @@ class ResilientEdgeCriticalReadTests(SimpleTestCase):
     def test_portal_base_includes_critical_read_script(self):
         text = self._read("templates", "portal_base.html")
         self.assertIn("critical-read-degraded.js", text)
+        self.assertIn("/kb/article/", text)
+        self.assertIn("/kb/search", text)
+        self.assertIn("/kb/category/", text)
+        self.assertIn('path === "/kb"', text)
+        self.assertIn("kb-article", text)
+        self.assertIn("kb-search", text)
+        self.assertIn("kb-category", text)
+        self.assertIn("kb-home", text)
+        self.assertIn("kb-hub", text)
 
     def test_teacher_timetable_has_offline_cache_key(self):
         text = self._read("templates", "teacher", "timetable.html")
@@ -139,6 +148,48 @@ class ResilientEdgeCriticalReadTests(SimpleTestCase):
         text = self._read("templates", "widgets", "parent_dashboard_widgets.html")
         self.assertIn('data-sms-offline-read-cache-key="parent_timetable_', text)
         self.assertIn('data-sms-offline-read-cache-key="parent_contacts_', text)
+
+    def test_support_ticket_detail_has_critical_read_cache_key(self):
+        text = self._read("templates", "portal", "support_ticket_detail.html")
+        self.assertIn("data-sms-offline-read-cache-key", text)
+        self.assertIn("portal_support_ticket", text)
+        self.assertIn("data-page-critical-read", text)
+        self.assertIn("support-ticket-heading", text)
+
+    def test_support_request_has_critical_read_cache_key(self):
+        text = self._read("templates", "portal", "support_request.html")
+        self.assertIn("data-sms-offline-read-cache-key", text)
+        self.assertIn("portal_support_request", text)
+        self.assertIn("data-page-critical-read", text)
+        self.assertIn("support-request-heading", text)
+
+    def test_kb_article_has_critical_read_cache_key(self):
+        text = self._read("templates", "portal", "kb_article.html")
+        self.assertIn("data-sms-offline-read-cache-key", text)
+        self.assertIn("portal_kb_article", text)
+        self.assertIn("data-page-critical-read", text)
+        self.assertIn("kb-article-heading", text)
+        self.assertIn("page_archetype", text)
+        self.assertIn("kb-article", text)
+
+    def test_kb_home_has_critical_read_cache_key(self):
+        text = self._read("templates", "portal", "kb_home.html")
+        self.assertIn("portal_kb_home", text)
+        self.assertIn("data-page-critical-read", text)
+        self.assertIn("kb-home-heading", text)
+        self.assertIn("kb-home", text)
+
+    def test_kb_search_has_critical_read_cache_key(self):
+        text = self._read("templates", "portal", "kb_search.html")
+        self.assertIn("portal_kb_search", text)
+        self.assertIn("data-page-critical-read", text)
+        self.assertIn("kb-search-heading", text)
+
+    def test_kb_category_has_critical_read_cache_key(self):
+        text = self._read("templates", "portal", "kb_category.html")
+        self.assertIn("portal_kb_category", text)
+        self.assertIn("data-page-critical-read", text)
+        self.assertIn("kb-category-heading", text)
 
     def test_ops_pos_template_has_tax_and_form_draft(self):
         text = self._read("templates", "schoolops", "ops_pos.html")

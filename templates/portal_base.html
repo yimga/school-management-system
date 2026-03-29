@@ -25,6 +25,14 @@
         else if (path.indexOf("/evals/compliance") !== -1) page = "evals-compliance";
         else if (path.indexOf("/accounts/rbac-dashboard") !== -1 || path.indexOf("/accounts/rbac/") !== -1 || path.indexOf("/authentication/rbac/") !== -1) page = "rbac";
         else if (path.indexOf("/siteconfig/theme-colors") !== -1 || path.indexOf("/theme-colors") !== -1) page = "theme-colors";
+        else if (path.indexOf("/portal/support/ticket/") !== -1) page = "support-ticket";
+        else if (path.indexOf("/portal/support/hub") !== -1) page = "support-hub";
+        else if (path === "/portal/support" || path === "/portal/support/") page = "support-request";
+        else if (path.indexOf("/kb/article/") !== -1) page = "kb-article";
+        else if (path.indexOf("/kb/search") !== -1) page = "kb-search";
+        else if (path.indexOf("/kb/category/") !== -1) page = "kb-category";
+        else if (path === "/kb" || path === "/kb/") page = "kb-home";
+        else if (path.indexOf("/kb/") === 0) page = "kb-hub";
 
         if (!page) return;
 
@@ -140,8 +148,8 @@
     <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
   </head>
 
-  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}">
-    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="Skip to main content">Skip to main content</a>
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     {% if SITE and SITE.is_preview %}
     <div class="alert alert-warning text-center m-0 rounded-0 border-0 d-flex flex-wrap align-items-center justify-content-center gap-2 py-2 px-3" role="status">
       <span class="fw-semibold">{% trans "You're previewing unsaved Site Settings." %}</span>
@@ -352,8 +360,8 @@
       </div>
 
       <!-- Content -->
-      <div class="portal-main-col col-lg-9 col-xl-10" id="main-content" role="main">
-        <div class="page-wrap" data-page-archetype="{% block page_archetype %}operational-workbench{% endblock %}" data-authenticated-surface="tenant-portal">
+      <div class="portal-main-col col-lg-9 col-xl-10" id="main-content" role="main" tabindex="-1">
+        <div class="page-wrap" data-page-archetype="{% block page_archetype %}operational-workbench{% endblock %}" data-authenticated-surface="{% if request.public_host_kind == 'manager' %}manager-control-plane{% else %}tenant-portal{% endif %}">
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
             <div class="mb-0">{% include "partials/breadcrumbs.html" %}</div>
             <div class="breadcrumb-actions">{% block breadcrumb_actions %}{% endblock %}</div>
@@ -365,6 +373,9 @@
                   {% operator_console_strip %}
                 </div>
               {% endif %}
+            {% endif %}
+            {% if platform_status_strip and platform_status_strip.show %}
+              {% include "portal/partials/platform_status_strip.html" %}
             {% endif %}
             {% if messages %}
             <div class="mb-3">

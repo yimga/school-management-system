@@ -27,6 +27,10 @@ class ManagerUrlconfBoundaryTests(TestCase):
         match = resolve("/finance/", urlconf="config.manager_urls")
         self.assertEqual(match.url_name, "manager_legacy_finance")
 
+    def test_manager_urlconf_mounts_automation_outcomes_console(self):
+        match = resolve("/automation/outcomes/", urlconf="config.manager_urls")
+        self.assertEqual(match.url_name, "outcomes_console")
+
     def test_manager_host_rejects_tenant_surface_prefixes(self):
         self.client.force_login(self.user)
         response = self.client.get(
@@ -61,12 +65,33 @@ class ManagerUrlconfBoundaryTests(TestCase):
         self.assertEqual(response.status_code, 200)
         titles = [item.get("title") for item in response.json().get("results", [])]
         for needle in (
+            "Schools list",
+            "Analytics overview",
             "Geography (region packs)",
             "Trust center",
             "Operator policy",
             "Backlog unlock center",
             "Fleet governed changes",
             "Platform operator hub",
+            "Playbook operator hub",
+            "Runtime truth hub",
+            "Workflow simulator",
+        ):
+            with self.subTest(needle=needle):
+                self.assertIn(needle, titles)
+
+    def test_manager_search_empty_q_includes_runtime_surfaces(self):
+        """Empty-q Ctrl+K catalog includes playbook / runtime truth / workflow simulator."""
+        self.client.force_login(self.user)
+        response = self.client.get(
+            "/api/search/?q=", HTTP_HOST="manager.runmycampus.com"
+        )
+        self.assertEqual(response.status_code, 200)
+        titles = [item.get("title") for item in response.json().get("results", [])]
+        for needle in (
+            "Playbook operator hub",
+            "Runtime truth hub",
+            "Workflow simulator",
         ):
             with self.subTest(needle=needle):
                 self.assertIn(needle, titles)

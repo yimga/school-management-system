@@ -1,0 +1,93 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Support ticket" %}{% endblock %}
+
+{% block page_archetype %}support-ticket{% endblock %}
+
+{% block content %}
+<div
+  class="portal-support-ticket-read-shell"
+  data-page-critical-read="support-ticket"
+  data-sms-offline-read-cache-key="portal_support_ticket"
+  tabindex="-1"
+>
+<div class="mb-3">
+  <a href="{% url 'portal:support_help_hub' %}" class="small">{% trans "← Back to Help & support" %}</a>
+</div>
+<h1 class="h4 mb-1" id="support-ticket-heading">{{ ticket.subject|truncatechars:80 }}</h1>
+<p class="text-muted small mb-3">{{ ticket.get_status_display }} · {{ ticket.updated_at|date:"M j, Y H:i" }}</p>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header">{% trans "Original request" %}</div>
+  <div class="card-body">
+    <pre class="small mb-0 text-wrap" style="white-space: pre-wrap;">{{ ticket.body }}</pre>
+  </div>
+</div>
+
+{% if public_replies %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header">{% trans "Updates from support" %}</div>
+  <div class="card-body">
+    <ul class="list-unstyled mb-0">
+      {% for r in public_replies %}
+      <li class="mb-3 pb-3 border-bottom">
+        <div class="small text-muted">{{ r.created_at|date:"M j, Y H:i" }}</div>
+        <pre class="small mb-0 mt-1 text-wrap" style="white-space: pre-wrap;">{{ r.body }}</pre>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header">{% trans "Add a follow-up" %}</div>
+  <div class="card-body">
+    <form method="post" class="row g-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="followup">
+      <div class="col-12">
+        <textarea name="followup_body" class="form-control" rows="4" required placeholder="{% trans 'Your message to the support team…' %}"></textarea>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Send follow-up" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if show_csat %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header">{% trans "How did we do?" %}</div>
+  <div class="card-body">
+    <p class="small text-muted">{% trans "This ticket is resolved. Please rate your experience (1 = poor, 5 = excellent)." %}</p>
+    <form method="post" class="row g-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="csat">
+      <div class="col-12">
+        <label class="form-label" for="id_csat_score">{% trans "Rating" %}</label>
+        <select name="csat_score" id="id_csat_score" class="form-select" style="max-width: 12rem;" required>
+          <option value="">—</option>
+          <option value="5">5</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="id_csat_comment">{% trans "Comment" %} <span class="text-muted">({% trans "optional" %})</span></label>
+        <textarea name="csat_comment" id="id_csat_comment" class="form-control" rows="3" maxlength="2000"></textarea>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Submit feedback" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% elif ticket.csat_score %}
+<div class="alert alert-light border small">{% trans "Thank you — you rated this ticket" %} {{ ticket.csat_score }}/5.</div>
+{% endif %}
+</div>
+{% endblock %}

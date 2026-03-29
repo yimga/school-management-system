@@ -45,6 +45,7 @@ from services.ai_schemas import (
     validate_dashboard_pack_recommend,
     validate_design_studio,
     validate_doc_classify,
+    validate_guided_assistant,
     validate_marketplace_recommend,
     validate_migration_mapping,
     validate_policy_explain,
@@ -89,24 +90,40 @@ class TaskType(str, Enum):
     SUPPORT_SUGGEST = "support_suggest"
     NARRATIVE = "narrative"
     GENERAL_CHAT = "general_chat"
+    # Domain guided assistants (structured JSON; same tier policy as admin_copilot)
+    INTEROP_ASSISTANT = "interop_assistant"
+    RUNTIME_CONFIG_EXPLAIN = "runtime_config_explain"
+    OBSERVABILITY_ASSISTANT = "observability_assistant"
+    BILLING_USAGE_EXPLAIN = "billing_usage_explain"
+    TRUST_COMPLIANCE_ASSISTANT = "trust_compliance_assistant"
+    STUDIO_OS_ASSISTANT = "studio_os_assistant"
 
 
-# Default tier per task (Class A/B/C/D). Override via AI_GATEWAY_TASK_TIERS.
+# Default tier per task: Ollama (self-hosted) then rules for every product task.
+# Optional vLLM / LiteLLM: set Django settings.AI_GATEWAY_TASK_TIERS to merge per-task lists
+# (e.g. workflow_draft -> ["vllm", "ollama", "rules"]) for operators who run those servers.
+_DEFAULT_OLLAMA_RULES: list[str] = ["ollama", "rules"]
+
 DEFAULT_TASK_TIERS: dict[str, list[str]] = {
-    TaskType.CONFIG_EXPLAIN: ["ollama", "vllm", "rules"],
-    TaskType.SETUP_RECOMMEND: ["ollama", "vllm", "rules"],
-    TaskType.WORKFLOW_DRAFT: ["vllm", "ollama", "rules"],
-    TaskType.POLICY_EXPLAIN: ["vllm", "ollama", "rules"],
-    TaskType.DOC_CLASSIFY: ["ollama", "vllm", "rules"],
-    TaskType.SEMANTIC_SEARCH: ["ollama", "rules"],
-    TaskType.MIGRATION_MAPPING: ["vllm", "litellm", "ollama", "rules"],
-    TaskType.MIGRATION_FINGERPRINT: ["vllm", "ollama", "rules"],
-    TaskType.MIGRATION_PARITY: ["vllm", "ollama", "rules"],
-    TaskType.ADMIN_COPILOT: ["ollama", "vllm", "rules"],
-    TaskType.SUPPORT_SUGGEST: ["ollama", "vllm", "rules"],
-    TaskType.NARRATIVE: ["ollama", "rules"],
-    # Internal chat: Ollama (self-hosted) only, then rules — no cloud LLM tier.
-    TaskType.GENERAL_CHAT: ["ollama", "rules"],
+    TaskType.CONFIG_EXPLAIN: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.SETUP_RECOMMEND: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.WORKFLOW_DRAFT: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.POLICY_EXPLAIN: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.DOC_CLASSIFY: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.SEMANTIC_SEARCH: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.MIGRATION_MAPPING: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.MIGRATION_FINGERPRINT: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.MIGRATION_PARITY: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.ADMIN_COPILOT: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.SUPPORT_SUGGEST: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.NARRATIVE: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.GENERAL_CHAT: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.INTEROP_ASSISTANT: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.RUNTIME_CONFIG_EXPLAIN: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.OBSERVABILITY_ASSISTANT: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.BILLING_USAGE_EXPLAIN: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.TRUST_COMPLIANCE_ASSISTANT: list(_DEFAULT_OLLAMA_RULES),
+    TaskType.STUDIO_OS_ASSISTANT: list(_DEFAULT_OLLAMA_RULES),
 }
 
 
@@ -403,6 +420,13 @@ def _safe_schema_default(response_schema: str | None) -> Any:
         return {"dashboards": [], "packs": [], "rationale": ""}
     if response_schema == "marketplace_recommend":
         return {"recommendations": [], "rationale": ""}
+    if response_schema == "guided_assistant":
+        return {
+            "summary": "",
+            "actions": [],
+            "cautions": [],
+            "references": [],
+        }
     return None
 
 
@@ -597,6 +621,7 @@ def invoke(
                         "design_studio",
                         "dashboard_pack_recommend",
                         "marketplace_recommend",
+                        "guided_assistant",
                     )
                 ),
                 timeout_sec=timeout_sec,
@@ -641,6 +666,8 @@ def invoke(
                         result = validate_dashboard_pack_recommend(parsed)
                     elif response_schema == "marketplace_recommend" and isinstance(parsed, dict):
                         result = validate_marketplace_recommend(parsed)
+                    elif response_schema == "guided_assistant" and isinstance(parsed, dict):
+                        result = validate_guided_assistant(parsed)
                     else:
                         raise ValueError("invalid_structured_payload")
                 except (ValueError, TypeError) as e:

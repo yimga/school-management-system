@@ -49,6 +49,79 @@ class MarketingShellTests(unittest.TestCase):
             )
 
 
+class PortalBaseTenantShellTests(unittest.TestCase):
+    """Portal/backend/Studio tenant shell must not load control-plane or marketing-only CSS."""
+
+    def test_portal_base_keeps_tenant_surface_contract(self):
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        template = root / "templates" / "portal_base.html"
+        if not template.is_file():
+            self.skipTest("templates/portal_base.html not found")
+        text = template.read_text(encoding="utf-8", errors="replace")
+        self.assertIn('data-surface="tenant"', text)
+        for required in (
+            "css/design-system-unified.css",
+            "css/platform-responsive-touch.css",
+        ):
+            self.assertIn(
+                required,
+                text,
+                f"portal_base must load tenant app chrome: {required}",
+            )
+        for forbidden in (
+            "css/control-plane-primary-nav.css",
+            "css/control-plane-phase1-shell.css",
+            "marketing/css/tokens-marketing.css",
+            "marketing/css/marketing-shell.css",
+        ):
+            self.assertNotIn(
+                forbidden,
+                text,
+                f"portal_base must not load other-surface shell CSS: {forbidden}",
+            )
+
+
+class StudioOsShellTests(unittest.TestCase):
+    """Studio OS shell extends portal spine; no control-plane or marketing-only CSS."""
+
+    def test_studio_shell_extends_portal_base_only(self):
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        template = root / "templates" / "studio_os" / "shell.html"
+        if not template.is_file():
+            self.skipTest("templates/studio_os/shell.html not found")
+        text = template.read_text(encoding="utf-8", errors="replace")
+        self.assertIn('{% extends "portal_base.html" %}', text)
+        for forbidden in (
+            "css/control-plane-primary-nav.css",
+            "css/control-plane-phase1-shell.css",
+            "marketing/css/tokens-marketing.css",
+            "marketing/css/marketing-shell.css",
+        ):
+            self.assertNotIn(
+                forbidden,
+                text,
+                f"Studio shell must not load other-surface CSS: {forbidden}",
+            )
+
+    def test_studio_shell_extrastyle_stays_studio_scoped(self):
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        partial = root / "templates" / "studio_os" / "partials" / "shell_extrastyle.html"
+        if not partial.is_file():
+            self.skipTest("templates/studio_os/partials/shell_extrastyle.html not found")
+        text = partial.read_text(encoding="utf-8", errors="replace")
+        for forbidden in (
+            "css/control-plane-primary-nav.css",
+            "css/control-plane-phase1-shell.css",
+            "marketing/css/tokens-marketing.css",
+            "marketing/css/marketing-shell.css",
+        ):
+            self.assertNotIn(
+                forbidden,
+                text,
+                f"Studio extrastyle must not load other-surface CSS: {forbidden}",
+            )
+
+
 class ControlPlaneShellTests(unittest.TestCase):
     """Control-plane shell must not load marketing-only assets."""
 

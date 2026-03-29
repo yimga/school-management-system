@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block cp_content %}
+{# trust-center-doc-anchors: NORTH_STAR_TRUST_AND_OPS.md THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md (verify_phase9_security_trust_conformance) #}
 <div class="container-fluid py-2" data-page-archetype="decision-console" data-decision-engine="surface">
 {% phase8_dashboard_declaration "schools/super_trust_center.html" %}
   {% trans "Security & Trust" as page_title %}
@@ -36,7 +37,9 @@
       {% include "components/ai_json_api_card.html" with api_url=api_policy_explain card_title=_("Policy explain (JSON)") card_hint=_('POST {"query":"..."} or {"policy_text":"..."}. Returns explanation object and citations.') field_id="trustCenterPolicyJson" default_body='{"query":"Summarize retention and data minimization themes operators should communicate to schools"}' %}
     </div>
   </div>
-  <div class="row g-3 mt-1" data-tour="cp-trust-cards">
+  <details class="de-secondary-collapsible mb-3" data-tour="cp-trust-cards">
+    <summary class="small fw-semibold text-secondary mb-2">{% trans "Show all trust center tiles (compliance, API, residency, N11–N26, ecosystem)" %}</summary>
+  <div class="row g-3 mt-1">
     <div class="col-md-6 col-lg-4">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">
@@ -198,5 +201,6 @@
       </div>
     </div>
   </div>
+  </details>
 </div>
 {% endblock %}

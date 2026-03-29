@@ -1,11 +1,11 @@
 """
-Platform defaults for site config (B2 — SiteSettings holds platform defaults only).
+Platform defaults for site config (B2 — siteconfig singleton holds platform defaults only).
 Canonical default values used when no tenant/school override exists.
 """
 
 from __future__ import annotations
 
-# Keys and defaults used by get_effective_* and runtime; avoid reading SiteSettings in tenant paths.
+# Keys and defaults used by get_effective_* and runtime; avoid reading the site settings singleton in tenant paths.
 PLATFORM_DEFAULT_BACKEND_FEATURE_FLAGS: dict[str, object] = {
     "enable_api_schema_ui": True,
     "allowed_roles_api_schema": [],

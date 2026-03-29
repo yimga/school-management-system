@@ -170,7 +170,7 @@ def run_deadline_reminders(
 
 
 def _deadline_reminder_days_str(*, school=None) -> str:
-    """Read reminder days from SiteSettings (config in Site Settings, not code)."""
+    """Read reminder days from cached effective tenant site settings (admin “Site settings”, not code)."""
     site = get_cached_site_settings(school=school)
     days = getattr(site, "teacher_deadline_reminder_days", None) or [7, 3, 1, 0.5]
     if isinstance(days, (list, tuple)):
@@ -185,7 +185,7 @@ def send_deadline_reminders_task(
     dry_run: bool = False,
     school_id: str | None = None,
 ) -> dict:
-    """Celery task: send grading deadline reminders to teachers. Uses SiteSettings.teacher_deadline_reminder_days when days_str not provided."""
+    """Celery task: send grading deadline reminders to teachers. Uses teacher_deadline_reminder_days from cached effective settings when days_str not provided."""
 
     def _run_for_school(current_school_id: str) -> dict:
         from apps.schools.models import School

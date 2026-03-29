@@ -37,8 +37,32 @@ jobs:
       - name: Phase H static audit
         run: python scripts/phase_h_audit.py
 
+      - name: Shell architecture matrix (static template contracts)
+        run: python scripts/verify_shell_architecture_matrix.py
+
+      - name: Gilead full-tree classification (no Django DB)
+        run: python scripts/verify_gilead_full_tree_classification.py
+
+      - name: Phases 3–11 mechanical bundle (consolidated lint module)
+        run: python -m pytest apps/platform_runtime/tests/test_tenant_settings_lint.py -q
+
+      - name: Premium maturity signals (--strict)
+        run: python scripts/report_premium_maturity_signals.py --strict
+
+      - name: RAG retrieval isolation eval (tenant vs global scope)
+        run: python -m pytest services/tests/test_ai_memory.py -q
+
       - name: Smoke URL resolution (no DB)
         env:
           SECRET_KEY: "ci-smoke-light-not-for-production-use-64chars____________________"
           ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
         run: python manage.py test apps.accounts.tests.test_smoke_urls -v 1
+
+      - name: Marketing URLs (full + CMS seed)
+        env:
+          DEBUG: "1"
+          SECRET_KEY: "ci-smoke-light-not-for-production-use-64chars____________________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+        run: |
+          python manage.py migrate --noinput
+          python manage.py validate_marketing_urls --full --seed-cms

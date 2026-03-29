@@ -5,7 +5,8 @@
 {% block cp_title %}Global Pulse Map{% endblock %}
 
 {% block cp_content %}
-  <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-pulse-main">{% trans "Skip to pulse map content" %}</a>
+<div id="super-pulse-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
     {% phase8_dashboard_declaration "schools/super_pulse.html" %}
     {% url 'super:dashboard' as dashboard_url %}
     {% include "studio_os/components/page_header.html" with title=_("Global Pulse Map") subtitle=_("Schools, student counts, and global revenue. API: GET /api/v1/super/pulse") action_url=dashboard_url action_text=_("Back to Schools") %}
@@ -95,5 +96,5 @@
         </div>
       </div>
     </div>
-  </div>
+</div>
 {% endblock %}

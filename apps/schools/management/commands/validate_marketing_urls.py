@@ -9,7 +9,8 @@ Supports the operational checklist in docs/MARKETING_NON_NEGOTIABLES.md:
 Usage:
 
     python manage.py validate_marketing_urls
-    python manage.py validate_marketing_urls --smoke   # also GET key URLs (requires running server or test client)
+    python manage.py validate_marketing_urls --smoke   # also GET key URLs (test client)
+    python manage.py validate_marketing_urls --full    # GET marketing_* + adjacent public routes (roles, migrate, …); --seed-cms for blog detail
 """
 
 from __future__ import annotations
@@ -31,9 +32,21 @@ class Command(BaseCommand):
             action="store_true",
             help="Smoke-test key marketing URLs with test client (GET 200).",
         )
+        parser.add_argument(
+            "--full",
+            action="store_true",
+            help="GET all resolved marketing_* URLs (see apps.schools.marketing_url_inventory).",
+        )
+        parser.add_argument(
+            "--seed-cms",
+            action="store_true",
+            help="With --full: run seed_marketing_cms first so /blog/<slug>/ returns 200.",
+        )
 
     def handle(self, *args, **options):
         run_smoke = options.get("smoke", False)
+        run_full = options.get("full", False)
+        seed_cms = options.get("seed_cms", False)
         errors = []  # URL resolution and smoke only; check failure does not fail this command
         check_failed = False
 
@@ -122,48 +135,130 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("  All marketing_content JSON files OK."))
 
         # 3. Smoke test (GET 200). Use canonical base host so host routing accepts the request.
-        if run_smoke:
-            self.stdout.write("Smoke-testing key URLs (test client)...")
+        if run_smoke or run_full:
             from django.test import Client
             from apps.schools.host_routing import get_canonical_base_domain
 
             client = Client()
             host = get_canonical_base_domain() or "runmycampus.com"
-            smoke_names = [
-                "marketing_landing",
-                "marketing_book_demo",
-                "marketing_10_reasons",
-                "marketing_integrations",
-                "marketing_app_marketplace",
-                "marketing_developers",
-            ]
-            paths = []
-            for name in smoke_names:
-                try:
-                    paths.append(reverse(name))
-                except NoReverseMatch:
-                    pass
-            for path in paths:
-                try:
-                    resp = client.get(path, HTTP_HOST=host)
-                    if resp.status_code == 200:
-                        self.stdout.write(self.style.SUCCESS(f"  GET {path} -> 200"))
-                    else:
-                        errors.append(f"GET {path} -> {resp.status_code}")
+
+            if run_full and seed_cms:
+                self.stdout.write("Running seed_marketing_cms (for blog detail and CMS keys)...")
+                call_command("seed_marketing_cms", verbosity=0)
+
+            if run_full:
+                from apps.schools.marketing_url_inventory import (
+                    iter_marketing_adjacent_smoke_targets,
+                    iter_marketing_smoke_targets,
+                )
+
+                self.stdout.write(
+                    "Full smoke: GET all marketing_* URLs (staff-only routes redirect to LOGIN_URL)..."
+                )
+                for target in iter_marketing_smoke_targets():
+                    try:
+                        resp = client.get(target.path, HTTP_HOST=host, follow=True)
+                        if target.accepts(resp.status_code):
+                            self.stdout.write(
+                                self.style.SUCCESS(
+                                    f"  GET {target.name} {target.path} -> {resp.status_code}"
+                                )
+                            )
+                        else:
+                            errors.append(
+                                f"GET {target.name} {target.path} -> {resp.status_code}"
+                            )
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"  GET {target.name} {target.path} -> {resp.status_code}"
+                                )
+                            )
+                    except (
+                        OSError,
+                        ConnectionError,
+                        ValueError,
+                        TypeError,
+                        KeyError,
+                        AttributeError,
+                        RuntimeError,
+                    ) as e:
+                        errors.append(f"GET {target.name} {target.path}: {e}")
                         self.stdout.write(
-                            self.style.WARNING(f"  GET {path} -> {resp.status_code}")
+                            self.style.ERROR(f"  GET {target.name} {target.path}: {e}")
                         )
-                except (
-                    OSError,
-                    ConnectionError,
-                    ValueError,
-                    TypeError,
-                    KeyError,
-                    AttributeError,
-                    RuntimeError,
-                ) as e:
-                    errors.append(f"GET {path}: {e}")
-                    self.stdout.write(self.style.ERROR(f"  GET {path}: {e}"))
+                self.stdout.write(
+                    "Adjacent smoke: roles, institutions, migrate, signup, discover, API docs..."
+                )
+                for target in iter_marketing_adjacent_smoke_targets():
+                    try:
+                        resp = client.get(target.path, HTTP_HOST=host, follow=True)
+                        if target.accepts(resp.status_code):
+                            self.stdout.write(
+                                self.style.SUCCESS(
+                                    f"  GET adjacent {target.name} {target.path} -> {resp.status_code}"
+                                )
+                            )
+                        else:
+                            errors.append(
+                                f"GET adjacent {target.name} {target.path} -> {resp.status_code}"
+                            )
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"  GET adjacent {target.name} {target.path} -> {resp.status_code}"
+                                )
+                            )
+                    except (
+                        OSError,
+                        ConnectionError,
+                        ValueError,
+                        TypeError,
+                        KeyError,
+                        AttributeError,
+                        RuntimeError,
+                    ) as e:
+                        errors.append(f"GET adjacent {target.name} {target.path}: {e}")
+                        self.stdout.write(
+                            self.style.ERROR(
+                                f"  GET adjacent {target.name} {target.path}: {e}"
+                            )
+                        )
+            elif run_smoke:
+                self.stdout.write("Smoke-testing key URLs (test client)...")
+                smoke_names = [
+                    "marketing_landing",
+                    "marketing_book_demo",
+                    "marketing_10_reasons",
+                    "marketing_integrations",
+                    "marketing_app_marketplace",
+                    "marketing_developers",
+                ]
+                paths = []
+                for name in smoke_names:
+                    try:
+                        paths.append(reverse(name))
+                    except NoReverseMatch:
+                        pass
+                for path in paths:
+                    try:
+                        resp = client.get(path, HTTP_HOST=host)
+                        if resp.status_code == 200:
+                            self.stdout.write(self.style.SUCCESS(f"  GET {path} -> 200"))
+                        else:
+                            errors.append(f"GET {path} -> {resp.status_code}")
+                            self.stdout.write(
+                                self.style.WARNING(f"  GET {path} -> {resp.status_code}")
+                            )
+                    except (
+                        OSError,
+                        ConnectionError,
+                        ValueError,
+                        TypeError,
+                        KeyError,
+                        AttributeError,
+                        RuntimeError,
+                    ) as e:
+                        errors.append(f"GET {path}: {e}")
+                        self.stdout.write(self.style.ERROR(f"  GET {path}: {e}"))
 
         if check_failed:
             self.stdout.write(

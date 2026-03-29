@@ -185,6 +185,11 @@ class GlobalSupportTicket(models.Model):
     )
     subject = models.CharField(max_length=255)
     body = models.TextField(blank=True)
+    internal_notes = models.TextField(
+        blank=True,
+        default="",
+        help_text="Operator-only notes (not shown to tenants); minimize PII.",
+    )
     priority = models.CharField(
         max_length=20,
         choices=Priority.choices,
@@ -216,6 +221,13 @@ class GlobalSupportTicket(models.Model):
         blank=True,
         help_text="When the first agent response was recorded; used for SLA response breach.",
     )
+    csat_score = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="1–5 satisfaction after resolution (tenant-submitted).",
+    )
+    csat_comment = models.TextField(blank=True, default="")
+    csat_submitted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at", "-id"]
@@ -230,3 +242,72 @@ class GlobalSupportTicket(models.Model):
 
     def __str__(self):
         return f"{self.school.name}: {self.subject} ({self.status})"
+
+
+class GlobalSupportTicketReply(models.Model):
+    """
+    Threaded conversation on a global support ticket (public schema).
+    INTERNAL: operators only. SUBMITTER_VISIBLE: also shown to the tenant submitter in portal.
+    """
+
+    class Visibility(models.TextChoices):
+        INTERNAL = "INTERNAL", "Operators only"
+        SUBMITTER_VISIBLE = "SUBMITTER_VISIBLE", "Visible to submitter"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ticket = models.ForeignKey(
+        GlobalSupportTicket,
+        on_delete=models.CASCADE,
+        related_name="thread_replies",
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="global_support_ticket_replies",
+    )
+    body = models.TextField()
+    visibility = models.CharField(
+        max_length=24,
+        choices=Visibility.choices,
+        default=Visibility.INTERNAL,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        indexes = [
+            models.Index(fields=["ticket", "created_at"]),
+        ]
+        verbose_name = "Global support ticket reply"
+        verbose_name_plural = "Global support ticket replies"
+
+    def __str__(self):
+        return f"Reply on {self.ticket_id}"
+
+
+class GlobalSupportTicketWebhookEndpoint(models.Model):
+    """
+    Optional additional HTTP subscribers for global support ticket events (public schema).
+    Legacy env SUPPORT_TICKET_WEBHOOK_URL is still honored alongside active rows here.
+    """
+
+    name = models.CharField(max_length=120, blank=True, default="")
+    url = models.URLField(max_length=500)
+    secret = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Optional HMAC secret (same contract as SUPPORT_TICKET_WEBHOOK_SECRET).",
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "id"]
+        verbose_name = "Global support ticket webhook endpoint"
+        verbose_name_plural = "Global support ticket webhook endpoints"
+
+    def __str__(self):
+        return self.name or self.url[:80]

@@ -72,9 +72,9 @@ def _automation_studio_base_url() -> str:
         return ""
 
 
-def _resolve_automation_iframe_src(pane: str) -> str:
+def _resolve_automation_iframe_src(pane: str, request=None) -> str:
     """Automation Studio: iframe only for heavy / external surfaces; default pane is native."""
-    from apps.studio_os.deep_links import resolve_studio_href
+    from apps.studio_os.deep_links import resolve_studio_href, url_is_cross_origin_request
 
     key = (pane or "").strip().lower()
     mapping = {
@@ -86,7 +86,10 @@ def _resolve_automation_iframe_src(pane: str) -> str:
     if key not in mapping:
         return ""
     vn, emb = mapping[key]
-    return resolve_studio_href(vn, embed=emb) or ""
+    u = resolve_studio_href(vn, embed=emb) or ""
+    if request and u and url_is_cross_origin_request(request, u):
+        return ""
+    return u
 
 
 def _automation_explainer_context(pane: str):
@@ -168,9 +171,9 @@ def _automation_explainer_context(pane: str):
     }
 
 
-def _resolve_launch_iframe_src(_request, pane: str) -> str:
+def _resolve_launch_iframe_src(request, pane: str) -> str:
     """Launch Studio: iframe for wizards; overview/plan are native."""
-    from apps.studio_os.deep_links import resolve_studio_href
+    from apps.studio_os.deep_links import resolve_studio_href, url_is_cross_origin_request
 
     key = (pane or "").strip().lower()
     mapping = {
@@ -183,7 +186,10 @@ def _resolve_launch_iframe_src(_request, pane: str) -> str:
     if key not in mapping:
         return ""
     vn, emb = mapping[key]
-    return resolve_studio_href(vn, embed=emb) or ""
+    u = resolve_studio_href(vn, embed=emb) or ""
+    if request and u and url_is_cross_origin_request(request, u):
+        return ""
+    return u
 
 
 @never_cache
@@ -1017,13 +1023,27 @@ def _resolve_legacy_urls(request):
 
 
 def _studio_rail_append(
-    rail: list, label: str, viewname: str, *, embed: bool = False
+    rail: list,
+    label: str,
+    viewname: str,
+    *,
+    embed: bool = False,
+    request=None,
 ) -> None:
-    from apps.studio_os.deep_links import resolve_studio_href
+    from apps.studio_os.deep_links import resolve_studio_href, url_is_cross_origin_request
 
     u = resolve_studio_href(viewname, embed=embed)
-    if u:
-        rail.append({"label": label, "url": u, "embed": embed})
+    if not u:
+        return
+    item_embed = bool(embed)
+    external = False
+    if request is not None and url_is_cross_origin_request(request, u):
+        external = True
+        item_embed = False
+        u = resolve_studio_href(viewname, embed=False) or u
+    rail.append(
+        {"label": label, "url": u, "embed": item_embed, "external": external}
+    )
 
 
 def _resolve_embed_urls(request):
@@ -1245,7 +1265,9 @@ def studio_shell(request, mode=None):
                 "studio_os:experience_communication_style_packs",
             ),
         ):
-            _studio_rail_append(experience_rail, label, vn, embed=True)
+            _studio_rail_append(
+                experience_rail, label, vn, embed=True, request=request
+            )
         context["experience_left_rail"] = experience_rail
         experience_context_tool_links = []
         for vn, lbl in (
@@ -1392,7 +1414,7 @@ def studio_shell(request, mode=None):
             f"{auto_base}?pane=conflict" if auto_base else ""
         )
         context["automation_iframe_src"] = _resolve_automation_iframe_src(
-            automation_pane
+            automation_pane, request
         )
         graph = get_automation_dependency_graph()
         context["automation_dependency_graph"] = graph
@@ -1714,49 +1736,97 @@ def studio_shell(request, mode=None):
                 )
             context["control_audit_entries"] = []
         control_rail = []
-        from apps.studio_os.deep_links import resolve_studio_href
+        from apps.studio_os.deep_links import resolve_studio_href, url_is_cross_origin_request
 
         _studio_rail_append(
-            control_rail, _("Config center"), "studio_os:system_config_console", embed=True
+            control_rail,
+            _("Config center"),
+            "studio_os:system_config_console",
+            embed=True,
+            request=request,
         )
         _studio_rail_append(
-            control_rail, _("Feature control"), "siteconfig:feature_control_panel", embed=True
+            control_rail,
+            _("Feature control"),
+            "siteconfig:feature_control_panel",
+            embed=True,
+            request=request,
         )
         u_audit = resolve_studio_href("siteconfig:feature_control_audit", embed=False)
         if u_audit:
+            ext_audit = bool(
+                request and url_is_cross_origin_request(request, u_audit)
+            )
             control_rail.append(
-                {"label": _("Audit log"), "url": u_audit, "embed": True}
+                {
+                    "label": _("Audit log"),
+                    "url": u_audit,
+                    "embed": not ext_audit,
+                    "external": ext_audit,
+                }
             )
         _studio_rail_append(
-            control_rail, _("Runtime inspector"), "super:runtime_inspector", embed=False
+            control_rail,
+            _("Runtime inspector"),
+            "super:runtime_inspector",
+            embed=False,
+            request=request,
         )
         _studio_rail_append(
             control_rail,
             _("Metadata governance"),
             "metadata:metadata_governance",
             embed=False,
+            request=request,
         )
         _studio_rail_append(
             control_rail,
             _("Lineage & registry"),
             "metadata:metadata_lineage_graph",
             embed=True,
+            request=request,
         )
         _studio_rail_append(
-            control_rail, _("Integrations"), "apicenter:dashboard", embed=False
+            control_rail,
+            _("Integrations"),
+            "apicenter:dashboard",
+            embed=False,
+            request=request,
         )
         _studio_rail_append(
-            control_rail, _("Blueprints & policy packs"), "siteconfig:get_blueprints", embed=True
-        )
-        _studio_rail_append(control_rail, _("Policy diff"), "super:policy_diff", embed=True)
-        _studio_rail_append(
-            control_rail, _("Plans & entitlements"), "super:billing_dashboard", embed=True
-        )
-        _studio_rail_append(
-            control_rail, _("Diff / impact summary"), "studio_os:control_impact", embed=True
+            control_rail,
+            _("Blueprints & policy packs"),
+            "siteconfig:get_blueprints",
+            embed=True,
+            request=request,
         )
         _studio_rail_append(
-            control_rail, _("AI cleanup suggestions"), "studio_os:ai_cleanup", embed=True
+            control_rail,
+            _("Policy diff"),
+            "super:policy_diff",
+            embed=True,
+            request=request,
+        )
+        _studio_rail_append(
+            control_rail,
+            _("Plans & entitlements"),
+            "super:billing_dashboard",
+            embed=True,
+            request=request,
+        )
+        _studio_rail_append(
+            control_rail,
+            _("Diff / impact summary"),
+            "studio_os:control_impact",
+            embed=True,
+            request=request,
+        )
+        _studio_rail_append(
+            control_rail,
+            _("AI cleanup suggestions"),
+            "studio_os:ai_cleanup",
+            embed=True,
+            request=request,
         )
         context["control_left_rail"] = control_rail
         # Phase 3 — outcome groups (manager + tenant: fallback urlconf resolves super:)
@@ -1886,7 +1956,9 @@ def studio_rollback(request):
                 return JsonResponse(
                     {
                         "ok": False,
-                        "errors": ["Unable to resolve SiteSettings for rollback."],
+                        "errors": [
+                            "Unable to resolve the tenant site settings row for rollback."
+                        ],
                     },
                     status=400,
                 )

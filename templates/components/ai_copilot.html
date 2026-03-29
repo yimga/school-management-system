@@ -150,6 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const AI_BACKEND_ENABLED = '{{ AI_BACKEND_ENABLED|yesno:"true,false" }}' === 'true';
   const AI_PROVIDER_NAME = '{{ AI_PROVIDER_NAME|default:"" }}';
+  const AI_COPILOT_URL = (document.body && document.body.getAttribute('data-ai-copilot-url')) || '/api/ai-copilot/validate/';
   const AI_PERMISSIONS = {{ AI_PERMISSIONS|default:"{}"|safe }};
   const USER_ROLE = '{{ USER_ROLE|default:"USER" }}';
   const CSRF_TOKEN = '{{ csrf_token }}';
@@ -323,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!AI_BACKEND_ENABLED) {
           throw new Error('AI backend is currently unavailable.');
         }
-        const resp = await fetch('/api/ai-copilot/validate/', {
+        const resp = await fetch(AI_COPILOT_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

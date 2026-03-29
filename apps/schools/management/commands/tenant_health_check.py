@@ -123,7 +123,7 @@ class Command(BaseCommand):
         # Shared tables live in the public schema even when you're in tenant_context.
         shared_tables = {
             ("public", "schools_school"): "School (shared)",
-            ("public", "siteconfig_sitesettings"): "SiteSettings (shared)",
+            ("public", "siteconfig_sitesettings"): "siteconfig_sitesettings (shared tenant settings row)",
         }
 
         # Tenant tables live in the tenant schema.

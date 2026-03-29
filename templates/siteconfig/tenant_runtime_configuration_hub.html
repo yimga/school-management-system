@@ -1,0 +1,85 @@
+{% extends "portal_base.html" %}
+{% load i18n phase8_tags %}
+
+{% block title %}{% trans "Tenant runtime configuration" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 52rem;" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "siteconfig/tenant_runtime_configuration_hub.html" %}
+  <h1 class="h3 mb-2">{% trans "Tenant runtime configuration" %}</h1>
+  <p class="text-muted mb-4">
+    {% blocktrans %}
+      Read-only snapshot of <code>get_effective_site_settings</code> for this tenant. Prefer product surfaces below;
+      Django admin is an escape hatch for rare CRUD.
+    {% endblocktrans %}
+  </p>
+
+  {% if school %}
+  <p class="small text-muted mb-3"><strong>{% trans "Tenant" %}</strong>: {{ school.name }}</p>
+  {% endif %}
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">{% trans "Effective settings (safe fields)" %}</div>
+    <div class="card-body">
+      {% if effective_rows %}
+      <dl class="row small mb-0">
+        {% for key, val in effective_rows %}
+        <dt class="col-sm-4 text-muted">{{ key }}</dt>
+        <dd class="col-sm-8"><code>{{ val }}</code></dd>
+        {% endfor %}
+      </dl>
+      {% else %}
+      <p class="text-muted small mb-0">{% trans "No effective settings resolved for this request." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if region_rows %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">{% trans "Region" %}</div>
+    <div class="card-body">
+      <dl class="row small mb-0">
+        {% for key, val in region_rows %}
+        <dt class="col-sm-4 text-muted">{{ key }}</dt>
+        <dd class="col-sm-8"><code>{{ val }}</code></dd>
+        {% endfor %}
+      </dl>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">{% trans "Backend feature flags (enabled keys)" %}</div>
+    <div class="card-body">
+      {% if flags_on %}
+      <ul class="small mb-0">
+        {% for k in flags_on %}
+        <li><code>{{ k }}</code></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted small mb-0">{% trans "None enabled in the merged effective payload (or not a dict)." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">{% trans "Product configuration links" %}</div>
+    <div class="card-body">
+      <ul class="mb-0">
+        <li><a href="{{ console_url }}">{% trans "Configuration Control Center (domains & outcomes)" %}</a></li>
+        <li><a href="{{ feature_control_url }}">{% trans "Feature control" %}</a></li>
+        <li><a href="{{ theme_colors_url }}">{% trans "Theme & colors" %}</a></li>
+        <li><a href="{{ school_theme_url }}">{% trans "School theme" %}</a></li>
+        <li><a href="{{ user_preferences_url }}">{% trans "User preferences" %}</a></li>
+      </ul>
+    </div>
+  </div>
+
+  {% if admin_sitesettings_url %}
+  <p class="small text-muted mb-0">
+    <a href="{{ admin_sitesettings_url }}">{% trans "Open Site Settings in tenant admin (escape hatch)" %}</a>
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

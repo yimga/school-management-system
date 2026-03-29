@@ -2,7 +2,7 @@
 
 ## Implemented
 
-- **Structured logging / correlation:** `RequestIdLoggingMiddleware` sets `request.request_id`, `request.tenant_id`, `request.user_id` and passes them to `set_request_logging_context` (see `apps/observability/logging_context.py`). Response header `X-Request-ID` set. Use these in log formatters so every log line can include request_id/tenant_id.
+- **Structured logging / correlation:** `RequestIdLoggingMiddleware` sets `request.request_id`, `request.tenant_id`, `request.user_id` and passes them to `set_request_logging_context` (see `apps/observability/logging_context.py`). Response header `X-Request-ID` set. Use these in log formatters so every log line can include request_id/tenant_id. When **`LOG_JSON=1`** (or the project’s JSON logging toggle) is enabled, prefer a single JSON object per line: include at least **`request_id`**, **`tenant_id`**, **`user_id`**, and **`school_id`** when present (from `tenant_ctx` / verbose request formatting) so log aggregators can filter without regex.
 - **Metrics:** `ObservabilityMiddleware` records Prometheus counters and histograms (`sms_http_requests_total`, `sms_http_request_latency_seconds`) by method, endpoint, status. Expose `/metrics` in production (behind auth or allowlist) for scraping.
 - **Runbooks:** `docs/architecture/control_plane_runbooks.md` (and referenced in consolidated doc).
 

@@ -587,7 +587,7 @@ class ImpersonationReadOnlyGuardMiddleware:
 
 class RequireMFAMiddleware:
     """
-    Phase 4: When SiteSettings.require_mfa_roles contains the user's role,
+    Phase 4: When require_mfa_roles from effective site settings includes the user's role,
     redirect to MFA setup if they have no TOTP device (zero-cost MFA for compliance).
     """
 

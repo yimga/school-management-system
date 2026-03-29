@@ -4,14 +4,24 @@ from django.db import migrations, models
 
 
 def seed_phase_b_domain_snapshots(apps, schema_editor):
+    # Use historical snapshot model only: live sync_phase_b_domain_snapshots_from_site
+    # touches payload_key_count / checksum fields added in 0026–0027 and fails here.
     from apps.siteconfig.models import SiteSettings
     from apps.platform_runtime.phase_b_domain_snapshots import (
-        sync_phase_b_domain_snapshots_from_site,
+        PHASE_B_SNAPSHOT_DOMAINS,
+        snapshot_payload_for_domain,
     )
 
+    Snapshot = apps.get_model("platform_runtime", "PlatformPhaseBDomainSnapshot")
     site = SiteSettings.objects.order_by("pk").first()
-    if site:
-        sync_phase_b_domain_snapshots_from_site(site)
+    if not site:
+        return
+    for domain in PHASE_B_SNAPSHOT_DOMAINS:
+        payload = snapshot_payload_for_domain(site, domain)
+        Snapshot.objects.update_or_create(
+            domain=domain,
+            defaults={"payload": payload},
+        )
 
 
 def unseed_phase_b_domain_snapshots(apps, schema_editor):

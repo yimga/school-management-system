@@ -14,10 +14,10 @@ Examples::
     python manage.py seed_cursor_twelve_phases
     python manage.py seed_cursor_twelve_phases --from-phase 6 --to-phase 12
     python manage.py seed_cursor_twelve_phases --dry-run
-    python manage.py seed_cursor_twelve_phases --strict-gilead-lint
+    python manage.py seed_cursor_twelve_phases --strict-residue-lint
 
 Phase 12 runs ``seed_business_glossary`` then ``scripts/lint_gilead_residue.py`` (warning
-only unless ``--strict-gilead-lint``).
+only unless ``--strict-residue-lint``; ``--strict-gilead-lint`` is a deprecated alias).
 """
 
 from __future__ import annotations
@@ -111,12 +111,12 @@ CURSOR_PHASE_PLAN: list[tuple[int, str, list[tuple[str, list[str], str]]]] = [
     ),
     (
         6,
-        "Siteconfig / SiteSettings + runtime bridge",
+        "Siteconfig + tenant platform settings + runtime bridge",
         [
             (
                 "backfill_runtime_defaults",
                 [],
-                "Sync RuntimeDefaults from SiteSettings (runtime-first payload)",
+                "Sync RuntimeDefaults from tenant platform settings row (runtime-first payload)",
             ),
             (
                 "normalize_ui_config",
@@ -179,6 +179,11 @@ CURSOR_PHASE_PLAN: list[tuple[int, str, list[tuple[str, list[str], str]]]] = [
                 "Migration connector profiles (SIS / finance / attendance)",
             ),
             ("seed_finance_defaults", [], "Finance compliance profiles and chart of accounts"),
+            (
+                "seed_report_platform_plan_skus",
+                [],
+                "Report-platform Standard/Advanced plans aligned to billing SKU manifest",
+            ),
         ],
     ),
     (
@@ -229,14 +234,24 @@ class Command(BaseCommand):
             help="End at this phase number (inclusive, 1-12).",
         )
         parser.add_argument(
+            "--strict-residue-lint",
             "--strict-gilead-lint",
             action="store_true",
-            help="After phase 12, fail if scripts/lint_gilead_residue.py exits non-zero.",
+            dest="strict_residue_lint",
+            help=(
+                "After phase 12, fail if scripts/lint_gilead_residue.py exits non-zero. "
+                "(--strict-gilead-lint is a deprecated alias.)"
+            ),
         )
         parser.add_argument(
+            "--skip-residue-lint",
             "--skip-gilead-lint",
             action="store_true",
-            help="Skip scripts/lint_gilead_residue.py after phase 12.",
+            dest="skip_residue_lint",
+            help=(
+                "Skip scripts/lint_gilead_residue.py after phase 12. "
+                "(--skip-gilead-lint is a deprecated alias.)"
+            ),
         )
         parser.add_argument(
             "--continue-on-error",
@@ -343,7 +358,7 @@ class Command(BaseCommand):
                     }
                 )
 
-            if phase_num == 12 and not options.get("skip_gilead_lint"):
+            if phase_num == 12 and not options.get("skip_residue_lint"):
                 script = root / "scripts" / "lint_gilead_residue.py"
                 if script.is_file():
                     self.stdout.write("  -> lint_gilead_residue.py (product surface residue check)")
@@ -355,7 +370,7 @@ class Command(BaseCommand):
                     )
                     if r.returncode != 0:
                         msg = (r.stdout or "") + (r.stderr or "")
-                        if options.get("strict_gilead_lint"):
+                        if options.get("strict_residue_lint"):
                             had_failures = True
                             raise CommandError(
                                 f"lint_gilead_residue.py failed (exit {r.returncode}):\n{msg}"
@@ -363,7 +378,7 @@ class Command(BaseCommand):
                         self.stdout.write(
                             self.style.WARNING(
                                 f"lint_gilead_residue.py reported issues (exit {r.returncode}); "
-                                "fix or re-run with --strict-gilead-lint to fail hard."
+                                "fix or re-run with --strict-residue-lint to fail hard."
                             )
                         )
                         if verbosity >= 2 and msg.strip():

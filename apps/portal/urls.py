@@ -47,7 +47,11 @@ from .views import (
 from .views_parent_finance import parent_finance, parent_wallet, parent_feed
 from .views_bulk_capture import teacher_bulk_capture_hub
 from .views_onboarding import teacher_onboarding_wizard, student_onboarding_wizard
-from .views_support import support_request
+from .views_support import (
+    support_help_hub,
+    support_request,
+    support_ticket_detail,
+)
 from .views_contact_requests import (
     parent_contact_school,
     staff_contact_request_list,
@@ -136,6 +140,12 @@ urlpatterns = [
     ),
     path("teacher/my-id/", my_digital_id, name="my_digital_id"),
     path("badge/verify/", badge_verify, name="badge_verify"),
+    path("support/hub/", support_help_hub, name="support_help_hub"),
+    path(
+        "support/ticket/<uuid:ticket_id>/",
+        support_ticket_detail,
+        name="support_ticket_detail",
+    ),
     path("support/", support_request, name="support_request"),
     # Backwards compatibility: older templates and tests expect 'parent_performance'
     path("parent/performance/", parent_child_results, name="parent_performance"),

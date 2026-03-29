@@ -177,8 +177,8 @@ PLATFORM_ADMIN_BRIDGES: dict[str, dict[str, object]] = {
         "label": _("Phase B domain snapshots (platform admin)"),
         "description": _(
             "platform_runtime.PlatformPhaseBDomainSnapshot — owned JSON per domain "
-            "(policies, marketplace_integrations, metadata_governance, …). Prefer this over "
-            "bulk SiteSettings for cross-domain coordination."
+            "(policies, marketplace_integrations, metadata_governance, …). Use the control-plane "
+            "“Phase B snapshot diff” page to compare live owned_payload fingerprints to stored rows."
         ),
         "icon": "bi-diagram-2",
         "show_in_nav": True,

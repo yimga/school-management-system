@@ -41,7 +41,7 @@ _NOTIFICATION_EMAIL_SEND_ERRORS: tuple[type[BaseException], ...] = (
 
 
 def _resolve_site_settings(school: Any = None, site_settings: Any = None):
-    """Resolve SiteSettings from school or request context."""
+    """Resolve effective tenant site settings (slim row via get_effective_site_settings) from school or explicit override."""
     if site_settings is not None:
         return site_settings
     if school is not None:

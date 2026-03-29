@@ -1,0 +1,71 @@
+# WCAG2AA checks on staging (optional — set PA11Y_BASE_URL in repo Actions variables).
+# Mirrors lighthouse-ci.yml: no-op when the base URL is unset.
+name: Pa11y CI
+
+on:
+  pull_request:
+    paths:
+      - "templates/**/*.html"
+      - "templates/marketing/**"
+      - "templates/schools/marketing_*.html"
+      - "static/**/*.css"
+  workflow_dispatch: {}
+
+jobs:
+  pa11y-staging:
+    if: vars.PA11Y_BASE_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build pa11y-ci config from PA11Y_BASE_URL
+        env:
+          PA11Y_BASE_URL: ${{ vars.PA11Y_BASE_URL }}
+          PA11Y_URLS_EXTRA: ${{ vars.PA11Y_URLS_EXTRA }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          base = (os.environ.get("PA11Y_BASE_URL") or "").strip().rstrip("/")
+          if not base:
+              raise SystemExit("PA11Y_BASE_URL is empty")
+          urls = [f"{base}/marketing/", f"{base}/"]
+          extra = os.environ.get("PA11Y_URLS_EXTRA") or ""
+          for part in extra.split(","):
+              p = part.strip()
+              if not p:
+                  continue
+              if p.startswith("http://") or p.startswith("https://"):
+                  urls.append(p)
+              else:
+                  urls.append(base + (p if p.startswith("/") else "/" + p))
+          cfg = {
+              "defaults": {
+                  "standard": "WCAG2AA",
+                  "timeout": 120000,
+                  "chromeLaunchConfig": {"args": ["--no-sandbox"]},
+              },
+              "urls": urls,
+          }
+          path = "/tmp/pa11yci.github.json"
+          with open(path, "w", encoding="utf-8") as f:
+              json.dump(cfg, f, indent=2)
+          print("Wrote", path)
+          print(json.dumps(urls))
+          PY
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pa11y-ci
+        run: npm install -g pa11y-ci@3.1.0
+
+      - name: Run pa11y-ci
+        run: pa11y-ci --config /tmp/pa11yci.github.json

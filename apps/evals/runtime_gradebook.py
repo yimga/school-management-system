@@ -1,6 +1,6 @@
 """
 Phase 7: Gradebook/Evals runtime — resolve grading and publish config from request.tenant_runtime.
-Use these instead of SiteSettings or school.settings for pass_mark, scale, workflow.
+Use these instead of the slim tenant site settings row or school.settings for pass_mark, scale, workflow.
 """
 
 from __future__ import annotations

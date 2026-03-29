@@ -6,7 +6,7 @@ All LLM usage goes through a single orchestration layer. **No browser or front-e
 
 - **Entry:** `services.ai_gateway.invoke(task_type, prompt, user_query=..., metadata=..., response_schema=...)` → `(result, meta)`.
 - **Task types:** config_explain, setup_recommend, workflow_draft, policy_explain, doc_classify, semantic_search, migration_mapping (plus migration_fingerprint, migration_parity), admin_copilot, support_suggest, narrative, general_chat, and domain-guided tasks: interop_assistant, runtime_config_explain, observability_assistant, billing_usage_explain, trust_compliance_assistant, studio_os_assistant (see `TaskType` in `services/ai_gateway.py`).
-- **Tiers:** Ollama (lightweight/private), vLLM (structured JSON, throughput), LiteLLM (routing, fallback, premium), rules (fallback). Routing table: `AI_GATEWAY_TASK_TIERS` or defaults in `services/ai_gateway.py`.
+- **Tiers:** **Defaults:** Ollama then rules for every task (`DEFAULT_TASK_TIERS` in `services/ai_gateway.py`). **Optional:** vLLM / LiteLLM only when added per task via Django `AI_GATEWAY_TASK_TIERS` (merge override).
 - **Structured output:** For workflow_draft, policy_explain, migration_mapping, doc_classify the gateway validates responses via `services.ai_schemas` and returns typed objects or fallback text.
 - **Audit:** Every invoke logs task_type, tier, model, latency_ms, tenant_id, school_id, outcome (success/failure/fallback). Data-tier check: premium (**LiteLLM** only) is skipped when sensitivity disallows it or the prompt payload contains detected PII. **`general_chat` uses Ollama + rules only** (no Google Gemini or other cloud LLM in that path).
 
@@ -27,7 +27,7 @@ All LLM usage goes through a single orchestration layer. **No browser or front-e
 - **Preference (status UI):** `AI_PROVIDER_PREFERENCE` defaults to `ollama,rules`. Tokens such as `gemini` are **ignored** if present in env (legacy cleanup).
 - **Ollama:** `services.inference.OllamaInferenceService` (region, dossier, cache, fallback, PII stripping). Used by gateway and `apps.portal.ai_provider` for delegation. Set `OLLAMA_ENDPOINT`, `OLLAMA_MODEL`. Operations: [OLLAMA_OPERATIONS_AND_UPDATES.md](../OLLAMA_OPERATIONS_AND_UPDATES.md).
 - **vLLM:** `services.ai_gateway._call_vllm` (OpenAI-compatible completions; optional `response_format: json_object`). Set `VLLM_ENDPOINT`, `VLLM_MODEL`.
-- **LiteLLM:** `services.ai_gateway._call_litellm` (proxy URL). Set `LITELLM_PROXY_URL`, `LITELLM_MODEL`. Used for tasks that list `litellm` in `DEFAULT_TASK_TIERS` — **not** for `general_chat`.
+- **LiteLLM:** `services.ai_gateway._call_litellm` (proxy URL). Set `LITELLM_PROXY_URL`, `LITELLM_MODEL`. Only runs for tasks that include `litellm` after an `AI_GATEWAY_TASK_TIERS` override — **not** in default `DEFAULT_TASK_TIERS`.
 - **Rules fallback:** When no live provider returns, `_rules_fallback`; no external call.
 
 ## Prompts, RAG, audit

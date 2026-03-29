@@ -68,14 +68,20 @@ def get_studio_preview_url(mode: str, request: Any = None) -> str:
     name, qs = target
     try:
         base = reverse(name)
-        return f"{base}?{qs}" if qs else base
+        out = f"{base}?{qs}" if qs else base
     except NoReverseMatch:
         from apps.studio_os.deep_links import studio_resolve_url
 
         base = studio_resolve_url(name)
         if not base:
             return ""
-        return f"{base}?{qs}" if qs else base
+        out = f"{base}?{qs}" if qs else base
+    if request is not None:
+        from apps.studio_os.deep_links import url_is_cross_origin_request
+
+        if url_is_cross_origin_request(request, out):
+            return ""
+    return out
 
 
 def get_studio_preview_context(mode: str, request: Any = None) -> dict[str, Any]:

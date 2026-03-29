@@ -17,8 +17,7 @@ class SplitAllocationTests(TestCase):
     def setUp(self):
         self.profile = ComplianceProfile.objects.create(name="Test", country_code="CM")
         site = get_platform_site_settings_record(create=True)
-        site.compliance_profile_id = self.profile.pk
-        site.save(update_fields=["compliance_profile_id"])
+        site.compliance_profile = self.profile
         self.year = AcademicYear.objects.create(
             name="2025/2026",
             start_date=date(2025, 9, 1),

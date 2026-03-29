@@ -8,6 +8,7 @@ from django.db.models import Count
 from django.shortcuts import render
 from django.urls import reverse
 
+from apps.platform_runtime.models import PlatformOperatorCommandCenterLink
 from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
 from .models import School
@@ -43,6 +44,9 @@ def super_command_center(request):
     for row in provisioning_breach_rows:
         row["school"] = school_map.get(row["school_id"])
 
+    operator_command_center_links = list(
+        PlatformOperatorCommandCenterLink.objects.order_by("sort_order", "slug")
+    )
     return render(
         request,
         "schools/super_command_center.html",
@@ -57,6 +61,7 @@ def super_command_center(request):
             "usage_url": reverse("super:usage"),
             "dashboard_url": reverse("super:dashboard"),
             "open_ticket_statuses": list(GlobalSupportTicket.Status.values),
+            "operator_command_center_links": operator_command_center_links,
         },
     )
 
@@ -130,6 +135,9 @@ def super_command_center_v2(request):
         if school is not None:
             row["admin_edit_url"] = ""
 
+    operator_command_center_links = list(
+        PlatformOperatorCommandCenterLink.objects.order_by("sort_order", "slug")
+    )
     return render(
         request,
         "schools/super_command_center.html",
@@ -151,5 +159,6 @@ def super_command_center_v2(request):
             "webhook_stack": webhook_stack,
             "platform_health": platform_health,
             "platform_incidents_url": safe_platform_incidents_url(),
+            "operator_command_center_links": operator_command_center_links,
         },
     )

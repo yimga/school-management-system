@@ -11,6 +11,7 @@ from django.http import HttpRequest, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
+from apps.accounts.permissions import has_role
 from apps.people.models import ApprenticePlacement
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
@@ -30,8 +31,9 @@ _EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS = (
 
 
 def _is_employer(request) -> bool:
-    role = (getattr(request.user, "role", "") or "").upper()
-    return role == "EMPLOYER" or request.user.is_superuser
+    if not request.user.is_authenticated:
+        return False
+    return has_role(request.user, "EMPLOYER")
 
 
 @login_required
@@ -125,7 +127,7 @@ def employer_student_transcript(request: HttpRequest, placement_id: int):
         return JsonResponse({"error": "No academic year for transcript."}, status=400)
     try:
         context = annual_report_context(student, year)
-    except _EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS:
+    except _EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS as exc:
         log_view_exception(
             request,
             "employer_student_transcript: annual_report_context failed",
@@ -134,7 +136,7 @@ def employer_student_transcript(request: HttpRequest, placement_id: int):
                 "student_id": getattr(student, "id", None),
             },
         )
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": str(exc)}, status=500)
     if request.headers.get("Accept", "").find("application/json") >= 0:
         return JsonResponse(
             {

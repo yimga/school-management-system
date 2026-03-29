@@ -152,7 +152,7 @@
     {% block extrastyle %}{% endblock %}
   </head>
 
-  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}">
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     <!--
       .app-container wraps all content for background logo/video/svg effect.

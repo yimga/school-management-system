@@ -101,6 +101,65 @@ def is_feature_enabled(school, code: str) -> bool:
     return _has_feature_fallback(school, code)
 
 
+def _plan_entitlements_direct_grant(school, normalized: str) -> bool:
+    """Plan.included_features, addons, or School.features JSON — no operator floor."""
+    plan = getattr(school, "plan", None)
+    if plan and getattr(plan, "included_features", None):
+        included = [str(x).strip().lower() for x in plan.included_features if x]
+        if normalized in included:
+            return True
+    addons = getattr(school, "addons", None) or []
+    if isinstance(addons, list):
+        addon_set = [str(x).strip().lower() for x in addons if x]
+        if normalized in addon_set:
+            return True
+    raw_feats = getattr(school, "features", None) or {}
+    if isinstance(raw_feats, dict):
+        for fk, fv in raw_feats.items():
+            if fv and str(fk).strip().lower() == normalized:
+                return True
+    return False
+
+
+def is_plan_entitlement_feature_enabled(school, code: str) -> bool:
+    """
+    True when the capability is granted via plan, addons, or School.features JSON,
+    or via the platform operator default report-platform bundle (manifest
+    ``operator_default_report_platform_bundle``) or per-school
+    ``School.report_platform_bundle_slug`` as a **floor** for granular codes
+    when the tenant has coarse ``reports`` on plan/addons/features.
+
+    Does not include module-manifest required_apps, TenantSystem, or policy toggles.
+
+    Use for HTTP feature gates tied to billing SKUs (e.g. ministry report URLs) where
+    ``is_feature_enabled`` would be true for base ``reports`` from BASE_SCHOOL manifest.
+    Same billing waiver as ``is_feature_enabled`` (COMPLIMENTARY / MANUAL_OVERRIDE).
+    """
+    if school is None:
+        return False
+    billing_type = getattr(school, "billing_type", None)
+    if billing_type in ("COMPLIMENTARY", "MANUAL_OVERRIDE"):
+        return True
+    normalized = (code or "").strip().lower()
+    if not normalized:
+        return False
+    if _plan_entitlements_direct_grant(school, normalized):
+        return True
+    from apps.siteconfig.billing_sku_registry import (
+        ALL_REPORT_PLATFORM_FEATURE_CODES,
+        get_effective_report_platform_floor_codes_for_school,
+    )
+
+    if (
+        normalized != "reports"
+        and normalized in ALL_REPORT_PLATFORM_FEATURE_CODES
+        and _plan_entitlements_direct_grant(school, "reports")
+    ):
+        if normalized in get_effective_report_platform_floor_codes_for_school(school):
+            return True
+    return False
+
+
 def _has_feature_fallback(school, code: str) -> bool:
     """Legacy: policy features + resolve_module_enabled (constitution: read from get_effective_policy)."""
     normalized = (code or "").strip().lower()
@@ -248,7 +307,7 @@ class School(models.Model):
         blank=True,
         help_text="Admin/backend theme. Change theme in School edit or Site settings.",
     )
-    # W3-5: Per-tenant theme pack (portal/login). When set, overrides global SiteSettings theme for this school.
+    # W3-5: Per-tenant theme pack (portal/login). When set, overrides the global tenant platform theme default for this school.
     theme_pack = models.ForeignKey(
         "siteconfig.ThemePack",
         on_delete=models.SET_NULL,
@@ -280,6 +339,16 @@ class School(models.Model):
         default=list,
         blank=True,
         help_text="Additional feature codes beyond plan (e.g. ['design_studio', 'inventory'])",
+    )
+    report_platform_bundle_slug = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text=(
+            "Optional reports-standard or reports-advanced: overrides platform operator "
+            "default for granular report SKU floor when plan/addons/features include coarse "
+            "reports. Empty = operator default only (see billing_sku_registry)."
+        ),
     )
     school_type = models.CharField(
         max_length=32,
@@ -418,6 +487,25 @@ class School(models.Model):
     def __str__(self):
         return self.name
 
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+
+        from apps.siteconfig.billing_sku_registry import REPORT_PLATFORM_SKU_BUNDLES
+
+        raw = (getattr(self, "report_platform_bundle_slug", None) or "").strip()
+        if raw:
+            s = raw.lower()
+            if s not in REPORT_PLATFORM_SKU_BUNDLES:
+                raise ValidationError(
+                    {
+                        "report_platform_bundle_slug": (
+                            "Must be empty, reports-standard, or reports-advanced "
+                            "(see billing_sku_registry.REPORT_PLATFORM_SKU_BUNDLES)."
+                        )
+                    }
+                )
+
     @property
     def canonical_country_code(self) -> str:
         if self.country_code:
@@ -445,6 +533,8 @@ class School(models.Model):
             return ""
 
     def save(self, *args, **kwargs):
+        rp = (getattr(self, "report_platform_bundle_slug", None) or "").strip()
+        self.report_platform_bundle_slug = rp.lower() if rp else ""
         # Keep materialized path in sync for multi-level hierarchy
         if self.parent_school_id:
             parent = School.objects.filter(pk=self.parent_school_id).first()
@@ -487,6 +577,15 @@ class School(models.Model):
         """Return the top-level parent in the tenant hierarchy, or self if no parent."""
         chain = self.get_ancestor_chain()
         return chain[-1] if chain else (None if self.parent_school_id else self)
+
+    def get_child_schools(self):
+        """
+        Active direct children (nested tenancy / campus switcher).
+
+        Consumed by :func:`apps.api.views_v1.MeSchoolsView` to populate ``child_schools`` when
+        ``request.school`` is the parent campus.
+        """
+        return School.objects.filter(parent_school_id=self.pk, is_active=True).order_by("name")
 
     def get_descendants(self, include_self=False):
         """Return all schools in the subtree (children, grandchildren, ...). Uses hierarchy_path when set."""

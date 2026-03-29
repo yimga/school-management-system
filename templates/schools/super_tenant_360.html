@@ -20,7 +20,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="record-detail" data-decision-engine="surface">
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#tenant-360-main">{% trans "Skip to school 360 content" %}</a>
+<div id="tenant-360-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="record-detail" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_tenant_360.html" %}
   {% include "studio_os/components/page_header.html" with title=_("School 360") subtitle=school.name action_url=dashboard_url action_text=_("Back to Dashboard") %}
   <div class="row">

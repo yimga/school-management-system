@@ -1097,6 +1097,87 @@ FEATURE_GATE_PATH_MAP = {
     "/portal/features/transport": "transport",
 }
 
+# Path prefix -> capability codes; request is allowed if **any** code is enabled.
+# Batch 14+ report SKUs: ministry paths accept ``reports_ministry_exports`` or coarse ``reports``;
+# parent report downloads accept ``reports_pdf_exports`` or coarse ``reports``;
+# custom builder surfaces accept ``reports_custom_builder`` or coarse ``reports``;
+# scheduled delivery hub/API accept ``reports_scheduled_delivery`` or coarse ``reports``
+# (see billing_sku_registry / BILLING_SKUS_ENTITLEMENTS.md).
+# Uses ``is_plan_entitlement_feature_enabled`` (plan/addons/School.features only) so BASE_SCHOOL
+# manifest ``reports`` does not bypass SKU gating. ``/analytics/`` uses code ``analytics`` only
+# (BR-10 Intelligence tier — not granted by core module manifest).
+FEATURE_GATE_PATH_ANY_OF: dict[str, tuple[str, ...]] = {
+    "/reports/regulatory-export/": ("reports_ministry_exports", "reports"),
+    "/reports/regulatory-export": ("reports_ministry_exports", "reports"),
+    "/reports/statistical-return/": ("reports_ministry_exports", "reports"),
+    "/reports/statistical-return": ("reports_ministry_exports", "reports"),
+    # Staff publish / promotion flows (still @staff_member_required; plan must include coarse reports).
+    "/reports/publish/": ("reports",),
+    "/reports/publish": ("reports",),
+    "/reports/promotion-preview/": ("reports",),
+    "/reports/promotion-preview": ("reports",),
+    # Parent term/annual report downloads (PDF/CSV under this prefix; see reports.urls).
+    "/reports/parent/report/": ("reports_pdf_exports", "reports"),
+    "/reports/parent/report": ("reports_pdf_exports", "reports"),
+    # Report card builder + style previews (siteconfig.urls); API ad-hoc report definitions (urls_v1).
+    "/siteconfig/reports/builder/": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/builder": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/preview/": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/preview": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/embed-preview/": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/embed-preview": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/live-preview/": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/live-preview": ("reports_custom_builder", "reports"),
+    # Template download + bulk letter merge (siteconfig.urls); same SKU family as builder.
+    "/siteconfig/reports/download/": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/download": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/bulk-letters/": ("reports_custom_builder", "reports"),
+    "/siteconfig/reports/bulk-letters": ("reports_custom_builder", "reports"),
+    "/api/v1/reports/adhoc": ("reports_custom_builder", "reports"),
+    "/api/v1/reports/adhoc/": ("reports_custom_builder", "reports"),
+    # Scheduled delivery hub (siteconfig) + API discovery list (see views_v1.ScheduledReportsListView).
+    "/siteconfig/reports/scheduled/": ("reports_scheduled_delivery", "reports"),
+    "/siteconfig/reports/scheduled": ("reports_scheduled_delivery", "reports"),
+    "/api/v1/reports/scheduled": ("reports_scheduled_delivery", "reports"),
+    "/api/v1/reports/scheduled/": ("reports_scheduled_delivery", "reports"),
+    # Ministry / EMIS API (same SKU family as HTML regulatory/statistical paths).
+    "/api/v1/reports/regulatory-presets": ("reports_ministry_exports", "reports"),
+    "/api/v1/reports/regulatory-presets/": ("reports_ministry_exports", "reports"),
+    "/api/v1/reports/regulatory-export": ("reports_ministry_exports", "reports"),
+    "/api/v1/reports/regulatory-export/": ("reports_ministry_exports", "reports"),
+    "/api/v1/reports/emis": ("reports_ministry_exports", "reports"),
+    "/api/v1/reports/emis/": ("reports_ministry_exports", "reports"),
+    # Intelligence tier (BR-10): tenant analytics app — not implied by core module manifest.
+    "/analytics/": ("analytics",),
+    "/analytics": ("analytics",),
+}
+
+
+def _feature_gate_path_matches(path: str, prefix: str) -> bool:
+    p = (prefix or "").strip()
+    if not p:
+        return False
+    base = p.rstrip("/")
+    return path == p or path == base or path.startswith(base + "/")
+
+
+def _school_has_capability(request, school, code: str) -> bool:
+    try:
+        from apps.policies.policy_registry import get_effective_policy
+
+        policy_result = get_effective_policy(
+            school,
+            user=getattr(request, "user", None),
+            capability=code,
+        )
+        if isinstance(policy_result, dict):
+            return bool(policy_result.get("enabled", False))
+    except (AttributeError, ImportError, TypeError, ValueError):
+        pass
+    from apps.schools.models import is_feature_enabled
+
+    return is_feature_enabled(school, code)
+
 
 def _feature_gate_403(request, feature_code: str):
     """Return 403 response (JSON for API, HTML for browser)."""
@@ -1121,9 +1202,11 @@ def _feature_gate_403(request, feature_code: str):
 
 class FeatureGatekeeperMiddleware(MiddlewareMixin):
     """
-    Phase D: Enforce feature access by path. If request.school is set and the path
-    matches FEATURE_GATE_PATH_MAP, require is_feature_enabled(school, code); else return 403.
-    Must run after TenantMiddleware so request.school is set.
+    Phase D / Batch 14+: Enforce feature access by path when ``request.school`` is set.
+    ``FEATURE_GATE_PATH_MAP`` — single capability per prefix.
+    ``FEATURE_GATE_PATH_ANY_OF`` — prefix allowed if **any** listed capability is enabled.
+    Uses ``get_effective_policy`` when available, else ``is_feature_enabled``.
+    Must run after TenantMiddleware.
     """
 
     def process_request(self, request):
@@ -1134,31 +1217,19 @@ class FeatureGatekeeperMiddleware(MiddlewareMixin):
         for prefix, code in FEATURE_GATE_PATH_MAP.items():
             if not code:
                 continue
-            if (
-                path == prefix
-                or path.startswith(prefix.rstrip("/") + "/")
-                or path == prefix.rstrip("/")
-            ):
-                try:
-                    from apps.policies.policy_registry import get_effective_policy
-
-                    policy_result = get_effective_policy(
-                        school,
-                        user=getattr(request, "user", None),
-                        capability=code,
-                    )
-                    enabled = (
-                        policy_result.get("enabled", False)
-                        if isinstance(policy_result, dict)
-                        else False
-                    )
-                except (AttributeError, ImportError, TypeError, ValueError):
-                    from apps.schools.models import is_feature_enabled
-
-                    enabled = is_feature_enabled(school, code)
-                if not enabled:
+            if _feature_gate_path_matches(path, prefix):
+                if not _school_has_capability(request, school, code):
                     return _feature_gate_403(request, code)
-                break
+                return None
+        for prefix, codes in FEATURE_GATE_PATH_ANY_OF.items():
+            if not codes:
+                continue
+            if _feature_gate_path_matches(path, prefix):
+                from apps.schools.models import is_plan_entitlement_feature_enabled
+
+                if not any(is_plan_entitlement_feature_enabled(school, c) for c in codes):
+                    return _feature_gate_403(request, codes[0])
+                return None
         return None
 
 

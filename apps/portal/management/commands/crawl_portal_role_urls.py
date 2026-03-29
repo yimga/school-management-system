@@ -33,6 +33,7 @@ from django.urls import NoReverseMatch, reverse
 from apps.portal.crawl_helpers import portal_smoke_response_ok
 from apps.portal.portal_smoke_prerequisites import (
     ensure_portal_smoke_prerequisites,
+    ensure_portal_smoke_probe_feature_permissions,
     portal_crawl_unresolved_host_message,
     resolve_school_from_http_host,
 )
@@ -122,6 +123,8 @@ class Command(BaseCommand):
                 "Ensured portal smoke prerequisites (year/term, compliance if needed, "
                 "teacher profile for probe user).\n"
             )
+
+        ensure_portal_smoke_probe_feature_permissions(users_by_role)
 
         for seed in PORTAL_ROLE_SMOKE_SEEDS:
             url_name = seed["url_name"]

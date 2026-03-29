@@ -8,6 +8,10 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.schools.super_admin_bridge_registry import (
+    PLATFORM_ADMIN_BRIDGE_ORDER,
+    PLATFORM_ADMIN_BRIDGES,
+)
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -38,8 +42,24 @@ class ControlPlaneBridgeManifestAPITests(TestCase):
         self.assertIn("bridges", data)
         self.assertIn("bridge_count", data)
         self.assertGreater(data["bridge_count"], 10)
-        keys = {b.get("bridge_key") for b in data["bridges"]}
+        bridges = data["bridges"]
+        self.assertEqual(
+            len(bridges),
+            data["bridge_count"],
+            msg="bridge_count must match bridges[] length (batch 17 #178 / batch 18 #193)",
+        )
+        expected_keys = [
+            k
+            for k in PLATFORM_ADMIN_BRIDGE_ORDER
+            if PLATFORM_ADMIN_BRIDGES.get(k) and PLATFORM_ADMIN_BRIDGES[k].get("admin_url")
+        ]
+        self.assertEqual(
+            [b.get("bridge_key") for b in bridges],
+            expected_keys,
+            msg="API manifest order must follow PLATFORM_ADMIN_BRIDGE_ORDER with admin_url",
+        )
+        keys = {b.get("bridge_key") for b in bridges}
         self.assertIn("integrations", keys)
-        self.assertIn("admin_url", data["bridges"][0])
-        self.assertIn("super_bridge_path", data["bridges"][0])
+        self.assertIn("admin_url", bridges[0])
+        self.assertIn("super_bridge_path", bridges[0])
         self.assertIn("/super/operator-policy/", data.get("operator_policy", ""))

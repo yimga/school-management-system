@@ -56,7 +56,7 @@
               <a href="{% url 'portal:staff_contact_request_detail' r.id %}">{{ r.subject }}</a>
             </td>
             <td><span class="badge bg-info text-uppercase">{{ r.status }}</span></td>
-            <td>{{ r.assigned_to.get_full_name|default:r.assigned_to.username|default:"—" }}</td>
+            <td>{% if r.assigned_to %}{{ r.assigned_to.get_full_name|default:r.assigned_to.username }}{% else %}—{% endif %}</td>
           </tr>
         {% endfor %}
       </tbody>

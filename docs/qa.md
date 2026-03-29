@@ -19,6 +19,7 @@ Embed QA into every Phase 7 milestone: dashboards, integrations, and automatio
 - **Lighthouse:** Run in CI or pre_deploy (e.g. `npx lighthouse https://<staging>/ --output=json --output-path=./docs/qa-reports/lighthouse-home.json --chrome-flags="--headless"`). Fail or warn if Performance score &lt; threshold or Accessibility score &lt; 90.
 - **pa11y:** `npx pa11y https://<staging>/` (and other URLs); store results in `docs/qa-reports/` and fail on critical a11y violations. See [MARKETING_PAGE_AUDIT.md](MARKETING_PAGE_AUDIT.md) for WCAG/i18n gap logging.
 - **CI step (optional):** Add a job that starts the app (or uses a staging URL), runs Lighthouse/pa11y on the list above, and uploads artifacts. Runner is environment-specific; document the exact command in this file or in your CI config.
+- **GitHub Actions — Pa11y:** Workflow `.github/workflows/pa11y-ci.yml` runs when **`PA11Y_BASE_URL`** is set under **Repository → Settings → Secrets and variables → Actions → Variables** (same idea as Lighthouse’s `LHCI_URL`). Default URL list: `{BASE}/marketing/`, `{BASE}/`. Optional comma-separated **`PA11Y_URLS_EXTRA`**: absolute URLs, or paths such as `/book-demo/` (appended to `PA11Y_BASE_URL`). If `PA11Y_BASE_URL` is empty, the job is skipped.
 
 ### MFA checklist (full)
 1. **Enable MFA**: Admin → User → MFA setup (or `accounts:mfa_setup`); verify TOTP device registration.

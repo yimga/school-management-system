@@ -1,6 +1,6 @@
 """
 Phase 6: Admissions services — consume request.tenant_runtime.modules.admissions only.
-Use these instead of SiteSettings or hardcoded country/level/document lists.
+Use these instead of the slim tenant settings row or hardcoded country/level/document lists.
 """
 
 from __future__ import annotations

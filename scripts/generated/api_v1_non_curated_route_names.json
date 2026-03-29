@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "source": "apps.api.api_v1_manifest.MANIFEST_CURATED_API_V1_URL_NAMES",
+  "curated_url_name_count": 36,
+  "snapshot_name_count": 54,
+  "non_curated": [
+    "billing-quote-accept",
+    "finance-disputes-create",
+    "finance-disputes-resolve",
+    "finance-exchange-rate",
+    "finance-generate-batch",
+    "intervention-action-center-detail",
+    "intervention-generate-roadmap",
+    "manifest",
+    "reports-adhoc-run",
+    "reports-emis-submit",
+    "reports-scheduled-detail",
+    "scheduler-generate",
+    "video-attendance-sync",
+    "video-sessions-list-create",
+    "vocational-certifications-expiring",
+    "vocational-digital-badge",
+    "vocational-log-hours",
+    "vocational-verify-skill"
+  ]
+}

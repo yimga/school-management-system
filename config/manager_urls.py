@@ -93,7 +93,7 @@ def manager_search_api(request):
         if not query_lower:
             # Empty query: show a broader intent strip (BR-02 / §8.0.4); catalog includes
             # geography, trust, policy, backlog, fleet, operator hub — not only the first legacy ten.
-            results = static_catalog[:22]
+            results = static_catalog[:23]
         else:
             for item in static_catalog:
                 haystack = f"{item['title']} {item['description']} {' '.join(item['meta'])}".lower()
@@ -210,6 +210,20 @@ def _manager_search_static_catalog():
             "meta": ["Control plane"],
         },
         {
+            "title": "Schools list",
+            "description": "Paginated tenant directory, sector filters, and links to tenant 360.",
+            "url": reverse("super:schools_list"),
+            "type": "class",
+            "meta": ["Control plane", "Tenants", "Directory"],
+        },
+        {
+            "title": "Analytics overview",
+            "description": "Fleet analytics, observability entry points, and chart reference patterns.",
+            "url": reverse("super:analytics_overview"),
+            "type": "report",
+            "meta": ["Control plane", "Analytics", "Observability"],
+        },
+        {
             "title": "Mission Queues",
             "description": "Approvals, incidents, provisioning breaches, and operator backlog.",
             "url": reverse("super:command_center"),
@@ -300,6 +314,27 @@ def _manager_search_static_catalog():
             "type": "class",
             "meta": ["Operator hub", "Super", "Platform admin"],
         },
+        {
+            "title": "Playbook operator hub",
+            "description": "Migration playbook audit, execution log filters, and curated operator deep links.",
+            "url": reverse("super:playbook_operator_hub"),
+            "type": "class",
+            "meta": ["Automation", "Playbooks", "Control plane"],
+        },
+        {
+            "title": "Runtime truth hub",
+            "description": "Read-only RuntimeDefaults payload preview and slim SiteSettings singleton.",
+            "url": reverse("super:runtime_truth_hub"),
+            "type": "class",
+            "meta": ["Runtime", "Phase B", "Control plane"],
+        },
+        {
+            "title": "Workflow simulator",
+            "description": "Simulate workflow resolution for a school and role (control plane).",
+            "url": reverse("super:workflow_simulator"),
+            "type": "class",
+            "meta": ["Workflows", "Control plane"],
+        },
     ]
 
 
@@ -328,6 +363,10 @@ urlpatterns = [
     ),
     path(
         "studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")
+    ),
+    path(
+        "automation/",
+        include(("apps.automation.urls", "automation"), namespace="automation"),
     ),
     path(
         "api-center/",

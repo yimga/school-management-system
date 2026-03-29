@@ -10,9 +10,14 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.test import Client, SimpleTestCase, TestCase, override_settings
+from django.core.management import call_command
 from django.urls import reverse
 
 from apps.schools.marketing_ai import get_marketing_ai_asset_url
+from apps.schools.marketing_url_inventory import (
+    iter_marketing_adjacent_smoke_targets,
+    iter_marketing_smoke_targets,
+)
 from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
 
 
@@ -60,10 +65,10 @@ class MarketingDemoTenantUrlDerivationTests(SimpleTestCase):
         self.assertEqual(
             derive_marketing_demo_tenant_url(
                 "",
-                "gilead-school",
+                "demo-tenant",
                 "runmycampus.com",
             ),
-            "https://gilead-school.runmycampus.com/",
+            "https://demo-tenant.runmycampus.com/",
         )
 
     def test_empty_when_no_slug_or_base(self):
@@ -239,6 +244,36 @@ class MarketingLandingContextTests(TestCase):
         self.assertContains(resp, "Why schools switch")
         self.assertContains(resp, "Studio OS — one shell for every mode")
 
+    def test_landing_renders_admissions_flow_post_enrollment_and_what_you_get(self):
+        """MARKETING_PAGE_AUDIT: context keys must surface on HTML (was context-only)."""
+        resp = self.client.get("/marketing/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "admissions-pipeline")
+        self.assertContains(resp, "Capture enquiries")
+        self.assertContains(resp, "Convert and onboard")
+        self.assertContains(resp, "post-enrollment-revenue")
+        self.assertContains(resp, "School Events")
+        self.assertContains(resp, "Alumni Network")
+        self.assertContains(resp, "what-you-get")
+        self.assertContains(resp, "Data security")
+        self.assertContains(resp, "Customizable branding")
+
+    def test_landing_nav_has_product_and_solutions_dropdowns(self):
+        resp = self.client.get("/marketing/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn("dropdown-toggle", body)
+        self.assertIn("/products/admissions/", body)
+        self.assertIn("/solutions/k12/", body)
+        self.assertIn("mkt-nav-submenu", body)
+
+    def test_landing_video_testimonials_use_external_watch_links(self):
+        resp = self.client.get("/marketing/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertGreaterEqual(body.count("youtube.com/watch"), 2)
+        self.assertIn("illustration-students.svg", body)
+
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
 class MarketingPageExtrasTests(TestCase):
@@ -317,6 +352,51 @@ class MarketingRegionalJsonIntegrationTests(TestCase):
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+class MarketingFullUrlInventoryTests(TestCase):
+    """GET every marketing_* route after CMS seed (aligns with validate_marketing_urls --full --seed-cms)."""
+
+    def setUp(self):
+        self.client = Client()
+        self.host = "runmycampus.com"
+        self.env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self.env.start()
+        call_command("seed_marketing_cms", verbosity=0)
+
+    def tearDown(self):
+        self.env.stop()
+
+    def test_all_inventory_marketing_urls_acceptable_status(self):
+        for target in iter_marketing_smoke_targets():
+            with self.subTest(name=target.name, path=target.path):
+                resp = self.client.get(
+                    target.path, HTTP_HOST=self.host, follow=True
+                )
+                self.assertTrue(
+                    target.accepts(resp.status_code),
+                    f"{target.name} GET {target.path} -> {resp.status_code}, "
+                    f"expected one of {sorted(target.ok_statuses)}",
+                )
+
+    def test_all_adjacent_marketing_surface_urls_return_200(self):
+        for target in iter_marketing_adjacent_smoke_targets():
+            with self.subTest(name=target.name, path=target.path):
+                resp = self.client.get(
+                    target.path, HTTP_HOST=self.host, follow=True
+                )
+                self.assertTrue(
+                    target.accepts(resp.status_code),
+                    f"{target.name} GET {target.path} -> {resp.status_code}, "
+                    f"expected one of {sorted(target.ok_statuses)}",
+                )
+
+
 class MarketingAbVariantTests(TestCase):
     """Session-sticky A/B: CTA order and hero B subline (see MARKETING_EXECUTION.md)."""
 

@@ -17,18 +17,40 @@
       <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 mkt-nav-primary">
         {% for item in marketing_navbar_primary %}
           {% if forloop.counter <= marketing_navbar_visible_count|default:7 %}
-          <li class="nav-item">
+          <li class="nav-item {% if item.children %}dropdown mkt-nav-dropdown{% endif %}">
+            {% if item.children %}
+            <a class="nav-link px-2 dropdown-toggle" href="{{ item.path }}" id="mktNavDd{{ forloop.counter }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-haspopup="true">{{ item.label }}</a>
+            <ul class="dropdown-menu dropdown-menu-dark mkt-nav-submenu" aria-labelledby="mktNavDd{{ forloop.counter }}">
+              {% for child in item.children %}
+                {% if child.is_header %}
+              <li><h6 class="dropdown-header text-uppercase small mb-0 mt-1 px-3">{{ child.label }}</h6></li>
+                {% else %}
+              <li><a class="dropdown-item" href="{{ child.path }}">{{ child.label }}</a></li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+            {% else %}
             <a class="nav-link px-2" href="{{ item.path }}">{{ item.label }}</a>
+            {% endif %}
           </li>
           {% endif %}
         {% endfor %}
         {% if marketing_navbar_has_more %}
-        <li class="nav-item dropdown">
+        <li class="nav-item dropdown mkt-nav-dropdown">
           <a class="nav-link px-2 dropdown-toggle" href="#" id="mktNavMore" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">{% trans "More" %}</a>
-          <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="mktNavMore">
+          <ul class="dropdown-menu dropdown-menu-dark mkt-nav-submenu" aria-labelledby="mktNavMore">
             {% for item in marketing_navbar_primary %}
               {% if forloop.counter > marketing_navbar_visible_count|default:7 %}
+                {% if item.children %}
+              <li><h6 class="dropdown-header text-uppercase small mb-0 mt-1 px-3">{{ item.label }}</h6></li>
+                  {% for child in item.children %}
+                    {% if not child.is_header %}
+              <li><a class="dropdown-item ps-4" href="{{ child.path }}">{{ child.label }}</a></li>
+                    {% endif %}
+                  {% endfor %}
+                {% else %}
               <li><a class="dropdown-item" href="{{ item.path }}">{{ item.label }}</a></li>
+                {% endif %}
               {% endif %}
             {% endfor %}
           </ul>

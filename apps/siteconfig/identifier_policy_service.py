@@ -1,6 +1,6 @@
 """
 Section 22: Identifier policy service for tenant admission number generation and validation.
-Uses TenantAdmissionNumberPolicy when present, else get_effective_policy(school)["admissions"] / SiteSettings.
+Uses TenantAdmissionNumberPolicy when present, else get_effective_policy(school)["admissions"] / the site settings singleton.
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ def default_school_code_for(school=None, fallback: str = "SCH") -> str:
 def get_admissions_policy(school) -> Dict[str, Any]:
     """
     Return merged admission number config for a school.
-    TenantAdmissionNumberPolicy overrides when present and active; else policy resolver + SiteSettings.
+    TenantAdmissionNumberPolicy overrides when present and active; else policy resolver + the site settings singleton.
     """
     try:
         from apps.siteconfig.models import TenantAdmissionNumberPolicy

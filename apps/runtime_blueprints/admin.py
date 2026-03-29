@@ -47,12 +47,20 @@ for model in (
     DashboardPack,
     DashboardPackAssignment,
     DashboardTemplate,
-    DashboardWidget,
     WorkflowPack,
     WorkflowPackAssignment,
     WorkflowTemplate,
 ):
     register_both(model, ProxyOwnerAdmin)
+
+
+class DashboardWidgetBlueprintAdmin(ProxyOwnerAdmin):
+    """P3: reuse siteconfig change_form with control-plane escape hatch (catalog is tenant-editable)."""
+
+    change_form_template = "admin/siteconfig/dashboardwidget/change_form.html"
+
+
+register_both(DashboardWidget, DashboardWidgetBlueprintAdmin)
 
 for model in (DashboardUserPreference, TenantLayoutAssignment, TenantWorkflow):
     register_tenant_admin(model, ProxyOwnerAdmin)

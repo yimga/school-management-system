@@ -35,8 +35,17 @@ FINANCE_SOFT_FAILURES = (
 
 def _active_profile(request: HttpRequest | None = None) -> ComplianceProfile | None:
     site = get_effective_site_settings(request=request)
-    if getattr(site, "compliance_profile", None):
-        return site.compliance_profile
+    profile = getattr(site, "compliance_profile", None)
+    if profile is not None:
+        return profile
+    profile_id = getattr(site, "compliance_profile_id", None)
+    if profile_id is not None:
+        try:
+            resolved = ComplianceProfile.objects.filter(pk=int(profile_id)).first()
+        except (TypeError, ValueError):
+            resolved = None
+        if resolved is not None:
+            return resolved
     return ComplianceProfile.objects.filter(is_active=True).first()
 
 

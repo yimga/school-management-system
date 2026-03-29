@@ -16,6 +16,7 @@ from typing import Optional
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -244,11 +245,12 @@ class WebhookSecurityValidator:
         """
         from .models import WebhookLog
 
-        # Check if this reference was already processed successfully
+        # Match provider payment reference or stored idempotency bucket (header replay).
         duplicate = WebhookLog.objects.filter(
             provider=provider,
-            reference_id=reference_id,
             status__in=["PROCESSED", "DUPLICATE"],
+        ).filter(
+            Q(reference_id=reference_id) | Q(idempotency_bucket=reference_id)
         ).exists()
 
         if duplicate:
@@ -468,6 +470,7 @@ def webhook_security_required(view_func):
             WebhookLog.objects.create(
                 provider=provider_slug,
                 reference_id=reference_id,
+                idempotency_bucket=reference_id,
                 client_ip=client_ip,
                 signature_valid=True,
                 status="RECEIVED",

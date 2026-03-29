@@ -1,14 +1,22 @@
 {% extends "portal_base.html" %}
 {% load static %}
 
+{% block page_archetype %}kb-search{% endblock %}
+
 {% block title %}Search - Help Center{% endblock %}
 
 {% block content %}
+<div
+  class="portal-kb-search-read-shell"
+  data-page-critical-read="kb-search"
+  data-sms-offline-read-cache-key="portal_kb_search"
+  tabindex="-1"
+>
 <div class="container-fluid mt-3 mb-5">
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-lg-10 mx-auto">
-            <h1 class="h2 mb-4">
+            <h1 class="h2 mb-4" id="kb-search-heading">
                 <i class="fas fa-search"></i> Search Results
             </h1>
 
@@ -293,6 +301,7 @@
             {% endif %}
         </div>
     </div>
+</div>
 </div>
 
 {% endblock %}

@@ -4,6 +4,7 @@ import pytz
 
 from django import forms
 from django.conf import settings
+from django.utils.text import capfirst
 from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.db.models import Q
 
@@ -11,6 +12,7 @@ from apps.academics.models import Classroom
 from apps.brand_experience.models import ThemePack
 from apps.brand_experience.platform_global_branding import PlatformGlobalBranding
 from apps.platform_runtime.helpers import get_effective_site_settings
+from apps.platform_runtime.models import RuntimeDefaults
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.runtime_blueprints.models import ReportCardStyle
 
@@ -21,7 +23,7 @@ from .models_support import (
     get_dashboard_widget_choices,
 )
 from apps.academics.models import ReportCardStyleAssignment
-from .models import SiteSettings
+import apps.siteconfig.models as _siteconfig_models
 from .models_constants import BACKEND_CONSOLE_THEME_CHOICES
 from .models_support import DashboardView
 from .models_platform_catalog import RegionConfig
@@ -29,6 +31,8 @@ from .models_tooling import UserPreference
 from .translations import SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from .widgets import ColorInputWithPreview
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 # §2.4: Typed tuple for get_effective_site_settings resolution in theme/experience forms.
 _SITECONFIG_FORMS_RESOLVE_ERRORS = (
@@ -321,7 +325,7 @@ SITESETTINGS_FIELD_ORDER = [
 def _valid_sitesettings_fields() -> list[str]:
     model_fields = {
         field.name
-        for field in SiteSettings._meta.get_fields()
+        for field in _TenantSettingsModel._meta.get_fields()
         if not field.auto_created
     }
     return [
@@ -354,7 +358,7 @@ class SiteSettingsForm(forms.ModelForm):
     )
 
     class Meta:
-        model = SiteSettings
+        model = _TenantSettingsModel
         fields = _valid_sitesettings_fields()
 
         widgets = {
@@ -946,7 +950,7 @@ class ReportCardStyleAssignmentForm(forms.Form):
 
 
 class ReportCardStyleSelectionForm(forms.ModelForm):
-    """Defaults live on PlatformGlobalBranding (Phase B slim SiteSettings)."""
+    """Defaults live on PlatformGlobalBranding (Phase B slim tenant settings row)."""
 
     class Meta:
         model = PlatformGlobalBranding
@@ -961,7 +965,7 @@ class ReportCardStyleSelectionForm(forms.ModelForm):
 # Theme Studio field ids: most values resolve from get_effective_site_settings (facade).
 # default_term_report_style / default_annual_report_style are stored on
 # brand_experience.PlatformGlobalBranding; the facade exposes *_id keys via
-# get_theme_experience_settings() / get_theme_selection_ids() — not on slim SiteSettings columns.
+# get_theme_experience_settings() / get_theme_selection_ids() — not on slim tenant DB columns.
 THEME_EXPERIENCE_FIELD_NAMES = [
     "primary_color",
     "accent_color",
@@ -1025,7 +1029,7 @@ _THEME_HARMONY_CHOICES = [
 def _theme_experience_model_field_names() -> list[str]:
     names = {
         f.name
-        for f in SiteSettings._meta.concrete_fields
+        for f in _TenantSettingsModel._meta.concrete_fields
         if not getattr(f, "primary_key", False)
     }
     return [n for n in THEME_EXPERIENCE_FIELD_NAMES if n in names]
@@ -1034,7 +1038,7 @@ def _theme_experience_model_field_names() -> list[str]:
 def _theme_experience_virtual_field_names() -> list[str]:
     names = {
         f.name
-        for f in SiteSettings._meta.concrete_fields
+        for f in _TenantSettingsModel._meta.concrete_fields
         if not getattr(f, "primary_key", False)
     }
     return [n for n in THEME_EXPERIENCE_FIELD_NAMES if n not in names]
@@ -1104,7 +1108,7 @@ class ThemeColorsForm(forms.ModelForm):
     """Form for the combined Theme & Experience page (/siteconfig/theme-colors/)."""
 
     class Meta:
-        model = SiteSettings
+        model = _TenantSettingsModel
         fields = _theme_experience_model_field_names()
         widgets = {
             k: v
@@ -1124,6 +1128,12 @@ class ThemeColorsForm(forms.ModelForm):
                 "report_downloads_enabled",
             ):
                 self.fields[name] = forms.BooleanField(required=False, widget=w)
+                if name == "report_downloads_enabled":
+                    mf = RuntimeDefaults._meta.get_field("report_downloads_enabled")
+                    self.fields[name].help_text = mf.help_text or ""
+                    if mf.verbose_name:
+                        # Match ModelForm label treatment on RuntimeDefaultsBrandForm.
+                        self.fields[name].label = capfirst(mf.verbose_name)
             elif name in ("base_font_size", "default_refresh_rate"):
                 self.fields[name] = forms.IntegerField(required=False, widget=w)
             elif name == "theme_brightness":

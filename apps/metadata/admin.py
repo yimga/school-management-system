@@ -3,11 +3,8 @@ Metadata admin: DynamicField (15.2), state machine, catalog, glossary, config au
 """
 
 from django.contrib import admin
+
 from .models import (
-    ConfigMutationAuditLog,
-    DynamicFieldDefinition,
-    DynamicFieldValue,
-    EntityCatalogEntry,
     EntityState,
     FieldCatalogEntry,
     LayoutDefinition,
@@ -17,8 +14,10 @@ from .models import (
 )
 
 
-@admin.register(DynamicFieldDefinition)
 class DynamicFieldDefinitionAdmin(admin.ModelAdmin):
+    """Canonical DynamicField definitions; registered on tenant + platform in ``metadata.apps``."""
+
+    change_form_template = "admin/metadata/dynamicfielddefinition/change_form.html"
     list_display = (
         "entity_type",
         "field_key",
@@ -35,8 +34,10 @@ class DynamicFieldDefinitionAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(DynamicFieldValue)
 class DynamicFieldValueAdmin(admin.ModelAdmin):
+    """Canonical DynamicField values; registered on tenant + platform in ``metadata.apps``."""
+
+    change_form_template = "admin/metadata/dynamicfieldvalue/change_form.html"
     list_display = ("entity_type", "entity_id", "field_key", "school", "updated_at")
     list_filter = ("entity_type",)
     search_fields = ("entity_type", "entity_id", "field_key")
@@ -67,8 +68,9 @@ class EntityStateAdmin(admin.ModelAdmin):
     raw_id_fields = ("definition", "school")
 
 
-@admin.register(EntityCatalogEntry)
 class EntityCatalogEntryAdmin(admin.ModelAdmin):
+    """Registered on tenant + platform in ``metadata.apps`` (console domain reverses)."""
+
     list_display = (
         "code",
         "name",
@@ -123,8 +125,9 @@ class BusinessGlossaryEntryAdmin(admin.ModelAdmin):
     ordering = ("term", "locale")
 
 
-@admin.register(ConfigMutationAuditLog)
 class ConfigMutationAuditLogAdmin(admin.ModelAdmin):
+    """Registered on tenant + platform in ``metadata.apps`` (console domain reverses)."""
+
     list_display = ("target_type", "scope", "actor_id", "impact_summary", "created_at")
     list_filter = ("scope", "target_type")
     search_fields = ("target_id", "rollback_token", "reason")

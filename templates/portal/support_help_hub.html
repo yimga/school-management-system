@@ -1,0 +1,113 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Help & support" %}{% endblock %}
+
+{% block page_archetype %}support-hub{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h4 mb-1" id="support-help-hub-heading">{% trans "Help & support" %}</h1>
+    <p class="text-muted small mb-0">{% trans "Knowledge base, platform requests, and school contact — in one place." %}</p>
+  </div>
+</div>
+
+{% if not school %}
+<div class="alert alert-info">{% trans "No school context on this request. Sign in from your school portal link to see your tickets and contacts." %}</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">{% trans "Self-serve" %}</h2>
+        <ul class="list-unstyled small mb-0">
+          <li class="mb-2"><a href="{{ kb_home_url }}"><i class="bi bi-book me-1"></i>{% trans "Knowledge base" %}</a></li>
+          <li class="mb-2"><a href="{{ faq_url }}"><i class="bi bi-patch-question me-1"></i>{% trans "FAQs" %}</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">{% trans "Platform support" %}</h2>
+        <p class="small text-muted mb-2">{% trans "Message the RunMyCampus support queue (also notifies your school IT lead when configured)." %}</p>
+        <a class="btn btn-primary btn-sm" href="{{ support_form_url }}?next={{ request.path|urlencode }}">{% trans "New support or feedback" %}</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">{% trans "School contact" %}</h2>
+        {% if is_parent %}
+        <p class="small text-muted mb-2">{% trans "Reach your school office (triage to the right team)." %}</p>
+        <a class="btn btn-outline-primary btn-sm" href="{{ parent_contact_url }}">{% trans "Contact school" %}</a>
+        {% if contact_open_count %}
+        <p class="small text-muted mt-2 mb-0">{% blocktrans count c=contact_open_count %}{{ c }} open request{% plural %}{{ c }} open requests{% endblocktrans %}</p>
+        {% endif %}
+        {% elif show_staff_inbox %}
+        <p class="small text-muted mb-2">{% trans "Staff: triage parent contact requests from the inbox." %}</p>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ staff_contact_url }}">{% trans "Contact requests inbox" %}</a>
+        {% else %}
+        <p class="small text-muted mb-0">{% trans "School-specific messages use “Contact school” (parents) or your usual staff channels." %}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header">{% trans "Escalation" %}</div>
+  <div class="card-body small">
+    {% with wa=support_contact.whatsapp_support_number|default:'' email=support_contact.company_email|default:'' %}
+    {% if wa %}
+    <a class="btn btn-success btn-sm me-2" href="https://wa.me/{{ wa|urlencode }}?text={% trans 'Hello, I need help with the school portal.'|urlencode %}" target="_blank" rel="noopener noreferrer">{% trans "WhatsApp (configured)" %}</a>
+    {% endif %}
+    {% if email %}
+    <a class="btn btn-outline-secondary btn-sm" href="mailto:{{ email }}">{% trans "Email" %} {{ email }}</a>
+    {% endif %}
+    {% if not wa and not email %}
+    <span class="text-muted">{% trans "Your school has not published WhatsApp or a public support email in settings." %}</span>
+    {% endif %}
+    {% endwith %}
+  </div>
+</div>
+
+{% if school %}
+<div class="card border-0 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>{% trans "Your platform requests" %}</span>
+    <span class="text-muted small">{% trans "Status from the operator queue" %}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if my_tickets %}
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% trans "Subject" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Updated" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in my_tickets %}
+          <tr>
+            <td><a href="{% url 'portal:support_ticket_detail' t.id %}">{{ t.subject|truncatechars:64 }}</a></td>
+            <td><span class="badge bg-secondary">{{ t.get_status_display }}</span></td>
+            <td class="text-muted small">{{ t.updated_at|date:"M j, Y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0 p-3">{% trans "No platform support tickets yet. Use “New support or feedback” above." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

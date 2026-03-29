@@ -5,7 +5,11 @@ from unittest.mock import patch
 from django.test import TestCase, override_settings
 from django.urls import NoReverseMatch
 
-from apps.studio_os.deep_links import studio_legacy_urls_map, studio_resolve_url
+from apps.studio_os.deep_links import (
+    studio_legacy_urls_map,
+    studio_resolve_url,
+    url_is_cross_origin_request,
+)
 
 
 class StudioDeepLinksTests(TestCase):
@@ -42,4 +46,24 @@ class StudioDeepLinksTests(TestCase):
         self.assertEqual(
             m.get("guided_onboarding"),
             "https://tenant.test/siteconfig/guided-onboarding/",
+        )
+
+    @override_settings(STUDIO_APPROVAL_HUB_TENANT_BASE_URL="")
+    @patch("apps.studio_os.deep_links.reverse", side_effect=NoReverseMatch())
+    def test_siteconfig_same_origin_path_when_tenant_base_empty(self, _mock_rev):
+        self.assertEqual(
+            studio_resolve_url("siteconfig:theme_colors"),
+            "/siteconfig/theme-colors/",
+        )
+
+    def test_url_is_cross_origin_request(self):
+        from django.test import RequestFactory
+
+        rf = RequestFactory()
+        req = rf.get("/", HTTP_HOST="testserver")
+        self.assertFalse(url_is_cross_origin_request(req, "/siteconfig/foo/"))
+        self.assertTrue(
+            url_is_cross_origin_request(
+                req, "https://manager.example.com/super/billing/"
+            )
         )

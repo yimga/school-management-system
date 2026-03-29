@@ -9,7 +9,9 @@ import json
 import logging
 from uuid import UUID
 
+from django.core.exceptions import ValidationError
 from django.db import DatabaseError
+from django.db.models import Q
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.http import require_http_methods
@@ -257,6 +259,10 @@ class EducationDNAView(View):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         try:
+            from apps.siteconfig.billing_sku_registry import (
+                get_effective_report_platform_bundle_slug_for_school,
+                get_operator_default_report_platform_bundle_slug,
+            )
             from apps.siteconfig.tenant_config import get_tenant_locale
             from apps.siteconfig.education_profile_engine import (
                 resolve_profile_for_school,
@@ -269,6 +275,12 @@ class EducationDNAView(View):
                 school, "sub_system", "EN"
             )
             term_labels = config.get("term_labels") or locale.get("term_labels") or []
+            operator_bundle_slug = get_operator_default_report_platform_bundle_slug()
+            report_platform_bundle_slug = (
+                str(getattr(school, "report_platform_bundle_slug", None) or "")
+                .strip()
+                .lower()
+            )
             return JsonResponse(
                 {
                     "tenant_id": str(school.id),
@@ -284,6 +296,10 @@ class EducationDNAView(View):
                     ),
                     "timezone": locale.get("timezone", "UTC"),
                     "date_format": locale.get("date_format", "DD/MM/YYYY"),
+                    "report_platform_bundle_slug": report_platform_bundle_slug,
+                    "effective_report_platform_bundle": get_effective_report_platform_bundle_slug_for_school(
+                        school, operator_default_slug=operator_bundle_slug
+                    ),
                 }
             )
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError) as e:
@@ -351,7 +367,12 @@ class MeSchoolsView(View):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         from apps.schools.models import SchoolMembership
+        from apps.siteconfig.billing_sku_registry import (
+            get_effective_report_platform_bundle_slug_for_school,
+            get_operator_default_report_platform_bundle_slug,
+        )
 
+        operator_bundle_slug = get_operator_default_report_platform_bundle_slug()
         memberships = (
             SchoolMembership.objects.filter(user=request.user)
             .select_related("school")
@@ -361,6 +382,11 @@ class MeSchoolsView(View):
         for m in memberships:
             if not m.school or not m.school.is_active:
                 continue
+            rp_slug = (
+                str(getattr(m.school, "report_platform_bundle_slug", None) or "")
+                .strip()
+                .lower()
+            )
             schools.append(
                 {
                     "school_id": str(m.school_id),
@@ -369,6 +395,10 @@ class MeSchoolsView(View):
                     "primary_sector": getattr(m.school, "primary_sector", "") or "",
                     "role": m.role,
                     "is_primary": m.is_primary,
+                    "report_platform_bundle_slug": rp_slug,
+                    "effective_report_platform_bundle": get_effective_report_platform_bundle_slug_for_school(
+                        m.school, operator_default_slug=operator_bundle_slug
+                    ),
                 }
             )
         current = getattr(request, "school", None)
@@ -382,6 +412,14 @@ class MeSchoolsView(View):
                         "school_id": str(s.id),
                         "name": s.name,
                         "slug": getattr(s, "slug", "") or "",
+                        "report_platform_bundle_slug": (
+                            str(getattr(s, "report_platform_bundle_slug", None) or "")
+                            .strip()
+                            .lower()
+                        ),
+                        "effective_report_platform_bundle": get_effective_report_platform_bundle_slug_for_school(
+                            s, operator_default_slug=operator_bundle_slug
+                        ),
                     }
                     for s in children[:50]
                 ]
@@ -2085,6 +2123,347 @@ class PaymentDisputeResolveView(View):
         )
         return JsonResponse(
             {"ok": True, "dispute_id": str(dispute.id), "status": dispute.status}
+        )
+
+
+# ---------------------------------------------------------------------------
+# Scheduled report delivery — tenant API (plan-gated in FeatureGatekeeperMiddleware)
+# ---------------------------------------------------------------------------
+def _parse_schedule_time_value(raw):
+    from datetime import time as time_cls
+
+    if isinstance(raw, time_cls):
+        return raw
+    s = str(raw or "").strip()
+    if not s:
+        raise ValueError("schedule_time is required")
+    parts = s.split(":")
+    try:
+        h = int(parts[0])
+        m = int(parts[1]) if len(parts) > 1 else 0
+        sec = int(parts[2]) if len(parts) > 2 else 0
+    except (IndexError, TypeError, ValueError) as e:
+        raise ValueError("schedule_time must be HH:MM or HH:MM:SS") from e
+    return time_cls(h, m, sec)
+
+
+def _normalize_schedule_recipients(raw) -> list[str]:
+    if not isinstance(raw, list):
+        raise ValueError("recipients must be a list of email strings")
+    out: list[str] = []
+    for item in raw:
+        em = str(item or "").strip()
+        if not em or "@" not in em:
+            raise ValueError("Each recipient must be a non-empty email address")
+        out.append(em)
+    if not out:
+        raise ValueError("recipients must contain at least one email")
+    return out
+
+
+def _tenant_schedule_delivery_summary(schedule) -> dict[str, object]:
+    """Machine-readable flags for clients (list/detail/patch/create responses)."""
+    r = getattr(schedule, "recipients", None)
+    rc = len(r) if isinstance(r, list) else 0
+    has_recipients = rc > 0
+    active = bool(getattr(schedule, "is_active", False))
+    delivery_ready = active and has_recipients
+    return {
+        "recipient_count": rc,
+        "has_recipients": has_recipients,
+        "delivery_ready": delivery_ready,
+    }
+
+
+def _tri_state_query_param(raw: object) -> bool | None:
+    """Parse ``true``/``false`` query flags; ``None`` when absent."""
+    if raw is None:
+        return None
+    v = str(raw).strip().lower()
+    if v in ("1", "true", "yes"):
+        return True
+    if v in ("0", "false", "no"):
+        return False
+    raise ValueError("invalid boolean query value")
+
+
+def _apply_scheduled_reports_list_filters(qs, request):
+    """
+    Optional ``?is_active=`` and ``?delivery_ready=`` (boolean strings).
+    ``delivery_ready=true`` → active rows with a non-empty recipient list.
+    """
+    try:
+        fa = _tri_state_query_param(request.GET.get("is_active"))
+    except ValueError:
+        raise ValueError("is_active") from None
+    try:
+        fd = _tri_state_query_param(request.GET.get("delivery_ready"))
+    except ValueError:
+        raise ValueError("delivery_ready") from None
+
+    if fa is True:
+        qs = qs.filter(is_active=True)
+    elif fa is False:
+        qs = qs.filter(is_active=False)
+
+    if fd is True:
+        qs = qs.filter(is_active=True).exclude(recipients=[])
+    elif fd is False:
+        qs = qs.filter(Q(is_active=False) | Q(recipients=[]))
+
+    return qs
+
+
+class ScheduledReportsListView(View):
+    """
+    GET /api/v1/reports/scheduled — list (summary, no raw recipient addresses).
+
+    POST /api/v1/reports/scheduled — create ``TenantReportSchedule`` for the tenant.
+    """
+
+    def get(self, request):
+        ok, err = _require_super_or_school(request)
+        if not ok:
+            return err
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        from apps.reports.models import TenantReportSchedule
+
+        base = TenantReportSchedule.objects.filter(school=school)
+        try:
+            base = _apply_scheduled_reports_list_filters(base, request)
+        except ValueError as e:
+            field = str(e)
+            return JsonResponse(
+                {"error": f"Invalid {field}; use true or false (or 1/0)."},
+                status=400,
+            )
+        rows = base.order_by("next_run").select_related("created_by")[:100]
+        items = []
+        for s in rows:
+            items.append(
+                {
+                    "id": s.id,
+                    "name": s.name,
+                    "report_key": s.report_key,
+                    "schedule_frequency": s.schedule_frequency,
+                    "schedule_time": s.schedule_time.isoformat(timespec="seconds")
+                    if s.schedule_time
+                    else None,
+                    "is_active": s.is_active,
+                    "last_run": s.last_run.isoformat() if s.last_run else None,
+                    "next_run": s.next_run.isoformat() if s.next_run else None,
+                    **_tenant_schedule_delivery_summary(s),
+                }
+            )
+        return JsonResponse(
+            {
+                "schedules": items,
+                "schema": "reports_scheduled_delivery_v2",
+            }
+        )
+
+    def post(self, request):
+        ok, err = _require_super_or_school(request)
+        if not ok:
+            return err
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
+        from apps.reports.models import TenantReportSchedule
+        from apps.reports.schedule_utils import compute_next_scheduled_run
+
+        name = (data.get("name") or "").strip()
+        if not name:
+            return JsonResponse({"error": "name required"}, status=400)
+        freq = (data.get("schedule_frequency") or "").strip().upper()
+        valid_freq = {c.value for c in TenantReportSchedule.Frequency}
+        if freq not in valid_freq:
+            return JsonResponse(
+                {
+                    "error": f"schedule_frequency must be one of: {sorted(valid_freq)}",
+                },
+                status=400,
+            )
+        is_active = bool(data.get("is_active", True))
+        try:
+            st = _parse_schedule_time_value(data.get("schedule_time"))
+            raw_recipients = data.get("recipients")
+            if not is_active and (raw_recipients is None or raw_recipients == []):
+                recipients = []
+            else:
+                recipients = _normalize_schedule_recipients(raw_recipients or [])
+        except ValueError as e:
+            return JsonResponse({"error": str(e)}, status=400)
+        report_key = (data.get("report_key") or "summary").strip() or "summary"
+        parameters = data.get("parameters") if isinstance(data.get("parameters"), dict) else {}
+        next_run = compute_next_scheduled_run(None, freq, st)
+        obj = TenantReportSchedule(
+            school=school,
+            name=name,
+            report_key=report_key[:80],
+            schedule_frequency=freq,
+            schedule_time=st,
+            recipients=recipients,
+            parameters=parameters or {},
+            is_active=is_active,
+            last_run=None,
+            next_run=next_run,
+            created_by=request.user,
+        )
+        try:
+            obj.full_clean()
+        except ValidationError as e:
+            return JsonResponse({"error": " ".join(e.messages)}, status=400)
+        obj.save()
+        return JsonResponse(
+            {
+                "ok": True,
+                "id": obj.id,
+                "name": obj.name,
+                "report_key": obj.report_key,
+                "is_active": obj.is_active,
+                "next_run": obj.next_run.isoformat(),
+                "schema": "reports_scheduled_delivery_v2",
+                **_tenant_schedule_delivery_summary(obj),
+            },
+            status=201,
+        )
+
+
+class ScheduledReportDetailView(View):
+    """
+    GET /api/v1/reports/scheduled/<id> — detail including recipients (authorized staff).
+
+    PATCH — partial update; recomputes ``next_run`` when frequency or schedule_time change.
+
+    DELETE — remove schedule.
+    """
+
+    def get(self, request, id: int):
+        ok, err = _require_super_or_school(request)
+        if not ok:
+            return err
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        from apps.reports.models import TenantReportSchedule
+
+        s = get_object_or_404(TenantReportSchedule, pk=id, school_id=school.pk)
+        return JsonResponse(
+            {
+                "id": s.id,
+                "name": s.name,
+                "report_key": s.report_key,
+                "schedule_frequency": s.schedule_frequency,
+                "schedule_time": s.schedule_time.isoformat(timespec="seconds")
+                if s.schedule_time
+                else None,
+                "recipients": list(s.recipients or []),
+                "parameters": dict(s.parameters or {}),
+                "is_active": s.is_active,
+                "last_run": s.last_run.isoformat() if s.last_run else None,
+                "next_run": s.next_run.isoformat() if s.next_run else None,
+                "created_by_id": s.created_by_id,
+                "schema": "reports_scheduled_delivery_v2",
+                **_tenant_schedule_delivery_summary(s),
+            }
+        )
+
+    def patch(self, request, id: int):
+        ok, err = _require_super_or_school(request)
+        if not ok:
+            return err
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        data, error_response = _parse_json_object(request)
+        if error_response:
+            return error_response
+        from apps.reports.models import TenantReportSchedule
+        from apps.reports.schedule_utils import compute_next_scheduled_run
+
+        s = get_object_or_404(TenantReportSchedule, pk=id, school_id=school.pk)
+        recompute_next = False
+        if "name" in data:
+            n = (data.get("name") or "").strip()
+            if not n:
+                return JsonResponse({"error": "name cannot be empty"}, status=400)
+            s.name = n
+        if "report_key" in data:
+            rk = (data.get("report_key") or "").strip() or "summary"
+            s.report_key = rk[:80]
+        if "schedule_frequency" in data:
+            freq = str(data.get("schedule_frequency") or "").strip().upper()
+            valid_freq = {c.value for c in TenantReportSchedule.Frequency}
+            if freq not in valid_freq:
+                return JsonResponse(
+                    {"error": f"schedule_frequency must be one of: {sorted(valid_freq)}"},
+                    status=400,
+                )
+            s.schedule_frequency = freq
+            recompute_next = True
+        if "schedule_time" in data:
+            try:
+                s.schedule_time = _parse_schedule_time_value(data.get("schedule_time"))
+            except ValueError as e:
+                return JsonResponse({"error": str(e)}, status=400)
+            recompute_next = True
+        if "recipients" in data:
+            try:
+                s.recipients = _normalize_schedule_recipients(data.get("recipients"))
+            except ValueError as e:
+                return JsonResponse({"error": str(e)}, status=400)
+        if "parameters" in data:
+            p = data.get("parameters")
+            s.parameters = p if isinstance(p, dict) else {}
+        if "is_active" in data:
+            s.is_active = bool(data.get("is_active"))
+        if recompute_next:
+            base = s.last_run
+            s.next_run = compute_next_scheduled_run(base, s.schedule_frequency, s.schedule_time)
+        try:
+            s.full_clean()
+        except ValidationError as e:
+            return JsonResponse(
+                {"error": " ".join(e.messages)},
+                status=400,
+            )
+        s.save()
+        return JsonResponse(
+            {
+                "ok": True,
+                "id": s.id,
+                "name": s.name,
+                "report_key": s.report_key,
+                "is_active": s.is_active,
+                "next_run": s.next_run.isoformat() if s.next_run else None,
+                "schema": "reports_scheduled_delivery_v2",
+                **_tenant_schedule_delivery_summary(s),
+            }
+        )
+
+    def delete(self, request, id: int):
+        ok, err = _require_super_or_school(request)
+        if not ok:
+            return err
+        school = _get_school_from_request(request)
+        if not school:
+            return JsonResponse({"error": "Tenant context required"}, status=400)
+        from apps.reports.models import TenantReportSchedule
+
+        s = get_object_or_404(TenantReportSchedule, pk=id, school_id=school.pk)
+        s.delete()
+        return JsonResponse(
+            {
+                "ok": True,
+                "deleted_id": id,
+                "schema": "reports_scheduled_delivery_v2",
+            }
         )
 
 

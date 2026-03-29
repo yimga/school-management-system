@@ -18,6 +18,7 @@ from .super_views_school_api import (
     api_school_timeline,
     school_lifecycle_action,
 )
+from .super_views_phase_b import super_phase_b_snapshot_diff
 from .super_views_policy import (
     super_apply_policy_bundle_to_sandbox,
     super_policy_diff,
@@ -30,7 +31,10 @@ from .super_views_trust_surface import (
     super_trust_center,
 )
 from .super_views_support import (
+    super_support_csat_dashboard,
     super_support_dashboard,
+    super_support_ticket_detail,
+    super_support_tickets_export_csv,
     support_assign_ticket,
     support_queue_fragment,
 )
@@ -42,6 +46,7 @@ from .super_views_ai import (
 )
 from .super_views_impersonation import switch_to_tenant
 from .super_views_runtime_ops import (
+    super_playbook_operator_hub,
     super_runtime_inspector,
     super_runtime_truth_hub,
     super_workflow_simulator,
@@ -104,10 +109,12 @@ __all__ = (
     "super_dashboard_v2",
     "super_analytics_overview",
     "super_schools_list",
+    "super_playbook_operator_hub",
     "super_runtime_inspector",
     "super_runtime_truth_hub",
     "super_workflow_simulator",
     "switch_to_tenant",
+    "super_phase_b_snapshot_diff",
     "super_apply_policy_bundle_to_sandbox",
     "super_control_health_dashboard",
     "super_audit_export",
@@ -119,6 +126,9 @@ __all__ = (
     "super_policy_diff",
     "super_pulse",
     "super_support_dashboard",
+    "super_support_csat_dashboard",
+    "super_support_ticket_detail",
+    "super_support_tickets_export_csv",
     "super_tenant_360",
     "super_tenant_health",
     "super_trust_center",

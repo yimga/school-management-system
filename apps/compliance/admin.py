@@ -87,6 +87,7 @@ class ConsentRequestAdmin(admin.ModelAdmin):
     list_filter = ("is_active", "category")
     search_fields = ("title", "description")
     raw_id_fields = ("school",)
+    change_form_template = "admin/compliance/consentrequest/change_form.html"
 
 
 class ConsentRecordAdmin(admin.ModelAdmin):
@@ -95,6 +96,7 @@ class ConsentRecordAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "title")
     raw_id_fields = ("user", "school", "consent_request")
     readonly_fields = ("document_hash", "signed_at", "ip_address")
+    change_form_template = "admin/compliance/consentrecord/change_form.html"
 
 
 register_tenant_admin(ConsentRequest, ConsentRequestAdmin)

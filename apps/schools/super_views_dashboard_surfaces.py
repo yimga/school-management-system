@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
+from apps.platform_runtime.models import PlatformOperatorSuperDashboardLink
 from apps.registries.models import (
     CountryRegistry,
     EducationLevelRegistry,
@@ -176,6 +177,9 @@ def super_dashboard(request):
                 }
             )
 
+    operator_super_dashboard_links = list(
+        PlatformOperatorSuperDashboardLink.objects.order_by("sort_order", "slug")
+    )
     return render(
         request,
         "schools/super_dashboard.html",
@@ -201,6 +205,7 @@ def super_dashboard(request):
             "health_top_tables": health_top_tables,
             "health_schema_stats": health_schema_stats,
             "command_center": command_center,
+            "operator_super_dashboard_links": operator_super_dashboard_links,
         },
     )
 
@@ -784,6 +789,9 @@ def super_dashboard_v2(request):
         },
     ]
 
+    operator_super_dashboard_links = list(
+        PlatformOperatorSuperDashboardLink.objects.order_by("sort_order", "slug")
+    )
     return render(
         request,
         "schools/super_dashboard.html",
@@ -839,5 +847,6 @@ def super_dashboard_v2(request):
             "decision_architecture": get_decision_architecture_for_page(
                 "super_dashboard"
             ),
+            "operator_super_dashboard_links": operator_super_dashboard_links,
         },
     )

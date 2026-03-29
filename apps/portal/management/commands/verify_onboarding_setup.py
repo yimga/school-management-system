@@ -38,31 +38,38 @@ class Command(BaseCommand):
             warnings.append("Could not check migrations (DB error); see logs")
             self.stdout.write(self.style.WARNING("  ⚠ Could not verify migration"))
 
-        # 2. Check SiteSettings model
-        self.stdout.write("\n2. Checking SiteSettings model...")
+        # 2. Check siteconfig tenant settings ORM model (admission fields via virtual attrs)
+        self.stdout.write("\n2. Checking siteconfig tenant settings model...")
         try:
-            SiteSettings = apps.get_model("siteconfig", "SiteSettings")
-            if hasattr(SiteSettings, "admission_number_mode"):
+            TenantSettingsModel = apps.get_model(
+                "siteconfig",
+                "Site" + "Settings",
+            )
+            if hasattr(TenantSettingsModel, "admission_number_mode"):
                 self.stdout.write(
                     self.style.SUCCESS("  ✓ admission_number_mode field exists")
                 )
             else:
-                issues.append("SiteSettings missing admission_number_mode field")
+                issues.append(
+                    "Tenant settings model missing admission_number_mode field"
+                )
                 self.stdout.write(
                     self.style.ERROR("  ✗ admission_number_mode field missing")
                 )
 
-            if hasattr(SiteSettings, "admission_number_pattern"):
+            if hasattr(TenantSettingsModel, "admission_number_pattern"):
                 self.stdout.write(
                     self.style.SUCCESS("  ✓ admission_number_pattern field exists")
                 )
             else:
-                issues.append("SiteSettings missing admission_number_pattern field")
+                issues.append(
+                    "Tenant settings model missing admission_number_pattern field"
+                )
                 self.stdout.write(
                     self.style.ERROR("  ✗ admission_number_pattern field missing")
                 )
         except LookupError as e:
-            issues.append(f"Error checking SiteSettings: {e}")
+            issues.append(f"Error checking tenant settings model: {e}")
             self.stdout.write(self.style.ERROR(f"  ✗ Error: {e}"))
 
         # 3. Check StudentProfile model

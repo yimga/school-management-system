@@ -3,15 +3,18 @@ Orchestration operator workbench (Phase 10 — 4.1 stub).
 Long-running process list, status, retry, compensation. Full UI in future sprints.
 """
 
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.utils import ProgrammingError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from apps.platform_runtime.models import PlatformOperatorOrchestrationWorkbenchLink
+
 from .models import OrchestrationRun
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def operator_workbench(request):
     """Operator view: list recent orchestration runs, SLA overdue, retries (4.1)."""
     runs = []
@@ -25,14 +28,21 @@ def operator_workbench(request):
     except ProgrammingError:
         # Table not created yet (migrations not applied) — show empty workbench until migrate runs
         pass
+    operator_orchestration_workbench_links = list(
+        PlatformOperatorOrchestrationWorkbenchLink.objects.order_by("sort_order", "slug")
+    )
     return render(
         request,
         "orchestration/operator_workbench.html",
-        {"runs": runs, "runs_overdue": runs_overdue},
+        {
+            "runs": runs,
+            "runs_overdue": runs_overdue,
+            "operator_orchestration_workbench_links": operator_orchestration_workbench_links,
+        },
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def retry_run(request, run_id: int):
     """Re-queue a failed run (set status to PENDING, clear completed_at). Phase 10 — 4.1."""
     run = get_object_or_404(OrchestrationRun, pk=run_id)

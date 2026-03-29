@@ -23,6 +23,7 @@
 
 | Item | Status | Notes |
 |------|--------|--------|
+| §0 premium PARTIAL vs automated gates | **CLARIFIED** | **2026-03-27:** SOT §0 footnote + §11.4 slice list passing scripts; PARTIAL = Phase B / manual shell / depth — [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md). |
 | SiteSettings usage inventory | DONE | docs/site_settings_usage_inventory.md; full field classification in domain_ownership. |
 | §2.1 get_solo call-site inventory | **DONE** | Tenant-facing complete: lint_tenant_settings --check-get-solo-only pass; TENANT_APPS includes **student360, compliance, academics**. get_solo only in siteconfig (definition), tests, allowlisted management. Step 5 DONE. |
 | §2.1 Resolver–migrate–delete ordering | **DONE** | docs/RESOLVER_MIGRATE_DELETE_ORDERING.md: Phase 1 (resolver first), Phase 2 (migrate), Phase 3 (delete) checklist; no step left without status. BACKLOG ?2b ?2.1 references it. |

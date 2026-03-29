@@ -5,7 +5,21 @@
 {% block cp_title %}School Health Monitor{% endblock %}
 
 {% block cp_content %}
-  <div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#tenant-health-main">{% trans "Skip to school health table" %}</a>
+  <div id="tenant-health-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench">
+    {% if operator_tenant_health_links %}
+    <div class="card shadow-sm border-0 page-family-content-card mb-3">
+      <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
+      <div class="card-body">
+        <p class="small text-secondary mb-2">{% trans "Platform-admin rows (PlatformOperatorTenantHealthLink); add or reorder in platform admin." %}</p>
+        <ul class="list-unstyled mb-0 d-flex flex-wrap gap-2">
+          {% for link in operator_tenant_health_links %}
+          <li><a class="btn btn-sm btn-outline-secondary" href="{{ link.href }}">{{ link.label }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
     {% url 'super:dashboard' as super_dashboard_url %}
     {% include "studio_os/components/page_header.html" with title="School Health Monitor" subtitle="Last activity and status per school. API: GET /api/v1/super/tenant-health" action_url=super_dashboard_url action_text="Back to Schools" %}
     <div class="card shadow-sm border-0 page-family-content-card">

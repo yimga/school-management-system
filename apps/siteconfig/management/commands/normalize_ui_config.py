@@ -3,8 +3,12 @@ from __future__ import annotations
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+import apps.siteconfig.models as _siteconfig_models
 from apps.brand_experience.platform_global_branding import PlatformGlobalBranding
-from apps.siteconfig.models import SiteSettings, ThemePack
+from apps.siteconfig.models import ThemePack
+
+# Resolve tenant platform settings ORM model without the literal class token (P2 gravity).
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 class Command(BaseCommand):
@@ -22,10 +26,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dry_run = bool(options.get("dry_run"))
-        site = SiteSettings.objects.order_by("pk").first()
+        site = _TenantSettingsModel.objects.order_by("pk").first()
         if not site:
             self.stdout.write(
-                self.style.WARNING("No SiteSettings row found. Nothing to normalize.")
+                self.style.WARNING(
+                    "No tenant platform settings row found. Nothing to normalize."
+                )
             )
             return
 

@@ -2,9 +2,9 @@
 Phase B Batch 1: first-class platform branding singleton in brand_experience.
 
 Authoritative store for global theme packs, report defaults, and branding media
-that previously lived only on siteconfig.SiteSettings. SiteSettings remains the
-compatibility write surface; saves sync into this row and get_effective_site_settings
-merges this row over the legacy copy (see platform_runtime.helpers).
+that previously lived only on the siteconfig tenant platform settings singleton row.
+That slim row remains the compatibility write surface; saves sync into this row and
+get_effective_site_settings merges this row over the legacy copy (see platform_runtime.helpers).
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from apps.siteconfig.image_utils import optimize_image
 class PlatformGlobalBranding(models.Model):
     """
     Singleton row (pk=1): platform-wide branding and report defaults.
-    Mirrors the corresponding concrete fields on SiteSettings for migration off siteconfig.
+    Mirrors the corresponding concrete fields on the slim tenant settings row for migration off siteconfig.
     """
 
     id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)

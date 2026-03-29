@@ -1,9 +1,15 @@
 """Interoperability discovery/readiness endpoints for OneRoster and LTI 1.3."""
 
+import json
+from pathlib import Path
+
+from django.conf import settings
+from django.db.models import Q
 from django.http import JsonResponse
 from django.urls import reverse
 
 from apps.api.rate_limit import throttle_ip_request
+from apps.interop.district_readiness import parse_district_readiness_dict
 from apps.schools.models import School
 from apps.siteconfig.integration_registry import resolve_active_integration
 from apps.integrations_marketplace.models import ServiceIntegration
@@ -292,6 +298,26 @@ def edfi_readiness(request):
     if school:
         payload["school_id"] = school.pk
         payload["school_slug"] = school.slug
+        integ = (
+            ServiceIntegration.objects.filter(school=school, is_active=True)
+            .filter(
+                Q(service_name__icontains="edfi")
+                | Q(config__has_key="district_readiness")
+            )
+            .order_by("-updated_at")
+            .first()
+        )
+        if integ:
+            dr = (integ.config or {}).get("district_readiness")
+            if isinstance(dr, dict) and dr.get("district_identifier"):
+                ss = dr.get("source_system")
+                name_l = (integ.service_name or "").lower()
+                if ss == "edfi" or "edfi" in name_l:
+                    payload["district_readiness"] = {
+                        "source_system": ss,
+                        "district_identifier": str(dr.get("district_identifier")),
+                        "name": dr.get("name"),
+                    }
     return JsonResponse(payload, status=200)
 
 
@@ -320,7 +346,66 @@ def ceds_readiness(request):
     if school:
         payload["school_id"] = school.pk
         payload["school_slug"] = school.slug
+        integ = (
+            ServiceIntegration.objects.filter(school=school, is_active=True)
+            .filter(
+                Q(service_name__icontains="ceds")
+                | Q(config__has_key="district_readiness")
+            )
+            .order_by("-updated_at")
+            .first()
+        )
+        if integ:
+            dr = (integ.config or {}).get("district_readiness")
+            if isinstance(dr, dict) and dr.get("district_identifier"):
+                ss = dr.get("source_system")
+                name_l = (integ.service_name or "").lower()
+                if ss == "ceds" or "ceds" in name_l:
+                    payload["district_readiness"] = {
+                        "source_system": ss,
+                        "district_identifier": str(dr.get("district_identifier")),
+                        "name": dr.get("name"),
+                    }
     return JsonResponse(payload, status=200)
+
+
+def district_readiness_sample(request):
+    """
+    Fixture-driven HTTP stub: returns ``parse_district_readiness_dict`` output for repo samples.
+
+    Query: ``fixture=edfi`` (default) or ``ceds``. Requires ``school_slug`` (or tenant host).
+    """
+    rl = _interop_rate_limited(request, "district_readiness")
+    if rl:
+        return rl
+    school = _resolve_school(request)
+    if not school:
+        return JsonResponse(
+            {
+                "detail": "School context missing. Provide school_slug or call via tenant domain.",
+                "implemented": True,
+            },
+            status=400,
+        )
+    fixture_key = (request.GET.get("fixture") or "edfi").strip().lower()
+    rel = {
+        "edfi": "fixtures/interop/edfi_district_readiness_sample.json",
+        "ceds": "fixtures/interop/ceds_district_readiness_sample.json",
+    }.get(fixture_key)
+    if not rel:
+        return JsonResponse(
+            {"detail": "fixture must be 'edfi' or 'ceds'", "implemented": True},
+            status=400,
+        )
+    path = Path(settings.BASE_DIR) / rel
+    if not path.is_file():
+        return JsonResponse(
+            {"detail": "fixture file missing on server", "path": rel},
+            status=500,
+        )
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    canonical = parse_district_readiness_dict(raw)
+    return JsonResponse(canonical, status=200)
 
 
 def interop_hub(request):

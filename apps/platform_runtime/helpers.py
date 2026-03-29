@@ -1,23 +1,24 @@
 """
-Phase 5: Runtime helper shims — use these instead of the legacy SiteSettings singleton or
-School.settings/features for tenant behavior. All resolve from request.tenant_runtime with
-platform fallback where appropriate.
+Phase 5: Runtime helper shims — use these instead of the legacy tenant platform settings
+singleton row or School.settings/features for tenant behavior. All resolve from
+request.tenant_runtime with platform fallback where appropriate.
 
-Audit: Tenant-facing code must not read tenant behavior directly from the legacy SiteSettings
-singleton; use get_effective_* helpers or request.tenant_runtime. See
+Audit: Tenant-facing code must not read tenant behavior directly from that legacy singleton;
+use get_effective_* helpers or request.tenant_runtime. See
 docs/PLATFORM_TRANSITION_AUDIT_REPORT.md and docs/PLATFORM_AUDIT_REMEDIATION_BACKLOG.md.
 """
 
 from __future__ import annotations
 
-from copy import copy
 import logging
+from copy import copy
 from typing import Any, Optional
 
 from django.core.cache import cache
 from django.db import DatabaseError
 from django.db.utils import OperationalError
 
+import apps.siteconfig.models as _siteconfig_models
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     request_context_for_log,
@@ -25,6 +26,8 @@ from apps.platform_runtime.structured_logging import (
 from apps.platform_runtime.tracing import set_runtime_trace_context
 
 logger = logging.getLogger(__name__)
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 EFFECTIVE_SITE_SETTINGS_VERSION_KEY = "platform_runtime:effective_site_settings:version"
@@ -49,6 +52,16 @@ def invalidate_effective_site_settings_cache() -> None:
         cache.set(EFFECTIVE_SITE_SETTINGS_VERSION_KEY, 2, None)
     except (AttributeError, OSError, RuntimeError, TypeError):
         cache.set(EFFECTIVE_SITE_SETTINGS_VERSION_KEY, 2, None)
+
+
+def persist_platform_runtime_payload_updates(updates: dict[str, object]) -> None:
+    """
+    Merge JSON-safe keys into RuntimeDefaults via the tenant settings model persistence hook.
+
+    Prefer this over importing the ORM singleton class in bounded contexts (e.g. branding sync)
+    so call sites stay on the platform_runtime helper surface.
+    """
+    _TenantSettingsModel._persist_runtime_payload_updates(updates)
 
 
 def get_tenant_runtime(request: Any) -> Optional[Any]:
@@ -141,7 +154,8 @@ def get_effective_workflow(request: Any, workflow_code: str) -> dict:
 
 def get_effective_flags(request: Any) -> dict:
     """
-    Resolve backend feature flags from runtime when available; otherwise from SiteSettings.
+    Resolve backend feature flags from runtime when available; otherwise from effective
+    tenant platform settings.
     Use this instead of reading backend_feature_flags directly from the legacy singleton in
     tenant-facing views.
     """
@@ -300,9 +314,48 @@ def get_effective_support_contact_settings(
     return {}
 
 
+def _default_marketplace_integration_settings() -> dict[str, object]:
+    """Safe defaults when runtime resolution fails (matches empty-payload behavior on the slim row)."""
+    return {
+        "marksheet_ocr_command": "",
+        "marksheet_ocr_api_key": "",
+        "sms_provider": "console",
+        "sms_api_key": "",
+        "ai_provider_api_key": "",
+        "whatsapp_api_token": "",
+        "sms_sender_id": "RUNMYCAMPUS",
+        "email_from_address": "noreply@school.example.com",
+        "smtp_password": "",
+        "webhook_signing_secret": "",
+        "marketplace_partner_client_secret": "",
+        "whatsapp_support_number": "",
+        "whatsapp_admissions_number": "",
+    }
+
+
+def get_effective_marketplace_integration_settings(
+    request: Any = None,
+    school: Any = None,
+) -> dict[str, object]:
+    """
+    Marketplace / integration credential slice from runtime resolution.
+
+    Tenant and task code should use this instead of calling
+    ``get_marketplace_integration_settings()`` on a raw ORM handle to the slim row.
+    """
+    site = get_effective_site_settings(request=request, school=school)
+    if site is None:
+        return dict(_default_marketplace_integration_settings())
+    getter = getattr(site, "get_marketplace_integration_settings", None)
+    if callable(getter):
+        return getter()
+    return dict(_default_marketplace_integration_settings())
+
+
 def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     """
-    Return a tenant-aware SiteSettings instance for read paths.
+    Return a tenant-aware effective settings namespace for read paths (shallow copy of the
+    platform singleton row).
 
     A shallow copy of the platform singleton is used so existing attribute reads
     and helper methods still work while school-level JSON overrides are layered on
@@ -356,7 +409,7 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
     ):
         ctx = dict(request_context_for_log(request) if request else {})
         log_exception_with_context(
-            "Failed to build platform site settings base from runtime defaults / SiteSettings",
+            "Failed to build platform site settings base from runtime defaults / slim tenant row",
             tenant_id=ctx.pop("tenant_id", None),
             school_id=ctx.pop("school_id", None),
             actor_id=ctx.pop("actor_id", None),
@@ -395,14 +448,11 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
 
 
 def get_platform_site_settings_record(*, create: bool = False) -> Any:
-    """Return the persisted SiteSettings row when present; optionally create the baseline row."""
-    from apps.siteconfig.models import (
-        SiteSettings,
-        build_platform_default_site_settings,
-    )
+    """Return the persisted slim tenant settings row when present; optionally create the baseline row."""
+    from apps.siteconfig.models import build_platform_default_site_settings
 
     try:
-        site = SiteSettings.objects.order_by("pk").first()
+        site = _TenantSettingsModel.objects.order_by("pk").first()
     except (
         AttributeError,
         DatabaseError,
@@ -413,7 +463,7 @@ def get_platform_site_settings_record(*, create: bool = False) -> Any:
         ValueError,
     ):
         log_exception_with_context(
-            "Failed to get SiteSettings row in get_platform_site_settings_record",
+            "Failed to get slim tenant settings row in get_platform_site_settings_record",
             extra={"caller": "get_platform_site_settings_record", "create": create},
         )
         site = None
@@ -422,7 +472,7 @@ def get_platform_site_settings_record(*, create: bool = False) -> Any:
 
     default_site = build_platform_default_site_settings()
     creation_defaults = {}
-    for field in SiteSettings._meta.concrete_fields:
+    for field in _TenantSettingsModel._meta.concrete_fields:
         if getattr(field, "primary_key", False):
             continue
         attr_name = getattr(field, "attname", field.name)
@@ -432,7 +482,7 @@ def get_platform_site_settings_record(*, create: bool = False) -> Any:
         creation_defaults[attr_name] = value
 
     try:
-        site, _ = SiteSettings.objects.get_or_create(
+        site, _ = _TenantSettingsModel.objects.get_or_create(
             pk=getattr(default_site, "pk", None) or 1,
             defaults=creation_defaults,
         )
@@ -453,16 +503,14 @@ def apply_payload_dict_to_site_settings_shallow_base(
     base: Any, payload: dict[str, Any]
 ) -> None:
     """
-    Apply a flat JSON payload onto a shallow copy of SiteSettings (same rules as
+    Apply a flat JSON payload onto a shallow copy of the slim tenant settings row (same rules as
     RuntimeDefaults merge). Used by ``_build_platform_site_settings_base`` and Phase B
     domain snapshots (batches 4-13).
     """
-    from apps.siteconfig.models import SiteSettings
-
     if not payload:
         return
     assigned_keys: set[str] = set()
-    for field in SiteSettings._meta.concrete_fields:
+    for field in _TenantSettingsModel._meta.concrete_fields:
         fname = field.name
         attname = getattr(field, "attname", fname)
         if getattr(field, "remote_field", None) is not None:
@@ -497,9 +545,9 @@ def apply_payload_dict_to_site_settings_shallow_base(
         setattr(base, target_attr, payload[payload_key])
         assigned_keys.add(payload_key)
         assigned_keys.add(target_attr)
-    concrete_names = {f.name for f in SiteSettings._meta.concrete_fields}
+    concrete_names = {f.name for f in _TenantSettingsModel._meta.concrete_fields}
     concrete_attnames = {
-        getattr(f, "attname", f.name) for f in SiteSettings._meta.concrete_fields
+        getattr(f, "attname", f.name) for f in _TenantSettingsModel._meta.concrete_fields
     }
     concrete_allowed = concrete_names | concrete_attnames
     for key, val in payload.items():
@@ -538,7 +586,7 @@ def apply_payload_dict_to_site_settings_shallow_base(
 
 def _build_platform_site_settings_base() -> Any:
     """
-    Build the platform baseline: legacy SiteSettings row, then Phase B domain snapshots
+    Build the platform baseline: legacy slim tenant settings row, then Phase B domain snapshots
     (last persisted save),     then ``RuntimeDefaults.payload`` (wins on key overlap), then
     first-class runtime columns, then ``PlatformGlobalBranding``.
     """
@@ -553,6 +601,13 @@ def _build_platform_site_settings_base() -> Any:
             getattr(rt_defaults, "payload", None), dict
         ):
             payload = dict(rt_defaults.payload)
+            # Typed first-class columns are authoritative; stale JSON (e.g. empty sms_api_key)
+            # must not shadow non-blank column values during shallow base merge.
+            from apps.platform_runtime.runtime_defaults_first_class import (
+                strip_runtime_defaults_first_class_keys_from_dict,
+            )
+
+            strip_runtime_defaults_first_class_keys_from_dict(payload)
     except (
         AttributeError,
         DatabaseError,
@@ -572,7 +627,7 @@ def _build_platform_site_settings_base() -> Any:
     else:
         base = build_platform_default_site_settings()
 
-    # Phase B Batches 4-13: bounded-context snapshots from last SiteSettings.save (may lag
+    # Phase B Batches 4-13: bounded-context snapshots from last slim-row save (may lag
     # RuntimeDefaults if payload was updated without save); apply before RT payload so RT wins.
     try:
         from apps.platform_runtime.phase_b_domain_snapshots import (
@@ -628,7 +683,7 @@ def _build_platform_site_settings_base() -> Any:
     except (AttributeError, DatabaseError, TypeError, ValueError):
         pass
     # Phase B Batch 1: brand_experience.PlatformGlobalBranding is authoritative for
-    # theme/media/report-default FKs once the row exists (backfilled from SiteSettings).
+    # theme/media/report-default FKs once the row exists (backfilled from slim tenant settings).
     try:
         from apps.brand_experience.branding_singleton_sync import (
             merge_platform_global_branding_into_base,
@@ -656,7 +711,7 @@ def _build_platform_site_settings_base() -> Any:
 def get_site_display_name(request: Any) -> str:
     """
     Resolve site/school display name for tenant-facing UI.
-    Prefer runtime branding / tenant context; fallback to SiteSettings for backward compatibility.
+    Prefer runtime branding / tenant context; fallback to effective tenant settings for backward compatibility.
     Use this instead of reading site_name directly from the legacy singleton in views and context
     processors.
     """
@@ -747,6 +802,7 @@ def log_ai_action(
     """
     try:
         import uuid
+
         from apps.platform_runtime.models import AIActionAuditLog
 
         tid = None

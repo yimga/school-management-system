@@ -1,24 +1,24 @@
 {
   "baseline_counts": {
-    "allow_any": 76,
-    "csrf_exempt": 161,
-    "cursor_execute": 355,
-    "except_exception": 244,
-    "get_solo": 197,
-    "gilead": 838,
-    "gilead_files": 145,
-    "html_files": 618,
-    "management_commands": 154,
-    "markdown_files": 1031,
-    "migration_files": 666,
-    "print_calls": 764,
-    "python_files": 2285,
-    "site_settings": 1415
+    "allow_any": 81,
+    "csrf_exempt": 174,
+    "cursor_execute": 366,
+    "except_exception": 263,
+    "get_solo": 196,
+    "gilead": 974,
+    "gilead_files": 150,
+    "html_files": 649,
+    "management_commands": 157,
+    "markdown_files": 1032,
+    "migration_files": 703,
+    "print_calls": 815,
+    "python_files": 2421,
+    "site_settings": 1372
   },
   "doc_drift": {
     "actual_installed_app_count": 42,
-    "documented_app_count": 38,
-    "is_stale": true,
+    "documented_app_count": 42,
+    "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
   "largest_python_files": [
@@ -28,9 +28,19 @@
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
-      "bytes": 120090,
-      "lines": 3034,
+      "bytes": 126054,
+      "lines": 3188,
       "path": "apps/schools/marketing_views.py"
+    },
+    {
+      "bytes": 118196,
+      "lines": 2847,
+      "path": "apps/api/views_v1.py"
+    },
+    {
+      "bytes": 114885,
+      "lines": 3100,
+      "path": "apps/evals/views.py"
     },
     {
       "bytes": 114677,
@@ -38,48 +48,38 @@
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 114435,
-      "lines": 3100,
-      "path": "apps/evals/views.py"
-    },
-    {
-      "bytes": 103258,
-      "lines": 2468,
-      "path": "apps/api/views_v1.py"
-    },
-    {
-      "bytes": 98412,
-      "lines": 2807,
+      "bytes": 98677,
+      "lines": 2814,
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 97210,
-      "lines": 2802,
+      "bytes": 98649,
+      "lines": 2814,
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 94210,
-      "lines": 2457,
+      "bytes": 93328,
+      "lines": 2495,
       "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 84718,
-      "lines": 2069,
-      "path": "apps/finance/tasks.py"
-    },
-    {
-      "bytes": 83859,
-      "lines": 2092,
+      "bytes": 85549,
+      "lines": 2164,
       "path": "apps/studio_os/views.py"
     },
     {
-      "bytes": 68960,
-      "lines": 1870,
+      "bytes": 82393,
+      "lines": 2062,
+      "path": "apps/finance/tasks.py"
+    },
+    {
+      "bytes": 71556,
+      "lines": 1936,
       "path": "apps/portal/views_ai_gateway.py"
     },
     {
-      "bytes": 65486,
-      "lines": 1471,
+      "bytes": 70388,
+      "lines": 1556,
       "path": "config/settings.py"
     }
   ],
@@ -398,6 +398,11 @@
       "app": "metadata",
       "command": "seed_entity_catalog",
       "path": "apps/metadata/management/commands/seed_entity_catalog.py"
+    },
+    {
+      "app": "metadata",
+      "command": "sync_siteconfig_dynamicfields_to_metadata",
+      "path": "apps/metadata/management/commands/sync_siteconfig_dynamicfields_to_metadata.py"
     },
     {
       "app": "observability",
@@ -781,6 +786,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "seed_br10_plan_skus",
+      "path": "apps/siteconfig/management/commands/seed_br10_plan_skus.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "seed_country_profiles",
       "path": "apps/siteconfig/management/commands/seed_country_profiles.py"
     },
@@ -823,6 +833,11 @@
       "app": "siteconfig",
       "command": "seed_regions",
       "path": "apps/siteconfig/management/commands/seed_regions.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_report_platform_plan_skus",
+      "path": "apps/siteconfig/management/commands/seed_report_platform_plan_skus.py"
     },
     {
       "app": "siteconfig",
@@ -879,18 +894,18 @@
         "platform_observability",
         "portal_office_wopi"
       ],
-      "reviewed_endpoints": 36,
+      "reviewed_endpoints": 37,
       "reviewed_files": 13
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 36,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
     "cursor_execute_apps_config_py_excl_migrations": 26,
-    "gilead_line_hits_apps_templates_config_excl_migrations_tests": 13,
+    "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 673,
-    "site_settings_refs_apps_py_excl_migrations": 267,
-    "site_settings_refs_apps_py_excl_migrations_tests": 210
+    "print_calls_scripts_py": 720,
+    "site_settings_refs_apps_py_excl_migrations": 59,
+    "site_settings_refs_apps_py_excl_migrations_tests": 1
   },
   "site_settings_fields": [
     {
@@ -904,7 +919,6 @@
   ],
   "successor_domain_imports": {
     "brand_experience": [
-      "apps/brand_experience/branding_singleton_sync.py",
       "apps/brand_experience/models.py",
       "apps/brand_experience/platform_global_branding.py"
     ],

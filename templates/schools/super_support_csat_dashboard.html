@@ -1,0 +1,75 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n phase8_tags %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
+{% endblock %}
+{% block cp_title %}Support CSAT — Super Admin{% endblock %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:support_dashboard' %}">{% trans "Support" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "CSAT" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block cp_content %}
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#support-csat-dashboard-main">{% trans "Skip to CSAT dashboard content" %}</a>
+<div id="support-csat-dashboard-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/super_support_csat_dashboard.html" %}
+  <h1 class="h4 mb-3">{% trans "Global support CSAT" %}</h1>
+  <p class="text-muted small mb-4">{% trans "Aggregates from tickets with a submitted 1–5 score (portal flow)." %}</p>
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">{% trans "Overall average" %}</div>
+          <div class="h4 mb-0">{% if overall_avg is not None %}{{ overall_avg|floatformat:2 }}{% else %}—{% endif %}</div>
+          <div class="small text-muted">{% blocktrans with n=overall_n %}{{ n }} responses{% endblocktrans %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header">{% trans "By month" %}</div>
+    <div class="card-body p-0 table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>{% trans "Month" %}</th><th>{% trans "Avg score" %}</th><th>{% trans "Count" %}</th></tr></thead>
+        <tbody>
+          {% for row in by_month %}
+          <tr>
+            <td>{{ row.m|date:"Y-m" }}</td>
+            <td>{{ row.avg_score|floatformat:2 }}</td>
+            <td>{{ row.n }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-muted px-3 py-3">{% trans "No CSAT data yet." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card border-0 shadow-sm">
+    <div class="card-header">{% trans "Recent responses" %}</div>
+    <div class="card-body p-0 table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>{% trans "Submitted" %}</th><th>{% trans "School" %}</th><th>{% trans "Score" %}</th><th>{% trans "Subject" %}</th></tr></thead>
+        <tbody>
+          {% for t in recent %}
+          <tr>
+            <td>{{ t.csat_submitted_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ t.school.name }}</td>
+            <td>{{ t.csat_score }}</td>
+            <td><a href="{% url 'super:support_ticket_detail' ticket_id=t.pk %}">{{ t.subject|truncatechars:60 }}</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-muted px-3 py-3">{% trans "No CSAT data yet." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="mt-3"><a href="{% url 'super:support_dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Back to support queue" %}</a></p>
+</div>
+{% endblock %}

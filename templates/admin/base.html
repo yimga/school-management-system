@@ -2,7 +2,7 @@
 
 {% load admin_list i18n unfold admin_urls %}
 {% block base %}
-    <div id="page" class="flex flex-row max-w-full min-h-screen {% element_classes 'page' %}" data-authenticated-surface="django-admin">
+    <div id="page" class="flex flex-row max-w-full min-h-screen {% element_classes 'page' %}" data-authenticated-surface="{% if is_manager_host %}manager-control-plane{% else %}django-admin{% endif %}">
         {% if not is_popup %}
             {% block nav-sidebar %}
                 {# Always our sidebar: single source for index and all admin pages. Show whenever not popup so dashboard and changelist match. #}

@@ -217,6 +217,17 @@ urlpatterns = [
         views_v1.PaymentDisputeResolveView.as_view(),
         name="finance-disputes-resolve",
     ),
+    # Tenant scheduled-report delivery (hub + list; persistence phased after BI model cutover)
+    path(
+        "reports/scheduled",
+        views_v1.ScheduledReportsListView.as_view(),
+        name="reports-scheduled-list",
+    ),
+    path(
+        "reports/scheduled/<int:id>",
+        views_v1.ScheduledReportDetailView.as_view(),
+        name="reports-scheduled-detail",
+    ),
     # Phase 9: Ad-hoc report builder
     path(
         "reports/adhoc",

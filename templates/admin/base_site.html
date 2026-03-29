@@ -123,7 +123,7 @@
 {% endblock %}
 
 {% block nav-global %}
-  <a href="#content" class="skip-link">Skip to main content</a>
+  <a href="#content" class="skip-link">{% trans "Skip to main content" %}</a>
 {% endblock %}
 
 {% block footer %}
@@ -133,66 +133,7 @@
   {% include 'components/toast_notifications.html' %}
   {% if is_manager_host %}
   {% include "partials/cp_context_drawer_shell.html" %}
-  <script>
-  (function () {
-    var searchInput = document.getElementById('cpSearchInputAdmin');
-    var resultsEl = document.getElementById('cpSearchResultsAdmin');
-    if (!searchInput || !resultsEl) return;
-    var debounce = null;
-    function renderResults(data) {
-      var list = (data && data.results) ? data.results : [];
-      if (list.length === 0) {
-        resultsEl.innerHTML = '<div class="px-3 py-2 text-muted small">No results</div>';
-      } else {
-        resultsEl.innerHTML = list.map(function (r) {
-          var url = r.url || '#';
-          var title = (r.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          var desc = (r.description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          return '<a class="dropdown-item" href="' + url + '"><strong>' + title + '</strong>' + (desc ? '<br><span class="small text-secondary">' + desc + '</span>' : '') + '</a>';
-        }).join('');
-      }
-      resultsEl.classList.add('show');
-    }
-    function doSearch() {
-      var q = (searchInput.value || '').trim();
-      if (q.length === 0) {
-        fetch('/api/search/?q=', { headers: { 'Accept': 'application/json' } })
-          .then(function (res) { return res.json(); })
-          .then(renderResults)
-          .catch(function () { renderResults({ results: [] }); });
-        resultsEl.classList.add('show');
-        return;
-      }
-      if (q.length < 2) {
-        resultsEl.innerHTML = '';
-        resultsEl.classList.remove('show');
-        return;
-      }
-      fetch('/api/search/?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
-        .then(function (res) { return res.json(); })
-        .then(renderResults)
-        .catch(function () { renderResults({ results: [] }); });
-    }
-    searchInput.addEventListener('input', function () {
-      clearTimeout(debounce);
-      debounce = setTimeout(doSearch, 220);
-    });
-    searchInput.addEventListener('focus', function () { doSearch(); });
-    searchInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { resultsEl.classList.remove('show'); searchInput.blur(); }
-    });
-    document.addEventListener('click', function (e) {
-      if (!searchInput.contains(e.target) && !resultsEl.contains(e.target)) resultsEl.classList.remove('show');
-    });
-    document.addEventListener('keydown', function (e) {
-      if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        searchInput.focus();
-        if ((searchInput.value || '').trim().length >= 2) doSearch();
-      }
-    });
-  })();
-  </script>
+  <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
   <script>
   (function () {
     var gPending = false;

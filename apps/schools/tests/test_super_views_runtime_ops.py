@@ -16,6 +16,9 @@ class SuperViewsRuntimeOpsReexportTests(SimpleTestCase):
         self.assertIs(
             super_views.super_workflow_simulator, ops.super_workflow_simulator
         )
+        self.assertIs(
+            super_views.super_playbook_operator_hub, ops.super_playbook_operator_hub
+        )
 
 
 class SuperRuntimeTruthHubContractTests(SimpleTestCase):

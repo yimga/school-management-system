@@ -200,6 +200,12 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "main_question": "Are we burning error budget on any customer journey?",
         "main_action": "Open the worst SLO breach and link to the owning runbook.",
     },
+    "orchestration/operator_workbench.html": {
+        "dashboard_type": "orchestration_ops",
+        "jtbd": "Monitor long-running process runs, retries, and SLA deadlines across schools.",
+        "main_question": "Which orchestration run is stuck, failed, or overdue?",
+        "main_action": "Retry failed runs or drill into the process definition blocking completion.",
+    },
     "parent/dashboard.html": {
         "dashboard_type": "family",
         "jtbd": "Stay informed about your child’s school day and tasks.",
@@ -308,6 +314,12 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "main_question": "Are native roster connectors authenticating and returning healthy payloads?",
         "main_action": "Run the connector probe and fix failing token/base-url configuration.",
     },
+    "schools/super_phase_b_snapshot_diff.html": {
+        "dashboard_type": "config_integrity",
+        "jtbd": "Prove Phase B snapshot rows still mirror live tenant platform settings ownership slices.",
+        "main_question": "Which domains drift from live owned_payload fingerprints?",
+        "main_action": "Review key-level drift, unified diff, or re-materialize snapshots from the slim tenant settings row.",
+    },
     "schools/super_policy_diff.html": {
         "dashboard_type": "policy_impact",
         "jtbd": "Compare policy layers and preview impact before rollout decisions.",
@@ -320,15 +332,27 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "main_question": "Which operator surface matches the task at hand?",
         "main_action": "Open the matching card or config center entry.",
     },
+    "schools/super_playbook_operator_hub.html": {
+        "dashboard_type": "playbook_ops",
+        "jtbd": "See migration playbook inventory, execution audit, and operator deep links in one hub.",
+        "main_question": "What playbook activity happened recently and where do I act next?",
+        "main_action": "Open admin changelists or follow a curated link to the right simulator or console.",
+    },
     "schools/super_pulse.html": {
         "dashboard_type": "fleet_pulse",
         "jtbd": "Track global school/student/revenue pulse in one glanceable surface.",
         "main_question": "Where is growth or risk concentrated across countries and tenants?",
         "main_action": "Drill into the highest-signal region and dispatch the next operator action.",
     },
+    "schools/super_usage.html": {
+        "dashboard_type": "api_usage_quotas",
+        "jtbd": "Review per-tenant API usage samples and configured quota limits.",
+        "main_question": "Which schools are approaching limits or show unusual API patterns?",
+        "main_action": "Adjust quota limits or investigate the highest-usage tenant.",
+    },
     "schools/super_runtime_truth_hub.html": {
         "dashboard_type": "runtime_readonly",
-        "jtbd": "Inspect RuntimeDefaults payload and slim SiteSettings without mutating live state.",
+        "jtbd": "Inspect RuntimeDefaults payload and the slim tenant settings row without mutating live state.",
         "main_question": "What does the platform singleton think the runtime truth is?",
         "main_action": "Compare payload keys to the incident or rollout you are debugging.",
     },
@@ -337,6 +361,18 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "jtbd": "Triage cross-tenant support load and escalations.",
         "main_question": "What ticket cluster is driving the most pain?",
         "main_action": "Take ownership of the highest-impact open case.",
+    },
+    "schools/super_support_csat_dashboard.html": {
+        "dashboard_type": "support_csat_readout",
+        "jtbd": "See tenant satisfaction trends on resolved global support tickets.",
+        "main_question": "Is CSAT improving or regressing by month?",
+        "main_action": "Drill tickets with low scores and follow up in the support queue.",
+    },
+    "schools/super_support_ticket_detail.html": {
+        "dashboard_type": "support_case_detail",
+        "jtbd": "Resolve one ticket with tenant context, SLA signals, and operator notes.",
+        "main_question": "What changed on this case and what is the next safe operator action?",
+        "main_action": "Update status or internal notes and follow the linked tenant health surfaces.",
     },
     "schools/super_tenant_360.html": {
         "dashboard_type": "tenant_record",
@@ -391,6 +427,12 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "jtbd": "Navigate dashboard-related tools without losing context.",
         "main_question": "Which dashboard tool solves my current problem?",
         "main_action": "Open the hub entry that matches your task (theme, layout, or packs).",
+    },
+    "siteconfig/tenant_runtime_configuration_hub.html": {
+        "dashboard_type": "configuration",
+        "jtbd": "See effective runtime and tenant site settings resolution without opening Django admin first.",
+        "main_question": "What is the tenant seeing after platform defaults and overrides merge?",
+        "main_action": "Jump to Feature control, themes, or CCC; use admin only as escape hatch.",
     },
     "student/learning_home.html": {
         "dashboard_type": "learner",

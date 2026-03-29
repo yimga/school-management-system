@@ -2,7 +2,8 @@
 {% load i18n %}
 {% block title %}Find your school{% endblock %}
 {% block content %}
-<div class="container py-5">
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 btn btn-sm btn-outline-secondary rounded" href="#global-login-discovery-main" style="z-index: 1080;">{% trans "Skip to school login discovery" %}</a>
+<div id="global-login-discovery-main" class="container py-5" tabindex="-1">
   <div class="row justify-content-center mb-4">
     <div class="col-lg-10">
       <div class="card border-0 shadow-sm">

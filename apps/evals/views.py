@@ -1959,7 +1959,7 @@ def teacher_marks_list(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def class_ranking_view(request: HttpRequest):
     """Class ranking (best to worst) for a given year/term/classroom.
 
@@ -2052,7 +2052,7 @@ def class_ranking_view(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def school_ranking_view(request: HttpRequest):
     """School-wide ranking for a given year/term.
 
@@ -2123,7 +2123,7 @@ def school_ranking_view(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def evaluation_admin(request: HttpRequest):
     year, active_term = get_active_year_and_term()
     if not year or not active_term:
@@ -2409,7 +2409,7 @@ def evaluation_admin(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def evaluation_evidence_upload(request: HttpRequest):
     evaluation_id = request.GET.get("evaluation")
     evaluation = None
@@ -2450,7 +2450,7 @@ class GradeImportUploadForm(forms.Form):
     file = forms.FileField(help_text="Upload a CSV with the expected headers.")
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def grade_import_upload_view(request: HttpRequest):
     """
     Staff-facing CSV upload with preview + apply.
@@ -2502,7 +2502,7 @@ def grade_import_upload_view(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def grade_import_template_view(request: HttpRequest):
     """
     Serve a CSV template for bulk grade imports (same fields as the management command).
@@ -2529,7 +2529,7 @@ def grade_import_template_view(request: HttpRequest):
     return response
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def grade_approval_list(request: HttpRequest):
     from apps.evals.runtime_helpers import get_policy_for_request
 
@@ -2558,7 +2558,7 @@ def grade_approval_list(request: HttpRequest):
     return render(request, "evals/grade_approval_list.html", context)
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def grade_approval_detail(request: HttpRequest, request_id):
     from apps.evals.runtime_helpers import get_policy_for_request
 
@@ -2688,7 +2688,7 @@ def grade_approval_detail(request: HttpRequest, request_id):
 # ========== COMPLIANCE & ADVANCED IMPORT VIEWS ==========
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def compliance_dashboard_view(request):
     """
@@ -2736,7 +2736,7 @@ def compliance_dashboard_view(request):
     return render(request, "evals/compliance_dashboard.html", context)
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def extend_deadline_view(request, subject_assignment_id):
     """
@@ -2785,7 +2785,7 @@ def extend_deadline_view(request, subject_assignment_id):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def grade_import_preview_api(request):
     """API endpoint for grade import preview with validation."""
@@ -2859,7 +2859,7 @@ def grade_import_preview_api(request):
         )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def grade_import_apply_api(request):
     """API endpoint for applying (persisting) grade import."""
@@ -2959,7 +2959,7 @@ def grade_import_apply_api(request):
         )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @role_required(User.Role.ADMIN, User.Role.HOD, User.Role.TEACHER, "HEAD_OF_ACADEMICS")
 def audit_trail_view(request, evaluation_id):
     """View audit trail for an evaluation."""
@@ -2983,7 +2983,7 @@ def audit_trail_view(request, evaluation_id):
     return render(request, "evals/audit_trail.html", context)
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def resolve_offline_conflict_view(request, offline_entry_id):
     """Manual conflict resolution for offline mark entries."""
@@ -3041,7 +3041,7 @@ def resolve_offline_conflict_view(request, offline_entry_id):
     return render(request, "evals/resolve_offline_conflict.html", context)
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def import_job_monitor_view(request):
     """Monitor and manage import jobs."""

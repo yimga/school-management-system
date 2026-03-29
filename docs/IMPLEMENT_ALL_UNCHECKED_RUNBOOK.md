@@ -14,6 +14,8 @@
 - **Uninterrupted run:** Do not stop until every [ ] is implemented, **verified** (test/audit/manual), and marked [x]. For each item: implement in the codebase → run relevant tests/lint → verify (UI, API, or doc/audit) → confirm working → **only then** change [ ] to [x] in SOT. Do not leave as N/A. If blocked by a dependency, do the "Unblock by" steps in N/A_BLOCKERS_AND_RESOLUTION, then implement the item. After each phase run verification. **Nothing can be assumed:** if you did not run a test or check, do not mark [x].
 - **Resumable (when context limits):** At the start of each run, read `docs/SOT_IMPLEMENTATION_SESSION_STATE.md`. Continue from the "Next section" listed there. At the end of each phase (or every N sections), update SOT_IMPLEMENTATION_SESSION_STATE.md with "Last completed: §X.Y; Next: §X.Y+1" and what was done. Resume the next run from that point until everything is completely done.
 
+**Smoke-light CI vs full `pre_deploy_gate`:** `.github/workflows/smoke-light.yml` runs a **narrow** pytest slice (e.g. `apps.platform_runtime.tests.test_tenant_settings_lint`) so PRs get fast signal without the full DB-heavy **`TARGETED_HARDENING`** bundle inside `scripts/pre_deploy_gate.sh`. Treat smoke-light as **parity hints** for selected scripts (Phase H skip links, structured logging contract, API v1 named-route snapshot, etc.) — **not** a substitute for `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` before release. When adding a new gate script, either wire it into `pre_deploy_gate.sh` / `verify_phases_3_11_gates.py` and/or add a matching `TenantSettingsLintTests.test_*_passes` if smoke-light should stay aligned.
+
 ---
 
 ## 2. Order of work (do not skip)
@@ -55,6 +57,8 @@ Follow SOT §11.3 logical order **and** close every item in **Phase GAP** (nothi
 
 **After each GAP.n:** Update `docs/SOT_IMPLEMENTATION_SESSION_STATE.md` under "Gap audit progress": set "Last closed gap" to GAP.n and "Next gap to close" to GAP.n+1 (or "All gaps closed"). Optionally update SOT_DOCUMENTS_VS_CODE_GAP_AUDIT.md §8 summary or §9 to mark the gap closed.
 
+**Structural merge work (not GAP.n):** e.g. **Batch 14 `DynamicField*`** — follow [BATCH_14_DYNAMICFIELD_RECONCILIATION.md](BATCH_14_DYNAMICFIELD_RECONCILIATION.md) and SOT §11.4; Phase 0 is spec + mapping code; Phase 1+ is migrations and cutover (separate from the GAP.1–15 checklist).
+
 ---
 
 ## 3. For each open item (explicit `[ ]`, PATH_TO **Action** row, or GAP.n) — implement, verify, then mark
@@ -92,6 +96,7 @@ This way the next agent run (or new chat) can continue without redoing work and 
 
 - **Ultra high-end without compromise:** Every implementation must be **ultra high-end** — no shortcuts, no "good enough," no placeholder-quality UI or copy. If something would lower the bar (e.g. generic styling, weak empty states, inconsistent tokens, or non-responsive layout), improve it to meet the bar; do not ship it as-is. SOT §8.0 and §8.0.11 define this bar; apply it to every page and surface.
 - **Single tracking:** Status and "what's left" stay in SOT **§11.4** + At a glance. PATH_TO_100 holds **slice Actions** and N/A detail — not a second global status dashboard.
+- **Slice size:** **Default one §11.4 theme per PR.** A **paired** change set (two themes, two log **A–F** blocks, two §11.4 rows) is **rare** and only when justified—see SOT **§11.4 anti-drag** item **6** and **SOT_IMPLEMENTATION_SESSION_STATE** “Slice bundling.”
 - **No new plan files:** Do not create new strategy/roadmap/remediation plan files. All updates go to SOT, BACKLOG, docs_truth_ledger, N/A_BLOCKERS, autonomous log.
 - **Do not mark [x] without verification:** Every [x] must be backed by a run test, lint, or explicit manual/audit check. Confirm the item is working before marking. **Nothing can be assumed.**
 - **Visible after deploy:** Every [x] you add must be verifiable (UI, API, or doc/lint/test). Add a short note if not obvious.

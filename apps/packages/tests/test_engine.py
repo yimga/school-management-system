@@ -286,6 +286,37 @@ class PackageEngineTenantIsolationTests(TestCase):
         )
 
 
+class NormalizeDeclaredDependenciesTests(TestCase):
+    def test_normalize_declared_dependencies_strings_dedupes_preserves_order(self):
+        from apps.packages.engine import normalize_declared_dependencies
+
+        out = normalize_declared_dependencies(
+            ["  a  ", "b", "a", "", "  ", "b"]
+        )
+        self.assertEqual(out, ["a", "b"])
+
+    def test_normalize_declared_dependencies_dict_entries_use_package_id_or_id(self):
+        from apps.packages.engine import normalize_declared_dependencies
+
+        out = normalize_declared_dependencies(
+            [
+                {"package_id": "pkg-a"},
+                {"id": "pkg-b"},
+                {"package_id": ""},
+            ]
+        )
+        self.assertEqual(out, ["pkg-a", "pkg-b"])
+
+    def test_normalize_declared_dependencies_rejects_non_list_or_bad_entry_type(self):
+        from apps.packages.engine import normalize_declared_dependencies
+
+        self.assertEqual(normalize_declared_dependencies(None), [])
+        with self.assertRaises(ValueError):
+            normalize_declared_dependencies("not-a-list")
+        with self.assertRaises(ValueError):
+            normalize_declared_dependencies([42])
+
+
 class PackageDependencyGraphTests(TestCase):
     def test_list_reverse_dependent_package_ids(self):
         from apps.packages.engine import list_reverse_dependent_package_ids

@@ -1,11 +1,42 @@
-{% extends "backend_base.html" %}
-{% load i18n %}
+{% extends "control_plane_base.html" %}
+{% load static i18n phase8_tags %}
 {% load region_format %}
 
-{% block title %}{% trans "Orchestration workbench" %}{% endblock %}
+{% block cp_title %}{% trans "Orchestration workbench" %}{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+{% block cp_page_archetype %}operational-workbench{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Orchestration workbench" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+  <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#orchestration-workbench-main">{% trans "Skip to orchestration runs table" %}</a>
+  <div id="orchestration-workbench-main" class="container-fluid py-4 control-plane-shell" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
+{% phase8_dashboard_declaration "orchestration/operator_workbench.html" %}
+  {% if operator_orchestration_workbench_links %}
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary mb-2">{% trans "Platform-admin rows (PlatformOperatorOrchestrationWorkbenchLink); add or reorder in platform admin." %}</p>
+      <ul class="list-unstyled mb-0 d-flex flex-wrap gap-2">
+        {% for link in operator_orchestration_workbench_links %}
+        <li><a class="btn btn-sm btn-outline-secondary" href="{{ link.href }}">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
   <h4 class="mb-3">{% trans "Orchestration workbench" %}</h4>
   <p class="text-muted small">{% trans "Long-running process runs (admissions, re-enrollment, fee follow-up, approval chains). State, retries, compensation, SLA visibility." %}</p>
   {% if runs_overdue %}
@@ -60,5 +91,5 @@
       </div>
     </div>
   </div>
-</div>
+  </div>
 {% endblock %}

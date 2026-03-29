@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import models
 from django.db.models import Sum
@@ -26,7 +27,7 @@ from .bank_statement_import import BankStatementImportService
 from .views_common import _active_profile, _can_access_accounting, FINANCE_SOFT_FAILURES
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def trial_balance(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
@@ -123,7 +124,7 @@ def expense_vs_budget(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def suspense_queue(request: HttpRequest):
     """Queue of unidentified deposits awaiting allocation."""
     queue = (
@@ -152,7 +153,7 @@ def suspense_queue(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 @require_POST
 def claim_suspense_payment(request: HttpRequest, suspense_id: int):
     """

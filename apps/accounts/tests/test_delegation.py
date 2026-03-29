@@ -1,10 +1,12 @@
 """Tests for delegation (Out of Office / Acting) helpers and models."""
 
 from django.test import TestCase
+from django.urls import resolve, reverse
 from django.utils import timezone
 from datetime import timedelta
 
 from apps.accounts.models import User, Delegation
+from apps.accounts.permissions import can_access_module
 from apps.accounts.delegation import (
     get_approval_roles_for_workflow,
     get_effective_approvers,
@@ -88,3 +90,23 @@ class DelegationHelperTests(TestCase):
         self.assertIsNotNone(active)
         self.assertEqual(active.id, d.id)
         self.assertIsNone(get_active_delegation_for_delegate(self.dean))
+
+    def test_delegation_portal_urls_resolve_to_accounts_namespace_for_module_middleware(self):
+        """Drift guard: profile/delegation routes must stay under ``accounts`` so ``MODULE_ACCESS_DEFAULTS['accounts']`` applies."""
+        for name in (
+            "accounts:my_delegations",
+            "accounts:delegation_add",
+            "accounts:delegation_catch_up",
+        ):
+            path = reverse(name)
+            match = resolve(path)
+            self.assertEqual(
+                match.namespace,
+                "accounts",
+                msg=f"{name} must resolve to accounts namespace (got {match.namespace!r})",
+            )
+        teacher = User.objects.create_user(
+            "tmw", "tmw@test.com", "pass", role=User.Role.TEACHER
+        )
+        self.assertTrue(can_access_module(teacher, "accounts", action="read"))
+        self.assertTrue(can_access_module(teacher, "accounts", action="write"))

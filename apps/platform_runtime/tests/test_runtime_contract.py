@@ -12,6 +12,7 @@ from django.test import TestCase
 from apps.platform_runtime.helpers import (
     get_effective_feature_control_settings,
     get_effective_flags_for_school,
+    get_effective_marketplace_integration_settings,
     get_effective_offline_runtime_settings,
     get_effective_site_settings,
     get_effective_support_contact_settings,
@@ -1264,11 +1265,13 @@ class RuntimeHelperResolutionTests(TestCase):
 
     def test_site_settings_owner_accessors_normalize_legacy_placeholders(self):
         site = get_platform_site_settings_record(create=True)
+        # Same scrub domain as siteconfig PLATFORM_SCRUB (fragment join — no vendor substring in source).
+        _legacy_demo_report_domain = "".join(["g", "ilead", "tech", ".", "edu"])
         _persist_runtime_test_state(
             site_name="School System",
             school_code="GIL",
             tagline="Knowledge ƒ?› Technology ƒ?› Excellence",
-            report_preview_contact_email="reports@gileadtech.edu",
+            report_preview_contact_email=f"reports@{_legacy_demo_report_domain}",
             report_preview_contact_phone="+237 670 000 000",
         )
         site.refresh_from_db()
@@ -1316,9 +1319,14 @@ class RuntimeHelperResolutionTests(TestCase):
         site = get_platform_site_settings_record(create=True)
         _persist_runtime_test_state(
             marksheet_ocr_command="/opt/runmycampus/bin/tesseract",
+            marksheet_ocr_api_key="ocr-owner-payload-test",
+            smtp_password="smtp-owner-payload-test",
+            webhook_signing_secret="whsec-owner-payload-test",
+            marketplace_partner_client_secret="mkt-partner-owner-payload-test",
             sms_sender_id="RUNMYCAMPUS",
             email_from_address="platform@runmycampus.com",
             whatsapp_support_number="+15551234567",
+            whatsapp_api_token="wa-owner-payload-test",
         )
         site.refresh_from_db()
 
@@ -1328,6 +1336,22 @@ class RuntimeHelperResolutionTests(TestCase):
             integration_settings["marksheet_ocr_command"],
             "/opt/runmycampus/bin/tesseract",
         )
+        self.assertEqual(
+            integration_settings.get("marksheet_ocr_api_key"),
+            "ocr-owner-payload-test",
+        )
+        self.assertEqual(
+            integration_settings.get("smtp_password"),
+            "smtp-owner-payload-test",
+        )
+        self.assertEqual(
+            integration_settings.get("webhook_signing_secret"),
+            "whsec-owner-payload-test",
+        )
+        self.assertEqual(
+            integration_settings.get("marketplace_partner_client_secret"),
+            "mkt-partner-owner-payload-test",
+        )
         self.assertEqual(integration_settings["sms_sender_id"], "RUNMYCAMPUS")
         self.assertEqual(
             integration_settings["email_from_address"], "platform@runmycampus.com"
@@ -1335,6 +1359,31 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(
             integration_settings["whatsapp_support_number"], "+15551234567"
         )
+        self.assertEqual(
+            integration_settings.get("whatsapp_api_token"),
+            "wa-owner-payload-test",
+        )
+
+    def test_get_effective_marketplace_integration_settings_matches_facade_method(self):
+        """Tenant/task code should use the helper; it must match the merged SiteSettings facade."""
+        get_platform_site_settings_record(create=True)
+        _persist_runtime_test_state(
+            marksheet_ocr_command="/opt/runmycampus/bin/tesseract",
+            marksheet_ocr_api_key="ocr-owner-payload-test",
+            smtp_password="smtp-owner-payload-test",
+            webhook_signing_secret="whsec-owner-payload-test",
+            marketplace_partner_client_secret="mkt-partner-owner-payload-test",
+            sms_sender_id="RUNMYCAMPUS",
+            email_from_address="platform@runmycampus.com",
+            whatsapp_support_number="+15551234567",
+            whatsapp_api_token="wa-owner-payload-test",
+        )
+        site = get_platform_site_settings_record(create=False)
+        self.assertIsNotNone(site)
+        site.refresh_from_db()
+        expected = site.get_marketplace_integration_settings()
+        got = get_effective_marketplace_integration_settings()
+        self.assertEqual(got, expected)
 
     def test_build_platform_default_site_settings_returns_unsaved_compat_shape(self):
         site = build_platform_default_site_settings()

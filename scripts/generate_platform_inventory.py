@@ -3,11 +3,13 @@
 Generate the platform inventory required for the north-star hard-freeze phase.
 
 Outputs:
-- docs/generated/platform_inventory.json
+- docs/generated/platform_inventory.json (+ `scoped_gravity_counts` for product-signal metrics)
 - docs/generated/platform_inventory.md
+- scripts/generated/scoped_gravity_trend.json (ring buffer of recent `scoped_gravity_counts`; under `scripts/` so keys matching **gilead** heuristics do not inflate `baseline_counts` scans of `docs/generated/*.json`)
 
 Use `--write` to refresh committed artifacts and `--check` to fail CI when the
-artifacts are stale.
+artifacts are stale, when **doc_drift.is_stale** is true, or when
+**scoped_gravity_counts.print_calls_apps_py_excl_migrations_tests_management** ≠ 0 (P6).
 """
 
 from __future__ import annotations
@@ -17,12 +19,14 @@ import json
 import re
 import sys
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = ROOT / "docs" / "generated"
 JSON_PATH = DOCS_DIR / "platform_inventory.json"
 MD_PATH = DOCS_DIR / "platform_inventory.md"
+TREND_PATH = ROOT / "scripts" / "generated" / "scoped_gravity_trend.json"
 
 sys.path.insert(0, str(ROOT))
 
@@ -42,6 +46,10 @@ COUNT_PATTERNS = {
     "print_calls": re.compile(r"\bprint\s*\("),
     "gilead": re.compile(r"gilead", re.IGNORECASE),
 }
+# Decorator-level CSRF exemptions (aligned with scripts/lint_csrf_exempt_usage.py).
+CSRF_EXEMPT_DECORATOR_PATTERN = re.compile(
+    r"^\s*@csrf_exempt\b|method_decorator\(\s*csrf_exempt\b"
+)
 SKIP_PARTS = {
     ".git",
     ".venv",
@@ -144,9 +152,12 @@ def _baseline_counts() -> dict[str, int]:
     commands_list = _management_commands_list()
     counters["management_commands"] = len(commands_list)
     gilead_files = set()
-    file_pool = py_files + list(
-        _iter_files(".html", ".md", ".json", ".yaml", ".yml", ".sh", ".ps1")
-    )
+    trend_rel = "scripts/generated/scoped_gravity_trend.json"
+    file_pool = py_files + [
+        p
+        for p in _iter_files(".html", ".md", ".json", ".yaml", ".yml", ".sh", ".ps1")
+        if p.relative_to(ROOT).as_posix() != trend_rel
+    ]
     for path in file_pool:
         text = _safe_text(path)
         for key, pattern in COUNT_PATTERNS.items():
@@ -157,6 +168,146 @@ def _baseline_counts() -> dict[str, int]:
                     gilead_files.add(path.relative_to(ROOT).as_posix())
     counters["gilead_files"] = len(gilead_files)
     return dict(counters)
+
+
+def _path_has_excluded_part(path: Path, excluded: frozenset[str]) -> bool:
+    return any(part in excluded for part in path.parts)
+
+
+def _scoped_gravity_counts() -> dict[str, int]:
+    """
+    Product-facing counters (exclude migrations; some exclude tests/management).
+
+    Gross `baseline_counts` mix migrations, tests, and docs-adjacent files—use these
+    for SiteSettings / SQL / CSRF posture trends. The **gilead** line-hit tally matches
+    ``lint_gilead_residue.py`` (skips ``apps/**/management/commands/``).
+    """
+    ss_pat = COUNT_PATTERNS["site_settings"]
+    ce_pat = COUNT_PATTERNS["cursor_execute"]
+    print_pat = COUNT_PATTERNS["print_calls"]
+    gilead_pat = COUNT_PATTERNS["gilead"]
+
+    def site_settings_apps_py(excluded: frozenset[str]) -> int:
+        total = 0
+        apps_dir = ROOT / "apps"
+        if not apps_dir.is_dir():
+            return 0
+        for path in apps_dir.rglob("*.py"):
+            if any(part in SKIP_PARTS for part in path.parts):
+                continue
+            if _path_has_excluded_part(path, excluded):
+                continue
+            total += len(ss_pat.findall(_safe_text(path)))
+        return total
+
+    def cursor_execute_apps_config_py(excluded: frozenset[str]) -> int:
+        total = 0
+        for root_name in ("apps", "config"):
+            root = ROOT / root_name
+            if not root.is_dir():
+                continue
+            for path in root.rglob("*.py"):
+                if any(part in SKIP_PARTS for part in path.parts):
+                    continue
+                if _path_has_excluded_part(path, excluded):
+                    continue
+                total += len(ce_pat.findall(_safe_text(path)))
+        return total
+
+    def print_apps_py_product() -> int:
+        """apps/**/*.py excluding migrations, tests, management (matches no-print gate spirit)."""
+        total = 0
+        apps_dir = ROOT / "apps"
+        excluded = frozenset({"migrations", "tests", "management"})
+        if not apps_dir.is_dir():
+            return 0
+        for path in apps_dir.rglob("*.py"):
+            if any(part in SKIP_PARTS for part in path.parts):
+                continue
+            if _path_has_excluded_part(path, excluded):
+                continue
+            total += len(print_pat.findall(_safe_text(path)))
+        return total
+
+    def print_scripts_py() -> int:
+        total = 0
+        scripts_dir = ROOT / "scripts"
+        if not scripts_dir.is_dir():
+            return 0
+        for path in scripts_dir.rglob("*.py"):
+            if any(part in SKIP_PARTS for part in path.parts):
+                continue
+            total += len(print_pat.findall(_safe_text(path)))
+        return total
+
+    def csrf_exempt_decorator_lines_apps_config() -> int:
+        total = 0
+        for root_name in ("apps", "config"):
+            root = ROOT / root_name
+            if not root.is_dir():
+                continue
+            for path in root.rglob("*.py"):
+                if any(part in SKIP_PARTS for part in path.parts):
+                    continue
+                if "migrations" in path.parts:
+                    continue
+                text = _safe_text(path)
+                total += sum(
+                    1
+                    for line in text.splitlines()
+                    if CSRF_EXEMPT_DECORATOR_PATTERN.search(line)
+                )
+        return total
+
+    def gilead_line_hits_product_corpus() -> int:
+        """Gilead string lines under apps, templates, config (no migrations/tests).
+
+        Skips ``apps/**/management/commands/`` — same surface as ``lint_gilead_residue.py``
+        (CLI-only; not HTTP/runtime-visible).
+        """
+        excluded = frozenset({"migrations", "tests"})
+        roots = (ROOT / "apps", ROOT / "templates", ROOT / "config")
+        total = 0
+        for base in roots:
+            if not base.exists():
+                continue
+            for path in base.rglob("*"):
+                if not path.is_file():
+                    continue
+                if any(part in SKIP_PARTS for part in path.parts):
+                    continue
+                if _path_has_excluded_part(path, excluded):
+                    continue
+                rel = path.relative_to(ROOT).as_posix()
+                if "management/commands/" in rel:
+                    continue
+                if path.suffix.lower() not in {".py", ".html"}:
+                    continue
+                text = _safe_text(path)
+                total += sum(
+                    1 for line in text.splitlines() if gilead_pat.search(line)
+                )
+        return total
+
+    return {
+        "site_settings_refs_apps_py_excl_migrations": site_settings_apps_py(
+            frozenset({"migrations"})
+        ),
+        "site_settings_refs_apps_py_excl_migrations_tests": site_settings_apps_py(
+            frozenset({"migrations", "tests"})
+        ),
+        "cursor_execute_apps_config_py_excl_migrations": cursor_execute_apps_config_py(
+            frozenset({"migrations"})
+        ),
+        "print_calls_apps_py_excl_migrations_tests_management": print_apps_py_product(),
+        "print_calls_scripts_py": print_scripts_py(),
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": (
+            csrf_exempt_decorator_lines_apps_config()
+        ),
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": (
+            gilead_line_hits_product_corpus()
+        ),
+    }
 
 
 def _largest_python_files(limit: int = 12) -> list[dict[str, int | str]]:
@@ -256,6 +407,7 @@ def _to_markdown(inventory: dict[str, object]) -> str:
     metrics = inventory["baseline_counts"]
     doc_drift = inventory["doc_drift"]
     public_audits = inventory["public_endpoint_audits"]
+    scoped = inventory.get("scoped_gravity_counts") or {}
     lines = [
         "# Platform Inventory",
         "",
@@ -265,15 +417,23 @@ def _to_markdown(inventory: dict[str, object]) -> str:
         f"- Markdown files: `{metrics['markdown_files']}`",
         f"- Migration files: `{metrics['migration_files']}`",
         f"- Management commands: `{metrics['management_commands']}` (full list in JSON key `management_commands_list`)",
-        f"- `SiteSettings` refs: `{metrics['site_settings']}`",
+        f"- `SiteSettings` refs (gross scan): `{metrics['site_settings']}`",
+        f"- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `{scoped.get('site_settings_refs_apps_py_excl_migrations', '—')}`",
+        f"- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `{scoped.get('site_settings_refs_apps_py_excl_migrations_tests', '—')}`",
         f"- `get_solo()` refs: `{metrics['get_solo']}`",
         f"- `except Exception`: `{metrics['except_exception']}`",
-        f"- `cursor.execute()`: `{metrics['cursor_execute']}`",
-        f"- `csrf_exempt`: `{metrics['csrf_exempt']}`",
+        f"- `cursor.execute()` (gross): `{metrics['cursor_execute']}`",
+        f"- `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `{scoped.get('cursor_execute_apps_config_py_excl_migrations', '—')}`",
+        f"- `csrf_exempt` (substring, gross): `{metrics['csrf_exempt']}`",
+        f"- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `{scoped.get('csrf_exempt_decorator_lines_apps_config_excl_migrations', '—')}`",
         f"- `AllowAny`: `{metrics['allow_any']}`",
-        f"- `print()`: `{metrics['print_calls']}`",
-        f"- `gilead` matches: `{metrics['gilead']}` across `{metrics['gilead_files']}` files",
+        f"- `print()` (gross all `.py`): `{metrics['print_calls']}`",
+        f"- `print()` (`apps` product paths): `{scoped.get('print_calls_apps_py_excl_migrations_tests_management', '—')}`; `scripts/`: `{scoped.get('print_calls_scripts_py', '—')}`",
+        f"- `gilead` matches (gross corpus): `{metrics['gilead']}` across `{metrics['gilead_files']}` files",
+        f"- `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `{scoped.get('gilead_line_hits_apps_templates_config_excl_migrations_tests', '—')}`",
         "",
+        "Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).",
+        f"- Scoped-gravity **history** (last writes): `scripts/generated/scoped_gravity_trend.json` (updated with `generate_platform_inventory.py --write`; excluded from gross `gilead` JSON scan).",
         "",
         "## Management Commands (full list)",
         "",
@@ -341,6 +501,7 @@ def _to_markdown(inventory: dict[str, object]) -> str:
 def _build_inventory() -> dict[str, object]:
     return {
         "baseline_counts": _baseline_counts(),
+        "scoped_gravity_counts": _scoped_gravity_counts(),
         "management_commands_list": _management_commands_list(),
         "public_endpoint_audits": _public_endpoint_audits(),
         "site_settings_fields": _site_settings_fields(),
@@ -348,6 +509,71 @@ def _build_inventory() -> dict[str, object]:
         "successor_domain_imports": _successor_domain_imports(),
         "doc_drift": _doc_drift(),
     }
+
+
+def _normalized_scoped_counts(scoped: dict[str, object]) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for k, v in sorted(scoped.items()):
+        try:
+            out[str(k)] = int(v)
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _update_scoped_gravity_trend(scoped: dict[str, int], *, max_points: int = 48) -> None:
+    """Append or refresh a point in the ring buffer (dedupe identical consecutive counts)."""
+    counts = _normalized_scoped_counts(scoped)
+    point = {
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+        "counts": counts,
+    }
+    data: dict[str, object] = {"version": 1, "history": []}
+    if TREND_PATH.is_file():
+        try:
+            raw = json.loads(TREND_PATH.read_text(encoding="utf-8"))
+            if isinstance(raw, dict):
+                data = raw
+        except (OSError, json.JSONDecodeError):
+            pass
+    hist = data.get("history")
+    if not isinstance(hist, list):
+        hist = []
+    if (
+        hist
+        and isinstance(hist[-1], dict)
+        and hist[-1].get("counts") == counts
+    ):
+        hist[-1] = point
+    else:
+        hist.append(point)
+    data["history"] = hist[-max_points:]
+    data["version"] = 1
+    TREND_PATH.parent.mkdir(parents=True, exist_ok=True)
+    TREND_PATH.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
+def _verify_scoped_gravity_trend_matches(scoped: dict[str, int]) -> str | None:
+    """Return error message if trend file exists but last point != current scoped counts."""
+    if not TREND_PATH.is_file():
+        return None
+    try:
+        raw = json.loads(TREND_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        return f"scoped_gravity_trend.json invalid JSON: {e}"
+    hist = raw.get("history")
+    if not isinstance(hist, list) or not hist:
+        return "scoped_gravity_trend.json has no history"
+    last = hist[-1]
+    if not isinstance(last, dict):
+        return "scoped_gravity_trend.json last history entry is not an object"
+    got = last.get("counts")
+    if got != _normalized_scoped_counts(scoped):
+        return (
+            "scoped_gravity_trend.json last counts != current scoped_gravity_counts; "
+            "run: python scripts/generate_platform_inventory.py --write"
+        )
+    return None
 
 
 def main() -> int:
@@ -377,6 +603,33 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 1
+        doc_drift = inventory.get("doc_drift") or {}
+        if doc_drift.get("is_stale"):
+            print(
+                "platform inventory: doc_drift.is_stale is true — align "
+                f"`{doc_drift.get('legacy_doc', 'docs/ALL_MODULES_COMPLETE_LIST.md')}` "
+                "app count with config/settings.py `apps.*` INSTALLED_APPS entries, "
+                "then run: python scripts/generate_platform_inventory.py --write",
+                file=sys.stderr,
+            )
+            return 1
+        scoped = inventory.get("scoped_gravity_counts") or {}
+        prints = scoped.get("print_calls_apps_py_excl_migrations_tests_management")
+        if prints is None:
+            print(
+                "platform inventory: scoped_gravity_counts missing "
+                "print_calls_apps_py_excl_migrations_tests_management; regenerate inventory",
+                file=sys.stderr,
+            )
+            return 1
+        if prints != 0:
+            print(
+                "platform inventory: scoped print_calls_apps_py_excl_migrations_tests_management "
+                f"must be 0 for P6 merge bar (got {prints!r}); remove print() from apps product paths "
+                "or run scripts/lint_no_print_in_apps.py",
+                file=sys.stderr,
+            )
+            return 1
         if (
             JSON_PATH.read_text(encoding="utf-8") != json_text
             or MD_PATH.read_text(encoding="utf-8") != md_text
@@ -386,6 +639,12 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 1
+        trend_err = _verify_scoped_gravity_trend_matches(
+            inventory.get("scoped_gravity_counts") or {}
+        )
+        if trend_err:
+            print(f"platform inventory: {trend_err}", file=sys.stderr)
+            return 1
         print("generate_platform_inventory: committed inventory is up to date.")
         return 0
 
@@ -393,8 +652,10 @@ def main() -> int:
         DOCS_DIR.mkdir(parents=True, exist_ok=True)
         JSON_PATH.write_text(json_text, encoding="utf-8")
         MD_PATH.write_text(md_text, encoding="utf-8")
+        _update_scoped_gravity_trend(inventory.get("scoped_gravity_counts") or {})
         print(
-            f"generate_platform_inventory: wrote {JSON_PATH.relative_to(ROOT)} and {MD_PATH.relative_to(ROOT)}"
+            f"generate_platform_inventory: wrote {JSON_PATH.relative_to(ROOT)}, "
+            f"{MD_PATH.relative_to(ROOT)}, {TREND_PATH.relative_to(ROOT)}"
         )
         return 0
 

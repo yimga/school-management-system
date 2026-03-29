@@ -8,6 +8,16 @@ Use with:
 - `docker-compose.collabora.yml`
 - `scripts/release/verify_collabora_wopi.sh`
 
+### OSS and “your infrastructure”
+
+Collabora Online is **open source** (MPL). The WOPI editor requires a **document server process** — typically a second service on the same cloud account as Django (Render private service, k8s Deployment, or VM), **not** a requirement to use closed-source SaaS. Code stays in git; runtime topology is ops.
+
+### Tenant DB note
+
+If `seed_office_documents` fails on `public` with missing table but tenant schema has the table, run:
+
+`python manage.py tenant_command seed_office_documents --schema=<tenant_schema>`.
+
 ## 1) Configuration
 
 - [ ] `COLLABORA_BASE_URL` set on web service (public HTTPS URL).
@@ -48,6 +58,20 @@ APP_BASE_URL=https://<app-staging-host> COLLABORA_BASE_URL=https://<collabora-st
 - [ ] `/kb/office/` reachable (200 or auth redirect as expected).
 - [ ] WOPI metadata/content routes reachable for seeded doc.
 - [ ] Edit-save roundtrip verified manually from one tenant and one operator account.
+
+### Troubleshooting: discovery returns 302
+
+If `verify_collabora_wopi_smoke.py` reports `collabora discovery ... got 302` with redirect to `school-not-found` or app host:
+
+- `collabora.<domain>` is routed to the Django app instead of Collabora.
+- Fix DNS/proxy/ingress host routing so `collabora.<domain>` targets Collabora service directly.
+- Re-test with:
+
+```bash
+curl -I https://collabora.<domain>/hosting/discovery
+```
+
+Expected: `200`.
 
 ## 5) Release gate integration
 

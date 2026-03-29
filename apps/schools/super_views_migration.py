@@ -12,6 +12,8 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.http import JsonResponse
 from django.utils import timezone
 
+from apps.platform_runtime.models import PlatformOperatorMigrationCloudLink
+
 from .models import School
 from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
 
@@ -97,6 +99,9 @@ def super_migration_cloud(request):
         .order_by("-created_at")[:40]
     )
 
+    operator_migration_cloud_links = list(
+        PlatformOperatorMigrationCloudLink.objects.order_by("sort_order", "slug")
+    )
     return render(
         request,
         "schools/super_migration_cloud.html",
@@ -112,6 +117,7 @@ def super_migration_cloud(request):
             "registry_url": reverse("super:migration_profile_registry"),
             "exception_runs_open": exception_runs_open,
             "quarantine_open": quarantine_open,
+            "operator_migration_cloud_links": operator_migration_cloud_links,
         },
     )
 

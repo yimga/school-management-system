@@ -1,7 +1,7 @@
 """
 Finance in-app and optional email notifications to guardians.
 Phase 2: New invoice issued (2.3), Payment received (2.4).
-Configurable via SiteSettings; respects guardians with can_view_finance.
+Configurable via effective tenant site settings; respects guardians with can_view_finance.
 """
 
 from __future__ import annotations

@@ -57,7 +57,8 @@
         <li class="mb-1">
           <a href="{{ item.url }}" class="control-rail-link {% if forloop.first %}active{% endif %}"
              {% if item.embed %}data-embed="1"{% endif %}
-             {% if control_panel_html and forloop.first %}data-panel="1"{% endif %}>{{ item.label }}</a>
+             {% if item.external %}data-external="1" target="_blank" rel="noopener noreferrer"{% endif %}
+             {% if control_panel_html and forloop.first %}data-panel="1"{% endif %}>{{ item.label }}{% if item.external %} <span class="visually-hidden">{% trans "(opens in new tab)" %}</span>{% endif %}</a>
         </li>
         {% endfor %}
       </ul>
@@ -95,15 +96,26 @@
   var wrap = document.getElementById('control-panel-wrap');
   var iframe = document.getElementById('studio-control-iframe');
   var openFull = document.getElementById('studio-control-open-full');
-  var links = document.querySelectorAll('.control-rail-link[data-embed="1"]');
+  var links = document.querySelectorAll('#control-rail-list .control-rail-link');
   var hasPanel = !!document.querySelector('.control-rail-link[data-panel="1"]');
   function syncFullWindowHref() {
-    if (openFull && iframe && iframe.src) {
+    if (!openFull) return;
+    if (iframe && iframe.style.display !== 'none' && iframe.src && iframe.src.indexOf('about:blank') !== 0) {
       openFull.setAttribute('href', iframe.src);
+      return;
+    }
+    var active = document.querySelector('#control-rail-list .control-rail-link.active');
+    if (active && active.getAttribute('href')) {
+      openFull.setAttribute('href', active.getAttribute('href'));
+      return;
+    }
+    var first = document.querySelector('#control-rail-list .control-rail-link');
+    if (first && first.getAttribute('href')) {
+      openFull.setAttribute('href', first.getAttribute('href'));
     }
   }
   function setActive(el) {
-    links.forEach(function(l) { l.classList.remove('active'); });
+    document.querySelectorAll('#control-rail-list .control-rail-link').forEach(function(l) { l.classList.remove('active'); });
     if (el) el.classList.add('active');
   }
   if (iframe) {
@@ -112,11 +124,17 @@
   syncFullWindowHref();
   links.forEach(function(link) {
     link.addEventListener('click', function(e) {
+      if (link.getAttribute('data-external') === '1') {
+        setActive(link);
+        syncFullWindowHref();
+        return;
+      }
       if (link.getAttribute('data-panel') === '1' && hasPanel) {
         e.preventDefault();
         if (wrap) wrap.style.display = '';
         if (iframe) iframe.style.display = 'none';
         setActive(link);
+        syncFullWindowHref();
       } else if (link.getAttribute('data-embed') === '1') {
         e.preventDefault();
         if (iframe) {

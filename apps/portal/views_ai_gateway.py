@@ -1227,7 +1227,7 @@ def api_tenant_maturity(request):
         return rate_err
     try:
         _school_id(request)
-        # §3.2: Use runtime helper instead of direct SiteSettings read (tenant-facing).
+        # §3.2: Use runtime helper instead of direct tenant site settings read (tenant-facing).
         score = 0
         try:
             from apps.platform_runtime.helpers import get_effective_site_settings
@@ -1509,6 +1509,63 @@ def _append_json_snapshot(context_block: str, snapshot: Any, *, label: str) -> s
     return f"{context_block}\n{label}: {blob}"
 
 
+def _guided_assistant_rag_context(
+    request, query: str
+) -> tuple[str, list[dict[str, Any]]]:
+    """Same retrieval pattern as setup assistant: help/config/default AI memory scopes."""
+    school_id = _school_id(request)
+    citations: list[dict[str, Any]] = []
+    if not school_id:
+        return "", citations
+    context_parts: list[str] = []
+    emb = get_embedding_for_text(query, max_tokens=512)
+    if not emb:
+        return "", citations
+    try:
+        for scope in ("help", "config", "default"):
+            for r in AIMemoryService.search_similar(
+                school_id, scope, emb, limit=2, **_retrieval_kwargs(request)
+            ):
+                context_parts.append(str(r.get("metadata", ""))[:400])
+                citations.append(
+                    {
+                        "id": r.get("id"),
+                        "scope": scope,
+                        "metadata": {
+                            k: v
+                            for k, v in (r.get("metadata") or {}).items()
+                            if k not in ("embedding", "raw_text")
+                        },
+                    }
+                )
+    except OPTIONAL_GATEWAY_ERRORS:
+        return "", citations
+    blob = "\n".join(context_parts)[:1200]
+    return blob, citations
+
+
+def _guided_request_grounding(request) -> str:
+    """Non-secret request facts so the model can resolve relative paths without inventing hosts."""
+    try:
+        base = request.build_absolute_uri("/").rstrip("/") + "/"
+    except (AttributeError, TypeError, ValueError):
+        base = ""
+    try:
+        host = (request.get_host() or "").strip()
+    except (AttributeError, TypeError, ValueError):
+        host = ""
+    if not base and not host:
+        return "Request origin: unknown; describe routes as path-only unless CONTEXT gives a full URL."
+    parts = []
+    if host:
+        parts.append(f"HTTP Host (for same-origin navigation): {host[:200]}")
+    if base:
+        parts.append(
+            f"Absolute base URL for this request (prefix for relative paths in CONTEXT): {base[:240]}"
+        )
+    return "\n".join(parts)
+
+
 def _api_guided_domain_assistant(
     request,
     *,
@@ -1537,7 +1594,7 @@ def _api_guided_domain_assistant(
         return _gateway_permission_denied_response(
             {"outcome": "permission_denied", "error": "AI permission denied for this task"}
         )
-    ctx = context_block
+    ctx = f"{_guided_request_grounding(request)}\n\n{context_block}"
     if audit_feature == "studio_os_assistant":
         mode = str(body.get("studio_mode") or "").strip()[:64]
         ctx = f"{ctx}\nUser studio_mode hint: {mode or 'unknown'}."
@@ -1546,6 +1603,12 @@ def _api_guided_domain_assistant(
         body.get("context_snapshot"),
         label="Optional user-supplied snapshot (must not contain secrets)",
     )
+    rag_blob, rag_citations = _guided_assistant_rag_context(request, query)
+    if rag_blob:
+        ctx = (
+            f"{ctx}\nRetrieved platform memory snippets (use when relevant; do not contradict CONTEXT above):\n"
+            f"{rag_blob}"
+        )
     prompt = (
         get_prompt_template(
             prompt_key,
@@ -1553,7 +1616,9 @@ def _api_guided_domain_assistant(
         )
         or ""
     ).strip() or (
-        "You are a precise product assistant. Use CONTEXT for facts; do not invent URLs or secrets.\n\n"
+        "GROUNDING: Use CONTEXT only for product-specific facts; if insufficient, say so in summary and add cautions. "
+        "Never output secrets or fabricated URLs.\n\n"
+        "You are a precise product assistant.\n\n"
         "Respond with JSON only:\n"
         '{"summary": "string", "actions": [{"title": "string", "detail": "string"}], '
         '"cautions": ["string"], "references": ["string"]}\n\n'
@@ -1580,18 +1645,19 @@ def _api_guided_domain_assistant(
             )
         _log_gateway_audit(request, audit_feature, str(task_type), "success", meta)
         out = result if isinstance(result, dict) else {}
-        return JsonResponse(
-            {
-                "success": True,
-                "guided": {
-                    "summary": out.get("summary", ""),
-                    "actions": out.get("actions", []),
-                    "cautions": out.get("cautions", []),
-                    "references": out.get("references", []),
-                },
-                "meta": meta,
-            }
-        )
+        payload = {
+            "success": True,
+            "guided": {
+                "summary": out.get("summary", ""),
+                "actions": out.get("actions", []),
+                "cautions": out.get("cautions", []),
+                "references": out.get("references", []),
+            },
+            "meta": meta,
+        }
+        if rag_citations:
+            payload["citations"] = rag_citations
+        return JsonResponse(payload)
     except GATEWAY_VIEW_ERRORS as e:
         log_view_exception(
             request,

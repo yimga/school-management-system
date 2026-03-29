@@ -504,6 +504,12 @@ def build_control_plane_nav(request):
                 "url_name": "super:workflow_simulator",
                 "icon": "bi-diagram-3",
             },
+            {
+                "id": "super_playbook_operator_hub",
+                "label": "Playbook operator hub",
+                "url_name": "super:playbook_operator_hub",
+                "icon": "bi-journal-bookmark",
+            },
         ],
     )
     add_group(
@@ -646,6 +652,12 @@ def build_control_plane_nav(request):
                 "label": "Support",
                 "url_name": "super:support_dashboard",
                 "icon": "bi-headset",
+            },
+            {
+                "id": "super_support_csat",
+                "label": "CSAT",
+                "url_name": "super:support_csat_dashboard",
+                "icon": "bi-emoji-smile",
             },
         ],
     )

@@ -191,7 +191,7 @@ class Delegation(models.Model):
     """
     Out of Office / Acting: delegator assigns a delegate to act on their behalf for a date range.
     When end_date (or extended_end_date) is reached, proxy access is revoked (via task or on-request check).
-    All behaviour is configurable from SiteSettings (max days, auto-revoke, role mapping).
+    All behaviour is configurable from effective tenant site settings (max days, auto-revoke, role mapping).
     """
 
     delegator = models.ForeignKey(

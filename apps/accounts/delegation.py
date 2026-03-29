@@ -1,7 +1,7 @@
 """
 Delegation (Out of Office / Acting) helpers.
 Resolve effective approvers for a workflow: configurable roles + delegate substitution.
-No hardcoded role names; all from SiteSettings.
+No hardcoded role names; all from effective platform site settings.
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ def _user_has_any_role(user: User, roles: list[str]) -> bool:
 
 
 def get_approval_roles_for_workflow(workflow_key: str, school=None) -> list[str]:
-    """Return list of role codes that can approve for this workflow (from SiteSettings)."""
+    """Return list of role codes that can approve for this workflow (from effective tenant site settings)."""
     site = get_effective_site_settings(school=school)
     if workflow_key == WORKFLOW_SYLLABUS_APPROVAL:
         roles = (
@@ -124,7 +124,7 @@ def get_active_delegations_for_delegators(
 def get_effective_approvers(workflow_key: str, school=None):
     """
     Return list of User objects who can approve for this workflow:
-    - Users with an approval role for this workflow (from SiteSettings)
+    - Users with an approval role for this workflow (from effective site settings)
     - Plus delegates who are currently acting for any of those users (when they are OOO)
     So if the Dean is away and delegated to the HOD, the HOD appears in the result.
     """
@@ -205,7 +205,7 @@ def log_delegation_action(
 
 
 def get_delegation_role_mapping(school=None):
-    """Return who can delegate to whom from SiteSettings (dict: delegator_role -> [delegate_roles])."""
+    """Return who can delegate to whom from effective site settings (dict: delegator_role -> [delegate_roles])."""
     site = get_effective_site_settings(school=school)
     mapping = getattr(site, "delegation_role_mapping", None) or {}
     if isinstance(mapping, dict):
@@ -214,7 +214,7 @@ def get_delegation_role_mapping(school=None):
 
 
 def get_allowed_delegate_role_codes(delegator_user: User, school=None) -> list[str]:
-    """Return role codes the delegator is allowed to choose as delegate (from SiteSettings role mapping)."""
+    """Return role codes the delegator is allowed to choose as delegate (from effective site settings role mapping)."""
     if not delegator_user or not delegator_user.is_authenticated:
         return []
     school = school or _school_for_user(delegator_user)

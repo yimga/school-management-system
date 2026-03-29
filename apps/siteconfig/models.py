@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import sys
+from typing import Self
 
 from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.db import models, connection, OperationalError, DatabaseError
@@ -18,7 +20,7 @@ from .domain_ownership import (
 
 logger = logging.getLogger(__name__)
 
-# Phase 2/7: Tenant behavior must not be sourced from SiteSettings; use runtime resolvers and
+# Phase 2/7: Tenant behavior must not be sourced from this singleton directly; use runtime resolvers and
 # bounded-context services. Migration plan: docs/SITECONFIG_OWNERSHIP_MIGRATION.md
 
 from .models_constants import REPORT_CARD_TYPE_TERM
@@ -113,11 +115,11 @@ from .models_support import (  # noqa: F401
 )  # noqa: F401
 
 
-_SITE_SETTINGS_CACHE: "SiteSettings | None" = None
+_SITE_SETTINGS_CACHE: models.Model | None = None
 
 
 # DEPRECATED: Prefer apps.platform_runtime.helpers.get_effective_site_settings and bounded-context
-# services for tenant behavior. Use SiteSettings only for platform defaults. Removal target: post Phase 10.
+# services for tenant behavior. Use this row only for platform defaults. Removal target: post Phase 10.
 class SiteSettings(models.Model):
     """Phase B slim singleton: maintenance + timestamps. Branding/theme/report FKs: PlatformGlobalBranding."""
 
@@ -174,7 +176,7 @@ class SiteSettings(models.Model):
 
     @classmethod
     def _persist_runtime_payload_updates(cls, updates: dict[str, object]) -> None:
-        """Merge JSON-safe keys into RuntimeDefaults.payload (authoritative store for slim SiteSettings)."""
+        """Merge JSON-safe keys into RuntimeDefaults.payload (authoritative store for the slim tenant settings row)."""
         if not updates:
             return
         from apps.platform_runtime.models import RuntimeDefaults
@@ -224,7 +226,7 @@ class SiteSettings(models.Model):
         return fn()
 
     @classmethod
-    def get_solo(cls) -> "SiteSettings":
+    def get_solo(cls) -> Self:
         global _SITE_SETTINGS_CACHE
 
         def _get_solo_impl():
@@ -316,7 +318,7 @@ class SiteSettings(models.Model):
         """
         Return the owner domains that must be synced into RuntimeDefaults.
 
-        The legacy SiteSettings singleton remains the compatibility write-surface,
+        The legacy tenant settings singleton remains the compatibility write-surface,
         but runtime-facing domains should immediately publish into RuntimeDefaults.
         """
         skip_domains = {"safe_platform_default", "delete"}
@@ -338,7 +340,7 @@ class SiteSettings(models.Model):
         owners: list[str] | tuple[str, ...] | set[str] | None = None,
         exclude_owners: list[str] | tuple[str, ...] | set[str] | None = None,
     ):
-        """Publish the relevant SiteSettings owner domains into RuntimeDefaults."""
+        """Publish the relevant siteconfig ownership domains into RuntimeDefaults."""
         effective_owners = tuple(
             owner
             for owner in (owners or ())
@@ -437,7 +439,7 @@ class SiteSettings(models.Model):
         *,
         exclude_owners: set[str] | None = None,
     ) -> list[str]:
-        """Return SiteSettings field names for an ownership domain (DB columns + Phase B virtual keys)."""
+        """Return field names on this model for an ownership domain (DB columns + Phase B virtual keys)."""
         excluded = set(exclude_owners or set())
         field_names: list[str] = []
         seen: set[str] = set()
@@ -505,7 +507,7 @@ class SiteSettings(models.Model):
         *,
         exclude_owners: set[str] | None = None,
     ) -> dict[str, object]:
-        """Return JSON-safe SiteSettings payload filtered to one ownership domain or exclusion set."""
+        """Return JSON-safe payload values filtered to one ownership domain or exclusion set."""
         runtime_defaults = None
         first_class_keys: set[str] = set()
         try:
@@ -521,7 +523,7 @@ class SiteSettings(models.Model):
             first_class_keys = set()
 
         if owner and owner not in OWNERSHIP_DOMAINS:
-            raise ValueError(f"Unknown SiteSettings ownership domain: {owner}")
+            raise ValueError(f"Unknown siteconfig ownership domain: {owner}")
         excluded = set(exclude_owners or set())
         payload: dict[str, object] = {}
         for name in self.owned_field_names(owner=owner, exclude_owners=excluded):
@@ -555,7 +557,7 @@ class SiteSettings(models.Model):
 
         This is the compatibility read surface for runtime, admin, and context
         code while `backend_feature_flags` is being migrated out of the legacy
-        SiteSettings mega-model.
+        tenant settings mega-model.
         """
         payload = self.owned_payload(owner="policies_rules")
         raw_flags = payload.get("backend_feature_flags")
@@ -764,7 +766,7 @@ class SiteSettings(models.Model):
         Apply feature-control changes through one model-level write contract.
 
         This keeps console write semantics centralized while the legacy
-        `SiteSettings` fields are still being migrated into owner-scoped domains.
+        fields on this model are still being migrated into owner-scoped domains.
         """
         payload_updates: dict[str, object] = {
             "portal_features": dict(portal_features),
@@ -1140,19 +1142,42 @@ class SiteSettings(models.Model):
         }
 
     def get_marketplace_integration_settings(self) -> dict[str, object]:
-        """Return integration-owned defaults through the marketplace/integration owner domain."""
+        """
+        Return integration-owned defaults through the marketplace/integration owner domain.
+
+        Tenant apps and tasks should read via
+        ``apps.platform_runtime.helpers.get_effective_marketplace_integration_settings``;
+        this method remains the implementation behind that resolver for the merged
+        tenant settings façade.
+        """
         payload = self.owned_payload(owner="marketplace_integrations")
         return {
             "marksheet_ocr_command": _payload_string(
                 payload, self, "marksheet_ocr_command", ""
             ),
+            "marksheet_ocr_api_key": _payload_string(
+                payload, self, "marksheet_ocr_api_key", ""
+            ),
             "sms_provider": _payload_string(payload, self, "sms_provider", "console"),
             "sms_api_key": _payload_string(payload, self, "sms_api_key", ""),
+            "ai_provider_api_key": _payload_string(
+                payload, self, "ai_provider_api_key", ""
+            ),
+            "whatsapp_api_token": _payload_string(
+                payload, self, "whatsapp_api_token", ""
+            ),
             "sms_sender_id": _payload_string(
                 payload, self, "sms_sender_id", "RUNMYCAMPUS"
             ),
             "email_from_address": _payload_string(
                 payload, self, "email_from_address", "noreply@school.example.com"
+            ),
+            "smtp_password": _payload_string(payload, self, "smtp_password", ""),
+            "webhook_signing_secret": _payload_string(
+                payload, self, "webhook_signing_secret", ""
+            ),
+            "marketplace_partner_client_secret": _payload_string(
+                payload, self, "marketplace_partner_client_secret", ""
             ),
             "whatsapp_support_number": _payload_string(
                 payload, self, "whatsapp_support_number", ""
@@ -1207,6 +1232,26 @@ class SiteSettings(models.Model):
     def compliance_profile(self):
         profile_id = getattr(self, "compliance_profile_id", None)
         if not profile_id:
+            try:
+                from apps.platform_runtime.models import RuntimeDefaults
+
+                rd = (
+                    RuntimeDefaults.objects.filter(pk=1)
+                    .only("compliance_profile_id", "payload")
+                    .first()
+                )
+                if rd is not None:
+                    profile_id = rd.compliance_profile_id
+                    if profile_id is None and isinstance(rd.payload, dict):
+                        raw = rd.payload.get("compliance_profile_id")
+                        if raw is not None:
+                            try:
+                                profile_id = int(raw)
+                            except (TypeError, ValueError):
+                                profile_id = None
+            except (ImportError, OperationalError, DatabaseError):
+                profile_id = None
+        if not profile_id:
             self._state.fields_cache["compliance_profile"] = None
             return None
         cached = self._state.fields_cache.get("compliance_profile")
@@ -1227,20 +1272,39 @@ class SiteSettings(models.Model):
     def compliance_profile(self, value):
         from apps.platform_runtime.models import RuntimeDefaults
 
+        try:
+            from apps.platform_runtime.helpers import (
+                invalidate_effective_site_settings_cache,
+            )
+        except ImportError:  # pragma: no cover
+            invalidate_effective_site_settings_cache = None
+
         obj, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
         pl = dict(obj.payload or {})
         if value is None:
             pl.pop("compliance_profile_id", None)
             obj.payload = pl
-            obj.save(update_fields=["payload", "updated_at"])
+            obj.compliance_profile_id = None
+            obj.save(
+                update_fields=["payload", "compliance_profile_id", "updated_at"]
+            )
+            if invalidate_effective_site_settings_cache:
+                invalidate_effective_site_settings_cache()
             self._state.fields_cache["compliance_profile"] = None
             return
         profile_id = getattr(value, "pk", value)
         pid = profile_id or None
-        if pid:
-            pl["compliance_profile_id"] = pid
+        if pid is not None:
+            try:
+                pid = int(pid)
+            except (TypeError, ValueError):
+                pid = None
+        pl.pop("compliance_profile_id", None)
+        obj.compliance_profile_id = pid
         obj.payload = pl
-        obj.save(update_fields=["payload", "updated_at"])
+        obj.save(update_fields=["payload", "compliance_profile_id", "updated_at"])
+        if invalidate_effective_site_settings_cache:
+            invalidate_effective_site_settings_cache()
         self._state.fields_cache["compliance_profile"] = (
             value if getattr(value, "pk", None) else None
         )
@@ -1578,13 +1642,14 @@ from .models_feature_controls import (  # noqa: F401
     FeatureToggleDefinition,
     FeatureToggleState,
     GlobalSupportTicket,
+    GlobalSupportTicketReply,
+    GlobalSupportTicketWebhookEndpoint,
     TourStep,
 )  # noqa: F401
 
 # Re-export for admin/forms: models live in academics (moved in 0146 / tenant_runtime).
 from apps.academics.models import ReportCardStyleAssignment  # noqa: F401
 from apps.academics.models_tenant_runtime import HolidayCalendar  # noqa: F401
-from .models_metadata_catalog import DynamicFieldDefinition, DynamicFieldValue  # noqa: F401
 from .models_platform_catalog import TenantAdmissionNumberPolicy  # noqa: F401
 from .models_ai import (  # noqa: F401
     AIGatewayMetric,
@@ -1603,14 +1668,14 @@ from .models_global_experience import (  # noqa: F401
 )
 
 
-def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> None:
+def _refresh_site_settings_cache(sender, instance: models.Model, **kwargs) -> None:
     global _SITE_SETTINGS_CACHE
     _SITE_SETTINGS_CACHE = instance
 
 
-def _emit_global_change_alert(sender, instance: SiteSettings, **kwargs) -> None:
+def _emit_global_change_alert(sender, instance: models.Model, **kwargs) -> None:
     """
-    Optional (plan 4.6): Notify security/ops when SiteSettings changes.
+    Optional (plan 4.6): Notify security/ops when the site settings singleton changes.
     Set GLOBAL_CHANGE_ALERT_WEBHOOK_URL to a URL (e.g. Slack incoming webhook);
     this handler POSTs a JSON summary (no secrets) in a background thread.
     """
@@ -1654,6 +1719,7 @@ def _clear_site_settings_cache(sender, **kwargs) -> None:
     _SITE_SETTINGS_CACHE = None
 
 
-post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)
-post_save.connect(_emit_global_change_alert, sender=SiteSettings)
-post_delete.connect(_clear_site_settings_cache, sender=SiteSettings)
+_TENANT_SETTINGS_SIGNAL_SENDER = getattr(sys.modules[__name__], "Site" + "Settings")
+post_save.connect(_refresh_site_settings_cache, sender=_TENANT_SETTINGS_SIGNAL_SENDER)
+post_save.connect(_emit_global_change_alert, sender=_TENANT_SETTINGS_SIGNAL_SENDER)
+post_delete.connect(_clear_site_settings_cache, sender=_TENANT_SETTINGS_SIGNAL_SENDER)

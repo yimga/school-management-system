@@ -1,0 +1,423 @@
+{
+  "title": "## Appendix \u2014 new gate map (2026-03-26)",
+  "description": "Gate-map appendix generated from a single config list.",
+  "entries": [
+    {
+      "verifier": "scripts/check_no_committed_env.py",
+      "purpose": "Git must not track `.env` / `.env.local` (secrets hygiene); shell wrapper calls same script",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/check_repo_hygiene.py",
+      "purpose": "Repo hygiene: conflict markers and backup/debug debris",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/check_root_clutter.py",
+      "purpose": "Tracked files at repo root must stay within `tracked_root_allowlist.json`",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "manage.py check",
+      "purpose": "Django system check (settings, apps, URLs load) — no DB migration apply",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "manage.py makemigrations --check --dry-run",
+      "purpose": "Fail when model changes would require new migration files",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_bounded_context_imports.py --strict",
+      "purpose": "Tenant vs control-plane import boundaries",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_siteconfig_legacy_imports.py",
+      "purpose": "Block legacy `siteconfig.models` imports for domain-owned types",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/scan_repo_secrets.py",
+      "purpose": "High-risk token patterns in `apps/`, `config/`, `services/`",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_no_print_in_apps.py",
+      "purpose": "No `print()` in application trees (code hygiene)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "ruff check apps --select F401,F841",
+      "purpose": "Unused imports / unused variables in `apps/`",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/check_no_hardcoding.py --allow-tests",
+      "purpose": "Architecture no-hardcoding gate (tests may be exempt)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_phase_b_batch3_sitesettings_fk_writes.py",
+      "purpose": "Phase B batch 3 burn-in: no forbidden SiteSettings branding FK writes",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_broad_except.py --strict + broad_except_allowlist.json",
+      "purpose": "Broad `except` non-growth with allowlist",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/generate_platform_inventory.py --check",
+      "purpose": "Inventory JSON/MD committed = live code scan (\u2014write stays full train to refresh)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_shell_architecture_matrix.py",
+      "purpose": "Shell triad contracts (`/admin`, `/super`, `/studio`, tenant base) stay boundary-safe",
+      "entry_points": [
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/generate_gate_map_appendix.py --check",
+      "purpose": "PHASES_3_11 gate-map appendix stays synced to `docs/gate_map_appendix_config.json`",
+      "entry_points": [
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_phase_5_siteconfig.py",
+      "purpose": "ZIP Phase 5 siteconfig dismantling (docs + `domain_ownership` + mechanical checks)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_phase5_studio_os_conformance.py",
+      "purpose": "Studio OS: five canonical modes, URL routes, legacy redirect coverage, output canvas contracts",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_sitesettings_orm_singleton.py --base .",
+      "purpose": "`SiteSettings.objects` usage confined to approved modules",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_siteconfig_decomposition_depth.py",
+      "purpose": "`domain_ownership` \u2194 Phase B snapshot-domain alignment + slim/first-class artifacts; SITECONFIG_OWNERSHIP_MIGRATION.md wires inventory `site_settings_refs_*` + `generate_platform_inventory.py`",
+      "entry_points": [
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_gilead_full_tree_classification.py",
+      "purpose": "Full-tree `gilead` references restricted to classified historical/tooling buckets",
+      "entry_points": [
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_doc_plan_density_discipline.py",
+      "purpose": "Single-source docs discipline + non-growth cap on plan/roadmap/remediation/master density",
+      "entry_points": [
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_path_to_100_plan_discipline.py",
+      "purpose": "PATH_TO_100_PERCENT_EXECUTION_PLAN.md: SOT pointers + Phase III \u00a76.1\u20136.24 per-app spine",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_pre_deploy_gate_record.py",
+      "purpose": "Committed docs/generated/pre_deploy_gate_run.txt ends with successful pre_deploy (§11.4 evidence)",
+      "entry_points": [
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_migration_safety_doc_discipline.py",
+      "purpose": "NORTH_STAR_TRUST_AND_OPS.md migration safety operator contract (§0.4)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_performance_targets_doc_discipline.py",
+      "purpose": "NORTH_STAR_TRUST_AND_OPS.md performance targets N9/N10 operator contract (§0.4)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_lms_sso_doc_discipline.py",
+      "purpose": "NORTH_STAR_TRUST_AND_OPS.md LMS/SSO & federation operator contract (§0.4)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_uk_international_packs_doc_discipline.py",
+      "purpose": "NORTH_STAR_TRUST_AND_OPS.md UK/international packs operator contract (§0.4)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_advancement_crm_doc_discipline.py",
+      "purpose": "NORTH_STAR_TRUST_AND_OPS.md advancement CRM operator contract (§0.4)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_ai_blueprint_completion.py",
+      "purpose": "AI/provider wiring completeness (gateway, endpoints, prompt families, docs)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_csrf_exempt_usage.py",
+      "purpose": "`csrf_exempt` usage allowlist drift guard",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_allow_any_usage.py",
+      "purpose": "`AllowAny` usage allowlist drift guard",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_raw_sql_usage.py",
+      "purpose": "Raw SQL `cursor.execute` usage allowlist drift guard",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_security_allowlists.py",
+      "purpose": "Classified allowlists: `manifest_last_reviewed`, per-file `last_reviewed`, broad_except + tracked_root policy dates",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_security_allowlist_density.py",
+      "purpose": "Non-growth caps for allowlists; embedded raw_sql/csrf/AllowAny lints; ledger summary parity",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/build_phase8_security_ledger.py --check",
+      "purpose": "Phase 8/9 merged security ledger parity with allowlists",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_operating_discipline_docs.py",
+      "purpose": "\u00a710.5 doc refs in `role_home_engine` (`*_DOC` \u2192 existing `docs/` paths)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_design_system_phase2.py",
+      "purpose": "ZIP Phase 2 shell/CSS contract + nested `verify_section10_5_layers` (10.5.7)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_marketing_nav_no_overflow.py",
+      "purpose": "Marketing navbar primary items and overflow handling (§8 / Phase 11)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/validate_wedge_super_premium_phases.py --phase all",
+      "purpose": "SOT \u00a70.2.1.5\u2013\u00a70.2.1.6 wedge super-premium phased proof + packs + URL reverse",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_phase7_dashboard_markers.py",
+      "purpose": "Phase 7 decision-surface + Phase 8 declaration tags on registered dashboard templates",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_control_plane_hub_registry_drift.py",
+      "purpose": "Control-plane extends closure: `PHASE7_DASHBOARD_TEMPLATES` + exempt list covers all CP hubs",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_north_star_a11y.py --strict",
+      "purpose": "North star N3/N4: base shells reference `accessibility.css` (strict; no optional touch scan)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/lint_north_star_i18n.py --strict",
+      "purpose": "North star N21: key templates declare i18n load / `trans`",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_i18n_catalog_fresh.py",
+      "purpose": "`locale/en/LC_MESSAGES/django.po` covers translatable strings found by the i18n scanner",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    },
+    {
+      "verifier": "scripts/generate_gate_map_appendix.py --check",
+      "purpose": "`docs/PHASES_3_11_GATE_VERIFICATION.md` gate-map appendix matches this config (`--write` after edits)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py"
+      ]
+    },
+    {
+      "verifier": "scripts/verify_api_v1_named_routes_snapshot.py --check",
+      "purpose": "`apps.api.urls_v1` named routes match `scripts/generated/api_v1_named_routes.json` (`--write` after URL changes)",
+      "entry_points": [
+        "scripts/pre_deploy_gate.sh",
+        "scripts/verify_phases_3_11_gates.py",
+        "apps/platform_runtime/tests/test_tenant_settings_lint.py"
+      ]
+    }
+  ],
+  "note": "**Note:** `scripts/pre_deploy_gate.sh` executes the consolidated module (`apps.platform_runtime.tests.test_tenant_settings_lint`) and no longer duplicates `scripts/verify_phases_3_11_gates.py` in sequence."
+}

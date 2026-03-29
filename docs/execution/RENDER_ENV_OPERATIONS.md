@@ -47,7 +47,11 @@ Optional pre-deploy gate wiring:
 RUN_ENV_CONTRACT_GATE=1 RUN_COLLABORA_ENV_CONTRACT_GATE=1 bash scripts/pre_deploy_gate.sh
 ```
 
-## 4) Portability rule
+## 4) Collabora URL must not hit the Django app
+
+If `curl -I "$COLLABORA_BASE_URL/hosting/discovery"` redirects to your main site or `school-not-found`, the collabora hostname is still wired to Gunicorn. Point that hostname at the Collabora service instead (see `docs/execution/COLLABORA_PRODUCTION_ROLLOUT_CHECKLIST.md`). This is an infra routing fix, not an app env var change.
+
+## 5) Portability rule
 
 When migrating platforms, keep the same key names and only remap where values are sourced:
 

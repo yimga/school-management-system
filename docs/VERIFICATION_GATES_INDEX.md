@@ -16,7 +16,7 @@
 | SiteSettings not tenant-behavior truth | Same; runtime resolvers; get_effective_site_settings(request) in tenant paths | Yes |
 | runtime only legal behavior engine | test_runtime_contract, runtime_precedence.md, runtime inspector | Yes (targeted tests) |
 | AI secrets safe | lint_secret_exposure; no provider keys in templates | Yes |
-| public surfaces hardened | public_endpoint_audit.md; lint_csrf_exempt_usage; lint_allow_any_usage; lint_raw_sql_usage; lint_broad_except --strict; webhooks 401 on invalid signature | Yes (all four lints) |
+| public surfaces hardened | public_endpoint_audit.md; lint_csrf_exempt_usage; lint_allow_any_usage; lint_raw_sql_usage; verify_security_allowlists; verify_security_allowlist_density; build_phase8_security_ledger --check; lint_broad_except --strict; webhooks 401 on invalid signature | Yes |
 | Gilead residue gone | Migration 0155 applied; lint_gilead_residue; no live UI/defaults | Yes |
 | Studio OS replaces fragmented tools | Shell + five mode hubs (Experience, Automation, Output, Launch, Control); BACKLOG §4.1 | No (manual/staging) |
 | package engine production-grade | Package validate/preview/apply/rollback; apps/packages tests | Yes |
@@ -26,9 +26,19 @@
 
 **One-liner:** `bash scripts/pre_deploy_gate.sh` runs all CI checks above that are marked "Yes."
 
+**Migration safety (§0.4):** Operator contract and links — [NORTH_STAR_TRUST_AND_OPS.md](NORTH_STAR_TRUST_AND_OPS.md) (Migration safety section); static check `python scripts/verify_migration_safety_doc_discipline.py` (also in pre_deploy + phases bundle).
+
+**Performance targets (§0.4 N9/N10):** [NORTH_STAR_TRUST_AND_OPS.md](NORTH_STAR_TRUST_AND_OPS.md) (Performance targets section); static check `python scripts/verify_performance_targets_doc_discipline.py` (also in pre_deploy + phases bundle).
+
+**LMS / SSO & federation (§0.4):** [NORTH_STAR_TRUST_AND_OPS.md](NORTH_STAR_TRUST_AND_OPS.md) (LMS / SSO section); static check `python scripts/verify_lms_sso_doc_discipline.py` (also in pre_deploy + phases bundle).
+
+**UK / international packs (§0.4):** [NORTH_STAR_TRUST_AND_OPS.md](NORTH_STAR_TRUST_AND_OPS.md) (UK / international packs section); static check `python scripts/verify_uk_international_packs_doc_discipline.py` (also in pre_deploy + phases bundle).
+
+**Advancement CRM depth (§0.4):** [NORTH_STAR_TRUST_AND_OPS.md](NORTH_STAR_TRUST_AND_OPS.md) (Advancement CRM depth section); static check `python scripts/verify_advancement_crm_doc_discipline.py` (also in pre_deploy + phases bundle).
+
 **Operator Phase 10/11 E2E (marketplace + marketing slice):** `python scripts/verify_operator_phase10_11_e2e.py` — dedicated SQLite via `--ux-db-file` when needed; see script docstring.
 
-**Record output:** `bash scripts/record_pre_deploy_gate_output.sh` → docs/generated/pre_deploy_gate_run.txt (RELEASE_CHECKLIST).
+**Record output:** `bash scripts/record_pre_deploy_gate_output.sh` → docs/generated/pre_deploy_gate_run.txt (RELEASE_CHECKLIST). **Committed log sanity:** `python scripts/verify_pre_deploy_gate_record.py` (also in `verify_phases_3_11_gates.py`).
 
 ---
 
@@ -59,6 +69,9 @@
 | lint_csrf_exempt_usage | csrf_exempt allowlist; public_endpoint_audit |
 | lint_allow_any_usage | AllowAny allowlist; public_endpoint_audit |
 | lint_raw_sql_usage | raw_sql_audit allowlist; no ad-hoc raw SQL in app code |
+| verify_security_allowlists.py | `manifest_last_reviewed` + per-entry `last_reviewed` cadence on classified JSON allowlists |
+| verify_security_allowlist_density.py | Shrink-only caps; re-runs classification lints; ledger summary matches live allowlist sizes |
+| build_phase8_security_ledger.py --check | Merged security ledger parity (raw_sql / csrf_exempt / allow_any file counts) |
 | lint_broad_except --strict | broad_except allowlist; typed exceptions where required |
 | lint_secret_exposure | No provider secrets in client/tracked config |
 | lint_gilead_residue | No Gilead in live/default-facing surfaces |

@@ -1,4 +1,5 @@
 {
+  "manifest_last_reviewed": "2026-03-29",
   "files": {
     "apps/schools/api_views.py": {
       "expected_count": 2,
@@ -8,7 +9,8 @@
       "data_exposure": "branding_and_feature_flags_only",
       "rate_limiting": "implemented",
       "audit_logging": "manual_review_required",
-      "notes": "SchoolConfigAPI exposes host-resolved branding and offline capability to SPA/mobile clients without authentication."
+      "notes": "SchoolConfigAPI exposes host-resolved branding and offline capability to SPA/mobile clients without authentication.",
+      "last_reviewed": "2026-03-28"
     }
   }
 }

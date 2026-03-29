@@ -49,6 +49,9 @@
           <summary class="segment-title footer-accordion-summary">Support &amp; Help</summary>
           <div class="segment-links">
             <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"><i class="bi bi-book"></i> {% if request.public_host_kind == 'manager' %}Operator Help{% else %}Knowledge Base{% endif %}</a>
+            {% if request.public_host_kind != 'manager' and request.user.is_authenticated %}
+            <a href="{% url 'portal:support_help_hub' %}"><i class="bi bi-life-preserver"></i> {% trans "Help & support hub" %}</a>
+            {% endif %}
             {% if request.public_host_kind == 'manager' %}
             <a href="{% url 'super:command_center' %}"><i class="bi bi-activity"></i> Command Center</a>
             {% elif request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}

@@ -1,0 +1,31 @@
+# Optional weekly signal: strict premium maturity report (SQL/CSRF/Gilead linters).
+# Complements daily smoke-light; fails on allowlist or residue regressions.
+# Policy (SOT batch 16 #156): smoke-light already runs the same script daily—this job is for
+# weekly cadence / manual dispatch when you want a dedicated signal without waiting for the next push.
+# SOT batch 35 #441: premium maturity cadence delta recorded; next indexed slot → batch 36 #456.
+name: Premium maturity (--strict weekly)
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "15 7 * * 1"
+
+jobs:
+  strict:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: report_premium_maturity_signals --strict
+        run: python scripts/report_premium_maturity_signals.py --strict

@@ -1,6 +1,7 @@
 {
   "policy": "No new broad except (bare 'except Exception') in apps/finance or apps/accounts without adding an allowlist entry and linking an issue. CI runs lint_broad_except --strict. See BACKLOG_AND_DEFERRED_CLOSURE.md §2.4.",
   "issue_link": "https://github.com/runmycampus/school-management-system/issues (use backlog/§2.4 for broad-except policy)",
+  "last_reviewed": "2026-03-29",
   "allowed_counts": {
     "config/admin.py": 0,
     "config/schema.py": 0,

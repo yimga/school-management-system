@@ -51,3 +51,17 @@ class ControlPlaneNavParityTests(SimpleTestCase):
             all_ids,
             msg="Integrations entry super_one_sis_any_lms must remain in sidebar",
         )
+
+    def test_support_success_group_includes_csat_link(self):
+        request = RequestFactory().get("/super/support/")
+        request.urlconf = "config.manager_urls"
+        User = get_user_model()
+        request.user = User(is_superuser=True, username="nav_csat")
+        groups = build_control_plane_nav(request)
+        support_group = next(
+            (g for g in groups if g.get("label") == "Support & Success"), None
+        )
+        self.assertIsNotNone(support_group)
+        ids = {it["id"] for it in support_group.get("items") or []}
+        self.assertIn("super_support", ids)
+        self.assertIn("super_support_csat", ids)

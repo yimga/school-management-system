@@ -98,7 +98,8 @@
 
 ## 9. How to use this audit
 
-- **Phase GAP:** GAP.1–GAP.15 — **closed** (see session state). Do not re-open as a blocking checklist without a new ticket.
+- **Phase GAP:** GAP.1–GAP.15 — **closed** (see session state). **“Full IMPLEMENT_ALL GAP program”** = that closure + verify-then-ship for any **new** gap rows; it does **not** require re-litigating §8 “Partial / Yes” historical rows as Phase GAP failures — those ship as **§11.4 slices** with tests.
+- **Batch 14 `DynamicField*`:** Physical table merge is **not** closed in this audit; **Phase 0** reconciliation is documented in [BATCH_14_DYNAMICFIELD_RECONCILIATION.md](BATCH_14_DYNAMICFIELD_RECONCILIATION.md) and tracked in SOT §11.4 + [SITECONFIG_OWNERSHIP_MIGRATION.md](SITECONFIG_OWNERSHIP_MIGRATION.md).
 - **Sections 1–8:** Optional **product** follow-ups (marketing UX, shell unification, etc.). Track in SOT / backlog when prioritized — not the same as [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md) **External** (vendor/cert) table unless explicitly moved there.
 - **Authority:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4, §12; [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md).
 

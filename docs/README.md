@@ -14,6 +14,8 @@
 
 **Phases 3–11 gate bundle (linters + static audits, no DB):** `python scripts/verify_phases_3_11_gates.py` — see [PHASES_3_11_GATE_VERIFICATION.md](PHASES_3_11_GATE_VERIFICATION.md).
 
+**Gate-map maintenance (contributors):** canonical appendix rows live in [gate_map_appendix_config.json](gate_map_appendix_config.json); regenerate/check with `python scripts/generate_gate_map_appendix.py --write` / `--check`.
+
 **Wave evidence index (not a second status file):** [SOT_0155_EVIDENCE_REGISTER.md](SOT_0155_EVIDENCE_REGISTER.md) — maps waves to tests/runbooks; **§0.1.5 truth** is only in the SOT + [SOT_REMAINING_ITEMS_BACKLOG.md](SOT_REMAINING_ITEMS_BACKLOG.md). [runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md](runbooks/SOT_0155_WAVE_RUNBOOKS_COMPENDIUM.md). Older `PLAN_*` docs are **reference** only.
 
 **Audit context (read if needed):** [RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md](RunMyCampus_Enterprise_Architecture_Audit_and_Cursor_Plan.md).

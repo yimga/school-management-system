@@ -126,36 +126,119 @@ def _marketing_nav() -> list[dict]:
 
 def _marketing_navbar_primary() -> list[dict]:
     """Primary marketing navbar: Product | Solutions | Pricing | Compare | Why Switch | Customers | Marketplace | Resources | Events | Company | [Login] [Start Free Trial]."""
+
+    def p(name: str, fallback: str, **kwargs) -> str:
+        u = _safe_reverse(name, kwargs=kwargs if kwargs else None)
+        return u if u != "#" else fallback
+
+    product_path = p("marketing_product", "/product/")
+    product_children: list[dict] = [
+        {"label": "Overview", "path": product_path},
+        {
+            "label": "Education OS",
+            "path": p("marketing_education_operating_system", "/education-operating-system/"),
+        },
+        {"label": "Platform", "path": p("marketing_platform", "/platform/")},
+        {"is_header": True, "label": "Product areas"},
+        {
+            "label": "Admissions",
+            "path": p("marketing_products_admissions", "/products/admissions/"),
+        },
+        {
+            "label": "Academics",
+            "path": p("marketing_products_academics", "/products/academics/"),
+        },
+        {"label": "Finance", "path": p("marketing_products_finance", "/products/finance/")},
+        {
+            "label": "Communication",
+            "path": p("marketing_products_communication", "/products/communication/"),
+        },
+        {
+            "label": "Automation",
+            "path": p("marketing_products_automation", "/products/automation/"),
+        },
+        {
+            "label": "Analytics",
+            "path": p("marketing_products_analytics", "/products/analytics/"),
+        },
+    ]
+
+    solutions_path = p("marketing_solutions", "/solutions/")
+    solutions_children: list[dict] = [
+        {"label": "Solutions overview", "path": solutions_path},
+        {"is_header": True, "label": "Use cases"},
+    ]
+    for slug, topic in sorted(
+        TOPICAL_LANDING_DEFINITIONS.items(),
+        key=lambda x: (x[1].get("label") or x[0]).lower(),
+    ):
+        solutions_children.append(
+            {
+                "label": topic.get("label") or slug.replace("-", " ").title(),
+                "path": p(
+                    "marketing_topic",
+                    f"/solutions/{slug}/",
+                    topic_slug=slug,
+                ),
+            }
+        )
+    solutions_children.append({"is_header": True, "label": "Institutions"})
+    _inst_fallback = {
+        "institution_k12": "/solutions/k12/",
+        "institution_universities": "/solutions/universities/",
+        "institution_technical_schools": "/solutions/technical-schools/",
+        "institution_private_schools": "/solutions/private-schools/",
+        "institution_government_education": "/solutions/government-education/",
+    }
+    for url_name, label in (
+        ("institution_k12", "K-12"),
+        ("institution_universities", "Universities"),
+        ("institution_technical_schools", "Technical schools"),
+        ("institution_private_schools", "Private schools"),
+        ("institution_government_education", "Government education"),
+    ):
+        solutions_children.append(
+            {
+                "label": label,
+                "path": p(url_name, _inst_fallback[url_name]),
+            }
+        )
+
     return [
-        {"label": "Product", "path": _safe_reverse("marketing_product") or "/product/"},
+        {
+            "label": "Product",
+            "path": product_path,
+            "children": product_children,
+        },
         {
             "label": "Solutions",
-            "path": _safe_reverse("marketing_solutions") or "/solutions/",
+            "path": solutions_path,
+            "children": solutions_children,
         },
-        {"label": "Pricing", "path": _safe_reverse("marketing_pricing") or "/pricing/"},
-        {"label": "Compare", "path": _safe_reverse("marketing_compare") or "/compare/"},
+        {"label": "Pricing", "path": p("marketing_pricing", "/pricing/")},
+        {"label": "Compare", "path": p("marketing_compare", "/compare/")},
         {
             "label": "Why Switch",
-            "path": _safe_reverse("marketing_why_switch") or "/why-switch/",
+            "path": p("marketing_why_switch", "/why-switch/"),
         },
         {
             "label": "Customers",
-            "path": _safe_reverse("marketing_case_studies") or "/case-studies/",
+            "path": p("marketing_case_studies", "/case-studies/"),
         },
         {
             "label": "Marketplace",
-            "path": _safe_reverse("marketing_app_marketplace") or "/app-marketplace/",
+            "path": p("marketing_app_marketplace", "/app-marketplace/"),
         },
         {
             "label": "Resources",
-            "path": _safe_reverse("marketing_resources") or "/resources/",
+            "path": p("marketing_resources", "/resources/"),
         },
-        {"label": "Events", "path": _safe_reverse("marketing_events") or "/events/"},
+        {"label": "Events", "path": p("marketing_events", "/events/")},
         {
             "label": "10 Reasons",
-            "path": _safe_reverse("marketing_10_reasons") or "/10-reasons/",
+            "path": p("marketing_10_reasons", "/10-reasons/"),
         },
-        {"label": "Company", "path": _safe_reverse("marketing_about") or "/about/"},
+        {"label": "Company", "path": p("marketing_about", "/about/")},
     ]
 
 
@@ -698,6 +781,31 @@ def _marketing_context(
         "Host-level routing contract enforcement",
     ]
 
+    # Plan 4.11 / MARKETING_PAGE_AUDIT: explicit "what you get" trio on landing (not only long compliance list).
+    what_you_get = [
+        {
+            "title": "Data security",
+            "body": (
+                "Encryption in transit and at rest, regional defaults, and audit trails "
+                "aligned with FERPA and GDPR practices."
+            ),
+        },
+        {
+            "title": "24/7 support",
+            "body": (
+                "Operator-run infrastructure with escalation paths for schools across "
+                "time zones."
+            ),
+        },
+        {
+            "title": "Customizable branding",
+            "body": (
+                "White-label surfaces, theme packs, and per-tenant visuals without "
+                "splitting your data model."
+            ),
+        },
+    ]
+
     # Plan 4.11: Post-enrollment revenue section (Events, Online Courses, Alumni)
     post_enrollment_revenue = [
         {
@@ -855,10 +963,11 @@ def _marketing_context(
             {"label": "See How It Works", "url": _education_os_path, "primary": False},
             {"label": "Login", "url": _login, "primary": False},
         ]
+    _trust_placeholder = static("images/marketing/logo-placeholder.svg")
     trust_logos = [
-        {"name": "School Trust", "image_url": ""},
-        {"name": "Edu Partners", "image_url": ""},
-        {"name": "Global Schools", "image_url": ""},
+        {"name": "School Trust", "image_url": _trust_placeholder},
+        {"name": "Edu Partners", "image_url": _trust_placeholder},
+        {"name": "Global Schools", "image_url": _trust_placeholder},
     ]
     # Module screenshot paths relative to static root (SVG placeholders included; replace with PNGs if desired)
     core_modules = [
@@ -937,11 +1046,19 @@ def _marketing_context(
     proof_hero_image_key = (
         getattr(settings, "MARKETING_PROOF_HERO_IMAGE_KEY", None) or "hero_dashboard"
     )
-    hero_video_url = (
-        get_marketing_ai_asset_url("hero_video")
-        or getattr(settings, "MARKETING_HERO_VIDEO_URL", None)
-        or ""
+    # Default hero video: Blender Foundation sample (MP4) when env/AI unset — real <source>, not empty.
+    _default_hero_sample_mp4 = (
+        "https://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4"
     )
+    _ai_video = get_marketing_ai_asset_url("hero_video")
+    _settings_video = getattr(settings, "MARKETING_HERO_VIDEO_URL", None)
+    if _ai_video:
+        hero_video_url = _ai_video
+    elif _settings_video is not None:
+        # Explicit "" in settings → static hero image only (no <video>).
+        hero_video_url = (_settings_video or "").strip()
+    else:
+        hero_video_url = _default_hero_sample_mp4
     hero_video_poster_url = (
         getattr(settings, "MARKETING_HERO_VIDEO_POSTER_URL", None)
         or hero_dashboard_image_url
@@ -950,7 +1067,8 @@ def _marketing_context(
     product_demo_image_url = (
         getattr(settings, "MARKETING_PRODUCT_DEMO_IMAGE_URL", None)
         or getattr(settings, "MARKETING_HERO_IMAGE_URL", None)
-        or ""
+        or hero_dashboard_image_url
+        or static("images/marketing/hero-placeholder.svg")
     )
     # Product visualization strip: 5 slides required (Batch 1 — admin, teacher, parent, student, analytics).
     # Proof-rich §8.4: every slide has non-empty image_static when image_url missing so section never shows empty frames.
@@ -1058,11 +1176,19 @@ def _marketing_context(
     if _video_testimonials_setting:
         video_testimonials = _video_testimonials_setting
     else:
+        # Seeded placeholders: external watch links + local SVG thumbs (no hotlinked images in tests).
+        _vthumb_a = static("images/marketing/testimonial-thumb.svg")
+        _vthumb_b = static("images/marketing/illustration-students.svg")
         video_testimonials = [
             {
-                "url": _safe_reverse("marketing_landing") or "#",
-                "title": "Customer story",
-                "thumbnail_url": static("images/marketing/testimonial-thumb.svg"),
+                "url": "https://www.youtube.com/watch?v=YE7VzlLtp-4",
+                "title": "Platform walkthrough (sample)",
+                "thumbnail_url": _vthumb_a,
+            },
+            {
+                "url": "https://www.youtube.com/watch?v=eRsGyueBVvA",
+                "title": "Migration and go-live (sample)",
+                "thumbnail_url": _vthumb_b,
             },
         ]
     security_badges = [
@@ -1192,6 +1318,11 @@ def _marketing_context(
         {"name": "Greenfield Academy", "logo_url": _logo_placeholder},
         {"name": "Nile Valley Schools", "logo_url": _logo_placeholder},
         {"name": "Toronto Scholars", "logo_url": _logo_placeholder},
+        {"name": "Lagos STEM College", "logo_url": _logo_placeholder},
+        {"name": "Pacific Ridge Academy", "logo_url": _logo_placeholder},
+        {"name": "Heritage International", "logo_url": _logo_placeholder},
+        {"name": "Summit Prep Network", "logo_url": _logo_placeholder},
+        {"name": "Riverside Charter Trust", "logo_url": _logo_placeholder},
     ]
     awards_recognition = [
         "FERPA aligned",
@@ -1199,8 +1330,18 @@ def _marketing_context(
         "SOC 2 roadmap",
     ]
     review_badges = [
-        {"name": "Capterra", "url": "#", "stars": "4.8", "reviews": "50+"},
-        {"name": "G2", "url": "#", "stars": "4.7", "reviews": "30+"},
+        {
+            "name": "Capterra",
+            "url": "https://www.capterra.com/school-administration-software/",
+            "stars": "4.8",
+            "reviews": "50+",
+        },
+        {
+            "name": "G2",
+            "url": "https://www.g2.com/categories/education/school-management",
+            "stars": "4.7",
+            "reviews": "30+",
+        },
     ]
     ten_reasons_page_path = _safe_reverse("marketing_10_reasons") or "/10-reasons/"
 
@@ -1276,8 +1417,14 @@ def _marketing_context(
     }
     developer_story_summary = "By developers, for developers. APIs, webhooks, and SDKs let you build apps and integrations that schools install. Create custom storefronts and extend the platform."
     partners_list = [
-        {"name": "Implementation Partner 1", "url": "#"},
-        {"name": "Implementation Partner 2", "url": "#"},
+        {
+            "name": "Integrations catalog",
+            "url": _safe_reverse("marketing_integrations") or "/integrations/",
+        },
+        {
+            "name": "Developer program",
+            "url": _safe_reverse("marketing_developers") or "/developers/",
+        },
     ]
     integrations_strip = [
         "Clever",
@@ -1554,6 +1701,7 @@ def _marketing_context(
         "admissions_flow": admissions_flow,
         "pricing_snapshot": pricing_snapshot,
         "trust_controls": trust_controls,
+        "what_you_get": what_you_get,
         "post_enrollment_revenue": post_enrollment_revenue,
         "global_features": global_features,
         "hero_variant": hero_variant,
@@ -1569,6 +1717,12 @@ def _marketing_context(
             settings, "MARKETING_NEWSLETTER_FORM_ACTION", None
         )
         or "",
+        "marketing_footer_tagline_html": _marketing_cms_html_for_key(
+            "marketing_footer_tagline", language
+        ),
+        "marketing_newsletter_blurb_html": _marketing_cms_html_for_key(
+            "marketing_newsletter_blurb", language
+        ),
         "marketing_analytics_script_url": marketing_analytics_script_url,
         "marketing_analytics_preconnect_origin": marketing_analytics_preconnect_origin,
         "SHOW_HEADER_CONTEXT_STRIP": False,
@@ -2142,7 +2296,7 @@ def buyer_toolkit_download(request, document: str):
 
 
 @require_GET
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def marketing_funnel_dashboard(request):
     """Wave 4: Conversion funnel dashboard (visit -> discovery -> signup -> activation). Staff only."""
     from apps.schools.models import MarketingFunnelEvent

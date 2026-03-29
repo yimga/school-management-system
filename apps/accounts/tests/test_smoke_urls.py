@@ -66,6 +66,30 @@ class SmokeUrlResolutionTests(SimpleTestCase):
     def test_reports_publish_term_results(self):
         self.assertEqual(reverse("reports:publish_term_results"), "/reports/publish/")
 
+    def test_siteconfig_scheduled_reports_delivery_hub(self):
+        self.assertEqual(
+            reverse("siteconfig:scheduled_reports_delivery_hub"),
+            "/siteconfig/reports/scheduled/",
+        )
+
+    def test_siteconfig_tenant_runtime_configuration_hub(self):
+        self.assertEqual(
+            reverse("siteconfig:tenant_runtime_configuration_hub"),
+            "/siteconfig/configuration/runtime/",
+        )
+
+    def test_api_v1_reports_scheduled_list(self):
+        self.assertEqual(
+            reverse("api_v1:reports-scheduled-list"),
+            "/api/v1/reports/scheduled",
+        )
+
+    def test_api_v1_reports_scheduled_detail(self):
+        self.assertEqual(
+            reverse("api_v1:reports-scheduled-detail", kwargs={"id": 7}),
+            "/api/v1/reports/scheduled/7",
+        )
+
     def test_evals_teacher_dashboard(self):
         self.assertEqual(reverse("evals:teacher_dashboard"), "/evals/teacher/")
 
@@ -168,6 +192,37 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         self.assertEqual(reverse("super:billing_dashboard"), "/super/billing/")
         self.assertEqual(reverse("super:trust_center"), "/super/trust/")
         self.assertEqual(reverse("super:compliance_overview"), "/super/compliance/")
+
+    def test_super_support_surfaces_resolve(self):
+        """Global support queue, export, CSAT readout, and ticket detail URLs must reverse."""
+        import uuid
+
+        self.assertEqual(reverse("super:support_dashboard"), "/super/support/")
+        self.assertEqual(
+            reverse("super:support_tickets_export_csv"), "/super/support/export.csv"
+        )
+        self.assertEqual(
+            reverse("super:support_csat_dashboard"), "/super/support/csat/"
+        )
+        tid = uuid.uuid4()
+        self.assertEqual(
+            reverse("super:support_ticket_detail", kwargs={"ticket_id": tid}),
+            f"/super/support/ticket/{tid}/",
+        )
+
+    def test_portal_support_ticket_detail_resolves_on_tenant_urlconf(self):
+        """Tenant portal: ticket thread URL must reverse (uuid placeholder; no DB)."""
+        import uuid
+
+        tid = uuid.uuid4()
+        self.assertEqual(
+            reverse(
+                "portal:support_ticket_detail",
+                kwargs={"ticket_id": tid},
+                urlconf="config.tenant_urls",
+            ),
+            f"/portal/support/ticket/{tid}/",
+        )
 
     def test_tenant_security_trust_hub_resolves(self):
         """§3.2.2 Phase 8: tenant Security & trust hub."""

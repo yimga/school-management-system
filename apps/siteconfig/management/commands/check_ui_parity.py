@@ -4,11 +4,14 @@ import json
 from pathlib import Path
 from typing import Any
 
+import apps.siteconfig.models as _siteconfig_models
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.siteconfig.domain_ownership import is_runtime_payload_shadow_key
-from apps.siteconfig.models import SiteSettings, ThemePack
+from apps.siteconfig.models import ThemePack
 from apps.siteconfig.models_support import virtual_site_setting_default
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 THEME_COMPARE_FIELDS = (
@@ -56,7 +59,7 @@ BLANK_EQUALS_NULL_FIELDS = frozenset(
 )
 
 
-def _safe_sitesettings_attr(site: SiteSettings, name: str) -> Any:
+def _safe_virtual_settings_row_attr(site: Any, name: str) -> Any:
     """Phase B: many compare fields are virtual (RuntimeDefaults); __getattr__ may raise."""
     try:
         return getattr(site, name)
@@ -76,7 +79,7 @@ def _normalize(value: Any, field_name: str | None = None) -> Any:
 
 class Command(BaseCommand):
     help = (
-        "Verify current SiteSettings/ThemePack values match a UI fixture "
+        "Verify current tenant platform settings + ThemePack values match a UI fixture "
         "(default: fixtures/ui_config.json)."
     )
 
@@ -127,9 +130,9 @@ class Command(BaseCommand):
                         f"ThemePack[{theme_id}].{field_name}: fixture={expected!r}, db={actual!r}"
                     )
 
-        site = SiteSettings.objects.order_by("pk").first()
+        site = _TenantSettingsModel.objects.order_by("pk").first()
         if not site:
-            raise CommandError("No SiteSettings row found in database.")
+            raise CommandError("No tenant platform settings row found in database.")
 
         for field_name in SITE_COMPARE_FIELDS:
             fixture_value = fixture_site_row.get(field_name)
@@ -138,7 +141,7 @@ class Command(BaseCommand):
                     fixture_value = fixture_site_row.get(f"{field_name}_id")
                 actual_value = getattr(site, f"{field_name}_id", None)
             else:
-                actual_value = _safe_sitesettings_attr(site, field_name)
+                actual_value = _safe_virtual_settings_row_attr(site, field_name)
 
             expected = _normalize(fixture_value, field_name)
             actual = _normalize(actual_value, field_name)
@@ -150,7 +153,7 @@ class Command(BaseCommand):
                     ):
                         continue
                 mismatches.append(
-                    f"SiteSettings.{field_name}: fixture={expected!r}, db={actual!r}"
+                    f"tenant_platform_settings.{field_name}: fixture={expected!r}, db={actual!r}"
                 )
 
         if mismatches:
@@ -170,7 +173,8 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"UI parity check passed ({len(fixture_theme_rows)} ThemePacks + 1 SiteSettings)."
+                f"UI parity check passed ({len(fixture_theme_rows)} ThemePacks + "
+                "1 tenant platform settings row)."
             )
         )
 

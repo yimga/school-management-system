@@ -1,7 +1,7 @@
 """
 Shared demo user seeding for tenant sandboxes (RunMyCampus-neutral usernames).
 
-Used by ``seed_demo_tenant_users`` and the deprecated legacy demo-user command.
+Used by ``seed_demo_tenant_users``.
 """
 
 from __future__ import annotations

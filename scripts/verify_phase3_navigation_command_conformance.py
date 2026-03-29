@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""
+Phase 3 gate: navigation + command palette conformance on authenticated shells.
+
+This check is intentionally narrow and mechanical:
+- manager primary navigation must expose the canonical 8 IA labels
+- manager authenticated shells must expose Ctrl+K command/search entry points
+- Studio shell must expose its command palette contract
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+TEMPLATES = ROOT / "templates"
+
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def main() -> int:
+    errors: list[str] = []
+
+    nav_partial = TEMPLATES / "partials" / "control_plane_primary_nav.html"
+    cp_base = TEMPLATES / "control_plane_base.html"
+    admin_bridge = TEMPLATES / "components" / "admin_nav_bridge.html"
+    manager_shell_js = ROOT / "static" / "js" / "authenticated-shell-manager.js"
+    studio_shell = TEMPLATES / "studio_os" / "shell.html"
+
+    for path in (nav_partial, cp_base, admin_bridge, manager_shell_js, studio_shell):
+        if not path.is_file():
+            errors.append(f"Missing required file: {path.relative_to(ROOT).as_posix()}")
+
+    if errors:
+        print("verify_phase3_navigation_command_conformance: FAIL", file=sys.stderr)
+        for item in errors:
+            print(f"  - {item}", file=sys.stderr)
+        return 1
+
+    nav_text = _read(nav_partial)
+    # Canonical IA labels from Phase 3 mission.
+    required_labels = (
+        "Home",
+        "Studio",
+        "Operations",
+        "Marketplace",
+        "Analytics",
+        "Migration",
+        "Support",
+        "Control",
+    )
+    for label in required_labels:
+        if f"% trans '{label}'" not in nav_text and f'% trans "{label}"' not in nav_text:
+            # Fallback: allow static literal if label is provided directly.
+            if label not in nav_text:
+                errors.append(
+                    f"control_plane_primary_nav.html missing canonical nav label: {label}"
+                )
+
+    cp_text = _read(cp_base)
+    if '{% include "partials/control_plane_primary_nav.html" %}' not in cp_text:
+        errors.append("control_plane_base.html must include control_plane_primary_nav.html.")
+    if "id=\"cpSearchInput\"" not in cp_text:
+        errors.append("control_plane_base.html missing manager search input id cpSearchInput.")
+    if "cpShowShortcutsHelp" not in cp_text:
+        errors.append("control_plane_base.html missing keyboard shortcut help trigger.")
+
+    admin_bridge_text = _read(admin_bridge)
+    if "id=\"cpSearchInputAdmin\"" not in admin_bridge_text:
+        errors.append("admin_nav_bridge.html missing manager search input id cpSearchInputAdmin.")
+    if "cpShowShortcutsHelp" not in admin_bridge_text:
+        errors.append("admin_nav_bridge.html missing keyboard shortcut help trigger.")
+
+    shell_js = _read(manager_shell_js)
+    if "cpSearchInputAdmin" not in shell_js or "cpSearchInput" not in shell_js:
+        errors.append(
+            "authenticated-shell-manager.js must support both cpSearchInput and cpSearchInputAdmin."
+        )
+    if "runmycampus-cp-recent" not in shell_js:
+        errors.append("authenticated-shell-manager.js missing cross-surface recent-nav key.")
+    if "/api/search/" not in shell_js:
+        errors.append("authenticated-shell-manager.js missing unified search endpoint wiring.")
+
+    studio_text = _read(studio_shell)
+    studio_markers = (
+        "studio-command-palette-btn",
+        "studio-cmd-palette",
+        "studio-cmd-filter",
+    )
+    for marker in studio_markers:
+        if marker not in studio_text:
+            errors.append(f"studio_os/shell.html missing Studio command palette marker: {marker}")
+
+    if "Ctrl+K" not in studio_text and "ctrlKey" not in studio_text:
+        errors.append("studio_os/shell.html missing Ctrl+K command palette trigger contract.")
+
+    if errors:
+        print("verify_phase3_navigation_command_conformance: FAIL", file=sys.stderr)
+        for item in errors:
+            print(f"  - {item}", file=sys.stderr)
+        return 1
+
+    print(
+        "verify_phase3_navigation_command_conformance: PASS "
+        "(primary IA labels + manager command/search + Studio command palette)"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -9,7 +9,10 @@ from django.test import Client, TestCase, override_settings
 from django.urls import NoReverseMatch, reverse
 
 from apps.portal.crawl_helpers import portal_smoke_response_ok
-from apps.portal.portal_smoke_prerequisites import ensure_portal_smoke_prerequisites
+from apps.portal.portal_smoke_prerequisites import (
+    ensure_portal_smoke_prerequisites,
+    ensure_portal_smoke_probe_feature_permissions,
+)
 from apps.portal.role_smoke_urls import PORTAL_ROLE_SMOKE_SEEDS
 from apps.schools.models import School
 
@@ -59,6 +62,7 @@ class PortalRoleSmokeCrawlTests(TestCase):
             school=self.school,
             teacher_user=users_by_role.get(User.Role.TEACHER),
         )
+        ensure_portal_smoke_probe_feature_permissions(users_by_role)
 
         for seed in PORTAL_ROLE_SMOKE_SEEDS:
             url_name = seed["url_name"]

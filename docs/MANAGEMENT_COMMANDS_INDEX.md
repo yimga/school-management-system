@@ -11,6 +11,15 @@
 - **compliance** — Compliance, audit, legal, privacy
 - **other** — Unclassified
 
+## Shell scripts (CI / visual QA)
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/ci_setup_postgres_tenants_for_visual_qa.sh` | Postgres + django-tenants bootstrap for Playwright tenant-host tests (`.github/workflows/playwright-tenant-postgres.yml`). |
+| `scripts/run_visual_qa.sh` | Local/CI UX visual QA: Django `runserver` + Playwright `tests/e2e/ux-visual-qa.spec.js`. |
+
+**Reference:** [SHELL_ARCHITECTURE_MATRIX.md](SHELL_ARCHITECTURE_MATRIX.md); SOT **§11.4** Postgres Playwright row.
+
 ## By app (command name)
 
 | App | Command | Category | Notes |
@@ -35,7 +44,7 @@
 | policies | seed_blueprint_policy_packs, update_blueprint_bundles | seed / ops | |
 | portal | cleanup_photo_upload_tokens, generate_kb_odt, import_docs_to_kb, seed_faqs, seed_kb_articles, verify_kb_exports, verify_onboarding_setup | ops / seed | |
 | registries | seed_platform_registries, seed_terminology_registry, verify_registry_coverage | seed / ops | |
-| reports | export_report_cards_csv, generate_regional_reports, send_scheduled_reports | ops | |
+| reports | export_report_cards_csv, generate_regional_reports, send_scheduled_reports (`TenantReportSchedule`; optional `--school-id`, `--limit`, `--dry-run`, `--strict-no-skip`, `--json-summary`; human summary + optional one-line JSON (`command`, `dry_run`, `school_id`, counters); `CommandError` when `failed > 0` or strict mode sees skips; `WARNING` log when due active row has empty `recipients`; Celery: `ScheduledReportRunner.run_due_reports` forwards the same kwargs) | ops | |
 | schools | align_tenant_config, backfill_schooldomain, check_tenant_runtime, migrate_schools_to_tenants, migrate_tenant_schemas_one_by_one, phase_i_gap_analysis, run_tenant_migrations, tenant_health_check, tenant_wind_down, validate_marketing_urls, verify_custom_domains, verify_tenant_rls | migration / ops | |
 | siteconfig | audit_tenant_models, backfill_service_integrations, bootstrap_platform_catalog, bootstrap_runmycampus_platform, calculate_monthly_revenue_stats, check_accessibility, check_api_health, check_branding_law, check_integrations, check_ui_parity, clone_region, compile_translations, dispatch_webhook_deliveries, export_config, export_ui_config, generate_models_diagram, i18n_commands, import_config, import_ui_config, migrate_dashboard_layouts, normalize_ui_config, recover_database, run_phase7_checks, run_workflows, seed_admin_dashboard_palettes, seed_country_profiles, seed_cursor_twelve_phases, seed_global_brand_registry, seed_global_data, seed_global_regions, seed_preview_fixtures, seed_provider_registry, seed_regions, seed_workflow_dashboard_packs, sync_regional_models, test_core_workflows, validate_regions, verify_region_coverage | seed / ops / dev / migration | **seed_cursor_twelve_phases** — strict Cursor 1→12 phase-ordered seeds (SOT phase_checklists). |
 

@@ -102,6 +102,7 @@ class SchoolAdmin(admin.ModelAdmin):
                         "fields": (
                             "plan",
                             "addons",
+                            "report_platform_bundle_slug",
                             "billing_type",
                             "trial_end_date",
                             "waiver_note",

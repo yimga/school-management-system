@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n static phase8_tags %}
+{% load i18n static phase8_tags control_console %}
 
 {% block cp_title %}{% trans "Analytics & Observability" %}{% endblock %}
 
@@ -13,8 +13,23 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+{% operator_console_strip %}
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#analytics-overview-main">{% trans "Skip to analytics overview" %}</a>
+<div id="analytics-overview-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_analytics_overview.html" %}
+  {% if operator_super_analytics_overview_links %}
+  <div class="card shadow-sm border-0 page-family-content-card mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary mb-2">{% trans "Platform-admin rows (PlatformOperatorSuperAnalyticsOverviewLink); add or reorder in platform admin." %}</p>
+      <ul class="list-unstyled mb-0 d-flex flex-wrap gap-2">
+        {% for link in operator_super_analytics_overview_links %}
+        <li><a class="btn btn-sm btn-outline-secondary" href="{{ link.href }}">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
   {% include "studio_os/components/page_header.html" with title="Analytics & Observability" subtitle="School health, adoption, feature usage, workflow success/failure, migration success, marketplace usage." action_url=dashboard_url action_text="Back to dashboard" %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-body">

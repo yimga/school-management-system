@@ -11,3 +11,9 @@ class SuperViewsSupportReexportTests(SimpleTestCase):
         self.assertIs(super_views.super_support_dashboard, support.super_support_dashboard)
         self.assertIs(super_views.support_queue_fragment, support.support_queue_fragment)
         self.assertIs(super_views.support_assign_ticket, support.support_assign_ticket)
+        self.assertIs(
+            super_views.super_support_ticket_detail, support.super_support_ticket_detail
+        )
+        self.assertIs(
+            super_views.super_support_csat_dashboard, support.super_support_csat_dashboard
+        )

@@ -38,7 +38,7 @@ class ComplianceProfile(models.Model):
     """
     Finance/payroll compliance and regional settings.
     currency_code and timezone drive display and reporting (e.g. trial balance, payment dates).
-    SiteSettings can link one profile via compliance_profile for invoice/payment flows.
+    The platform compliance profile (resolver / policy path) can link one profile for invoice/payment flows.
     """
 
     class ChartTemplate(models.TextChoices):
@@ -1543,11 +1543,11 @@ class PaymentReminder(models.Model):
     )
     reminder_days_before = models.JSONField(
         default=list,
-        help_text="List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to SiteSettings default if empty.",
+        help_text="List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to platform tenant site settings default if empty.",
     )
     reminder_channels = models.JSONField(
         default=list,
-        help_text="Channels to use: ['email'], ['whatsapp'], ['email', 'sms'], etc. Falls back to SiteSettings default if empty.",
+        help_text="Channels to use: ['email'], ['whatsapp'], ['email', 'sms'], etc. Falls back to platform default if empty.",
     )
     next_send_at = models.DateTimeField(null=True, blank=True)
     last_sent_at = models.DateTimeField(null=True, blank=True)
@@ -1574,7 +1574,7 @@ class PaymentReminder(models.Model):
         return f"Reminder for {self.invoice}"
 
     def get_reminder_days(self):
-        """Get reminder days from instance, then policy, then platform default (no SiteSettings.get_solo in tenant code)."""
+        """Get reminder days from instance, then policy, then platform default (runtime-first; no tenant get_solo)."""
         if self.reminder_days_before:
             return self.reminder_days_before
         school = getattr(self.invoice, "school", None)
@@ -1598,7 +1598,7 @@ class PaymentReminder(models.Model):
         return [7, 3, 1]
 
     def get_reminder_channels(self):
-        """Get reminder channels from instance, then policy, then platform default (no SiteSettings.get_solo in tenant code)."""
+        """Get reminder channels from instance, then policy, then platform default (runtime-first; no tenant get_solo)."""
         if self.reminder_channels:
             return self.reminder_channels
         school = getattr(self.invoice, "school", None)
@@ -1959,6 +1959,13 @@ class WebhookLog(models.Model):
 
     provider = models.CharField(max_length=50)
     reference_id = models.CharField(max_length=255)
+    idempotency_bucket = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text="Dedup key: transaction reference_id, or idempotency:<header> when Idempotency-Key is sent.",
+    )
     client_ip = models.GenericIPAddressField()
     signature_valid = models.BooleanField(default=False)
     status = models.CharField(

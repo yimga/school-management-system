@@ -1,5 +1,5 @@
 """
-Phase 10 — 1.2: Backfill RuntimeDefaults.payload from SiteSettings.
+Phase 10 — 1.2: Backfill RuntimeDefaults.payload from the siteconfig tenant settings row.
 Run after deploying RuntimeDefaults; get_effective_site_settings will prefer this
 payload before falling back to legacy singleton fields.
 """
@@ -10,7 +10,7 @@ from apps.siteconfig.domain_ownership import OWNERSHIP_DOMAINS
 
 
 class Command(BaseCommand):
-    help = "Backfill platform_runtime.RuntimeDefaults from SiteSettings."
+    help = "Backfill platform_runtime.RuntimeDefaults from the siteconfig settings row."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -18,14 +18,14 @@ class Command(BaseCommand):
             action="append",
             choices=OWNERSHIP_DOMAINS,
             dest="owners",
-            help="Limit the payload to one or more SiteSettings ownership domains.",
+            help="Limit the payload to one or more siteconfig ownership domains.",
         )
         parser.add_argument(
             "--exclude-owner",
             action="append",
             choices=OWNERSHIP_DOMAINS,
             dest="exclude_owners",
-            help="Exclude one or more SiteSettings ownership domains from the payload.",
+            help="Exclude one or more siteconfig ownership domains from the payload.",
         )
 
     def handle(self, *args, **options):

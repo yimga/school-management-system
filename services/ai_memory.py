@@ -99,7 +99,13 @@ class AIMemoryService:
         actor_is_staff: bool = False,
         actor_is_superuser: bool = False,
     ) -> list[dict[str, Any]]:
-        """Return stored rows with similar embedding (cosine similarity in Python)."""
+        """
+        Return stored rows with similar embedding (cosine similarity in Python).
+
+        When ``school_id`` is set, rows are limited to that tenant plus **global** rows
+        (``school_id`` null). Other tenants' scoped rows are excluded. When ``school_id``
+        is falsy, no school filter is applied (operator / tooling contexts only).
+        """
         if not embedding:
             return []
         try:

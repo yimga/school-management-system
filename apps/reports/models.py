@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models, DatabaseError
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from apps.academics.models import AcademicYear, Term, Classroom
@@ -378,6 +379,65 @@ class ReportPack(models.Model):
 
     def __str__(self):
         return self.name or self.code
+
+
+class TenantReportSchedule(models.Model):
+    """
+    Tenant-scoped scheduled report delivery (replaces BI ScheduledReport after reports.0017).
+    Processed by ``send_scheduled_reports``; listed under ``reports_scheduled_delivery`` gates.
+    """
+
+    class Frequency(models.TextChoices):
+        DAILY = "DAILY", "Daily"
+        WEEKLY = "WEEKLY", "Weekly"
+        MONTHLY = "MONTHLY", "Monthly"
+        QUARTERLY = "QUARTERLY", "Quarterly"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="report_schedules",
+    )
+    name = models.CharField(max_length=255)
+    report_key = models.SlugField(
+        max_length=80,
+        default="summary",
+        help_text="Stable key for report type / template wiring.",
+    )
+    schedule_frequency = models.CharField(max_length=20, choices=Frequency.choices)
+    schedule_time = models.TimeField()
+    recipients = models.JSONField(default=list, blank=True)
+    parameters = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    last_run = models.DateTimeField(null=True, blank=True)
+    next_run = models.DateTimeField(db_index=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="tenant_report_schedules",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["next_run"]
+        indexes = [
+            models.Index(fields=["school", "is_active", "next_run"]),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.is_active:
+            r = self.recipients
+            if not isinstance(r, list) or len(r) == 0:
+                raise ValidationError(
+                    {
+                        "recipients": "Active schedules need at least one recipient email.",
+                    }
+                )
+
+    def __str__(self):
+        return f"{self.school_id}:{self.name}"
 
 
 # ReportDefinition and MaterializedReportCache are defined in `apps.reports.bi_models`.

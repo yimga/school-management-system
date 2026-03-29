@@ -1,6 +1,8 @@
 {% extends "portal_base.html" %}
 {% load static region_format %}
 
+{% block page_archetype %}kb-article{% endblock %}
+
 {% block title %}{{ article.title }} - Knowledge Base{% endblock %}
 
 {% block extrastyle %}
@@ -9,6 +11,12 @@
 {% endblock %}
 
 {% block content %}
+<div
+  class="portal-kb-article-read-shell"
+  data-page-critical-read="kb-article"
+  data-sms-offline-read-cache-key="portal_kb_article"
+  tabindex="-1"
+>
 <div class="container-fluid mt-3 mb-5 kb-article-page">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
@@ -34,7 +42,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <h1 class="h3 mb-2">{{ article.title }}</h1>
+                            <h1 class="h3 mb-2" id="kb-article-heading">{{ article.title }}</h1>
                             {% if article.difficulty %}
                             <span class="badge 
                                 {% if article.difficulty == 'BEGINNER' %}badge-success
@@ -331,6 +339,7 @@
     </div>
 </div>
 
+{# Share modal stays inside read shell for offline critical-read parity #}
 <!-- Share Modal (Bootstrap 5: focus management, Escape to close) -->
 <div class="modal fade" id="shareModal" tabindex="-1" role="dialog" aria-labelledby="shareModalTitle" aria-modal="true">
     <div class="modal-dialog" role="document">
@@ -565,4 +574,5 @@ function shareOn(platform) {
   }
 })();
 </script>
+</div>
 {% endblock %}

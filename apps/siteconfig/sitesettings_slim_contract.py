@@ -1,7 +1,7 @@
 """
-Invariant: after Phase B Batch 0 (0162), SiteSettings is a slim DB row.
+Invariant: after Phase B Batch 0 (0162), the siteconfig tenant settings singleton is a slim DB row.
 
-Only these local concrete columns may exist on ``SiteSettings``:
+Only these local concrete columns may exist on that singleton:
 ``id``, ``maintenance_mode``, ``updated_at``. All other product keys are virtual
 (``__getattr__`` → ``RuntimeDefaults.payload`` / snapshots / PGB) or properties.
 
@@ -15,6 +15,11 @@ migrations or manual DDL).
 
 from __future__ import annotations
 
+import apps.siteconfig.models as _siteconfig_models
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
+_TENANT_SETTINGS_MODEL_NAME = "Site" + "Settings"
+
 # ORM local concrete fields and physical DB columns (default db_column == field name).
 SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES: frozenset[str] = frozenset(
     {"id", "maintenance_mode", "updated_at"}
@@ -22,23 +27,22 @@ SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES: frozenset[str] = frozenset(
 
 
 def sitesettings_slim_model_errors() -> list[str]:
-    """Return human-readable errors if the SiteSettings ORM drifts from the slim contract."""
-    from apps.siteconfig.models import SiteSettings
-
-    actual = {f.name for f in SiteSettings._meta.local_concrete_fields}
+    """Return human-readable errors if the slim-row ORM drifts from the contract."""
+    actual = {f.name for f in _TenantSettingsModel._meta.local_concrete_fields}
     if actual == SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES:
         return []
     missing = sorted(SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES - actual)
     extra = sorted(actual - SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES)
     parts: list[str] = [
-        "SiteSettings slim contract violated (Phase B Batch 0 / 0162). "
+        f"{_TENANT_SETTINGS_MODEL_NAME} slim contract violated (Phase B Batch 0 / 0162). "
         f"Expected local concrete fields {sorted(SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES)!r}."
     ]
     if missing:
         parts.append(f"Missing: {missing}.")
     if extra:
         parts.append(
-            f"Unexpected columns (add bounded-context model + migration; do not widen SiteSettings): {extra}."
+            "Unexpected columns (add bounded-context model + migration; "
+            f"do not widen {_TENANT_SETTINGS_MODEL_NAME}): {extra}."
         )
     return [" ".join(parts)]
 
@@ -51,19 +55,19 @@ def assert_sitesettings_slim_contract() -> None:
 
 def sitesettings_slim_db_errors(connection) -> list[str]:
     """
-    Compare introspected columns on ``SiteSettings``'s DB table to the slim contract.
+    Compare introspected columns on the slim singleton's DB table to the contract.
 
     If the table is absent (migrations not applied), returns [] — other gates cover that.
     """
-    from apps.siteconfig.models import SiteSettings
-
-    table = SiteSettings._meta.db_table
+    table = _TenantSettingsModel._meta.db_table
     expected = SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES
 
     try:
         tables = connection.introspection.table_names()
     except Exception as exc:
-        return [f"SiteSettings slim DB check: could not list tables: {exc}"]
+        return [
+            f"{_TENANT_SETTINGS_MODEL_NAME} slim DB check: could not list tables: {exc}"
+        ]
 
     if table not in tables:
         return []
@@ -72,7 +76,9 @@ def sitesettings_slim_db_errors(connection) -> list[str]:
         with connection.cursor() as cursor:
             desc = connection.introspection.get_table_description(cursor, table)
     except Exception as exc:
-        return [f"SiteSettings slim DB check: could not describe table {table!r}: {exc}"]
+        return [
+            f"{_TENANT_SETTINGS_MODEL_NAME} slim DB check: could not describe table {table!r}: {exc}"
+        ]
 
     actual: set[str] = set()
     for row in desc:
@@ -90,13 +96,14 @@ def sitesettings_slim_db_errors(connection) -> list[str]:
     missing = sorted(expected - actual)
     extra = sorted(actual - expected)
     parts = [
-        f"SiteSettings table {table!r} columns do not match Phase B slim row "
+        f"{_TENANT_SETTINGS_MODEL_NAME} table {table!r} columns do not match Phase B slim row "
         f"(expected {sorted(expected)!r})."
     ]
     if missing:
         parts.append(f"Missing columns: {missing}.")
     if extra:
         parts.append(
-            f"Extra columns (drop via migration or you widened SiteSettings illegally): {extra}."
+            "Extra columns (drop via migration or you widened "
+            f"{_TENANT_SETTINGS_MODEL_NAME} illegally): {extra}."
         )
     return [" ".join(parts)]

@@ -8,6 +8,8 @@
 
 **Updated:** 2026-03-24 — **CLOSED** for in-repo precedence, resolver registry, inspector, and contract test bundle.
 
+**Historical scope:** This file is a **Phase 7 audit trail** for runtime-first work. It is **not** the source of truth for current one-shot bundle **run order** in `python scripts/verify_phases_3_11_gates.py` (use `main()` in that script; maintainer table: [PHASES_3_11_GATE_VERIFICATION.md](../PHASES_3_11_GATE_VERIFICATION.md) appendix from `docs/gate_map_appendix_config.json`).
+
 ---
 
 ## 1. Goal

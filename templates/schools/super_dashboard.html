@@ -17,8 +17,22 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="role-home" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-dashboard-main">{% trans "Skip to control plane dashboard" %}</a>
+<div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="role-home" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
+  {% if operator_super_dashboard_links %}
+  <div class="card shadow-sm border-0 page-family-content-card mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary mb-2">{% trans "Platform-admin rows (PlatformOperatorSuperDashboardLink); add or reorder in platform admin." %}</p>
+      <ul class="list-unstyled mb-0 d-flex flex-wrap gap-2">
+        {% for link in operator_super_dashboard_links %}
+        <li><a class="btn btn-sm btn-outline-secondary" href="{{ link.href }}">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
   <section class="cp-hero mb-4" data-decision-zone="headline">
     <div class="cp-hero-grid">
       <div>

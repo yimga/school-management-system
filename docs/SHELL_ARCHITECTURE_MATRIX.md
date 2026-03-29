@@ -52,8 +52,71 @@ All Phase 1 acceptance items below are implemented in **code**; four surfaces st
 
 ## Tests
 
-- `apps/platform_runtime/tests/test_marketing_shell.py`: marketing base does not include app-only stylesheets.
-- Add test: control_plane_skeleton does not include marketing-only stylesheets (tokens-marketing.css, marketing-shell.css).
+- `apps/platform_runtime/tests/test_marketing_shell.py`: marketing base does not include app-only stylesheets; `ControlPlaneShellTests` asserts control-plane skeleton does not load `marketing-shell.css` / `tokens-marketing.css`; **`StudioOsShellTests`** (batch 42 §11.4; re-run batch 51 §11.4 cadence) asserts `studio_os/shell.html` extends `portal_base.html` and `shell_extrastyle.html` does not pull control-plane or marketing shell CSS.
+- `scripts/verify_shell_architecture_matrix.py`: static contracts for `templates/base.html`, **`templates/portal_base.html`**, and **`templates/studio_os/shell.html`** (+ `partials/shell_extrastyle.html`) (tenant/Studio spine; forbid cross-surface bundles). Wired into `verify_phases_3_11_gates.py` and `test_tenant_settings_lint.test_verify_shell_architecture_matrix_passes`.
+
+## Staging URL manual pass (automation supplement)
+
+Automated checks above do **not** replace loading each surface on a real host (marketing apex, manager control plane, tenant portal subdomain, tenant Django admin). Use this as a **per-release or pre-demo** checklist; fix duplicates or wrong bases one surface at a time.
+
+| Step | Surface | What to verify |
+|------|---------|----------------|
+| 1 | Marketing | Open a public marketing URL; confirm **one** marketing bundle (no `design-system-unified` + dashboard stack mixed in). |
+| 2 | Control plane | Open `/super/` (or manager equivalent); confirm **no** `marketing-shell.css` / `tokens-marketing.css` in network tab. |
+| 3 | Tenant portal | Log into a tenant portal page extending `portal_base`; confirm `data-surface` / tenant shell CSS present; **no** control-plane primary nav CSS. |
+| 4 | Studio | Open Studio shell; confirm it extends the tenant spine (`portal_base` hierarchy), not marketing or a second control-plane header stack. |
+| 5 | Admin | Tenant vs manager `/admin/`: confirm Unfold shell; manager host should still align with control-plane nav bridge without duplicating tenant portal bundles. |
+| 6 | Automation (local) | Before staging, run `python scripts/verify_shell_architecture_matrix.py` on your branch; fix any reported template/CSS contract violations **one template at a time** (same discipline as duplicate removal). |
+| 7 | Duplicate bundles | In DevTools Network, watch for **double** loads of the same shell CSS or two competing headers on one page; trace to an extra `{% extends %}`, `{% include %}`, or duplicate block — remove one path per PR so reviews stay small. |
+
+### Duplicate-bundle sweep (subtractive)
+
+When step 7 fires, hunt **one** extra load path per PR:
+
+- **`tokens-marketing.css` / `marketing-shell.css`** linked outside `marketing/` bases or marketing entry templates.
+- **`control-plane-primary-nav.css` / `control-plane-phase1-shell.css`** on tenant `portal_base` / `base.html` / login chains (forbidden by architecture).
+- **Second header stacks** — duplicate control-plane nav includes inside Studio canvas when the parent already provides the spine.
+
+Re-run `python scripts/verify_shell_architecture_matrix.py` after each fix; keep [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) seven-step table updated for **local** runs; use the sign-off log below for **live** hosts.
+
+#### Repository audit log (append-only)
+
+Template-level scans supplement automation; append a row after each **repo-wide** duplicate-bundle audit (no substitute for browser Network on live hosts).
+
+| Date (UTC) | Scope | Finding | Command / notes |
+|------------|-------|---------|-----------------|
+| 2026-03-27 | `templates/**/*.html` | Repeat rg sweep: marketing bundle only in `templates/marketing/base_marketing.html`; control-plane shell CSS only in `templates/control_plane_skeleton.html` and `templates/admin/base_site.html` | `rg` (see marketing / control-plane static path greps); `python scripts/verify_shell_architecture_matrix.py` **PASS** |
+| 2026-03-29 | `templates/**/*.html` | `tokens-marketing.css` / `marketing-shell.css` only in `templates/marketing/base_marketing.html`; `control-plane-primary-nav.css` / `control-plane-phase1-shell.css` only in `templates/control_plane_skeleton.html` and `templates/admin/base_site.html` | `python scripts/verify_shell_architecture_matrix.py` **PASS**; `rg` on those static paths under `templates/` |
+| 2026-03-29 | `templates/studio_os/shell.html` + `partials/shell_extrastyle.html` | Extends `portal_base.html`; no cross-surface marketing or control-plane shell CSS in Studio root shell or extrastyle partial | `verify_shell_architecture_matrix.py` extended (batch 42 §11.4); `pytest apps/platform_runtime/tests/test_marketing_shell.py::StudioOsShellTests` |
+| 2026-03-29 | Shell triad (full automation) | §11.4 batch 51 cadence: triad contracts unchanged (marketing / control-plane / admin / tenant base+portal+studio_os) | `verify_shell_architecture_matrix.py` **PASS**; `manage.py test apps.platform_runtime.tests.test_marketing_shell.StudioOsShellTests --keepdb` **2 OK** |
+
+**Duplicate-bundle rows:** The **2026-03-27** and **2026-03-29** entries above both record the same marketing-vs-control-plane CSS placement invariant; both retained **append-only**. Prefer the **2026-03-29** row plus the Studio row for quick orientation.
+
+## Staging / production URL matrix (reference)
+
+Use **your** real staging/prod hostnames at release time. Examples below mirror ops docs—**not** a substitute for operator sign-off.
+
+| Step | Surface | Example host (pattern) | Doc |
+|------|---------|------------------------|-----|
+| 1 | Marketing / public | `https://school-management-system-2kzk.onrender.com` (sample Render service URL) | [DEPLOY_RENDER.md](DEPLOY_RENDER.md) |
+| 2 | Control plane | `https://manager.runmycampus.com/super/` | [RENDER_SHELL_AFTER_DEPLOY.md](RENDER_SHELL_AFTER_DEPLOY.md) |
+| 3 | Tenant portal | `https://<school-slug>.runmycampus.com` | [RENDER_SHELL_AFTER_DEPLOY.md](RENDER_SHELL_AFTER_DEPLOY.md) |
+| 3b | Tenant (Render subdomain style) | `https://<school-slug>.<service>.onrender.com` | [RENDER_SSL_AND_TENANT_URLS.md](RENDER_SSL_AND_TENANT_URLS.md) |
+| 4 | Studio | `https://manager.runmycampus.com/studio/` | [RENDER_SHELL_AFTER_DEPLOY.md](RENDER_SHELL_AFTER_DEPLOY.md) |
+| 5 | Admin | Manager or tenant host + `/admin/` | Matrix table above |
+| 6–7 | Automation + duplicate bundles | Local `verify_shell_architecture_matrix.py`; repeat Network checks on **each** live host | [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) hostname matrix |
+
+**Local BR-13 evidence:** seven-step table + automation line in [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md).
+
+### Operator sign-off log (staging / production)
+
+Automation and localhost evidence **do not** close **P4** for real deploys. **Insert newest row directly below this line** (keep the template row at the bottom).
+
+| Date (UTC) | Environment | Hosts tested (marketing / control plane / tenant / admin) | Steps 1–7 | Sign-off | Linked evidence |
+|------------|-------------|------------------------------------------------|-----------|----------|-----------------|
+| *— template: add real row above; keep this row last —* | *staging / prod* | *one URL per surface or “same as col 3 in URL matrix”* | *✓ or note gaps* | *initials* | *ticket / release note* |
+
+**Evidence:** [PREMIUM_UX_MANUAL_PASS_BR13.md](PREMIUM_UX_MANUAL_PASS_BR13.md) — **Shell architecture matrix — seven-step pass** (local `127.0.0.1`, **2026-03-28**) **and** **Staging / production hostname matrix**. This file adds **Staging / production URL matrix (reference)** plus **Repository audit log** for in-repo duplicate-bundle sweeps. **SOT:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) epic **P4** / Premium maturity **Shell triad** — re-verify on **your** live staging if a regression is suspected.
 
 ## References
 

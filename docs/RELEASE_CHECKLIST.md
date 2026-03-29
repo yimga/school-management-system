@@ -17,7 +17,7 @@ Complete for **every** cut to production (or RC), even when the checkboxes in Pr
 | Step | Action | Primary doc / command |
 |------|--------|------------------------|
 | 1 | **Merge bar** | `bash scripts/pre_deploy_gate.sh` (use `SKIP_VISUAL_QA=1` only when agreed for that environment). |
-| 2 | **Record gate output** | `bash scripts/record_pre_deploy_gate_output.sh` → commit `docs/generated/pre_deploy_gate_run.txt` for this cut. |
+| 2 | **Record gate output** | `bash scripts/record_pre_deploy_gate_output.sh` → commit `docs/generated/pre_deploy_gate_run.txt` for this cut (appends `[gate-finished] EXIT=…`; CI bundle checks with `python scripts/verify_pre_deploy_gate_record.py`). |
 | 3 | **Platform inventory** | When catalog changes: `python scripts/generate_platform_inventory.py --write`; commit generated JSON if your train requires it (SOT §11.4). |
 | 4 | **Migrations** | Apply **staging first**, then production, per your predeploy; align with Step 13 / SUBTRACTIVE notes. |
 | 5 | **Launch 10-point (staging)** | [launch_studio_checklist.md](launch_studio_checklist.md) §4 — run all 10 items; **append** a row to the staging log table when policy needs a fresh audit trail. |
@@ -37,6 +37,10 @@ Complete for **every** cut to production (or RC), even when the checkboxes in Pr
 | 2026-03-25 | **Local repo train** (not staging/prod) | **PASS** — `SKIP_VISUAL_QA=1 bash scripts/pre_deploy_gate.sh` with `DJANGO_TEST_DB_FILE=.django_test_dbs/gate_verification_20260325.sqlite3`; prerequisite `python manage.py sync_i18n_catalog --compile` (i18n drift) | **DONE** — `docs/generated/pre_deploy_gate_run.txt` | **PASS** — `generate_platform_inventory.py --check` (gate also `--write` post-steps) | **PASS** — `makemigrations --check --dry-run`; **OPS:** apply migrations on staging → prod per host | **OPS / N/A** — run [launch_studio_checklist.md](launch_studio_checklist.md) §4 on staging before a real prod cut | **PASS** — `PHASE_H_SKIP_LIVE=1 bash scripts/run_phase_h_verification.sh` (smoke + static + reliable subset) | **DONE** — row appended [SECURITY_REVIEW_LOG.md](SECURITY_REVIEW_LOG.md) 2026-03-25 | **OPS** | This row |
 
 **Before production:** Re-run the full runbook on your staging host, set `SKIP_VISUAL_QA=0` (or run `scripts/run_visual_qa.sh`) when Playwright is available, and append a new line above with a distinct **Scope** (e.g. `staging-RC-…` / `prod-…`).
+
+**2026-03-27 — §11.4 batch 55 (Phase H scripted slice only):**
+
+- **Phase H (no live audit):** `PHASE_H_SKIP_LIVE=1 bash scripts/run_phase_h_verification.sh` → **PASS** (smoke URLs + Phase H URL reverse **71** tests; static **`phase_h_audit.py`**). Does not refresh **`pre_deploy_gate_run.txt`** or replace BR-13 / **`phase_h_audit.py --live`** on a deployed host.
 
 **2026-03-25 follow-up (same local train, after gate with `SKIP_VISUAL_QA=1`):**
 

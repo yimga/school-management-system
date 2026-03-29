@@ -4,7 +4,14 @@ Global support ticket command center (BR-12 split from super_views).
 
 from __future__ import annotations
 
-from django.shortcuts import redirect, render
+import csv
+import io
+
+from django.conf import settings
+from django.contrib import messages
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 
@@ -27,6 +34,7 @@ def _annotate_tickets_sla(tickets):
 
 def super_support_dashboard(request):
     """Global support ticket command center: list tickets with filters; HTMX refreshes queue."""
+    from apps.platform_runtime.models import PlatformOperatorSupportDashboardLink
     from apps.siteconfig.models_feature_controls import GlobalSupportTicket
     from apps.siteconfig.support_sla import (
         SUPPORT_SLA_RESPONSE_HOURS,
@@ -37,12 +45,12 @@ def super_support_dashboard(request):
     priority_filter = request.GET.get("priority", "").strip()
     qs = GlobalSupportTicket.objects.select_related(
         "school", "user", "assigned_to"
-    ).order_by("-created_at")[:100]
+    ).order_by("-created_at")
     if status_filter:
         qs = qs.filter(status=status_filter)
     if priority_filter:
         qs = qs.filter(priority=priority_filter)
-    tickets = list(qs)
+    tickets = list(qs[:100])
     tickets = _annotate_tickets_sla(tickets)
     open_count = GlobalSupportTicket.objects.filter(
         status=GlobalSupportTicket.Status.OPEN
@@ -100,6 +108,10 @@ def super_support_dashboard(request):
     if not activity:
         activity.append({"title": "Support queue", "meta": "No tickets in view."})
 
+    operator_support_dashboard_links = list(
+        PlatformOperatorSupportDashboardLink.objects.order_by("sort_order", "slug")
+    )
+
     phase7_de = {
         "eyebrow": "Support mission control",
         "headline_label": "Open tickets",
@@ -155,6 +167,7 @@ def super_support_dashboard(request):
             "status_filter": status_filter,
             "priority_filter": priority_filter,
             "phase7_de": phase7_de,
+            "operator_support_dashboard_links": operator_support_dashboard_links,
         },
     )
 
@@ -171,12 +184,12 @@ def support_queue_fragment(request):
     priority_filter = request.GET.get("priority", "").strip()
     qs = GlobalSupportTicket.objects.select_related(
         "school", "user", "assigned_to"
-    ).order_by("-created_at")[:50]
+    ).order_by("-created_at")
     if status_filter:
         qs = qs.filter(status=status_filter)
     if priority_filter:
         qs = qs.filter(priority=priority_filter)
-    tickets = _annotate_tickets_sla(list(qs))
+    tickets = _annotate_tickets_sla(list(qs[:50]))
     return render(
         request,
         "schools/super_support_queue_fragment.html",
@@ -217,17 +230,30 @@ def support_assign_ticket(request):
     else:
         ticket.assigned_to = None
         ticket.save(update_fields=["assigned_to_id"])
+    from apps.platform_runtime.events import emit_platform_event
+
+    emit_platform_event(
+        "support_desk_ticket_assignment_changed",
+        {
+            "ticket_id": str(ticket.pk),
+            "school_id": str(ticket.school_id),
+            "actor_id": getattr(request.user, "id", None),
+            "action": action,
+            "assignee_id": ticket.assigned_to_id,
+        },
+        school_id=ticket.school_id,
+    )
     if request.headers.get("HX-Request"):
         status_filter = request.GET.get("status", "").strip()
         priority_filter = request.GET.get("priority", "").strip()
         qs = GlobalSupportTicket.objects.select_related(
             "school", "user", "assigned_to"
-        ).order_by("-created_at")[:50]
+        ).order_by("-created_at")
         if status_filter:
             qs = qs.filter(status=status_filter)
         if priority_filter:
             qs = qs.filter(priority=priority_filter)
-        tickets = _annotate_tickets_sla(list(qs))
+        tickets = _annotate_tickets_sla(list(qs[:50]))
         return render(
             request,
             "schools/super_support_queue_fragment.html",
@@ -239,3 +265,245 @@ def support_assign_ticket(request):
             },
         )
     return redirect("super:support_dashboard")
+
+
+def super_support_tickets_export_csv(request):
+    """CSV export of global support tickets (same filters as dashboard)."""
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+    status_filter = request.GET.get("status", "").strip()
+    priority_filter = request.GET.get("priority", "").strip()
+    qs = GlobalSupportTicket.objects.select_related("school", "user", "assigned_to").order_by(
+        "-created_at"
+    )
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    if priority_filter:
+        qs = qs.filter(priority=priority_filter)
+    rows = list(qs[:2000])
+
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(
+        [
+            "ticket_id",
+            "created_at",
+            "updated_at",
+            "school",
+            "submitter_email",
+            "submitter_username",
+            "subject",
+            "status",
+            "priority",
+            "assignee_email",
+            "csat_score",
+            "csat_submitted_at",
+        ]
+    )
+    for t in rows:
+        w.writerow(
+            [
+                str(t.pk),
+                t.created_at.isoformat() if t.created_at else "",
+                t.updated_at.isoformat() if t.updated_at else "",
+                t.school.name if t.school_id else "",
+                getattr(t.user, "email", "") or "",
+                getattr(t.user, "username", "") or "",
+                t.subject,
+                t.status,
+                t.priority,
+                getattr(t.assigned_to, "email", "") or "",
+                t.csat_score or "",
+                t.csat_submitted_at.isoformat() if t.csat_submitted_at else "",
+            ]
+        )
+    resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
+    resp["Content-Disposition"] = 'attachment; filename="global_support_tickets.csv"'
+    return resp
+
+
+def super_support_ticket_detail(request, ticket_id):
+    """
+    Ticket drill-down: tenant context links, operator internal notes, status updates.
+    Audited via platform events (payload excludes ticket body).
+    """
+    from apps.platform_runtime.events import emit_platform_event
+    from apps.siteconfig.models_feature_controls import (
+        GlobalSupportTicket,
+        GlobalSupportTicketReply,
+    )
+    from apps.siteconfig.support_sla import (
+        SUPPORT_SLA_RESPONSE_HOURS,
+        SUPPORT_SLA_RESOLUTION_HOURS,
+        ticket_response_breach,
+        ticket_resolution_breach,
+    )
+
+    ticket = get_object_or_404(
+        GlobalSupportTicket.objects.select_related(
+            "school", "user", "assigned_to"
+        ).prefetch_related("thread_replies__author"),
+        pk=ticket_id,
+    )
+
+    if request.method == "POST":
+        action = (request.POST.get("action") or "update").strip().lower()
+        if action == "reply":
+            body = (request.POST.get("reply_body") or "").strip()
+            if body:
+                vis_raw = (request.POST.get("reply_visibility") or "").strip().upper()
+                if vis_raw == GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE:
+                    vis = GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE
+                else:
+                    vis = GlobalSupportTicketReply.Visibility.INTERNAL
+                GlobalSupportTicketReply.objects.create(
+                    ticket=ticket,
+                    author=request.user,
+                    body=body[:32000],
+                    visibility=vis,
+                )
+                if vis == GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE:
+                    GlobalSupportTicket.objects.filter(
+                        pk=ticket.pk, first_response_at__isnull=True
+                    ).update(first_response_at=timezone.now())
+                try:
+                    from apps.siteconfig.support_ticket_hooks import (
+                        run_support_ticket_reply_hooks,
+                    )
+
+                    run_support_ticket_reply_hooks(
+                        str(ticket.pk),
+                        actor_id=getattr(request.user, "id", None),
+                        visibility=vis,
+                        reply_body=body[:32000],
+                    )
+                except (
+                    AttributeError,
+                    ImportError,
+                    LookupError,
+                    TypeError,
+                    ValueError,
+                ):
+                    pass
+                messages.success(request, "Reply added to thread.")
+            return redirect("super:support_ticket_detail", ticket_id=ticket.pk)
+
+        changed: list[str] = []
+        new_status = request.POST.get("status", "").strip().upper()
+        if new_status and new_status in GlobalSupportTicket.Status.values:
+            if new_status != ticket.status:
+                ticket.status = new_status
+                changed.append("status")
+        raw_notes = request.POST.get("internal_notes", "")
+        if isinstance(raw_notes, str) and raw_notes != ticket.internal_notes:
+            ticket.internal_notes = raw_notes[:32000]
+            changed.append("internal_notes")
+        if changed:
+            ticket.save(update_fields=[f for f in changed if f in ("status", "internal_notes")])
+            emit_platform_event(
+                "support_desk_ticket_updated",
+                {
+                    "ticket_id": str(ticket.pk),
+                    "school_id": str(ticket.school_id),
+                    "actor_id": getattr(request.user, "id", None),
+                    "changed_fields": changed,
+                },
+                school_id=ticket.school_id,
+            )
+            messages.success(request, "Ticket updated.")
+        return redirect("super:support_ticket_detail", ticket_id=ticket.pk)
+
+    now = timezone.now()
+    ticket.age_hours = round(
+        max(0.0, (now - ticket.created_at).total_seconds() / 3600.0), 1
+    )
+    ticket.sla_response_breach = ticket_response_breach(ticket)
+    ticket.sla_resolution_breach = ticket_resolution_breach(ticket)
+
+    runbooks_url = getattr(settings, "CONTROL_PLANE_RUNBOOKS_URL", None) or ""
+    tenant_360_url = ""
+    control_health_url = ""
+    try:
+        tenant_360_url = reverse(
+            "super:tenant_360", kwargs={"school_id": ticket.school_id}
+        )
+    except NoReverseMatch:
+        pass
+    try:
+        control_health_url = reverse("super:control_health")
+    except NoReverseMatch:
+        pass
+    try:
+        incidents_url = reverse("platform_incidents_console")
+    except NoReverseMatch:
+        incidents_url = ""
+
+    tenant_message_admin_url = ""
+    raw_msg_id = (ticket.metadata or {}).get("communication_message_id")
+    if raw_msg_id and ticket.school_id:
+        try:
+            from apps.schools.tenant_url import build_tenant_backend_url
+
+            # Message is registered on tenant admin only; platform /admin/ may not reverse this.
+            admin_path = f"/admin/communication/message/{raw_msg_id}/change/"
+            tenant_message_admin_url = build_tenant_backend_url(
+                request, ticket.school, path=admin_path
+            )
+        except (TypeError, ValueError, AttributeError):
+            tenant_message_admin_url = ""
+
+    ai_triage = (ticket.metadata or {}).get("ai_triage")
+    thread_replies = list(ticket.thread_replies.all())
+
+    return render(
+        request,
+        "schools/super_support_ticket_detail.html",
+        {
+            "ticket": ticket,
+            "sla_response_hours": SUPPORT_SLA_RESPONSE_HOURS,
+            "sla_resolution_hours": SUPPORT_SLA_RESOLUTION_HOURS,
+            "runbooks_url": runbooks_url,
+            "tenant_health_url": reverse("super:tenant_health"),
+            "tenant_360_url": tenant_360_url,
+            "control_health_url": control_health_url,
+            "incidents_url": incidents_url,
+            "status_choices": GlobalSupportTicket.Status.choices,
+            "tenant_message_admin_url": tenant_message_admin_url,
+            "ai_triage": ai_triage,
+            "thread_replies": thread_replies,
+            "reply_visibility_choices": GlobalSupportTicketReply.Visibility.choices,
+        },
+    )
+
+
+def super_support_csat_dashboard(request):
+    """Lightweight CSAT aggregates for global support tickets (control plane)."""
+    from django.db.models import Avg, Count
+    from django.db.models.functions import TruncMonth
+
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+    qs = GlobalSupportTicket.objects.filter(
+        csat_score__isnull=False, csat_submitted_at__isnull=False
+    )
+    overall = qs.aggregate(avg=Avg("csat_score"), n=Count("id"))
+    by_month = list(
+        qs.annotate(m=TruncMonth("csat_submitted_at"))
+        .values("m")
+        .annotate(avg_score=Avg("csat_score"), n=Count("id"))
+        .order_by("-m")[:36]
+    )
+    recent = list(
+        qs.select_related("school", "user")
+        .order_by("-csat_submitted_at")[:50]
+    )
+    return render(
+        request,
+        "schools/super_support_csat_dashboard.html",
+        {
+            "overall_avg": overall.get("avg"),
+            "overall_n": overall.get("n") or 0,
+            "by_month": by_month,
+            "recent": recent,
+        },
+    )

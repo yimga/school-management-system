@@ -1,0 +1,12 @@
+Hello{% if ticket.user %} {{ ticket.user.get_short_name|default:ticket.user.username }}{% endif %},
+
+There is a new reply on your support ticket at {{ school.name }}.
+
+Ticket: {{ ticket.subject }}
+Ticket ID: {{ ticket.pk }}
+
+---
+{{ reply_body }}
+---
+
+Open your portal support hub to view the full thread.

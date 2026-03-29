@@ -338,16 +338,30 @@ class ScheduledReportRunner:
     """Execute scheduled reports"""
 
     @staticmethod
-    def run_due_reports():
-        """Run all reports that are due.
+    def run_due_reports(
+        *,
+        school_id: Optional[int] = None,
+        limit: Optional[int] = None,
+        dry_run: bool = False,
+        strict_no_skip: bool = False,
+        json_summary: bool = False,
+        **extra: Any,
+    ):
+        """Run tenant schedules that are due (``TenantReportSchedule`` via ``send_scheduled_reports``)."""
+        from django.core.management import call_command
 
-        ScheduledReport / ReportExecution models were removed in migration 0017.
-        Re-implement when a replacement scheduled-report model ships.
-        """
-        logger.warning(
-            "ScheduledReportRunner.run_due_reports: no-op (BI scheduled models removed)"
-        )
-        return
+        kwargs: Dict[str, Any] = dict(extra)
+        if school_id is not None:
+            kwargs["school_id"] = school_id
+        if limit is not None:
+            kwargs["limit"] = limit
+        if dry_run:
+            kwargs["dry_run"] = True
+        if strict_no_skip:
+            kwargs["strict_no_skip"] = True
+        if json_summary:
+            kwargs["json_summary"] = True
+        call_command("send_scheduled_reports", **kwargs)
 
     @staticmethod
     def _execute_report(report_definition, parameters: Dict) -> Dict:

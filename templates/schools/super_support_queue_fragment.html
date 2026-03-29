@@ -18,7 +18,7 @@
     {% for t in tickets %}
     <tr class="{% if t.sla_response_breach or t.sla_resolution_breach %}table-warning{% endif %}">
       <td>{{ t.school.name }}</td>
-      <td>{{ t.subject|truncatewords:8 }}</td>
+      <td><a href="{% url 'super:support_ticket_detail' t.pk %}">{{ t.subject|truncatewords:8 }}</a></td>
       <td><span class="badge {% if t.priority == 'URGENT' %}bg-danger{% elif t.priority == 'HIGH' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ t.get_priority_display }}</span></td>
       <td>{{ t.get_status_display }}</td>
       <td>{% if t.assigned_to %}{{ t.assigned_to.get_full_name|default:t.assigned_to.email|default:t.assigned_to.username }}{% else %}<span class="text-muted">—</span>{% endif %}</td>

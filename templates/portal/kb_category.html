@@ -1,9 +1,17 @@
 {% extends "portal_base.html" %}
 {% load static %}
 
+{% block page_archetype %}kb-category{% endblock %}
+
 {% block title %}{{ category.name }} - Knowledge Base{% endblock %}
 
 {% block content %}
+<div
+  class="portal-kb-category-read-shell"
+  data-page-critical-read="kb-category"
+  data-sms-offline-read-cache-key="portal_kb_category"
+  tabindex="-1"
+>
 <div class="container-fluid mt-3 mb-5">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
@@ -88,7 +96,7 @@
         <div class="col-lg-10 col-xl-10">
             <!-- Header -->
             <div class="mb-4">
-                <h1 class="h2 mb-2">
+                <h1 class="h2 mb-2" id="kb-category-heading">
                     <i class="fas {{ category.icon }}"></i> {{ category.name }}
                 </h1>
                 <p class="text-muted">{{ category.description }}</p>
@@ -182,6 +190,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 {% endblock %}

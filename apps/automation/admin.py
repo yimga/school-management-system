@@ -181,6 +181,7 @@ class MigrationQuarantineRecordAdmin(ModelAdmin):
 
 @admin.register(MigrationRun, site=platform_admin_site)
 class MigrationRunAdmin(ModelAdmin):
+    change_form_template = "admin/automation/migrationrun/change_form.html"
     list_display = (
         "migration_type",
         "school",

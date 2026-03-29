@@ -158,6 +158,30 @@ EVENT_CATALOG = {
             "title",
         ],
     },
+    "support_desk_ticket_viewed": {
+        "description": "Operator opened global support ticket detail (audit; no ticket body in payload)",
+        "payload": ["ticket_id", "school_id", "actor_id"],
+    },
+    "support_desk_ticket_updated": {
+        "description": "Operator updated ticket status and/or internal notes",
+        "payload": ["ticket_id", "school_id", "actor_id", "changed_fields"],
+    },
+    "support_desk_ticket_assignment_changed": {
+        "description": "Operator self-assigned or unassigned a global support ticket",
+        "payload": ["ticket_id", "school_id", "actor_id", "action", "assignee_id"],
+    },
+    "support_desk_ticket_created": {
+        "description": "Tenant user submitted a global support ticket (platform queue)",
+        "payload": ["ticket_id", "school_id", "submitter_id", "priority", "status"],
+    },
+    "support_desk_ticket_reply_added": {
+        "description": "Operator or submitter added a threaded reply on a global ticket",
+        "payload": ["ticket_id", "school_id", "actor_id", "visibility"],
+    },
+    "support_desk_ticket_csat_submitted": {
+        "description": "Submitter submitted CSAT (1–5) after resolution",
+        "payload": ["ticket_id", "school_id", "actor_id", "score"],
+    },
 }
 
 

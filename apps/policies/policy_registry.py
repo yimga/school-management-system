@@ -33,7 +33,7 @@ def invalidate_policy_cache(school) -> None:
 
 
 def invalidate_all_tenant_policy_caches() -> None:
-    """After platform SiteSettings / Phase B snapshots change, bust per-tenant policy cache (if enabled)."""
+    """After the slim tenant site settings row or Phase B snapshots change, bust per-tenant policy cache (if enabled)."""
     _invalidate_all_tenant_policy_caches()
 
 

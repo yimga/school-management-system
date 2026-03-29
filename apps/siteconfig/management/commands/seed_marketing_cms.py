@@ -61,6 +61,24 @@ BLOG_SEED = [
             "command palette, and preview contract.</p>"
         ),
     },
+    {
+        "title": "Trust center: retention, incidents, and regional privacy",
+        "slug": "trust-center-retention-and-privacy",
+        "excerpt": "How schools document retention, respond to incidents, and align FERPA and GDPR expectations in one place.",
+        "body_html": (
+            "<p>Operators need a single narrative for auditors and families. The trust center ties policy pages to "
+            "operational defaults and export posture.</p>"
+        ),
+    },
+    {
+        "title": "Buyer toolkit: RFP prompts and implementation checklist",
+        "slug": "buyer-toolkit-rfp-and-checklist",
+        "excerpt": "Downloadable checklists to compare vendors and stage migration without losing finance or academic owners.",
+        "body_html": (
+            "<p>Use the buyer toolkit for side-by-side evaluation criteria and a phased implementation plan your "
+            "board can follow.</p>"
+        ),
+    },
 ]
 
 # Optional CMS keys consumed by apps.schools.marketing_views._marketing_cms_overrides (plain text after strip_tags).
@@ -91,6 +109,20 @@ MARKETING_CONTENT_SEED = [
         "locale": "",
         "content_html": (
             "<p class=\"lead\">Product updates, migration tips, and operations ideas for school leaders and IT.</p>"
+        ),
+    },
+    {
+        "key": "marketing_footer_tagline",
+        "locale": "",
+        "content_html": (
+            "<span class=\"text-muted\">Run admissions, academics, finance, and portals on one tenant-ready platform.</span>"
+        ),
+    },
+    {
+        "key": "marketing_newsletter_blurb",
+        "locale": "",
+        "content_html": (
+            "<p class=\"small mb-0\">Occasional product notes and migration checklists. Unsubscribe anytime.</p>"
         ),
     },
 ]

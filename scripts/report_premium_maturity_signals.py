@@ -103,14 +103,14 @@ def collect_signals(base: Path) -> dict[str, object]:
             litellm_secret_total += c
             litellm_secret_files += 1
 
-    gilead_lines = 0
-    gilead_files = 0
+    residue_line_hits = 0
+    residue_files = 0
     for path in _iter_gilead_candidate_files(base):
         text = path.read_text(encoding="utf-8", errors="replace")
         hits = sum(1 for line in text.splitlines() if GILEADPAT.search(line))
         if hits:
-            gilead_lines += hits
-            gilead_files += 1
+            residue_line_hits += hits
+            residue_files += 1
 
     return {
         "raw_sql_non_migration": {
@@ -125,9 +125,9 @@ def collect_signals(base: Path) -> dict[str, object]:
             "occurrences_apps_non_migration_non_tests": litellm_secret_total,
             "files_with_hits": litellm_secret_files,
         },
-        "gilead_corpus": {
-            "line_hits_lint_runtime_surface": gilead_lines,
-            "files_with_hits": gilead_files,
+        "runtime_branding_residue_corpus": {
+            "line_hits_lint_runtime_surface": residue_line_hits,
+            "files_with_hits": residue_files,
         },
     }
 
@@ -141,7 +141,7 @@ def main() -> int:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="Run raw SQL, csrf_exempt, and Gilead linters; exit non-zero if any fail.",
+        help="Run raw SQL, csrf_exempt, and lint_gilead_residue; exit non-zero if any fail.",
     )
     args = parser.parse_args()
     base = Path(args.base).resolve()

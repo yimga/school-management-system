@@ -37,7 +37,7 @@
     <link rel="stylesheet" href="{% static 'css/phase2-static-templates-bundle.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
-  <body class="control-plane-shell cp-surface">
+  <body class="control-plane-shell cp-surface"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
     <a href="#cp-main-content" class="skip-link visually-hidden-focusable" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     {% block content %}{% endblock %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>

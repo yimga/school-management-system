@@ -1,6 +1,6 @@
 # SiteSettings.get_solo() — Allowlist
 
-**Purpose:** Tenant-facing code must not call `SiteSettings.get_solo()` or `SiteSettings.load()` for tenant behavior; use `request.tenant_runtime` or `apps.platform_runtime.helpers` (e.g. `get_effective_site_settings(request)`) or `apps.automation.helpers.get_cached_site_settings(school=)`. This document lists every production file where `get_solo()` is **allowed** and the reason. CI enforces zero `get_solo()`/`load()` in tenant apps (see `scripts/lint_tenant_settings.py --check-get-solo-only`). **Migrated:** evals/caching.py previously used `SiteSettings.load()`; now uses `get_cached_site_settings(school=)` (§2.1).
+**Purpose:** Tenant-facing code must not call `SiteSettings.get_solo()` or `SiteSettings.load()` for tenant behavior; use `request.tenant_runtime` or `apps.platform_runtime.helpers` (e.g. `get_effective_site_settings(request)`, `get_effective_marketplace_integration_settings(request=, school=)`) or `apps.automation.helpers.get_cached_site_settings(school=)`. This document lists every production file where `get_solo()` is **allowed** and the reason. CI enforces zero `get_solo()`/`load()` in tenant apps (see `scripts/lint_tenant_settings.py --check-get-solo-only`). **Migrated:** evals/caching.py previously used `SiteSettings.load()`; now uses `get_cached_site_settings(school=)` (§2.1).
 
 ## `SiteSettings.objects.*` ORM choke point (Phase 6 / 7)
 
@@ -20,7 +20,7 @@
 | Path | Reason |
 |------|--------|
 | `apps/siteconfig/models.py` | Definition and internal use of singleton (e.g. `get_solo()` method, default helpers). |
-| `apps/platform_runtime/helpers.py` | Canonical shim layer; platform singleton access for `get_effective_site_settings`, `get_effective_flags`, `get_site_display_name`, `get_platform_site_settings_record`. |
+| `apps/platform_runtime/helpers.py` | Canonical shim layer; platform singleton access for `get_effective_site_settings`, `get_effective_marketplace_integration_settings`, `get_effective_flags`, `get_site_display_name`, `get_platform_site_settings_record`. |
 | *(removed)* | ~~apps/platform_runtime/models.py~~ — **B1 done:** `RuntimeDefaults.sync_from_site_settings(site_settings)` now requires callers to pass site_settings; backfill command and SiteSettings.publish_to_runtime_defaults pass it. No get_solo() in this module. |
 | *(removed)* | ~~apps/policies/resolver.py~~ — **1.3 done:** Resolver uses `get_effective_site_settings(school=)` only; no get_solo(). |
 | *(removed)* | ~~emis/services.py~~ — **Migrated:** `_get_site_for_emis()` uses `get_effective_site_settings(request=, school=)` only; no get_solo(). |

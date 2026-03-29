@@ -30,7 +30,6 @@ from apps.platform_runtime.helpers import (
     get_platform_site_settings_record,
 )
 from apps.platform_runtime.structured_logging import log_view_exception
-from apps.siteconfig.models import SiteSettings
 from apps.siteconfig.models_support import default_header_weather_config
 from apps.siteconfig.staff_navigation import site_settings_list_url
 
@@ -66,7 +65,7 @@ def _safe_float(value: Any, default: float) -> float:
         return default
 
 
-def _build_admin_weather_config(site: SiteSettings) -> dict[str, Any]:
+def _build_admin_weather_config(site: Any) -> dict[str, Any]:
     if callable(getattr(site, "get_backend_feature_flags", None)):
         flags = site.get_backend_feature_flags()
     else:
@@ -543,7 +542,7 @@ def _query_finance_inbox(query_context: dict[str, Any]) -> dict[str, Any]:
 def _query_settings_audit(_query_context: dict[str, Any]) -> dict[str, Any]:
     settings_change_log: list[dict[str, str]] = []
     try:
-        ct = ContentType.objects.get_for_model(SiteSettings)
+        ct = ContentType.objects.get(app_label="siteconfig", model="sitesettings")
         entries = LogEntry.objects.filter(content_type=ct).order_by("-action_time")[:5]
         settings_change_log = [
             {

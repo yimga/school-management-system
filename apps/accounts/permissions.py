@@ -93,6 +93,7 @@ MODULE_ACCESS_DEFAULTS = {
             "PARENT",
             "TEACHER",
             "STUDENT",
+            "EMPLOYER",
             "ADMIN",
             "SUPERADMIN",
             "LEADERSHIP",
@@ -107,6 +108,7 @@ MODULE_ACCESS_DEFAULTS = {
         "write": {
             "PARENT",
             "TEACHER",
+            "EMPLOYER",
             "ADMIN",
             "SUPERADMIN",
             "LEADERSHIP",
@@ -497,14 +499,25 @@ ROLE_CATEGORIES = {
 }
 
 
+def _canonical_role_code(raw) -> str:
+    """Normalize ``User.role`` (CharField value, TextChoices member, or str) for comparisons."""
+    if raw is None:
+        return ""
+    val = getattr(raw, "value", None)
+    if val is not None:
+        return str(val).strip().upper()
+    return str(raw).strip().upper()
+
+
 def _user_has_role(user, role: str) -> bool:
     if not user.is_authenticated:
         return False
     if getattr(user, "is_superuser", False):
         return True
-    if getattr(user, "role", None) == role:
+    want = (role or "").strip().upper()
+    if want and _canonical_role_code(getattr(user, "role", None)) == want:
         return True
-    if user.roles.filter(code=role).exists():
+    if want and user.roles.filter(code=want).exists():
         return True
     from django.utils import timezone
     from apps.accounts.models import TemporaryRoleGrant
@@ -513,7 +526,7 @@ def _user_has_role(user, role: str) -> bool:
     now = timezone.now()
     return (
         TemporaryRoleGrant.objects.filter(
-            user=user, role__code=role, expires_at__gt=now
+            user=user, role__code=want, expires_at__gt=now
         )
         .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
         .exists()
@@ -527,10 +540,12 @@ def _user_has_any_role(user, roles: set[str]) -> bool:
         return True
     if roles == ALL_AUTHENTICATED:
         return True
-    user_role = getattr(user, "role", None)
-    if user_role in roles:
+    norm_roles = {_canonical_role_code(r) for r in roles}
+    norm_roles.discard("")
+    user_code = _canonical_role_code(getattr(user, "role", None))
+    if user_code and user_code in norm_roles:
         return True
-    if user.roles.filter(code__in=roles).exists():
+    if norm_roles and user.roles.filter(code__in=norm_roles).exists():
         return True
     from django.utils import timezone
     from apps.accounts.models import TemporaryRoleGrant
@@ -539,7 +554,7 @@ def _user_has_any_role(user, roles: set[str]) -> bool:
     now = timezone.now()
     return (
         TemporaryRoleGrant.objects.filter(
-            user=user, role__code__in=roles, expires_at__gt=now
+            user=user, role__code__in=norm_roles, expires_at__gt=now
         )
         .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
         .exists()
@@ -560,11 +575,13 @@ def api_user_has_any_role(user, roles: set[str] | tuple[str, ...]) -> bool:
     role_set = set(roles) if not isinstance(roles, set) else roles
     if role_set == ALL_AUTHENTICATED:
         return True
-    user_role = (getattr(user, "role", None) or "").strip().upper()
-    if user_role in role_set:
+    user_role = _canonical_role_code(getattr(user, "role", None))
+    norm_roles = {_canonical_role_code(r) for r in role_set}
+    norm_roles.discard("")
+    if user_role and user_role in norm_roles:
         return True
     try:
-        if user.roles.filter(code__in=role_set).exists():
+        if norm_roles and user.roles.filter(code__in=norm_roles).exists():
             return True
         from django.utils import timezone
         from apps.accounts.models import TemporaryRoleGrant
@@ -573,7 +590,7 @@ def api_user_has_any_role(user, roles: set[str] | tuple[str, ...]) -> bool:
         now = timezone.now()
         return (
             TemporaryRoleGrant.objects.filter(
-                user=user, role__code__in=role_set, expires_at__gt=now
+                user=user, role__code__in=norm_roles, expires_at__gt=now
             )
             .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
             .exists()
@@ -689,12 +706,12 @@ def _guardian_finance_qs(user):
             require_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     except DatabaseError:
         _logger.warning(
-            "SiteSettings unavailable for guardian finance opt-in; failing closed (require_opt_in=True)."
+            "Effective flags unavailable for guardian finance opt-in; failing closed (require_opt_in=True)."
         )
         require_opt_in = True
     except (AttributeError, TypeError, ValueError, ImportError):
         _logger.warning(
-            "SiteSettings error for guardian finance opt-in; failing closed (require_opt_in=True)."
+            "Effective flags error for guardian finance opt-in; failing closed (require_opt_in=True)."
         )
         require_opt_in = True
 
@@ -710,9 +727,10 @@ def guardian_finance_student_ids(user):
 
 
 def _role_rank(role: str | None) -> int:
-    if not role:
+    code = _canonical_role_code(role)
+    if not code:
         return 0
-    return ROLE_RANK.get(role, 0)
+    return ROLE_RANK.get(code, 0)
 
 
 TENANT_OPERATOR_EXCLUDED_STANDALONE_ROLES = frozenset(

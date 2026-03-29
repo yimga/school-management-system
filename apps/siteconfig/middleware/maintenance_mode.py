@@ -19,7 +19,7 @@ OPTIONAL_CACHE_ERRORS = (
 
 class MaintenanceModeMiddleware:
     """
-    If maintenance_mode is enabled in SiteSettings, show a maintenance page
+    If maintenance_mode is enabled on the siteconfig settings singleton, show a maintenance page
     for all users except superusers, and allow /admin/ + /authentication/ routes.
     """
 

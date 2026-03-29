@@ -23,6 +23,7 @@
 ## Validation
 
 - [x] `python -m pytest apps/siteconfig/tests/test_control_outcome_center.py`
+- [x] `python scripts/verify_admin_tenant_change_form_product_links.py` (tenant Unfold `change_form` product escape links — wired in `verify_phases_3_11_gates.py` + `test_tenant_settings_lint`)
 
 ## Acceptance
 

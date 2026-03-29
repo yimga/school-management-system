@@ -27,6 +27,7 @@ class DocumentCategoryAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
     prepopulated_fields = {"slug": ("name",)}
     ordering = ("order", "name")
+    change_form_template = "admin/portal/documentcategory/change_form.html"
 
 
 class PortalFeatureItemAdmin(admin.ModelAdmin):
@@ -121,6 +122,7 @@ class EventAdmin(admin.ModelAdmin):
     list_filter = ("is_public",)
     search_fields = ("title", "description")
     ordering = ("-start_at",)
+    change_form_template = "admin/portal/event/change_form.html"
 
 
 # Register all models with tenant admin only
@@ -230,6 +232,7 @@ class FAQAdmin(admin.ModelAdmin):
     search_fields = ("question", "answer", "tags")
     ordering = ("-is_featured", "display_order", "-view_count")
     autocomplete_fields = ("submitted_by", "reviewed_by")
+    change_form_template = "admin/portal/faq/change_form.html"
 
 
 class KBCategoryAdmin(admin.ModelAdmin):
@@ -245,6 +248,7 @@ class KBCategoryAdmin(admin.ModelAdmin):
     search_fields = ("name", "slug", "description")
     ordering = ("display_order", "name")
     autocomplete_fields = ("parent",)
+    change_form_template = "admin/portal/kbcategory/change_form.html"
 
 
 class KBArticleAdmin(admin.ModelAdmin):
@@ -262,6 +266,7 @@ class KBArticleAdmin(admin.ModelAdmin):
     ordering = ("-is_featured", "display_order", "-view_count")
     autocomplete_fields = ("author", "contributors", "reviewed_by", "related_articles")
     filter_horizontal = ("contributors", "related_articles")
+    change_form_template = "admin/portal/kbarticle/change_form.html"
 
 
 class KBArticleAttachmentAdmin(admin.ModelAdmin):

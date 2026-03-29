@@ -6,8 +6,15 @@
 #   export SECRET_KEY=local-dev-only-not-for-production-64chars_____________________
 #   export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/ci_visual_qa
 #   export MULTI_TENANT_BASE_DOMAIN=runmycampus.com USE_DJANGO_TENANTS=1 ADMIN_PASSWORD=VisualQaPass123!
+#   export PGCONNECT_TIMEOUT=15
 #   bash scripts/ci_setup_postgres_tenants_for_visual_qa.sh && bash scripts/run_visual_qa.sh
 # Optional skips on the setup script: CI_VISUAL_QA_SKIP_BACKFILL_SCHOOLDOMAIN=1, CI_VISUAL_QA_SKIP_TENANT_RUNTIME_CHECK=1
+# Setup waits for PostgreSQL (Django ensure_connection) before migrate_schemas; tune with
+#   CI_VISUAL_QA_DB_WAIT_ATTEMPTS / CI_VISUAL_QA_DB_WAIT_SLEEP. run_visual_qa.sh uses VISUAL_QA_PYTHON
+#   or .venv/bin/python when present; server readiness path/attempts: VISUAL_QA_SERVER_READY_*.
+#
+# Tenant logins: run_visual_qa.sh resolves the first django-tenants Domain before runserver and sets
+# CSRF_TRUSTED_ORIGINS to include http://<tenant-host>:<port> so Playwright POSTs are not rejected.
 name: Playwright tenant (Postgres)
 
 on:
@@ -19,7 +26,26 @@ on:
       - "tests/e2e/**"
       - "scripts/run_visual_qa.sh"
       - "scripts/ci_setup_postgres_tenants_for_visual_qa.sh"
+      - "scripts/pre_deploy_gate.sh"
+      - "scripts/generate_platform_inventory.py"
+      - "scripts/generated/scoped_gravity_trend.json"
       - ".github/workflows/playwright-tenant-postgres.yml"
+      - "apps/api/api_v1_manifest.py"
+      - "apps/api/urls_v1.py"
+      - "scripts/verify_api_v1_named_routes_snapshot.py"
+      - "scripts/generated/api_v1_named_routes.json"
+      - "scripts/generated/api_v1_non_curated_route_names.json"
+      - "config/**/*.py"
+      - "apps/customers/**/*.py"
+      - "apps/schools/models.py"
+      - "apps/schools/rls.py"
+      - "apps/reports/migrations/**"
+      - "package.json"
+      - "package-lock.json"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   playwright-tenant:
@@ -41,11 +67,15 @@ jobs:
           --health-retries 10
 
     env:
+      PGCONNECT_TIMEOUT: "15"
       SECRET_KEY: "ci-playwright-tenant-not-for-production-64chars__________________________"
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ci_visual_qa
       MULTI_TENANT_BASE_DOMAIN: runmycampus.com
       USE_DJANGO_TENANTS: "1"
       DEBUG: "0"
+      # Explicit for CI; settings also derive hosts from MULTI_TENANT_BASE_DOMAIN.
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      VISUAL_QA_PORT: "8010"
       ADMIN_PASSWORD: VisualQaPass123!
       VISUAL_QA_TENANT_PASSWORD: VisualQaPass123!
 

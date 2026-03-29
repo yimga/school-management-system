@@ -5,6 +5,7 @@ Re-exported from views.py for URL wiring.
 
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponseForbidden
@@ -32,7 +33,7 @@ def _active_profile(request: HttpRequest | None = None):
     return ComplianceProfile.objects.filter(is_active=True).first()
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def finance_reports(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
@@ -97,7 +98,7 @@ def finance_reports(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def submit_report_request(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:

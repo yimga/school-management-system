@@ -3,7 +3,7 @@ Phase 4 — Workflow hub (24.3). Single entry point for workflow definitions.
 
 Apps should call workflow_resolver.for_action(school, action_slug) or
 workflow_resolver.get_approval_workflow(school, workflow_key) instead of
-duplicating approval/signature logic or reading SiteSettings directly.
+duplicating approval/signature logic or reading the site settings singleton directly.
 """
 
 from __future__ import annotations

@@ -19,7 +19,21 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#command-center-main">{% trans "Skip to operational queues" %}</a>
+  <div id="command-center-main" class="container-fluid py-4 control-plane-shell" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  {% if operator_command_center_links %}
+  <div class="card shadow-sm border-0 page-family-content-card mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary mb-2">{% trans "Platform-admin rows (PlatformOperatorCommandCenterLink); add or reorder in platform admin." %}</p>
+      <ul class="list-unstyled mb-0 d-flex flex-wrap gap-2">
+        {% for link in operator_command_center_links %}
+        <li><a class="btn btn-sm btn-outline-secondary" href="{{ link.href }}">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
 {% phase8_dashboard_declaration "schools/super_command_center.html" %}
   <section class="cp-hero cp-hero-compact mb-4">
     <div class="cp-hero-grid">

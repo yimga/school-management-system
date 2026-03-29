@@ -96,6 +96,7 @@ def super_pulse(request):
 
 def super_tenant_health(request):
     """S13: Tenant Health Monitor — HTML view for super dashboard link. Wedge 14–22: missing statutory for PUBLIC/GOVERNMENT_MINISTRY."""
+    from apps.platform_runtime.models import PlatformOperatorTenantHealthLink
     from apps.policies.resolver import get_effective_policy
 
     schools = list(
@@ -112,10 +113,16 @@ def super_tenant_health(request):
             school.missing_statutory = compliance.get("statutory_enabled") is not True
         else:
             school.missing_statutory = False
+    operator_tenant_health_links = list(
+        PlatformOperatorTenantHealthLink.objects.order_by("sort_order", "slug")
+    )
     return render(
         request,
         "schools/super_tenant_health.html",
-        {"tenants": schools},
+        {
+            "tenants": schools,
+            "operator_tenant_health_links": operator_tenant_health_links,
+        },
     )
 
 

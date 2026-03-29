@@ -312,7 +312,7 @@ def build_dashboard_extras(
     - Welcome chips/action grid
     - Quick links
     - Command palette list
-    - Local time + weather config from SiteSettings flags where available
+    - Local time + weather config from effective tenant platform settings flags where available
     """
     base = base or {}
     now = timezone.localtime()

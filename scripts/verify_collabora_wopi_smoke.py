@@ -17,6 +17,16 @@ def _check(url: str, allowed: tuple[int, ...], label: str, headers: dict[str, st
     except requests.RequestException as exc:
         return False, f"{label}: request failed ({exc})"
     if r.status_code not in allowed:
+        location = (r.headers.get("Location") or "").strip()
+        if label == "collabora discovery" and r.status_code in (301, 302, 307, 308):
+            # Most common production miswire: collabora host is routed to app host.
+            if "school-not-found" in location or "runmycampus.com" in location:
+                return (
+                    False,
+                    f"{label}: expected {allowed}, got {r.status_code}; redirect location={location} "
+                    "(infra misroute: collabora host is pointing to app, not Collabora service)",
+                )
+            return False, f"{label}: expected {allowed}, got {r.status_code}; redirect location={location}"
         return False, f"{label}: expected {allowed}, got {r.status_code}"
     return True, f"{label}: {r.status_code}"
 

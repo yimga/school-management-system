@@ -5,7 +5,7 @@
 ## platform_runtime
 
 - **Public entry:** `build_tenant_runtime(ctx, request)` → `TenantRuntime`; `get_tenant_runtime(request)` via middleware sets `request.tenant_runtime`.
-- **Use this:** `request.tenant_runtime` for policy, blueprint, flags, branding, integrations, marketplace, compliance, locale, modules. Helpers: `get_effective_site_settings(request)`, `get_effective_flags_for_school(school)`.
+- **Use this:** `request.tenant_runtime` for policy, blueprint, flags, branding, integrations, marketplace, compliance, locale, modules. Helpers: `get_effective_site_settings(request)`, `get_effective_flags_for_school(school)`, `get_effective_marketplace_integration_settings(request=, school=)` (marketplace / SMS / AI / webhook secrets slice—typed columns + facade; do not reimplement dict keys in tenant apps).
 - **Not that:** Do not read `School.settings` / `School.features` or `SiteSettings.get_solo()` in tenant request path; use runtime or allowlisted helpers only. Lint: `scripts/lint_tenant_settings.py --check-get-solo-only --check-school-settings-features`.
 
 ## policies

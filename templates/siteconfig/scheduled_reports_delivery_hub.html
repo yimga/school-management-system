@@ -1,0 +1,73 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Scheduled report delivery" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 52rem;">
+  <h1 class="h3 mb-3">{% trans "Scheduled report delivery" %}</h1>
+  <p class="text-muted">
+    {% blocktrans %}
+      Entitlement: <code>reports_scheduled_delivery</code> or coarse <code>reports</code>.
+      Operators run <code>python manage.py send_scheduled_reports</code> (or Celery) to deliver due schedules.
+      Optional flags: <code>--school-id</code> and <code>--limit</code>.
+    {% endblocktrans %}
+  </p>
+  <p class="text-muted small">
+    {% trans "Manage rows programmatically via" %}
+    {% if reports_scheduled_api_list_url %}
+    <a href="{{ reports_scheduled_api_list_url }}"><code>/api/v1/reports/scheduled</code></a>
+    {% else %}
+    <code>/api/v1/reports/scheduled</code>
+    {% endif %}
+    {% trans "(list/create) and" %}
+    <code>/api/v1/reports/scheduled/&lt;id&gt;</code>
+    {% trans "(detail, update, delete)." %}
+  </p>
+  {% if tenant_report_schedule_admin_url %}
+  <p class="small mb-3">
+    <a href="{{ tenant_report_schedule_admin_url }}">{% trans "Open schedules in tenant admin" %}</a>
+  </p>
+  {% endif %}
+  {% if school %}
+  <p class="small text-muted mb-3">{% trans "Tenant" %}: {{ school.name }}</p>
+  {% endif %}
+
+  {% if schedules %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "Name" %}</th>
+          <th>{% trans "Key" %}</th>
+          <th>{% trans "Frequency" %}</th>
+          <th>{% trans "Next run" %}</th>
+          <th>{% trans "Recipients" %}</th>
+          <th>{% trans "Active" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in schedules %}
+        <tr>
+          <td>{{ s.name }}</td>
+          <td><code>{{ s.report_key }}</code></td>
+          <td>{{ s.get_schedule_frequency_display }}</td>
+          <td>{{ s.next_run|date:"Y-m-d H:i" }}</td>
+          <td>
+            {% if s.is_active and s.recipients|length == 0 %}
+              <span class="text-warning">{{ s.recipients|length }} — {% trans "add addresses (active schedule)" %}</span>
+            {% else %}
+              {{ s.recipients|length }}
+            {% endif %}
+          </td>
+          <td>{% if s.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted mb-0">{% trans "No schedules for this tenant yet." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

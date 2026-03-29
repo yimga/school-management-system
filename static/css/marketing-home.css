@@ -86,7 +86,7 @@
 }
 .marketing-home .mkt-hero-inner {
   position: relative;
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   display: grid;
   gap: var(--mkt-spacing-lg);
@@ -328,7 +328,7 @@
 
 /* ----- Global infrastructure ----- */
 .marketing-home .mkt-global-map-wrap {
-  max-width: 800px;
+  max-width: 100%;
   margin: 0 auto;
 }
 .marketing-home .mkt-global-map-img {
@@ -388,7 +388,7 @@
   justify-content: center;
   align-items: center;
   gap: var(--mkt-spacing-lg);
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto;
 }
 .marketing-home .mkt-trust-logo {
@@ -405,7 +405,7 @@
 /* ----- Section common ----- */
 .marketing-home .mkt-section {
   padding: var(--mkt-spacing-section, var(--mkt-spacing-2xl)) var(--mkt-spacing-md);
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
 }
 .marketing-home .mkt-section-heading {
@@ -583,7 +583,7 @@
 
 /* ----- AI Intelligence section ----- */
 .marketing-home .mkt-ai-features {
-  max-width: 560px;
+  max-width: 100%;
   margin-left: auto;
   margin-right: auto;
 }
@@ -706,7 +706,7 @@
   list-style: none;
   padding: 0;
   margin: var(--mkt-spacing-lg) 0 0;
-  max-width: 42rem;
+  max-width: 100%;
 }
 .marketing-home .mkt-journey-steps li {
   padding: var(--mkt-spacing-md);
@@ -768,7 +768,7 @@
   padding: var(--mkt-spacing-lg);
   background: linear-gradient(145deg, rgba(14, 165, 233, 0.12), rgba(99, 102, 241, 0.08));
   border: 1px solid var(--mkt-border);
-  max-width: 52rem;
+  max-width: 100%;
   margin: 0 auto;
 }
 .marketing-home .mkt-apac-panel .mkt-citation-note {
@@ -792,4 +792,16 @@
   box-shadow: var(--rmc-glass-shadow);
   backdrop-filter: blur(var(--rmc-glass-blur));
   -webkit-backdrop-filter: blur(var(--rmc-glass-blur));
+}
+
+/*
+ * Full-bleed vs readable width
+ * - Sections / grids / media strips: use full width (containers already fluid via platform-fluid-everywhere.css).
+ * - Long-form copy: keep comfortable measure with .mkt-read or existing per-component ch limits:
+ *   .mkt-hero-subheadline (42ch), .mkt-section-lead (60ch), .mkt-security-copy (55ch).
+ */
+.marketing-home .mkt-read {
+  max-width: min(65ch, 100%);
+  margin-left: auto;
+  margin-right: auto;
 }

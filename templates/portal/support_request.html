@@ -3,12 +3,21 @@
 
 {% block title %}{% trans "Support Request" %}{% endblock %}
 
+{% block page_archetype %}support-request{% endblock %}
+
 {% block content %}
+<div
+  class="portal-support-request-read-shell"
+  data-page-critical-read="support-request"
+  data-sms-offline-read-cache-key="portal_support_request"
+  tabindex="-1"
+>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
-    <h2 class="mb-0">{% trans "Support & Feedback" %}</h2>
+    <h2 class="mb-0" id="support-request-heading">{% trans "Support & Feedback" %}</h2>
     <p class="text-muted small mb-1">
       {% trans "Send a request to the support team or share feedback about the platform." %}
+      <a class="ms-1" href="{% url 'portal:support_help_hub' %}">{% trans "Back to help hub" %}</a>
     </p>
   </div>
   <a class="btn btn-outline-secondary btn-sm js-return-to-origin" href="{{ next_url|default:'/' }}" data-fallback="{{ next_url|default:'/' }}">{% trans "Back" %}</a>
@@ -34,6 +43,7 @@
       <button class="btn btn-primary" type="submit">{% trans "Send message" %}</button>
     </form>
   </div>
+</div>
 </div>
 {% endblock %}
 

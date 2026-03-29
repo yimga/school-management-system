@@ -10,6 +10,10 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 
+from apps.platform_runtime.models import (
+    PlatformOperatorSuperAnalyticsOverviewLink,
+    PlatformOperatorSuperSchoolsListLink,
+)
 from apps.registries.services import WEDGE_14_22_SECTOR_CODES
 
 from .models import School
@@ -58,6 +62,9 @@ def super_schools_list(request):
     page_number = request.GET.get("page", 1)
     page = paginator.get_page(page_number)
     admin_schools_url = None
+    operator_super_schools_list_links = list(
+        PlatformOperatorSuperSchoolsListLink.objects.order_by("sort_order", "slug")
+    )
     return render(
         request,
         "schools/super_schools_list.html",
@@ -70,14 +77,23 @@ def super_schools_list(request):
             "primary_sector_filter": primary_sector,
             "sector_choices": sector_choices,
             "search_query": search,
+            "operator_super_schools_list_links": operator_super_schools_list_links,
         },
     )
 
 
 def super_analytics_overview(request):
     """Phase 13: Analytics and observability — tenant health, adoption, feature usage, workflow success."""
+    operator_super_analytics_overview_links = list(
+        PlatformOperatorSuperAnalyticsOverviewLink.objects.order_by(
+            "sort_order", "slug"
+        )
+    )
     return render(
         request,
         "schools/super_analytics_overview.html",
-        {"dashboard_url": reverse("super:dashboard")},
+        {
+            "dashboard_url": reverse("super:dashboard"),
+            "operator_super_analytics_overview_links": operator_super_analytics_overview_links,
+        },
     )

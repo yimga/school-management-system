@@ -1,0 +1,8 @@
+{
+  "envelope": "district-readiness-v1",
+  "sourceSystem": "ceds",
+  "leaIdentifier": "rmc-fixture-lea-001",
+  "leaName": "RunMyCampus fixture LEA (CEDS sample)",
+  "stateAbbreviation": "XX",
+  "note": "Minimal CEDS-style LEA record for fixture-driven readiness checks."
+}

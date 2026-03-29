@@ -4,6 +4,7 @@ import json
 from datetime import date
 from collections import defaultdict
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -25,7 +26,7 @@ def _employee_for_user(user) -> PayrollEmployee | None:
         return None
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def dashboard(request: HttpRequest):
     profile = get_active_payroll_profile()
     if not profile:
@@ -226,7 +227,7 @@ def dashboard(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def run_detail(request: HttpRequest, run_id: int):
     run = get_object_or_404(PayrollRun, id=run_id)
     payslips = Payslip.objects.filter(payroll_run=run).select_related(
@@ -248,7 +249,7 @@ def run_detail(request: HttpRequest, run_id: int):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def generate_run(request: HttpRequest, run_id: int):
     run = get_object_or_404(PayrollRun, id=run_id)
     if run.status == PayrollRun.Status.PAID:
@@ -311,7 +312,7 @@ def employee_leave(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def create_run(request: HttpRequest):
     profile = get_active_payroll_profile()
     if not profile:

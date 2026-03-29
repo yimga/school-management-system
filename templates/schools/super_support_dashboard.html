@@ -15,14 +15,30 @@
 {% endblock %}
 {% block cp_content %}
 {% url 'super:dashboard' as dashboard_url %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#support-dashboard-main">{% trans "Skip to support dashboard content" %}</a>
+<div id="support-dashboard-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_support_dashboard.html" %}
+  {% if operator_support_dashboard_links %}
+  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
+    <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary mb-2">{% trans "Platform-admin rows (PlatformOperatorSupportDashboardLink); add or reorder in platform admin." %}</p>
+      <ul class="list-unstyled mb-0 d-flex flex-wrap gap-2">
+        {% for link in operator_support_dashboard_links %}
+        <li><a class="btn btn-sm btn-outline-secondary" href="{{ link.href }}">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
   {% include "studio_os/components/page_header.html" with title=_("Support mission control") subtitle=_("Ticket queue, SLA, and support health.") action_url=dashboard_url action_text=_("Back to dashboard") %}
   {% if phase7_de %}
   {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
   {% endif %}
   <div class="d-flex flex-wrap gap-2 mb-3" style="margin-top: -0.5rem;">
     <a href="{% url 'super:command_center' %}" class="btn btn-sm btn-outline-warning">{% trans "Open command center" %}</a>
+    <a href="{% url 'super:support_tickets_export_csv' %}?status={{ status_filter|urlencode }}&priority={{ priority_filter|urlencode }}" class="btn btn-sm btn-outline-secondary">{% trans "Export CSV" %}</a>
+    <a href="{% url 'super:support_csat_dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "CSAT analytics" %}</a>
   </div>
   <div class="row g-3 mb-4">
     <div class="col-md-4">

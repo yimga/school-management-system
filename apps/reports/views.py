@@ -753,7 +753,7 @@ def report_share(request: HttpRequest, token: str):
     return HttpResponseForbidden("Unknown report type.")
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def publish_term_results(request: HttpRequest):
     school = _report_scope_school(request)
     year, active_term = _active_year_and_term_for_school(school)
@@ -981,7 +981,7 @@ def publish_term_results(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def statistical_return(request: HttpRequest):
     """
     Annual statistical return for regional/Ministry submission: success rates, gender ratio, teacher-student ratio by class.
@@ -1122,7 +1122,7 @@ def statistical_return(request: HttpRequest):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url=settings.LOGIN_URL)
 def promotion_preview(request: HttpRequest):
     """
     Promotion preview / borderline list: by academic year, list students with annual average,

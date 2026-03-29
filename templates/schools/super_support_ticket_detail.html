@@ -1,0 +1,170 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n phase8_tags %}
+{% block cp_title %}{% trans "Support ticket" %} — {{ ticket.subject|truncatechars:60 }}{% endblock %}
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:support_dashboard' %}">{% trans "Support" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Ticket" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block cp_content %}
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#support-ticket-detail-main">{% trans "Skip to ticket content" %}</a>
+<div id="support-ticket-detail-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  {% phase8_dashboard_declaration "schools/super_support_ticket_detail.html" %}
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">{{ ticket.subject }}</h1>
+      <p class="text-muted small mb-0">{{ ticket.school.name }} · {{ ticket.get_priority_display }} · {{ ticket.get_status_display }} · {{ ticket.age_hours }}h</p>
+      {% if ticket.sla_response_breach or ticket.sla_resolution_breach %}
+      <div class="alert alert-warning py-2 px-3 mt-2 mb-0 small" role="alert">
+        {% if ticket.sla_response_breach %}{% trans "Response SLA breach" %}{% endif %}
+        {% if ticket.sla_response_breach and ticket.sla_resolution_breach %} · {% endif %}
+        {% if ticket.sla_resolution_breach %}{% trans "Resolution SLA breach" %}{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:support_dashboard' %}">{% trans "Back to queue" %}</a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header">{% trans "Request" %}</div>
+        <div class="card-body">
+          <pre class="small mb-0 text-wrap" style="white-space: pre-wrap;">{{ ticket.body }}</pre>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      {% if tenant_message_admin_url %}
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header">{% trans "Linked communication" %}</div>
+        <div class="card-body small">
+          <a class="btn btn-sm btn-outline-primary" href="{{ tenant_message_admin_url }}" rel="noopener noreferrer" target="_blank">{% trans "Open staff Message (tenant admin)" %}</a>
+          <p class="text-muted mb-0 mt-2">{% trans "Opens the tenant’s Django admin change view for the Message created when this ticket was filed." %}</p>
+        </div>
+      </div>
+      {% endif %}
+      {% if ai_triage %}
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header">{% trans "AI triage (suggestions)" %}</div>
+        <div class="card-body small">
+          {% if ai_triage.at %}<div class="text-muted mb-2">{% trans "Generated" %}: {{ ai_triage.at }}</div>{% endif %}
+          {% with s=ai_triage.suggestions %}
+          {% if s %}
+            {% if s.category %}<div><strong>{% trans "Suggested category" %}:</strong> {{ s.category }}</div>{% endif %}
+            {% if s.priority %}<div><strong>{% trans "Suggested priority" %}:</strong> {{ s.priority }}</div>{% endif %}
+            {% if s.suggested_reply %}<div class="mt-2"><strong>{% trans "Suggested reply" %}:</strong><pre class="small mb-0 mt-1 text-wrap" style="white-space: pre-wrap;">{{ s.suggested_reply }}</pre></div>{% endif %}
+          {% endif %}
+          {% endwith %}
+          {% if ai_triage.suggested_reply_preview and not ai_triage.suggestions.suggested_reply %}
+          <pre class="small mb-0 text-wrap" style="white-space: pre-wrap;">{{ ai_triage.suggested_reply_preview }}</pre>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header">{% trans "Tenant & ops context" %}</div>
+        <div class="card-body small">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><a href="{{ tenant_health_url }}">{% trans "School health roster" %}</a></li>
+            {% if tenant_360_url %}<li class="mb-2"><a href="{{ tenant_360_url }}">{% trans "Tenant 360" %}</a></li>{% endif %}
+            {% if control_health_url %}<li class="mb-2"><a href="{{ control_health_url }}">{% trans "Control health hub" %}</a></li>{% endif %}
+            {% if incidents_url %}<li class="mb-2"><a href="{{ incidents_url }}">{% trans "Incident console" %}</a></li>{% endif %}
+            {% if runbooks_url %}<li class="mb-2"><a href="{{ runbooks_url }}" rel="noopener noreferrer">{% trans "Runbooks" %}</a></li>{% endif %}
+          </ul>
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-header">{% trans "Submitter" %}</div>
+        <div class="card-body small">
+          {% if ticket.user %}
+            <div>{{ ticket.user.get_full_name|default:ticket.user.username }}</div>
+            <div class="text-muted">{{ ticket.user.email|default:"" }}</div>
+          {% else %}
+            <span class="text-muted">{% trans "Unknown user" %}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% if ticket.csat_score %}
+      <div class="card border-0 shadow-sm mt-3">
+        <div class="card-header">{% trans "CSAT" %}</div>
+        <div class="card-body small">
+          <div><strong>{% trans "Score" %}:</strong> {{ ticket.csat_score }}/5</div>
+          {% if ticket.csat_comment %}<pre class="small mb-0 mt-2 text-wrap" style="white-space: pre-wrap;">{{ ticket.csat_comment }}</pre>{% endif %}
+          {% if ticket.csat_submitted_at %}<div class="text-muted mt-1">{{ ticket.csat_submitted_at }}</div>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <details class="de-secondary-collapsible mb-4" open>
+  <summary class="small fw-semibold text-secondary mb-2">{% trans "Conversation thread & replies" %}</summary>
+  <div class="card border-0 shadow-sm mb-0">
+    <div class="card-header">{% trans "Conversation thread" %}</div>
+    <div class="card-body">
+      {% if thread_replies %}
+      <ul class="list-unstyled mb-4">
+        {% for r in thread_replies %}
+        <li class="mb-3 pb-3 border-bottom">
+          <div class="small text-muted">{{ r.created_at }} · {% if r.author %}{{ r.author.get_full_name|default:r.author.username }}{% else %}{% trans "System" %}{% endif %} · {{ r.get_visibility_display }}</div>
+          <pre class="small mb-0 text-wrap mt-1" style="white-space: pre-wrap;">{{ r.body }}</pre>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted small mb-4">{% trans "No threaded replies yet." %}</p>
+      {% endif %}
+      <form method="post" class="row g-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reply">
+        <div class="col-12">
+          <label class="form-label" for="id_reply_body">{% trans "Add reply" %}</label>
+          <textarea name="reply_body" id="id_reply_body" class="form-control" rows="4" required placeholder="{% trans 'Operator response…' %}"></textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_reply_visibility">{% trans "Visibility" %}</label>
+          <select name="reply_visibility" id="id_reply_visibility" class="form-select">
+            {% for val, label in reply_visibility_choices %}
+            <option value="{{ val }}" {% if val == "INTERNAL" %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Post reply" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  </details>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header">{% trans "Operator actions" %}</div>
+    <div class="card-body">
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update">
+        <div class="col-md-4">
+          <label class="form-label" for="id_status">{% trans "Status" %}</label>
+          <select name="status" id="id_status" class="form-select">
+            {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if ticket.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_internal_notes">{% trans "Internal notes" %} <span class="text-muted">({% trans "operators only" %})</span></label>
+          <textarea name="internal_notes" id="id_internal_notes" class="form-control" rows="5" placeholder="{% trans 'Triage context — avoid unnecessary PII' %}">{{ ticket.internal_notes }}</textarea>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

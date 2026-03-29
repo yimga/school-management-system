@@ -2,7 +2,7 @@
 Ownership rules for retiring `siteconfig` as a mega-domain.
 
 This module is intentionally lightweight and import-safe so scripts can use it
-without booting Django. It classifies SiteSettings fields and legacy config
+without booting Django. It classifies tenant-settings row fields and legacy config
 surfaces into one target owner during the cutover.
 """
 
@@ -45,6 +45,12 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
     "success_color": "brand_experience",
     "warning_color": "brand_experience",
     "danger_color": "brand_experience",
+    "header_bg_color": "brand_experience",
+    "footer_bg_color": "brand_experience",
+    "theme_brightness": "brand_experience",
+    "theme_harmony": "brand_experience",
+    "public_brand_primary_color": "brand_experience",
+    "public_brand_accent_color": "brand_experience",
     "use_dark_mode": "brand_experience",
     "backend_console_theme": "brand_experience",
     "favicon": "brand_experience",
@@ -60,6 +66,7 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
     "enable_teacher_portal": "policies_rules",
     "default_portal_role_dual_role": "policies_rules",
     "grade_approval_enabled": "policies_rules",
+    "grade_approval_auto_validate": "policies_rules",
     "enable_concurrent_mark_uploads": "policies_rules",
     "enable_practical_assessment": "policies_rules",
     "require_mfa_roles": "policies_rules",
@@ -104,15 +111,22 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
     "enable_reports_pdf": "reports",
     "reports_require_approved_grades_before_publish": "reports",
     "reports_use_approved_grades_only": "reports",
+    "report_downloads_enabled": "reports",
     "sms_provider": "marketplace_integrations",
+    "ai_provider_api_key": "marketplace_integrations",
     "sms_api_key": "marketplace_integrations",
+    "whatsapp_api_token": "marketplace_integrations",
     "sms_sender_id": "marketplace_integrations",
     "email_from_address": "marketplace_integrations",
+    "smtp_password": "marketplace_integrations",
+    "webhook_signing_secret": "marketplace_integrations",
+    "marketplace_partner_client_secret": "marketplace_integrations",
     "whatsapp_support_number": "marketplace_integrations",
     "whatsapp_admissions_number": "marketplace_integrations",
     "enable_whatsapp_parent_portal": "marketplace_integrations",
     "enable_whatsapp_staff_portal": "marketplace_integrations",
     "marksheet_ocr_command": "marketplace_integrations",
+    "marksheet_ocr_api_key": "marketplace_integrations",
     "updated_at": "delete",
 }
 
@@ -175,7 +189,7 @@ PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
 
 def is_runtime_payload_shadow_key(field_name: str) -> bool:
     """
-    True if `field_name` is a legacy SiteSettings virtual key (stored in RuntimeDefaults.payload),
+    True if `field_name` is a legacy tenant-settings virtual key (stored in RuntimeDefaults.payload),
     excluding keys deleted from the ownership map.
     """
     normalized = str(field_name or "").strip()

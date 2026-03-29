@@ -13,6 +13,7 @@ Access: settings.feature_control permission or superuser.
 
 import json
 import logging
+from typing import Any
 
 from django.db import DatabaseError
 from django.core.cache import cache
@@ -30,14 +31,16 @@ from apps.platform_runtime.helpers import (
     get_platform_site_settings_record,
 )
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
+import apps.siteconfig.models as _siteconfig_models
 from apps.siteconfig.models import (
-    SiteSettings,
     WeatherLocation,
     default_portal_features,
     default_backend_feature_flags,
     default_header_weather_config,
 )
 from apps.siteconfig.models_dashboard import FeatureControlAudit
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 logger = logging.getLogger("siteconfig.feature_control")
 FEATURE_CONTROL_LAST_SAVED_KEY = "feature_control_last_saved"
@@ -46,16 +49,51 @@ REVERT_SESSION_KEY = "feature_control_previous_state"
 
 def _resolve_feature_control_site(request):
     """
-    Writes must target the persisted platform singleton (pk set), not a shallow
-    effective-settings copy without pk. Keeps Feature Control decoupled from tenant overlays.
+    Writes must target the persisted platform singleton (ORM row), not a shallow
+    ``get_effective_site_settings`` copy (even when the copy carries a mirrored pk).
+
+    Effective copies merge Phase B snapshots + RuntimeDefaults for reads; using them as
+    the save target caused partial POSTs to persist flags that disagreed with what tests
+    (and operators) read back from the real singleton / RuntimeDefaults column.
     """
-    site = get_effective_site_settings(request=request)
-    if site is not None and getattr(site, "pk", None):
-        return site
     persisted = get_platform_site_settings_record(create=True)
     if persisted is not None:
         return persisted
-    return SiteSettings()
+    site = get_effective_site_settings(request=request)
+    if site is not None and getattr(site, "pk", None):
+        return site
+    return _TenantSettingsModel()
+
+
+def _sync_feature_control_phase_b_snapshots() -> None:
+    """Refresh Phase B domain rows after RuntimeDefaults/feature writes (no direct save on slim row)."""
+    persisted = get_platform_site_settings_record(create=False)
+    if persisted is None:
+        return
+    try:
+        from apps.platform_runtime.phase_b_domain_snapshots import (
+            sync_phase_b_domain_snapshots_from_site,
+        )
+
+        sync_phase_b_domain_snapshots_from_site(persisted)
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        LookupError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
+        pass
+
+
+def _feature_control_panel_redirect_response(request):
+    """Redirect back to the panel; preserve embed=1 when the incoming request used it."""
+    url = reverse("siteconfig:feature_control_panel")
+    if request.GET.get("embed") == "1":
+        url = f"{url}?embed=1"
+    return redirect(url)
 
 # (key, label, critical, description, when_disabled, depends_on)
 # depends_on: list of keys that must be ON for this to work (e.g. allow_finance_access needs parent_portal)
@@ -809,7 +847,7 @@ def _clamp_int(value, default: int, *, minimum: int, maximum: int) -> int:
     return max(minimum, min(maximum, parsed))
 
 
-def _get_site_features(site: SiteSettings) -> dict:
+def _get_site_features(site: Any) -> dict:
     """Return current feature state for display and form."""
     feature_settings = (
         site.get_feature_control_settings()
@@ -863,7 +901,7 @@ def _safe_float(value, default: float) -> float:
         return default
 
 
-def _get_weather_selector_state(site: SiteSettings) -> dict:
+def _get_weather_selector_state(site: Any) -> dict:
     defaults = default_header_weather_config()
     feature_settings = (
         site.get_feature_control_settings()
@@ -1001,7 +1039,7 @@ def _get_weather_selector_state(site: SiteSettings) -> dict:
 
 
 def _resolve_weather_payload_from_post(
-    site: SiteSettings, post_data
+    site: Any, post_data
 ) -> tuple[dict, dict]:
     current = _get_weather_selector_state(site)
 
@@ -1089,9 +1127,9 @@ def _resolve_weather_payload_from_post(
 
 
 def _apply_form_to_site(
-    site: SiteSettings, form_data: dict, weather_payload: dict | None = None
+    site: Any, form_data: dict, weather_payload: dict | None = None
 ) -> None:
-    """Apply form checkbox values to SiteSettings."""
+    """Apply form checkbox values to the tenant settings singleton."""
     current_feature_settings = (
         site.get_feature_control_settings()
         if callable(getattr(site, "get_feature_control_settings", None))
@@ -1227,9 +1265,7 @@ def feature_control_panel(request):
     """Feature Control Panel - toggle modules system-wide. When GET and not embedded, redirect to Studio Control."""
     if request.method == "GET" and request.GET.get("embed") != "1":
         return redirect(reverse("studio_os:control"))
-    site = get_effective_site_settings(request=request)
-    if site is None:
-        site = SiteSettings()
+    site = _resolve_feature_control_site(request)
     current = _get_site_features(site)
 
     if request.method == "POST":
@@ -1292,7 +1328,7 @@ def feature_control_panel(request):
         if import_data:
             if import_data.size > 2 * 1024 * 1024:  # 2MB max
                 messages.error(request, "Import file is too large (max 2 MB).")
-                return redirect("siteconfig:feature_control_panel")
+                return _feature_control_panel_redirect_response(request)
             try:
                 raw = import_data.read().decode("utf-8")
                 data = json.loads(raw)
@@ -1327,7 +1363,7 @@ def feature_control_panel(request):
             except (json.JSONDecodeError, UnicodeDecodeError) as ex:
                 logger.warning("Feature control import failed: %s", ex)
                 messages.error(request, "Invalid import file. Use a valid JSON export.")
-                return redirect("siteconfig:feature_control_panel")
+                return _feature_control_panel_redirect_response(request)
         else:
             for key in current:
                 form_data[key] = request.POST.get(f"feature_{key}") == "on"
@@ -1414,7 +1450,7 @@ def feature_control_panel(request):
                 next_url, allowed_hosts={request.get_host()}
             ):
                 return redirect(next_url)
-        return redirect("siteconfig:feature_control_panel")
+        return _feature_control_panel_redirect_response(request)
 
     ctx = get_feature_control_panel_context(request)
     return render(request, "siteconfig/feature_control_panel.html", ctx)

@@ -1,5 +1,5 @@
 """
-Build portal sidebar nav items for the current user, optionally sorted by SiteSettings.portal_sidebar_order.
+Build portal sidebar nav items for the current user, optionally sorted by ``portal_sidebar_order`` on the siteconfig settings singleton.
 
 Section order (by role):
 - Home, Account (all)

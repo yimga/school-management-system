@@ -1,6 +1,7 @@
 from django.test import SimpleTestCase
 
-from apps.siteconfig.domain_ownership import classify_site_settings_field
+from apps.platform_runtime.phase_b_domain_snapshots import PHASE_B_SNAPSHOT_DOMAINS
+from apps.siteconfig.domain_ownership import OWNERSHIP_DOMAINS, classify_site_settings_field
 
 # Every key with an explicit branch in models_support.virtual_site_setting_default
 # must classify to a bounded owner (not metadata_governance) so runtime_sync_owners
@@ -39,6 +40,8 @@ _VIRTUAL_SITE_SETTING_DEFAULT_EXPLICIT_KEYS: frozenset[str] = frozenset(
         "success_color",
         "warning_color",
         "danger_color",
+        "public_brand_primary_color",
+        "public_brand_accent_color",
         "header_bg_color",
         "footer_bg_color",
         "theme_brightness",
@@ -51,11 +54,17 @@ _VIRTUAL_SITE_SETTING_DEFAULT_EXPLICIT_KEYS: frozenset[str] = frozenset(
         "report_preview_contact_phone",
         "sms_provider",
         "sms_api_key",
+        "ai_provider_api_key",
+        "whatsapp_api_token",
         "sms_sender_id",
         "email_from_address",
         "whatsapp_support_number",
         "whatsapp_admissions_number",
         "marksheet_ocr_command",
+        "marksheet_ocr_api_key",
+        "smtp_password",
+        "webhook_signing_secret",
+        "marketplace_partner_client_secret",
         "admission_number_mode",
         "admission_number_pattern",
         "admission_number_strategy",
@@ -87,6 +96,7 @@ _VIRTUAL_SITE_SETTING_DEFAULT_EXPLICIT_KEYS: frozenset[str] = frozenset(
         "skip_theme_publish_guard",
         "default_portal_role_dual_role",
         "grade_approval_enabled",
+        "grade_approval_auto_validate",
         "enable_practical_assessment",
         "require_mfa_all_staff",
         "use_promotion_rule_for_pass",
@@ -109,10 +119,21 @@ class SiteSettingsDomainOwnershipTests(SimpleTestCase):
         self.assertEqual(
             classify_site_settings_field("social_links"), "brand_experience"
         )
+        self.assertEqual(
+            classify_site_settings_field("public_brand_primary_color"),
+            "brand_experience",
+        )
+        self.assertEqual(
+            classify_site_settings_field("header_bg_color"), "brand_experience"
+        )
 
     def test_policy_owned_fields_are_not_left_in_metadata_governance(self):
         self.assertEqual(
             classify_site_settings_field("grade_approval_enabled"), "policies_rules"
+        )
+        self.assertEqual(
+            classify_site_settings_field("grade_approval_auto_validate"),
+            "policies_rules",
         )
         self.assertEqual(
             classify_site_settings_field("finance_auto_generate_schedule"),
@@ -131,6 +152,9 @@ class SiteSettingsDomainOwnershipTests(SimpleTestCase):
             classify_site_settings_field("default_term_report_style"), "reports"
         )
         self.assertEqual(
+            classify_site_settings_field("report_downloads_enabled"), "reports"
+        )
+        self.assertEqual(
             classify_site_settings_field("default_region"), "global_registries"
         )
         self.assertEqual(
@@ -147,6 +171,42 @@ class SiteSettingsDomainOwnershipTests(SimpleTestCase):
         )
         self.assertEqual(classify_site_settings_field("updated_at"), "delete")
 
+    def test_ai_provider_api_key_is_marketplace_integrations(self):
+        self.assertEqual(
+            classify_site_settings_field("ai_provider_api_key"),
+            "marketplace_integrations",
+        )
+
+    def test_whatsapp_api_token_is_marketplace_integrations(self):
+        self.assertEqual(
+            classify_site_settings_field("whatsapp_api_token"),
+            "marketplace_integrations",
+        )
+
+    def test_marksheet_ocr_api_key_is_marketplace_integrations(self):
+        self.assertEqual(
+            classify_site_settings_field("marksheet_ocr_api_key"),
+            "marketplace_integrations",
+        )
+
+    def test_smtp_password_is_marketplace_integrations(self):
+        self.assertEqual(
+            classify_site_settings_field("smtp_password"),
+            "marketplace_integrations",
+        )
+
+    def test_webhook_signing_secret_is_marketplace_integrations(self):
+        self.assertEqual(
+            classify_site_settings_field("webhook_signing_secret"),
+            "marketplace_integrations",
+        )
+
+    def test_marketplace_partner_client_secret_is_marketplace_integrations(self):
+        self.assertEqual(
+            classify_site_settings_field("marketplace_partner_client_secret"),
+            "marketplace_integrations",
+        )
+
     def test_virtual_site_setting_default_keys_map_to_bounded_owners(self):
         for key in sorted(_VIRTUAL_SITE_SETTING_DEFAULT_EXPLICIT_KEYS):
             with self.subTest(key=key):
@@ -161,3 +221,20 @@ class SiteSettingsDomainOwnershipTests(SimpleTestCase):
                     ),
                 )
                 self.assertNotEqual(owner, "delete")
+
+
+class DomainOwnershipPhaseBAlignmentTests(SimpleTestCase):
+    """Guards Phase B snapshot domains against domain_ownership registry (batch 16 #162)."""
+
+    def test_phase_b_domains_registered_in_domain_ownership(self):
+        ownership = set(OWNERSHIP_DOMAINS)
+        for domain in PHASE_B_SNAPSHOT_DOMAINS:
+            with self.subTest(domain=domain):
+                self.assertIn(
+                    domain,
+                    ownership,
+                    msg=(
+                        f"{domain!r} in PHASE_B_SNAPSHOT_DOMAINS but not OWNERSHIP_DOMAINS; "
+                        "extend domain_ownership.py or fix snapshot list."
+                    ),
+                )

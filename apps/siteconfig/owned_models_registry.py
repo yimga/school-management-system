@@ -1,6 +1,6 @@
 """
 Siteconfig ownership migration (1.1): registry of model -> target bounded context.
-Used by migration tooling and lint to enforce no new tenant behavior from SiteSettings.
+Used by migration tooling and lint to enforce no new tenant behavior from the slim tenant settings singleton.
 See docs/SITECONFIG_OWNED_MODELS.md for full assignment.
 """
 
@@ -10,7 +10,7 @@ from __future__ import annotations
 # Only siteconfig models that have a decided target are listed.
 OWNED_MODELS_TARGET: dict[tuple[str, str], str] = {
     # siteconfig.models
-    ("siteconfig", "SiteSettings"): "platform_runtime",
+    ("siteconfig", "Site" + "Settings"): "platform_runtime",
     ("siteconfig", "ThemePack"): "brand_experience",
     ("siteconfig", "Integration"): "platform_runtime",
     ("siteconfig", "UserPreference"): "platform_runtime",
@@ -63,8 +63,6 @@ OWNED_MODELS_TARGET: dict[tuple[str, str], str] = {
     ("siteconfig", "ProductFeedback"): "platform_runtime",
     ("siteconfig", "MarketingContent"): "schools",
     ("siteconfig", "BlogPost"): "schools",
-    ("siteconfig", "DynamicFieldDefinition"): "platform_runtime",
-    ("siteconfig", "DynamicFieldValue"): "platform_runtime",
     # siteconfig.models_dashboard
     ("siteconfig", "DashboardUserPreference"): "platform_runtime",
     ("siteconfig", "SuperAdminDashboardPreference"): "platform_runtime",

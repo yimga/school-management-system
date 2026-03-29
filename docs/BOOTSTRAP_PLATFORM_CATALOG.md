@@ -17,7 +17,7 @@ For **strict phase-by-phase** ordering aligned with [RUNMYCAMPUS_SINGLE_EXECUTIO
 
 `python manage.py seed_cursor_twelve_phases`
 
-Optional: `--from-phase N`, `--to-phase M`, `--dry-run`, `--skip-gilead-lint`, `--strict-gilead-lint`. This command sequences the same idempotent seeds as bootstrap where applicable, plus `seed_render_users`, `backfill_runtime_defaults`, `normalize_ui_config`, `seed_phase9_first_party_packages`, `seed_compliance_baseline`, and a final `lint_gilead_residue.py` check (warning unless `--strict-gilead-lint`). It does **not** replace `bootstrap_platform_catalog --all` for minimal dependency ordering on catalogs alone.
+Optional: `--from-phase N`, `--to-phase M`, `--dry-run`, `--skip-residue-lint` (alias `--skip-gilead-lint`), `--strict-residue-lint` (alias `--strict-gilead-lint`). This command sequences the same idempotent seeds as bootstrap where applicable, plus `seed_render_users`, `backfill_runtime_defaults`, `normalize_ui_config`, `seed_phase9_first_party_packages`, `seed_compliance_baseline`, and a final `lint_gilead_residue.py` check (warning unless `--strict-residue-lint`). It does **not** replace `bootstrap_platform_catalog --all` for minimal dependency ordering on catalogs alone.
 
 ## One-command bootstrap
 

@@ -13,7 +13,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#runtime-truth-hub-main">{% trans "Skip to runtime truth hub content" %}</a>
+<div id="runtime-truth-hub-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
 {% phase8_dashboard_declaration "schools/super_runtime_truth_hub.html" %}
   {% include "studio_os/components/page_header.html" with title="Runtime truth hub" subtitle="Read-only view of platform RuntimeDefaults.payload and the slim SiteSettings singleton (Phase B bridge)." action_url=dashboard_url action_text="Back to dashboard" %}
 
@@ -83,7 +84,58 @@
     </div>
   </div>
 
+  {% if operator_truth_hub_links %}
+  <div class="row">
+    <div class="col-12 mb-3">
+      <div class="card shadow-sm border-0 page-family-content-card card-grammar">
+        <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
+        <div class="card-body">
+          <p class="small text-secondary mb-2">{% trans "Platform-admin rows (PlatformOperatorTruthHubLink); add or reorder in platform admin." %}</p>
+          <ul class="list-unstyled mb-0 d-flex flex-wrap gap-2">
+            {% for link in operator_truth_hub_links %}
+            <li><a class="btn btn-sm btn-outline-secondary" href="{{ link.href }}">{{ link.label }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row">
+    <div class="col-12 mb-3">
+      <div class="card shadow-sm border-0 page-family-content-card card-grammar">
+        <div class="card-header bg-dark text-light">{% trans "Migration playbooks & execution audit" %}</div>
+        <div class="card-body">
+          <p class="small text-secondary mb-2">
+            {% trans "Platform-admin playbooks write AutomationExecutionLog rows with task" %} <code class="small">{{ playbook_execution_task_name }}</code>.
+          </p>
+          <ul class="list-unstyled mb-3">
+            <li><strong>{% trans "Migration playbooks" %}:</strong> {{ migration_playbook_count }}</li>
+            <li><strong>{% trans "Playbook execution logs" %}:</strong> {{ automation_playbook_log_count }}</li>
+            <li><strong>{% trans "Latest playbook run started" %}:</strong> {% if latest_playbook_log %}{{ latest_playbook_log.started_at }}{% else %}—{% endif %}</li>
+            <li><strong>{% trans "Blueprint pack catalog fingerprint" %}:</strong> <code class="small">{{ blueprint_pack_catalog_fingerprint }}</code></li>
+          </ul>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-sm btn-outline-dark" href="{{ admin_migration_playbook_changelist }}">{% trans "Playbooks (platform admin)" %}</a>
+            <a class="btn btn-sm btn-outline-dark" href="{{ admin_automation_execution_log_changelist }}">{% trans "Execution logs (platform admin)" %}</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ workflow_simulator_url }}">{% trans "Workflow simulator" %}</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:playbook_operator_hub' %}">{% trans "Playbook operator hub" %}</a>
+            {% if studio_automation_url %}
+            <a class="btn btn-sm btn-outline-secondary" href="{{ studio_automation_url }}">{% trans "Studio Automation rail" %}</a>
+            {% endif %}
+            {% if outcomes_console_url %}
+            <a class="btn btn-sm btn-outline-secondary" href="{{ outcomes_console_url }}">{% trans "Staff outcomes console" %}</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <p class="small text-secondary mb-0">
+    {% trans "Compare Phase B snapshot rows to live ownership slices:" %}
+    <a href="{% url 'super:phase_b_snapshot_diff' %}">{% trans "Phase B snapshot diff" %}</a>.
     {% trans "For per-school resolution traces, use" %}
     <a href="{% url 'super:runtime_inspector' %}">{% trans "Runtime inspector" %}</a>.
   </p>

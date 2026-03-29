@@ -1,7 +1,7 @@
 """
-Phase 10 — 1.2: Runtime defaults (state-safe migration from SiteSettings).
+Phase 10 — 1.2: Runtime defaults (state-safe migration from the siteconfig tenant settings row).
 Singleton row holds JSON snapshot of tenant-affecting settings; get_effective_site_settings
-reads from here when present, falling back to SiteSettings for file fields and legacy.
+reads from here when present, falling back to that singleton for file fields and legacy paths.
 """
 
 from __future__ import annotations
@@ -24,10 +24,13 @@ def _invalidate_effective_site_settings_cache():
 
 class RuntimeDefaults(models.Model):
     """
-    Platform-level default settings (migrated from SiteSettings).
+    Platform-level default settings (migrated from the siteconfig tenant settings singleton).
     id=1 singleton; payload = JSON of attribute names -> values (JSON-serializable only).
     First-class columns (see ``runtime_defaults_first_class``) override payload for those keys;
-    ``sms_api_key`` remains payload-only. Backfill via sync_from_site_settings / migrations.
+    ``sms_api_key``, ``ai_provider_api_key``, ``whatsapp_api_token``, ``marksheet_ocr_api_key``,
+    ``smtp_password``, ``webhook_signing_secret``, and ``marketplace_partner_client_secret`` are first-class (not in ``payload``) so they stay out of bulk JSON
+    exports while remaining excluded from Phase B marketplace snapshots.
+    Backfill via migrations + sync.
     """
 
     payload = models.JSONField(default=dict, blank=True)
@@ -35,7 +38,7 @@ class RuntimeDefaults(models.Model):
     cache_rankings_interval_minutes = models.PositiveIntegerField(
         null=True,
         blank=True,
-        help_text="When set, resolver uses this instead of payload/SiteSettings.",
+        help_text="When set, resolver uses this instead of JSON payload / tenant settings singleton.",
     )
     preview_mode_enabled = models.BooleanField(null=True, blank=True)
     preview_note = models.TextField(blank=True, null=True)
@@ -43,11 +46,53 @@ class RuntimeDefaults(models.Model):
     sms_provider = models.CharField(max_length=64, blank=True, null=True)
     sms_sender_id = models.CharField(max_length=64, blank=True, null=True)
     email_from_address = models.CharField(max_length=255, blank=True, null=True)
+    smtp_password = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text="SMTP / transactional email password (marketplace_integrations). Typed column, not in JSON payload.",
+    )
     whatsapp_support_number = models.CharField(max_length=64, blank=True, null=True)
     whatsapp_admissions_number = models.CharField(max_length=64, blank=True, null=True)
     enable_whatsapp_parent_portal = models.BooleanField(null=True, blank=True)
     enable_whatsapp_staff_portal = models.BooleanField(null=True, blank=True)
     marksheet_ocr_command = models.CharField(max_length=512, blank=True, null=True)
+    marksheet_ocr_api_key = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text="OCR / marksheet provider API key (marketplace_integrations). Typed column, not in JSON payload.",
+    )
+    sms_api_key = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text="SMS provider API key (marketplace_integrations). Stored as a typed column, not in JSON payload.",
+    )
+    ai_provider_api_key = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text="AI / LLM provider API key (marketplace_integrations). Typed column, not in JSON payload.",
+    )
+    whatsapp_api_token = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text="WhatsApp Business / Cloud API access token (marketplace_integrations). Typed column, not in JSON payload.",
+    )
+    webhook_signing_secret = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text="Shared secret for signing or verifying integration webhooks (marketplace_integrations). Typed column, not in JSON payload.",
+    )
+    marketplace_partner_client_secret = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True,
+        help_text="OAuth-style client secret for marketplace / integration partners (marketplace_integrations). Typed column, not in JSON payload.",
+    )
     company_name = models.CharField(
         max_length=255,
         blank=True,
@@ -398,6 +443,11 @@ class RuntimeDefaults(models.Model):
         blank=True,
         help_text="Default report policy to use approved grades only.",
     )
+    report_downloads_enabled = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default toggle for parent/report download surfaces (reports domain).",
+    )
     requests_reminder_interval_hours = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -495,7 +545,7 @@ class RuntimeDefaults(models.Model):
         owners: list[str] | tuple[str, ...] | set[str] | None = None,
         exclude_owners: list[str] | tuple[str, ...] | set[str] | None = None,
     ) -> dict:
-        """Build an ownership-filtered runtime payload from the legacy SiteSettings singleton."""
+        """Build an ownership-filtered runtime payload from the legacy tenant settings singleton row."""
         owner_set = set(owners or [])
         excluded = set(exclude_owners or [])
         if owner_set:
@@ -515,8 +565,8 @@ class RuntimeDefaults(models.Model):
         owners: list[str] | tuple[str, ...] | set[str] | None = None,
         exclude_owners: list[str] | tuple[str, ...] | set[str] | None = None,
     ) -> tuple["RuntimeDefaults", bool]:
-        """Persist a filtered RuntimeDefaults payload from SiteSettings and return (object, created).
-        Callers must pass site_settings (e.g. SiteSettings.get_solo() in commands, self in SiteSettings.save).
+        """Persist a filtered RuntimeDefaults payload from the tenant settings row and return (object, created).
+        Callers must pass site_settings (e.g. get_platform_site_settings_record() in commands, self on save).
         B1 allowlist shrink: no get_solo() in this module."""
         owner_set = set(owners or [])
         from apps.platform_runtime.runtime_defaults_first_class import (
@@ -567,13 +617,28 @@ class PlatformPhaseBDomainSnapshot(models.Model):
     """
     Phase B Batches 4-13: one JSON snapshot per non-brand ownership domain.
 
-    Rows mirror ``SiteSettings.owned_payload(owner=domain)`` on save (excluding
-    ``sms_api_key`` for marketplace_integrations). ``get_effective_site_settings``
+    Rows mirror the tenant settings singleton's ``owned_payload(owner=domain)`` on save (excluding
+    marketplace secret columns such as ``sms_api_key`` and ``ai_provider_api_key``).
+    ``get_effective_site_settings``
     merges these after ``RuntimeDefaults`` and before ``PlatformGlobalBranding``.
     """
 
     domain = models.CharField(max_length=64, primary_key=True)
     payload = models.JSONField(default=dict, blank=True)
+    payload_key_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Top-level keys in payload (typed index for operator dashboards).",
+    )
+    payload_checksum = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="sha256(hex) of canonical JSON — compare to live owned_payload fingerprint.",
+    )
+    payload_key_checksums = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Map top-level payload key → sha256(hex) of that key's canonical JSON value.",
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -584,6 +649,529 @@ class PlatformPhaseBDomainSnapshot(models.Model):
 
     def __str__(self) -> str:
         return self.domain
+
+    def refresh_payload_metadata(self) -> None:
+        from apps.platform_runtime.phase_b_domain_snapshots import (
+            phase_b_payload_metadata,
+            phase_b_top_level_key_fingerprints,
+        )
+
+        k, h = phase_b_payload_metadata(self.payload)
+        self.payload_key_count = k
+        self.payload_checksum = h
+        pl = self.payload if isinstance(self.payload, dict) else {}
+        self.payload_key_checksums = phase_b_top_level_key_fingerprints(pl)
+
+
+class PlatformReportPlatformSkuDefault(models.Model):
+    """
+    Singleton (pk=1): operator default report-platform SKU bundle for ``plans_entitlements`` depth.
+
+    Surfaces in ``/api/v1/manifest.json`` under ``plan_entitlements.operator_default_report_platform_bundle``
+    when set. Valid slugs match ``REPORT_PLATFORM_SKU_BUNDLES`` in ``billing_sku_registry``.
+    """
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1)
+    default_bundle_slug = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="e.g. reports-standard or reports-advanced (see billing_sku_registry).",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_reportplatformskudefault"
+        verbose_name = "Report platform SKU default"
+        verbose_name_plural = "Report platform SKU defaults"
+
+    def __str__(self) -> str:
+        return f"pk={self.pk} bundle={self.default_bundle_slug or '—'}"
+
+    def clean(self) -> None:
+        from django.core.exceptions import ValidationError
+
+        from apps.siteconfig.billing_sku_registry import REPORT_PLATFORM_SKU_BUNDLES
+
+        if self.default_bundle_slug:
+            s = str(self.default_bundle_slug).strip().lower()
+            if s not in REPORT_PLATFORM_SKU_BUNDLES:
+                raise ValidationError(
+                    {
+                        "default_bundle_slug": (
+                            "Must be a known REPORT_PLATFORM_SKU bundle slug or empty."
+                        )
+                    }
+                )
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+
+class PlatformOperatorPlaybookLink(models.Model):
+    """
+    Typed operator navigation rows for migration playbooks and runbooks (runtime_operations).
+
+    Curated in platform admin; surfaced on the super **Playbook operator hub** alongside
+    live execution audit. Not part of tenant virtual keys on the siteconfig singleton.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/workflow-simulator/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="playbook",
+        help_text="e.g. playbook, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatorplaybooklink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator playbook link"
+        verbose_name_plural = "Operator playbook links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorTruthHubLink(models.Model):
+    """
+    Typed operator navigation rows for the **Runtime truth hub** (runtime_operations).
+
+    Curated in platform admin; surfaced on ``super:runtime_truth_hub`` alongside static
+    playbook/automation anchors. Complements ``PlatformOperatorPlaybookLink`` (playbook hub).
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/phase-b-snapshot-diff/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="truth_hub",
+        help_text="e.g. truth_hub, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatortruthhublink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator truth hub link"
+        verbose_name_plural = "Operator truth hub links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorPhaseBLink(models.Model):
+    """
+    Typed operator navigation rows for the **Phase B snapshot diff** surface.
+
+    Curated in platform admin; surfaced on ``super:phase_b_snapshot_diff`` alongside
+    static anchors. Complements ``PlatformOperatorPlaybookLink`` and
+    ``PlatformOperatorTruthHubLink``.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/runtime-truth-hub/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="phase_b",
+        help_text="e.g. phase_b, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatorphaseblink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator Phase B link"
+        verbose_name_plural = "Operator Phase B links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorWorkflowSimulatorLink(models.Model):
+    """
+    Typed operator navigation rows for the **Workflow simulator** surface.
+
+    Curated in platform admin; surfaced on ``super:workflow_simulator`` alongside
+    the school/role simulation form. Complements other ``PlatformOperator*Link`` tables.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/runtime-inspector/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="workflow_simulator",
+        help_text="e.g. workflow_simulator, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatorworkflowsimulatorlink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator workflow simulator link"
+        verbose_name_plural = "Operator workflow simulator links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorSupportDashboardLink(models.Model):
+    """
+    Typed operator navigation rows for the **Support mission control** surface.
+
+    Curated in platform admin; surfaced on ``super:support_dashboard`` alongside
+    ticket queue and SLA widgets.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/pulse/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="support_dashboard",
+        help_text="e.g. support_dashboard, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatorsupportdashboardlink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator support dashboard link"
+        verbose_name_plural = "Operator support dashboard links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorTenantHealthLink(models.Model):
+    """
+    Typed operator navigation rows for the **Tenant health monitor** surface.
+
+    Curated in platform admin; surfaced on ``super:tenant_health`` alongside
+    the per-school lifecycle table.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/pulse/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="tenant_health",
+        help_text="e.g. tenant_health, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatortenanthealthlink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator tenant health link"
+        verbose_name_plural = "Operator tenant health links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorCommandCenterLink(models.Model):
+    """
+    Typed operator navigation rows for the **Mission / command center** surface.
+
+    Curated in platform admin; surfaced on ``super:command_center`` alongside
+    operational queue panels.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/pulse/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="command_center",
+        help_text="e.g. command_center, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatorcommandcenterlink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator command center link"
+        verbose_name_plural = "Operator command center links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorOrchestrationWorkbenchLink(models.Model):
+    """
+    Typed operator navigation rows for the **Orchestration workbench** surface.
+
+    Curated in platform admin; surfaced on ``super:orchestration_workbench`` alongside
+    the runs table.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/playbook-operator-hub/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="orchestration_workbench",
+        help_text="e.g. orchestration_workbench, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatororchestrationworkbenchlink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator orchestration workbench link"
+        verbose_name_plural = "Operator orchestration workbench links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorSuperDashboardLink(models.Model):
+    """
+    Typed operator navigation rows for the **Control plane home** (``super:dashboard``).
+
+    Curated in platform admin; surfaced on ``schools/super_dashboard.html`` alongside
+    mission-control cards.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/command-center/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="super_dashboard",
+        help_text="e.g. super_dashboard, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatorsuperdashboardlink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator super dashboard link"
+        verbose_name_plural = "Operator super dashboard links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorSuperSchoolsListLink(models.Model):
+    """
+    Typed operator navigation rows for **Schools list** (``super:schools_list``).
+
+    Curated in platform admin; surfaced on ``schools/super_schools_list.html`` when rows exist.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/tenant-health/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="super_schools_list",
+        help_text="e.g. super_schools_list, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatorsuperschoolslistlink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator super schools list link"
+        verbose_name_plural = "Operator super schools list links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorSuperAnalyticsOverviewLink(models.Model):
+    """
+    Typed operator navigation rows for **Analytics overview** (``super:analytics_overview``).
+
+    Curated in platform admin; surfaced on ``schools/super_analytics_overview.html`` when rows exist.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/usage/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="super_analytics_overview",
+        help_text="e.g. super_analytics_overview, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatorsuperanalyticsoverviewlink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator super analytics overview link"
+        verbose_name_plural = "Operator super analytics overview links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorPlatformHubLink(models.Model):
+    """
+    Typed operator navigation rows for **Platform operator hub** (``super:platform_operator_hub``).
+
+    Curated in platform admin; surfaced on ``schools/super_platform_operator_hub.html`` when rows exist.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/command-center/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="super_platform_operator_hub",
+        help_text="e.g. super_platform_operator_hub, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatorplatformhublink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator platform hub link"
+        verbose_name_plural = "Operator platform hub links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformOperatorMigrationCloudLink(models.Model):
+    """
+    Typed operator navigation rows for **Migration cloud** (``super:migration_cloud``).
+
+    Curated in platform admin; surfaced on ``schools/super_migration_cloud.html`` when rows exist.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    label = models.CharField(max_length=128)
+    href = models.CharField(
+        max_length=512,
+        help_text="Relative path (e.g. /super/migration/registry/) or absolute URL.",
+    )
+    category = models.CharField(
+        max_length=32,
+        blank=True,
+        default="super_migration_cloud",
+        help_text="e.g. super_migration_cloud, admin, runbook",
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_operatormigrationcloudlink"
+        ordering = ("sort_order", "slug")
+        verbose_name = "Operator migration cloud link"
+        verbose_name_plural = "Operator migration cloud links"
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class PlatformIntegrationWebhookEvent(models.Model):
+    """
+    Inbound integration webhook receipts (HMAC verified with
+    ``RuntimeDefaults.webhook_signing_secret`` / ``get_effective_site_settings``).
+
+    Stores metadata only (no raw body) for operator audit and incident response.
+    """
+
+    received_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    verified = models.BooleanField(default=False, db_index=True)
+    event_type = models.CharField(max_length=64, blank=True, default="")
+    body_sha256 = models.CharField(max_length=64, blank=True, default="")
+    client_ip = models.CharField(max_length=45, blank=True, default="")
+
+    class Meta:
+        app_label = "platform_runtime"
+        db_table = "platform_runtime_integration_webhook_event"
+        verbose_name = "Integration webhook event"
+        verbose_name_plural = "Integration webhook events"
+        ordering = ["-received_at"]
+
+    def __str__(self) -> str:
+        return f"{self.received_at:%Y-%m-%d %H:%M} verified={self.verified}"
 
 
 class AIActionAuditLog(models.Model):

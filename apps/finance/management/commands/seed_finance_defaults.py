@@ -91,9 +91,16 @@ class Command(BaseCommand):
         self._seed_accounts(generic)
 
         site = get_platform_site_settings_record(create=True)
-        if site is not None and not getattr(site, "compliance_profile_id", None):
-            site.compliance_profile = cameroon
-            site.save(update_fields=["compliance_profile_id"])
+        if site is not None:
+            from apps.platform_runtime.models import RuntimeDefaults
+
+            rd = (
+                RuntimeDefaults.objects.filter(pk=1)
+                .only("compliance_profile_id")
+                .first()
+            )
+            if rd is None or not rd.compliance_profile_id:
+                site.compliance_profile = cameroon
 
         self.stdout.write(self.style.SUCCESS("Finance defaults seeded."))
 

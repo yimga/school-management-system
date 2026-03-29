@@ -118,6 +118,7 @@ from apps.api.interop_stubs import (
     lti13_readiness,
     edfi_readiness,
     ceds_readiness,
+    district_readiness_sample,
     interop_hub,
 )
 from apps.api.edfi_views import (
@@ -157,7 +158,10 @@ from apps.api.br_northstar_views import (
     TenantRegistriesEffectiveView,
 )
 from apps.api.control_plane_internal_views import ControlPlaneBridgeManifestAPIView
-from apps.api.oneroster_roster_webhook import oneroster_roster_webhook
+from apps.api.oneroster_roster_webhook import (
+    oneroster_roster_webhook,
+    platform_marketplace_integration_webhook,
+)
 from apps.api.north_star_api_views import (
     NorthStarEventCatalogView,
     NorthStarPackageImpactView,
@@ -305,6 +309,11 @@ urlpatterns = [
     ),
     path("interop/ceds/grades/", ceds_grades, name="interop-ceds-grades"),
     path("interop/ceds/", ceds_readiness, name="interop-ceds"),
+    path(
+        "interop/district-readiness/sample/",
+        district_readiness_sample,
+        name="interop-district-readiness-sample",
+    ),
     # SCIM 2.0 baseline (tenant-scoped provisioning)
     path(
         "scim/v2/ServiceProviderConfig",
@@ -337,6 +346,11 @@ urlpatterns = [
         "oneroster/v1p1/roster-webhook",
         oneroster_roster_webhook,
         name="oneroster-roster-webhook",
+    ),
+    path(
+        "integrations/v1/platform-webhook",
+        platform_marketplace_integration_webhook,
+        name="platform-marketplace-integration-webhook",
     ),
     # Phase 5: Digital ID for wallet / partner apps
     path("portal/digital-id/", DigitalIDAPI.as_view(), name="digital-id"),

@@ -30,7 +30,7 @@ REQUEST_LATENCY = Histogram(
 
 
 class RequestIdLoggingMiddleware(MiddlewareMixin):
-    """Attach request_id, tenant_id, user_id to request and to logging context (A4)."""
+    """Attach request_id, tenant_id, user_id, school_id to request and logging context (A4)."""
 
     def process_request(self, request):
         request_id = request.META.get("HTTP_X_REQUEST_ID") or str(uuid.uuid4())
@@ -51,8 +51,62 @@ class RequestIdLoggingMiddleware(MiddlewareMixin):
         ):
             user_id = str(request.user.pk)
         request.user_id = user_id
+        school_id = ""
+        school = getattr(request, "school", None)
+        if school is not None and getattr(school, "pk", None) is not None:
+            school_id = str(school.pk)
+        else:
+            ctx = getattr(request, "tenant_ctx", None)
+            if ctx is not None:
+                raw_sid = getattr(ctx, "school_id", None)
+                if raw_sid is not None:
+                    school_id = str(raw_sid)
+        request.logging_school_id = school_id
+        raw_path = getattr(request, "path", None) or ""
+        raw_ip = (request.META.get("REMOTE_ADDR") or "").strip()
+        if len(raw_ip) > 45:
+            raw_ip = raw_ip[:44] + "…"
+        raw_referer = (request.META.get("HTTP_REFERER") or "").strip()
+        raw_ua = (request.META.get("HTTP_USER_AGENT") or "").strip()
+        raw_ct = (getattr(request, "content_type", None) or "").strip()
+        try:
+            raw_host = (request.get_host() or "").strip()
+        except Exception:
+            raw_host = (request.META.get("HTTP_HOST") or "").strip()
+        raw_al = (request.META.get("HTTP_ACCEPT_LANGUAGE") or "").strip()
+        raw_ae = (request.META.get("HTTP_ACCEPT_ENCODING") or "").strip()
+        raw_xff = (request.META.get("HTTP_X_FORWARDED_FOR") or "").strip()
+        raw_xfp = (request.META.get("HTTP_X_FORWARDED_PROTO") or "").strip()
+        raw_xfh = (request.META.get("HTTP_X_FORWARDED_HOST") or "").strip()
+        raw_cl = (request.META.get("CONTENT_LENGTH") or "").strip()
+        raw_origin = (request.META.get("HTTP_ORIGIN") or "").strip()
+        raw_query_string = (request.META.get("QUERY_STRING") or "").strip()
+        raw_server_protocol = (request.META.get("SERVER_PROTOCOL") or "").strip()
+        raw_request_scheme = (getattr(request, "scheme", None) or "").strip()
+        raw_server_name = (request.META.get("SERVER_NAME") or "").strip()
         set_request_logging_context(
-            request_id=request_id, tenant_id=tenant_id, user_id=user_id
+            request_id=request_id,
+            tenant_id=tenant_id,
+            user_id=user_id,
+            school_id=school_id,
+            http_method=(request.method or "GET").upper(),
+            request_path=raw_path,
+            remote_addr=raw_ip,
+            http_referer=raw_referer,
+            http_user_agent=raw_ua,
+            http_host=raw_host,
+            content_type=raw_ct,
+            accept_language=raw_al,
+            accept_encoding=raw_ae,
+            x_forwarded_for=raw_xff,
+            x_forwarded_proto=raw_xfp,
+            x_forwarded_host=raw_xfh,
+            content_length=raw_cl,
+            http_origin=raw_origin,
+            query_string=raw_query_string,
+            server_protocol=raw_server_protocol,
+            request_scheme=raw_request_scheme,
+            server_name=raw_server_name,
         )
 
     def process_response(self, request, response):

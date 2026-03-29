@@ -34,6 +34,7 @@ This document describes the **interop layer**: canonical domain models ⇄ stand
 | Aspect | Location |
 |--------|----------|
 | **Status** | Stub only. Discovery/readiness: `apps.api.interop_stubs.edfi_readiness` (if present). |
+| **Fixture samples** | `fixtures/interop/edfi_district_readiness_sample.json` (+ CEDS-shaped `ceds_district_readiness_sample.json`) — stable keys for readiness tests (`apps.interop.tests.test_district_readiness_fixtures`). |
 | **Future** | When implemented: create `apps.interop.edfi` (or `apps.api.edfi_views`) with canonical ⇄ Ed-Fi mapping; keep core apps unchanged. |
 
 ## Suggested package layout (optional)

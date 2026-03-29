@@ -10,7 +10,7 @@ from apps.platform_runtime.helpers import get_effective_site_settings
 
 
 def get_cached_site_settings(*, school=None):
-    """Get school-aware SiteSettings with short-lived caching for automation tasks."""
+    """Get school-aware effective tenant site settings (via get_effective_site_settings) with short-lived caching."""
     school_id = getattr(school, "id", None)
     cache_key = f"site_settings_automation:{school_id or 'platform'}"
     site = cache.get(cache_key)
@@ -78,7 +78,7 @@ def get_notification_channels(user, automation_type: str = "default") -> list:
     """
     Get notification channels for a user, respecting hierarchy:
     1. UserPreference (if set)
-    2. SiteSettings default for automation type
+    2. Effective tenant platform settings default for automation type
     3. System default
 
     Args:
@@ -97,7 +97,7 @@ def get_notification_channels(user, automation_type: str = "default") -> list:
         # UserPreference doesn't exist for this user
         pass
 
-    # Fall back to SiteSettings
+    # Fall back to effective tenant platform settings
     site = get_cached_site_settings()
 
     if automation_type == "payment_reminder":

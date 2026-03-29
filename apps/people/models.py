@@ -567,7 +567,7 @@ class StudentProfile(models.Model):
 
     @classmethod
     def _get_admissions_policy(cls, school=None, policy=None):
-        """Single read path for admissions config: from policy (request.tenant_runtime.policy or policy_registry) or SiteSettings fallback."""
+        """Single read path for admissions config: policy first (request.tenant_runtime.policy or policy_registry), else platform identifier defaults."""
         if policy is not None and isinstance(policy, dict):
             adm = policy.get("admissions") or {}
             if adm:
@@ -600,7 +600,7 @@ class StudentProfile(models.Model):
         school=None,
     ) -> str:
         """
-        Configurable generation: use policy (get_effective_policy(school)) or SiteSettings fallback.
+        Configurable generation: admissions shape from get_effective_policy(school) when present, else defaults from _get_admissions_policy.
         Placeholders: year_2digit, school_code, seq_4digit, spec_code, class_segment.
         """
         school = school or getattr(academic_year, "school", None)

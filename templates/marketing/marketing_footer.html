@@ -84,10 +84,16 @@
           <input type="email" name="email" class="form-control form-control-sm" placeholder="{% trans 'Your email' %}" required aria-label="{% trans 'Email for newsletter' %}" style="max-width: 240px;">
           <button type="submit" class="btn btn-sm btn-primary">{% trans "Subscribe" %}</button>
         </form>
+        {% if marketing_newsletter_blurb_html %}
+        <div class="small text-muted mt-1 mb-0">{{ marketing_newsletter_blurb_html|safe }}</div>
+        {% else %}
         <p class="small text-muted mt-1 mb-0">{% trans "Product updates, guides, and platform news. Unsubscribe anytime." %}</p>
+        {% endif %}
       </div>
     </div>
     <div class="mkt-footer-brand mt-3">{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}</div>
-    {% comment %}Single-line brand only; no tagline for opinionated minimalism. {% endcomment %}
+    {% if marketing_footer_tagline_html %}
+    <div class="mkt-footer-tagline small mt-2">{{ marketing_footer_tagline_html|safe }}</div>
+    {% endif %}
   </div>
 </footer>

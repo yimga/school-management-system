@@ -13,7 +13,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#runtime-inspector-main">{% trans "Skip to runtime inspector content" %}</a>
+<div id="runtime-inspector-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% include "studio_os/components/page_header.html" with title="Runtime inspector" subtitle="Inspect effective blueprint, active packs, policies, overrides, and compilation trace for a school." action_url=dashboard_url action_text="Back to dashboard" %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-body">

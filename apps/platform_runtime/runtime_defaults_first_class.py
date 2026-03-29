@@ -3,7 +3,13 @@ First-class columns on ``RuntimeDefaults`` (platform_runtime-owned).
 
 These keys are **not** duplicated in ``RuntimeDefaults.payload`` when present; they are
 read from typed columns and override payload in ``get_effective_site_settings`` merge
-order. ``sms_api_key`` stays payload-only (secret; excluded from Phase B marketplace snapshot).
+order. Marketplace secrets (``sms_api_key``, ``ai_provider_api_key``, ``whatsapp_api_token``,
+``marksheet_ocr_api_key``, ``smtp_password``, ``webhook_signing_secret``,
+``marketplace_partner_client_secret``)
+are first-class (still excluded from Phase B marketplace JSON snapshots). Additional
+marketplace **secrets** need a new tenant site-settings virtual key + migration **0039+** using
+the same pattern as **0029**–**0037**. Static parity (dict / strip list / this tuple / model)
+is enforced by ``scripts/verify_marketplace_integration_first_class_parity.py``.
 
 See ``RuntimeDefaults.sync_from_site_settings`` and ``_build_platform_site_settings_base``.
 """
@@ -75,6 +81,7 @@ RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES: tuple[str, ...] = (
     "use_promotion_rule_for_pass",
     "notify_parent_welcome_email",
     "reports_use_approved_grades_only",
+    "report_downloads_enabled",
     "requests_reminder_interval_hours",
     "backend_feature_flags",
     "portal_features",
@@ -96,11 +103,18 @@ RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES: tuple[str, ...] = (
     "sms_provider",
     "sms_sender_id",
     "email_from_address",
+    "smtp_password",
     "whatsapp_support_number",
     "whatsapp_admissions_number",
     "enable_whatsapp_parent_portal",
     "enable_whatsapp_staff_portal",
     "marksheet_ocr_command",
+    "marksheet_ocr_api_key",
+    "ai_provider_api_key",
+    "sms_api_key",
+    "whatsapp_api_token",
+    "webhook_signing_secret",
+    "marketplace_partner_client_secret",
 )
 
 # Empty string on these means "no platform default" (do not beat RuntimeDefaults.payload).
@@ -153,9 +167,16 @@ RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES: frozenset[str] = frozenset(
         "sms_provider",
         "sms_sender_id",
         "email_from_address",
+        "smtp_password",
         "whatsapp_support_number",
         "whatsapp_admissions_number",
         "marksheet_ocr_command",
+        "marksheet_ocr_api_key",
+        "ai_provider_api_key",
+        "sms_api_key",
+        "whatsapp_api_token",
+        "webhook_signing_secret",
+        "marketplace_partner_client_secret",
     }
 )
 
@@ -171,7 +192,7 @@ def strip_runtime_defaults_first_class_keys_from_dict(d: dict) -> None:
 
 
 def collect_first_class_values_from_site_settings(site_settings) -> dict[str, object]:
-    """Snapshot current effective values from the legacy SiteSettings façade (virtual + column)."""
+    """Snapshot current effective values from the legacy tenant site-settings façade (virtual + column)."""
     out: dict[str, object] = {}
     for k in RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES:
         v = getattr(site_settings, k, None)

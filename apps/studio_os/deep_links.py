@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from django.conf import settings
+from django.http import HttpRequest
 from django.urls import NoReverseMatch, reverse
 
 # Paths are suffixes; siteconfig gets tenant base when set, else same-origin relative.
@@ -107,6 +108,29 @@ def _manager_base() -> str:
     ).strip().rstrip("/")
 
 
+def url_is_cross_origin_request(request: HttpRequest | None, url: str) -> bool:
+    """
+    True if url is absolute and its host differs from the current request host.
+    Used to avoid embedding manager-only tools in tenant iframes (refused to connect / X-Frame-Options).
+    """
+    if not request or not url:
+        return False
+    u = url.strip()
+    if not (u.startswith("http://") or u.startswith("https://")):
+        return False
+    try:
+        from urllib.parse import urlparse
+
+        pu = urlparse(u)
+        uh = (pu.hostname or "").lower()
+        if not uh:
+            return False
+        rh = (request.get_host() or "").split(":")[0].lower()
+        return bool(rh) and uh != rh
+    except (TypeError, ValueError):
+        return False
+
+
 def studio_resolve_url(
     viewname: str, *, args: Any = None, kwargs: Any = None
 ) -> str:
@@ -128,7 +152,8 @@ def studio_resolve_url(
         tb = _tenant_base()
         if tb:
             return f"{tb}{path}"
-        return ""
+        # Same-origin path when tenant base is unset (normal tenant/manager single-host deploys).
+        return path
     if viewname.startswith("super:") or viewname.startswith("admin:"):
         mb = _manager_base()
         return f"{mb}{path}" if mb else path

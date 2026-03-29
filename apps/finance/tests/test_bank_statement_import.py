@@ -156,3 +156,295 @@ class BankStatementImportServiceTests(TestCase):
         )
         self.assertEqual(self.invoice.status, Invoice.Status.PAID)
         self.assertEqual(self.invoice.balance_amount, Decimal("0.00"))
+
+    def test_claim_suspense_payment_allocates_across_two_invoices(self):
+        statement = BankStatementEntry.objects.create(
+            bank_account=self.bank_account,
+            transaction_date="2026-02-10",
+            amount=Decimal("20000.00"),
+            transaction_type=BankStatementEntry.TransactionType.DEPOSIT,
+            transaction_reference="BANK-TXN-2",
+            description="Bulk deposit",
+        )
+        suspense = SuspensePayment.objects.create(
+            bank_statement_entry=statement,
+            amount=Decimal("20000.00"),
+            currency="XAF",
+            transaction_reference="BANK-TXN-2",
+            status=SuspensePayment.Status.OPEN,
+        )
+        invoice_b = Invoice.objects.create(
+            profile=self.profile,
+            academic_year=self.year,
+            invoice_type=Invoice.InvoiceType.AR,
+            status=Invoice.Status.ISSUED,
+            student=self.student,
+            total_amount=Decimal("5000.00"),
+            balance_amount=Decimal("5000.00"),
+            issued_date="2026-02-02",
+        )
+        InvoiceLine.objects.create(
+            invoice=invoice_b,
+            description="Fee",
+            quantity=1,
+            unit_price=Decimal("5000.00"),
+            amount=Decimal("5000.00"),
+        )
+
+        result = self.service.claim_suspense_payment(
+            suspense_payment=suspense,
+            allocations=[
+                {"invoice_id": self.invoice.id, "amount": "15000.00"},
+                {"invoice_id": invoice_b.id, "amount": "5000.00"},
+            ],
+            claimed_by=self.staff,
+        )
+
+        suspense.refresh_from_db()
+        self.invoice.refresh_from_db()
+        invoice_b.refresh_from_db()
+
+        self.assertEqual(result["status"], SuspensePayment.Status.RESOLVED)
+        self.assertEqual(suspense.status, SuspensePayment.Status.RESOLVED)
+        self.assertEqual(
+            SuspensePaymentAllocation.objects.filter(suspense_payment=suspense).count(),
+            2,
+        )
+        self.assertEqual(self.invoice.balance_amount, Decimal("0.00"))
+        self.assertEqual(invoice_b.balance_amount, Decimal("0.00"))
+        self.assertEqual(len(result["payment_ids"]), 2)
+
+    def test_claim_suspense_payment_partial_allocation_sets_partial_status(self):
+        """When allocated total is below suspense amount, status stays PARTIAL (batch 21 #228)."""
+        statement = BankStatementEntry.objects.create(
+            bank_account=self.bank_account,
+            transaction_date="2026-02-11",
+            amount=Decimal("20000.00"),
+            transaction_type=BankStatementEntry.TransactionType.DEPOSIT,
+            transaction_reference="BANK-TXN-PARTIAL",
+            description="Partial match deposit",
+        )
+        suspense = SuspensePayment.objects.create(
+            bank_statement_entry=statement,
+            amount=Decimal("20000.00"),
+            currency="XAF",
+            transaction_reference="BANK-TXN-PARTIAL",
+            status=SuspensePayment.Status.OPEN,
+        )
+        result = self.service.claim_suspense_payment(
+            suspense_payment=suspense,
+            allocations=[{"invoice_id": self.invoice.id, "amount": "10000.00"}],
+            claimed_by=self.staff,
+        )
+        suspense.refresh_from_db()
+        self.assertEqual(result["status"], SuspensePayment.Status.PARTIAL)
+        self.assertEqual(suspense.status, SuspensePayment.Status.PARTIAL)
+        self.assertGreater(suspense.remaining_amount, Decimal("0.00"))
+        self.assertEqual(
+            SuspensePaymentAllocation.objects.filter(suspense_payment=suspense).count(),
+            1,
+        )
+
+    def test_claim_suspense_payment_empty_allocations_raises(self):
+        statement = BankStatementEntry.objects.create(
+            bank_account=self.bank_account,
+            transaction_date="2026-02-12",
+            amount=Decimal("5000.00"),
+            transaction_type=BankStatementEntry.TransactionType.DEPOSIT,
+            transaction_reference="BANK-TXN-EMPTY-ALLOC",
+            description="Empty alloc test",
+        )
+        suspense = SuspensePayment.objects.create(
+            bank_statement_entry=statement,
+            amount=Decimal("5000.00"),
+            currency="XAF",
+            transaction_reference="BANK-TXN-EMPTY-ALLOC",
+            status=SuspensePayment.Status.OPEN,
+        )
+        with self.assertRaises(ValueError) as ctx:
+            self.service.claim_suspense_payment(
+                suspense_payment=suspense,
+                allocations=[],
+                claimed_by=self.staff,
+            )
+        self.assertIn("At least one allocation", str(ctx.exception))
+
+    def test_claim_suspense_payment_total_exceeds_remaining_raises(self):
+        statement = BankStatementEntry.objects.create(
+            bank_account=self.bank_account,
+            transaction_date="2026-02-13",
+            amount=Decimal("8000.00"),
+            transaction_type=BankStatementEntry.TransactionType.DEPOSIT,
+            transaction_reference="BANK-TXN-OVER",
+            description="Over-alloc test",
+        )
+        suspense = SuspensePayment.objects.create(
+            bank_statement_entry=statement,
+            amount=Decimal("8000.00"),
+            currency="XAF",
+            transaction_reference="BANK-TXN-OVER",
+            status=SuspensePayment.Status.OPEN,
+        )
+        with self.assertRaises(ValueError) as ctx:
+            self.service.claim_suspense_payment(
+                suspense_payment=suspense,
+                allocations=[{"invoice_id": self.invoice.id, "amount": "9000.00"}],
+                claimed_by=self.staff,
+            )
+        self.assertIn("exceeds suspense remaining", str(ctx.exception))
+
+    def test_claim_suspense_payment_non_positive_allocation_total_raises(self):
+        """Batch 33 #408: zero/negative line amounts contribute nothing; total must stay positive."""
+        statement = BankStatementEntry.objects.create(
+            bank_account=self.bank_account,
+            transaction_date="2026-02-15",
+            amount=Decimal("1000.00"),
+            transaction_type=BankStatementEntry.TransactionType.DEPOSIT,
+            transaction_reference="BANK-TXN-ZERO-ALLOC",
+            description="Non-positive allocation test",
+        )
+        suspense = SuspensePayment.objects.create(
+            bank_statement_entry=statement,
+            amount=Decimal("1000.00"),
+            currency="XAF",
+            transaction_reference="BANK-TXN-ZERO-ALLOC",
+            status=SuspensePayment.Status.OPEN,
+        )
+        with self.assertRaises(ValueError) as ctx:
+            self.service.claim_suspense_payment(
+                suspense_payment=suspense,
+                allocations=[
+                    {"invoice_id": self.invoice.id, "amount": "0.00"},
+                    {"invoice_id": self.invoice.id, "amount": "-10.00"},
+                ],
+                claimed_by=self.staff,
+            )
+        self.assertIn("Allocation total must be positive", str(ctx.exception))
+
+    def test_claim_suspense_payment_duplicate_invoice_in_allocations_raises(self):
+        """Batch 34 #423: same invoice twice must not create double payments."""
+        statement = BankStatementEntry.objects.create(
+            bank_account=self.bank_account,
+            transaction_date="2026-02-16",
+            amount=Decimal("5000.00"),
+            transaction_type=BankStatementEntry.TransactionType.DEPOSIT,
+            transaction_reference="BANK-TXN-DUP-INV",
+            description="Duplicate invoice id in payload",
+        )
+        suspense = SuspensePayment.objects.create(
+            bank_statement_entry=statement,
+            amount=Decimal("5000.00"),
+            currency="XAF",
+            transaction_reference="BANK-TXN-DUP-INV",
+            status=SuspensePayment.Status.OPEN,
+        )
+        with self.assertRaises(ValueError) as ctx:
+            self.service.claim_suspense_payment(
+                suspense_payment=suspense,
+                allocations=[
+                    {"invoice_id": self.invoice.id, "amount": "2000.00"},
+                    {"invoice_id": self.invoice.id, "amount": "3000.00"},
+                ],
+                claimed_by=self.staff,
+            )
+        self.assertIn("Duplicate invoice_id", str(ctx.exception))
+
+    def test_claim_suspense_payment_invalid_amount_string_raises(self):
+        """Batch 35 #438: non-numeric allocation amount must surface as ValueError."""
+        statement = BankStatementEntry.objects.create(
+            bank_account=self.bank_account,
+            transaction_date="2026-02-17",
+            amount=Decimal("4000.00"),
+            transaction_type=BankStatementEntry.TransactionType.DEPOSIT,
+            transaction_reference="BANK-TXN-BAD-AMT",
+            description="Invalid decimal in allocation",
+        )
+        suspense = SuspensePayment.objects.create(
+            bank_statement_entry=statement,
+            amount=Decimal("4000.00"),
+            currency="XAF",
+            transaction_reference="BANK-TXN-BAD-AMT",
+            status=SuspensePayment.Status.OPEN,
+        )
+        with self.assertRaises(ValueError) as ctx:
+            self.service.claim_suspense_payment(
+                suspense_payment=suspense,
+                allocations=[{"invoice_id": self.invoice.id, "amount": "not-a-number"}],
+                claimed_by=self.staff,
+            )
+        self.assertIn("Invalid amount", str(ctx.exception))
+
+    def test_claim_suspense_payment_ignores_zero_row_when_second_invoice_positive(self):
+        """Batch 35 #438: non-positive lines are skipped; a second positive line still allocates."""
+        statement = BankStatementEntry.objects.create(
+            bank_account=self.bank_account,
+            transaction_date="2026-02-17",
+            amount=Decimal("8000.00"),
+            transaction_type=BankStatementEntry.TransactionType.DEPOSIT,
+            transaction_reference="BANK-TXN-ZERO-PLUS-POS",
+            description="Zero row plus positive second invoice",
+        )
+        suspense = SuspensePayment.objects.create(
+            bank_statement_entry=statement,
+            amount=Decimal("8000.00"),
+            currency="XAF",
+            transaction_reference="BANK-TXN-ZERO-PLUS-POS",
+            status=SuspensePayment.Status.OPEN,
+        )
+        invoice_b = Invoice.objects.create(
+            profile=self.profile,
+            academic_year=self.year,
+            invoice_type=Invoice.InvoiceType.AR,
+            status=Invoice.Status.ISSUED,
+            student=self.student,
+            total_amount=Decimal("8000.00"),
+            balance_amount=Decimal("8000.00"),
+            issued_date="2026-02-03",
+        )
+        InvoiceLine.objects.create(
+            invoice=invoice_b,
+            description="Second fee",
+            quantity=1,
+            unit_price=Decimal("8000.00"),
+            amount=Decimal("8000.00"),
+        )
+        result = self.service.claim_suspense_payment(
+            suspense_payment=suspense,
+            allocations=[
+                {"invoice_id": self.invoice.id, "amount": "0.00"},
+                {"invoice_id": invoice_b.id, "amount": "8000.00"},
+            ],
+            claimed_by=self.staff,
+        )
+        suspense.refresh_from_db()
+        invoice_b.refresh_from_db()
+        self.assertEqual(result["status"], SuspensePayment.Status.RESOLVED)
+        self.assertEqual(invoice_b.balance_amount, Decimal("0.00"))
+        self.assertEqual(
+            SuspensePaymentAllocation.objects.filter(suspense_payment=suspense).count(),
+            1,
+        )
+
+    def test_claim_suspense_payment_unknown_invoice_raises(self):
+        statement = BankStatementEntry.objects.create(
+            bank_account=self.bank_account,
+            transaction_date="2026-02-14",
+            amount=Decimal("3000.00"),
+            transaction_type=BankStatementEntry.TransactionType.DEPOSIT,
+            transaction_reference="BANK-TXN-BAD-INV",
+            description="Bad invoice id test",
+        )
+        suspense = SuspensePayment.objects.create(
+            bank_statement_entry=statement,
+            amount=Decimal("3000.00"),
+            currency="XAF",
+            transaction_reference="BANK-TXN-BAD-INV",
+            status=SuspensePayment.Status.OPEN,
+        )
+        missing_id = self.invoice.id + 99999
+        with self.assertRaises(Invoice.DoesNotExist):
+            self.service.claim_suspense_payment(
+                suspense_payment=suspense,
+                allocations=[{"invoice_id": missing_id, "amount": "1000.00"}],
+                claimed_by=self.staff,
+            )
