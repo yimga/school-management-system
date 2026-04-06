@@ -146,6 +146,14 @@ class SiteSettingsDomainOwnershipTests(SimpleTestCase):
         self.assertEqual(
             classify_site_settings_field("syllabus_approval_roles"), "policies_rules"
         )
+        self.assertEqual(
+            classify_site_settings_field("enable_whatsapp_parent_portal"),
+            "policies_rules",
+        )
+        self.assertEqual(
+            classify_site_settings_field("enable_whatsapp_staff_portal"),
+            "policies_rules",
+        )
 
     def test_report_and_registry_fields_are_classified_to_real_domains(self):
         self.assertEqual(

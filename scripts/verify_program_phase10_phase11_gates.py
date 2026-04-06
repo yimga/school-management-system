@@ -6,15 +6,17 @@ Program Phase 11 (marketing narrative homepage) — static acceptance gate.
 No database. Verifies template/CSS/engine markers that encode the shipped product
 contract (aligned with SOT 3.2.3 marketplace slice + 3.2.4 marketing front).
 
-Run: python scripts/verify_program_phase10_phase11_gates.py
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_REPO = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_REPO
 
 # Relative path -> required substrings (all must be present).
 PHASE10_STATIC_MARKERS: dict[str, tuple[str, ...]] = {
@@ -86,6 +88,30 @@ PACK_ENGINE_MARKERS: tuple[str, ...] = (
 )
 
 
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Program Phase 10 and Phase 11 static acceptance gates."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_REPO),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT
+    ROOT = base
+
+
 def _read(rel: str) -> str:
     path = ROOT / rel
     if not path.is_file():
@@ -93,7 +119,14 @@ def _read(rel: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        _configure_root(_resolve_base(args.base))
+    except ValueError as exc:
+        print(f"verify_program_phase10_phase11_gates FAILED: {exc}", file=sys.stderr)
+        return 1
+
     failures: list[str] = []
 
     for rel, markers in PHASE10_STATIC_MARKERS.items():
@@ -123,4 +156,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

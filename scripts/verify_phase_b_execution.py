@@ -7,208 +7,238 @@ Phase B execution verification (batches 1+ wiring).
   SiteSettings row exists, singleton pk=1 must exist after migrations.
 - Batches 4-13: platform_runtime.PlatformPhaseBDomainSnapshot; when SiteSettings
   exists, one row per PHASE_B_SNAPSHOT_DOMAINS after migrations + save sync.
+- RuntimeDefaults marketplace partner secret: migration 0037 must exist and the
+  live RuntimeDefaults table must expose the first-class
+  marketplace_partner_client_secret column after migrations.
 
 ``migration_artifact_errors()`` and ``orm_phase_b_execution_errors()`` are importable
 for in-process tests (migrated DB). ORM + **physical** ``siteconfig_sitesettings``
-column check via ``sitesettings_slim_db_errors``. CLI: ``python scripts/verify_phase_b_execution.py``.
+column check via ``sitesettings_slim_db_errors``.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 
 Exit 0 = OK; non-zero = fix migrations or backfill.
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-MIGRATION_0002 = (
-    ROOT / "apps" / "brand_experience" / "migrations" / "0002_platform_global_branding.py"
-)
-MIGRATION_0007 = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0007_platform_phase_b_domain_snapshots.py"
-)
-MIGRATION_0036_REPORT_SKU_DEFAULT = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0036_platform_report_platform_sku_default.py"
-)
-MIGRATION_0038_OPERATOR_PLAYBOOK_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0038_platform_operator_playbook_link.py"
-)
-MIGRATION_0039_OPERATOR_TRUTH_HUB_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0039_platform_operator_truth_hub_link.py"
-)
-MIGRATION_0040_OPERATOR_PHASE_B_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0040_platform_operator_phase_b_link.py"
-)
-MIGRATION_0041_OPERATOR_WORKFLOW_SIMULATOR_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0041_platform_operator_workflow_simulator_link.py"
-)
-MIGRATION_0042_OPERATOR_SUPPORT_DASHBOARD_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0042_platform_operator_support_dashboard_link.py"
-)
-MIGRATION_0043_OPERATOR_TENANT_HEALTH_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0043_platform_operator_tenant_health_link.py"
-)
-MIGRATION_0044_OPERATOR_COMMAND_CENTER_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0044_platform_operator_command_center_link.py"
-)
-MIGRATION_0045_OPERATOR_ORCHESTRATION_WORKBENCH_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0045_platform_operator_orchestration_workbench_link.py"
-)
-MIGRATION_0046_OPERATOR_SUPER_DASHBOARD_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0046_platform_operator_super_dashboard_link.py"
-)
-MIGRATION_0047_OPERATOR_SUPER_SCHOOLS_LIST_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0047_platform_operator_super_schools_list_link.py"
-)
-MIGRATION_0048_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0048_platform_operator_super_analytics_overview_link.py"
-)
-MIGRATION_0049_OPERATOR_PLATFORM_HUB_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0049_platform_operator_platform_hub_link.py"
-)
-MIGRATION_0050_OPERATOR_MIGRATION_CLOUD_LINK = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0050_platform_operator_migration_cloud_link.py"
-)
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Verify Phase B execution wiring.")
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
 
 
-def migration_artifact_errors() -> list[str]:
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return base
+
+
+def _default_repo_root() -> Path:
+    """Filesystem repo root when ``migration_artifact_errors()`` omits ``base``."""
+    return Path(__file__).resolve().parent.parent
+
+
+def _relative(path: Path, base: Path) -> str:
+    try:
+        return str(path.relative_to(base))
+    except ValueError:
+        return str(path)
+
+
+def _migration_paths_for_root(base: Path) -> dict[str, Path]:
+    return {
+        "MIGRATION_0002": base
+        / "apps"
+        / "brand_experience"
+        / "migrations"
+        / "0002_platform_global_branding.py",
+        "MIGRATION_0007": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0007_platform_phase_b_domain_snapshots.py",
+        "MIGRATION_0036_REPORT_SKU_DEFAULT": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0036_platform_report_platform_sku_default.py",
+        "MIGRATION_0037_RUNTIMEDEFAULTS_MARKETPLACE_PARTNER_CLIENT_SECRET": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0037_runtimedefaults_marketplace_partner_client_secret_first_class.py",
+        "MIGRATION_0038_OPERATOR_PLAYBOOK_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0038_platform_operator_playbook_link.py",
+        "MIGRATION_0039_OPERATOR_TRUTH_HUB_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0039_platform_operator_truth_hub_link.py",
+        "MIGRATION_0040_OPERATOR_PHASE_B_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0040_platform_operator_phase_b_link.py",
+        "MIGRATION_0041_OPERATOR_WORKFLOW_SIMULATOR_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0041_platform_operator_workflow_simulator_link.py",
+        "MIGRATION_0042_OPERATOR_SUPPORT_DASHBOARD_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0042_platform_operator_support_dashboard_link.py",
+        "MIGRATION_0043_OPERATOR_TENANT_HEALTH_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0043_platform_operator_tenant_health_link.py",
+        "MIGRATION_0044_OPERATOR_COMMAND_CENTER_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0044_platform_operator_command_center_link.py",
+        "MIGRATION_0045_OPERATOR_ORCHESTRATION_WORKBENCH_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0045_platform_operator_orchestration_workbench_link.py",
+        "MIGRATION_0046_OPERATOR_SUPER_DASHBOARD_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0046_platform_operator_super_dashboard_link.py",
+        "MIGRATION_0047_OPERATOR_SUPER_SCHOOLS_LIST_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0047_platform_operator_super_schools_list_link.py",
+        "MIGRATION_0048_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0048_platform_operator_super_analytics_overview_link.py",
+        "MIGRATION_0049_OPERATOR_PLATFORM_HUB_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0049_platform_operator_platform_hub_link.py",
+        "MIGRATION_0050_OPERATOR_MIGRATION_CLOUD_LINK": base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0050_platform_operator_migration_cloud_link.py",
+    }
+
+
+def migration_artifact_errors(base: Path | None = None) -> list[str]:
     """Repository-side checks (no Django required)."""
+    current_root = base if base is not None else _default_repo_root()
+    paths = _migration_paths_for_root(current_root)
     errors: list[str] = []
-    if not MIGRATION_0002.is_file():
+    if not paths["MIGRATION_0002"].is_file():
         errors.append(
-            f"Missing Phase B Batch 1 migration: {MIGRATION_0002.relative_to(ROOT)}"
+            f"Missing Phase B Batch 1 migration: {_relative(paths['MIGRATION_0002'], current_root)}"
         )
-    if not MIGRATION_0007.is_file():
+    if not paths["MIGRATION_0007"].is_file():
         errors.append(
             "Missing Phase B Batches 4-13 migration: "
-            f"{MIGRATION_0007.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0007'], current_root)}"
         )
-    if not MIGRATION_0036_REPORT_SKU_DEFAULT.is_file():
+    if not paths["MIGRATION_0036_REPORT_SKU_DEFAULT"].is_file():
         errors.append(
             "Missing platform_runtime report platform SKU default migration: "
-            f"{MIGRATION_0036_REPORT_SKU_DEFAULT.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0036_REPORT_SKU_DEFAULT'], current_root)}"
         )
-    if not MIGRATION_0038_OPERATOR_PLAYBOOK_LINK.is_file():
+    if not paths[
+        "MIGRATION_0037_RUNTIMEDEFAULTS_MARKETPLACE_PARTNER_CLIENT_SECRET"
+    ].is_file():
+        errors.append(
+            "Missing RuntimeDefaults marketplace_partner_client_secret first-class migration: "
+            f"{_relative(paths['MIGRATION_0037_RUNTIMEDEFAULTS_MARKETPLACE_PARTNER_CLIENT_SECRET'], current_root)}"
+        )
+    if not paths["MIGRATION_0038_OPERATOR_PLAYBOOK_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator playbook link migration: "
-            f"{MIGRATION_0038_OPERATOR_PLAYBOOK_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0038_OPERATOR_PLAYBOOK_LINK'], current_root)}"
         )
-    if not MIGRATION_0039_OPERATOR_TRUTH_HUB_LINK.is_file():
+    if not paths["MIGRATION_0039_OPERATOR_TRUTH_HUB_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator truth hub link migration: "
-            f"{MIGRATION_0039_OPERATOR_TRUTH_HUB_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0039_OPERATOR_TRUTH_HUB_LINK'], current_root)}"
         )
-    if not MIGRATION_0040_OPERATOR_PHASE_B_LINK.is_file():
+    if not paths["MIGRATION_0040_OPERATOR_PHASE_B_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator Phase B link migration: "
-            f"{MIGRATION_0040_OPERATOR_PHASE_B_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0040_OPERATOR_PHASE_B_LINK'], current_root)}"
         )
-    if not MIGRATION_0041_OPERATOR_WORKFLOW_SIMULATOR_LINK.is_file():
+    if not paths["MIGRATION_0041_OPERATOR_WORKFLOW_SIMULATOR_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator workflow simulator link migration: "
-            f"{MIGRATION_0041_OPERATOR_WORKFLOW_SIMULATOR_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0041_OPERATOR_WORKFLOW_SIMULATOR_LINK'], current_root)}"
         )
-    if not MIGRATION_0042_OPERATOR_SUPPORT_DASHBOARD_LINK.is_file():
+    if not paths["MIGRATION_0042_OPERATOR_SUPPORT_DASHBOARD_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator support dashboard link migration: "
-            f"{MIGRATION_0042_OPERATOR_SUPPORT_DASHBOARD_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0042_OPERATOR_SUPPORT_DASHBOARD_LINK'], current_root)}"
         )
-    if not MIGRATION_0043_OPERATOR_TENANT_HEALTH_LINK.is_file():
+    if not paths["MIGRATION_0043_OPERATOR_TENANT_HEALTH_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator tenant health link migration: "
-            f"{MIGRATION_0043_OPERATOR_TENANT_HEALTH_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0043_OPERATOR_TENANT_HEALTH_LINK'], current_root)}"
         )
-    if not MIGRATION_0044_OPERATOR_COMMAND_CENTER_LINK.is_file():
+    if not paths["MIGRATION_0044_OPERATOR_COMMAND_CENTER_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator command center link migration: "
-            f"{MIGRATION_0044_OPERATOR_COMMAND_CENTER_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0044_OPERATOR_COMMAND_CENTER_LINK'], current_root)}"
         )
-    if not MIGRATION_0045_OPERATOR_ORCHESTRATION_WORKBENCH_LINK.is_file():
+    if not paths["MIGRATION_0045_OPERATOR_ORCHESTRATION_WORKBENCH_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator orchestration workbench link migration: "
-            f"{MIGRATION_0045_OPERATOR_ORCHESTRATION_WORKBENCH_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0045_OPERATOR_ORCHESTRATION_WORKBENCH_LINK'], current_root)}"
         )
-    if not MIGRATION_0046_OPERATOR_SUPER_DASHBOARD_LINK.is_file():
+    if not paths["MIGRATION_0046_OPERATOR_SUPER_DASHBOARD_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator super dashboard link migration: "
-            f"{MIGRATION_0046_OPERATOR_SUPER_DASHBOARD_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0046_OPERATOR_SUPER_DASHBOARD_LINK'], current_root)}"
         )
-    if not MIGRATION_0047_OPERATOR_SUPER_SCHOOLS_LIST_LINK.is_file():
+    if not paths["MIGRATION_0047_OPERATOR_SUPER_SCHOOLS_LIST_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator super schools list link migration: "
-            f"{MIGRATION_0047_OPERATOR_SUPER_SCHOOLS_LIST_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0047_OPERATOR_SUPER_SCHOOLS_LIST_LINK'], current_root)}"
         )
-    if not MIGRATION_0048_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK.is_file():
+    if not paths["MIGRATION_0048_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator super analytics overview link migration: "
-            f"{MIGRATION_0048_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0048_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK'], current_root)}"
         )
-    if not MIGRATION_0049_OPERATOR_PLATFORM_HUB_LINK.is_file():
+    if not paths["MIGRATION_0049_OPERATOR_PLATFORM_HUB_LINK"].is_file():
         errors.append(
             "Missing platform_runtime operator platform hub link migration: "
-            f"{MIGRATION_0049_OPERATOR_PLATFORM_HUB_LINK.relative_to(ROOT)}"
+            f"{_relative(paths['MIGRATION_0049_OPERATOR_PLATFORM_HUB_LINK'], current_root)}"
+        )
+    if not paths["MIGRATION_0050_OPERATOR_MIGRATION_CLOUD_LINK"].is_file():
+        errors.append(
+            "Missing platform_runtime operator migration cloud link migration: "
+            f"{_relative(paths['MIGRATION_0050_OPERATOR_MIGRATION_CLOUD_LINK'], current_root)}"
         )
     return errors
 
@@ -259,6 +289,36 @@ def orm_phase_b_execution_errors() -> list[str]:
             )
     except Exception as exc:
         errors.append(f"Could not verify PlatformReportPlatformSkuDefault table: {exc}")
+
+    try:
+        runtime_defaults_model = apps.get_model("platform_runtime", "RuntimeDefaults")
+        runtime_defaults_table = runtime_defaults_model._meta.db_table
+        tables = connection.introspection.table_names()
+        if runtime_defaults_table not in tables:
+            errors.append(
+                f"Table {runtime_defaults_table} missing - run migrations "
+                "(platform_runtime.0001_runtimedefaults through "
+                "0037_runtimedefaults_marketplace_partner_client_secret_first_class)."
+            )
+        else:
+            with connection.cursor() as cursor:
+                runtime_defaults_columns = {
+                    column.name
+                    for column in connection.introspection.get_table_description(
+                        cursor, runtime_defaults_table
+                    )
+                }
+            if "marketplace_partner_client_secret" not in runtime_defaults_columns:
+                errors.append(
+                    "Column marketplace_partner_client_secret missing from "
+                    f"{runtime_defaults_table} - run migrations "
+                    "(platform_runtime.0037_runtimedefaults_marketplace_partner_client_secret_first_class)."
+                )
+    except Exception as exc:
+        errors.append(
+            "Could not verify RuntimeDefaults marketplace_partner_client_secret "
+            f"column: {exc}"
+        )
 
     try:
         playbook_link_model = apps.get_model(
@@ -500,15 +560,21 @@ def orm_phase_b_execution_errors() -> list[str]:
     return errors
 
 
-def main() -> int:
-    errors = migration_artifact_errors()
+def main(argv: list[str] | None = None) -> int:
+    try:
+        base = _resolve_base(parse_args(argv).base)
+    except ValueError as exc:
+        print(f"verify_phase_b_execution: {exc}", file=sys.stderr)
+        return 1
+
+    errors = migration_artifact_errors(base)
     if errors:
-        print("Phase B execution verification FAILED (artifacts):", file=sys.stderr)
+        print("verify_phase_b_execution: migration artifacts", file=sys.stderr)
         for e in errors:
             print(f"  - {e}", file=sys.stderr)
         return 1
 
-    sys.path.insert(0, str(ROOT))
+    sys.path.insert(0, str(base))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
     from django.conf import settings
@@ -517,14 +583,14 @@ def main() -> int:
     if gate_file and settings.DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3":
         gpath = Path(gate_file)
         if not gpath.is_absolute():
-            gpath = ROOT / gpath
+            gpath = base / gpath
         settings.DATABASES["default"]["NAME"] = str(gpath)
 
     django.setup()
 
     errors = orm_phase_b_execution_errors()
     if errors:
-        print("Phase B execution verification FAILED:", file=sys.stderr)
+        print("verify_phase_b_execution: ORM / slim contract", file=sys.stderr)
         for e in errors:
             print(f"  - {e}", file=sys.stderr)
         return 1
@@ -532,7 +598,8 @@ def main() -> int:
     print(
         "Phase B execution verification OK (Batch 1 PlatformGlobalBranding + "
         "Batches 4-13 PlatformPhaseBDomainSnapshot when SiteSettings present + "
-        "PlatformReportPlatformSkuDefault + PlatformOperatorPlaybookLink + "
+        "PlatformReportPlatformSkuDefault + RuntimeDefaults marketplace partner "
+        "secret column + PlatformOperatorPlaybookLink + "
         "PlatformOperatorTruthHubLink + PlatformOperatorPhaseBLink + "
         "PlatformOperatorWorkflowSimulatorLink + "
         "PlatformOperatorSupportDashboardLink + "
@@ -549,4 +616,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

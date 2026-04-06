@@ -5,8 +5,12 @@ Redis-backed tenant resolution: when cache backend is Redis, tenant resolution
 (schema/domain -> school id) can be cached to avoid DB on every request.
 """
 
+from __future__ import annotations
+
+import re
 from typing import Any, Optional
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, connection
 
@@ -20,6 +24,68 @@ OPTIONAL_CACHE_ERRORS = (
     ValueError,
 )
 
+_MAX_CACHE_SCHOOL_ID_LEN = 128
+# Align with PostgreSQL / django-tenants schema naming for tenant: cache prefixes.
+_PG_TENANT_SCHEMA_CACHE_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,62}$")
+_MAX_TENANT_RESOLUTION_LOOKUP_LEN = 512
+_MAX_TENANT_CACHE_BASE_KEY_LEN = 512
+_INVALID_TENANT_CACHE_BASE_FALLBACK = "_"
+
+
+def _normalize_tenant_schema_name_cache(value: object) -> str | None:
+    """Return a safe tenant schema segment for cache keys, or None if malformed."""
+    raw = str(value).strip() if value is not None else ""
+    if not raw or not _PG_TENANT_SCHEMA_CACHE_RE.fullmatch(raw):
+        return None
+    return raw
+
+
+def _normalize_tenant_resolution_lookup_key(key: object) -> str | None:
+    """Return a safe Redis lookup key for tenant resolution cache, or None if malformed."""
+    if not isinstance(key, str):
+        return None
+    normalized = key.strip()
+    if not normalized or len(normalized) > _MAX_TENANT_RESOLUTION_LOOKUP_LEN:
+        return None
+    if "\x00" in normalized or "\n" in normalized or "\r" in normalized:
+        return None
+    return normalized
+
+
+def _normalize_tenant_cache_base_key(key: object) -> str:
+    """
+    Return a safe suffix for tenant_cache_key, or a stable fallback when malformed.
+    """
+    if not isinstance(key, str):
+        return _INVALID_TENANT_CACHE_BASE_FALLBACK
+    s = key.strip()
+    if (
+        not s
+        or len(s) > _MAX_TENANT_CACHE_BASE_KEY_LEN
+        or "\x00" in s
+        or "\n" in s
+        or "\r" in s
+    ):
+        return _INVALID_TENANT_CACHE_BASE_FALLBACK
+    return s
+
+
+def _normalize_school_id(value: object) -> str | None:
+    """
+    Normalize a school id for cache prefixes (request.school or RLS GUC via current_setting).
+    Rejects pathological shapes so malformed session vars cannot widen cache key structure.
+    """
+    normalized = str(value).strip() if value is not None else ""
+    if not normalized or normalized.lower() in {"none", "null"}:
+        return None
+    if len(normalized) > _MAX_CACHE_SCHOOL_ID_LEN:
+        return None
+    if any(ch.isspace() for ch in normalized):
+        return None
+    if any(ord(ch) < 32 or ord(ch) == 127 for ch in normalized):
+        return None
+    return normalized
+
 
 def _current_rls_school_id() -> str | None:
     """
@@ -30,14 +96,15 @@ def _current_rls_school_id() -> str | None:
     context.
     """
     try:
+        if getattr(settings, "USE_DJANGO_TENANTS", False):
+            return None
         if connection.vendor != "postgresql":
             return None
         # §2.4 raw_sql_replacement_targets: RLS session var only; no ORM equivalent; keep in this module.
         with connection.cursor() as cursor:
             cursor.execute("SELECT current_setting('app.current_school_id', true)")
             row = cursor.fetchone()
-        value = str(row[0]).strip() if row and row[0] is not None else ""
-        return value or None
+        return _normalize_school_id(row[0] if row else None)
     except OPTIONAL_CACHE_ERRORS:
         return None
 
@@ -48,11 +115,11 @@ def get_tenant_cache_prefix(request=None) -> str:
     Use for evals, dashboard widgets, portal, reports, compliance, backend status fragment.
     """
     try:
-        from django.db import connection
-
         tenant = getattr(connection, "tenant", None)
         if tenant is not None:
-            schema = getattr(tenant, "schema_name", None)
+            schema = _normalize_tenant_schema_name_cache(
+                getattr(tenant, "schema_name", None)
+            )
             if schema:
                 return f"tenant:{schema}"
     except OPTIONAL_CACHE_ERRORS:
@@ -63,14 +130,17 @@ def get_tenant_cache_prefix(request=None) -> str:
     if request is not None:
         school = getattr(request, "school", None)
         if school is not None:
-            return f"school:{getattr(school, 'id', '')}"
+            school_id = _normalize_school_id(getattr(school, "id", None))
+            if school_id:
+                return f"school:{school_id}"
     return "public"
 
 
 def tenant_cache_key(base_key: str, request=None) -> str:
     """Return base_key prefixed with tenant/school identifier for tenant-scoped caches."""
     prefix = get_tenant_cache_prefix(request)
-    return f"{prefix}:{base_key}"
+    safe = _normalize_tenant_cache_base_key(base_key)
+    return f"{prefix}:{safe}"
 
 
 # Redis-backed tenant resolution (RUNMYCAMPUS_ROADMAP_TASKS)
@@ -84,7 +154,10 @@ def get_tenant_cached(lookup_key: str) -> Optional[Any]:
     Use when cache backend is Redis for fast tenant resolution without DB hit.
     Returns None if not cached or cache unavailable.
     """
-    key = f"{TENANT_RESOLUTION_CACHE_PREFIX}:{lookup_key}"
+    safe_key = _normalize_tenant_resolution_lookup_key(lookup_key)
+    if not safe_key:
+        return None
+    key = f"{TENANT_RESOLUTION_CACHE_PREFIX}:{safe_key}"
     try:
         return cache.get(key)
     except OPTIONAL_CACHE_ERRORS:
@@ -98,7 +171,10 @@ def set_tenant_cached(
     Cache tenant payload for lookup_key. Use after resolving tenant from DB
     so subsequent requests can use get_tenant_cached(lookup_key) without DB.
     """
-    key = f"{TENANT_RESOLUTION_CACHE_PREFIX}:{lookup_key}"
+    safe_key = _normalize_tenant_resolution_lookup_key(lookup_key)
+    if not safe_key:
+        return
+    key = f"{TENANT_RESOLUTION_CACHE_PREFIX}:{safe_key}"
     try:
         cache.set(key, payload, timeout=timeout)
     except OPTIONAL_CACHE_ERRORS:

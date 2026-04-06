@@ -1,19 +1,55 @@
 #!/usr/bin/env python3
-"""Wedges 1–45: every operator checklist row must have a manager URL or tenant path_doc."""
+"""Wedges 1–45: every operator checklist row must have a manager URL or tenant path_doc.
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
+"""
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent.parent
+REPO = ROOT
 
 
-def main() -> int:
-    os.chdir(REPO)
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify beachhead checklist coverage."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to inspect (default: this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global REPO
+    REPO = base
     if str(REPO) not in sys.path:
         sys.path.insert(0, str(REPO))
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        _configure_root(_resolve_base(args.base))
+    except ValueError as exc:
+        print(f"verify_beachhead_checklists: {exc}", file=sys.stderr)
+        return 1
+
+    os.chdir(REPO)
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
 
@@ -40,7 +76,7 @@ def main() -> int:
                     )
 
     if errors:
-        print("verify_beachhead_checklists FAILED:", file=sys.stderr)
+        print("verify_beachhead_checklists:", file=sys.stderr)
         for e in errors:
             print(f"  - {e}", file=sys.stderr)
         return 1
@@ -52,4 +88,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

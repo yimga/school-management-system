@@ -1,32 +1,18 @@
 #!/usr/bin/env python3
-"""Phase B depth gate: ensure migration 0007 stays aligned with snapshot runtime module."""
+"""
+Phase B depth gate: ensure migration 0007 stays aligned with snapshot runtime module.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
+"""
 
 from __future__ import annotations
 
+import argparse
 import ast
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-SNAPSHOT_MODULE = ROOT / "apps" / "platform_runtime" / "phase_b_domain_snapshots.py"
-MIGRATION_0007 = (
-    ROOT / "apps" / "platform_runtime" / "migrations" / "0007_platform_phase_b_domain_snapshots.py"
-)
-MIGRATION_0026 = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0026_platformphasebdomainsnapshot_typed_metadata.py"
-)
-MIGRATION_0027 = (
-    ROOT
-    / "apps"
-    / "platform_runtime"
-    / "migrations"
-    / "0027_platformphasebdomainsnapshot_key_checksums.py"
-)
-MODELS_PY = ROOT / "apps" / "platform_runtime" / "models.py"
+ROOT = Path(__file__).resolve().parent.parent
 
 # Must stay aligned with PlatformPhaseBDomainSnapshot + migrations 0026–0027.
 SNAPSHOT_MODEL_CLASS = "PlatformPhaseBDomainSnapshot"
@@ -54,27 +40,85 @@ def _parse(path: Path) -> ast.AST:
     return ast.parse(path.read_text(encoding="utf-8", errors="replace"))
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Phase B snapshot migration alignment."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return base
+
+
+def _relative(path: Path, base: Path) -> str:
+    try:
+        return str(path.relative_to(base))
+    except ValueError:
+        return str(path)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        base = _resolve_base(args.base)
+    except ValueError as exc:
+        return _fail([str(exc)])
+
+    snapshot_module = (
+        base / "apps" / "platform_runtime" / "phase_b_domain_snapshots.py"
+    )
+    migration_0007 = (
+        base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0007_platform_phase_b_domain_snapshots.py"
+    )
+    migration_0026 = (
+        base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0026_platformphasebdomainsnapshot_typed_metadata.py"
+    )
+    migration_0027 = (
+        base
+        / "apps"
+        / "platform_runtime"
+        / "migrations"
+        / "0027_platformphasebdomainsnapshot_key_checksums.py"
+    )
+    models_py = base / "apps" / "platform_runtime" / "models.py"
+
     errors: list[str] = []
 
-    if not SNAPSHOT_MODULE.is_file():
-        errors.append(f"Missing {SNAPSHOT_MODULE.relative_to(ROOT)}")
-    if not MIGRATION_0007.is_file():
-        errors.append(f"Missing {MIGRATION_0007.relative_to(ROOT)}")
-    if not MIGRATION_0026.is_file():
-        errors.append(f"Missing {MIGRATION_0026.relative_to(ROOT)}")
-    if not MIGRATION_0027.is_file():
-        errors.append(f"Missing {MIGRATION_0027.relative_to(ROOT)}")
-    if not MODELS_PY.is_file():
-        errors.append(f"Missing {MODELS_PY.relative_to(ROOT)}")
+    if not snapshot_module.is_file():
+        errors.append(f"Missing {_relative(snapshot_module, base)}")
+    if not migration_0007.is_file():
+        errors.append(f"Missing {_relative(migration_0007, base)}")
+    if not migration_0026.is_file():
+        errors.append(f"Missing {_relative(migration_0026, base)}")
+    if not migration_0027.is_file():
+        errors.append(f"Missing {_relative(migration_0027, base)}")
+    if not models_py.is_file():
+        errors.append(f"Missing {_relative(models_py, base)}")
     if errors:
         return _fail(errors)
 
-    snap_tree = _parse(SNAPSHOT_MODULE)
-    mig_tree = _parse(MIGRATION_0007)
-    mig_26_tree = _parse(MIGRATION_0026)
-    mig_27_tree = _parse(MIGRATION_0027)
-    models_tree = _parse(MODELS_PY)
+    snap_tree = _parse(snapshot_module)
+    mig_tree = _parse(migration_0007)
+    mig_26_tree = _parse(migration_0026)
+    mig_27_tree = _parse(migration_0027)
+    models_tree = _parse(models_py)
 
     # Snapshot module must define PHASE_B_SNAPSHOT_DOMAINS tuple (v2: exact sequence match).
     domain_count = None
@@ -200,7 +244,9 @@ def main() -> int:
 
     model_fields = _django_model_field_names(models_tree, SNAPSHOT_MODEL_CLASS)
     if model_fields is None:
-        errors.append(f"{MODELS_PY.relative_to(ROOT)} missing class {SNAPSHOT_MODEL_CLASS}")
+        errors.append(
+            f"{_relative(models_py, base)} missing class {SNAPSHOT_MODEL_CLASS}"
+        )
     elif not EXPECTED_TYPED_METADATA_FIELDS <= model_fields:
         missing = sorted(EXPECTED_TYPED_METADATA_FIELDS - model_fields)
         errors.append(
@@ -306,4 +352,4 @@ def _fail(errors: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

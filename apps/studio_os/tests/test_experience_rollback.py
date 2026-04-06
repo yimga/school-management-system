@@ -60,13 +60,13 @@ class StudioExperienceRollbackTests(TestCase):
 
     def test_experience_rollback_reverts_last_saved_theme_state(self):
         """
-        Rollback must persist on the real SiteSettings row (see studio_rollback).
+        Rollback must persist on the real tenant site-settings row (see studio_rollback).
         We set session snapshot explicitly so the test does not depend on theme POST
         baseline caching quirks vs get_effective_site_settings.
         """
         site = get_platform_site_settings_record(create=True)
         prior = "#0d6efd"
-        # Phase B: primary_color is persisted via RuntimeDefaults.payload (not a SiteSettings column).
+        # Phase B: primary_color is persisted via RuntimeDefaults.payload (not a concrete tenant settings column).
         site.apply_theme_experience_state(
             field_updates={"primary_color": prior}, save=True
         )

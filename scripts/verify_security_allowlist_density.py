@@ -5,23 +5,24 @@ v2: merged Phase 8 ledger summary must match live allowlist sizes (detect stale 
 v3: tracked_root_allowlist.json ``allowed`` array length capped (repo-root file discipline).
 v4: embedded classification lints (raw SQL / csrf_exempt / AllowAny) so this script alone
     proves code↔allowlist parity, not only JSON size caps + ledger rows.
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-ALLOWLISTS = ROOT / "scripts" / "allowlists"
-LEDGER = ROOT / "scripts" / "generated" / "phase8_security_ledger.json"
+ROOT = Path(__file__).resolve().parent.parent
 
 # Baseline captured 2026-03-26 (non-growth discipline).
 # tracked_root: repo-root file allowlist for mega-file / tree gates (shrink-only).
 MAX_COUNTS: dict[str, tuple[str, int]] = {
-    "raw_sql_allowlist.json": ("files", 11),
+    "raw_sql_allowlist.json": ("files", 8),
     "csrf_exempt_allowlist.json": ("files", 13),
     "allow_any_allowlist.json": ("files", 1),
     "broad_except_allowlist.json": ("allowed_counts", 189),
@@ -35,18 +36,40 @@ _CLASSIFICATION_LINTS: tuple[tuple[str, str], ...] = (
 )
 
 
-def _run_embedded_classification_lints() -> list[str]:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Verify security allowlist non-growth and ledger parity "
+            "(raw SQL / csrf_exempt / AllowAny / broad except / tracked root)."
+        )
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to scan (default: this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def _run_embedded_classification_lints(root: Path) -> list[str]:
     """Re-run path/count lints so density gate fails on drift even if this script is invoked alone."""
     errs: list[str] = []
     py = sys.executable
     for label, script_name in _CLASSIFICATION_LINTS:
-        script_path = ROOT / "scripts" / script_name
+        script_path = root / "scripts" / script_name
         if not script_path.is_file():
-            errs.append(f"{label}: missing {script_path.relative_to(ROOT)}")
+            errs.append(f"{label}: missing {script_path.relative_to(root)}")
             continue
         proc = subprocess.run(
             [py, str(script_path)],
-            cwd=str(ROOT),
+            cwd=str(root),
             capture_output=True,
             text=True,
             timeout=180,
@@ -62,14 +85,24 @@ def _run_embedded_classification_lints() -> list[str]:
     return errs
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_security_allowlist_density: {exc}", file=sys.stderr)
+        return 1
+
+    allowlists = root / "scripts" / "allowlists"
+    ledger = root / "scripts" / "generated" / "phase8_security_ledger.json"
+
     errors: list[str] = []
     observed: list[str] = []
 
     for filename, (key, max_count) in MAX_COUNTS.items():
-        path = ALLOWLISTS / filename
+        path = allowlists / filename
         if not path.is_file():
-            errors.append(f"Missing allowlist file: {path.relative_to(ROOT)}")
+            errors.append(f"Missing allowlist file: {path.relative_to(root)}")
             continue
         data = json.loads(path.read_text(encoding="utf-8"))
         section = data.get(key)
@@ -90,16 +123,16 @@ def main() -> int:
                 "shrink/classify instead of silent expansion."
             )
 
-    errors.extend(_run_embedded_classification_lints())
+    errors.extend(_run_embedded_classification_lints(root))
 
     # v2: ledger summary must match denormalized allowlist sizes (run build_phase8_security_ledger --write if stale).
-    if LEDGER.is_file():
+    if ledger.is_file():
         try:
-            ledger = json.loads(LEDGER.read_text(encoding="utf-8"))
-            summary = ledger.get("summary") or {}
-            raw = json.loads((ALLOWLISTS / "raw_sql_allowlist.json").read_text(encoding="utf-8"))
-            csrf = json.loads((ALLOWLISTS / "csrf_exempt_allowlist.json").read_text(encoding="utf-8"))
-            anyp = json.loads((ALLOWLISTS / "allow_any_allowlist.json").read_text(encoding="utf-8"))
+            ledger_data = json.loads(ledger.read_text(encoding="utf-8"))
+            summary = ledger_data.get("summary") or {}
+            raw = json.loads((allowlists / "raw_sql_allowlist.json").read_text(encoding="utf-8"))
+            csrf = json.loads((allowlists / "csrf_exempt_allowlist.json").read_text(encoding="utf-8"))
+            anyp = json.loads((allowlists / "allow_any_allowlist.json").read_text(encoding="utf-8"))
             expect_sql = len(raw.get("files", {}) or {})
             expect_csrf = len(csrf.get("files", {}) or {})
             expect_any = len(anyp.get("files", {}) or {})
@@ -118,12 +151,12 @@ def main() -> int:
             errors.append(f"Could not verify security ledger parity: {exc}")
     else:
         errors.append(
-            f"Missing {LEDGER.relative_to(ROOT)} — run "
+            f"Missing {ledger.relative_to(root)} — run "
             "python scripts/build_phase8_security_ledger.py --write"
         )
 
     if errors:
-        print("verify_security_allowlist_density: FAIL", file=sys.stderr)
+        print("verify_security_allowlist_density:", file=sys.stderr)
         for err in errors:
             print(f"  - {err}", file=sys.stderr)
         return 1
@@ -136,4 +169,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

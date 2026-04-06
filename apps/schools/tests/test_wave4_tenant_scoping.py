@@ -5,16 +5,18 @@ Non-negotiable: lint/test for get_tenant_cache_prefix(None); tenant isolation;
 single-tenant/legacy path documented or isolated.
 """
 
+import subprocess
+import sys
 from pathlib import Path
 
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from apps.accounts.models import User
 from apps.requests.models import AccessRequest
 from apps.schools.models import School
 
 
-class Wave4TenantCachePrefixLintTests(TestCase):
+class Wave4TenantCachePrefixLintTests(SimpleTestCase):
     """Wave 4.2: get_tenant_cache_prefix(None) must not be used in tenant app code (except allowlist)."""
 
     def test_lint_tenant_cache_prefix_script_exists(self):
@@ -23,6 +25,25 @@ class Wave4TenantCachePrefixLintTests(TestCase):
         script = root / "scripts" / "lint_tenant_cache_prefix.py"
         self.assertTrue(
             script.is_file(), "scripts/lint_tenant_cache_prefix.py must exist."
+        )
+
+    def test_lint_tenant_cache_prefix_passes_on_repo(self):
+        """Wave 4.2: same multi-root contract as Phase 3–11 gates — explicit --base."""
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        script = root / "scripts" / "lint_tenant_cache_prefix.py"
+        self.assertTrue(script.is_file(), f"missing {script}")
+        proc = subprocess.run(
+            [sys.executable, str(script), "--base", str(root)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(
+            proc.returncode,
+            0,
+            "lint_tenant_cache_prefix.py failed:\n"
+            f"{proc.stderr}\n{proc.stdout}",
         )
 
     def test_tenant_app_requests_detail_filters_by_school(self):

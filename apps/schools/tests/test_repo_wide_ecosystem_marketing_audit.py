@@ -14,7 +14,12 @@ _ROOT = Path(__file__).resolve().parents[3]
 class RepoWideEcosystemMarketingAuditTests(SimpleTestCase):
     def test_repo_wide_audit_script_passes(self) -> None:
         proc = subprocess.run(
-            [sys.executable, str(_ROOT / "scripts/verify_repo_wide_ecosystem_marketing_audit.py")],
+            [
+                sys.executable,
+                str(_ROOT / "scripts/verify_repo_wide_ecosystem_marketing_audit.py"),
+                "--base",
+                str(_ROOT),
+            ],
             cwd=_ROOT,
             capture_output=True,
             text=True,

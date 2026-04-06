@@ -98,6 +98,7 @@ def api_onboarding_coach(request):
 
     if getattr(settings, "AI_GATEWAY_ENABLED", True):
         try:
+            from apps.portal.ai_provider import _normalize_gateway_metadata
             from services.ai_gateway import TaskType, invoke
 
             prompt = (
@@ -105,13 +106,27 @@ def api_onboarding_coach(request):
                 f"Health score ~{score}. Dominant task: {(payload.get('recommended_next') or {}).get('label', 'setup')}. "
                 "Reply in 2–4 short sentences: what to do next and why. Plain text only."
             )
+            school_id = getattr(school, "pk", None) or getattr(school, "id", None)
+            country_code = (
+                getattr(school, "country_code", None)
+                or getattr(getattr(school, "default_region", None), "code", None)
+            )
             text, meta = invoke(
                 TaskType.SETUP_RECOMMEND,
                 prompt,
-                metadata={
-                    "school_id": str(school.id),
-                    "user_id": str(request.user.pk),
-                },
+                metadata=_normalize_gateway_metadata(
+                    {
+                        "request": request,
+                        "school": school,
+                        "school_id": str(school_id) if school_id is not None else None,
+                        "tenant_id": str(school_id) if school_id is not None else None,
+                        "user_id": str(request.user.pk),
+                        "role": getattr(request.user, "role", None)
+                        or getattr(request.user, "portal_role", None)
+                        or getattr(request.user, "user_type", None),
+                        "country_code": country_code,
+                    }
+                ),
             )
             if text and isinstance(text, str) and len(text.strip()) > 20:
                 coach_message = text.strip()[:1200]

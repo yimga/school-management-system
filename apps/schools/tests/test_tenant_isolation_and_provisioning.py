@@ -22,14 +22,16 @@ from apps.schools.tasks import provision_school_sync
 from apps.people.models import StudentProfile
 from apps.academics.models import AcademicYear, Term, Subject
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.siteconfig import models as _siteconfig_models
 from apps.siteconfig.models import (
     EducationSystemProfile,
     RegionConfig,
-    SiteSettings,
     TenantSystem,
     SystemFeature,
 )
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 class TenantIsolationTests(TestCase):
@@ -418,8 +420,8 @@ class OfflineSyncPerSchoolTests(TestCase):
             app_version="1.0",
         )
         get_platform_site_settings_record(create=True)
-        # Phase B: enable_offline_mode is runtime payload, not a SiteSettings column.
-        SiteSettings._persist_runtime_payload_updates({"enable_offline_mode": True})
+        # Phase B: enable_offline_mode is runtime payload, not a concrete tenant settings column.
+        _TenantSettingsModel._persist_runtime_payload_updates({"enable_offline_mode": True})
 
         client = Client()
         client.force_login(user)

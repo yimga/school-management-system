@@ -15,6 +15,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 # .env.local: do not override vars already set (e.g. DATABASE_URL on Render), so local file only fills in unset keys.
 load_dotenv(BASE_DIR / ".env.local", override=False)
+RUNNING_TESTS = "test" in sys.argv or any(
+    "pytest" in (arg or "") for arg in sys.argv
+) or bool(os.getenv("PYTEST_CURRENT_TEST"))
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -372,7 +375,7 @@ else:
 # to avoid Django cloning the test DB and re-running migrations (duplicate column errors).
 if (
     not PREVIEW_DATABASE_URL
-    and "test" in sys.argv
+    and RUNNING_TESTS
     and DATABASES.get("default", {}).get("ENGINE") == "django.db.backends.sqlite3"
 ):
     DATABASES = {"default": DATABASES["default"]}
@@ -407,7 +410,7 @@ for _alias, _db_config in DATABASES.items():
 
 # Longer busy timeout during unittest / manage.py test reduces flaky "database is locked" on
 # Windows with file-backed SQLite + --keepdb (pre_deploy_gate, local agents).
-if "test" in sys.argv:
+if RUNNING_TESTS:
     for _db_config in DATABASES.values():
         if _db_config.get("ENGINE") == "django.db.backends.sqlite3":
             _opts = _db_config.setdefault("OPTIONS", {})
@@ -420,7 +423,7 @@ for db_config in DATABASES.values():
 
 # Tests + SQLite: persistent connections worsen "database is locked" on Windows when
 # using file-backed test DBs (--keepdb, DJANGO_TEST_DB_FILE). Release after each request.
-if "test" in sys.argv:
+if RUNNING_TESTS:
     for db_config in DATABASES.values():
         if db_config.get("ENGINE") == "django.db.backends.sqlite3":
             db_config["CONN_MAX_AGE"] = 0
@@ -506,7 +509,7 @@ SECURE_SSL_REDIRECT = (
     os.getenv("SECURE_SSL_REDIRECT", _secure_ssl_redirect_default) == "1" and not DEBUG
 )
 # Test runner uses plain HTTP requests; keep HTTPS redirect behavior for runtime envs.
-if "test" in sys.argv:
+if RUNNING_TESTS:
     SECURE_SSL_REDIRECT = False
 # Health/readiness probes can come over plain HTTP from platform internals.
 # Exempt these endpoints to avoid redirect loops and failed boot probes.
@@ -876,8 +879,8 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = os.getenv("TIME_ZONE", "UTC")
 CELERY_TASK_TRACK_STARTED = True
-# Run tasks synchronously in test runs so no broker is required
-if "test" in sys.argv:
+# Run tasks synchronously in test runs so no broker is required.
+if RUNNING_TESTS:
     CELERY_TASK_ALWAYS_EAGER = True
 # Optional: run celery beat with: celery -A config beat -l info
 # Add periodic tasks in Django admin (django_celery_beat) or define CELERY_BEAT_SCHEDULE (see Celery docs).
@@ -1052,7 +1055,7 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_DIR = BASE_DIR / "logs"
 USE_FILE_LOGGING = os.getenv("USE_FILE_LOGGING", str(DEBUG)) == "True"
 # Disable file logging during test runs to avoid RotatingFileHandler lock/rename issues (e.g. Windows)
-if "test" in sys.argv:
+if RUNNING_TESTS:
     USE_FILE_LOGGING = False
 
 # Only create logs directory if file logging is enabled
@@ -1160,9 +1163,7 @@ LOGGING = {
         },
         "django.db": {
             "handlers": ["console"],
-            "level": "WARNING"
-            if "test" in sys.argv
-            else ("DEBUG" if DEBUG else "WARNING"),
+            "level": "WARNING" if RUNNING_TESTS else ("DEBUG" if DEBUG else "WARNING"),
             "propagate": False,
         },
     },

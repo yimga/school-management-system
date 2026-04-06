@@ -8,20 +8,19 @@ markdown files unless intentionally re-baselined with SOT/log updates.
 Also verifies the canonical SOT, autonomous log, external backlog, and Cursor rule
 files were not replaced by stubs or accidental pastes (title/section markers + minimum
 sizes; SOT must still point at per-app depth + backlog — batch 39 §11.4).
+
+Usage: python scripts/verify_doc_plan_density_discipline.py [--base REPO_ROOT]
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-DOCS = ROOT / "docs"
-SOT = DOCS / "RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md"
-EXEC_LOG = DOCS / "RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md"
-BACKLOG = DOCS / "SOT_REMAINING_ITEMS_BACKLOG.md"
-RULE = ROOT / ".cursor" / "rules" / "runmycampus-single-source-of-truth.mdc"
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
 NAME_PATTERN = re.compile(r"(plan|roadmap|remediation|master)", flags=re.IGNORECASE)
 
@@ -45,102 +44,142 @@ _MIN_BACKLOG_CHARS = 2000
 _MIN_RULE_CHARS = 400
 
 
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
 def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def _canonical_artifact_errors() -> list[str]:
+def _canonical_artifact_paths(root: Path) -> tuple[Path, Path, Path, Path, Path]:
+    docs = root / "docs"
+    return (
+        docs / "RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
+        docs / "RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
+        docs / "SOT_REMAINING_ITEMS_BACKLOG.md",
+        root / ".cursor" / "rules" / "runmycampus-single-source-of-truth.mdc",
+        docs,
+    )
+
+
+def _canonical_artifact_errors(root: Path) -> list[str]:
     """Fail fast when SOT, execution log, backlog, or Cursor rule is truncated or stubbed."""
+    sot, exec_log, backlog, rule, _docs = _canonical_artifact_paths(root)
     errs: list[str] = []
-    if SOT.is_file():
-        body = _read_text(SOT)
+    if sot.is_file():
+        body = _read_text(sot)
         if _SOT_TITLE_SNIPPET not in body:
             errs.append(
-                f"{SOT.relative_to(ROOT)} missing title marker (possible stub/paste); "
+                f"{sot.relative_to(root)} missing title marker (possible stub/paste); "
                 f"expected substring: {_SOT_TITLE_SNIPPET!r}"
             )
         if _SOT_SECTION_SNIPPET not in body:
             errs.append(
-                f"{SOT.relative_to(ROOT)} missing section marker (possible stub/paste); "
+                f"{sot.relative_to(root)} missing section marker (possible stub/paste); "
                 f"expected substring: {_SOT_SECTION_SNIPPET!r}"
             )
         if len(body) < _MIN_SOT_CHARS:
             errs.append(
-                f"{SOT.relative_to(ROOT)} too small ({len(body)} chars < {_MIN_SOT_CHARS}); "
+                f"{sot.relative_to(root)} too small ({len(body)} chars < {_MIN_SOT_CHARS}); "
                 "restore from git or reload from disk — editor buffer may be a short paste."
             )
         if _SOT_PATH_TO_100_SNIPPET not in body:
             errs.append(
-                f"{SOT.relative_to(ROOT)} missing per-app depth pointer "
+                f"{sot.relative_to(root)} missing per-app depth pointer "
                 f"(expected substring {_SOT_PATH_TO_100_SNIPPET!r})"
             )
         if _SOT_BACKLOG_SNIPPET not in body:
             errs.append(
-                f"{SOT.relative_to(ROOT)} missing external backlog pointer "
+                f"{sot.relative_to(root)} missing external backlog pointer "
                 f"(expected substring {_SOT_BACKLOG_SNIPPET!r})"
             )
-    if EXEC_LOG.is_file():
-        body = _read_text(EXEC_LOG)
+    if exec_log.is_file():
+        body = _read_text(exec_log)
         if _LOG_TITLE_SNIPPET not in body:
             errs.append(
-                f"{EXEC_LOG.relative_to(ROOT)} missing title marker; "
+                f"{exec_log.relative_to(root)} missing title marker; "
                 f"expected substring: {_LOG_TITLE_SNIPPET!r}"
             )
         if len(body) < _MIN_EXEC_LOG_CHARS:
             errs.append(
-                f"{EXEC_LOG.relative_to(ROOT)} too small ({len(body)} chars < {_MIN_EXEC_LOG_CHARS})"
+                f"{exec_log.relative_to(root)} too small ({len(body)} chars < {_MIN_EXEC_LOG_CHARS})"
             )
-    if BACKLOG.is_file():
-        body = _read_text(BACKLOG)
+    if backlog.is_file():
+        body = _read_text(backlog)
         if _BACKLOG_TITLE_SNIPPET not in body:
             errs.append(
-                f"{BACKLOG.relative_to(ROOT)} missing title marker; "
+                f"{backlog.relative_to(root)} missing title marker; "
                 f"expected substring: {_BACKLOG_TITLE_SNIPPET!r}"
             )
         if _BACKLOG_AUTHORITY_SNIPPET not in body:
             errs.append(
-                f"{BACKLOG.relative_to(ROOT)} missing SOT authority link "
+                f"{backlog.relative_to(root)} missing SOT authority link "
                 f"(expected substring {_BACKLOG_AUTHORITY_SNIPPET!r})"
             )
         if _BACKLOG_OPEN_SECTION_SNIPPET not in body:
             errs.append(
-                f"{BACKLOG.relative_to(ROOT)} missing external OPEN section "
+                f"{backlog.relative_to(root)} missing external OPEN section "
                 f"(expected heading {_BACKLOG_OPEN_SECTION_SNIPPET!r})"
             )
         if len(body) < _MIN_BACKLOG_CHARS:
             errs.append(
-                f"{BACKLOG.relative_to(ROOT)} too small ({len(body)} chars < {_MIN_BACKLOG_CHARS})"
+                f"{backlog.relative_to(root)} too small ({len(body)} chars < {_MIN_BACKLOG_CHARS})"
             )
-    if RULE.is_file():
-        body = _read_text(RULE)
+    if rule.is_file():
+        body = _read_text(rule)
         if _RULE_PATH_SNIPPET not in body:
             errs.append(
-                f"{RULE.relative_to(ROOT)} missing SOT path reference; "
+                f"{rule.relative_to(root)} missing SOT path reference; "
                 f"expected substring: {_RULE_PATH_SNIPPET!r}"
             )
         if len(body) < _MIN_RULE_CHARS:
             errs.append(
-                f"{RULE.relative_to(ROOT)} too small ({len(body)} chars < {_MIN_RULE_CHARS})"
+                f"{rule.relative_to(root)} too small ({len(body)} chars < {_MIN_RULE_CHARS})"
             )
     return errs
 
 
-def _matching_doc_paths() -> tuple[list[Path], list[Path]]:
-    all_docs = [p for p in DOCS.rglob("*.md") if NAME_PATTERN.search(p.name)]
-    root_docs = [p for p in DOCS.glob("*.md") if NAME_PATTERN.search(p.name)]
+def _matching_doc_paths(root: Path) -> tuple[list[Path], list[Path]]:
+    docs = root / "docs"
+    all_docs = [p for p in docs.rglob("*.md") if NAME_PATTERN.search(p.name)]
+    root_docs = [p for p in docs.glob("*.md") if NAME_PATTERN.search(p.name)]
     return all_docs, root_docs
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify SOT/log density discipline and canonical doc markers."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_doc_plan_density_discipline: {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
+    sot, exec_log, backlog, rule, _docs = _canonical_artifact_paths(root)
 
-    for path in (SOT, EXEC_LOG, BACKLOG, RULE):
+    for path in (sot, exec_log, backlog, rule):
         if not path.is_file():
-            errors.append(f"Missing required discipline artifact: {path.relative_to(ROOT)}")
+            errors.append(f"Missing required discipline artifact: {path.relative_to(root)}")
 
-    errors.extend(_canonical_artifact_errors())
+    errors.extend(_canonical_artifact_errors(root))
 
-    all_docs, root_docs = _matching_doc_paths()
+    all_docs, root_docs = _matching_doc_paths(root)
     all_count = len(all_docs)
     root_count = len(root_docs)
 
@@ -170,4 +209,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

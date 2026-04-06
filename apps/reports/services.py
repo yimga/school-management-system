@@ -660,8 +660,9 @@ def _region_display_context(
             or get_platform_defaults(use_db=False)["region_code"]
         )
         region = RegionConfig.objects.get(code=region_code)
+    except ObjectDoesNotExist:
+        region = RegionConfig.get_default()
     except (
-        ObjectDoesNotExist,
         DatabaseError,
         KeyError,
         TypeError,

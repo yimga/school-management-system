@@ -51,7 +51,7 @@ No `openai`, `anthropic`, or `google.generativeai` SDK imports in app code for c
 ## Embeddings and semantic search
 
 - **Router:** `services.embeddings.get_embedding_provider()` returns Ollama or OpenAI-compatible provider per `AI_EMBEDDING_BACKEND`.
-- **Retrieval guardrails:** `AIMemoryService.search_similar(...)` includes tenant scoping, global fallback for shared knowledge, metadata-based role/staff visibility filtering, and for **`policy`** scope a **tenant-first ranking boost** when `school_id` is set (school-specific policy bundles rank above global rows at equal embedding similarity).
+- **Retrieval guardrails:** `AIMemoryService.search_similar(...)` includes tenant scoping, global fallback for shared knowledge, metadata-based role/staff visibility filtering, and for **`policy`** scope a **tenant-first ranking boost** when `school_id` is set (school-specific policy bundles rank above global rows at equal embedding similarity). Product HTTP RAG entrypoints now use `global_only=True` when `request.school` is missing, so non-tenant requests see only platform-global rows instead of an unscoped cross-tenant sweep.
 - **Storage:** `services.ai_memory.AIMemoryService` uses the router for `store`; `get_embedding_for_text()` for query embedding. Index: policies, blueprints, docs, config (per blueprint).
 
 ### Retrieval indexing (ingestion)
@@ -121,7 +121,7 @@ Callers may pass the following in `metadata` to influence routing and behaviour 
 - **sensitivity_class** (`"low"` \| `"medium"` \| `"high"`): When `"high"`, premium (**LiteLLM**) is disabled for this request.
 - **latency_target** (int, seconds): Hint for timeout; gateway caps provider timeout to this value when set (e.g. 5–90).
 - **output_type** (`"text"` \| `"json"`): Informational; can be used to prefer JSON-capable backends (e.g. vLLM with `response_format: json_object`).
-- **allowed_backends** (list of str): If set, only these tiers are tried (e.g. `["ollama", "rules"]` for internal-only). Order is respected; must be subset of configured tiers.
+- **allowed_backends** (list of str): If set, only these tiers are tried (e.g. `["ollama", "rules"]` for internal-only). Order is respected; must be subset of configured tiers. If the intersection is empty, the gateway returns unavailable instead of widening back to the default tier list.
 
 These are documented in `services.ai_gateway.invoke` and applied in routing/tier selection and timeout.
 

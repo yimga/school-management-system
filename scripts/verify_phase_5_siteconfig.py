@@ -29,16 +29,20 @@ Also asserts ``0035_platform_integration_webhook_event`` (Phase B–style inboun
 ``0044_platform_operator_command_center_link`` (mission / command center curated links), and
 ``0045_platform_operator_orchestration_workbench_link`` (orchestration workbench curated links).
 Table/singleton after migrate: ``scripts/verify_phase_b_execution.py``.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 Exit 0 = gate MET; non-zero = fix before release.
 """
 
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
 REQUIRED_DOCS: tuple[tuple[Path, str], ...] = (
     (ROOT / "docs" / "site_settings_usage_inventory.md", "SiteSettings usage inventory"),
@@ -368,7 +372,163 @@ PLATFORM_OPERATOR_MIGRATION_CLOUD_LINK_MIGRATION = (
 )
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify ZIP Phase 5 SiteSettings / siteconfig dismantling."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT
+    global REQUIRED_DOCS
+    global DOMAIN_OWNERSHIP_PY
+    global LINT_SCRIPT
+    global PHASE_B_BATCH0_MIGRATION
+    global PHASE_B_BATCH1_MIGRATION
+    global PHASE_B_BATCH3_MIGRATION
+    global PHASE_B_DOMAIN_SNAPSHOT_MIGRATION
+    global RUNTIMEDEFAULTS_FIRST_CLASS_MIGRATION
+    global RUNTIMEDEFAULTS_PUBLIC_BRAND_MIGRATION
+    global RUNTIMEDEFAULTS_META_DOMAIN_MIGRATION
+    global RUNTIMEDEFAULTS_TAGLINE_SCHOOL_CODE_MIGRATION
+    global RUNTIMEDEFAULTS_COMPANY_IDENTITY_MIGRATION
+    global RUNTIMEDEFAULTS_IDENTITY_GEO_MIGRATION
+    global RUNTIMEDEFAULTS_REGISTRY_STRINGS_MIGRATION
+    global RUNTIMEDEFAULTS_ADMISSION_ADMIN_PORTAL_MIGRATION
+    global RUNTIMEDEFAULTS_BRAND_RUNTIME_DASHBOARD_MIGRATION
+    global RUNTIMEDEFAULTS_PORTAL_FEED_BATCH_MIGRATION
+    global RUNTIMEDEFAULTS_BRAND_PALETTE_SOCIAL_BATCH_MIGRATION
+    global RUNTIMEDEFAULTS_PORTAL_THEME_POLICY_BATCH_MIGRATION
+    global RUNTIMEDEFAULTS_THEME_SURFACE_BATCH_MIGRATION
+    global RUNTIMEDEFAULTS_POLICY_RUNTIME_TOGGLES_BATCH_MIGRATION
+    global RUNTIMEDEFAULTS_REPORTS_THEMEPACK_BATCH_MIGRATION
+    global RUNTIMEDEFAULTS_POLICY_REPORTS_INTERVAL_BATCH_MIGRATION
+    global RUNTIMEDEFAULTS_POLICY_MAPS_COMPLIANCE_BATCH_MIGRATION
+    global PHASE_B_SNAPSHOT_TYPED_METADATA_MIGRATION
+    global PHASE_B_SNAPSHOT_KEY_CHECKSUMS_MIGRATION
+    global RUNTIMEDEFAULTS_REPORT_DOWNLOADS_ENABLED_MIGRATION
+    global RUNTIMEDEFAULTS_SMS_API_KEY_FIRST_CLASS_MIGRATION
+    global RUNTIMEDEFAULTS_AI_PROVIDER_API_KEY_FIRST_CLASS_MIGRATION
+    global RUNTIMEDEFAULTS_WHATSAPP_API_TOKEN_FIRST_CLASS_MIGRATION
+    global RUNTIMEDEFAULTS_MARKSHEET_OCR_API_KEY_FIRST_CLASS_MIGRATION
+    global RUNTIMEDEFAULTS_SMTP_PASSWORD_FIRST_CLASS_MIGRATION
+    global RUNTIMEDEFAULTS_WEBHOOK_SIGNING_SECRET_FIRST_CLASS_MIGRATION
+    global PLATFORM_INTEGRATION_WEBHOOK_EVENT_MIGRATION
+    global PLATFORM_REPORT_PLATFORM_SKU_DEFAULT_MIGRATION
+    global RUNTIMEDEFAULTS_MARKETPLACE_PARTNER_CLIENT_SECRET_MIGRATION
+    global PLATFORM_OPERATOR_PLAYBOOK_LINK_MIGRATION
+    global PLATFORM_OPERATOR_TRUTH_HUB_LINK_MIGRATION
+    global PLATFORM_OPERATOR_PHASE_B_LINK_MIGRATION
+    global PLATFORM_OPERATOR_WORKFLOW_SIMULATOR_LINK_MIGRATION
+    global PLATFORM_OPERATOR_SUPPORT_DASHBOARD_LINK_MIGRATION
+    global PLATFORM_OPERATOR_TENANT_HEALTH_LINK_MIGRATION
+    global PLATFORM_OPERATOR_COMMAND_CENTER_LINK_MIGRATION
+    global PLATFORM_OPERATOR_ORCHESTRATION_WORKBENCH_LINK_MIGRATION
+    global PLATFORM_OPERATOR_SUPER_DASHBOARD_LINK_MIGRATION
+    global PLATFORM_OPERATOR_SUPER_SCHOOLS_LIST_LINK_MIGRATION
+    global PLATFORM_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK_MIGRATION
+    global PLATFORM_OPERATOR_PLATFORM_HUB_LINK_MIGRATION
+    global PLATFORM_OPERATOR_MIGRATION_CLOUD_LINK_MIGRATION
+
+    ROOT = base
+    REQUIRED_DOCS = (
+        (ROOT / "docs" / "site_settings_usage_inventory.md", "SiteSettings usage inventory"),
+        (ROOT / "docs" / "domain_ownership.md", "Domain ownership"),
+        (ROOT / "docs" / "SITECONFIG_OWNERSHIP_MIGRATION.md", "Ownership migration plan"),
+        (ROOT / "docs" / "SITECONFIG_FREEZE_POLICY.md", "Siteconfig freeze policy"),
+        (ROOT / "docs" / "SITESETTINGS_RUNTIME_DECOMPOSITION.md", "Runtime decomposition"),
+    )
+    DOMAIN_OWNERSHIP_PY = ROOT / "apps" / "siteconfig" / "domain_ownership.py"
+    LINT_SCRIPT = ROOT / "scripts" / "lint_tenant_settings.py"
+    PHASE_B_BATCH0_MIGRATION = ROOT / "apps" / "siteconfig" / "migrations" / "0162_phase_b_slim_sitesettings.py"
+    PHASE_B_BATCH1_MIGRATION = ROOT / "apps" / "brand_experience" / "migrations" / "0002_platform_global_branding.py"
+    PHASE_B_BATCH3_MIGRATION = ROOT / "apps" / "siteconfig" / "migrations" / "0163_phase_b_batch3_drop_sitesettings_branding_columns.py"
+    PHASE_B_DOMAIN_SNAPSHOT_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0007_platform_phase_b_domain_snapshots.py"
+    RUNTIMEDEFAULTS_FIRST_CLASS_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0009_runtimedefaults_preview_integration_columns.py"
+    RUNTIMEDEFAULTS_PUBLIC_BRAND_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0010_runtimedefaults_public_brand_colors.py"
+    RUNTIMEDEFAULTS_META_DOMAIN_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0011_runtimedefaults_meta_description_branded_domain.py"
+    RUNTIMEDEFAULTS_TAGLINE_SCHOOL_CODE_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0012_runtimedefaults_tagline_school_code.py"
+    RUNTIMEDEFAULTS_COMPANY_IDENTITY_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0013_runtimedefaults_company_identity_strings.py"
+    RUNTIMEDEFAULTS_IDENTITY_GEO_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0014_runtimedefaults_identity_and_geo_strings.py"
+    RUNTIMEDEFAULTS_REGISTRY_STRINGS_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0015_runtimedefaults_registry_strings_batch.py"
+    RUNTIMEDEFAULTS_ADMISSION_ADMIN_PORTAL_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0016_runtimedefaults_admission_and_admin_portal_defaults.py"
+    RUNTIMEDEFAULTS_BRAND_RUNTIME_DASHBOARD_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0017_runtimedefaults_brand_runtime_dashboard_batch.py"
+    RUNTIMEDEFAULTS_PORTAL_FEED_BATCH_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0018_runtimedefaults_portal_feed_batch.py"
+    RUNTIMEDEFAULTS_BRAND_PALETTE_SOCIAL_BATCH_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0019_runtimedefaults_brand_palette_and_social_batch.py"
+    RUNTIMEDEFAULTS_PORTAL_THEME_POLICY_BATCH_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0020_runtimedefaults_portal_theme_policy_batch.py"
+    RUNTIMEDEFAULTS_THEME_SURFACE_BATCH_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0021_runtimedefaults_theme_surface_batch.py"
+    RUNTIMEDEFAULTS_POLICY_RUNTIME_TOGGLES_BATCH_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0022_runtimedefaults_policy_runtime_toggles_batch.py"
+    RUNTIMEDEFAULTS_REPORTS_THEMEPACK_BATCH_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0023_runtimedefaults_reports_themepack_batch.py"
+    RUNTIMEDEFAULTS_POLICY_REPORTS_INTERVAL_BATCH_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0024_runtimedefaults_policy_reports_interval_batch.py"
+    RUNTIMEDEFAULTS_POLICY_MAPS_COMPLIANCE_BATCH_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0025_runtimedefaults_policy_maps_and_compliance_batch.py"
+    PHASE_B_SNAPSHOT_TYPED_METADATA_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0026_platformphasebdomainsnapshot_typed_metadata.py"
+    PHASE_B_SNAPSHOT_KEY_CHECKSUMS_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0027_platformphasebdomainsnapshot_key_checksums.py"
+    RUNTIMEDEFAULTS_REPORT_DOWNLOADS_ENABLED_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0028_runtimedefaults_report_downloads_enabled.py"
+    RUNTIMEDEFAULTS_SMS_API_KEY_FIRST_CLASS_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0029_runtimedefaults_sms_api_key_first_class.py"
+    RUNTIMEDEFAULTS_AI_PROVIDER_API_KEY_FIRST_CLASS_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0030_runtimedefaults_ai_provider_api_key_first_class.py"
+    RUNTIMEDEFAULTS_WHATSAPP_API_TOKEN_FIRST_CLASS_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0031_runtimedefaults_whatsapp_api_token_first_class.py"
+    RUNTIMEDEFAULTS_MARKSHEET_OCR_API_KEY_FIRST_CLASS_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0032_runtimedefaults_marksheet_ocr_api_key_first_class.py"
+    RUNTIMEDEFAULTS_SMTP_PASSWORD_FIRST_CLASS_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0033_runtimedefaults_smtp_password_first_class.py"
+    RUNTIMEDEFAULTS_WEBHOOK_SIGNING_SECRET_FIRST_CLASS_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0034_runtimedefaults_webhook_signing_secret_first_class.py"
+    PLATFORM_INTEGRATION_WEBHOOK_EVENT_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0035_platform_integration_webhook_event.py"
+    PLATFORM_REPORT_PLATFORM_SKU_DEFAULT_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0036_platform_report_platform_sku_default.py"
+    RUNTIMEDEFAULTS_MARKETPLACE_PARTNER_CLIENT_SECRET_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0037_runtimedefaults_marketplace_partner_client_secret_first_class.py"
+    PLATFORM_OPERATOR_PLAYBOOK_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0038_platform_operator_playbook_link.py"
+    PLATFORM_OPERATOR_TRUTH_HUB_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0039_platform_operator_truth_hub_link.py"
+    PLATFORM_OPERATOR_PHASE_B_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0040_platform_operator_phase_b_link.py"
+    PLATFORM_OPERATOR_WORKFLOW_SIMULATOR_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0041_platform_operator_workflow_simulator_link.py"
+    PLATFORM_OPERATOR_SUPPORT_DASHBOARD_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0042_platform_operator_support_dashboard_link.py"
+    PLATFORM_OPERATOR_TENANT_HEALTH_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0043_platform_operator_tenant_health_link.py"
+    PLATFORM_OPERATOR_COMMAND_CENTER_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0044_platform_operator_command_center_link.py"
+    PLATFORM_OPERATOR_ORCHESTRATION_WORKBENCH_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0045_platform_operator_orchestration_workbench_link.py"
+    PLATFORM_OPERATOR_SUPER_DASHBOARD_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0046_platform_operator_super_dashboard_link.py"
+    PLATFORM_OPERATOR_SUPER_SCHOOLS_LIST_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0047_platform_operator_super_schools_list_link.py"
+    PLATFORM_OPERATOR_SUPER_ANALYTICS_OVERVIEW_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0048_platform_operator_super_analytics_overview_link.py"
+    PLATFORM_OPERATOR_PLATFORM_HUB_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0049_platform_operator_platform_hub_link.py"
+    PLATFORM_OPERATOR_MIGRATION_CLOUD_LINK_MIGRATION = ROOT / "apps" / "platform_runtime" / "migrations" / "0050_platform_operator_migration_cloud_link.py"
+
+
+def _run_check(
+    cmd: list[str],
+    label: str,
+    *,
+    timeout: int,
+) -> str | None:
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        return f"{label} timed out after {timeout}s:\n{exc.stdout or ''}{exc.stderr or ''}"
+    if proc.returncode != 0:
+        return f"{label} failed:\n{proc.stdout or ''}{proc.stderr or ''}"
+    return None
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        _configure_root(_resolve_base(parse_args(argv).base))
+    except ValueError as exc:
+        print(f"Phase 5 siteconfig verification FAILED: {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
     for path, label in REQUIRED_DOCS:
@@ -388,20 +548,13 @@ def main() -> int:
     if not LINT_SCRIPT.is_file():
         errors.append("scripts/lint_tenant_settings.py not found")
     else:
-        r = subprocess.run(
+        if err := _run_check(
             [sys.executable, str(LINT_SCRIPT), "--check-get-solo-only", "--base", str(ROOT)],
-            cwd=str(ROOT),
-            capture_output=True,
-            text=True,
+            "lint_tenant_settings --check-get-solo-only",
             timeout=120,
-        )
-        if r.returncode != 0:
-            errors.append(
-                "lint_tenant_settings --check-get-solo-only failed:\n"
-                + (r.stdout or "")
-                + (r.stderr or "")
-            )
-        r2 = subprocess.run(
+        ):
+            errors.append(err)
+        if err := _run_check(
             [
                 sys.executable,
                 str(LINT_SCRIPT),
@@ -409,17 +562,10 @@ def main() -> int:
                 "--base",
                 str(ROOT),
             ],
-            cwd=str(ROOT),
-            capture_output=True,
-            text=True,
+            "lint_tenant_settings --check-sitesettings-orm-in-tenant-apps",
             timeout=120,
-        )
-        if r2.returncode != 0:
-            errors.append(
-                "lint_tenant_settings --check-sitesettings-orm-in-tenant-apps failed:\n"
-                + (r2.stdout or "")
-                + (r2.stderr or "")
-            )
+        ):
+            errors.append(err)
 
     verify_exact_storage = ROOT / "scripts" / "verify_domain_ownership_exact_storage.py"
     if not verify_exact_storage.is_file():
@@ -427,20 +573,12 @@ def main() -> int:
             "scripts/verify_domain_ownership_exact_storage.py missing "
             "(EXACT_FIELD_OWNERS ↔ RuntimeDefaults first-class registry gate)."
         )
-    else:
-        r_storage = subprocess.run(
-            [sys.executable, str(verify_exact_storage)],
-            cwd=str(ROOT),
-            capture_output=True,
-            text=True,
-            timeout=60,
-        )
-        if r_storage.returncode != 0:
-            errors.append(
-                "verify_domain_ownership_exact_storage failed:\n"
-                + (r_storage.stdout or "")
-                + (r_storage.stderr or "")
-            )
+    elif err := _run_check(
+        [sys.executable, str(verify_exact_storage), "--base", str(ROOT)],
+        "verify_domain_ownership_exact_storage",
+        timeout=60,
+    ):
+        errors.append(err)
 
     if not PHASE_B_BATCH0_MIGRATION.is_file():
         errors.append(
@@ -707,4 +845,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

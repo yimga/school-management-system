@@ -1,28 +1,42 @@
 #!/usr/bin/env python3
 """
 Validate Wedges 14–22 (Education systems) implementation.
-Run: python scripts/validate_wedges_14_22.py
+
+Run: python scripts/validate_wedges_14_22.py [--base REPO_ROOT]
+
 Exit 0 if all checks pass; exit 1 and print failures otherwise.
 See docs/WEDGES_14_22_EDUCATION_SYSTEMS_PLAN.md.
 """
 
+from __future__ import annotations
+
+import argparse
+import os
+import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 
 
-def main():
-    failures = []
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def _run_checks(repo_root: Path) -> list[str]:
+    failures: list[str] = []
 
     # 1. Template exists
-    template_path = REPO_ROOT / "templates" / "schools" / "super_education_systems.html"
+    template_path = repo_root / "templates" / "schools" / "super_education_systems.html"
     if not template_path.exists():
         failures.append(
             "Missing template: templates/schools/super_education_systems.html"
         )
 
     # 2. URL and view
-    urls_py = REPO_ROOT / "apps" / "schools" / "super_urls.py"
+    urls_py = repo_root / "apps" / "schools" / "super_urls.py"
     if urls_py.exists():
         url_text = urls_py.read_text(encoding="utf-8", errors="replace")
         if (
@@ -33,7 +47,7 @@ def main():
     else:
         failures.append("Missing apps/schools/super_urls.py")
 
-    wedge_py = REPO_ROOT / "apps" / "schools" / "super_views_wedge.py"
+    wedge_py = repo_root / "apps" / "schools" / "super_views_wedge.py"
     if wedge_py.exists():
         wtext = wedge_py.read_text(encoding="utf-8", errors="replace")
         if (
@@ -48,14 +62,11 @@ def main():
 
     # 3. Django checks: registry, model, list_sector_system_types_14_22
     try:
-        import os
-        import sys
-
         import django
 
-        os.chdir(REPO_ROOT)
-        if str(REPO_ROOT) not in sys.path:
-            sys.path.insert(0, str(REPO_ROOT))
+        os.chdir(repo_root)
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
         django.setup()
 
@@ -149,6 +160,30 @@ def main():
     except Exception as e:
         failures.append(f"Django validation failed: {e}")
 
+    return failures
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Validate wedges 14–22 (education systems) implementation.",
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        repo_root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"validate_wedges_14_22: {exc}", file=sys.stderr)
+        return 1
+
+    failures = _run_checks(repo_root)
     if failures:
         for f in failures:
             print(f"FAIL: {f}")
@@ -158,4 +193,4 @@ def main():
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

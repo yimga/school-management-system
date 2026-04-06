@@ -4,6 +4,10 @@ North star N21 — i18n: key tenant/manager templates must load i18n and use tra
 
 Scans key base and high-traffic templates for {% load i18n %} and reports missing.
 Use --strict to exit 1 when a required template lacks i18n load.
+
+Run (from repo root):
+  python scripts/lint_north_star_i18n.py
+  python scripts/lint_north_star_i18n.py --strict
 """
 
 from __future__ import annotations
@@ -12,7 +16,8 @@ import argparse
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 TEMPLATES = ROOT / "templates"
 
 # Key templates that must have {% load i18n %} (or load i18n in parent they extend)
@@ -29,15 +34,37 @@ REQUIRED_I18N = [
 ]
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="North star N21: i18n in key templates")
+    ap.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
     ap.add_argument(
         "--strict", action="store_true", help="Exit 1 when required template lacks i18n"
     )
-    args = ap.parse_args()
+    return ap.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"lint_north_star_i18n: {exc}", file=sys.stderr)
+        return 1
+    templates = root / "templates"
     failures = []
     for name in REQUIRED_I18N:
-        path = TEMPLATES / name
+        path = templates / name
         if not path.exists():
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
@@ -54,4 +81,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

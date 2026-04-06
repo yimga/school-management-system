@@ -30,7 +30,10 @@ def generate_narrative_for_achievement(
     Creates a NarrativeFeedback in DRAFT status for teacher approval.
     """
     try:
-        from apps.portal.ai_provider import generate_ai_response
+        from apps.portal.ai_provider import (
+            _normalize_gateway_metadata,
+            generate_ai_response,
+        )
     except ImportError:
         return None
 
@@ -48,7 +51,25 @@ def generate_narrative_for_achievement(
         f"Output only the message text, no quotes or labels."
     )
     user_query = f"narrative for {event_type}"  # safe, for policy check
-    text, _ = generate_ai_response(prompt, user_query=user_query)
+    school = achievement_event.school
+    school_id = getattr(school, "pk", None) or getattr(school, "id", None)
+    country_code = getattr(school, "country_code", None) or getattr(
+        getattr(school, "default_region", None),
+        "code",
+        None,
+    )
+    text, _ = generate_ai_response(
+        prompt,
+        user_query=user_query,
+        metadata=_normalize_gateway_metadata(
+            {
+                "school": school,
+                "school_id": str(school_id) if school_id is not None else None,
+                "tenant_id": str(school_id) if school_id is not None else None,
+                "country_code": country_code,
+            }
+        ),
+    )
     if not (text and text.strip()):
         text = f"Good news: {event_type.replace('_', ' ')}."
     if len(text) > max_length:

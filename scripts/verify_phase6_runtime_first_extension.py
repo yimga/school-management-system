@@ -9,15 +9,19 @@ Allowlist:
 - section-10 policy consumers: apps/policies/section_10_helpers.py
 - finance API entrypoints: apps/finance/api_views.py
 - policy-backed school config API: apps/schools/api_views.py
+
+Run (from repo root):
+  python scripts/verify_phase6_runtime_first_extension.py
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 # Discovery guard: newly introduced admissions API view files must be explicitly
 # allowlisted in this gate or justified in this tuple to prevent silent drift.
 ADMISSIONS_API_VIEW_DISCOVERY_GLOBS = (
@@ -43,24 +47,51 @@ def _strip_multiline_strings(text: str) -> str:
     return text
 
 
-def _discover_admissions_api_view_files() -> list[Path]:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Phase 6 runtime-first extension contracts."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root to inspect (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _discover_admissions_api_view_files(root: Path) -> list[Path]:
     hits: set[Path] = set()
     for pattern in ADMISSIONS_API_VIEW_DISCOVERY_GLOBS:
-        for path in ROOT.glob(pattern):
+        for path in root.glob(pattern):
             if path.is_file():
                 hits.add(path.resolve())
     return sorted(hits)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print("verify_phase6_runtime_first_extension: FAIL", file=sys.stderr)
+        print(f"  - {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
-    admissions_py = ROOT / "apps" / "siteconfig" / "identifier_policy_service.py"
-    gradebook_py = ROOT / "apps" / "evals" / "runtime_gradebook.py"
-    finance_py = ROOT / "apps" / "finance" / "runtime_helpers.py"
-    section10_py = ROOT / "apps" / "policies" / "section_10_helpers.py"
-    finance_api_py = ROOT / "apps" / "finance" / "api_views.py"
-    schools_api_py = ROOT / "apps" / "schools" / "api_views.py"
+    admissions_py = root / "apps" / "siteconfig" / "identifier_policy_service.py"
+    gradebook_py = root / "apps" / "evals" / "runtime_gradebook.py"
+    finance_py = root / "apps" / "finance" / "runtime_helpers.py"
+    section10_py = root / "apps" / "policies" / "section_10_helpers.py"
+    finance_api_py = root / "apps" / "finance" / "api_views.py"
+    schools_api_py = root / "apps" / "schools" / "api_views.py"
 
     allowlisted = (
         admissions_py,
@@ -72,7 +103,7 @@ def main() -> int:
     )
     for path in allowlisted:
         if not path.is_file():
-            errors.append(f"Missing allowlisted runtime-first file: {path.relative_to(ROOT).as_posix()}")
+            errors.append(f"Missing allowlisted runtime-first file: {path.relative_to(root).as_posix()}")
     if errors:
         print("verify_phase6_runtime_first_extension: FAIL", file=sys.stderr)
         for item in errors:
@@ -127,9 +158,9 @@ def main() -> int:
         errors.append("schools/api_views.py must resolve features via get_effective_policy(school, user=...).")
 
     # Discovery guard: force review for newly introduced admissions API view files.
-    allowlisted_rel = {path.relative_to(ROOT).as_posix() for path in allowlisted}
+    allowlisted_rel = {path.relative_to(root).as_posix() for path in allowlisted}
     discovered_rel = {
-        path.relative_to(ROOT).as_posix() for path in _discover_admissions_api_view_files()
+        path.relative_to(root).as_posix() for path in _discover_admissions_api_view_files(root)
     }
     unmanaged = sorted(
         discovered_rel - allowlisted_rel - set(JUSTIFIED_ADMISSIONS_API_VIEW_FILES)
@@ -160,7 +191,7 @@ def main() -> int:
         for pattern in banned:
             if re.search(pattern, text):
                 errors.append(
-                    f"{path.relative_to(ROOT).as_posix()} contains banned downstream fallback pattern: {pattern}"
+                    f"{path.relative_to(root).as_posix()} contains banned downstream fallback pattern: {pattern}"
                 )
 
     if errors:
@@ -177,4 +208,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

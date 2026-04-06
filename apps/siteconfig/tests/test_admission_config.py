@@ -1,6 +1,6 @@
 """
 Catalog/admission config audit: test that admission number generation and validation
-use centralized config (SiteSettings or TenantAdmissionNumberPolicy) and assert format.
+use centralized config (tenant site-settings row or TenantAdmissionNumberPolicy) and assert format.
 """
 
 from django.test import TestCase
@@ -29,7 +29,7 @@ class AdmissionConfigTestCase(TestCase):
         )
 
     def test_preview_uses_policy(self):
-        """Preview returns format from policy (SiteSettings when school is None)."""
+        """Preview returns format from policy when school is None (platform tenant site-settings row)."""
         out = preview_admission_number(
             None,
             year_2digit="26",
@@ -58,7 +58,7 @@ class AdmissionConfigTestCase(TestCase):
         self.assertFalse(validate_admission_number(None, "invalid"))
 
     def test_policy_resolution_site_defaults(self):
-        """get_admissions_policy(None) returns SiteSettings-based config."""
+        """get_admissions_policy(None) returns platform tenant site-settings-based config."""
         policy = get_admissions_policy(None)
         self.assertIn("school_code", policy)
         self.assertIn("admission_number_strategy", policy)

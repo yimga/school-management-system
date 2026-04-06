@@ -1,5 +1,5 @@
 """
-§2.4 Tests for onboarding_verification (raw SQL wrap).
+§2.4 Tests for onboarding_verification (repository delegation).
 """
 
 from django.test import TestCase

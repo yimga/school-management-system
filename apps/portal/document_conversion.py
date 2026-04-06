@@ -17,11 +17,34 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import uuid
+from contextlib import contextmanager
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 CONVERSION_TIMEOUT_SECONDS = int(os.getenv("LIBREOFFICE_CONVERSION_TIMEOUT_SECONDS", "120"))
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def portal_temp_root() -> Path:
+    raw = (os.getenv("PORTAL_TEMP_ROOT") or "").strip()
+    if raw:
+        path = Path(raw)
+        return path if path.is_absolute() else (REPO_ROOT / path)
+    return REPO_ROOT / "var" / "tmp"
+
+
+@contextmanager
+def portal_tempdir(prefix: str):
+    root = portal_temp_root()
+    root.mkdir(parents=True, exist_ok=True)
+    tmp_dir = root / f"{prefix}{uuid.uuid4().hex}"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        yield tmp_dir
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def _is_safe_source_path(source_path: str) -> bool:
@@ -102,19 +125,32 @@ def _convert_with_libreoffice(source_path: str, target_ext: str) -> bytes:
             "to use document conversion."
         )
 
-    out_dir = tempfile.mkdtemp(prefix="portal_convert_")
-    try:
+    with portal_tempdir("portal_convert_") as out_dir, portal_tempdir(
+        "portal_soffice_profile_"
+    ) as profile_dir:
+        env = os.environ.copy()
+        temp_root = str(portal_temp_root())
+        env["TMP"] = temp_root
+        env["TEMP"] = temp_root
+        env["TMPDIR"] = temp_root
         # --headless --convert-to <ext> --outdir <dir> <file>
         result = subprocess.run(
             [
                 soffice,
+                f"-env:UserInstallation={profile_dir.as_uri()}",
                 "--headless",
+                "--nologo",
+                "--nodefault",
+                "--nolockcheck",
+                "--norestore",
                 "--convert-to",
                 target_ext,
                 "--outdir",
-                out_dir,
+                str(out_dir),
                 source_path,
             ],
+            cwd=str(out_dir),
+            env=env,
             capture_output=True,
             text=True,
             timeout=CONVERSION_TIMEOUT_SECONDS,
@@ -129,18 +165,11 @@ def _convert_with_libreoffice(source_path: str, target_ext: str) -> bytes:
             raise RuntimeError(f"LibreOffice conversion failed: {err}")
 
         base = Path(source_path).stem
-        out_path = Path(out_dir) / f"{base}.{target_ext.split(':')[0]}"
+        out_path = out_dir / f"{base}.{target_ext.split(':')[0]}"
         if not out_path.exists():
             raise RuntimeError("LibreOffice did not produce output file.")
 
         return out_path.read_bytes()
-    finally:
-        try:
-            for f in Path(out_dir).iterdir():
-                f.unlink(missing_ok=True)
-            os.rmdir(out_dir)
-        except OSError:
-            pass
 
 
 def convert_to_pdf(source_path: str) -> bytes:
@@ -168,8 +197,8 @@ def convert_html_to_odt(html_content: str, title: str = "Document") -> bytes:
     """
     Convert HTML content directly to ODT using LibreOffice headless.
     """
-    with tempfile.TemporaryDirectory(prefix="portal_convert_html_") as tmp_dir:
-        html_path = Path(tmp_dir) / "input.html"
+    with portal_tempdir("portal_convert_html_") as tmp_dir:
+        html_path = tmp_dir / "input.html"
         html_path.write_text(
             f"<!doctype html><html><head><meta charset='utf-8'><title>{title}</title></head><body>{html_content}</body></html>",
             encoding="utf-8",
@@ -185,14 +214,14 @@ def convert_html_to_docx(html_content: str, title: str = "Document") -> bytes:
     direct HTML -> DOCX export filters. Use an ODT intermediate so KB exports
     remain reproducible in release gates.
     """
-    with tempfile.TemporaryDirectory(prefix="portal_convert_html_") as tmp_dir:
-        html_path = Path(tmp_dir) / "input.html"
+    with portal_tempdir("portal_convert_html_") as tmp_dir:
+        html_path = tmp_dir / "input.html"
         html_path.write_text(
             f"<!doctype html><html><head><meta charset='utf-8'><title>{title}</title></head><body>{html_content}</body></html>",
             encoding="utf-8",
         )
         odt_bytes = convert_to_odt(str(html_path))
-        odt_path = Path(tmp_dir) / "input.odt"
+        odt_path = tmp_dir / "input.odt"
         odt_path.write_bytes(odt_bytes)
         return convert_to_docx(str(odt_path))
 

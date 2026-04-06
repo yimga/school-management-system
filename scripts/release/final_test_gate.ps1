@@ -3,13 +3,38 @@ $ErrorActionPreference = "Stop"
 function Invoke-StrictCommand {
   param(
     [Parameter(Mandatory = $true)]
-    [string[]]$CommandParts
+    [string[]]$CommandParts,
+
+    [hashtable]$Environment = @{}
   )
 
-  & $CommandParts[0] $CommandParts[1..($CommandParts.Length - 1)]
-  if ($LASTEXITCODE -ne 0) {
-    throw "Command failed with exit code ${LASTEXITCODE}: $($CommandParts -join ' ')"
+  $previousEnvironment = @{}
+  foreach ($entry in $Environment.GetEnumerator()) {
+    $previousEnvironment[$entry.Key] = [Environment]::GetEnvironmentVariable($entry.Key, "Process")
+    [Environment]::SetEnvironmentVariable($entry.Key, [string]$entry.Value, "Process")
   }
+
+  try {
+    & $CommandParts[0] $CommandParts[1..($CommandParts.Length - 1)]
+    if ($LASTEXITCODE -ne 0) {
+      throw "Command failed with exit code ${LASTEXITCODE}: $($CommandParts -join ' ')"
+    }
+  } finally {
+    foreach ($entry in $previousEnvironment.GetEnumerator()) {
+      [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value, "Process")
+    }
+  }
+}
+
+function Invoke-DjangoTests {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string[]]$TestModules
+  )
+
+  Invoke-StrictCommand `
+    -CommandParts (@("python", "manage.py", "test") + $TestModules + @("--keepdb", "--noinput", "--verbosity", "1")) `
+    -Environment @{ LOG_LEVEL = "WARNING" }
 }
 
 Write-Host "[Phase 15] Running Django system checks..."
@@ -47,6 +72,6 @@ $testModules = @(
 )
 
 Write-Host "[Phase 15] Running targeted regression suite..."
-Invoke-StrictCommand -CommandParts (@("python", "manage.py", "test") + $testModules + @("--verbosity", "1"))
+Invoke-DjangoTests -TestModules $testModules
 
 Write-Host "[Phase 15] Final gate passed."

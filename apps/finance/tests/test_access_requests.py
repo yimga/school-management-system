@@ -10,8 +10,29 @@ from apps.people.models import StudentProfile, StudentGuardian
 from apps.finance.models import ComplianceProfile, Invoice, Notification
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.platform_runtime.models import RuntimeDefaults
-from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.platform_runtime.runtime_defaults_first_class import (
+    strip_runtime_defaults_first_class_keys_from_dict,
+)
+from apps.siteconfig import models as _siteconfig_models
+from apps.siteconfig.models import _clear_site_settings_cache, default_backend_feature_flags
 from apps.communication.models import Message
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
+
+
+def _persist_runtime_backend_feature_flags(flags: dict) -> None:
+    """Mirror production merge: first-class ``backend_feature_flags`` wins over JSON payload."""
+    from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
+
+    rd, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
+    pl = dict(rd.payload or {})
+    pl["backend_feature_flags"] = flags
+    strip_runtime_defaults_first_class_keys_from_dict(pl)
+    rd.backend_feature_flags = flags
+    rd.payload = pl
+    rd.save(update_fields=["payload", "backend_feature_flags", "updated_at"])
+    invalidate_effective_site_settings_cache()
+    _clear_site_settings_cache(_TenantSettingsModel)
 
 
 class FinanceAccessRequestTests(TestCase):
@@ -20,16 +41,7 @@ class FinanceAccessRequestTests(TestCase):
         flags = {**default_backend_feature_flags()}
         flags["allow_finance_access_requests"] = True
         flags["require_guardian_finance_opt_in"] = True
-        rd, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
-        pl = dict(rd.payload or {})
-        pl["backend_feature_flags"] = flags
-        rd.payload = pl
-        rd.save(update_fields=["payload", "updated_at"])
-        from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
-        from apps.siteconfig.models import _clear_site_settings_cache
-
-        invalidate_effective_site_settings_cache()
-        _clear_site_settings_cache(SiteSettings)
+        _persist_runtime_backend_feature_flags(flags)
 
         self.year = AcademicYear.objects.create(
             name="2025/2026",
@@ -101,16 +113,7 @@ class FinanceAccessRequestTests(TestCase):
         get_platform_site_settings_record(create=True)
         flags = {**default_backend_feature_flags()}
         flags["allow_finance_access_requests"] = False
-        rd, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
-        pl = dict(rd.payload or {})
-        pl["backend_feature_flags"] = flags
-        rd.payload = pl
-        rd.save(update_fields=["payload", "updated_at"])
-        from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
-        from apps.siteconfig.models import _clear_site_settings_cache
-
-        invalidate_effective_site_settings_cache()
-        _clear_site_settings_cache(SiteSettings)
+        _persist_runtime_backend_feature_flags(flags)
 
         StudentGuardian.objects.create(
             guardian_user=self.parent, student=self.student, can_view_finance=False

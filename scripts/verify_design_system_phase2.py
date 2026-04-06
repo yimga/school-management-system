@@ -6,18 +6,19 @@ Fails if required CSS is missing, canonical bases omit token + Phase 2 enforceme
 or high-regression templates reintroduce inline theme <style> blocks (dashboard header,
 theme toggle, Studio shell_extrastyle).
 
-Run from repo root: python scripts/verify_design_system_phase2.py
+Run from repo root: python scripts/verify_design_system_phase2.py [--base REPO_ROOT]
 See docs/DESIGN_SYSTEM_PHASE2.md §7.
 """
 
 from __future__ import annotations
 
-import re
+import argparse
 import subprocess
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
 REQUIRED_STATIC = [
     "static/css/design-tokens.css",
@@ -55,20 +56,44 @@ FORBIDDEN_INLINE_STYLE_TEMPLATES = [
 ]
 
 
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
 def _read(p: Path) -> str:
     return p.read_text(encoding="utf-8", errors="replace")
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Phase 2 design system gate.")
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        repo = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_design_system_phase2: {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
     for rel in REQUIRED_STATIC:
-        fp = REPO / rel
+        fp = repo / rel
         if not fp.is_file():
             errors.append(f"Missing required file: {rel}")
 
     for base in CANONICAL_BASES:
-        p = REPO / base
+        p = repo / base
         if not p.is_file():
             errors.append(f"Missing canonical base: {base}")
             continue
@@ -80,7 +105,7 @@ def main() -> int:
 
     # No full theme <style> blocks in components we migrated to external CSS
     for rel in FORBIDDEN_INLINE_STYLE_TEMPLATES:
-        p = REPO / rel
+        p = repo / rel
         if not p.is_file():
             errors.append(f"Missing template: {rel}")
             continue
@@ -91,11 +116,11 @@ def main() -> int:
             )
 
     # Section 10.5 design-system layer (repo script)
-    v10 = REPO / "scripts" / "verify_section10_5_layers.py"
+    v10 = repo / "scripts" / "verify_section10_5_layers.py"
     if v10.is_file():
         r = subprocess.run(
-            [sys.executable, str(v10)],
-            cwd=str(REPO),
+            [sys.executable, str(v10), "--base", str(repo)],
+            cwd=str(repo),
             capture_output=True,
             text=True,
         )
@@ -123,4 +148,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

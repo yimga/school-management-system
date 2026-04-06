@@ -13,6 +13,26 @@ from apps.platform_runtime.structured_logging import log_exception_with_context
 AI_ASYNC_RESULT_TTL = 600
 
 
+def _normalize_async_gateway_metadata(
+    school,
+    school_id,
+    country_code: str | None,
+    kwargs: dict[str, Any],
+) -> dict[str, Any]:
+    from apps.portal.ai_provider import _normalize_gateway_metadata
+
+    return _normalize_gateway_metadata(
+        {
+            "school": school,
+            "school_id": school_id,
+            "tenant_id": kwargs.get("tenant_id") or school_id,
+            "country_code": country_code,
+            "user_id": kwargs.get("user_id"),
+            "role": kwargs.get("role"),
+        }
+    )
+
+
 @shared_task(name="portal.generate_ai_response_async", bind=True)
 def generate_ai_response_async(
     self,
@@ -53,11 +73,9 @@ def generate_ai_response_async(
             "narrative",
             prompt,
             user_query=user_prompt,
-            metadata={
-                "school": school,
-                "school_id": school_id,
-                "country_code": country_code,
-            },
+            metadata=_normalize_async_gateway_metadata(
+                school, school_id, country_code, kwargs
+            ),
         )
         text = (
             result
@@ -124,6 +142,12 @@ def apply_support_ticket_ai_triage(ticket_id: str) -> dict[str, Any]:
             ticket.body,
             country_code=cc,
             school=ticket.school,
+            user_id=getattr(ticket, "user_id", None),
+            role=(
+                getattr(getattr(ticket, "user", None), "role", None)
+                or getattr(getattr(ticket, "user", None), "portal_role", None)
+                or getattr(getattr(ticket, "user", None), "user_type", None)
+            ),
         )
         preview = None
         if isinstance(suggestions, dict):

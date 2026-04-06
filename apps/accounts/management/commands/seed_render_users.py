@@ -14,7 +14,7 @@ Example Release Command:
 import os
 
 from django.core.management import BaseCommand, call_command
-from django.db import connection
+from django.db import connection, models
 
 
 def _ensure_teacherprofile_updated_at_in_tenant_schemas(stdout, style):
@@ -26,29 +26,47 @@ def _ensure_teacherprofile_updated_at_in_tenant_schemas(stdout, style):
         return
     try:
         from apps.customers.models import Client
+        from apps.people.models import TeacherProfile
     except ImportError:
         return
     try:
-        from apps.people.repositories.audit_repository import set_search_path
+        from django_tenants.utils import tenant_context
     except ImportError:
         return
-    tenants = list(
+    clients = list(
         Client.objects.exclude(schema_name="public")
         .filter(schema_name__isnull=False)
-        .values_list("schema_name", flat=True)
+        .order_by("id")
     )
-    sql = (
-        "ALTER TABLE people_teacherprofile "
-        "ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"
-    )
-    for schema_name in tenants:
+    for client in clients:
+        schema_name = (getattr(client, "schema_name", None) or "").strip()
         if not schema_name:
             continue
         try:
-            with connection.cursor() as cursor:
-                set_search_path(cursor, schema_name)
-                cursor.execute(sql)
-            stdout.write(style.SUCCESS("  %s: people_teacherprofile.updated_at ensured.") % schema_name)
+            with tenant_context(client):
+                with connection.cursor() as cursor:
+                    columns = set()
+                    for col in connection.introspection.get_table_description(
+                        cursor, "people_teacherprofile"
+                    ):
+                        name = getattr(col, "name", None)
+                        if name is None and isinstance(col, (tuple, list)) and col:
+                            name = col[0]
+                        if name is not None:
+                            columns.add(str(name))
+                if "updated_at" not in columns:
+                    field = models.DateTimeField(
+                        null=True,
+                        blank=True,
+                        editable=False,
+                    )
+                    field.set_attributes_from_name("updated_at")
+                    with connection.schema_editor() as schema_editor:
+                        schema_editor.add_field(TeacherProfile, field)
+            stdout.write(
+                style.SUCCESS("  %s: people_teacherprofile.updated_at ensured.")
+                % schema_name
+            )
         except Exception as e:
             stdout.write(
                 style.WARNING("  %s: skip updated_at ensure: %s") % (schema_name, e)

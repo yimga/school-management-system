@@ -12,7 +12,7 @@ Phases align with SOT §0.2.1.6 and validate_wedge_super_premium_phases.py:
 Each phase runs validate_wedge_super_premium_phases for the same phase number,
 then applies extra assertions below (no assumptions — imports real modules).
 
-Run: python scripts/validate_wedges_phase.py [--phase 1|2|3|4|5|all]
+Run: python scripts/validate_wedges_phase.py [--base REPO_ROOT] [--phase 1|2|3|4|5|all]
 
 Exit 0 if all requested phases pass.
 """
@@ -25,28 +25,37 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 
 
-def _django():
-    os.chdir(REPO_ROOT)
-    if str(REPO_ROOT) not in sys.path:
-        sys.path.insert(0, str(REPO_ROOT))
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def _django(repo_root: Path) -> None:
+    os.chdir(repo_root)
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
 
     django.setup()
 
 
-def _run_super_premium(phase: int, failures: list[str]) -> None:
+def _run_super_premium(phase: int, failures: list[str], repo_root: Path) -> None:
     r = subprocess.run(
         [
             sys.executable,
-            str(REPO_ROOT / "scripts" / "validate_wedge_super_premium_phases.py"),
+            str(repo_root / "scripts" / "validate_wedge_super_premium_phases.py"),
+            "--base",
+            str(repo_root),
             "--phase",
             str(phase),
         ],
-        cwd=str(REPO_ROOT),
+        cwd=str(repo_root),
         capture_output=True,
         text=True,
     )
@@ -70,10 +79,10 @@ def _reverse(names: list[str], failures: list[str]) -> None:
                 failures.append(f"manager URL {name!r} NoReverseMatch: {e}")
 
 
-def validate_phase_1(failures: list[str]) -> None:
+def validate_phase_1(failures: list[str], repo_root: Path) -> None:
     """Wedges 1–10: core GTM + Africa→North America region packs."""
-    _run_super_premium(1, failures)
-    _django()
+    _run_super_premium(1, failures, repo_root)
+    _django(repo_root)
 
     # --- W1 International K–12: full DNA set + aliases ---
     from apps.siteconfig.education_dna import (
@@ -125,7 +134,7 @@ def validate_phase_1(failures: list[str]) -> None:
     _reverse(["super:advancement_hub", "super:advancement_phase2_placeholder"], failures)
 
     # --- W6 Higher-ed spine in codebase ---
-    he_path = REPO_ROOT / "apps" / "academics" / "degree_audit.py"
+    he_path = repo_root / "apps" / "academics" / "degree_audit.py"
     if not he_path.exists():
         failures.append("W6: missing apps/academics/degree_audit.py")
     else:
@@ -158,22 +167,22 @@ def validate_phase_1(failures: list[str]) -> None:
                 failures.append(f"{label}: get_regional_policy_pack({code!r}) empty")
 
 
-def _validate_wedges_14_22_static(failures: list[str]) -> None:
+def _validate_wedges_14_22_static(failures: list[str], repo_root: Path) -> None:
     """
     File + import checks for wedges 14–22 (no DB — avoids sqlite lock on dev default DB).
-    For full registry rows, run: python scripts/validate_wedges_14_22.py or pytest.
+    For full registry rows, run: python scripts/validate_wedges_14_22.py [--base REPO_ROOT] or pytest.
     """
-    template_path = REPO_ROOT / "templates" / "schools" / "super_education_systems.html"
+    template_path = repo_root / "templates" / "schools" / "super_education_systems.html"
     if not template_path.exists():
         failures.append("W14–22: missing templates/schools/super_education_systems.html")
-    urls_py = REPO_ROOT / "apps" / "schools" / "super_urls.py"
+    urls_py = repo_root / "apps" / "schools" / "super_urls.py"
     if urls_py.exists():
         url_text = urls_py.read_text(encoding="utf-8", errors="replace")
         if "education_systems" not in url_text or "super_education_systems" not in url_text:
             failures.append("W14–22: super_urls.py missing education_systems wiring")
     else:
         failures.append("W14–22: missing apps/schools/super_urls.py")
-    wedge_py = REPO_ROOT / "apps" / "schools" / "super_views_wedge.py"
+    wedge_py = repo_root / "apps" / "schools" / "super_views_wedge.py"
     if wedge_py.exists():
         wtext = wedge_py.read_text(encoding="utf-8", errors="replace")
         if "super_education_systems" not in wtext or "list_sector_system_types_14_22" not in wtext:
@@ -184,12 +193,12 @@ def _validate_wedges_14_22_static(failures: list[str]) -> None:
         failures.append("W14–22: missing super_views_wedge.py")
 
 
-def validate_phase_2(failures: list[str]) -> None:
+def validate_phase_2(failures: list[str], repo_root: Path) -> None:
     """Wedges 11–20: South America, Oceania, MENA + education systems 14–20."""
-    _run_super_premium(2, failures)
-    _validate_wedges_14_22_static(failures)
+    _run_super_premium(2, failures, repo_root)
+    _validate_wedges_14_22_static(failures, repo_root)
 
-    _django()
+    _django(repo_root)
     from apps.registries.services import WEDGE_14_22_SECTOR_CODES
 
     if len(WEDGE_14_22_SECTOR_CODES) != 9:
@@ -229,10 +238,10 @@ def validate_phase_2(failures: list[str]) -> None:
         failures.append(f"W14–20: unexpected sector slice: {expected_14_20!r}")
 
 
-def validate_phase_3(failures: list[str]) -> None:
+def validate_phase_3(failures: list[str], repo_root: Path) -> None:
     """Wedges 21–30: NGO, MULTI_CAMPUS + eight delivery modes."""
-    _run_super_premium(3, failures)
-    _django()
+    _run_super_premium(3, failures, repo_root)
+    _django(repo_root)
 
     from apps.registries.services import WEDGE_14_22_SECTOR_CODES
 
@@ -258,10 +267,10 @@ def validate_phase_3(failures: list[str]) -> None:
     _reverse(["super:group_campuses", "super:learning_delivery_packs"], failures)
 
 
-def validate_phase_4(failures: list[str]) -> None:
+def validate_phase_4(failures: list[str], repo_root: Path) -> None:
     """Wedges 31–40: institution types + ministry stubs W31–W40."""
-    _run_super_premium(4, failures)
-    _django()
+    _run_super_premium(4, failures, repo_root)
+    _django(repo_root)
 
     from apps.platform_runtime.learning_institution_catalog import (
         INSTITUTION_TYPE_PACKS,
@@ -288,10 +297,10 @@ def validate_phase_4(failures: list[str]) -> None:
     _reverse(["super:ministry_report_stubs", "super:learning_institution_catalog_json"], failures)
 
 
-def validate_phase_5(failures: list[str]) -> None:
+def validate_phase_5(failures: list[str], repo_root: Path) -> None:
     """Wedges 41–45: final institution types + federation + OneRoster glue."""
-    _run_super_premium(5, failures)
-    _django()
+    _run_super_premium(5, failures, repo_root)
+    _django(repo_root)
 
     from apps.platform_runtime.learning_institution_catalog import (
         INSTITUTION_TYPE_PACKS,
@@ -307,34 +316,48 @@ def validate_phase_5(failures: list[str]) -> None:
             failures.append(f"W{w}: MINISTRY_REPORT_STUBS missing for {code!r}")
 
     # W44–45: OneRoster / OIDC — super_premium phase 5 already checked views; assert API module
-    oneroster = REPO_ROOT / "apps" / "api" / "oneroster_views.py"
+    oneroster = repo_root / "apps" / "api" / "oneroster_views.py"
     if not oneroster.exists():
         failures.append("W44: missing apps/api/oneroster_views.py (expected OneRoster spine)")
 
 
-def validate_phase(phase: int, failures: list[str]) -> None:
+def validate_phase(phase: int, failures: list[str], repo_root: Path) -> None:
     if phase == 1:
-        validate_phase_1(failures)
+        validate_phase_1(failures, repo_root)
     elif phase == 2:
-        validate_phase_2(failures)
+        validate_phase_2(failures, repo_root)
     elif phase == 3:
-        validate_phase_3(failures)
+        validate_phase_3(failures, repo_root)
     elif phase == 4:
-        validate_phase_4(failures)
+        validate_phase_4(failures, repo_root)
     elif phase == 5:
-        validate_phase_5(failures)
+        validate_phase_5(failures, repo_root)
     else:
         failures.append(f"Unknown phase: {phase}")
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Validate wedges 1–45 by phase (10 per phase).")
+    p.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
     p.add_argument(
         "--phase",
         default="all",
         help="Phase 1–5 or all (default: all)",
     )
-    args = p.parse_args()
+    return p.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        repo_root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"validate_wedges_phase: {exc}", file=sys.stderr)
+        return 1
     if args.phase == "all":
         phases = [1, 2, 3, 4, 5]
     else:
@@ -349,7 +372,7 @@ def main() -> int:
 
     failures: list[str] = []
     for ph in phases:
-        validate_phase(ph, failures)
+        validate_phase(ph, failures, repo_root)
 
     if failures:
         print("validate_wedges_phase FAILED:")
@@ -365,4 +388,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

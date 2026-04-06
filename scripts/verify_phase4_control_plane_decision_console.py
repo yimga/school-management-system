@@ -6,15 +6,19 @@ Enforces three non-negotiable contracts:
 1) structured outcome groups are rendered from the shared outcomes partial
 2) source tracing vocabulary and source-tracing step exist in control outcome model
 3) publish/rollback affordances exist in operator model and surfaced outcomes
+
+Run (from repo root):
+  python scripts/verify_phase4_control_plane_decision_console.py
 """
 
 from __future__ import annotations
 
+import argparse
 import ast
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 
 
 def _read(path: Path) -> str:
@@ -33,32 +37,55 @@ def _extract_literal_value(module: ast.Module, name: str):
     raise KeyError(name)
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root to inspect (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return base
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        root = _resolve_base(parse_args(argv).base)
+    except ValueError as exc:
+        print(f"verify_phase4_control_plane_decision_console: {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
-    ccc_tenant = ROOT / "templates" / "siteconfig" / "console_domains_hub.html"
+    ccc_tenant = root / "templates" / "siteconfig" / "console_domains_hub.html"
     ccc_manager = (
-        ROOT / "templates" / "siteconfig" / "console_domains_hub_control_plane.html"
+        root / "templates" / "siteconfig" / "console_domains_hub_control_plane.html"
     )
     outcomes_partial = (
-        ROOT
+        root
         / "templates"
         / "siteconfig"
         / "partials"
         / "configuration_control_center_outcomes.html"
     )
     operator_partial = (
-        ROOT
+        root
         / "templates"
         / "siteconfig"
         / "partials"
         / "configuration_control_center_operator_model.html"
     )
-    registry_py = ROOT / "apps" / "siteconfig" / "control_outcome_center.py"
+    registry_py = root / "apps" / "siteconfig" / "control_outcome_center.py"
 
     for p in (ccc_tenant, ccc_manager, outcomes_partial, operator_partial, registry_py):
         if not p.is_file():
-            errors.append(f"Missing required artifact: {p.relative_to(ROOT).as_posix()}")
+            errors.append(f"Missing required artifact: {p.relative_to(root).as_posix()}")
 
     if errors:
         print("verify_phase4_control_plane_decision_console: FAIL", file=sys.stderr)
@@ -70,7 +97,7 @@ def main() -> int:
     include_snippet = '{% include "siteconfig/partials/configuration_control_center_outcomes.html" %}'
     for tpl in (ccc_tenant, ccc_manager):
         text = _read(tpl)
-        rel = tpl.relative_to(ROOT).as_posix()
+        rel = tpl.relative_to(root).as_posix()
         if include_snippet not in text:
             errors.append(f"{rel} must include shared outcomes partial.")
         if 'data-page-archetype="decision-console"' not in text:
@@ -142,4 +169,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

@@ -13735,3 +13735,82 @@ msgid ""
 "Installations tie marketplace apps to tenant schools. Use operator surfaces "
 "for cross-tenant posture, migration tooling, and usage—not this row alone."
 msgstr ""
+
+msgid "No platform tenant settings row; nothing to sync."
+msgstr ""
+
+msgid ""
+"Re-materialized all Phase B domain snapshots from the live slim tenant "
+"settings row."
+msgstr ""
+
+msgid ""
+"Studio themes, tokens, and authoring inputs mirrored from the slim tenant "
+"settings row."
+msgstr ""
+
+msgid "Config mutation audit log (platform admin)"
+msgstr ""
+
+msgid "Dynamic field definition (platform admin)"
+msgstr ""
+
+msgid "Dynamic field value (platform admin)"
+msgstr ""
+
+msgid "Entity catalog entry (platform admin)"
+msgstr ""
+
+msgid "Global support ticket (platform admin)"
+msgstr ""
+
+msgid "Global support ticket reply (platform admin)"
+msgstr ""
+
+msgid "Global support ticket webhook endpoint (platform admin)"
+msgstr ""
+
+msgid "Platform integration webhook event (platform admin)"
+msgstr ""
+
+msgid "Platform operator Phase B link (platform admin)"
+msgstr ""
+
+msgid "Platform operator command center link (platform admin)"
+msgstr ""
+
+msgid "Platform operator migration cloud link (platform admin)"
+msgstr ""
+
+msgid "Platform operator orchestration workbench link (platform admin)"
+msgstr ""
+
+msgid "Platform operator platform hub link (platform admin)"
+msgstr ""
+
+msgid "Platform operator playbook link (platform admin)"
+msgstr ""
+
+msgid "Platform operator super analytics overview link (platform admin)"
+msgstr ""
+
+msgid "Platform operator super dashboard link (platform admin)"
+msgstr ""
+
+msgid "Platform operator super schools list link (platform admin)"
+msgstr ""
+
+msgid "Platform operator support dashboard link (platform admin)"
+msgstr ""
+
+msgid "Platform operator tenant health link (platform admin)"
+msgstr ""
+
+msgid "Platform operator truth hub link (platform admin)"
+msgstr ""
+
+msgid "Platform operator workflow simulator link (platform admin)"
+msgstr ""
+
+msgid "Platform report platform SKU default (platform admin)"
+msgstr ""

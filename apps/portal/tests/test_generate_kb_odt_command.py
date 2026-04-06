@@ -2,7 +2,7 @@ from io import StringIO
 from pathlib import Path
 from unittest import mock
 import shutil
-import tempfile
+import uuid
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
@@ -16,7 +16,10 @@ User = get_user_model()
 
 class GenerateKbOdtCommandTests(TestCase):
     def setUp(self):
-        self.tmp_media = Path(tempfile.mkdtemp(prefix="kb_media_"))
+        scratch_root = Path(__file__).resolve().parents[3] / "var" / "tmp"
+        scratch_root.mkdir(parents=True, exist_ok=True)
+        self.tmp_media = scratch_root / f"kb_media_{uuid.uuid4().hex}"
+        self.tmp_media.mkdir(parents=True, exist_ok=True)
         self.category = KBCategory.objects.create(
             name="Operator Manual", slug="operator-manual"
         )

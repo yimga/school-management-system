@@ -546,8 +546,18 @@ class RuntimeDefaults(models.Model):
         exclude_owners: list[str] | tuple[str, ...] | set[str] | None = None,
     ) -> dict:
         """Build an ownership-filtered runtime payload from the legacy tenant settings singleton row."""
+        from apps.platform_runtime.runtime_sync_owner_filters import (
+            normalize_runtime_sync_owner_filters,
+        )
+
+        owners, exclude_owners = normalize_runtime_sync_owner_filters(
+            owners,
+            exclude_owners,
+        )
         owner_set = set(owners or [])
         excluded = set(exclude_owners or [])
+        if not owner_set:
+            excluded.add("delete")
         if owner_set:
             payload: dict = {}
             for owner in owner_set:
@@ -568,41 +578,53 @@ class RuntimeDefaults(models.Model):
         """Persist a filtered RuntimeDefaults payload from the tenant settings row and return (object, created).
         Callers must pass site_settings (e.g. get_platform_site_settings_record() in commands, self on save).
         B1 allowlist shrink: no get_solo() in this module."""
-        owner_set = set(owners or [])
+        from apps.platform_runtime.runtime_sync_owner_filters import (
+            normalize_runtime_sync_owner_filters,
+            resolve_runtime_sync_owner_scope,
+        )
+
+        owners, exclude_owners = normalize_runtime_sync_owner_filters(
+            owners,
+            exclude_owners,
+        )
         from apps.platform_runtime.runtime_defaults_first_class import (
-            RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES,
             collect_first_class_values_from_site_settings,
+            first_class_field_names_for_runtime_sync,
             strip_runtime_defaults_first_class_keys_from_dict,
+        )
+        sync_owner_scope = resolve_runtime_sync_owner_scope(owners, exclude_owners)
+        owner_set = set(sync_owner_scope)
+        scoped_first_class_fields = first_class_field_names_for_runtime_sync(
+            sync_owner_scope
         )
 
         payload = cls.build_payload_from_site_settings(
             site_settings,
-            owners=owner_set,
+            owners=owners,
             exclude_owners=exclude_owners,
         )
         strip_runtime_defaults_first_class_keys_from_dict(payload)
-        fc_values = collect_first_class_values_from_site_settings(site_settings)
+        fc_values = collect_first_class_values_from_site_settings(
+            site_settings,
+            field_names=scoped_first_class_fields,
+        )
         defaults: dict = {"payload": payload, **fc_values}
         obj, created = cls.objects.get_or_create(
             pk=1,
             defaults=defaults,
         )
         if not created:
-            if owner_set:
-                merged_payload = dict(obj.payload or {})
-                for owner in owner_set:
-                    for field_name in site_settings.owned_field_names(owner=owner):
-                        merged_payload.pop(field_name, None)
-                merged_payload.update(payload)
-                strip_runtime_defaults_first_class_keys_from_dict(merged_payload)
-                obj.payload = merged_payload
-            else:
-                strip_runtime_defaults_first_class_keys_from_dict(payload)
-                obj.payload = payload
-            for fname in RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES:
+            merged_payload = dict(obj.payload or {})
+            for owner in owner_set:
+                for field_name in site_settings.owned_field_names(owner=owner):
+                    merged_payload.pop(field_name, None)
+            merged_payload.update(payload)
+            strip_runtime_defaults_first_class_keys_from_dict(merged_payload)
+            obj.payload = merged_payload
+            for fname in scoped_first_class_fields:
                 setattr(obj, fname, fc_values.get(fname))
             obj.save(
-                update_fields=list(RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES)
+                update_fields=list(scoped_first_class_fields)
                 + ["payload", "updated_at"]
             )
         return obj, created

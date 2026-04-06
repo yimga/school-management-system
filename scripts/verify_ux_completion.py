@@ -17,60 +17,72 @@ of an unmigrated dev ``db_working.sqlite3``. Example::
     export DJANGO_TEST_DB_FILE=.django_test_dbs/operator_phase1011_e2e.sqlite3
     python scripts/migrate_gate_test_db.py
     python scripts/verify_ux_completion.py
+
+Run (CLI): ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 import uuid
 from pathlib import Path
 
+# Project root (parent of scripts/); may be overridden per-run via ``_configure_root``.
 ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-
-import django
-from django.conf import settings
-
-_use_gate = (os.environ.get("DJANGO_UX_AUDIT_USE_GATE_DB") or "").strip().lower() in (
-    "1",
-    "true",
-    "yes",
-)
-_raw_gate = (os.environ.get("DJANGO_UX_AUDIT_DB_FILE") or os.environ.get("DJANGO_TEST_DB_FILE") or "").strip()
-if _use_gate and _raw_gate:
-    _engine = settings.DATABASES.get("default", {}).get("ENGINE", "")
-    if _engine == "django.db.backends.sqlite3":
-        _path = Path(os.path.expanduser(os.path.expandvars(_raw_gate)))
-        if not _path.is_absolute():
-            _path = ROOT / _path
-        _path.parent.mkdir(parents=True, exist_ok=True)
-        settings.DATABASES["default"]["NAME"] = str(_path)
-
-django.setup()
-
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
-from django.db import OperationalError
-from django.test import RequestFactory
-from django.test.utils import override_settings
-
-from apps.dashboard.context import build_dashboard_extras
-from apps.schools.models import School
-from apps.schools.marketing_views import (
-    compare_marketing_page,
-    developer_marketing_page,
-    marketplace_marketing_page,
-    migrate_marketing_page,
-    setup_simulator_page,
-)
-from apps.setup_studio.services import get_setup_studio_payload
 
 
-User = get_user_model()
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to inspect (default: this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT
+    ROOT = base
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+
+
+def _bootstrap_django() -> None:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+
+    import django
+    from django.conf import settings
+
+    use_gate = (os.environ.get("DJANGO_UX_AUDIT_USE_GATE_DB") or "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    raw_gate = (
+        os.environ.get("DJANGO_UX_AUDIT_DB_FILE")
+        or os.environ.get("DJANGO_TEST_DB_FILE")
+        or ""
+    ).strip()
+    if use_gate and raw_gate:
+        engine = settings.DATABASES.get("default", {}).get("ENGINE", "")
+        if engine == "django.db.backends.sqlite3":
+            path = Path(os.path.expanduser(os.path.expandvars(raw_gate)))
+            if not path.is_absolute():
+                path = ROOT / path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            settings.DATABASES["default"]["NAME"] = str(path)
+
+    django.setup()
 
 
 def _check(condition: bool, label: str, detail: str, failures: list[str]) -> None:
@@ -86,6 +98,13 @@ def _read(relative_path: str) -> str:
 
 
 def audit_dashboard_contract(failures: list[str]) -> None:
+    from django.contrib.auth import get_user_model
+    from django.db import OperationalError
+    from django.test import RequestFactory
+
+    from apps.dashboard.context import build_dashboard_extras
+
+    User = get_user_model()
     factory = RequestFactory()
     suffix = uuid.uuid4().hex[:8]
     user = User.objects.create_user(
@@ -175,6 +194,9 @@ def audit_dashboard_contract(failures: list[str]) -> None:
 
 
 def audit_setup_studio_contract(failures: list[str]) -> None:
+    from apps.schools.models import School
+    from apps.setup_studio.services import get_setup_studio_payload
+
     suffix = uuid.uuid4().hex[:8]
     school = School.objects.create(
         name=f"UX Audit School {suffix}",
@@ -334,6 +356,18 @@ def audit_template_markers(failures: list[str]) -> None:
 
 
 def audit_public_routes(failures: list[str]) -> None:
+    from django.contrib.auth.models import AnonymousUser
+    from django.test import RequestFactory
+    from django.test.utils import override_settings
+
+    from apps.schools.marketing_views import (
+        compare_marketing_page,
+        developer_marketing_page,
+        marketplace_marketing_page,
+        migrate_marketing_page,
+        setup_simulator_page,
+    )
+
     factory = RequestFactory()
     route_expectations = [
         (
@@ -395,7 +429,16 @@ def audit_public_routes(failures: list[str]) -> None:
             )
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        _configure_root(_resolve_base(args.base))
+    except ValueError as exc:
+        print(f"verify_ux_completion: {exc}", file=sys.stderr)
+        return 1
+
+    _bootstrap_django()
+
     failures: list[str] = []
     audit_dashboard_contract(failures)
     audit_setup_studio_contract(failures)
@@ -413,4 +456,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

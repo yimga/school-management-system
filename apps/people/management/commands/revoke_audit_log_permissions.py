@@ -10,11 +10,13 @@ PostgreSQL only. Use --dry-run to print SQL without executing.
   python manage.py revoke_audit_log_permissions --schema my_tenant_schema
 """
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
+from django.db import transaction
 from django.db.utils import DatabaseError, OperationalError, ProgrammingError
 
 from apps.people.repositories.audit_repository import (
+    normalize_search_path_schema_name,
     revoke_audit_log_mutations,
     set_search_path,
 )
@@ -43,10 +45,18 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        raw_single_schema = options.get("schema")
+        single_schema = raw_single_schema.strip() if isinstance(raw_single_schema, str) else raw_single_schema
+        if raw_single_schema is not None and not single_schema:
+            raise CommandError("revoke_audit_log_permissions: blank schema names are not allowed.")
+        if single_schema:
+            try:
+                single_schema = normalize_search_path_schema_name(single_schema)
+            except ValueError as exc:
+                raise CommandError("revoke_audit_log_permissions: %s" % exc) from exc
         if connection.vendor != "postgresql":
             self.stdout.write(self.style.ERROR("PostgreSQL only."))
             return
-        single_schema = options.get("schema")
         dry_run = options.get("dry_run", False)
 
         if single_schema:
@@ -71,16 +81,21 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("No tenant schemas found."))
             return
 
+        failures: list[str] = []
         for schema_name, label in schemas:
             if dry_run:
                 self.stdout.write(
-                    f"Would run: SET search_path TO {schema_name}; REVOKE UPDATE, DELETE ON audit_log FROM CURRENT_USER;"
+                    "Would run: BEGIN; "
+                    f"SET LOCAL search_path TO {schema_name}; "
+                    "REVOKE UPDATE, DELETE ON audit_log FROM CURRENT_USER; "
+                    "COMMIT;"
                 )
                 continue
             try:
-                with connection.cursor() as cursor:
-                    set_search_path(cursor, schema_name)
-                    revoke_audit_log_mutations(cursor)
+                with transaction.atomic():
+                    with connection.cursor() as cursor:
+                        set_search_path(cursor, schema_name)
+                        revoke_audit_log_mutations(cursor)
                 self.stdout.write(
                     self.style.SUCCESS("OK %s (%s)" % (label, schema_name))
                 )
@@ -91,3 +106,11 @@ class Command(BaseCommand):
                     extra={"schema_name": schema_name, "label": label, "error": str(e)},
                 )
                 self.stdout.write(self.style.ERROR("FAILED %s: %s" % (schema_name, e)))
+                failures.append(schema_name)
+        if failures:
+            message = (
+                "revoke_audit_log_permissions: FAILED (%s schema(s): %s)"
+                % (len(failures), ", ".join(failures))
+            )
+            self.stdout.write(self.style.ERROR(message))
+            raise CommandError(message)

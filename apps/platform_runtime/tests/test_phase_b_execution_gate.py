@@ -10,6 +10,7 @@ from pathlib import Path
 
 from django.test import TestCase
 
+from apps.brand_experience.models import PlatformGlobalBranding
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
@@ -25,7 +26,7 @@ def _load_verify_phase_b_execution_module():
 
 
 class PhaseBExecutionGateTests(TestCase):
-    """Phase 6 E2E: migrated schema + consistency when SiteSettings exists."""
+    """Phase 6 E2E: migrated schema + consistency when a tenant site-settings row exists."""
 
     def test_migration_artifacts_present(self):
         mod = _load_verify_phase_b_execution_module()
@@ -39,6 +40,8 @@ class PhaseBExecutionGateTests(TestCase):
         site = get_platform_site_settings_record(create=True)
         self.assertIsNotNone(site)
         site.save()
+        # verify_phase_b_execution.orm_phase_b_execution_errors requires pk=1 when a tenant settings row exists.
+        PlatformGlobalBranding.objects.get_or_create(pk=1)
 
         errs = mod.orm_phase_b_execution_errors()
         self.assertEqual(errs, [], errs)

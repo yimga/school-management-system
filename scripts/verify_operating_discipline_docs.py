@@ -5,17 +5,47 @@ Verify §10.5 operating-discipline doc refs (RUNMYCAMPUS §10.5, BACKLOG §2e ro
 Ensures every *_DOC constant in apps/dashboard/role_home_engine.py points to a
 docs/ file that exists. Used in pre_deploy_gate so Phase I in-code doc refs
 are enforced in CI.
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
 
-def main() -> int:
-    base = Path(__file__).resolve().parent.parent
+
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify role_home_engine *_DOC paths resolve under docs/."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (default: this repository root)",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        base = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"[verify_operating_discipline_docs] {exc}", file=sys.stderr)
+        return 1
+
     engine = base / "apps" / "dashboard" / "role_home_engine.py"
     if not engine.is_file():
         print(f"[verify_operating_discipline_docs] Missing: {engine}", file=sys.stderr)
@@ -48,4 +78,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

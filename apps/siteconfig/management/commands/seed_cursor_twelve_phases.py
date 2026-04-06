@@ -17,7 +17,7 @@ Examples::
     python manage.py seed_cursor_twelve_phases --strict-residue-lint
 
 Phase 12 runs ``seed_business_glossary`` then ``scripts/lint_gilead_residue.py`` (warning
-only unless ``--strict-residue-lint``; ``--strict-gilead-lint`` is a deprecated alias).
+only unless a strict residue-lint flag is enabled; legacy aliases remain supported).
 """
 
 from __future__ import annotations
@@ -197,7 +197,7 @@ CURSOR_PHASE_PLAN: list[tuple[int, str, list[tuple[str, list[str], str]]]] = [
     ),
     (
         12,
-        "Gilead purge + docs / metadata discipline",
+        "Branding residue purge + docs / metadata discipline",
         [
             (
                 "seed_business_glossary",
@@ -234,23 +234,25 @@ class Command(BaseCommand):
             help="End at this phase number (inclusive, 1-12).",
         )
         parser.add_argument(
+            "--strict-branding-residue-lint",
             "--strict-residue-lint",
             "--strict-gilead-lint",
             action="store_true",
             dest="strict_residue_lint",
             help=(
                 "After phase 12, fail if scripts/lint_gilead_residue.py exits non-zero. "
-                "(--strict-gilead-lint is a deprecated alias.)"
+                "Legacy aliases remain supported."
             ),
         )
         parser.add_argument(
+            "--skip-branding-residue-lint",
             "--skip-residue-lint",
             "--skip-gilead-lint",
             action="store_true",
             dest="skip_residue_lint",
             help=(
                 "Skip scripts/lint_gilead_residue.py after phase 12. "
-                "(--skip-gilead-lint is a deprecated alias.)"
+                "Legacy aliases remain supported."
             ),
         )
         parser.add_argument(

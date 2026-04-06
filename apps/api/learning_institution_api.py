@@ -144,6 +144,7 @@ class InstitutionProfileSuggestView(LoginRequiredMixin, View):
                 from django.conf import settings
 
                 if getattr(settings, "AI_GATEWAY_ENABLED", True):
+                    from apps.portal.ai_provider import _normalize_gateway_metadata
                     from services.ai_gateway import invoke
 
                     prompt = (
@@ -151,8 +152,31 @@ class InstitutionProfileSuggestView(LoginRequiredMixin, View):
                         '"institution_type_code":"W31_GENERAL_K12","confidence":0.5} '
                         f"for a school named roughly: {school.name[:80]!r}. Choose from SOT wedges 23-30 delivery codes and 31-43 institution codes."
                     )
+                    user_id = getattr(request.user, "pk", None) or getattr(
+                        request.user, "id", None
+                    )
+                    country_code = getattr(school, "country_code", None) or getattr(
+                        getattr(school, "default_region", None),
+                        "code",
+                        None,
+                    )
                     raw, meta = invoke(
-                        "general_chat", prompt, user_query="classify", metadata={}
+                        "general_chat",
+                        prompt,
+                        user_query="classify",
+                        metadata=_normalize_gateway_metadata(
+                            {
+                                "request": request,
+                                "school": school,
+                                "school_id": str(school.pk),
+                                "tenant_id": str(school.pk),
+                                "user_id": str(user_id) if user_id is not None else None,
+                                "role": getattr(request.user, "role", None)
+                                or getattr(request.user, "portal_role", None)
+                                or getattr(request.user, "user_type", None),
+                                "country_code": country_code,
+                            }
+                        ),
                     )
                     if isinstance(raw, str) and "{" in raw:
                         start, end = raw.find("{"), raw.rfind("}") + 1

@@ -4,15 +4,21 @@ P3 discipline: tenant Unfold admin change_form templates under templates/admin/
 must expose at least one product-surface link (or explicit exempt marker).
 
 Fails fast when a new high-churn change_form is added without escape links.
+
+``--base`` scopes the template glob to the given repository root (default: this repository root).
+
+Run: ``raise SystemExit(main(None))``.
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent.parent
+
 ADMIN_CHANGE_FORM_GLOB = "templates/admin/**/change_form.html"
 
 # {% url 'namespace:...' %} — tenant urlconf-safe namespaces (no super: on school hosts).
@@ -37,9 +43,35 @@ _ALLOWED_PREFIXES = frozenset(
 )
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify tenant admin change_form templates expose product-surface links."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to inspect (default: this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_admin_tenant_change_form_product_links: {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
-    paths = sorted(ROOT.glob(ADMIN_CHANGE_FORM_GLOB))
+    paths = sorted(root.glob(ADMIN_CHANGE_FORM_GLOB))
     if not paths:
         errors.append(f"no files matched {ADMIN_CHANGE_FORM_GLOB}")
         print("verify_admin_tenant_change_form_product_links: FAIL", file=sys.stderr)
@@ -48,7 +80,7 @@ def main() -> int:
         return 1
 
     for path in paths:
-        rel = path.relative_to(ROOT).as_posix()
+        rel = path.relative_to(root).as_posix()
         text = path.read_text(encoding="utf-8", errors="replace")
         if _EXEMPT.search(text):
             continue
@@ -74,4 +106,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

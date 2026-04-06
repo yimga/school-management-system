@@ -23,7 +23,7 @@
 
 ## 3. Raw SQL (schools app)
 
-All raw SQL in `apps/schools` is in repositories or rls_context (allowlist: raw_sql_audit.md). No ad-hoc raw SQL in app code. Health, RLS, tenant schema operations delegate to schools/repositories/*.
+All raw SQL in `apps/schools` is in repositories or `rls_context` (allowlist: `raw_sql_audit.md`). No ad-hoc raw SQL remains in app code. Health and RLS operations delegate to `apps/schools/repositories/*`, and the onboarding kill-switch delegates schema teardown to `django-tenants` via `Client.delete(force_drop=True)`.
 
 ---
 

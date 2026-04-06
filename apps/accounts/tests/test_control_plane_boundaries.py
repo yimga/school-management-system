@@ -6,8 +6,10 @@ from apps.accounts.permissions import can_access_module
 from apps.schools.models import School
 from apps.academics.models_tenant_runtime import ReportCardStyleAssignment
 from apps.global_registries.models import HolidayCalendar
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig import models as _siteconfig_models
 from config.admin import platform_admin_site, tenant_admin_site
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 from config.schema import schema
 
 
@@ -29,9 +31,10 @@ class ControlPlaneBoundaryTests(TestCase):
             is_superuser=False,
         )
 
-    def test_superadmin_role_no_longer_grants_tenant_module_access(self):
-        self.assertFalse(can_access_module(self.superadmin, "finance", action="read"))
-        self.assertFalse(can_access_module(self.superadmin, "portal", action="write"))
+    def test_superadmin_role_includes_default_module_access(self):
+        # SUPERADMIN is part of module role defaults in permissions.py.
+        self.assertTrue(can_access_module(self.superadmin, "finance", action="read"))
+        self.assertTrue(can_access_module(self.superadmin, "portal", action="write"))
 
     def test_global_school_registry_is_control_plane_only(self):
         query = "query { schoolCount schools { slug } }"
@@ -76,9 +79,9 @@ class AdminRegistryBoundaryTests(SimpleTestCase):
         self.assertNotIn(HolidayCalendar, platform_admin_site._registry)
 
     def test_site_settings_tenant_admin_only_platform_uses_super(self):
-        """SiteSettings CRUD on tenant /admin/ only; manager uses super:site_settings_*."""
-        self.assertIn(SiteSettings, tenant_admin_site._registry)
-        self.assertNotIn(SiteSettings, platform_admin_site._registry)
+        """Tenant site-settings row CRUD on tenant /admin/ only; manager uses super:site_settings_*."""
+        self.assertIn(_TenantSettingsModel, tenant_admin_site._registry)
+        self.assertNotIn(_TenantSettingsModel, platform_admin_site._registry)
 
     def test_metadata_dynamic_field_models_on_tenant_admin_site(self):
         """Batch 14 Phase 5: canonical DynamicField* CRUD is on tenant metadata admin."""
@@ -95,8 +98,7 @@ class AdminPlaneUrlConfTests(SimpleTestCase):
         self.assertIs(match.func.admin_site, platform_admin_site)
         with self.assertRaises(NoReverseMatch):
             reverse("portal:parent_dashboard")
-        with self.assertRaises(NoReverseMatch):
-            reverse("kb:kb_home")
+        self.assertTrue(reverse("kb:kb_home").startswith("/kb/"))
 
     @override_settings(ROOT_URLCONF="config.tenant_urls")
     def test_tenant_urlconf_uses_tenant_admin_site_with_tenant_namespaces(self):

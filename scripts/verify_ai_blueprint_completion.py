@@ -5,19 +5,76 @@ AI blueprint structural gate (gateway, embeddings, portal views, prompts, metric
 
 Batch 40 §11.4: settings/runtime first-class secret anchors + hardened check_contains
 (no uncaught FileNotFoundError when a required file is absent).
+
+[--base REPO_ROOT] scopes all paths and scans to the given repository root
+(default: directory containing this script's parent).
+
+Run (from repo root):
+  python scripts/verify_ai_blueprint_completion.py
 """
 
+import argparse
+from functools import lru_cache
 from pathlib import Path
+import subprocess
 import sys
 
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+FORBIDDEN_CLOUD_AI_SDK_TOKENS = (
+    "google.generativeai",
+    "generativelanguage.googleapis.com",
+    "anthropic",
+    "openai.OpenAI(",
+    "from openai import OpenAI",
+)
+
+
+@lru_cache(maxsize=1)
+def _tracked_file_relpaths(root: Path) -> frozenset[str] | None:
+    """Prefer tracked files so local scratch trees do not create false failures."""
+    try:
+        proc = subprocess.run(
+            ["git", "ls-files"],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError):
+        return None
+    return frozenset(line.strip() for line in proc.stdout.splitlines() if line.strip())
+
+
+def _iter_python_files(scan_root: Path, repo_root: Path):
+    tracked = _tracked_file_relpaths(repo_root)
+    if tracked is None:
+        yield from scan_root.rglob("*.py")
+        return
+
+    prefix = scan_root.relative_to(repo_root).as_posix().rstrip("/") + "/"
+    for relpath in sorted(path for path in tracked if path.startswith(prefix) and path.endswith(".py")):
+        path = repo_root / relpath
+        if path.is_file():
+            yield path
+
+
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
 
 
 def check_contains(
-    relative_path: str, needle: str, label: str, failures: list[str]
+    root: Path,
+    relative_path: str,
+    needle: str,
+    label: str,
+    failures: list[str],
 ) -> None:
-    path = ROOT / relative_path
+    path = root / relative_path
     if not path.is_file():
         failures.append(f"{label}: missing file {relative_path}")
         return
@@ -25,7 +82,41 @@ def check_contains(
         failures.append(f"{label}: missing `{needle}` in {relative_path}")
 
 
-def main() -> int:
+def check_forbidden_cloud_ai_sdk_usage(root: Path, failures: list[str]) -> None:
+    scan_roots = (root / "apps", root / "services")
+    for scan_root in scan_roots:
+        if not scan_root.is_dir():
+            continue
+        for path in _iter_python_files(scan_root, root):
+            rel = path.relative_to(root)
+            if "tests" in rel.parts:
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            for needle in FORBIDDEN_CLOUD_AI_SDK_TOKENS:
+                if needle in text:
+                    failures.append(
+                        f"Forbidden cloud AI SDK usage in {rel}: {needle}"
+                    )
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="AI blueprint structural gate.")
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_ai_blueprint_completion: {exc}", file=sys.stderr)
+        return 1
+
     failures: list[str] = []
 
     required_files = [
@@ -39,12 +130,17 @@ def main() -> int:
         "docs/architecture/ai_tiered_ollama.md",
     ]
     for relative_path in required_files:
-        if not (ROOT / relative_path).exists():
+        if not (root / relative_path).exists():
             failures.append(f"Missing required file: {relative_path}")
 
     gateway_checks = [
         ("services/ai_gateway.py", "class TaskType", "Gateway task enum"),
         ("services/ai_gateway.py", "def invoke(", "Gateway invoke facade"),
+        (
+            "services/ai_gateway.py",
+            "AI_GATEWAY_ENABLED",
+            "Gateway kill-switch enforcement",
+        ),
         (
             "services/ai_gateway.py",
             "def _cost_class_for_tier(",
@@ -100,7 +196,7 @@ def main() -> int:
         ),
     ]
     for relative_path, needle, label in gateway_checks:
-        check_contains(relative_path, needle, label, failures)
+        check_contains(root, relative_path, needle, label, failures)
 
     embeddings_checks = [
         (
@@ -122,7 +218,7 @@ def main() -> int:
         ("services/embeddings.py", "def embed_batch(", "Batch embedding support"),
     ]
     for relative_path, needle, label in embeddings_checks:
-        check_contains(relative_path, needle, label, failures)
+        check_contains(root, relative_path, needle, label, failures)
 
     retrieval_checks = [
         (
@@ -134,7 +230,7 @@ def main() -> int:
         ("services/ai_memory.py", "staff_only", "Staff visibility guard"),
     ]
     for relative_path, needle, label in retrieval_checks:
-        check_contains(relative_path, needle, label, failures)
+        check_contains(root, relative_path, needle, label, failures)
 
     endpoint_needles = [
         "ai/setup-assistant/",
@@ -152,7 +248,7 @@ def main() -> int:
         "ai/control-plane-intelligence/",
         "ai/feedback/",
     ]
-    urls_path = ROOT / "apps" / "api" / "urls.py"
+    urls_path = root / "apps" / "api" / "urls.py"
     if not urls_path.is_file():
         failures.append("Missing required file: apps/api/urls.py")
     else:
@@ -182,7 +278,7 @@ def main() -> int:
         "record_feedback(",
         '"migration_mapping",',
     ]
-    view_path = ROOT / "apps" / "portal" / "views_ai_gateway.py"
+    view_path = root / "apps" / "portal" / "views_ai_gateway.py"
     if not view_path.is_file():
         failures.append("Missing required file: apps/portal/views_ai_gateway.py")
     else:
@@ -210,7 +306,7 @@ def main() -> int:
         '"data_quality"',
         '"control_plane_intelligence"',
     ]
-    pr_path = ROOT / "apps" / "siteconfig" / "prompt_registry.py"
+    pr_path = root / "apps" / "siteconfig" / "prompt_registry.py"
     if not pr_path.is_file():
         failures.append("Missing required file: apps/siteconfig/prompt_registry.py")
     else:
@@ -257,7 +353,7 @@ def main() -> int:
         ),
     ]
     for relative_path, needle, label in metric_checks:
-        check_contains(relative_path, needle, label, failures)
+        check_contains(root, relative_path, needle, label, failures)
 
     gateway_discipline_checks = [
         (
@@ -277,7 +373,7 @@ def main() -> int:
         ),
     ]
     for relative_path, needle, label in gateway_discipline_checks:
-        check_contains(relative_path, needle, label, failures)
+        check_contains(root, relative_path, needle, label, failures)
 
     doc_checks = [
         (
@@ -322,7 +418,7 @@ def main() -> int:
         ),
     ]
     for relative_path, needle, label in doc_checks:
-        check_contains(relative_path, needle, label, failures)
+        check_contains(root, relative_path, needle, label, failures)
 
     threat_checks = [
         (
@@ -347,7 +443,9 @@ def main() -> int:
         ),
     ]
     for relative_path, needle, label in threat_checks:
-        check_contains(relative_path, needle, label, failures)
+        check_contains(root, relative_path, needle, label, failures)
+
+    check_forbidden_cloud_ai_sdk_usage(root, failures)
 
     if failures:
         print("AI blueprint verification failed:")
@@ -360,4 +458,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

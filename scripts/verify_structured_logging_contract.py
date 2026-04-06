@@ -57,29 +57,62 @@ v20 (batch 35 #437): ``request_scheme`` (``request.scheme``, lowercased, ``_REQU
 v21 (batch 36 #452): ``server_name`` (``SERVER_NAME``, truncated, ``_SERVER_NAME_MAX_LEN``) on
     ``LogRecord`` and in both formatters; ``clear_request_logging_context`` resets
     ``_server_name_ctx``; JSON ``fmt`` includes ``%(server_name)s``.
+
+``--base`` resolves ``config/settings.py`` and ``apps/observability/logging_context.py``
+from the given repository root (default: this repository root).
+
+Run: ``raise SystemExit(main(None))``.
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-SETTINGS = ROOT / "config" / "settings.py"
-LOGGING_CONTEXT = ROOT / "apps" / "observability" / "logging_context.py"
+ROOT = Path(__file__).resolve().parent.parent
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify structured logging contract in settings and logging_context."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to inspect (default: this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_structured_logging_contract: {exc}", file=sys.stderr)
+        return 1
+
+    settings = root / "config" / "settings.py"
+    logging_context = root / "apps" / "observability" / "logging_context.py"
+
     errors: list[str] = []
-    if not SETTINGS.is_file():
+    if not settings.is_file():
         errors.append("config/settings.py missing")
         return _fail(errors)
-    if not LOGGING_CONTEXT.is_file():
+    if not logging_context.is_file():
         errors.append("apps/observability/logging_context.py missing")
         return _fail(errors)
 
-    ctx_text = LOGGING_CONTEXT.read_text(encoding="utf-8", errors="replace")
+    ctx_text = logging_context.read_text(encoding="utf-8", errors="replace")
     if "class RequestContextFilter" not in ctx_text:
         errors.append("logging_context.py missing RequestContextFilter class")
     if "def clear_request_logging_context" not in ctx_text:
@@ -209,7 +242,7 @@ def main() -> int:
                 "logging_context.py clear_request_logging_context must reset _server_name_ctx (batch 36 #452)"
             )
 
-    text = SETTINGS.read_text(encoding="utf-8", errors="replace")
+    text = settings.read_text(encoding="utf-8", errors="replace")
     required_tokens = (
         "apps.observability.middleware.RequestIdLoggingMiddleware",
         "apps.observability.middleware.ObservabilityMiddleware",
@@ -328,4 +361,4 @@ def _fail(errors: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

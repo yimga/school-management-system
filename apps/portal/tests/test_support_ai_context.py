@@ -48,6 +48,8 @@ class ApplySupportTicketAiTriageTests(TestCase):
             username="triage-user",
             password="pass",
         )
+        self.user.role = "ADMIN"
+        self.user.save(update_fields=["role"])
         self.ticket = GlobalSupportTicket.objects.create(
             school=self.school,
             user=self.user,
@@ -68,6 +70,8 @@ class ApplySupportTicketAiTriageTests(TestCase):
         )
         out = apply_support_ticket_ai_triage(str(self.ticket.pk))
         self.assertTrue(out.get("ok"))
+        self.assertEqual(mock_suggest.call_args.kwargs["user_id"], self.user.pk)
+        self.assertEqual(mock_suggest.call_args.kwargs["role"], "ADMIN")
         self.ticket.refresh_from_db()
         triage = self.ticket.metadata.get("ai_triage")
         self.assertIsInstance(triage, dict)

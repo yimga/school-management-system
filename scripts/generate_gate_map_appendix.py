@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Generate/check the gate-map appendix in docs/PHASES_3_11_GATE_VERIFICATION.md."""
+"""Generate/check the gate-map appendix in docs/PHASES_3_11_GATE_VERIFICATION.md.
+
+[--base REPO_ROOT] selects the repository root for `docs/gate_map_appendix_config.json`
+and `docs/PHASES_3_11_GATE_VERIFICATION.md` (default: .).
+"""
 
 from __future__ import annotations
 
@@ -8,16 +12,19 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-CONFIG = ROOT / "docs" / "gate_map_appendix_config.json"
-TARGET = ROOT / "docs" / "PHASES_3_11_GATE_VERIFICATION.md"
-
 START = "<!-- GATE_MAP_APPENDIX:START -->"
 END = "<!-- GATE_MAP_APPENDIX:END -->"
 
 
-def _load_config() -> dict:
-    return json.loads(CONFIG.read_text(encoding="utf-8"))
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def _load_config(config_path: Path) -> dict:
+    return json.loads(config_path.read_text(encoding="utf-8"))
 
 
 def _render(cfg: dict) -> str:
@@ -52,13 +59,26 @@ def _replace_block(text: str, replacement: str) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--base",
+        default=".",
+        help="Repository root (default: .)",
+    )
     ap.add_argument("--check", action="store_true", help="Fail if appendix is out of date")
     ap.add_argument("--write", action="store_true", help="Write generated appendix to target")
     args = ap.parse_args()
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"generate_gate_map_appendix: {exc}", file=sys.stderr)
+        return 1
 
-    cfg = _load_config()
+    config_path = root / "docs" / "gate_map_appendix_config.json"
+    target = root / "docs" / "PHASES_3_11_GATE_VERIFICATION.md"
+
+    cfg = _load_config(config_path)
     generated = _render(cfg)
-    current = TARGET.read_text(encoding="utf-8")
+    current = target.read_text(encoding="utf-8")
     updated = _replace_block(current, generated)
 
     if args.check:
@@ -73,7 +93,7 @@ def main() -> int:
         return 0
 
     if args.write or not args.check:
-        TARGET.write_text(updated, encoding="utf-8")
+        target.write_text(updated, encoding="utf-8")
         print("generate_gate_map_appendix: wrote appendix block")
         return 0
 

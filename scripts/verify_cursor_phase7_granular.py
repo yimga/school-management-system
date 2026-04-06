@@ -9,62 +9,94 @@ combined pytest avoids back-to-back SQLite locks on Windows. Use after code chan
 do not treat Phase 7 as “documentation complete” without this script passing.
 
 Exit 0 = all checks pass.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-PHASE7 = ROOT / "scripts" / "verify_cursor_phase7_runtime_first.py"
-AUDIT = ROOT / "docs" / "phase_audit" / "PHASE_07_RUNTIME_FIRST_AUDIT.md"
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 
 
-def _run(cmd: list[str], label: str) -> str | None:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Cursor Phase 7 granular runtime-first checks."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _run(
+    cmd: list[str],
+    label: str,
+    *,
+    root: Path,
+    env: dict[str, str] | None = None,
+) -> str | None:
     proc = subprocess.run(
         cmd,
-        cwd=str(ROOT),
+        cwd=str(root),
         capture_output=True,
         text=True,
         timeout=360,
+        env=env,
     )
     if proc.returncode != 0:
         return f"{label} failed (exit {proc.returncode}):\n{proc.stdout}\n{proc.stderr}"
     return None
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print("verify_cursor_phase7_granular: FAIL", file=sys.stderr)
+        print(f"  ---\n{exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
     py = sys.executable
+    phase7 = root / "scripts" / "verify_cursor_phase7_runtime_first.py"
+    audit = root / "docs" / "phase_audit" / "PHASE_07_RUNTIME_FIRST_AUDIT.md"
 
-    if not AUDIT.is_file():
-        errors.append(f"Missing {AUDIT.relative_to(ROOT)}")
+    if not audit.is_file():
+        errors.append(f"Missing {audit.relative_to(root)}")
 
-    if not PHASE7.is_file():
-        errors.append(f"Missing {PHASE7.relative_to(ROOT)}")
+    if not phase7.is_file():
+        errors.append(f"Missing {phase7.relative_to(root)}")
     else:
         env = os.environ.copy()
         env["PHASE7_RUNTIME_FIRST_SKIP_PYTEST"] = "1"
-        proc = subprocess.run(
-            [py, str(PHASE7)],
-            cwd=str(ROOT),
-            capture_output=True,
-            text=True,
-            timeout=360,
+        if err := _run(
+            [py, str(phase7)],
+            "verify_cursor_phase7_runtime_first",
+            root=root,
             env=env,
-        )
-        if proc.returncode != 0:
-            errors.append(
-                "verify_cursor_phase7_runtime_first failed (exit "
-                f"{proc.returncode}):\n{proc.stdout}\n{proc.stderr}"
-            )
+        ):
+            errors.append(err)
 
     if err := _run(
-        [py, str(ROOT / "scripts" / "lint_sitesettings_orm_singleton.py"), "--base", str(ROOT)],
+        [py, str(root / "scripts" / "lint_sitesettings_orm_singleton.py"), "--base", str(root)],
         "lint_sitesettings_orm_singleton",
+        root=root,
     ):
         errors.append(err)
 
@@ -72,35 +104,35 @@ def main() -> int:
         (
             [
                 py,
-                str(ROOT / "scripts" / "lint_tenant_settings.py"),
+                str(root / "scripts" / "lint_tenant_settings.py"),
                 "--check-get-solo-only",
                 "--base",
-                str(ROOT),
+                str(root),
             ],
             "lint_tenant_settings --check-get-solo-only",
         ),
         (
             [
                 py,
-                str(ROOT / "scripts" / "lint_tenant_settings.py"),
+                str(root / "scripts" / "lint_tenant_settings.py"),
                 "--check-school-settings-features",
                 "--base",
-                str(ROOT),
+                str(root),
             ],
             "lint_tenant_settings --check-school-settings-features",
         ),
         (
             [
                 py,
-                str(ROOT / "scripts" / "lint_tenant_settings.py"),
+                str(root / "scripts" / "lint_tenant_settings.py"),
                 "--check-sitesettings-orm-in-tenant-apps",
                 "--base",
-                str(ROOT),
+                str(root),
             ],
             "lint_tenant_settings --check-sitesettings-orm-in-tenant-apps",
         ),
     ):
-        if err := _run(args, label):
+        if err := _run(args, label, root=root):
             errors.append(err)
 
     # Single pytest session: Phase 7 contract modules + tenant/middleware + truth hub (avoids SQLite lock flakiness).
@@ -118,6 +150,7 @@ def main() -> int:
             "--no-header",
         ],
         "pytest Phase 7 contract + tenant identity + super runtime ops (truth hub)",
+        root=root,
     ):
         errors.append(err)
 
@@ -135,4 +168,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

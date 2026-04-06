@@ -48,6 +48,29 @@ class SuggestSupportTicketResponseTests(TestCase):
 
     @override_settings(AI_GATEWAY_ENABLED=True, SUPPORT_AI_KB_CONTEXT=False)
     @patch("services.ai_gateway.invoke")
+    def test_explicit_user_id_is_forwarded_to_gateway_metadata(self, mock_invoke):
+        mock_invoke.return_value = (
+            '{"category":"IT","priority":"NORMAL","suggested_reply":"Try again."}',
+            {"gateway": True, "backend": "ollama"},
+        )
+
+        data, meta = suggest_support_ticket_response(
+            "Password",
+            "reset my password please",
+            school=self.school,
+            user_id="agent-7",
+            role="ADMIN",
+        )
+
+        self.assertEqual(data.get("category"), "IT")
+        self.assertTrue(meta.get("gateway"))
+        md = mock_invoke.call_args.kwargs["metadata"]
+        self.assertEqual(md.get("user_id"), "agent-7")
+        self.assertEqual(md.get("role"), "ADMIN")
+        self.assertEqual(md.get("tenant_id"), self.school.pk)
+
+    @override_settings(AI_GATEWAY_ENABLED=True, SUPPORT_AI_KB_CONTEXT=False)
+    @patch("services.ai_gateway.invoke")
     def test_json_parse_fallback_wraps_plain_text(self, mock_invoke):
         mock_invoke.return_value = ("Here is a plain reply without JSON.", {"gateway": True})
         data, meta = suggest_support_ticket_response("S", "B", school=None)

@@ -5,7 +5,7 @@ Cursor Phase 6 — Siteconfig / SiteSettings dismantling — mechanical gate.
 Bundles ZIP Phase 5 (includes Phase B migration artifacts) + tenant / Batch3 guardrails
 + ``lint_sitesettings_orm_singleton`` (``SiteSettings.objects`` only in ``models.py`` + ``helpers.py``):
 
-  python scripts/verify_cursor_phase6_siteconfig_sitesettings.py
+  ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 
 E2E migrated DB: pytest apps/platform_runtime/tests/test_phase_b_execution_gate.py (or post-migrate: python scripts/verify_phase_b_execution.py).
 
@@ -17,37 +17,63 @@ Exit 0 = all subprocess checks pass.
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-AUDIT = ROOT / "docs" / "phase_audit" / "PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md"
-INVENTORY = ROOT / "docs" / "site_settings_usage_inventory.md"
-MIGRATION = ROOT / "docs" / "SITECONFIG_OWNERSHIP_MIGRATION.md"
-DOMAIN_OWNERSHIP = ROOT / "apps" / "siteconfig" / "domain_ownership.py"
 
 
-def _run(cmd: list[str], label: str) -> str | None:
-    proc = subprocess.run(
-        cmd,
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-        timeout=180,
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Cursor Phase 6 siteconfig/sitesettings bundle."
     )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _relative(path: Path, base: Path) -> Path | str:
+    try:
+        return path.relative_to(base)
+    except ValueError:
+        return path
+
+
+def _run(cmd: list[str], label: str, *, root: Path) -> str | None:
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+    except subprocess.TimeoutExpired as exc:
+        return (
+            f"{label} timed out after 180s:\n"
+            f"{exc.stdout or ''}\n{exc.stderr or ''}"
+        )
     if proc.returncode != 0:
         return f"{label} failed (exit {proc.returncode}):\n{proc.stdout}\n{proc.stderr}"
     return None
 
 
-def _exact_field_owner_count() -> int:
+def _exact_field_owner_count(domain_ownership: Path) -> int:
     spec = importlib.util.spec_from_file_location(
-        "domain_ownership_phase6", DOMAIN_OWNERSHIP
+        "domain_ownership_phase6", domain_ownership
     )
     if spec is None or spec.loader is None:
         return 0
@@ -59,20 +85,35 @@ def _exact_field_owner_count() -> int:
     return len(d)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print("verify_cursor_phase6_siteconfig_sitesettings: FAIL", file=sys.stderr)
+        print(f"  ---\n{exc}", file=sys.stderr)
+        return 1
+
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+
     errors: list[str] = []
+    audit = root / "docs" / "phase_audit" / "PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md"
+    inventory = root / "docs" / "site_settings_usage_inventory.md"
+    migration = root / "docs" / "SITECONFIG_OWNERSHIP_MIGRATION.md"
+    domain_ownership = root / "apps" / "siteconfig" / "domain_ownership.py"
 
     for path, label in (
-        (AUDIT, "PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md"),
-        (INVENTORY, "site_settings_usage_inventory.md"),
-        (MIGRATION, "SITECONFIG_OWNERSHIP_MIGRATION.md"),
-        (DOMAIN_OWNERSHIP, "domain_ownership.py"),
+        (audit, "PHASE_06_SITECONFIG_SITESETTINGS_AUDIT.md"),
+        (inventory, "site_settings_usage_inventory.md"),
+        (migration, "SITECONFIG_OWNERSHIP_MIGRATION.md"),
+        (domain_ownership, "domain_ownership.py"),
     ):
         if not path.is_file():
-            errors.append(f"Missing required file: {path.relative_to(ROOT)}")
+            errors.append(f"Missing required file: {_relative(path, root)}")
 
-    if AUDIT.is_file():
-        body = AUDIT.read_text(encoding="utf-8", errors="replace")
+    if audit.is_file():
+        body = audit.read_text(encoding="utf-8", errors="replace")
         for needle in (
             "## 1. SiteSettings physical model",
             "## 4. Mandatory audit (Phase 6 spec checklist)",
@@ -81,56 +122,60 @@ def main() -> int:
             if needle not in body:
                 errors.append(f"Audit missing section {needle!r}")
 
-    n_exact = _exact_field_owner_count()
+    n_exact = _exact_field_owner_count(domain_ownership)
     if n_exact < 40:
         errors.append(
             f"domain_ownership.EXACT_FIELD_OWNERS too small ({n_exact}); expected >= 40"
         )
 
     py = sys.executable
+    verify_phase_5 = root / "scripts" / "verify_phase_5_siteconfig.py"
+    lint_tenant_settings = root / "scripts" / "lint_tenant_settings.py"
+    lint_phase_b_batch3 = root / "scripts" / "lint_phase_b_batch3_sitesettings_fk_writes.py"
+    lint_singleton = root / "scripts" / "lint_sitesettings_orm_singleton.py"
     checks = [
-        ([py, str(ROOT / "scripts" / "verify_phase_5_siteconfig.py")], "verify_phase_5_siteconfig"),
+        ([py, str(verify_phase_5), "--base", str(root)], "verify_phase_5_siteconfig"),
         (
             [
                 py,
-                str(ROOT / "scripts" / "lint_tenant_settings.py"),
+                str(lint_tenant_settings),
                 "--check-get-solo-only",
                 "--base",
-                str(ROOT),
+                str(root),
             ],
             "lint_tenant_settings --check-get-solo-only",
         ),
         (
             [
                 py,
-                str(ROOT / "scripts" / "lint_tenant_settings.py"),
+                str(lint_tenant_settings),
                 "--check-school-settings-features",
                 "--base",
-                str(ROOT),
+                str(root),
             ],
             "lint_tenant_settings --check-school-settings-features",
         ),
         (
             [
                 py,
-                str(ROOT / "scripts" / "lint_tenant_settings.py"),
+                str(lint_tenant_settings),
                 "--check-sitesettings-orm-in-tenant-apps",
                 "--base",
-                str(ROOT),
+                str(root),
             ],
             "lint_tenant_settings --check-sitesettings-orm-in-tenant-apps",
         ),
         (
-            [py, str(ROOT / "scripts" / "lint_phase_b_batch3_sitesettings_fk_writes.py")],
+            [py, str(lint_phase_b_batch3), "--base", str(root)],
             "lint_phase_b_batch3_sitesettings_fk_writes",
         ),
         (
-            [py, str(ROOT / "scripts" / "lint_sitesettings_orm_singleton.py"), "--base", str(ROOT)],
+            [py, str(lint_singleton), "--base", str(root)],
             "lint_sitesettings_orm_singleton",
         ),
     ]
     for cmd, label in checks:
-        err = _run(cmd, label)
+        err = _run(cmd, label, root=root)
         if err:
             errors.append(err)
 
@@ -149,4 +194,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

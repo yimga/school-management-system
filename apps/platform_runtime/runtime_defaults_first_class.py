@@ -16,6 +16,10 @@ See ``RuntimeDefaults.sync_from_site_settings`` and ``_build_platform_site_setti
 
 from __future__ import annotations
 
+import importlib.util
+from functools import lru_cache
+from pathlib import Path
+
 # Field names on RuntimeDefaults model (must match migration + model definition).
 RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES: tuple[str, ...] = (
     "company_name",
@@ -191,10 +195,50 @@ def strip_runtime_defaults_first_class_keys_from_dict(d: dict) -> None:
         d.pop(k, None)
 
 
-def collect_first_class_values_from_site_settings(site_settings) -> dict[str, object]:
+@lru_cache(maxsize=1)
+def _domain_ownership_classifier():
+    try:
+        from apps.siteconfig.domain_ownership import classify_site_settings_field
+
+        return classify_site_settings_field
+    except ModuleNotFoundError:
+        domain_ownership = (
+            Path(__file__).resolve().parents[1] / "siteconfig" / "domain_ownership.py"
+        )
+        spec = importlib.util.spec_from_file_location(
+            "siteconfig_domain_ownership_runtime_defaults_first_class",
+            domain_ownership,
+        )
+        if spec is None or spec.loader is None:
+            raise RuntimeError(f"Cannot load {domain_ownership}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.classify_site_settings_field
+
+
+def first_class_field_names_for_runtime_sync(
+    owners: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    """Return RuntimeDefaults first-class fields within the effective owner scope."""
+    if owners is None:
+        return RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES
+
+    owner_set = set(owners)
+    return tuple(
+        field_name
+        for field_name in RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES
+        if _domain_ownership_classifier()(field_name) in owner_set
+    )
+
+
+def collect_first_class_values_from_site_settings(
+    site_settings,
+    *,
+    field_names: tuple[str, ...] | None = None,
+) -> dict[str, object]:
     """Snapshot current effective values from the legacy tenant site-settings façade (virtual + column)."""
     out: dict[str, object] = {}
-    for k in RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES:
+    for k in field_names or RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES:
         v = getattr(site_settings, k, None)
         if k in RUNTIME_DEFAULTS_FIRST_CLASS_STRING_FIELD_NAMES:
             if runtime_defaults_first_class_string_is_blank(v):

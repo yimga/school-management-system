@@ -24,23 +24,52 @@ Windows (WinError 32):
   still locked. This script then sets ``DJANGO_TEST_DB_FILE`` to a **unique**
   ``.django_test_dbs/section7_verify_<uuid>.sqlite3`` per run unless
   ``SECTION7_FIXED_TEST_DB=1`` (uses ``section7_verify.sqlite3``) or you preset ``DJANGO_TEST_DB_FILE``.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import subprocess
 import sys
 import uuid
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-
-# Align with scripts/pre_deploy_gate.sh: shared gate DB when using --keepdb.
-_DEFAULT_GATE_DB = ROOT / ".django_test_dbs" / "pre_deploy_gate.sqlite3"
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
 
-def _configure_django_test_db_for_step2() -> None:
+def _default_gate_db(root: Path) -> Path:
+    return root / ".django_test_dbs" / "pre_deploy_gate.sqlite3"
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT
+    ROOT = base
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+
+
+def _configure_django_test_db_for_step2(root: Path) -> None:
     """
     Set DJANGO_TEST_DB_FILE before subprocess so manage.py test uses a predictable path.
 
@@ -55,7 +84,7 @@ def _configure_django_test_db_for_step2() -> None:
     )
     if use_keepdb:
         if not os.environ.get("DJANGO_TEST_DB_FILE"):
-            os.environ["DJANGO_TEST_DB_FILE"] = str(_DEFAULT_GATE_DB)
+            os.environ["DJANGO_TEST_DB_FILE"] = str(_default_gate_db(root))
         return
     if (os.environ.get("SECTION7_FIXED_TEST_DB") or "").strip().lower() in (
         "1",
@@ -64,27 +93,27 @@ def _configure_django_test_db_for_step2() -> None:
     ):
         if not os.environ.get("DJANGO_TEST_DB_FILE"):
             os.environ["DJANGO_TEST_DB_FILE"] = str(
-                ROOT / ".django_test_dbs" / "section7_verify.sqlite3"
+                root / ".django_test_dbs" / "section7_verify.sqlite3"
             )
         return
     if os.environ.get("DJANGO_TEST_DB_FILE"):
         # User explicitly set path (e.g. CI); do not override.
         return
-    dbs = ROOT / ".django_test_dbs"
+    dbs = root / ".django_test_dbs"
     dbs.mkdir(parents=True, exist_ok=True)
     os.environ["DJANGO_TEST_DB_FILE"] = str(
         dbs / f"section7_verify_{uuid.uuid4().hex}.sqlite3"
     )
 
 
-def _maybe_remove_gate_test_db_for_fresh_run() -> None:
+def _maybe_remove_gate_test_db_for_fresh_run(root: Path) -> None:
     """Match pre_deploy_gate: PRE_GATE_FRESH_TEST_DB=1 nukes the file-backed gate DB."""
     raw = (os.environ.get("PRE_GATE_FRESH_TEST_DB") or "").strip().lower()
     if raw not in ("1", "true", "yes"):
         return
-    db_path = Path(os.environ.get("DJANGO_TEST_DB_FILE", str(_DEFAULT_GATE_DB)))
+    db_path = Path(os.environ.get("DJANGO_TEST_DB_FILE", str(_default_gate_db(root))))
     if not db_path.is_absolute():
-        db_path = ROOT / db_path
+        db_path = root / db_path
     try:
         db_path.unlink(missing_ok=True)
     except OSError:
@@ -92,13 +121,13 @@ def _maybe_remove_gate_test_db_for_fresh_run() -> None:
 
 
 def run(
-    cmd: list[str], label: str, *, timeout: int = 120
+    cmd: list[str], label: str, *, timeout: int = 120, root: Path | None = None
 ) -> tuple[bool, str]:
     """Run command; return (success, message)."""
     try:
         result = subprocess.run(
             cmd,
-            cwd=ROOT,
+            cwd=root or ROOT,
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -119,10 +148,11 @@ def run(
         return False, str(e)
 
 
-def check_minimums_keys() -> tuple[bool, str]:
+def check_minimums_keys(root: Path) -> tuple[bool, str]:
     """Verify MARKETPLACE_MINIMUMS has the keys required by §7."""
     try:
-        sys.path.insert(0, str(ROOT))
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
         from apps.platform_runtime.catalog_counts import MARKETPLACE_MINIMUMS
 
         required = {
@@ -140,18 +170,25 @@ def check_minimums_keys() -> tuple[bool, str]:
         return False, str(e)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    try:
+        _configure_root(_resolve_base(parse_args(argv).base))
+    except ValueError as exc:
+        print(f"verify_section7_gate: {exc}", file=sys.stderr)
+        return 1
+
     failures: list[str] = []
     n = 0
 
-    _configure_django_test_db_for_step2()
-    _maybe_remove_gate_test_db_for_fresh_run()
+    _configure_django_test_db_for_step2(ROOT)
+    _maybe_remove_gate_test_db_for_fresh_run(ROOT)
 
     # Step 1: platform inventory --check
     n += 1
     ok, msg = run(
         [sys.executable, "scripts/generate_platform_inventory.py", "--check"],
         "§7 step 1: generate_platform_inventory --check",
+        root=ROOT,
     )
     if ok:
         print(f"  [{n}] generate_platform_inventory --check: PASS")
@@ -185,6 +222,7 @@ def main() -> int:
         test_cmd,
         "§7 step 2: test_marketplace_catalog_minimums",
         timeout=900,
+        root=ROOT,
     )
     if ok:
         print(f"  [{n}] test_marketplace_catalog_minimums: PASS")
@@ -197,7 +235,7 @@ def main() -> int:
 
     # Step 3: MARKETPLACE_MINIMUMS keys
     n += 1
-    ok, msg = check_minimums_keys()
+    ok, msg = check_minimums_keys(ROOT)
     if ok:
         print(f"  [{n}] MARKETPLACE_MINIMUMS keys: PASS")
     else:
@@ -214,4 +252,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

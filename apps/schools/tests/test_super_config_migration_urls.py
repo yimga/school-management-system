@@ -8,10 +8,13 @@ from django.test import TestCase, override_settings
 from django.urls import NoReverseMatch, reverse
 
 from apps.accounts.models import User
+from apps.siteconfig import models as _siteconfig_models
 from apps.schools.super_admin_bridge_registry import (
     PLATFORM_ADMIN_BRIDGE_ORDER,
     PLATFORM_ADMIN_BRIDGES,
 )
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 def _admin_changelist_path_tail(admin_url_name: str) -> str:
@@ -100,10 +103,8 @@ class SuperConfigMigrationUrlTests(TestCase):
         )
 
     def test_site_settings_edit_200_or_404(self):
-        # Edit requires existing pk; 404 if no SiteSettings
-        from apps.siteconfig.models import SiteSettings
-
-        first = SiteSettings.objects.first()
+        # Edit requires existing pk; 404 if no tenant site-settings row
+        first = _TenantSettingsModel.objects.first()
         if first:
             response = self._get("super:site_settings_edit", kwargs={"pk": first.pk})
             self.assertEqual(

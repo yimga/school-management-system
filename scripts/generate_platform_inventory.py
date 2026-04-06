@@ -10,6 +10,9 @@ Outputs:
 Use `--write` to refresh committed artifacts and `--check` to fail CI when the
 artifacts are stale, when **doc_drift.is_stale** is true, or when
 **scoped_gravity_counts.print_calls_apps_py_excl_migrations_tests_management** ≠ 0 (P6).
+
+Run: ``python scripts/generate_platform_inventory.py [--base PATH] [--write|--check]``
+(default base: current directory).
 """
 
 from __future__ import annotations
@@ -17,18 +20,46 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from collections import Counter
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+_DEFAULT_REPO_ROOT = Path(__file__).resolve().parent.parent
+ROOT = _DEFAULT_REPO_ROOT
 DOCS_DIR = ROOT / "docs" / "generated"
 JSON_PATH = DOCS_DIR / "platform_inventory.json"
 MD_PATH = DOCS_DIR / "platform_inventory.md"
 TREND_PATH = ROOT / "scripts" / "generated" / "scoped_gravity_trend.json"
 
 sys.path.insert(0, str(ROOT))
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {raw_base}")
+    return base
+
+
+def _apply_repo_root(base: Path) -> None:
+    global ROOT, DOCS_DIR, JSON_PATH, MD_PATH, TREND_PATH
+    prev = str(ROOT)
+    ROOT = base
+    DOCS_DIR = ROOT / "docs" / "generated"
+    JSON_PATH = DOCS_DIR / "platform_inventory.json"
+    MD_PATH = DOCS_DIR / "platform_inventory.md"
+    TREND_PATH = ROOT / "scripts" / "generated" / "scoped_gravity_trend.json"
+    new_s = str(ROOT)
+    if prev != new_s:
+        if prev in sys.path:
+            sys.path.remove(prev)
+        if new_s not in sys.path:
+            sys.path.insert(0, new_s)
+        _tracked_file_relpaths.cache_clear()
+
 
 from apps.siteconfig.domain_ownership import classify_site_settings_field  # noqa: E402
 
@@ -62,11 +93,74 @@ SKIP_PARTS = {
     ".cursor",
     ".idea",
     ".vscode",
+    # Ephemeral scratch trees from lint tests under repo root.
+    ".tmp_test_raw_sql_usage",  # apps/dashboard/tests/test_raw_sql_usage_lint.py
+    ".tmp_test_gilead_residue",  # apps/platform_runtime/tests/test_gilead_residue_lint.py
 }
 
+# Generated inventory outputs must not feed baseline substring counters (gilead,
+# SiteSettings, print, etc.); their text embeds those tokens and would destabilize
+# ``--check`` vs prior writes when other repo scans change ordering or content.
+_BASELINE_SUBSTRING_SCAN_SKIP_RELS = frozenset(
+    {
+        "scripts/generated/scoped_gravity_trend.json",
+        "docs/generated/platform_inventory.json",
+        "docs/generated/platform_inventory.md",
+    }
+)
 
-def _iter_files(*suffixes: str):
-    for path in ROOT.rglob("*"):
+
+@lru_cache(maxsize=1)
+def _tracked_file_relpaths() -> frozenset[str] | None:
+    """Prefer tracked files so local scratch trees do not skew inventory counts."""
+    if not (ROOT / ".git").exists():
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "-c", "core.quotepath=false", "ls-files", "-z"],
+            cwd=str(ROOT),
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    relpaths: set[str] = set()
+    for raw in result.stdout.split(b"\0"):
+        if not raw:
+            continue
+        try:
+            relpaths.add(Path(raw.decode("utf-8")).as_posix())
+        except UnicodeDecodeError:
+            continue
+    return frozenset(relpaths)
+
+
+def _iter_files_from(base: Path, *suffixes: str):
+    if not base.is_dir():
+        return
+    tracked = _tracked_file_relpaths()
+    try:
+        base_rel = base.relative_to(ROOT).as_posix()
+    except ValueError:
+        return
+    if tracked is not None:
+        prefix = "" if base_rel in ("", ".") else f"{base_rel.rstrip('/')}/"
+        for rel in sorted(tracked):
+            if prefix and not rel.startswith(prefix):
+                continue
+            path = ROOT / Path(rel)
+            if not path.is_file():
+                continue
+            if any(part in SKIP_PARTS for part in path.parts):
+                continue
+            if suffixes and path.suffix.lower() not in suffixes:
+                continue
+            yield path
+        return
+    for path in base.rglob("*"):
         if not path.is_file():
             continue
         if any(part in SKIP_PARTS for part in path.parts):
@@ -76,8 +170,20 @@ def _iter_files(*suffixes: str):
         yield path
 
 
+def _iter_files(*suffixes: str):
+    yield from _iter_files_from(ROOT, *suffixes)
+
+
 def _safe_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
+
+
+def _skip_baseline_substring_scan(path: Path) -> bool:
+    try:
+        rel = path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return False
+    return rel in _BASELINE_SUBSTRING_SCAN_SKIP_RELS
 
 
 def _site_settings_fields() -> list[dict[str, str]]:
@@ -111,13 +217,16 @@ def _management_commands_list() -> list[dict[str, str]]:
     if not apps_dir.is_dir():
         return []
     result: list[dict[str, str]] = []
-    for path in sorted(apps_dir.rglob("management/commands/*.py")):
+    for path in _iter_files_from(apps_dir, ".py"):
         if path.name == "__init__.py":
             continue
         if any(part in SKIP_PARTS for part in path.parts):
             continue
         try:
             rel = path.relative_to(ROOT)
+            rel_posix = rel.as_posix()
+            if "/management/commands/" not in f"/{rel_posix}":
+                continue
             # apps/<app>/management/commands/<name>.py
             parts = rel.parts
             if (
@@ -132,12 +241,12 @@ def _management_commands_list() -> list[dict[str, str]]:
                     {
                         "app": app_label,
                         "command": command_name,
-                        "path": rel.as_posix(),
+                        "path": rel_posix,
                     }
                 )
         except ValueError:
             continue
-    return result
+    return sorted(result, key=lambda entry: (entry["app"], entry["command"], entry["path"]))
 
 
 def _baseline_counts() -> dict[str, int]:
@@ -152,11 +261,10 @@ def _baseline_counts() -> dict[str, int]:
     commands_list = _management_commands_list()
     counters["management_commands"] = len(commands_list)
     gilead_files = set()
-    trend_rel = "scripts/generated/scoped_gravity_trend.json"
     file_pool = py_files + [
         p
         for p in _iter_files(".html", ".md", ".json", ".yaml", ".yml", ".sh", ".ps1")
-        if p.relative_to(ROOT).as_posix() != trend_rel
+        if not _skip_baseline_substring_scan(p)
     ]
     for path in file_pool:
         text = _safe_text(path)
@@ -192,9 +300,7 @@ def _scoped_gravity_counts() -> dict[str, int]:
         apps_dir = ROOT / "apps"
         if not apps_dir.is_dir():
             return 0
-        for path in apps_dir.rglob("*.py"):
-            if any(part in SKIP_PARTS for part in path.parts):
-                continue
+        for path in _iter_files_from(apps_dir, ".py"):
             if _path_has_excluded_part(path, excluded):
                 continue
             total += len(ss_pat.findall(_safe_text(path)))
@@ -206,9 +312,7 @@ def _scoped_gravity_counts() -> dict[str, int]:
             root = ROOT / root_name
             if not root.is_dir():
                 continue
-            for path in root.rglob("*.py"):
-                if any(part in SKIP_PARTS for part in path.parts):
-                    continue
+            for path in _iter_files_from(root, ".py"):
                 if _path_has_excluded_part(path, excluded):
                     continue
                 total += len(ce_pat.findall(_safe_text(path)))
@@ -221,9 +325,7 @@ def _scoped_gravity_counts() -> dict[str, int]:
         excluded = frozenset({"migrations", "tests", "management"})
         if not apps_dir.is_dir():
             return 0
-        for path in apps_dir.rglob("*.py"):
-            if any(part in SKIP_PARTS for part in path.parts):
-                continue
+        for path in _iter_files_from(apps_dir, ".py"):
             if _path_has_excluded_part(path, excluded):
                 continue
             total += len(print_pat.findall(_safe_text(path)))
@@ -234,9 +336,7 @@ def _scoped_gravity_counts() -> dict[str, int]:
         scripts_dir = ROOT / "scripts"
         if not scripts_dir.is_dir():
             return 0
-        for path in scripts_dir.rglob("*.py"):
-            if any(part in SKIP_PARTS for part in path.parts):
-                continue
+        for path in _iter_files_from(scripts_dir, ".py"):
             total += len(print_pat.findall(_safe_text(path)))
         return total
 
@@ -246,9 +346,7 @@ def _scoped_gravity_counts() -> dict[str, int]:
             root = ROOT / root_name
             if not root.is_dir():
                 continue
-            for path in root.rglob("*.py"):
-                if any(part in SKIP_PARTS for part in path.parts):
-                    continue
+            for path in _iter_files_from(root, ".py"):
                 if "migrations" in path.parts:
                     continue
                 text = _safe_text(path)
@@ -271,17 +369,11 @@ def _scoped_gravity_counts() -> dict[str, int]:
         for base in roots:
             if not base.exists():
                 continue
-            for path in base.rglob("*"):
-                if not path.is_file():
-                    continue
-                if any(part in SKIP_PARTS for part in path.parts):
-                    continue
+            for path in _iter_files_from(base, ".py", ".html"):
                 if _path_has_excluded_part(path, excluded):
                     continue
                 rel = path.relative_to(ROOT).as_posix()
                 if "management/commands/" in rel:
-                    continue
-                if path.suffix.lower() not in {".py", ".html"}:
                     continue
                 text = _safe_text(path)
                 total += sum(
@@ -336,7 +428,7 @@ def _successor_domain_imports() -> dict[str, list[str]]:
     data: dict[str, list[str]] = {}
     for name, app_dir in apps.items():
         hits: list[str] = []
-        for path in app_dir.rglob("*.py"):
+        for path in _iter_files_from(app_dir, ".py"):
             text = _safe_text(path)
             if "apps.siteconfig" in text:
                 hits.append(path.relative_to(ROOT).as_posix())
@@ -576,7 +668,7 @@ def _verify_scoped_gravity_trend_matches(scoped: dict[str, int]) -> str | None:
     return None
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Generate or verify the north-star platform inventory."
     )
@@ -590,7 +682,18 @@ def main() -> int:
         action="store_true",
         help="Fail if committed outputs do not match generated content.",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--base",
+        default=".",
+        help="Repository root (default: .).",
+    )
+    args = parser.parse_args(argv)
+
+    try:
+        _apply_repo_root(_resolve_base(args.base))
+    except ValueError as exc:
+        print(f"generate_platform_inventory: {exc}", file=sys.stderr)
+        return 1
 
     inventory = _build_inventory()
     json_text = json.dumps(inventory, indent=2, sort_keys=True) + "\n"
@@ -664,4 +767,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

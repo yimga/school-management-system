@@ -9,10 +9,11 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.portal.models_kb import KBCategory, KBArticle
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 # Typed exception tuple for §2.4 broad-except rollout (broad_exception_audit)
 _KB_SEED_RESOLVE_ERRORS = (DatabaseError, ObjectDoesNotExist, AttributeError, TypeError)
+User = get_user_model()
 
 
 class Command(BaseCommand):

@@ -63,7 +63,10 @@ def _gateway_rate_limit(request):
 
 def _school_id(request) -> str | None:
     school = getattr(request, "school", None)
-    return str(school.id) if school and getattr(school, "id", None) else None
+    school_id = None
+    if school is not None:
+        school_id = getattr(school, "pk", None) or getattr(school, "id", None)
+    return str(school_id) if school_id is not None else None
 
 
 def _actor_roles(request) -> list[str]:
@@ -98,6 +101,24 @@ def _retrieval_kwargs(request) -> dict[str, Any]:
     }
 
 
+def _search_ai_memory(
+    request,
+    scope: str,
+    embedding: list[float],
+    *,
+    limit: int,
+) -> list[dict[str, Any]]:
+    school_id = _school_id(request)
+    return AIMemoryService.search_similar(
+        school_id,
+        scope,
+        embedding,
+        limit=limit,
+        global_only=not bool(school_id),
+        **_retrieval_kwargs(request),
+    )
+
+
 def _redact_audit_meta(meta: dict | None) -> dict:
     """Ensure no prompt/response or other sensitive content is stored in audit new_values."""
     if not meta:
@@ -105,7 +126,7 @@ def _redact_audit_meta(meta: dict | None) -> dict:
     safe = {}
     skip_keys = {"prompt", "response", "user_query", "query", "text", "content"}
     for k, v in meta.items():
-        if k.lower() in skip_keys and isinstance(v, str) and len(v) > 100:
+        if k.lower() in skip_keys:
             safe[k] = "[redacted]"
         elif isinstance(v, dict):
             safe[k] = _redact_audit_meta(v)
@@ -119,6 +140,39 @@ def _gateway_permission_denied_response(meta: dict) -> JsonResponse:
     return JsonResponse(
         {"success": False, "error": meta.get("error", "Permission denied")}, status=403
     )
+
+
+def _gateway_meta_error_response(
+    meta: dict,
+    *,
+    result: Any = None,
+    budget_error: str = "AI request budget exceeded.",
+) -> JsonResponse | None:
+    if meta.get("outcome") == "permission_denied":
+        return _gateway_permission_denied_response(meta)
+    if meta.get("budget_exceeded"):
+        return JsonResponse(
+            {"success": False, "error": budget_error, "meta": meta},
+            status=429,
+        )
+    if meta.get("prompt_injection_blocked") or meta.get("denied"):
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "Request rejected by safety policy. Please rephrase as a normal school-operation question.",
+                "meta": meta,
+            },
+            status=400,
+        )
+    if meta.get("provider") == "none":
+        error_text = result if isinstance(result, str) and result.strip() else (
+            meta.get("error") or "AI providers are currently unavailable and rules fallback is disabled."
+        )
+        return JsonResponse(
+            {"success": False, "error": error_text, "meta": meta},
+            status=503,
+        )
+    return None
 
 
 def _log_gateway_audit(
@@ -150,6 +204,7 @@ def _gateway_response(
     user_query: str = "",
     response_schema: str | None = None,
 ):
+    from apps.portal.ai_provider import _normalize_gateway_metadata
     from services.ai_permissions import get_ai_permission_for_user
 
     school = getattr(request, "school", None)
@@ -158,11 +213,31 @@ def _gateway_response(
             "outcome": "permission_denied",
             "error": "AI permission denied for this task",
         }
-    md = {
-        "request": request,
-        "school_id": _school_id(request),
-        "tenant_id": _school_id(request),
-    }
+    user_id = getattr(getattr(request, "user", None), "pk", None) or getattr(
+        getattr(request, "user", None), "id", None
+    )
+    role = (
+        getattr(getattr(request, "user", None), "role", None)
+        or getattr(getattr(request, "user", None), "portal_role", None)
+        or getattr(getattr(request, "user", None), "user_type", None)
+    )
+    country_code = getattr(school, "country_code", None) or getattr(
+        getattr(school, "default_region", None),
+        "code",
+        None,
+    )
+    school_id = _school_id(request)
+    md = _normalize_gateway_metadata(
+        {
+            "request": request,
+            "school": school,
+            "school_id": school_id,
+            "tenant_id": school_id,
+            "user_id": str(user_id) if user_id is not None else None,
+            "role": role,
+            "country_code": country_code,
+        }
+    )
     result, meta = invoke(
         task_type,
         prompt,
@@ -202,15 +277,12 @@ def api_setup_assistant(request):
             return JsonResponse(
                 {"success": False, "error": "query required"}, status=400
             )
-        school_id = _school_id(request)
         context_parts = []
         citations = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("help", "config", "default"):
-                for r in AIMemoryService.search_similar(
-                    school_id, scope, emb, limit=2, **_retrieval_kwargs(request)
-                ):
+                for r in _search_ai_memory(request, scope, emb, limit=2):
                     context_parts.append(str(r.get("metadata", ""))[:400])
                     citations.append(
                         {
@@ -238,17 +310,13 @@ def api_setup_assistant(request):
         result, meta = _gateway_response(
             request, TaskType.SETUP_RECOMMEND, prompt, user_query=query
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded for this tenant.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(
+            meta,
+            result=result,
+            budget_error="AI request budget exceeded for this tenant.",
+        )
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "setup_assistant", "setup_recommend", "success", meta
         )
@@ -307,17 +375,13 @@ def api_workflow_draft(request):
             user_query=description,
             response_schema="workflow_draft",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded for this tenant.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(
+            meta,
+            result=result,
+            budget_error="AI request budget exceeded for this tenant.",
+        )
+        if error_response:
+            return error_response
         _log_gateway_audit(request, "workflow_draft", "workflow_draft", "success", meta)
         return JsonResponse(
             {
@@ -364,14 +428,11 @@ def api_policy_explain(request):
             return JsonResponse(
                 {"success": False, "error": "query or policy_text required"}, status=400
             )
-        school_id = _school_id(request)
         context_parts = []
         citations = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
-            for r in AIMemoryService.search_similar(
-                school_id, "policy", emb, limit=5, **_retrieval_kwargs(request)
-            ):
+            for r in _search_ai_memory(request, "policy", emb, limit=5):
                 context_parts.append(str(r.get("metadata", ""))[:400])
                 citations.append(
                     {
@@ -385,9 +446,7 @@ def api_policy_explain(request):
                     }
                 )
         if not context_parts and emb:
-            for r in AIMemoryService.search_similar(
-                school_id, "default", emb, limit=3, **_retrieval_kwargs(request)
-            ):
+            for r in _search_ai_memory(request, "default", emb, limit=3):
                 context_parts.append(str(r.get("metadata", ""))[:400])
                 citations.append(
                     {
@@ -421,17 +480,13 @@ def api_policy_explain(request):
             user_query=query,
             response_schema="policy_explain",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded for this tenant.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(
+            meta,
+            result=result,
+            budget_error="AI request budget exceeded for this tenant.",
+        )
+        if error_response:
+            return error_response
         _log_gateway_audit(request, "policy_explain", "policy_explain", "success", meta)
         return JsonResponse(
             {
@@ -492,17 +547,13 @@ def api_document_classify(request):
             user_query=text[:500],
             response_schema="doc_classify",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded for this tenant.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(
+            meta,
+            result=result,
+            budget_error="AI request budget exceeded for this tenant.",
+        )
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "document_classify", "doc_classify", "success", meta
         )
@@ -556,7 +607,6 @@ def api_semantic_search(request):
             return JsonResponse(
                 {"success": False, "error": "query required"}, status=400
             )
-        school_id = _school_id(request)
         embedding = get_embedding_for_text(query, max_tokens=512)
         if not embedding:
             return JsonResponse(
@@ -566,9 +616,7 @@ def api_semantic_search(request):
                     "meta": {"reason": "embedding_unavailable"},
                 }
             )
-        results = AIMemoryService.search_similar(
-            school_id, scope, embedding, limit=10, **_retrieval_kwargs(request)
-        )
+        results = _search_ai_memory(request, scope, embedding, limit=10)
         # Optional: summarize top result via gateway
         if results and query:
             context = str(results[0].get("metadata", ""))[:1500]
@@ -583,17 +631,13 @@ def api_semantic_search(request):
             summary, meta = _gateway_response(
                 request, TaskType.SEMANTIC_SEARCH, prompt, user_query=query
             )
-            if meta.get("outcome") == "permission_denied":
-                return _gateway_permission_denied_response(meta)
-            if meta.get("budget_exceeded"):
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "AI request budget exceeded for this tenant.",
-                        "meta": meta,
-                    },
-                    status=429,
-                )
+            error_response = _gateway_meta_error_response(
+                meta,
+                result=summary,
+                budget_error="AI request budget exceeded for this tenant.",
+            )
+            if error_response:
+                return error_response
             _log_gateway_audit(
                 request, "semantic_search", "semantic_search", "success", meta
             )
@@ -655,15 +699,12 @@ def api_admin_copilot(request):
             return JsonResponse(
                 {"success": False, "error": "query required"}, status=400
             )
-        school_id = _school_id(request)
         context_parts = []
         citations = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("help", "config", "default"):
-                for r in AIMemoryService.search_similar(
-                    school_id, scope, emb, limit=2, **_retrieval_kwargs(request)
-                ):
+                for r in _search_ai_memory(request, scope, emb, limit=2):
                     context_parts.append(str(r.get("metadata", ""))[:400])
                     citations.append(
                         {
@@ -689,17 +730,13 @@ def api_admin_copilot(request):
         result, meta = _gateway_response(
             request, TaskType.ADMIN_COPILOT, prompt, user_query=query
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded for this tenant.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(
+            meta,
+            result=result,
+            budget_error="AI request budget exceeded for this tenant.",
+        )
+        if error_response:
+            return error_response
         _log_gateway_audit(request, "admin_copilot", "admin_copilot", "success", meta)
         return JsonResponse(
             {"success": True, "response": result, "citations": citations, "meta": meta}
@@ -749,17 +786,9 @@ def api_theme_recommend(request):
             user_query=query,
             response_schema="theme_experience",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "theme_recommend", "config_explain", "success", meta
         )
@@ -812,17 +841,9 @@ def api_feature_control_explain(request):
         result, meta = _gateway_response(
             request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "feature_control_explain", "config_explain", "success", meta
         )
@@ -873,17 +894,9 @@ def api_report_recommend(request):
             user_query=query,
             response_schema="report_recommend",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "report_recommend", "setup_recommend", "success", meta
         )
@@ -929,17 +942,9 @@ def api_design_studio_draft(request):
             user_query=query,
             response_schema="design_studio",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "design_studio_draft", "config_explain", "success", meta
         )
@@ -991,17 +996,9 @@ def api_live_preview_explain(request):
         result, meta = _gateway_response(
             request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "live_preview_explain", "config_explain", "success", meta
         )
@@ -1048,17 +1045,9 @@ def api_system_config_explain(request):
         result, meta = _gateway_response(
             request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "system_config_explain", "config_explain", "success", meta
         )
@@ -1109,17 +1098,9 @@ def api_dashboard_pack_recommend(request):
             user_query=query,
             response_schema="dashboard_pack_recommend",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "dashboard_pack_recommend", "setup_recommend", "success", meta
         )
@@ -1164,13 +1145,10 @@ def api_support_assistant(request):
             return JsonResponse(
                 {"success": False, "error": "query required"}, status=400
             )
-        school_id = _school_id(request)
         context_parts = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
-            for r in AIMemoryService.search_similar(
-                school_id, "help", emb, limit=3, **_retrieval_kwargs(request)
-            ):
+            for r in _search_ai_memory(request, "help", emb, limit=3):
                 context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:1200] if context_parts else ""
         prompt = (
@@ -1184,17 +1162,9 @@ def api_support_assistant(request):
         result, meta = _gateway_response(
             request, TaskType.SUPPORT_SUGGEST, prompt, user_query=query
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "support_assistant", "support_suggest", "success", meta
         )
@@ -1285,14 +1255,11 @@ def api_data_quality_assistant(request):
             return JsonResponse(
                 {"success": False, "error": "query required"}, status=400
             )
-        school_id = _school_id(request)
         context_parts = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("config", "help", "default"):
-                for r in AIMemoryService.search_similar(
-                    school_id, scope, emb, limit=2, **_retrieval_kwargs(request)
-                ):
+                for r in _search_ai_memory(request, scope, emb, limit=2):
                     context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:2000] if context_parts else ""
         prompt = (
@@ -1308,17 +1275,9 @@ def api_data_quality_assistant(request):
         result, meta = _gateway_response(
             request, TaskType.CONFIG_EXPLAIN, prompt, user_query=query
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "data_quality_assistant", "config_explain", "success", meta
         )
@@ -1370,17 +1329,9 @@ def api_marketplace_recommend(request):
             user_query=query,
             response_schema="marketplace_recommend",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "marketplace_recommend", "setup_recommend", "success", meta
         )
@@ -1424,14 +1375,11 @@ def api_control_plane_intelligence(request):
             return JsonResponse(
                 {"success": False, "error": "query required"}, status=400
             )
-        school_id = _school_id(request)
         context_parts = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:
             for scope in ("help", "config", "default"):
-                for r in AIMemoryService.search_similar(
-                    school_id, scope, emb, limit=3, **_retrieval_kwargs(request)
-                ):
+                for r in _search_ai_memory(request, scope, emb, limit=3):
                     context_parts.append(str(r.get("metadata", ""))[:400])
         context = "\n".join(context_parts)[:2000] if context_parts else ""
         prompt = (
@@ -1447,17 +1395,9 @@ def api_control_plane_intelligence(request):
         result, meta = _gateway_response(
             request, TaskType.ADMIN_COPILOT, prompt, user_query=query
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(meta, result=result)
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "control_plane_intelligence", "admin_copilot", "success", meta
         )
@@ -1523,9 +1463,7 @@ def _guided_assistant_rag_context(
         return "", citations
     try:
         for scope in ("help", "config", "default"):
-            for r in AIMemoryService.search_similar(
-                school_id, scope, emb, limit=2, **_retrieval_kwargs(request)
-            ):
+            for r in _search_ai_memory(request, scope, emb, limit=2):
                 context_parts.append(str(r.get("metadata", ""))[:400])
                 citations.append(
                     {
@@ -1632,17 +1570,13 @@ def _api_guided_domain_assistant(
             user_query=query,
             response_schema="guided_assistant",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded for this tenant.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(
+            meta,
+            result=result,
+            budget_error="AI request budget exceeded for this tenant.",
+        )
+        if error_response:
+            return error_response
         _log_gateway_audit(request, audit_feature, str(task_type), "success", meta)
         out = result if isinstance(result, dict) else {}
         payload = {
@@ -1895,17 +1829,13 @@ def api_migration_suggest(request):
             prompt,
             response_schema="migration_mapping",
         )
-        if meta.get("outcome") == "permission_denied":
-            return _gateway_permission_denied_response(meta)
-        if meta.get("budget_exceeded"):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": "AI request budget exceeded for this tenant.",
-                    "meta": meta,
-                },
-                status=429,
-            )
+        error_response = _gateway_meta_error_response(
+            meta,
+            result=result,
+            budget_error="AI request budget exceeded for this tenant.",
+        )
+        if error_response:
+            return error_response
         _log_gateway_audit(
             request, "migration_suggest", "migration_mapping", "success", meta
         )

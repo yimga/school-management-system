@@ -4,7 +4,9 @@ Celery (and async) tenant context: @tenant_task enforces schema_name or school_i
 
 from functools import wraps
 from django.conf import settings
-from django.db import connection, transaction
+from django.db import transaction
+
+from apps.schools.rls_context import rls_school
 
 
 def tenant_task(fn):
@@ -38,12 +40,7 @@ def tenant_task(fn):
             raise ValueError(
                 "school_id required in shared schema (RLS) mode for tenant_task"
             )
-        with transaction.atomic():
-            if connection.vendor == "postgresql":
-                with connection.cursor() as cur:
-                    cur.execute(
-                        "SET LOCAL app.current_school_id = %s", [str(school_id)]
-                    )
+        with transaction.atomic(), rls_school(school_id):
             return fn(*args, **kwargs)
 
     return wrapper

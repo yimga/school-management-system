@@ -1,6 +1,6 @@
 """
 Tenant schema provisioning: check existence and create schema (PostgreSQL).
-§2.4 raw_sql_replacement_targets: single place for ensure_tenant_schemas command; staff/operational only.
+§2.4 schema existence delegates to django-tenants; local DDL remains only for CREATE SCHEMA.
 """
 
 from __future__ import annotations
@@ -14,20 +14,23 @@ def schema_exists(schema_name: str) -> bool:
         return False
     if connection.vendor != "postgresql":
         return False
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT 1 FROM information_schema.schemata WHERE schema_name = %s",
-            [schema_name.strip()],
-        )
-        return cursor.fetchone() is not None
+    from django_tenants.utils import schema_exists as tenant_schema_exists
+
+    return bool(
+        tenant_schema_exists(schema_name.strip(), database=connection.alias)
+    )
 
 
 def create_schema_if_not_exists(schema_name: str) -> None:
-    """Create the PostgreSQL schema if it does not exist. Uses quoted identifier. No-op on non-PostgreSQL."""
+    """Create a missing tenant schema via django-tenants. No-op on non-PostgreSQL."""
     if not (schema_name or "").strip():
         return
     if connection.vendor != "postgresql":
         return
-    quoted = connection.ops.quote_name(schema_name.strip())
-    with connection.cursor() as cursor:
-        cursor.execute("CREATE SCHEMA IF NOT EXISTS %s" % quoted)
+
+    from apps.customers.models import Client
+
+    client = Client.objects.filter(schema_name=schema_name.strip()).first()
+    if client is None:
+        return
+    client.create_schema(check_if_exists=True, verbosity=0)

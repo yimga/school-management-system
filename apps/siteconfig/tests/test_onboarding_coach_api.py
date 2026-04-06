@@ -1,4 +1,6 @@
 import json
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase, override_settings
@@ -24,8 +26,9 @@ class OnboardingCoachApiTests(TestCase):
             password="x",
             email="c@example.com",
         )
+        self.staff.role = "ADMIN"
         self.staff.is_staff = True
-        self.staff.save(update_fields=["is_staff"])
+        self.staff.save(update_fields=["role", "is_staff"])
         self.user = User.objects.create_user(
             username="plain_user",
             password="x",
@@ -60,3 +63,78 @@ class OnboardingCoachApiTests(TestCase):
         req.school = None
         resp = api_onboarding_coach(req)
         self.assertEqual(resp.status_code, 400)
+
+    @override_settings(AI_GATEWAY_ENABLED=True)
+    @patch("services.ai_gateway.invoke")
+    @patch("apps.setup_studio.services.get_setup_studio_payload")
+    def test_ai_gateway_path_passes_full_metadata(
+        self,
+        mock_payload,
+        mock_invoke,
+    ):
+        mock_payload.return_value = {
+            "health_summary": {"score": 72},
+            "recommended_next": {"label": "Branding"},
+            "steps": [],
+            "launch_ready": False,
+        }
+        mock_invoke.return_value = (
+            "Complete branding first, then verify imports before opening the portal.",
+            {"provider": "ollama"},
+        )
+
+        rf = RequestFactory()
+        req = rf.get("/siteconfig/api/onboarding-coach/")
+        req.user = self.staff
+        req.school = self.school
+
+        resp = api_onboarding_coach(req)
+
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertEqual(data.get("source"), "ai")
+        self.assertIn("branding", data.get("coach_message", "").lower())
+        metadata = mock_invoke.call_args.kwargs["metadata"]
+        self.assertIs(metadata.get("request"), req)
+        self.assertEqual(metadata.get("school"), self.school)
+        self.assertEqual(metadata.get("school_id"), str(self.school.pk))
+        self.assertEqual(metadata.get("tenant_id"), str(self.school.pk))
+        self.assertEqual(metadata.get("user_id"), str(self.staff.pk))
+        self.assertEqual(metadata.get("role"), "ADMIN")
+        self.assertEqual(metadata.get("country_code"), "CM")
+
+    @override_settings(AI_GATEWAY_ENABLED=True)
+    @patch("services.ai_gateway.invoke")
+    @patch("apps.setup_studio.services.get_setup_studio_payload")
+    def test_ai_gateway_path_uses_school_pk_when_id_attribute_is_missing(
+        self,
+        mock_payload,
+        mock_invoke,
+    ):
+        mock_payload.return_value = {
+            "health_summary": {"score": 72},
+            "recommended_next": {"label": "Branding"},
+            "steps": [],
+            "launch_ready": False,
+        }
+        mock_invoke.return_value = (
+            "Complete branding first, then verify imports before opening the portal.",
+            {"provider": "ollama"},
+        )
+
+        rf = RequestFactory()
+        req = rf.get("/siteconfig/api/onboarding-coach/")
+        req.user = self.staff
+        req.school = SimpleNamespace(
+            pk="school-pk-only",
+            country_code="CM",
+            default_region=SimpleNamespace(code="GB"),
+        )
+
+        resp = api_onboarding_coach(req)
+
+        self.assertEqual(resp.status_code, 200)
+        metadata = mock_invoke.call_args.kwargs["metadata"]
+        self.assertEqual(metadata.get("school_id"), "school-pk-only")
+        self.assertEqual(metadata.get("tenant_id"), "school-pk-only")
+        self.assertEqual(metadata.get("country_code"), "CM")

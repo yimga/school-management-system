@@ -4,7 +4,7 @@ Lightweight DB health check for deploy pipeline (Phase I).
 Run after migrate (or migrate_schemas --shared/--tenant) and before starting Gunicorn
 so the orchestrator only routes traffic when the DB is ready.
 
-§2.4 Raw SQL wrap: delegates to db_liveness.check_db_liveness() (single SELECT 1 in one place).
+§2.4 DB health check: delegates to db_liveness.check_db_liveness() (single implementation path).
 
 Usage: python manage.py db_health_check
 Exit: 0 on success, 1 on failure.

@@ -5,6 +5,8 @@ Flag broad except usage.
 Supports:
 - full scan report mode
 - baseline-enforced allowlist mode for high-risk files
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
@@ -12,8 +14,12 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
 
 SKIP_DIRS = {"migrations", "__pycache__", "venv", ".venv", "node_modules", "tests"}
 ALLOWED_PREFIXES = (
@@ -39,8 +45,48 @@ def _count_broad_lines(text: str) -> int:
     return count
 
 
-def _scan_counts(base: Path) -> dict[str, int]:
-    counts: dict[str, int] = {}
+@lru_cache(maxsize=None)
+def _tracked_file_relpaths(base: Path) -> frozenset[str] | None:
+    """Prefer tracked files so local scratch trees do not create false positives."""
+    if not (base / ".git").exists():
+        return None
+    try:
+        proc = subprocess.run(
+            ["git", "-c", "core.quotepath=false", "ls-files", "-z"],
+            cwd=str(base),
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0:
+        return None
+    relpaths: set[str] = set()
+    for raw in proc.stdout.split(b"\0"):
+        if not raw:
+            continue
+        try:
+            relpaths.add(Path(raw.decode("utf-8")).as_posix())
+        except UnicodeDecodeError:
+            continue
+    return frozenset(relpaths)
+
+
+def _iter_candidate_python_files(base: Path):
+    tracked = _tracked_file_relpaths(base)
+    if tracked is not None:
+        scan_prefixes = ("apps/", "config/")
+        for rel in sorted(tracked):
+            if not rel.startswith(scan_prefixes) or not rel.endswith(".py"):
+                continue
+            py_path = base / Path(rel)
+            if not py_path.is_file():
+                continue
+            if any(part in SKIP_DIRS for part in py_path.parts):
+                continue
+            yield py_path
+        return
     for root_name in ("apps", "config"):
         root = base / root_name
         if not root.is_dir():
@@ -48,18 +94,24 @@ def _scan_counts(base: Path) -> dict[str, int]:
         for py_path in root.rglob("*.py"):
             if any(part in SKIP_DIRS for part in py_path.parts):
                 continue
-            rel = py_path.relative_to(base).as_posix()
-            if rel.startswith("apps/") and ("/tests/" in rel or "/test_" in rel):
-                continue
-            if any(rel.startswith(prefix) for prefix in ALLOWED_PREFIXES):
-                continue
-            try:
-                text = py_path.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                continue
-            count = _count_broad_lines(text)
-            if count:
-                counts[rel] = count
+            yield py_path
+
+
+def _scan_counts(base: Path) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for py_path in _iter_candidate_python_files(base):
+        rel = py_path.relative_to(base).as_posix()
+        if rel.startswith("apps/") and ("/tests/" in rel or "/test_" in rel):
+            continue
+        if any(rel.startswith(prefix) for prefix in ALLOWED_PREFIXES):
+            continue
+        try:
+            text = py_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        count = _count_broad_lines(text)
+        if count:
+            counts[rel] = count
     return counts
 
 
@@ -88,7 +140,14 @@ def _load_allowlist(path: str | None) -> dict[str, int]:
     return {str(key).replace("\\", "/"): int(value) for key, value in allowed.items()}
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Flag broad except usage.")
     parser.add_argument(
         "--strict", action="store_true", help="Exit 1 when violations are found."
@@ -97,10 +156,22 @@ def main() -> int:
     parser.add_argument(
         "--allowlist", help="JSON file of file -> allowed broad-except count."
     )
-    parser.add_argument("--base", default=".", help="Repo base path.")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repo base path (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
 
-    base = Path(args.base).resolve()
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+
+    try:
+        base = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"lint_broad_except: {exc}", file=sys.stderr)
+        return 1
     if not (base / "apps").is_dir():
         return 0
 
@@ -142,4 +213,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

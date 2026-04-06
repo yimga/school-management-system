@@ -10,20 +10,19 @@ When product adds another credential-like key to ``get_marketplace_integration_s
 3. ``_MARKETPLACE_SECRET_KEYS`` includes it (Phase B snapshots must strip it).
 
 No Django setup required (AST + importlib only).
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import ast
 import importlib.util
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-SITECONFIG_MODELS = ROOT / "apps" / "siteconfig" / "models.py"
-PLATFORM_MODELS = ROOT / "apps" / "platform_runtime" / "models.py"
-SNAPSHOT_MODULE = ROOT / "apps" / "platform_runtime" / "phase_b_domain_snapshots.py"
-FIRST_CLASS_MODULE = ROOT / "apps" / "platform_runtime" / "runtime_defaults_first_class.py"
+ROOT = Path(__file__).resolve().parent.parent
 
 
 def _load_module(name: str, path: Path):
@@ -33,6 +32,32 @@ def _load_module(name: str, path: Path):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify marketplace integration first-class parity."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to inspect (default: this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _relative(path: Path, base: Path) -> Path | str:
+    try:
+        return path.relative_to(base)
+    except ValueError:
+        return path
 
 
 def _credential_like_key(name: str) -> bool:
@@ -95,24 +120,41 @@ def _django_model_assign_field_names(tree: ast.AST, class_name: str) -> set[str]
     return None
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     errors: list[str] = []
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        return _fail([str(exc)])
 
-    for p in (SITECONFIG_MODELS, PLATFORM_MODELS, SNAPSHOT_MODULE, FIRST_CLASS_MODULE):
+    siteconfig_models = root / "apps" / "siteconfig" / "models.py"
+    platform_models = root / "apps" / "platform_runtime" / "models.py"
+    snapshot_module = root / "apps" / "platform_runtime" / "phase_b_domain_snapshots.py"
+    first_class_module = (
+        root / "apps" / "platform_runtime" / "runtime_defaults_first_class.py"
+    )
+
+    for p in (
+        siteconfig_models,
+        platform_models,
+        snapshot_module,
+        first_class_module,
+    ):
         if not p.is_file():
-            errors.append(f"Missing {p.relative_to(ROOT)}")
+            errors.append(f"Missing {_relative(p, root)}")
 
     if errors:
         return _fail(errors)
 
-    snap_mod = _load_module("phase_b_snapshots_gate", SNAPSHOT_MODULE)
-    fc_mod = _load_module("runtime_defaults_fc_gate", FIRST_CLASS_MODULE)
+    snap_mod = _load_module("phase_b_snapshots_gate", snapshot_module)
+    fc_mod = _load_module("runtime_defaults_fc_gate", first_class_module)
     strip_keys: frozenset[str] = snap_mod._MARKETPLACE_SECRET_KEYS
     first_class: tuple[str, ...] = fc_mod.RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES
     first_class_set = set(first_class)
 
-    site_tree = _parse(SITECONFIG_MODELS)
-    plat_tree = _parse(PLATFORM_MODELS)
+    site_tree = _parse(siteconfig_models)
+    plat_tree = _parse(platform_models)
 
     mk_keys = _marketplace_integration_literal_keys(site_tree)
     if mk_keys is None:
@@ -146,7 +188,9 @@ def main() -> int:
 
     rd_names = _django_model_assign_field_names(plat_tree, "RuntimeDefaults")
     if rd_names is None:
-        errors.append(f"{PLATFORM_MODELS.relative_to(ROOT)} missing class RuntimeDefaults")
+        errors.append(
+            f"{_relative(platform_models, root)} missing class RuntimeDefaults"
+        )
     else:
         for k in strip_keys:
             if k not in rd_names:
@@ -173,4 +217,4 @@ def _fail(errors: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-"""Fail if git tracks secret-prone env files. Portable twin of check_no_committed_env.sh."""
+"""Fail if git tracks secret-prone env files. Portable twin of check_no_committed_env.sh.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
+"""
 
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent.parent
+
 FORBIDDEN = (
     ".env",
     ".env.local",
@@ -17,10 +22,36 @@ FORBIDDEN = (
 )
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Ensure git does not track forbidden env files."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"check_no_committed_env: {exc}", file=sys.stderr)
+        return 1
+
     r = subprocess.run(
         ["git", "ls-files", *FORBIDDEN],
-        cwd=ROOT,
+        cwd=root,
         capture_output=True,
         text=True,
     )
@@ -46,4 +77,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

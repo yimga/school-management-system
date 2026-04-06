@@ -433,7 +433,7 @@ class MarketingAbVariantTests(TestCase):
         session = self.client.session
         session["marketing_cta_variant"] = "secondary"
         session.save()
-        resp = self.client.get("/marketing/", HTTP_HOST=self.host)
+        resp = self.client.get("/marketing/", HTTP_HOST=self.host, secure=True)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         hero_part = body.split('id="hero"', 1)[1].split('id="platform-pillars"', 1)[0]
@@ -451,7 +451,7 @@ class MarketingAbVariantTests(TestCase):
         session = self.client.session
         session["marketing_ab_variant"] = "B"
         session.save()
-        resp = self.client.get("/marketing/", HTTP_HOST=self.host)
+        resp = self.client.get("/marketing/", HTTP_HOST=self.host, secure=True)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Operator-grade visibility")
         self.assertContains(resp, 'data-marketing-hero-variant="B"')

@@ -8,6 +8,8 @@ fixed px dimensions that often cause non-responsive layout. Reports file:line fo
 manual review. Use --strict to exit 1 when any violation is found.
 
 Symptom → subsection: "Not responsive / horizontal scroll / fixed width" → §8.0.6.
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
@@ -23,6 +25,13 @@ TEMPLATES = ROOT / "templates"
 
 # Minimum px value to report (SOT §8.0.6: layout-defining elements; icon/small fixed sizes allowed)
 DEFAULT_MIN_PX = 100
+
+
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
 
 
 def scan_css_file(path: Path, min_px: int) -> list[tuple[int, str, str]]:
@@ -70,12 +79,17 @@ def scan_css_dir(dir_path: Path, min_px: int) -> dict[Path, list[tuple[int, str,
     return results
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(
         description="§8.0.6 responsive lint: find fixed px layout dimensions"
     )
     ap.add_argument(
         "--strict", action="store_true", help="Exit 1 if any violation found"
+    )
+    ap.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
     )
     ap.add_argument(
         "--min-px",
@@ -89,12 +103,26 @@ def main() -> int:
         default=STATIC_CSS,
         help="CSS directory to scan (default: static/css)",
     )
-    args = ap.parse_args()
-    css_dir = args.dir.resolve() if args.dir.is_absolute() else ROOT / args.dir
+    return ap.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"lint_section8_responsive: {exc}", file=sys.stderr)
+        return 1
+    default_css_dir = root / "static" / "css"
+    css_dir = (
+        default_css_dir
+        if args.dir == STATIC_CSS
+        else (args.dir.resolve() if args.dir.is_absolute() else root / args.dir)
+    )
     results = scan_css_dir(css_dir, args.min_px)
     total = sum(len(v) for v in results.values())
     for path in sorted(results.keys()):
-        rel = path.relative_to(ROOT)
+        rel = path.relative_to(root) if path.is_absolute() else path
         for line_no, line, reason in results[path]:
             print(f"{rel}:{line_no}: {reason}")
             print(f"  {line}")
@@ -111,4 +139,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

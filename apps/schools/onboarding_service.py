@@ -8,7 +8,7 @@ Part 0 of RunMyCampus Single Plan. Responsibilities:
 - Seed localized defaults (currency, grading, holidays) by country/region.
 - Create first admin user and SchoolMembership.
 - Register Domain (subdomain + optional custom domain).
-- On failure after schema creation: DROP SCHEMA (kill-switch), log in public schema.
+- On failure after schema creation: delete tenant + drop schema (kill-switch), log in public schema.
 - Idempotent: safe to retry; existing School/Client skips creation.
 """
 
@@ -61,18 +61,18 @@ def validate_slug_uniqueness(slug: str) -> tuple[bool, str]:
 
 
 def _drop_tenant_schema(client) -> None:
-    """Drop the tenant's PostgreSQL schema (kill-switch). Use only on onboarding failure."""
-    if not use_django_tenants():
+    """Delete the tenant row and force-drop its schema on onboarding failure."""
+    if not use_django_tenants() or client is None:
         return
     try:
-        from apps.schools.repositories.tenant_schema_repository import (
-            drop_tenant_schema_if_exists,
-        )
-
         schema_name = getattr(client, "schema_name", None)
-        drop_tenant_schema_if_exists(schema_name or "")
-        if schema_name and schema_name != "public":
-            logger.warning("Dropped schema %s (onboarding kill-switch).", schema_name)
+        if not schema_name or schema_name == "public":
+            return
+        client.delete(force_drop=True)
+        logger.warning(
+            "Dropped schema %s and deleted tenant row (onboarding kill-switch).",
+            schema_name,
+        )
     except (
         DatabaseError,
         OperationalError,
@@ -148,7 +148,7 @@ def onboard_tenant(
     """
     Idempotent onboarding: validate slug, create School (if missing), Client (schema),
     run tenant migrations, seed defaults, create first admin, register Domain.
-    On failure after Client creation and if kill_switch_on_failure: DROP SCHEMA and re-raise.
+    On failure after Client creation and if kill_switch_on_failure: delete tenant + drop schema.
 
     Returns dict with keys: success, school_id, client_id, message, error (if failed).
     """

@@ -14,7 +14,12 @@ _ROOT = Path(__file__).resolve().parents[3]
 class ProgramPhase10Phase11GateTests(SimpleTestCase):
     def test_static_gate_script_passes(self) -> None:
         proc = subprocess.run(
-            [sys.executable, str(_ROOT / "scripts/verify_program_phase10_phase11_gates.py")],
+            [
+                sys.executable,
+                str(_ROOT / "scripts/verify_program_phase10_phase11_gates.py"),
+                "--base",
+                str(_ROOT),
+            ],
             cwd=_ROOT,
             capture_output=True,
             text=True,

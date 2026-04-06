@@ -7,10 +7,13 @@ This script is intentionally mechanical and CI-friendly:
 - verifies migration map docs exist
 - enforces tenant-path guardrails via lint_tenant_settings.py
 - audits get_solo() allowlist drift (must stay at zero)
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import re
 import subprocess
@@ -19,9 +22,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-DOMAIN_OWNERSHIP = ROOT / "apps" / "siteconfig" / "domain_ownership.py"
-USAGE_INVENTORY = ROOT / "docs" / "site_settings_usage_inventory.md"
-MIGRATION_MAP = ROOT / "docs" / "SITECONFIG_OWNERSHIP_MIGRATION.md"
 
 REQUIRED_OWNER_KEYS = {
     "safe_platform_default",
@@ -35,10 +35,38 @@ REQUIRED_OWNER_KEYS = {
 }
 
 
-def _run(cmd: list[str], label: str, timeout: int = 180) -> str | None:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Phase 1 settings gravity."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _relative(path: Path, base: Path) -> Path | str:
+    try:
+        return path.relative_to(base)
+    except ValueError:
+        return path
+
+
+def _run(
+    cmd: list[str], label: str, *, root: Path, timeout: int = 180
+) -> str | None:
     proc = subprocess.run(
         cmd,
-        cwd=str(ROOT),
+        cwd=str(root),
         capture_output=True,
         text=True,
         timeout=timeout,
@@ -48,8 +76,11 @@ def _run(cmd: list[str], label: str, timeout: int = 180) -> str | None:
     return None
 
 
-def _load_owner_sets() -> tuple[set[str], set[str]]:
-    spec = importlib.util.spec_from_file_location("domain_ownership_phase1", DOMAIN_OWNERSHIP)
+def _load_owner_sets(domain_ownership: Path) -> tuple[set[str], set[str]]:
+    spec = importlib.util.spec_from_file_location(
+        "domain_ownership_phase1",
+        domain_ownership,
+    )
     if spec is None or spec.loader is None:
         return set(), set()
     module = importlib.util.module_from_spec(spec)
@@ -77,15 +108,27 @@ def _parse_allowlisted_get_solo_total(stdout: str) -> int | None:
         return None
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print("verify_phase1_settings_gravity: FAIL", file=sys.stderr)
+        print(f"  ---\n{exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
     warnings: list[str] = []
 
-    for path in (DOMAIN_OWNERSHIP, USAGE_INVENTORY, MIGRATION_MAP):
-        if not path.is_file():
-            errors.append(f"Missing required artifact: {path.relative_to(ROOT)}")
+    domain_ownership = root / "apps" / "siteconfig" / "domain_ownership.py"
+    usage_inventory = root / "docs" / "site_settings_usage_inventory.md"
+    migration_map = root / "docs" / "SITECONFIG_OWNERSHIP_MIGRATION.md"
 
-    exact_owners, prefix_owners = _load_owner_sets()
+    for path in (domain_ownership, usage_inventory, migration_map):
+        if not path.is_file():
+            errors.append(f"Missing required artifact: {_relative(path, root)}")
+
+    exact_owners, prefix_owners = _load_owner_sets(domain_ownership)
     all_owners = exact_owners | prefix_owners
     missing = sorted(REQUIRED_OWNER_KEYS - all_owners)
     if missing:
@@ -93,39 +136,49 @@ def main() -> int:
             "domain_ownership owner coverage incomplete. Missing keys: "
             + ", ".join(missing)
         )
-    ownership_source = DOMAIN_OWNERSHIP.read_text(encoding="utf-8", errors="replace")
-    if '"metadata_governance"' not in ownership_source:
-        errors.append('domain_ownership fallback owner "metadata_governance" missing.')
+    if domain_ownership.is_file():
+        ownership_source = domain_ownership.read_text(
+            encoding="utf-8", errors="replace"
+        )
+        if '"metadata_governance"' not in ownership_source:
+            errors.append('domain_ownership fallback owner "metadata_governance" missing.')
 
     py = sys.executable
+    lint_script = root / "scripts" / "lint_tenant_settings.py"
     checks = [
         (
-            [py, str(ROOT / "scripts" / "lint_tenant_settings.py"), "--check-get-solo-only", "--base", str(ROOT)],
+            [py, str(lint_script), "--check-get-solo-only", "--base", str(root)],
             "lint_tenant_settings --check-get-solo-only",
         ),
         (
-            [py, str(ROOT / "scripts" / "lint_tenant_settings.py"), "--check-school-settings-features", "--base", str(ROOT)],
+            [py, str(lint_script), "--check-school-settings-features", "--base", str(root)],
             "lint_tenant_settings --check-school-settings-features",
         ),
         (
-            [py, str(ROOT / "scripts" / "lint_tenant_settings.py"), "--check-sitesettings-orm-in-tenant-apps", "--base", str(ROOT)],
+            [
+                py,
+                str(lint_script),
+                "--check-sitesettings-orm-in-tenant-apps",
+                "--base",
+                str(root),
+            ],
             "lint_tenant_settings --check-sitesettings-orm-in-tenant-apps",
         ),
     ]
     for cmd, label in checks:
-        err = _run(cmd, label, timeout=180)
+        err = _run(cmd, label, root=root, timeout=180)
         if err:
             errors.append(err)
 
     allowlisted = subprocess.run(
         [
             py,
-            str(ROOT / "scripts" / "lint_tenant_settings.py"),
+            str(lint_script),
             "--report-allowlisted",
             "--base",
-            str(ROOT),
+            str(root),
         ],
-        cwd=str(ROOT),
+        cwd=str(root),
         capture_output=True,
         text=True,
         timeout=180,
@@ -162,4 +215,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

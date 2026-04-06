@@ -6,34 +6,61 @@ This check is intentionally narrow and mechanical:
 - manager primary navigation must expose the canonical 8 IA labels
 - manager authenticated shells must expose Ctrl+K command/search entry points
 - Studio shell must expose its command palette contract
+
+Run (from repo root):
+  python scripts/verify_phase3_navigation_command_conformance.py
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-TEMPLATES = ROOT / "templates"
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root to inspect (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return base
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        root = _resolve_base(parse_args(argv).base)
+    except ValueError as exc:
+        print(f"verify_phase3_navigation_command_conformance: {exc}", file=sys.stderr)
+        return 1
+
+    templates = root / "templates"
     errors: list[str] = []
 
-    nav_partial = TEMPLATES / "partials" / "control_plane_primary_nav.html"
-    cp_base = TEMPLATES / "control_plane_base.html"
-    admin_bridge = TEMPLATES / "components" / "admin_nav_bridge.html"
-    manager_shell_js = ROOT / "static" / "js" / "authenticated-shell-manager.js"
-    studio_shell = TEMPLATES / "studio_os" / "shell.html"
+    nav_partial = templates / "partials" / "control_plane_primary_nav.html"
+    cp_base = templates / "control_plane_base.html"
+    admin_bridge = templates / "components" / "admin_nav_bridge.html"
+    manager_shell_js = root / "static" / "js" / "authenticated-shell-manager.js"
+    studio_shell = templates / "studio_os" / "shell.html"
 
     for path in (nav_partial, cp_base, admin_bridge, manager_shell_js, studio_shell):
         if not path.is_file():
-            errors.append(f"Missing required file: {path.relative_to(ROOT).as_posix()}")
+            errors.append(f"Missing required file: {path.relative_to(root).as_posix()}")
 
     if errors:
         print("verify_phase3_navigation_command_conformance: FAIL", file=sys.stderr)
@@ -112,4 +139,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

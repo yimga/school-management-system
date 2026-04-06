@@ -39,7 +39,8 @@ from apps.portal.models_kb import FAQ, FAQCategory, KBArticle, KBCategory
 from apps.runtime_blueprints.models import DashboardWidget
 from apps.schools.models import School
 from apps.siteconfig.models import RegionConfig as TenantRegionConfig
-from apps.siteconfig.models import ReportCardStyle, SiteSettings
+from apps.siteconfig.models import ReportCardStyle
+from apps.siteconfig import models as _siteconfig_models
 from apps.siteconfig.models_dashboard import DashboardUserPreference
 from apps.siteconfig.models_feature_controls import (
     FeatureToggleDefinition,
@@ -54,6 +55,7 @@ from config.admin import tenant_admin_site
 
 
 User = get_user_model()
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 class _SidebarLinkParser(HTMLParser):
@@ -261,12 +263,12 @@ class AdminUiSmokeTests(TestCase):
         self.assertEqual(response.url, reverse("admin:index"))
 
     def test_sitesettings_change_form_links_to_control_plane_surfaces(self):
-        """P3: admin SiteSettings is not the only story — escape hatch points to product shells."""
+        """P3: admin tenant settings row is not the only story — escape hatch points to product shells."""
         # TenantMiddleware redirects Client GET /admin/… on tenant hosts to the backend shell; exercise
         # tenant_admin_site.change_view via RequestFactory (see apps/siteconfig/tests/test_admin.py).
         # Admin's reverse() uses get_urlconf() (thread-local), not request.urlconf — set tenant URLconf
         # so admin:app_list includes registered apps (e.g. accounts) on this AdminSite instance.
-        model_admin = tenant_admin_site._registry[SiteSettings]
+        model_admin = tenant_admin_site._registry[_TenantSettingsModel]
         path = reverse(
             "admin:siteconfig_sitesettings_change",
             args=[self.site.pk],

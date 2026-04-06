@@ -4,6 +4,7 @@ Emit premium maturity inventory counts (SOT §0 / ops dashboards).
 
 Scan rules mirror companion linters where noted. This script is report-only unless
 --strict runs lint_raw_sql_usage, lint_csrf_exempt_usage, and lint_gilead_residue.
+With --json, strict-mode subprocess output is captured so stdout stays a single JSON object.
 """
 
 from __future__ import annotations
@@ -14,8 +15,6 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-
-REPO = Path(__file__).resolve().parents[1]
 
 SKIP_SQL = {".git", ".venv", "node_modules", "__pycache__", "migrations", "tests"}
 SKIP_CSRF = {".git", ".venv", "node_modules", "__pycache__"}
@@ -132,6 +131,13 @@ def collect_signals(base: Path) -> dict[str, object]:
     }
 
 
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Report premium maturity signal counts.",
@@ -144,7 +150,11 @@ def main() -> int:
         help="Run raw SQL, csrf_exempt, and lint_gilead_residue; exit non-zero if any fail.",
     )
     args = parser.parse_args()
-    base = Path(args.base).resolve()
+    try:
+        base = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"report_premium_maturity_signals: {exc}", file=sys.stderr)
+        return 1
     py = sys.executable
 
     if args.strict:
@@ -154,9 +164,24 @@ def main() -> int:
             "lint_gilead_residue.py",
         ):
             script = base / "scripts" / name
-            r = subprocess.run([py, str(script)], cwd=base)
-            if r.returncode != 0:
-                return r.returncode
+            cmd = [py, str(script), "--base", str(base)]
+            if args.json:
+                r = subprocess.run(
+                    cmd,
+                    cwd=base,
+                    capture_output=True,
+                    text=True,
+                )
+                if r.returncode != 0:
+                    if r.stdout:
+                        sys.stderr.write(r.stdout)
+                    if r.stderr:
+                        sys.stderr.write(r.stderr)
+                    return r.returncode
+            else:
+                r = subprocess.run(cmd, cwd=base)
+                if r.returncode != 0:
+                    return r.returncode
 
     data = collect_signals(base)
     if args.json:

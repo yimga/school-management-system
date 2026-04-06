@@ -1,7 +1,7 @@
 from io import StringIO
 from pathlib import Path
 import shutil
-import tempfile
+import uuid
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
@@ -16,7 +16,10 @@ User = get_user_model()
 
 class VerifyKbExportsCommandTests(TestCase):
     def setUp(self):
-        self.tmp_media = Path(tempfile.mkdtemp(prefix="kb_verify_media_"))
+        scratch_root = Path(__file__).resolve().parents[3] / "var" / "tmp"
+        scratch_root.mkdir(parents=True, exist_ok=True)
+        self.tmp_media = scratch_root / f"kb_verify_media_{uuid.uuid4().hex}"
+        self.tmp_media.mkdir(parents=True, exist_ok=True)
         self.category = KBCategory.objects.create(name="KB Ops", slug="kb-ops")
         self.author = User.objects.create_user(username="kb_verify", password="pass123")
         self.article = KBArticle.objects.create(
@@ -53,5 +56,7 @@ class VerifyKbExportsCommandTests(TestCase):
                 "operations-manual.odt", ContentFile(b"odt-bytes"), save=True
             )
 
+            out = StringIO()
             with self.assertRaises(CommandError):
-                call_command("verify_kb_exports", "--strict")
+                call_command("verify_kb_exports", "--strict", stdout=out)
+            self.assertIn("missing DOCX export", out.getvalue())

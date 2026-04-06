@@ -6,12 +6,22 @@ Ensures set_rls_school_id / reset_rls_school_id are callable and safe for middle
 - On PostgreSQL, set then reset does not raise (middleware request/response cycle).
 """
 
-from django.test import TestCase
+import unittest
+from unittest.mock import patch
 
-from apps.schools.rls_context import reset_rls_school_id, set_rls_school_id
+from django.db import connection
+
+from apps.schools.rls_context import (
+    reset_rls_bypass,
+    reset_rls_school_id,
+    rls_bypass,
+    rls_school,
+    set_rls_bypass,
+    set_rls_school_id,
+)
 
 
-class RlsContextContractTests(TestCase):
+class RlsContextContractTests(unittest.TestCase):
     """Contract: rls_context helpers used by middleware are callable and safe."""
 
     def test_set_rls_school_id_callable_no_raise(self):
@@ -32,3 +42,91 @@ class RlsContextContractTests(TestCase):
         """reset_rls_school_id() is safe to call when nothing was set."""
         reset_rls_school_id()
         reset_rls_school_id()
+
+    def test_set_rls_bypass_callable_no_raise(self):
+        """set_rls_bypass() does not raise (no-op on non-postgres)."""
+        set_rls_bypass()
+
+    def test_reset_rls_bypass_callable_no_raise(self):
+        """reset_rls_bypass() does not raise (no-op on non-postgres)."""
+        reset_rls_bypass()
+
+    def test_set_rls_school_id_rejects_none_literal_on_postgresql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            with self.assertRaises(ValueError):
+                set_rls_school_id(None)
+
+        cursor.assert_not_called()
+
+    def test_set_rls_school_id_rejects_blank_literal_on_postgresql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            with self.assertRaises(ValueError):
+                set_rls_school_id("   ")
+
+        cursor.assert_not_called()
+
+    def test_set_rls_school_id_rejects_oversized_id_on_postgresql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            with self.assertRaises(ValueError):
+                set_rls_school_id("x" * 129)
+
+        cursor.assert_not_called()
+
+    def test_set_rls_school_id_rejects_internal_whitespace_on_postgresql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            with self.assertRaises(ValueError):
+                set_rls_school_id("school 1")
+
+        cursor.assert_not_called()
+
+    def test_set_rls_school_id_rejects_control_character_on_postgresql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            with self.assertRaises(ValueError):
+                set_rls_school_id("1\x00")
+
+        cursor.assert_not_called()
+
+    def test_rls_helpers_no_op_when_schema_per_tenant_enabled(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch("apps.schools.rls_context.settings") as mocked_settings,
+            patch.object(connection, "cursor") as cursor,
+        ):
+            mocked_settings.USE_DJANGO_TENANTS = True
+
+            set_rls_school_id("school-1")
+            reset_rls_school_id()
+            set_rls_bypass()
+            reset_rls_bypass()
+
+        cursor.assert_not_called()
+
+    def test_rls_context_managers_no_op_when_schema_per_tenant_enabled(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch("apps.schools.rls_context.settings") as mocked_settings,
+            patch.object(connection, "cursor") as cursor,
+        ):
+            mocked_settings.USE_DJANGO_TENANTS = True
+
+            with rls_school("school-1"):
+                pass
+            with rls_bypass():
+                pass
+
+        cursor.assert_not_called()

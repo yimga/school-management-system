@@ -14,15 +14,15 @@
 
 | Control | Where | Notes |
 |--------|--------|--------|
-| Single ingress; no browser-to-provider | `services/ai_gateway.py` `invoke()` | All model traffic is intended to go through the gateway (see module docstring). |
+| Single ingress; no browser-to-provider | `services/ai_gateway.py` `invoke()` | All model traffic is intended to go through the gateway (see module docstring). `invoke()` short-circuits when `AI_GATEWAY_ENABLED` is false so direct callers cannot bypass the kill switch by skipping local guards. |
 | Prompt-injection phrase block (pre-provider) | `_PROMPT_INJECTION_MARKERS`, `_looks_like_prompt_injection` | Returns `(None, meta)` with `prompt_injection_blocked: true`; no tier calls. Tests: `services/tests/test_ai_gateway.py`. |
 | **LiteLLM** (premium / third-party) gated on data tier | `_data_tier_allows_premium`, `metadata` | Skips `litellm` when `sensitivity_class == "high"`, `disallow_external_model` is true, or `strip_pii_for_inference` detects change in prompt/user_query (`services/inference.py`). Error bucket `data_tier_disallowed`. Tests: same module (`test_invoke_blocks_premium_*`). |
-| **RAG retrieval tenant boundary** | `AIMemoryService.search_similar` in `services/ai_memory.py` | With `school_id` set, queryset is `(school_id = tenant) OR (school_id IS NULL)` — **other tenants' scoped rows must never rank in**. Shared **global** rows use `school_id` null. **CI:** `services/tests/test_ai_memory.py` (`RagRetrievalEvalTests`). **Product:** tenant HTTP handlers must pass `school_id` from `request.school` (`apps/portal/views_ai_gateway._school_id`); `school_id=None` skips school filter (operator / no-tenant contexts only). |
+| **RAG retrieval tenant boundary** | `AIMemoryService.search_similar` in `services/ai_memory.py` | With `school_id` set, queryset is `(school_id = tenant) OR (school_id IS NULL)` — **other tenants' scoped rows must never rank in**. Shared **global** rows use `school_id` null. **CI:** `services/tests/test_ai_memory.py` (`RagRetrievalEvalTests`). **Product:** tenant HTTP handlers pass `school_id` from `request.school` (`apps/portal/views_ai_gateway._school_id`); when tenant context is missing, portal AI RAG now calls `search_similar(..., global_only=True)` so non-tenant requests stay on platform-global rows instead of running an unscoped tenant sweep. |
 | Task tier defaults (e.g. general chat: Ollama + rules only) | `DEFAULT_TASK_TIERS`, `AI_GATEWAY_TASK_TIERS` | `GENERAL_CHAT` has no cloud tier by default; overrides are operator-controlled. |
 | Structured output validation + safe defaults | `services/ai_schemas.py`, `_safe_schema_default` | Invalid JSON or schema violations yield typed empty defaults and `schema_validation_failed` in meta. |
 | Per-tenant daily budget | `AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY`, `_check_and_consume_budget` | Returns `budget_exceeded` meta; audit path records outcome. |
 | Audit / metrics fields | `_audit_log`, `_record_metric` | `task_type`, `request_id`, `tenant_id` / `school_id` when provided in metadata. |
-| Blueprint / wiring gate | `scripts/verify_ai_blueprint_completion.py` | Fails CI if gateway, prompts, key docs, or embeddings router drift from required shapes. |
+| Blueprint / wiring gate | `scripts/verify_ai_blueprint_completion.py` | Fails CI if gateway, prompts, key docs, embeddings router, or non-test `apps/` / `services/` code drifts into forbidden cloud AI SDK usage. |
 
 ### No parallel stacks & inference ops (operator contract)
 
@@ -32,7 +32,7 @@
 
 | Knob | Where | Purpose |
 |------|--------|---------|
-| `AI_GATEWAY_ENABLED` | `config/settings.py` | Kill switch for in-product gateway traffic. |
+| `AI_GATEWAY_ENABLED` | `config/settings.py` | Kill switch for in-product gateway traffic. Enforced centrally in `services.ai_gateway.invoke()` so callers do not need bespoke disable checks to avoid provider traffic. |
 | `AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY` | `config/settings.py` | Per-tenant daily cap (0 = off). |
 | `AI_GATEWAY_TASK_TIERS` / vLLM & LiteLLM envs | `config/settings.py` (see comments) | Task-tier routing; `VLLM_*`, `LITELLM_*` only when tiers enable them. |
 | Data-class / premium gating | `services/inference.py` | Works with gateway metadata (`strip_pii_for_inference`, sensitivity) before premium/third-party tiers. |

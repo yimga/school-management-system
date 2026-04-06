@@ -7,7 +7,7 @@ import tempfile
 import apps.siteconfig.models as _siteconfig_models
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
-from django.db import OperationalError, ProgrammingError
+from django.db import OperationalError, ProgrammingError, transaction
 
 from apps.siteconfig.models import ThemePack
 
@@ -37,6 +37,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        self._tenant_settings_runtime_field_extras = {}
         input_path = Path(options["input_file"])
         if not input_path.exists():
             raise CommandError(f"File not found: {input_path}")
@@ -78,7 +79,6 @@ class Command(BaseCommand):
         """
         normalized_data = self._normalize_fixture_fields(data)
         self._ensure_dependencies(normalized_data)
-        self._clear_themepack_default_before_load()
         with tempfile.NamedTemporaryFile(
             "w", encoding="utf-8", suffix=".json", delete=False
         ) as tmp:
@@ -86,11 +86,15 @@ class Command(BaseCommand):
             tmp.write("\n")
             temp_path = tmp.name
         try:
-            call_command("loaddata", temp_path)
+            with transaction.atomic():
+                self._replace_themepacks_before_load(normalized_data)
+                self._clear_themepack_default_before_load()
+                call_command("loaddata", temp_path)
+                self._apply_tenant_settings_runtime_extras()
+                if not options["skip_normalize"]:
+                    call_command("normalize_ui_config")
         finally:
             Path(temp_path).unlink(missing_ok=True)
-        if not options["skip_normalize"]:
-            call_command("normalize_ui_config")
 
     def _clear_themepack_default_before_load(self) -> None:
         """Clear is_default on all ThemePacks so loaddata can set the fixture's default without violating the single-default constraint."""
@@ -99,6 +103,29 @@ class Command(BaseCommand):
             self.stdout.write(
                 f"Cleared is_default on {updated} ThemePack(s) before load."
             )
+
+    def _replace_themepacks_before_load(self, data: list[dict]) -> None:
+        """
+        UI parity imports are replace-semantics for ThemePacks.
+
+        The committed fixture is the source of truth for these rows during release
+        verification, so pre-existing packs must be removed to avoid slug
+        collisions and later strict-parity failures from extra rows.
+        """
+        fixture_theme_rows = [
+            row
+            for row in data
+            if isinstance(row, dict) and row.get("model") == "siteconfig.themepack"
+        ]
+        if not fixture_theme_rows:
+            return
+        existing = ThemePack.objects.count()
+        if not existing:
+            return
+        ThemePack.objects.all().delete()
+        self.stdout.write(
+            f"Removed {existing} existing ThemePack(s) before fixture load."
+        )
 
     def _ensure_dependencies(self, data: list[dict]) -> None:
         """Create required FK rows that may be missing in fresh/local databases."""
@@ -184,6 +211,14 @@ class Command(BaseCommand):
             return
         pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
         rt_merge: dict = {}
+        legacy_fk_key_map = {
+            "theme_pack": "theme_pack_id",
+            "admin_theme_pack": "admin_theme_pack_id",
+            "teacher_theme_pack": "teacher_theme_pack_id",
+            "parent_theme_pack": "parent_theme_pack_id",
+            "default_term_report_style": "default_term_report_style_id",
+            "default_annual_report_style": "default_annual_report_style_id",
+        }
         pgb_fk_keys = frozenset(
             {
                 "theme_pack_id",
@@ -196,10 +231,19 @@ class Command(BaseCommand):
         )
         for _pk, extra in self._tenant_settings_runtime_field_extras.items():
             for k, v in extra.items():
-                if k in pgb_fk_keys:
-                    setattr(pgb, k, v)
+                target_key = legacy_fk_key_map.get(k, k)
+                if target_key in pgb_fk_keys:
+                    setattr(pgb, target_key, v)
                 else:
-                    rt_merge[k] = v
+                    rt_merge[target_key] = v
         pgb.save()
         if rt_merge:
             _TenantSettingsModel._persist_runtime_payload_updates(rt_merge)
+            try:
+                from apps.platform_runtime.helpers import (
+                    invalidate_effective_site_settings_cache,
+                )
+
+                invalidate_effective_site_settings_cache()
+            except ImportError:
+                pass

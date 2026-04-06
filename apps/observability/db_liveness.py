@@ -1,6 +1,6 @@
 """
-§2.4 Raw SQL wrap: database liveness check in one place.
-Used by monitoring.SystemHealthMonitor.check_database_health; keeps raw SQL out of monitoring module.
+§2.4 database liveness check in one place.
+Used by monitoring.SystemHealthMonitor.check_database_health; uses Django connection health APIs.
 """
 
 from __future__ import annotations
@@ -31,12 +31,13 @@ _DB_LIVENESS_ERRORS = (
 
 def check_db_liveness() -> dict[str, Any]:
     """
-    Run a minimal query to verify DB connectivity. Returns dict with status, response_time_ms, error (if any).
+    Verify DB connectivity. Returns dict with status, response_time_ms, error (if any).
     """
     try:
         start = time.time()
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
+        connection.ensure_connection()
+        if not connection.is_usable():
+            raise OperationalError("DB connection is not usable")
         duration_ms = (time.time() - start) * 1000
         return {
             "status": "healthy",

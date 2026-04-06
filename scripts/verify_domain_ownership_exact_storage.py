@@ -4,10 +4,13 @@ Repository gate: every ``EXACT_FIELD_OWNERS`` key is either a RuntimeDefaults fi
 column or an explicitly registered virtual-only field (or row-metadata delete bucket).
 
 No Django setup required (importlib loads plain modules).
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import sys
 from pathlib import Path
@@ -24,15 +27,70 @@ def _load(name: str, path: Path):
     return mod
 
 
-def main() -> int:
-    do = _load("domain_ownership", ROOT / "apps" / "siteconfig" / "domain_ownership.py")
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify domain ownership exact storage."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _relative(path: Path, base: Path) -> Path | str:
+    try:
+        return path.relative_to(base)
+    except ValueError:
+        return path
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print("verify_domain_ownership_exact_storage: FAILED", file=sys.stderr)
+        print(f"  - {exc}", file=sys.stderr)
+        return 1
+
+    domain_ownership = root / "apps" / "siteconfig" / "domain_ownership.py"
+    runtime_defaults_first_class = (
+        root / "apps" / "platform_runtime" / "runtime_defaults_first_class.py"
+    )
+    domain_ownership_storage = root / "apps" / "siteconfig" / "domain_ownership_storage.py"
+
+    missing = [
+        _relative(path, root)
+        for path in (
+            domain_ownership,
+            runtime_defaults_first_class,
+            domain_ownership_storage,
+        )
+        if not path.is_file()
+    ]
+    if missing:
+        print("verify_domain_ownership_exact_storage: FAILED", file=sys.stderr)
+        for path in missing:
+            print(f"  - Missing {path}", file=sys.stderr)
+        return 1
+
+    do = _load("domain_ownership", domain_ownership)
     fc = _load(
         "runtime_defaults_first_class",
-        ROOT / "apps" / "platform_runtime" / "runtime_defaults_first_class.py",
+        runtime_defaults_first_class,
     )
     st = _load(
         "domain_ownership_storage",
-        ROOT / "apps" / "siteconfig" / "domain_ownership_storage.py",
+        domain_ownership_storage,
     )
 
     first_class = frozenset(fc.RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES)
@@ -67,4 +125,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

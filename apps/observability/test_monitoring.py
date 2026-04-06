@@ -400,7 +400,7 @@ class HealthViewTruthfulnessTests(TestCase):
 
     def test_healthz_returns_500_when_db_fails(self):
         """healthz returns 500 when DB check raises (truthful health)."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
         from django.test import RequestFactory
         from apps.observability.views import healthz
         from django.db.utils import OperationalError
@@ -408,11 +408,8 @@ class HealthViewTruthfulnessTests(TestCase):
 
         factory = RequestFactory()
         request = factory.get("/healthz/")
-        mock_cursor = MagicMock()
-        mock_cursor.execute.side_effect = OperationalError("DB unavailable")
         with patch("apps.observability.db_liveness.connection") as mock_conn:
-            mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
-            mock_conn.cursor.return_value.__exit__.return_value = None
+            mock_conn.ensure_connection.side_effect = OperationalError("DB unavailable")
             with patch(
                 "apps.observability.views._is_observability_authorized",
                 return_value=True,

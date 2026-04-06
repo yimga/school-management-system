@@ -126,7 +126,7 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         self.assertEqual(reverse("finance:dashboard"), "/finance/")
 
     def test_super_site_settings_list_path(self):
-        """SiteSettings removed from platform admin; list is on control plane."""
+        """Tenant site-settings list moved off platform Django admin; control plane hosts the list."""
         self.assertEqual(
             reverse("super:site_settings_list"),
             "/super/config/site-settings/",

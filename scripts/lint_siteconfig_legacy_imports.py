@@ -2,15 +2,19 @@
 """
 Block new app code from importing legacy siteconfig modules for domain-owned
 objects that already have bounded-context import surfaces.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import ast
 import sys
 from pathlib import Path
 
-BASE = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent
+
 SKIP_PARTS = {"migrations", "__pycache__", "venv", ".venv", "node_modules", "tests"}
 SKIP_PATHS = {
     "apps/brand_experience/models.py",
@@ -91,16 +95,39 @@ def _iter_violations(path: Path, rel: str) -> list[tuple[int, str]]:
     return violations
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to inspect (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return base
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        base = _resolve_base(parse_args(argv).base)
+    except ValueError as exc:
+        print(f"lint_siteconfig_legacy_imports: {exc}", file=sys.stderr)
+        return 1
+
     violations: list[tuple[str, int, str]] = []
     for root_name in ("apps", "config"):
-        root = BASE / root_name
+        root = base / root_name
         if not root.is_dir():
             continue
         for path in root.rglob("*.py"):
             if any(part in SKIP_PARTS for part in path.parts):
                 continue
-            rel = path.relative_to(BASE).as_posix()
+            rel = path.relative_to(base).as_posix()
             if rel in SKIP_PATHS or rel.startswith("apps/siteconfig/"):
                 continue
             for line_no, replacement in _iter_violations(path, rel):
@@ -120,4 +147,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

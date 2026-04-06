@@ -4,7 +4,7 @@ Non-PG: schema_exists returns False, create_schema_if_not_exists no-ops. Empty n
 """
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.db import connection
 
@@ -25,6 +25,16 @@ class TestSchemaProvisioningRepository(unittest.TestCase):
         with patch.object(connection, "vendor", "sqlite"):
             self.assertFalse(schema_exists("test_schema"))
 
+    def test_schema_exists_pg_delegates_to_django_tenants(self):
+        with patch.object(connection, "vendor", "postgresql"), patch(
+            "django_tenants.utils.schema_exists", return_value=True
+        ) as mock_schema_exists:
+            self.assertTrue(schema_exists("test_schema"))
+
+        mock_schema_exists.assert_called_once_with(
+            "test_schema", database=connection.alias
+        )
+
     def test_create_schema_if_not_exists_empty_no_op(self):
         create_schema_if_not_exists("")
         create_schema_if_not_exists("   ")
@@ -32,3 +42,27 @@ class TestSchemaProvisioningRepository(unittest.TestCase):
     def test_create_schema_if_not_exists_non_pg_no_op(self):
         with patch.object(connection, "vendor", "sqlite"):
             create_schema_if_not_exists("test_schema")
+
+    def test_create_schema_if_not_exists_pg_delegates_to_client_create_schema(self):
+        client = Mock()
+        queryset = Mock()
+        queryset.first.return_value = client
+
+        with patch.object(connection, "vendor", "postgresql"), patch(
+            "apps.customers.models.Client.objects.filter", return_value=queryset
+        ) as mock_filter:
+            create_schema_if_not_exists("test_schema")
+
+        mock_filter.assert_called_once_with(schema_name="test_schema")
+        client.create_schema.assert_called_once_with(check_if_exists=True, verbosity=0)
+
+    def test_create_schema_if_not_exists_pg_no_op_when_client_missing(self):
+        queryset = Mock()
+        queryset.first.return_value = None
+
+        with patch.object(connection, "vendor", "postgresql"), patch(
+            "apps.customers.models.Client.objects.filter", return_value=queryset
+        ) as mock_filter:
+            create_schema_if_not_exists("test_schema")
+
+        mock_filter.assert_called_once_with(schema_name="test_schema")

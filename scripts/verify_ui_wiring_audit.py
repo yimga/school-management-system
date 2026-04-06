@@ -8,24 +8,24 @@ This does **not** replace human QA; it fails fast on:
 - **Risky navigation:** `javascript:` in href (except allowlisted `javascript:history.`),
   empty href, empty form action (excluding `{% %}` dynamic actions).
 
-Run from repo root (Django required; no DB queries for the url tree walk)::
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
+Django required; no DB queries for the url tree walk.
 
-    python scripts/verify_ui_wiring_audit.py
-
-Optional: regenerate markdown report (same idea as audit_template_url_names)::
-
-    python scripts/verify_ui_wiring_audit.py --write-report
+Optional: ``--write-report`` writes ``docs/phase_audit/UI_WIRING_AUDIT_LATEST.md``.
 """
 
 from __future__ import annotations
 
 import argparse
+from functools import lru_cache
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 TEMPLATES = ROOT / "templates"
 
 # First argument to {% url %} when it is a quoted string literal (allows extra args before %})
@@ -67,6 +67,52 @@ URLCONF_MODULES = (
 )
 
 
+@lru_cache(maxsize=1)
+def _tracked_file_relpaths(root: Path) -> frozenset[str] | None:
+    """Prefer tracked templates so local scratch files do not fabricate gate failures."""
+    try:
+        proc = subprocess.run(
+            ["git", "ls-files"],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError):
+        return None
+    return frozenset(line.strip() for line in proc.stdout.splitlines() if line.strip())
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    parser.add_argument(
+        "--write-report",
+        action="store_true",
+        help="Write docs/phase_audit/UI_WIRING_AUDIT_LATEST.md summary",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT, TEMPLATES
+    ROOT = base
+    TEMPLATES = ROOT / "templates"
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+
+
 def _walk_url_names(urlpatterns, namespace: str = "") -> set[str]:
     from django.urls.resolvers import URLPattern, URLResolver
 
@@ -96,12 +142,27 @@ def _registered_url_names() -> set[str]:
     return names
 
 
+def _iter_template_files():
+    if not TEMPLATES.is_dir():
+        return
+    tracked = _tracked_file_relpaths(ROOT)
+    if tracked is None:
+        yield from TEMPLATES.rglob("*.html")
+        return
+
+    prefix = TEMPLATES.relative_to(ROOT).as_posix().rstrip("/") + "/"
+    for relpath in sorted(path for path in tracked if path.startswith(prefix) and path.endswith(".html")):
+        path = ROOT / relpath
+        if path.is_file():
+            yield path
+
+
 def _collect_template_url_literals() -> dict[str, list[str]]:
     """Map relative path -> list of url names found."""
     by_file: dict[str, list[str]] = {}
     if not TEMPLATES.is_dir():
         return by_file
-    for p in TEMPLATES.rglob("*.html"):
+    for p in _iter_template_files():
         if "node_modules" in p.parts:
             continue
         try:
@@ -126,7 +187,7 @@ def _scan_href_action_hazards() -> list[str]:
     failures: list[str] = []
     if not TEMPLATES.is_dir():
         return failures
-    for p in TEMPLATES.rglob("*.html"):
+    for p in _iter_template_files():
         if "node_modules" in p.parts:
             continue
         try:
@@ -155,18 +216,15 @@ def _scan_href_action_hazards() -> list[str]:
     return failures
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--write-report",
-        action="store_true",
-        help="Write docs/phase_audit/UI_WIRING_AUDIT_LATEST.md summary",
-    )
-    args = parser.parse_args()
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        _configure_root(_resolve_base(args.base))
+    except ValueError as exc:
+        print(f"FAIL verify_ui_wiring_audit: {exc}", file=sys.stderr)
+        return 1
 
     os.chdir(ROOT)
-    if str(ROOT) not in sys.path:
-        sys.path.insert(0, str(ROOT))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
 
@@ -229,4 +287,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

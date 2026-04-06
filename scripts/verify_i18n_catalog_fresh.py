@@ -7,6 +7,8 @@ Run after template/Python changes; fix with:
 
   --warn-stale   print msgids in .po but not in codebase (advisory)
   --strict-stale exit 1 if any stale entries exist (optional hygiene)
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
@@ -19,30 +21,59 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def main() -> int:
-    if str(ROOT) not in sys.path:
-        sys.path.insert(0, str(ROOT))
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Verify en django.po covers scanned strings")
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (default: this repository root)",
+    )
+    parser.add_argument(
+        "--warn-stale",
+        action="store_true",
+        help="Print msgids present in .po but not found by scanner",
+    )
+    parser.add_argument(
+        "--strict-stale",
+        action="store_true",
+        help="Exit 1 when stale entries exist (use after --prune-stale or manual cleanup)",
+    )
+    return parser
+
+
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
+    return _build_parser().parse_args(argv)
+
+
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def _configure_django(root: Path) -> None:
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
 
     django.setup()
 
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_i18n_catalog_fresh: {exc}", file=sys.stderr)
+        return 1
+
+    _configure_django(root)
+
     from apps.siteconfig.i18n_catalog_builder import verify_en_catalog_against_codebase
 
-    ap = argparse.ArgumentParser(description="Verify en django.po covers scanned strings")
-    ap.add_argument(
-        "--warn-stale",
-        action="store_true",
-        help="Print msgids present in .po but not found by scanner",
-    )
-    ap.add_argument(
-        "--strict-stale",
-        action="store_true",
-        help="Exit 1 when stale entries exist (use after --prune-stale or manual cleanup)",
-    )
-    args = ap.parse_args()
-
-    missing, stale = verify_en_catalog_against_codebase(ROOT)
+    missing, stale = verify_en_catalog_against_codebase(root)
     if missing:
         print(
             f"FAIL: {len(missing)} scanned strings missing from locale/en/LC_MESSAGES/django.po",
@@ -73,4 +104,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

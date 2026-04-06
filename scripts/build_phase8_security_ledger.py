@@ -22,19 +22,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT_REL = Path("scripts/generated/phase8_security_ledger.json")
-CSRF = ROOT / "scripts/allowlists/csrf_exempt_allowlist.json"
-ALLOW_ANY = ROOT / "scripts/allowlists/allow_any_allowlist.json"
-RAW_SQL = ROOT / "scripts/allowlists/raw_sql_allowlist.json"
 
 
 def _load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _build() -> dict:
-    csrf = _load(CSRF)
-    allow_any = _load(ALLOW_ANY)
-    raw_sql = _load(RAW_SQL)
+def _build(csrf_path: Path, allow_any_path: Path, raw_sql_path: Path) -> dict:
+    csrf = _load(csrf_path)
+    allow_any = _load(allow_any_path)
+    raw_sql = _load(raw_sql_path)
     return {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -62,8 +59,20 @@ def _fingerprint(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build Phase 8 merged security ledger.")
+    parser.add_argument(
+        "--base",
+        default=".",
+        help="Repository root to operate on (defaults to current directory).",
+    )
     parser.add_argument(
         "--write", action="store_true", help="Write scripts/generated/phase8_security_ledger.json"
     )
@@ -72,19 +81,29 @@ def main() -> int:
         action="store_true",
         help="Exit 1 if generated file does not match current allowlists",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if not args.write and not args.check:
         print("Specify --write and/or --check", file=sys.stderr)
         return 2
 
-    for p in (CSRF, ALLOW_ANY, RAW_SQL):
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"build_phase8_security_ledger: FAIL\n  - {exc}", file=sys.stderr)
+        return 1
+
+    csrf = root / "scripts/allowlists/csrf_exempt_allowlist.json"
+    allow_any = root / "scripts/allowlists/allow_any_allowlist.json"
+    raw_sql = root / "scripts/allowlists/raw_sql_allowlist.json"
+
+    for p in (csrf, allow_any, raw_sql):
         if not p.is_file():
             print(f"Missing source: {p}", file=sys.stderr)
             return 1
 
-    payload = _build()
+    payload = _build(csrf, allow_any, raw_sql)
     body = _canonical_json(payload)
-    out_path = ROOT / OUT_REL
+    out_path = root / OUT_REL
 
     if args.write:
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -113,4 +132,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

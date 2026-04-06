@@ -4,7 +4,7 @@ Synthetic monitoring probe for SRE/observability (Section 25.4).
 Runs lightweight checks (healthz, ready, optional DB) to simulate external monitoring.
 Use in cron or scheduler for uptime/availability checks.
 
-§2.4 Raw SQL wrap: --db check delegates to db_liveness.check_db_liveness() (single SELECT 1 in one place).
+§2.4 DB health check: --db check delegates to db_liveness.check_db_liveness() (single implementation path).
 
 Usage:
   python manage.py synthetic_probe

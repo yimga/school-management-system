@@ -62,6 +62,7 @@ class DistrictInteropHubTests(TestCase):
                 "native_classlink_bearer": "",
                 "native_classlink_base_url": "https://oneroster.classlink.example/v1p1",
             },
+            secure=True,
         )
         self.assertEqual(r.status_code, 302)
         si = ServiceIntegration.objects.get(
@@ -83,6 +84,7 @@ class DistrictInteropHubTests(TestCase):
         r = c.post(
             reverse("accounts:district_interop_native_probe"),
             follow=True,
+            secure=True,
         )
         self.assertEqual(r.status_code, 200)
         self.assertIn(b"No native Clever", r.content)
@@ -101,6 +103,7 @@ class DistrictInteropHubTests(TestCase):
         c.post(
             reverse("accounts:district_interop_save_native_vendor"),
             {"native_clever_bearer": "x" * 24},
+            secure=True,
         )
         before = TenantInteropAccessLog.objects.filter(
             school=self.school, service="native_vendor"
@@ -108,6 +111,7 @@ class DistrictInteropHubTests(TestCase):
         r = c.post(
             reverse("accounts:district_interop_native_probe"),
             follow=True,
+            secure=True,
         )
         self.assertEqual(r.status_code, 200)
         after = TenantInteropAccessLog.objects.filter(

@@ -67,6 +67,18 @@ def _safe_virtual_settings_row_attr(site: Any, name: str) -> Any:
         return None
 
 
+def _actual_site_compare_value(site: Any, field_name: str) -> Any:
+    if field_name in {"theme_pack", "admin_theme_pack"}:
+        getter = getattr(site, "get_theme_selection_ids", None)
+        if callable(getter):
+            return (getter() or {}).get(f"{field_name}_id")
+    if field_name in {"default_term_report_style", "default_annual_report_style"}:
+        getter = getattr(site, "get_report_style_selection_ids", None)
+        if callable(getter):
+            return (getter() or {}).get(f"{field_name}_id")
+    return getattr(site, f"{field_name}_id", None)
+
+
 def _normalize(value: Any, field_name: str | None = None) -> Any:
     if field_name in BLANK_EQUALS_NULL_FIELDS and value in ("", None):
         return None
@@ -139,7 +151,7 @@ class Command(BaseCommand):
             if field_name in SITE_FOREIGN_KEY_FIELDS:
                 if fixture_value in (None, ""):
                     fixture_value = fixture_site_row.get(f"{field_name}_id")
-                actual_value = getattr(site, f"{field_name}_id", None)
+                actual_value = _actual_site_compare_value(site, field_name)
             else:
                 actual_value = _safe_virtual_settings_row_attr(site, field_name)
 

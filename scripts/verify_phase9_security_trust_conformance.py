@@ -5,31 +5,59 @@ and allowlist artifact presence.
 
 Does not run ledger freshness (--check), lints, or pytest — those stay on
 ``test_phase9_security_gates`` / pre_deploy_gate.
+
+Run (from repo root):
+  python scripts/verify_phase9_security_trust_conformance.py
 """
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root to inspect (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return base
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        base = _resolve_base(parse_args(argv).base)
+    except ValueError as exc:
+        print(f"verify_phase9_security_trust_conformance: {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
-    super_trust = ROOT / "templates" / "schools" / "super_trust_center.html"
-    tenant_trust = ROOT / "templates" / "accounts" / "security_trust_hub.html"
-    ledger_script = ROOT / "scripts" / "build_phase8_security_ledger.py"
-    csrf_json = ROOT / "scripts" / "allowlists" / "csrf_exempt_allowlist.json"
-    allow_any_json = ROOT / "scripts" / "allowlists" / "allow_any_allowlist.json"
-    raw_sql_json = ROOT / "scripts" / "allowlists" / "raw_sql_allowlist.json"
-    north_star_doc = ROOT / "docs" / "NORTH_STAR_TRUST_AND_OPS.md"
-    threat_model_doc = ROOT / "docs" / "THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md"
+    super_trust = base / "templates" / "schools" / "super_trust_center.html"
+    tenant_trust = base / "templates" / "accounts" / "security_trust_hub.html"
+    ledger_script = base / "scripts" / "build_phase8_security_ledger.py"
+    csrf_json = base / "scripts" / "allowlists" / "csrf_exempt_allowlist.json"
+    allow_any_json = base / "scripts" / "allowlists" / "allow_any_allowlist.json"
+    raw_sql_json = base / "scripts" / "allowlists" / "raw_sql_allowlist.json"
+    north_star_doc = base / "docs" / "NORTH_STAR_TRUST_AND_OPS.md"
+    threat_model_doc = base / "docs" / "THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md"
 
     paths = (
         super_trust,
@@ -43,7 +71,7 @@ def main() -> int:
     )
     for p in paths:
         if not p.is_file():
-            errors.append(f"Missing required file: {p.relative_to(ROOT).as_posix()}")
+            errors.append(f"Missing required file: {p.relative_to(base).as_posix()}")
 
     if errors:
         print("verify_phase9_security_trust_conformance: FAIL", file=sys.stderr)
@@ -100,4 +128,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

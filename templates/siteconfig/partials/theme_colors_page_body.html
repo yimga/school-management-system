@@ -169,7 +169,9 @@
               </div>
               {% endif %}
               <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+                <input type="hidden" name="use_dark_mode__present" value="1">
                 <div class="form-check mb-0">{{ form.use_dark_mode }}<label class="form-check-label" for="id_use_dark_mode">{{ form.use_dark_mode.label }}</label></div>
+                <input type="hidden" name="admin_use_site_primary__present" value="1">
                 <div class="form-check mb-0">{{ form.admin_use_site_primary }}<label class="form-check-label" for="id_admin_use_site_primary">{{ form.admin_use_site_primary.label }}</label></div>
               </div>
               <div class="col-12">
@@ -188,6 +190,7 @@
                 </div>
               </div>
               <div class="col-12">
+                <input type="hidden" name="skip_theme_publish_guard__present" value="1">
                 <div class="form-check mb-0">{{ form.skip_theme_publish_guard }}<label class="form-check-label" for="id_skip_theme_publish_guard">{{ form.skip_theme_publish_guard.label }}</label></div>
                 <small class="text-muted">{% trans "When enabled, theme changes save without live preview confirmation. Use only in low-risk environments." %}</small>
               </div>
@@ -203,7 +206,7 @@
             <div class="row g-1 mb-1">
               <div class="col-6"><div class="mb-0">{{ form.secondary_font.label_tag }}{{ form.secondary_font }}</div></div>
               <div class="col-6"><div class="mb-0">{{ form.base_font_size.label_tag }}{{ form.base_font_size }}</div></div>
-              <div class="col-12"><div class="form-check mb-0">{{ form.use_secondary_font_for_headings }}<label class="form-check-label" for="id_use_secondary_font_for_headings">{{ form.use_secondary_font_for_headings.label }}</label></div></div>
+              <div class="col-12"><input type="hidden" name="use_secondary_font_for_headings__present" value="1"><div class="form-check mb-0">{{ form.use_secondary_font_for_headings }}<label class="form-check-label" for="id_use_secondary_font_for_headings">{{ form.use_secondary_font_for_headings.label }}</label></div></div>
             </div>
 
             {# Dashboard & reports #}
@@ -212,7 +215,7 @@
               <div class="col-6"><div class="mb-0">{{ form.default_refresh_rate.label_tag }}{{ form.default_refresh_rate }}</div></div>
               <div class="col-6"><div class="mb-0">{{ form.default_term_report_style.label_tag }}{{ form.default_term_report_style }}</div></div>
               <div class="col-6"><div class="mb-0">{{ form.default_annual_report_style.label_tag }}{{ form.default_annual_report_style }}</div></div>
-              <div class="col-12"><div class="form-check mb-0">{{ form.report_downloads_enabled }}<label class="form-check-label" for="id_report_downloads_enabled">{{ form.report_downloads_enabled.label }}</label></div></div>
+              <div class="col-12"><input type="hidden" name="report_downloads_enabled__present" value="1"><div class="form-check mb-0">{{ form.report_downloads_enabled }}<label class="form-check-label" for="id_report_downloads_enabled">{{ form.report_downloads_enabled.label }}</label></div></div>
             </div>
 
             <div class="mb-0">{{ form.default_widgets_per_role.label_tag }}{{ form.default_widgets_per_role }}</div>

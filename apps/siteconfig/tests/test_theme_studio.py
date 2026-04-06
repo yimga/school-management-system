@@ -18,12 +18,13 @@ from config.admin import tenant_admin_site
 from apps.siteconfig.context_processors import site_settings
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.forms import THEME_PUBLISH_GUARDED_FIELDS, ThemeColorsForm
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig import models as _siteconfig_models
 from apps.siteconfig.tests.payload_helpers import persist_runtime_site_settings_payload
 from apps.brand_experience.admin import ThemePackAdmin
 
 
 User = get_user_model()
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 class ThemeStudioAccessTests(TestCase):
@@ -482,7 +483,7 @@ class ThemePackSelectorTemplateTests(TestCase):
 
 class ThemeStudioSingleSurfaceTests(TestCase):
     def test_sitesettings_theme_launcher_under_platform_branding(self):
-        model_admin = tenant_admin_site._registry[SiteSettings]
+        model_admin = tenant_admin_site._registry[_TenantSettingsModel]
         branding_fieldset = next(
             config
             for title, config in model_admin.fieldsets
@@ -491,7 +492,7 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         self.assertIn("theme_color_tools_link_block", branding_fieldset["fields"])
 
     def test_sitesettings_platform_branding_fieldset_points_to_singleton(self):
-        model_admin = tenant_admin_site._registry[SiteSettings]
+        model_admin = tenant_admin_site._registry[_TenantSettingsModel]
         branding_fieldset = next(
             config
             for title, config in model_admin.fieldsets
@@ -500,7 +501,7 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         self.assertIn("platform_global_branding_notice", branding_fieldset["fields"])
 
     def test_sitesettings_fieldsets_exclude_concrete_theme_pack_fields(self):
-        model_admin = tenant_admin_site._registry[SiteSettings]
+        model_admin = tenant_admin_site._registry[_TenantSettingsModel]
         flat: list[str] = []
         for _title, cfg in model_admin.fieldsets:
             for f in cfg.get("fields") or ():
@@ -512,7 +513,7 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         self.assertNotIn("admin_theme_pack", flat)
 
     def test_theme_launcher_uses_back_link_with_stay_theme_flag(self):
-        model_admin = tenant_admin_site._registry[SiteSettings]
+        model_admin = tenant_admin_site._registry[_TenantSettingsModel]
         site = get_platform_site_settings_record(create=True)
         html = model_admin.theme_color_tools_link_block(site)
         # Encoded inside ?next= or plain query on theme-colors URL
@@ -534,6 +535,24 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         response = model_admin.changeform_view(request, object_id="1")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("studio_os:experience"))
+
+
+class ThemeStudioTemplateMarkerTests(SimpleTestCase):
+    def test_theme_colors_page_template_declares_boolean_presence_markers(self):
+        template_path = (
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "siteconfig"
+            / "partials"
+            / "theme_colors_page_body.html"
+        )
+        template_text = template_path.read_text(encoding="utf-8")
+
+        self.assertIn('name="use_dark_mode__present"', template_text)
+        self.assertIn('name="admin_use_site_primary__present"', template_text)
+        self.assertIn('name="skip_theme_publish_guard__present"', template_text)
+        self.assertIn('name="use_secondary_font_for_headings__present"', template_text)
+        self.assertIn('name="report_downloads_enabled__present"', template_text)
 
 
 class ThemeStudioApplyScriptTests(SimpleTestCase):

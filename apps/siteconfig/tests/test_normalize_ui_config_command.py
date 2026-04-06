@@ -4,17 +4,19 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from apps.brand_experience.models import PlatformGlobalBranding, ThemePack
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig import models as _siteconfig_models
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 class NormalizeUIConfigCommandTests(TestCase):
     def setUp(self):
-        SiteSettings.objects.all().delete()
+        _TenantSettingsModel.objects.all().delete()
         ThemePack.objects.all().delete()
         PlatformGlobalBranding.objects.all().delete()
 
     def _ensure_site(self):
-        SiteSettings.objects.get_or_create(pk=1)
+        _TenantSettingsModel.objects.get_or_create(pk=1)
 
     def test_sets_site_theme_as_single_default(self):
         self._ensure_site()

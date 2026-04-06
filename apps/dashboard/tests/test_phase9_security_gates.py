@@ -27,16 +27,21 @@ def _run_script(rel: str, *args: str) -> None:
 
 class Phase9SecurityGatesTests(SimpleTestCase):
     def test_security_ledger_check(self) -> None:
-        _run_script("scripts/build_phase8_security_ledger.py", "--check")
+        _run_script(
+            "scripts/build_phase8_security_ledger.py",
+            "--check",
+            "--base",
+            str(_ROOT),
+        )
 
     def test_csrf_exempt_allowlist_lint(self) -> None:
-        _run_script("scripts/lint_csrf_exempt_usage.py")
+        _run_script("scripts/lint_csrf_exempt_usage.py", "--base", str(_ROOT))
 
     def test_allow_any_allowlist_lint(self) -> None:
-        _run_script("scripts/lint_allow_any_usage.py")
+        _run_script("scripts/lint_allow_any_usage.py", "--base", str(_ROOT))
 
     def test_raw_sql_allowlist_lint(self) -> None:
-        _run_script("scripts/lint_raw_sql_usage.py")
+        _run_script("scripts/lint_raw_sql_usage.py", "--base", str(_ROOT))
 
     def test_dashboard_density_gate(self) -> None:
-        _run_script("scripts/verify_phase8_dashboard_density.py")
+        _run_script("scripts/verify_phase8_dashboard_density.py", "--base", str(_ROOT))

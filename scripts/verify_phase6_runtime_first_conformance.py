@@ -5,15 +5,39 @@ Phase 6 gate: runtime-first conformance.
 Checks:
 1) resolver precedence contract for touched runtime flows
 2) fallback-ban checks (no direct singleton/ORM fallback anti-patterns)
+
+Run (from repo root):
+  python scripts/verify_phase6_runtime_first_conformance.py
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Phase 6 runtime-first conformance."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root to inspect (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
 
 
 def _read(path: Path) -> str:
@@ -35,14 +59,22 @@ def _assert_in_order(text: str, markers: tuple[str, ...], label: str, errors: li
         pos = idx
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print("verify_phase6_runtime_first_conformance: FAIL", file=sys.stderr)
+        print(f"  - {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
-    tenant_cfg_py = ROOT / "apps" / "siteconfig" / "tenant_config.py"
-    policy_resolver_py = ROOT / "apps" / "policies" / "resolver.py"
-    runtime_resolver_py = ROOT / "apps" / "platform_runtime" / "runtime_resolver.py"
-    precedence_py = ROOT / "apps" / "platform_runtime" / "precedence.py"
-    precedence_doc = ROOT / "docs" / "runtime_precedence.md"
+    tenant_cfg_py = root / "apps" / "siteconfig" / "tenant_config.py"
+    policy_resolver_py = root / "apps" / "policies" / "resolver.py"
+    runtime_resolver_py = root / "apps" / "platform_runtime" / "runtime_resolver.py"
+    precedence_py = root / "apps" / "platform_runtime" / "precedence.py"
+    precedence_doc = root / "docs" / "runtime_precedence.md"
 
     required = (
         tenant_cfg_py,
@@ -52,7 +84,7 @@ def main() -> int:
     )
     for path in required:
         if not path.is_file():
-            errors.append(f"Missing required file: {path.relative_to(ROOT).as_posix()}")
+            errors.append(f"Missing required file: {path.relative_to(root).as_posix()}")
     if errors:
         print("verify_phase6_runtime_first_conformance: FAIL", file=sys.stderr)
         for item in errors:
@@ -131,7 +163,7 @@ def main() -> int:
         for pattern in fallback_bans:
             if re.search(pattern, text):
                 errors.append(
-                    f"{path.relative_to(ROOT).as_posix()} contains banned fallback pattern: {pattern}"
+                    f"{path.relative_to(root).as_posix()} contains banned fallback pattern: {pattern}"
                 )
 
     if "PRECEDENCE_ORDER" not in precedence_text:
@@ -160,4 +192,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

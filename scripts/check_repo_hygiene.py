@@ -2,13 +2,19 @@
 """
 Repo hygiene: fail CI on conflict markers, backup files, and debug debris.
 Usage: python scripts/check_repo_hygiene.py [--exit-zero] [--base DIR]
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
 
 SKIP_DIRS = {
     ".git",
@@ -49,23 +55,54 @@ CONFLICT_LINE_EXACT = ("<<<<<<<", "=======", ">>>>>>>")
 CONFLICT_LINE_STARTS = ("<<<<<<< ", ">>>>>>> ")
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(
-        description="Check repo for conflict markers and backup/debug files."
-    )
-    ap.add_argument(
-        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
-    )
-    ap.add_argument("--base", default=".", help="Repo root (default: .)")
-    args = ap.parse_args()
-    base = Path(args.base).resolve()
-    if not base.is_dir():
-        print(f"Not a directory: {base}", file=sys.stderr)
-        return 2
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
 
-    errors = []
 
-    # Conflict markers in text files (only likely text extensions)
+@lru_cache(maxsize=None)
+def _tracked_file_relpaths(root: Path) -> frozenset[str] | None:
+    """Prefer tracked files so local scratch trees do not create false positives."""
+    if not (root / ".git").exists():
+        return None
+    try:
+        proc = subprocess.run(
+            ["git", "-c", "core.quotepath=false", "ls-files", "-z"],
+            cwd=root,
+            check=False,
+            capture_output=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0:
+        return None
+    relpaths: set[str] = set()
+    for raw in proc.stdout.split(b"\0"):
+        if not raw:
+            continue
+        try:
+            relpaths.add(Path(raw.decode("utf-8")).as_posix())
+        except UnicodeDecodeError:
+            continue
+    return frozenset(relpaths)
+
+
+def _iter_conflict_candidate_files(base: Path):
+    tracked = _tracked_file_relpaths(base)
+    if tracked is not None:
+        for rel in sorted(tracked):
+            path = base / Path(rel)
+            if not path.is_file():
+                continue
+            if any(part in SKIP_DIRS for part in path.parts):
+                continue
+            if path.suffix.lower() not in TEXT_EXTENSIONS or path.name.startswith("."):
+                continue
+            yield path
+        return
     for path in base.rglob("*"):
         if any(part in SKIP_DIRS for part in path.parts):
             continue
@@ -73,6 +110,56 @@ def main() -> int:
             continue
         if not path.is_file():
             continue
+        yield path
+
+
+def _iter_backup_files(base: Path):
+    tracked = _tracked_file_relpaths(base)
+    if tracked is not None:
+        for rel in sorted(tracked):
+            path = base / Path(rel)
+            if not path.is_file():
+                continue
+            if any(part in SKIP_DIRS for part in path.parts):
+                continue
+            if any(path.match(pattern) for pattern in BACKUP_GLOB):
+                yield path
+        return
+    for pattern in BACKUP_GLOB:
+        for path in base.rglob(pattern):
+            if any(part in SKIP_DIRS for part in path.parts):
+                continue
+            if path.is_file():
+                yield path
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    ap = argparse.ArgumentParser(
+        description="Check repo for conflict markers and backup/debug files."
+    )
+    ap.add_argument(
+        "--exit-zero", action="store_true", help="Always exit 0 (report only)."
+    )
+    ap.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return ap.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        base = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"check_repo_hygiene: {exc}", file=sys.stderr)
+        return 1
+
+    errors = []
+
+    # Conflict markers in text files (only likely text extensions)
+    for path in _iter_conflict_candidate_files(base):
         try:
             text = path.read_bytes()
             if b"\x00" in text[:8192]:
@@ -86,16 +173,12 @@ def main() -> int:
                 if any(line.startswith(prefix) for prefix in CONFLICT_LINE_STARTS):
                     errors.append(f"Conflict marker in {path.relative_to(base)}")
                     break
-        except Exception:
-            pass
+        except OSError:
+            continue
 
     # Backup / debris files
-    for pattern in BACKUP_GLOB:
-        for path in base.rglob(pattern):
-            if any(part in SKIP_DIRS for part in path.parts):
-                continue
-            if path.is_file():
-                errors.append(f"Backup/debris file: {path.relative_to(base)}")
+    for path in _iter_backup_files(base):
+        errors.append(f"Backup/debris file: {path.relative_to(base)}")
 
     if errors:
         print("Repo hygiene violations:\n", file=sys.stderr)
@@ -107,4 +190,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

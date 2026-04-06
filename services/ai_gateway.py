@@ -551,6 +551,10 @@ def invoke(
     """
     task = TaskType(task_type) if isinstance(task_type, str) else task_type
     task_key = task.value
+    md = metadata or {}
+    tenant_id = md.get("tenant_id") or md.get("school_id")
+    school_id = md.get("school_id")
+    user_id = md.get("user_id")
     if _looks_like_prompt_injection(prompt, user_query):
         request_id = str(uuid4())
         request_date = date.today().isoformat()
@@ -560,23 +564,68 @@ def invoke(
             "request_id": request_id,
             "request_date": request_date,
             "task_type": task_key,
+            "cost_class": _cost_class_for_tier("none"),
+            "user_id": user_id,
         }
+        _audit_log(task_key, "none", "", 0, tenant_id, school_id, "blocked", out_meta)
         logger.warning(
             "ai_gateway: blocked likely prompt injection (task=%s)", task_key
         )
         return None, out_meta
+    if not bool(getattr(settings, "AI_GATEWAY_ENABLED", True)):
+        request_id = str(uuid4())
+        request_date = date.today().isoformat()
+        if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
+            result = _rules_fallback(user_query or prompt[:200])
+            out_meta = {
+                "provider": "rules",
+                "tier": "rules",
+                "fallback": True,
+                "gateway_enabled": False,
+                "errors": {"gateway": "disabled"},
+                "request_id": request_id,
+                "request_date": request_date,
+                "task_type": task_key,
+                "cost_class": _cost_class_for_tier("rules"),
+                "user_id": user_id,
+            }
+            _audit_log(task_key, "rules", "rules", 0, tenant_id, school_id, "disabled", out_meta)
+            return result, out_meta
+        out_meta = {
+            "provider": "none",
+            "fallback": False,
+            "gateway_enabled": False,
+            "errors": {"gateway": "disabled"},
+            "request_id": request_id,
+            "request_date": request_date,
+            "task_type": task_key,
+            "cost_class": _cost_class_for_tier("none"),
+            "user_id": user_id,
+        }
+        _audit_log(task_key, "none", "", 0, tenant_id, school_id, "disabled", out_meta)
+        return (
+            "AI is disabled and rules fallback is disabled.",
+            out_meta,
+        )
     tiers_map = _task_tiers()
     backends = tiers_map.get(task_key, ["ollama", "rules"])
-    md = metadata or {}
     allowed = md.get("allowed_backends")
+    rules_allowed_for_call = "rules" in backends
     if allowed is not None and isinstance(allowed, (list, tuple)):
-        allowed_set = {str(t).lower() for t in allowed}
-        backends = [t for t in backends if t in allowed_set]
+        configured_set = set(backends)
+        ordered_allowed: list[str] = []
+        for tier_name in allowed:
+            normalized = str(tier_name).lower()
+            if normalized and normalized not in ordered_allowed:
+                ordered_allowed.append(normalized)
+        backends = [t for t in ordered_allowed if t in configured_set]
+        rules_allowed_for_call = "rules" in backends
         if not backends:
-            backends = tiers_map.get(task_key, ["ollama", "rules"])
-    tenant_id = md.get("tenant_id") or md.get("school_id")
-    school_id = md.get("school_id")
-    user_id = md.get("user_id")
+            errors = {"allowed_backends": "no_configured_tiers_matched"}
+        else:
+            errors: dict[str, str] = {}
+    else:
+        errors: dict[str, str] = {}
     request_id = str(uuid4())
     request_date = date.today().isoformat()
     budget_ok, budget_meta = _check_and_consume_budget(tenant_id)
@@ -586,6 +635,7 @@ def invoke(
             "budget_exceeded": True,
             "request_id": request_id,
             "request_date": request_date,
+            "task_type": task_key,
             "cost_class": _cost_class_for_tier("none"),
             "user_id": user_id,
             **budget_meta,
@@ -594,7 +644,6 @@ def invoke(
         return None, out_meta
     allow_premium = _data_tier_allows_premium(md, prompt=prompt, user_query=user_query)
     timeout_sec = _request_timeout(md)
-    errors: dict[str, str] = {}
     start = time.perf_counter()
 
     for tier in backends:
@@ -631,7 +680,10 @@ def invoke(
         elif tier == "rules":
             elapsed_ms = (time.perf_counter() - start) * 1000
             result = _rules_fallback(user_query or prompt[:200])
-            meta = {"fallback": True, "errors": errors} if errors else {"fallback": True}
+            is_rules_fallback = bool(errors)
+            meta = {"fallback": True} if is_rules_fallback else {}
+            if errors:
+                meta["errors"] = errors
             meta.update({
                 "request_id": request_id,
                 "request_date": request_date,
@@ -639,7 +691,8 @@ def invoke(
                 "cost_class": _cost_class_for_tier("rules"),
                 "user_id": user_id,
             })
-            _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, "success", meta)
+            outcome = "fallback" if is_rules_fallback else "success"
+            _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, outcome, meta)
             return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), **meta}
         if text:
             elapsed_ms = (time.perf_counter() - start) * 1000
@@ -691,12 +744,13 @@ def invoke(
         errors[tier] = meta.get("error", "unavailable")
 
     elapsed_ms = (time.perf_counter() - start) * 1000
-    if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
+    if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)) and rules_allowed_for_call:
         result = _rules_fallback(user_query or prompt[:200])
         out_meta = {
             "errors": errors,
             "request_id": request_id,
             "request_date": request_date,
+            "task_type": task_key,
             "cost_class": _cost_class_for_tier("rules"),
             "user_id": user_id,
         }
@@ -706,6 +760,7 @@ def invoke(
         "errors": errors,
         "request_id": request_id,
         "request_date": request_date,
+        "task_type": task_key,
         "cost_class": _cost_class_for_tier("none"),
         "user_id": user_id,
     }

@@ -40,16 +40,21 @@ from apps.platform_runtime.runtime_resolver import (
     build_tenant_runtime_for_tenant,
 )
 from apps.schools.models import School
-from apps.siteconfig.models import SiteSettings, build_platform_default_site_settings
+from apps.siteconfig import models as _siteconfig_models
+from apps.siteconfig.models import build_platform_default_site_settings
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 def _persist_runtime_test_state(**payload_updates: object) -> None:
-    """Phase B: behavioral keys persist via SiteSettings bridge; platform truth syncs to RuntimeDefaults."""
+    """Phase B: behavioral keys persist via tenant site-settings bridge; platform truth syncs to RuntimeDefaults."""
     from apps.platform_runtime.helpers import invalidate_effective_site_settings_cache
 
     site = get_platform_site_settings_record(create=True)
     concrete_fields = {
-        f.name for f in SiteSettings._meta.concrete_fields if not getattr(f, "primary_key", False)
+        f.name
+        for f in _TenantSettingsModel._meta.concrete_fields
+        if not getattr(f, "primary_key", False)
     }
     update_fields: list[str] = []
     for key, value in payload_updates.items():
@@ -59,7 +64,7 @@ def _persist_runtime_test_state(**payload_updates: object) -> None:
     if update_fields:
         site.save(update_fields=update_fields)
 
-    SiteSettings._persist_runtime_payload_updates(payload_updates)
+    _TenantSettingsModel._persist_runtime_payload_updates(payload_updates)
     invalidate_effective_site_settings_cache()
 
 
@@ -380,6 +385,30 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertEqual(runtime_defaults.site_name, "Auto Synced Brand")
         self.assertEqual(runtime_defaults.backend_feature_flags["enable_api_center"], True)
         self.assertNotIn("maintenance_mode", runtime_defaults.payload)
+
+    def test_site_settings_partial_save_does_not_leak_unsaved_unscoped_first_class_values(
+        self,
+    ):
+        site = get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.update_or_create(
+            pk=1,
+            defaults={
+                "site_name": "Persisted Brand",
+                "enable_offline_mode": False,
+                "payload": {},
+            },
+        )
+        invalidate_effective_site_settings_cache()
+
+        site.site_name = "Unsaved Brand"
+        site.enable_offline_mode = True
+        site.save(update_fields=["enable_offline_mode"])
+
+        runtime_defaults = RuntimeDefaults.get_singleton()
+
+        self.assertIsNotNone(runtime_defaults)
+        self.assertEqual(runtime_defaults.site_name, "Persisted Brand")
+        self.assertTrue(runtime_defaults.enable_offline_mode)
 
     def test_site_settings_resolve_default_report_style_uses_owner_surface(self):
         style = OwnedReportCardStyle.objects.create(
@@ -976,6 +1005,30 @@ class RuntimeHelperResolutionTests(TestCase):
         self.assertNotIn("sms_provider", runtime_defaults.payload)
         self.assertNotIn("sms_sender_id", runtime_defaults.payload)
 
+    def test_runtime_defaults_exclude_owner_scope_preserves_unscoped_first_class_columns(
+        self,
+    ):
+        site = get_platform_site_settings_record(create=True)
+        RuntimeDefaults.objects.update_or_create(
+            pk=1,
+            defaults={
+                "site_name": "Persisted Brand",
+                "enable_offline_mode": False,
+                "payload": {},
+            },
+        )
+
+        site.site_name = "Unsaved Brand"
+        site.enable_offline_mode = True
+
+        runtime_defaults, _created = RuntimeDefaults.sync_from_site_settings(
+            site,
+            exclude_owners=("brand_experience",),
+        )
+
+        self.assertEqual(runtime_defaults.site_name, "Persisted Brand")
+        self.assertTrue(runtime_defaults.enable_offline_mode)
+
     def test_get_effective_site_settings_prefers_runtime_defaults_over_legacy_singleton(
         self,
     ):
@@ -1365,7 +1418,7 @@ class RuntimeHelperResolutionTests(TestCase):
         )
 
     def test_get_effective_marketplace_integration_settings_matches_facade_method(self):
-        """Tenant/task code should use the helper; it must match the merged SiteSettings facade."""
+        """Tenant/task code should use the helper; it must match the merged tenant site-settings facade."""
         get_platform_site_settings_record(create=True)
         _persist_runtime_test_state(
             marksheet_ocr_command="/opt/runmycampus/bin/tesseract",

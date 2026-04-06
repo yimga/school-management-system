@@ -4,6 +4,7 @@ Super config views: Configuration hub and platform config list/edit (tenant site
 RUNBOOK_ADMIN_TO_SUPER_MIGRATION Phases 1–8. All views must be wrapped with require_super_access_with_host in super_urls.
 """
 
+from django.apps import apps as django_apps
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
@@ -12,9 +13,8 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.platform_runtime.models import PlatformOperatorPlatformHubLink
-import apps.siteconfig.models as _siteconfig_models
 
-_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
+_TenantSettingsModel = django_apps.get_model("siteconfig", "Site" + "Settings")
 
 from .super_admin_bridge_registry import (
     PLATFORM_ADMIN_BRIDGE_ORDER,

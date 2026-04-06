@@ -14,27 +14,100 @@ What it does (deterministic, no Django import):
    accounts migration/interop, siteconfig rollback).
 6. Verifies every templates/marketplace/*.html (and partials) is non-trivial UTF-8.
 
-Run: python scripts/verify_repo_wide_ecosystem_marketing_audit.py
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import ast
+from functools import lru_cache
+from pathlib import Path, PurePosixPath
+import subprocess
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_REPO = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_REPO
 APPS = ROOT / "apps"
 TEMPLATES = ROOT / "templates"
+
+
+@lru_cache(maxsize=1)
+def _tracked_file_relpaths(root: Path) -> frozenset[str] | None:
+    """Prefer tracked files so local scratch trees do not skew audit results."""
+    try:
+        proc = subprocess.run(
+            ["git", "ls-files"],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError):
+        return None
+    return frozenset(line.strip() for line in proc.stdout.splitlines() if line.strip())
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_REPO),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT, APPS, TEMPLATES
+    ROOT = base
+    APPS = ROOT / "apps"
+    TEMPLATES = ROOT / "templates"
 
 
 def _fail(msg: str) -> None:
     print(f"FAIL repo-wide ecosystem/marketing audit: {msg}", file=sys.stderr)
 
 
+def _iter_files(
+    scan_root: Path,
+    *,
+    suffix: str | None = None,
+    filename: str | None = None,
+):
+    tracked = _tracked_file_relpaths(ROOT)
+    if tracked is None:
+        if filename is not None:
+            yield from scan_root.rglob(filename)
+            return
+        yield from scan_root.rglob(f"*{suffix}")
+        return
+
+    prefix = scan_root.relative_to(ROOT).as_posix().rstrip("/") + "/"
+    for relpath in sorted(
+        path
+        for path in tracked
+        if path.startswith(prefix)
+        and (
+            (suffix is not None and path.endswith(suffix))
+            or (filename is not None and PurePosixPath(path).name == filename)
+        )
+    ):
+        path = ROOT / relpath
+        if path.is_file():
+            yield path
+
+
 def _all_py_under_apps() -> list[Path]:
     out: list[Path] = []
-    for p in APPS.rglob("*.py"):
+    for p in _iter_files(APPS, suffix=".py"):
         if "__pycache__" in p.parts:
             continue
         out.append(p)
@@ -45,11 +118,40 @@ def _all_app_packages() -> list[Path]:
     """Direct children of apps/ that contain apps.py (Django app roots)."""
     if not APPS.is_dir():
         return []
+    tracked = _tracked_file_relpaths(ROOT)
+    if tracked is not None:
+        roots = []
+        for relpath in sorted(tracked):
+            parts = PurePosixPath(relpath).parts
+            if len(parts) == 3 and parts[0] == "apps" and parts[2] == "apps.py":
+                child = ROOT.joinpath(*parts[:2])
+                if child.is_dir():
+                    roots.append(child)
+        return roots
     roots: list[Path] = []
     for child in sorted(APPS.iterdir()):
         if child.is_dir() and (child / "apps.py").is_file():
             roots.append(child)
     return roots
+
+
+def _all_html_templates() -> list[Path]:
+    if not TEMPLATES.is_dir():
+        return []
+    return sorted(_iter_files(TEMPLATES, suffix=".html"))
+
+
+def _all_url_modules() -> list[Path]:
+    if not APPS.is_dir():
+        return []
+    return sorted(_iter_files(APPS, filename="urls.py"))
+
+
+def _all_marketplace_templates() -> list[Path]:
+    mp_dir = TEMPLATES / "marketplace"
+    if not mp_dir.is_dir():
+        return []
+    return sorted(_iter_files(mp_dir, suffix=".html"))
 
 
 def _function_names(path: Path) -> set[str]:
@@ -67,7 +169,13 @@ def _non_empty_code_lines(path: Path) -> int:
     return n
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    try:
+        _configure_root(_resolve_base(parse_args(argv).base))
+    except ValueError as exc:
+        _fail(str(exc))
+        return 1
+
     failures: list[str] = []
 
     app_roots = _all_app_packages()
@@ -80,12 +188,12 @@ def main() -> int:
         _fail("no Python files under apps/")
         return 1
 
-    html_files = sorted(TEMPLATES.rglob("*.html")) if TEMPLATES.is_dir() else []
+    html_files = _all_html_templates()
     if not html_files:
         _fail("no HTML templates under templates/")
         return 1
 
-    url_modules = sorted(APPS.rglob("urls.py"))
+    url_modules = _all_url_modules()
     for um in url_modules:
         if "__pycache__" in um.parts:
             continue
@@ -156,7 +264,7 @@ def main() -> int:
     if not mp_dir.is_dir():
         failures.append("missing templates/marketplace/")
     else:
-        m_templates = sorted(mp_dir.rglob("*.html"))
+        m_templates = _all_marketplace_templates()
         if not m_templates:
             failures.append("no templates under templates/marketplace/")
         for tp in m_templates:
@@ -201,10 +309,10 @@ def main() -> int:
         f"     templates/**/*.html: {len(html_files)}\n"
         f"     apps/**/urls.py modules: {len(url_modules)}\n"
         f"     templates/marketplace/**/*.html: "
-        f"{len(list((TEMPLATES / 'marketplace').rglob('*.html')))}"
+        f"{len(_all_marketplace_templates())}"
     )
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

@@ -95,6 +95,7 @@ class AIMemoryService:
         embedding: list[float],
         limit: int = 5,
         *,
+        global_only: bool = False,
         actor_roles: list[str] | tuple[str, ...] | set[str] | None = None,
         actor_is_staff: bool = False,
         actor_is_superuser: bool = False,
@@ -104,7 +105,9 @@ class AIMemoryService:
 
         When ``school_id`` is set, rows are limited to that tenant plus **global** rows
         (``school_id`` null). Other tenants' scoped rows are excluded. When ``school_id``
-        is falsy, no school filter is applied (operator / tooling contexts only).
+        is falsy, no school filter is applied unless ``global_only`` is true. HTTP/product
+        entrypoints without tenant context should set ``global_only=True`` so they only
+        retrieve platform-global rows (``school_id`` null).
         """
         if not embedding:
             return []
@@ -115,6 +118,8 @@ class AIMemoryService:
             qs = AIEmbeddingStore.objects.filter(scope=scope)
             if school_id:
                 qs = qs.filter(Q(school_id=school_id) | Q(school_id__isnull=True))
+            elif global_only:
+                qs = qs.filter(school_id__isnull=True)
             qs = qs.order_by("-created_at")[:500]
             rows = list(
                 qs.values(

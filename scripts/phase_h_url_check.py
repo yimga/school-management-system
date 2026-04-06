@@ -9,27 +9,20 @@ Usage:
   python scripts/phase_h_url_check.py                    # resolve only (print paths)
   python scripts/phase_h_url_check.py --hit http://localhost:8000   # resolve + GET each URL
   python scripts/phase_h_url_check.py --hit https://example.com --host manager.example.com  # with Host header
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
-import os
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-
-import django
-
-django.setup()
-
-from django.urls import reverse, NoReverseMatch
+_django_ready = False
 
 # Phase H critical + marketing + control plane URLs (named or path)
 URL_NAMES = [
@@ -63,8 +56,30 @@ PATHS = [
 ]
 
 
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def _ensure_django(repo_root: Path) -> None:
+    global _django_ready
+    if _django_ready:
+        return
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+    import django
+
+    django.setup()
+    _django_ready = True
+
+
 def resolve_all():
     """Resolve all URL names; return list of (name_or_path, url_path, error)."""
+    from django.urls import NoReverseMatch, reverse
+
     results = []
     for name in URL_NAMES:
         try:
@@ -77,9 +92,14 @@ def resolve_all():
     return results
 
 
-def main():
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Phase H URL check (resolve and optionally hit)"
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root for Django path setup (default: this repository root)",
     )
     parser.add_argument(
         "--hit", metavar="BASE_URL", help="GET each resolved URL and report status"
@@ -88,7 +108,18 @@ def main():
     parser.add_argument(
         "-q", "--quiet", action="store_true", help="Only print failures"
     )
-    args = parser.parse_args()
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        base_root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"phase_h_url_check: {exc}", file=sys.stderr)
+        return 1
+
+    _ensure_django(base_root)
 
     results = resolve_all()
     failures = []
@@ -105,7 +136,7 @@ def main():
             import urllib.request
         except ImportError:
             print("urllib.request required for --hit", file=sys.stderr)
-            sys.exit(1)
+            return 1
         base = args.hit.rstrip("/")
         headers = {"User-Agent": "PhaseH-URL-Check/1.0"}
         if args.host:
@@ -131,10 +162,10 @@ def main():
 
     if failures:
         print(f"Phase H URL check: {len(failures)} failure(s)", file=sys.stderr)
-        sys.exit(1)
+        return 1
     print("Phase H URL check passed.")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

@@ -72,7 +72,7 @@ def _overlay_site_compare_fields_from_db(
         fields = row.setdefault("fields", {})
         for field_name in parity.SITE_COMPARE_FIELDS:
             if field_name in parity.SITE_FOREIGN_KEY_FIELDS:
-                vid = getattr(site_inst, f"{field_name}_id", None)
+                vid = parity._actual_site_compare_value(site_inst, field_name)
                 if vid is not None:
                     fields[f"{field_name}_id"] = vid
             else:

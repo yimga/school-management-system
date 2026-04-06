@@ -5,15 +5,18 @@
 Ensures ``docs/NORTH_STAR_TRUST_AND_OPS.md`` keeps the operator contract that
 links tenant advancement views, URL names, models, super-shell routes, tests,
 and the pre_deploy / phases verifier hooks.
+
+Usage: python scripts/verify_advancement_crm_doc_discipline.py [--base REPO_ROOT]
 """
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-NORTH_STAR = ROOT / "docs" / "NORTH_STAR_TRUST_AND_OPS.md"
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
 _REQUIRED = (
     "Advancement CRM depth",
@@ -47,17 +50,44 @@ _REQUIRED = (
 )
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify NORTH_STAR advancement CRM doc anchors (§0.4)."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_advancement_crm_doc_discipline: {exc}", file=sys.stderr)
+        return 1
+
+    north_star = root / "docs" / "NORTH_STAR_TRUST_AND_OPS.md"
     errors: list[str] = []
-    if not NORTH_STAR.is_file():
-        errors.append(f"Missing {NORTH_STAR.relative_to(ROOT)}")
+    if not north_star.is_file():
+        errors.append(f"Missing {north_star.relative_to(root)}")
         return _fail(errors)
 
-    text = NORTH_STAR.read_text(encoding="utf-8", errors="replace")
+    text = north_star.read_text(encoding="utf-8", errors="replace")
     for needle in _REQUIRED:
         if needle not in text:
             errors.append(
-                f"{NORTH_STAR.relative_to(ROOT)} missing required advancement CRM anchor: {needle!r}"
+                f"{north_star.relative_to(root)} missing required advancement CRM anchor: {needle!r}"
             )
 
     if errors:
@@ -65,7 +95,7 @@ def main() -> int:
 
     print(
         "verify_advancement_crm_doc_discipline: PASS "
-        f"({NORTH_STAR.relative_to(ROOT)} advancement CRM contract OK)"
+        f"({north_star.relative_to(root)} advancement CRM contract OK)"
     )
     return 0
 
@@ -78,4 +108,4 @@ def _fail(errors: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

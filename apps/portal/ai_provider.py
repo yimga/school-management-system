@@ -136,6 +136,43 @@ def _is_policy_denied(user_query: str) -> bool:
     return any(pattern in text for pattern in PROMPT_INJECTION_PATTERNS)
 
 
+def _normalize_gateway_metadata(metadata: dict[str, Any] | None) -> dict[str, Any]:
+    md = dict(metadata or {})
+    request = md.get("request")
+    school = md.get("school") or getattr(request, "school", None)
+    if school is not None:
+        md.setdefault("school", school)
+    if md.get("school_id") is None and school is not None:
+        school_id = getattr(school, "pk", None) or getattr(school, "id", None)
+        if school_id is not None:
+            md["school_id"] = school_id
+    if md.get("tenant_id") is None and md.get("school_id") is not None:
+        md["tenant_id"] = md["school_id"]
+    if md.get("country_code") in (None, "") and school is not None:
+        country_code = getattr(school, "country_code", None) or getattr(
+            getattr(school, "default_region", None),
+            "code",
+            None,
+        )
+        if country_code:
+            md["country_code"] = country_code
+    if md.get("user_id") is None and request is not None:
+        user = getattr(request, "user", None)
+        user_id = getattr(user, "pk", None) or getattr(user, "id", None)
+        if user_id is not None:
+            md["user_id"] = user_id
+    if md.get("role") is None and request is not None:
+        user = getattr(request, "user", None)
+        role = (
+            getattr(user, "role", None)
+            or getattr(user, "portal_role", None)
+            or getattr(user, "user_type", None)
+        )
+        if role is not None:
+            md["role"] = role
+    return md
+
+
 def get_ai_provider_status() -> dict[str, Any]:
     endpoint, ollama_model = _ollama_config()
     rules_enabled = bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True))
@@ -190,17 +227,17 @@ def generate_ai_response(
     - task routing and fallbacks are consistent
     metadata is kept for logs/observability only and never added to prompt text.
     """
-    _ = metadata or {}
-    if _is_policy_denied(user_query):
-        return (
-            "Request rejected by safety policy. Please rephrase as a normal school-operation question.",
-            {
-                "provider": "policy",
-                "errors": {"policy": "prompt_injection_guard"},
-                "denied": True,
-            },
-        )
+    normalized_metadata = _normalize_gateway_metadata(metadata)
     if not getattr(settings, "AI_GATEWAY_ENABLED", True):
+        if _is_policy_denied(user_query):
+            return (
+                "Request rejected by safety policy. Please rephrase as a normal school-operation question.",
+                {
+                    "provider": "policy",
+                    "errors": {"policy": "prompt_injection_guard"},
+                    "denied": True,
+                },
+            )
         if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
             return _rules_fallback(user_query), {
                 "provider": "rules",
@@ -224,10 +261,27 @@ def generate_ai_response(
             "general_chat",
             prompt,
             user_query=user_query,
-            metadata={**_},
+            metadata=normalized_metadata,
         )
-        text = result if isinstance(result, str) else str(result)
-        return text, {**meta, "gateway": True}
+        gateway_meta = {**meta, "gateway": True}
+        if isinstance(result, str):
+            return result, gateway_meta
+        if meta.get("prompt_injection_blocked"):
+            return (
+                "Request rejected by safety policy. Please rephrase as a normal school-operation question.",
+                {**gateway_meta, "denied": True},
+            )
+        if meta.get("budget_exceeded"):
+            return (
+                "AI request budget exceeded for this tenant.",
+                gateway_meta,
+            )
+        if result is None:
+            return (
+                "AI providers are currently unavailable and rules fallback is disabled.",
+                gateway_meta,
+            )
+        return str(result), gateway_meta
     except _AI_GATEWAY_INVOKE_ERRORS as e:
         logger.warning("AI gateway invoke failed: %s", e)
         if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
@@ -249,7 +303,11 @@ def generate_ai_response(
 
 
 def get_workflow_clues(
-    workflow_key: str, country_code: str
+    workflow_key: str,
+    country_code: str,
+    *,
+    request: Any = None,
+    school: Any = None,
 ) -> tuple[str | None, dict[str, Any]]:
     """
     World Engine: workflow setup suggestions by country. Uses AI gateway (setup_recommend) when enabled.
@@ -265,11 +323,29 @@ def get_workflow_clues(
     try:
         from services.ai_gateway import invoke
 
+        effective_school = school or getattr(request, "school", None)
+        school_id = (
+            str(getattr(effective_school, "pk", None) or getattr(effective_school, "id", None))
+            if effective_school is not None
+            else None
+        )
+        user = getattr(request, "user", None)
+        user_id = getattr(user, "pk", None) or getattr(user, "id", None)
+
         result, meta = invoke(
             "setup_recommend",
             prompt,
             user_query=prompt[:200],
-            metadata={"country_code": country_code},
+            metadata=_normalize_gateway_metadata(
+                {
+                "request": request,
+                "school": effective_school,
+                "school_id": school_id,
+                "tenant_id": school_id,
+                "user_id": str(user_id) if user_id is not None else None,
+                "country_code": country_code,
+                }
+            ),
         )
         text = result if isinstance(result, str) else None
         if text:
@@ -290,6 +366,8 @@ def suggest_support_ticket_response(
     *,
     country_code: str | None = None,
     school: Any = None,
+    user_id: Any = None,
+    role: Any = None,
 ) -> tuple[dict | None, dict]:
     """
     World Engine: support-ticket agent — suggest category/priority/response from ticket text.
@@ -317,9 +395,14 @@ def suggest_support_ticket_response(
     try:
         from services.ai_gateway import invoke
 
-        md_ai: dict[str, Any] = {"country_code": country_code, "school": school}
-        if school is not None and getattr(school, "pk", None) is not None:
-            md_ai["school_id"] = school.pk
+        md_ai = _normalize_gateway_metadata(
+            {
+                "country_code": country_code,
+                "school": school,
+                "user_id": user_id,
+                "role": role,
+            }
+        )
         result, meta = invoke(
             "support_suggest",
             prompt,

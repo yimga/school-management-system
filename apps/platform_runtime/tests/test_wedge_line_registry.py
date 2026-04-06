@@ -30,7 +30,7 @@ class WedgeLineRegistryTests(SimpleTestCase):
     def test_verify_script_passes(self):
         script = REPO / "scripts" / "verify_wedge_line_registry.py"
         r = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(REPO)],
             cwd=str(REPO),
             capture_output=True,
             text=True,

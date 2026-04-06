@@ -7,7 +7,24 @@ PostgreSQL only; staff/operational use.
 
 from __future__ import annotations
 
+import re
+
 from django.db import connection
+
+# Unquoted PostgreSQL identifier: max 63 chars; tenant schemas match django-tenants slugs.
+_PG_SEARCH_PATH_SCHEMA_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,62}$")
+
+# Table names embedded (quoted) into CREATE/DROP TRIGGER DDL must be unqualified relnames.
+_PG_AUDIT_TABLE_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,62}$")
+
+# Trigger name is "audit_" + table_name; PostgreSQL identifiers are max 63 characters (NAMEDATALEN-1).
+_AUDIT_TRIGGER_PREFIX = "audit_"
+_MAX_AUDIT_TABLE_NAME_LEN_FOR_TRIGGER = 63 - len(_AUDIT_TRIGGER_PREFIX)
+
+# Each key must be a safe snake_case JSON field name before embedding in ARRAY[...]::text[].
+_AUDIT_REDACT_KEY_RE = re.compile(r"^[a-z][a-z0-9_]{0,62}$")
+# Pathological list guard: keep CREATE FUNCTION payload bounded.
+_MAX_AUDIT_REDACT_KEYS = 64
 
 # Must match migration 0037 REDACT_KEYS (PII masking).
 REDACT_KEYS = [
@@ -23,11 +40,75 @@ REDACT_KEYS = [
 ]
 
 
+def _redact_keys_sql_array_literal() -> str:
+    """Build ARRAY[...]::text[] for PL/pgSQL; raises ValueError if any REDACT_KEYS entry is unsafe or duplicated."""
+    if len(REDACT_KEYS) > _MAX_AUDIT_REDACT_KEYS:
+        raise ValueError(
+            f"REDACT_KEYS must contain at most {_MAX_AUDIT_REDACT_KEYS} entries."
+        )
+    parts: list[str] = []
+    seen_keys: set[str] = set()
+    for k in REDACT_KEYS:
+        if not isinstance(k, str) or not _AUDIT_REDACT_KEY_RE.fullmatch(k):
+            raise ValueError(
+                "REDACT_KEYS entries must be snake_case strings "
+                "(a-z, 0-9, underscore; max 63 characters)."
+            )
+        if k in seen_keys:
+            raise ValueError("REDACT_KEYS must not contain duplicate entries.")
+        seen_keys.add(k)
+        parts.append(repr(k))
+    return "ARRAY[" + ", ".join(parts) + "]::text[]"
+
+
+def _normalize_identifier(value: str, *, field_name: str) -> str:
+    normalized = value.strip() if isinstance(value, str) else ""
+    if not normalized:
+        raise ValueError(f"{field_name} must be a non-blank string.")
+    return normalized
+
+
+def _normalize_unqualified_table_name(table_name: str) -> str:
+    normalized = _normalize_identifier(table_name, field_name="table_name")
+    if "." in normalized:
+        raise ValueError("table_name must be unqualified.")
+    if not _PG_AUDIT_TABLE_NAME_RE.fullmatch(normalized):
+        raise ValueError(
+            "table_name must be a single PostgreSQL identifier "
+            "(ASCII letters, digits, underscore; max 63 characters)."
+        )
+    if len(normalized) > _MAX_AUDIT_TABLE_NAME_LEN_FOR_TRIGGER:
+        raise ValueError(
+            "table_name must be at most 57 characters so the audit trigger identifier "
+            "fits the PostgreSQL 63-character limit."
+        )
+    return normalized
+
+
+def normalize_search_path_schema_name(schema_name: str) -> str:
+    """
+    Return a stripped tenant schema name safe for SET LOCAL search_path, or raise ValueError.
+    Rejects multi-part names, list separators, and pathological lengths before raw SQL runs.
+    """
+    normalized = _normalize_identifier(schema_name, field_name="schema_name")
+    if len(normalized) > 63:
+        raise ValueError("schema_name exceeds PostgreSQL identifier length limit.")
+    if not _PG_SEARCH_PATH_SCHEMA_RE.fullmatch(normalized):
+        raise ValueError(
+            "schema_name must be a single unqualified PostgreSQL identifier "
+            "(ASCII letters, digits, underscore only)."
+        )
+    return normalized
+
+
 def set_search_path(cursor, schema_name: str) -> None:
-    """Set search_path for the current session. No-op on non-PostgreSQL."""
+    """Set search_path for the current transaction. No-op on non-PostgreSQL."""
     if connection.vendor != "postgresql":
         return
-    cursor.execute("SET search_path TO %s", [schema_name])
+    cursor.execute(
+        "SET LOCAL search_path TO %s",
+        [normalize_search_path_schema_name(schema_name)],
+    )
 
 
 def create_audit_trigger_function(cursor) -> None:
@@ -41,7 +122,7 @@ def create_audit_trigger_function(cursor) -> None:
     """
     if connection.vendor != "postgresql":
         return
-    redact_keys_sql = "ARRAY[" + ", ".join(repr(k) for k in REDACT_KEYS) + "]::text[]"
+    redact_keys_sql = _redact_keys_sql_array_literal()
     cursor.execute(
         """
         CREATE OR REPLACE FUNCTION audit_trigger_fn()
@@ -90,7 +171,8 @@ def drop_audit_trigger(cursor, table_name: str) -> None:
     """Drop the audit trigger for the given table if it exists. Uses quoted identifiers."""
     if connection.vendor != "postgresql":
         return
-    trigger_name = "audit_" + table_name.replace(".", "_")
+    table_name = _normalize_unqualified_table_name(table_name)
+    trigger_name = _AUDIT_TRIGGER_PREFIX + table_name.replace(".", "_")
     q_trigger = connection.ops.quote_name(trigger_name)
     q_table = connection.ops.quote_name(table_name)
     cursor.execute("DROP TRIGGER IF EXISTS %s ON %s" % (q_trigger, q_table))
@@ -100,7 +182,8 @@ def create_audit_trigger(cursor, table_name: str) -> None:
     """Create AFTER INSERT OR UPDATE OR DELETE trigger for the given table. Uses quoted identifiers."""
     if connection.vendor != "postgresql":
         return
-    trigger_name = "audit_" + table_name.replace(".", "_")
+    table_name = _normalize_unqualified_table_name(table_name)
+    trigger_name = _AUDIT_TRIGGER_PREFIX + table_name.replace(".", "_")
     q_trigger = connection.ops.quote_name(trigger_name)
     q_table = connection.ops.quote_name(table_name)
     cursor.execute(

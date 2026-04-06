@@ -5,6 +5,8 @@ Fail when tracked repo-root files exceed the approved operational allowlist.
 Historical reports, generated artifacts, snapshots, and status ledgers must
 live under docs/archive/, artifacts/, or other scoped folders instead of the
 repo root.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
@@ -14,6 +16,8 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
 
 DEFAULT_ALLOWLIST = "scripts/allowlists/tracked_root_allowlist.json"
 
@@ -26,11 +30,22 @@ def _load_allowlist(path: Path) -> set[str]:
     return {str(item) for item in allowed}
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Check tracked repo-root files against an allowlist."
     )
-    parser.add_argument("--base", default=".", help="Repo root (default: .)")
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
     parser.add_argument(
         "--allowlist",
         default=DEFAULT_ALLOWLIST,
@@ -39,9 +54,17 @@ def main() -> int:
     parser.add_argument(
         "--exit-zero", action="store_true", help="Always exit 0 (report only)."
     )
-    args = parser.parse_args()
+    return parser.parse_args(argv)
 
-    base = Path(args.base).resolve()
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+
+    try:
+        base = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"check_root_clutter: {exc}", file=sys.stderr)
+        return 1
     allowlist = _load_allowlist((base / args.allowlist).resolve())
     violations: list[str] = []
     try:
@@ -78,4 +101,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

@@ -10,17 +10,25 @@ Goal:
 
 Traversal uses os.walk with directory pruning (node_modules, .git, venvs, caches)
 so the gate stays fast; classification rules are unchanged.
+
+Run (from repo root):
+  python scripts/verify_gilead_full_tree_classification.py
+Optional ``--base`` overrides the repository root (default: directory containing this script's parent).
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import re
+import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-CLASSIFICATION_DOC = ROOT / "docs" / "GILEAD_REFERENCE_CLASSIFICATION.md"
+ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = ROOT
+
 NEEDLE = re.compile(r"gilead", flags=re.IGNORECASE)
 
 # Prune these directory names during traversal (avoid scanning vendor trees).
@@ -83,8 +91,46 @@ def _should_skip_path(rel: str) -> bool:
     return False
 
 
+@lru_cache(maxsize=None)
+def _tracked_file_relpaths(root: Path) -> frozenset[str] | None:
+    """Prefer tracked files so untracked scratch artifacts do not fail the verifier."""
+    if not (root / ".git").exists():
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "-c", "core.quotepath=false", "ls-files", "-z"],
+            cwd=str(root),
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    relpaths: set[str] = set()
+    for raw in result.stdout.split(b"\0"):
+        if not raw:
+            continue
+        try:
+            relpaths.add(Path(raw.decode("utf-8")).as_posix())
+        except UnicodeDecodeError:
+            continue
+    return frozenset(relpaths)
+
+
 def _iter_classifiable_files(root: Path):
     """Walk repo without descending into vendor/cache trees (rglob is too slow)."""
+    tracked = _tracked_file_relpaths(root)
+    if tracked is not None:
+        for rel in sorted(tracked):
+            path = root / Path(rel)
+            if not path.is_file():
+                continue
+            if path.suffix.lower() not in TEXT_EXTENSIONS:
+                continue
+            yield path
+        return
     root_s = os.fspath(root.resolve())
     for dirpath, dirnames, filenames in os.walk(
         root_s, topdown=True, followlinks=False
@@ -133,13 +179,43 @@ def _is_allowed_reference_path(rel: str) -> bool:
     return False
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Verify that full-tree 'gilead' references are contained in allowed "
+            "historical/tooling buckets."
+        )
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root to scan (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_gilead_full_tree_classification: FAIL\n  - {exc}", file=sys.stderr)
+        return 1
+
+    classification_doc = root / "docs" / "GILEAD_REFERENCE_CLASSIFICATION.md"
     errors: list[str] = []
 
-    if not CLASSIFICATION_DOC.is_file():
+    if not classification_doc.is_file():
         errors.append("Missing docs/GILEAD_REFERENCE_CLASSIFICATION.md")
     else:
-        doc_text = CLASSIFICATION_DOC.read_text(encoding="utf-8", errors="replace")
+        doc_text = classification_doc.read_text(encoding="utf-8", errors="replace")
         for token in (
             "Archive / root_history",
             "Migrations (historical)",
@@ -158,8 +234,8 @@ def main() -> int:
     total_hits = 0
     disallowed: list[str] = []
 
-    for path in _iter_classifiable_files(ROOT):
-        rel = path.relative_to(ROOT).as_posix()
+    for path in _iter_classifiable_files(root):
+        rel = path.relative_to(root).as_posix()
         if _should_skip_path(rel):
             continue
         try:
@@ -196,4 +272,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

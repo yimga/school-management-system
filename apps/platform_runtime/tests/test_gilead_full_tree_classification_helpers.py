@@ -1,4 +1,4 @@
-"""Unit tests for Gilead full-tree classifier path rules (no repo walk)."""
+"""Unit tests for Gilead full-tree classifier path rules and CLI entrypoint."""
 
 from __future__ import annotations
 
@@ -55,3 +55,25 @@ class GileadFullTreeClassificationHelperTests(SimpleTestCase):
 
     def test_po_in_text_extensions(self):
         self.assertIn(".po", self._mod.TEXT_EXTENSIONS)
+
+    def test_parse_args_base_default(self):
+        args = self._mod.parse_args([])
+        self.assertEqual(args.base, str(self._mod.DEFAULT_ROOT))
+
+    def test_resolve_base_accepts_existing_directory(self):
+        here = Path(__file__).resolve().parents[3]
+        resolved = self._mod._resolve_base(str(here))
+        self.assertEqual(resolved, here.resolve())
+
+    def test_resolve_base_rejects_missing_path(self):
+        with self.assertRaises(ValueError):
+            self._mod._resolve_base("definitely_missing_gilead_base_path")
+
+    def test_inprocess_main_rejects_invalid_base(self):
+        self.assertEqual(
+            self._mod.main(["--base", "definitely_missing_gilead_main_base"]),
+            1,
+        )
+
+    def test_inprocess_main_passes_repo_with_default_base(self):
+        self.assertEqual(self._mod.main([]), 0)

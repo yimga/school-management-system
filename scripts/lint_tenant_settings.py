@@ -2,15 +2,20 @@
 """
 Phase 12 CI: Flag SiteSettings.get_solo() and hardcoded region/currency/grading in tenant-facing code.
 Use request.tenant_runtime or apps.platform_runtime.helpers (get_effective_flags, etc.) instead.
-Usage: python scripts/lint_tenant_settings.py [--exit-zero]
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
 
 # Tenant-facing app labels (where SiteSettings.get_solo() should be replaced by runtime/helpers).
 TENANT_APPS = (
@@ -128,7 +133,55 @@ HARDCODED_PATTERNS = [
 ]
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+@lru_cache(maxsize=None)
+def _tracked_file_relpaths(root: Path) -> frozenset[str] | None:
+    """Prefer tracked files so local scratch trees do not create false positives."""
+    if not (root / ".git").exists():
+        return None
+    try:
+        proc = subprocess.run(
+            ["git", "-c", "core.quotepath=false", "ls-files", "-z"],
+            cwd=str(root),
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0:
+        return None
+    relpaths: set[str] = set()
+    for raw in proc.stdout.split(b"\0"):
+        if not raw:
+            continue
+        try:
+            relpaths.add(Path(raw.decode("utf-8")).as_posix())
+        except UnicodeDecodeError:
+            continue
+    return frozenset(relpaths)
+
+
+def _iter_python_files(base: Path):
+    tracked = _tracked_file_relpaths(base)
+    if tracked is not None:
+        for rel in sorted(tracked):
+            if not rel.endswith(".py"):
+                continue
+            py = base / Path(rel)
+            if py.is_file():
+                yield py
+        return
+    yield from base.rglob("*.py")
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(
         description="Flag SiteSettings.get_solo() and hardcoded region/currency in tenant apps."
     )
@@ -155,15 +208,24 @@ def main() -> int:
         action="store_true",
         help="Report get_solo() in allowlisted paths only (migration backlog for path to 10).",
     )
-    ap.add_argument("--base", default=".", help="Base directory (default: .)")
-    args = ap.parse_args()
-    base = Path(args.base).resolve()
-    if not base.is_dir():
-        print(f"Not a directory: {base}", file=sys.stderr)
-        return 2
+    ap.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return ap.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        base = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"lint_tenant_settings: {exc}", file=sys.stderr)
+        return 1
 
     hits: list[tuple[str, int, str, str]] = []
-    for py in base.rglob("*.py"):
+    for py in _iter_python_files(base):
         rel = py.relative_to(base)
         path_str = str(rel).replace("\\", "/")
         if any(part in SKIP_DIRS for part in rel.parts):
@@ -185,7 +247,7 @@ def main() -> int:
         )
         try:
             text = py.read_text(encoding="utf-8", errors="replace")
-        except Exception:
+        except OSError:
             continue
         allowed_for_school_settings = any(
             path_str.startswith(p) for p in ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES
@@ -234,7 +296,7 @@ def main() -> int:
     if getattr(args, "report_allowlisted", False):
         # Path to 10: report get_solo() only in ALLOWED_GET_SOLO_PREFIXES (migration backlog).
         allowlisted_hits: list[tuple[str, int, str, str]] = []
-        for py in base.rglob("*.py"):
+        for py in _iter_python_files(base):
             rel = py.relative_to(base)
             path_str = str(rel).replace("\\", "/")
             if not any(path_str.startswith(p) for p in ALLOWED_GET_SOLO_PREFIXES):
@@ -243,7 +305,7 @@ def main() -> int:
                 continue
             try:
                 text = py.read_text(encoding="utf-8", errors="replace")
-            except Exception:
+            except OSError:
                 continue
             for i, line in enumerate(text.splitlines(), 1):
                 if SITESETTINGS_PATTERN[0].search(line):
@@ -298,4 +360,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

@@ -7,7 +7,8 @@ responsive layout, in-frame, well-labeled. This script performs static and
 optional runtime checks to support the Phase H completion gate.
 
 Usage:
-  python scripts/phase_h_audit.py              # static checks only (no Django)
+  python scripts/phase_h_audit.py [--base REPO_ROOT] [--live] [--verbose]
+  python scripts/phase_h_audit.py --base .     # static checks only (no Django)
   python scripts/phase_h_audit.py --live       # static + URL reverse checks (requires Django)
   python scripts/phase_h_audit.py --verbose    # print each check performed
 """
@@ -18,15 +19,21 @@ import argparse
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-TEMPLATES = ROOT / "templates"
-STATIC = ROOT / "static"
+
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
 
 
-def check_viewport_and_frame(failures: list[str], verbose: bool = False) -> None:
+def check_viewport_and_frame(
+    repo_root: Path, failures: list[str], verbose: bool = False
+) -> None:
     """Require viewport meta and overflow containment in base shells (Phase H responsive gate)."""
+    templates = repo_root / "templates"
     # Base shell used by tenant/auth pages
-    base = TEMPLATES / "base.html"
+    base = templates / "base.html"
     if verbose:
         print("  check: base.html viewport and overflow")
     if not base.exists():
@@ -41,7 +48,7 @@ def check_viewport_and_frame(failures: list[str], verbose: bool = False) -> None
         )
 
     # Control plane shell (manager / super / admin)
-    cp = TEMPLATES / "control_plane_skeleton.html"
+    cp = templates / "control_plane_skeleton.html"
     if verbose:
         print("  check: control_plane_skeleton.html viewport and overflow")
     if not cp.exists():
@@ -54,13 +61,16 @@ def check_viewport_and_frame(failures: list[str], verbose: bool = False) -> None
             failures.append("control_plane_skeleton.html: missing overflow containment")
 
 
-def check_skip_links(failures: list[str], verbose: bool = False) -> None:
+def check_skip_links(
+    repo_root: Path, failures: list[str], verbose: bool = False
+) -> None:
     """Require skip-to-main link in base shells (Phase H accessibility / well-labeled)."""
+    templates = repo_root / "templates"
     if verbose:
         print("  check: skip-link in base shells")
     for label, path in (
-        ("base.html", TEMPLATES / "base.html"),
-        ("control_plane_skeleton.html", TEMPLATES / "control_plane_skeleton.html"),
+        ("base.html", templates / "base.html"),
+        ("control_plane_skeleton.html", templates / "control_plane_skeleton.html"),
     ):
         if not path.exists():
             continue
@@ -69,11 +79,14 @@ def check_skip_links(failures: list[str], verbose: bool = False) -> None:
             failures.append(f"{label}: missing skip-to-main-content link (a11y)")
 
 
-def check_error_templates(failures: list[str], verbose: bool = False) -> None:
+def check_error_templates(
+    repo_root: Path, failures: list[str], verbose: bool = False
+) -> None:
     """Require 403/404/500 templates (tenant + control-plane) and that they extend a base."""
+    templates = repo_root / "templates"
     if verbose:
         print("  check: error templates (tenant + control-plane)")
-    errors_dir = TEMPLATES / "errors"
+    errors_dir = templates / "errors"
     # Tenant-facing error pages
     for name in ("403.html", "404.html", "500.html"):
         path = errors_dir / name
@@ -105,9 +118,13 @@ def check_error_templates(failures: list[str], verbose: bool = False) -> None:
 
 
 def check_responsive_css(
-    failures: list[str], warnings: list[str], verbose: bool = False
+    repo_root: Path,
+    failures: list[str],
+    warnings: list[str],
+    verbose: bool = False,
 ) -> None:
     """Ensure key responsive/fluid assets exist; report missing as warnings (Phase H responsive)."""
+    static = repo_root / "static"
     candidates = [
         "css/platform-fluid-everywhere.css",
         "css/platform-responsive-touch.css",
@@ -117,19 +134,21 @@ def check_responsive_css(
     if verbose:
         print("  check: responsive/accessibility CSS assets")
     for rel in candidates:
-        path = STATIC / rel
+        path = static / rel
         if not path.exists():
             warnings.append(f"static/{rel} missing (recommended for responsive/a11y)")
 
 
-def run_url_reverse_checks(failures: list[str], verbose: bool = False) -> None:
+def run_url_reverse_checks(
+    repo_root: Path, failures: list[str], verbose: bool = False
+) -> None:
     """Run Django URL reverse for Phase H critical names; requires Django."""
     if verbose:
         print("  check: URL reverse for critical names")
     import os
 
-    if str(ROOT) not in sys.path:
-        sys.path.insert(0, str(ROOT))
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
 
@@ -172,9 +191,14 @@ def run_url_reverse_checks(failures: list[str], verbose: bool = False) -> None:
             failures.append(f"URL reverse({name!r}): {e}")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Phase H UX verification audit (RUNMYCAMPUS §11 Phase H)"
+    )
+    parser.add_argument(
+        "--base",
+        default=".",
+        help="Repository root (default: .)",
     )
     parser.add_argument(
         "--live",
@@ -187,20 +211,25 @@ def main() -> int:
         action="store_true",
         help="Print each check performed",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    try:
+        repo_root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"phase_h_audit: {exc}", file=sys.stderr)
+        return 1
 
     failures: list[str] = []
     warnings: list[str] = []
     if args.verbose:
         print("Phase H audit: running static checks...")
-    check_viewport_and_frame(failures, verbose=args.verbose)
-    check_skip_links(failures, verbose=args.verbose)
-    check_error_templates(failures, verbose=args.verbose)
-    check_responsive_css(failures, warnings, verbose=args.verbose)
+    check_viewport_and_frame(repo_root, failures, verbose=args.verbose)
+    check_skip_links(repo_root, failures, verbose=args.verbose)
+    check_error_templates(repo_root, failures, verbose=args.verbose)
+    check_responsive_css(repo_root, failures, warnings, verbose=args.verbose)
     if args.live:
         if args.verbose:
             print("Phase H audit: running live URL reverse checks...")
-        run_url_reverse_checks(failures, verbose=args.verbose)
+        run_url_reverse_checks(repo_root, failures, verbose=args.verbose)
 
     if failures:
         print("Phase H audit FAILED:", file=sys.stderr)
@@ -217,4 +246,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

@@ -13,6 +13,7 @@ from apps.schools.models import School
 CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES = (
     AttributeError,
     DatabaseError,
+    KeyError,
     TypeError,
     ValueError,
 )
@@ -24,6 +25,20 @@ def _bounded_limit(raw_value, default: int, maximum: int) -> int:
     except (TypeError, ValueError):
         parsed = default
     return max(1, min(parsed, maximum))
+
+
+def _safe_customer_success_dashboard_section(loader, default):
+    try:
+        return loader()
+    except CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES:
+        return default
+
+
+def _append_if_serializable(target: list, loader) -> None:
+    try:
+        target.append(loader())
+    except CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES:
+        return
 
 
 # ---------- 11.3 Benchmark intelligence ----------
@@ -134,8 +149,9 @@ def api_risk_alerts(request):
         qs = qs.filter(acknowledged_at__isnull=True)
     alerts = []
     for a in qs[:100]:
-        alerts.append(
-            {
+        _append_if_serializable(
+            alerts,
+            lambda a=a: {
                 "id": a.pk,
                 "school_id": str(a.school_id),
                 "school_name": a.school.name,
@@ -146,7 +162,7 @@ def api_risk_alerts(request):
                 "acknowledged_at": a.acknowledged_at.isoformat()
                 if a.acknowledged_at
                 else None,
-            }
+            },
         )
     return JsonResponse({"alerts": alerts})
 
@@ -169,8 +185,9 @@ def api_intervention_suggestions(request):
         qs = qs.filter(dismissed_at__isnull=True)
     suggestions = []
     for s in qs[:100]:
-        suggestions.append(
-            {
+        _append_if_serializable(
+            suggestions,
+            lambda s=s: {
                 "id": s.pk,
                 "school_id": str(s.school_id),
                 "school_name": s.school.name,
@@ -180,7 +197,7 @@ def api_intervention_suggestions(request):
                 "priority": s.priority,
                 "created_at": s.created_at.isoformat(),
                 "dismissed_at": s.dismissed_at.isoformat() if s.dismissed_at else None,
-            }
+            },
         )
     return JsonResponse({"suggestions": suggestions})
 
@@ -197,16 +214,28 @@ def api_tenant_health(request):
 
     if school_id:
         school = get_object_or_404(School, pk=school_id)
-        ensure_health_score_record(school)
-        scores = list(
-            TenantHealthScore.objects.filter(school=school)
-            .order_by("-computed_at")[:7]
-            .values("score", "dimensions", "computed_at")
-        )
+        try:
+            ensure_health_score_record(school)
+            scores = list(
+                TenantHealthScore.objects.filter(school=school)
+                .order_by("-computed_at")[:7]
+                .values("score", "dimensions", "computed_at")
+            )
+        except CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES:
+            scores = []
+        serialized_scores = []
         for s in scores:
-            s["computed_at"] = s["computed_at"].isoformat()
-            s["score"] = str(s["score"])
-        return JsonResponse({"school_id": str(school.id), "health_scores": scores})
+            _append_if_serializable(
+                serialized_scores,
+                lambda s=s: {
+                    "score": str(s["score"]),
+                    "dimensions": s["dimensions"],
+                    "computed_at": s["computed_at"].isoformat(),
+                },
+            )
+        return JsonResponse(
+            {"school_id": str(school.id), "health_scores": serialized_scores}
+        )
 
     # All tenants: page through active schools instead of silently truncating at 200.
     limit = _bounded_limit(request.GET.get("limit"), 200, 1000)
@@ -218,22 +247,26 @@ def api_tenant_health(request):
     total_count = schools.count()
     out = []
     for school in schools[offset : offset + limit]:
-        ensure_health_score_record(school)
-        latest = (
-            TenantHealthScore.objects.filter(school=school)
-            .order_by("-computed_at")
-            .first()
-        )
+        try:
+            ensure_health_score_record(school)
+            latest = (
+                TenantHealthScore.objects.filter(school=school)
+                .order_by("-computed_at")
+                .first()
+            )
+        except CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES:
+            continue
         if latest:
-            out.append(
-                {
+            _append_if_serializable(
+                out,
+                lambda school=school, latest=latest: {
                     "school_id": str(school.id),
                     "name": school.name,
                     "slug": school.slug,
                     "score": str(latest.score),
                     "dimensions": latest.dimensions,
                     "computed_at": latest.computed_at.isoformat(),
-                }
+                },
             )
     return JsonResponse(
         {
@@ -252,16 +285,16 @@ def api_workflow_failures(request):
     from .models import WorkflowFailureEvent
 
     school_id = request.GET.get("school_id", "").strip()
-    limit = min(100, max(1, int(request.GET.get("limit", 50))))
-    qs = WorkflowFailureEvent.objects.select_related("school").order_by("-created_at")[
-        :limit
-    ]
+    limit = _bounded_limit(request.GET.get("limit"), 50, 100)
+    qs = WorkflowFailureEvent.objects.select_related("school").order_by("-created_at")
     if school_id:
         qs = qs.filter(school_id=school_id)
+    qs = qs[:limit]
     events = []
     for e in qs:
-        events.append(
-            {
+        _append_if_serializable(
+            events,
+            lambda e=e: {
                 "id": e.pk,
                 "school_id": str(e.school_id),
                 "school_name": e.school.name,
@@ -269,7 +302,7 @@ def api_workflow_failures(request):
                 "workflow_run_id": e.workflow_run_id,
                 "error_summary": e.error_summary,
                 "created_at": e.created_at.isoformat(),
-            }
+            },
         )
     return JsonResponse({"events": events})
 
@@ -280,15 +313,15 @@ def api_admin_inactivity_alerts(request):
     from .models import AdminInactivityAlert
 
     school_id = request.GET.get("school_id", "").strip()
-    qs = AdminInactivityAlert.objects.select_related("school").order_by("-created_at")[
-        :100
-    ]
+    qs = AdminInactivityAlert.objects.select_related("school").order_by("-created_at")
     if school_id:
         qs = qs.filter(school_id=school_id)
+    qs = qs[:100]
     alerts = []
     for a in qs:
-        alerts.append(
-            {
+        _append_if_serializable(
+            alerts,
+            lambda a=a: {
                 "id": a.pk,
                 "school_id": str(a.school_id),
                 "school_name": a.school.name,
@@ -297,7 +330,7 @@ def api_admin_inactivity_alerts(request):
                 "created_at": a.created_at.isoformat(),
                 "notified_at": a.notified_at.isoformat() if a.notified_at else None,
                 "ticket_created": a.ticket_created,
-            }
+            },
         )
     return JsonResponse({"alerts": alerts})
 
@@ -317,8 +350,9 @@ def customer_success_dashboard(request):
     from .services import ensure_health_score_record
 
     dashboard_limit = _bounded_limit(request.GET.get("limit"), 50, 200)
-    active_schools = list(
-        School.objects.filter(is_active=True).order_by("name")[:dashboard_limit]
+    active_schools = _safe_customer_success_dashboard_section(
+        lambda: list(School.objects.filter(is_active=True).order_by("name")[:dashboard_limit]),
+        [],
     )
     for school in active_schools:
         try:
@@ -326,29 +360,44 @@ def customer_success_dashboard(request):
         except CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES:
             pass
 
-    alerts = (
-        TenantRiskAlert.objects.filter(acknowledged_at__isnull=True)
-        .select_related("school")
-        .order_by("-created_at")[:20]
+    alerts = _safe_customer_success_dashboard_section(
+        lambda: list(
+            TenantRiskAlert.objects.filter(acknowledged_at__isnull=True)
+            .select_related("school")
+            .order_by("-created_at")[:20]
+        ),
+        [],
     )
-    suggestions = (
-        TenantInterventionSuggestion.objects.filter(dismissed_at__isnull=True)
-        .select_related("school")
-        .order_by("priority", "-created_at")[:20]
+    suggestions = _safe_customer_success_dashboard_section(
+        lambda: list(
+            TenantInterventionSuggestion.objects.filter(dismissed_at__isnull=True)
+            .select_related("school")
+            .order_by("priority", "-created_at")[:20]
+        ),
+        [],
     )
-    failures = WorkflowFailureEvent.objects.select_related("school").order_by(
-        "-created_at"
-    )[:20]
-    health_scores = TenantHealthScore.objects.filter(
-        school__in=active_schools
-    ).order_by("school", "-computed_at")
-    # Latest per school
-    seen_schools = set()
-    health_list = []
-    for h in health_scores:
-        if h.school_id not in seen_schools:
-            seen_schools.add(h.school_id)
-            health_list.append(h)
+    failures = _safe_customer_success_dashboard_section(
+        lambda: list(
+            WorkflowFailureEvent.objects.select_related("school").order_by("-created_at")[
+                :20
+            ]
+        ),
+        [],
+    )
+
+    def _latest_health_scores():
+        health_scores = TenantHealthScore.objects.filter(school__in=active_schools).order_by(
+            "school", "-computed_at"
+        )
+        seen_schools = set()
+        health_list = []
+        for h in health_scores:
+            if h.school_id not in seen_schools:
+                seen_schools.add(h.school_id)
+                health_list.append(h)
+        return health_list
+
+    health_list = _safe_customer_success_dashboard_section(_latest_health_scores, [])
 
     return render(
         request,

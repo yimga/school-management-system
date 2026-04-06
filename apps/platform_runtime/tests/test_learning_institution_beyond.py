@@ -1,6 +1,7 @@
 """Beyond-reach wedges 23–43: feature gate, pack install, terminology, suggest, benchmarks."""
 
 import json
+from unittest.mock import patch
 
 from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory, TestCase
@@ -168,6 +169,39 @@ class LearningInstitutionBeyondTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         data = json.loads(resp.content)
         self.assertIn("delivery_mode_codes", data)
+
+    @patch("services.ai_gateway.invoke")
+    def test_institution_suggest_view_passes_gateway_metadata(self, mock_invoke):
+        from apps.api.learning_institution_api import InstitutionProfileSuggestView
+
+        mock_invoke.return_value = (
+            '{"delivery_mode_codes":["W23_IN_PERSON"],"institution_type_code":"W31_GENERAL_K12","confidence":0.5}',
+            {"provider": "rules", "model": "rules"},
+        )
+        rf = RequestFactory()
+        req = rf.get("/api/learning/institution-suggest/?ai=1")
+        req.user = self.admin
+        self.school.country_code = "CM"
+        self.school.save(update_fields=["country_code"])
+        req.school = self.school
+
+        resp = InstitutionProfileSuggestView.as_view()(req)
+
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertEqual(data.get("source"), "ai_gateway")
+        self.assertEqual(
+            data.get("ai_json", {}).get("institution_type_code"),
+            "W31_GENERAL_K12",
+        )
+        metadata = mock_invoke.call_args.kwargs["metadata"]
+        self.assertIs(metadata.get("request"), req)
+        self.assertEqual(metadata.get("school"), self.school)
+        self.assertEqual(metadata.get("school_id"), str(self.school.pk))
+        self.assertEqual(metadata.get("tenant_id"), str(self.school.pk))
+        self.assertEqual(metadata.get("user_id"), str(self.admin.pk))
+        self.assertEqual(metadata.get("role"), self.admin.role)
+        self.assertEqual(metadata.get("country_code"), "CM")
 
     def test_terminology_api(self):
         from apps.api.learning_institution_api import TerminologyPackView

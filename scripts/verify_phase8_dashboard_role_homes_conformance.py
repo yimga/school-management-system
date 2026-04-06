@@ -4,33 +4,83 @@ Phase 8 gate (narrow): dashboards + role homes structural conformance.
 
 Does not duplicate Phase 8 density checks — use ``verify_phase8_dashboard_density.py`` or
 ``apps/dashboard/tests/test_phase8_dashboard_density.py`` for collapsible-density law.
+
+Run (from repo root):
+  python scripts/verify_phase8_dashboard_role_homes_conformance.py
 """
 
 from __future__ import annotations
 
+import argparse
+import importlib.util
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root to inspect (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return base
+
+
+def _load_phase7_dashboard_templates(base: Path) -> tuple[str, ...]:
+    module_path = base / "apps" / "dashboard" / "phase7_dashboard_templates.py"
+    if not module_path.is_file():
+        raise ValueError(
+            "apps/dashboard/phase7_dashboard_templates.py not found under selected base"
+        )
+    spec = importlib.util.spec_from_file_location(
+        "phase7_dashboard_templates_for_role_home_conformance",
+        module_path,
+    )
+    if spec is None or spec.loader is None:
+        raise ValueError(f"cannot load dashboard template registry from {module_path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    templates = getattr(mod, "PHASE7_DASHBOARD_TEMPLATES", None)
+    if templates is None:
+        raise ValueError(
+            "PHASE7_DASHBOARD_TEMPLATES missing from apps/dashboard/phase7_dashboard_templates.py"
+        )
+    return tuple(templates)
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        base = _resolve_base(parse_args(argv).base)
+        phase7_dashboard_templates = _load_phase7_dashboard_templates(base)
+    except ValueError as exc:
+        print(f"verify_phase8_dashboard_role_homes_conformance: {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
-    super_dash = ROOT / "templates" / "schools" / "super_dashboard.html"
-    decision_surface = ROOT / "templates" / "components" / "decision_engine_surface.html"
-    role_home_tests = ROOT / "apps" / "dashboard" / "tests" / "test_role_home_engine.py"
-    role_home_engine = ROOT / "apps" / "dashboard" / "role_home_engine.py"
+    super_dash = base / "templates" / "schools" / "super_dashboard.html"
+    decision_surface = base / "templates" / "components" / "decision_engine_surface.html"
+    role_home_tests = base / "apps" / "dashboard" / "tests" / "test_role_home_engine.py"
+    role_home_engine = base / "apps" / "dashboard" / "role_home_engine.py"
 
     for p in (super_dash, decision_surface, role_home_tests, role_home_engine):
         if not p.is_file():
-            errors.append(f"Missing required file: {p.relative_to(ROOT).as_posix()}")
+            errors.append(f"Missing required file: {p.relative_to(base).as_posix()}")
 
     if errors:
         print("verify_phase8_dashboard_role_homes_conformance: FAIL", file=sys.stderr)
@@ -74,9 +124,7 @@ def main() -> int:
                 f"apps/dashboard/tests/test_role_home_engine.py missing contract token: {needle!r}"
             )
 
-    from apps.dashboard.phase7_dashboard_templates import PHASE7_DASHBOARD_TEMPLATES
-
-    if "schools/super_dashboard.html" not in PHASE7_DASHBOARD_TEMPLATES:
+    if "schools/super_dashboard.html" not in phase7_dashboard_templates:
         errors.append(
             "PHASE7_DASHBOARD_TEMPLATES must include schools/super_dashboard.html"
         )
@@ -95,4 +143,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

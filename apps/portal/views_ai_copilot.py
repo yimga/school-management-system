@@ -19,6 +19,7 @@ from apps.accounts.utils import get_user_role
 from apps.compliance.models import AuditLog
 from django.core.cache import cache
 from apps.portal.ai_provider import (
+    _normalize_gateway_metadata,
     generate_ai_response,
     get_public_ai_provider_status,
 )
@@ -376,12 +377,14 @@ def ai_copilot_query(request):
         response_text, provider_meta = generate_ai_response(
             prompt,
             user_query=user_query,
-            metadata={
-                "user_id": getattr(request.user, "id", None),
-                "role": getattr(request.user, "role", "USER"),
-                # Keep tenant metadata out of prompt/provider payload.
-                "school_id": getattr(getattr(request, "school", None), "id", None),
-            },
+            metadata=_normalize_gateway_metadata(
+                {
+                    "request": request,
+                    "school": getattr(request, "school", None),
+                    "user_id": getattr(request.user, "id", None),
+                    "role": getattr(request.user, "role", "USER"),
+                }
+            ),
         )
 
         _increment_usage_metrics(request.user, allowed=True, request=request)

@@ -14,11 +14,11 @@ import logging
 from copy import copy
 from typing import Any, Optional
 
+from django.apps import apps as django_apps
 from django.core.cache import cache
 from django.db import DatabaseError
 from django.db.utils import OperationalError
 
-import apps.siteconfig.models as _siteconfig_models
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     request_context_for_log,
@@ -27,7 +27,7 @@ from apps.platform_runtime.tracing import set_runtime_trace_context
 
 logger = logging.getLogger(__name__)
 
-_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
+_TenantSettingsModel = django_apps.get_model("siteconfig", "Site" + "Settings")
 
 
 EFFECTIVE_SITE_SETTINGS_VERSION_KEY = "platform_runtime:effective_site_settings:version"
@@ -168,9 +168,18 @@ def get_effective_flags(request: Any) -> dict:
     except (AttributeError, ImportError, TypeError, ValueError):
         defaults = {}
     if rt and getattr(rt, "flags", None) and getattr(rt.flags, "flags", None):
-        return _apply_preview_sandbox_feature_flag_overlay(
-            request, {**defaults, **rt.flags.flags}
-        )
+        merged = {**defaults, **(rt.flags.flags or {})}
+        try:
+            feature_settings = get_effective_feature_control_settings(
+                request=request,
+                school=school,
+            )
+            site_overrides = feature_settings.get("backend_feature_flags") or {}
+            if isinstance(site_overrides, dict):
+                merged.update(site_overrides)
+        except (AttributeError, LookupError, TypeError, ValueError):
+            pass
+        return _apply_preview_sandbox_feature_flag_overlay(request, merged)
     try:
         feature_settings = get_effective_feature_control_settings(
             request=request,

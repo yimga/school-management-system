@@ -13,18 +13,20 @@ Environment:
   verify_cursor_phase7_granular.py, which runs one combined pytest session).
 
 Exit 0 = all checks pass.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
 AUDIT = ROOT / "docs" / "phase_audit" / "PHASE_07_RUNTIME_FIRST_AUDIT.md"
 PRECEDENCE_DOC = ROOT / "docs" / "runtime_precedence.md"
@@ -64,7 +66,57 @@ REQUIRED_PATHS = (
 )
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Cursor Phase 7 runtime-first mechanical checks."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _required_paths_for_root(root: Path) -> tuple[Path, ...]:
+    return (
+        root / "apps" / "platform_runtime" / "precedence.py",
+        root / "apps" / "platform_runtime" / "resolver_registry.py",
+        root / "apps" / "platform_runtime" / "runtime_resolver.py",
+        root / "apps" / "platform_runtime" / "runtime_inspector.py",
+        root / "templates" / "schools" / "super_runtime_inspector.html",
+        root / "docs" / "runtime_precedence.md",
+    )
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT, AUDIT, PRECEDENCE_DOC, REQUIRED_PATHS
+    ROOT = base
+    AUDIT = ROOT / "docs" / "phase_audit" / "PHASE_07_RUNTIME_FIRST_AUDIT.md"
+    PRECEDENCE_DOC = ROOT / "docs" / "runtime_precedence.md"
+    REQUIRED_PATHS = _required_paths_for_root(ROOT)
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        base = _resolve_base(args.base)
+    except ValueError as exc:
+        print("verify_cursor_phase7_runtime_first: FAIL", file=sys.stderr)
+        print(f"  ---\n{exc}", file=sys.stderr)
+        return 1
+
+    _configure_root(base)
+
     errors: list[str] = []
 
     for p in REQUIRED_PATHS:
@@ -149,4 +201,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

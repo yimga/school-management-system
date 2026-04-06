@@ -107,6 +107,40 @@ class AIMemoryServiceTests(TestCase):
         self.assertGreaterEqual(len(results), 2)
         self.assertEqual(results[0]["conversation_id"], "tenant-policy")
 
+    def test_global_only_retrieval_without_school_id_excludes_tenant_rows(self):
+        school_a = uuid4()
+        school_b = uuid4()
+        AIEmbeddingStore.objects.create(
+            school_id=school_a,
+            conversation_id="tenant-a-config",
+            scope="config",
+            text_hash="tenant-a-config",
+            embedding=[1.0, 0.0],
+            metadata={"source": "tenant_a"},
+        )
+        AIEmbeddingStore.objects.create(
+            school_id=school_b,
+            conversation_id="tenant-b-config",
+            scope="config",
+            text_hash="tenant-b-config",
+            embedding=[0.99, 0.01],
+            metadata={"source": "tenant_b"},
+        )
+        AIEmbeddingStore.objects.create(
+            school_id=None,
+            conversation_id="global-config",
+            scope="config",
+            text_hash="global-config",
+            embedding=[0.98, 0.02],
+            metadata={"source": "platform"},
+        )
+
+        results = AIMemoryService.search_similar(
+            None, "config", [1.0, 0.0], limit=10, global_only=True
+        )
+
+        self.assertEqual({row["conversation_id"] for row in results}, {"global-config"})
+
 
 class RagRetrievalEvalTests(TestCase):
     """

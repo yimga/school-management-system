@@ -37,3 +37,25 @@ class DocPlanDensityDisciplineHelperTests(SimpleTestCase):
         self.assertIn("BACKLOG", self._mod._SOT_BACKLOG_SNIPPET)
         self.assertGreaterEqual(self._mod._MIN_SOT_CHARS, 3000)
         self.assertGreaterEqual(self._mod._MIN_BACKLOG_CHARS, 1000)
+
+    def test_parse_args_base_default_is_repo_root(self):
+        args = self._mod.parse_args([])
+        self.assertEqual(args.base, str(self._mod.DEFAULT_ROOT))
+
+    def test_resolve_base_accepts_existing_directory(self):
+        here = Path(__file__).resolve().parents[3]
+        resolved = self._mod._resolve_base(str(here))
+        self.assertEqual(resolved, here.resolve())
+
+    def test_resolve_base_rejects_missing_directory(self):
+        with self.assertRaises(ValueError):
+            self._mod._resolve_base("definitely_missing_doc_plan_density_base")
+
+    def test_inprocess_main_rejects_invalid_base(self):
+        self.assertEqual(
+            self._mod.main(["--base", "definitely_missing_doc_plan_density_main"]),
+            1,
+        )
+
+    def test_main_passes_repo_with_default_base(self):
+        self.assertEqual(self._mod.main([]), 0)

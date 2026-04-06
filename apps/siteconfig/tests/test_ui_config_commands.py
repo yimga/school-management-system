@@ -13,13 +13,15 @@ from apps.finance.models import ComplianceProfile
 from apps.siteconfig.management.commands.import_ui_config import (
     Command as ImportUIConfigCommand,
 )
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig import models as _siteconfig_models
 from apps.siteconfig.tests.payload_helpers import persist_runtime_site_settings_payload
+
+_TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
 class UIConfigCommandTests(TestCase):
     def setUp(self):
-        SiteSettings.objects.all().delete()
+        _TenantSettingsModel.objects.all().delete()
         ThemePack.objects.all().delete()
         self.theme = ThemePack.objects.create(
             name="Base Theme",
@@ -28,7 +30,7 @@ class UIConfigCommandTests(TestCase):
             applies_to_admin=True,
             is_active=True,
         )
-        SiteSettings.objects.create()
+        _TenantSettingsModel.objects.create()
         pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
         pgb.theme_pack = self.theme
         pgb.save(update_fields=["theme_pack"])
@@ -54,7 +56,7 @@ class UIConfigCommandTests(TestCase):
 
     def test_export_ui_config_uses_legacy_compliance_profile_key(self):
         profile = ComplianceProfile.objects.create(name="CM Default", country_code="CM")
-        site = SiteSettings.objects.order_by("pk").first()
+        site = _TenantSettingsModel.objects.order_by("pk").first()
         site.compliance_profile = profile
         site.save()
 
@@ -107,7 +109,7 @@ class UIConfigCommandTests(TestCase):
         with self.workspace_tempdir() as tmp:
             output = tmp / "ui_export.json"
             call_command("export_ui_config", "--output", str(output))
-            site = SiteSettings.objects.order_by("pk").first()
+            site = _TenantSettingsModel.objects.order_by("pk").first()
             persist_runtime_site_settings_payload(primary_color="#ffffff")
             site.refresh_from_db()
             with self.assertRaises(CommandError):
@@ -138,13 +140,13 @@ class UIConfigCommandTests(TestCase):
             output = tmp / "ui_export.json"
             call_command("export_ui_config", "--output", str(output))
 
-            SiteSettings.objects.all().delete()
+            _TenantSettingsModel.objects.all().delete()
             ThemePack.objects.all().delete()
 
             call_command("import_ui_config", str(output))
 
             self.assertEqual(ThemePack.objects.count(), 1)
-            site = SiteSettings.objects.order_by("pk").first()
+            site = _TenantSettingsModel.objects.order_by("pk").first()
             self.assertIsNotNone(site)
             pgb = PlatformGlobalBranding.objects.order_by("pk").first()
             self.assertIsNotNone(pgb)

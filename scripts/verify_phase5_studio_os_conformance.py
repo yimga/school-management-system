@@ -6,15 +6,37 @@ Checks:
 1) mode contracts (five canonical Studio modes)
 2) legacy redirect coverage contract (legacy identities resolve to Studio OS)
 3) Output Studio native-path constraints on touched panes
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import ast
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Phase 5 Studio OS conformance."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to inspect (default: this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
 
 
 def _read(path: Path) -> str:
@@ -33,24 +55,31 @@ def _extract_literal(module: ast.Module, name: str):
     raise KeyError(name)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_phase5_studio_os_conformance: {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
-    views_py = ROOT / "apps" / "studio_os" / "views.py"
-    urls_py = ROOT / "apps" / "studio_os" / "urls.py"
-    deep_links_py = ROOT / "apps" / "studio_os" / "deep_links.py"
+    views_py = root / "apps" / "studio_os" / "views.py"
+    urls_py = root / "apps" / "studio_os" / "urls.py"
+    deep_links_py = root / "apps" / "studio_os" / "deep_links.py"
     shell_main_tpl = (
-        ROOT / "templates" / "studio_os" / "partials" / "shell_main_content.html"
+        root / "templates" / "studio_os" / "partials" / "shell_main_content.html"
     )
     output_mode_tpl = (
-        ROOT / "templates" / "studio_os" / "partials" / "output_mode_canvas.html"
+        root / "templates" / "studio_os" / "partials" / "output_mode_canvas.html"
     )
 
     for p in (views_py, urls_py, deep_links_py, shell_main_tpl, output_mode_tpl):
         if not p.is_file():
-            errors.append(f"Missing required file: {p.relative_to(ROOT).as_posix()}")
+            errors.append(f"Missing required file: {p.relative_to(root).as_posix()}")
     if errors:
-        print("verify_phase5_studio_os_conformance: FAIL", file=sys.stderr)
+        print("verify_phase5_studio_os_conformance:", file=sys.stderr)
         for e in errors:
             print(f"  - {e}", file=sys.stderr)
         return 1
@@ -137,12 +166,16 @@ def main() -> int:
     if "output_iframe_src" not in output_text:
         errors.append("output_mode_canvas.html missing fallback iframe contract.")
     if "data-studio-output-native=\"reports\"" not in _read(
-        ROOT / "templates" / "studio_os" / "partials" / "output_reports_library_body.html"
+        root
+        / "templates"
+        / "studio_os"
+        / "partials"
+        / "output_reports_library_body.html"
     ):
         errors.append("output_reports_library_body.html missing native marker for reports pane.")
 
     if errors:
-        print("verify_phase5_studio_os_conformance: FAIL", file=sys.stderr)
+        print("verify_phase5_studio_os_conformance:", file=sys.stderr)
         for e in errors:
             print(f"  - {e}", file=sys.stderr)
         return 1
@@ -155,4 +188,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

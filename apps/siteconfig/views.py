@@ -2394,7 +2394,12 @@ def workflow_clues_api(request):
     try:
         from apps.portal.ai_provider import get_workflow_clues
 
-        text, meta = get_workflow_clues(workflow_key, country_code)
+        text, meta = get_workflow_clues(
+            workflow_key,
+            country_code,
+            request=request,
+            school=getattr(request, "school", None),
+        )
         return JsonResponse(
             {"suggestions": text, "meta": meta},
             safe=False,

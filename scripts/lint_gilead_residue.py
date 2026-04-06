@@ -5,27 +5,23 @@ Block runtime-visible Gilead residue in the active platform surface.
 Historical references inside migrations, archived docs, and tests are allowed
 until the data migration history is retired. Runtime-visible defaults, fixtures,
 deployment config, and user-facing surfaces are not.
+
+Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import re
+import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PATTERN = re.compile(r"gilead", re.IGNORECASE)
-SCAN_ROOTS = (
-    ROOT / "apps",
-    ROOT / "services",
-    ROOT / "fixtures",
-    ROOT / "templates",
-    ROOT / "config",
-)
-SCAN_FILES = (
-    ROOT / "render.yaml",
-    ROOT / "QUICK_START.md",
-)
+SCAN_ROOT_NAMES = ("apps", "services", "fixtures", "templates", "config")
+SCAN_FILE_NAMES = ("render.yaml", "QUICK_START.md")
 SKIP_PARTS = {"migrations", "tests", "__pycache__", "docs", "tmp", "artifacts"}
 
 
@@ -33,37 +29,109 @@ def _safe_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def _path_skipped(path: Path) -> bool:
+@lru_cache(maxsize=None)
+def _tracked_file_relpaths(root: Path) -> frozenset[str] | None:
+    """Prefer tracked files so local scratch trees do not create false positives."""
+    if not (root / ".git").exists():
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "-c", "core.quotepath=false", "ls-files", "-z"],
+            cwd=str(root),
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    relpaths: set[str] = set()
+    for raw in result.stdout.split(b"\0"):
+        if not raw:
+            continue
+        try:
+            relpaths.add(Path(raw.decode("utf-8")).as_posix())
+        except UnicodeDecodeError:
+            continue
+    return frozenset(relpaths)
+
+
+def _path_skipped(path: Path, root: Path) -> bool:
     if any(part in SKIP_PARTS for part in path.parts):
         return True
     # CLI-only; not user-facing HTTP/runtime surfaces (lint targets templates, APIs, config).
-    rel = path.relative_to(ROOT).as_posix()
+    rel = path.relative_to(root).as_posix()
     if "management/commands/" in rel:
         return True
     return False
 
 
-def _iter_candidate_files():
-    for base in SCAN_ROOTS:
+def _iter_candidate_files(root: Path):
+    tracked = _tracked_file_relpaths(root)
+    if tracked is not None:
+        scan_prefixes = tuple(f"{name}/" for name in SCAN_ROOT_NAMES)
+        seen: set[Path] = set()
+        for rel in sorted(tracked):
+            if rel not in SCAN_FILE_NAMES and not rel.startswith(scan_prefixes):
+                continue
+            path = root / Path(rel)
+            if not path.is_file():
+                continue
+            if _path_skipped(path, root):
+                continue
+            if path in seen:
+                continue
+            seen.add(path)
+            yield path
+        return
+    for name in SCAN_ROOT_NAMES:
+        base = root / name
         if not base.exists():
             continue
         for path in base.rglob("*"):
             if not path.is_file():
                 continue
-            if _path_skipped(path):
+            if _path_skipped(path, root):
                 continue
             yield path
-    for path in SCAN_FILES:
+    for name in SCAN_FILE_NAMES:
+        path = root / name
         if path.exists():
             yield path
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Block runtime-visible Gilead residue in the active platform surface."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to scan (defaults to current repo root).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"lint_gilead_residue: {exc}", file=sys.stderr)
+        return 1
     violations: list[str] = []
-    for path in sorted(set(_iter_candidate_files())):
+    for path in sorted(set(_iter_candidate_files(root))):
         for line_no, line in enumerate(_safe_text(path).splitlines(), start=1):
             if PATTERN.search(line):
-                rel = path.relative_to(ROOT).as_posix()
+                rel = path.relative_to(root).as_posix()
                 violations.append(f"{rel}:{line_no}: {line.strip()}")
     if violations:
         print(
@@ -78,4 +146,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

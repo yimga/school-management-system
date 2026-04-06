@@ -17,6 +17,7 @@ from .domain_ownership import (
     classify_site_settings_field,
     is_runtime_payload_shadow_key,
 )
+from apps.platform_runtime.runtime_sync_owner_filters import NON_PAYLOAD_SYNC_OWNERS
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +117,7 @@ from .models_support import (  # noqa: F401
 
 
 _SITE_SETTINGS_CACHE: models.Model | None = None
+_LOCAL_COMPLIANCE_PROFILE_ID_UNSET = object()
 
 
 # DEPRECATED: Prefer apps.platform_runtime.helpers.get_effective_site_settings and bounded-context
@@ -293,7 +295,7 @@ class SiteSettings(models.Model):
         self,
         update_fields: list[str] | tuple[str, ...] | set[str] | None,
     ) -> set[str]:
-        """Normalize update_fields to concrete model field names for ownership classification."""
+        """Normalize update_fields to model field names or known runtime shadow keys."""
         normalized: set[str] = set()
         for field_name in update_fields or ():
             if not field_name:
@@ -306,8 +308,12 @@ class SiteSettings(models.Model):
             if str(field_name).endswith("_id"):
                 try:
                     normalized.add(self._meta.get_field(str(field_name)[:-3]).name)
-                except FieldDoesNotExist:
                     continue
+                except FieldDoesNotExist:
+                    pass
+            normalized_name = str(field_name).strip()
+            if is_runtime_payload_shadow_key(normalized_name):
+                normalized.add(normalized_name)
         return normalized
 
     def runtime_sync_owners(
@@ -321,7 +327,7 @@ class SiteSettings(models.Model):
         The legacy tenant settings singleton remains the compatibility write-surface,
         but runtime-facing domains should immediately publish into RuntimeDefaults.
         """
-        skip_domains = {"safe_platform_default", "delete"}
+        skip_domains = set(NON_PAYLOAD_SYNC_OWNERS)
         if update_fields is None:
             return tuple(
                 owner for owner in OWNERSHIP_DOMAINS if owner not in skip_domains
@@ -344,7 +350,12 @@ class SiteSettings(models.Model):
         effective_owners = tuple(
             owner
             for owner in (owners or ())
-            if owner not in {"safe_platform_default", "delete"}
+            if owner not in NON_PAYLOAD_SYNC_OWNERS
+        )
+        effective_exclude_owners = tuple(
+            owner
+            for owner in (exclude_owners or ())
+            if owner not in NON_PAYLOAD_SYNC_OWNERS
         )
         if owners is not None and not effective_owners:
             return None
@@ -354,7 +365,7 @@ class SiteSettings(models.Model):
             return RuntimeDefaults.sync_from_site_settings(
                 self,
                 owners=effective_owners or None,
-                exclude_owners=exclude_owners,
+                exclude_owners=effective_exclude_owners or None,
             )
         except (
             AttributeError,
@@ -377,10 +388,11 @@ class SiteSettings(models.Model):
         )
         requested_update_fields = kwargs.get("update_fields")
         cleared_fields = self._sanitize_foreign_keys()
-        if requested_update_fields is not None and cleared_fields:
+        if requested_update_fields is not None:
             normalized_update_fields = set(requested_update_fields)
-            normalized_update_fields.update(cleared_fields)
-            kwargs["update_fields"] = list(normalized_update_fields)
+            if cleared_fields:
+                normalized_update_fields.update(cleared_fields)
+                kwargs["update_fields"] = list(normalized_update_fields)
         else:
             normalized_update_fields = None
 
@@ -441,6 +453,8 @@ class SiteSettings(models.Model):
     ) -> list[str]:
         """Return field names on this model for an ownership domain (DB columns + Phase B virtual keys)."""
         excluded = set(exclude_owners or set())
+        if owner is None:
+            excluded.add("delete")
         field_names: list[str] = []
         seen: set[str] = set()
         for field in cls._meta.concrete_fields:
@@ -559,7 +573,11 @@ class SiteSettings(models.Model):
         code while `backend_feature_flags` is being migrated out of the legacy
         tenant settings mega-model.
         """
-        payload = self.owned_payload(owner="policies_rules")
+        payload = dict(self.owned_payload(owner="policies_rules"))
+        if "backend_feature_flags" in self.__dict__:
+            payload["backend_feature_flags"] = _site_settings_json_safe(
+                self.__dict__["backend_feature_flags"]
+            )
         raw_flags = payload.get("backend_feature_flags")
         if not isinstance(raw_flags, dict):
             raw_flags = {}
@@ -567,7 +585,16 @@ class SiteSettings(models.Model):
 
     def get_preview_platform_config(self) -> dict[str, object]:
         """Return preview-platform config from the ownership-scoped payload."""
-        payload = self.owned_payload(owner="preview_platform")
+        payload = dict(self.owned_payload(owner="preview_platform"))
+        for field_name in (
+            "preview_mode_enabled",
+            "preview_note",
+            "preview_toggle_enabled",
+            "preview_toggle_label",
+            "preview_banner_text",
+        ):
+            if field_name in self.__dict__:
+                payload[field_name] = _site_settings_json_safe(self.__dict__[field_name])
         return {
             "preview_mode_enabled": bool(
                 payload.get(
@@ -606,11 +633,57 @@ class SiteSettings(models.Model):
         This is the compatibility read surface for feature control views/forms
         while the legacy singleton is being decomposed.
         """
-        policies_payload = self.owned_payload(owner="policies_rules")
-        safe_payload = self.owned_payload(owner="safe_platform_default")
-        reports_payload = self.owned_payload(owner="reports")
-        documents_payload = self.owned_payload(owner="documents")
-        brand_payload = self.owned_payload(owner="brand_experience")
+        policies_payload = dict(self.owned_payload(owner="policies_rules"))
+        local_values = self.__dict__
+        for field_name in (
+            "portal_features",
+            "notification_channels",
+            "enable_parent_portal",
+            "enable_teacher_portal",
+            "grade_approval_enabled",
+            "grade_approval_auto_validate",
+            "enable_practical_assessment",
+            "enable_concurrent_mark_uploads",
+            "enable_offline_mode",
+            "enable_whatsapp_parent_portal",
+            "enable_whatsapp_staff_portal",
+        ):
+            if field_name in local_values:
+                policies_payload[field_name] = _site_settings_json_safe(
+                    local_values[field_name]
+                )
+        safe_payload = dict(self.owned_payload(owner="safe_platform_default"))
+        if "maintenance_mode" in local_values:
+            safe_payload["maintenance_mode"] = _site_settings_json_safe(
+                local_values["maintenance_mode"]
+            )
+        reports_payload = dict(self.owned_payload(owner="reports"))
+        for field_name in (
+            "enable_reports_pdf",
+            "report_downloads_enabled",
+            "reports_require_approved_grades_before_publish",
+            "reports_use_approved_grades_only",
+        ):
+            if field_name in local_values:
+                reports_payload[field_name] = _site_settings_json_safe(
+                    local_values[field_name]
+                )
+        documents_payload = dict(self.owned_payload(owner="documents"))
+        if "auto_tag_photos_from_exif" in local_values:
+            documents_payload["auto_tag_photos_from_exif"] = _site_settings_json_safe(
+                local_values["auto_tag_photos_from_exif"]
+            )
+        brand_payload = dict(self.owned_payload(owner="brand_experience"))
+        for field_name in (
+            "show_header_search",
+            "show_header_notifications",
+            "show_header_profile_menu",
+            "show_header_theme_toggle",
+        ):
+            if field_name in local_values:
+                brand_payload[field_name] = _site_settings_json_safe(
+                    local_values[field_name]
+                )
         preview_settings = self.get_preview_platform_config()
 
         raw_portal_features = _payload_json_object(
@@ -792,11 +865,7 @@ class SiteSettings(models.Model):
             # Effective-settings copy or unsent row: payload already merged into RuntimeDefaults.
             pass
         elif payload_updates and getattr(self, "pk", None):
-            from django.utils import timezone as django_timezone
-
-            type(self).objects.filter(pk=self.pk).update(
-                updated_at=django_timezone.now()
-            )
+            self.save(update_fields=["updated_at"])
 
     def get_notification_delivery_settings(self) -> dict[str, object]:
         """
@@ -824,7 +893,14 @@ class SiteSettings(models.Model):
         """
         Return offline runtime controls through the policy owner surface first.
         """
-        payload = self.owned_payload(owner="policies_rules")
+        payload = dict(self.owned_payload(owner="policies_rules"))
+        local_values = self.__dict__
+        for field_name in (
+            "enable_offline_mode",
+            "offline_sync_conflict_resolution",
+        ):
+            if field_name in local_values:
+                payload[field_name] = _site_settings_json_safe(local_values[field_name])
         flags = self.get_backend_feature_flags()
         return {
             "enable_offline_mode": _payload_bool(
@@ -844,9 +920,22 @@ class SiteSettings(models.Model):
 
     def get_brand_metadata(self) -> dict[str, str]:
         """Return branding/report metadata through ownership-scoped payloads first."""
-        brand_payload = self.owned_payload(owner="brand_experience")
-        runtime_payload = self.owned_payload(owner="runtime_blueprints")
-        registry_payload = self.owned_payload(owner="global_registries")
+        brand_payload = dict(self.owned_payload(owner="brand_experience"))
+        runtime_payload = dict(self.owned_payload(owner="runtime_blueprints"))
+        registry_payload = dict(self.owned_payload(owner="global_registries"))
+        local_values = self.__dict__
+        for field_name in ("site_name", "tagline"):
+            if field_name in local_values:
+                brand_payload[field_name] = _site_settings_json_safe(local_values[field_name])
+        if "school_code" in local_values:
+            runtime_payload["school_code"] = _site_settings_json_safe(
+                local_values["school_code"]
+            )
+        for field_name in ("country", "region", "ministry"):
+            if field_name in local_values:
+                registry_payload[field_name] = _site_settings_json_safe(
+                    local_values[field_name]
+                )
         return {
             "school_name": _normalized_site_name(
                 brand_payload.get("site_name", getattr(self, "site_name", ""))
@@ -870,7 +959,18 @@ class SiteSettings(models.Model):
 
     def get_report_preview_settings(self) -> dict[str, object]:
         """Return report preview defaults through the reports ownership domain."""
-        payload = self.owned_payload(owner="reports")
+        payload = dict(self.owned_payload(owner="reports"))
+        local_values = self.__dict__
+        for field_name in (
+            "report_preview_contact_email",
+            "report_preview_contact_phone",
+            "report_preview_footer_note",
+            "default_report_preview_type",
+            "default_term_report_style_id",
+            "default_annual_report_style_id",
+        ):
+            if field_name in local_values:
+                payload[field_name] = _site_settings_json_safe(local_values[field_name])
         return {
             "contact_email": _normalized_report_preview_email(
                 payload.get(
@@ -915,10 +1015,61 @@ class SiteSettings(models.Model):
         This keeps theme studio, admin, and runtime preview paths aligned on one
         read contract while fields are migrated away from the legacy singleton.
         """
-        brand_payload = self.owned_payload(owner="brand_experience")
-        preview_payload = self.owned_payload(owner="preview_platform")
-        runtime_payload = self.owned_payload(owner="runtime_blueprints")
-        reports_payload = self.owned_payload(owner="reports")
+        def _payload_with_local_staged_overrides(
+            owner: str,
+            field_names: tuple[str, ...],
+        ) -> dict[str, object]:
+            payload = dict(self.owned_payload(owner=owner))
+            local_values = self.__dict__
+            for field_name in field_names:
+                if field_name in local_values:
+                    payload[field_name] = _site_settings_json_safe(local_values[field_name])
+            return payload
+
+        brand_payload = _payload_with_local_staged_overrides(
+            "brand_experience",
+            (
+                "primary_color",
+                "accent_color",
+                "header_bg_color",
+                "footer_bg_color",
+                "success_color",
+                "warning_color",
+                "danger_color",
+                "theme_brightness",
+                "use_dark_mode",
+                "theme_pack_id",
+                "admin_theme_pack_id",
+                "teacher_theme_pack_id",
+                "parent_theme_pack_id",
+                "admin_use_site_primary",
+                "backend_console_theme",
+                "secondary_font",
+                "use_secondary_font_for_headings",
+                "theme_harmony",
+                "base_font_size",
+            ),
+        )
+        preview_payload = _payload_with_local_staged_overrides(
+            "preview_platform",
+            ("skip_theme_publish_guard",),
+        )
+        runtime_payload = _payload_with_local_staged_overrides(
+            "runtime_blueprints",
+            (
+                "default_dashboard_view",
+                "default_refresh_rate",
+                "default_widgets_per_role",
+            ),
+        )
+        reports_payload = _payload_with_local_staged_overrides(
+            "reports",
+            (
+                "report_downloads_enabled",
+                "default_term_report_style_id",
+                "default_annual_report_style_id",
+            ),
+        )
         # PGB + runtime mirror win over reports snapshot (Batch 3).
         _term_report_style_id = getattr(self, "default_term_report_style_id", None)
         if _term_report_style_id is None:
@@ -1012,6 +1163,11 @@ class SiteSettings(models.Model):
                 "default_refresh_rate",
                 60,
             ),
+            "default_widgets_per_role": _payload_json_object(
+                runtime_payload,
+                self,
+                "default_widgets_per_role",
+            ),
             "report_downloads_enabled": _payload_bool(
                 reports_payload,
                 self,
@@ -1036,7 +1192,11 @@ class SiteSettings(models.Model):
 
     def get_finance_runtime_config(self) -> dict[str, object]:
         """Return finance automation, reminder, and receipt policy through the policy owner domain."""
-        payload = self.owned_payload(owner="policies_rules")
+        payload = dict(self.owned_payload(owner="policies_rules"))
+        local_values = self.__dict__
+        for field_name, value in local_values.items():
+            if field_name.startswith("finance_"):
+                payload[field_name] = _site_settings_json_safe(value)
         return {
             "auto_generate_invoices_enabled": _payload_bool(
                 payload, self, "finance_auto_generate_invoices_enabled", False
@@ -1150,7 +1310,25 @@ class SiteSettings(models.Model):
         this method remains the implementation behind that resolver for the merged
         tenant settings façade.
         """
-        payload = self.owned_payload(owner="marketplace_integrations")
+        payload = dict(self.owned_payload(owner="marketplace_integrations"))
+        local_values = self.__dict__
+        for field_name in (
+            "marksheet_ocr_command",
+            "marksheet_ocr_api_key",
+            "sms_provider",
+            "sms_api_key",
+            "ai_provider_api_key",
+            "whatsapp_api_token",
+            "sms_sender_id",
+            "email_from_address",
+            "smtp_password",
+            "webhook_signing_secret",
+            "marketplace_partner_client_secret",
+            "whatsapp_support_number",
+            "whatsapp_admissions_number",
+        ):
+            if field_name in local_values:
+                payload[field_name] = _site_settings_json_safe(local_values[field_name])
         return {
             "marksheet_ocr_command": _payload_string(
                 payload, self, "marksheet_ocr_command", ""
@@ -1189,7 +1367,15 @@ class SiteSettings(models.Model):
 
     def get_support_contact_settings(self) -> dict[str, str]:
         """Return support/contact settings through owner-scoped brand and integration surfaces."""
-        brand_payload = self.owned_payload(owner="brand_experience")
+        brand_payload = dict(self.owned_payload(owner="brand_experience"))
+        local_values = self.__dict__
+        for field_name in (
+            "company_phone",
+            "company_email",
+            "footer_whatsapp_url",
+        ):
+            if field_name in local_values:
+                brand_payload[field_name] = _site_settings_json_safe(local_values[field_name])
         integration_settings = self.get_marketplace_integration_settings()
         return {
             "company_phone": _payload_string(
@@ -1230,8 +1416,12 @@ class SiteSettings(models.Model):
 
     @property
     def compliance_profile(self):
-        profile_id = getattr(self, "compliance_profile_id", None)
-        if not profile_id:
+        profile_id = self.__dict__.get(
+            "compliance_profile_id",
+            _LOCAL_COMPLIANCE_PROFILE_ID_UNSET,
+        )
+        if profile_id is _LOCAL_COMPLIANCE_PROFILE_ID_UNSET:
+            profile_id = None
             try:
                 from apps.platform_runtime.models import RuntimeDefaults
 
@@ -1291,6 +1481,8 @@ class SiteSettings(models.Model):
             if invalidate_effective_site_settings_cache:
                 invalidate_effective_site_settings_cache()
             self._state.fields_cache["compliance_profile"] = None
+            if getattr(self, "pk", None):
+                self.save(update_fields=["updated_at"])
             return
         profile_id = getattr(value, "pk", value)
         pid = profile_id or None
@@ -1308,6 +1500,8 @@ class SiteSettings(models.Model):
         self._state.fields_cache["compliance_profile"] = (
             value if getattr(value, "pk", None) else None
         )
+        if getattr(self, "pk", None):
+            self.save(update_fields=["updated_at"])
 
     def resolve_default_report_style(
         self, report_type: str
@@ -1324,6 +1518,9 @@ class SiteSettings(models.Model):
             if report_type == REPORT_CARD_TYPE_TERM
             else selection_ids.get("default_annual_report_style_id")
         )
+        staged_style = self._resolve_staged_report_style(field_name, style_id)
+        if staged_style:
+            return staged_style
         owner_model = get_report_card_style_owner_model()
         if style_id:
             try:
@@ -1340,17 +1537,43 @@ class SiteSettings(models.Model):
         except (AttributeError, OperationalError, DatabaseError):
             return None
 
+    def _resolve_staged_report_style(
+        self,
+        field_name: str,
+        style_id: int | None,
+    ) -> "ReportCardStyle | None":
+        if not style_id:
+            return None
+        if field_name in self._state.fields_cache:
+            style = self._state.fields_cache[field_name]
+        elif field_name in self.__dict__:
+            style = self.__dict__[field_name]
+        else:
+            return None
+        if style is None or getattr(style, "pk", None) != style_id:
+            return None
+        if not getattr(style, "is_active", False):
+            return None
+        self._state.fields_cache[field_name] = style
+        return style
+
     @property
     def active_theme(self) -> "ThemePack | None":
         theme_pack_model = get_theme_pack_owner_model()
         selection_ids = self.get_theme_selection_ids()
         theme_pack_id = selection_ids.get("theme_pack_id")
+        staged_theme_pack = self._resolve_staged_theme_pack(
+            "theme_pack",
+            theme_pack_id,
+        )
+        if staged_theme_pack:
+            return staged_theme_pack
         if theme_pack_id:
             try:
                 selected = theme_pack_model.objects.filter(pk=theme_pack_id).first()
             except (OperationalError, DatabaseError):
                 return None
-            if selected:
+            if selected and getattr(selected, "is_active", False):
                 self._state.fields_cache["theme_pack"] = selected
                 return selected
             self._sanitize_foreign_keys(persist=True)
@@ -1366,14 +1589,48 @@ class SiteSettings(models.Model):
         except (OperationalError, DatabaseError):
             return None
 
+    def _resolve_staged_theme_pack(
+        self,
+        field_name: str,
+        theme_pack_id: int | None,
+        *,
+        applies_to_admin: bool = False,
+    ) -> "ThemePack | None":
+        if not theme_pack_id:
+            return None
+        if field_name in self._state.fields_cache:
+            pack = self._state.fields_cache[field_name]
+        elif field_name in self.__dict__:
+            pack = self.__dict__[field_name]
+        else:
+            return None
+        if pack is None or getattr(pack, "pk", None) != theme_pack_id:
+            return None
+        if not getattr(pack, "is_active", False):
+            return None
+        if applies_to_admin and not getattr(pack, "applies_to_admin", False):
+            return None
+        self._state.fields_cache[field_name] = pack
+        return pack
+
     def apply_theme_pack(self, pack: "ThemePack", save: bool = True) -> None:
+        self.theme_pack = pack
+        self.theme_pack_id = getattr(pack, "pk", None)
+        self.primary_color = pack.primary_color
+        self.accent_color = pack.accent_color
+        self.custom_css = pack.custom_css or ""
+        self.brand_font = pack.font_family or getattr(
+            self, "brand_font", "Inter, system-ui, sans-serif"
+        )
+        self._state.fields_cache["theme_pack"] = pack
+        if not save:
+            return
         self._persist_runtime_payload_updates(
             {
-                "primary_color": pack.primary_color,
-                "accent_color": pack.accent_color,
-                "custom_css": pack.custom_css or "",
-                "brand_font": pack.font_family
-                or getattr(self, "brand_font", "Inter, system-ui, sans-serif"),
+                "primary_color": self.primary_color,
+                "accent_color": self.accent_color,
+                "custom_css": self.custom_css,
+                "brand_font": self.brand_font,
             }
         )
         try:
@@ -1456,6 +1713,10 @@ class SiteSettings(models.Model):
             if field_name not in allowed_fields:
                 continue
             if field_name in _pgb_fields:
+                setattr(self, field_name, value)
+                setattr(self, f"{field_name}_id", getattr(value, "pk", None))
+                if not save:
+                    continue
                 try:
                     from apps.brand_experience.platform_global_branding import (
                         PlatformGlobalBranding,
@@ -1478,13 +1739,17 @@ class SiteSettings(models.Model):
                 setattr(self, field_name, value)
                 update_fields.append(field_name)
             else:
-                payload_updates[field_name] = value
-        if payload_updates:
+                setattr(self, field_name, value)
+                if save:
+                    payload_updates[field_name] = value
+        if payload_updates and save:
             self._persist_runtime_payload_updates(payload_updates)
         if pgb is not None and save:
             pgb.save()
         if save and update_fields:
             self.save(update_fields=update_fields)
+        elif save and getattr(self, "pk", None) and (payload_updates or pgb is not None):
+            self.save(update_fields=["updated_at"])
 
     @property
     def active_social_links(self) -> list[dict]:
@@ -1503,6 +1768,13 @@ class SiteSettings(models.Model):
         theme_pack_model = get_theme_pack_owner_model()
         selection_ids = self.get_theme_selection_ids()
         admin_theme_pack_id = selection_ids.get("admin_theme_pack_id")
+        staged_admin_pack = self._resolve_staged_theme_pack(
+            "admin_theme_pack",
+            admin_theme_pack_id,
+            applies_to_admin=True,
+        )
+        if staged_admin_pack:
+            return staged_admin_pack
         if admin_theme_pack_id:
             try:
                 admin_pack = theme_pack_model.objects.filter(
@@ -1518,6 +1790,13 @@ class SiteSettings(models.Model):
 
         site_pack = None
         site_theme_pack_id = selection_ids.get("theme_pack_id")
+        staged_site_pack = self._resolve_staged_theme_pack(
+            "theme_pack",
+            site_theme_pack_id,
+            applies_to_admin=True,
+        )
+        if staged_site_pack:
+            return staged_site_pack
         if site_theme_pack_id:
             try:
                 site_pack = theme_pack_model.objects.filter(
@@ -1553,17 +1832,20 @@ class SiteSettings(models.Model):
         If effective_role is TEACHER and teacher_theme_pack is set, use it; if PARENT and
         parent_theme_pack is set, use it; otherwise use active_theme (portal theme pack).
         """
-        role = (
-            (effective_role or "").strip().upper()
-            or (getattr(user, "role", "") or "").strip().upper()
-            if user and getattr(user, "is_authenticated", False)
-            else ""
-        )
+        role = (effective_role or "").strip().upper()
+        if not role and user and getattr(user, "is_authenticated", False):
+            role = (getattr(user, "role", "") or "").strip().upper()
         theme_pack_model = get_theme_pack_owner_model()
         selection_ids = self.get_theme_selection_ids()
         teacher_theme_pack_id = selection_ids.get("teacher_theme_pack_id")
         parent_theme_pack_id = selection_ids.get("parent_theme_pack_id")
         if role == "TEACHER" and teacher_theme_pack_id:
+            staged_teacher_pack = self._resolve_staged_theme_pack(
+                "teacher_theme_pack",
+                teacher_theme_pack_id,
+            )
+            if staged_teacher_pack:
+                return staged_teacher_pack
             try:
                 pack = theme_pack_model.objects.filter(
                     pk=teacher_theme_pack_id, is_active=True
@@ -1573,6 +1855,12 @@ class SiteSettings(models.Model):
             except (OperationalError, DatabaseError):
                 pass
         if role == "PARENT" and parent_theme_pack_id:
+            staged_parent_pack = self._resolve_staged_theme_pack(
+                "parent_theme_pack",
+                parent_theme_pack_id,
+            )
+            if staged_parent_pack:
+                return staged_parent_pack
             try:
                 pack = theme_pack_model.objects.filter(
                     pk=parent_theme_pack_id, is_active=True

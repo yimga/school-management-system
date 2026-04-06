@@ -158,14 +158,32 @@ class AIChatConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"error": "message required"}))
             return
         from asgiref.sync import sync_to_async
+        from apps.portal.ai_provider import _normalize_gateway_metadata
         from services.ai_gateway import invoke
 
-        school = getattr(self.scope.get("request", None), "school", None) or getattr(
-            self.user, "school", None
+        request = self.scope.get("request", None)
+        school = getattr(request, "school", None) or getattr(self.user, "school", None)
+        user_id = getattr(self.user, "pk", None) or getattr(self.user, "id", None)
+        school_pk = None
+        if school is not None:
+            school_pk = getattr(school, "pk", None) or getattr(school, "id", None)
+        school_id = (
+            str(school_pk)
+            if school_pk is not None
+            else (
+                str(getattr(self.user, "school_id", None))
+                if getattr(self.user, "school_id", None)
+                else None
+            )
         )
-        country_code = payload.get("country_code") or (
+        country_code = payload.get("country_code") or getattr(school, "country_code", None) or (
             getattr(school, "default_region", None)
             and getattr(school.default_region, "code", None)
+        )
+        role = (
+            getattr(self.user, "role", None)
+            or getattr(self.user, "portal_role", None)
+            or getattr(self.user, "user_type", None)
         )
         prompt = (
             "You are a helpful assistant for the school platform. Answer concisely.\n\nUser: "
@@ -177,31 +195,50 @@ class AIChatConsumer(AsyncWebsocketConsumer):
                 "general_chat",
                 prompt,
                 user_query=message,
-                metadata={
-                    "request": getattr(self.scope, "request", None),
-                    "school": school,
-                    "country_code": country_code,
-                },
+                metadata=_normalize_gateway_metadata(
+                    {
+                        "request": request,
+                        "school": school,
+                        "school_id": school_id,
+                        "tenant_id": school_id,
+                        "user_id": str(user_id) if user_id is not None else None,
+                        "country_code": country_code,
+                        "role": role,
+                    }
+                ),
             )
+            error = None
+            if meta.get("prompt_injection_blocked"):
+                error = "Request rejected by safety policy. Please rephrase as a normal school-operation question."
+            elif meta.get("budget_exceeded"):
+                error = "AI request budget exceeded for this tenant."
+            elif meta.get("provider") == "none":
+                error = (
+                    result
+                    if isinstance(result, str) and result.strip()
+                    else meta.get("error", "unavailable")
+                )
             text = (
                 result
-                if isinstance(result, str)
-                else (str(result) if result is not None else None)
+                if isinstance(result, str) and not error
+                else (str(result) if result is not None and not error else None)
             )
-            return text, meta
+            return text, meta, error
 
         try:
-            text, meta = await sync_to_async(_gateway_infer)()
+            text, meta, error = await sync_to_async(_gateway_infer)()
         except (TypeError, ValueError, RuntimeError, OSError):
             await self.send(
                 text_data=json.dumps({"reply": "", "error": "unavailable"})
             )
             return
-        if text is None:
+        if error:
             await self.send(
-                text_data=json.dumps(
-                    {"reply": "", "error": meta.get("error", "unavailable")}
-                )
+                text_data=json.dumps({"reply": "", "error": error})
+            )
+        elif text is None:
+            await self.send(
+                text_data=json.dumps({"reply": "", "error": meta.get("error", "unavailable")})
             )
         else:
             await self.send(text_data=json.dumps({"reply": text, "meta": meta}))

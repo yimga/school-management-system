@@ -8,21 +8,54 @@ Run after Studio OS changes:
   python scripts/verify_cursor_phase5_studio_os.py
 
 Exit 0 = structural + redirect + reverse checks pass (same bar a second audit would use for repo evidence).
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 AUDIT = ROOT / "docs" / "phase_audit" / "PHASE_05_STUDIO_OS_AUDIT.md"
 SITECONFIG_URLS = ROOT / "apps" / "siteconfig" / "urls.py"
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify Cursor Phase 5 Studio OS consolidation."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT
+    global AUDIT
+    global SITECONFIG_URLS
+
+    ROOT = base
+    AUDIT = ROOT / "docs" / "phase_audit" / "PHASE_05_STUDIO_OS_AUDIT.md"
+    SITECONFIG_URLS = ROOT / "apps" / "siteconfig" / "urls.py"
+
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
 
 
 def _django_setup() -> None:
@@ -58,7 +91,14 @@ def _urlconf_admin_customizer_before_admin(urlconf_path: Path, label: str) -> st
     return None
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    try:
+        _configure_root(_resolve_base(parse_args(argv).base))
+    except ValueError as exc:
+        print("verify_cursor_phase5_studio_os: FAIL", file=sys.stderr)
+        print(f"  - {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
     if not AUDIT.is_file():
@@ -101,7 +141,7 @@ def main() -> int:
     client = Client()
 
     def expect_redirect(path: str, expected_path: str) -> None:
-        r = client.get(path, follow=False)
+        r = client.get(path, follow=False, secure=True)
         if r.status_code not in (301, 302):
             errors.append(f"GET {path}: expected 301/302, got {r.status_code}")
             return
@@ -152,4 +192,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

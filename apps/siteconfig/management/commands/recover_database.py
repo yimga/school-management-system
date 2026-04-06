@@ -10,7 +10,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import DatabaseError
 
 from apps.platform_runtime.structured_logging import log_exception_with_context
@@ -46,6 +46,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         db_path = Path(settings.DATABASES["default"]["NAME"])
+        check_only = options["check_only"]
 
         # Check if using SQLite
         if settings.DATABASES["default"]["ENGINE"] != "django.db.backends.sqlite3":
@@ -59,6 +60,8 @@ class Command(BaseCommand):
 
         if not db_path.exists():
             self.stdout.write(self.style.WARNING(f"Database file not found: {db_path}"))
+            if check_only:
+                raise CommandError(f"Database file not found: {db_path}")
             self.stdout.write("Creating new database...")
             call_command("migrate", verbosity=0)
             self.stdout.write(self.style.SUCCESS("Database created successfully!"))
@@ -71,20 +74,18 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS("[OK] Database integrity check passed!")
             )
-            if options["check_only"]:
+            if check_only:
                 return
         elif result is not None:
-            self.stdout.write(
-                self.style.ERROR(f"[ERROR] Database is corrupted: {result}")
-            )
+            message = f"[ERROR] Database is corrupted: {result}"
+            self.stdout.write(self.style.ERROR(message))
+            if check_only:
+                raise CommandError(message)
         else:
-            self.stdout.write(
-                self.style.ERROR(
-                    "[ERROR] Cannot check database (I/O or connection error)"
-                )
-            )
-            if options["check_only"]:
-                return
+            message = "[ERROR] Cannot check database (I/O or connection error)"
+            self.stdout.write(self.style.ERROR(message))
+            if check_only:
+                raise CommandError(message)
 
         # Backup if requested
         if options["backup"] or options["recreate"]:

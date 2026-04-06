@@ -9,6 +9,8 @@ Production code under apps/ must not use ``SiteSettings.objects.*`` except:
 Skipped trees: migrations, tests, __pycache__, management/commands (ops/bootstrap).
 
 Exit 0 = no violations; non-zero = fix or use get_platform_site_settings_record(create=...).
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
@@ -17,6 +19,8 @@ import argparse
 import re
 import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
 
 PATTERN = re.compile(r"SiteSettings\.objects\.")
 
@@ -52,16 +56,29 @@ def _iter_py_files(apps_root: Path):
         yield path
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--base",
-        type=Path,
-        default=None,
-        help="Repository root (default: parent of scripts/)",
+        default=str(ROOT),
+        help="Repository root to inspect (defaults to this repository root).",
     )
-    args = parser.parse_args()
-    root = (args.base or Path(__file__).resolve().parent.parent).resolve()
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    root = Path(raw_base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return root
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        root = _resolve_base(parse_args(argv).base)
+    except ValueError as exc:
+        print(f"lint_sitesettings_orm_singleton: {exc}", file=sys.stderr)
+        return 1
     apps_root = root / "apps"
     allowlist = _allowlist(apps_root)
 
@@ -101,4 +118,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

@@ -1,18 +1,32 @@
 #!/usr/bin/env python3
 """
 Validate Wedge 1–6 world-class implementation (no Django DB required).
-Run: python scripts/validate_wedge_world_class.py
+
+Run: python scripts/validate_wedge_world_class.py [--base REPO_ROOT]
+
 Exit 0 if all checks pass; exit 1 and print failures otherwise.
 """
 
+from __future__ import annotations
+
+import argparse
+import os
+import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-TEMPLATES = REPO_ROOT / "templates"
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 
 
-def main():
-    failures = []
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def _run_checks(repo_root: Path) -> list[str]:
+    failures: list[str] = []
+    templates = repo_root / "templates"
 
     # 1. Wedge templates exist
     wedge_templates = [
@@ -24,11 +38,11 @@ def main():
         "schools/super_he_pack.html",
     ]
     for rel in wedge_templates:
-        if not (REPO_ROOT / "templates" / rel).exists():
+        if not (templates / rel).exists():
             failures.append(f"Missing template: templates/{rel}")
 
     # 2. Trust center has world-class cards
-    trust_path = TEMPLATES / "schools" / "super_trust_center.html"
+    trust_path = templates / "schools" / "super_trust_center.html"
     if not trust_path.exists():
         failures.append("Missing templates/schools/super_trust_center.html")
     else:
@@ -39,13 +53,11 @@ def main():
 
     # 3. Region packs: AUS, NZL, and Wedges 7–13 (WAEC, AFR_FR, ASIA, CAN, LATAM_ES, MENA)
     try:
-        import os
-        import sys
         import django
 
-        os.chdir(REPO_ROOT)
-        if str(REPO_ROOT) not in sys.path:
-            sys.path.insert(0, str(REPO_ROOT))
+        os.chdir(repo_root)
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
         django.setup()
         from apps.siteconfig.tenant_config import (
@@ -72,7 +84,7 @@ def main():
         failures.append(f"Could not validate REGIONAL_POLICY_PACKS: {e}")
 
     # 4. Nav references (control_plane_nav.py)
-    nav_path = REPO_ROOT / "apps" / "schools" / "control_plane_nav.py"
+    nav_path = repo_root / "apps" / "schools" / "control_plane_nav.py"
     if nav_path.exists():
         nav_text = nav_path.read_text(encoding="utf-8", errors="replace")
         if (
@@ -91,7 +103,7 @@ def main():
         failures.append("Missing apps/schools/control_plane_nav.py")
 
     # 5. Wedge views and URLs
-    wedge_py = REPO_ROOT / "apps" / "schools" / "super_views_wedge.py"
+    wedge_py = repo_root / "apps" / "schools" / "super_views_wedge.py"
     if not wedge_py.exists():
         failures.append("Missing apps/schools/super_views_wedge.py")
     else:
@@ -106,7 +118,7 @@ def main():
             if name not in wtext:
                 failures.append(f"super_views_wedge.py missing view: {name}")
 
-    urls_py = REPO_ROOT / "apps" / "schools" / "super_urls.py"
+    urls_py = repo_root / "apps" / "schools" / "super_urls.py"
     if urls_py.exists():
         utext = urls_py.read_text(encoding="utf-8", errors="replace")
         if (
@@ -118,6 +130,30 @@ def main():
     else:
         failures.append("Missing apps/schools/super_urls.py")
 
+    return failures
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Validate wedge 1–6 world-class implementation (static + Django config reads).",
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        repo_root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"validate_wedge_world_class: {exc}", file=sys.stderr)
+        return 1
+
+    failures = _run_checks(repo_root)
     if failures:
         print("Wedge world-class validation FAILED:")
         for f in failures:
@@ -130,4 +166,4 @@ def main():
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

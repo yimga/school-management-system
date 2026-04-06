@@ -1,4 +1,4 @@
-"""Runtime truth hub: super-only read-only RuntimeDefaults + slim SiteSettings summary."""
+"""Runtime truth hub: super-only read-only RuntimeDefaults + slim tenant site-settings summary."""
 
 import hashlib
 

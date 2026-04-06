@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
-"""Phase H depth gate: skip-link href targets must exist across platform shells (v2: expanded; 29 shells)."""
+"""Phase H depth gate: skip-link href targets must exist across platform shells (v2: expanded; 29 shells).
+
+``--base`` resolves all template paths under the given repository root (default: this repository root).
+
+Run: ``raise SystemExit(main(None))``.
+"""
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent.parent
 
 # (template with skip-link href, fragment id, optional template where id lives if not in first file)
 TARGET_SPECS: tuple[tuple[str, str, str | None], ...] = (
@@ -123,30 +129,56 @@ TARGET_SPECS: tuple[tuple[str, str, str | None], ...] = (
 )
 
 
-def _read(rel: str) -> str:
-    return (ROOT / rel).read_text(encoding="utf-8", errors="replace")
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Phase H: verify skip-link href targets exist across platform shells."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root to inspect (default: this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _read(root: Path, rel: str) -> str:
+    return (root / rel).read_text(encoding="utf-8", errors="replace")
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_phase_h_skiplink_targets: {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
 
     for rel, target, id_file in TARGET_SPECS:
-        path = ROOT / rel
+        path = root / rel
         if not path.is_file():
             errors.append(f"Missing required template: {rel}")
             continue
-        text = _read(rel)
+        text = _read(root, rel)
         href_pat = re.compile(r'href=["\']#' + re.escape(target) + r'["\']')
         id_pat = re.compile(r'id=["\']' + re.escape(target) + r'["\']')
         if not href_pat.search(text):
             errors.append(f"{rel}: missing skip-link href '#{target}'")
         search_paths = [text]
         if id_file:
-            ip = ROOT / id_file
+            ip = root / id_file
             if not ip.is_file():
                 errors.append(f"{rel}: companion for target id missing: {id_file}")
             else:
-                search_paths.append(_read(id_file))
+                search_paths.append(_read(root, id_file))
         if any(id_pat.search(blob) for blob in search_paths):
             continue
         companion = f" (+ {id_file})" if id_file else ""
@@ -166,4 +198,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

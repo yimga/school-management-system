@@ -18,12 +18,43 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_ROOT = Path(__file__).resolve().parents[1]
+ROOT = DEFAULT_ROOT
 TEMPLATES = ROOT / "templates"
 
 URL_TAG_RE = re.compile(
     r"{%\s*url\s+['\"]([a-zA-Z0-9_:]+)['\"]\s*%}", re.MULTILINE
 )
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root to inspect (default: directory containing this script's parent).",
+    )
+    parser.add_argument(
+        "--urlconf",
+        action="append",
+        default=[],
+        metavar="MODULE",
+        help="Also try this urlconf (repeatable). Always includes ROOT_URLCONF first.",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT, TEMPLATES
+    ROOT = base
+    TEMPLATES = ROOT / "templates"
 
 
 def collect_url_names() -> set[str]:
@@ -42,16 +73,13 @@ def collect_url_names() -> set[str]:
     return names
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--urlconf",
-        action="append",
-        default=[],
-        metavar="MODULE",
-        help="Also try this urlconf (repeatable). Always includes ROOT_URLCONF first.",
-    )
-    args = parser.parse_args()
+def main(argv: list[str] | None = None) -> int:
+    try:
+        args = parse_args(argv)
+        _configure_root(_resolve_base(args.base))
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
 
     os.chdir(ROOT)
     if str(ROOT) not in sys.path:
@@ -102,4 +130,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

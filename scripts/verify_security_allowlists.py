@@ -19,7 +19,8 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 
 RAW_SQL_REQUIRED = ("expected_count", "reason", "last_reviewed")
 CSRF_REQUIRED = (
@@ -169,17 +170,36 @@ def _check_tracked_root_allowlist(path: Path, max_age: timedelta) -> list[str]:
     return errs
 
 
-def main() -> int:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Verify security allowlist JSON contracts.")
-    parser.add_argument("--base", default=".", help="Repo root")
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
     parser.add_argument(
         "--max-age-days",
         type=int,
         default=730,
         help="Fail if last_reviewed is older than this many days (default: 730).",
     )
-    args = parser.parse_args()
-    base = Path(args.base).resolve()
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        base = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"verify_security_allowlists: FAIL\n  - {exc}", file=sys.stderr)
+        return 1
     max_age = timedelta(days=max(args.max_age_days, 1))
 
     errors: list[str] = []
@@ -215,4 +235,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

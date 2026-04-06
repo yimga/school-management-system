@@ -8,6 +8,10 @@ touch targets ≥44px for interactive elements. This script runs static checks:
 - Optional: scan CSS for button/link min dimensions < 44px (touch target heuristic).
 
 Use --strict to exit 1 when a required check fails. Run after phase_h_audit.
+
+Run (from repo root):
+  python scripts/lint_north_star_a11y.py
+  python scripts/lint_north_star_a11y.py --strict
 """
 
 from __future__ import annotations
@@ -17,7 +21,8 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 STATIC_CSS = ROOT / "static" / "css"
 TEMPLATES = ROOT / "templates"
 
@@ -25,15 +30,22 @@ TEMPLATES = ROOT / "templates"
 TOUCH_TARGET_MIN_PX = 44
 
 
-def check_accessibility_css_in_bases(failures: list[str]) -> None:
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def check_accessibility_css_in_bases(root: Path, failures: list[str]) -> None:
     """Ensure base shells reference accessibility.css."""
     bases = [
-        ("base.html", TEMPLATES / "base.html"),
-        ("control_plane_skeleton.html", TEMPLATES / "control_plane_skeleton.html"),
-        ("portal_base.html", TEMPLATES / "portal_base.html"),
+        ("base.html", root / "templates" / "base.html"),
+        ("control_plane_skeleton.html", root / "templates" / "control_plane_skeleton.html"),
+        ("portal_base.html", root / "templates" / "portal_base.html"),
         (
             "marketing/base_marketing.html",
-            TEMPLATES / "marketing" / "base_marketing.html",
+            root / "templates" / "marketing" / "base_marketing.html",
         ),
     ]
     for name, path in bases:
@@ -70,16 +82,30 @@ def scan_touch_targets_css(css_dir: Path, min_px: int) -> list[tuple[Path, int, 
     return hits
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="North star N3/N4: a11y and touch targets")
+    ap.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
     ap.add_argument("--strict", action="store_true", help="Exit 1 on any failure")
     ap.add_argument(
         "--touch", action="store_true", help="Scan CSS for touch target heuristics"
     )
-    args = ap.parse_args()
+    return ap.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"lint_north_star_a11y: {exc}", file=sys.stderr)
+        return 1
 
     failures: list[str] = []
-    check_accessibility_css_in_bases(failures)
+    check_accessibility_css_in_bases(root, failures)
 
     if failures:
         for f in failures:
@@ -88,9 +114,9 @@ def main() -> int:
             return 1
 
     if args.touch:
-        hits = scan_touch_targets_css(STATIC_CSS, TOUCH_TARGET_MIN_PX)
+        hits = scan_touch_targets_css(root / "static" / "css", TOUCH_TARGET_MIN_PX)
         for path, line_no, msg in hits[:20]:  # cap output
-            rel = path.relative_to(ROOT)
+            rel = path.relative_to(root)
             print(f"{rel}:{line_no}: {msg}")
         if hits and args.strict:
             return 1
@@ -103,4 +129,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main(None))

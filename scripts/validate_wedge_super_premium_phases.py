@@ -9,10 +9,10 @@ Phases (10 wedges each, wedges 1–45):
   Phase 4: wedges 31–40 — ministry stubs + group_campuses + proof partial in ministry/group templates
   Phase 5: wedges 41–45 — OIDC/SAML modules + federation URL reverses (tenant_urls) + one_sis + trust
 
-Run: python scripts/validate_wedge_super_premium_phases.py [--phase N|all]
+Run: python scripts/validate_wedge_super_premium_phases.py [--base REPO_ROOT] [--phase N|all]
 
 Exit 0 if all requested phases pass; exit 1 otherwise.
-Phase 1 also runs scripts/validate_wedge_world_class.py.
+Phase 1 also runs scripts/validate_wedge_world_class.py with matching --base.
 """
 
 from __future__ import annotations
@@ -23,13 +23,20 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 
 
-def _django():
-    os.chdir(REPO_ROOT)
-    if str(REPO_ROOT) not in sys.path:
-        sys.path.insert(0, str(REPO_ROOT))
+def _resolve_base(base: str) -> Path:
+    root = Path(base).resolve()
+    if not root.is_dir():
+        raise ValueError(f"--base path does not exist or is not a directory: {base}")
+    return root
+
+
+def _django(repo_root: Path) -> None:
+    os.chdir(repo_root)
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
 
@@ -82,25 +89,32 @@ def _reverse_accounts_federation(failures: list[str]) -> None:
                 failures.append(f"Federation URL {name!r} NoReverseMatch: {e}")
 
 
-def _view_module_has_defs(path: Path, required: list[str], failures: list[str]) -> None:
+def _view_module_has_defs(
+    path: Path, required: list[str], failures: list[str], repo_root: Path
+) -> None:
     text = path.read_text(encoding="utf-8", errors="replace")
     for fn in required:
         if f"def {fn}" not in text:
-            failures.append(f"{path.relative_to(REPO_ROOT)} missing def {fn}()")
+            failures.append(f"{path.relative_to(repo_root)} missing def {fn}()")
 
 
-def _files_exist(paths: list[Path], failures: list[str]) -> None:
+def _files_exist(paths: list[Path], failures: list[str], repo_root: Path) -> None:
     for p in paths:
         if not p.exists():
-            failures.append(f"Missing file: {p.relative_to(REPO_ROOT)}")
+            failures.append(f"Missing file: {p.relative_to(repo_root)}")
 
 
-def validate_phase(phase: int, failures: list[str]) -> None:
+def validate_phase(phase: int, failures: list[str], repo_root: Path) -> None:
     if phase == 1:
         # Reuse world-class script (templates, nav, AUS/NZL, views)
         r = subprocess.run(
-            [sys.executable, str(REPO_ROOT / "scripts" / "validate_wedge_world_class.py")],
-            cwd=REPO_ROOT,
+            [
+                sys.executable,
+                str(repo_root / "scripts" / "validate_wedge_world_class.py"),
+                "--base",
+                str(repo_root),
+            ],
+            cwd=repo_root,
             capture_output=True,
             text=True,
         )
@@ -108,7 +122,7 @@ def validate_phase(phase: int, failures: list[str]) -> None:
             failures.append(
                 "validate_wedge_world_class.py failed:\n" + (r.stdout or "") + (r.stderr or "")
             )
-        _django()
+        _django(repo_root)
         # Wedges 7–10 geography: Africa (WAEC, AFR_FR), Asia (ASIA), Europe (GBR, EU), North America (US, CAN)
         _packs_exist(
             ["WAEC", "AFR_FR", "ASIA", "GBR", "EU", "US", "CAN"],
@@ -127,28 +141,35 @@ def validate_phase(phase: int, failures: list[str]) -> None:
         )
         _files_exist(
             [
-                REPO_ROOT / "templates" / "schools" / "partials" / "wedge_super_premium_proof.html",
+                repo_root
+                / "templates"
+                / "schools"
+                / "partials"
+                / "wedge_super_premium_proof.html",
             ],
             failures,
+            repo_root,
         )
         return
 
     if phase == 2:
-        _django()
+        _django(repo_root)
         _packs_exist(["BRA", "LATAM_ES", "AUS", "NZL", "MENA"], failures)
         _reverse_urls(["super:education_systems", "super:geography"], failures)
         return
 
     if phase == 3:
-        _django()
+        _django(repo_root)
         _reverse_urls(
             ["super:learning_delivery_packs", "super:learning_institution_catalog_json"],
             failures,
         )
-        cat = REPO_ROOT / "apps" / "platform_runtime" / "learning_institution_catalog.py"
-        runtime = REPO_ROOT / "apps" / "platform_runtime" / "learning_institution_runtime.py"
-        _files_exist([cat, runtime], failures)
-        wedge_py = REPO_ROOT / "apps" / "schools" / "super_views_wedge.py"
+        cat = repo_root / "apps" / "platform_runtime" / "learning_institution_catalog.py"
+        runtime = (
+            repo_root / "apps" / "platform_runtime" / "learning_institution_runtime.py"
+        )
+        _files_exist([cat, runtime], failures, repo_root)
+        wedge_py = repo_root / "apps" / "schools" / "super_views_wedge.py"
         if wedge_py.exists():
             wtxt = wedge_py.read_text(encoding="utf-8", errors="replace")
             for sym in (
@@ -162,7 +183,7 @@ def validate_phase(phase: int, failures: list[str]) -> None:
         return
 
     if phase == 4:
-        _django()
+        _django(repo_root)
         _reverse_urls(
             [
                 "super:ministry_report_stubs",
@@ -172,11 +193,17 @@ def validate_phase(phase: int, failures: list[str]) -> None:
             ],
             failures,
         )
-        stub = REPO_ROOT / "templates" / "schools" / "super_ministry_report_stubs.html"
-        grp = REPO_ROOT / "templates" / "schools" / "super_group_campuses.html"
-        dist = REPO_ROOT / "templates" / "schools" / "super_district_enterprise.html"
-        partial = REPO_ROOT / "templates" / "schools" / "partials" / "wedge_super_premium_proof.html"
-        _files_exist([stub, grp, dist, partial], failures)
+        stub = repo_root / "templates" / "schools" / "super_ministry_report_stubs.html"
+        grp = repo_root / "templates" / "schools" / "super_group_campuses.html"
+        dist = repo_root / "templates" / "schools" / "super_district_enterprise.html"
+        partial = (
+            repo_root
+            / "templates"
+            / "schools"
+            / "partials"
+            / "wedge_super_premium_proof.html"
+        )
+        _files_exist([stub, grp, dist, partial], failures, repo_root)
         for path, needle in (
             (stub, "wedge_super_premium_proof"),
             (grp, "wedge_super_premium_proof"),
@@ -186,25 +213,27 @@ def validate_phase(phase: int, failures: list[str]) -> None:
                 t = path.read_text(encoding="utf-8", errors="replace")
                 if needle not in t:
                     failures.append(
-                        f"{path.relative_to(REPO_ROOT)} must include {needle!r} (§0.2.1.5 proof bar)"
+                        f"{path.relative_to(repo_root)} must include {needle!r} (§0.2.1.5 proof bar)"
                     )
         return
 
     if phase == 5:
-        oidc = REPO_ROOT / "apps" / "accounts" / "views_oidc.py"
-        saml = REPO_ROOT / "apps" / "accounts" / "views_saml.py"
-        _files_exist([oidc, saml], failures)
+        oidc = repo_root / "apps" / "accounts" / "views_oidc.py"
+        saml = repo_root / "apps" / "accounts" / "views_saml.py"
+        _files_exist([oidc, saml], failures, repo_root)
         _view_module_has_defs(
             oidc,
             ["oidc_start", "oidc_callback", "oidc_logout"],
             failures,
+            repo_root,
         )
         _view_module_has_defs(
             saml,
             ["saml_start", "saml_acs", "saml_metadata"],
             failures,
+            repo_root,
         )
-        _django()
+        _django(repo_root)
         _reverse_accounts_federation(failures)
         _reverse_urls(["super:one_sis_any_lms", "super:trust_center"], failures)
         return
@@ -212,14 +241,28 @@ def validate_phase(phase: int, failures: list[str]) -> None:
     failures.append(f"Unknown phase: {phase}")
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Validate wedge super-premium phases.")
+    p.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root (default: directory containing this script's parent).",
+    )
     p.add_argument(
         "--phase",
         default="all",
         help="Phase 1–5 or 'all' (default: all)",
     )
-    args = p.parse_args()
+    return p.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        repo_root = _resolve_base(args.base)
+    except ValueError as exc:
+        print(f"validate_wedge_super_premium_phases: {exc}", file=sys.stderr)
+        return 1
     failures: list[str] = []
     if args.phase == "all":
         phases = [1, 2, 3, 4, 5]
@@ -234,7 +277,7 @@ def main() -> int:
             return 1
 
     for ph in phases:
-        validate_phase(ph, failures)
+        validate_phase(ph, failures, repo_root)
 
     if failures:
         print("validate_wedge_super_premium_phases FAILED:")
@@ -250,4 +293,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

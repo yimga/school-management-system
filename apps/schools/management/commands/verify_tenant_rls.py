@@ -6,7 +6,8 @@ Use after deployment to PostgreSQL to confirm tenant isolation is active.
 On SQLite/MySQL the command exits with OK and a note that RLS is N/A.
 """
 
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
 from apps.schools.repositories.rls_repository import get_tenant_rls_status
@@ -64,6 +65,14 @@ class Command(BaseCommand):
                 )
             )
             return
+        if getattr(settings, "USE_DJANGO_TENANTS", False):
+            self.stdout.write(
+                self.style.WARNING(
+                    "RLS is not used when USE_DJANGO_TENANTS=True. "
+                    "Schema-per-tenant isolation is active. Skipping check."
+                )
+            )
+            return
         rows = get_tenant_rls_status(TENANT_RLS_TABLES)
         missing = []
         disabled = []
@@ -87,14 +96,13 @@ class Command(BaseCommand):
                     )
                 )
         if disabled or missing:
-            self.stdout.write("")
-            self.stdout.write(
-                self.style.ERROR(
-                    "Verify tenant RLS: FAILED (%s disabled, %s missing)"
-                    % (len(disabled), len(missing))
-                )
+            message = "Verify tenant RLS: FAILED (%s disabled, %s missing)" % (
+                len(disabled),
+                len(missing),
             )
-            return
+            self.stdout.write("")
+            self.stdout.write(self.style.ERROR(message))
+            raise CommandError(message)
         self.stdout.write(
             self.style.SUCCESS("Verify tenant RLS: OK (%s tables)" % len(ok))
         )

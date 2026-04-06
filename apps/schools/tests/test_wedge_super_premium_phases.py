@@ -30,7 +30,14 @@ TEMPLATES_WITH_PROOF = [
 class WedgeSuperPremiumPhasesTests(SimpleTestCase):
     def test_validate_wedge_super_premium_phases_script_passes(self):
         r = subprocess.run(
-            [sys.executable, str(ROOT / "scripts" / "validate_wedge_super_premium_phases.py"), "--phase", "all"],
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "validate_wedge_super_premium_phases.py"),
+                "--base",
+                str(ROOT),
+                "--phase",
+                "all",
+            ],
             cwd=str(ROOT),
             capture_output=True,
             text=True,

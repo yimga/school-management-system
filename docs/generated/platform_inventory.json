@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
-    "allow_any": 81,
-    "csrf_exempt": 174,
-    "cursor_execute": 366,
-    "except_exception": 263,
-    "get_solo": 196,
-    "gilead": 974,
-    "gilead_files": 150,
+    "allow_any": 80,
+    "csrf_exempt": 162,
+    "cursor_execute": 354,
+    "except_exception": 254,
+    "get_solo": 195,
+    "gilead": 1043,
+    "gilead_files": 145,
     "html_files": 649,
     "management_commands": 157,
-    "markdown_files": 1032,
+    "markdown_files": 1027,
     "migration_files": 703,
-    "print_calls": 815,
-    "python_files": 2421,
-    "site_settings": 1372
+    "print_calls": 915,
+    "python_files": 2420,
+    "site_settings": 1452
   },
   "doc_drift": {
     "actual_installed_app_count": 42,
@@ -58,8 +58,8 @@
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 93328,
-      "lines": 2495,
+      "bytes": 93445,
+      "lines": 2500,
       "path": "apps/siteconfig/views.py"
     },
     {
@@ -73,14 +73,14 @@
       "path": "apps/finance/tasks.py"
     },
     {
-      "bytes": 71556,
-      "lines": 1936,
-      "path": "apps/portal/views_ai_gateway.py"
+      "bytes": 77825,
+      "lines": 2013,
+      "path": "apps/siteconfig/models.py"
     },
     {
-      "bytes": 70388,
-      "lines": 1556,
-      "path": "config/settings.py"
+      "bytes": 72873,
+      "lines": 1806,
+      "path": "apps/platform_runtime/tests/test_tenant_settings_lint.py"
     }
   ],
   "management_commands_list": [
@@ -900,11 +900,11 @@
   },
   "scoped_gravity_counts": {
     "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
-    "cursor_execute_apps_config_py_excl_migrations": 26,
+    "cursor_execute_apps_config_py_excl_migrations": 16,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 720,
-    "site_settings_refs_apps_py_excl_migrations": 59,
+    "print_calls_scripts_py": 821,
+    "site_settings_refs_apps_py_excl_migrations": 1,
     "site_settings_refs_apps_py_excl_migrations_tests": 1
   },
   "site_settings_fields": [

@@ -590,6 +590,12 @@ class SiteSettingsForm(forms.ModelForm):
             self.fields["compliance_profile"].choices += [
                 (profile_id, name) for profile_id, name in profiles
             ]
+            if current_profile_id and current_profile_id not in {
+                profile_id for profile_id, _name in profiles
+            }:
+                self.fields["compliance_profile"].choices.append(
+                    (current_profile_id, f"Profile #{current_profile_id}")
+                )
         except (ImportError, OperationalError, ProgrammingError):
             if current_profile_id:
                 self.fields["compliance_profile"].choices.append(
@@ -602,18 +608,18 @@ class SiteSettingsForm(forms.ModelForm):
             and callable(getattr(self.instance, "get_feature_control_settings", None))
             else {}
         )
-        portal_features = feature_settings.get("portal_features") or {}
-        if portal_features:
+        portal_features = feature_settings.get("portal_features")
+        if portal_features is None:
             enabled = [
                 key
                 for key, _ in PORTAL_FEATURE_OPTIONS
-                if portal_features.get(key, False)
+                if PORTAL_FEATURE_DEFAULTS.get(key)
             ]
         else:
             enabled = [
                 key
                 for key, _ in PORTAL_FEATURE_OPTIONS
-                if PORTAL_FEATURE_DEFAULTS.get(key)
+                if portal_features.get(key, False)
             ]
         self.fields["portal_features"].initial = enabled
         self.fields["notification_channels"].initial = (
@@ -677,14 +683,61 @@ class SiteSettingsForm(forms.ModelForm):
         return cleaned
 
     def save(self, commit=True):
-        pack = self.cleaned_data.get("theme_pack")
+        theme_pack_provided = "theme_pack" in self.cleaned_data
+        pack = self.cleaned_data.get("theme_pack") if theme_pack_provided else None
         instance = super().save(commit=False)
-        instance.social_links = self.cleaned_data.get("social_links") or []
-        instance.compliance_profile_id = self.cleaned_data.get("compliance_profile")
-        if pack:
-            instance.apply_theme_pack(pack, save=False)
+        if "social_links" in self.cleaned_data:
+            instance.social_links = self.cleaned_data.get("social_links") or []
+        if "portal_features" in self.cleaned_data:
+            instance.portal_features = self.cleaned_data.get("portal_features") or {}
+        if "notification_channels" in self.cleaned_data:
+            instance.notification_channels = (
+                self.cleaned_data.get("notification_channels") or []
+            )
         if commit:
+            if "compliance_profile" in self.cleaned_data:
+                instance.compliance_profile = self.cleaned_data.get(
+                    "compliance_profile"
+                )
+            if theme_pack_provided and pack:
+                instance.apply_theme_pack(pack, save=True)
+            elif theme_pack_provided and callable(
+                getattr(instance, "apply_theme_experience_state", None)
+            ):
+                instance.apply_theme_experience_state(
+                    field_updates={"theme_pack": None},
+                    save=True,
+                )
+            elif theme_pack_provided:
+                instance.theme_pack = None
+                instance.theme_pack_id = None
             instance.save()
+        else:
+            if "compliance_profile" in self.cleaned_data:
+                instance.compliance_profile_id = self.cleaned_data.get(
+                    "compliance_profile"
+                )
+            if theme_pack_provided and pack:
+                instance.theme_pack = pack
+                instance.theme_pack_id = getattr(pack, "pk", None)
+                instance.primary_color = getattr(pack, "primary_color", None)
+                instance.accent_color = getattr(pack, "accent_color", None)
+                instance.custom_css = getattr(pack, "custom_css", "") or ""
+                instance.brand_font = getattr(pack, "font_family", "") or getattr(
+                    instance,
+                    "brand_font",
+                    "Inter, system-ui, sans-serif",
+                )
+            elif theme_pack_provided and callable(
+                getattr(instance, "apply_theme_experience_state", None)
+            ):
+                instance.apply_theme_experience_state(
+                    field_updates={"theme_pack": None},
+                    save=False,
+                )
+            elif theme_pack_provided:
+                instance.theme_pack = None
+                instance.theme_pack_id = None
         return instance
 
 
@@ -1125,6 +1178,7 @@ class ThemeColorsForm(forms.ModelForm):
                 "use_dark_mode",
                 "skip_theme_publish_guard",
                 "admin_use_site_primary",
+                "use_secondary_font_for_headings",
                 "report_downloads_enabled",
             ):
                 self.fields[name] = forms.BooleanField(required=False, widget=w)
@@ -1153,7 +1207,7 @@ class ThemeColorsForm(forms.ModelForm):
                     choices=DashboardView.choices, required=False, widget=w
                 )
             elif name == "default_widgets_per_role":
-                self.fields[name] = forms.CharField(required=False, widget=w)
+                self.fields[name] = forms.JSONField(required=False, widget=w)
             elif name in (
                 "theme_pack",
                 "admin_theme_pack",
@@ -1197,16 +1251,55 @@ class ThemeColorsForm(forms.ModelForm):
             if instance and callable(getattr(instance, "get_theme_selection_ids", None))
             else {}
         )
-        if theme_experience_settings:
+        report_style_selection_ids = (
+            instance.get_report_style_selection_ids()
+            if instance
+            and callable(getattr(instance, "get_report_style_selection_ids", None))
+            else {}
+        )
+        resolved_theme_selection_ids = {
+            field_name: (
+                theme_selection_ids[field_name]
+                if field_name in theme_selection_ids
+                else theme_experience_settings.get(field_name)
+            )
+            for field_name in (
+                "theme_pack_id",
+                "admin_theme_pack_id",
+                "teacher_theme_pack_id",
+                "parent_theme_pack_id",
+            )
+        }
+        resolved_report_style_selection_ids = {
+            field_name: (
+                report_style_selection_ids[field_name]
+                if field_name in report_style_selection_ids
+                else theme_experience_settings.get(field_name)
+            )
+            for field_name in (
+                "default_term_report_style_id",
+                "default_annual_report_style_id",
+            )
+        }
+        if theme_experience_settings or theme_selection_ids or report_style_selection_ids:
             for field_name in THEME_EXPERIENCE_FIELD_NAMES:
                 if field_name not in self.fields:
                     continue
-                if field_name == "default_term_report_style":
-                    self.initial[field_name] = theme_experience_settings.get(
+                if field_name in (
+                    "theme_pack",
+                    "admin_theme_pack",
+                    "teacher_theme_pack",
+                    "parent_theme_pack",
+                ):
+                    self.initial[field_name] = resolved_theme_selection_ids.get(
+                        f"{field_name}_id"
+                    )
+                elif field_name == "default_term_report_style":
+                    self.initial[field_name] = resolved_report_style_selection_ids.get(
                         "default_term_report_style_id"
                     )
                 elif field_name == "default_annual_report_style":
-                    self.initial[field_name] = theme_experience_settings.get(
+                    self.initial[field_name] = resolved_report_style_selection_ids.get(
                         "default_annual_report_style_id"
                     )
                 else:
@@ -1215,7 +1308,7 @@ class ThemeColorsForm(forms.ModelForm):
         theme_qs = ThemePack.objects.filter(is_active=True).order_by(
             "-is_default", "name"
         )
-        selected_theme_pack_id = theme_selection_ids.get("theme_pack_id")
+        selected_theme_pack_id = resolved_theme_selection_ids.get("theme_pack_id")
         if selected_theme_pack_id:
             theme_qs = (
                 ThemePack.objects.filter(
@@ -1229,35 +1322,37 @@ class ThemeColorsForm(forms.ModelForm):
         admin_qs = ThemePack.objects.filter(
             is_active=True, applies_to_admin=True
         ).order_by("-is_default", "name")
-        selected_admin_theme_pack_id = theme_selection_ids.get("admin_theme_pack_id")
+        selected_admin_theme_pack_id = resolved_theme_selection_ids.get(
+            "admin_theme_pack_id"
+        )
         if selected_admin_theme_pack_id:
-            selected_admin = ThemePack.objects.filter(
-                pk=selected_admin_theme_pack_id, applies_to_admin=True
-            ).first()
-            if selected_admin:
-                admin_qs = (
-                    ThemePack.objects.filter(
-                        Q(is_active=True, applies_to_admin=True)
-                        | Q(pk=selected_admin.pk)
-                    )
-                    .order_by("-is_default", "name")
-                    .distinct()
+            admin_qs = (
+                ThemePack.objects.filter(
+                    Q(is_active=True, applies_to_admin=True)
+                    | Q(pk=selected_admin_theme_pack_id)
                 )
+                .order_by("-is_default", "name")
+                .distinct()
+            )
         self.fields["admin_theme_pack"].queryset = admin_qs
 
-        # Per-role portal packs: include current selection if set
+        # Per-role portal packs: include both current selections if set.
         portal_qs = ThemePack.objects.filter(is_active=True).order_by(
             "-is_default", "name"
         )
-        for attr in ("teacher_theme_pack_id", "parent_theme_pack_id"):
-            pid = theme_selection_ids.get(attr)
-            if pid:
-                portal_qs = (
-                    ThemePack.objects.filter(Q(is_active=True) | Q(pk=pid))
-                    .order_by("-is_default", "name")
-                    .distinct()
+        portal_selected_ids = [
+            pid
+            for attr in ("teacher_theme_pack_id", "parent_theme_pack_id")
+            if (pid := resolved_theme_selection_ids.get(attr))
+        ]
+        if portal_selected_ids:
+            portal_qs = (
+                ThemePack.objects.filter(
+                    Q(is_active=True) | Q(pk__in=portal_selected_ids)
                 )
-                break
+                .order_by("-is_default", "name")
+                .distinct()
+            )
         self.fields["teacher_theme_pack"].queryset = portal_qs
         self.fields["parent_theme_pack"].queryset = portal_qs
 
@@ -1275,21 +1370,22 @@ class ThemeColorsForm(forms.ModelForm):
 
         term_qs = ReportCardStyle.objects.active().order_by("name")
         annual_qs = ReportCardStyle.objects.active().order_by("name")
-        if theme_experience_settings:
-            tid = theme_experience_settings.get("default_term_report_style_id")
-            if tid:
-                term_qs = (
-                    ReportCardStyle.objects.filter(Q(pk=tid) | Q(is_active=True))
-                    .order_by("name")
-                    .distinct()
-                )
-            aid = theme_experience_settings.get("default_annual_report_style_id")
-            if aid:
-                annual_qs = (
-                    ReportCardStyle.objects.filter(Q(pk=aid) | Q(is_active=True))
-                    .order_by("name")
-                    .distinct()
-                )
+        tid = resolved_report_style_selection_ids.get("default_term_report_style_id")
+        if tid:
+            term_qs = (
+                ReportCardStyle.objects.filter(Q(pk=tid) | Q(is_active=True))
+                .order_by("name")
+                .distinct()
+            )
+        aid = resolved_report_style_selection_ids.get(
+            "default_annual_report_style_id"
+        )
+        if aid:
+            annual_qs = (
+                ReportCardStyle.objects.filter(Q(pk=aid) | Q(is_active=True))
+                .order_by("name")
+                .distinct()
+            )
         self.fields["default_term_report_style"].queryset = term_qs
         self.fields["default_annual_report_style"].queryset = annual_qs
 
@@ -1346,6 +1442,16 @@ class ThemeColorsForm(forms.ModelForm):
         self._contrast_report = contrast_report
         return cleaned
 
+    def clean_default_widgets_per_role(self):
+        value = self.cleaned_data.get("default_widgets_per_role")
+        if value in (None, ""):
+            return {}
+        if not isinstance(value, dict):
+            raise forms.ValidationError(
+                "Default widgets per role must be a JSON object."
+            )
+        return value
+
     def save(self, commit=True):
         instance = self.instance
         if instance is None:
@@ -1366,11 +1472,22 @@ class ThemeColorsForm(forms.ModelForm):
                 "ThemeColorsForm requires instance or request; cannot resolve site settings."
             )
         instance = self.instance
-        field_updates = {
-            field_name: self.cleaned_data.get(field_name)
-            for field_name in THEME_EXPERIENCE_FIELD_NAMES
-            if field_name in self.cleaned_data
-        }
+        field_updates = {}
+        for field_name in THEME_EXPERIENCE_FIELD_NAMES:
+            if field_name not in self.cleaned_data:
+                continue
+            field = self.fields.get(field_name)
+            submitted_name = self.add_prefix(field_name)
+            presence_marker_name = self.add_prefix(f"{field_name}__present")
+            if isinstance(field, forms.BooleanField):
+                if (
+                    submitted_name not in self.data
+                    and presence_marker_name not in self.data
+                ):
+                    continue
+            elif submitted_name not in self.data:
+                continue
+            field_updates[field_name] = self.cleaned_data.get(field_name)
         if callable(getattr(instance, "apply_theme_experience_state", None)):
             instance.apply_theme_experience_state(
                 field_updates=field_updates,

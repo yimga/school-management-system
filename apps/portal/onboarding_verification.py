@@ -1,6 +1,6 @@
 """
-§2.4 Raw SQL wrap: onboarding verification delegates to siteconfig.repositories.migrations_repository.
-Used by management command verify_onboarding_setup; no raw SQL in portal (repo holds single SELECT).
+§2.4 migration-state lookup: onboarding verification delegates to siteconfig.repositories.migrations_repository.
+Used by management command verify_onboarding_setup; no raw SQL in portal.
 """
 
 from __future__ import annotations

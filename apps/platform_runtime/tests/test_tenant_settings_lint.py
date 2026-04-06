@@ -1,5 +1,5 @@
 """
-CI gate: no SiteSettings.get_solo() in tenant-facing code.
+CI gate: no get_solo() on the platform tenant settings model in tenant-facing code.
 Runs scripts/lint_tenant_settings.py --check-get-solo-only and fails if any hits.
 Uses unittest so it can run without Django (e.g. pytest from repo root).
 """
@@ -14,7 +14,7 @@ from pathlib import Path
 
 
 class TenantSettingsLintTests(unittest.TestCase):
-    """Enforce tenant code uses runtime/helpers instead of SiteSettings.get_solo()."""
+    """Enforce tenant code uses runtime/helpers instead of tenant settings get_solo() shortcuts."""
 
     def test_no_get_solo_in_tenant_apps(self):
         """Lint must report zero get_solo() hits in tenant apps (CI blocks new violations)."""
@@ -61,7 +61,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         )
 
     def test_no_sitesettings_orm_in_tenant_apps(self):
-        """Phase 5: no SiteSettings.objects.* in tenant-facing app trees."""
+        """Phase 5: no tenant settings ORM .objects.* calls in tenant-facing app trees."""
         root = Path(__file__).resolve().parent.parent.parent.parent
         script = root / "scripts" / "lint_tenant_settings.py"
         if not script.is_file():
@@ -82,7 +82,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         self.assertEqual(
             result.returncode,
             0,
-            f"lint_tenant_settings (SiteSettings.objects in tenant apps) failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+            f"lint_tenant_settings (tenant settings .objects in tenant apps) failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}",
         )
 
     def test_phase_5_siteconfig_verify_script_passes(self):
@@ -92,7 +92,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_phase_5_siteconfig.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -111,7 +111,12 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_cursor_phase6_siteconfig_sitesettings.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -124,7 +129,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         )
 
     def test_lint_sitesettings_orm_singleton_passes(self):
-        """SiteSettings.objects.* only in siteconfig/models.py + platform_runtime/helpers.py."""
+        """Tenant settings ORM .objects.* only allowed in siteconfig/models.py + platform_runtime/helpers.py."""
         root = Path(__file__).resolve().parent.parent.parent.parent
         script = root / "scripts" / "lint_sitesettings_orm_singleton.py"
         if not script.is_file():
@@ -149,7 +154,12 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_phase1_settings_gravity.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -168,7 +178,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/check_no_committed_env.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -188,7 +198,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/check_repo_hygiene.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -208,7 +218,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/check_root_clutter.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -268,7 +278,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_bounded_context_imports.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--strict"],
+            [sys.executable, str(script), "--strict", "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -288,7 +298,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_siteconfig_legacy_imports.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -308,7 +318,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/scan_repo_secrets.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -328,7 +338,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_no_print_in_apps.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -365,7 +375,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/check_no_hardcoding.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--allow-tests"],
+            [sys.executable, str(script), "--allow-tests", "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -379,13 +389,13 @@ class TenantSettingsLintTests(unittest.TestCase):
         )
 
     def test_lint_phase_b_batch3_sitesettings_fk_writes_passes(self):
-        """Phase B batch 3 FK write guard on SiteSettings (pre-deploy parity)."""
+        """Phase B batch 3 FK write guard on tenant site-settings model (pre-deploy parity)."""
         root = Path(__file__).resolve().parent.parent.parent.parent
         script = root / "scripts" / "lint_phase_b_batch3_sitesettings_fk_writes.py"
         if not script.is_file():
             self.skipTest("scripts/lint_phase_b_batch3_sitesettings_fk_writes.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -412,6 +422,8 @@ class TenantSettingsLintTests(unittest.TestCase):
                 "--allowlist",
                 str(allowlist),
                 "--strict",
+                "--base",
+                str(root),
             ],
             cwd=str(root),
             capture_output=True,
@@ -432,7 +444,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/generate_platform_inventory.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--check"],
+            [sys.executable, str(script), "--check", "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -477,7 +489,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_doc_plan_density_discipline.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -497,7 +509,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_path_to_100_plan_discipline.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -522,7 +534,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_pre_deploy_gate_record.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -542,7 +554,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_migration_safety_doc_discipline.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -562,7 +574,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_performance_targets_doc_discipline.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -582,7 +594,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_lms_sso_doc_discipline.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -602,7 +614,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_uk_international_packs_doc_discipline.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -622,7 +634,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_advancement_crm_doc_discipline.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -642,7 +654,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_phase_h_skiplink_targets.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -662,7 +674,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/generate_gate_map_appendix.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--check"],
+            [sys.executable, str(script), "--check", "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -682,7 +694,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_api_v1_named_routes_snapshot.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--check"],
+            [sys.executable, str(script), "--check", "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -702,7 +714,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_operating_discipline_docs.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -722,7 +734,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_design_system_phase2.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -742,7 +754,12 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_marketing_nav_no_overflow.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -762,7 +779,12 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_siteconfig_decomposition_depth.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -782,7 +804,12 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_phase_b_snapshot_migration_alignment.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -795,6 +822,31 @@ class TenantSettingsLintTests(unittest.TestCase):
             f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}",
         )
 
+    def test_verify_phase_b_execution_passes(self):
+        """Phase B batches 1+ wiring: PGB singleton, domain snapshots, operator link tables (migrated DB)."""
+        root = Path(__file__).resolve().parent.parent.parent.parent
+        script = root / "scripts" / "verify_phase_b_execution.py"
+        if not script.is_file():
+            self.skipTest("scripts/verify_phase_b_execution.py not found")
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+            ],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            "verify_phase_b_execution failed (migrate test DB + run verify_phase_b_execution.py).\n"
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+        )
+
     def test_verify_marketplace_integration_first_class_parity_passes(self):
         """0039+ readiness: new marketplace secrets need migration; dict matches strip list + model."""
         root = Path(__file__).resolve().parent.parent.parent.parent
@@ -802,7 +854,12 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_marketplace_integration_first_class_parity.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -822,7 +879,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_domain_ownership_exact_storage.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -844,7 +901,7 @@ class TenantSettingsLintTests(unittest.TestCase):
                 "scripts/verify_phase2_authenticated_shell_conformance.py not found"
             )
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -864,7 +921,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_shell_architecture_matrix.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -886,7 +943,7 @@ class TenantSettingsLintTests(unittest.TestCase):
                 "scripts/verify_admin_tenant_change_form_product_links.py not found"
             )
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -906,7 +963,13 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/report_premium_maturity_signals.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--strict"],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+                "--strict",
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -926,7 +989,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_ai_blueprint_completion.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -948,7 +1011,7 @@ class TenantSettingsLintTests(unittest.TestCase):
                 "scripts/verify_phase3_navigation_command_conformance.py not found"
             )
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -970,7 +1033,7 @@ class TenantSettingsLintTests(unittest.TestCase):
                 "scripts/verify_phase4_control_plane_decision_console.py not found"
             )
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -990,7 +1053,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_phase5_studio_os_conformance.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1012,7 +1075,7 @@ class TenantSettingsLintTests(unittest.TestCase):
                 "scripts/verify_phase6_runtime_first_conformance.py not found"
             )
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1032,7 +1095,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_phase6_runtime_first_extension.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1057,7 +1120,7 @@ class TenantSettingsLintTests(unittest.TestCase):
             self.skipTest("scripts/verify_cursor_phase7_runtime_first.py not found")
         env = {**os.environ, "PHASE7_RUNTIME_FIRST_SKIP_PYTEST": "1"}
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1080,7 +1143,7 @@ class TenantSettingsLintTests(unittest.TestCase):
                 "scripts/verify_phase8_dashboard_role_homes_conformance.py not found"
             )
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1100,7 +1163,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_phase9_security_trust_conformance.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1124,7 +1187,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_program_phase10_phase11_gates.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1144,7 +1207,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_repo_wide_ecosystem_marketing_audit.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1164,7 +1227,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_gilead_residue.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1184,7 +1247,12 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_gilead_full_tree_classification.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1204,7 +1272,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_secret_exposure.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1224,7 +1292,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_csrf_exempt_usage.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1244,7 +1312,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_allow_any_usage.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1264,7 +1332,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_raw_sql_usage.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1284,7 +1352,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_security_allowlists.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1304,7 +1372,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_security_allowlist_density.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1324,7 +1392,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/build_phase8_security_ledger.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--check"],
+            [sys.executable, str(script), "--check", "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1344,7 +1412,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_structured_logging_contract.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1364,7 +1432,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_sot_pillar_evidence.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1384,7 +1452,14 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/validate_wedge_super_premium_phases.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--phase", "all"],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+                "--phase",
+                "all",
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1404,7 +1479,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_phase7_dashboard_markers.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1424,7 +1499,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_control_plane_hub_registry_drift.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1444,7 +1519,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_phase8_dashboard_density.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1464,7 +1539,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/phase_h_audit.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1484,7 +1559,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_north_star_a11y.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--strict"],
+            [sys.executable, str(script), "--strict", "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1504,7 +1579,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/lint_north_star_i18n.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--strict"],
+            [sys.executable, str(script), "--strict", "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1524,7 +1599,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_i18n_catalog_fresh.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1544,7 +1619,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_45_wedge_scorecard.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1564,7 +1639,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_beachhead_checklists.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1584,7 +1659,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_wedge_line_registry.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1604,7 +1679,14 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/validate_wedges_phase.py not found")
         result = subprocess.run(
-            [sys.executable, str(script), "--phase", "all"],
+            [
+                sys.executable,
+                str(script),
+                "--base",
+                str(root),
+                "--phase",
+                "all",
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1657,7 +1739,7 @@ class TenantSettingsLintTests(unittest.TestCase):
         if not script.is_file():
             self.skipTest("scripts/verify_ui_wiring_audit.py not found")
         result = subprocess.run(
-            [sys.executable, str(script)],
+            [sys.executable, str(script), "--base", str(root)],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -1681,6 +1763,7 @@ class TenantSettingsLintTests(unittest.TestCase):
                 sys.executable,
                 "-m",
                 "pytest",
+                f"--rootdir={root}",
                 str(mod),
                 "-q",
                 "--no-header",

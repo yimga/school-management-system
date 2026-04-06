@@ -8,10 +8,10 @@ cd "$_REPO_ROOT"
 export DJANGO_TEST_DB_FILE="${DJANGO_TEST_DB_FILE:-$_REPO_ROOT/.django_test_dbs/wedge_super_premium_gates.sqlite3}"
 
 echo "[wedge_gates] validate_wedge_world_class.py"
-python scripts/validate_wedge_world_class.py
+python scripts/validate_wedge_world_class.py --base "$_REPO_ROOT"
 
 echo "[wedge_gates] validate_wedge_super_premium_phases.py --phase all"
-python scripts/validate_wedge_super_premium_phases.py --phase all
+python scripts/validate_wedge_super_premium_phases.py --base "$_REPO_ROOT" --phase all
 
 echo "[wedge_gates] migrate gate test DB (for TestCase modules)"
 python scripts/migrate_gate_test_db.py

@@ -6,10 +6,13 @@ No Django required. Ensures ``domain_ownership`` domains, Phase B snapshot domai
 and slim / RuntimeDefaults decomposition artifacts stay aligned (catch drift early).
 Also requires ``docs/SITECONFIG_OWNERSHIP_MIGRATION.md`` to stay wired to this gate and to
 the platform inventory **site_settings_refs** gravity metric + ``generate_platform_inventory.py``.
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import sys
 from pathlib import Path
@@ -26,10 +29,41 @@ def _load_module(name: str, path: Path):
     return mod
 
 
-def main() -> int:
-    errors: list[str] = []
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Verify siteconfig decomposition depth."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(ROOT),
+        help="Repository root (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
 
-    plan_path = ROOT / "docs" / "SITECONFIG_OWNERSHIP_MIGRATION.md"
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"Base path is not a directory: {base}")
+    return base
+
+
+def _relative(path: Path, base: Path) -> Path | str:
+    try:
+        return path.relative_to(base)
+    except ValueError:
+        return path
+
+
+def main(argv: list[str] | None = None) -> int:
+    errors: list[str] = []
+    args = parse_args(argv)
+    try:
+        root = _resolve_base(args.base)
+    except ValueError as exc:
+        return _fail([str(exc)])
+
+    plan_path = root / "docs" / "SITECONFIG_OWNERSHIP_MIGRATION.md"
     if not plan_path.is_file():
         errors.append("Missing docs/SITECONFIG_OWNERSHIP_MIGRATION.md")
     else:
@@ -46,14 +80,14 @@ def main() -> int:
                     f"{needle!r} (merge bar + scoped gravity / inventory train)"
                 )
 
-    dom_path = ROOT / "apps" / "siteconfig" / "domain_ownership.py"
+    dom_path = root / "apps" / "siteconfig" / "domain_ownership.py"
     if not dom_path.is_file():
-        errors.append(f"Missing {dom_path.relative_to(ROOT)}")
+        errors.append(f"Missing {_relative(dom_path, root)}")
         return _fail(errors)
 
-    snap_path = ROOT / "apps" / "platform_runtime" / "phase_b_domain_snapshots.py"
+    snap_path = root / "apps" / "platform_runtime" / "phase_b_domain_snapshots.py"
     if not snap_path.is_file():
-        errors.append(f"Missing {snap_path.relative_to(ROOT)}")
+        errors.append(f"Missing {_relative(snap_path, root)}")
         return _fail(errors)
 
     try:
@@ -105,24 +139,14 @@ def main() -> int:
                 f"PREFIX_FIELD_OWNERS prefix {prefix!r} owner {owner!r} not in OWNERSHIP_DOMAINS"
             )
 
-    slim = ROOT / "apps" / "siteconfig" / "sitesettings_slim_contract.py"
+    slim = root / "apps" / "siteconfig" / "sitesettings_slim_contract.py"
     if not slim.is_file():
         errors.append("Missing apps/siteconfig/sitesettings_slim_contract.py")
     else:
         slim_text = slim.read_text(encoding="utf-8", errors="replace")
-        if "SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES" not in slim_text:
-            errors.append(
-                "sitesettings_slim_contract.py missing SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES"
-            )
-        # Keep the slim row contract explicit (Phase B Batch 0).
-        for col in ("id", "maintenance_mode", "updated_at"):
-            needle = f'"{col}"'
-            if needle not in slim_text:
-                errors.append(
-                    f"sitesettings_slim_contract.py must document/include slim column {col!r}"
-                )
+        errors.extend(_slim_contract_errors(slim_text))
 
-    rdfc = ROOT / "apps" / "platform_runtime" / "runtime_defaults_first_class.py"
+    rdfc = root / "apps" / "platform_runtime" / "runtime_defaults_first_class.py"
     if not rdfc.is_file():
         errors.append("Missing apps/platform_runtime/runtime_defaults_first_class.py")
     else:
@@ -150,5 +174,23 @@ def _fail(errors: list[str]) -> int:
     return 1
 
 
+def _slim_contract_errors(slim_text: str) -> list[str]:
+    errors: list[str] = []
+    for constant in (
+        "SITESETTINGS_SLIM_LOCAL_CONCRETE_FIELD_NAMES",
+        "SITESETTINGS_SLIM_LOCAL_CONCRETE_COLUMN_NAMES",
+    ):
+        if constant not in slim_text:
+            errors.append(f"sitesettings_slim_contract.py missing {constant}")
+    # Keep the slim row contract explicit (Phase B Batch 0).
+    for col in ("id", "maintenance_mode", "updated_at"):
+        needle = f'"{col}"'
+        if needle not in slim_text:
+            errors.append(
+                f"sitesettings_slim_contract.py must document/include slim column {col!r}"
+            )
+    return errors
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))

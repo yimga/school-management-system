@@ -23,7 +23,7 @@ class ValidateWedgesPhaseScriptTests(SimpleTestCase):
         script = REPO / "scripts" / "validate_wedges_phase.py"
         self.assertTrue(script.is_file(), f"Missing {script}")
         r = subprocess.run(
-            [sys.executable, str(script), "--phase", "all"],
+            [sys.executable, str(script), "--base", str(REPO), "--phase", "all"],
             cwd=str(REPO),
             capture_output=True,
             text=True,

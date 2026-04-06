@@ -5,15 +5,19 @@ removed in siteconfig.0163 (theme packs + default report styles → PlatformGlob
 
 Use apply_theme_experience_state(), PlatformGlobalBranding, or resolvers — not
 SiteSettings.save(update_fields=[...]) / SiteSettings.objects.create(..., theme_pack=...).
+
+Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repository root).
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent
+ROOT = DEFAULT_ROOT
 APPS = ROOT / "apps"
 
 SKIP_DIR_NAMES = frozenset({"migrations", "__pycache__", ".venv", "venv"})
@@ -52,6 +56,32 @@ _CREATE_RE = re.compile(
 )
 
 
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Lint removed SiteSettings FK writes after Phase B Batch 3."
+    )
+    parser.add_argument(
+        "--base",
+        default=str(DEFAULT_ROOT),
+        help="Repository root to inspect (defaults to this repository root).",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_base(raw_base: str) -> Path:
+    base = Path(raw_base).resolve()
+    if not base.is_dir():
+        raise ValueError(f"--base directory not found: {raw_base}")
+    return base
+
+
+def _configure_root(base: Path) -> None:
+    global ROOT
+    global APPS
+    ROOT = base
+    APPS = ROOT / "apps"
+
+
 def _should_scan(path: Path) -> bool:
     if path.suffix != ".py":
         return False
@@ -67,7 +97,14 @@ def _should_scan(path: Path) -> bool:
     return rel.startswith("apps/")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    try:
+        _configure_root(_resolve_base(parse_args(argv).base))
+    except ValueError as exc:
+        print("lint_phase_b_batch3_sitesettings_fk_writes FAILED:", file=sys.stderr)
+        print(f"  {exc}", file=sys.stderr)
+        return 1
+
     errors: list[str] = []
     for path in sorted(APPS.rglob("*.py")):
         if not _should_scan(path):
@@ -95,4 +132,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(None))
