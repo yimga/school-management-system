@@ -59,8 +59,8 @@ def get_top_tables_by_size(
     limit must not be bool or a binary buffer (bool would coerce to 0/1; bytes, bytearray, and memoryview are not limits);
     otherwise it is coerced to int, must be positive, and is capped at 500
     (_HEALTH_TOP_TABLES_MAX_LIMIT) before the query runs.
-    When schema_name is provided it must be a non-bool str (bool and binary buffers are not identifiers;
-    callers should not rely on accidental coercion).
+    When schema_name is provided it is normalized with _normalize_unqualified_identifier (bool, buffers,
+    blank, and qualified names rejected) and must match the health identifier pattern or the call returns [].
     """
     if connection.vendor != "postgresql":
         return []
@@ -76,16 +76,16 @@ def get_top_tables_by_size(
         return []
     if limit > _HEALTH_TOP_TABLES_MAX_LIMIT:
         limit = _HEALTH_TOP_TABLES_MAX_LIMIT
-    if isinstance(schema_name, bool):
-        return []
-    if isinstance(schema_name, _BINARY_BUFFER_TYPES):
-        return []
     if schema_name is not None:
-        schema_name = schema_name.strip() if isinstance(schema_name, str) else ""
-        if not schema_name:
+        try:
+            schema_norm = _normalize_unqualified_identifier(
+                schema_name, field_name="schema_name"
+            )
+        except ValueError:
             return []
-        if not _PG_HEALTH_IDENTIFIER_RE.fullmatch(schema_name):
+        if not _PG_HEALTH_IDENTIFIER_RE.fullmatch(schema_norm):
             return []
+        schema_name = schema_norm
     with connection.cursor() as cursor:
         params: list[object] = []
         schema_filter_sql = ""

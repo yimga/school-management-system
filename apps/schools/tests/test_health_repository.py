@@ -341,6 +341,10 @@ class TestHealthRepository(unittest.TestCase):
                 get_top_tables_by_size(limit=5, schema_name="x" * 64),
                 [],
             )
+            self.assertEqual(
+                get_top_tables_by_size(limit=5, schema_name="tenant_a.other"),
+                [],
+            )
 
         cursor.assert_not_called()
 
