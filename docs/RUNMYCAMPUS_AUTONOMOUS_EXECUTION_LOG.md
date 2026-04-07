@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - 11.4 batch 786: Raw SQL health repository — centralize bool and binary-buffer rejection in _normalize_identifier (2026-04-07)
+
+**A. Scope:** One place for **`bool`** and buffer rejection before health identifier normalization, so **`check_table_exists`** and **`count_table_rows`** cannot drift from each other on typing.
+
+**B. Implementation:** **`apps/schools/repositories/health_repository.py`** **`_normalize_identifier()`** early **`ValueError`** for **`bool`** and **`_BINARY_BUFFER_TYPES`**; removed duplicate guards from **`check_table_exists`** and **`count_table_rows`**; docstring tweaks on those entry points.
+
+**C. Validation:** **`python manage.py test apps.schools.tests.test_health_repository --noinput -v 2`** - **42 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT 11.4 batch **786**; this log entry.
+
+**E. Risks / notes:** **`count_table_rows`** debug log messages for bool/buffer now match the helper text (**must not be a boolean** / **must not be bytes…**); return codes unchanged.
+
+**F. Follow-ons:** **`787+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 785: Raw SQL audit repository — drop_audit_trigger table_name normalization parity doc and tests (2026-04-07)
 
 **A. Scope:** Lock **`drop_audit_trigger()`** contract to the same **`table_name`** normalization as **`create_audit_trigger()`** (bool and binary buffers rejected via **`_normalize_unqualified_table_name`**), with explicit regression tests mirroring create-path coverage.
@@ -12,7 +26,7 @@
 
 **E. Risks / notes:** Behavior unchanged; tests document parity so future refactors cannot drop **`drop_audit_trigger`** guards alone.
 
-**F. Follow-ons:** **`786+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`787+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 784: Raw SQL SQLite integrity helper — reject bool db_path before PRAGMA connect (2026-04-07)
 
@@ -26,7 +40,7 @@
 
 **E. Risks / notes:** **`True`**/**`False`** previously fell through to the generic **`else`** **`None`**; behavior unchanged, ordering is defensive.
 
-**F. Follow-ons:** **`786+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`787+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 783: Raw SQL tenant cache prefix — reject bool and binary buffers in school/schema normalization before current_setting read (2026-04-07)
 

@@ -27,6 +27,13 @@ _BINARY_BUFFER_TYPES = (bytes, bytearray, memoryview)
 
 
 def _normalize_identifier(value: str, *, field_name: str) -> str:
+    """Strip and validate a single identifier segment; raises ValueError on invalid input."""
+    if isinstance(value, bool):
+        raise ValueError(f"{field_name} must not be a boolean.")
+    if isinstance(value, _BINARY_BUFFER_TYPES):
+        raise ValueError(
+            f"{field_name} must not be bytes, bytearray, or memoryview."
+        )
     normalized = value.strip() if isinstance(value, str) else ""
     if not normalized:
         raise ValueError(f"{field_name} must be a non-blank string.")
@@ -112,15 +119,10 @@ def check_table_exists(qualified_table: str) -> bool:
     exists in the current database. Uses Django introspection against the active search_path;
     schema and table segments (when present) must each be a PostgreSQL identifier (ASCII letters,
     digits, underscore; max 63 characters) before introspection runs.
-    bool values are rejected (they are not table names; avoids relying on ValueError from blank normalization).
-    Binary buffer values (bytes, bytearray, memoryview) are rejected (callers must pass str).
+    bool and binary buffer values are rejected via _normalize_identifier (same as schema/table segments in count_table_rows).
     no-op on non-PostgreSQL (returns False).
     """
     if connection.vendor != "postgresql":
-        return False
-    if isinstance(qualified_table, bool):
-        return False
-    if isinstance(qualified_table, _BINARY_BUFFER_TYPES):
         return False
     try:
         normalized_qualified_table = _normalize_identifier(
@@ -159,18 +161,11 @@ def count_table_rows(schema: str, table: str) -> int:
     Return row count for the given schema.table. Identifiers are quoted for safety.
     Schema and table must each be a single PostgreSQL identifier (ASCII letters, digits,
     underscore; max 63 characters) after strip — otherwise returns -1 without SQL.
-    bool values are rejected (they are not identifiers; str(True) would look like a name).
-    Binary buffer values (bytes, bytearray, memoryview) are rejected (identifiers must be str).
+    bool and binary buffer values are rejected via _normalize_identifier on schema and table (no SQL).
     Returns -1 on error (e.g. permissions, RLS). No-op on non-PostgreSQL (returns 0).
     """
     if connection.vendor != "postgresql":
         return 0
-    if isinstance(schema, bool) or isinstance(table, bool):
-        return -1
-    if isinstance(schema, _BINARY_BUFFER_TYPES) or isinstance(
-        table, _BINARY_BUFFER_TYPES
-    ):
-        return -1
     try:
         schema_norm = _normalize_unqualified_identifier(schema, field_name="schema")
         table_norm = _normalize_unqualified_identifier(table, field_name="table")
