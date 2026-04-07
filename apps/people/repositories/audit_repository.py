@@ -8,6 +8,7 @@ PostgreSQL only; staff/operational use.
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 
 from django.db import connection
 
@@ -94,9 +95,11 @@ def _normalize_unqualified_table_name(table_name: str) -> str:
 def normalize_search_path_schema_name(schema_name: str) -> str:
     """
     Return a stripped tenant schema name safe for SET LOCAL search_path, or raise ValueError.
-    Rejects bool, binary buffers, multi-part names, list separators, and pathological lengths
-    before raw SQL runs.
+    Rejects collections.abc.Mapping, bool, binary buffers, multi-part names, list separators,
+    and pathological lengths before raw SQL runs.
     """
+    if isinstance(schema_name, Mapping):
+        raise ValueError("schema_name must not be a mapping.")
     normalized = _normalize_identifier(schema_name, field_name="schema_name")
     if len(normalized) > 63:
         raise ValueError("schema_name exceeds PostgreSQL identifier length limit.")

@@ -83,6 +83,16 @@ class TestAuditRepository(unittest.TestCase):
 
         cursor.execute.assert_not_called()
 
+    def test_set_search_path_pg_rejects_dict_schema_name(self):
+        with patch.object(connection, "vendor", "postgresql"):
+            from apps.people.repositories.audit_repository import set_search_path
+
+            cursor = MagicMock()
+            with self.assertRaises(ValueError):
+                set_search_path(cursor, {"name": "tenant_a"})
+
+        cursor.execute.assert_not_called()
+
     def test_set_search_path_pg_rejects_binary_buffer_schema_name(self):
         with patch.object(connection, "vendor", "postgresql"):
             from apps.people.repositories.audit_repository import set_search_path
