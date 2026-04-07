@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - 11.4 batch 789: Raw SQL RLS repository — reject dict table_names before get_tenant_rls_status catalog query (2026-04-07)
+
+**A. Scope:** Fail closed when **`table_names`** is a **`dict`** so the RLS catalog helper cannot silently treat **`.keys()`** as the intended relname list (type hint is **`list[str]`**; **`verify_tenant_rls`** passes a list).
+
+**B. Implementation:** **`apps/schools/repositories/rls_repository.py`** early **`isinstance(table_names, dict)`** **`{}`**. **`apps/schools/tests/test_rls_repository.py`** **`test_get_tenant_rls_status_dict_input_returns_empty_without_sql`**.
+
+**C. Validation:** **`python manage.py test apps.schools.tests.test_rls_repository apps.schools.tests.test_verify_tenant_rls_command --noinput -v 2`** - **18 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT 11.4 batch **789**; this log entry.
+
+**E. Risks / notes:** Hypothetical callers passing **`dict`** to mean “set of tables” now get **`{}`** instead of a keyed lookup; no in-repo callers did that.
+
+**F. Follow-ons:** **`790+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 788: Raw SQL audit repository — create_audit_trigger table_name normalization doc parity with drop_audit_trigger (2026-04-07)
 
 **A. Scope:** Document **`create_audit_trigger()`** **`table_name`** contract to match **`drop_audit_trigger()`** and the existing **`_normalize_unqualified_table_name`** implementation (no behavioral change).
@@ -12,7 +26,7 @@
 
 **E. Risks / notes:** None; aligns reader-facing contract with code paths already covered by **`test_audit_repository`**.
 
-**F. Follow-ons:** **`789+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`790+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 787: Raw SQL health repository — get_top_tables_by_size schema_name via _normalize_unqualified_identifier (2026-04-07)
 
@@ -26,7 +40,7 @@
 
 **E. Risks / notes:** Dotted **`schema_name`** values now fail at **unqualified** check (explicit **`ValueError`**) instead of only the regex; both yield **`[]`** without SQL.
 
-**F. Follow-ons:** **`789+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`790+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 786: Raw SQL health repository — centralize bool and binary-buffer rejection in _normalize_identifier (2026-04-07)
 
@@ -40,7 +54,7 @@
 
 **E. Risks / notes:** **`count_table_rows`** debug log messages for bool/buffer now match the helper text (**must not be a boolean** / **must not be bytes…**); return codes unchanged.
 
-**F. Follow-ons:** **`789+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`790+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 785: Raw SQL audit repository — drop_audit_trigger table_name normalization parity doc and tests (2026-04-07)
 
@@ -54,7 +68,7 @@
 
 **E. Risks / notes:** Behavior unchanged; tests document parity so future refactors cannot drop **`drop_audit_trigger`** guards alone.
 
-**F. Follow-ons:** **`789+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`790+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 784: Raw SQL SQLite integrity helper — reject bool db_path before PRAGMA connect (2026-04-07)
 
@@ -68,7 +82,7 @@
 
 **E. Risks / notes:** **`True`**/**`False`** previously fell through to the generic **`else`** **`None`**; behavior unchanged, ordering is defensive.
 
-**F. Follow-ons:** **`789+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`790+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 783: Raw SQL tenant cache prefix — reject bool and binary buffers in school/schema normalization before current_setting read (2026-04-07)
 
