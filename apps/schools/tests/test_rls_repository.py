@@ -3,6 +3,7 @@ Tests for schools.repositories.rls_repository (§2.4 raw SQL in repository).
 Non-PG: returns {}. PG: used by verify_tenant_rls command.
 """
 
+import types
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -86,6 +87,18 @@ class TestRlsRepository(unittest.TestCase):
                 get_tenant_rls_status({"people_studentprofile": True}),
                 {},
             )
+
+        cursor.assert_not_called()
+
+    def test_get_tenant_rls_status_mapping_proxy_input_returns_empty_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            proxy = types.MappingProxyType({"people_studentprofile": True})
+            self.assertEqual(get_tenant_rls_status(proxy), {})
 
         cursor.assert_not_called()
 
