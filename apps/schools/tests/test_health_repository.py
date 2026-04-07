@@ -599,6 +599,18 @@ class TestHealthRepository(unittest.TestCase):
 
         cursor.assert_not_called()
 
+    def test_count_table_rows_rejects_dict_schema_or_table_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import count_table_rows
+
+            self.assertEqual(count_table_rows({"k": "public"}, "schools_school"), -1)
+            self.assertEqual(count_table_rows("public", {"k": "schools_school"}), -1)
+
+        cursor.assert_not_called()
+
     def test_count_table_rows_rejects_bytes_schema_or_table_without_sql(self):
         with (
             patch.object(connection, "vendor", "postgresql"),

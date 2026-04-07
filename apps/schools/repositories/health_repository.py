@@ -168,11 +168,14 @@ def count_table_rows(schema: str, table: str) -> int:
     Return row count for the given schema.table. Identifiers are quoted for safety.
     Schema and table must each be a single PostgreSQL identifier (ASCII letters, digits,
     underscore; max 63 characters) after strip — otherwise returns -1 without SQL.
+    collections.abc.Mapping values for schema or table return -1 without SQL (kwarg/payload confusion).
     bool and binary buffer values are rejected via _normalize_identifier on schema and table (no SQL).
     Returns -1 on error (e.g. permissions, RLS). No-op on non-PostgreSQL (returns 0).
     """
     if connection.vendor != "postgresql":
         return 0
+    if isinstance(schema, Mapping) or isinstance(table, Mapping):
+        return -1
     try:
         schema_norm = _normalize_unqualified_identifier(schema, field_name="schema")
         table_norm = _normalize_unqualified_identifier(table, field_name="table")
