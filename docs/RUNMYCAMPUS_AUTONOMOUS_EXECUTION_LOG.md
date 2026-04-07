@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - 11.4 batch 778: Raw SQL health repository — reject bytearray limit/schema_name and schema/table in count_table_rows and get_top_tables_by_size (2026-04-07)
+
+**A. Scope:** Extend **`bytes`**-only guards on **`get_top_tables_by_size()`** and **`count_table_rows()`** to **`bytearray`**, matching **`check_table_exists()`** and closing the mutable binary-buffer gap on those retained queries.
+
+**B. Implementation:** **`apps/schools/repositories/health_repository.py`** uses **`isinstance(..., (bytes, bytearray))`** for **`limit`**, **`schema_name`**, **`schema`**, and **`table`** where **`bytes`** was previously rejected alone; docstrings updated. **`apps/schools/tests/test_health_repository.py`** adds three **`bytearray`** tests.
+
+**C. Validation:** **`python manage.py test apps.schools.tests.test_health_repository --noinput -v 2`** - **38 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT 11.4 batch **778**; this log entry.
+
+**E. Risks / notes:** **`bytearray`** values previously failed normalization or **`int()`** coercion; the guards make behavior explicit and align with other health entry points.
+
+**F. Follow-ons:** **`779+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 777: Raw SQL RLS repository — reject bytearray table_names before get_tenant_rls_status catalog query (2026-04-07)
 
 **A. Scope:** Align **`get_tenant_rls_status()`** with health-repository binary-buffer handling by rejecting **`bytearray`** at the same layer as bare **`str`**/**`bytes`**, instead of relying on the integer-iteration fallback path.
@@ -12,7 +26,7 @@
 
 **E. Risks / notes:** Non-empty **`bytearray`** previously iterated to no valid relnames and returned **`{}`** without SQL; the guard makes that contract explicit and stable if the normalization loop changes.
 
-**F. Follow-ons:** **`778+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`779+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 776: SiteSettings theme resolver - ignore inactive selected portal theme packs and fall back to active defaults (2026-04-02)
 

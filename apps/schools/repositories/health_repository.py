@@ -46,17 +46,17 @@ def get_top_tables_by_size(
     the shared connection search_path.
     Returns list of dicts: schema_name, table_name, total_pretty, raw_size, row_count (if available).
     No-op on non-PostgreSQL backends (returns []).
-    limit must not be bool or bytes (bool would coerce to 0/1; bytes are not a numeric limit);
+    limit must not be bool or bytes-like (bool would coerce to 0/1; bytes/bytearray are not limits);
     otherwise it is coerced to int, must be positive, and is capped at 500
     (_HEALTH_TOP_TABLES_MAX_LIMIT) before the query runs.
-    When schema_name is provided it must be a non-bool str (bool and bytes are not identifiers;
+    When schema_name is provided it must be a non-bool str (bool and bytes/bytearray are not identifiers;
     callers should not rely on accidental coercion).
     """
     if connection.vendor != "postgresql":
         return []
     if isinstance(limit, bool):
         return []
-    if isinstance(limit, bytes):
+    if isinstance(limit, (bytes, bytearray)):
         return []
     try:
         limit = int(limit)
@@ -68,7 +68,7 @@ def get_top_tables_by_size(
         limit = _HEALTH_TOP_TABLES_MAX_LIMIT
     if isinstance(schema_name, bool):
         return []
-    if isinstance(schema_name, bytes):
+    if isinstance(schema_name, (bytes, bytearray)):
         return []
     if schema_name is not None:
         schema_name = schema_name.strip() if isinstance(schema_name, str) else ""
@@ -157,14 +157,14 @@ def count_table_rows(schema: str, table: str) -> int:
     Schema and table must each be a single PostgreSQL identifier (ASCII letters, digits,
     underscore; max 63 characters) after strip — otherwise returns -1 without SQL.
     bool values are rejected (they are not identifiers; str(True) would look like a name).
-    bytes values are rejected (identifiers must be str; avoids buffer handling in normalization).
+    bytes and bytearray values are rejected (identifiers must be str; avoids buffer handling).
     Returns -1 on error (e.g. permissions, RLS). No-op on non-PostgreSQL (returns 0).
     """
     if connection.vendor != "postgresql":
         return 0
     if isinstance(schema, bool) or isinstance(table, bool):
         return -1
-    if isinstance(schema, bytes) or isinstance(table, bytes):
+    if isinstance(schema, (bytes, bytearray)) or isinstance(table, (bytes, bytearray)):
         return -1
     try:
         schema_norm = _normalize_unqualified_identifier(schema, field_name="schema")

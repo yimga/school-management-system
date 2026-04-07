@@ -358,6 +358,19 @@ class TestHealthRepository(unittest.TestCase):
 
         cursor.assert_not_called()
 
+    def test_get_top_tables_by_size_rejects_bytearray_limit_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_top_tables_by_size,
+            )
+
+            self.assertEqual(get_top_tables_by_size(limit=bytearray(b"10")), [])
+
+        cursor.assert_not_called()
+
     def test_get_top_tables_by_size_rejects_bool_schema_name_without_sql(self):
         with (
             patch.object(connection, "vendor", "postgresql"),
@@ -383,6 +396,24 @@ class TestHealthRepository(unittest.TestCase):
 
             self.assertEqual(
                 get_top_tables_by_size(limit=5, schema_name=b"tenant_a"),
+                [],
+            )
+
+        cursor.assert_not_called()
+
+    def test_get_top_tables_by_size_rejects_bytearray_schema_name_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_top_tables_by_size,
+            )
+
+            self.assertEqual(
+                get_top_tables_by_size(
+                    limit=5, schema_name=bytearray(b"tenant_a"),
+                ),
                 [],
             )
 
@@ -428,6 +459,24 @@ class TestHealthRepository(unittest.TestCase):
 
             self.assertEqual(count_table_rows(b"public", "schools_school"), -1)
             self.assertEqual(count_table_rows("public", b"schools_school"), -1)
+
+        cursor.assert_not_called()
+
+    def test_count_table_rows_rejects_bytearray_schema_or_table_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import count_table_rows
+
+            self.assertEqual(
+                count_table_rows(bytearray(b"public"), "schools_school"),
+                -1,
+            )
+            self.assertEqual(
+                count_table_rows("public", bytearray(b"schools_school")),
+                -1,
+            )
 
         cursor.assert_not_called()
 
