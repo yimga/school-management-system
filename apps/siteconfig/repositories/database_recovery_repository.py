@@ -23,14 +23,14 @@ def run_sqlite_integrity_check(db_path: Path | str | bytes | None) -> Optional[s
     Run PRAGMA integrity_check on the SQLite database at db_path.
     Returns 'ok' if integrity passed, the error string from SQLite if corrupted (clipped to
     _MAX_SQLITE_INTEGRITY_CHECK_RESULT_LEN / 8192 chars), or None on I/O/connection error.
-    Accepts Path or str only (bytes or other types return None without connecting).
+    Accepts Path or str only (bytes, bytearray, memoryview, or other types return None without connecting).
     Stripped strings, Path string forms, and resolved paths must not exceed
     _MAX_SQLITE_INTEGRITY_DB_PATH_LEN (4096).
     Uses sqlite3 connect timeout _SQLITE_INTEGRITY_CONNECT_TIMEOUT_SEC (5 seconds).
     """
     if db_path is None:
         return None
-    if isinstance(db_path, bytes):
+    if isinstance(db_path, (bytes, bytearray, memoryview)):
         return None
     if isinstance(db_path, Path):
         path = db_path

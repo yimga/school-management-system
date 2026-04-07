@@ -72,6 +72,15 @@ class TestDatabaseRecoveryRepository(unittest.TestCase):
 
         connect.assert_not_called()
 
+    def test_bytearray_and_memoryview_path_return_none_without_connecting(self):
+        with patch(
+            "apps.siteconfig.repositories.database_recovery_repository.sqlite3.connect"
+        ) as connect:
+            self.assertIsNone(run_sqlite_integrity_check(bytearray(b"/tmp/db.sqlite3")))
+            self.assertIsNone(run_sqlite_integrity_check(memoryview(b"/tmp/db.sqlite3")))
+
+        connect.assert_not_called()
+
     def test_overlong_string_path_returns_none_without_connecting(self):
         from apps.siteconfig.repositories.database_recovery_repository import (
             _MAX_SQLITE_INTEGRITY_DB_PATH_LEN,
