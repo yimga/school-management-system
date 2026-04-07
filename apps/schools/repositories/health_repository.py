@@ -126,10 +126,13 @@ def check_table_exists(qualified_table: str) -> bool:
     exists in the current database. Uses Django introspection against the active search_path;
     schema and table segments (when present) must each be a PostgreSQL identifier (ASCII letters,
     digits, underscore; max 63 characters) before introspection runs.
+    collections.abc.Mapping values return False without introspection (kwarg/payload confusion).
     bool and binary buffer values are rejected via _normalize_identifier (same as schema/table segments in count_table_rows).
     no-op on non-PostgreSQL (returns False).
     """
     if connection.vendor != "postgresql":
+        return False
+    if isinstance(qualified_table, Mapping):
         return False
     try:
         normalized_qualified_table = _normalize_identifier(

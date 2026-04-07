@@ -142,6 +142,17 @@ class TestHealthRepository(unittest.TestCase):
 
         table_names.assert_not_called()
 
+    def test_check_table_exists_rejects_dict_qualified_table_without_introspection(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection.introspection, "table_names") as table_names,
+        ):
+            from apps.schools.repositories.health_repository import check_table_exists
+
+            self.assertFalse(check_table_exists({"schema": "public", "table": "x"}))
+
+        table_names.assert_not_called()
+
     def test_check_table_exists_rejects_bytes_qualified_table_without_introspection(self):
         with (
             patch.object(connection, "vendor", "postgresql"),
