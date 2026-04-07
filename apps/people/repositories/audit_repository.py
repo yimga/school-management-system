@@ -62,6 +62,12 @@ def _redact_keys_sql_array_literal() -> str:
 
 
 def _normalize_identifier(value: str, *, field_name: str) -> str:
+    if isinstance(value, bool):
+        raise ValueError(f"{field_name} must not be a boolean.")
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        raise ValueError(
+            f"{field_name} must not be bytes, bytearray, or memoryview."
+        )
     normalized = value.strip() if isinstance(value, str) else ""
     if not normalized:
         raise ValueError(f"{field_name} must be a non-blank string.")
@@ -88,7 +94,8 @@ def _normalize_unqualified_table_name(table_name: str) -> str:
 def normalize_search_path_schema_name(schema_name: str) -> str:
     """
     Return a stripped tenant schema name safe for SET LOCAL search_path, or raise ValueError.
-    Rejects multi-part names, list separators, and pathological lengths before raw SQL runs.
+    Rejects bool, binary buffers, multi-part names, list separators, and pathological lengths
+    before raw SQL runs.
     """
     normalized = _normalize_identifier(schema_name, field_name="schema_name")
     if len(normalized) > 63:

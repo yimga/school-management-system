@@ -71,6 +71,29 @@ class TestAuditRepository(unittest.TestCase):
 
         cursor.execute.assert_not_called()
 
+    def test_set_search_path_pg_rejects_bool_schema_name(self):
+        with patch.object(connection, "vendor", "postgresql"):
+            from apps.people.repositories.audit_repository import set_search_path
+
+            cursor = MagicMock()
+            with self.assertRaises(ValueError):
+                set_search_path(cursor, True)
+            with self.assertRaises(ValueError):
+                set_search_path(cursor, False)
+
+        cursor.execute.assert_not_called()
+
+    def test_set_search_path_pg_rejects_binary_buffer_schema_name(self):
+        with patch.object(connection, "vendor", "postgresql"):
+            from apps.people.repositories.audit_repository import set_search_path
+
+            cursor = MagicMock()
+            for bad in (b"tenant_a", bytearray(b"tenant_a"), memoryview(b"tenant_a")):
+                with self.assertRaises(ValueError):
+                    set_search_path(cursor, bad)
+
+        cursor.execute.assert_not_called()
+
     def test_drop_audit_trigger_pg_rejects_blank_table_name(self):
         with patch.object(connection, "vendor", "postgresql"):
             from apps.people.repositories.audit_repository import drop_audit_trigger
@@ -118,6 +141,31 @@ class TestAuditRepository(unittest.TestCase):
             cursor = MagicMock()
             with self.assertRaises(ValueError):
                 create_audit_trigger(cursor, "people-bad")
+
+        cursor.execute.assert_not_called()
+
+    def test_create_audit_trigger_pg_rejects_bool_table_name(self):
+        with patch.object(connection, "vendor", "postgresql"):
+            from apps.people.repositories.audit_repository import create_audit_trigger
+
+            cursor = MagicMock()
+            with self.assertRaises(ValueError):
+                create_audit_trigger(cursor, True)
+
+        cursor.execute.assert_not_called()
+
+    def test_create_audit_trigger_pg_rejects_binary_buffer_table_name(self):
+        with patch.object(connection, "vendor", "postgresql"):
+            from apps.people.repositories.audit_repository import create_audit_trigger
+
+            cursor = MagicMock()
+            for bad in (
+                b"people_studentprofile",
+                bytearray(b"people_studentprofile"),
+                memoryview(b"people_studentprofile"),
+            ):
+                with self.assertRaises(ValueError):
+                    create_audit_trigger(cursor, bad)
 
         cursor.execute.assert_not_called()
 
