@@ -31,9 +31,15 @@ _MAX_TENANT_RESOLUTION_LOOKUP_LEN = 512
 _MAX_TENANT_CACHE_BASE_KEY_LEN = 512
 _INVALID_TENANT_CACHE_BASE_FALLBACK = "_"
 
+_CACHE_SEGMENT_BINARY_TYPES = (bytes, bytearray, memoryview)
+
 
 def _normalize_tenant_schema_name_cache(value: object) -> str | None:
     """Return a safe tenant schema segment for cache keys, or None if malformed."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, _CACHE_SEGMENT_BINARY_TYPES):
+        return None
     raw = str(value).strip() if value is not None else ""
     if not raw or not _PG_TENANT_SCHEMA_CACHE_RE.fullmatch(raw):
         return None
@@ -73,8 +79,13 @@ def _normalize_tenant_cache_base_key(key: object) -> str:
 def _normalize_school_id(value: object) -> str | None:
     """
     Normalize a school id for cache prefixes (request.school or RLS GUC via current_setting).
-    Rejects pathological shapes so malformed session vars cannot widen cache key structure.
+    Rejects bool, binary buffers, and pathological shapes so malformed session vars cannot
+    widen cache key structure.
     """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, _CACHE_SEGMENT_BINARY_TYPES):
+        return None
     normalized = str(value).strip() if value is not None else ""
     if not normalized or normalized.lower() in {"none", "null"}:
         return None
