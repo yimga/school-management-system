@@ -76,6 +76,8 @@ def _normalize_identifier(value: str, *, field_name: str) -> str:
 
 
 def _normalize_unqualified_table_name(table_name: str) -> str:
+    if isinstance(table_name, Mapping):
+        raise ValueError("table_name must not be a mapping.")
     normalized = _normalize_identifier(table_name, field_name="table_name")
     if "." in normalized:
         raise ValueError("table_name must be unqualified.")
@@ -179,7 +181,7 @@ def create_audit_trigger_function(cursor) -> None:
 
 def drop_audit_trigger(cursor, table_name: str) -> None:
     """Drop the audit trigger for the given table if it exists. Uses quoted identifiers.
-    table_name is normalized with _normalize_unqualified_table_name (same rules as create_audit_trigger)."""
+    table_name is normalized with _normalize_unqualified_table_name (rejects Mapping; same rules as create_audit_trigger)."""
     if connection.vendor != "postgresql":
         return
     table_name = _normalize_unqualified_table_name(table_name)
@@ -191,7 +193,7 @@ def drop_audit_trigger(cursor, table_name: str) -> None:
 
 def create_audit_trigger(cursor, table_name: str) -> None:
     """Create AFTER INSERT OR UPDATE OR DELETE trigger for the given table. Uses quoted identifiers.
-    table_name is normalized with _normalize_unqualified_table_name (same rules as drop_audit_trigger)."""
+    table_name is normalized with _normalize_unqualified_table_name (rejects Mapping; same rules as drop_audit_trigger)."""
     if connection.vendor != "postgresql":
         return
     table_name = _normalize_unqualified_table_name(table_name)
