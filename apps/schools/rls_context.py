@@ -7,6 +7,7 @@ do not duplicate raw SQL (see RUNMYCAMPUS §2.4 raw SQL wrap).
 """
 
 import logging
+from collections.abc import Mapping
 from contextlib import contextmanager
 
 from django.conf import settings
@@ -21,6 +22,8 @@ _RLS_SCHOOL_ID_BINARY_TYPES = (bytes, bytearray, memoryview)
 
 
 def _normalize_rls_school_id(school_id) -> str:
+    if isinstance(school_id, Mapping):
+        raise ValueError("set_rls_school_id school_id must not be a mapping.")
     if isinstance(school_id, bool):
         raise ValueError("set_rls_school_id school_id must not be a boolean.")
     if isinstance(school_id, _RLS_SCHOOL_ID_BINARY_TYPES):
@@ -49,7 +52,8 @@ def set_rls_school_id(school_id):
     """
     Set app.current_school_id for the current DB connection (e.g. in middleware).
     No-op when not PostgreSQL. Does not reset; caller must call reset_rls_school_id later.
-    school_id must not be bool or a binary buffer (bytes/bytearray/memoryview); use str/int/UUID-like values.
+    school_id must not be collections.abc.Mapping, bool, or a binary buffer (bytes/bytearray/memoryview);
+    use str/int/UUID-like values.
     """
     if not _should_manage_rls_session_vars():
         return
