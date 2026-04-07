@@ -61,8 +61,9 @@ def get_top_tables_by_size(
     bool would coerce to 0/1; bytes, bytearray, and memoryview are not limits);
     otherwise it is coerced to int, must be positive, and is capped at 500
     (_HEALTH_TOP_TABLES_MAX_LIMIT) before the query runs.
-    When schema_name is provided it is normalized with _normalize_unqualified_identifier (bool, buffers,
-    blank, and qualified names rejected) and must match the health identifier pattern or the call returns [].
+    When schema_name is provided it must not be collections.abc.Mapping; it is normalized with
+    _normalize_unqualified_identifier (bool, buffers, blank, and qualified names rejected) and must match
+    the health identifier pattern or the call returns [].
     """
     if connection.vendor != "postgresql":
         return []
@@ -80,6 +81,8 @@ def get_top_tables_by_size(
         return []
     if limit > _HEALTH_TOP_TABLES_MAX_LIMIT:
         limit = _HEALTH_TOP_TABLES_MAX_LIMIT
+    if schema_name is not None and isinstance(schema_name, Mapping):
+        return []
     if schema_name is not None:
         try:
             schema_norm = _normalize_unqualified_identifier(

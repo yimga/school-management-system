@@ -499,6 +499,22 @@ class TestHealthRepository(unittest.TestCase):
 
         cursor.assert_not_called()
 
+    def test_get_top_tables_by_size_rejects_dict_schema_name_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_top_tables_by_size,
+            )
+
+            self.assertEqual(
+                get_top_tables_by_size(limit=5, schema_name={"x": "tenant_a"}),
+                [],
+            )
+
+        cursor.assert_not_called()
+
     def test_get_top_tables_by_size_rejects_bytes_schema_name_without_sql(self):
         with (
             patch.object(connection, "vendor", "postgresql"),
