@@ -114,6 +114,31 @@ class TestAuditRepository(unittest.TestCase):
 
         cursor.execute.assert_not_called()
 
+    def test_drop_audit_trigger_pg_rejects_bool_table_name(self):
+        with patch.object(connection, "vendor", "postgresql"):
+            from apps.people.repositories.audit_repository import drop_audit_trigger
+
+            cursor = MagicMock()
+            with self.assertRaises(ValueError):
+                drop_audit_trigger(cursor, True)
+
+        cursor.execute.assert_not_called()
+
+    def test_drop_audit_trigger_pg_rejects_binary_buffer_table_name(self):
+        with patch.object(connection, "vendor", "postgresql"):
+            from apps.people.repositories.audit_repository import drop_audit_trigger
+
+            cursor = MagicMock()
+            for bad in (
+                b"people_studentprofile",
+                bytearray(b"people_studentprofile"),
+                memoryview(b"people_studentprofile"),
+            ):
+                with self.assertRaises(ValueError):
+                    drop_audit_trigger(cursor, bad)
+
+        cursor.execute.assert_not_called()
+
     def test_create_audit_trigger_pg_rejects_blank_table_name(self):
         with patch.object(connection, "vendor", "postgresql"):
             from apps.people.repositories.audit_repository import create_audit_trigger

@@ -175,7 +175,8 @@ def create_audit_trigger_function(cursor) -> None:
 
 
 def drop_audit_trigger(cursor, table_name: str) -> None:
-    """Drop the audit trigger for the given table if it exists. Uses quoted identifiers."""
+    """Drop the audit trigger for the given table if it exists. Uses quoted identifiers.
+    table_name is normalized with _normalize_unqualified_table_name (same rules as create_audit_trigger)."""
     if connection.vendor != "postgresql":
         return
     table_name = _normalize_unqualified_table_name(table_name)

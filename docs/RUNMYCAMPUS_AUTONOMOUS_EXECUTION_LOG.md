@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - 11.4 batch 785: Raw SQL audit repository — drop_audit_trigger table_name normalization parity doc and tests (2026-04-07)
+
+**A. Scope:** Lock **`drop_audit_trigger()`** contract to the same **`table_name`** normalization as **`create_audit_trigger()`** (bool and binary buffers rejected via **`_normalize_unqualified_table_name`**), with explicit regression tests mirroring create-path coverage.
+
+**B. Implementation:** **`apps/people/repositories/audit_repository.py`** **`drop_audit_trigger()`** docstring. **`apps/people/tests/test_audit_repository.py`** **`test_drop_audit_trigger_pg_rejects_bool_table_name`**, **`test_drop_audit_trigger_pg_rejects_binary_buffer_table_name`**.
+
+**C. Validation:** **`python manage.py test apps.people.tests.test_audit_repository apps.people.tests.test_attach_audit_triggers_command apps.people.tests.test_revoke_audit_log_permissions_command --noinput -v 2`** - **42 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT 11.4 batch **785**; this log entry.
+
+**E. Risks / notes:** Behavior unchanged; tests document parity so future refactors cannot drop **`drop_audit_trigger`** guards alone.
+
+**F. Follow-ons:** **`786+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 784: Raw SQL SQLite integrity helper — reject bool db_path before PRAGMA connect (2026-04-07)
 
 **A. Scope:** Fail closed on **`bool`** **`db_path`** explicitly (Python **`bool`** subclasses **`int`**), keeping **`run_sqlite_integrity_check()`** safe if numeric path handling is added later.
@@ -12,7 +26,7 @@
 
 **E. Risks / notes:** **`True`**/**`False`** previously fell through to the generic **`else`** **`None`**; behavior unchanged, ordering is defensive.
 
-**F. Follow-ons:** **`785+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`786+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 783: Raw SQL tenant cache prefix — reject bool and binary buffers in school/schema normalization before current_setting read (2026-04-07)
 
