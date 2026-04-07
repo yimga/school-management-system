@@ -17,8 +17,16 @@ logger = logging.getLogger(__name__)
 
 _MAX_RLS_SCHOOL_ID_LEN = 128
 
+_RLS_SCHOOL_ID_BINARY_TYPES = (bytes, bytearray, memoryview)
+
 
 def _normalize_rls_school_id(school_id) -> str:
+    if isinstance(school_id, bool):
+        raise ValueError("set_rls_school_id school_id must not be a boolean.")
+    if isinstance(school_id, _RLS_SCHOOL_ID_BINARY_TYPES):
+        raise ValueError(
+            "set_rls_school_id school_id must not be bytes, bytearray, or memoryview."
+        )
     sid = str(school_id).strip() if school_id is not None else ""
     if not sid or sid.lower() in {"none", "null"}:
         raise ValueError("set_rls_school_id requires a non-blank school_id.")
@@ -41,6 +49,7 @@ def set_rls_school_id(school_id):
     """
     Set app.current_school_id for the current DB connection (e.g. in middleware).
     No-op when not PostgreSQL. Does not reset; caller must call reset_rls_school_id later.
+    school_id must not be bool or a binary buffer (bytes/bytearray/memoryview); use str/int/UUID-like values.
     """
     if not _should_manage_rls_session_vars():
         return

@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - 11.4 batch 780: Raw SQL schools RLS session GUC — reject bool and binary buffers for school_id before SET app.current_school_id (2026-04-07)
+
+**A. Scope:** Stop accidental **`bool`** and CPython buffer objects from being stringified into the **`SET app.current_school_id`** parameter (e.g. **`str(True)`** → **`"True"`**).
+
+**B. Implementation:** **`apps/schools/rls_context.py`** **`_normalize_rls_school_id()`** early **`ValueError`** for **`bool`** and **`_RLS_SCHOOL_ID_BINARY_TYPES`**. **`apps/schools/tests/test_rls_context.py`** adds **`test_set_rls_school_id_rejects_bool_on_postgresql`** and **`test_set_rls_school_id_rejects_binary_buffers_on_postgresql`**.
+
+**C. Validation:** **`python manage.py test apps.schools.tests.test_rls_context apps.tenancy.tests.test_tenant_task --noinput -v 2`** - **18 OK**; **`python scripts/lint_raw_sql_usage.py`** **PASS**; **`python scripts/verify_doc_plan_density_discipline.py` PASS** (after SOT/log).
+
+**D. Docs:** SOT 11.4 batch **780**; this log entry.
+
+**E. Risks / notes:** Call paths that incorrectly passed **`True`**/**`False`** now fail fast with **`ValueError`** on PostgreSQL instead of setting a nonsense GUC string.
+
+**F. Follow-ons:** **`781+`** - coordinate the next slice without overlapping active work.
+
 ## Slice - 11.4 batch 779: Raw SQL health and RLS repositories — reject memoryview buffer args before retained SQL (2026-04-07)
 
 **A. Scope:** Extend binary-buffer rejection to **`memoryview`** on schools health and RLS raw-SQL helpers so CPython buffer protocol objects cannot reach **`int()`** coercion, identifier normalization, or RLS placeholder expansion.
@@ -12,7 +26,7 @@
 
 **E. Risks / notes:** **`memoryview`** previously failed closed via **`try`**/**`except`** or integer-iteration dead ends; behavior is unchanged for normal **`str`** call paths.
 
-**F. Follow-ons:** **`780+`** - coordinate the next slice without overlapping active work.
+**F. Follow-ons:** **`781+`** - coordinate the next slice without overlapping active work.
 
 ## Slice - 11.4 batch 778: Raw SQL health repository — reject bytearray limit/schema_name and schema/table in count_table_rows and get_top_tables_by_size (2026-04-07)
 

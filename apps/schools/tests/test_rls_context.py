@@ -101,6 +101,29 @@ class RlsContextContractTests(unittest.TestCase):
 
         cursor.assert_not_called()
 
+    def test_set_rls_school_id_rejects_bool_on_postgresql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            with self.assertRaises(ValueError):
+                set_rls_school_id(True)
+            with self.assertRaises(ValueError):
+                set_rls_school_id(False)
+
+        cursor.assert_not_called()
+
+    def test_set_rls_school_id_rejects_binary_buffers_on_postgresql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            for bad in (b"school-1", bytearray(b"school-1"), memoryview(b"school-1")):
+                with self.assertRaises(ValueError):
+                    set_rls_school_id(bad)
+
+        cursor.assert_not_called()
+
     def test_rls_helpers_no_op_when_schema_per_tenant_enabled(self):
         with (
             patch.object(connection, "vendor", "postgresql"),
