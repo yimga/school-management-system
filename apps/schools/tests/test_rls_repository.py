@@ -76,6 +76,18 @@ class TestRlsRepository(unittest.TestCase):
 
         cursor.assert_not_called()
 
+    def test_get_tenant_rls_status_bool_input_returns_empty_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.rls_repository import get_tenant_rls_status
+
+            self.assertEqual(get_tenant_rls_status(True), {})
+            self.assertEqual(get_tenant_rls_status(False), {})
+
+        cursor.assert_not_called()
+
     def test_get_tenant_rls_status_dict_input_returns_empty_without_sql(self):
         with (
             patch.object(connection, "vendor", "postgresql"),

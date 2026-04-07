@@ -24,7 +24,8 @@ def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
     Return {relname: relrowsecurity} for the given table names in the public schema.
     table_names must be a list or other non-mapping iterable of strings (collections.abc.Mapping,
     including dict and types.MappingProxyType, is rejected so accidental mapping objects cannot be
-    interpreted as a relname sequence). Not a bare str/bytes/bytearray/memoryview, which would
+    interpreted as a relname sequence). Not bool (Python bool is not iterable for this API).
+    Not a bare str/bytes/bytearray/memoryview, which would
     iterate by character or yield integer code units. Only tables that exist are included. Duplicate relnames are collapsed to
     the first occurrence. At most _RLS_STATUS_MAX_TABLE_NAMES (500) valid identifiers are
     queried (first in iteration order after deduplication). No-op on non-PostgreSQL (returns {}).
@@ -34,6 +35,8 @@ def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
     ):
         return {}
     if isinstance(table_names, Mapping):
+        return {}
+    if isinstance(table_names, bool):
         return {}
     if isinstance(table_names, (str, bytes, bytearray, memoryview)) or not table_names:
         return {}
