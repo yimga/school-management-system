@@ -56,6 +56,61 @@ class TestHealthRepository(unittest.TestCase):
         self.assertIn("LIMIT %s", sql)
         self.assertEqual(params, [cap])
 
+    def test_get_global_health_stats_bool_limit_returns_empty_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_global_health_stats,
+            )
+
+            self.assertEqual(get_global_health_stats(limit=True), [])
+            self.assertEqual(get_global_health_stats(limit=False), [])
+
+        cursor.assert_not_called()
+
+    def test_get_global_health_stats_memoryview_limit_returns_empty_without_sql(self):
+        with (
+            patch.object(connection, "vendor", "postgresql"),
+            patch.object(connection, "cursor") as cursor,
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_global_health_stats,
+            )
+
+            self.assertEqual(
+                get_global_health_stats(limit=memoryview(b"10")),
+                [],
+            )
+
+        cursor.assert_not_called()
+
+    def test_get_global_health_stats_custom_limit_passed_to_sql(self):
+        fake_cursor = MagicMock()
+        fake_cursor.description = [
+            ("schema_name",),
+            ("pretty_size",),
+            ("raw_size",),
+            ("table_count",),
+        ]
+        fake_cursor.fetchall.return_value = []
+        fake_context = MagicMock()
+        fake_context.__enter__.return_value = fake_cursor
+        fake_context.__exit__.return_value = False
+
+        with patch.object(connection, "vendor", "postgresql"), patch.object(
+            connection, "cursor", return_value=fake_context
+        ):
+            from apps.schools.repositories.health_repository import (
+                get_global_health_stats,
+            )
+
+            self.assertEqual(get_global_health_stats(limit=7), [])
+
+        _sql, params = fake_cursor.execute.call_args.args
+        self.assertEqual(params, [7])
+
     def test_check_table_exists_non_pg_returns_false(self):
         with patch.object(connection, "vendor", "sqlite"):
             from apps.schools.repositories.health_repository import check_table_exists

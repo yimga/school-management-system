@@ -14,6 +14,6 @@ def get_top_tables_by_size(limit=10, schema_name=None):
     return _get_top_tables_by_size(limit=limit, schema_name=schema_name)
 
 
-def get_global_health_stats():
+def get_global_health_stats(limit=None):
     """Thin wrapper; implementation in repositories.health_repository."""
-    return _get_global_health_stats()
+    return _get_global_health_stats(limit=limit)

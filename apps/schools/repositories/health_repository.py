@@ -186,15 +186,33 @@ def count_table_rows(schema: str, table: str) -> int:
         return -1
 
 
-def get_global_health_stats() -> list[dict]:
+def get_global_health_stats(limit: int | None = None) -> list[dict]:
     """
     Per-schema storage (for multi-schema). Single-schema: one row for public.
     Returns list of dicts: schema_name, pretty_size, raw_size, table_count.
     Result rows are capped at _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT (500), largest schemas first.
+    When limit is None, that cap is used as the SQL LIMIT. When limit is provided, it is coerced
+    with the same rules as get_top_tables_by_size: bool and binary buffers return [] without SQL;
+    int must be positive and is capped at _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT.
     No-op on non-PostgreSQL backends (returns []).
     """
     if connection.vendor != "postgresql":
         return []
+    if limit is None:
+        eff_limit = _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT
+    else:
+        if isinstance(limit, bool):
+            return []
+        if isinstance(limit, _BINARY_BUFFER_TYPES):
+            return []
+        try:
+            eff_limit = int(limit)
+        except (TypeError, ValueError):
+            return []
+        if eff_limit <= 0:
+            return []
+        if eff_limit > _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT:
+            eff_limit = _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -211,7 +229,7 @@ def get_global_health_stats() -> list[dict]:
             ORDER BY raw_size DESC
             LIMIT %s;
             """,
-            [_HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT],
+            [eff_limit],
         )
         columns = [col[0] for col in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
